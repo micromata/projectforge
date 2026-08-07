@@ -955,14 +955,28 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Re-indexes the entries of the last day, 1,000 at max.
+     * The entities of a partial re-index (entries of the last day). [HistoryEntryDO] is not part of it: it is by far
+     * the largest table (millions of rows), so including it would turn the quick run into a full one.
+     */
+    open val reindexClasses4NewestEntries: List<Class<*>>
+        get() = listOf(doClass)
+
+    /**
+     * The entities of a full re-index. Only here the history is rebuilt as well.
+     */
+    open val reindexClasses: List<Class<*>>
+        get() = listOf(doClass, HistoryEntryDO::class.java)
+
+    /**
+     * Re-indexes the entries of the last day.
      *
      * @see DatabaseDao.createReindexSettings
      */
     open fun rebuildDatabaseIndex4NewestEntries() {
         val settings = createReindexSettings(true)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
-        databaseDao.rebuildDatabaseSearchIndices(HistoryEntryDO::class.java, settings)
+        reindexClasses4NewestEntries.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**
@@ -970,7 +984,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     open fun rebuildDatabaseIndex() {
         val settings = createReindexSettings(false)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
+        reindexClasses.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**

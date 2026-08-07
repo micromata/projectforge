@@ -11,6 +11,7 @@ import {
   FilterFavoritesMenu,
   FilterPills,
   filterValuesFromEntries,
+  ListGearMenu,
   useColumnStatePersistence,
   useDataTable,
   useFilterFavorites,
@@ -167,6 +168,18 @@ function BooksList({
     columnState.setColumnFilters([]);
   }
 
+  /**
+   * The local half of the gear menu's "reset filter": the endpoint only drops what the server
+   * stores. It discards the grid state along with the filter, so the columns go with it.
+   */
+  function resetFilter() {
+    filters.setValues({});
+    filters.setFavorite(undefined);
+    // Clears search string and sort order and returns to page 1.
+    applyFilter({ entries: [], sortProperties: [] });
+    resetColumns();
+  }
+
   return (
     <PageShell>
       <ListPageShell
@@ -174,6 +187,9 @@ function BooksList({
           <BooksToolbar
             search={globalFilter}
             onSearch={setGlobalFilter}
+            gearMenu={
+              <ListGearMenu entity={ENTITY} onFilterReset={resetFilter} />
+            }
             columnPanel={
               <DataTableColumnPanel
                 table={table}

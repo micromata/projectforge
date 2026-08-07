@@ -105,6 +105,11 @@ export interface UserStatus {
   alertMessage?: string;
   /** CSRF token of the session, see setCsrfToken in ./client.ts. */
   csrfToken?: string;
+  /**
+   * Whether the user is in the admin group. This app declares its menus itself, so it has to decide
+   * on its own whether to offer an admin only action (see ListGearMenu).
+   */
+  adminUser?: boolean;
 }
 
 export interface SystemStatus {

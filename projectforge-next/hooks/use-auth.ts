@@ -28,6 +28,8 @@ export function useAuth() {
     alertMessage: query.data?.alertMessage,
     isLoading: query.isLoading,
     isAuthenticated: !!query.data?.userData,
+    /** Member of the admin group — gates menu entries this app declares itself. */
+    isAdmin: !!query.data?.adminUser,
     error: query.error,
     refetch: query.refetch,
   };

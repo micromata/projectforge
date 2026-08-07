@@ -40,7 +40,9 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsAccessChecker
 import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.*
+import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
@@ -53,8 +55,10 @@ import org.projectforge.rest.core.aggrid.AGGridSupport
 import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
+import org.projectforge.rest.jobs.ReindexJob
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
+import org.projectforge.web.rest.RestAuthenticationUtils
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -181,7 +185,13 @@ constructor(
     lateinit var agGridSupport: AGGridSupport
 
     @Autowired
+    private lateinit var databaseDao: DatabaseDao
+
+    @Autowired
     private lateinit var historyFormatService: HistoryFormatService
+
+    @Autowired
+    private lateinit var jobHandler: JobHandler
 
     @Autowired
     private lateinit var sessionCsrfService: SessionCsrfService
@@ -667,19 +677,48 @@ constructor(
      * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
      */
     @GetMapping("reindexNewest")
-    fun reindexNewest(): ResponseAction {
+    fun reindexNewest(request: HttpServletRequest): ResponseAction {
+        startReindexOrRunIt(request, full = false)?.let { return it }
         baseDao.rebuildDatabaseIndex4NewestEntries()
         return UIToast.createToast(translate("administration.reindexNewest.successful"), color = UIColor.SUCCESS)
     }
 
     /**
-     * Rebuilds the index by the search engine for all entries.
+     * Rebuilds the index by the search engine for all entries. Admins only: this includes the history, so it affects
+     * the whole system. The classic frontend simply hides the menu entry, but projectforge-next builds its list
+     * pages itself, so the check has to be here.
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GetMapping("reindexFull")
-    fun reindexFull(): ResponseAction {
+    fun reindexFull(request: HttpServletRequest): ResponseAction {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        startReindexOrRunIt(request, full = true)?.let { return it }
         baseDao.rebuildDatabaseIndex()
         return UIToast.createToast(translate("administration.reindexFull.successful"), color = UIColor.SUCCESS)
+    }
+
+    /**
+     * projectforge-next shows a progress toast, so it gets the id of a job to poll (see JobsMonitorPageRest).
+     * The classic clients have no such display and keep waiting for the toast of the finished run.
+     *
+     * @return The response for projectforge-next, or null if the caller has to do the run synchronously.
+     */
+    private fun startReindexOrRunIt(request: HttpServletRequest, full: Boolean): ResponseAction? {
+        if (!RestAuthenticationUtils.isNextClient(request)) {
+            return null
+        }
+        val i18nKey = if (full) "administration.reindexFull.job.title" else "administration.reindexNewest.job.title"
+        val job = jobHandler.addJob(
+            ReindexJob(
+                databaseDao = databaseDao,
+                classes = if (full) baseDao.reindexClasses else baseDao.reindexClasses4NewestEntries,
+                settings = DatabaseDao.createReindexSettings(!full),
+                adminRequired = full,
+                // The same key the list layout uses as its title — every entity has it.
+                title = translateMsg(i18nKey, translate("$i18nKeyPrefix.list")),
+            )
+        )
+        return ResponseAction(targetType = TargetType.NOTHING).addVariable("jobId", job.id)
     }
 
     /**

@@ -235,6 +235,40 @@
     },
     "was": "was"
   },
+  "jobs": {
+    "error": {
+      "refusedByAnotherRunningJob": "Job couldn't be started: Another job is already running in this queue.",
+      "waitingTimeExceeded": "Job couldn't be started due to a timeout: This job is blocked by other long-running job(s)."
+    },
+    "import": {
+      "action": {
+        "reconcile": {
+          "tooltip": "Compare all uploaded entries with already existing database entries."
+        }
+      }
+    },
+    "job": {
+      "cancel": {
+        "confirmationMessage": "Do you want to cancel this job now?"
+      },
+      "runtime": "Run-time",
+      "startedAt": "Started at",
+      "status": {
+        "cancelled": "Canelled",
+        "failed": "Failed",
+        "finished": "Finished",
+        "refused": "Refused",
+        "running": "Running",
+        "waiting": "Waiting"
+      },
+      "terminatedAt": "Terminated at",
+      "title": "Job title"
+    },
+    "monitor": {
+      "noJobsAvailable": "No current jobs",
+      "title": "Job monitor"
+    }
+  },
   "label": {
     "historyOfChanges": "History of changes"
   },

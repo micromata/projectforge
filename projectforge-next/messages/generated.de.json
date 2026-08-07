@@ -235,6 +235,40 @@
     },
     "was": "war"
   },
+  "jobs": {
+    "error": {
+      "refusedByAnotherRunningJob": "Job konnte nicht gestartet werden, weil bereits ein anderer Job für die gleiche Queue läuft.",
+      "waitingTimeExceeded": "Job fehlgeschlagen (Zeitüberschreitung). Der Job konnte nicht gestartet werden, weil er von anderen Job(s) zu lange blockiert wurde."
+    },
+    "import": {
+      "action": {
+        "reconcile": {
+          "tooltip": "Beim Abgleichen werden alle hochgeladenen Datensätze mit den in der Datenbank bereits vorhandenen Daten verglichen."
+        }
+      }
+    },
+    "job": {
+      "cancel": {
+        "confirmationMessage": "Soll der Job jetzt unwiderruflich abgebrochen werden?"
+      },
+      "runtime": "Laufzeit",
+      "startedAt": "Gestartet",
+      "status": {
+        "cancelled": "Abgebrochen",
+        "failed": "Fehlerhaft",
+        "finished": "Fertig",
+        "refused": "Abgelehnt",
+        "running": "Läuft",
+        "waiting": "Wartend"
+      },
+      "terminatedAt": "Beendet",
+      "title": "Jobtitel"
+    },
+    "monitor": {
+      "noJobsAvailable": "Keine aktuellen Jobs",
+      "title": "Jobmonitor"
+    }
+  },
   "label": {
     "historyOfChanges": "Änderungshistorie"
   },

@@ -29,6 +29,7 @@ import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDateCompatibilityUtils
@@ -54,6 +55,9 @@ import jakarta.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/userStatus")
 open class UserStatusRest {
+
+  @Autowired
+  private lateinit var accessChecker: AccessChecker
 
   @Autowired
   private lateinit var systemStatusRest: SystemStatusRest
@@ -117,6 +121,14 @@ open class UserStatusRest {
      * such envelope, so it takes the token from here - the one call it makes on every app start.
      */
     val csrfToken: String? = null,
+    /**
+     * True if the user is a member of the admin group.
+     *
+     * Needed by projectforge-next, which declares its menus in the frontend and therefore has to decide itself
+     * whether to offer an admin only action (e. g. rebuilding the whole search index). The UILayout based clients
+     * don't need it: there the server omits such entries from the page menu (see AbstractPagesRest).
+     */
+    val adminUser: Boolean = false,
   )
 
   @GetMapping
@@ -158,7 +170,13 @@ open class UserStatusRest {
     // Rest clients authenticated by token have no session and need no CSRF token (see RestCsrfProtection).
     val csrfToken = request.getSession(false)?.let { sessionCsrfService.createServerData(request).csrfToken }
     return ResponseEntity<Result>(
-      Result(userData, systemData, SystemAlertMessage.alertMessage, csrfToken),
+      Result(
+        userData,
+        systemData,
+        SystemAlertMessage.alertMessage,
+        csrfToken,
+        accessChecker.isLoggedInUserMemberOfAdminGroup,
+      ),
       HttpStatus.OK
     )
   }

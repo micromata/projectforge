@@ -23,17 +23,19 @@
 
 package org.projectforge.framework.persistence.database
 
+import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
+import kotlinx.coroutines.future.await
 import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.mapper.orm.massindexing.MassIndexer
 import org.hibernate.search.mapper.orm.session.SearchSession
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
-import org.projectforge.framework.utils.NumberFormatter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -75,7 +77,7 @@ open class DatabaseDao {
             try {
                 currentReindexRun = Date()
                 sb.append(ClassUtils.getShortClassName(clazz))
-                reindex(clazz, settings)
+                reindexObjects(clazz, settings)
                 sb.append(", ")
             } finally {
                 currentReindexRun = null
@@ -84,28 +86,13 @@ open class DatabaseDao {
     }
 
     /**
-     * @param clazz
+     * Blocking re-index run, used by the classic clients (Wicket admin page, cron job, synchronous REST calls).
+     * For a cancellable run inside a coroutine use [reindexSuspending].
      */
-    private fun <T> reindex(clazz: Class<T>, settings: ReindexSettings) {
-        if (settings.lastNEntries != null || settings.fromDate != null) { // OK, only partly re-index required:
-            reindexObjects(clazz, settings)
-            return
-        }
-        reindexObjects(clazz, null)
-    }
-
-    private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
+    private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings) {
         entityManagerFactory.createEntityManager().use { em ->
-            // totalEntries are given by Hibernate search to MassIndexingMonitor.
-            // val totalEntries = em.createQuery("SELECT COUNT(u) FROM ${clazz.simpleName} u", Long::class.java).singleResult
-            val searchSession: SearchSession = Search.session(em)
             try {
-                // Starte den MassIndexer für eine bestimmte Entität (z.B. EmployeeDO)
-                searchSession.massIndexer(clazz)
-                    .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
-                    .batchSizeToLoadObjects(25) // Batch-Größe
-                    .idFetchSize(150) // Größe des ID-Fetch
-                    .monitor(IndexProgressMonitor(clazz)) // Fortschrittsmonitor hinzufügen
+                createMassIndexer(em, clazz, settings, IndexProgressMonitor(clazz))
                     .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
             } catch (ex: InterruptedException) {
                 log.error(ex.message, ex)
@@ -113,9 +100,55 @@ open class DatabaseDao {
         }
     }
 
+    /**
+     * Re-indexes the given class without blocking the calling thread and, unlike [rebuildDatabaseSearchIndices],
+     * abortable: [MassIndexer.startAndWait] can't be interrupted by a coroutine, while cancelling the future of
+     * [MassIndexer.start] really stops the indexing (see CancellableExecutionCompletableFuture of Hibernate Search).
+     *
+     * Serializing concurrent runs is up to the caller (jobs do it via their queue strategy).
+     */
+    suspend fun <T> reindexSuspending(
+        clazz: Class<T>,
+        settings: ReindexSettings,
+        monitor: MassIndexingMonitor = IndexProgressMonitor(clazz),
+    ) {
+        // The EntityManager has to stay open until the indexer is done, so await() happens inside use { }.
+        entityManagerFactory.createEntityManager().use { em ->
+            createMassIndexer(em, clazz, settings, monitor).start().await()
+        }
+    }
+
+    private fun <T> createMassIndexer(
+        em: EntityManager,
+        clazz: Class<T>,
+        settings: ReindexSettings,
+        monitor: MassIndexingMonitor,
+    ): MassIndexer {
+        // totalEntries are given by Hibernate search to MassIndexingMonitor.
+        val searchSession: SearchSession = Search.session(em)
+        val indexer = searchSession.massIndexer(clazz)
+            .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
+            .batchSizeToLoadObjects(25) // Batch-Größe
+            .idFetchSize(150) // Größe des ID-Fetch
+            .monitor(monitor) // Fortschrittsmonitor hinzufügen
+        val fromDate = settings.fromDate
+        val modifiedAtProperty = ReindexerRegistry.get(clazz).modifiedAtProperty
+        if (fromDate != null && modifiedAtProperty != null) {
+            // Only the recently modified entries: the rest of the index has to survive, so no purge. Without this
+            // (purgeAllOnStart defaults to true) a partial run would wipe every document not touched by it.
+            indexer.purgeAllOnStart(false)
+            indexer.type(clazz).reindexOnly("$modifiedAtProperty >= :fromDate").param("fromDate", fromDate)
+        } else if (fromDate != null) {
+            log.info { "${clazz.simpleName}: No property of last modification known, so all entries are re-indexed." }
+        }
+        return indexer
+    }
+
     companion object {
         /**
-         * Since yesterday and 1,000 newest entries at maximum.
+         * Since yesterday. [ReindexSettings.lastNEntries] is set for the classic clients displaying it, but has no
+         * effect on the indexing itself: reindexOnly of Hibernate Search takes a where condition without order or
+         * limit, and limitIndexedObjectsTo would cap arbitrary entries, not the newest ones.
          */
         @JvmStatic
         fun createReindexSettings(onlyNewest: Boolean): ReindexSettings {

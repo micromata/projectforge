@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface BooksToolbarProps {
   search: string;
@@ -14,6 +15,8 @@ interface BooksToolbarProps {
   columnPanel?: React.ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
   filterPills?: React.ReactNode;
+  /** Maintenance actions of the list (re-index, reset filter), see ListGearMenu. */
+  gearMenu?: React.ReactNode;
 }
 
 export function BooksToolbar({
@@ -21,6 +24,7 @@ export function BooksToolbar({
   onSearch,
   columnPanel,
   filterPills,
+  gearMenu,
 }: BooksToolbarProps) {
   const t = useTranslations();
 
@@ -36,6 +40,14 @@ export function BooksToolbar({
           </h1>
         </div>
         <div className="flex-1" />
+        {/* Divider only with a menu beside it: it separates the list's own actions from
+            "add", which creates an entity. */}
+        {gearMenu && (
+          <>
+            {gearMenu}
+            <Separator orientation="vertical" className="!h-5" />
+          </>
+        )}
         <Button asChild size="sm" className="gap-1.5">
           <Link href="/books/new">
             <HugeiconsIcon icon={PlusSignIcon} size={13} />

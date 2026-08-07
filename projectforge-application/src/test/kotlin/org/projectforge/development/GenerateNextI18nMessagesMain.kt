@@ -151,6 +151,10 @@ object GenerateNextI18nMessagesMain {
     "menu.reindexNewestDatabaseEntries",
     "menu.reindexAllDatabaseEntries",
     "menu.resetFilter",
+    // Background jobs the frontend watches (see components/shared/jobs/): status names, the cancel
+    // question and the error a refused job carries. The progress texts themselves come translated
+    // from the server in JobInfo, but the toast around them is the frontend's.
+    "jobs.",
     // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
     // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
     "cancel",
