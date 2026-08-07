@@ -1,4 +1,5 @@
 {
+  "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "apply": "Apply",
   "book": {
     "abstract": "Abstract",
@@ -152,6 +153,7 @@
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
     "title": "Login"
   },
+  "markAsDeleted": "Delete",
   "menu": {
     "common": "Common",
     "favorites": {
@@ -161,6 +163,10 @@
       "title": "Main menu"
     },
     "myAccount": "My account"
+  },
+  "message": {
+    "successfullChanged": "Successfully changed.",
+    "successfullCompleted": "Successfully completed: {arg0}"
   },
   "modified": "modified",
   "modifiedBy": "modified by",
@@ -191,8 +197,12 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "question": {
+    "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
+  },
   "rename": "rename",
   "save": "Save",
+  "undelete": "Undelete",
   "uptodate": "up-to-date",
   "user": {
     "My2FA": {
@@ -260,6 +270,21 @@
     }
   },
   "username": "User name",
+  "validation": {
+    "error": {
+      "fieldRequired": "Field '{arg0}' is required.",
+      "format": {
+        "integer": "Unsupported integer format."
+      },
+      "generic": "Your input is invalid.",
+      "nothingToExport": "Nothing to export.",
+      "range": {
+        "integerOutOfRange": "Value out of range {arg0}-{arg1}.",
+        "integerToHigh": "Value must not be higher than {arg0}.",
+        "integerToLow": "Value must not be lower than {arg0}."
+      }
+    }
+  },
   "webauthn": {
     "error": {
       "process": "Error while processing authentication.",

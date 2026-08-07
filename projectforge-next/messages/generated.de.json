@@ -1,4 +1,5 @@
 {
+  "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "apply": "Übernehmen",
   "book": {
     "abstract": "Zusammenfassung",
@@ -152,6 +153,7 @@
     "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",
     "title": "Anmeldung"
   },
+  "markAsDeleted": "Löschen",
   "menu": {
     "common": "Allgemein",
     "favorites": {
@@ -161,6 +163,10 @@
       "title": "Hauptmenü"
     },
     "myAccount": "Mein Zugang"
+  },
+  "message": {
+    "successfullChanged": "Änderung erfolgreich durchgeführt.",
+    "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
   },
   "modified": "geändert",
   "modifiedBy": "geändert durch",
@@ -191,8 +197,12 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "question": {
+    "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
+  },
   "rename": "Umbenennen",
   "save": "Speichern",
+  "undelete": "Wiederherstellen",
   "uptodate": "aktuell",
   "user": {
     "My2FA": {
@@ -260,6 +270,21 @@
     }
   },
   "username": "Benutzer:innenname",
+  "validation": {
+    "error": {
+      "fieldRequired": "Feld '{arg0}' muss ausgefüllt werden.",
+      "format": {
+        "integer": "Ungültiger Ganzzahlwert."
+      },
+      "generic": "Ungültige Eingabe.",
+      "nothingToExport": "Keine Daten für den Export vorhanden.",
+      "range": {
+        "integerOutOfRange": "Wert außerhalb des Bereichs {arg0} - {arg1}.",
+        "integerToHigh": "Wert darf nicht größer als {arg0} sein.",
+        "integerToLow": "Wert darf nicht kleiner als {arg0} sein."
+      }
+    }
+  },
   "webauthn": {
     "error": {
       "process": "Fehler im Authentifizierungsprozess.",

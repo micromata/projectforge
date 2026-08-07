@@ -757,7 +757,8 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **i18n:** Quelle `projectforge-business/src/main/resources/I18nResources[_de].properties`;
   Generator `projectforge-application/src/test/kotlin/org/projectforge/development/GenerateNextI18nMessagesMain.kt`
   (läuft via `DevelopmentMainForRelease`); Frontend `projectforge-next/i18n/`,
-  `messages/` (`generated.*.json` nicht von Hand ändern)
+  `messages/` (`generated.*.json` nicht von Hand ändern — `GenerateNextI18nMessagesTest`
+  erzwingt das im Build)
 - **Tabelle:** `projectforge-next/components/data-table/*`; Port-Vorlage
   `projectforge-webapp/src/components/base/dynamicLayout/components/table/`
   (inkl. `tanstack/`); Backend-Spaltenzustand

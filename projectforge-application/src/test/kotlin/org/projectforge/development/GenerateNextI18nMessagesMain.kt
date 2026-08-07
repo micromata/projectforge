@@ -23,6 +23,7 @@
 
 package org.projectforge.development
 
+import org.projectforge.framework.utils.SourcesUtils
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Properties
@@ -44,11 +45,24 @@ import java.util.Properties
  * so frontend-only texts (e.g. `login.username`, which has no backend counterpart) survive.
  * next-intl reads dotted keys as nested namespaces, so `book.signature` is written as
  * `{"book":{"signature":…}}` and read via `useTranslations("book")` + `t("signature")`.
+ *
+ * The generated files are never edited by hand — [GenerateNextI18nMessagesTest] fails if they
+ * differ from what [generate] produces, which catches both a manual edit and a bundle change that
+ * was committed without regenerating.
  */
 object GenerateNextI18nMessagesMain {
   private const val BUNDLE = "projectforge-business/src/main/resources/I18nResources"
   private const val OUT_DIR = "projectforge-next/messages"
   private val ENCODING = StandardCharsets.UTF_8
+
+  /**
+   * Warning carried in the catalog itself, since JSON can't hold a comment. Must not contain a dot,
+   * otherwise [JsonNode.put] would nest it.
+   */
+  internal const val MARKER_KEY = "_generated"
+  private const val MARKER_VALUE =
+    "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) " +
+        "— do not edit; hand-written texts belong in de.json/en.json."
 
   /** Generated locale to the properties suffix it reads from (default bundle = English). */
   private val LOCALES = mapOf("en" to "", "de" to "_de")
@@ -70,10 +84,17 @@ object GenerateNextI18nMessagesMain {
     // spelling out every key that happens to share a prefix.
     "apply",
     "delete",
+    "markAsDeleted",
+    "undelete",
     "save",
     "name",
     "rename",
     "uptodate",
+    // Confirmation before an entity is marked as deleted, plus the generic messages the server
+    // answers a write with (message.successfull*, validation.error.*).
+    "question.markAsDeletedQuestion",
+    "message.successfull",
+    "validation.error.",
     // Saved list filters. Without the dot so the bare "favorite"/"favorites" keys export too.
     "favorite",
     // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
@@ -99,16 +120,35 @@ object GenerateNextI18nMessagesMain {
 
   @JvmStatic
   fun main(args: Array<String>) {
-    val defaults = readProperties("")
+    val rootDir = resolveRootDir()
+    generate(rootDir).forEach { (locale, json) ->
+      val outFile = outFile(rootDir, locale)
+      outFile.parentFile.mkdirs()
+      outFile.writeText(json, ENCODING)
+      println("Wrote ${outFile.path}")
+    }
+  }
+
+  /**
+   * Builds the catalogs without writing them, so [GenerateNextI18nMessagesTest] can compare them
+   * against the committed files.
+   *
+   * @return locale (as in [LOCALES]) to the full JSON content of its catalog.
+   */
+  internal fun generate(rootDir: File): Map<String, String> {
+    val defaults = readProperties(rootDir, "")
     val exported = defaults.stringPropertyNames()
       .filter { key -> PREFIXES.any { key.startsWith(it) } }
       .sorted()
 
     require(exported.isNotEmpty()) { "No keys matched $PREFIXES — check the prefixes." }
 
-    LOCALES.forEach { (locale, suffix) ->
-      val properties = if (suffix.isEmpty()) defaults else readProperties(suffix)
+    return LOCALES.entries.associate { (locale, suffix) ->
+      val properties = if (suffix.isEmpty()) defaults else readProperties(rootDir, suffix)
       val root = JsonNode()
+      // First key, so whoever opens the file sees the warning right away (JsonNode preserves the
+      // insertion order).
+      root.put(MARKER_KEY, MARKER_VALUE)
       exported.forEach { key ->
         // Fall back to the default (English) bundle for untranslated keys.
         val value = properties.getProperty(key) ?: defaults.getProperty(key)
@@ -116,16 +156,21 @@ object GenerateNextI18nMessagesMain {
           root.put(key, toIcu(value))
         }
       }
-      val outFile = File("$OUT_DIR/generated.$locale.json")
-      outFile.parentFile.mkdirs()
-      outFile.writeText(root.toJson(), ENCODING)
-      println("Wrote ${outFile.path} (${exported.size} keys)")
+      locale to root.toJson()
     }
   }
 
-  private fun readProperties(suffix: String): Properties {
-    val file = File("$BUNDLE$suffix.properties")
-    require(file.exists()) { "Properties file not found: ${file.path}" }
+  internal fun outFile(rootDir: File, locale: String) = File(rootDir, "$OUT_DIR/generated.$locale.json")
+
+  /**
+   * The repository root. Needed because Gradle runs tests in the module directory while [main] is
+   * started from the IDE with the root as working directory.
+   */
+  internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
+
+  private fun readProperties(rootDir: File, suffix: String): Properties {
+    val file = File(rootDir, "$BUNDLE$suffix.properties")
+    require(file.exists()) { "Properties file not found: ${file.absolutePath}" }
     return Properties().apply {
       file.inputStream().use { load(it.reader(ENCODING)) }
     }
