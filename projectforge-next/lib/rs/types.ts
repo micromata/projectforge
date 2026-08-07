@@ -103,6 +103,8 @@ export interface UserStatus {
   userData: UserData;
   systemData?: Record<string, unknown>;
   alertMessage?: string;
+  /** CSRF token of the session, see setCsrfToken in ./client.ts. */
+  csrfToken?: string;
 }
 
 export interface SystemStatus {

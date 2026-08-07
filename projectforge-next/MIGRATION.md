@@ -439,13 +439,10 @@ den Filter als `restoredFilter`.
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
    in Phase 2 braucht. Muster: Registry `name → Komponente`
    (`CellRendererDispatch.tsx`) – ohne die AG-Grid-Params-Hülle.
-4. **CSRF-Schutz für die next-Aufrufe** – siehe eigener Abschnitt unten. Muss in
-   `books` gelöst werden, bevor es in die Breite geht: jede migrierte Seite erbt
-   den Mechanismus.
-5. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
+4. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
    `books`-Edit ist der Präzedenzfall für alle handgebauten Seiten: solange dort
    `required` und Feldlängen von Hand stehen, erbt jede weitere Seite das Muster.
-6. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers) und der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen).
@@ -454,73 +451,73 @@ Erledigt seit der letzten Fassung: die Form-Library-Drift (`CLAUDE.md` schreibt
 inzwischen `@tanstack/react-form` + Zod für handgebaute Formulare vor, dynamische
 Seiten bleiben bewusst ohne Form-Library – s. Phase 2).
 
-#### Offen: CSRF-Schutz (querschnittlich, blockiert die Breite)
+#### Erledigt: CSRF-Schutz (querschnittlich, war Voraussetzung für die Breite)
 
-**Der Stand.** Die Authentifizierung hängt am `JSESSIONID`-Cookie, das der Browser
-bei _jedem_ Request mitschickt – auch bei einem, den eine fremde Seite auslöst.
-Der Schutz dagegen ist im Backend vorhanden (`SessionCsrfService`: Token pro
-Session, 30 Zeichen, `NumberHelper.getSecureRandomAlphanumeric`), aber er greift
-nur dort, wo er auch aufgerufen wird – und das ist an den `PostData`/`ServerData`-
-Kontrakt der alten React-App gebunden: `createServerData(request)` legt das Token
-in die `FormLayoutData` einer Edit-Seite, `validateCsrfToken(request, postData)`
-liest es aus `postData.serverData` zurück. **next benutzt weder `PostData` noch
-`ServerData`** und bekommt deshalb an keiner Stelle ein Token in die Hand.
+**Das Problem.** Die Authentifizierung hängt am `JSESSIONID`-Cookie, das der
+Browser bei _jedem_ Request mitschickt – auch bei einem, den eine fremde Seite
+auslöst. Der Schutz dagegen war im Backend vorhanden (`SessionCsrfService`), griff
+aber nur über den `PostData`/`ServerData`-Kontrakt der alten React-App – und
+**next benutzt weder `PostData` noch `ServerData`**. Ungeschützt waren damit
+`setColumnStates` und `filter/create|update` (`@PostMapping` ohne Prüfung) sowie
+`filter/rename|delete|select` (zustandsändernde `@GetMapping`s, per `<img src>`
+auslösbar); `saveOrUpdate` & Co. hätten einen next-Aufruf umgekehrt _abgelehnt_,
+weil `serverData.csrfToken` fehlte.
 
-Genau eine Ausnahme existiert schon und ist die Vorlage: der Passwort-Reset. Dafür
-wurde `SessionCsrfService.checkToken(request, token)` public gemacht,
-`PasswordResetNextRest` gibt das Token im `GET`-Aufruf mit
-(`csrfToken = createServerData(request).csrfToken`) und prüft es beim `setPassword`
-gegen die Session. Für alles andere in next fehlt es.
+**Der Weg: zwei unabhängige Schranken in `rest/core/RestCsrfProtection.kt`,**
+aufgerufen aus `RestAuthenticationUtils.doFilter` – also einmal zentral für alle
+`/rs/*`-Aufrufe, nach der Authentifizierung und vor dem 2FA-Handler. Neue
+Endpunkte erben den Schutz dadurch ohne Zutun; ein Merksatz in `CLAUDE.md` erübrigt
+sich deshalb bewusst.
 
-**Ungeschützt sind damit heute** alle zustandsändernden Aufrufe aus
-`lib/rs/client.ts`:
+1. **`Sec-Fetch-Site` (alle Clients, alle Methoden).** Der Header wird vom Browser
+   gesetzt und ist für die aufrufende Seite nicht fälschbar – die einzige Schranke,
+   die auch die zustandsändernden `@GetMapping`s deckt, die nirgends ein Token
+   führen. Erlaubt sind nur `same-origin` und `none` (Bookmark/Direkteingabe).
+   **`same-site` wird bewusst abgelehnt:** jeder `/rs`-Aufruf kommt von einer Seite
+   dieser App, ist also immer `same-origin`; eine kompromittierte
+   Schwester-Subdomain käme sonst durch – und würde von Schranke 2 nicht gestoppt,
+   weil ein Angreifer den `X-PF-Frontend`-Header einfach wegließe.
+2. **Session-Token im Header `X-PF-CSRF-Token` (next-Clients, nicht-`GET`).**
+   Ausgeliefert in `userStatus` (holt next beim App-Start ohnehin), im Client in
+   einem Modul-State neben dem 2FA-Handler – nicht in `localStorage`, damit ein XSS
+   ihn nicht abgreift. Gesetzt wird er zentral in `rawRequest`, damit keine
+   Aufrufstelle ihn vergessen kann. Ein Header, kein Body-Feld: funktioniert auch
+   ohne Body und ist cross-site nicht ohne Preflight setzbar.
 
-- `setColumnStates` (`@PostMapping`, `updateColumnStates` prüft nichts – auch für
-  die React-App nicht),
-- `filter/create` und `filter/update` (`@PostMapping`, ohne Prüfung),
-- `filter/rename`, `filter/delete`, `filter/select` – als `@GetMapping`
-  zustandsändernd und damit sogar per `<img src>` auslösbar,
-- `saveOrUpdate`/`markAsDeleted`/`delete`/`undelete`/`cancel`: die prüfen
-  serverseitig **und würden einen next-Aufruf ablehnen**, weil ohne
-  `serverData.csrfToken` `checkToken` fehlschlägt. Sobald die Edit-Seiten in next
-  wirklich speichern, läuft das also auf. Zusätzlich antwortet der Fehlerfall mit
-  einer `ResponseAction` (`TargetType.UPDATE`) – ein Format, das next nicht liest.
+Warum nur next-Clients bei Schranke 2: die UILayout-Clients führen ihr Token im
+Body, und den im Filter zu lesen würde den Stream verbrauchen. Deshalb muss
+Schranke 1 client-unabhängig bleiben. Rest-Clients mit Access-Token
+(`loggedInByAuthenticationToken`) sind von beiden ausgenommen – sie hängen an
+keinem Ambient-Cookie.
 
-Der Schaden ist real, nicht theoretisch: Es gibt kein `SameSite`-Attribut in der
-Konfiguration (nirgends gesetzt, weder Code noch `application.properties`), also
-gilt der Browser-Default `Lax`. Der schützt Cross-Site-`POST`s, aber **nicht**
-die zustandsändernden `GET`s oben – ein Link genügt, um einem eingeloggten Nutzer
-Filter-Favoriten zu löschen.
+**Ein veraltetes Token bleibt unsichtbar.** Kommt der Nutzer per Stay-logged-in
+herein, erzeugt `LoginService.checkStayLoggedIn` eine neue Session (und damit ein
+neues Token) – und zwar in `authenticate()`, unmittelbar vor der Prüfung. Der
+Client hält dann noch das alte. Deshalb antwortet die Ablehnung für next-Clients
+mit `403 {csrfTokenRequired:true}`; `lib/rs/client.ts` holt daraufhin `userStatus`
+und wiederholt den Request **genau einmal**. Die alte React-App bekommt in
+derselben Lage eine `errorpage.csrfError`-Validierungsmeldung und der Nutzer muss
+ein zweites Mal speichern.
 
-**Zu entscheiden (Vorschlag):**
+**Ergänzend:** `validateCsrfToken` liest das Token jetzt auch aus dem Header, damit
+`saveOrUpdate`/`markAsDeleted`/… aus next nicht an ihrer eigenen Prüfung scheitern
+(deren Fehlerfall ist eine `ResponseAction` mit HTTP 200, die next nicht lesen
+kann). Und `server.servlet.session.cookie.same-site=Lax` steht nun explizit in
+`application.properties` statt sich auf den Browser-Default zu verlassen –
+Defense in Depth. `Strict` würde die Rückkehr aus dem Passwort-Reset-Mail-Link
+brechen.
 
-1. **Ein Token für die ganze Session an next ausliefern**, nicht pro Seite: am
-   naheliegendsten in `userStatus` (holt next beim App-Start ohnehin) bzw. beim
-   Login. Es liegt im Client in einem Modul-State neben dem 2FA-Handler, nicht in
-   `localStorage` – ein XSS soll es nicht abgreifen können, und ein Reload holt
-   `userStatus` neu.
-2. **`request()` in `lib/rs/client.ts` schickt es bei jeder nicht-`GET`-Methode
-   als Header** (`X-PF-CSRF-Token`) mit. Zentral, damit keine Aufrufstelle es
-   vergessen kann – dieselbe Stelle, an der schon `X-PF-Frontend: next` und die
-   2FA-Wiederholung sitzen. Ein Header ist dem Body-Feld vorzuziehen: er
-   funktioniert auch für Aufrufe ohne Body und ist Cross-Site nicht setzbar.
-3. **Serverseitig ein Filter/Interceptor für `/rs/*`**, der für next-Clients
-   (`X-PF-Frontend: next`) bei jeder zustandsändernden Methode gegen
-   `SessionCsrfService.checkToken` prüft und mit `403` antwortet – nicht mit einer
-   `ResponseAction`. Der Rest-Client-Fall (`loggedInByAuthenticationToken`) bleibt
-   ausgenommen, wie in `validateCsrfToken` schon vorgesehen.
-4. **Die zustandsändernden `@GetMapping`s auf `POST` umstellen** – betrifft
-   `filter/rename|delete|select`, `filterReset` und `cancel`. Das berührt beide
-   Frontends, also entweder beide Aufrufstellen mitziehen oder die Methode
-   zusätzlich anbieten, solange `/react` noch lebt.
-5. **`SameSite=Lax` explizit setzen** (`server.servlet.session.cookie.same-site`)
-   statt sich auf den Browser-Default zu verlassen – Defense in Depth, ersetzt
-   Punkt 2/3 nicht. `Strict` würde die Rückkehr aus dem Passwort-Reset-Mail-Link
-   brechen.
+**Restrisiko, bewusst offen:** Ein Browser, der zu alt für `Sec-Fetch-Site` ist und
+sich nicht als next ausweist, passiert beide Schranken. Für `POST`s fängt das
+`SameSite=Lax` auf; offen bleiben die zustandsändernden `@GetMapping`s
+(`filter/rename|delete|select`, `filterReset`, `cancel`), die Lax durchlässt. Sie
+auf `POST` umzustellen berührt beide Frontends – entweder beide Aufrufstellen
+mitziehen oder die Methode zusätzlich anbieten, solange `/react` lebt.
 
-Punkt 4 und 5 sind Backend-Aufräumarbeiten und können später kommen; **1–3 sind
-die Voraussetzung dafür, dass eine next-Seite überhaupt schreiben darf** – ohne
-sie scheitert das erste echte Speichern aus `books`-Edit an `validateCsrfToken`.
+**Nicht browserseitig verifiziert:** der Stay-logged-in-Retry, das erste echte
+Speichern aus `books`-Edit und der Dev-Betrieb auf `:3000` (dort greift die
+`corsFilterEnabled`-Ausnahme in `checkSameSite`, weil der Dev-Server eine andere
+Origin ist).
 
 #### Offen: Validierungsregeln nicht duplizieren
 
@@ -732,7 +729,12 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `.../config/WebXMLInitializer.java`, `projectforge-business/.../Constants.kt`
 - **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`,
   `WicketUserFilter.kt`, `RestUserFilter.kt`
-- **CSRF:** `projectforge-rest/.../rest/core/SessionCsrfService.kt`,
+- **CSRF:** zentrale Schranken `projectforge-rest/.../rest/core/RestCsrfProtection.kt`
+  (eingehängt in `web/rest/RestAuthenticationUtils.kt`), Token-Auslieferung
+  `rest/UserStatusRest.kt`, Client `projectforge-next/lib/rs/client.ts`
+  (`setCsrfToken`/`rawRequest`), Cookie `application.properties`
+  (`server.servlet.session.cookie.same-site`);
+  Token-Quelle `projectforge-rest/.../rest/core/SessionCsrfService.kt`,
   `rest/dto/ServerData.kt`, `AbstractDynamicPageRest.kt` (`createServerData`/
   `validateCsrfToken`); next-Vorlage `rest/pub/next/PasswordResetNextRest.kt`;
   Cookie-Flags `CookieService.kt`
@@ -777,24 +779,24 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   Filtereinstellung, i18n-Generierung aus `I18nResources`.
 - **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
   In-Session-2FA-Dialog laufen in next (React-Login nur noch Rückfallebene).
+- **CSRF-Schutz** – zentral für alle `/rs/*`-Aufrufe (`RestCsrfProtection`:
+  `Sec-Fetch-Site` + Session-Token im Header), damit erben neue Endpunkte den
+  Schutz ohne Zutun. Damit darf eine next-Seite schreiben.
 
 **Als nächstes:**
 
-1. **CSRF-Schutz verdrahten** (s. eigener Abschnitt in Phase 1.5). Zieht sich durch
-   alle Seiten und blockiert das erste echte Speichern aus next – deshalb vor der
-   Bulk-Migration.
-2. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
+1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
    `filter/reset` samt `isFilterModified`, und `books`-Edit als saubere
    Vorlage: Validierungsregeln aus den Backend-Metadaten ableiten statt sie zu
    wiederholen, plus Auswertung der 406-`validationErrors` (s. eigener Abschnitt).
    Vorher das visuelle Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser
    prüfen – das steht noch aus.
-3. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
+2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.
-4. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
+3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
-5. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
+4. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
    den React-Auth-Code löschen: `WebAuthnAuthenticate.jsx`,
    `actions/authentication.js`, `/react/public/login`-Routing.
 

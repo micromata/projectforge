@@ -39,8 +39,53 @@ export function setTwoFactorHandler(handler: TwoFactorHandler | null): void {
   twoFactorHandler = handler;
 }
 
+// --- CSRF token ---
+
 /**
- * Sends a request and hands back the raw Response, 2FA retry included.
+ * CSRF token of the session, sent with every state-changing call (see RestCsrfProtection).
+ *
+ * Kept in a module variable rather than localStorage on purpose: an XSS must not be able to read it,
+ * and a reload fetches userStatus anyway. The UILayout pages have their own per-page token inside
+ * `serverData` (see components/dynamic/) and don't use this one.
+ */
+let csrfToken: string | null = null;
+
+export function setCsrfToken(token: string | null | undefined): void {
+  csrfToken = token ?? null;
+}
+
+/** Body Spring sends (403) when the CSRF token was missing or stale (RestCsrfProtection.deny). */
+interface CsrfRequiredBody {
+  csrfTokenRequired?: boolean;
+}
+
+/**
+ * Re-fetches the session's token. Called once after a 403 with `csrfTokenRequired`: the token rotates
+ * when the session changes (login, session timeout), and the caller shouldn't have to care.
+ */
+async function refreshCsrfToken(): Promise<boolean> {
+  try {
+    // fetchUserStatus stores the token itself.
+    return !!(await fetchUserStatus()).csrfToken;
+  } catch {
+    return false;
+  }
+}
+
+/** GET/HEAD are not checked for a token, mirroring RestCsrfProtection.isStateChangingMethod. */
+function isStateChangingMethod(method?: string): boolean {
+  const upper = (method ?? "GET").toUpperCase();
+  return upper !== "GET" && upper !== "HEAD" && upper !== "OPTIONS";
+}
+
+/** Internal: which one-shot recoveries a request has already used up. */
+interface RetriesUsed {
+  twoFactor?: boolean;
+  csrf?: boolean;
+}
+
+/**
+ * Sends a request and hands back the raw Response, 2FA and CSRF retry included.
  *
  * Dynamic pages need this instead of request(): their protocol uses the status code (406 carries
  * validation errors) and the content type (octet-stream is a download) as data.
@@ -49,8 +94,9 @@ export async function rawRequest(
   path: string,
   init: RequestInit,
   signal?: AbortSignal,
-  // Internal: a retried request must not trigger the 2FA dialog a second time.
-  isRetry = false
+  // Internal: each recovery may only be attempted once per call, or a permanently
+  // failing check would loop.
+  retriesUsed: RetriesUsed = {}
 ): Promise<Response> {
   // Backend paths (/rs, /rsPublic) are root-relative, NOT prefixed with the
   // app's basePath: Spring serves them at the origin root, not under /next.
@@ -65,17 +111,31 @@ export async function rawRequest(
       // Tells the backend to answer with plain JSON instead of a UILayout
       // ResponseAction (RestAuthenticationUtils.isNextClient).
       "X-PF-Frontend": "next",
+      // Central CSRF protection: no call site can forget it. Only sent where the
+      // backend checks it, so a stale token can't break a read.
+      ...(csrfToken && isStateChangingMethod(init.method)
+        ? { "X-PF-CSRF-Token": csrfToken }
+        : {}),
       ...(init.headers ?? {}),
     },
   });
-  if (res.status === 403 && !isRetry && twoFactorHandler) {
+  if (res.status === 403) {
     const body = (await res
       .clone()
       .json()
-      .catch(() => null)) as TwoFactorRequiredBody | null;
-    if (body?.twoFactorRequired) {
+      .catch(() => null)) as (TwoFactorRequiredBody & CsrfRequiredBody) | null;
+    if (body?.twoFactorRequired && !retriesUsed.twoFactor && twoFactorHandler) {
       if (await twoFactorHandler(body.expiryMillis)) {
-        return rawRequest(path, init, signal, true);
+        return rawRequest(path, init, signal, {
+          ...retriesUsed,
+          twoFactor: true,
+        });
+      }
+    }
+    // Stale or missing token (e.g. the session was renewed): fetch a fresh one and repeat once.
+    if (body?.csrfTokenRequired && !retriesUsed.csrf) {
+      if (await refreshCsrfToken()) {
+        return rawRequest(path, init, signal, { ...retriesUsed, csrf: true });
       }
     }
   }
@@ -151,12 +211,29 @@ export function fetchSystemStatus(signal?: AbortSignal): Promise<SystemStatus> {
 // Login, 2FA and password reset live in ./auth.ts (they speak the next-only
 // JSON contract, not the UILayout ResponseAction protocol).
 
-export function fetchUserStatus(signal?: AbortSignal): Promise<UserStatus> {
-  return request<UserStatus>("/rs/userStatus", { method: "GET" }, signal);
+/**
+ * Also refreshes the CSRF token: this is the one call every app start makes, and the token belongs to
+ * the same session as the user it returns. Doing it here means no caller has to remember to.
+ */
+export async function fetchUserStatus(
+  signal?: AbortSignal
+): Promise<UserStatus> {
+  const status = await request<UserStatus>(
+    "/rs/userStatus",
+    { method: "GET" },
+    signal
+  );
+  setCsrfToken(status.csrfToken);
+  return status;
 }
 
-export function logout(signal?: AbortSignal): Promise<unknown> {
-  return request<unknown>("/rs/logout", { method: "GET" }, signal);
+export async function logout(signal?: AbortSignal): Promise<unknown> {
+  try {
+    return await request<unknown>("/rs/logout", { method: "GET" }, signal);
+  } finally {
+    // The token belonged to the session that just ended; the next login fetches a new one.
+    setCsrfToken(null);
+  }
 }
 
 // --- Column state (per entity category, stored in the user's prefs) ---

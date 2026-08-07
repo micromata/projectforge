@@ -38,6 +38,7 @@ import org.projectforge.rest.Authentication
 import org.projectforge.rest.AuthenticationOld
 import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
+import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.my2fa.My2FAPageRest
 import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.rest.utils.RequestLog
@@ -74,6 +75,9 @@ open class RestAuthenticationUtils {
 
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
+
+  @Autowired
+  private lateinit var restCsrfProtection: RestCsrfProtection
 
   /**
    * Checks also login protection (time out against brute force attack).
@@ -279,6 +283,9 @@ open class RestAuthenticationUtils {
     }
     try {
       registerUser(request, authInfo, userTokenType)
+      if (!restCsrfProtection.checkRequest(request, response, authInfo)) {
+        return // Cross-site request: the error response was already written.
+      }
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
