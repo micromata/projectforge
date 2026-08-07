@@ -78,7 +78,8 @@
         "cancel": "Cancel",
         "save": "Save",
         "delete": "Delete",
-        "lastSaved": "Last saved: {time}"
+        "lastSaved": "Last saved: {time}",
+        "deleteTodo": "Delete is not implemented yet"
       },
       "history": {
         "loading": "Loading history…",
@@ -89,7 +90,11 @@
           "Update": "Record updated",
           "Delete": "Record deleted"
         }
-      }
+      },
+      "saved": "Book saved",
+      "loading": "Loading book…",
+      "notFound": "Book not found.",
+      "newTitle": "New book"
     }
   },
   "table": {

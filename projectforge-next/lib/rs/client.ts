@@ -177,14 +177,22 @@ export function fetchOne<O>(
   return request<O>(`/rs/${entity}/${id}`, { method: "GET" }, signal);
 }
 
+/**
+ * TODO: does not match Spring yet. AbstractPagesRest offers no `PUT {id}`; the
+ * real contract is `PUT /rs/{entity}/saveorupdate` with a PostData wrapper
+ * (data + the session CSRF token) for both insert and update. Until that is
+ * wired up this only talks to the mock route handlers.
+ *
+ * @param id null for an entry that has no id yet (insert).
+ */
 export function save<I, O>(
   entity: string,
-  id: number,
+  id: number | null,
   body: I,
   signal?: AbortSignal
 ): Promise<O> {
   return request<O>(
-    `/rs/${entity}/${id}`,
+    id == null ? `/rs/${entity}` : `/rs/${entity}/${id}`,
     { method: "PUT", body: JSON.stringify(body) },
     signal
   );

@@ -78,7 +78,8 @@
         "cancel": "Abbrechen",
         "save": "Speichern",
         "delete": "Löschen",
-        "lastSaved": "Zuletzt gespeichert: {time}"
+        "lastSaved": "Zuletzt gespeichert: {time}",
+        "deleteTodo": "Löschen ist noch nicht implementiert"
       },
       "history": {
         "loading": "Verlauf wird geladen…",
@@ -89,7 +90,11 @@
           "Update": "Datensatz bearbeitet",
           "Delete": "Datensatz gelöscht"
         }
-      }
+      },
+      "saved": "Buch gespeichert",
+      "loading": "Buch wird geladen…",
+      "notFound": "Buch nicht gefunden.",
+      "newTitle": "Neues Buch"
     }
   },
   "table": {

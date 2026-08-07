@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { Spinner } from "@/components/shared/spinner";
@@ -23,7 +24,6 @@ import {
 } from "@/components/data-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useBooksColumns } from "@/components/features/books/books-columns";
-import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import type { BookListRow } from "@/components/features/books/types";
 
@@ -64,6 +64,7 @@ function BooksList({
   storedState: ColumnState;
   restoredFilter?: MagicFilter;
 }) {
+  const router = useRouter();
   const columns = useBooksColumns();
   const filters = useListFilters(ENTITY, { restoredFilter });
 
@@ -210,7 +211,7 @@ function BooksList({
           data={data}
           isLoading={isLoading}
           isFetching={isFetching}
-          rowActions={(row) => <BookRowActions row={row} />}
+          onRowClick={(row) => router.push(`/books/${row.id}`)}
           className="flex-1"
         />
       </ListPageShell>

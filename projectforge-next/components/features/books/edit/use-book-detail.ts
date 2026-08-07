@@ -6,22 +6,26 @@ import type { BookDetail } from "../types";
 
 const ENTITY = "book";
 
-export function useBookDetail(id: number) {
+/** id null = a book being added, which has nothing to load yet. */
+export function useBookDetail(id: number | null) {
   return useQuery<BookDetail>({
     queryKey: [ENTITY, id],
-    queryFn: ({ signal }) => fetchOne<BookDetail>(ENTITY, id, signal),
-    enabled: Number.isFinite(id) && id > 0,
+    queryFn: ({ signal }) => fetchOne<BookDetail>(ENTITY, id!, signal),
+    enabled: id != null && Number.isFinite(id) && id > 0,
   });
 }
 
-export function useSaveBook(id: number) {
+export function useSaveBook(id: number | null) {
   const qc = useQueryClient();
   return useMutation<BookDetail, Error, BookDetail>({
     mutationFn: (body) => save<BookDetail, BookDetail>(ENTITY, id, body),
     onSuccess: (saved) => {
-      qc.setQueryData([ENTITY, id], saved);
+      // A new book is cached under the id the backend assigned, not under null.
+      qc.setQueryData([ENTITY, saved.id ?? id], saved);
       qc.invalidateQueries({ queryKey: ["books"] });
-      qc.invalidateQueries({ queryKey: [ENTITY, "history", id] });
+      if (saved.id != null) {
+        qc.invalidateQueries({ queryKey: [ENTITY, "history", saved.id] });
+      }
     },
   });
 }

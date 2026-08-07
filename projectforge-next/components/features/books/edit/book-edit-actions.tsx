@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 
 export interface BookEditActionsProps {
   onCancel: () => void;
-  onDelete: () => void;
+  /** Omitted while the entry doesn't exist yet — the button is then hidden. */
+  onDelete?: () => void;
   isSaving: boolean;
   lastSavedLabel: string | null;
   isDirty: boolean;
@@ -47,21 +48,23 @@ export function BookEditActions({
         </span>
       )}
       <div className="flex-1" />
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onDelete}
-        disabled={isSaving}
-        className="gap-1.5"
-        style={{
-          borderColor: "var(--status-loaned-border)",
-          color: "var(--status-loaned)",
-        }}
-      >
-        <HugeiconsIcon icon={Delete01Icon} size={13} />
-        {t("delete")}
-      </Button>
+      {onDelete && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onDelete}
+          disabled={isSaving}
+          className="gap-1.5"
+          style={{
+            borderColor: "var(--status-loaned-border)",
+            color: "var(--status-loaned)",
+          }}
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={13} />
+          {t("delete")}
+        </Button>
+      )}
     </div>
   );
 }

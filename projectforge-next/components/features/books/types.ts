@@ -11,7 +11,8 @@ export interface UserRef {
 }
 
 export interface BookDetail {
-  id: number;
+  /** null for a book that has not been saved yet (Spring assigns the id). */
+  id: number | null;
   title: string;
   authors: string | null;
   signature: string | null;

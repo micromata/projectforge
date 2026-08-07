@@ -6,7 +6,6 @@ import { BrandStripe } from "@/components/shared/brand-stripe";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { DataTable, useMagicFilterQuery } from "@/components/data-table";
 import { useBooksColumns } from "@/components/features/books/books-columns";
-import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import type { BookListRow } from "@/components/features/books/types";
 
@@ -52,7 +51,6 @@ export default function DemoPage() {
               isLoading={isLoading}
               isFetching={isFetching}
               getRowId={(row) => String(row.id)}
-              rowActions={(row) => <BookRowActions row={row} />}
               className="flex-1"
             />
           </ListPageShell>

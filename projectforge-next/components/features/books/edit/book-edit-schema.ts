@@ -13,7 +13,8 @@ const userRefSchema = z
   .nullable();
 
 export const bookEditSchema = z.object({
-  id: z.number(),
+  // null while the book is new — Spring assigns the id on the first save.
+  id: z.number().nullable(),
   title: z.string().min(1, "Titel ist erforderlich"),
   authors: z.string().min(1, "Autor:innen sind erforderlich"),
   signature: nullableString,

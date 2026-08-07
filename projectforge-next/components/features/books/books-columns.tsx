@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
@@ -114,13 +113,11 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
             {tBook("title._")}
           </DataTableColumnHeader>
         ),
-        cell: ({ row }) => (
-          <Link
-            href={`/books/${row.original.id}`}
-            className="block truncate font-semibold text-primary hover:underline"
-          >
-            {row.original.title}
-          </Link>
+        // No link: the whole row navigates to the edit page (see books/page.tsx).
+        cell: ({ getValue }) => (
+          <span className="font-semibold text-primary">
+            {getValue<string>()}
+          </span>
         ),
       },
       {
