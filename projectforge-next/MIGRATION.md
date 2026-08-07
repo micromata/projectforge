@@ -607,7 +607,7 @@ der Reiter geöffnet wird. `EditPageTabs` kennt dafür jetzt zwei Sorten Reiter:
 Welcher Reiter aktiv ist, bestimmt auf Routen-Seiten das neue Prop `activeId`
 (statt des Scroll-Spy-`activeIndex`). Die Reiterleiste selbst steht **einmal** in
 `components/features/books/book-tabs.ts` und wird von Formular und Historie-Seite
-geteilt – von der Historie aus zeigen die drei Formular-Reiter als Links zurück auf
+geteilt – von der Historie aus zeigen die Formular-Reiter als Links zurück auf
 `/books/{id}` (ohne Sprung zur jeweiligen Section: der Scroll-Spy kennt keine
 Hash-Ziele – bewusst offen).
 
@@ -649,6 +649,108 @@ aus den handgeschriebenen Katalogen entfernt, nur `books.edit.tabs.history` blei
 History-Request mehr auslöst und der Reiter „Verlauf“ ihn erst beim Wechsel
 absetzt; ebenso der Kommentar-Dialog (in next noch von keiner Seite erreichbar, da
 User/Gruppe dort keine handgebaute Editierseite haben) und die beiden Backend-Fixes.
+
+#### Erledigt: Anhänge (`UIAttachmentList`) – generisch, nicht buchspezifisch
+
+**Was ersetzt wurde.** `BookPagesRest.createEditLayout` hängt ein
+`UIFieldset(title = "attachment.list")` mit `UIAttachmentList(category, dto.id,
+maxSizeInKB)` an; gerendert hat das im alten Frontend
+`DynamicAttachmentList.jsx` (Drop-Zone + AG-Grid + Mehrfachauswahl). In next ist
+daraus `components/shared/attachments/` geworden – Anhänge kann **jede**
+`AbstractPagesRest`-Entität haben (Bücher, Verträge, Aufträge, Rechnungen,
+Skripte), also liegt im `books`-Feature nur die Komposition
+(`edit/sections/attachment-section.tsx`, ein `SectionCard` um `AttachmentList`).
+Bausteine: Kontrakt in `lib/rs/attachments.ts`, Query/Mutationen in
+`hooks/use-attachments.ts` (Key `["attachments", entity, id]`), UI in
+`attachment-list` → `attachment-drop-area` / `attachment-row` /
+`attachment-edit-dialog`.
+
+**Zwei Eigenheiten des Protokolls prägen den Client** – beide am laufenden
+System verifiziert, nicht aus dem Code geschlossen:
+
+1. **Jeder Schreibvorgang antwortet mit der _vollständigen_ neuen Liste** unter
+   `variables.data.attachments` (`AttachmentsActionListener`: `afterUpload` →
+   `UPDATE`, `afterModification`/`afterDeletion` → `CLOSE_MODAL`, jeweils mit
+   `ResponseData(attachments)`). Die Mutationen schreiben die Antwort deshalb per
+   `setQueryData` in den Cache statt zu invalidieren – ein Nachladen wäre ein
+   Request für Daten, die man schon hat.
+2. **Eine Ablehnung ist ein HTTP 200 mit `targetType: "TOAST"`** (Datei existiert
+   bereits, Datei zu groß – beide gehen über `UIToast`, s.
+   `GlobalDefaultExceptionHandler`). Der Status-Code allein unterscheidet Erfolg
+   und Ablehnung also **nicht**; würde man ihn glauben, verschwände eine Datei
+   stillschweigend und die Liste bliebe veraltet. Daher liefert die
+   `lib/rs`-Schicht ein `AttachmentWriteResult` (`ok` | `rejected` mit der
+   übersetzten Backend-Meldung).
+
+**Es gibt keinen Lese-Endpunkt.** `AbstractPagesRest` bettet die Anhänge über
+`AttachmentsSupport` in das Entitäts-DTO ein (`Book.attachments`) – Lesen heißt
+`GET /rs/{entity}/{id}` und das Feld herausgreifen.
+
+**Nichts wird im Client formatiert.** `sizeHumanReadable`, `createdFormatted`,
+`lastUpdateFormatted`, `lastUpdateTimeAgo` und das berechnete `encrypted` kommen
+fertig aus dem Backend, in Locale und Zeitzone des Nutzers (`framework/jcr/Attachment`).
+
+**Bewusste Abweichungen von der alten Vorlage:**
+
+- **Kein `DataTable`.** Eine Handvoll Dateien in einer Formular-Section braucht
+  weder Sortierung noch Paging noch Spaltenzustand, und der eigene
+  Scroll-Container des Tabellen-Primitivs würde mit dem des Formulars kollidieren
+  → schlichtes `<ul>/<li>`. Aus demselben Grund fehlen `multiDownload` und
+  `multiDelete`: die Aktionen pro Zeile deckenden Fall ohne Auswahlmodell ab.
+- **Keine Größenprüfung im Client.** Das Limit ist das des Backends
+  (`FileSizeChecker`, pro Installation via `projectforge.jcr.maxDefaultFileSize`),
+  es lehnt mit übersetzter Meldung ab – die Zahl hier zu wiederholen wäre eine
+  zweite Stelle, die falsch sein kann.
+- **Upload läuft sequenziell.** Der Endpunkt nimmt **eine** Datei pro Aufruf
+  (Part-Name `file`), und seine Dublettenprüfung läuft gegen die schon
+  gespeicherten Dateien – parallele Aufrufe könnten zwei gleiche Namen
+  durchlassen.
+- **Löschen fragt mit `question.deleteQuestion`,** nicht mit
+  `markAsDeletedQuestion`: das JCR führt keine Historie gelöschter Dateien.
+- **Download ist ein normaler Link,** kein `fetch`: die Antwort _ist_ die Datei,
+  das muss der Browser erledigen.
+- **Verschlüsselung (`attachment.encrypt`, `testDecryption`) ist nicht portiert.**
+  Ein vorhandenes `encrypted` wird als Schloss-Icon angezeigt, das Verschlüsseln
+  selbst bleibt offen.
+
+**Ein querschnittlicher Fix in `lib/rs/client.ts`:** bei einem `FormData`-Body
+darf der `Content-Type` **nicht** gesetzt werden – der vom Browser erzeugte
+enthält die Boundary, die der Client nicht kennen kann; ein
+`application/json` dort lässt Springs Part-Parser scheitern.
+
+**i18n:** alles aus dem Backend-Bundle (`attachment.`, `file.upload.`, `edit`,
+`download`, `description`, `question.deleteQuestion` – neu in `PREFIXES`). Der
+Reiter „Anhänge“ nutzt `attachment.list`, also den Titel, den `BookPagesRest`
+dem Fieldset gibt; `books.edit.tabs.*` bleibt nur für die Gruppierungen ohne
+Backend-Pendant (`book-tabs.ts` mappt beides).
+
+**Browserseitig verifiziert** gegen das echte Backend
+(`e2e/book-attachments.spec.ts`): Hochladen, Umbenennen inkl. Beschreibung,
+Löschen, die Dubletten-Meldung sowie der Hinweis „erst nach dem Speichern“ bei
+einem neuen Buch. Der Test räumt seine Dateien selbst wieder ab.
+
+#### Offen: Ausleih-/Rückgabe-Aktion des Buchs
+
+Die drei Ausleih-**Felder** stehen (`LoanSection`: `lendOutBy`, `lendOutDate`,
+`lendOutComment`), die beiden **Aktionen** fehlen. Im alten Frontend liefert
+`BookPagesRest` dafür ein `UICustomized("book.lendOutComponent")`, gerendert von
+`BookLendOut.jsx`; die Endpunkte sind `POST /rs/book/lendOut` und
+`POST /rs/book/returnBook` (`BookServicesRest`) – beide nehmen das ganze
+Buch-DTO, setzen bzw. leeren `lendOutBy`/`lendOutDate`/`lendOutComment` und
+laufen dann durch das normale `saveOrUpdate`.
+
+Zu beachten beim Nachziehen:
+
+- **Beides speichert das Buch mit.** Die Aktionen sind kein Teil-Update, sondern
+  ein `saveOrUpdate` des gesamten DTOs – ungespeicherte Formularänderungen
+  gingen also mit oder verloren, je nachdem, was man sendet. Das muss die
+  handgebaute Seite bewusst entscheiden (Formularwerte senden und danach
+  `reset`), sonst driften Anzeige und Datenbank auseinander.
+- **„Zurückgeben“ zeigte das alte Frontend nur dem Ausleihenden selbst**
+  (`user.username === data.lendOutBy.username`); ausleihen durfte jeder. Das
+  Backend prüft das nicht – die Regel steckt allein im Client.
+- **Nur bei gespeichertem Buch** (`if (dto.id != null)` im Layout).
+- Die Texte existieren: `book.lendOut`, `book.returnBook`.
 
 #### Offen: Validierungsregeln nicht duplizieren
 
@@ -1003,11 +1105,18 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `rowClickRedirectUrl` ohne Codeausführung, URL-basierte Spaltenzustands-
   Persistenz, generische Listen-Route wieder aktiv. Gegen das laufende System
   geprüft (`e2e/dynamic-grid.spec.ts`).
+- **Anhänge (`UIAttachmentList`)** – generisch in
+  `components/shared/attachments/` + `lib/rs/attachments.ts`, mit dem
+  entscheidenden Detail, dass eine Ablehnung als HTTP 200 mit `TOAST` kommt und
+  jede Schreibantwort schon die ganze neue Liste enthält. Gegen das laufende
+  System geprüft (`e2e/book-attachments.spec.ts`).
 
 **Als nächstes:**
 
 1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
-   `filter/reset` samt `isFilterModified`, und `books`-Edit als saubere
+   `filter/reset` samt `isFilterModified`, die Ausleih-/Rückgabe-Aktion des Buchs
+   (s. eigener Abschnitt – die Felder stehen, die beiden `BookServicesRest`-
+   Endpunkte fehlen), und `books`-Edit als saubere
    Vorlage: Validierungsregeln und Enum-Wertelisten aus den Backend-Metadaten
    ableiten statt sie zu wiederholen (s. eigener Abschnitt). Vorher das visuelle
    Ergebnis der Tabelle, den Favoriten-Durchlauf sowie Speichern/Anlegen/Löschen

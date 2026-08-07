@@ -107,7 +107,11 @@ export async function rawRequest(
     ...init,
     signal,
     headers: {
-      "Content-Type": "application/json",
+      // A multipart body (file upload) must keep the Content-Type the browser builds: it carries
+      // the boundary, which we cannot know here. Setting it would make Spring's part parser fail.
+      ...(init.body instanceof FormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       // Tells the backend to answer with plain JSON instead of a UILayout
       // ResponseAction (RestAuthenticationUtils.isNextClient).
       "X-PF-Frontend": "next",

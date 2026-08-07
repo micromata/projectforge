@@ -31,21 +31,21 @@ import { MicromataIcon } from "@/components/shared/micromata-icon";
 
 const projectMgmt = [
   {
-    id: "buecher",
+    id: "books",
     label: "Bücherliste",
     icon: BookIcon,
     href: "/books",
     active: true,
   },
-  { id: "zeit", label: "Zeiterfassung", icon: Clock01Icon, href: "#" },
-  { id: "aufg", label: "Aufgaben", icon: CheckmarkSquare02Icon, href: "#" },
+  { id: "timesheets", label: "Zeiterfassung", icon: Clock01Icon, href: "#" },
+  { id: "tasks", label: "Aufgaben", icon: CheckmarkSquare02Icon, href: "#" },
   { id: "gantt", label: "Gantt-Diagramm", icon: ChartBarLineIcon, href: "#" },
 ];
 
 const topLevel = [
-  { id: "struktur", label: "Strukturbaum", icon: FolderTreeIcon, href: "#" },
-  { id: "kalender", label: "Kalender", icon: Calendar01Icon, href: "#" },
-  { id: "adressen", label: "Adressen", icon: Location01Icon, href: "#" },
+  { id: "structure", label: "Strukturbaum", icon: FolderTreeIcon, href: "#" },
+  { id: "calendar", label: "Kalender", icon: Calendar01Icon, href: "#" },
+  { id: "addresses", label: "Adressen", icon: Location01Icon, href: "#" },
   { id: "transfer", label: "Datentransfer", icon: Exchange01Icon, href: "#" },
 ];
 

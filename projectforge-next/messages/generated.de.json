@@ -1,6 +1,42 @@
 {
   "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "apply": "Übernehmen",
+  "attachment": {
+    "checksum": "Prüfsumme",
+    "encrypt": {
+      "_": "Verschlüsseln",
+      "question": "Soll diese Datei nun verschlüsselt werden? Das Passwort wird nicht gespeichert."
+    },
+    "encryption": "Verschlüsselung",
+    "expires": "Löschfrist",
+    "fileId": "Dateikennung",
+    "fileName": "Dateiname",
+    "fileSize": "Dateigröße",
+    "info": "Info",
+    "list": "Anhänge",
+    "onlyAvailableAfterSave": "Anhänge können erst hochgeladen werden, nachdem dieses Objekt gespeichert wurde.",
+    "password": {
+      "info": "Dieses Passwort wird ausschließlich zur Verschlüsselung verwendet und nirgends im System gespeichert oder protokolliert."
+    },
+    "showEncryptionOption": "Verschlüsselungsoption",
+    "size": "Dateigröße",
+    "testDecryption": {
+      "_": "Entschlüsselung testen",
+      "failed": "Entschlüsselung fehlgeschlagen (falsches Passwort oder ungültiges ZIP-Archiv?)",
+      "successful": "Entschlüsselung erfolgreich."
+    },
+    "upload": {
+      "title": "Dateien durch Klick auswählen oder Dateien hier hinziehen."
+    },
+    "zip": {
+      "encrypted": "verschlüsselt",
+      "encryptedStandard": "verschlüsselt (ZIP-Standard)",
+      "encryptionAlgorithm": "Verschlüsselungsalgorithmus",
+      "encrytpedAes128": "verschlüsselt (AES-128)",
+      "encrytpedAes256": "verschlüsselt (AES-256, hohe Sicherheit)",
+      "standard": "ohne Verschlüsselung"
+    }
+  },
   "attachments": {
     "short": "Anh."
   },
@@ -88,6 +124,12 @@
   },
   "delete": "Löschen",
   "deleted": "gelöscht",
+  "description": "Beschreibung",
+  "download": {
+    "_": "Download",
+    "expired": "Downloaddatei nicht mehr verfügbar. Bitte Aktion wiederholen."
+  },
+  "edit": "Bearbeiten",
   "expand": "Aufklappen",
   "favorite": {
     "_": "Favorit",
@@ -103,6 +145,37 @@
   "favorites": {
     "_": "Favoriten",
     "saveModification": "Änderungen speichern"
+  },
+  "file": {
+    "upload": {
+      "audit": {
+        "action": {
+          "delete": "gelöscht",
+          "download": "heruntergeladen",
+          "downloadAll": "alles heruntergeladen",
+          "downloadMulti": "mehrere heruntergeladen",
+          "modification": "geändert (Dateiname oder Beschreibung)",
+          "upload": "hochgeladen"
+        }
+      },
+      "choose": "Datei wählen",
+      "deleteSelected": {
+        "_": "Ausgewählte Dateien löschen",
+        "confirm": "Sollen jetzt wirklich alle ausgewählten Dateien unwiderruflich gelöscht werden?"
+      },
+      "downloadSelected": "Ausgewählte Dateien herunterladen",
+      "downloadTemplate": "Schablone als Beispiel herunterladen.",
+      "dropArea": "Datei auswählen oder hier hinziehen.",
+      "error": {
+        "_": "Fehler beim Upload der Datei.",
+        "fileAlreadyExists": "Die Datei '{arg0}' existiert bereits.",
+        "maxSizeExceeded": "Datei '{arg0}' kann nicht hochgeladen werden. Die konfigurierte Maximalgröße wurde überschritten: {arg1}>{arg2}.",
+        "maxSizeOfExceeded": "Die Datei konnte nicht hochgeladen werden. Die Maximalgröße von {arg0} wurde überschritten.",
+        "noFileSelected": "Keine Datei gewählt",
+        "tooManyFiles": "Es wurden zu viele Dateien für das gleichzeitige Hochladen ausgewählt.",
+        "unsupportedFormat": "Das Dateiformat wird nicht unterstützt. Unterstützte Dateiformate: {arg0}"
+      }
+    }
   },
   "filter": {
     "activeCount": "Aktive Filter: {arg0}",
@@ -198,7 +271,25 @@
     "main": {
       "title": "Hauptmenü"
     },
-    "myAccount": "Mein Zugang"
+    "myAccount": "Mein Zugang",
+    "reindexAllDatabaseEntries": {
+      "_": "Suchindex voll indizieren",
+      "tooltip": {
+        "content": "Der Suchindex wird komplett neu aufgebaut. Bei vielen Einträgen (z. B. 100.000) kann das einige Minuten dauern und die Systemperformance beinträchtigt werden. Deshalb steht diese Funktion nur Administratoren zur Verfügung.",
+        "title": "Suchindex voll indizieren"
+      }
+    },
+    "reindexNewestDatabaseEntries": {
+      "_": "Suchindex reindizieren",
+      "tooltip": {
+        "content": "Es werden alle Einträge, die seit gestern angelegt oder modifiziert wurden, maximal aber 1.000 Einträge, re-indiziert (Dauer weniger als 1 Sekunde).",
+        "title": "Suchindex reindizieren"
+      }
+    },
+    "resetFilter": {
+      "_": "Filter zurücksetzen",
+      "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
+    }
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
@@ -247,12 +338,14 @@
   },
   "passwordRepeat": "Passwort wiederholen",
   "question": {
+    "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },
   "rating": "Bewertung",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
   "save": "Speichern",
+  "settings": "Einstellungen",
   "status": "Status",
   "task": {
     "consumption": "Verbrauch"

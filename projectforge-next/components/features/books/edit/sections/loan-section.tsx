@@ -16,9 +16,9 @@ import { LendOutByField } from "./lend-out-by-field";
  * change history, which has a tab of its own (see bookTabs).
  *
  * `status` is not here but in the general section: it describes the book, not the loan (see
- * AllgemeinSection).
+ * GeneralSection).
  */
-export function AusleiheSection() {
+export function LoanSection() {
   const tBook = useTranslations("book");
   const tCommon = useTranslations();
 

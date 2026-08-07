@@ -18,9 +18,9 @@ interface Props {
  * The book itself is read for the header; coming from the form it is already cached.
  */
 export function BookHistoryPage({ bookId }: Props) {
-  const t = useTranslations("books.edit");
+  const t = useTranslations();
   const { data: book } = useBookDetail(bookId);
-  const tabs = bookTabs(bookId, (key) => t(`tabs.${key}`), false);
+  const tabs = bookTabs(bookId, t, false);
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">

@@ -19,7 +19,7 @@ import { KeywordsField } from "./keywords-field";
  * (BookDO: `nullable = false`), not of a loan, and putting it here also means it renders for a new
  * book, whose default is PRESENT.
  */
-export function AllgemeinSection() {
+export function GeneralSection() {
   const t = useTranslations("books.edit");
   const tBook = useTranslations("book");
   const tCommon = useTranslations();

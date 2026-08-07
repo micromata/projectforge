@@ -98,6 +98,17 @@ object GenerateNextI18nMessagesMain {
     "rename",
     // Clears a select back to no value (SelectField in book-edit-fields).
     "reset",
+    // Attachments of an entity: the list, its hints and the errors an upload is refused with
+    // (see components/shared/attachments/). "edit" and "download" are the row actions,
+    // "description" the second editable field of an attachment (Attachment.description).
+    "attachment.",
+    "file.upload.",
+    "edit",
+    "download",
+    "description",
+    // Deleting an attachment is final — the JCR keeps no history of removed files, so this is the
+    // irreversible question, not markAsDeletedQuestion.
+    "question.deleteQuestion",
     "uptodate",
     // Cell renderers of the data table: boolean ticks read "yes"/"no" as their accessible name,
     // the rating stars "rating", the tree cell "expand"/"collapse". "no" also matches
@@ -131,6 +142,12 @@ object GenerateNextI18nMessagesMain {
     "menu.myAccount",
     // Category above a list page's heading, e.g. "Common / Books" — the entry's menu parent.
     "menu.common",
+    // Gear menu of a list page (see ListGearMenu). Without the dot so the tooltip subkeys come
+    // along; the bare title then lands under "_" (see JsonNode.put).
+    "settings",
+    "menu.reindexNewestDatabaseEntries",
+    "menu.reindexAllDatabaseEntries",
+    "menu.resetFilter",
     // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
     // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
     "cancel",

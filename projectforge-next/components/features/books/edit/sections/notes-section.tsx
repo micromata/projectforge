@@ -5,7 +5,7 @@ import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { TextAreaField } from "../book-edit-fields";
 
-export function NotizenSection() {
+export function NotesSection() {
   const t = useTranslations("books.edit");
   // The labels are the backend's own, as BookDO declares them: `book.abstract` and `comment`
   // (see its @PropertyInfo). `comment` carries no hint — it is an ordinary field, visible to

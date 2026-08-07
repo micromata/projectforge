@@ -10,9 +10,10 @@ import { BookEditFormProvider } from "./book-edit-context";
 import { BookEditHeader } from "./book-edit-header";
 import { BookEditActions } from "./book-edit-actions";
 import { BookDeleteButton } from "./book-delete-button";
-import { AllgemeinSection } from "./sections/allgemein-section";
-import { AusleiheSection } from "./sections/ausleihe-section";
-import { NotizenSection } from "./sections/notizen-section";
+import { GeneralSection } from "./sections/general-section";
+import { LoanSection } from "./sections/loan-section";
+import { NotesSection } from "./sections/notes-section";
+import { AttachmentSection } from "./sections/attachment-section";
 import { bookTabs } from "../book-tabs";
 import { bookEditSchema, BOOK_EDIT_FIELDS } from "./book-edit-schema";
 import { emptyBookValues, toFormValues } from "./book-edit-values";
@@ -83,15 +84,18 @@ export function BookEditForm({ bookId }: Props) {
   }
 
   // The history has a page of its own (see bookTabs), so it is not among the sections here.
-  const tabs = bookTabs(book?.id ?? null, (key) => t(`tabs.${key}`), true);
+  const tabs = bookTabs(book?.id ?? null, tCommon, true);
 
   // All sections render for a new book too: they are the book's own fields, and the legacy page
   // hid the loan block only because its lend-out action needs a saved entity (BookPagesRest), not
-  // because the fields don't exist.
+  // because the fields don't exist. Attachments are the exception — they need a persisted id to
+  // hang off, so the section says so itself instead of disappearing.
+  // The order must match `tabs`: EditPageShell couples the anchor tabs to it positionally.
   const sections = [
-    <AllgemeinSection key="general" />,
-    <AusleiheSection key="loan" />,
-    <NotizenSection key="notes" />,
+    <GeneralSection key="general" />,
+    <LoanSection key="loan" />,
+    <NotesSection key="notes" />,
+    <AttachmentSection key="attachments" bookId={book?.id ?? null} />,
   ];
 
   return (
