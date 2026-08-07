@@ -53,6 +53,7 @@
     }
   },
   "cancel": "Abbrechen",
+  "changes": "Änderungen",
   "columns": {
     "_": "Spalten",
     "dragToSort": "Ziehen zum Sortieren",
@@ -126,6 +127,23 @@
     "value": "Wert",
     "valueTo": "Bis"
   },
+  "history": {
+    "entry": "Änderungseintrag",
+    "newValue": "Neuer Wert",
+    "oldValue": "Alter Wert",
+    "opType": "Aktion",
+    "propertyName": "Feld",
+    "userComment": {
+      "_": "Änderungskommentar",
+      "append": "Kommentar anhängen",
+      "edit": "Änderungskommentar editieren",
+      "info": "Hier kann ein optionaler Kommentar eingegeben werden, z. B. warum die Änderung erfolgte. Dieser Kommentar wird in der Historie angezeigt."
+    },
+    "was": "war"
+  },
+  "label": {
+    "historyOfChanges": "Änderungshistorie"
+  },
   "loading": "Laden...",
   "login": {
     "_": "Anmelden",
@@ -172,6 +190,15 @@
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
   "name": "Name",
+  "nothingFound": "Nichts gefunden.",
+  "operation": {
+    "deleted": "gelöscht",
+    "inserted": "angelegt",
+    "markAsDeleted": "als gelöscht markiert",
+    "undefined": "undefiniert",
+    "undeleted": "wiederhergestellt",
+    "updated": "geändert"
+  },
   "password": {
     "_": "Passwort",
     "forgotten": {

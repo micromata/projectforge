@@ -3,11 +3,8 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import {
-  InputField,
-  SelectField,
-  type SelectOption,
-} from "../book-edit-fields";
+import { InputField, SelectField } from "../book-edit-fields";
+import { useBookStatusOptions } from "../use-book-options";
 import { LendOutByField } from "./lend-out-by-field";
 import { AusleiheHistoryTable } from "../ausleihe-history-table";
 import type { BookDetail } from "../../types";
@@ -18,13 +15,7 @@ interface Props {
 
 export function AusleiheSection({ book }: Props) {
   const t = useTranslations("books.edit");
-
-  const statusOptions: SelectOption[] = [
-    { value: "PRESENT", label: t("status.available") },
-    { value: "MISSED", label: "Vermisst" },
-    { value: "DISPOSED", label: "Ausgesondert" },
-    { value: "UNKNOWN", label: "Unbekannt" },
-  ];
+  const statusOptions = useBookStatusOptions();
 
   return (
     <SectionCard>

@@ -36,8 +36,7 @@
         "general": "Allgemeine Informationen",
         "loan": "Ausleihe",
         "loanHistory": "Ausleihhistorie",
-        "notes": "Notizen",
-        "history": "Änderungsverlauf"
+        "notes": "Notizen"
       },
       "fields": {
         "title": "Titel",
@@ -77,19 +76,7 @@
       "actions": {
         "cancel": "Abbrechen",
         "save": "Speichern",
-        "delete": "Löschen",
-        "lastSaved": "Zuletzt gespeichert: {time}",
-        "deleteTodo": "Löschen ist noch nicht implementiert"
-      },
-      "history": {
-        "loading": "Verlauf wird geladen…",
-        "empty": "Keine Verlaufseinträge vorhanden",
-        "fieldsChanged": "Felder geändert: {fields}",
-        "operation": {
-          "Insert": "Datensatz angelegt",
-          "Update": "Datensatz bearbeitet",
-          "Delete": "Datensatz gelöscht"
-        }
+        "lastSaved": "Zuletzt gespeichert: {time}"
       },
       "saved": "Buch gespeichert",
       "loading": "Buch wird geladen…",

@@ -157,7 +157,10 @@ class HistoryService {
             } else {
                 ""
             }
-            entry.userComment = "${entry.userComment}\n${PFDateTime.now().isoString}Z$userString: $userComment"
+            val newLine = "${PFDateTime.now().isoString}Z$userString: $userComment"
+            // The first comment of an entry starts the text, it isn't appended to a "null" line.
+            val existing = entry.userComment
+            entry.userComment = if (existing.isNullOrBlank()) newLine else "$existing\n$newLine"
             context.em.merge(entry)
         }
         return info

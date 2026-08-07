@@ -594,6 +594,67 @@ Zwei Details:
   `alert-dialog`), Texte aus dem Backend-Bundle
   (`question.markAsDeletedQuestion`, `markAsDeleted`).
 
+#### Erledigt: Änderungshistorie als eigene Route (echter Tab-Reiter)
+
+**Das Problem.** Die Historie hing als letzte Section im Scroll-Bereich von
+`EditPageShell`. Die „Reiter“ dort sind nur Scroll-Anker (`hooks/use-scroll-spy.ts`),
+also ist **jede** Section immer gemountet – und damit lud jedes Öffnen eines Buchs
+sofort die komplette Historie. Bei Entitäten mit langer Historie ist das teuer und
+für die meisten Aufrufe umsonst.
+
+**Die Lösung: eine eigene Route.** `/next/books/{id}/history` ist eine echte Seite
+(`app/(authenticated)/books/[id]/history/`), die Historie mountet also erst, wenn
+der Reiter geöffnet wird. `EditPageTabs` kennt dafür jetzt zwei Sorten Reiter:
+
+- ohne `href` → Scroll-Anker wie bisher, positionsgekoppelt an `sections`,
+- mit `href` → `<Link role="tab" aria-selected>`, wechselt die Route.
+
+Welcher Reiter aktiv ist, bestimmt auf Routen-Seiten das neue Prop `activeId`
+(statt des Scroll-Spy-`activeIndex`). Die Reiterleiste selbst steht **einmal** in
+`components/features/books/book-tabs.ts` und wird von Formular und Historie-Seite
+geteilt – von der Historie aus zeigen die drei Formular-Reiter als Links zurück auf
+`/books/{id}` (ohne Sprung zur jeweiligen Section: der Scroll-Spy kennt keine
+Hash-Ziele – bewusst offen).
+
+**Generisch, nicht buchspezifisch.** Historie gibt es für jede
+`AbstractPagesRest`-Entität, deshalb liegt nichts davon im `books`-Feature:
+Kontrakt in `lib/rs/history.ts`, Query/Mutation in `hooks/use-history.ts`
+(Key `["history", entity, id]`), UI in `components/shared/history/`
+(`history-section` → `history-timeline` → `history-entry-item` → `history-attr-diff`,
+plus `history-comment-dialog`). Im `books`-Feature bleibt nur die Komposition
+(`components/features/books/history/book-history-page.tsx`).
+
+**Backend: `history/{id}` erweitert statt zweitem Endpunkt.** Der Lese-Endpunkt
+existierte längst; gefehlt hat nur die Angabe, ob der Client Kommentare anhängen
+darf. Er antwortet daher jetzt `{ entries, supportsUserComments }`
+(`AbstractPagesRest.HistoryInfo`), das Flag aus `BaseDao.supportsHistoryUserComments`
+– d. h. nur für `HistoryUserCommentSupport`-Entitäten (heute `PFUserDO`, `GroupDO`;
+Bücher **nicht**). Das alte React-Frontend liest die Kommentar-Fähigkeit weiterhin
+aus `UILayout.UserAccess.editHistoryComments` und wurde nur an die neue Antwortform
+angepasst (`containers/page/form/history/index.jsx`: `json.entries`). Für
+handgebaute next-Seiten gibt es kein `UILayout`, daher der Weg über die Antwort.
+
+**Zwei Backend-Bugs im Kommentar-Pfad mitgefixt:**
+
+- `HistoryEntryUserCommentModalRest.append` prüfte den Leer-Guard gegen
+  `dto.userComment` (den _bestehenden_ Kommentar) statt gegen `dto.appendComment` –
+  der **erste** Kommentar eines Eintrags wurde damit verworfen.
+- `HistoryService.appendUserComment` schrieb literal `"null"` als erste Zeile, weil
+  es `entry.userComment` bedingungslos voranstellte.
+
+Der fehlende `writeAccess`-Check im Append-Pfad bleibt bewusst unangetastet (er
+würde das Verhalten des alten Frontends ändern).
+
+**i18n:** die Texte kommen jetzt aus dem Backend-Bundle
+(`label.historyOfChanges`, `history.*`, `operation.*`, `changes`, `nothingFound` –
+neu in `PREFIXES`); `books.edit.history.*` und `books.edit.sections.history` sind
+aus den handgeschriebenen Katalogen entfernt, nur `books.edit.tabs.history` bleibt.
+
+**Nicht browserseitig verifiziert:** dass das Öffnen eines Buchs keinen
+History-Request mehr auslöst und der Reiter „Verlauf“ ihn erst beim Wechsel
+absetzt; ebenso der Kommentar-Dialog (in next noch von keiner Seite erreichbar, da
+User/Gruppe dort keine handgebaute Editierseite haben) und die beiden Backend-Fixes.
+
 #### Offen: Validierungsregeln nicht duplizieren
 
 **Der Stand.** Feldlängen, Typen und Pflichtfelder sind im Backend genau einmal
@@ -834,6 +895,16 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   (`saveorupdate`/`markAsDeleted`/`undelete`), Backend
   `projectforge-rest/.../rest/core/AbstractPagesRest.kt` +
   `AbstractPagesRestUtils.kt`, `framework/persistence/api/RestPaths.java`
+- **Änderungshistorie:** Backend `projectforge-rest/.../rest/core/AbstractPagesRest.kt`
+  (`HistoryInfo`, `history/{id}`), `HistoryEntryUserCommentModalRest.kt`,
+  `projectforge-business/.../framework/persistence/history/HistoryService.kt`
+  (`appendUserComment`), Fähigkeits-Flag `.../persistence/api/BaseDao.kt`
+  (`supportsHistoryUserComments`) + `HistoryUserCommentSupport`;
+  Frontend `projectforge-next/lib/rs/history.ts`, `hooks/use-history.ts`,
+  `components/shared/history/*`, Route
+  `app/(authenticated)/books/[id]/history/`, Reiterleiste
+  `components/features/books/book-tabs.ts`; Vorlage
+  `projectforge-webapp/src/containers/page/form/history/`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
 - **Dynamic-Renderer Backend:** `projectforge-rest/src/main/kotlin/org/projectforge/ui/`
@@ -879,6 +950,10 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   406-`validationErrors` auf die Formularfelder gemappt, Anlegen inkl.
   URL-Wechsel auf die neue id, Löschen mit Bestätigung. Noch nicht im Browser
   gegen das echte Backend verifiziert.
+- **Änderungshistorie** – eigene Route `/books/{id}/history` mit echtem
+  Link-Reiter statt Section im Scroll-Bereich (lädt damit erst beim Öffnen),
+  generische UI in `components/shared/history/`, Kommentarfunktion über das
+  Backend-Flag `supportsUserComments` gesteuert. Browser-Prüfung steht aus.
 
 **Als nächstes:**
 

@@ -24,6 +24,13 @@
   --color-status-available: var(--status-available);
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
+  --color-history-insert: var(--history-insert);
+  --color-history-update: var(--history-update);
+  --color-history-delete: var(--history-delete);
+  --color-history-old-bg: var(--history-old-bg);
+  --color-history-new-bg: var(--history-new-bg);
+  --color-history-comment-bg: var(--history-comment-bg);
+  --color-history-comment-border: var(--history-comment-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -80,6 +87,15 @@
   --status-available: var(--brand-green);
   --status-available-bg: rgba(117, 190, 1, 0.1);
   --status-available-border: rgba(117, 190, 1, 0.3);
+
+  /* Change history: one colour per operation, plus the diff and comment backgrounds */
+  --history-insert: var(--brand-green-dark);
+  --history-update: var(--brand-teal);
+  --history-delete: var(--brand-pink);
+  --history-old-bg: rgba(225, 0, 87, 0.09);
+  --history-new-bg: rgba(117, 190, 1, 0.14);
+  --history-comment-bg: rgba(255, 203, 0, 0.14);
+  --history-comment-border: rgba(255, 157, 1, 0.35);
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -149,6 +165,13 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Change history: the tints need more opacity to stay visible on the dark card */
+  --history-insert: var(--brand-green);
+  --history-old-bg: rgba(225, 0, 87, 0.22);
+  --history-new-bg: rgba(117, 190, 1, 0.22);
+  --history-comment-bg: rgba(255, 203, 0, 0.16);
+  --history-comment-border: rgba(255, 203, 0, 0.3);
 }
 
 @layer base {

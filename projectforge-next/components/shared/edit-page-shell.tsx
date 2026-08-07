@@ -6,6 +6,10 @@ import { EditPageTabs, type EditPageTab } from "./edit-page-tabs";
 
 export interface EditPageShellProps {
   header: ReactNode;
+  /**
+   * The page's tabs. Anchor tabs (no `href`) come first and are positionally coupled to `sections`;
+   * tabs with an `href` lead to their own page and are appended after them.
+   */
   tabs: EditPageTab[];
   sections: ReactNode[];
   actions?: ReactNode;

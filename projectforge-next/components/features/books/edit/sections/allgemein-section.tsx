@@ -3,23 +3,15 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import {
-  InputField,
-  SelectField,
-  type SelectOption,
-} from "../book-edit-fields";
+import { InputField, SelectField } from "../book-edit-fields";
+import { useBookTypeOptions } from "../use-book-options";
 import { KeywordsField } from "./keywords-field";
-
-const TYPE_OPTIONS: SelectOption[] = [
-  { value: "BOOK", label: "Buch" },
-  { value: "MAGAZINE", label: "Magazin" },
-  { value: "EBOOK", label: "E-Book" },
-  { value: "OTHER", label: "Sonstiges" },
-];
 
 export function AllgemeinSection() {
   const t = useTranslations("books.edit");
+  const tBook = useTranslations("book");
   const f = (k: string) => t(`fields.${k}`);
+  const typeOptions = useBookTypeOptions();
   return (
     <SectionCard>
       <SectionHeader title={t("sections.general")} />
@@ -32,7 +24,11 @@ export function AllgemeinSection() {
         />
         <InputField name="signature" label={f("signature")} />
         <InputField name="yearOfPublishing" label={f("yearOfPublishing")} />
-        <SelectField name="type" label="Typ" options={TYPE_OPTIONS} />
+        <SelectField
+          name="type"
+          label={tBook("type._")}
+          options={typeOptions}
+        />
         <InputField
           name="publisher"
           label={f("publisher")}

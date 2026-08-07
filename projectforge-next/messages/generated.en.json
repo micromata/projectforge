@@ -53,6 +53,7 @@
     }
   },
   "cancel": "Cancel",
+  "changes": "Changes",
   "columns": {
     "_": "Columns",
     "dragToSort": "Drag to sort",
@@ -126,6 +127,23 @@
     "value": "Value",
     "valueTo": "To"
   },
+  "history": {
+    "entry": "History entry",
+    "newValue": "New value",
+    "oldValue": "Old value",
+    "opType": "Action",
+    "propertyName": "Property",
+    "userComment": {
+      "_": "Change comment",
+      "append": "Append comment",
+      "edit": "Edit change comment",
+      "info": "An optional comment can be entered here, e.g. why the change was made. This comment will be displayed in the history."
+    },
+    "was": "was"
+  },
+  "label": {
+    "historyOfChanges": "History of changes"
+  },
   "loading": "Loading...",
   "login": {
     "_": "Login",
@@ -172,6 +190,15 @@
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",
   "name": "Name",
+  "nothingFound": "Nothing found.",
+  "operation": {
+    "deleted": "deleted",
+    "inserted": "inserted",
+    "markAsDeleted": "marked as deleted",
+    "undefined": "undefined",
+    "undeleted": "undeleted",
+    "updated": "updated"
+  },
   "password": {
     "_": "Password",
     "forgotten": {

@@ -93,6 +93,13 @@ object GenerateNextI18nMessagesMain {
     // Confirmation before an entity is marked as deleted, plus the generic messages the server
     // answers a write with (message.successfull*, validation.error.*).
     "question.markAsDeletedQuestion",
+    // Change history of an entity: the tab's title, the entry texts and the operation names the
+    // backend puts into DisplayHistoryEntry.operation / diffSummary.
+    "label.historyOfChanges",
+    "history.",
+    "operation.",
+    "changes",
+    "nothingFound",
     "message.successfull",
     "validation.error.",
     // Saved list filters. Without the dot so the bare "favorite"/"favorites" keys export too.

@@ -36,8 +36,7 @@
         "general": "General information",
         "loan": "Loan",
         "loanHistory": "Loan history",
-        "notes": "Notes",
-        "history": "Change history"
+        "notes": "Notes"
       },
       "fields": {
         "title": "Title",
@@ -77,19 +76,7 @@
       "actions": {
         "cancel": "Cancel",
         "save": "Save",
-        "delete": "Delete",
-        "lastSaved": "Last saved: {time}",
-        "deleteTodo": "Delete is not implemented yet"
-      },
-      "history": {
-        "loading": "Loading history…",
-        "empty": "No history entries",
-        "fieldsChanged": "Fields changed: {fields}",
-        "operation": {
-          "Insert": "Record created",
-          "Update": "Record updated",
-          "Delete": "Record deleted"
-        }
+        "lastSaved": "Last saved: {time}"
       },
       "saved": "Book saved",
       "loading": "Loading book…",

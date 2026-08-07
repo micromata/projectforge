@@ -893,17 +893,33 @@ constructor(
     }
 
     /**
+     * The history items of the given entity, along with the capabilities a client needs to render them.
+     *
+     * [supportsUserComments] is also part of the edit layout ([UILayout.UserAccess.editHistoryComments]),
+     * but the hand built pages of projectforge-next have no layout to read it from, so the history
+     * answers it as well.
+     */
+    class HistoryInfo(
+        val entries: List<DisplayHistoryEntry>,
+        /** [BaseDao.supportsHistoryUserComments]: only then may the client append comments. */
+        val supportsUserComments: Boolean,
+    )
+
+    /**
      * Gets the history items of the given entity.
      * @param id Id of the item to get the history entries for.
      */
     @GetMapping("history/{id}")
-    fun getHistory(@PathVariable("id") id: Long?): ResponseEntity<List<DisplayHistoryEntry>> {
+    fun getHistory(@PathVariable("id") id: Long?): ResponseEntity<HistoryInfo> {
         if (id == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
         val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        val historyDTOs = historyFormatService.selectAsDisplayEntries(baseDao, item)
-        return ResponseEntity(historyDTOs, HttpStatus.OK)
+        val entries = historyFormatService.selectAsDisplayEntries(baseDao, item)
+        return ResponseEntity(
+            HistoryInfo(entries, supportsUserComments = baseDao.supportsHistoryUserComments),
+            HttpStatus.OK,
+        )
     }
 
     /**
