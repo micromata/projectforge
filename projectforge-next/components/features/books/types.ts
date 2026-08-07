@@ -2,8 +2,31 @@
 // in sync with the Spring DTO so the mock routes can be swapped for the real
 // backend via a Next.js rewrite without changing call sites.
 
-export type BookStatus = "PRESENT" | "MISSED" | "DISPOSED" | "UNKNOWN";
-export type BookType = "BOOK" | "MAGAZINE" | "EBOOK" | "OTHER";
+// Mirrors org.projectforge.business.book.BookStatus / BookType, in their order — the edit form
+// derives both its Zod enum and its option lists from these, so a value exists exactly once.
+export const BOOK_STATUS_VALUES = [
+  "PRESENT",
+  "MISSED",
+  "DISPOSED",
+  "UNKNOWN",
+] as const;
+
+export const BOOK_TYPE_VALUES = [
+  "AUDIO_BOOK",
+  "BOOK",
+  "EBOOK",
+  "MAGAZINE",
+  "ARTICLE",
+  "NEWSPAPER",
+  "PERIODICAL",
+  "FILM",
+  "SOFTWARE",
+  "THESIS",
+  "MISC",
+] as const;
+
+export type BookStatus = (typeof BOOK_STATUS_VALUES)[number];
+export type BookType = (typeof BOOK_TYPE_VALUES)[number];
 
 export interface UserRef {
   id: number;
@@ -44,27 +67,4 @@ export interface BookListRow {
   created: string | null;
 }
 
-// Mirrors DisplayHistoryEntry / DisplayHistoryEntryAttr in
-// projectforge-business: framework.persistence.history.
-export type EntityOpType = "Insert" | "Update" | "Delete";
-export type PropertyOpType = "Insert" | "Update" | "Delete";
-
-export interface HistoryEntryAttr {
-  propertyName: string | null;
-  displayPropertyName: string | null;
-  operationType: PropertyOpType | null;
-  oldValue: string | null;
-  newValue: string | null;
-}
-
-export interface HistoryEntry {
-  id: number;
-  modifiedAt: string;
-  timeAgo: string;
-  modifiedByUserId: number | null;
-  modifiedByUser: string | null;
-  operationType: EntityOpType;
-  operation: string;
-  userComment: string | null;
-  attributes: HistoryEntryAttr[];
-}
+// The change history is not book specific — its types live in lib/rs/history.ts.

@@ -442,10 +442,21 @@ den Filter als `restoredFilter`.
 4. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
    `books`-Edit ist der Präzedenzfall für alle handgebauten Seiten: solange dort
    `required` und Feldlängen von Hand stehen, erbt jede weitere Seite das Muster.
-5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+   Die 406-Auswertung steht inzwischen (s. „Erledigt: Speichern und Löschen“), der
+   Metadaten-Generator fehlt weiterhin.
+5. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
+   406-Mapping, „gespeichert“-Toast, URL-Wechsel nach dem ersten Speichern,
+   Lösch-Bestätigung und Aktionsleiste selbst. Jede weitere handgebaute Edit-Seite
+   würde diese Blöcke kopieren. Sobald die zweite existiert (Phase 3,
+   Auftragsbuch), gehören sie generalisiert nach `components/shared/` bzw.
+   `hooks/` – ein `useEntityEditForm(entity, schema, …)` plus eine
+   `EntityEditActions`-Leiste. Bewusst erst dann: mit nur einem Aufrufer wäre die
+   Abstraktion geraten, nicht abgeleitet.
+6. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
-   (Spaltenbreiten, Resize, Popovers) und der Favoriten-Durchlauf
-   (anwenden/anlegen/umbenennen/überschreiben/löschen).
+   (Spaltenbreiten, Resize, Popovers), der Favoriten-Durchlauf
+   (anwenden/anlegen/umbenennen/überschreiben/löschen) sowie Speichern, Anlegen
+   und Löschen eines Buchs gegen das echte Backend.
 
 Erledigt seit der letzten Fassung: die Form-Library-Drift (`CLAUDE.md` schreibt
 inzwischen `@tanstack/react-form` + Zod für handgebaute Formulare vor, dynamische
@@ -519,6 +530,70 @@ Speichern aus `books`-Edit und der Dev-Betrieb auf `:3000` (dort greift die
 `corsFilterEnabled`-Ausnahme in `checkSameSite`, weil der Dev-Server eine andere
 Origin ist).
 
+#### Erledigt: Speichern und Löschen (`books`-Edit konnte nie speichern)
+
+**Das Problem.** `lib/rs/client.ts` hatte ein `save(entity, id, body)`, das
+`PUT /rs/{entity}/{id}` ansprach – einen Endpunkt, den es nie gab (Überrest der
+entfernten Next-Mock-Routen). `books`-Edit konnte also von Anfang an nicht
+speichern, und Löschen war ein `toast.info("noch nicht implementiert")`.
+
+**Der echte Kontrakt** (aus `AbstractPagesRest`/`AbstractPagesRestUtils`), jetzt in
+`lib/rs/entity.ts` – bewusst getrennt von `client.ts`, weil er nicht die
+Klartext-JSON-Form der übrigen Aufrufe hat:
+
+- `PUT /rs/{entity}/saveorupdate` für **Anlegen und Ändern** – unterschieden wird
+  serverseitig an `data.id`. Body ist immer der `PostData`-Umschlag (`{ data }`),
+  nie die Entität allein.
+- `DELETE /rs/{entity}/markAsDeleted` löscht historisierte Entitäten, `PUT
+…/undelete` macht es rückgängig. `RestPaths.DELETE`/`FORCE_DELETE` zerstören Zeile
+  **und** Historie und sind absichtlich nicht angebunden.
+- Die Antwort ist eine `ResponseAction`, **nicht die gespeicherte Entität**. Die id
+  eines neuen Datensatzes kommt nur als `variables.id` (aus `onAfterEdit`, `-1` =
+  keine). Der Client muss die Entität also neu lesen – die Hooks invalidieren
+  deshalb (`["book", id]`, `["books"]`, `["history","book",id]`) statt den Cache mit
+  dem zu beschreiben, was sie abgeschickt haben.
+- **HTTP 406 ist eine reguläre Antwort** und trägt `validationErrors`. Kein Fehler:
+  `EntityWriteResult` ist deshalb `{ kind: "ok" } | { kind: "validationErrors" }`,
+  und nur echte Transportfehler werfen.
+- **Falle:** Ein abgelaufenes CSRF-Token antwortet mit **HTTP 200** und einer
+  `ResponseAction` samt `validationErrors` (`errorpage.csrfError`) – die Form, die
+  die UILayout-Seiten lesen. `rawRequest` hat dann schon einmal mit frischem Token
+  wiederholt; `write()` in `entity.ts` prüft `validationErrors` daher auch im
+  Erfolgsfall, sonst sähe ein fehlgeschlagenes Speichern wie ein geglücktes aus.
+
+**406 auf die Felder mappen** (`lib/validation/server-errors.ts`, entitätsneutral):
+`validationErrors` gehen per `fieldId` in den `onServer`-Slot der Fehlerkarte von
+`@tanstack/react-form`. Der Slot ist genau der richtige, weil form-core ihn beim
+nächsten `change`/`blur` des Feldes selbst leert (`ValidationLogic`) – wer den
+abgelehnten Wert neu tippt, wird die Server-Meldung ohne eigene Buchführung los.
+Zwei Details:
+
+- Ein Fehler ohne `fieldId` oder mit einem Feld, das die Form nicht rendert, wäre
+  unsichtbar. Er kommt als `unassigned` zurück (Aufrufer zeigt einen Toast) und
+  landet zugleich in `onServer.form`, damit die Form ungültig bleibt und
+  unveränderte Werte nicht erneut abgeschickt werden.
+- Der Typ-Trick in `ErrorMapTarget` ist Absicht: form-core leitet den Typ des
+  `onServer`-Slots aus einem `onServer`-**Validator** ab. Unsere Form hat keinen
+  (der Server validiert, er gibt uns keinen Validator), also steht dort
+  `undefined`, obwohl `setErrorMap` den Slot zur Laufzeit sehr wohl liest.
+
+**Nebenbei aufgeräumt**, weil es am selben Formular hing:
+
+- **`BookType` war falsch.** Das Frontend kannte `BOOK|MAGAZINE|EBOOK|OTHER`; das
+  Backend hat 11 Werte und kein `OTHER` – ein „Sonstiges“ hätte das Backend also
+  abgelehnt. Werte stehen jetzt einmal in `types.ts`
+  (`BOOK_TYPE_VALUES`/`BOOK_STATUS_VALUES`), Zod-Enum und Optionslisten leiten sich
+  daraus ab.
+- **Optionslabel kommen aus dem Bundle.** `use-book-options.ts` baut die
+  i18n-Keys so, wie `BookType.i18nKey` es tut (`AUDIO_BOOK` → `book.type.audiobook`)
+  – statt hartcodiertem „Buch“/„Vermisst“ in den Sections.
+- **Pflichtfeld-Meldung** ist keine deutsche Zeichenkette im Zod-Schema mehr,
+  sondern der Marker `REQUIRED`; das rendernde Feld übersetzt ihn zu
+  `validation.error.fieldRequired` mit dem Feldlabel als Argument.
+- Lösch-Bestätigung: `components/shared/confirm-dialog.tsx` (shadcn
+  `alert-dialog`), Texte aus dem Backend-Bundle
+  (`question.markAsDeletedQuestion`, `markAsDeleted`).
+
 #### Offen: Validierungsregeln nicht duplizieren
 
 **Der Stand.** Feldlängen, Typen und Pflichtfelder sind im Backend genau einmal
@@ -569,6 +644,15 @@ Autorität bleibt der Server (406).
    auf einer statisch exportierten Seite, echte Typsicherheit, und ein Feld, das
    im Backend verschwindet, fällt sofort im `npm run typecheck` auf.
 
+   **Ebenfalls generieren: die Wertelisten der Enums.** `BOOK_TYPE_VALUES` und
+   `BOOK_STATUS_VALUES` in `components/features/books/types.ts` sind von Hand
+   abgeschriebene `I18nEnum`-Konstanten – genau die Duplizierung, an der die alte
+   `BookType`-Liste schon einmal falsch war (s. „Erledigt: Speichern und Löschen“).
+   Ein neuer Wert im Backend kommt im Frontend nicht an, ein entfernter bleibt
+   wählbar und wird beim Speichern abgelehnt. Der Generator soll pro Enum-Property
+   die Konstantennamen samt `i18nKey` mitschreiben; Zod-Enum und Optionslisten
+   hängen dann an einer Quelle statt an zwei.
+
 **Noch zu klären (bewusst offen):**
 
 - **Auswahl der Entitäten** – Prefix-/Whitelist wie bei den i18n-Keys oder alle
@@ -581,9 +665,10 @@ Autorität bleibt der Server (406).
 - **Ableitungshelfer im Frontend** – z.B. `lib/validation/from-metadata.ts`:
   Metadaten → Zod-Bausteine (`min(1)` bei `required`, `max(maxLength)`), mit
   Meldungstexten über next-intl statt hartcodiert.
-- **406-Auswertung im handgebauten Zweig** – `validationErrors` per `fieldId` auf
-  die Formularfelder mappen, wie es der dynamische Zweig schon tut. Ohne das
-  bleibt die Server-Regel unsichtbar, sobald sie strenger ist als die generierte.
+  Die 406-Auswertung im handgebauten Zweig ist **erledigt**
+  (`lib/validation/server-errors.ts`, s. Abschnitt oben) – sie war die Voraussetzung
+  dafür, dass eine strengere Server-Regel überhaupt sichtbar wird. Der Generator ist
+  damit nur noch UX-Vorwegnahme, keine Korrektheitsfrage mehr.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -743,6 +828,12 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `rest/core/ValidationUtils.kt`, `AbstractPagesRestUtils.kt` (406-Antwort);
   reflexive Metadaten `projectforge-business/.../framework/persistence/jpa/EntityMetaDataRegistry.kt`;
   Frontend-Duplikat `projectforge-next/components/features/books/edit/book-edit-schema.ts`
+  (+ die Enum-Wertelisten in `components/features/books/types.ts`);
+  406-Mapping `projectforge-next/lib/validation/server-errors.ts`
+- **Entitäts-Schreibaufrufe:** `projectforge-next/lib/rs/entity.ts`
+  (`saveorupdate`/`markAsDeleted`/`undelete`), Backend
+  `projectforge-rest/.../rest/core/AbstractPagesRest.kt` +
+  `AbstractPagesRestUtils.kt`, `framework/persistence/api/RestPaths.java`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
 - **Dynamic-Renderer Backend:** `projectforge-rest/src/main/kotlin/org/projectforge/ui/`
@@ -783,15 +874,20 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **CSRF-Schutz** – zentral für alle `/rs/*`-Aufrufe (`RestCsrfProtection`:
   `Sec-Fetch-Site` + Session-Token im Header), damit erben neue Endpunkte den
   Schutz ohne Zutun. Damit darf eine next-Seite schreiben.
+- **Schreiben in `books`-Edit** – `saveorupdate`/`markAsDeleted` über
+  `lib/rs/entity.ts` (PostData + ResponseAction, 406 als reguläre Antwort),
+  406-`validationErrors` auf die Formularfelder gemappt, Anlegen inkl.
+  URL-Wechsel auf die neue id, Löschen mit Bestätigung. Noch nicht im Browser
+  gegen das echte Backend verifiziert.
 
 **Als nächstes:**
 
 1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
    `filter/reset` samt `isFilterModified`, und `books`-Edit als saubere
-   Vorlage: Validierungsregeln aus den Backend-Metadaten ableiten statt sie zu
-   wiederholen, plus Auswertung der 406-`validationErrors` (s. eigener Abschnitt).
-   Vorher das visuelle Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser
-   prüfen – das steht noch aus.
+   Vorlage: Validierungsregeln und Enum-Wertelisten aus den Backend-Metadaten
+   ableiten statt sie zu wiederholen (s. eigener Abschnitt). Vorher das visuelle
+   Ergebnis der Tabelle, den Favoriten-Durchlauf sowie Speichern/Anlegen/Löschen
+   im Browser prüfen – das steht noch aus.
 2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Profitiert direkt von der fertigen `DataTable`; braucht als ersten
    Schritt den `UIAgGridColumnDef → ColumnDef`-Adapter und die Formatter.

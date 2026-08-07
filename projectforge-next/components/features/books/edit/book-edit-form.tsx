@@ -9,13 +9,15 @@ import { EditPageShell } from "@/components/shared/edit-page-shell";
 import { BookEditFormProvider } from "./book-edit-context";
 import { BookEditHeader } from "./book-edit-header";
 import { BookEditActions } from "./book-edit-actions";
+import { BookDeleteButton } from "./book-delete-button";
 import { AllgemeinSection } from "./sections/allgemein-section";
 import { AusleiheSection } from "./sections/ausleihe-section";
 import { NotizenSection } from "./sections/notizen-section";
-import { VerlaufSection } from "./sections/verlauf-section";
-import { bookEditSchema } from "./book-edit-schema";
+import { bookTabs } from "../book-tabs";
+import { bookEditSchema, BOOK_EDIT_FIELDS } from "./book-edit-schema";
 import { emptyBookValues, toFormValues } from "./book-edit-values";
 import { useBookDetail, useSaveBook } from "./use-book-detail";
+import { applyServerValidationErrors } from "@/lib/validation/server-errors";
 import type { BookDetail } from "../types";
 
 interface Props {
@@ -33,9 +35,10 @@ function formatTime(date: Date): string {
 export function BookEditForm({ bookId }: Props) {
   const router = useRouter();
   const t = useTranslations("books.edit");
+  const tCommon = useTranslations();
   // A new book has nothing to load — the hook stays disabled for id null.
   const { data: book, isLoading, isError } = useBookDetail(bookId);
-  const saveMutation = useSaveBook(bookId);
+  const saveMutation = useSaveBook();
 
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
@@ -43,13 +46,28 @@ export function BookEditForm({ bookId }: Props) {
     defaultValues: book ? toFormValues(book) : emptyBookValues(),
     validators: { onSubmit: bookEditSchema },
     onSubmit: async ({ value }) => {
-      const saved = await saveMutation.mutateAsync(value as BookDetail);
-      form.reset(toFormValues(saved));
+      const result = await saveMutation.mutateAsync(value as BookDetail);
+      if (result.kind === "validationErrors") {
+        // The server rejected the entity: its rules are the authority, ours only anticipate them.
+        const { unassigned } = applyServerValidationErrors(
+          form,
+          result.validationErrors,
+          BOOK_EDIT_FIELDS
+        );
+        // Anything the form can't show next to a field would be invisible otherwise.
+        unassigned.forEach((message) => toast.error(message));
+        if (unassigned.length === 0)
+          toast.error(tCommon("validation.error.generic"));
+        return;
+      }
       setLastSavedAt(new Date());
       toast.success(t("saved"));
-      // The id only exists after the first save, so the url has to follow it.
-      if (bookId == null && saved.id != null) {
-        router.replace(`/books/${saved.id}`);
+      // The id only exists after the first save, so the url has to follow it. The reloaded book
+      // then resets the form (see the effect below) — with the values the server actually stored.
+      if (bookId == null && result.id != null) {
+        router.replace(`/books/${result.id}`);
+      } else {
+        form.reset(value);
       }
     },
   });
@@ -76,24 +94,14 @@ export function BookEditForm({ bookId }: Props) {
     );
   }
 
-  // A book that doesn't exist yet has neither a loan nor a change history.
-  const tabs = [
-    { id: "general", label: t("tabs.general") },
-    ...(book
-      ? [
-          { id: "loan", label: t("tabs.loan") },
-          { id: "notes", label: t("tabs.notes") },
-          { id: "history", label: t("tabs.history") },
-        ]
-      : [{ id: "notes", label: t("tabs.notes") }]),
-  ];
+  // The history has a page of its own (see bookTabs), so it is not among the sections here.
+  const tabs = bookTabs(book?.id ?? null, (key) => t(`tabs.${key}`), true);
 
   const sections = book
     ? [
         <AllgemeinSection key="general" />,
         <AusleiheSection key="loan" book={book} />,
         <NotizenSection key="notes" />,
-        <VerlaufSection key="history" bookId={book.id!} />,
       ]
     : [<AllgemeinSection key="general" />, <NotizenSection key="notes" />];
 
@@ -119,8 +127,10 @@ export function BookEditForm({ bookId }: Props) {
             <BookEditActions
               onCancel={() => router.push("/books")}
               // Nothing to delete before the first save.
-              onDelete={
-                book ? () => toast.info(t("actions.deleteTodo")) : undefined
+              deleteAction={
+                book ? (
+                  <BookDeleteButton book={book} disabled={isSubmitting} />
+                ) : undefined
               }
               isSaving={isSubmitting}
               isDirty={isDirty}

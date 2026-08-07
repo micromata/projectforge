@@ -1,14 +1,18 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, FloppyDiskIcon } from "@hugeicons/core-free-icons";
+import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
 export interface BookEditActionsProps {
   onCancel: () => void;
-  /** Omitted while the entry doesn't exist yet — the button is then hidden. */
-  onDelete?: () => void;
+  /**
+   * Delete button, rendered right-aligned. Omitted while the entry doesn't exist yet — deleting it
+   * needs the saved entity ([BookDeleteButton]).
+   */
+  deleteAction?: ReactNode;
   isSaving: boolean;
   lastSavedLabel: string | null;
   isDirty: boolean;
@@ -16,7 +20,7 @@ export interface BookEditActionsProps {
 
 export function BookEditActions({
   onCancel,
-  onDelete,
+  deleteAction,
   isSaving,
   lastSavedLabel,
   isDirty,
@@ -48,23 +52,7 @@ export function BookEditActions({
         </span>
       )}
       <div className="flex-1" />
-      {onDelete && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onDelete}
-          disabled={isSaving}
-          className="gap-1.5"
-          style={{
-            borderColor: "var(--status-loaned-border)",
-            color: "var(--status-loaned)",
-          }}
-        >
-          <HugeiconsIcon icon={Delete01Icon} size={13} />
-          {t("delete")}
-        </Button>
-      )}
+      {deleteAction}
     </div>
   );
 }

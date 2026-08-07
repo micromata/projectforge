@@ -177,34 +177,11 @@ export function fetchOne<O>(
   return request<O>(`/rs/${entity}/${id}`, { method: "GET" }, signal);
 }
 
-/**
- * TODO: does not match Spring yet. AbstractPagesRest offers no `PUT {id}`; the
- * real contract is `PUT /rs/{entity}/saveorupdate` with a PostData wrapper
- * (data + the session CSRF token) for both insert and update. Until that is
- * wired up this only talks to the mock route handlers.
- *
- * @param id null for an entry that has no id yet (insert).
- */
-export function save<I, O>(
-  entity: string,
-  id: number | null,
-  body: I,
-  signal?: AbortSignal
-): Promise<O> {
-  return request<O>(
-    id == null ? `/rs/${entity}` : `/rs/${entity}/${id}`,
-    { method: "PUT", body: JSON.stringify(body) },
-    signal
-  );
-}
+// Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the
+// ResponseAction protocol, where 406 carries the validation errors, so they need the raw
+// Response rather than request()'s parsed body.
 
-export function fetchHistory<O>(
-  entity: string,
-  id: number,
-  signal?: AbortSignal
-): Promise<O[]> {
-  return request<O[]>(`/rs/${entity}/history/${id}`, { method: "GET" }, signal);
-}
+// The change history of an entity lives in ./history.ts.
 
 // --- Authentication ---
 

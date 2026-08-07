@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import {
   Field,
   FieldDescription,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useBookEditForm } from "./book-edit-context";
-import type { BookEditValues } from "./book-edit-schema";
+import { REQUIRED, type BookEditValues } from "./book-edit-schema";
 
 type Path = keyof BookEditValues;
 
@@ -35,16 +36,33 @@ interface InputFieldProps extends BaseProps {
   placeholder?: string;
 }
 
-function fieldErrors(meta: { errors?: unknown[] }): string[] {
-  return (meta.errors ?? [])
-    .map((e) => {
-      if (e == null) return null;
-      if (typeof e === "string") return e;
-      if (typeof e === "object" && "message" in e)
-        return String((e as { message?: unknown }).message ?? "");
-      return null;
-    })
-    .filter((m): m is string => !!m);
+/**
+ * Turns the errors of a field into displayable texts.
+ *
+ * Three shapes arrive here: Zod issues (objects with `message`), the plain strings the server sent
+ * (see lib/validation/server-errors.ts), and the [REQUIRED] marker, which is translated with the
+ * field's label — the backend's own wording for a missing value.
+ */
+function useFieldErrors(): (
+  meta: { errors?: unknown[] },
+  label: string
+) => string[] {
+  const t = useTranslations();
+  return (meta, label) =>
+    (meta.errors ?? [])
+      .map((e) => {
+        if (e == null) return null;
+        const message =
+          typeof e === "string"
+            ? e
+            : typeof e === "object" && "message" in e
+              ? String((e as { message?: unknown }).message ?? "")
+              : null;
+        if (message === REQUIRED)
+          return t("validation.error.fieldRequired", { arg0: label });
+        return message;
+      })
+      .filter((m): m is string => !!m);
 }
 
 function FieldShell({
@@ -92,6 +110,7 @@ export function InputField({
   placeholder,
 }: InputFieldProps) {
   const form = useBookEditForm();
+  const fieldErrors = useFieldErrors();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -109,7 +128,7 @@ export function InputField({
             required={required}
             hint={hint}
             invalid={invalid}
-            errors={fieldErrors(meta)}
+            errors={fieldErrors(meta, label)}
             className={className}
           >
             <Input
@@ -139,6 +158,7 @@ export function TextAreaField({
   rows = 4,
 }: TextAreaFieldProps) {
   const form = useBookEditForm();
+  const fieldErrors = useFieldErrors();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -156,7 +176,7 @@ export function TextAreaField({
             required={required}
             hint={hint}
             invalid={invalid}
-            errors={fieldErrors(meta)}
+            errors={fieldErrors(meta, label)}
             className={className}
           >
             <Textarea
@@ -190,6 +210,7 @@ export function SelectField({
   options,
 }: SelectFieldProps) {
   const form = useBookEditForm();
+  const fieldErrors = useFieldErrors();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -207,7 +228,7 @@ export function SelectField({
             required={required}
             hint={hint}
             invalid={invalid}
-            errors={fieldErrors(meta)}
+            errors={fieldErrors(meta, label)}
             className={className}
           >
             <Select
