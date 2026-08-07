@@ -49,8 +49,10 @@ export function useTableState({
   restoredState,
 }: TableStateOptions = {}) {
   // Each slice of the stored state is optional: the backend omits whatever the
-  // user never changed. columnFilters are deliberately not restored — reopening
-  // a list with filters applied but not visible is confusing.
+  // user never changed. columnFilters are deliberately not restored: they work on
+  // the client, sit hidden inside the column headers, and would filter a reopened
+  // list without anything on screen saying so. The filter row is the persisted
+  // surface (see useListFilters) — that one is visible as pills.
   const [sorting, setSorting] = useState<SortingState>(
     restoredState?.sorting?.length ? restoredState.sorting : initialSorting
   );

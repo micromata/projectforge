@@ -15,8 +15,10 @@ import type { FavoriteIdTitle } from "@/lib/rs/types";
 
 interface FilterFavoriteEntryProps {
   favorite: FavoriteIdTitle;
-  /** True for the favorite whose values the list currently uses. */
+  /** True for the favorite the list's values are based on. */
   isCurrent: boolean;
+  /** Whether those values differ from the stored ones, i.e. can be saved. */
+  isModified: boolean;
   onSelect: () => void;
   onRename: (newName: string) => void;
   onUpdate: () => void;
@@ -26,12 +28,16 @@ interface FilterFavoriteEntryProps {
 /**
  * One saved filter: click to apply, plus rename, overwrite and delete.
  *
- * "Overwrite with the current filter" is only offered on the applied favorite —
- * anywhere else it would silently save values the user isn't looking at.
+ * "Overwrite with the current filter" is only offered on the favorite the values
+ * are based on — anywhere else it would silently save values the user isn't
+ * looking at. Its icon says whether there is anything to save: an asterisk while
+ * the values differ, a check once they match the stored ones (same vocabulary as
+ * the legacy panel, `FavoriteEntry.jsx`).
  */
 export function FilterFavoriteEntry({
   favorite,
   isCurrent,
+  isModified,
   onSelect,
   onRename,
   onUpdate,
@@ -74,9 +80,11 @@ export function FilterFavoriteEntry({
       </button>
       {isCurrent && (
         <EntryAction
-          icon={AsteriskIcon}
-          label={t("favorites.saveModification")}
-          onClick={onUpdate}
+          icon={isModified ? AsteriskIcon : Tick01Icon}
+          label={t(isModified ? "favorites.saveModification" : "uptodate")}
+          // Nothing to save: the check is a state, not an offer.
+          onClick={isModified ? onUpdate : undefined}
+          className={isModified ? "text-primary" : undefined}
         />
       )}
       <EntryAction
@@ -102,17 +110,20 @@ function EntryAction({
 }: {
   icon: typeof Tick01Icon;
   label: string;
-  onClick: () => void;
+  /** Omitted for an icon that only reports a state, e.g. "up to date". */
+  onClick?: () => void;
   className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={!onClick}
       title={label}
       aria-label={label}
       className={cn(
-        "shrink-0 cursor-pointer rounded-sm p-1 text-muted-foreground hover:text-foreground",
+        "shrink-0 rounded-sm p-1 text-muted-foreground",
+        onClick ? "cursor-pointer hover:text-foreground" : "cursor-default",
         className
       )}
     >

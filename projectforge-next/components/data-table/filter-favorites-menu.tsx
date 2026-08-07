@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Bookmark02Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import {
+  AsteriskIcon,
+  Bookmark02Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +59,14 @@ export function FilterFavoritesMenu({
           <span className="max-w-32 truncate">
             {current?.name ?? tFilter("list")}
           </span>
+          {/* Says there is something to save without opening the menu. */}
+          {current && favorites.isModified && (
+            <HugeiconsIcon
+              icon={AsteriskIcon}
+              size={10}
+              aria-label={t("favorites.saveModification")}
+            />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-1">
@@ -69,6 +81,7 @@ export function FilterFavoritesMenu({
                 key={favorite.id}
                 favorite={favorite}
                 isCurrent={favorite.id === favorites.currentId}
+                isModified={favorites.isModified}
                 onSelect={() => {
                   setOpen(false);
                   favorites.select(favorite.id);

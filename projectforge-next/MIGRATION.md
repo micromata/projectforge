@@ -366,12 +366,61 @@ alten React-Seite. Bausteine: `components/data-table/use-filter-favorites.ts`,
   im `["initialList", entity]`-Cache gepatcht (nicht in eigenem State gehalten).
   Gelesen wird über `useInitialList`, nicht per `getQueryData` – letzteres
   abonniert nicht, ein umbenannter Favorit würde nicht neu rendern.
-- **Welcher Favorit angewandt ist, ist Client-State.** Das Backend speichert den
-  aktuellen Filter bei _jedem_ Listenaufruf neu (`saveCurrentFilter`); seine `id`
-  zurückzulesen würde einen Favoriten behaupten, dessen Werte der Nutzer längst
-  geändert hat.
+- **`id` und `name` müssen bei _jedem_ Listenaufruf mitgehen.** `getList` speichert
+  den Filter, den es bekommt, als „aktuellen“ Filter des Nutzers
+  (`saveCurrentFilter`) – ohne Id überschreibt also der erste Listenaufruf nach dem
+  Auswählen den Favoriten-Bezug, und die geänderten Werte lassen sich nicht mehr in
+  den Favoriten speichern. Die Referenz gehört deshalb zu den Filterwerten
+  (`useListFilters.favorite`) und nicht in den Favoriten-Hook: sie muss stehen,
+  bevor die Query gebaut wird.
+- **Die Referenz überlebt das Ändern der Werte** – genau das macht „in diesen
+  Favoriten speichern“ möglich. Der Name im Menü heißt also „basiert auf“, nicht
+  „identisch mit“.
+- **„Gibt es etwas zu speichern?“ rechnet der Client.** Das Icon am aktuellen
+  Favoriten ist ein Sternchen, solange die Werte abweichen, und ein Häkchen
+  („aktuell“), wenn sie dem gespeicherten Stand entsprechen – dieselbe Sprache wie
+  im alten Panel (`FavoriteEntry.jsx`), nur dass die alte Listenseite `isModified`
+  hartcodiert (`SearchFilter.jsx`) und damit immer das Sternchen zeigt. Verglichen
+  wird über `filterFingerprint` (Werte + Suchstring, normalisiert). Die Basis dafür
+  kennt der Client nur für einen in dieser Sitzung angewandten oder gespeicherten
+  Favoriten – `initialList` liefert nur Namen und Ids (`Favorites.idTitleList`),
+  nicht die Werte. „Unbekannt“ zählt deshalb als geändert, damit Speichern
+  erreichbar bleibt.
 - Ein leerer Name ist erlaubt: `Favorites.fixNamesAndIds` vergibt „unbenannt“
   (`favorite.untitled`).
+
+**Erledigt: Filtereinstellungen werden gemerkt.** Kommt man auf die Buchseite
+zurück, ist die letzte Filtereinstellung wieder vorbelegt – Pillen-Werte,
+Suchstring und der zugrunde liegende Favorit (inkl. der Möglichkeit, die
+zwischenzeitlichen Änderungen in ihn zu speichern). Das braucht keinen neuen
+Endpunkt: `AbstractPagesRest.getList` ruft bei _jedem_ Listenaufruf
+`saveCurrentFilter(filter)` (User-Prefs, Key `Favorites.PREF_NAME_CURRENT`), und
+`initialList` gibt genau diesen Filter als `filter` zurück. Es fehlte nur das
+Auslesen. Bausteine: `components/data-table/use-remembered-filter.ts`
+(`useRememberedFilter` liest, `useRememberFilter` schreibt), `useListFilters` nimmt
+den Filter als `restoredFilter`.
+
+- **Nur die Filter-Zeile wird persistiert, nicht die Spalten-Filter.** Die
+  Spalten-Filter in den Tabellenköpfen laufen clientseitig, sind eingeklappt und
+  würden eine wiedergeöffnete Liste unsichtbar filtern. `useTableState` setzt
+  `columnFilters` deshalb bewusst immer leer, obwohl der Spaltenzustand ansonsten
+  gespeichert wird.
+- **Die Werte müssen beim ersten Render dastehen**, genau wie der
+  Spaltenzustand: sie initialisieren React-State, ein Nachschieben würde
+  überschreiben, was der Nutzer zwischenzeitlich getippt hat. Die Seite hält die
+  Liste deshalb hinter einem Spinner zurück, bis `initialList` **und**
+  `columnStates` da sind (ein Request mehr entsteht nicht – `initialList` wird
+  ohnehin für die Filterfelder geholt).
+- **Der `initialList`-Cache muss mitwandern.** Er hat `staleTime: Infinity` (das
+  Layout darin ändert sich nur mit einem Release), also würde ein Verlassen und
+  Zurückkehren _ohne_ Reload den Filter vom ersten Seitenaufruf wiederherstellen.
+  `useRememberFilter` patcht den Cache-Eintrag deshalb parallel zum Backend – die
+  Liste bleibt eine Quelle der Wahrheit, dieselbe Stelle, die auch die
+  Favoritenliste patcht.
+- **Was bewusst nicht wiederhergestellt wird:** Seitengröße und Sortierung. Die
+  Sortierung kommt aus dem Spaltenzustand (`columnStates`), damit es dafür nur eine
+  Quelle gibt; die Seitengröße reist im Filter mit, ist aber eine Tabellen- und
+  keine Filtereinstellung.
 
 **Offen:**
 
@@ -379,10 +428,12 @@ alten React-Seite. Bausteine: `components/data-table/use-filter-favorites.ts`,
    durch“) nutzt derzeit ein einfaches Textfeld – für die Entitätssuche fehlt eine
    Autocomplete-Komponente gegen `autoCompletion.url`. Bei TIMESTAMP fehlt die
    Schnellauswahl (`selectors`: Jahr/Monat/Woche/Tag/bis-jetzt).
-2. **Gesetzte Filter beim Seitenaufruf wiederherstellen.** Das Backend liefert den
-   gespeicherten aktuellen `MagicFilter` in `initialList` mit; die Seite startet
-   bislang bewusst leer (daran hängt auch der `currentId`-Punkt oben).
-   `filter/reset` ist noch nicht angebunden.
+2. **`filter/reset` anbinden.** Die gemerkten Filter lassen sich derzeit nur Pille
+   für Pille bzw. über „Zurücksetzen“ im Alle-Filter-Dialog leeren; das leert den
+   Client-State, ruft aber nicht den Endpunkt, der auch den gespeicherten Filter
+   im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
+   zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
+   Favoriten-Bezug fallen.
 3. **Zell-Rendering/Formatter fehlen noch.** Die alte App hat einen
    Formatter-Zoo (`Formatter.jsx`, `FormatterFormat.js`: Währung, Prozent,
    Datum/Timestamp, Task-Pfade, `displayName`-Auflösung), den der Dynamic-Renderer
@@ -722,8 +773,8 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
   Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
   Reorder, Spalten-Filter), Spaltenzustand-Persistenz, Listen-Filter als
-  Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten),
-  i18n-Generierung aus `I18nResources`.
+  Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten) und gemerkter
+  Filtereinstellung, i18n-Generierung aus `I18nResources`.
 - **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
   In-Session-2FA-Dialog laufen in next (React-Login nur noch Rückfallebene).
 
@@ -733,7 +784,7 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    alle Seiten und blockiert das erste echte Speichern aus next – deshalb vor der
    Bulk-Migration.
 2. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
-   gesetzte Filter beim Seitenaufruf wiederherstellen, und `books`-Edit als saubere
+   `filter/reset` samt `isFilterModified`, und `books`-Edit als saubere
    Vorlage: Validierungsregeln aus den Backend-Metadaten ableiten statt sie zu
    wiederholen, plus Auswertung der 406-`validationErrors` (s. eigener Abschnitt).
    Vorher das visuelle Ergebnis der Tabelle und den Favoriten-Durchlauf im Browser

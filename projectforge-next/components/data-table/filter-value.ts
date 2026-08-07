@@ -35,6 +35,26 @@ export function filterValuesFromEntries(
 }
 
 /**
+ * A comparable form of everything the filter row holds: the field values and the
+ * search string, normalised (empty values dropped, fields sorted) so only real
+ * differences show up.
+ *
+ * Used to tell whether the current filter still matches the saved favorite it came
+ * from. `MagicFilter.isModified` does the same server-side, but that comparison
+ * isn't exposed for list pages — the legacy frontend therefore hardcodes
+ * "modified" (`SearchFilter.jsx`).
+ */
+export function filterFingerprint(filter: {
+  entries?: MagicFilterEntry[];
+  searchString?: string;
+}): string {
+  return JSON.stringify({
+    entries: filterEntriesOf(filterValuesFromEntries(filter.entries)),
+    searchString: filter.searchString ?? "",
+  });
+}
+
+/**
  * Wraps the term in wildcards: the backend turns a STRING entry into a LIKE
  * predicate that matches the whole field otherwise ("Larkin" finds nothing when
  * the value is "Peter J. Larkin"). Terms that already carry a wildcard are left

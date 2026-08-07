@@ -12,6 +12,10 @@ export { useFilterFavorites } from "./use-filter-favorites";
 export type { UseFilterFavoritesResult } from "./use-filter-favorites";
 export { useListFilters } from "./use-list-filters";
 export type { UseListFiltersResult } from "./use-list-filters";
+export {
+  useRememberedFilter,
+  useRememberFilter,
+} from "./use-remembered-filter";
 export type { FilterValues } from "./filter-value";
 export { filterEntriesOf, filterValuesFromEntries } from "./filter-value";
 export { DataTablePagination } from "./data-table-pagination";

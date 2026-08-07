@@ -15,10 +15,13 @@ import {
   useFilterFavorites,
   useListFilters,
   useMagicFilterQuery,
+  useRememberedFilter,
+  useRememberFilter,
   useStoredColumnState,
   useTableState,
   type ColumnState,
 } from "@/components/data-table";
+import type { MagicFilter } from "@/lib/rs/types";
 import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BookRowActions } from "@/components/features/books/book-row-actions";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
@@ -32,8 +35,10 @@ export default function BooksPage() {
   // has arrived: the state seeds TanStack's initial state, which can't be
   // replaced afterwards without fighting the user's own edits.
   const stored = useStoredColumnState(ENTITY);
+  // Same for the filter the user last used, which the backend remembers per user.
+  const remembered = useRememberedFilter(ENTITY);
 
-  if (stored.isPending) {
+  if (stored.isPending || remembered.isPending) {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">
@@ -44,12 +49,23 @@ export default function BooksPage() {
   }
 
   // A failed read is not worth blocking the page for — start from the defaults.
-  return <BooksList storedState={stored.data ?? {}} />;
+  return (
+    <BooksList
+      storedState={stored.data ?? {}}
+      restoredFilter={remembered.filter}
+    />
+  );
 }
 
-function BooksList({ storedState }: { storedState: ColumnState }) {
+function BooksList({
+  storedState,
+  restoredFilter,
+}: {
+  storedState: ColumnState;
+  restoredFilter?: MagicFilter;
+}) {
   const columns = useBooksColumns();
-  const filters = useListFilters(ENTITY);
+  const filters = useListFilters(ENTITY, { restoredFilter });
 
   const columnState = useTableState({
     restoredState: storedState,
@@ -76,8 +92,15 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     // Sorting drives the backend query, so it lives with the query, not in the
     // column state — the stored order seeds it here.
     initialSorting: storedState.sorting,
+    // The search box belongs to the filter row, so it is restored with it.
+    initialGlobalFilter: restoredFilter?.searchString,
     // The pill filters are applied server-side, unlike the header's column filters.
     filterEntries: filters.entries,
+    // Has to go out with every list call: the backend stores the filter it gets as
+    // the user's current one, so without it the link to the favorite would be lost
+    // and the edited filter could no longer be saved back into it.
+    favoriteId: filters.favorite?.id,
+    favoriteName: filters.favorite?.name,
   });
 
   // The user's saved filters — the backend's filter favorites, so a filter saved
@@ -85,6 +108,8 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
   const favorites = useFilterFavorites({
     entity: ENTITY,
     filter,
+    current: filters.favorite,
+    onCurrentChange: filters.setFavorite,
     onApply: (applied) => {
       filters.setValues(filterValuesFromEntries(applied.entries));
       applyFilter(applied);
@@ -117,6 +142,11 @@ function BooksList({ storedState }: { storedState: ColumnState }) {
     manualSorting: true,
     getRowId: (row: BookListRow) => String(row.id),
   });
+
+  // Coming back to the list should show the filter it was left with, also without
+  // a reload — the cached initialList would otherwise still hold the old one.
+  // The filter already carries the favorite's id and name.
+  useRememberFilter(ENTITY, filter);
 
   useColumnStatePersistence(ENTITY, {
     sorting,

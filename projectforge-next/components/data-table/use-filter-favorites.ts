@@ -16,6 +16,8 @@ import type {
   InitialListData,
   MagicFilter,
 } from "@/lib/rs/types";
+import { filterFingerprint } from "./filter-value";
+import type { FavoriteRef } from "./use-list-filters";
 
 /**
  * The user's saved filters for one list, kept where the backend keeps them
@@ -32,12 +34,26 @@ export interface UseFilterFavoritesOptions {
   filter: MagicFilter;
   /** Applies a saved filter to the page (values, search string, sorting). */
   onApply: (filter: MagicFilter) => void;
+  /**
+   * The favorite the current values are based on, owned by [useListFilters] because
+   * the id has to travel with the filter the query sends. It stays set while the
+   * user edits the values — that is what keeps "save into this favorite" reachable,
+   * also after leaving the page and coming back.
+   */
+  current: FavoriteRef | undefined;
+  onCurrentChange: (current: FavoriteRef | undefined) => void;
 }
 
 export interface UseFilterFavoritesResult {
   favorites: FavoriteIdTitle[];
-  /** Id of the applied favorite, or undefined once the filter was edited since. */
+  /** Id of the favorite the current values are based on. */
   currentId: number | undefined;
+  /**
+   * Whether the values differ from what that favorite has stored, i.e. whether
+   * there is something to save. Unknown counts as modified — see the note on the
+   * baseline below.
+   */
+  isModified: boolean;
   /** True while a request is in flight, so the UI can hold still. */
   isBusy: boolean;
   select: (id: number) => void;
@@ -52,17 +68,24 @@ export function useFilterFavorites({
   entity,
   filter,
   onApply,
+  current,
+  onCurrentChange,
 }: UseFilterFavoritesOptions): UseFilterFavoritesResult {
   const queryClient = useQueryClient();
   // Through the query, not queryClient.getQueryData: reading the cache directly
   // doesn't subscribe, so a renamed or deleted favorite wouldn't re-render.
   const layout = useInitialList(entity);
 
-  // Which favorite is applied is client state, and deliberately starts empty: the
-  // backend does keep an id on the stored current filter, but the page starts with
-  // no filter values applied (restoring them is a separate step), so reading it
-  // would name a favorite whose values are nowhere to be seen.
-  const [currentId, setCurrentId] = useState<number>();
+  const currentId = current?.id;
+
+  // What the favorite has stored, to tell "modified" from "up to date". Only known
+  // for a favorite that was applied or written in this session: initialList carries
+  // the favorites' names, not their values (Favorites.idTitleList). Unknown means
+  // modified, so saving stays reachable — the legacy frontend goes further and
+  // hardcodes it (SearchFilter.jsx passes isModified unconditionally).
+  const [savedPrint, setSavedPrint] = useState<
+    { id: number; print: string } | undefined
+  >();
 
   const patchList = useCallback(
     (response: FilterFavoritesResponse) => {
@@ -82,8 +105,12 @@ export function useFilterFavorites({
     mutationFn: (id: number) => selectFilterFavorite(entity, id),
     onSuccess: (data, id) => {
       patchList(data);
-      setCurrentId(id);
-      if (data.filter) onApply(data.filter);
+      onCurrentChange({ id, name: data.filter?.name ?? nameOf(id) });
+      if (data.filter) {
+        // Just applied, so it is by definition unmodified.
+        setSavedPrint({ id, print: filterFingerprint(data.filter) });
+        onApply(data.filter);
+      }
     },
   });
 
@@ -93,7 +120,10 @@ export function useFilterFavorites({
       createFilterFavorite(entity, { ...filter, name, id: undefined }),
     onSuccess: (data) => {
       patchList(data);
-      setCurrentId(data.filter?.id);
+      const id = data.filter?.id;
+      if (id === undefined) return;
+      onCurrentChange({ id, name: data.filter?.name });
+      setSavedPrint({ id, print: filterFingerprint(filter) });
     },
   });
 
@@ -102,13 +132,20 @@ export function useFilterFavorites({
       updateFilterFavorite(entity, { ...filter, id, name }),
     // filter/update answers with an empty map, so there is nothing to patch: the
     // name and the list are unchanged, only the stored values are.
-    onSuccess: (_data, { id }) => setCurrentId(id),
+    onSuccess: (_data, { id, name }) => {
+      onCurrentChange({ id, name });
+      setSavedPrint({ id, print: filterFingerprint(filter) });
+    },
   });
 
   const renameMutation = useMutation({
     mutationFn: ({ id, newName }: { id: number; newName: string }) =>
       renameFilterFavorite(entity, id, newName),
-    onSuccess: patchList,
+    onSuccess: (data, { id, newName }) => {
+      patchList(data);
+      // The name travels with the filter, so the current reference has to follow.
+      if (currentId === id) onCurrentChange({ id, name: newName });
+    },
   });
 
   const removeMutation = useMutation({
@@ -116,7 +153,7 @@ export function useFilterFavorites({
     onSuccess: (data, id) => {
       patchList(data);
       // The filter values stay applied; only the saved copy is gone.
-      if (currentId === id) setCurrentId(undefined);
+      if (currentId === id) onCurrentChange(undefined);
     },
   });
 
@@ -126,6 +163,11 @@ export function useFilterFavorites({
   return {
     favorites,
     currentId,
+    isModified: !(
+      savedPrint &&
+      savedPrint.id === currentId &&
+      savedPrint.print === filterFingerprint(filter)
+    ),
     isBusy:
       selectMutation.isPending ||
       createMutation.isPending ||

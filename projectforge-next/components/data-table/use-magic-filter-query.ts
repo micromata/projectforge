@@ -25,6 +25,16 @@ interface UseMagicFilterQueryOptions {
    * avoid refetching on every render.
    */
   filterEntries?: MagicFilterEntry[];
+  /**
+   * The saved filter the values came from, if any. It has to travel with every
+   * list call: the backend stores the filter it receives as the user's current one
+   * (saveCurrentFilter), so leaving id/name out would drop the reference to the
+   * favorite — the next visit would restore the values without offering to save
+   * them back. The backend keeps the id while the values are edited, which is
+   * exactly what makes "overwrite this favorite" possible.
+   */
+  favoriteId?: number;
+  favoriteName?: string;
   /** Hook that lets callers customize the MagicFilter before it's sent. */
   buildFilter?: (base: MagicFilter) => MagicFilter;
   enabled?: boolean;
@@ -66,6 +76,8 @@ export function useMagicFilterQuery<O>({
   initialGlobalFilter = "",
   initialSorting = [],
   filterEntries,
+  favoriteId,
+  favoriteName,
   buildFilter,
   enabled = true,
 }: UseMagicFilterQueryOptions): UseMagicFilterQueryResult<O> {
@@ -101,6 +113,8 @@ export function useMagicFilterQuery<O>({
         sortOrder: s.desc ? "DESCENDING" : "ASCENDING",
       })),
       searchString: globalFilter || undefined,
+      id: favoriteId,
+      name: favoriteName,
     };
     return buildFilter ? buildFilter(base) : base;
   }, [
@@ -108,6 +122,8 @@ export function useMagicFilterQuery<O>({
     pagination.pageSize,
     globalFilter,
     serializedEntries,
+    favoriteId,
+    favoriteName,
     buildFilter,
   ]);
 
