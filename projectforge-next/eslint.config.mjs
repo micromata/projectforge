@@ -17,7 +17,16 @@ const eslintConfig = defineConfig([
     // shadcn-managed sources (regenerated via `npx shadcn@latest add`):
     "components/ui/**",
     "hooks/use-mobile.ts",
+    // Playwright's generated report: bundled third party code, not ours to lint.
+    "playwright-report/**",
+    "test-results/**",
   ]),
+  {
+    // Playwright fixtures are not React. Its `use()` callback — how a fixture hands its value to
+    // the test — looks like the `use` hook to the React rules, which then demand a component.
+    files: ["e2e/**"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
 ]);
 
 export default eslintConfig;

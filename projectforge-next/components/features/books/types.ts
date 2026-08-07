@@ -33,38 +33,43 @@ export interface UserRef {
   displayName: string;
 }
 
+/**
+ * Every optional property is `?`, not just `| null`: Spring's mapper uses
+ * `JsonInclude.Include.NON_NULL` (JacksonConfiguration), so an empty field is absent from the JSON
+ * rather than null. Whoever reads a book has to cope with `undefined` — toFormValues normalises it.
+ */
 export interface BookDetail {
   /** null for a book that has not been saved yet (Spring assigns the id). */
   id: number | null;
   title: string;
-  authors: string | null;
-  signature: string | null;
-  yearOfPublishing: string | null;
-  publisher: string | null;
-  editor: string | null;
-  isbn: string | null;
-  keywords: string | null;
-  abstractText: string | null;
-  comment: string | null;
-  status: BookStatus | null;
-  type: BookType | null;
-  lendOutBy: UserRef | null;
-  lendOutDate: string | null;
-  lendOutComment: string | null;
+  authors?: string | null;
+  signature?: string | null;
+  yearOfPublishing?: string | null;
+  publisher?: string | null;
+  editor?: string | null;
+  isbn?: string | null;
+  keywords?: string | null;
+  abstractText?: string | null;
+  comment?: string | null;
+  status?: BookStatus | null;
+  type?: BookType | null;
+  lendOutBy?: UserRef | null;
+  lendOutDate?: string | null;
+  lendOutComment?: string | null;
   // Audit metadata surfaced by Spring's BaseDTO.
-  created: string | null;
+  created?: string | null;
 }
 
 // Projection used by the list page — derived from BookDetail.
 export interface BookListRow {
   id: number;
   title: string;
-  authors: string | null;
-  signature: string | null;
-  yearOfPublishing: string | null;
-  keywords: string | null;
-  lendOutBy: UserRef | null;
-  created: string | null;
+  authors?: string | null;
+  signature?: string | null;
+  yearOfPublishing?: string | null;
+  keywords?: string | null;
+  lendOutBy?: UserRef | null;
+  created?: string | null;
 }
 
 // The change history is not book specific — its types live in lib/rs/history.ts.

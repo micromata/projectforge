@@ -54,9 +54,6 @@
         "lendOutDueDate": "Zurück bis",
         "lendOutComment": "Bemerkung zur Ausleihe",
         "status": "Ausleihstatus",
-        "abstract": "Beschreibung",
-        "comment": "Interne Notizen",
-        "commentHint": "Nur für Administratoren sichtbar",
         "totalLoans": "Gesamte Ausleihen",
         "totalLoansHint": "Automatisch berechnet — nicht editierbar"
       },
@@ -87,7 +84,12 @@
   "table": {
     "resize": "Spaltenbreite ändern",
     "filter": "Spalte filtern",
-    "empty": "Keine Einträge"
+    "empty": "Keine Einträge",
+    "range": "{from}–{to} von {total} Einträgen",
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "rowsPerPage": "Einträge / Seite:",
+    "resetFailed": "Die Spalten konnten nicht zurückgesetzt werden"
   },
   "filter": {
     "selectNone": "Keine auswählen",

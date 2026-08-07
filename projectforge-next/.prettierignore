@@ -4,3 +4,5 @@ public
 package-lock.json
 components/ui
 hooks/use-mobile.ts
+playwright-report
+test-results

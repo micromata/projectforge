@@ -1,25 +1,30 @@
 import type { BookEditValues } from "./book-edit-schema";
 import type { BookDetail } from "../types";
 
+/**
+ * A field Spring left out of the JSON (`JsonInclude.Include.NON_NULL`, see types.ts) arrives as
+ * `undefined`; every value is normalised to null here, so no field ever holds `undefined` — which a
+ * controlled input would read as "uncontrolled" and the schema as a missing value.
+ */
 export function toFormValues(book: BookDetail): BookEditValues {
   return {
-    id: book.id,
-    title: book.title,
+    id: book.id ?? null,
+    title: book.title ?? "",
     authors: book.authors ?? "",
-    signature: book.signature,
-    yearOfPublishing: book.yearOfPublishing,
-    publisher: book.publisher,
-    editor: book.editor,
-    isbn: book.isbn,
-    keywords: book.keywords,
-    abstractText: book.abstractText,
-    comment: book.comment,
-    status: book.status,
-    type: book.type,
-    lendOutBy: book.lendOutBy,
-    lendOutDate: book.lendOutDate,
-    lendOutComment: book.lendOutComment,
-    created: book.created,
+    signature: book.signature ?? null,
+    yearOfPublishing: book.yearOfPublishing ?? null,
+    publisher: book.publisher ?? null,
+    editor: book.editor ?? null,
+    isbn: book.isbn ?? null,
+    keywords: book.keywords ?? null,
+    abstractText: book.abstractText ?? null,
+    comment: book.comment ?? null,
+    status: book.status ?? null,
+    type: book.type ?? null,
+    lendOutBy: book.lendOutBy ?? null,
+    lendOutDate: book.lendOutDate ?? null,
+    lendOutComment: book.lendOutComment ?? null,
+    created: book.created ?? null,
   };
 }
 

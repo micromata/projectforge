@@ -31,6 +31,8 @@ export function AusleiheSection({ book }: Props) {
         <SelectField
           name="status"
           label={t("fields.status")}
+          // Mandatory in the database (BookDO: `nullable = false`), so mark it as such here too.
+          required
           options={statusOptions}
         />
       </div>

@@ -1,6 +1,9 @@
 {
   "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "apply": "Übernehmen",
+  "attachments": {
+    "short": "Anh."
+  },
   "book": {
     "abstract": "Zusammenfassung",
     "authors": "Autor:innen",
@@ -54,6 +57,7 @@
   },
   "cancel": "Abbrechen",
   "changes": "Änderungen",
+  "collapse": "Zuklappen",
   "columns": {
     "_": "Spalten",
     "dragToSort": "Ziehen zum Sortieren",
@@ -67,10 +71,12 @@
     "sortPosition": "Sortierposition {arg0}",
     "unpin": "Nicht mehr anheften"
   },
+  "comment": "Bemerkung",
   "created": "angelegt",
   "createdBy": "angelegt von",
   "delete": "Löschen",
   "deleted": "gelöscht",
+  "expand": "Aufklappen",
   "favorite": {
     "_": "Favorit",
     "addNew": "Neuer Favorit",
@@ -190,6 +196,10 @@
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
   "name": "Name",
+  "no": "Nein",
+  "notEnded": "nicht beendet",
+  "notLoggedIn": "Nicht angemeldet",
+  "notVisible": "nicht sichtbar",
   "nothingFound": "Nichts gefunden.",
   "operation": {
     "deleted": "gelöscht",
@@ -227,8 +237,12 @@
   "question": {
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },
+  "rating": "Bewertung",
   "rename": "Umbenennen",
   "save": "Speichern",
+  "task": {
+    "consumption": "Verbrauch"
+  },
   "undelete": "Wiederherstellen",
   "uptodate": "aktuell",
   "user": {
@@ -327,5 +341,6 @@
         "register": "Registrieren"
       }
     }
-  }
+  },
+  "yes": "Ja"
 }

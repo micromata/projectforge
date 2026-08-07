@@ -60,15 +60,12 @@ export function BookEditForm({ bookId }: Props) {
           toast.error(tCommon("validation.error.generic"));
         return;
       }
-      setLastSavedAt(new Date());
       toast.success(t("saved"));
-      // The id only exists after the first save, so the url has to follow it. The reloaded book
-      // then resets the form (see the effect below) — with the values the server actually stored.
-      if (bookId == null && result.id != null) {
-        router.replace(`/books/${result.id}`);
-      } else {
-        form.reset(value);
-      }
+      // Back to the list, which is where the backend points too (its ResponseAction is a REDIRECT
+      // to /next/books) and what deleting does. The form is reset first so leaving it doesn't look
+      // like unsaved changes; the list refetches on its own, the caches having been invalidated.
+      form.reset(value);
+      router.push("/books");
     },
   });
 

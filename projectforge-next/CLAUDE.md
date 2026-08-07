@@ -95,6 +95,19 @@ Cross-feature imports are forbidden. If two features need the same thing, it bel
 4. **Never edit `components/ui/`.** If a shadcn primitive needs updating, re-run `npx shadcn@latest add <name>`.
 5. For UI changes, manually verify in the browser at `localhost:3000`. If you can't test in a browser, say so explicitly — type/lint passing is not the same as feature-correct.
 
+## Testing against the running system
+
+The credentials of a local test account are in `~/ProjectForge/testAccount.txt` (`username/password`), so
+automated tests can run against the live system instead of mock data. Log in via
+`POST /rsPublic/nextLogin` (`{"username":…,"password":…}`) and keep the session cookie; `GET /rs/userStatus`
+then yields the `csrfToken` that every state changing call needs as `X-PF-CSRF-Token` (see `lib/rs/client.ts`).
+Being able to see a real response beats reasoning about the contract: it settles at once whether a field is
+missing, null, or merely displayed wrong — `JsonInclude.Include.NON_NULL` means Spring omits empty fields
+entirely.
+
+The account is local and its data is expendable, but it is a real database: prefer reads, and don't leave
+test entities behind.
+
 ## Communication
 
 - **Plan mode for any non-trivial task.** Use `ExitPlanMode` to get approval before implementing anything beyond a one-line edit.

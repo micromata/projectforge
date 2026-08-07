@@ -78,6 +78,8 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
+    // Field label of BookDO.comment and every other entity's comment column.
+    "comment",
     // Wait indicator, e.g. while a column filter builds its value list.
     "loading",
     // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
@@ -90,6 +92,17 @@ object GenerateNextI18nMessagesMain {
     "name",
     "rename",
     "uptodate",
+    // Cell renderers of the data table: boolean ticks read "yes"/"no" as their accessible name,
+    // the rating stars "rating", the tree cell "expand"/"collapse". "no" also matches
+    // "nothingFound" (exported anyway), "notEnded", "notLoggedIn", "notVisible".
+    "yes",
+    "no",
+    "rating",
+    "expand",
+    "collapse",
+    // Consumption bar (task lists) and the attachment column's icon-only header.
+    "task.consumption",
+    "attachments.short",
     // Confirmation before an entity is marked as deleted, plus the generic messages the server
     // answers a write with (message.successfull*, validation.error.*).
     "question.markAsDeletedQuestion",

@@ -54,9 +54,6 @@
         "lendOutDueDate": "Return by",
         "lendOutComment": "Loan comment",
         "status": "Loan status",
-        "abstract": "Description",
-        "comment": "Internal notes",
-        "commentHint": "Visible to administrators only",
         "totalLoans": "Total loans",
         "totalLoansHint": "Automatically calculated — not editable"
       },
@@ -87,7 +84,12 @@
   "table": {
     "resize": "Resize column",
     "filter": "Filter column",
-    "empty": "No entries"
+    "empty": "No entries",
+    "range": "{from}–{to} of {total} entries",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "rowsPerPage": "Rows / page:",
+    "resetFailed": "The columns could not be reset"
   },
   "filter": {
     "selectNone": "Select none",

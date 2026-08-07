@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import {
   Field,
@@ -39,9 +39,12 @@ interface InputFieldProps extends BaseProps {
 /**
  * Turns the errors of a field into displayable texts.
  *
- * Three shapes arrive here: Zod issues (objects with `message`), the plain strings the server sent
- * (see lib/validation/server-errors.ts), and the [REQUIRED] marker, which is translated with the
- * field's label — the backend's own wording for a missing value.
+ * Two shapes arrive here. A plain string is the server's message (see lib/validation/server-errors.ts),
+ * already translated by the backend, and is shown verbatim. An object is a Zod issue, whose `message`
+ * is one of our own markers — [REQUIRED] becomes the backend's wording for a missing value, with the
+ * field's label as its argument. Anything else is Zod's own English default ("Invalid input: expected
+ * string, received undefined"): a schema bug, never something a user should read, so it turns into the
+ * generic message and is logged.
  */
 function useFieldErrors(): (
   meta: { errors?: unknown[] },
@@ -52,17 +55,31 @@ function useFieldErrors(): (
     (meta.errors ?? [])
       .map((e) => {
         if (e == null) return null;
-        const message =
-          typeof e === "string"
-            ? e
-            : typeof e === "object" && "message" in e
-              ? String((e as { message?: unknown }).message ?? "")
-              : null;
+        if (typeof e === "string") return e;
+        if (typeof e !== "object" || !("message" in e)) return null;
+        const message = String((e as { message?: unknown }).message ?? "");
         if (message === REQUIRED)
           return t("validation.error.fieldRequired", { arg0: label });
-        return message;
+        console.warn(`Untranslated validation error on "${label}": ${message}`);
+        return t("validation.error.generic");
       })
       .filter((m): m is string => !!m);
+}
+
+/**
+ * Ids tying a label to its control, so the control has an accessible name.
+ *
+ * `htmlFor` alone would do for an input, but the select's trigger is a `<button>`, which a label
+ * cannot label — hence `labelId` for its `aria-labelledby`.
+ */
+interface FieldIds {
+  controlId: string;
+  labelId: string;
+}
+
+function useFieldIds(): FieldIds {
+  const id = useId();
+  return { controlId: `${id}-control`, labelId: `${id}-label` };
 }
 
 function FieldShell({
@@ -72,6 +89,7 @@ function FieldShell({
   invalid,
   errors,
   className,
+  ids,
   children,
 }: {
   label: string;
@@ -80,6 +98,7 @@ function FieldShell({
   invalid: boolean;
   errors: string[];
   className?: string;
+  ids: FieldIds;
   children: ReactNode;
 }) {
   return (
@@ -87,7 +106,11 @@ function FieldShell({
       data-invalid={invalid || undefined}
       className={cn("gap-1.5", className)}
     >
-      <FieldLabel className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <FieldLabel
+        id={ids.labelId}
+        htmlFor={ids.controlId}
+        className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+      >
         {label}
         {required && <span className="ml-0.5 text-primary">*</span>}
       </FieldLabel>
@@ -111,6 +134,7 @@ export function InputField({
 }: InputFieldProps) {
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
+  const ids = useFieldIds();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -130,12 +154,21 @@ export function InputField({
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             className={className}
+            ids={ids}
           >
             <Input
+              id={ids.controlId}
               type={type}
               placeholder={placeholder}
               value={raw ?? ""}
-              onChange={(e) => field.handleChange(e.target.value || null)}
+              // An emptied optional field becomes null, which is how the backend stores "no value".
+              // A required one keeps "" — its schema expects a string and would otherwise complain
+              // about the type instead of the missing value (see requiredString).
+              onChange={(e) =>
+                field.handleChange(
+                  required ? e.target.value : e.target.value || null
+                )
+              }
               onBlur={field.handleBlur}
             />
           </FieldShell>
@@ -159,6 +192,7 @@ export function TextAreaField({
 }: TextAreaFieldProps) {
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
+  const ids = useFieldIds();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -178,11 +212,18 @@ export function TextAreaField({
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             className={className}
+            ids={ids}
           >
             <Textarea
+              id={ids.controlId}
               rows={rows}
               value={raw ?? ""}
-              onChange={(e) => field.handleChange(e.target.value || null)}
+              // Same null-vs-"" rule as InputField.
+              onChange={(e) =>
+                field.handleChange(
+                  required ? e.target.value : e.target.value || null
+                )
+              }
               onBlur={field.handleBlur}
             />
           </FieldShell>
@@ -211,6 +252,7 @@ export function SelectField({
 }: SelectFieldProps) {
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
+  const ids = useFieldIds();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -230,12 +272,25 @@ export function SelectField({
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             className={className}
+            ids={ids}
           >
             <Select
               value={raw}
-              onValueChange={(v) => field.handleChange(v || null)}
+              // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
+              // so it can only come from its own hidden native <select> (SelectBubbleInput): that
+              // mirrors every value change into the native element and dispatches a change event,
+              // which comes back through here. Its <option>s exist only while SelectContent is
+              // mounted, i.e. while the dropdown is open, so setting the value of a *closed*
+              // select matches nothing, leaves it at "" and would wipe the field. This happens
+              // whenever the value changes without the dropdown being opened — for us when the
+              // loaded book resets the form (see BookEditForm) to something other than the default.
+              onValueChange={(v) => {
+                if (v === "") return;
+                field.handleChange(v);
+              }}
             >
-              <SelectTrigger>
+              {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
+              <SelectTrigger id={ids.controlId} aria-labelledby={ids.labelId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
