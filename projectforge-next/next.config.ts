@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
   // without their own file fall back to the SPA shell (404.html) via Spring's
   // /next/** view-controller forward.
   trailingSlash: true,
+  // …but without redirecting to add that slash. The rule applies to the dev proxy below too, so a
+  // POST to /rs/... answered 308 and the browser then sent the whole body a second time — for a file
+  // upload that is the file twice. Prod is unaffected either way (a static export has no server to
+  // redirect, Spring serves the pre-rendered <route>/index.html), so switching it off makes dev
+  // behave like prod rather than diverging from it.
+  skipTrailingSlashRedirect: true,
   turbopack: {
     root: __dirname,
   },

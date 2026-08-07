@@ -2,6 +2,7 @@
   "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "apply": "Übernehmen",
   "attachment": {
+    "_": "Anhang",
     "checksum": "Prüfsumme",
     "encrypt": {
       "_": "Verschlüsseln",
@@ -38,6 +39,7 @@
     }
   },
   "attachments": {
+    "_": "Anhänge",
     "short": "Anh."
   },
   "book": {
@@ -108,6 +110,7 @@
     "unpin": "Nicht mehr anheften"
   },
   "comment": "Bemerkung",
+  "copy": "Kopieren",
   "created": "angelegt",
   "createdBy": "angelegt von",
   "date": {

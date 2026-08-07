@@ -19,10 +19,21 @@ const FILE = {
   buffer: Buffer.from("ProjectForge e2e attachment\n"),
 };
 
+/**
+ * The stored row of one file, addressed by its download link.
+ *
+ * Not by its name: while a file is uploading — and after a refused upload — a second row carries the
+ * same name (see AttachmentUploadRow), and the backend's refusal message repeats it once more in a
+ * toast. Only the stored rows offer a download.
+ */
+function storedRow(page: import("@playwright/test").Page, name: string) {
+  return page.getByRole("link", { name: `Download: ${name}` });
+}
+
 /** Uploads through the section's file input, which the drop area keeps `sr-only`. */
 async function upload(page: import("@playwright/test").Page, name: string) {
   await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
-  await expect(page.getByText(name, { exact: true })).toBeVisible();
+  await expect(storedRow(page, name)).toBeVisible();
 }
 
 /** Removes an attachment again — also the cleanup, so it must not depend on the test's own state. */
@@ -32,7 +43,7 @@ async function remove(page: import("@playwright/test").Page, name: string) {
     .getByRole("button", { name: /^löschen$/i })
     .last()
     .click();
-  await expect(page.getByText(name, { exact: true })).toHaveCount(0);
+  await expect(storedRow(page, name)).toHaveCount(0);
 }
 
 test.describe("book attachments", () => {
@@ -56,15 +67,15 @@ test.describe("book attachments", () => {
       await page.getByRole("button", { name: /^speichern$/i }).click();
 
       // `modify` answers with the entity's whole new list, so the rename shows without a re-read.
-      await expect(page.getByText(renamed, { exact: true })).toBeVisible();
+      await expect(storedRow(page, renamed)).toBeVisible();
       await expect(page.getByText("e2e description")).toBeVisible();
-      await expect(page.getByText(name, { exact: true })).toHaveCount(0);
+      await expect(storedRow(page, name)).toHaveCount(0);
 
       await remove(page, renamed);
     } finally {
       // A failed assertion must not leave the file on a real book.
       for (const leftover of [name, renamed]) {
-        if (await page.getByText(leftover, { exact: true }).count()) {
+        if (await storedRow(page, leftover).count()) {
           await remove(page, leftover);
         }
       }
@@ -82,7 +93,43 @@ test.describe("book attachments", () => {
       // The refusal arrives as a regular HTTP 200 carrying a TOAST (see lib/rs/attachments.ts) —
       // the regression this guards is treating it as success, which would drop the file silently.
       await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
-      await expect(page.getByText(/existiert bereits/i)).toBeVisible();
+      // The refused file keeps a row of its own carrying the reason, so it stays clear *which* file
+      // was turned away. The same text also appears in a toast, hence the row-scoped locator.
+      const refused = page
+        .getByRole("listitem")
+        .filter({ hasText: /existiert bereits/i });
+      await expect(refused).toHaveCount(1);
+      // Dismissing it is the user's move, and it leaves the one stored file untouched.
+      await page.getByRole("button", { name: `Abbrechen: ${name}` }).click();
+      await expect(refused).toHaveCount(0);
+      await expect(storedRow(page, name)).toBeVisible();
+    } finally {
+      await remove(page, name);
+    }
+  });
+
+  test("shows the metadata the backend recorded for a file", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, `/books/${BOOK_ID}`);
+    const name = fileName("metadata");
+
+    try {
+      await upload(page, name);
+      await page.getByRole("button", { name: `Bearbeiten: ${name}` }).click();
+
+      const dialog = page.getByRole("dialog");
+      // Everything below is the backend's own wording and formatting — the point of the assertions
+      // is that the fields arrive at all (the upload answer carries them, see AttachmentMetadata).
+      await expect(dialog.getByText("Dateigröße")).toBeVisible();
+      await expect(dialog.getByText("ohne Verschlüsselung")).toBeVisible();
+      await expect(dialog.getByText("angelegt", { exact: true })).toBeVisible();
+      await expect(dialog.getByText(/SHA256:/)).toBeVisible();
+      await expect(
+        dialog.getByRole("button", { name: /kopieren: prüfsumme/i })
+      ).toBeVisible();
+
+      await page.getByRole("button", { name: /^abbrechen$/i }).click();
     } finally {
       await remove(page, name);
     }

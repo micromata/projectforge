@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/shared/spinner";
+import { AttachmentMetadata } from "./attachment-metadata";
 import type { Attachment } from "@/lib/rs/attachments";
 
 export interface AttachmentEditDialogProps {
@@ -24,11 +26,15 @@ export interface AttachmentEditDialogProps {
 }
 
 /**
- * Renames an attachment and edits its description — the only two of its fields that are editable
- * (`AttachmentsServicesRest.modify` sends both, so both are always submitted).
+ * The details of one attachment: its name and description are editable — the only two fields that
+ * are (`AttachmentsServicesRest.modify` sends both, so both are always submitted) — everything
+ * below them is what the backend recorded (see AttachmentMetadata).
  *
  * A dialog rather than inline fields: the row is narrow, and renaming is rare enough that it should
  * not cost the list a permanent second input per file. The legacy page opened a modal too.
+ *
+ * Not offered yet: encrypting the file (`AttachmentsServicesRest.encrypt`/`testDecryption`) — see
+ * MIGRATION.md, "Offen: Verschlüsselung eines Anhangs".
  */
 export function AttachmentEditDialog({
   attachment,
@@ -45,7 +51,8 @@ export function AttachmentEditDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("attachment.fileName")}</DialogTitle>
+          {/* "Anhang", not "Dateiname": the dialog shows all of an attachment, not just its name. */}
+          <DialogTitle>{t("attachment._")}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
@@ -67,6 +74,8 @@ export function AttachmentEditDialog({
               rows={3}
             />
           </div>
+          <Separator />
+          <AttachmentMetadata attachment={attachment} />
         </div>
 
         <DialogFooter>

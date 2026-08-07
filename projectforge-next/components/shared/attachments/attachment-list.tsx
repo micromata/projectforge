@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -9,10 +9,12 @@ import {
   useAttachments,
   useAttachmentMutations,
 } from "@/hooks/use-attachments";
+import { useAttachmentUploads } from "@/hooks/use-attachment-uploads";
 import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentDropArea } from "./attachment-drop-area";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
 import { AttachmentRow } from "./attachment-row";
+import { AttachmentUploadRow } from "./attachment-upload-row";
 
 export interface AttachmentListProps {
   /** Rest path of the entity, i.e. `AbstractPagesRest.category` — "book", "contract", … */
@@ -38,9 +40,31 @@ export interface AttachmentListProps {
 export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
-  const { upload, rename, remove } = useAttachmentMutations(entity, id);
+  const { rename, remove, mergeResult } = useAttachmentMutations(entity, id);
   const [editing, setEditing] = useState<Attachment | null>(null);
   const [deleting, setDeleting] = useState<Attachment | null>(null);
+
+  /**
+   * A refusal is a regular HTTP 200 answer (duplicate name, file too large) carrying the backend's
+   * own translated text — showing that is more useful than any message of ours. For an upload the
+   * text also stays on the file's own row, so it is clear which file was refused.
+   */
+  const onUploadResult = useCallback(
+    (result: AttachmentWriteResult) => {
+      // Merged, not replaced: uploads run in parallel, so this answer may already be missing a
+      // sibling that finished after it (see useAttachmentMutations).
+      mergeResult(result);
+      if (result.kind === "rejected") {
+        toast.error(result.message || t("file.upload.error._"));
+      }
+    },
+    [mergeResult, t]
+  );
+
+  const uploads = useAttachmentUploads(entity, id, {
+    onResult: onUploadResult,
+    transferErrorMessage: t("file.upload.error._"),
+  });
 
   // Nothing can be attached before the first save; the backend says so in its own words.
   if (id == null || id <= 0) {
@@ -62,27 +86,11 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   }
 
   const attachments = data ?? [];
-  const busy = upload.isPending || rename.isPending || remove.isPending;
+  const busy = rename.isPending || remove.isPending;
 
-  /**
-   * A refusal is a regular HTTP 200 answer (duplicate name, file too large) carrying the backend's
-   * own translated text — showing that is more useful than any message of ours.
-   */
   function report(result: AttachmentWriteResult): void {
     if (result.kind === "rejected") {
-      toast.error(result.message || t("file.upload.error._"));
-    }
-  }
-
-  async function uploadAll(files: File[]) {
-    // Sequentially: the endpoint takes one file per call, and its duplicate check runs against the
-    // files already stored — parallel calls could let two identical names through.
-    for (const file of files) {
-      try {
-        report(await upload.mutateAsync(file));
-      } catch {
-        toast.error(t("file.upload.error._"));
-      }
+      toast.error(result.message || t("validation.error.generic"));
     }
   }
 
@@ -112,13 +120,25 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   return (
     <div className="flex flex-col gap-3">
       {!readOnly && (
-        <AttachmentDropArea
-          onFiles={(files) => void uploadAll(files)}
-          disabled={busy}
-        />
+        <AttachmentDropArea onFiles={uploads.enqueue} disabled={busy} />
+      )}
+      {/* The uploads sit above the list: they are what just happened, and each finished one moves
+          down into the list by itself. */}
+      {uploads.jobs.length > 0 && (
+        <ul className="flex flex-col">
+          {uploads.jobs.map((job) => (
+            <AttachmentUploadRow
+              key={job.id}
+              job={job}
+              onCancel={uploads.cancel}
+            />
+          ))}
+        </ul>
       )}
       {attachments.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+        uploads.jobs.length === 0 && (
+          <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+        )
       ) : (
         <ul className="flex flex-col">
           {attachments.map((attachment) => (

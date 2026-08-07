@@ -8,6 +8,7 @@ import {
   normalizeAction,
   type NormalizedAction,
 } from "@/lib/dynamic/response-action";
+import { showResponseMessage } from "@/lib/dynamic/response-toast";
 import { resolveMenuUrl, sanitizeRedirectUrl } from "@/lib/menu-url";
 import { fetchUserStatus } from "@/lib/rs/client";
 import {
@@ -16,7 +17,7 @@ import {
   postWatchFields,
   type DynamicMethod,
 } from "@/lib/rs/dynamic";
-import type { ActionDef, ResponseActionMessage } from "@/lib/rs/types";
+import type { ActionDef } from "@/lib/rs/types";
 import type { DynamicLayoutStore } from "./use-dynamic-layout";
 
 /** A server that keeps answering with another request would loop forever otherwise. */
@@ -105,7 +106,7 @@ export function useDynamicActions(
 
   const interpret = useCallback(
     async (action: NormalizedAction, depth: number): Promise<void> => {
-      if (action.message) showMessage(action.message);
+      if (action.message) showResponseMessage(action.message);
 
       switch (action.targetType) {
         case "REDIRECT":
@@ -196,15 +197,4 @@ export function useDynamicActions(
   );
 
   return { callAction, triggerWatchFields };
-}
-
-function showMessage(message: ResponseActionMessage): void {
-  // Already translated by the backend (ResponseAction.Message resolves its i18nKey in the init
-  // block), so there is nothing left to look up here.
-  const text = message.message ?? message.technicalMessage ?? message.i18nKey;
-  if (!text) return;
-  if (message.color === "danger") toast.error(text);
-  else if (message.color === "warning") toast.warning(text);
-  else if (message.color === "success") toast.success(text);
-  else toast.info(text);
 }

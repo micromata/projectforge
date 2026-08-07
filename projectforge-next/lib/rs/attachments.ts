@@ -16,12 +16,43 @@
 
 import { rawRequest, request, RsError } from "./client";
 import type { ResponseAction } from "./types";
+import { uploadWithProgress, type UploadOptions } from "./upload";
 
 /**
  * `AttachmentsService.DEFAULT_NODE` — the sub-path a single attachment list stores under. Pages
  * with several lists pass their own; books has just the one.
  */
 export const DEFAULT_LIST_ID = "attachments";
+
+/**
+ * `org.projectforge.common.ZipMode`. Its i18n key is `attachment.zip.<key>` — spelled out in
+ * [zipModeMessageKey], since the enum's own `key` (`encrytpedAes256`, typo included) is not
+ * derivable from the constant name.
+ */
+export type ZipMode =
+  | "STANDARD"
+  | "ENCRYPTED"
+  | "ENCRYPTED_STANDARD"
+  | "ENCRYPTED_AES128"
+  | "ENCRYPTED_AES256";
+
+const ZIP_MODE_KEYS: Record<ZipMode, string> = {
+  STANDARD: "standard",
+  ENCRYPTED: "encrypted",
+  ENCRYPTED_STANDARD: "encryptedStandard",
+  ENCRYPTED_AES128: "encrytpedAes128",
+  ENCRYPTED_AES256: "encrytpedAes256",
+};
+
+/**
+ * The message key describing how an attachment is encrypted, or null for a file that isn't.
+ *
+ * The backend puts this text into `info.encryptionStatus` when it builds the legacy layout, not
+ * into the attachment itself (`zipMode` is all that travels), so it is translated here instead.
+ */
+export function zipModeMessageKey(zipMode: ZipMode | null | undefined) {
+  return zipMode ? `attachment.zip.${ZIP_MODE_KEYS[zipMode]}` : null;
+}
 
 /** org.projectforge.framework.jcr.Attachment, as it arrives on the wire. */
 export interface Attachment {
@@ -41,7 +72,13 @@ export interface Attachment {
   /** Formatted by the backend in the user's timezone and date format. */
   createdFormatted?: string | null;
   lastUpdateFormatted?: string | null;
+  /** SHA-256 of the file, as the backend computed it on upload. */
   checksum?: string | null;
+  /**
+   * How the file is encrypted in the storage, `org.projectforge.common.ZipMode` by its enum name.
+   * Absent for a plain upload — the field is only set once ProjectForge encrypted the file itself.
+   */
+  zipMode?: ZipMode | null;
   /** True if the file is encrypted in the storage (zip or AES) and needs a password to open. */
   encrypted?: boolean | null;
   /** True if the user may neither rename nor delete this attachment. */
@@ -85,25 +122,30 @@ export async function fetchAttachments(
 }
 
 /**
- * Uploads one file. Several files mean several calls — the endpoint takes a single `file` part
+ * Uploads one file, reporting how much of it has gone out.
+ *
+ * Several files mean several calls — the endpoint takes a single `file` part
  * (`AttachmentsServicesRest.uploadAttachment`), and doing them one at a time is also what keeps
  * the per-file rejection above assignable to a file.
+ *
+ * The only call in this module that does **not** go through `rawRequest`: progress needs
+ * `XMLHttpRequest`, which `fetch` has no equivalent for (see ./upload.ts).
  */
-export function uploadAttachment(
+export async function uploadAttachment(
   entity: string,
   id: number,
   file: File,
   listId: string = DEFAULT_LIST_ID,
-  signal?: AbortSignal
+  options: UploadOptions = {}
 ): Promise<AttachmentWriteResult> {
   const body = new FormData();
   body.append("file", file);
-  // No Content-Type header: the browser has to set it, boundary included (see rawRequest).
-  return write(
-    `${BASE}/upload/${entity}/${id}/${listId}`,
-    { method: "POST", body },
-    signal
-  );
+  const path = `${BASE}/upload/${entity}/${id}/${listId}`;
+  const res = await uploadWithProgress(path, body, options);
+  if (res.status < 200 || res.status >= 300) {
+    throw new RsError(res.status, `${res.status}: ${path}`);
+  }
+  return interpret(parseAction(res.text));
 }
 
 /** Renames an attachment and/or changes its description. Both are sent, so both must be given. */
@@ -175,10 +217,25 @@ async function write(
   if (!res.ok) {
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
-  const action = (await res.json().catch(() => null)) as ResponseAction | null;
+  return interpret(
+    (await res.json().catch(() => null)) as ResponseAction | null
+  );
+}
+
+function parseAction(text: string): ResponseAction | null {
+  try {
+    return JSON.parse(text) as ResponseAction;
+  } catch {
+    return null;
+  }
+}
+
+function interpret(action: ResponseAction | null): AttachmentWriteResult {
   // A refusal comes back as HTTP 200 with a TOAST (see the module comment). Treating it as
-  // success would drop a file silently and leave a stale list on screen.
-  if (action?.targetType === "TOAST") {
+  // success would drop a file silently and leave a stale list on screen. But a TOAST is not a
+  // refusal by itself — `AttachmentsServicesRest.testDecryption` reports its *success* with one
+  // (color "success"), so the colour is what distinguishes them, not the target type.
+  if (action?.targetType === "TOAST" && action.message?.color !== "success") {
     return {
       kind: "rejected",
       message: action.message?.message ?? "",

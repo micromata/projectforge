@@ -54,6 +54,11 @@ export function setCsrfToken(token: string | null | undefined): void {
   csrfToken = token ?? null;
 }
 
+/** For the one caller that cannot go through rawRequest: the XHR upload in ./upload.ts. */
+export function getCsrfToken(): string | null {
+  return csrfToken;
+}
+
 /** Body Spring sends (403) when the CSRF token was missing or stale (RestCsrfProtection.deny). */
 interface CsrfRequiredBody {
   csrfTokenRequired?: boolean;

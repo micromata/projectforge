@@ -276,3 +276,44 @@
 .consumption-overbooked-min > .consumption-bar {
   background-color: var(--consumption-track);
 }
+
+/*
+ * Upload progress: striped fill, moving while the file is going out, so a bar that sits at one
+ * percentage still shows the transfer is alive (the legacy app got this from Bootstrap's
+ * `progress-bar-animated`).
+ *
+ * Addressed through the primitive's `data-slot` because `components/ui/` must not be edited and the
+ * stripes belong to the fill, not the track. A gradient rather than an SVG or a spinner: it stays
+ * one painted element, and `prefers-reduced-motion` switches the movement off without touching the
+ * layout.
+ */
+.upload-progress > [data-slot="progress-indicator"] {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.35) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 0.6rem 0.6rem;
+}
+/* Only a running transfer animates: a queued file isn't moving, so its stripes shouldn't either. */
+.upload-progress-active > [data-slot="progress-indicator"] {
+  animation: upload-progress-stripes 0.8s linear infinite;
+}
+@keyframes upload-progress-stripes {
+  from {
+    background-position: 0.6rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-progress-active > [data-slot="progress-indicator"] {
+    animation: none;
+  }
+}

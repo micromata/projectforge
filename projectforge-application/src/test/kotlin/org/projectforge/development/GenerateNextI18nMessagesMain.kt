@@ -101,7 +101,10 @@ object GenerateNextI18nMessagesMain {
     // Attachments of an entity: the list, its hints and the errors an upload is refused with
     // (see components/shared/attachments/). "edit" and "download" are the row actions,
     // "description" the second editable field of an attachment (Attachment.description).
-    "attachment.",
+    // Without the dot, so the bare "attachment" key exports too (as "attachment._"): it titles the
+    // detail dialog. "copy" is the checksum's copy button, which the legacy layout marks canCopy.
+    "attachment",
+    "copy",
     "file.upload.",
     "edit",
     "download",
