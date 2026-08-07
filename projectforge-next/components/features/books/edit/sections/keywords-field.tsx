@@ -20,6 +20,9 @@ function serialize(tags: string[]): string | null {
 
 export function KeywordsField({ className }: { className?: string }) {
   const t = useTranslations("books.edit");
+  // BookDO's own label (`book.keywords`); the hint below it is ours — how the tag input confirms an
+  // entry has no backend counterpart.
+  const label = useTranslations("book")("keywords");
   const form = useBookEditForm();
   return (
     <form.Field name={"keywords" as never}>
@@ -29,13 +32,13 @@ export function KeywordsField({ className }: { className?: string }) {
         return (
           <Field className={cn("gap-1.5", className)}>
             <FieldLabel className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("fields.keywords")}
+              {label}
             </FieldLabel>
             <TagInput
               value={tags}
               onChange={(next) => field.handleChange(serialize(next))}
               variant="primary"
-              inputAriaLabel={t("fields.keywords")}
+              inputAriaLabel={label}
             />
             <FieldDescription>{t("fields.keywordsHint")}</FieldDescription>
           </Field>

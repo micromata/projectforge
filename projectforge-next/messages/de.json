@@ -34,41 +34,14 @@
       },
       "sections": {
         "general": "Allgemeine Informationen",
-        "loan": "Ausleihe",
-        "loanHistory": "Ausleihhistorie",
         "notes": "Notizen"
       },
       "fields": {
-        "title": "Titel",
-        "signature": "Signatur",
-        "yearOfPublishing": "Jahr der Veröffentlichung",
-        "publisher": "Verlag",
-        "isbn": "ISBN",
-        "editor": "Auflage",
-        "authors": "Autor:innen",
-        "addAuthor": "Autor hinzufügen…",
-        "keywords": "Schlüsselworte",
-        "keywordsHint": "Einzelne Schlüsselworte mit Enter oder Komma bestätigen",
-        "lendOutBy": "Ausgeliehen von",
-        "lendOutDate": "Ausgeliehen seit",
-        "lendOutDueDate": "Zurück bis",
-        "lendOutComment": "Bemerkung zur Ausleihe",
-        "status": "Ausleihstatus",
-        "totalLoans": "Gesamte Ausleihen",
-        "totalLoansHint": "Automatisch berechnet — nicht editierbar"
+        "keywordsHint": "Einzelne Schlüsselworte mit Enter oder Komma bestätigen"
       },
       "status": {
         "available": "Verfügbar",
-        "loaned": "Ausgeliehen",
-        "active": "Aktiv",
-        "returned": "Zurückgegeben"
-      },
-      "loanHistory": {
-        "from": "Ausgeliehen von",
-        "since": "Von",
-        "until": "Bis",
-        "status": "Status",
-        "empty": "Keine Ausleihhistorie vorhanden"
+        "loaned": "Ausgeliehen"
       },
       "actions": {
         "cancel": "Abbrechen",

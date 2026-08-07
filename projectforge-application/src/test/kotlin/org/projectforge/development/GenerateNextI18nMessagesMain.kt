@@ -78,8 +78,13 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
-    // Field label of BookDO.comment and every other entity's comment column.
+    // Field labels shared by many entities, as their @PropertyInfo names them: BookDO.comment,
+    // BookDO.status, BookDO.lendOutDate ("date"). Without the dot, so the bare "date" key exports
+    // too — as "date._", since its own subtree (date.begin, date.end …) makes it a namespace.
+    // "dateFormat" comes along for the ride, as "deleted" does with "delete".
     "comment",
+    "status",
+    "date",
     // Wait indicator, e.g. while a column filter builds its value list.
     "loading",
     // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
@@ -91,6 +96,8 @@ object GenerateNextI18nMessagesMain {
     "save",
     "name",
     "rename",
+    // Clears a select back to no value (SelectField in book-edit-fields).
+    "reset",
     "uptodate",
     // Cell renderers of the data table: boolean ticks read "yes"/"no" as their accessible name,
     // the rating stars "rating", the tree cell "expand"/"collapse". "no" also matches

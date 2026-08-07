@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useStore, useForm } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
@@ -25,13 +25,6 @@ interface Props {
   bookId: number | null;
 }
 
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function BookEditForm({ bookId }: Props) {
   const router = useRouter();
   const t = useTranslations("books.edit");
@@ -39,8 +32,6 @@ export function BookEditForm({ bookId }: Props) {
   // A new book has nothing to load — the hook stays disabled for id null.
   const { data: book, isLoading, isError } = useBookDetail(bookId);
   const saveMutation = useSaveBook();
-
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const form = useForm({
     defaultValues: book ? toFormValues(book) : emptyBookValues(),
@@ -94,13 +85,14 @@ export function BookEditForm({ bookId }: Props) {
   // The history has a page of its own (see bookTabs), so it is not among the sections here.
   const tabs = bookTabs(book?.id ?? null, (key) => t(`tabs.${key}`), true);
 
-  const sections = book
-    ? [
-        <AllgemeinSection key="general" />,
-        <AusleiheSection key="loan" book={book} />,
-        <NotizenSection key="notes" />,
-      ]
-    : [<AllgemeinSection key="general" />, <NotizenSection key="notes" />];
+  // All sections render for a new book too: they are the book's own fields, and the legacy page
+  // hid the loan block only because its lend-out action needs a saved entity (BookPagesRest), not
+  // because the fields don't exist.
+  const sections = [
+    <AllgemeinSection key="general" />,
+    <AusleiheSection key="loan" />,
+    <NotizenSection key="notes" />,
+  ];
 
   return (
     <BookEditFormProvider value={form}>
@@ -131,9 +123,9 @@ export function BookEditForm({ bookId }: Props) {
               }
               isSaving={isSubmitting}
               isDirty={isDirty}
-              lastSavedLabel={
-                lastSavedAt ? formatTime(lastSavedAt) : (book?.created ?? null)
-              }
+              // Saving leaves the page, so there is never a "just saved" moment to show here —
+              // what remains is when the book was created.
+              lastSavedLabel={book?.created ?? null}
             />
           }
         />

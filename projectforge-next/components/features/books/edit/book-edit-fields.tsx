@@ -8,7 +8,10 @@ import {
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -240,6 +243,17 @@ export interface SelectOption {
 
 interface SelectFieldProps extends BaseProps {
   options: SelectOption[];
+  /**
+   * Offers a button that sets the field back to null — for a column that allows it (e.g. BookDO's
+   * `type`, `nullable = true`), matching the ✕ of the legacy page. Radix has no such affordance of
+   * its own: an empty SelectItem value is forbidden, so "no value" is unreachable once one is set.
+   */
+  clearable?: boolean;
+  /**
+   * Renders the value larger and in the accent colour. For the status of a book, which is what a
+   * reader looks for first and which the legacy page buried among the other fields.
+   */
+  emphasized?: boolean;
 }
 
 export function SelectField({
@@ -249,10 +263,13 @@ export function SelectField({
   hint,
   className,
   options,
+  clearable,
+  emphasized,
 }: SelectFieldProps) {
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
+  const tCommon = useTranslations();
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -274,33 +291,55 @@ export function SelectField({
             className={className}
             ids={ids}
           >
-            <Select
-              value={raw}
-              // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
-              // so it can only come from its own hidden native <select> (SelectBubbleInput): that
-              // mirrors every value change into the native element and dispatches a change event,
-              // which comes back through here. Its <option>s exist only while SelectContent is
-              // mounted, i.e. while the dropdown is open, so setting the value of a *closed*
-              // select matches nothing, leaves it at "" and would wipe the field. This happens
-              // whenever the value changes without the dropdown being opened — for us when the
-              // loaded book resets the form (see BookEditForm) to something other than the default.
-              onValueChange={(v) => {
-                if (v === "") return;
-                field.handleChange(v);
-              }}
-            >
-              {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
-              <SelectTrigger id={ids.controlId} aria-labelledby={ids.labelId}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {options.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-1">
+              <Select
+                value={raw}
+                // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
+                // so it can only come from its own hidden native <select> (SelectBubbleInput): that
+                // mirrors every value change into the native element and dispatches a change event,
+                // which comes back through here. Its <option>s exist only while SelectContent is
+                // mounted, i.e. while the dropdown is open, so setting the value of a *closed*
+                // select matches nothing, leaves it at "" and would wipe the field. This happens
+                // whenever the value changes without the dropdown being opened — for us when the
+                // loaded book resets the form (see BookEditForm) to something other than the default.
+                onValueChange={(v) => {
+                  if (v === "") return;
+                  field.handleChange(v);
+                }}
+              >
+                {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
+                <SelectTrigger
+                  id={ids.controlId}
+                  aria-labelledby={ids.labelId}
+                  className={cn(
+                    "flex-1",
+                    emphasized &&
+                      "h-9 border-primary/40 bg-primary/5 text-sm font-semibold text-primary data-[size=default]:h-9"
+                  )}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {options.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {clearable && raw !== "" && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 shrink-0 text-muted-foreground"
+                  aria-label={`${tCommon("reset")}: ${label}`}
+                  onClick={() => field.handleChange(null)}
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={13} />
+                </Button>
+              )}
+            </div>
           </FieldShell>
         );
       }}

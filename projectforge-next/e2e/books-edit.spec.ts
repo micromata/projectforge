@@ -24,10 +24,33 @@ test.describe("book edit", () => {
     // form's default, so it is the only one where the value changes while the dropdown is closed —
     // which used to make Radix's hidden native select bounce an empty value back and wipe the field
     // (see SelectField in book-edit-fields.tsx).
-    const status = page.getByRole("combobox", {
-      name: /ausleihstatus|status/i,
-    });
+    const status = page.getByRole("combobox", { name: /^status/i });
     await expect(status).toContainText("entsorgt");
+  });
+
+  test("labels the fields the way BookDO does", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, `/books/${BOOK_ID}`);
+    await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
+      /Selenium/
+    );
+
+    // These four used to carry invented texts ("Auflage", "Bemerkung zur Ausleihe", "Interne
+    // Notizen", "Beschreibung"). Each label now comes from BookDO's @PropertyInfo.
+    for (const label of [
+      /herausgeber:in/i,
+      /ausleihnotiz/i,
+      /^bemerkung$/i,
+      /zusammenfassung/i,
+    ]) {
+      await expect(
+        page.getByRole("textbox", { name: label }),
+        `label ${label}`
+      ).toHaveCount(1);
+    }
+    // …and the invented ones are gone.
+    await expect(page.getByText(/nur für administratoren/i)).toHaveCount(0);
   });
 
   test("reports no validation error for fields the backend omitted", async ({

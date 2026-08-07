@@ -34,41 +34,14 @@
       },
       "sections": {
         "general": "General information",
-        "loan": "Loan",
-        "loanHistory": "Loan history",
         "notes": "Notes"
       },
       "fields": {
-        "title": "Title",
-        "signature": "Signature",
-        "yearOfPublishing": "Year of publishing",
-        "publisher": "Publisher",
-        "isbn": "ISBN",
-        "editor": "Edition",
-        "authors": "Authors",
-        "addAuthor": "Add author…",
-        "keywords": "Keywords",
-        "keywordsHint": "Confirm keywords with Enter or comma",
-        "lendOutBy": "Lent out by",
-        "lendOutDate": "Lent out since",
-        "lendOutDueDate": "Return by",
-        "lendOutComment": "Loan comment",
-        "status": "Loan status",
-        "totalLoans": "Total loans",
-        "totalLoansHint": "Automatically calculated — not editable"
+        "keywordsHint": "Confirm keywords with Enter or comma"
       },
       "status": {
         "available": "Available",
-        "loaned": "Lent out",
-        "active": "Active",
-        "returned": "Returned"
-      },
-      "loanHistory": {
-        "from": "Lent out by",
-        "since": "From",
-        "until": "Until",
-        "status": "Status",
-        "empty": "No loan history"
+        "loaned": "Lent out"
       },
       "actions": {
         "cancel": "Cancel",

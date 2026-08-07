@@ -74,6 +74,18 @@
   "comment": "Comment",
   "created": "created",
   "createdBy": "created by",
+  "date": {
+    "_": "date",
+    "begin": "Start date",
+    "end": "End date",
+    "from": "from",
+    "month_year": "month / year",
+    "until": "until"
+  },
+  "dateFormat": {
+    "_": "Date format",
+    "xls": "Excel date format"
+  },
   "delete": "Delete",
   "deleted": "deleted",
   "expand": "Expand",
@@ -239,7 +251,9 @@
   },
   "rating": "Rating",
   "rename": "rename",
+  "reset": "Reset",
   "save": "Save",
+  "status": "Status",
   "task": {
     "consumption": "Consumption"
   },
