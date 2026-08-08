@@ -27,6 +27,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -38,7 +39,10 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.web.rest.RestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import java.io.IOException
+import java.io.PrintWriter
+import java.io.StringWriter
 
 class RestUserFilterTest : AbstractTestBase() {
     @Autowired
@@ -55,8 +59,8 @@ class RestUserFilterTest : AbstractTestBase() {
 
     @BeforeEach
     fun init() {
-        if (initialized) return
-        initialized = true
+        // No 'run once' shortcut here: JUnit creates a new test instance per test method, so [filter] is a fresh,
+        // not yet autowired RestUserFilter for every one of them.
         val user = userGroupCache.getUser(TEST_USER)
         this.userId = user!!.id!!
         ApplicationContextProvider.getApplicationContext().autowireCapableBeanFactory.autowireBean(this.filter)
@@ -69,9 +73,7 @@ class RestUserFilterTest : AbstractTestBase() {
     @Test
     @Throws(IOException::class, ServletException::class, InterruptedException::class)
     fun testAuthentication() {
-        val response = Mockito.mock(
-            HttpServletResponse::class.java
-        )
+        val response = mockResponse(StringWriter())
 
         // Wrong password
         var request = mockRequest(TEST_USER, "failed".toCharArray(), null, null)
@@ -117,6 +119,45 @@ class RestUserFilterTest : AbstractTestBase() {
         Mockito.verify(chain).doFilter(Mockito.eq(request), Mockito.eq(response))
     }
 
+    /**
+     * A call without any credentials (the typical /rs/userStatus of a not yet logged-in client) must answer 401 with a
+     * json body, not sendError: the latter forwards to /error, and MyErrorController answers that with the view
+     * '/index.html', which doesn't exist in the next setup. The client got a misleading
+     * 404 ("No static resource index.html") instead of the 401.
+     */
+    @Test
+    @Throws(IOException::class, ServletException::class)
+    fun unauthorizedRequestSendsJsonError() {
+        val writer = StringWriter()
+        val response = mockResponse(writer)
+        val request = mockRequest(null, null, null, null)
+        val chain = Mockito.mock(FilterChain::class.java)
+        suppressErrorLogs {
+            filter.doFilter(request, response, chain)
+        }
+        Mockito.verify(chain, Mockito.never()).doFilter(
+            Mockito.any(HttpServletRequest::class.java), Mockito.any(HttpServletResponse::class.java)
+        )
+        Mockito.verify(response, Mockito.never()).sendError(Mockito.anyInt())
+        Mockito.verify(response).status = HttpServletResponse.SC_UNAUTHORIZED
+        Mockito.verify(response).contentType = MediaType.APPLICATION_JSON_VALUE
+        val body = writer.toString()
+        Assertions.assertTrue(
+            body.contains("\"status\":401"),
+            "Json body with the real status expected, but was '$body'.",
+        )
+    }
+
+    /**
+     * The writer has to be stubbed: a denied call writes its json error body into it (see
+     * [org.projectforge.web.rest.RestAuthenticationUtils]), and a mock returns null for it by default.
+     */
+    private fun mockResponse(writer: StringWriter): HttpServletResponse {
+        val response = Mockito.mock(HttpServletResponse::class.java)
+        Mockito.`when`(response.writer).thenReturn(PrintWriter(writer))
+        return response
+    }
+
     private fun mockRequest(
         username: String?, password: CharArray?, userId: Long?,
         authenticationToken: String?
@@ -142,9 +183,5 @@ class RestUserFilterTest : AbstractTestBase() {
             Mockito.`when`(request.requestURI).thenReturn(Rest.URL + "....")
         }
         return request
-    }
-
-    companion object {
-        private var initialized = false
     }
 }

@@ -96,10 +96,9 @@ class CookieService {
       addCookie(request, response, stayLoggedInCookie, COOKIE_STAY_LOGGED_IN_MAX_AGE)
       userDao.updateUserAfterLoginSuccess(user)
       log.info("User successfully logged in using stay-logged-in method: " + user.userDisplayName + " (request=" + request.requestURI + ").")
-      val userContext = UserContext(user)
-      // Restore any last successful 2FA from cookie:
-      // *** 2FA userContext.lastSuccessful2FA = getLast2FA(request, user.id)
-      return userContext
+      // The last successful 2FA is restored by the caller (LoginService.checkStayLoggedIn), which has the user id
+      // at hand and logs it.
+      return UserContext(user)
     }
     return null
   }
@@ -161,6 +160,12 @@ class CookieService {
   private fun addCookie(request: HttpServletRequest, response: HttpServletResponse, cookie: Cookie, maxAge: Int) {
     cookie.maxAge = maxAge
     cookie.path = "/"
+    // Same value as the session cookie (server.servlet.session.cookie.same-site): don't send these credentials on
+    // requests a foreign page initiated. Lax (not Strict) keeps a top-level navigation from an external link (mail,
+    // bookmark) working, which is the normal way of entering ProjectForge. That a Lax cookie is still sent on such a
+    // navigation is why the public endpoints check Sec-Fetch-Site themselves before doing a restore, see
+    // [org.projectforge.rest.core.RestCsrfProtection.isSameSiteRequest].
+    cookie.setAttribute("SameSite", "Lax")
     if (request.isSecure || isSecureCookieConfigured) {
       if (log.isDebugEnabled) {
         log.debug("Set secure cookie (request=${request.requestURI}).")
@@ -192,6 +197,8 @@ class CookieService {
       cookie.maxAge = 0
       cookie.value = null
       cookie.path = "/"
+      // Has to match the attributes the cookie was set with, otherwise the browser may keep the original one.
+      cookie.setAttribute("SameSite", "Lax")
       response.addCookie(cookie)
     }
   }

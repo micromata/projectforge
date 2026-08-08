@@ -40,6 +40,7 @@ import org.projectforge.rest.ConnectionSettings
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.my2fa.My2FAPageRest
+import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.pub.next.TwoFactorRequired
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.My2FARequestHandler
@@ -52,6 +53,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
@@ -266,7 +268,11 @@ open class RestAuthenticationUtils {
     }
     if (!systemStatus.upAndRunning) {
       log.error("System isn't up and running, all rest calls are denied. The system is may-be in start-up phase or in maintenance mode.")
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE)
+      sendError(
+        response,
+        HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+        "System isn't up and running (start-up phase or maintenance mode).",
+      )
       return
     }
     val authInfo = RestAuthenticationInfo(request, response)
@@ -278,7 +284,11 @@ open class RestAuthenticationUtils {
         LoginProtection.instance()
           .incrementFailedLoginTimeOffset(authInfo.userString, authInfo.clientIpAddress, userTokenType?.name)
       }
-      response.sendError(authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED)
+      sendError(
+        response,
+        authInfo.resultCode?.value() ?: HttpServletResponse.SC_UNAUTHORIZED,
+        "Access denied: no valid credentials given.",
+      )
       return
     }
     try {
@@ -370,6 +380,22 @@ open class RestAuthenticationUtils {
       val clientIpAddress = authInfo.clientIpAddress
       log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
     }
+  }
+
+  /**
+   * Writes the status and a plain json body instead of using [HttpServletResponse.sendError], see [RestError] for the
+   * reason. Same approach as used for [TwoFactorRequired] above and by
+   * [org.projectforge.rest.core.RestCsrfProtection.deny].
+   *
+   * Not restricted to projectforge-next: the React app and the DAV clients only look at the status code as well, so
+   * all of them are better off with the real 401 than with a 404 html page.
+   */
+  private fun sendError(response: HttpServletResponse, status: Int, message: String) {
+    response.status = status
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE)
+    // Otherwise the container falls back to its default (ISO-8859-1) and announces that in the content type.
+    response.characterEncoding = StandardCharsets.UTF_8.name()
+    response.writer.write(JsonUtils.toJson(RestError(status = status, message = message), ignoreNullableProps = true))
   }
 
   @Throws(IOException::class)

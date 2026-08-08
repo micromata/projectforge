@@ -203,6 +203,19 @@ class TwoFactorRequired(
 )
 
 /**
+ * Body of a denied rest call (no valid credentials, or the system isn't up and running yet).
+ *
+ * Written directly instead of using [jakarta.servlet.http.HttpServletResponse.sendError]: sendError triggers the
+ * container's error dispatch to /error, and [org.projectforge.config.MyErrorController] answers that with the view
+ * `/index.html` - which doesn't exist in the next/dev setup. The client got a misleading
+ * `404 "Resource not found: No static resource index.html."` instead of the 401, plus a spurious error log entry.
+ */
+class RestError(
+    val status: Int,
+    val message: String? = null,
+)
+
+/**
  * Generic result with optional field bound error message, used by the password reset.
  */
 class NextActionResult(

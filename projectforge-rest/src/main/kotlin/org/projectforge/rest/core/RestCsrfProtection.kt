@@ -105,22 +105,7 @@ open class RestCsrfProtection {
      * into POSTs, which touches the React frontend as well.
      */
     private fun checkSameSite(request: HttpServletRequest): Boolean {
-        val site = request.getHeader(SEC_FETCH_SITE_HEADER) ?: return true
-        if (site == "same-origin" || site == "none") {
-            // "none" is a user-initiated navigation (bookmark, typed url), not a request of a foreign page.
-            return true
-        }
-        // "same-site" is denied on purpose, although the session cookie would be sent (SameSite=Lax):
-        // every rest call originates from a page of this very app, so it is always "same-origin". Allowing
-        // "same-site" would let a compromised sibling subdomain through - and such a request wouldn't be
-        // stopped by the token check either, because an attacker simply omits the X-PF-Frontend header.
-        if (PFSpringConfiguration.getInstance()?.corsFilterEnabled == true) {
-            // Development only: the frontend may be served by its own dev server on another origin.
-            // Never enabled in production (see PFSpringConfiguration.logCorsFilterWarning).
-            log.warn { "Allowing cross origin request ($SEC_FETCH_SITE_HEADER=$site), because the CORS filter is enabled: ${RequestLog.asString(request)}" }
-            return true
-        }
-        return false
+        return isSameSiteRequest(request)
     }
 
     /**
@@ -161,6 +146,33 @@ open class RestCsrfProtection {
          * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site
          */
         const val SEC_FETCH_SITE_HEADER = "Sec-Fetch-Site"
+
+        /**
+         * True, if the request wasn't initiated by a foreign page. Also used by the public endpoints, which have no
+         * filter and therefore no [checkRequest] around them (see
+         * [org.projectforge.rest.pub.next.LoginNextRest.getStatus]).
+         *
+         * Not a barrier on its own: the header is absent for everything that isn't a modern browser (curl, DAV
+         * clients), and those cases return true here.
+         */
+        fun isSameSiteRequest(request: HttpServletRequest): Boolean {
+            val site = request.getHeader(SEC_FETCH_SITE_HEADER) ?: return true
+            if (site == "same-origin" || site == "none") {
+                // "none" is a user-initiated navigation (bookmark, typed url), not a request of a foreign page.
+                return true
+            }
+            // "same-site" is denied on purpose, although the session cookie would be sent (SameSite=Lax):
+            // every rest call originates from a page of this very app, so it is always "same-origin". Allowing
+            // "same-site" would let a compromised sibling subdomain through - and such a request wouldn't be
+            // stopped by the token check either, because an attacker simply omits the X-PF-Frontend header.
+            if (PFSpringConfiguration.getInstance()?.corsFilterEnabled == true) {
+                // Development only: the frontend may be served by its own dev server on another origin.
+                // Never enabled in production (see PFSpringConfiguration.logCorsFilterWarning).
+                log.warn { "Allowing cross origin request ($SEC_FETCH_SITE_HEADER=$site), because the CORS filter is enabled: ${RequestLog.asString(request)}" }
+                return true
+            }
+            return false
+        }
 
         /**
          * Only these are checked for a token. The legacy state-changing GETs are covered by

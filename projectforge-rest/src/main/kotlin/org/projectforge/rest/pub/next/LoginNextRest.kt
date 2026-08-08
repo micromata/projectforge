@@ -25,12 +25,15 @@ package org.projectforge.rest.pub.next
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import mu.KotlinLogging
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.rest.pub.SystemStatusRest
+import org.projectforge.rest.utils.RequestLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,6 +41,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Login of projectforge-next. Public service (available without login).
@@ -61,15 +66,41 @@ open class LoginNextRest {
     private lateinit var twoFactorMethodsService: NextTwoFactorMethodsService
 
     /**
-     * State of the login page. Has to be called before showing the login form: the user might already be logged-in
-     * or might be pre-logged-in with a pending second factor (e. g. after a browser reload during the 2FA step).
+     * State of the login page. Has to be called before showing the login form: the user might already be logged-in,
+     * might be pre-logged-in with a pending second factor (e. g. after a browser reload during the 2FA step), or
+     * might carry a valid stay-logged-in cookie.
      *
      * @param url The caller may specify the url to redirect to after the login (stored in the user's session).
      */
     @GetMapping("status")
-    fun getStatus(request: HttpServletRequest, @RequestParam url: String? = null): NextLoginState {
+    fun getStatus(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        @RequestParam url: String? = null,
+    ): NextLoginState {
+        // [LoginService.checkLogin] instead of getUserContext: the latter reads the http session only, so a user
+        // arriving with nothing but a valid stay-logged-in cookie (typically after a server restart) was shown the
+        // username/password form. The cookie is evaluated by RestUserFilter, and that one runs on /rs/* only - never
+        // on this public endpoint.
+        //
+        // Only for same-site requests: unlike /rs/*, this endpoint has no filter and therefore no CSRF protection
+        // around it, while checkLogin has side effects (it creates and rotates the session, writes the login stamp to
+        // the database and refreshes the cookie's 30 days). Without this guard any foreign page could keep a
+        // stay-logged-in cookie alive forever by pointing the browser here - the cookie has no SameSite=Strict and is
+        // sent on a top-level navigation. Reading the state is all that is left for a cross-site caller.
+        //
+        // The elvis operator is required: checkLogin returns null as soon as a second factor is missing
+        // (ensureSystemAccess), although the restored UserContext is already stored in the session. Re-reading it is
+        // what turns that into twoFactorRequired instead of a plain 'not logged-in'.
+        val userContext = if (RestCsrfProtection.isSameSiteRequest(request)) {
+            loginService.checkLogin(request, response) ?: LoginService.getUserContext(request)
+        } else {
+            log.warn { "Cross-site request, so no stay-logged-in restore is done here: ${RequestLog.asString(request)}" }
+            LoginService.getUserContext(request)
+        }
+        // After checkLogin, not before: a stay-logged-in restore calls LoginService.internalLogin, which invalidates
+        // the current session and creates a new one - the url would be written into the session about to be dropped.
         LoginServiceRest.storeOriginUrl(request, url)
-        val userContext = LoginService.getUserContext(request)
         val systemData = systemStatusRest.getSystemStatus(request)
         // Username/password were OK, but the second factor is still missing:
         val twoFactorRequired = userContext?.new2FARequired == true
