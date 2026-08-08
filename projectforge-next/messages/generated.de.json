@@ -223,10 +223,12 @@
   },
   "history": {
     "entry": "Änderungseintrag",
+    "fields": "Felder",
     "newValue": "Neuer Wert",
     "oldValue": "Alter Wert",
     "opType": "Aktion",
     "propertyName": "Feld",
+    "showMore": "Weitere Einträge anzeigen",
     "userComment": {
       "_": "Änderungskommentar",
       "append": "Kommentar anhängen",

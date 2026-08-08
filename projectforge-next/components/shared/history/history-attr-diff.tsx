@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import type { HistoryEntryAttr } from "@/lib/rs/history";
+import { opColor, opSymbol } from "./history-op-style";
 
 export interface HistoryAttrDiffProps {
   attr: HistoryEntryAttr;
@@ -14,11 +15,23 @@ export interface HistoryAttrDiffProps {
  */
 export function HistoryAttrDiff({ attr }: HistoryAttrDiffProps) {
   const label = attr.displayPropertyName ?? attr.propertyName ?? "—";
+  const symbol = opSymbol(attr.operationType);
   const hasOld = !!attr.oldValue?.trim();
   const hasNew = !!attr.newValue?.trim();
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs leading-relaxed">
-      <dt className="font-medium text-foreground/70">{label}</dt>
+      <dt className="font-medium text-foreground/70">
+        {symbol && (
+          <span
+            aria-hidden
+            className="mr-1 font-bold"
+            style={{ color: opColor(attr.operationType) }}
+          >
+            {symbol}
+          </span>
+        )}
+        {label}
+      </dt>
       <dd className="flex min-w-0 flex-wrap items-baseline gap-1.5">
         {hasOld && (
           <span

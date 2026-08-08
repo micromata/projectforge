@@ -223,10 +223,12 @@
   },
   "history": {
     "entry": "History entry",
+    "fields": "Fields",
     "newValue": "New value",
     "oldValue": "Old value",
     "opType": "Action",
     "propertyName": "Property",
+    "showMore": "Show more entries",
     "userComment": {
       "_": "Change comment",
       "append": "Append comment",
