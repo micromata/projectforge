@@ -48,7 +48,13 @@ export function JobToasts() {
     for (const id of watchedJobIds) {
       const job = data.find((candidate) => candidate.id === id);
       if (!job) {
-        // The backend forgets terminated jobs after an hour; nothing left to show.
+        if (!shown.current.has(id)) {
+          // Not in the list and never seen: this is the cached answer of the previous run, which
+          // cannot know a job that just started. Waiting for the next poll — dropping the job here
+          // would leave the second re-index of a session without any toast.
+          continue;
+        }
+        // Seen before and gone now: the backend forgets terminated jobs after an hour.
         toast.dismiss(toastId(id));
         shown.current.delete(id);
         unwatchJob(id);
@@ -82,14 +88,15 @@ export function JobToasts() {
  */
 function showResult(job: JobInfo): void {
   toast.dismiss(toastId(job.id));
-  const options = { description: job.title };
   if (isJobFailed(job)) {
     // The reason, not the counters: a refused job never ran, so its numbers are meaningless.
-    toast.error(
-      job.errorMessage ?? job.progressTitle ?? job.title ?? "",
-      options
-    );
+    toast.error(job.errorMessage ?? job.progressTitle ?? job.title ?? "", {
+      description: job.title,
+    });
   } else {
-    toast.success(job.progressTitle ?? job.title ?? "", options);
+    toast.success(job.progressTitle ?? job.title ?? "", {
+      // The per-class counts if the job has them, so the sum above stays explainable after the run.
+      description: [job.title, job.progressDetails].filter(Boolean).join(" — "),
+    });
   }
 }

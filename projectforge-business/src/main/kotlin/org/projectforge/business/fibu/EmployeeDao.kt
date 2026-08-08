@@ -213,6 +213,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         }
     }
 
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(EmployeeValidSinceAttrDO::class.java)
+
     init {
         userRightId = USER_RIGHT_ID
     }

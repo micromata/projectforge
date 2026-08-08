@@ -291,6 +291,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         historyService.loadAndMergeHistory(UserRightDO::class.java, rightIds, context)
     }
 
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(UserRightDO::class.java)
+
     override fun hasHistoryAccess(user: PFUserDO, throwException: Boolean): Boolean {
         return accessChecker.isUserMemberOfAdminGroup(user, throwException)
     }

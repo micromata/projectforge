@@ -97,7 +97,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>> = arrayOf(TeamEventAttendeeDO::class.java)
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(TeamEventAttendeeDO::class.java)
 
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR_EVENT

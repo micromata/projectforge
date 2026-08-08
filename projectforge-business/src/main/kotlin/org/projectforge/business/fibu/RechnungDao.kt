@@ -75,8 +75,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(RechnungsPositionDO::class.java, KostZuweisungDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID
@@ -402,10 +402,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_AUSGANGSRECHNUNGEN
 
         const val START_NUMBER: Int = 1000
-
-        val ADDITIONAL_HISTORY_SEARCH_DOS = arrayOf<Class<*>>(
-            RechnungsPositionDO::class.java
-        )
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "projekt.name",

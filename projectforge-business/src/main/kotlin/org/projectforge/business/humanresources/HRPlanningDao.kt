@@ -287,8 +287,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         }
     }
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(HRPlanningEntryDO::class.java)
 
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf<String>(
@@ -299,7 +298,5 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_HR_PLANNING
 
         private val log: Logger = LoggerFactory.getLogger(HRPlanningDao::class.java)
-
-        private val ADDITIONAL_SEARCH_DOS = arrayOf<Class<*>>(HRPlanningEntryDO::class.java)
     }
 }

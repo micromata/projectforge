@@ -712,8 +712,9 @@ constructor(
             ReindexJob(
                 databaseDao = databaseDao,
                 classes = if (full) baseDao.reindexClasses else baseDao.reindexClasses4NewestEntries,
-                // The entity name restricts the change history of the partial run to this entity's rows.
-                settings = DatabaseDao.createReindexSettings(!full, baseDao.doClass.name),
+                // The entity names restrict the change history of the partial run to the rows of this page (the
+                // entity and the children whose history it shows).
+                settings = DatabaseDao.createReindexSettings(!full, baseDao.historyEntityNames),
                 adminRequired = full,
                 // The same key the list layout uses as its title — every entity has it.
                 title = translateMsg(i18nKey, translate("$i18nKeyPrefix.list")),

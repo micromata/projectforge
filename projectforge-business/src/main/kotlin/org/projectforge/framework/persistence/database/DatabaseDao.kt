@@ -139,14 +139,18 @@ open class DatabaseDao {
             // (purgeAllOnStart defaults to true) a partial run would wipe every document not touched by it.
             indexer.purgeAllOnStart(false)
             val condition = StringBuilder("$modifiedAtProperty >= :fromDate")
-            // The change history holds the rows of all entities, so a run started for a single one has to say which
+            // The change history holds the rows of all entities, so a run started for a list page has to say whose
             // (otherwise re-indexing the book list would also re-index yesterday's history of every other entity).
-            val entityName = settings.entityName?.takeIf { strategy.entityNameProperty != null }
-            if (entityName != null) {
-                condition.append(" and ${strategy.entityNameProperty} = :entityName")
+            // Several names, because history rows are written per entity instance: the order list needs the history
+            // of its positions and payment schedules, too. Never empty, see ReindexSettings.
+            val entityNames = settings.entityNames?.takeIf { strategy.entityNameProperty != null }
+            if (entityNames != null) {
+                condition.append(" and ${strategy.entityNameProperty} in :entityNames")
             }
+            log.info { "${clazz.simpleName}: Re-indexing only where $condition, fromDate=$fromDate, entityNames=$entityNames" }
             val step = indexer.type(clazz).reindexOnly(condition.toString()).param("fromDate", fromDate)
-            entityName?.let { step.param("entityName", it) }
+            // Hibernate ORM's setParameter detects the collection of an in-parameter and binds it as a list.
+            entityNames?.let { step.param("entityNames", it) }
         } else if (fromDate != null) {
             log.info { "${clazz.simpleName}: No property of last modification known, so all entries are re-indexed." }
         }
@@ -159,15 +163,16 @@ open class DatabaseDao {
          * effect on the indexing itself: reindexOnly of Hibernate Search takes a where condition without order or
          * limit, and limitIndexedObjectsTo would cap arbitrary entries, not the newest ones.
          *
-         * @param entityName The entity the run was started for, restricting the change history to its own rows.
+         * @param entityNames The entities the run was started for (see BaseDao.historyEntityNames), restricting the
+         *          change history to their rows. Null or empty for a system wide run, whose history isn't restricted.
          */
         @JvmStatic
         @JvmOverloads
-        fun createReindexSettings(onlyNewest: Boolean, entityName: String? = null): ReindexSettings {
+        fun createReindexSettings(onlyNewest: Boolean, entityNames: Collection<String>? = null): ReindexSettings {
             return if (onlyNewest) {
                 val day = DayHolder()
                 day.add(Calendar.DAY_OF_MONTH, -1) // Since yesterday:
-                ReindexSettings(day.utilDate, 1000, entityName) // Maximum 1,000 newest entries.
+                ReindexSettings(day.utilDate, 1000, entityNames) // Maximum 1,000 newest entries.
             } else {
                 ReindexSettings()
             }

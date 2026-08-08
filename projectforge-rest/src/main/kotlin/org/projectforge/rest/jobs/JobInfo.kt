@@ -42,6 +42,8 @@ class JobInfo(
   var progressPercentage: Int? = 0,
   var progressBarColor: UIColor? = null,
   var progressTitle: String? = null,
+  /** The counters of [progressTitle] broken down, see [AbstractJob.progressDetails]. */
+  var progressDetails: String? = null,
   var info: String? = null,
   var infoColor: UIColor? = null,
   var animated: Boolean? = false,
@@ -99,6 +101,7 @@ class JobInfo(
             .append(NumberFormatter.format(it.totalNumber))
         }
         info.progressTitle = progressTitle.toString()
+        info.progressDetails = it.progressDetails
         info.errorMessage = translateErrorMessage(it.errorMessage)
       }
       return info

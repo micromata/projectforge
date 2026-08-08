@@ -19,6 +19,8 @@ export interface JobInfo {
   progressPercentage?: number;
   /** Already translated: "#3, Running: 1.200/5.000". */
   progressTitle?: string;
+  /** The counters above broken down, e.g. "BookDO: 3/3, HistoryEntryDO: 166/166". */
+  progressDetails?: string;
   /** Status, user and runtime as markdown, pipe separated. */
   info?: string;
   progressBarColor?: UIColorName;

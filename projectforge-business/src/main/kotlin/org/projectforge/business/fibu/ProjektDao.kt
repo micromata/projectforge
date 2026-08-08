@@ -203,6 +203,10 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
     }
 
+    // Kost2DO is the doClass of Kost2Dao as well, so its history is covered by two list pages. Harmless: a partial
+    // re-index doesn't purge, so both runs merely refresh the same documents.
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(Kost2DO::class.java)
+
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
         val entry = context.requiredHistoryEntry
         val item = context.findLoadedEntity(entry)

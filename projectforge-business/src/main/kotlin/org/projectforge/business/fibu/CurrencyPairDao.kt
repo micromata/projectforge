@@ -72,6 +72,8 @@ open class CurrencyPairDao : BaseDao<CurrencyPairDO>(CurrencyPairDO::class.java)
         }
     }
 
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(CurrencyConversionRateDO::class.java)
+
     init {
         userRightId = USER_RIGHT_ID
     }

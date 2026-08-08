@@ -25,7 +25,9 @@ package org.projectforge.framework.persistence.api;
 
 import org.projectforge.framework.persistence.utils.ReflectionToString;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 
 public class ReindexSettings
@@ -34,7 +36,7 @@ public class ReindexSettings
 
   private Integer lastNEntries;
 
-  private String entityName;
+  private Collection<String> entityNames;
 
   public ReindexSettings()
   {
@@ -46,16 +48,17 @@ public class ReindexSettings
   }
 
   /**
-   * @param entityName Full class name of the entity the re-index was started for, or null for all of them. Only
-   *          used for tables holding the rows of several entities (the change history), see
-   *          ReindexerStrategy.entityNameProperty: re-indexing the book list shouldn't touch the history of
-   *          every other entity.
+   * @param entityNames Full class names of the entities the re-index was started for (a list page entity and the
+   *          children whose history it shows), or null for all of them. Only used for tables holding the rows of
+   *          several entities (the change history), see ReindexerStrategy.entityNameProperty: re-indexing the book
+   *          list shouldn't touch the history of every other entity.
    */
-  public ReindexSettings(final Date fromDate, final Integer lastNEntries, final String entityName)
+  public ReindexSettings(final Date fromDate, final Integer lastNEntries, final Collection<String> entityNames)
   {
     this.fromDate = fromDate;
     this.lastNEntries = lastNEntries;
-    this.entityName = entityName;
+    // Empty would end up as "in ()", which is no valid HQL, so it means the same as null here: no restriction.
+    this.entityNames = (entityNames == null || entityNames.isEmpty()) ? null : List.copyOf(entityNames);
   }
 
   public Date getFromDate()
@@ -68,9 +71,12 @@ public class ReindexSettings
     return lastNEntries;
   }
 
-  public String getEntityName()
+  /**
+   * Never empty: an empty collection is normalized to null by the constructor.
+   */
+  public Collection<String> getEntityNames()
   {
-    return entityName;
+    return entityNames;
   }
 
 

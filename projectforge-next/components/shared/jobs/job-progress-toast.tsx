@@ -71,6 +71,12 @@ export function JobProgressToast({ initialJob }: { initialJob: JobInfo }) {
         {/* The bar alone doesn't say how far along it is — a long run needs a readable number. */}
         <span className="shrink-0 tabular-nums">{percentage}%</span>
       </div>
+      {/* Which entity the counters above belong to — a re-index covers the entity and its history. */}
+      {job.progressDetails && (
+        <span className="text-xs text-muted-foreground">
+          {job.progressDetails}
+        </span>
+      )}
     </div>
   );
 }

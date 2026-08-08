@@ -95,8 +95,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     // Not autowired (due to cyclic dependency).
     private lateinit var taskTree: TaskTree
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(AuftragsPositionDO::class.java, PaymentScheduleDO::class.java)
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -634,8 +634,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         const val START_NUMBER: Int = 1
 
         private val log: Logger = LoggerFactory.getLogger(AuftragDao::class.java)
-
-        val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> = arrayOf(AuftragsPositionDO::class.java)
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "contactPerson.username",

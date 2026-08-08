@@ -61,8 +61,8 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(EingangsrechnungsPositionDO::class.java, KostZuweisungDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID
@@ -260,9 +260,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_EINGANGSRECHNUNGEN
-        private val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> =
-            arrayOf(EingangsrechnungsPositionDO::class.java)
-
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("positionen.text")
 
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("kreditor")

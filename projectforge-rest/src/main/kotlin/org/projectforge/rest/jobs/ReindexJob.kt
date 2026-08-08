@@ -30,6 +30,8 @@ import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.IndexProgressMonitor
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.NumberFormatter
+import java.util.Collections
 
 private val log = KotlinLogging.logger {}
 
@@ -64,6 +66,16 @@ class ReindexJob(
     /** Total of the previous classes plus the total of the running one, as reported by Hibernate Search. */
     private var totalOffset = 0
 
+    /**
+     * Indexed and total entities per class, in the order they are processed. The counters of the job itself are the
+     * sum over all classes, which says little for a run covering an entity and its change history: "169/169" for
+     * three books is puzzling until it is split into 3 books and 166 history entries.
+     *
+     * Written from the indexing threads of Hibernate Search and read by the client polling for the progress, so
+     * synchronized (a LinkedHashMap wouldn't survive that).
+     */
+    private val statistics = Collections.synchronizedMap(LinkedHashMap<String, Progress>())
+
     override suspend fun run() {
         for (clazz in classes) {
             if (!isActive) {
@@ -74,10 +86,28 @@ class ReindexJob(
                 // Hibernate Search only knows the total after counting, so it can't be summed up in advance.
                 totalNumber = totalOffset + total.toInt()
                 processedNumber = processedOffset + indexed.toInt()
+                statistics[clazz.simpleName] = Progress(indexed, total)
             }
             databaseDao.reindexSuspending(clazz, settings, monitor)
             processedOffset = processedNumber.coerceAtLeast(0)
             totalOffset = totalNumber.coerceAtLeast(0)
+        }
+    }
+
+    /**
+     * The counts per class, e. g. "BookDO: 3/3, HistoryEntryDO: 166/166" — the sum in the progress title is what the
+     * bar needs, but it doesn't say how much of it is the entity and how much its change history.
+     */
+    override val progressDetails: String?
+        get() = synchronized(statistics) {
+            statistics.entries
+                .joinToString { (className, progress) -> "$className: $progress" }
+                .ifEmpty { null }
+        }
+
+    private class Progress(private val indexed: Long, private val total: Long) {
+        override fun toString(): String {
+            return "${NumberFormatter.format(indexed)}/${NumberFormatter.format(total)}"
         }
     }
 

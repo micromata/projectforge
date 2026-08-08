@@ -149,6 +149,13 @@ abstract class AbstractJob(
     get() = if (processedNumber < 0 || totalNumber <= 0) 0 else processedNumber * 100 / totalNumber
 
   /**
+   * Breakdown of [processedNumber] for jobs whose sum alone is hard to read (a re-index counting an entity and its
+   * change history in one number, for instance). Plain text, already translated, null if the job has nothing to add.
+   */
+  open val progressDetails: String?
+    get() = null
+
+  /**
    * Checks, if the current logged-in user is the owner (ownerId).
    */
   val isOwner: Boolean
