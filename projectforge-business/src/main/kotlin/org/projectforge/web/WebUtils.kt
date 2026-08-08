@@ -23,39 +23,52 @@
 
 package org.projectforge.web
 
-import java.net.InetAddress
+import mu.KotlinLogging
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 object WebUtils {
+  /**
+   * Set on startup from `projectforge.security.trustedProxies`, see
+   * [org.projectforge.web.TrustedProxiesConfiguration]. Until then nothing is trusted: `X-Forwarded-For` is only
+   * ever used after the configuration was read.
+   */
+  @JvmStatic
+  var trustedProxies = TrustedProxies(null)
+
+  /**
+   * @return The ip address of the client, taken from `X-Forwarded-For` if (and only if) the request came from a
+   * trusted proxy, otherwise the address of the host the request came from.
+   * @see TrustedProxies
+   */
   @JvmStatic
   fun getClientIp(request: ServletRequest): String? {
-    var remoteAddr: String? = null
-    if (request is HttpServletRequest) {
-      remoteAddr = request.getHeader("X-Forwarded-For")
+    val remoteAddr = request.remoteAddr
+    if (request !is HttpServletRequest) {
+      return remoteAddr
     }
-    if (remoteAddr != null) {
-      if (remoteAddr.contains(",")) {
-        // sometimes the header is of form client ip,proxy 1 ip,proxy 2 ip,...,proxy n ip,
-        // we just want the client
-        remoteAddr = remoteAddr.split(',')[0].trim({ it <= ' ' })
-      }
-      try {
-        // If ip4/6 address string handed over, simply does pattern validation.
-        InetAddress.getByName(remoteAddr)
-      } catch (e: UnknownHostException) {
-        remoteAddr = request.remoteAddr
-      }
-
-    } else {
-      remoteAddr = request.remoteAddr
+    val forwardedFor = request.getHeader("X-Forwarded-For") ?: return remoteAddr
+    if (!trustedProxies.isTrusted(remoteAddr)) {
+      // Anybody may send this header, so it is only believed if a proxy of ours sent it. Info and not warn: a
+      // client (or a proxy of the client's side) sending one isn't an incident, it just isn't authoritative.
+      log.info { "Ignoring X-Forwarded-For '${forwardedFor.take(100)}': '$remoteAddr' isn't a trusted proxy (projectforge.security.trustedProxies)." }
+      return remoteAddr
     }
-    return remoteAddr
+    // The header is of the form "client, proxy 1, ..., proxy n": the client is the first entry. Note that this
+    // first entry is the one the client itself may have sent (a proxy appends), which is why the whole header is
+    // only used at all if a trusted proxy handed it over.
+    val clientAddr = forwardedFor.substringBefore(',').trim()
+    if (TrustedProxies.parseAddress(clientAddr) == null) {
+      log.info { "Ignoring X-Forwarded-For '${forwardedFor.take(100)}': '$clientAddr' isn't an ip address." }
+      return remoteAddr
+    }
+    return clientAddr
   }
 
   /**

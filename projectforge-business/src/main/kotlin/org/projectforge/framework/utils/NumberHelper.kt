@@ -632,22 +632,14 @@ object NumberHelper {
     }
 
     private fun getSecureRandomString(usedChars: String, length: Int): String {
-        val random = SecureRandom()
-        val bytes = ByteArray(length)
-        random.nextBytes(bytes)
-        val sb = StringBuilder()
-        val charsLength = usedChars.length
+        // nextInt(bound) instead of "random byte % usedChars.length": the latter is biased whenever 256 isn't a
+        // multiple of the alphabet size (with 62 chars the first 8 of them come up 5 times per 256 values, the
+        // rest only 4), which costs entropy in every token generated here. nextInt does the rejection sampling.
+        val sb = StringBuilder(length)
         for (i in 0 until length) {
-            sb.append(usedChars[(bytes[i].toInt() and 0xFF) % charsLength])
+            sb.append(usedChars[secureRandom.nextInt(usedChars.length)])
         }
         return sb.toString()
-        /*
-                val charset = CharArray(length)
-        for (i in 0 until length) {
-            charset[i] = ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH]
-        }
-        return String(charset)
-         */
     }
 
     /**
@@ -658,12 +650,10 @@ object NumberHelper {
      */
     @JvmStatic
     fun getSecureRandomDigits(length: Int): String {
-        val random = SecureRandom()
-        val bytes = ByteArray(length)
-        random.nextBytes(bytes)
-        val sb = StringBuilder()
+        // 256 isn't a multiple of 10, so "random byte % 10" favours 0-5, see [getSecureRandomString].
+        val sb = StringBuilder(length)
         for (i in 0 until length) {
-            sb.append((bytes[i].toInt() and 0xFF) % 10)
+            sb.append(secureRandom.nextInt(10))
         }
         return sb.toString()
     }
@@ -771,6 +761,12 @@ object NumberHelper {
         else if (value > maxVal) maxVal
         else value
     }
+
+    /**
+     * [SecureRandom] is thread safe and re-seeds itself, so one instance for the whole application is fine (and
+     * cheaper than creating one per call: the constructor may block on the seed source).
+     */
+    private val secureRandom = SecureRandom()
 
     internal val ALPHA_NUMERICS_CHARSET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).joinToString(separator = "")
     internal val REDUCED_ALPHA_NUMERICS_CHARSET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789"

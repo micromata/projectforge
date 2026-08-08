@@ -239,6 +239,32 @@ class NumberHelperTest {
         }
     }
 
+    /**
+     * The tokens generated here are credentials, so every char of the alphabet has to be equally likely. The
+     * former implementation mapped a random byte with `% alphabet.length`, which favoured the first chars of the
+     * alphabet, because 256 isn't a multiple of 62 (or of 58, or of 10).
+     */
+    @Test
+    fun noModuloBiasTest() {
+        val charset = NumberHelper.ALPHA_NUMERICS_CHARSET
+        val counts = mutableMapOf<Char, Int>()
+        val total = 200_000
+        NumberHelper.getSecureRandomAlphanumeric(total).forEach { ch ->
+            counts[ch] = (counts[ch] ?: 0) + 1
+        }
+        val expected = total.toDouble() / charset.length
+        // The old implementation was off by 25% for the first 8 chars of the 62 char alphabet (5/256 vs 4/256),
+        // so 10% is far enough away from a fluke of the random generator to be a stable assertion.
+        val tolerance = expected * 0.1
+        charset.forEach { ch ->
+            val count = counts[ch] ?: 0
+            Assertions.assertTrue(
+                Math.abs(count - expected) < tolerance,
+                "Char '$ch' occurred $count times, expected about ${expected.toInt()} (+-${tolerance.toInt()}).",
+            )
+        }
+    }
+
     fun randomAlphaNumericPerformanceTest() {
         val length = 1000
         val time = System.currentTimeMillis()

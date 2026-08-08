@@ -241,15 +241,12 @@ class My2FAServicesRest {
                 HttpStatus.OK
             )
         }
-        if (data.target != null) {
-            // 2FA request was handled by an extra page, so redirect to origin:
-            val redirectUrl = String(Base64.decodeBase64(data.target), StandardCharsets.UTF_8)
-            if (redirectUrl.isNotBlank()) {
-                return ResponseEntity(
-                    ResponseAction(targetType = TargetType.REDIRECT, url = replaceRestByReactUrl(redirectUrl)),
-                    HttpStatus.OK
-                )
-            }
+        // 2FA request was handled by an extra page, so redirect to origin:
+        redirectUrlFromTarget(data.target)?.let { redirectUrl ->
+            return ResponseEntity(
+                ResponseAction(targetType = TargetType.REDIRECT, url = redirectUrl),
+                HttpStatus.OK
+            )
         }
         data.code = ""
         data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
@@ -443,6 +440,23 @@ class My2FAServicesRest {
          */
         fun getLastSuccessful2FAFromSession(request: HttpServletRequest): Long? {
             return request.getSession(false)?.getAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA) as? Long
+        }
+
+        /**
+         * The url to redirect to after a successful 2FA, taken from the base64 encoded `target` of the request.
+         *
+         * The value is client supplied (base64 is an encoding, not a protection), so it goes through the same
+         * check as the redirect url of the login, see [LoginServiceRest.sanitizeRedirectUrl]: without it a
+         * successful 2FA would be an open redirect - and a convincing phishing hop, because the victim really
+         * did authenticate against ProjectForge.
+         *
+         * @return The sanitized url, or null if there is none to redirect to.
+         */
+        internal fun redirectUrlFromTarget(target: String?): String? {
+            target ?: return null
+            val decoded = String(Base64.decodeBase64(target), StandardCharsets.UTF_8)
+            val sanitized = LoginServiceRest.sanitizeRedirectUrl(decoded) ?: return null
+            return replaceRestByReactUrl(sanitized)
         }
 
         /**
