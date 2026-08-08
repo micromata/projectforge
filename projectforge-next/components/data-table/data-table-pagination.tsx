@@ -6,6 +6,7 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PAGE_SIZE_OPTIONS } from "./page-size-options";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
@@ -14,7 +15,7 @@ interface DataTablePaginationProps<TData> {
 
 export function DataTablePagination<TData>({
   table,
-  pageSizeOptions = [25, 50, 100],
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
 }: DataTablePaginationProps<TData>) {
   const t = useTranslations("table");
   const { pageIndex, pageSize } = table.getState().pagination;
@@ -24,6 +25,11 @@ export function DataTablePagination<TData>({
   const pageCount = table.getPageCount();
 
   const label = t("range", { from, to, total });
+  // A page can set a size of its own (the address import uses 500), and a size stored for the user may
+  // predate the current list - so the active one is always offered, or the select would show blank.
+  const sizes = pageSizeOptions.includes(pageSize)
+    ? pageSizeOptions
+    : [...pageSizeOptions, pageSize].sort((a, b) => a - b);
 
   return (
     <div className="flex items-center justify-between border-t px-4 py-2">
@@ -85,7 +91,7 @@ export function DataTablePagination<TData>({
           value={pageSize}
           onChange={(e) => table.setPageSize(Number(e.target.value))}
         >
-          {pageSizeOptions.map((s) => (
+          {sizes.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>

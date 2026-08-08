@@ -67,4 +67,6 @@ export interface AgGridNode {
   onColumnStatesChangedUrl?: string;
   resetGridStateUrl?: string;
   paginationPageSize?: number;
+  /** The page sizes this grid offers (UIAgGrid.paginationPageSizeSelector). */
+  paginationPageSizeSelector?: number[];
 }

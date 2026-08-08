@@ -21,6 +21,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { universalFilterFnFor } from "./filter-fns";
+import { DEFAULT_PAGE_SIZE } from "./page-size-options";
 
 export interface UseDataTableOptions<TData> {
   columns: ColumnDef<TData, unknown>[];
@@ -87,7 +88,7 @@ export function useDataTable<TData>({
   manualPagination = false,
   manualFiltering = false,
   getRowId,
-  initialPageSize = 50,
+  initialPageSize = DEFAULT_PAGE_SIZE,
 }: UseDataTableOptions<TData>): Table<TData> {
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [internalPagination, setInternalPagination] = useState<PaginationState>(

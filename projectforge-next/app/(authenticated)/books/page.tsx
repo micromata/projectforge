@@ -11,6 +11,7 @@ import {
   FilterFavoritesMenu,
   FilterPills,
   filterValuesFromEntries,
+  DEFAULT_PAGE_SIZE,
   ListGearMenu,
   useColumnStatePersistence,
   useDataTable,
@@ -90,7 +91,8 @@ function BooksList({
   } = useMagicFilterQuery<BookListRow>({
     entity: ENTITY,
     queryKey: ["books"],
-    initialPageSize: 50,
+    // Stored per entity along with the column state, so the size the user picked survives a reload.
+    initialPageSize: storedState.paginationPageSize ?? DEFAULT_PAGE_SIZE,
     // Sorting drives the backend query, so it lives with the query, not in the
     // column state — the stored order seeds it here.
     initialSorting: storedState.sorting,
@@ -156,6 +158,7 @@ function BooksList({
     columnPinning: columnState.columnPinning,
     columnSizing: columnState.columnSizing,
     columnOrder: columnState.columnOrder,
+    paginationPageSize: pagination.pageSize,
   });
 
   /** Back to the column defs' defaults; the next write stores the empty state. */

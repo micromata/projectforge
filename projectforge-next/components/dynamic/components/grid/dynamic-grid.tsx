@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import type { PaginationState } from "@tanstack/react-table";
 import {
   DataTable,
   DataTableColumnPanel,
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
   useColumnStatePersistenceByUrl,
   useDataTable,
   useTableState,
@@ -50,6 +53,12 @@ function Grid({ grid }: { grid: AgGridNode }) {
   // column state (see initialStateFrom), so it is available on the first render.
   const restoredState = useMemo(() => initialStateFrom(grid), [grid]);
   const state = useTableState({ restoredState });
+  // Held here rather than inside useDataTable, so the selected size can go into the stored state below.
+  // The layout already carries the user's size (AGGridSupport.prepareUIGrid4ListPage).
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: grid.paginationPageSize ?? DEFAULT_PAGE_SIZE,
+  });
   const resetColumns = useGridStateReset(
     grid.resetGridStateUrl && resolveRestUrl(grid.resetGridStateUrl),
     state
@@ -75,7 +84,8 @@ function Grid({ grid }: { grid: AgGridNode }) {
     // The list endpoints answer with the whole result set, so sorting, filtering
     // and paging all happen on the client - as on the hand-built book list.
     manualSorting: false,
-    initialPageSize: grid.paginationPageSize ?? 50,
+    pagination,
+    onPaginationChange: setPagination,
     getRowId: (row, index) => String(row.id ?? index),
   });
 
@@ -88,6 +98,7 @@ function Grid({ grid }: { grid: AgGridNode }) {
       columnPinning: state.columnPinning,
       columnSizing: state.columnSizing,
       columnOrder: state.columnOrder,
+      paginationPageSize: pagination.pageSize,
     }
   );
 
@@ -111,6 +122,7 @@ function Grid({ grid }: { grid: AgGridNode }) {
         columns={columns}
         data={rows}
         rowClassName={rowClassName}
+        pageSizeOptions={grid.paginationPageSizeSelector ?? PAGE_SIZE_OPTIONS}
         onRowClick={
           clickable
             ? (row) => {

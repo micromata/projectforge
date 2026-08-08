@@ -33,6 +33,9 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    */
   rowClassName?: (row: TData) => string | undefined;
 
+  /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
+  pageSizeOptions?: number[];
+
   emptyState?: React.ReactNode;
   className?: string;
 }
@@ -44,6 +47,7 @@ export function DataTable<TData>({
   onRowClick,
   rowActions,
   rowClassName,
+  pageSizeOptions,
   emptyState,
   className,
   ...tableOptions
@@ -186,7 +190,7 @@ export function DataTable<TData>({
           </TableBody>
         </table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
     </div>
   );
 }

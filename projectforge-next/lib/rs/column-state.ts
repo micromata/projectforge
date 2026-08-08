@@ -12,6 +12,8 @@ export interface ColumnStateDto {
   columnPinning?: { left?: string[]; right?: string[] };
   sorting?: { id: string; desc: boolean }[];
   columnFilters?: { id: string; value: unknown }[];
+  /** Rows per page the user selected; absent while they never changed it. */
+  paginationPageSize?: number;
 }
 
 /**

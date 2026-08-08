@@ -57,6 +57,7 @@ class AGGridSupport {
         request.columnPinning?.let { gridState.columnPinning = it }
         request.sorting?.let { gridState.sorting = it }
         request.columnFilters?.let { gridState.columnFilters = it }
+        request.paginationPageSize?.let { gridState.paginationPageSize = it }
 
         userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
     }
@@ -97,6 +98,10 @@ class AGGridSupport {
         magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS
         agGrid.enablePagination()
         magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
+        // The page size the user selected last, stored along with the column state. Applied here and not
+        // in [restoreColumnsFromUserPref], because that runs after this method (LayoutUtils.processListPage)
+        // and would override the page size a multi selection deliberately remembered in the session below.
+        getGridState(pagesRest.category)?.paginationPageSize?.let { agGrid.paginationPageSize = it }
         layout.add(agGrid)
         if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
             prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)

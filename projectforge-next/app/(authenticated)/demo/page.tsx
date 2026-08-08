@@ -4,7 +4,11 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { ListPageShell } from "@/components/shared/list-page-shell";
-import { DataTable, useMagicFilterQuery } from "@/components/data-table";
+import {
+  DataTable,
+  DEFAULT_PAGE_SIZE,
+  useMagicFilterQuery,
+} from "@/components/data-table";
 import { useBooksColumns } from "@/components/features/books/books-columns";
 import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import type { BookListRow } from "@/components/features/books/types";
@@ -25,7 +29,7 @@ export default function DemoPage() {
   } = useMagicFilterQuery<BookListRow>({
     entity: "book",
     queryKey: ["demo-books"],
-    initialPageSize: 50,
+    initialPageSize: DEFAULT_PAGE_SIZE,
   });
 
   return (

@@ -10,6 +10,7 @@ import type {
 import { fetchList } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
 import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
+import { DEFAULT_PAGE_SIZE } from "./page-size-options";
 
 interface UseMagicFilterQueryOptions {
   /** Backend entity, e.g. "book" — maps to POST /rs/{entity}/list. */
@@ -72,7 +73,7 @@ interface UseMagicFilterQueryResult<O> {
 export function useMagicFilterQuery<O>({
   entity,
   queryKey,
-  initialPageSize = 50,
+  initialPageSize = DEFAULT_PAGE_SIZE,
   initialGlobalFilter = "",
   initialSorting = [],
   filterEntries,
