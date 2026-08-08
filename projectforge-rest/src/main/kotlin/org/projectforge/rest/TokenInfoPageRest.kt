@@ -23,22 +23,27 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.rest.calendar.BarcodeServicesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.pub.AuthenticationPublicServicesRest
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/tokenInfo")
@@ -55,7 +60,23 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
   )
 
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): FormLayoutData {
+  fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): ResponseEntity<*> {
+    // The token type comes straight from a request parameter, so an unsupported value is a bad request and
+    // not an internal error: an exception here would be an attacker triggerable stack trace in the log
+    // (including a mail to the developers, see GlobalExceptionRegistry.sendMailToDevelopers).
+    val tokenId = when (token) {
+      UserTokenType.CALENDAR_REST -> "calendarExportToken"
+      UserTokenType.DAV_TOKEN -> "davToken"
+      UserTokenType.REST_CLIENT -> "restClientToken"
+      // This page shows a token and its usage. A stay-logged-in token is neither: there is one per device
+      // and only its hash is stored. My-account lists the devices instead.
+      UserTokenType.STAY_LOGGED_IN_KEY,
+        // Never displayed, the user only ever sees the QR code of My2FASetupPageRest.
+      UserTokenType.AUTHENTICATOR_KEY -> {
+        log.warn { "Token of type '$token' can't be displayed by this page (denied): ${request.requestURI}" }
+        return RestUtils.badRequest("Token of type '$token' isn't displayable.")
+      }
+    }
     val userId = ThreadLocalUserContext.loggedInUserId!!
 
     val data = TokenInfoData(
@@ -64,16 +85,6 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
     )
 
     val layout = UILayout("user.authenticationToken.button.showUsage")
-
-    val tokenId = when (token) {
-      UserTokenType.CALENDAR_REST -> "calendarExportToken"
-      UserTokenType.DAV_TOKEN -> "davToken"
-      UserTokenType.REST_CLIENT -> "restClientToken"
-      // This page shows a token and its usage. A stay-logged-in token is neither: there is one per device
-      // and only its hash is stored. My-account lists the devices instead.
-      UserTokenType.STAY_LOGGED_IN_KEY -> throw IllegalArgumentException("Stay-logged-in tokens aren't displayable, see StayLoggedInTokenDO.")
-      UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
-    }
 
     val elementInfo = ElementsRegistry.getElementInfo(UserAuthenticationsDO::class.java, tokenId)
 
@@ -108,7 +119,7 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
     layout.addTranslations("cancel", "yes")
     LayoutUtils.process(layout)
 
-    return FormLayoutData(data, layout, createServerData(request))
+    return ResponseEntity.ok(FormLayoutData(data, layout, createServerData(request)))
   }
 
 }

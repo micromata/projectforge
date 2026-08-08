@@ -61,9 +61,16 @@ class ProjectForge2FAInitializationTest {
       My2FAShortCut.INTERNAL_TEST3
     ))
 
-    Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;", my2FARequestHandler.getShortCutResolved(
+    // logoutAllDevices is a self service call of /rs/user (a path otherwise registered for ADMIN):
+    Assertions.assertEquals("/rs/myAccount;/rs/tokenInfo;/rs/user/renewToken;/rs/user/logoutAllDevices;", my2FARequestHandler.getShortCutResolved(
       My2FAShortCut.MY_ACCOUNT
     ))
+    // ... logging *other* users out of their devices is not:
+    Assertions.assertTrue(
+      my2FARequestHandler.getShortCutResolved(My2FAShortCut.ADMIN_WRITE)
+        ?.contains("/rs/user/logoutAllDevicesOfUser") == true,
+      "logoutAllDevicesOfUser has to be registered for ADMIN_WRITE.",
+    )
 
     Assertions.assertNull(my2FARequestHandler.getRemainingPeriod("/rs/user/${AutoCompletion.AUTOCOMPLETE_TEXT}"))
     Assertions.assertEquals(0L, my2FARequestHandler.getRemainingPeriod("/rs/user/notautosearch"), "New 2FA requested for /rs/user*.")

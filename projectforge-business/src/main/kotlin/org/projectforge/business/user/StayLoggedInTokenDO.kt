@@ -87,7 +87,10 @@ import java.util.Date
     ),
     NamedQuery(
         name = StayLoggedInTokenDO.DELETE_EXPIRED,
-        query = "delete from StayLoggedInTokenDO t where t.lastAccess < :expireBefore",
+        // "is null" is needed: a comparison with NULL is UNKNOWN, so a row without lastAccess would never be
+        // purged. Such a row can't restore a session either ([StayLoggedInTokenDao.getValidToken] treats null
+        // as expired), it would just stay in the table forever.
+        query = "delete from StayLoggedInTokenDO t where t.lastAccess < :expireBefore or t.lastAccess is null",
     ),
 )
 open class StayLoggedInTokenDO {

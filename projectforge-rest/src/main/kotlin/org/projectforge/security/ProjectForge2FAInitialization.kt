@@ -154,7 +154,18 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // My2FASetupPageRest::class.java, // Check done by this page itself.
       TokenInfoPageRest::class.java,
     )
-    registerShortCutMethods(My2FAShortCut.MY_ACCOUNT, UserServicesRest::renewToken)
+    // UserServicesRest shares its @RequestMapping with UserPagesRest (/rs/user), so these methods are already
+    // covered by the ADMIN registration above - by accident and with the wrong period. They are self service
+    // calls, so they belong to MY_ACCOUNT: an installation configuring MY_ACCOUNT but not ADMIN would leave
+    // them ungated otherwise. Both registrations may match, the shorter period wins (My2FARequestHandler
+    // iterates the periods from minutes1 to days90).
+    registerShortCutMethods(
+      My2FAShortCut.MY_ACCOUNT,
+      UserServicesRest::renewToken,
+      UserServicesRest::logoutAllDevices,
+    )
+    // Logging other users out of all their devices is an admin operation on foreign accounts:
+    registerShortCutMethods(My2FAShortCut.ADMIN_WRITE, UserServicesRest::logoutAllDevicesOfUser)
     registerShortCutClasses(
       My2FAShortCut.PASSWORD,
       ChangePasswordPageRest::class.java,
