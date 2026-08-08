@@ -69,7 +69,9 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
       UserTokenType.CALENDAR_REST -> "calendarExportToken"
       UserTokenType.DAV_TOKEN -> "davToken"
       UserTokenType.REST_CLIENT -> "restClientToken"
-      UserTokenType.STAY_LOGGED_IN_KEY -> "stayLoggedInKey"
+      // This page shows a token and its usage. A stay-logged-in token is neither: there is one per device
+      // and only its hash is stored. My-account lists the devices instead.
+      UserTokenType.STAY_LOGGED_IN_KEY -> throw IllegalArgumentException("Stay-logged-in tokens aren't displayable, see StayLoggedInTokenDO.")
       UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
     }
 

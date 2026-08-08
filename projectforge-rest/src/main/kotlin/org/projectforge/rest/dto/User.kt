@@ -87,12 +87,21 @@ class User(
      */
     var wlanPassword: String? = null
 
-    var stayLoggedInTokenCreationDate: Date? = null
     var calendarExportTokenCreationDate: Date? = null
     var davTokenCreationDate: Date? = null
     var restClientTokenCreationDate: Date? = null
 
-    var stayLoggedInTokenCreationTimeAgo: String? = null
+    /**
+     * Number of devices with a valid stay-logged-in token (one row per device, see
+     * [org.projectforge.business.user.StayLoggedInTokenDO]). No token is ever sent to the client.
+     */
+    var stayLoggedInDevices: Int? = null
+
+    /**
+     * When the most recently used of those devices was last seen.
+     */
+    var stayLoggedInLastAccessTimeAgo: String? = null
+
     var calendarExportTokenCreationTimeAgo: String? = null
     var davTokenCreationTimeAgo: String? = null
     var restClientTokenCreationTimeAgo: String? = null

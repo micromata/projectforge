@@ -27,12 +27,14 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.Constants
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
+import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
@@ -60,6 +62,9 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     private lateinit var authenticationsService: UserAuthenticationsService
 
     @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
+
+    @Autowired
     private lateinit var groupService: GroupService
 
     @Autowired
@@ -80,8 +85,12 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         var davTokenCreationDate: String? = null,
         var restClientToken: String? = null,
         var restClientTokenCreationDate: String? = null,
-        var stayLoggedInKey: String? = null,
-        var stayLoggedInKeyCreationDate: String? = null,
+        /**
+         * The devices with a valid stay-logged-in token, as a text for display. No token is ever sent to the
+         * client: there is one per device now and only its hash is stored, see
+         * [org.projectforge.business.user.StayLoggedInTokenDO].
+         */
+        var stayLoggedInDevices: String? = null,
         var groups: String? = null,
         var lastLoginFormatted: String? = null,
         var locale: Locale? = null,
@@ -133,6 +142,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         UserAuthenticationsDao.TOKEN_LIST.forEach { tokenType ->
             UserServicesRest.setToken(data, tokenType, authenticationsService.getTokenData(userId, tokenType))
         }
+        data.stayLoggedInDevices = describeStayLoggedInDevices(userId)
         data.groups = groupService.getGroupnames(userId)
         data.locale = ThreadLocalUserContext.locale ?: Locale("DEFAULT")
         data.dateFormat = user.dateFormat
@@ -171,13 +181,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
 
         val leftTokenCol = UICol(lg = 6)
         val rightTokenCol = UICol(lg = 6)
-        addAuthenticationToken(
-            layout,
-            leftTokenCol,
-            authenticationsLC, "stayLoggedInKey",
-            UserTokenType.STAY_LOGGED_IN_KEY,
-            "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
-        )
+        addStayLoggedInDevices(layout, leftTokenCol)
         addAuthenticationToken(
             layout,
             leftTokenCol,
@@ -235,6 +239,56 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         LayoutUtils.process(layout)
 
         return FormLayoutData(data, layout, createServerData(request))
+    }
+
+    /**
+     * "Stay logged in" isn't a token the user can copy anymore, so there is nothing to display and nothing to
+     * renew: what the user needs is the list of devices and a way to throw them out. A per device logout
+     * belongs into projectforge-next (which has no my-account page yet) - here it is all devices at once.
+     */
+    private fun addStayLoggedInDevices(layout: UILayout, col: UICol) {
+        col.add(
+            UIRow()
+                .add(
+                    UICol(9)
+                        .add(
+                            UIReadOnlyField(
+                                "stayLoggedInDevices",
+                                label = "login.stayLoggedIn.devices",
+                                tooltip = "login.stayLoggedIn.devices.tooltip",
+                            )
+                        )
+                )
+                .add(
+                    UICol(3)
+                        .add(
+                            UIButton.createDangerButton(
+                                layout,
+                                id = "stayLoggedIn-logoutAllDevices",
+                                title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions",
+                                tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip",
+                                confirmMessage = "user.authenticationToken.renew.securityQuestion",
+                                responseAction = ResponseAction(
+                                    RestResolver.getRestUrl(
+                                        UserServicesRest::class.java,
+                                        "logoutAllDevices",
+                                    ), targetType = TargetType.POST
+                                )
+                            )
+                        )
+                )
+        )
+    }
+
+    private fun describeStayLoggedInDevices(userId: Long): String {
+        val entries = stayLoggedInTokenDao.getEntries(userId)
+        if (entries.isEmpty()) {
+            return translate("login.stayLoggedIn.devices.none")
+        }
+        return entries.joinToString("; ") { entry ->
+            val lastAccess = entry.lastAccess?.let { TimeAgo.getMessage(it) } ?: ""
+            listOfNotNull(entry.userAgent, entry.lastAccessIp, lastAccess.ifBlank { null }).joinToString(", ")
+        }
     }
 
     private fun addAuthenticationToken(

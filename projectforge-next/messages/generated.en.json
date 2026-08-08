@@ -290,12 +290,18 @@
     },
     "stayLoggedIn": {
       "_": "Remember my login on this computer.",
-      "invalidateAllStayLoggedInSessions": {
-        "_": "Terminate all stay-logged-in sessions.",
-        "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
-        "tooltip": "If you choose this function, a new code will be generated. After, any existing stay-logged-in-session will be terminated."
+      "devices": {
+        "_": "Devices staying logged in",
+        "lastAccess": "last access",
+        "none": "No device is staying logged in.",
+        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage."
       },
-      "tooltip": "You can stay logged in on this computer. On log-out this marker (cookie) will be removed on the current computer / browser. If you change your username and/or passwort, all stay-logged-in markers will be invalidated. Under my account you can mark all existing stay-logged-in markers as invalid."
+      "invalidateAllStayLoggedInSessions": {
+        "_": "Log out all devices.",
+        "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
+        "tooltip": "Invalidates the marker (cookie) of every device, including the one you are using right now. Each of them will require your password again on its next visit."
+      },
+      "tooltip": "You can stay logged in on this computer. On log-out the marker (cookie) of this computer / browser is removed, your other devices stay logged in. If you change your password, all devices are logged out. Under my account you see all devices staying logged in and can log them out."
     },
     "successful": "You're successfully logged in. Enjoy ProjectForge!",
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",

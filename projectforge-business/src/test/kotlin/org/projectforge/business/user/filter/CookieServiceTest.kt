@@ -30,13 +30,18 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.business.user.StayLoggedInTokenDao
+import org.projectforge.framework.persistence.user.api.UserContext
 import org.springframework.beans.factory.annotation.Autowired
 
 class CookieServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var cookieService: CookieService
+
+    @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     /**
      * The stay-logged-in cookie is a long living credential, so it mustn't be sent on requests a foreign page
@@ -46,12 +51,10 @@ class CookieServiceTest : AbstractTestBase() {
      */
     @Test
     fun stayLoggedInCookieAttributesTest() {
-        val user = PFUserDO()
-        user.id = 42
-        user.username = "testuser"
+        val user = getUser(TEST_USER)
         val request = Mockito.mock(HttpServletRequest::class.java)
         val response = Mockito.mock(HttpServletResponse::class.java)
-        cookieService.addStayLoggedInCookie(request, response, user, "aaaa-bbbb-cccc-dddd")
+        cookieService.addStayLoggedInCookie(request, response, user)
         val captor = ArgumentCaptor.forClass(Cookie::class.java)
         Mockito.verify(response).addCookie(captor.capture())
         val cookie = captor.value
@@ -59,10 +62,70 @@ class CookieServiceTest : AbstractTestBase() {
         Assertions.assertTrue(cookie.isHttpOnly, "Not to be readable by javascript.")
         Assertions.assertEquals("/", cookie.path)
         Assertions.assertEquals(30 * 24 * 3600, cookie.maxAge, "30 days.")
-        Assertions.assertEquals(
-            "aaaa-bbbb-cccc-dddd",
-            StayLoggedInCookieValue.deserialize(cookie.value)?.stayLoggedInKey,
-            "Round trip: the value has to be readable by the check on the next request.",
+        // The cookie carries nothing but the token (no user id, no username): the token identifies the
+        // device's row, and anything else in there would only be an attacker controlled input.
+        Assertions.assertNotNull(
+            stayLoggedInTokenDao.getValidToken(cookie.value),
+            "The value has to be the token the check on the next request looks up.",
         )
+        stayLoggedInTokenDao.deleteByToken(cookie.value)
+    }
+
+    /**
+     * The cookie path is a login path, so it needs the same brute force brake as the password path. The key is
+     * the client's ip: the cookie carries nothing but the token, so there is no user to name before the token
+     * has been resolved.
+     */
+    @Test
+    fun bruteForceProtectionTest() {
+        val user = getUser(TEST_USER)
+        val token = stayLoggedInTokenDao.createToken(user, null)
+        val loginProtection = LoginProtection.instance()
+        try {
+            // A garbage token increments the offset of this ip:
+            Assertions.assertNull(checkStayLoggedIn("garbage-token-of-an-attacker"))
+            Assertions.assertTrue(
+                loginProtection.getFailedLoginTimeOffsetIfExists(CLIENT_IP, null, AUTHENTICATION_TYPE) > 0,
+                "Failed cookie attempt has to be counted.",
+            )
+            // ... but nothing else keyed by that ip, the authentication type namespaces it:
+            Assertions.assertEquals(
+                0,
+                loginProtection.getFailedLoginTimeOffsetIfExists(CLIENT_IP, CLIENT_IP),
+                "A failed cookie attempt mustn't brake the password login from the same ip.",
+            )
+            // While the ip is blocked even a valid token isn't looked up:
+            Assertions.assertNull(checkStayLoggedIn(token), "Blocked ip, no restore even with a valid token.")
+
+            loginProtection.clearLoginTimeOffset(CLIENT_IP, null, null, AUTHENTICATION_TYPE)
+            Assertions.assertEquals(user.id, checkStayLoggedIn(token)?.user?.id, "Valid token, unblocked ip.")
+            Assertions.assertEquals(
+                0,
+                loginProtection.getFailedLoginTimeOffsetIfExists(CLIENT_IP, null, AUTHENTICATION_TYPE),
+                "A successful restore clears the offset of the ip.",
+            )
+        } finally {
+            loginProtection.clearLoginTimeOffset(CLIENT_IP, null, null, AUTHENTICATION_TYPE)
+            stayLoggedInTokenDao.deleteAll(user.id)
+        }
+    }
+
+    private fun checkStayLoggedIn(token: String): UserContext? {
+        val request = Mockito.mock(HttpServletRequest::class.java)
+        val response = Mockito.mock(HttpServletResponse::class.java)
+        Mockito.`when`(request.cookies).thenReturn(arrayOf(Cookie("stayLoggedIn", token)))
+        Mockito.`when`(request.remoteAddr).thenReturn(CLIENT_IP)
+        return cookieService.checkStayLoggedIn(request, response)
+    }
+
+    companion object {
+        private const val CLIENT_IP = "192.168.42.42"
+
+        /**
+         * Same value as [CookieService]'s private constant: the namespace of [LoginProtection] on the cookie
+         * path. The ip goes into the *user* map of [LoginProtection] (threshold 1 instead of 1000), see
+         * [CookieService.checkStayLoggedIn].
+         */
+        private const val AUTHENTICATION_TYPE = "stayLoggedIn"
     }
 }

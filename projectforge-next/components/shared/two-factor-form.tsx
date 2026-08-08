@@ -42,9 +42,6 @@ export function TwoFactorForm({
   // Backend bundle keys (GenerateNextI18nMessagesMain): shared with Wicket/React.
   const tb = useTranslations();
   const [code, setCode] = useState("");
-  // Only needed as additional factor when the OTP was mailed (see My2FAData.password).
-  const [password, setPassword] = useState("");
-  const [mailCodeSent, setMailCodeSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,11 +52,11 @@ export function TwoFactorForm({
     setInfo(null);
     setIsSubmitting(true);
     try {
-      const result = await checkOtp(
-        context,
-        code,
-        mailCodeSent ? password : undefined
-      );
+      // No password: it is only an additional factor for a mailed OTP if the server asks for it
+      // (My2FAData.password), and that option is switched off server-side
+      // (My2FARequestConfiguration.checkLoginPasswordRequired4Mail2FA). Should it come back, the
+      // server has to announce it in TwoFactorMethods - it isn't a client-side guess.
+      const result = await checkOtp(context, code);
       if (result.success) {
         onSuccess(result);
       } else {
@@ -82,7 +79,6 @@ export function TwoFactorForm({
           : await sendMailCode(context as "login" | "session");
       if (result.success) {
         setInfo(result.message ?? t(via === "sms" ? "smsSent" : "mailSent"));
-        if (via === "mail") setMailCodeSent(true);
       } else {
         setError(result.message ?? tb("user.My2FACode.error.validation"));
       }
@@ -117,19 +113,6 @@ export function TwoFactorForm({
           onChange={(e) => setCode(e.target.value)}
         />
       </div>
-      {mailCodeSent && (
-        <div className="grid gap-2">
-          <Label htmlFor="otp-password">{tb("password._")}</Label>
-          <Input
-            id="otp-password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-      )}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={isSubmitting || !code}>
           {isSubmitting ? t("verifying") : tb("user.My2FACode.code.validate")}

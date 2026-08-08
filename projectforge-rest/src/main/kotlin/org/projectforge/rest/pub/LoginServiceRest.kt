@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.login.LoginService
 import org.projectforge.rest.core.PagesResolver
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.net.URLDecoder
 import java.net.URLEncoder
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class LoginServiceRest {
@@ -70,7 +73,8 @@ class LoginServiceRest {
                 serverData?.returnToCaller ?: request.getSession(false)?.getAttribute(ORIGIN_URL_SESSION_KEY) as String?
             val referer = request.getHeader("Referer")
             if (!returnToCaller.isNullOrBlank()) {
-                redirect = URLDecoder.decode(returnToCaller, "UTF-8")
+                // Sanitize after decoding: %2f%2fevil.com only becomes //evil.com here.
+                redirect = sanitizeRedirectUrl(URLDecoder.decode(returnToCaller, "UTF-8"))
             } else if (referer?.contains("/${Constants.NEXT_APP_PATH}") == true) {
                 // A login of projectforge-next should return to projectforge-next:
                 redirect = "/${Constants.NEXT_APP_PATH}"
@@ -82,7 +86,40 @@ class LoginServiceRest {
         }
 
         internal fun storeOriginUrl(request: HttpServletRequest, url: String?) {
-            request.getSession(false)?.setAttribute(ORIGIN_URL_SESSION_KEY, url)
+            // Rejected here as well as in getRedirectUrl: a session might still carry an unchecked value from
+            // a previous release, and serverData.returnToCaller never passes through here at all.
+            request.getSession(false)?.setAttribute(ORIGIN_URL_SESSION_KEY, sanitizeRedirectUrl(url))
         }
+
+        /**
+         * After the login the user is sent to this url, so an attacker-supplied one would turn the login page
+         * into an open redirect (and a convincing phishing hop: the victim really did log in to ProjectForge).
+         * Only relative paths within this application are accepted - the same rule the client applies in
+         * `projectforge-next/lib/menu-url.ts`, but the client's copy protects nobody.
+         *
+         * @return The url, or null if it isn't a relative path of this application.
+         */
+        internal fun sanitizeRedirectUrl(url: String?): String? {
+            if (url.isNullOrBlank() || url == "null") {
+                return null
+            }
+            val reject = { reason: String ->
+                log.warn { "Rejecting redirect url '$url': $reason." }
+                null
+            }
+            // Backslashes: some browsers normalize \\host and /\host to //host, i. e. to a foreign host.
+            val normalized = url.replace('\\', '/')
+            return when {
+                SCHEME_REGEX.containsMatchIn(normalized) -> reject("absolute url (scheme given)")
+                normalized.startsWith("//") -> reject("protocol relative url (foreign host)")
+                !normalized.startsWith("/") -> reject("not an absolute path of this application")
+                else -> url
+            }
+        }
+
+        /**
+         * `http:`, `javascript:`, `data:`, … - anything that isn't a path of this application.
+         */
+        private val SCHEME_REGEX = Regex("^[a-zA-Z][a-zA-Z0-9+.-]*:")
     }
 }

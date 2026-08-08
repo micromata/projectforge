@@ -49,10 +49,6 @@ import org.projectforge.framework.json.IdOnlySerializer
   ),
 
   NamedQuery(
-    name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY,
-    query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.stayLoggedInKey = :token"
-  ),
-  NamedQuery(
     name = UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN,
     query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.calendarExportToken = :token"
   ),
@@ -65,10 +61,6 @@ import org.projectforge.framework.json.IdOnlySerializer
     query = "select u from PFUserDO u, UserAuthenticationsDO t where u.username = :username and u.id = t.user.id and t.davToken = :token"
   ),
 
-  NamedQuery(
-    name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY,
-    query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.stayLoggedInKey = :token"
-  ),
   NamedQuery(
     name = UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN,
     query = "select u from PFUserDO u, UserAuthenticationsDO t where u.id = :userId and u.id = t.user.id and t.calendarExportToken = :token"
@@ -89,10 +81,6 @@ import org.projectforge.framework.json.IdOnlySerializer
   NamedQuery(
     name = UserAuthenticationsDO.CHECK_AUTH_DAV,
     query = "from UserAuthenticationsDO t join fetch t.user where t.davToken = :davToken and t.user.username = :username"
-  ),
-  NamedQuery(
-    name = UserAuthenticationsDO.CHECK_STAY_LOGGED_IN,
-    query = "from UserAuthenticationsDO t join fetch t.user where t.stayLoggedInKey = :stayLoggedInKey and t.user.username = :username"
   )
 )
 open class UserAuthenticationsDO : DefaultBaseDO() {
@@ -187,32 +175,12 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   @get:Column(name = "authenticator_key_creation_date", nullable = true)
   open var authenticatorTokenCreationDate: Date? = null
 
-  /**
-   * Key stored in the cookies for the functionality of stay logged in.
-   */
-  @PropertyInfo(
-    i18nKey = "user.authenticationToken.stay_logged_in_key",
-    tooltip = "user.authenticationToken.stay_logged_in_key.tooltip"
-  )
-  @get:Column(name = "stay_logged_in_key", length = 255)
-  open var stayLoggedInKey: String? = null
-
-  /**
-   * Date of creation for information.
-   */
-  @PropertyInfo(
-    additionalI18nKey = "user.authenticationToken.stay_logged_in_key",
-    i18nKey = "lastUpdate"
-  )
-  @get:Column(name = "stay_logged_in_key_creation_date", nullable = true)
-  open var stayLoggedInKeyCreationDate: Date? = null
-
   internal fun getToken(type: UserTokenType): String? {
     return when (type) {
       UserTokenType.CALENDAR_REST -> calendarExportToken
       UserTokenType.DAV_TOKEN -> davToken
       UserTokenType.REST_CLIENT -> restClientToken
-      UserTokenType.STAY_LOGGED_IN_KEY -> stayLoggedInKey
+      UserTokenType.STAY_LOGGED_IN_KEY -> throw IllegalArgumentException(STAY_LOGGED_IN_NOT_STORED_HERE)
       UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
     }
   }
@@ -222,7 +190,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
       UserTokenType.CALENDAR_REST -> calendarExportTokenCreationDate
       UserTokenType.DAV_TOKEN -> davTokenCreationDate
       UserTokenType.REST_CLIENT -> restClientTokenCreationDate
-      UserTokenType.STAY_LOGGED_IN_KEY -> stayLoggedInKeyCreationDate
+      UserTokenType.STAY_LOGGED_IN_KEY -> throw IllegalArgumentException(STAY_LOGGED_IN_NOT_STORED_HERE)
       UserTokenType.AUTHENTICATOR_KEY -> authenticatorTokenCreationDate
     }
   }
@@ -251,12 +219,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
           restClientTokenCreationDate = Date()
         }
       }
-      UserTokenType.STAY_LOGGED_IN_KEY -> {
-        stayLoggedInKey = token
-        if (updateCreationTime) {
-          stayLoggedInKeyCreationDate = Date()
-        }
-      }
+      UserTokenType.STAY_LOGGED_IN_KEY -> throw IllegalArgumentException(STAY_LOGGED_IN_NOT_STORED_HERE)
       UserTokenType.AUTHENTICATOR_KEY -> throw IllegalArgumentException("Authentication token is protected. Illegal access.")
     }
   }
@@ -265,23 +228,26 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   companion object {
     private val log = org.slf4j.LoggerFactory.getLogger(UserAuthenticationsDO::class.java)
 
+    /**
+     * The one shared key per user is gone, there is one token per device now
+     * ([org.projectforge.business.user.StayLoggedInTokenDO]). Failing loudly instead of silently returning
+     * null: a caller asking for it here is a caller that wasn't migrated.
+     */
+    private const val STAY_LOGGED_IN_NOT_STORED_HERE =
+      "Stay-logged-in tokens aren't stored in T_PF_USER_AUTHENTICATIONS anymore, use StayLoggedInTokenDao."
+
     internal const val FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN =
       "UserAuthenticationTokenDO_FindUserByUsernameAndCalendarToken"
     internal const val FIND_USER_BY_USERNAME_AND_DAV_TOKEN = "UserAuthenticationTokenDO_FindUserByUsernameAndDAVToken"
     internal const val FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN =
       "UserAuthenticationTokenDO_FindUserByUsernameAndRestClientToken"
-    internal const val FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY =
-      "UserAuthenticationTokenDO_FindUserByUsernameAndStayLoggedInKey"
     internal const val FIND_USER_BY_USERID_AND_CALENDAR_TOKEN =
       "UserAuthenticationTokenDO_FindUserByUserIdAndCalendarToken"
     internal const val FIND_USER_BY_USERID_AND_DAV_TOKEN = "UserAuthenticationTokenDO_FindUserByUserIdAndDAVToken"
     internal const val FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN =
       "UserAuthenticationTokenDO_FindUserByUserIdAndRestClientToken"
-    internal const val FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY =
-      "UserAuthenticationTokenDO_FindUserByUserIdAndStayLoggedInKey"
     internal const val FIND_BY_USER_ID = "UserAuthenticationTokenDO_FindByUserId"
     internal const val CHECK_AUTH_CAL_EXPORT = "UserAuthenticationTokenDO_CheckCalExport"
     internal const val CHECK_AUTH_DAV = "UserAuthenticationTokenDO_CheckAuthDAV"
-    internal const val CHECK_STAY_LOGGED_IN = "UserAuthenticationTokenDO_CheckStayLoggedIn"
   }
 }

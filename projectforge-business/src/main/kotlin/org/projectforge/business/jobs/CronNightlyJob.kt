@@ -24,6 +24,7 @@
 package org.projectforge.business.jobs
 
 import mu.KotlinLogging
+import org.projectforge.business.user.StayLoggedInTokenDao
 import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,6 +44,9 @@ class CronNightlyJob {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
+    @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
+
     //@Scheduled(cron = "0 30 2 * * *")
     @Scheduled(cron = "\${projectforge.cron.nightly}")
     fun execute() {
@@ -50,6 +54,13 @@ class CronNightlyJob {
         log.info("Nightly job started.")
         Thread {
             try {
+                // Housekeeping only: the expiry itself is enforced on every check
+                // (StayLoggedInTokenDao.getValidToken), so a job that doesn't run can't extend a token's life.
+                try {
+                    stayLoggedInTokenDao.purgeExpired()
+                } catch (ex: Throwable) {
+                    log.error("While purging expired stay-logged-in tokens: " + ex.message, ex)
+                }
                 hibernateSearchReindexer.execute()
             } catch (ex: Throwable) {
                 log.error("While executing hibernate search re-index job: " + ex.message, ex)

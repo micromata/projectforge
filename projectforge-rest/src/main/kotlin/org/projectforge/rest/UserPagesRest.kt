@@ -107,6 +107,9 @@ class UserPagesRest
     private lateinit var userAuthenticationsService: UserAuthenticationsService
 
     @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
+
+    @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
@@ -132,9 +135,12 @@ class UserPagesRest
         if (!accessChecker.isLoggedInUserMemberOfAdminGroup) {
             return
         }
-        userAuthenticationsService.getTokenData(userId, UserTokenType.STAY_LOGGED_IN_KEY)?.creationDate?.let {
-            user.stayLoggedInTokenCreationDate = it
-            user.stayLoggedInTokenCreationTimeAgo = TimeAgo.getMessage(it)
+        // Stay-logged-in isn't a single token anymore, it is one per device: show the number of devices and
+        // when the most recent one was used, see StayLoggedInTokenDO.
+        val devices = stayLoggedInTokenDao.getEntries(userId)
+        user.stayLoggedInDevices = devices.size
+        devices.firstOrNull()?.lastAccess?.let {
+            user.stayLoggedInLastAccessTimeAgo = TimeAgo.getMessage(it)
         }
         userAuthenticationsService.getTokenData(userId, UserTokenType.CALENDAR_REST)?.creationDate?.let {
             user.calendarExportTokenCreationDate = it
@@ -548,15 +554,7 @@ class UserPagesRest
 
         val userId = dto.id
         if (userId != null) {
-            addToken(
-                layout,
-                userSettings,
-                User::stayLoggedInTokenCreationTimeAgo,
-                "stay_logged_in_key",
-                userId,
-                UserTokenType.STAY_LOGGED_IN_KEY,
-                1,
-            )
+            addStayLoggedInDevices(layout, userSettings, userId, 1)
         }
         layout.add(
             MenuItem(
@@ -783,6 +781,47 @@ class UserPagesRest
         }
     }
 
+    /**
+     * The admin's counterpart of [MyAccountPageRest]: how many devices of this user may log in without a
+     * password, and a button to end all of it. There is no per device logout here - an admin has no way to
+     * tell the user's devices apart, so "all" is the only honest granularity.
+     */
+    private fun addStayLoggedInDevices(layout: UILayout, col: UICol, userId: Long, position: Int? = null) {
+        val row = UIRow()
+            .add(
+                UICol().add(
+                    UIReadOnlyField(
+                        "stayLoggedInDevices",
+                        label = "login.stayLoggedIn.devices",
+                        additionalLabel = "login.stayLoggedIn.devices.lastAccess",
+                        tooltip = "login.stayLoggedIn.devices.tooltip",
+                    )
+                )
+            )
+            .add(
+                UICol().add(
+                    UIButton.createDangerButton(
+                        layout,
+                        id = "stayLoggedIn-logoutAllDevices",
+                        title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions",
+                        tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip",
+                        confirmMessage = "user.authenticationToken.renew.securityQuestion",
+                        responseAction = ResponseAction(
+                            RestResolver.getRestUrl(
+                                UserServicesRest::class.java,
+                                "logoutAllDevicesOfUser?userId=$userId",
+                            ), targetType = TargetType.POST
+                        )
+                    )
+                )
+            )
+        if (position != null) {
+            col.add(position, row)
+        } else {
+            col.add(row)
+        }
+    }
+
     private fun addToken(
         layout: UILayout,
         col: UICol,
@@ -793,15 +832,8 @@ class UserPagesRest
         position: Int? = null,
     ) {
         val key = "user.authenticationToken.$i18nKey"
-        val title: String
-        val tooltip: String
-        if (tokenType == UserTokenType.STAY_LOGGED_IN_KEY) {
-            title = "login.stayLoggedIn.invalidateAllStayLoggedInSessions"
-            tooltip = "login.stayLoggedIn.invalidateAllStayLoggedInSessions.tooltip"
-        } else {
-            title = "user.authenticationToken.renew"
-            tooltip = "user.authenticationToken.renew.tooltip"
-        }
+        val title = "user.authenticationToken.renew"
+        val tooltip = "user.authenticationToken.renew.tooltip"
         val row = UIRow()
             .add(
                 UICol().add(
@@ -867,18 +899,10 @@ class UserPagesRest
         @RequestParam("type", required = true) type: UserTokenType,
         @RequestBody postData: PostData<User>
     ): ResponseEntity<*> {
-        if (type == UserTokenType.STAY_LOGGED_IN_KEY) {
-            log.info("Trying to reset all stay-logged-in sessions of user #$userId.")
-        } else {
-            log.info("Trying to renew token $type of user #$userId.")
-        }
+        log.info("Trying to renew token $type of user #$userId.")
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         userAuthenticationsService.renewToken(userId, type)
-        val toast = if (type == UserTokenType.STAY_LOGGED_IN_KEY) {
-            "login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"
-        } else {
-            "user.authenticationToken.renew.successful"
-        }
+        val toast = "user.authenticationToken.renew.successful"
         val user = postData.data
         updateTokenCreationDates(user)
         return UIToast.createToastResponseEntity(

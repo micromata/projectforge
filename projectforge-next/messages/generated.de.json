@@ -290,12 +290,18 @@
     },
     "stayLoggedIn": {
       "_": "An diesem Browser angemeldet bleiben.",
-      "invalidateAllStayLoggedInSessions": {
-        "_": "Alle Angemeldet-bleiben-Sitzungen beenden.",
-        "successfullDeleted": "Alle Angemeldet-bleiben-Sitzungen wurden erfolgreich beendet.",
-        "tooltip": "Über diese wird ein neuer Code generiert. Damit werden alle eventuell noch vorhanden Angemeldet-bleiben-Sitzungen ungültig."
+      "devices": {
+        "_": "Angemeldet bleibende Geräte",
+        "lastAccess": "letzter Zugriff",
+        "none": "Kein Gerät bleibt angemeldet.",
+        "tooltip": "Diese Geräte können ohne Passworteingabe auf ProjectForge zugreifen. Jedes hat sein eigenes Merkmal (Cookie), das 30 Tage nach der letzten Nutzung verfällt."
       },
-      "tooltip": "Du kannst an diesem Browser angemeldet bleiben, wenn du diese Funktion anwählst. Bei Abmeldung wird dieses Merkmal (Cookie) wieder entfernt. Änderst du dein Passwort und/oder Benutzer:innamen werden alle Browseranmeldungen zunächst ungültig. Außerdem kannst di unter Mein Account alle vorhandenen Browseranmeldungen auf ungültig setzen. Diese Funktion kann immer wieder erneut genutzt werden."
+      "invalidateAllStayLoggedInSessions": {
+        "_": "Auf allen Geräten abmelden.",
+        "successfullDeleted": "Alle Angemeldet-bleiben-Sitzungen wurden erfolgreich beendet.",
+        "tooltip": "Macht das Merkmal (Cookie) aller Geräte ungültig, auch das des gerade genutzten. Jedes Gerät fragt beim nächsten Aufruf wieder nach dem Passwort."
+      },
+      "tooltip": "Du kannst an diesem Browser angemeldet bleiben, wenn du diese Funktion anwählst. Bei der Abmeldung wird das Merkmal (Cookie) dieses Browsers entfernt, deine anderen Geräte bleiben angemeldet. Änderst du dein Passwort, werden alle Geräte abgemeldet. Unter Mein Konto siehst du alle angemeldet bleibenden Geräte und kannst sie abmelden."
     },
     "successful": "Anmeldung erfolgreich. Viel Spaß mit ProjectForge!",
     "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",

@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.login.LoginService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -69,6 +70,9 @@ private val log = KotlinLogging.logger {}
 class My2FAServicesRest {
     @Autowired
     private lateinit var cookieService: CookieService
+
+    @Autowired
+    private lateinit var loginService: LoginService
 
     @Autowired
     private lateinit var my2FAService: My2FAService
@@ -154,6 +158,9 @@ class My2FAServicesRest {
             // Store it also in the user's session, e. g. used by public password reset service.
             request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
         }
+        // A stay-logged-in cookie the user asked for at login time is only issued now, after the second
+        // factor. Every 2FA path (OTP as well as WebAuthn) passes through here.
+        loginService.onSecondFactorSucceeded(request, response)
     }
 
     /**

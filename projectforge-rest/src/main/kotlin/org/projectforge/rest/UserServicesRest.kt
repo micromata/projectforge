@@ -27,13 +27,17 @@ import mu.KotlinLogging
 import org.projectforge.business.user.*
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.TimeAgo
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
+import org.projectforge.ui.UIColor
+import org.projectforge.ui.UIToast
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -50,6 +54,9 @@ open class UserServicesRest {
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+  @Autowired
+  private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
   @Autowired
   private lateinit var userDao: UserDao
@@ -84,6 +91,54 @@ open class UserServicesRest {
     )
   }
 
+  /**
+   * Deletes all stay-logged-in tokens of the logged-in user, so every device (including this one) has to log
+   * in again. The session itself is left alone: the user is on their my-account page and didn't ask to be
+   * thrown out of it.
+   */
+  @PostMapping("logoutAllDevices")
+  fun logoutAllDevices(
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<MyAccountPageRest.MyAccountData>
+  ): ResponseEntity<*> {
+    sessionCsrfService.validateCsrfToken(request, postData, "Logout of all devices")?.let { return it }
+    val userId = ThreadLocalUserContext.loggedInUserId!!
+    log.info("User #$userId logs out all stay-logged-in devices.")
+    stayLoggedInTokenDao.deleteAll(userId)
+    postData.data.stayLoggedInDevices = translate("login.stayLoggedIn.devices.none")
+    return UIToast.createToastResponseEntity(
+      translate("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"),
+      color = UIColor.SUCCESS,
+      mutableMapOf("data" to postData.data),
+      merge = true,
+      targetType = TargetType.UPDATE,
+    )
+  }
+
+  /**
+   * The same for another user, for admins only (user edit page).
+   */
+  @PostMapping("logoutAllDevicesOfUser")
+  fun logoutAllDevicesOfUser(
+    @RequestParam("userId", required = true) userId: Long,
+    request: HttpServletRequest,
+    @RequestBody postData: PostData<User>
+  ): ResponseEntity<*> {
+    log.info("Trying to log out all stay-logged-in devices of user #$userId.")
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    sessionCsrfService.validateCsrfToken(request, postData, "Logout of all devices")?.let { return it }
+    stayLoggedInTokenDao.deleteAll(userId)
+    postData.data.stayLoggedInDevices = 0
+    postData.data.stayLoggedInLastAccessTimeAgo = null
+    return UIToast.createToastResponseEntity(
+      translate("login.stayLoggedIn.invalidateAllStayLoggedInSessions.successfullDeleted"),
+      color = UIColor.SUCCESS,
+      mutableMapOf("data" to postData.data),
+      merge = true,
+      targetType = TargetType.UPDATE,
+    )
+  }
+
   @GetMapping("tokenAccess")
   fun getTokenAccess(@RequestParam("token", required = true) tokenString: String): AccessLogEntries {
     val tokenType = UserTokenType.valueOf(tokenString)
@@ -104,10 +159,6 @@ open class UserServicesRest {
         UserTokenType.REST_CLIENT -> {
           data.restClientToken = tokenData?.token
           data.restClientTokenCreationDate = getDateString(tokenData?.creationDate)
-        }
-        UserTokenType.STAY_LOGGED_IN_KEY -> {
-          data.stayLoggedInKey = tokenData?.token
-          data.stayLoggedInKeyCreationDate = getDateString(tokenData?.creationDate)
         }
         else -> {
           throw UnsupportedOperationException()

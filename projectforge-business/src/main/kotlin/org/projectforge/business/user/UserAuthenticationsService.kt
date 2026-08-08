@@ -166,9 +166,14 @@ open class UserAuthenticationsService {
   }
 
   /**
+   * Registers the usage of a token in the user's access log.
+   *
+   * Public, because a stay-logged-in token isn't resolved here anymore (it has its own table, see
+   * [StayLoggedInTokenDO]), but its usage still belongs into the same log the user sees.
+   *
    * @param userId If null, ThreadLocalUserContext.getUserId() is used.
    */
-  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Long?) {
+  open fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Long?) {
     userId ?: return
     val accessEntries = getUserAccessLogEntries(tokenType, userId) ?: return
     accessEntries.update(request)

@@ -122,7 +122,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
-            UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_STAY_LOGGED_IN_KEY
             else -> {
                 log.error("Getting user by token of type $type not supported.")
                 return null
@@ -150,7 +149,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
-            UserTokenType.STAY_LOGGED_IN_KEY -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_STAY_LOGGED_IN_KEY
             else -> {
                 log.error("Getting user by token of type $type not supported.")
                 return null
@@ -254,7 +252,6 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             var changed = checkAndFixToken(authentications, userId, UserTokenType.CALENDAR_REST)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.DAV_TOKEN)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
-            changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
                 update(authentications, checkAccess)
             }
@@ -346,10 +343,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * Decrypts all tokens in given object.
      */
     open fun decryptAllTokens(authentications: UserAuthenticationsDO) {
-        UserTokenType.values().forEach { type ->
-            if (type != UserTokenType.AUTHENTICATOR_KEY) {
-                authentications.setToken(type, decryptToken(authentications.getToken(type)))
-            }
+        // TOKEN_LIST, not UserTokenType.entries: AUTHENTICATOR_KEY is encrypted differently and
+        // STAY_LOGGED_IN_KEY isn't stored in this table at all (one row per device, see StayLoggedInTokenDO).
+        TOKEN_LIST.forEach { type ->
+            authentications.setToken(type, decryptToken(authentications.getToken(type)))
         }
     }
 
@@ -388,13 +385,14 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
 
     companion object {
         /**
-         * List of all tokens without authenticator token: [UserTokenType.CALENDAR_REST], [UserTokenType.DAV_TOKEN], [UserTokenType.REST_CLIENT], [UserTokenType.STAY_LOGGED_IN_KEY]
+         * List of all tokens stored in this table, without the authenticator token:
+         * [UserTokenType.CALENDAR_REST], [UserTokenType.DAV_TOKEN], [UserTokenType.REST_CLIENT].
+         * [UserTokenType.STAY_LOGGED_IN_KEY] is *not* part of it anymore, see [StayLoggedInTokenDO].
          */
         val TOKEN_LIST = listOf(
             UserTokenType.CALENDAR_REST,
             UserTokenType.DAV_TOKEN,
             UserTokenType.REST_CLIENT,
-            UserTokenType.STAY_LOGGED_IN_KEY
         )
     }
 }
