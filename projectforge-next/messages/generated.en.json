@@ -93,6 +93,10 @@
       "short": "Year"
     }
   },
+  "calendar": {
+    "chooseDate": "Choose date",
+    "today": "Today"
+  },
   "cancel": "Cancel",
   "changes": "Changes",
   "collapse": "Collapse",
@@ -190,11 +194,14 @@
     "before": "Before",
     "between": "Between",
     "blank": "Blank",
+    "chooseEntity": "Choose entry",
     "clearAll": "Clear all",
     "close": "Close",
     "contains": "Contains",
     "dateEquals": "On",
+    "dateFrom": "From (date)",
     "dateNotEqual": "Not on",
+    "dateTo": "To (date)",
     "editEntry": "Edit filter {arg0}",
     "emptyValue": "empty value",
     "endsWith": "Ends with",
@@ -203,6 +210,7 @@
     "faulty": "faulty",
     "greaterThan": "Greater than",
     "hide": "Hide filter",
+    "history": "Modified",
     "lessThan": "Less than",
     "newest": "newest",
     "noFields": "No filter fields available",
@@ -210,6 +218,7 @@
     "notBlank": "Not blank",
     "notContains": "Does not contain",
     "notEqual": "Not equal",
+    "period": "Period",
     "removeEntry": "Remove filter {arg0}",
     "reset": "Reset",
     "search": "Search...",
@@ -217,6 +226,8 @@
     "selection": "Selection",
     "show": "Show filter",
     "startsWith": "Starts with",
+    "timeFrom": "From (time)",
+    "timeTo": "To (time)",
     "title": "Filter",
     "value": "Value",
     "valueTo": "To"
@@ -340,6 +351,7 @@
     "successfullChanged": "Successfully changed.",
     "successfullCompleted": "Successfully completed: {arg0}"
   },
+  "modificationTime": "Time of modification",
   "modified": "modified",
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",
@@ -390,6 +402,16 @@
   "rename": "rename",
   "reset": "Reset",
   "save": "Save",
+  "search": {
+    "lastDay": "Last day.",
+    "lastDays": "Last {arg0} days.",
+    "lastHour": "Last hour",
+    "lastHours": "Last {arg0} hours",
+    "lastMinute": "Last minute",
+    "lastMinutes": "Last {arg0} minutes",
+    "sinceYesterday": "Since yesterday",
+    "today": "Today"
+  },
   "settings": "Settings",
   "status": "Status",
   "task": {

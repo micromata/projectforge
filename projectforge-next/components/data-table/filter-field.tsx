@@ -15,7 +15,7 @@ interface FilterFieldProps {
   /** Focus on mount, so a filter opened from the pill row is ready to type into. */
   autoFocus?: boolean;
   /** Enter in a single-line input; used by the pill popover to save and close. */
-  onSubmit?: () => void;
+  onSubmit?: (value?: MagicFilterEntryValue | undefined) => void;
 }
 
 /**

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/shared/date-input";
 import {
   Select,
   SelectContent,
@@ -35,6 +36,7 @@ interface BaseProps {
 }
 
 interface InputFieldProps extends BaseProps {
+  /** `date` is a `LocalDate` and goes through the shared [DateInput], never a native date field. */
   type?: "text" | "date";
   placeholder?: string;
 }
@@ -159,21 +161,35 @@ export function InputField({
             className={className}
             ids={ids}
           >
-            <Input
-              id={ids.controlId}
-              type={type}
-              placeholder={placeholder}
-              value={raw ?? ""}
-              // An emptied optional field becomes null, which is how the backend stores "no value".
-              // A required one keeps "" — its schema expects a string and would otherwise complain
-              // about the type instead of the missing value (see requiredString).
-              onChange={(e) =>
-                field.handleChange(
-                  required ? e.target.value : e.target.value || null
-                )
-              }
-              onBlur={field.handleBlur}
-            />
+            {type === "date" ? (
+              <DateInput
+                id={ids.controlId}
+                value={raw}
+                invalid={invalid}
+                required={required}
+                // Same null-vs-"" rule as below.
+                onChange={(next) =>
+                  field.handleChange(required ? (next ?? "") : next)
+                }
+                onBlur={field.handleBlur}
+              />
+            ) : (
+              <Input
+                id={ids.controlId}
+                type={type}
+                placeholder={placeholder}
+                value={raw ?? ""}
+                // An emptied optional field becomes null, which is how the backend stores "no value".
+                // A required one keeps "" — its schema expects a string and would otherwise complain
+                // about the type instead of the missing value (see requiredString).
+                onChange={(e) =>
+                  field.handleChange(
+                    required ? e.target.value : e.target.value || null
+                  )
+                }
+                onBlur={field.handleBlur}
+              />
+            )}
           </FieldShell>
         );
       }}

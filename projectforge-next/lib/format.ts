@@ -14,11 +14,30 @@ export interface FormatContext {
   locale: string;
   timeZone?: string;
   currency?: string;
+  /**
+   * Index of the first day of the week, 0 = Sunday — the form react-day-picker takes
+   * (`weekStartsOn`), which is why the backend sends it that way (userData.firstDayOfWeekSunday0).
+   * It is the user's setting, not the locale's default: a German account may well start on Sunday.
+   */
+  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  /**
+   * The date layout as a mask the user can read ("dd.MM.yyyy"), used as the placeholder of a date
+   * input. Taken from userData.dateFormat, i.e. the same pattern the backend formats with; only
+   * [formatDate] derives its output from Intl instead.
+   */
+  datePattern?: string;
 }
 
 /** Maps a backend locale ("de_DE") onto a BCP-47 tag Intl understands. */
 function toBcp47(locale: string | undefined): string {
   return locale ? locale.replace("_", "-") : "de-DE";
+}
+
+function toWeekStartsOn(
+  value: number | undefined
+): FormatContext["weekStartsOn"] {
+  if (value == null || value < 0 || value > 6) return undefined;
+  return value as NonNullable<FormatContext["weekStartsOn"]>;
 }
 
 export function formatContextFrom(
@@ -28,6 +47,8 @@ export function formatContextFrom(
     locale: toBcp47(user?.locale),
     timeZone: user?.timeZone,
     currency: user?.currency,
+    weekStartsOn: toWeekStartsOn(user?.firstDayOfWeekSunday0),
+    datePattern: user?.dateFormat,
   };
 }
 

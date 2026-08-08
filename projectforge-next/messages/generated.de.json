@@ -93,6 +93,10 @@
       "short": "Jahr"
     }
   },
+  "calendar": {
+    "chooseDate": "Datum auswählen",
+    "today": "Heute"
+  },
   "cancel": "Abbrechen",
   "changes": "Änderungen",
   "collapse": "Zuklappen",
@@ -190,11 +194,14 @@
     "before": "Vor",
     "between": "Zwischen",
     "blank": "Leer",
+    "chooseEntity": "Eintrag auswählen",
     "clearAll": "Alle löschen",
     "close": "Schließen",
     "contains": "Enthält",
     "dateEquals": "Am",
+    "dateFrom": "Von (Datum)",
     "dateNotEqual": "Nicht am",
+    "dateTo": "Bis (Datum)",
     "editEntry": "Filter {arg0} bearbeiten",
     "emptyValue": "leerer Wert",
     "endsWith": "Endet mit",
@@ -203,6 +210,7 @@
     "faulty": "fehlerhaft",
     "greaterThan": "Größer als",
     "hide": "Filter ausblenden",
+    "history": "Geändert",
     "lessThan": "Kleiner als",
     "newest": "die neuesten",
     "noFields": "Keine Filterfelder verfügbar",
@@ -210,6 +218,7 @@
     "notBlank": "Nicht leer",
     "notContains": "Enthält nicht",
     "notEqual": "Ungleich",
+    "period": "Zeitraum",
     "removeEntry": "Filter {arg0} entfernen",
     "reset": "Zurücksetzen",
     "search": "Suchen...",
@@ -217,6 +226,8 @@
     "selection": "Auswahl",
     "show": "Filter anzeigen",
     "startsWith": "Beginnt mit",
+    "timeFrom": "Von (Uhrzeit)",
+    "timeTo": "Bis (Uhrzeit)",
     "title": "Filter",
     "value": "Wert",
     "valueTo": "Bis"
@@ -340,6 +351,7 @@
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
     "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
   },
+  "modificationTime": "Änderungszeitraum",
   "modified": "geändert",
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
@@ -390,6 +402,16 @@
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
   "save": "Speichern",
+  "search": {
+    "lastDay": "Letzter Tag",
+    "lastDays": "Letzte {arg0} Tage",
+    "lastHour": "Letzte Stunde",
+    "lastHours": "Letzte {arg0} Stunden",
+    "lastMinute": "Letzte Minute",
+    "lastMinutes": "Letzte {arg0} Minuten",
+    "sinceYesterday": "Seit gestern",
+    "today": "Heute"
+  },
   "settings": "Einstellungen",
   "status": "Status",
   "task": {

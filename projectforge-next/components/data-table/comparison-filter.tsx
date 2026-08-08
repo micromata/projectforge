@@ -5,6 +5,7 @@ import type { Column } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/shared/date-input";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,48 @@ function operatorKey(mode: FilterKind, operator: string): string {
   return operator;
 }
 
+/**
+ * The one value of a comparison, in the control its kind needs. A date is entered through the shared
+ * [DateInput] rather than a native date field: it keeps emitting `YYYY-MM-DD` (which is what
+ * filter-fns.ts compares lexicographically) while showing and accepting the user's own layout.
+ */
+function ValueInput({
+  mode,
+  value,
+  onChange,
+  onSubmit,
+  label,
+}: {
+  mode: FilterKind;
+  value: string;
+  onChange: (value: string) => void;
+  /** Called on Enter, with the value as it stands at that moment (see [ComparisonFilter.apply]). */
+  onSubmit: (value: string) => void;
+  label: string;
+}) {
+  if (mode === "date") {
+    return (
+      <DateInput
+        value={value || null}
+        onChange={(next) => onChange(next ?? "")}
+        onSubmit={(committed) => onSubmit(committed ?? "")}
+        aria-label={label}
+      />
+    );
+  }
+  return (
+    <Input
+      type={mode === "number" ? "number" : "text"}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && onSubmit(value)}
+      placeholder={label}
+      className="h-7 text-xs"
+      aria-label={label}
+    />
+  );
+}
+
 /** Operator + value input(s) for text, number and date columns. */
 export function ComparisonFilter<TData>({
   column,
@@ -84,15 +127,17 @@ export function ComparisonFilter<TData>({
 
   const needsValue = operator !== "blank" && operator !== "notBlank";
   const needsRange = operator === "between";
-  const inputType =
-    mode === "date" ? "date" : mode === "number" ? "number" : "text";
 
-  function apply() {
+  /**
+   * The values are passed in rather than read from state: [DateInput] commits on Enter and calls
+   * `onSubmit` right after, so the state of this render is still the previous date.
+   */
+  function apply(from = value, to = valueTo) {
     if (!needsValue) {
       column.setFilterValue({ type: mode, operator });
       return;
     }
-    if (value === "") {
+    if (from === "") {
       column.setFilterValue(undefined);
       return;
     }
@@ -100,8 +145,8 @@ export function ComparisonFilter<TData>({
     column.setFilterValue({
       type: mode,
       operator,
-      value: parse(value),
-      ...(needsRange && valueTo !== "" ? { valueTo: parse(valueTo) } : {}),
+      value: parse(from),
+      ...(needsRange && to !== "" ? { valueTo: parse(to) } : {}),
     });
   }
 
@@ -121,28 +166,25 @@ export function ComparisonFilter<TData>({
       </Select>
 
       {needsValue && (
-        <Input
-          type={inputType}
+        <ValueInput
+          mode={mode}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && apply()}
-          placeholder={t("value")}
-          className="h-7 text-xs"
-          aria-label={t("value")}
+          onChange={setValue}
+          onSubmit={(committed) => apply(committed)}
+          label={t("value")}
         />
       )}
       {needsRange && (
-        <Input
-          type={inputType}
+        <ValueInput
+          mode={mode}
           value={valueTo}
-          onChange={(e) => setValueTo(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && apply()}
-          placeholder={t("valueTo")}
-          className="h-7 text-xs"
-          aria-label={t("valueTo")}
+          onChange={setValueTo}
+          onSubmit={(committed) => apply(value, committed)}
+          label={t("valueTo")}
         />
       )}
-      <Button size="sm" className="h-7 w-full text-xs" onClick={apply}>
+      {/* Wrapped, so the click event isn't taken for a value. */}
+      <Button size="sm" className="h-7 w-full text-xs" onClick={() => apply()}>
         {t("apply")}
       </Button>
     </div>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateInput } from "@/components/shared/date-input";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { fromLikeTerm, toLikeTerm } from "./filter-value";
 
@@ -15,8 +16,12 @@ export interface FilterInputProps {
   id: string;
   /** Focus on mount, so a filter opened from the pill row is ready to type into. */
   autoFocus?: boolean;
-  /** Enter in a single-line input; used by the pill popover to save and close. */
-  onSubmit?: () => void;
+  /**
+   * Enter in a single-line input; used by the pill popover to save and close. A field that changes
+   * its value in the same handler (see [RangeField]) passes the value to save along, because the
+   * `onChange` above has not reached the caller's state yet by then.
+   */
+  onSubmit?: (value?: MagicFilterEntryValue | undefined) => void;
 }
 
 export function TextField({
@@ -116,32 +121,32 @@ export function RangeField({
   onChange,
   label,
   autoFocus,
+  onSubmit,
 }: FilterInputProps) {
   const t = useTranslations("filter");
 
-  function update(part: "from" | "to", raw: string) {
-    const next = { ...value, [part]: raw || undefined };
-    onChange(next.from || next.to ? next : undefined);
+  function next(part: "from" | "to", raw: string | null) {
+    const merged = { ...value, [part]: raw ?? undefined };
+    return merged.from || merged.to ? merged : undefined;
   }
 
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium">{label}</p>
-      <div className="flex gap-1">
-        <Input
-          type="date"
+      <div className="space-y-1">
+        <DateInput
           autoFocus={autoFocus}
           aria-label={`${label}: ${t("value")}`}
-          value={value?.from ?? ""}
-          onChange={(e) => update("from", e.target.value)}
-          className="h-8 text-xs"
+          value={value?.from}
+          onChange={(iso) => onChange(next("from", iso))}
+          // The date [DateInput] just committed, since `value` here is still the previous one.
+          onSubmit={(iso) => onSubmit?.(next("from", iso))}
         />
-        <Input
-          type="date"
+        <DateInput
           aria-label={`${label}: ${t("valueTo")}`}
-          value={value?.to ?? ""}
-          onChange={(e) => update("to", e.target.value)}
-          className="h-8 text-xs"
+          value={value?.to}
+          onChange={(iso) => onChange(next("to", iso))}
+          onSubmit={(iso) => onSubmit?.(next("to", iso))}
         />
       </div>
     </div>

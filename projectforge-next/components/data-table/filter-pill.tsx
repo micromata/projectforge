@@ -81,7 +81,7 @@ export function FilterPill({
             value={draft}
             onChange={setDraft}
             autoFocus
-            onSubmit={() => save()}
+            onSubmit={(committed) => save(committed)}
           />
           <div className="flex justify-end gap-1">
             <Button
@@ -111,8 +111,13 @@ export function FilterPill({
     </span>
   );
 
-  /** Saving an emptied field removes it, as in the legacy MagicInput.isEmpty check. */
-  function save() {
-    onSave(isEmptyFilterValue(draft) ? undefined : draft);
+  /**
+   * Saving an emptied field removes it, as in the legacy MagicInput.isEmpty check.
+   *
+   * A field submitting on Enter passes what it changed to, because its `onChange` has not come back
+   * through `setDraft` yet at that point (see FilterField.onSubmit).
+   */
+  function save(value: MagicFilterEntryValue | undefined = draft) {
+    onSave(isEmptyFilterValue(value) ? undefined : value);
   }
 }

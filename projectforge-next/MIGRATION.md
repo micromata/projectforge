@@ -422,6 +422,52 @@ den Filter als `restoredFilter`.
   Quelle gibt; die Seitengröße reist im Filter mit, ist aber eine Tabellen- und
   keine Filtereinstellung.
 
+**Erledigt: Datumseingabe international (`components/shared/date-input.tsx`).**
+Jede Datumseingabe war ein `<input type="date">`, dessen Anzeigeformat **und**
+erster Wochentag vom Browser bzw. Betriebssystem kommen – nicht aus `userData`.
+Ein englisches System zeigte einem deutschen Konto `08/09/2026` zum Tippen neben
+`09.08.2026` in der Tabelle daneben, und der Kalender begann sonntags, obwohl
+`firstDayOfWeekSunday0` Montag sagt. Damit verstieß die Eingabeseite gegen die
+Regel, dass alles Locale-Abhängige durch **einen** Helfer läuft.
+
+Jetzt gibt es genau eine Komponente (plus `date-input-calendar.tsx` für das
+Popover), die alle vier Aufrufstellen bedienen: `DynamicDateInput` (DATE aus
+UILayout), `RangeField` (Filter-Bereich), `ComparisonFilter` (Spalten-Filter) und
+`InputField type="date"` (handgebaute Formulare). **Es gibt kein `type="date"`
+mehr im Projekt** – das ist die Prüfung.
+
+- **Der Wert ist immer der ISO-String `yyyy-MM-dd`, nie ein `Date`.** So reist ein
+  `LocalDate` über den Draht (`LocalDateConverter`), und `filter-fns.ts` vergleicht
+  Datums-Spaltenfilter **lexikografisch** auf `YYYY-MM-DD`. Nur der Text *im Feld*
+  ist lokalisiert. `Date` ↔ ISO passiert ausschließlich in `dateOf`/`isoOf`
+  (`lib/date-parse.ts`), aus den drei Zahlen in der lokalen Zone – `new Date(iso)`
+  wäre UTC-Mitternacht und kann einen Tag zurückfallen.
+- **Feldreihenfolge und Trennzeichen kommen aus
+  `Intl.DateTimeFormat.formatToParts`**, also aus derselben Quelle, aus der
+  `formatDate` seine Ausgabe zieht: Eingabe- und Anzeigeformat können nicht
+  driften, und es gibt keine eigene Mustertabelle (kein moment.js).
+  `FormatContext` trägt dafür zusätzlich `weekStartsOn` (genau die Zahl, die
+  react-day-picker erwartet) und `datePattern` (die Maske als Platzhalter).
+- **Verhalten wie im Legacy-`DateInput.jsx`:** streng geparst beim Tippen (damit
+  dem Nutzer nicht in die Eingabe hineinkorrigiert wird), tolerant bei Blur und
+  Enter („9.8.26", „090826"), ↑/↓ ±1 Tag, Klick auf den gewählten Tag löscht ihn.
+  Zweistellige Jahre mit dem Pivot von moment (69 → 1969), `31.02.` ergibt `null`
+  statt überzulaufen.
+- **Löschen ohne alle Zeichen zu entfernen:** ein ✕ im Feld (auf `pointerdown`,
+  denn der Knopf verschwindet mit dem leeren Feld – bei `pointerup` hielte das
+  umgebende Popover den Klick für einen Klick nach außen) sowie „Rücksetzen" im
+  Kalender-Popover. **Kein** Escape: das Feld sitzt in Popovers und Dialogen, deren
+  Escape gewinnt (Radix hört am Document).
+- **Heute ist deutlich markiert** – ein Ring in der Akzentfarbe über die
+  `classNames`-Prop des Kalenders, nicht per Änderung an `components/ui/`.
+- Geprüft gegen das laufende System: `e2e/date-input.spec.ts` leitet Maske,
+  Datumslayout und den ersten Wochentag aus `userStatus` ab, statt sie
+  auszuschreiben – sonst würde der Test nur ein deutsches Konto prüfen und genau
+  den Fehler verdecken, um den es hier ging.
+- **Offen und bewusst nicht dabei:** `TIME` und `TIMESTAMP`
+  (`dynamic-input-resolver.tsx`) bleiben native Inputs. Keine heutige Seite gibt
+  Uhrzeiten ein; sobald eine es tut, gehört die Zeit in dieselbe Komponente.
+
 **Offen:**
 
 1. **OBJECT- und TIMESTAMP-Felder vervollständigen.** OBJECT (z.B. „geändert
@@ -1137,6 +1183,10 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   entscheidenden Detail, dass eine Ablehnung als HTTP 200 mit `TOAST` kommt und
   jede Schreibantwort schon die ganze neue Liste enthält. Gegen das laufende
   System geprüft (`e2e/book-attachments.spec.ts`).
+- **Datumseingabe international** – eine geteilte Komponente
+  (`components/shared/date-input.tsx`) statt vier `<input type="date">`: Layout,
+  Platzhaltermaske und erster Wochentag aus `userData`, Wert immer ISO
+  `yyyy-MM-dd`. Gegen das laufende System geprüft (`e2e/date-input.spec.ts`).
 
 **Als nächstes:**
 

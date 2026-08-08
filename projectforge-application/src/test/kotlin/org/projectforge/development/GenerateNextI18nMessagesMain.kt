@@ -78,6 +78,15 @@ object GenerateNextI18nMessagesMain {
     "filter.",
     "created",
     "modified",
+    // Label of the combined history filter's period ("Änderungszeitraum"). Not covered by
+    // "modified" — the key is modificationTime.
+    "modificationTime",
+    // Quick-select periods of that filter (components/data-table/history-interval-presets.ts):
+    // search.lastMinute(s), lastHour(s), lastDay(s). Deliberately not the whole "search." tree —
+    // search.string.info and search.lucene.expression are long help blobs next never shows.
+    "search.last",
+    "search.today",
+    "search.sinceYesterday",
     // Field labels shared by many entities, as their @PropertyInfo names them: BookDO.comment,
     // BookDO.status, BookDO.lendOutDate ("date"). Without the dot, so the bare "date" key exports
     // too — as "date._", since its own subtree (date.begin, date.end …) makes it a namespace.
@@ -87,6 +96,11 @@ object GenerateNextI18nMessagesMain {
     "date",
     // Wait indicator, e.g. while a column filter builds its value list.
     "loading",
+    // The calendar popover of a date input (components/shared/date-input.tsx). Only these two keys,
+    // not the whole "calendar." tree — that one holds the holiday names and the calendar module's
+    // own texts, none of which next shows.
+    "calendar.chooseDate",
+    "calendar.today",
     // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
     // spelling out every key that happens to share a prefix.
     "apply",
