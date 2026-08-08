@@ -83,6 +83,26 @@ Cross-feature imports are forbidden. If two features need the same thing, it bel
 - **Never edit `messages/generated.*.json`** — every run of the generator overwrites them, so a manual change is lost silently. `GenerateNextI18nMessagesTest` (next to the generator) fails the build if they differ from what the bundle produces, which also catches an `I18nResources` change committed without regenerating. The files carry a `_generated` key repeating this.
 - Dotted backend keys become nested namespaces: `menu.main.title` → `useTranslations("menu")` + `t("main.title")`.
 
+### Everything locale-dependent goes through one shared helper
+
+Dates, timestamps, numbers, currency and texts are **the user's**, taken from `userData`
+(`locale`, `timeZone`, `currency`, separators) — never from the runtime's default and never
+written out by hand.
+
+- **Formatting:** `lib/format.ts` (`formatDate`, `formatTimestampMinutes`, `formatNumber`,
+  `formatCurrency`, …) with the context from `useFormatContext()` (`hooks/use-format.ts`).
+  No `toLocaleString()` at a call site, no `Intl.*` constructed ad hoc, no hand-built
+  `dd.MM.yyyy`. Need a new kind of value formatted? Add it to `lib/format.ts`.
+- **Texts:** `useTranslations` only, per the rules above.
+- **Values the backend already formatted** (`sizeHumanReadable`, `lastUpdateFormatted`, …) are
+  taken as they are — they come in the user's locale and time zone, and reformatting them here
+  would be a second place to be wrong.
+- **This holds in tests too.** An assertion that spells out "Ausleihen" or `dd.MM.yyyy` passes
+  only for a German account and hides a real formatting bug for everyone else. E2E tests derive
+  both from the logged-in user through `e2e/fixtures/format.ts` (`userFormat(page)` → `t()` /
+  `date()`), which reads `userStatus` and reuses `lib/format.ts` and the catalogs from
+  `i18n/config.ts`.
+
 ## Accessibility
 
 - **All interactive elements need accessible names.** Icon-only buttons require `aria-label`. Form inputs need labels (visible or `sr-only`). Dynamic labels should reflect the row/item (e.g. `aria-label={`Buch ${row.titel} bearbeiten`}`).

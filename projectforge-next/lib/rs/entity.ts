@@ -69,9 +69,28 @@ export function undeleteEntity<D extends object>(
   return write(`/rs/${entity}/undelete`, "PUT", data, signal);
 }
 
+/**
+ * Action of an entity page that writes the entity as a side effect — `book/lendOut` and
+ * `book/returnBook` (BookServicesRest) are the case: they change a few fields server-side and
+ * then run through the very same `saveOrUpdate`, so the *whole* posted entity is persisted.
+ *
+ * Same protocol as [saveOrUpdateEntity] (PostData envelope, ResponseAction, 406), which is why
+ * it lives here and not in list-actions.ts: those speak the plain JSON shape of client.ts.
+ *
+ * @param action Path segment after the entity, e.g. "lendOut".
+ */
+export function postEntityAction<D extends object>(
+  entity: string,
+  action: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/${action}`, "POST", data, signal);
+}
+
 async function write<D extends object>(
   path: string,
-  method: "PUT" | "DELETE",
+  method: "PUT" | "POST" | "DELETE",
   data: D,
   signal?: AbortSignal
 ): Promise<EntityWriteResult> {

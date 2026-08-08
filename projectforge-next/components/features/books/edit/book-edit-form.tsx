@@ -17,8 +17,14 @@ import { AttachmentSection } from "./sections/attachment-section";
 import { bookTabs } from "../book-tabs";
 import { bookEditSchema, BOOK_EDIT_FIELDS } from "./book-edit-schema";
 import { emptyBookValues, toFormValues } from "./book-edit-values";
-import { useBookDetail, useSaveBook } from "./use-book-detail";
+import {
+  useBookDetail,
+  useLendOutBook,
+  useReturnBook,
+  useSaveBook,
+} from "./use-book-detail";
 import { applyServerValidationErrors } from "@/lib/validation/server-errors";
+import { SAVE_META } from "./book-submit-meta";
 import type { BookDetail } from "../types";
 
 interface Props {
@@ -33,12 +39,23 @@ export function BookEditForm({ bookId }: Props) {
   // A new book has nothing to load — the hook stays disabled for id null.
   const { data: book, isLoading, isError } = useBookDetail(bookId);
   const saveMutation = useSaveBook();
+  const lendOutMutation = useLendOutBook();
+  const returnMutation = useReturnBook();
 
   const form = useForm({
     defaultValues: book ? toFormValues(book) : emptyBookValues(),
     validators: { onSubmit: bookEditSchema },
-    onSubmit: async ({ value }) => {
-      const result = await saveMutation.mutateAsync(value as BookDetail);
+    // Saving is what the form's own submit button does; the loan buttons pass their own meta.
+    onSubmitMeta: SAVE_META,
+    onSubmit: async ({ value, meta }) => {
+      const data = value as BookDetail;
+      const mutation =
+        meta.action === "lendOut"
+          ? lendOutMutation
+          : meta.action === "returnBook"
+            ? returnMutation
+            : saveMutation;
+      const result = await mutation.mutateAsync(data);
       if (result.kind === "validationErrors") {
         // The server rejected the entity: its rules are the authority, ours only anticipate them.
         const { unassigned } = applyServerValidationErrors(
@@ -50,6 +67,15 @@ export function BookEditForm({ bookId }: Props) {
         unassigned.forEach((message) => toast.error(message));
         if (unassigned.length === 0)
           toast.error(tCommon("validation.error.generic"));
+        return;
+      }
+      if (meta.action !== "save") {
+        // Lending out and returning stay on the page: the loan is what the user came for, and
+        // seeing its result is the point. The backend's ResponseAction is a REDIRECT to the list
+        // here too (both run through saveOrUpdate), and is ignored just as it is for a save.
+        // The new lendOutBy/lendOutDate/lendOutComment arrive with the invalidated detail query,
+        // and the effect below resets the form onto them.
+        toast.success(tCommon("message.successfullChanged"));
         return;
       }
       toast.success(t("saved"));

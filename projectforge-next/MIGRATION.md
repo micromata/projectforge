@@ -729,28 +729,55 @@ Backend-Pendant (`book-tabs.ts` mappt beides).
 Löschen, die Dubletten-Meldung sowie der Hinweis „erst nach dem Speichern“ bei
 einem neuen Buch. Der Test räumt seine Dateien selbst wieder ab.
 
-#### Offen: Ausleih-/Rückgabe-Aktion des Buchs
+#### Erledigt: Ausleih-/Rückgabe-Aktion des Buchs
 
-Die drei Ausleih-**Felder** stehen (`LoanSection`: `lendOutBy`, `lendOutDate`,
-`lendOutComment`), die beiden **Aktionen** fehlen. Im alten Frontend liefert
-`BookPagesRest` dafür ein `UICustomized("book.lendOutComponent")`, gerendert von
-`BookLendOut.jsx`; die Endpunkte sind `POST /rs/book/lendOut` und
-`POST /rs/book/returnBook` (`BookServicesRest`) – beide nehmen das ganze
-Buch-DTO, setzen bzw. leeren `lendOutBy`/`lendOutDate`/`lendOutComment` und
-laufen dann durch das normale `saveOrUpdate`.
+Ersetzt das `UICustomized(“book.lendOutComponent”)` der alten Seite
+(`BookLendOut.jsx`). Die Endpunkte blieben unangetastet: `POST /rs/book/lendOut`
+und `POST /rs/book/returnBook` (`BookServicesRest`), beide mit dem
+`PostData`/`ResponseAction`/406-Kontrakt von `saveorupdate` – nur mit `POST`.
+Deshalb steht der Aufruf in `lib/rs/entity.ts` (`postEntityAction`) und nicht in
+`lib/rs/list-actions.ts`, das die Klartext-JSON-Form spricht. Bausteine sonst:
+`use-book-detail.ts` (`useLendOutBook`/`useReturnBook`, geteiltes `invalidate`),
+`edit/book-submit-meta.ts`, `edit/sections/loan-section.tsx`,
+`edit/sections/book-loan-actions.tsx`.
 
-Zu beachten beim Nachziehen:
+- **Beide Aktionen speichern das ganze Buch mit** – sie laufen durch
+  `saveOrUpdate`, sind also kein Teil-Update. Gesendet werden daher die
+  **aktuellen Formularwerte**; eine ungespeicherte Ausleihnotiz reist mit, statt
+  verloren zu gehen. Damit Anzeige und Datenbank nicht driften, werden die Werte
+  danach vom Server zurückgelesen (Caches invalidieren → der bestehende
+  `useEffect([book, form])` setzt das Formular auf den Serverstand).
+- **Ein Submit-Weg, drei Aktionen.** Ausleihen/Zurückgeben müssen dieselbe
+  Zod-Validierung und dieselben Werte benutzen wie Speichern (sonst würde ein
+  geleerter Titel über die Ausleihe mitgespeichert). Gelöst über `onSubmitMeta`
+  von `@tanstack/react-form`: die Knöpfe rufen
+  `form.handleSubmit({ action: “lendOut” })`, `onSubmit` wählt daran die
+  Mutation. Kein zweiter Schreibpfad, ein gemeinsamer 406-Zweig.
+- **Die Antwort ist ein REDIRECT auf die Liste** (Nebenwirkung von
+  `onAfterEdit`) und wird – wie beim Speichern – ignoriert: die Seite bleibt
+  stehen, denn das Ergebnis der Ausleihe ist genau das, was der Nutzer sehen
+  will.
+- **`lendOutBy`/`lendOutDate` sind jetzt read-only** („Name, Datum”), nur
+  `lendOutComment` bleibt editierbar. `lend-out-by-field.tsx` ist gelöscht: es
+  war ein Freitextfeld, das bei jeder Eingabe `{ id: -1, … }` setzte – eine Id,
+  die das Backend nicht auflösen kann. Den Ausleihenden setzt ohnehin nur der
+  Server aus der Session. Beide Felder bleiben in Schema und Formularwerten, sie
+  müssen mitgesendet werden.
+- **Datum, nicht Zeitstempel:** `formatDate`, weil `lendOutDate` ein `LocalDate`
+  ist. Die alte Komponente nahm `jsTimestampFormatMinutes` und zeigte ein
+  sinnloses 00:00.
+- **„Zurückgeben” nur für den Ausleihenden** – wie im alten Frontend eine reine
+  Client-Regel, das Backend prüft sie nicht. Verglichen wird `user.userId ===
+lendOutBy.id` statt Legacy's `username`: `UserRef` führt kein `username`.
+- **„Ausleihen” ist immer sichtbar** (Legacy-Parität): ein Klick bucht ein
+  bereits ausgeliehenes Buch still auf den aktuellen Nutzer um.
+- **Nur bei gespeichertem Buch** (`if (dto.id != null)` im alten Layout).
 
-- **Beides speichert das Buch mit.** Die Aktionen sind kein Teil-Update, sondern
-  ein `saveOrUpdate` des gesamten DTOs – ungespeicherte Formularänderungen
-  gingen also mit oder verloren, je nachdem, was man sendet. Das muss die
-  handgebaute Seite bewusst entscheiden (Formularwerte senden und danach
-  `reset`), sonst driften Anzeige und Datenbank auseinander.
-- **„Zurückgeben“ zeigte das alte Frontend nur dem Ausleihenden selbst**
-  (`user.username === data.lendOutBy.username`); ausleihen durfte jeder. Das
-  Backend prüft das nicht – die Regel steckt allein im Client.
-- **Nur bei gespeichertem Buch** (`if (dto.id != null)` im Layout).
-- Die Texte existieren: `book.lendOut`, `book.returnBook`.
+**Browserseitig verifiziert** gegen das echte Backend (`e2e/book-lend-out.spec.ts`):
+Ausleihen (eigener Name + heutiges Datum, Seite bleibt stehen), Persistenz nach
+Reload inkl. der ungespeicherten Notiz, Zurückgeben leert alle drei Felder, ein
+neues Buch zeigt keine Knöpfe, und ein geleerter Titel verhindert den Request.
+Der Test gibt das Buch am Ende wieder zurück.
 
 #### Offen: Validierungsregeln nicht duplizieren
 

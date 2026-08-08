@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchOne } from "@/lib/rs/client";
 import {
   markEntityAsDeleted,
+  postEntityAction,
   saveOrUpdateEntity,
   type EntityWriteResult,
 } from "@/lib/rs/entity";
@@ -51,6 +52,34 @@ export function useDeleteBook() {
     onSuccess: (result, book) => {
       if (result.kind !== "ok") return;
       invalidate(qc, book.id);
+    },
+  });
+}
+
+/**
+ * Lends the book out to the logged-in user: the server sets `lendOutBy` from the session and
+ * `lendOutDate` to today (BookServicesRest.lendOut), so neither is sent — and it saves the posted
+ * book along the way, which is why the whole entity goes with it.
+ *
+ * Lending out a book that is already lent out silently reassigns it, as in the legacy page.
+ */
+export function useLendOutBook() {
+  return useLoanAction("lendOut");
+}
+
+/** Clears `lendOutBy`, `lendOutDate` and `lendOutComment` (BookServicesRest.returnBook). */
+export function useReturnBook() {
+  return useLoanAction("returnBook");
+}
+
+function useLoanAction(action: "lendOut" | "returnBook") {
+  const qc = useQueryClient();
+  return useMutation<EntityWriteResult, Error, BookDetail>({
+    mutationFn: (book) => postEntityAction(ENTITY, action, book),
+    onSuccess: (result, book) => {
+      if (result.kind !== "ok") return;
+      // The answer carries no entity either, so the loan fields are read back from the server.
+      invalidate(qc, result.id ?? book.id);
     },
   });
 }
