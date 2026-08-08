@@ -37,7 +37,10 @@ object ReindexerRegistry {
     private val standardUnknownStrategy = ReindexerStrategy("", "id", null)
 
     init {
-        add(HistoryEntryDO::class.java, ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt"))
+        add(
+            HistoryEntryDO::class.java,
+            ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt", "entityName"),
+        )
     }
 
     fun add(clazz: Class<*>, strategy: ReindexerStrategy) {

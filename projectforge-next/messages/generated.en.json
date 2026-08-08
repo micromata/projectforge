@@ -319,7 +319,7 @@
     "reindexNewestDatabaseEntries": {
       "_": "Re-build search index",
       "tooltip": {
-        "content": "All entries modified since yesterday, 1.000 at maximum, will be re-indexed (duration less than 1 second).",
+        "content": "All entries created or modified since yesterday will be re-indexed, their change history included. Usually a matter of seconds.",
         "title": "Re-build search index"
       }
     },

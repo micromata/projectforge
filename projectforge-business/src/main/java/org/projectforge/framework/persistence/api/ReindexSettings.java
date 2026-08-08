@@ -34,26 +34,46 @@ public class ReindexSettings
 
   private Integer lastNEntries;
 
+  private String entityName;
+
   public ReindexSettings()
   {
   }
 
   public ReindexSettings(final Date fromDate, final Integer lastNEntries)
   {
+    this(fromDate, lastNEntries, null);
+  }
+
+  /**
+   * @param entityName Full class name of the entity the re-index was started for, or null for all of them. Only
+   *          used for tables holding the rows of several entities (the change history), see
+   *          ReindexerStrategy.entityNameProperty: re-indexing the book list shouldn't touch the history of
+   *          every other entity.
+   */
+  public ReindexSettings(final Date fromDate, final Integer lastNEntries, final String entityName)
+  {
     this.fromDate = fromDate;
     this.lastNEntries = lastNEntries;
+    this.entityName = entityName;
   }
-  
+
   public Date getFromDate()
   {
     return fromDate;
   }
-  
+
   public Integer getLastNEntries()
   {
     return lastNEntries;
   }
-  
+
+  public String getEntityName()
+  {
+    return entityName;
+  }
+
+
   @Override
   public String toString()
   {

@@ -42,6 +42,12 @@ class ReindexerStrategy(
          * be re-indexed.
          * 'lastUpdate' for AbstractBaseDO and 'modifiedAt' for StdRecord.
          */
-        val modifiedAtProperty: String? = "lastUpdate") {
+        val modifiedAtProperty: String? = "lastUpdate",
+        /**
+         * Where to find the name of the entity the rows belong to, if the table holds the rows of several entities
+         * (HistoryEntryDO does, no other indexed entity). Only then a re-index started for a single entity can
+         * restrict itself to its own rows, see [ReindexSettings.getEntityName].
+         */
+        val entityNameProperty: String? = null) {
     val join = if (join.isNullOrBlank()) "" else " ${join.trim()}"
 }

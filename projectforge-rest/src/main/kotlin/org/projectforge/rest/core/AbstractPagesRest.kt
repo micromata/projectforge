@@ -684,9 +684,9 @@ constructor(
     }
 
     /**
-     * Rebuilds the index by the search engine for all entries. Admins only: this includes the history, so it affects
-     * the whole system. The classic frontend simply hides the menu entry, but projectforge-next builds its list
-     * pages itself, so the check has to be here.
+     * Rebuilds the index by the search engine for all entries. Admins only: the run discards the index of the entity
+     * and builds it from scratch, which costs minutes and system performance on a large table. The classic frontend
+     * simply hides the menu entry, but projectforge-next builds its list pages itself, so the check has to be here.
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GetMapping("reindexFull")
@@ -712,7 +712,8 @@ constructor(
             ReindexJob(
                 databaseDao = databaseDao,
                 classes = if (full) baseDao.reindexClasses else baseDao.reindexClasses4NewestEntries,
-                settings = DatabaseDao.createReindexSettings(!full),
+                // The entity name restricts the change history of the partial run to this entity's rows.
+                settings = DatabaseDao.createReindexSettings(!full, baseDao.doClass.name),
                 adminRequired = full,
                 // The same key the list layout uses as its title — every entity has it.
                 title = translateMsg(i18nKey, translate("$i18nKeyPrefix.list")),

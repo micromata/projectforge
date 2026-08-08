@@ -319,7 +319,7 @@
     "reindexNewestDatabaseEntries": {
       "_": "Suchindex reindizieren",
       "tooltip": {
-        "content": "Es werden alle Einträge, die seit gestern angelegt oder modifiziert wurden, maximal aber 1.000 Einträge, re-indiziert (Dauer weniger als 1 Sekunde).",
+        "content": "Es werden alle Einträge, die seit gestern angelegt oder modifiziert wurden, re-indiziert, einschließlich ihrer Änderungshistorie. Dauert in der Regel wenige Sekunden.",
         "title": "Suchindex reindizieren"
       }
     },

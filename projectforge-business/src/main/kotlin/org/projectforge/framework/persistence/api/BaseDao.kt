@@ -955,17 +955,21 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * The entities of a partial re-index (entries of the last day). [HistoryEntryDO] is not part of it: it is by far
-     * the largest table (millions of rows), so including it would turn the quick run into a full one.
+     * The entities of a partial re-index (entries of the last day), [HistoryEntryDO] included: its index is rebuilt
+     * as a whole by CronNightlyJob, so only the entries created since then are missing — and those are few.
+     *
+     * [HistoryEntryDO] holds the changes of every entity, so the run passes [doClass] as the entity name of the
+     * settings and only that entity's history is touched (see DatabaseDao.createMassIndexer).
      */
     open val reindexClasses4NewestEntries: List<Class<*>>
-        get() = listOf(doClass)
+        get() = listOf(doClass, HistoryEntryDO::class.java)
 
     /**
-     * The entities of a full re-index. Only here the history is rebuilt as well.
+     * The entities of a full re-index. Without the history: it belongs to no single entity, so rebuilding it from a
+     * list page would purge the history index of the whole system, and CronNightlyJob does it every night anyway.
      */
     open val reindexClasses: List<Class<*>>
-        get() = listOf(doClass, HistoryEntryDO::class.java)
+        get() = listOf(doClass)
 
     /**
      * Re-indexes the entries of the last day.
@@ -973,7 +977,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * @see DatabaseDao.createReindexSettings
      */
     open fun rebuildDatabaseIndex4NewestEntries() {
-        val settings = createReindexSettings(true)
+        val settings = createReindexSettings(true, doClass.name)
         reindexClasses4NewestEntries.forEach { clazz ->
             databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
         }

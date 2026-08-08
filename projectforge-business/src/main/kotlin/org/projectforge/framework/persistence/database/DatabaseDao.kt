@@ -132,12 +132,21 @@ open class DatabaseDao {
             .idFetchSize(150) // Größe des ID-Fetch
             .monitor(monitor) // Fortschrittsmonitor hinzufügen
         val fromDate = settings.fromDate
-        val modifiedAtProperty = ReindexerRegistry.get(clazz).modifiedAtProperty
+        val strategy = ReindexerRegistry.get(clazz)
+        val modifiedAtProperty = strategy.modifiedAtProperty
         if (fromDate != null && modifiedAtProperty != null) {
             // Only the recently modified entries: the rest of the index has to survive, so no purge. Without this
             // (purgeAllOnStart defaults to true) a partial run would wipe every document not touched by it.
             indexer.purgeAllOnStart(false)
-            indexer.type(clazz).reindexOnly("$modifiedAtProperty >= :fromDate").param("fromDate", fromDate)
+            val condition = StringBuilder("$modifiedAtProperty >= :fromDate")
+            // The change history holds the rows of all entities, so a run started for a single one has to say which
+            // (otherwise re-indexing the book list would also re-index yesterday's history of every other entity).
+            val entityName = settings.entityName?.takeIf { strategy.entityNameProperty != null }
+            if (entityName != null) {
+                condition.append(" and ${strategy.entityNameProperty} = :entityName")
+            }
+            val step = indexer.type(clazz).reindexOnly(condition.toString()).param("fromDate", fromDate)
+            entityName?.let { step.param("entityName", it) }
         } else if (fromDate != null) {
             log.info { "${clazz.simpleName}: No property of last modification known, so all entries are re-indexed." }
         }
@@ -146,16 +155,19 @@ open class DatabaseDao {
 
     companion object {
         /**
-         * Since yesterday. [ReindexSettings.lastNEntries] is set for the classic clients displaying it, but has no
+         * Since yesterday. [ReindexSettings.getLastNEntries] is set for the classic clients displaying it, but has no
          * effect on the indexing itself: reindexOnly of Hibernate Search takes a where condition without order or
          * limit, and limitIndexedObjectsTo would cap arbitrary entries, not the newest ones.
+         *
+         * @param entityName The entity the run was started for, restricting the change history to its own rows.
          */
         @JvmStatic
-        fun createReindexSettings(onlyNewest: Boolean): ReindexSettings {
+        @JvmOverloads
+        fun createReindexSettings(onlyNewest: Boolean, entityName: String? = null): ReindexSettings {
             return if (onlyNewest) {
                 val day = DayHolder()
                 day.add(Calendar.DAY_OF_MONTH, -1) // Since yesterday:
-                ReindexSettings(day.utilDate, 1000) // Maximum 1,000 newest entries.
+                ReindexSettings(day.utilDate, 1000, entityName) // Maximum 1,000 newest entries.
             } else {
                 ReindexSettings()
             }

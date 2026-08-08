@@ -68,10 +68,13 @@ import java.util.*
 @Entity
 @Table(
     name = "t_pf_history",
-    //indexes = [Index(
-    //    name = "ix_pf_history_ent",
-    //    columnList = "ENTITY_ID,ENTITY_NAME"
-    //), Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT")]
+    // Both are needed by the partial re-index (entries of one entity since yesterday) and by the history of a single
+    // entry. They exist in every Flyway-created schema (V1.0__Base_version.sql), declared here so that a schema
+    // created by Hibernate has them, too.
+    indexes = [
+        Index(name = "ix_pf_history_ent", columnList = "ENTITY_ID,ENTITY_NAME"),
+        Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT"),
+    ],
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
