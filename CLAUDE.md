@@ -10,6 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Package tests: `./gradlew test --tests "org.projectforge.package.*"`
 - Run specific module tests: `./gradlew :projectforge-business:test`
 
+## Language
+- Write all code comments, KDoc/JavaDoc, commit messages and documentation in English
+
 ## Code Style Guidelines
 - Use Kotlin JVM target 17 for all code; legacy code is in Java
 - Follow standard Kotlin naming conventions (camelCase for variables/functions, PascalCase for classes)
