@@ -26,6 +26,7 @@ package org.projectforge.rest.pub.next
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
@@ -39,16 +40,17 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Login of projectforge-next. Public service (available without login).
+ * Login of projectforge-next - the only login of the application since the UILayout pages were removed, used
+ * by Wicket and the legacy React app as well (they redirect to [Constants.NEXT_LOGIN_URL]).
+ * Public service (available without login).
  *
- * Same functionality as [org.projectforge.rest.pub.LoginPageRest], but with plain JSON instead of UILayout:
- * next builds the form by hand and needs the login state (and the reason of a failure) as data.
+ * Plain JSON instead of UILayout: next builds the form by hand and needs the login state (and the reason of a
+ * failure) as data.
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/${LoginNextRest.REST_PATH}")
@@ -69,14 +71,11 @@ open class LoginNextRest {
      * State of the login page. Has to be called before showing the login form: the user might already be logged-in,
      * might be pre-logged-in with a pending second factor (e. g. after a browser reload during the 2FA step), or
      * might carry a valid stay-logged-in cookie.
-     *
-     * @param url The caller may specify the url to redirect to after the login (stored in the user's session).
      */
     @GetMapping("status")
     fun getStatus(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        @RequestParam url: String? = null,
     ): NextLoginState {
         // [LoginService.checkLogin] instead of getUserContext: the latter reads the http session only, so a user
         // arriving with nothing but a valid stay-logged-in cookie (typically after a server restart) was shown the
@@ -98,9 +97,6 @@ open class LoginNextRest {
             log.warn { "Cross-site request, so no stay-logged-in restore is done here: ${RequestLog.asString(request)}" }
             LoginService.getUserContext(request)
         }
-        // After checkLogin, not before: a stay-logged-in restore calls LoginService.internalLogin, which invalidates
-        // the current session and creates a new one - the url would be written into the session about to be dropped.
-        LoginServiceRest.storeOriginUrl(request, url)
         val systemData = systemStatusRest.getSystemStatus(request)
         // Username/password were OK, but the second factor is still missing:
         val twoFactorRequired = userContext?.new2FARequired == true
@@ -141,7 +137,7 @@ open class LoginNextRest {
         }
         return NextLoginResult(
             status = NextLoginStatus.SUCCESS,
-            redirectUrl = LoginServiceRest.getRedirectUrl(request, null),
+            redirectUrl = LoginServiceRest.getRedirectUrl(request),
         )
     }
 

@@ -88,6 +88,21 @@ object Constants {
    */
   const val NEXT = "next"
   const val NEXT_APP_PATH = "next/"
+
+  /**
+   * The only login page of the application, served by projectforge-next. All three frontends (next, the legacy
+   * React app and Wicket) redirect unauthenticated users here, so the url is needed in projectforge-business
+   * as well (see WicketUserFilter).
+   *
+   * The name of the query parameter for the url to return to after the login is [NEXT_LOGIN_RETURN_URL_PARAM].
+   */
+  const val NEXT_LOGIN_URL = "/${NEXT_APP_PATH}login"
+
+  /**
+   * Query parameter of [NEXT_LOGIN_URL] carrying the url to return to after the login, e.g.
+   * `/next/login?returnUrl=%2Fwa%2Fscripting`. Read by `app/login/page.tsx` of projectforge-next.
+   */
+  const val NEXT_LOGIN_RETURN_URL_PARAM = "returnUrl"
   const val WICKET_APPLICATION_PATH = "wa/"
   const val WICKET_REQUEST_TIMEOUT_MINUTES = 5
 

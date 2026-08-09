@@ -23,10 +23,23 @@
 
 package org.projectforge.rest.pub
 
+import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 
 class LoginServiceRestTest {
+    /**
+     * Where a login without a requested target sends the user: the start page of the legacy React app, which
+     * still covers the whole application. Not derived from the request - the requested target is kept by the
+     * client, because a login rotates the http session (see the method's KDoc).
+     */
+    @Test
+    fun getRedirectUrlTest() {
+        val request = Mockito.mock(HttpServletRequest::class.java)
+        Assertions.assertEquals("/react/calendar", LoginServiceRest.getRedirectUrl(request))
+    }
+
     /**
      * After a login the user is sent to this url, so an unchecked one turns the login page into an open
      * redirect. Only relative paths of this application are acceptable.

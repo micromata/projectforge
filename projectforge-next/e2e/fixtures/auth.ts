@@ -21,29 +21,45 @@ export { expect };
 /**
  * Logs in through the real login form, so the test exercises the same path a user takes (and the
  * backend gets its session cookie the way it expects).
+ *
+ * @param returnUrl Where the login should return to, as `?returnUrl=`. Defaults to this app's start
+ *   page: without it the server sends the user to `/react/calendar` (the default of
+ *   `LoginServiceRest.getRedirectUrl`), which the Next dev server on :3000 cannot serve - the test
+ *   would then start on its 404 page.
  */
-export async function login(page: Page): Promise<void> {
+export async function login(page: Page, returnUrl = "/next/"): Promise<void> {
   const { username, password } = readCredentials();
-  // The login state is fetched by an effect of the login page, so its response proves React has
-  // hydrated. Without that wait the form is filled and submitted while the markup is still inert:
-  // the typed values never reach React's state, the submit handler isn't attached yet, and the test
-  // sits on /login until it times out. Registered before the navigation so it cannot be missed.
-  const hydrated = page
-    .waitForResponse(
-      (response) => response.url().includes("/nextLogin/status"),
-      {
-        timeout: 30_000,
-      }
-    )
-    .catch(() => undefined);
-  await goto(page, "/login");
-  await hydrated;
+  await goto(page, `/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+  await waitForHydration(page);
   await page.fill("#username", username);
   await page.fill("#password", password);
   await page.locator('button[type="submit"]').click();
   // The login redirects to the start page; waiting for the url to leave /login is what tells the
   // test the session exists. A failed login stays on /login and shows an alert instead.
   await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
+}
+
+/**
+ * Waits until React has hydrated the form of the current page.
+ *
+ * Without it a filled and submitted form is a race: the typed values never reach React's state and
+ * no submit handler is attached yet, so the browser performs the native submit and reloads the page
+ * with empty fields — which looks exactly like a rejected login. Waiting for a request of the page
+ * is not enough: it may be answered before hydration, and `/password-forgotten` issues none at all.
+ *
+ * `__reactProps$…` is React's own marker, attached to a DOM node as it is hydrated. Internal, but it
+ * is the only direct signal — everything else (a visible button, an awaited response) is present in
+ * the server-rendered markup already.
+ */
+export async function waitForHydration(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      Object.keys(document.querySelector("form") ?? {}).some((key) =>
+        key.startsWith("__reactProps$")
+      ),
+    undefined,
+    { timeout: 30_000 }
+  );
 }
 
 /**

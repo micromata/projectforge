@@ -69,7 +69,7 @@ open class TwoFactorLoginNextRest {
                 // The user is fully logged-in now, so tell the client where to continue:
                 NextTwoFactorResult(
                     success = true,
-                    redirectUrl = LoginServiceRest.getRedirectUrl(request, null),
+                    redirectUrl = LoginServiceRest.getRedirectUrl(request),
                 )
             }
         }
@@ -105,7 +105,7 @@ open class TwoFactorLoginNextRest {
             } else {
                 NextTwoFactorResult(
                     success = true,
-                    redirectUrl = LoginServiceRest.getRedirectUrl(request, null),
+                    redirectUrl = LoginServiceRest.getRedirectUrl(request),
                 )
             }
         }

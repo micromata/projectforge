@@ -12,7 +12,6 @@ import { DynamicLayoutContext } from '../../../context';
 
 function WebAuthn({ values }) {
     const { ui, data, callAction } = React.useContext(DynamicLayoutContext);
-    const [authenticationStarted, setAuthenticationStarted] = React.useState(false);
 
     const finishAuthenticate = async (publicKeyCredentialCreationOptions) => {
         const createRequest = convertPublicKeyCredentialRequestOptions(publicKeyCredentialCreationOptions);
@@ -27,24 +26,17 @@ function WebAuthn({ values }) {
         );
     };
 
+    // The user is always logged in here: the 2FA of the login itself lives in projectforge-next,
+    // this component only serves the in-session 2FA. Hence no auto start - the user clicks the button.
     const authenticate = () => {
-        setAuthenticationStarted(true);
         fetchJsonGet(
-            values.authenticateUrl || 'webauthn/webAuthn',
+            'webauthn/webAuthn',
             {},
             (json) => {
                 finishAuthenticate(json);
             },
         );
     };
-
-    // Auto-start WebAuthn authentication when component mounts, but only for login context
-    // (when authenticateUrl is explicitly provided, indicating this is the public login service)
-    React.useEffect(() => {
-        if (!authenticationStarted && values.authenticateUrl) {
-            authenticate();
-        }
-    }, []);
 
     return (
         <>
@@ -61,7 +53,6 @@ function WebAuthn({ values }) {
 WebAuthn.propTypes = {
     values: PropTypes.shape({
         authenticateFinishUrl: PropTypes.string.isRequired,
-        authenticateUrl: PropTypes.string,
     }).isRequired,
 };
 

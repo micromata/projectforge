@@ -95,6 +95,7 @@
   },
   "calendar": {
     "chooseDate": "Choose date",
+    "chooseTime": "Choose time",
     "today": "Today"
   },
   "cancel": "Cancel",
@@ -219,6 +220,7 @@
     "notContains": "Does not contain",
     "notEqual": "Not equal",
     "period": "Period",
+    "periodChoose": "Choose period",
     "removeEntry": "Remove filter {arg0}",
     "reset": "Reset",
     "search": "Search...",

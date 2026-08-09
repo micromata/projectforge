@@ -24,11 +24,11 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.RestResolver
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,7 +53,7 @@ open class LogoutRest {
   fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
     loginService.logout(request, response)
     return ResponseAction(
-      url = "/${RestResolver.REACT_PUBLIC_PATH}/login",
+      url = Constants.NEXT_LOGIN_URL,
       targetType = TargetType.CHECK_AUTHENTICATION
     )
   }

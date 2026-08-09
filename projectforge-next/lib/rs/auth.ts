@@ -83,18 +83,13 @@ export interface ActionResult {
 // --- Login ---
 
 /**
- * @param url Where to return to after the login (stored in the user's session).
+ * Takes no return url: a successful login rotates the http session (session fixation),
+ * so the server cannot hold one across it. The login page keeps it in its query string
+ * instead, and `redirectUrl` of the responses is only the default for a login opened
+ * without one.
  */
-export function fetchLoginState(
-  url?: string,
-  signal?: AbortSignal
-): Promise<LoginState> {
-  const query = url ? `?url=${encodeURIComponent(url)}` : "";
-  return request<LoginState>(
-    `${LOGIN_PATH}/status${query}`,
-    { method: "GET" },
-    signal
-  );
+export function fetchLoginState(signal?: AbortSignal): Promise<LoginState> {
+  return request<LoginState>(`${LOGIN_PATH}/status`, { method: "GET" }, signal);
 }
 
 export function login(

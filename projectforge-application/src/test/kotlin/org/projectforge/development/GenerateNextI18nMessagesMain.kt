@@ -96,10 +96,11 @@ object GenerateNextI18nMessagesMain {
     "date",
     // Wait indicator, e.g. while a column filter builds its value list.
     "loading",
-    // The calendar popover of a date input (components/shared/date-input.tsx). Only these two keys,
-    // not the whole "calendar." tree — that one holds the holiday names and the calendar module's
-    // own texts, none of which next shows.
+    // The popovers of a date and a time input (components/shared/date-input.tsx,
+    // components/shared/time-input.tsx). Only these keys, not the whole "calendar." tree — that one
+    // holds the holiday names and the calendar module's own texts, none of which next shows.
     "calendar.chooseDate",
+    "calendar.chooseTime",
     "calendar.today",
     // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
     // spelling out every key that happens to share a prefix.

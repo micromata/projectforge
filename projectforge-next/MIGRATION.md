@@ -218,10 +218,31 @@ vorhanden) erhalten bleiben und sich einen Namespace teilen können.
 Kollisionsfall `book.title` (Leaf) + `book.title.add` (Objekt) → `_`-Schlüssel.
 **Regel:** neue UI-Texte zuerst in `I18nResources` anlegen, dann generieren.
 
-**Erledigt: Auth-Flow vollständig in next.** Login, 2FA (inkl. WebAuthn),
-Passwort-vergessen, Passwort-Reset per Token-Link und der In-Session-2FA-Dialog
-laufen jetzt in `next`; die React-Anmeldung ist nur noch Rückfallebene (Löschung
-als eigener Commit).
+**Erledigt: Auth-Flow vollständig in next, Legacy gelöscht.** Login, 2FA (inkl.
+WebAuthn), Passwort-vergessen, Passwort-Reset per Token-Link und der
+In-Session-2FA-Dialog laufen in `next`. `/next/login` ist der **einzige** Login
+der Anwendung: Wicket (`WicketUserFilter`, `WicketUtils.redirectToLogin`), die
+alte React-App (`actions/authentication.js`) und `LogoutRest` leiten dorthin um,
+Ziel-URL als `?returnUrl=<urlencoded>` (`Constants.NEXT_LOGIN_URL` /
+`NEXT_LOGIN_RETURN_URL_PARAM` in `projectforge-business`, weil der
+`WicketUserFilter` dort liegt). Gelöscht: `LoginPageRest`,
+`PasswordForgottenPageRest`, `PasswordResetPageRest`,
+`My2FAPublicServicesRest` und die unbenutzte `login()`-Action der React-App.
+`My2FAServicesRest` bedient damit nur noch angemeldete Nutzer:
+`fillLayout4PublicPage` und der `afterLogin`-Zweig (`CHECK_AUTHENTICATION`) sind
+weg, `WebAuthnAuthenticate.jsx` startet nicht mehr automatisch.
+
+- **Die Ziel-URL hält der Client.** `LoginServiceRest.getRedirectUrl` liefert nur
+  noch den Default (`/react/calendar`); die Referer-Auswertung und der
+  Session-Key `originUrl` sind weg. Grund: Ein erfolgreicher Login rotiert die
+  HttpSession (Session-Fixation, `LoginService.internalLogin`), also überlebt
+  nichts, was der Server vor dem Login dort ablegt – das alte Login-Formular trug
+  die URL über die Rotation in `serverData.returnToCaller`, ein JSON-Client hat
+  diesen Rückweg nicht. In next steht der `returnUrl` ohnehin durchgehend in der
+  Adressleiste, auch über den 2FA-Schritt. Der Server-Wert gilt daher nur für
+  einen Login ohne angeforderte Ziel-URL (`app/login/page.tsx`, `goTo`).
+  Symptom vorher: der explizit angeforderte `returnUrl` wurde nach dem Login
+  durch `/react/calendar` ersetzt – gefunden von `e2e/login.spec.ts`.
 
 - **Neue schlanke JSON-Endpunkte** statt UILayout-Parsing:
   `org.projectforge.rest.pub.next.LoginNextRest` (`/rsPublic/nextLogin`),
@@ -259,14 +280,19 @@ als eigener Commit).
   `cancel`, …) sind in `GenerateNextI18nMessagesMain` aufgenommen; die
   Frontend-Kataloge halten nur noch die Texte ohne Backend-Pendant
   (Zwischenzustände wie „Prüfe…", „Warte auf Token…").
-- Der Passwort-Reset führt eigene Session-Bookkeeping (eigener Session-Key)
-  neben `PasswordResetPageRest`: jedes Frontend erzeugt und verbraucht seinen
-  eigenen Link, validiert wird der Token vom gemeinsamen `PasswordResetService`.
-  Die Server-Garantien bleiben: 10-Minuten-2FA-Fenster, CSRF-Token, Mail-OTP
-  gesperrt, Token nach Erfolg invalidiert.
+- Der Passwort-Reset führt eigenes Session-Bookkeeping (eigener Session-Key).
+  Die Server-Garantien des gelöschten `PasswordResetPageRest` bleiben:
+  10-Minuten-2FA-Fenster, CSRF-Token, Mail-OTP gesperrt, Token nach Erfolg
+  invalidiert; validiert wird der Token vom unveränderten
+  `PasswordResetService`.
+- **Dev-Umgebung:** unter `:8080` gibt es keinen Login mehr, solange kein
+  Static-Export von next vorliegt. Entweder einmal
+  `./gradlew :projectforge-next:npmBuild` laufen lassen, oder sich über den
+  Dev-Server `:3000/next/login` anmelden – dank gemeinsamem `JSESSIONID` gilt
+  die Session auch für `/wa/*` und `/react/*` unter `:8080`.
 
 **Sicherheits-Review gegen die React-Version (abgeschlossen).** Der Auth-Teil
-wurde Code-für-Code gegen `LoginPageRest`, `My2FAServicesRest`,
+wurde vor der Löschung Code-für-Code gegen `LoginPageRest`, `My2FAServicesRest`,
 `PasswordResetPageRest` und die React-Komponenten geprüft. Keine Rechte- oder
 Authentifizierungslücke: Brute-Force (`LoginProtection`,
 `My2FABruteForceProtection` über `internalCheckOTP`), Session-Fixation
@@ -280,9 +306,11 @@ Session werden vollständig wiederverwendet; `RegisterUser4Thread` ist überall 
   2FA-Dialog. Jetzt wie in `getStatus`: `getUserContext(request)?.new2FARequired`.
 - `two-factor-provider.tsx` sammelt mehrere gleichzeitig unterbrochene Requests
   in einer Resolver-Liste; vorher scheiterten alle bis auf einen.
-- `sanitizeRedirectUrl` (`lib/menu-url.ts`) verwirft `returnUrl`/`redirectUrl`
-  mit Schema oder Host – `LoginServiceRest.getRedirectUrl` gibt den Wert
-  ungeprüft zurück, `/next/login?returnUrl=…` war damit ein Open Redirect.
+- `sanitizeRedirectUrl` verwirft `returnUrl`/`redirectUrl` mit Schema oder Host,
+  auf beiden Seiten (`lib/menu-url.ts` und `LoginServiceRest.sanitizeRedirectUrl`
+  – die Client-Kopie allein schützt niemanden). `/next/login?returnUrl=…` war
+  sonst ein Open Redirect und damit ein überzeugender Phishing-Zwischenschritt:
+  das Opfer hat sich wirklich bei ProjectForge angemeldet.
 - `NextTwoFactorSupport.sendMailCode` prüft `isMail2FADisabledForUser` vorab
   (sonst `require` in `My2FAHttpService` → HTTP 500 statt Meldung).
 
@@ -290,8 +318,9 @@ Bewusst als Legacy-Parität belassen: `cancel` ist überall ein zustandsändernd
 `@GetMapping` (Umstellung betrifft beide Frontends), das `last2FA`-Cookie wird
 auch im Reset-Flow geschrieben, `CookieService.checkStayLoggedIn` stellt
 `lastSuccessful2FA` nicht wieder her (Zeile auskommentiert), und `NO_2FA_URLS`
-matcht per Prefix. Strenger als Legacy: `PasswordResetNextRest.setPassword`
-erzwingt das 2FA serverseitig, `PasswordResetPageRest.post()` nur per UI.
+matcht per Prefix. Strenger als das gelöschte Legacy:
+`PasswordResetNextRest.setPassword` erzwingt das 2FA serverseitig,
+`PasswordResetPageRest.post()` hatte es nur per UI verlangt.
 Offen: `toPublicKeyOptions` reicht `extensions` nicht mehr durch – mit einem
 echten Token im Browser prüfen.
 
@@ -438,7 +467,7 @@ mehr im Projekt** – das ist die Prüfung.
 
 - **Der Wert ist immer der ISO-String `yyyy-MM-dd`, nie ein `Date`.** So reist ein
   `LocalDate` über den Draht (`LocalDateConverter`), und `filter-fns.ts` vergleicht
-  Datums-Spaltenfilter **lexikografisch** auf `YYYY-MM-DD`. Nur der Text *im Feld*
+  Datums-Spaltenfilter **lexikografisch** auf `YYYY-MM-DD`. Nur der Text _im Feld_
   ist lokalisiert. `Date` ↔ ISO passiert ausschließlich in `dateOf`/`isoOf`
   (`lib/date-parse.ts`), aus den drei Zahlen in der lokalen Zone – `new Date(iso)`
   wäre UTC-Mitternacht und kann einen Tag zurückfallen.
@@ -1159,7 +1188,9 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten) und gemerkter
   Filtereinstellung, i18n-Generierung aus `I18nResources`.
 - **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
-  In-Session-2FA-Dialog laufen in next (React-Login nur noch Rückfallebene).
+  In-Session-2FA-Dialog laufen in next. `/next/login` ist der einzige Login
+  aller drei Frontends, die UILayout-Pendants sind gelöscht
+  (`e2e/login.spec.ts`).
 - **CSRF-Schutz** – zentral für alle `/rs/*`-Aufrufe (`RestCsrfProtection`:
   `Sec-Fetch-Site` + Session-Token im Header), damit erben neue Endpunkte den
   Schutz ohne Zutun. Damit darf eine next-Seite schreiben.
@@ -1204,9 +1235,19 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich).
-4. **Auth im Browser durchspielen** (steht noch aus, s. Liste unten) und danach
-   den React-Auth-Code löschen: `WebAuthnAuthenticate.jsx`,
-   `actions/authentication.js`, `/react/public/login`-Routing.
+4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
+   gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
+   ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
+   Passwort-vergessen), der Wicket-Umweg (ohne Session `302` auf
+   `/next/login?returnUrl=%2Fwa%2FtaskTree`, mit Session `200`), der Logout
+   (`{"url":"/next/login"}`, danach `/rs/userStatus` → `401`) und dass die
+   gelöschten UILayout-Endpunkte `404` liefern und nirgends mehr verlinkt sind.
+   Offen bleibt, was einen echten zweiten Faktor oder ein Mailkonto braucht:
+   WebAuthn-Token (`toPublicKeyOptions` reicht `extensions` nicht mehr durch),
+   OTP/SMS/Mail-2FA nach dem Login, der Token-Link der Reset-Mail
+   (`/next/password-reset?token=…`), „angemeldet bleiben" und der
+   In-Session-2FA-Dialog der alten React-App (z. B. `/react/myAccount`), der
+   weiterhin über `My2FAPageRest` läuft.
 
 **Reihenfolge-Grundsatz:** `books` bleibt die Vorlage – was dort fehlt, fehlt
 jeder migrierten Seite. Deshalb erst `books` fertig, dann in die Breite.

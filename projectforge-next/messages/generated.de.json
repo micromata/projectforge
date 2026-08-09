@@ -95,6 +95,7 @@
   },
   "calendar": {
     "chooseDate": "Datum auswählen",
+    "chooseTime": "Uhrzeit auswählen",
     "today": "Heute"
   },
   "cancel": "Abbrechen",
@@ -219,6 +220,7 @@
     "notContains": "Enthält nicht",
     "notEqual": "Ungleich",
     "period": "Zeitraum",
+    "periodChoose": "Zeitraum wählen",
     "removeEntry": "Filter {arg0} entfernen",
     "reset": "Zurücksetzen",
     "search": "Suchen...",

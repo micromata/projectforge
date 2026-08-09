@@ -50,20 +50,29 @@ function LoginForm() {
   // Set once username/password were accepted but a second factor is missing.
   const [methods, setMethods] = useState<TwoFactorMethods | null>(null);
 
-  // Both the query param and the server's redirectUrl are caller-supplied, so
-  // they must stay on this server (open redirect otherwise).
-  const returnUrl = sanitizeRedirectUrl(searchParams.get("returnUrl")) ?? "/";
+  // Where the user wanted to go, as WicketUserFilter/WicketUtils and the legacy
+  // React app hand it over. Caller-supplied, so it must stay on this server (open
+  // redirect otherwise) - as must the server's redirectUrl.
+  const returnUrl = sanitizeRedirectUrl(searchParams.get("returnUrl"));
 
   /**
-   * Follows the server's redirect if it points at another frontend, otherwise
-   * routes inside this app.
+   * Follows the redirect target if it points at another frontend, otherwise routes
+   * inside this app.
+   *
+   * The requested url wins over the server's, and the server has no say in it: a
+   * successful login rotates the http session (LoginService.internalLogin, session
+   * fixation), so nothing the server stored before the login survives it. The legacy
+   * login form carried the url through that rotation in `serverData`; here it simply
+   * stays in the address bar, through the 2FA step as well. The server's `redirectUrl`
+   * is therefore only the default for a login opened without one - and that default is
+   * `/react/calendar`, not this app's start page, so don't substitute "/" for it.
    */
   const goTo = useCallback(
     async (redirectUrl?: string | null) => {
       await queryClient.invalidateQueries({ queryKey: ["userStatus"] });
-      const safeUrl = sanitizeRedirectUrl(redirectUrl);
+      const safeUrl = returnUrl ?? sanitizeRedirectUrl(redirectUrl);
       if (!safeUrl) {
-        router.push(returnUrl);
+        router.push("/");
         return;
       }
       const target = resolveMenuUrl(safeUrl);
@@ -80,7 +89,7 @@ function LoginForm() {
   // second factor (e.g. after a browser reload during the 2FA step).
   useEffect(() => {
     let cancelled = false;
-    fetchLoginState(returnUrl)
+    fetchLoginState()
       .then((state) => {
         if (cancelled) return;
         if (state.setupRedirectUrl) {
