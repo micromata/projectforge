@@ -7,7 +7,6 @@ import { Spinner } from "@/components/shared/spinner";
 import {
   DataTable,
   DataTableColumnPanel,
-  FilterAllDialog,
   FilterFavoritesMenu,
   FilterPills,
   filterValuesFromEntries,
@@ -23,6 +22,7 @@ import {
   useStoredColumnState,
   useTableState,
   type ColumnState,
+  type FilterValues,
 } from "@/components/data-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useBooksColumns } from "@/components/features/books/books-columns";
@@ -172,6 +172,17 @@ function BooksList({
   }
 
   /**
+   * Takes the filter row's edits — and drops the link to the saved filter once nothing is left:
+   * an empty filter is no longer that favorite, so marking it as modified (and offering to save
+   * the emptiness back into it) would be wrong.
+   */
+  function applyValues(values: FilterValues) {
+    filters.setValues(values);
+    if (Object.keys(values).length === 0 && !globalFilter)
+      filters.setFavorite(undefined);
+  }
+
+  /**
    * The local half of the gear menu's "reset filter": the endpoint only drops what the server
    * stores. It discards the grid state along with the filter, so the columns go with it.
    */
@@ -204,20 +215,12 @@ function BooksList({
               <FilterPills
                 elements={filters.elements}
                 values={filters.values}
-                onChange={filters.setValues}
+                onChange={applyValues}
                 trailing={
-                  <>
-                    <FilterAllDialog
-                      elements={filters.elements}
-                      values={filters.values}
-                      onApply={filters.setValues}
-                      className="h-6 gap-1 rounded-full px-2.5 text-xs"
-                    />
-                    <FilterFavoritesMenu
-                      favorites={favorites}
-                      className="h-6 gap-1 rounded-full px-2.5 text-xs"
-                    />
-                  </>
+                  <FilterFavoritesMenu
+                    favorites={favorites}
+                    className="h-6 gap-1 rounded-full px-2.5 text-xs"
+                  />
                 }
               />
             }

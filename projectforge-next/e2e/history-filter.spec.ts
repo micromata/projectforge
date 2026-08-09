@@ -215,6 +215,36 @@ test.describe("history filter", () => {
     expect(value?.value.value).toBe("Titel");
   });
 
+  test("applies the history filter from the all-filters panel", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/books");
+
+    // The panel is the picker's second view, so it shares the "+" chip with the field list.
+    await page.getByRole("button", { name: t("filter.addField") }).click();
+    await page
+      .getByRole("button", { name: t("filter.allFilters"), exact: true })
+      .click();
+    await choosePeriod(page, t, t("search.lastMinutes", { arg0: 30 }));
+
+    const request = listRequest(page);
+    await page.getByRole("button", { name: t("apply"), exact: true }).click();
+
+    const interval = (await request).entries.find(
+      (entry) => entry.field === "modifiedInterval"
+    );
+    expect(interval?.value.from).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+    );
+    // And the panel's result shows up as the grouped pill, exactly as the pill's own path does.
+    await expect(
+      page.getByRole("button", {
+        name: t("filter.editEntry", { arg0: t("filter.history") }),
+      })
+    ).toHaveCount(1);
+  });
+
   test("removes all three criteria at once", async ({ loggedInPage: page }) => {
     const { t } = await userFormat(page);
     await goto(page, "/books");

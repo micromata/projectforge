@@ -5,7 +5,6 @@ export { DataTable } from "./data-table";
 export type { DataTableProps } from "./data-table";
 export { DataTableColumnHeader } from "./data-table-column-header";
 export { DataTableColumnPanel } from "./data-table-column-panel";
-export { FilterAllDialog } from "./filter-all-dialog";
 export { FilterPills } from "./filter-pills";
 export { FilterFavoritesMenu } from "./filter-favorites-menu";
 export { ListGearMenu } from "./list-gear-menu";

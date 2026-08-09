@@ -22,15 +22,14 @@ interface FilterPillsProps {
   elements: FilterElement[];
   values: FilterValues;
   onChange: (values: FilterValues) => void;
-  /** Sits next to the "add filter" chip — meant for the "all filters" dialog trigger. */
+  /** Sits at the end of the row — meant for the saved-filters menu. */
   trailing?: React.ReactNode;
   className?: string;
 }
 
 /**
  * The list's filters as pills: each one opens its own input, and the "add filter" chip
- * picks another field. This is the primary filter surface — the "all filters" dialog only
- * adds an overview of everything the backend offers.
+ * picks another field — or opens every field at once (see [FilterFieldPicker]).
  *
  * The three change-history fields share one pill under the pseudo id `historyFilter`; see
  * [historyFilterGroupOf].
@@ -121,6 +120,9 @@ export function FilterPills({
           if (!(id in values)) setPendingId(id);
           setOpenId(id);
         }}
+        elements={elements}
+        values={values}
+        onApply={onChange}
       />
       {activeCount > 0 && (
         <button
