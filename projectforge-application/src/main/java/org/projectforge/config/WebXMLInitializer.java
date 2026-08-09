@@ -74,6 +74,17 @@ public class WebXMLInitializer implements ServletContextInitializer {
         securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
 
         if (pfSpringConfiguration.getCorsFilterEnabled()) {
+            // The CORS filter sends Access-Control-Allow-Credentials: true and relaxes the Sec-Fetch-Site barrier of
+            // RestCsrfProtection, so an unrestricted origin would let any web site drive a logged-in user's
+            // ProjectForge. It is a development setting, but it lives in projectforge.properties, so refuse to start
+            // rather than trust that nobody copies it into a production configuration.
+            final String allowedOrigins = pfSpringConfiguration.getCorsAllowedOrigins();
+            if (allowedOrigins == null || allowedOrigins.isBlank() || allowedOrigins.contains("*")) {
+                throw new ServletException("projectforge.web.development.enableCORSFilter=true requires explicit"
+                        + " origins in projectforge.web.development.enableCORSFilter.allowedOrigins (given: '"
+                        + allowedOrigins + "'). A wildcard origin combined with credentials would disable the CSRF"
+                        + " protection for any web site.");
+            }
             log.warn("************* Enabling CorsPreflightFilter for development. *************");
             FilterRegistration.Dynamic corsPreflightFilter = sc.addFilter("CorsPreflightFilter", CorsPreflightFilter.class);
             corsPreflightFilter.addMappingForUrlPatterns(null, false, "/*");

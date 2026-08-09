@@ -26,6 +26,7 @@ package org.projectforge.business.user
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.UserAccessLogEntry
 import java.util.*
 
@@ -47,7 +48,7 @@ class UserAccessLogEntries(val tokenType: UserTokenType) {
   }
 
   fun update(request: HttpServletRequest) {
-    val ip = request.remoteAddr
+    val ip = WebUtils.getClientIp(request)
     val userAgent = request.getHeader("User-Agent")
     update(userAgent = userAgent, ip = ip)
   }

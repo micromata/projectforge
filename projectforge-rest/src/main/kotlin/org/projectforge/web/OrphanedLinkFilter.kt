@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.business.vacation.service.VacationSendMailService
+import org.projectforge.menu.builder.MenuItemDefId
 import java.io.IOException
 
 private val log = KotlinLogging.logger {}
@@ -59,11 +60,15 @@ class OrphanedLinkFilter : Filter {
             redirect(servletResponse, uri, "/react/calendar")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
-            redirect(
-                servletResponse,
-                uri,
-                VacationSendMailService.getLinkToVacationEntry(servletRequest.getParameter("id")),
-            )
+            // The id is interpolated into the Location header, so only accept what an id can be: anything else is
+            // either a broken bookmark or somebody trying to smuggle query params into the target url.
+            val id = servletRequest.getParameter("id")?.toLongOrNull()
+            if (id == null) {
+                log.info { "Orphaned link '$uri' without a valid id parameter, redirecting to the vacation list." }
+                redirect(servletResponse, uri, VACATION_LIST_URL)
+            } else {
+                redirect(servletResponse, uri, VacationSendMailService.getLinkToVacationEntry(id))
+            }
         } else {
             chain.doFilter(servletRequest, servletResponse)
         }
@@ -82,5 +87,9 @@ class OrphanedLinkFilter : Filter {
      */
     @Throws(ServletException::class)
     override fun init(fConfig: FilterConfig) {
+    }
+
+    companion object {
+        private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
     }
 }
