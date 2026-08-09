@@ -135,6 +135,57 @@ test.describe("book attachments", () => {
     }
   });
 
+  test("downloads and deletes a whole selection", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, `/books/${BOOK_ID}`);
+    const names = [fileName("multi-a"), fileName("multi-b")];
+
+    try {
+      for (const name of names) await upload(page, name);
+
+      // The rows are picked one by one, not through select-all: the book is a real one and may
+      // already carry attachments this test must not touch.
+      for (const name of names) {
+        await page
+          .getByRole("checkbox", { name: `Auswählen: ${name}` })
+          .click();
+      }
+
+      // One ZIP for the selection (multiDownload), so what arrives is a .zip — the files' own names
+      // are inside it, out of the test's reach.
+      const download = page.waitForEvent("download");
+      await page
+        .getByRole("link", { name: /ausgewählte dateien herunterladen/i })
+        .click();
+      expect((await download).suggestedFilename()).toMatch(/\.zip$/);
+
+      await page
+        .getByRole("button", { name: /ausgewählte dateien löschen/i })
+        .click();
+      // The plural question, not the single row's: multiDelete is just as final, but it says how
+      // many files it takes.
+      await expect(
+        page.getByText(/alle ausgewählten dateien unwiderruflich/i)
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: /^löschen$/i })
+        .last()
+        .click();
+
+      // multiDelete answers with the one list that remains, so both rows go in a single update.
+      for (const name of names) {
+        await expect(storedRow(page, name)).toHaveCount(0);
+      }
+    } finally {
+      for (const leftover of names) {
+        if (await storedRow(page, leftover).count()) {
+          await remove(page, leftover);
+        }
+      }
+    }
+  });
+
   test("says attachments need a saved book when adding one", async ({
     loggedInPage: page,
   }) => {

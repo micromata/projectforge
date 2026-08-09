@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Spinner } from "@/components/shared/spinner";
 import {
   useAttachments,
   useAttachmentMutations,
 } from "@/hooks/use-attachments";
 import { useAttachmentUploads } from "@/hooks/use-attachment-uploads";
-import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
+import type { AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentDropArea } from "./attachment-drop-area";
-import { AttachmentEditDialog } from "./attachment-edit-dialog";
-import { AttachmentRow } from "./attachment-row";
+import { AttachmentFiles } from "./attachment-files";
 import { AttachmentUploadRow } from "./attachment-upload-row";
 
 export interface AttachmentListProps {
@@ -26,7 +24,8 @@ export interface AttachmentListProps {
 }
 
 /**
- * The attachments of one entity: upload, download, rename, delete.
+ * The attachments of one entity: upload, download, rename, delete, and the same on a whole
+ * selection (download as one ZIP, delete at once — see AttachmentFiles).
  *
  * Generic, not tied to a feature: every `AbstractPagesRest` page may have attachments (books,
  * contracts, orders, invoices, scripts), so this is the shared counterpart of the legacy
@@ -34,15 +33,13 @@ export interface AttachmentListProps {
  *
  * Not a `DataTable`: a handful of files per entity inside a form section have no sorting, paging or
  * column state to speak of, and the table primitive's own scroll container would fight the form's.
- * Multi-select download/delete (`multiDownload`, `multiDelete`) is deliberately left out for the
- * same reason — the per-row actions cover the case without a selection model.
+ * The selection is a set of `fileId`s of its own (see useAttachmentSelection) rather than the
+ * table's index-keyed row selection.
  */
 export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
-  const { rename, remove, mergeResult } = useAttachmentMutations(entity, id);
-  const [editing, setEditing] = useState<Attachment | null>(null);
-  const [deleting, setDeleting] = useState<Attachment | null>(null);
+  const { mergeResult } = useAttachmentMutations(entity, id);
 
   /**
    * A refusal is a regular HTTP 200 answer (duplicate name, file too large) carrying the backend's
@@ -86,42 +83,10 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   }
 
   const attachments = data ?? [];
-  const busy = rename.isPending || remove.isPending;
-
-  function report(result: AttachmentWriteResult): void {
-    if (result.kind === "rejected") {
-      toast.error(result.message || t("validation.error.generic"));
-    }
-  }
-
-  async function saveEdit(name: string, description: string) {
-    if (!editing) return;
-    try {
-      report(
-        await rename.mutateAsync({ fileId: editing.fileId, name, description })
-      );
-      setEditing(null);
-    } catch {
-      toast.error(t("validation.error.generic"));
-    }
-  }
-
-  async function confirmDelete() {
-    if (!deleting) return;
-    const file = deleting;
-    setDeleting(null);
-    try {
-      report(await remove.mutateAsync(file.fileId));
-    } catch {
-      toast.error(t("validation.error.generic"));
-    }
-  }
 
   return (
     <div className="flex flex-col gap-3">
-      {!readOnly && (
-        <AttachmentDropArea onFiles={uploads.enqueue} disabled={busy} />
-      )}
+      {!readOnly && <AttachmentDropArea onFiles={uploads.enqueue} />}
       {/* The uploads sit above the list: they are what just happened, and each finished one moves
           down into the list by itself. */}
       {uploads.jobs.length > 0 && (
@@ -136,44 +101,16 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
         </ul>
       )}
       {attachments.length === 0 ? (
+        // Nothing stored and nothing on its way: the uploads above would otherwise be contradicted.
         uploads.jobs.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
         )
       ) : (
-        <ul className="flex flex-col">
-          {attachments.map((attachment) => (
-            <AttachmentRow
-              key={attachment.fileId}
-              attachment={attachment}
-              entity={entity}
-              id={id}
-              busy={busy || readOnly}
-              onEdit={setEditing}
-              onDelete={setDeleting}
-            />
-          ))}
-        </ul>
-      )}
-
-      {editing && (
-        <AttachmentEditDialog
-          attachment={editing}
-          saving={rename.isPending}
-          onSave={(name, description) => void saveEdit(name, description)}
-          onClose={() => setEditing(null)}
-        />
-      )}
-      {deleting && (
-        <ConfirmDialog
-          open
-          onOpenChange={(open) => !open && setDeleting(null)}
-          title={t("delete")}
-          // The final question, not markAsDeletedQuestion: the JCR keeps no history of removed
-          // files, so this cannot be undone.
-          description={t("question.deleteQuestion")}
-          confirmLabel={t("delete")}
-          destructive
-          onConfirm={() => void confirmDelete()}
+        <AttachmentFiles
+          attachments={attachments}
+          entity={entity}
+          id={id}
+          readOnly={readOnly}
         />
       )}
     </div>

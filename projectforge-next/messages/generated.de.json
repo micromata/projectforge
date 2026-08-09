@@ -414,6 +414,14 @@
     "sinceYesterday": "Seit gestern",
     "today": "Heute"
   },
+  "select": {
+    "_": "Auswählen",
+    "placeholder": "Auswählen..."
+  },
+  "selectAll": "Alle auswählen",
+  "selectDate": "Auswählen",
+  "selectGroup": "Auswählen",
+  "selectTask": "Auswählen",
   "settings": "Einstellungen",
   "status": "Status",
   "task": {

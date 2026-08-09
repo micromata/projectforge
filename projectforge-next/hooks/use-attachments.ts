@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteAttachment,
+  deleteAttachments,
   fetchAttachments,
   modifyAttachment,
   type Attachment,
@@ -97,5 +98,14 @@ export function useAttachmentMutations(entity: string, id: number | null) {
     onSuccess: applyResult,
   });
 
-  return { rename, remove, mergeResult };
+  /**
+   * Deletes a whole selection in one call, so the cache is written once with the list the backend is
+   * left with — see deleteAttachments for why this isn't a loop over [remove].
+   */
+  const removeMany = useMutation<AttachmentWriteResult, Error, string[]>({
+    mutationFn: (fileIds) => deleteAttachments(entity, id!, fileIds),
+    onSuccess: applyResult,
+  });
+
+  return { rename, remove, removeMany, mergeResult };
 }

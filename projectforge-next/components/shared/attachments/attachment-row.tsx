@@ -9,6 +9,7 @@ import {
   LockIcon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
 
 interface Props {
@@ -18,6 +19,9 @@ interface Props {
   onEdit: (attachment: Attachment) => void;
   onDelete: (attachment: Attachment) => void;
   busy?: boolean;
+  /** Omitted where a selection makes no sense (read-only list): the checkbox then stays away. */
+  selected?: boolean;
+  onSelectedChange?: (selected: boolean) => void;
 }
 
 /**
@@ -36,12 +40,24 @@ export function AttachmentRow({
   onEdit,
   onDelete,
   busy,
+  selected,
+  onSelectedChange,
 }: Props) {
   const t = useTranslations();
   const readonly = attachment.readonly === true;
 
   return (
     <li className="flex items-center gap-3 border-b border-border/60 py-2 last:border-b-0">
+      {onSelectedChange && (
+        <Checkbox
+          checked={selected ?? false}
+          disabled={busy}
+          // The rows all look alike, so the name has to say which file this picks.
+          // `select._`, since the key has a `placeholder` subkey and so becomes a namespace.
+          aria-label={`${t("select._")}: ${attachment.name}`}
+          onCheckedChange={(checked) => onSelectedChange(checked === true)}
+        />
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-1.5">
           <span className="truncate text-xs font-medium">

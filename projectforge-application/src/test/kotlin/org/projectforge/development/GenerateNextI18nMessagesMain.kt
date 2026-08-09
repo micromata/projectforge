@@ -121,6 +121,10 @@ object GenerateNextI18nMessagesMain {
     "attachment",
     "copy",
     "file.upload.",
+    // Multi-selection of attachments: the row checkboxes ("select") and the select-all one
+    // ("selectAll"). Without the dot, so the bare "select" key exports too — as "select._", since
+    // select.placeholder makes it a namespace. selectDate/selectGroup/selectTask come along.
+    "select",
     "edit",
     "download",
     "description",

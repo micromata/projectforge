@@ -184,6 +184,33 @@ export function deleteAttachment(
 }
 
 /**
+ * Deletes several attachments in one call (`multiDelete`).
+ *
+ * Not a loop over [deleteAttachment]: every single delete rewrites the entity's JCR node and
+ * answers with a full list, so n calls would mean n round trips and n snapshots racing each other
+ * in the cache. The backend deletes what the user may delete and answers with the one list that
+ * remains.
+ */
+export function deleteAttachments(
+  entity: string,
+  id: number,
+  fileIds: string[],
+  listId: string = DEFAULT_LIST_ID,
+  signal?: AbortSignal
+): Promise<AttachmentWriteResult> {
+  return write(
+    `${BASE}/multiDelete`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        data: { category: entity, id, fileIds, listId },
+      }),
+    },
+    signal
+  );
+}
+
+/**
  * Where a single attachment can be downloaded from.
  *
  * A plain URL rather than a fetch: the answer is the file itself (`Content-Disposition:
@@ -196,6 +223,24 @@ export function attachmentDownloadUrl(ref: AttachmentRef): string {
     listId: ref.listId ?? DEFAULT_LIST_ID,
   });
   return `${BASE}/download/${ref.entity}/${ref.id}?${params}`;
+}
+
+/**
+ * Where the given attachments can be downloaded from, as one ZIP (`multiDownload`).
+ *
+ * A plain URL for the same reason as [attachmentDownloadUrl]. The ids go out in full, although the
+ * backend matches them by prefix and the legacy page shortened them to four characters to keep the
+ * URL short: 20-character ids (`OakStorage.createRandomId`) stay well inside any URL limit for the
+ * handful of files an entity has, and a prefix can match a second file.
+ */
+export function attachmentsDownloadUrl(
+  entity: string,
+  id: number,
+  fileIds: string[],
+  listId: string = DEFAULT_LIST_ID
+): string {
+  const params = new URLSearchParams({ fileIds: fileIds.join(","), listId });
+  return `${BASE}/multiDownload/${entity}/${id}?${params}`;
 }
 
 function refData(ref: AttachmentRef) {

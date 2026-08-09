@@ -414,6 +414,14 @@
     "sinceYesterday": "Since yesterday",
     "today": "Today"
   },
+  "select": {
+    "_": "Select",
+    "placeholder": "Select..."
+  },
+  "selectAll": "Select all",
+  "selectDate": "Select",
+  "selectGroup": "Select",
+  "selectTask": "Select",
   "settings": "Settings",
   "status": "Status",
   "task": {
