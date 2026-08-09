@@ -16,10 +16,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { FilterElement } from "@/lib/rs/types";
+/** One pickable entry: a backend filter field, or a group of them like the change history. */
+export interface FilterFieldPickerEntry {
+  id: string;
+  label: string;
+  tooltip?: string;
+}
 
 interface FilterFieldPickerProps {
-  elements: FilterElement[];
+  entries: FilterFieldPickerEntry[];
   /** Fields already on the pill row; they get a checkmark and can't be picked again. */
   activeIds: string[];
   onSelect: (id: string) => void;
@@ -31,9 +36,12 @@ interface FilterFieldPickerProps {
  * The list is long and mostly technical — the backend offers every search field of the
  * entity — so it needs a search, and matching on the raw id as well as the label is what
  * makes fields like "attachmentsIds" findable at all.
+ *
+ * Takes plain entries rather than [FilterElement]s, because not every entry is one field: the
+ * change history is a single entry standing for three (see [historyFilterGroupOf]).
  */
 export function FilterFieldPicker({
-  elements,
+  entries,
   activeIds,
   onSelect,
 }: FilterFieldPickerProps) {
@@ -58,24 +66,20 @@ export function FilterFieldPicker({
           <CommandInput placeholder={t("search")} aria-label={t("search")} />
           <CommandList>
             <CommandEmpty>{t("noMatch")}</CommandEmpty>
-            {elements.map((element) => {
-              const label = element.label ?? element.id;
-              const isActive = activeIds.includes(element.id);
-              return (
-                <CommandItem
-                  key={element.id}
-                  value={`${label} ${element.id}`}
-                  title={element.tooltip}
-                  data-checked={isActive}
-                  onSelect={() => {
-                    setOpen(false);
-                    onSelect(element.id);
-                  }}
-                >
-                  <span className="truncate">{label}</span>
-                </CommandItem>
-              );
-            })}
+            {entries.map((entry) => (
+              <CommandItem
+                key={entry.id}
+                value={`${entry.label} ${entry.id}`}
+                title={entry.tooltip}
+                data-checked={activeIds.includes(entry.id)}
+                onSelect={() => {
+                  setOpen(false);
+                  onSelect(entry.id);
+                }}
+              >
+                <span className="truncate">{entry.label}</span>
+              </CommandItem>
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>

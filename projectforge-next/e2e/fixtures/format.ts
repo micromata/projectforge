@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import {
   formatContextFrom,
   formatDate,
+  formatTimestampMinutes,
   type FormatContext,
 } from "../../lib/format";
 import { MESSAGES, normalizeLocale, DEFAULT_LOCALE } from "../../i18n/config";
@@ -19,10 +20,16 @@ import type { UserData, UserStatus } from "../../lib/rs/types";
 export interface UserFormat {
   /** Formatting context of the user — locale, time zone, currency (as useFormatContext builds it). */
   context: FormatContext;
-  /** Looks up a dotted message key, e.g. `book.lendOut`. */
-  t: (key: string) => string;
+  /**
+   * Looks up a dotted message key, e.g. `book.lendOut`, substituting `{argN}` placeholders — the
+   * generator turns the bundle's `{0}` into `{arg0}`, so a plural label like "Letzte {arg0} Tage"
+   * only matches once its argument is filled in.
+   */
+  t: (key: string, values?: Record<string, string | number>) => string;
   /** Formats a date the way the page does (date only, no time). */
   date: (value: unknown) => string;
+  /** Formats an instant to the minute, as the table and the filter pills do. */
+  timestamp: (value: unknown) => string;
 }
 
 export async function userFormat(page: Page): Promise<UserFormat> {
@@ -31,9 +38,22 @@ export async function userFormat(page: Page): Promise<UserFormat> {
   const messages = MESSAGES[normalizeLocale(user.locale) ?? DEFAULT_LOCALE];
   return {
     context,
-    t: (key) => lookup(messages, key),
+    t: (key, values) => fill(lookup(messages, key), values),
     date: (value) => formatDate(value, context),
+    timestamp: (value) => formatTimestampMinutes(value, context),
   };
+}
+
+/** Replaces the `{argN}` placeholders next-intl fills at render time. */
+function fill(
+  message: string,
+  values: Record<string, string | number> | undefined
+): string {
+  if (!values) return message;
+  return Object.entries(values).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+    message
+  );
 }
 
 async function fetchUserData(page: Page): Promise<UserData> {

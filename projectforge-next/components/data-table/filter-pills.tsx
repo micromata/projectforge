@@ -7,6 +7,15 @@ import type { FilterElement } from "@/lib/rs/types";
 import { FilterFieldPicker } from "./filter-field-picker";
 import { FilterPill } from "./filter-pill";
 import { withFilterValue, type FilterValues } from "./filter-value";
+import {
+  clearHistoryFilters,
+  historyFilterActive,
+  historyFilterGroupOf,
+  mergeHistoryFilters,
+  withoutHistoryFilters,
+  HISTORY_FILTER_GROUP_ID,
+} from "./history-filter";
+import { HistoryFilterPill } from "./history-filter-pill";
 
 interface FilterPillsProps {
   /** Field definitions, for labels and for resolving LIST values to their text. */
@@ -22,6 +31,9 @@ interface FilterPillsProps {
  * The list's filters as pills: each one opens its own input, and the "add filter" chip
  * picks another field. This is the primary filter surface — the "all filters" dialog only
  * adds an overview of everything the backend offers.
+ *
+ * The three change-history fields share one pill under the pseudo id `historyFilter`; see
+ * [historyFilterGroupOf].
  */
 export function FilterPills({
   elements,
@@ -35,9 +47,13 @@ export function FilterPills({
   // A field picked from the chip: shown as an empty pill until it is saved or dropped.
   const [pendingId, setPendingId] = useState<string | null>(null);
   const activeCount = Object.keys(values).length;
+  const history = historyFilterGroupOf(elements);
+  const showHistory =
+    history != null &&
+    (historyFilterActive(values) || pendingId === HISTORY_FILTER_GROUP_ID);
 
   // Derived, and in backend order, so pills don't jump around as values come and go.
-  const shown = elements.filter(
+  const shown = withoutHistoryFilters(elements).filter(
     (element) =>
       element.defaultFilter || element.id in values || element.id === pendingId
   );
@@ -49,6 +65,24 @@ export function FilterPills({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+      {showHistory && (
+        <HistoryFilterPill
+          group={history}
+          values={values}
+          open={openId === HISTORY_FILTER_GROUP_ID}
+          onOpenChange={(open) =>
+            open ? setOpenId(HISTORY_FILTER_GROUP_ID) : close()
+          }
+          onSave={(draft) => {
+            onChange(mergeHistoryFilters(values, draft));
+            close();
+          }}
+          onDelete={() => {
+            onChange(clearHistoryFilters(values));
+            close();
+          }}
+        />
+      )}
       {shown.map((element) => (
         <FilterPill
           key={element.id}
@@ -68,8 +102,20 @@ export function FilterPills({
         />
       ))}
       <FilterFieldPicker
-        elements={elements}
-        activeIds={shown.map((element) => element.id)}
+        entries={[
+          ...(history
+            ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
+            : []),
+          ...withoutHistoryFilters(elements).map((element) => ({
+            id: element.id,
+            label: element.label ?? element.id,
+            tooltip: element.tooltip,
+          })),
+        ]}
+        activeIds={[
+          ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
+          ...shown.map((element) => element.id),
+        ]}
         onSelect={(id) => {
           // Keyed by id, so a pending pill mounts with its popover already open.
           if (!(id in values)) setPendingId(id);

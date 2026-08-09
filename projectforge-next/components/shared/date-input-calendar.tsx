@@ -21,23 +21,31 @@ import { useDatePickerLocale } from "./use-date-picker-locale";
  *
  * The week starts on the user's own first day (`weekStartsOn`), not the locale's default — that is
  * the setting this whole component exists for (see FormatContext in lib/format.ts).
+ *
+ * Open state belongs to the caller, because focusing the text field opens this too — see [DateInput].
  */
 export function DateInputCalendar({
   value,
   onChange,
   disabled,
-  onClosed,
+  open,
+  onOpenChange,
+  onPicked,
+  fieldRef,
 }: {
   value: string | null | undefined;
   onChange: (value: string | null) => void;
   disabled?: boolean;
-  /** Puts the focus back into the text field, wherever the popover was left from. */
-  onClosed: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** A day was chosen, so the field can move the focus on. */
+  onPicked: () => void;
+  /** The text field this belongs to; clicks and keys in it must not count as "outside". */
+  fieldRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
   const pickerLocale = useDatePickerLocale();
-  const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => dateOf(value) ?? new Date());
 
   // Follows the value while the popover is closed, so opening it lands on the month of the date in
@@ -51,12 +59,12 @@ export function DateInputCalendar({
 
   function close(next: string | null | undefined) {
     if (next !== undefined) onChange(next);
-    setOpen(false);
-    onClosed();
+    onOpenChange(false);
+    onPicked();
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -69,7 +77,20 @@ export function DateInputCalendar({
           <HugeiconsIcon icon={Calendar01Icon} size={14} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      <PopoverContent
+        align="start"
+        className="w-auto p-0"
+        // The caret stays in the text field: this opens on focus, and pulling focus into the calendar
+        // would make typing impossible.
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        // Typing and clicking in the field it belongs to are not "outside" — otherwise the calendar
+        // would close on the first keystroke after it opened itself.
+        onInteractOutside={(event) => {
+          if (fieldRef?.current?.contains(event.target as Node)) {
+            event.preventDefault();
+          }
+        }}
+      >
         <Calendar
           mode="single"
           selected={dateOf(value) ?? undefined}
@@ -80,7 +101,6 @@ export function DateInputCalendar({
           locale={pickerLocale}
           weekStartsOn={ctx.weekStartsOn}
           captionLayout="dropdown"
-          autoFocus
           // Today only gets a grey background from the primitive, which is hard to tell from a
           // hovered day. A ring in the accent colour reads as "here you are" even when another day
           // is selected; on the selected day itself it sits inside its filled button.

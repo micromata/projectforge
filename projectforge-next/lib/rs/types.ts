@@ -52,11 +52,18 @@ export interface MagicFilter {
 
 export const PAGINATION_PAGE_SIZE_FIELD = "paginationPageSize";
 
-/** Page size travels as a filter entry, mirroring MagicFilter.paginationPageSize. */
+/**
+ * Page size travels as a filter entry, mirroring MagicFilter.paginationPageSize.
+ *
+ * In `values`, not `value`: the Kotlin getter reads `value.values[0]` and only falls back to
+ * `parseInteger("${entry.value}")` — the *object's* toString, never `value.value`. A size sent as
+ * `value` is therefore dropped, and the fallback logs a "Can't parse integer:
+ * MagicFilterEntry$Value@1a2b3c" warning on every list request.
+ */
 export function paginationPageSizeEntry(pageSize: number): MagicFilterEntry {
   return {
     field: PAGINATION_PAGE_SIZE_FIELD,
-    value: { value: String(pageSize) },
+    value: { values: [String(pageSize)] },
   };
 }
 

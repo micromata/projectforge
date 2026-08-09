@@ -63,6 +63,12 @@ export function DateInput({
   const ctx = useFormatContext();
   const [text, setText] = useState(() => formatDateInput(value, ctx));
   const inputRef = useRef<HTMLInputElement>(null);
+  // Opened by focusing the field, which is what date inputs elsewhere do — the button beside it
+  // stays, both for the mouse and as the thing that names the popover for a screen reader.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Set while the focus is being put back after a pick, so the calendar does not reopen right after
+  // closing itself.
+  const refocusing = useRef(false);
 
   // The value can change without this field being touched: a form reset after the entity loaded, a
   // saved filter being applied, a calendar pick. The text follows it, but only when it means a
@@ -115,6 +121,10 @@ export function DateInput({
           placeholder={ctx.datePattern}
           value={text}
           className={cn(text !== "" && "pr-7")}
+          onFocus={() => {
+            if (!refocusing.current) setPickerOpen(true);
+            refocusing.current = false;
+          }}
           onChange={(e) => {
             setText(e.target.value);
             // Strict, so a date is only committed once it is fully typed.
@@ -131,6 +141,7 @@ export function DateInput({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
+              setPickerOpen(false);
               onSubmit?.(commit(text));
               return;
             }
@@ -170,7 +181,15 @@ export function DateInput({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        onClosed={() => inputRef.current?.focus()}
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        fieldRef={inputRef}
+        // Back into the field after a pick, so Tab carries on from here and a keyboard user is not
+        // left on a button that just disappeared.
+        onPicked={() => {
+          refocusing.current = true;
+          inputRef.current?.focus();
+        }}
       />
     </div>
   );

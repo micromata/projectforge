@@ -26,6 +26,23 @@ export interface FormatContext {
    * [formatDate] derives its output from Intl instead.
    */
   datePattern?: string;
+  /**
+   * Whether times are written with AM/PM. The user's own setting (userData.timeNotation, H12/H24),
+   * not the locale's habit: an English speaking account in Germany may well have picked 24h, and
+   * `Intl` would otherwise decide by locale alone.
+   */
+  hour12?: boolean;
+}
+
+/** The hour options every formatter here shares, so time notation is applied in exactly one place. */
+function hourOptions(ctx: FormatContext): Intl.DateTimeFormatOptions {
+  if (ctx.hour12 == null) return { hour: "2-digit", minute: "2-digit" };
+  return {
+    hour: "2-digit",
+    minute: "2-digit",
+    // hourCycle, not just hour12: `hour12: false` alone yields "24:30" in some locales.
+    hourCycle: ctx.hour12 ? "h12" : "h23",
+  };
 }
 
 /** Maps a backend locale ("de_DE") onto a BCP-47 tag Intl understands. */
@@ -49,6 +66,10 @@ export function formatContextFrom(
     currency: user?.currency,
     weekStartsOn: toWeekStartsOn(user?.firstDayOfWeekSunday0),
     datePattern: user?.dateFormat,
+    // Unset when the backend sends neither, so Intl keeps deciding by locale.
+    hour12: user?.timeNotation
+      ? user.timeNotation.toUpperCase() === "H12"
+      : undefined,
   };
 }
 
@@ -82,8 +103,7 @@ export function formatTimestampMinutes(
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    ...hourOptions(ctx),
     timeZone: ctx.timeZone,
   }).format(date);
 }
@@ -99,8 +119,7 @@ export function formatTimestampSeconds(
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    ...hourOptions(ctx),
     second: "2-digit",
     timeZone: ctx.timeZone,
   }).format(date);

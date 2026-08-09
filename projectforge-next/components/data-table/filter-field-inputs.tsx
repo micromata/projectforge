@@ -24,6 +24,11 @@ export interface FilterInputProps {
   onSubmit?: (value?: MagicFilterEntryValue | undefined) => void;
 }
 
+/**
+ * @param raw Send the term as typed, without the wildcards a LIKE query needs. For the full-text
+ *   fields: `DBHistoryQuery.searchHistoryEntryByFullTextQuery` appends the `*` itself, and a
+ *   Lucene term already wrapped in them matches nothing.
+ */
 export function TextField({
   value,
   onChange,
@@ -31,7 +36,8 @@ export function TextField({
   id,
   autoFocus,
   onSubmit,
-}: FilterInputProps) {
+  raw,
+}: FilterInputProps & { raw?: boolean }) {
   return (
     <div className="space-y-1">
       <Label htmlFor={`filter-${id}`} className="text-xs">
@@ -40,9 +46,9 @@ export function TextField({
       <Input
         id={`filter-${id}`}
         autoFocus={autoFocus}
-        value={fromLikeTerm(value?.value)}
+        value={raw ? (value?.value ?? "") : fromLikeTerm(value?.value)}
         onChange={(e) => {
-          const term = toLikeTerm(e.target.value);
+          const term = raw ? e.target.value.trim() : toLikeTerm(e.target.value);
           onChange(term === "" ? undefined : { value: term });
         }}
         onKeyDown={(e) => {

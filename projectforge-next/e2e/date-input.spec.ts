@@ -138,13 +138,14 @@ function fromFieldName(format: UserFormat): string {
 /**
  * Opens the calendar of that first input and returns its popover — the last of them, since the pill
  * whose popover holds the input is one too.
+ *
+ * Opened by focusing the field rather than by clicking the button beside it: focus opens it too, so
+ * a click would toggle an already open calendar shut — and whether it is open depends on where the
+ * focus happens to be, which is not something a test should have to know.
  */
 async function openCalendar(page: Page, format: UserFormat) {
   const popover = page.getByRole("dialog").last();
-  await page
-    .getByRole("button", { name: format.t("calendar.chooseDate") })
-    .first()
-    .click();
+  await page.getByRole("textbox", { name: fromFieldName(format) }).focus();
   await expect(popover.getByRole("grid")).toBeVisible();
   return popover;
 }
