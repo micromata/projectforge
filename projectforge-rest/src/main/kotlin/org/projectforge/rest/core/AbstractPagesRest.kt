@@ -342,7 +342,7 @@ constructor(
     }
 
     fun validate(dbObj: O): MutableList<ValidationError> {
-        return ValidationUtils.validateRequiredFields(dbObj)
+        return ValidationUtils.validateFields(dbObj)
     }
 
     fun validate(dbObj: O, postData: PostData<DTO>): List<ValidationError>? {

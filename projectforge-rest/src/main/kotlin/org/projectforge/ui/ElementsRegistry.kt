@@ -58,6 +58,29 @@ object ElementsRegistry {
     }
 
     /**
+     * All property names of [clazz] annotated with [PropertyInfo], from both places the annotation may sit:
+     * on the field (including inherited ones, see [PropUtils.getPropertyInfoFields]) and on the getter
+     * (`@get:PropertyInfo` in Kotlin, e.g. PFUserDO.username or AbstractBaseDO.created).
+     *
+     * Unlike [getProperties] this does not depend on a layout having been built before: that one only returns
+     * what [getElementInfo] happened to put into the cache. Callers that have to be complete and reproducible
+     * (validation, code generation) must use this one.
+     *
+     * @return the property names, sorted. The order of [Class.getDeclaredFields] is not specified by the JVM,
+     *         so anything writing files from this would produce needless diffs.
+     */
+    fun listProperties(clazz: Class<*>): List<String> {
+        val propertyNames = sortedSetOf<String>()
+        PropUtils.getPropertyInfoFields(clazz).forEach { propertyNames.add(it.name) }
+        BeanUtils.getPropertyDescriptors(clazz).forEach { descriptor ->
+            if (descriptor.readMethod?.getAnnotation(PropertyInfo::class.java) != null) {
+                propertyNames.add(descriptor.name)
+            }
+        }
+        return propertyNames.toList()
+    }
+
+    /**
      * Contains all found and created UIElements named by class:property.
      */
     private val registryMap = mutableMapOf<Class<*>, MutableMap<String, ElementInfo>>()
@@ -187,9 +210,14 @@ object ElementsRegistry {
 
     /**
      * If possible, use [getElementInfo] with layoutContext instead for supporting list elements.
+     *
+     * Merges the two places a field's rules are declared: [PropertyInfo] (i18nKey, required, type) and the JPA
+     * `@Column` (length, nullable). This is the single source of those rules — validation and the metadata
+     * generator for projectforge-next both read them from here instead of restating them.
+     *
      * @param property name of property (nested properties are supported, like timesheet.task.id.
      */
-    internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
+    fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
         if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)!!

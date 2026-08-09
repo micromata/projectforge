@@ -38,51 +38,61 @@ private val log = KotlinLogging.logger {}
  */
 object ValidationUtils {
     /**
-     * Validates required fields of an object based on metadata from ElementsRegistry.
-     * Checks all properties marked as required in @PropertyInfo annotations.
+     * Validates an object against the field rules declared in the backend: `required` (from
+     * `@PropertyInfo(required = true)` or a `NOT NULL` column) and the maximum length of strings
+     * (from the JPA `@Column(length = …)`). Both are read from [ElementsRegistry.getElementInfo],
+     * the single place those two annotations are merged — nothing is restated here.
+     *
+     * The properties come from [ElementsRegistry.listProperties], i.e. from the annotations of the
+     * class, **not** from [ElementsRegistry.getProperties]: that one only returns what a UILayout
+     * happened to put into the registry's cache before. Validating from the cache made the outcome
+     * depend on which pages the JVM had served since its start, and left every field of a
+     * hand-built page (projectforge-next builds no edit layout) unvalidated.
      *
      * @param obj The object to validate (typically a DO or DTO)
-     * @return List of validation errors for missing required fields
+     * @return List of validation errors, empty if the object is valid.
      */
-    fun validateRequiredFields(obj: Any): MutableList<ValidationError> {
+    fun validateFields(obj: Any): MutableList<ValidationError> {
         val validationErrors = mutableListOf<ValidationError>()
-        val propertiesMap = ElementsRegistry.getProperties(obj::class.java)
-        if (propertiesMap.isNullOrEmpty()) {
-            log.error("Internal error, can't find propertiesMap for '${obj::class.java}' in ElementsRegistry. No validation errors will be built automatically.")
+        val clazz = obj::class.java
+        val properties = ElementsRegistry.listProperties(clazz)
+        if (properties.isEmpty()) {
+            log.error("Internal error, no @PropertyInfo found for '$clazz'. No validation errors will be built automatically.")
             return validationErrors
         }
-        propertiesMap.forEach {
-            val property = it.key
-            val elementInfo = it.value
+        properties.forEach { property ->
+            val elementInfo = ElementsRegistry.getElementInfo(clazz, property) ?: return@forEach
+            if (elementInfo.readOnly) {
+                return@forEach // Computed by the backend, the client can't send a wrong value.
+            }
             val value =
                 try {
                     PropertyUtils.getProperty(obj, property)
                 } catch (ex: NestedNullException) {
                     null
                 } catch (ex: Exception) {
-                    log.warn("Unknown property '${obj::class.java}.$property': ${ex.message}.")
+                    log.warn("Unknown property '$clazz.$property': ${ex.message}.")
                     null
                 }
-            if (elementInfo.required == true) {
-                var error = false
-                if (value == null) {
-                    error = true
-                } else {
-                    when (value) {
-                        is String -> {
-                            if (value.isBlank()) {
-                                error = true
-                            }
-                        }
-                    }
-                }
-                if (error)
-                    validationErrors.add(
-                        ValidationError(
-                            translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
-                            fieldId = property, messageId = elementInfo.i18nKey
-                        )
+            if (elementInfo.required == true && (value == null || (value is String && value.isBlank()))) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
+                        fieldId = property, messageId = elementInfo.i18nKey
                     )
+                )
+                return@forEach // A blank value can't be too long as well.
+            }
+            // Length is a rule of strings only: @Column.length is preset to 255 for other types too,
+            // and for an enum column it is the storage size of the constant name.
+            val maxLength = if (elementInfo.propertyClass == String::class.java) elementInfo.maxLength else null
+            if (maxLength != null && value is String && value.length > maxLength) {
+                validationErrors.add(
+                    ValidationError(
+                        translateMsg("validation.error.maxLength", translate(elementInfo.i18nKey), maxLength),
+                        fieldId = property, messageId = elementInfo.i18nKey
+                    )
+                )
             }
         }
         return validationErrors
