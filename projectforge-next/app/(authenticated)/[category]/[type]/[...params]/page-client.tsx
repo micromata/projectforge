@@ -1,7 +1,8 @@
 "use client";
 
-import { notFound, useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useRouteParams } from "@/hooks/use-route-params";
 import { fetchDynamic } from "@/lib/rs/client";
 import { PageShell } from "@/components/shared/page-shell";
 import { DynamicPage } from "@/components/dynamic/dynamic-page";
@@ -11,25 +12,28 @@ import { isHandBuilt } from "@/lib/hand-built-categories";
  * Renders any server-laid-out edit page, e.g. `/next/address/edit/42`.
  *
  * Category, type and id are read from the url at runtime, because the static export cannot
- * pre-render one file per entity (see page.tsx).
+ * pre-render one file per entity (see page.tsx and use-route-params.ts).
  */
 export function DynamicFormPageClient() {
-  const { category, type, params } = useParams<{
+  // Undefined while the url doesn't match this route, which disables the query below.
+  const route = useRouteParams<{
     category: string;
     type: string;
     params: string[];
-  }>();
+  }>("/[category]/[type]/[...params]");
 
+  const { category, type, params } = route ?? {};
   const id = params?.[0];
-  const handBuilt = isHandBuilt(category);
+  const handBuilt = category !== undefined && isHandBuilt(category);
   const queryKey = ["dynamic", category, type, id] as const;
 
   const { data: response, isLoading } = useQuery({
     queryKey,
-    queryFn: ({ signal }) => fetchDynamic(category, type, id, signal),
-    enabled: !handBuilt,
+    queryFn: ({ signal }) => fetchDynamic(category!, type!, id, signal),
+    enabled: route !== null && !handBuilt,
   });
 
+  if (category === undefined) return null;
   if (handBuilt) notFound();
 
   if (isLoading) {
