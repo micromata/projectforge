@@ -509,12 +509,7 @@ mehr im Projekt** – das ist die Prüfung.
    im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
    zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
    Favoriten-Bezug fallen.
-3. **Validierungsregeln nicht duplizieren** – siehe eigener Abschnitt unten.
-   `books`-Edit ist der Präzedenzfall für alle handgebauten Seiten: solange dort
-   `required` und Feldlängen von Hand stehen, erbt jede weitere Seite das Muster.
-   Die 406-Auswertung steht inzwischen (s. „Erledigt: Speichern und Löschen“), der
-   Metadaten-Generator fehlt weiterhin.
-4. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
+3. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
    406-Mapping, „gespeichert“-Toast, URL-Wechsel nach dem ersten Speichern,
    Lösch-Bestätigung und Aktionsleiste selbst. Jede weitere handgebaute Edit-Seite
    würde diese Blöcke kopieren. Sobald die zweite existiert (Phase 3,
@@ -522,7 +517,7 @@ mehr im Projekt** – das ist die Prüfung.
    `hooks/` – ein `useEntityEditForm(entity, schema, …)` plus eine
    `EntityEditActions`-Leiste. Bewusst erst dann: mit nur einem Aufrufer wäre die
    Abstraktion geraten, nicht abgeleitet.
-5. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+4. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers), der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen) sowie Speichern, Anlegen
@@ -530,7 +525,9 @@ mehr im Projekt** – das ist die Prüfung.
 
 Erledigt seit der letzten Fassung: die Form-Library-Drift (`CLAUDE.md` schreibt
 inzwischen `@tanstack/react-form` + Zod für handgebaute Formulare vor, dynamische
-Seiten bleiben bewusst ohne Form-Library – s. Phase 2).
+Seiten bleiben bewusst ohne Form-Library – s. Phase 2) und die doppelt deklarierten
+Validierungsregeln (s. „Erledigt: Validierungsregeln nicht duplizieren“ – die Regeln
+werden jetzt aus den Entities generiert).
 
 #### Erledigt: CSRF-Schutz (querschnittlich, war Voraussetzung für die Breite)
 
@@ -651,12 +648,14 @@ Zwei Details:
 
 - **`BookType` war falsch.** Das Frontend kannte `BOOK|MAGAZINE|EBOOK|OTHER`; das
   Backend hat 11 Werte und kein `OTHER` – ein „Sonstiges“ hätte das Backend also
-  abgelehnt. Werte stehen jetzt einmal in `types.ts`
-  (`BOOK_TYPE_VALUES`/`BOOK_STATUS_VALUES`), Zod-Enum und Optionslisten leiten sich
-  daraus ab.
-- **Optionslabel kommen aus dem Bundle.** `use-book-options.ts` baut die
-  i18n-Keys so, wie `BookType.i18nKey` es tut (`AUDIO_BOOK` → `book.type.audiobook`)
-  – statt hartcodiertem „Buch“/„Vermisst“ in den Sections.
+  abgelehnt. Die Werte standen daraufhin einmal in `types.ts`
+  (`BOOK_TYPE_VALUES`/`BOOK_STATUS_VALUES`) – inzwischen kommen sie generiert aus dem
+  Backend-Enum und die Listen sind ganz weg (s. „Erledigt: Validierungsregeln nicht
+  duplizieren“).
+- **Optionslabel kommen aus dem Bundle.** `use-book-options.ts` baute die
+  i18n-Keys zunächst selbst so nach, wie `BookType.i18nKey` es tut (`AUDIO_BOOK` →
+  `book.type.audiobook`) – statt hartcodiertem „Buch“/„Vermisst“ in den Sections;
+  seit dem Metadaten-Generator liefert das Backend den Key mit.
 - **Pflichtfeld-Meldung** ist keine deutsche Zeichenkette im Zod-Schema mehr,
   sondern der Marker `REQUIRED`; das rendernde Feld übersetzt ihn zu
   `validation.error.fieldRequired` mit dem Feldlabel als Argument.
@@ -854,7 +853,7 @@ Reload inkl. der ungespeicherten Notiz, Zurückgeben leert alle drei Felder, ein
 neues Buch zeigt keine Knöpfe, und ein geleerter Titel verhindert den Request.
 Der Test gibt das Buch am Ende wieder zurück.
 
-#### Offen: Validierungsregeln nicht duplizieren
+#### Erledigt: Validierungsregeln nicht duplizieren
 
 **Der Stand.** Feldlängen, Typen und Pflichtfelder sind im Backend genau einmal
 deklariert – und zwar _nicht_ per Bean Validation (die Entities haben keine
@@ -863,72 +862,114 @@ deklariert – und zwar _nicht_ per Bean Validation (die Entities haben keine
 - JPA `@Column(length = …, nullable = …)` am Getter der `…DO`-Klasse
   (`BookDO.title` → 255, `BookDO.keywords` → 1024),
 - ProjectForge-eigenes `@PropertyInfo(i18nKey, required, type)`
-  (`projectforge-common/.../common/anots/PropertyInfo.java`).
+  (`projectforge-common/.../common/anots/PropertyInfo.java`), am Feld oder als
+  `@get:PropertyInfo` am Getter.
 
-Zusammengeführt werden sie automatisch in `projectforge-rest/.../ui/ElementsRegistry.kt`:
+Zusammengeführt werden sie in `projectforge-rest/.../ui/ElementsRegistry.kt`:
 `maxLength` kommt aus der Spaltenlänge, `required` wird gesetzt, sobald
 `!colinfo.nullable || propertyInfo.required` gilt (Booleans ausgenommen), und ab
 `maxLength >= 256` wird ein `UIInput` zur `UITextArea` befördert. Auf dem Draht
 landet das in `UIInput.maxLength/required/dataType` bzw. `UITextArea.maxLength`.
-Geprüft wird serverseitig mit derselben Registry
-(`rest/core/ValidationUtils.validateRequiredFields`); Fehler kommen als **HTTP 406**
-mit `ResponseAction.validationErrors` (`fieldId` + übersetzte `message`,
-s. `AbstractPagesRestUtils.kt`).
 
-**Das Duplikat.** Der Dynamic-Renderer in next liest diese Angaben bereits und
-bekommt sie damit geschenkt (`components/dynamic/components/input/*` und
-`components/dynamic/components/dynamic-field.tsx`). Nur der handgebaute Zweig
-deklariert sie erneut:
-`components/features/books/edit/book-edit-schema.ts` hat `required` hartcodiert
-(inkl. deutschem Meldungstext im Code, an next-intl vorbei), `allgemein-section.tsx`
-setzt `required` ein zweites Mal als Prop – und die Feldlängen fehlen ganz. Eine
-Spaltenlänge im Backend zu ändern verändert das Frontend also nicht; es bleibt
-still falsch. Dazu wertet `books`-Edit die 406-`validationErrors` bisher nicht aus.
+**Das Duplikat (behoben).** Der Dynamic-Renderer liest diese Angaben schon aus dem
+`UILayout` (`components/dynamic/components/input/*`). Nur der handgebaute Zweig
+deklarierte sie erneut: `book-edit-schema.ts` hatte `required` hartcodiert,
+`general-section.tsx` setzte es ein zweites Mal als Prop, die Feldlängen fehlten
+ganz, und `BOOK_TYPE_VALUES`/`BOOK_STATUS_VALUES` in `types.ts` waren abgeschriebene
+Enum-Konstanten (an denen die Liste schon einmal falsch war). Eine Spaltenlänge im
+Backend zu ändern verändert das Frontend jetzt.
 
-**Grundsatz.** Feldlängen, Typen und `required` werden im Frontend **nie** erneut
-deklariert. Frontend-Validierung ist reine UX-Vorwegnahme der Server-Regel; die
-Autorität bleibt der Server (406).
+**Grundsatz (gilt weiter).** Feldlängen, Typen und `required` werden im Frontend
+**nie** erneut deklariert. Frontend-Validierung ist reine UX-Vorwegnahme der
+Server-Regel; die Autorität bleibt der Server (406).
 
-**Beschlossener Weg – zwei Kanäle, getrennt nach Seitentyp:**
+**Zwei Kanäle, getrennt nach Seitentyp:**
 
-1. **Dynamische Seiten (Phase 2): zur Laufzeit**, wie in der alten React-App.
-   Nichts zu bauen – `maxLength`, `required` und `dataType` kommen im `UILayout`
-   mit. Regel für neue Element-Komponenten in `components/dynamic/`: diese Props
-   durchreichen, niemals eigene Grenzen oder Pflichtfeld-Logik erfinden.
-2. **Handgebaute Seiten (`books`-Edit, Phase 3 Auftragsbuch): generiert**, analog
-   zur i18n-Generierung. Ein Generator neben `GenerateNextI18nMessagesMain.kt`
-   (gleiches Package, Aufruf über `DevelopmentMainForRelease`, Output committet)
-   schreibt pro Entität je Property `{ maxLength, required, dataType, i18nKey }`
-   in eine TS-Datei; die Zod-Schemata leiten sich daraus ab statt die Regeln zu
-   wiederholen. Gegenüber dem Laufzeitweg spricht dafür: kein zusätzlicher Request
-   auf einer statisch exportierten Seite, echte Typsicherheit, und ein Feld, das
-   im Backend verschwindet, fällt sofort im `npm run typecheck` auf.
+1. **Dynamische Seiten (Phase 2): zur Laufzeit.** Nichts zu bauen – `maxLength`,
+   `required` und `dataType` kommen im `UILayout` mit. Regel für neue
+   Element-Komponenten in `components/dynamic/`: diese Props durchreichen, niemals
+   eigene Grenzen oder Pflichtfeld-Logik erfinden.
+2. **Handgebaute Seiten: generiert**, analog zur i18n-Generierung.
+   `projectforge-application/src/test/.../development/GenerateNextFieldMetadataMain.kt`
+   scannt per `Reflections` alle `@Entity`-Klassen, holt zu jeder Property
+   `ElementsRegistry.getElementInfo` und schreibt eine Datei pro Entität nach
+   `projectforge-next/lib/metadata/<entity>.generated.ts` (65 Dateien; Aufruf über
+   `DevelopmentMainForRelease`, Output committet). Kein Regel-Detail wird dabei neu
+   abgeleitet. `GenerateNextFieldMetadataTest` vergleicht byteweise und meldet
+   zusätzlich Waisen, also Dateien zu umbenannten Entitäten.
 
-   **Ebenfalls generieren: die Wertelisten der Enums.** `BOOK_TYPE_VALUES` und
-   `BOOK_STATUS_VALUES` in `components/features/books/types.ts` sind von Hand
-   abgeschriebene `I18nEnum`-Konstanten – genau die Duplizierung, an der die alte
-   `BookType`-Liste schon einmal falsch war (s. „Erledigt: Speichern und Löschen“).
-   Ein neuer Wert im Backend kommt im Frontend nicht an, ein entfernter bleibt
-   wählbar und wird beim Speichern abgelehnt. Der Generator soll pro Enum-Property
-   die Konstantennamen samt `i18nKey` mitschreiben; Zod-Enum und Optionslisten
-   hängen dann an einer Quelle statt an zwei.
+   Emittiert wird prettier-konform (jedes Objekt aufgeklappt, doppelte
+   Anführungszeichen, trailing commas), damit `lib/metadata` nicht in
+   `.prettierignore` muss. **Kein Barrel:** eine Datei pro Entität, ohne
+   Seiteneffekte, also vollständig tree-shakebar – die Bundle-Kosten der breiten
+   Entitätsauswahl sind null.
 
-**Noch zu klären (bewusst offen):**
+   **Die Enum-Wertelisten kommen mit:** pro Enum-Property Konstantenname und
+   `i18nKey` (`I18nEnum`), `dataType: "STRING"`. `BookStatus`/`BookType` in
+   `components/features/books/types.ts` leiten sich daraus ab, ebenso die
+   Optionslisten in `use-book-options.ts` – deren selbstgebauter `i18nKey()`-Rater
+   (lowercase + Unterstriche strippen) ist weg.
 
-- **Auswahl der Entitäten** – Prefix-/Whitelist wie bei den i18n-Keys oder alle
-  registrierten `…DO`s? Nur handgebaute Seiten brauchen die Dateien.
-- **Woher die Längen kommen** – `framework/persistence/jpa/EntityMetaDataRegistry`
-  liest sie rein reflexiv aus den Annotationen (keine DB, keine
-  `EntityManagerFactory`), `framework/persistence/metamodel/HibernateMetaModel`
-  braucht eine laufende Persistenzschicht. Für einen Generator ist die reflexive
-  Variante die richtige.
-- **Ableitungshelfer im Frontend** – z.B. `lib/validation/from-metadata.ts`:
-  Metadaten → Zod-Bausteine (`min(1)` bei `required`, `max(maxLength)`), mit
-  Meldungstexten über next-intl statt hartcodiert.
-  Die 406-Auswertung im handgebauten Zweig ist **erledigt**
-  (`lib/validation/server-errors.ts`, s. Abschnitt oben) – sie war die Voraussetzung
-  dafür, dass eine strengere Server-Regel überhaupt sichtbar wird. Der Generator ist
-  damit nur noch UX-Vorwegnahme, keine Korrektheitsfrage mehr.
+**Frontend-Ableitung.** `lib/metadata/types.ts` (handgeschrieben) hält den Kontrakt,
+`lib/validation/from-metadata.ts` macht daraus Zod-Bausteine
+(`requiredString`, `nullableString`, `enumField`, `enumOptions`); die Meldungen
+laufen über Marker (`lib/validation/markers.ts`, `@required`/`@maxLength:n`), weil
+nur das rendernde Feld sein Label kennt. `book-edit-schema.ts` bleibt
+handgeschrieben – das DTO `rest/dto/Book.kt` hat nicht die Feldmenge des DO –, bezieht
+aber jede Regel aus `fromMetadata(BOOK_METADATA)`. Ein Feldname, den die Metadaten
+nicht kennen, ist dank Literal-Union bereits ein `tsc`-Fehler.
+`book-edit-fields.tsx` liest `required` und `maxLength` über `useFieldMetadata` (kein
+Prop mehr), setzt `maxLength` als HTML-Attribut und leitet `SelectField.clearable`
+aus `!required` ab; `general-section.tsx` entscheidet nur noch Reihenfolge, Label und
+Layout.
+
+**Zwei Backend-Befunde, die dabei mitbehoben wurden** (eigener Commit, weil sie
+bisher stillschweigend akzeptierte Daten zu einem 406 machen – für `/react` genauso
+wie für next und über `saveOrUpdate` auch für Import-/Massenpfade; Wicket verhält
+sich schon so):
+
+- **`ValidationUtils` prüfte nur, was zufällig im Cache lag.** Es iterierte
+  `ElementsRegistry.getProperties(clazz)`, und das ist bloß die Memo-Map, gefüllt
+  wenn ein UILayout ein Element gebaut hat. Eine handgebaute next-Seite baut kein
+  Edit-Layout, für `BookDO` registrierte also nur `createListLayout` –
+  `status`/`type`/`isbn`/… fehlten. **Ein Save aus next validierte damit nicht einmal
+  `required` vollständig**, und was fehlte, hing davon ab, welche Seiten die JVM seit
+  dem Start bedient hatte. Neu: `ElementsRegistry.listProperties(clazz)` zählt aus
+  beiden Annotationsquellen auf (sortiert, sonst flackert der Drift-Test), und
+  `validateFields` geht darüber.
+- **Der REST-Pfad prüfte `maxLength` nirgends** (Wicket tut es per
+  `StringValidator.maximumLength`, die alte React-App nur im Client). Jetzt mit
+  neuem Key `validation.error.maxLength` in beiden Bundles. `maxLength` gilt nur für
+  `String`-Properties: `@Column.length` ist auch für Nicht-Strings mit 255
+  vorbelegt, und die 20 an einem Enum ist eine Speicherlänge, keine Nutzergrenze.
+
+Ein dritter Befund kam vom Generator selbst: `UIDataTypeUtils.getDataType` verglich
+für INT/LONG nur je eine Hälfte des Paars (Kotlins `Long::class.java` ist `long`,
+`Integer::class.java` dagegen boxed), sodass 64 Properties – alle `id`s,
+`KundeDO.nummer`, `RechnungDO.year` … – still auf STRING zurückfielen, im UILayout
+wie in den Metadaten.
+
+**Die drei zuvor offenen Fragen, beantwortet:**
+
+- **Entitätsauswahl: alle `@Entity`-Klassen.** Phase 3 braucht geschachtelte DOs wie
+  `AuftragsPositionDO`, die keine eigene `AbstractPagesRest` haben; eine „nur was
+  eine PagesRest hat"-Regel bräuchte eine handgepflegte Ausnahmeliste, also genau die
+  Veraltungsfalle. `SKIP` existiert als Notausgang und ist leer.
+- **Woher die Längen kommen: reflexiv**, über `ElementsRegistry` →
+  `EntityMetaDataRegistry`, ohne DB und ohne `EntityManagerFactory` (nicht
+  `HibernateMetaModel`, das eine laufende Persistenzschicht bräuchte).
+- **Ableitungshelfer:** `lib/validation/from-metadata.ts`, s.o. – mit Markern statt
+  Texten, weil die Meldung Label und Grenze braucht.
+
+**Verbleibende Lücken.** Die geerbten Properties `id`/`created`/`lastUpdate`/
+`deleted` haben keine `ColumnMetaData`, weil `EntityMetaData` nur `declaredFields`
+liest – sie erscheinen in den Metadaten mit `dataType` und `i18nKey`, aber ohne
+`maxLength`/`nullable` aus der Spalte. Für diese vier ist das folgenlos (keine
+Nutzereingabe), für eine künftige Basisklasse mit echten Textspalten wäre es keine.
+Ausgelassen werden außerdem Collections und Fremd-DO-Referenzen; deren Felder stehen
+in der Datei der jeweiligen Entität, eine geschachtelte Form muss sie dort holen.
+Nicht verifiziert: ein zu langer Wert über eine UILayout-Seite (`/react/address`) –
+das braucht einen Neustart der laufenden Instanz auf dem neuen Build.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 

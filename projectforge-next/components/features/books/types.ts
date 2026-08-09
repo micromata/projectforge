@@ -2,31 +2,15 @@
 // in sync with the Spring DTO so the mock routes can be swapped for the real
 // backend via a Next.js rewrite without changing call sites.
 
-// Mirrors org.projectforge.business.book.BookStatus / BookType, in their order — the edit form
-// derives both its Zod enum and its option lists from these, so a value exists exactly once.
-export const BOOK_STATUS_VALUES = [
-  "PRESENT",
-  "MISSED",
-  "DISPOSED",
-  "UNKNOWN",
-] as const;
+import type { BOOK_METADATA } from "@/lib/metadata/book.generated";
 
-export const BOOK_TYPE_VALUES = [
-  "AUDIO_BOOK",
-  "BOOK",
-  "EBOOK",
-  "MAGAZINE",
-  "ARTICLE",
-  "NEWSPAPER",
-  "PERIODICAL",
-  "FILM",
-  "SOFTWARE",
-  "THESIS",
-  "MISC",
-] as const;
-
-export type BookStatus = (typeof BOOK_STATUS_VALUES)[number];
-export type BookType = (typeof BOOK_TYPE_VALUES)[number];
+// The constants of org.projectforge.business.book.BookStatus / BookType, taken from the generated
+// metadata instead of copied: the generator reads the enum itself, so a new constant reaches the
+// types (and the option lists of the edit form, see use-book-options) by regenerating.
+export type BookStatus =
+  (typeof BOOK_METADATA.fields.status.enumValues)[number]["value"];
+export type BookType =
+  (typeof BOOK_METADATA.fields.type.enumValues)[number]["value"];
 
 export interface UserRef {
   id: number;
@@ -70,6 +54,15 @@ export interface BookListRow {
   keywords?: string | null;
   lendOutBy?: UserRef | null;
   created?: string | null;
+  /** Number of attachments; absent for a book that never had one. */
+  attachmentsCounter?: number | null;
+  /** Their total size in bytes — sorted on, not displayed (see attachmentsSizeFormatted). */
+  attachmentsSize?: number | null;
+  /**
+   * Size and count in one, formatted by the backend in the user's locale ("5,2MB (3)"), or "-"
+   * without attachments. Taken as it is, per AttachmentsInfo.getAttachmentsSizeFormatted.
+   */
+  attachmentsSizeFormatted?: string | null;
 }
 
 // The change history is not book specific — its types live in lib/rs/history.ts.

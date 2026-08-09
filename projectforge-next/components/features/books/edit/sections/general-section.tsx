@@ -15,9 +15,13 @@ import { KeywordsField } from "./keywords-field";
  * ("Herausgeber:in", not "Auflage"), `status`, `book.type` — so the wording matches the rest of
  * ProjectForge and no text has to be invented here.
  *
- * `status` sits next to `type` rather than in the loan section: it is a property of the book
- * (BookDO: `nullable = false`), not of a loan, and putting it here also means it renders for a new
- * book, whose default is PRESENT.
+ * This file decides order, labels and layout, nothing else: whether a field is mandatory, how long it
+ * may be and whether a select can be cleared come from the generated metadata of BookDO (see
+ * book-edit-fields and lib/metadata/book.generated.ts). `required` used to be set here as well, and
+ * had drifted from the entity.
+ *
+ * `status` sits next to `type` rather than in the loan section: it is a property of the book, not of a
+ * loan, and putting it here also means it renders for a new book, whose default is PRESENT.
  */
 export function GeneralSection() {
   const t = useTranslations("books.edit");
@@ -32,27 +36,21 @@ export function GeneralSection() {
         <InputField
           name="title"
           label={tBook("title._")}
-          required
           className="md:col-span-3"
         />
         <InputField
           name="authors"
           label={tBook("authors")}
-          required
           className="md:col-span-3"
         />
         <SelectField
           name="type"
           label={tBook("type._")}
-          // Optional in the database (`nullable = true`), so it must be possible to clear again.
-          clearable
           options={typeOptions}
         />
         <SelectField
           name="status"
           label={tCommon("status")}
-          // Mandatory in the database (BookDO: `nullable = false`), hence no clear option.
-          required
           // The one field a reader looks for first — whether the book is there at all.
           emphasized
           options={statusOptions}

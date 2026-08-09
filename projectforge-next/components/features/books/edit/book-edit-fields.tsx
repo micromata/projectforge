@@ -22,15 +22,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useBookEditForm } from "./book-edit-context";
-import { REQUIRED, type BookEditValues } from "./book-edit-schema";
+import type { SelectOption } from "@/lib/validation/from-metadata";
+import { REQUIRED, parseMaxLengthMarker } from "@/lib/validation/markers";
+import { useBookEditForm, useFieldMetadata } from "./book-edit-context";
+import type { BookEditValues } from "./book-edit-schema";
 
 type Path = keyof BookEditValues;
 
+/**
+ * `required` and `maxLength` are deliberately not props: they are the backend's rules and come from
+ * the generated metadata via [useFieldMetadata], the same source the Zod schema reads. A section that
+ * could set them would be a second place to maintain them — and the one that had drifted before.
+ */
 interface BaseProps {
   name: Path;
   label: string;
-  required?: boolean;
   hint?: string;
   className?: string;
 }
@@ -46,10 +52,10 @@ interface InputFieldProps extends BaseProps {
  *
  * Two shapes arrive here. A plain string is the server's message (see lib/validation/server-errors.ts),
  * already translated by the backend, and is shown verbatim. An object is a Zod issue, whose `message`
- * is one of our own markers — [REQUIRED] becomes the backend's wording for a missing value, with the
- * field's label as its argument. Anything else is Zod's own English default ("Invalid input: expected
- * string, received undefined"): a schema bug, never something a user should read, so it turns into the
- * generic message and is logged.
+ * is one of our own markers (lib/validation/markers.ts) — they become the backend's own wording, with
+ * the field's label and, for a length, the limit as arguments. Anything else is Zod's own English
+ * default ("Invalid input: expected string, received undefined"): a schema bug, never something a user
+ * should read, so it turns into the generic message and is logged.
  */
 function useFieldErrors(): (
   meta: { errors?: unknown[] },
@@ -65,6 +71,12 @@ function useFieldErrors(): (
         const message = String((e as { message?: unknown }).message ?? "");
         if (message === REQUIRED)
           return t("validation.error.fieldRequired", { arg0: label });
+        const maxLength = parseMaxLengthMarker(message);
+        if (maxLength !== null)
+          return t("validation.error.maxLength", {
+            arg0: label,
+            arg1: maxLength,
+          });
         console.warn(`Untranslated validation error on "${label}": ${message}`);
         return t("validation.error.generic");
       })
@@ -131,7 +143,6 @@ function FieldShell({
 export function InputField({
   name,
   label,
-  required,
   hint,
   className,
   type = "text",
@@ -140,6 +151,7 @@ export function InputField({
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
+  const { required, maxLength } = useFieldMetadata(name);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -178,6 +190,10 @@ export function InputField({
                 id={ids.controlId}
                 type={type}
                 placeholder={placeholder}
+                // The column's length, so typing stops at the limit instead of only complaining
+                // afterwards. The Zod rule stays as the net for a value that didn't come from typing
+                // (a paste is truncated by the browser, but a programmatic change isn't).
+                maxLength={maxLength}
                 value={raw ?? ""}
                 // An emptied optional field becomes null, which is how the backend stores "no value".
                 // A required one keeps "" — its schema expects a string and would otherwise complain
@@ -204,7 +220,6 @@ interface TextAreaFieldProps extends BaseProps {
 export function TextAreaField({
   name,
   label,
-  required,
   hint,
   className,
   rows = 4,
@@ -212,6 +227,7 @@ export function TextAreaField({
   const form = useBookEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
+  const { required, maxLength } = useFieldMetadata(name);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -236,6 +252,8 @@ export function TextAreaField({
             <Textarea
               id={ids.controlId}
               rows={rows}
+              // Same as InputField: the column's length.
+              maxLength={maxLength}
               value={raw ?? ""}
               // Same null-vs-"" rule as InputField.
               onChange={(e) =>
@@ -252,17 +270,16 @@ export function TextAreaField({
   );
 }
 
-export interface SelectOption {
-  value: string;
-  label: string;
-}
-
 interface SelectFieldProps extends BaseProps {
   options: SelectOption[];
   /**
-   * Offers a button that sets the field back to null — for a column that allows it (e.g. BookDO's
-   * `type`, `nullable = true`), matching the ✕ of the legacy page. Radix has no such affordance of
-   * its own: an empty SelectItem value is forbidden, so "no value" is unreachable once one is set.
+   * Offers a button that sets the field back to null, matching the ✕ of the legacy page. Radix has no
+   * such affordance of its own: an empty SelectItem value is forbidden, so "no value" is unreachable
+   * once one is set.
+   *
+   * Defaults to whether the field may be null at all, i.e. to `!required` from the metadata — so
+   * BookDO's `type` (`nullable = true`) can be cleared and its `status` cannot, without either
+   * decision being made here.
    */
   clearable?: boolean;
   /**
@@ -275,7 +292,6 @@ interface SelectFieldProps extends BaseProps {
 export function SelectField({
   name,
   label,
-  required,
   hint,
   className,
   options,
@@ -286,6 +302,8 @@ export function SelectField({
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const tCommon = useTranslations();
+  const { required } = useFieldMetadata(name);
+  const canClear = clearable ?? !required;
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -343,7 +361,7 @@ export function SelectField({
                   ))}
                 </SelectContent>
               </Select>
-              {clearable && raw !== "" && (
+              {canClear && raw !== "" && (
                 <Button
                   type="button"
                   variant="ghost"
