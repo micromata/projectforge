@@ -144,16 +144,11 @@ open class DBQuery {
             || !historSearchParams.searchHistory.isNullOrBlank()
         ) {
             // Search now all history entries which were modified by the given user and/or in the given time period.
+            // One query for all three criteria, the searched value included: HistoryEntryDO indexes neither
+            // modifiedBy nor modifiedAt (see its commented out @GenericField annotations), and the value lives
+            // on HistoryEntryAttrDO, so a full text search over this index can answer none of them.
             val idSet = persistenceService.runIsolatedReadOnly { innerContext ->
-                val isolatedEm = innerContext.em
-                val set = if (historSearchParams.searchHistory.isNullOrBlank()) {
-                    DBHistoryQuery.searchHistoryEntryByCriteria(isolatedEm, baseDao.doClass, historSearchParams)
-                    //baseDao.getHistoryEntries(baseDao.entityManager, baseSearchFilter) // No full text required.
-                } else {
-                    DBHistoryQuery.searchHistoryEntryByFullTextQuery(isolatedEm, baseDao.doClass, historSearchParams)
-                    //baseDao.getHistoryEntriesFullTextSearch(baseDao.entityManager, baseSearchFilter)
-                }
-                set
+                DBHistoryQuery.searchHistoryEntryByCriteria(innerContext.em, baseDao.doClass, historSearchParams)
             }
             while (next != null) {
                 val id = next.id
