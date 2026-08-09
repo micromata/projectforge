@@ -4,6 +4,7 @@
   "attachment": {
     "_": "Anhang",
     "checksum": "Prüfsumme",
+    "downloadAll": "Alle herunterladen",
     "encrypt": {
       "_": "Verschlüsseln",
       "question": "Soll diese Datei nun verschlüsselt werden? Das Passwort wird nicht gespeichert."
@@ -168,10 +169,10 @@
       },
       "choose": "Datei wählen",
       "deleteSelected": {
-        "_": "Ausgewählte Dateien löschen",
+        "_": "Ausgewählte löschen",
         "confirm": "Sollen jetzt wirklich alle ausgewählten Dateien unwiderruflich gelöscht werden?"
       },
-      "downloadSelected": "Ausgewählte Dateien herunterladen",
+      "downloadSelected": "Ausgewählte herunterladen",
       "downloadTemplate": "Schablone als Beispiel herunterladen.",
       "dropArea": "Datei auswählen oder hier hinziehen.",
       "error": {

@@ -2,12 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete01Icon,
-  Download01Icon,
-  Edit02Icon,
-  LockIcon,
-} from "@hugeicons/core-free-icons";
+import { Delete01Icon, Edit02Icon, LockIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
@@ -19,19 +14,26 @@ interface Props {
   onEdit: (attachment: Attachment) => void;
   onDelete: (attachment: Attachment) => void;
   busy?: boolean;
+  /** Nothing but downloads: no rename, no delete — and a row click downloads (see below). */
+  readOnly?: boolean;
   /** Omitted where a selection makes no sense (read-only list): the checkbox then stays away. */
   selected?: boolean;
   onSelectedChange?: (selected: boolean) => void;
 }
 
 /**
- * One attachment: name, description and metadata, plus download / rename / delete.
+ * One attachment: name, description and metadata, plus rename and delete.
  *
  * Nothing is formatted here — `sizeHumanReadable`, `lastUpdateFormatted` and `lastUpdateTimeAgo`
  * arrive ready from the backend, in the user's locale and timezone (see Attachment).
  *
- * Download is a plain link, not a fetch: the answer is the file itself, so the browser has to
- * handle it (see attachmentDownloadUrl).
+ * The name itself is the download link, and the rest of the row opens the details — the section is
+ * wide, so buttons pinned to its right edge are a long way from the file one is looking at. Download
+ * is a plain link, not a fetch: the answer is the file itself, so the browser has to handle it (see
+ * attachmentDownloadUrl).
+ *
+ * A read-only row downloads on a click instead, like the legacy list (`DynamicAttachmentList`'s
+ * `handleRowClick`): there is no detail dialog to reach when nothing in it can be changed.
  */
 export function AttachmentRow({
   attachment,
@@ -40,16 +42,46 @@ export function AttachmentRow({
   onEdit,
   onDelete,
   busy,
+  readOnly,
   selected,
   onSelectedChange,
 }: Props) {
   const t = useTranslations();
-  const readonly = attachment.readonly === true;
+  // Either the whole list is read-only, or this one file is (`Attachment.readonly`).
+  const readonly = readOnly === true || attachment.readonly === true;
+  const downloadUrl = attachmentDownloadUrl({
+    entity,
+    id,
+    fileId: attachment.fileId,
+  });
+  const downloadLabel = `${t("download._")}: ${attachment.name}`;
 
   return (
-    <li className="flex items-center gap-3 border-b border-border/60 py-2 last:border-b-0">
+    <li className="relative flex items-center gap-3 border-b border-border/60 py-2 last:border-b-0 hover:bg-muted/40 last:hover:rounded-b-md">
+      {/* The row's own click, as an element covering it rather than an onClick on the <li>, with the
+          real controls layered above it (`z-10`). A mouse shortcut only: it duplicates the name link
+          resp. the pencil, so it stays out of the tab order and out of the accessibility tree —
+          otherwise every row would answer to two identical names. */}
+      {readonly ? (
+        <a
+          href={downloadUrl}
+          className="absolute inset-0"
+          tabIndex={-1}
+          aria-hidden
+        />
+      ) : (
+        <button
+          type="button"
+          className="absolute inset-0"
+          disabled={busy}
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => onEdit(attachment)}
+        />
+      )}
       {onSelectedChange && (
         <Checkbox
+          className="relative z-10"
           checked={selected ?? false}
           disabled={busy}
           // The rows all look alike, so the name has to say which file this picks.
@@ -60,9 +92,15 @@ export function AttachmentRow({
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-1.5">
-          <span className="truncate text-xs font-medium">
+          {/* The name is the download: the shortest way to the file, and the only one a keyboard or
+              screen reader gets — the row overlay above is for the mouse. */}
+          <a
+            href={downloadUrl}
+            aria-label={downloadLabel}
+            className="relative z-10 truncate text-xs font-medium hover:underline"
+          >
             {attachment.name}
-          </span>
+          </a>
           {attachment.encrypted && (
             // Icon-only, so it needs a name of its own; the file can only be opened with its
             // password (Attachment.encrypted).
@@ -89,52 +127,32 @@ export function AttachmentRow({
             .join(" · ")}
         </p>
       </div>
-      <div className="flex shrink-0 items-center gap-0.5">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          className="size-7 text-muted-foreground"
-        >
-          <a
-            href={attachmentDownloadUrl({
-              entity,
-              id,
-              fileId: attachment.fileId,
-            })}
-            // The name distinguishes the rows: every one of them has a download button.
-            aria-label={`${t("download._")}: ${attachment.name}`}
+      {!readonly && (
+        <div className="relative z-10 flex shrink-0 items-center gap-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-muted-foreground"
+            disabled={busy}
+            aria-label={`${t("edit")}: ${attachment.name}`}
+            onClick={() => onEdit(attachment)}
           >
-            <HugeiconsIcon icon={Download01Icon} size={13} />
-          </a>
-        </Button>
-        {!readonly && (
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground"
-              disabled={busy}
-              aria-label={`${t("edit")}: ${attachment.name}`}
-              onClick={() => onEdit(attachment)}
-            >
-              <HugeiconsIcon icon={Edit02Icon} size={13} />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground hover:text-destructive"
-              disabled={busy}
-              aria-label={`${t("delete")}: ${attachment.name}`}
-              onClick={() => onDelete(attachment)}
-            >
-              <HugeiconsIcon icon={Delete01Icon} size={13} />
-            </Button>
-          </>
-        )}
-      </div>
+            <HugeiconsIcon icon={Edit02Icon} size={13} />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-muted-foreground hover:text-destructive"
+            disabled={busy}
+            aria-label={`${t("delete")}: ${attachment.name}`}
+            onClick={() => onDelete(attachment)}
+          >
+            <HugeiconsIcon icon={Delete01Icon} size={13} />
+          </Button>
+        </div>
+      )}
     </li>
   );
 }

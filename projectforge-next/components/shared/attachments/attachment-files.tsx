@@ -92,7 +92,8 @@ export function AttachmentFiles({ attachments, entity, id, readOnly }: Props) {
             attachment={attachment}
             entity={entity}
             id={id}
-            busy={busy || readOnly}
+            busy={busy}
+            readOnly={readOnly}
             selected={selection.has(attachment.fileId)}
             onSelectedChange={
               readOnly

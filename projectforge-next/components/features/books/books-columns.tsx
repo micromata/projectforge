@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 import { DataTableColumnHeader } from "@/components/data-table";
+import { AttachmentsSummary } from "@/components/shared/attachments/attachments-summary";
 import { StatusBadge } from "./status-badge";
 import type { BookListRow } from "./types";
 
@@ -135,6 +136,26 @@ export function useBooksColumns(): ColumnDef<BookListRow>[] {
         ),
         cell: ({ getValue }) => (
           <span className="text-muted-foreground">{getValue<string>()}</span>
+        ),
+      },
+      {
+        // The id is the property the backend sorts by — the formatted string it shows
+        // ("5,2MB (3)") sorts alphabetically, which would put 900KB after 1,1MB.
+        id: "attachmentsSize",
+        meta: { label: t("attachments._") },
+        accessorFn: (row) => row.attachmentsSizeFormatted ?? "",
+        size: 90,
+        header: ({ column, table }) => (
+          <DataTableColumnHeader column={column} table={table}>
+            {t("attachments.short")}
+          </DataTableColumnHeader>
+        ),
+        cell: ({ row }) => (
+          <AttachmentsSummary
+            count={row.original.attachmentsCounter}
+            formatted={row.original.attachmentsSizeFormatted}
+            label={t("attachments._")}
+          />
         ),
       },
       {

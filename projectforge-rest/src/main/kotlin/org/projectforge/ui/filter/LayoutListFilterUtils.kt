@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AttachmentsFilterSupport
 import org.projectforge.ui.*
 
 private val log = KotlinLogging.logger {}
@@ -76,6 +77,9 @@ object LayoutListFilterUtils {
             )
         )
         elements.add(UIFilterElement("deleted", UIFilterElement.FilterType.BOOLEAN, translate("deleted")))
+        if (AttachmentsFilterSupport.supported(pagesRest)) {
+            AttachmentsFilterSupport.addFilterElement(elements)
+        }
 
         val baseDao = pagesRest.baseDao
         val searchFields = baseDao.searchFields

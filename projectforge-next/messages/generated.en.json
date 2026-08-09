@@ -4,6 +4,7 @@
   "attachment": {
     "_": "Attachment",
     "checksum": "Checksum",
+    "downloadAll": "Download all",
     "encrypt": {
       "_": "Encrypt",
       "question": "Do you really want to encrypt this file now? Please take care of your password."

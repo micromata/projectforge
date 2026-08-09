@@ -72,6 +72,9 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     magicFilter.sortAndLimitMaxRowsWhileSelect = true
     val queryFilter = baseDao.createQueryFilter()
     val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
+    // Offered for every entity with attachment support (see LayoutListFilterUtils), so it is applied
+    // here rather than in each pages rest class.
+    AttachmentsFilterSupport.preProcessMagicFilter(queryFilter, magicFilter)
     magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
     MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
     pagesRest.postProcessMagicFilter(queryFilter, magicFilter)

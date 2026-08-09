@@ -1,0 +1,106 @@
+import { test, expect, goto } from "./fixtures/auth";
+import { userFormat } from "./fixtures/format";
+
+/**
+ * The attachments column and the "has attachments" filter of the books list, against the live
+ * backend.
+ *
+ * The books of a fresh database have no attachments at all, so the column can't be asserted on a
+ * row's content — the test uploads one, checks what the list shows for exactly that book, and
+ * deletes it again. The file name carries the `pf-e2e-` prefix so a leftover is recognizable (as in
+ * book-attachments.spec.ts, which owns the same book).
+ *
+ * The filter's own assertion is on the request body: the backend turns `hasAttachments` into a
+ * predicate on `attachmentsCounter` (AttachmentsFilterSupport), and a value sent in the wrong shape
+ * would be dropped silently — the list would look fine and simply not filter.
+ */
+const BOOK_ID = 316163;
+const FILE_NAME = "pf-e2e-column.txt";
+
+test.describe("books list attachments", () => {
+  // Before each, not only at the end: the filter is stored per user and per entity, so a
+  // `hasAttachments` criterion left behind by an earlier (or aborted) run would hide the very book
+  // the first case uploads to — the column would then be asserted on a list the filter emptied.
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    await page.request
+      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .catch(() => undefined);
+  });
+
+  test("shows count and total size of a book's attachments", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+
+    const downloadLink = page.getByRole("link", {
+      name: `${t("download._")}: ${FILE_NAME}`,
+    });
+
+    await goto(page, `/books/${BOOK_ID}`);
+    await page.getByLabel(t("file.upload.choose")).setInputFiles({
+      name: FILE_NAME,
+      mimeType: "text/plain",
+      buffer: Buffer.from("ProjectForge e2e attachment\n"),
+    });
+    await expect(downloadLink).toBeVisible();
+
+    try {
+      // Straight to the book through the search box: the column is only filled in its row.
+      await goto(page, "/books");
+      await page.getByPlaceholder(t("books.searchPlaceholder")).fill(FILE_NAME);
+
+      // The backend formats size and count together ("28bytes (1)") in the user's locale, so the
+      // assertion pins the count and the unit rather than a hand-built string.
+      const summary = page.getByRole("img", { name: t("attachments._") });
+      await expect(summary.first()).toContainText("(1)");
+      await expect(summary.first()).toContainText(/bytes|KB/);
+    } finally {
+      await goto(page, `/books/${BOOK_ID}`);
+      await page
+        .getByRole("button", { name: `${t("delete")}: ${FILE_NAME}` })
+        .click();
+      // The confirmation's own button carries the bare label, unlike the row's.
+      await page
+        .getByRole("button", { name: t("delete"), exact: true })
+        .last()
+        .click();
+      await expect(downloadLink).toHaveCount(0);
+    }
+  });
+
+  test("filters the list by whether a book has attachments", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/books");
+
+    await page.getByRole("button", { name: t("filter.addField") }).click();
+    await page
+      .getByRole("option", { name: t("attachments._"), exact: true })
+      .click();
+
+    // A single-select LIST field, so picking the second choice replaces the first.
+    await page.getByRole("checkbox", { name: t("yes") }).click();
+
+    const request = page.waitForRequest(
+      (candidate) =>
+        candidate.url().includes("/rs/book/list") &&
+        candidate.method() === "POST"
+    );
+    await page.getByRole("button", { name: t("save"), exact: true }).click();
+
+    const body = JSON.parse((await request).postData() ?? "{}") as {
+      entries: { field: string; value: { values?: string[] } }[];
+    };
+    const entry = body.entries.find((e) => e.field === "hasAttachments");
+    // MagicFilterProcessor reads `value.values`; the enum name is what the backend matches on.
+    expect(entry?.value.values).toEqual(["YES"]);
+  });
+
+  // The filter is stored per user and per entity, so it must not leak into the other books specs.
+  test.afterAll(async ({ request }) => {
+    await request
+      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .catch(() => undefined);
+  });
+});

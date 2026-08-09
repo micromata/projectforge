@@ -156,13 +156,11 @@ test.describe("book attachments", () => {
       // are inside it, out of the test's reach.
       const download = page.waitForEvent("download");
       await page
-        .getByRole("link", { name: /ausgewählte dateien herunterladen/i })
+        .getByRole("link", { name: /ausgewählte herunterladen/i })
         .click();
       expect((await download).suggestedFilename()).toMatch(/\.zip$/);
 
-      await page
-        .getByRole("button", { name: /ausgewählte dateien löschen/i })
-        .click();
+      await page.getByRole("button", { name: /ausgewählte löschen/i }).click();
       // The plural question, not the single row's: multiDelete is just as final, but it says how
       // many files it takes.
       await expect(
@@ -183,6 +181,42 @@ test.describe("book attachments", () => {
           await remove(page, leftover);
         }
       }
+    }
+  });
+
+  test("downloads all files and opens the details on a row click", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, `/books/${BOOK_ID}`);
+    const name = fileName("row-click");
+
+    try {
+      await upload(page, name);
+
+      // "Alle herunterladen" needs no selection — it asks for the ZIP of every file (see
+      // AttachmentSelectionBar).
+      const all = page.waitForEvent("download");
+      await page.getByRole("link", { name: /alle herunterladen/i }).click();
+      expect((await all).suggestedFilename()).toMatch(/\.zip$/);
+
+      // The name is the file itself, not the dialog: the shortest way to a download.
+      const single = page.waitForEvent("download");
+      await storedRow(page, name).click();
+      expect((await single).suggestedFilename()).toBe(name);
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+
+      // Anywhere else in the row opens the details — the row overlay lies under the name link and
+      // the two buttons, so a click next to the metadata reaches it.
+      await page
+        .getByRole("listitem")
+        .filter({ hasText: name })
+        .click({ position: { x: 300, y: 26 } });
+      await expect(
+        page.getByRole("dialog").getByRole("textbox", { name: /dateiname/i })
+      ).toHaveValue(name);
+      await page.getByRole("button", { name: /^abbrechen$/i }).click();
+    } finally {
+      await remove(page, name);
     }
   });
 
