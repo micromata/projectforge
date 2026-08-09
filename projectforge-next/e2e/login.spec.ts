@@ -1,7 +1,7 @@
 import { test as base, expect } from "@playwright/test";
 import { login, goto, waitForHydration } from "./fixtures/auth";
 import { readCredentials } from "./fixtures/credentials";
-import { MESSAGES } from "../i18n/config";
+import { locales, translate } from "./fixtures/format";
 
 /**
  * The login of `/next/login` — since the UILayout pages were deleted (LoginPageRest,
@@ -90,19 +90,19 @@ test.describe("login", () => {
  * session to derive the user's one from (fixtures/format.ts needs `userStatus`).
  */
 function loginFailedMessages(): string[] {
-  return Object.values(MESSAGES).map((messages) => {
-    const login = messages.login as Record<string, Record<string, string>>;
-    return login.error.loginFailed;
-  });
+  return locales().map((locale) =>
+    translate(locale)("login.error.loginFailed")
+  );
 }
 
-/** The confirmation of a requested reset mail, in every shipped language. */
+/**
+ * The confirmation of a requested reset mail, in every shipped language. Rendered by next-intl, not
+ * by substituting `{arg0}` by hand: the message quotes the entered value as `''{arg0}''` (the
+ * bundle is MessageFormat), and only an ICU formatter turns that into the single apostrophes the
+ * page shows.
+ */
 function mailSentMessages(usernameEmail: string): string[] {
-  return Object.values(MESSAGES).map((messages) => {
-    const password = messages.password as Record<
-      string,
-      Record<string, string>
-    >;
-    return password.forgotten.mailSentTo.replaceAll("{arg0}", usernameEmail);
-  });
+  return locales().map((locale) =>
+    translate(locale)("password.forgotten.mailSentTo", { arg0: usernameEmail })
+  );
 }

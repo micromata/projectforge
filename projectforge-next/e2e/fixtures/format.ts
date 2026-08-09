@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { createTranslator } from "next-intl";
 import {
   formatContextFrom,
   formatDate,
@@ -24,6 +25,10 @@ export interface UserFormat {
    * Looks up a dotted message key, e.g. `book.lendOut`, substituting `{argN}` placeholders — the
    * generator turns the bundle's `{0}` into `{arg0}`, so a plural label like "Letzte {arg0} Tage"
    * only matches once its argument is filled in.
+   *
+   * Formatted by next-intl itself, not by a `replaceAll` of our own: the messages are ICU, so a
+   * quoted apostrophe (`Feld ''{arg0}''`, as MessageFormat writes it) only becomes the single one
+   * the page shows when an ICU formatter renders it.
    */
   t: (key: string, values?: Record<string, string | number>) => string;
   /** Formats a date the way the page does (date only, no time). */
@@ -35,25 +40,38 @@ export interface UserFormat {
 export async function userFormat(page: Page): Promise<UserFormat> {
   const user = await fetchUserData(page);
   const context = formatContextFrom(user);
-  const messages = MESSAGES[normalizeLocale(user.locale) ?? DEFAULT_LOCALE];
+  const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   return {
     context,
-    t: (key, values) => fill(lookup(messages, key), values),
+    t: translate(locale),
     date: (value) => formatDate(value, context),
     timestamp: (value) => formatTimestampMinutes(value, context),
   };
 }
 
-/** Replaces the `{argN}` placeholders next-intl fills at render time. */
-function fill(
-  message: string,
-  values: Record<string, string | number> | undefined
-): string {
-  if (!values) return message;
-  return Object.entries(values).reduce(
-    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
-    message
-  );
+/**
+ * The message lookup of one locale, for the tests that have no session to derive the user's from —
+ * a failed login, a password reset. They compare against *every* shipped language, because the
+ * server picks it from `Accept-Language`.
+ */
+export function translate(locale: keyof typeof MESSAGES): UserFormat["t"] {
+  // Cast because next-intl derives the allowed keys from the *type* of the messages, and the
+  // generated catalogs are plain JSON imports — a test looks its keys up as strings, exactly as the
+  // dotted backend keys arrive.
+  return createTranslator({
+    locale,
+    messages: MESSAGES[locale],
+    // A missing key must fail the test loudly instead of yielding the key itself, which would make
+    // an assertion pass against a page that shows nothing.
+    onError: (error) => {
+      throw error;
+    },
+  }) as unknown as UserFormat["t"];
+}
+
+/** Every shipped locale, in no particular order. */
+export function locales(): (keyof typeof MESSAGES)[] {
+  return Object.keys(MESSAGES) as (keyof typeof MESSAGES)[];
 }
 
 async function fetchUserData(page: Page): Promise<UserData> {
@@ -65,17 +83,4 @@ async function fetchUserData(page: Page): Promise<UserData> {
     return response.json();
   });
   return status.userData;
-}
-
-/** Dotted key into the nested catalogs (`book.lendOut`), as next-intl resolves them. */
-function lookup(messages: Record<string, unknown>, key: string): string {
-  let node: unknown = messages;
-  for (const part of key.split(".")) {
-    if (typeof node !== "object" || node === null) break;
-    node = (node as Record<string, unknown>)[part];
-  }
-  if (typeof node !== "string") {
-    throw new Error(`No message for "${key}" in the user's catalog.`);
-  }
-  return node;
 }

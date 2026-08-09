@@ -176,8 +176,8 @@
       "dropArea": "Select a file or drop it here.",
       "error": {
         "_": "Error while uploading the file.",
-        "fileAlreadyExists": "File '{arg0}' already exists.",
-        "maxSizeExceeded": "Can't upload file '{arg0}', maximum configured file size is exceeded: {arg1}>{arg2}.",
+        "fileAlreadyExists": "File ''{arg0}'' already exists.",
+        "maxSizeExceeded": "Can''t upload file ''{arg0}'', maximum configured file size is exceeded: {arg1}>{arg2}.",
         "maxSizeOfExceeded": "File upload rejected: maximum size of {arg0} exceeded.",
         "noFileSelected": "No file selected",
         "tooManyFiles": "You tried to upload too many files at once.",
@@ -378,7 +378,7 @@
       "mail": {
         "subject": "Password reset ProjectForge®"
       },
-      "mailSentTo": "Mail with reset link mailed to '{arg0}'. Please check also Your spam folder and check, if Your username or e-mail is correct.",
+      "mailSentTo": "Mail with reset link mailed to ''{arg0}''. Please check also Your spam folder and check, if Your username or e-mail is correct.",
       "request": "Request reset",
       "title": "Forgotten password"
     },
@@ -497,11 +497,12 @@
   "username": "User name",
   "validation": {
     "error": {
-      "fieldRequired": "Field '{arg0}' is required.",
+      "fieldRequired": "Field ''{arg0}'' is required.",
       "format": {
         "integer": "Unsupported integer format."
       },
       "generic": "Your input is invalid.",
+      "maxLength": "Field ''{arg0}'' must not be longer than {arg1} characters.",
       "nothingToExport": "Nothing to export.",
       "range": {
         "integerOutOfRange": "Value out of range {arg0}-{arg1}.",

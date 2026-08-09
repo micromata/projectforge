@@ -176,8 +176,8 @@
       "dropArea": "Datei auswählen oder hier hinziehen.",
       "error": {
         "_": "Fehler beim Upload der Datei.",
-        "fileAlreadyExists": "Die Datei '{arg0}' existiert bereits.",
-        "maxSizeExceeded": "Datei '{arg0}' kann nicht hochgeladen werden. Die konfigurierte Maximalgröße wurde überschritten: {arg1}>{arg2}.",
+        "fileAlreadyExists": "Die Datei ''{arg0}'' existiert bereits.",
+        "maxSizeExceeded": "Datei ''{arg0}'' kann nicht hochgeladen werden. Die konfigurierte Maximalgröße wurde überschritten: {arg1}>{arg2}.",
         "maxSizeOfExceeded": "Die Datei konnte nicht hochgeladen werden. Die Maximalgröße von {arg0} wurde überschritten.",
         "noFileSelected": "Keine Datei gewählt",
         "tooManyFiles": "Es wurden zu viele Dateien für das gleichzeitige Hochladen ausgewählt.",
@@ -378,7 +378,7 @@
       "mail": {
         "subject": "Passwortreset ProjectForge®"
       },
-      "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an '{arg0}'. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
+      "mailSentTo": "E-Mail mit dem Passwortrücksetzen-Link wurde gesendet an ''{arg0}''. Bitte im Spam-Ordner schauen bzw. überprüfen, ob der Benutzer:innenname bzw. E-Mail korrekt ist.",
       "request": "Rücksetzen anfordern",
       "title": "Passwort vergessen"
     },
@@ -497,11 +497,12 @@
   "username": "Benutzer:innenname",
   "validation": {
     "error": {
-      "fieldRequired": "Feld '{arg0}' muss ausgefüllt werden.",
+      "fieldRequired": "Feld ''{arg0}'' muss ausgefüllt werden.",
       "format": {
         "integer": "Ungültiger Ganzzahlwert."
       },
       "generic": "Ungültige Eingabe.",
+      "maxLength": "Feld ''{arg0}'' darf nicht länger als {arg1} Zeichen sein.",
       "nothingToExport": "Keine Daten für den Export vorhanden.",
       "range": {
         "integerOutOfRange": "Wert außerhalb des Bereichs {arg0} - {arg1}.",

@@ -247,13 +247,16 @@ object GenerateNextI18nMessagesMain {
   }
 
   /**
-   * Java's MessageFormat escapes a literal apostrophe as `''` and numbers its placeholders, while
-   * the ICU syntax next-intl uses wants a single apostrophe and named arguments.
+   * Java's MessageFormat numbers its placeholders (`{0}`), while the ICU syntax next-intl uses names
+   * them — so `{0}` becomes `{arg0}`.
+   *
+   * The apostrophes stay as they are, escaped as `''`: ICU quotes exactly like MessageFormat does, a
+   * single `'` before a `{` opening a *literal* section. Unescaping them (as this did) turned
+   * `Feld ''{0}''` into `Feld '{arg0}'`, and next-intl then rendered the placeholder verbatim instead
+   * of substituting it — the message showed "Feld {arg0} muss ausgefüllt werden."
    */
   internal fun toIcu(value: String): String {
-    return value
-      .replace("''", "'")
-      .replace(Regex("\\{(\\d+)}")) { "{arg${it.groupValues[1]}}" }
+    return value.replace(Regex("\\{(\\d+)}")) { "{arg${it.groupValues[1]}}" }
   }
 
   /**
