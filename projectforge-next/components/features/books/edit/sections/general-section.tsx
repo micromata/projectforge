@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import { InputField, SelectField } from "../book-edit-fields";
+import { InputField } from "@/components/shared/form/input-field";
+import { SelectField } from "@/components/shared/form/select-field";
 import { useBookStatusOptions, useBookTypeOptions } from "../use-book-options";
 import { KeywordsField } from "./keywords-field";
 
@@ -17,7 +18,7 @@ import { KeywordsField } from "./keywords-field";
  *
  * This file decides order, labels and layout, nothing else: whether a field is mandatory, how long it
  * may be and whether a select can be cleared come from the generated metadata of BookDO (see
- * book-edit-fields and lib/metadata/book.generated.ts). `required` used to be set here as well, and
+ * components/shared/form/ and lib/metadata/book.generated.ts). `required` used to be set here as well, and
  * had drifted from the entity.
  *
  * `status` sits next to `type` rather than in the loan section: it is a property of the book, not of a

@@ -9,20 +9,20 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useBookEditForm } from "../book-edit-context";
+import { useEntityEditForm } from "@/components/shared/form/form-context";
 import type { UserRef } from "../../types";
 
 /**
  * Lend out / return, the two actions of the legacy `UICustomized("book.lendOutComponent")`
  * (BookLendOut.jsx).
  *
- * Both submit the form (see BookSubmitMeta): the endpoints save the posted book as a side effect,
+ * Both submit the form (see lib/rs/submit-meta.ts): the endpoints save the posted book as a side effect,
  * so the current form values have to go with them — a partial update doesn't exist here, and
  * sending anything else would let the page and the database drift apart.
  */
 export function BookLoanActions() {
   const t = useTranslations("book");
-  const form = useBookEditForm();
+  const form = useEntityEditForm();
   const { user } = useAuth();
 
   const id = useStore(form.store, (s: unknown) => (s as FormState).values.id);
@@ -76,7 +76,7 @@ export function BookLoanActions() {
   );
 }
 
-/** The slice of the form store read here; the context is deliberately untyped (book-edit-context). */
+/** The slice of the form store read here; the context is deliberately untyped (form-context). */
 interface FormState {
   isSubmitting: boolean;
   values: { id: number | null; lendOutBy: UserRef | null };

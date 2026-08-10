@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import { TextAreaField } from "../book-edit-fields";
+import { TextAreaField } from "@/components/shared/form/text-area-field";
 
 export function NotesSection() {
   const t = useTranslations("books.edit");

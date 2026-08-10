@@ -4,7 +4,9 @@ import { useTranslations } from "next-intl";
 import { EditPageTabs } from "@/components/shared/edit-page-tabs";
 import { HistorySection } from "@/components/shared/history/history-section";
 import { BookEditHeader } from "../edit/book-edit-header";
-import { useBookDetail } from "../edit/use-book-detail";
+import { useEntityDetail } from "@/hooks/use-entity-detail";
+import { BOOK_ENTITY } from "../edit/use-book-detail";
+import type { BookDetail } from "../types";
 import { bookTabs } from "../book-tabs";
 
 interface Props {
@@ -19,7 +21,7 @@ interface Props {
  */
 export function BookHistoryPage({ bookId }: Props) {
   const t = useTranslations();
-  const { data: book } = useBookDetail(bookId);
+  const { data: book } = useEntityDetail<BookDetail>(BOOK_ENTITY, bookId);
   const tabs = bookTabs(bookId, t, false);
 
   return (

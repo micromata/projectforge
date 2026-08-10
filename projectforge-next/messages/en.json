@@ -1,26 +1,4 @@
 {
-  "login": {
-    "submitting": "Signing in…",
-    "twoFactor": {
-      "verifying": "Verifying…",
-      "webAuthnRunning": "Waiting for token…",
-      "smsSent": "SMS code has been sent",
-      "mailSent": "Email code has been sent"
-    }
-  },
-  "passwordForgotten": {
-    "submitting": "Sending…",
-    "mailSent": "If the account exists, a mail with a reset link has been sent. Please check your spam folder as well.",
-    "backToLogin": "Back to login",
-    "error": "The reset could not be requested"
-  },
-  "passwordReset": {
-    "submit": "Change password",
-    "submitting": "Changing…",
-    "requestNewLink": "Request a new link",
-    "backToLogin": "Back to login",
-    "error": "The password could not be changed"
-  },
   "books": {
     "title": "Books",
     "searchPlaceholder": "Search books…",
@@ -43,16 +21,50 @@
         "available": "Available",
         "loaned": "Lent out"
       },
-      "actions": {
-        "cancel": "Cancel",
-        "save": "Save",
-        "lastSaved": "Last saved: {time}"
-      },
       "saved": "Book saved",
       "loading": "Loading book…",
       "notFound": "Book not found.",
       "newTitle": "New book"
     }
+  },
+  "dynamic": {
+    "search": "Search…",
+    "noOptions": "No options",
+    "create": "Add \"{value}\"",
+    "remove": "Remove {label}",
+    "empty": "—"
+  },
+  "entityEdit": {
+    "lastSaved": "Last saved: {time}"
+  },
+  "filter": {
+    "selectNone": "Select none",
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "blank": "(blank)"
+  },
+  "login": {
+    "submitting": "Signing in…",
+    "twoFactor": {
+      "verifying": "Verifying…",
+      "webAuthnRunning": "Waiting for token…",
+      "smsSent": "SMS code has been sent",
+      "mailSent": "Email code has been sent"
+    }
+  },
+  "passwordForgotten": {
+    "submitting": "Sending…",
+    "mailSent": "If the account exists, a mail with a reset link has been sent. Please check your spam folder as well.",
+    "backToLogin": "Back to login",
+    "error": "The reset could not be requested"
+  },
+  "passwordReset": {
+    "submit": "Change password",
+    "submitting": "Changing…",
+    "requestNewLink": "Request a new link",
+    "backToLogin": "Back to login",
+    "error": "The password could not be changed"
   },
   "table": {
     "resize": "Resize column",
@@ -63,19 +75,5 @@
     "nextPage": "Next page",
     "rowsPerPage": "Rows / page:",
     "resetFailed": "The columns could not be reset"
-  },
-  "filter": {
-    "selectNone": "Select none",
-    "text": "Text",
-    "number": "Number",
-    "date": "Date",
-    "blank": "(blank)"
-  },
-  "dynamic": {
-    "search": "Search…",
-    "noOptions": "No options",
-    "create": "Add \"{value}\"",
-    "remove": "Remove {label}",
-    "empty": "—"
   }
 }

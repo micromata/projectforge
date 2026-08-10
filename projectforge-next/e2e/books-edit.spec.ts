@@ -25,7 +25,7 @@ test.describe("book edit", () => {
     // The regression this guards: `status` is the one select whose loaded value differs from the
     // form's default, so it is the only one where the value changes while the dropdown is closed —
     // which used to make Radix's hidden native select bounce an empty value back and wipe the field
-    // (see SelectField in book-edit-fields.tsx).
+    // (see SelectField in components/shared/form/select-field.tsx).
     const status = page.getByRole("combobox", { name: /^status/i });
     await expect(status).toContainText("entsorgt");
   });

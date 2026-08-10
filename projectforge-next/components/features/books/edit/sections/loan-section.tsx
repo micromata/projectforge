@@ -6,8 +6,8 @@ import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate } from "@/lib/format";
-import { InputField } from "../book-edit-fields";
-import { useBookEditForm } from "../book-edit-context";
+import { InputField } from "@/components/shared/form/input-field";
+import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { BookLoanActions } from "./book-loan-actions";
 import type { UserRef } from "../../types";
 
@@ -30,7 +30,7 @@ import type { UserRef } from "../../types";
 export function LoanSection() {
   const t = useTranslations("book");
   const format = useFormatContext();
-  const form = useBookEditForm();
+  const form = useEntityEditForm();
 
   // Read from the form, not from the fetched book: after a loan action the form is reset onto the
   // server's values (see BookEditForm), and this way the line follows along.
@@ -67,7 +67,7 @@ export function LoanSection() {
   );
 }
 
-/** The slice of the form store read here; the context is deliberately untyped (book-edit-context). */
+/** The slice of the form store read here; the context is deliberately untyped (form-context). */
 interface FormState {
   values: { lendOutBy: UserRef | null; lendOutDate: string | null };
 }

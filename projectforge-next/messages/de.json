@@ -1,26 +1,4 @@
 {
-  "login": {
-    "submitting": "Anmelden…",
-    "twoFactor": {
-      "verifying": "Prüfe…",
-      "webAuthnRunning": "Warte auf Token…",
-      "smsSent": "SMS-Code wurde gesendet",
-      "mailSent": "E-Mail-Code wurde gesendet"
-    }
-  },
-  "passwordForgotten": {
-    "submitting": "Sende…",
-    "mailSent": "Sofern der Zugang existiert, wurde eine E-Mail mit einem Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.",
-    "backToLogin": "Zurück zur Anmeldung",
-    "error": "Das Zurücksetzen konnte nicht angefordert werden"
-  },
-  "passwordReset": {
-    "submit": "Passwort ändern",
-    "submitting": "Ändere…",
-    "requestNewLink": "Neuen Link anfordern",
-    "backToLogin": "Zurück zur Anmeldung",
-    "error": "Das Passwort konnte nicht geändert werden"
-  },
   "books": {
     "title": "Bücherliste",
     "searchPlaceholder": "Bücherliste durchsuchen…",
@@ -43,16 +21,50 @@
         "available": "Verfügbar",
         "loaned": "Ausgeliehen"
       },
-      "actions": {
-        "cancel": "Abbrechen",
-        "save": "Speichern",
-        "lastSaved": "Zuletzt gespeichert: {time}"
-      },
       "saved": "Buch gespeichert",
       "loading": "Buch wird geladen…",
       "notFound": "Buch nicht gefunden.",
       "newTitle": "Neues Buch"
     }
+  },
+  "dynamic": {
+    "search": "Suchen…",
+    "noOptions": "Keine Auswahl",
+    "create": "„{value}“ hinzufügen",
+    "remove": "{label} entfernen",
+    "empty": "—"
+  },
+  "entityEdit": {
+    "lastSaved": "Zuletzt gespeichert: {time}"
+  },
+  "filter": {
+    "selectNone": "Keine auswählen",
+    "text": "Text",
+    "number": "Zahl",
+    "date": "Datum",
+    "blank": "(leer)"
+  },
+  "login": {
+    "submitting": "Anmelden…",
+    "twoFactor": {
+      "verifying": "Prüfe…",
+      "webAuthnRunning": "Warte auf Token…",
+      "smsSent": "SMS-Code wurde gesendet",
+      "mailSent": "E-Mail-Code wurde gesendet"
+    }
+  },
+  "passwordForgotten": {
+    "submitting": "Sende…",
+    "mailSent": "Sofern der Zugang existiert, wurde eine E-Mail mit einem Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Zurücksetzen konnte nicht angefordert werden"
+  },
+  "passwordReset": {
+    "submit": "Passwort ändern",
+    "submitting": "Ändere…",
+    "requestNewLink": "Neuen Link anfordern",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Passwort konnte nicht geändert werden"
   },
   "table": {
     "resize": "Spaltenbreite ändern",
@@ -63,19 +75,5 @@
     "nextPage": "Nächste Seite",
     "rowsPerPage": "Einträge / Seite:",
     "resetFailed": "Die Spalten konnten nicht zurückgesetzt werden"
-  },
-  "filter": {
-    "selectNone": "Keine auswählen",
-    "text": "Text",
-    "number": "Zahl",
-    "date": "Datum",
-    "blank": "(leer)"
-  },
-  "dynamic": {
-    "search": "Suchen…",
-    "noOptions": "Keine Auswahl",
-    "create": "„{value}“ hinzufügen",
-    "remove": "{label} entfernen",
-    "empty": "—"
   }
 }

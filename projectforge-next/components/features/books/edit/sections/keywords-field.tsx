@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { TagInput } from "@/components/shared/tag-input";
 import { cn } from "@/lib/utils";
-import { useBookEditForm } from "../book-edit-context";
+import { useEntityEditForm } from "@/components/shared/form/form-context";
 
 function parse(raw: string | null): string[] {
   if (!raw) return [];
@@ -23,7 +23,7 @@ export function KeywordsField({ className }: { className?: string }) {
   // BookDO's own label (`book.keywords`); the hint below it is ours — how the tag input confirms an
   // entry has no backend counterpart.
   const label = useTranslations("book")("keywords");
-  const form = useBookEditForm();
+  const form = useEntityEditForm();
   return (
     <form.Field name={"keywords" as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

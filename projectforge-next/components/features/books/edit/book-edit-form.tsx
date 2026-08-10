@@ -1,31 +1,43 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useStore, useForm } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { EditPageShell } from "@/components/shared/edit-page-shell";
-import { BookEditFormProvider } from "./book-edit-context";
+import { EntityEditFormProvider } from "@/components/shared/form/form-context";
+import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
+import { EntityDeleteButton } from "@/components/shared/edit/entity-delete-button";
+import {
+  useDeleteEntity,
+  useEntityDetail,
+  useSaveEntity,
+} from "@/hooks/use-entity-detail";
+import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
+import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
+import { BOOK_METADATA } from "@/lib/metadata/book.generated";
 import { BookEditHeader } from "./book-edit-header";
-import { BookEditActions } from "./book-edit-actions";
-import { BookDeleteButton } from "./book-delete-button";
 import { GeneralSection } from "./sections/general-section";
 import { LoanSection } from "./sections/loan-section";
 import { NotesSection } from "./sections/notes-section";
 import { AttachmentSection } from "./sections/attachment-section";
 import { bookTabs } from "../book-tabs";
-import { bookEditSchema, BOOK_EDIT_FIELDS } from "./book-edit-schema";
+import {
+  bookEditSchema,
+  BOOK_EDIT_FIELDS,
+  type BookEditValues,
+} from "./book-edit-schema";
 import { emptyBookValues, toFormValues } from "./book-edit-values";
 import {
-  useBookDetail,
+  BOOKS_LIST_QUERY_KEY,
+  BOOK_ENTITY,
   useLendOutBook,
   useReturnBook,
-  useSaveBook,
 } from "./use-book-detail";
-import { applyServerValidationErrors } from "@/lib/validation/server-errors";
-import { SAVE_META } from "./book-submit-meta";
 import type { BookDetail } from "../types";
+
+const LIST_ROUTE = "/books";
+const WRITE_OPTIONS = { listQueryKey: BOOKS_LIST_QUERY_KEY };
 
 interface Props {
   /** null adds a new book: nothing is fetched and the form starts out blank. */
@@ -37,62 +49,62 @@ export function BookEditForm({ bookId }: Props) {
   const t = useTranslations("books.edit");
   const tCommon = useTranslations();
   // A new book has nothing to load — the hook stays disabled for id null.
-  const { data: book, isLoading, isError } = useBookDetail(bookId);
-  const saveMutation = useSaveBook();
+  const {
+    data: book,
+    isLoading,
+    isError,
+  } = useEntityDetail<BookDetail>(BOOK_ENTITY, bookId);
+  const saveMutation = useSaveEntity<BookDetail>(BOOK_ENTITY, WRITE_OPTIONS);
+  const deleteMutation = useDeleteEntity<BookDetail>(
+    BOOK_ENTITY,
+    WRITE_OPTIONS
+  );
   const lendOutMutation = useLendOutBook();
   const returnMutation = useReturnBook();
+  const legacyUrl = useLegacyEditUrl(BOOK_ENTITY, bookId);
 
-  const form = useForm({
-    defaultValues: book ? toFormValues(book) : emptyBookValues(),
-    validators: { onSubmit: bookEditSchema },
-    // Saving is what the form's own submit button does; the loan buttons pass their own meta.
-    onSubmitMeta: SAVE_META,
-    onSubmit: async ({ value, meta }) => {
-      const data = value as BookDetail;
+  // All three writes go through the form's submit — same validation, same values, same 406 handling
+  // — because the loan endpoints save the whole book too (see lib/rs/submit-meta.ts).
+  const save = useCallback(
+    (values: BookEditValues, meta: { action: string }) => {
       const mutation =
         meta.action === "lendOut"
           ? lendOutMutation
           : meta.action === "returnBook"
             ? returnMutation
             : saveMutation;
-      const result = await mutation.mutateAsync(data);
-      if (result.kind === "validationErrors") {
-        // The server rejected the entity: its rules are the authority, ours only anticipate them.
-        const { unassigned } = applyServerValidationErrors(
-          form,
-          result.validationErrors,
-          BOOK_EDIT_FIELDS
-        );
-        // Anything the form can't show next to a field would be invisible otherwise.
-        unassigned.forEach((message) => toast.error(message));
-        if (unassigned.length === 0)
-          toast.error(tCommon("validation.error.generic"));
-        return;
-      }
-      if (meta.action !== "save") {
-        // Lending out and returning stay on the page: the loan is what the user came for, and
-        // seeing its result is the point. The backend's ResponseAction is a REDIRECT to the list
-        // here too (both run through saveOrUpdate), and is ignored just as it is for a save.
-        // The new lendOutBy/lendOutDate/lendOutComment arrive with the invalidated detail query,
-        // and the effect below resets the form onto them.
-        toast.success(tCommon("message.successfullChanged"));
-        return;
-      }
-      toast.success(t("saved"));
-      // Back to the list, which is where the backend points too (its ResponseAction is a REDIRECT
-      // to /next/books) and what deleting does. The form is reset first so leaving it doesn't look
-      // like unsaved changes; the list refetches on its own, the caches having been invalidated.
-      form.reset(value);
-      router.push("/books");
+      // The form's values are the DTO the backend expects: every field of BookEditValues is one of
+      // BookDetail (see book-edit-schema.ts), the type only differs in what it makes optional.
+      return mutation.mutateAsync(values as BookDetail);
     },
+    [lendOutMutation, returnMutation, saveMutation]
+  );
+
+  const { form, isDirty, isSubmitting } = useEntityEditForm<
+    BookEditValues,
+    BookDetail
+  >({
+    data: book,
+    toFormValues,
+    defaultValues: emptyBookValues(),
+    schema: bookEditSchema,
+    fieldNames: BOOK_EDIT_FIELDS,
+    listRoute: LIST_ROUTE,
+    savedMessage: t("saved"),
+    save,
   });
 
-  useEffect(() => {
-    if (book) form.reset(toFormValues(book));
-  }, [book, form]);
-
-  const isDirty = useStore(form.store, (s) => s.isDirty);
-  const isSubmitting = useStore(form.store, (s) => s.isSubmitting);
+  async function runDelete(): Promise<void> {
+    if (!book) return;
+    const result = await deleteMutation.mutateAsync(book);
+    if (result.kind === "validationErrors") {
+      // Nothing was deleted; the server explains why (e.g. the book is still lent out).
+      result.validationErrors.forEach((error) => toast.error(error.message));
+      return;
+    }
+    toast.success(tCommon("message.successfullChanged"));
+    router.push(LIST_ROUTE);
+  }
 
   if (isLoading) {
     return (
@@ -125,7 +137,7 @@ export function BookEditForm({ bookId }: Props) {
   ];
 
   return (
-    <BookEditFormProvider value={form}>
+    <EntityEditFormProvider value={{ form, metadata: BOOK_METADATA }}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -138,28 +150,32 @@ export function BookEditForm({ bookId }: Props) {
             <BookEditHeader
               title={book?.title ?? t("newTitle")}
               lendOut={book?.lendOutBy != null}
+              legacyUrl={legacyUrl}
             />
           }
           tabs={tabs}
           sections={sections}
           actions={
-            <BookEditActions
-              onCancel={() => router.push("/books")}
+            <EntityEditActions
+              onCancel={() => router.push(LIST_ROUTE)}
               // Nothing to delete before the first save.
               deleteAction={
                 book ? (
-                  <BookDeleteButton book={book} disabled={isSubmitting} />
+                  <EntityDeleteButton
+                    onDelete={runDelete}
+                    disabled={isSubmitting || deleteMutation.isPending}
+                  />
                 ) : undefined
               }
               isSaving={isSubmitting}
               isDirty={isDirty}
               // Saving leaves the page, so there is never a "just saved" moment to show here —
               // what remains is when the book was created.
-              lastSavedLabel={book?.created ?? null}
+              lastSaved={book?.created ?? null}
             />
           }
         />
       </form>
-    </BookEditFormProvider>
+    </EntityEditFormProvider>
   );
 }
