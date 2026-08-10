@@ -143,6 +143,15 @@ constructor(
     class InitialListData(
         val ui: UILayout?,
         val standardEditPage: String,
+        /**
+         * The legacy React edit page with [NextMigration.ID_PLACEHOLDER] for the id, e.g.
+         * `react/book/edit/:id`.
+         *
+         * Needed by the hand built pages of projectforge-next: their edit page doesn't call
+         * `{entity}/edit`, so it can't read [UILayout.legacyUrl] from there and takes the template
+         * from the list response instead.
+         */
+        val legacyEditPage: String,
         val data: ResultSet<*>,
         val filterFavorites: List<Favorites.FavoriteIdTitle>,
         val filter: MagicFilter,
@@ -391,6 +400,8 @@ constructor(
                 "searchFilter",
                 "nothingFound"
             )
+        // The way back to the legacy list page, shown by projectforge-next next to the page title.
+        ui.legacyUrl = NextMigration.legacyListUrl(category)
         if (isMultiSelectionMode(request, filter)) {
             // Don't show search filter in multi selection mode (it isn't supported). The user
             // should use the AG-Grid filter instead.
@@ -420,7 +431,7 @@ constructor(
                     MenuItem(
                         CREATE_MENU,
                         title = translate("add"),
-                        url = addNewEntryUrl,
+                        url = getAddNewEntryUrl(request),
                         type = if (useModalEditDialog) MenuItemTargetType.MODAL else null
                     )
                 )
@@ -428,7 +439,8 @@ constructor(
         }
         return InitialListData(
             ui = ui,
-            standardEditPage = getStandardEditPage(),
+            standardEditPage = getEditPage(request),
+            legacyEditPage = NextMigration.legacyEditPage(category),
             quickSelectUrl = quickSelectUrl,
             useModalEditDialog = useModalEditDialog,
             data = resultSet,
@@ -438,10 +450,57 @@ constructor(
     }
 
     /**
-     * @return the standard edit page at default.
+     * The url template of the page a row of the list page leads to, with [NextMigration.ID_PLACEHOLDER]
+     * for the id. Without leading slash. Overridden by pages whose rows don't open an edit form (the
+     * address view page, the script execution page, the Wicket project edit page ...).
+     *
+     * Not `protected`, because [org.projectforge.rest.core.aggrid.AGGridSupport] builds the row click
+     * url of the grid from it.
      */
-    protected open fun getStandardEditPage(): String {
+    open fun getStandardEditPage(): String {
         return NextMigration.standardEditPage(category)
+    }
+
+    /**
+     * The edit page for the frontend that asked for this list: [getStandardEditPage] for
+     * projectforge-next, the legacy React page for the legacy React app.
+     *
+     * A migrated page is still reachable under `react/<category>` - through the escape hatch next to
+     * the page title ([UILayout.legacyUrl]), a bookmark or the browser history. A user who is looking
+     * at that list must not be thrown into projectforge-next by a click on a row; they chose the
+     * legacy frontend.
+     *
+     * A migrated page whose legacy rows didn't open the generic edit form declares that in
+     * [NextMigration.NextPage.legacyEditRoute] - the [getStandardEditPage] override of such a page
+     * describes its *next* route and can't stand in for the legacy one.
+     */
+    open fun getEditPage(request: HttpServletRequest): String {
+        return if (servedByLegacyFrontend(request)) {
+            NextMigration.legacyEditPage(category)
+        } else {
+            getStandardEditPage()
+        }
+    }
+
+    /**
+     * The url of the "add" menu item for the frontend that asked, see [getEditPage] for why it
+     * depends on the caller.
+     */
+    protected open fun getAddNewEntryUrl(request: HttpServletRequest): String {
+        return if (servedByLegacyFrontend(request)) {
+            NextMigration.legacyNewEntryUrl(category)
+        } else {
+            addNewEntryUrl
+        }
+    }
+
+    /**
+     * @return true, if this page is migrated to projectforge-next, but the request came from the
+     * legacy React app. Nothing is gated on this - it only picks which of the two urls of the same
+     * page is handed out (see [RestAuthenticationUtils.isNextClient]).
+     */
+    private fun servedByLegacyFrontend(request: HttpServletRequest): Boolean {
+        return NextMigration.isMigrated(category) && !RestAuthenticationUtils.isNextClient(request)
     }
 
     /**
@@ -835,6 +894,15 @@ constructor(
     ): FormLayoutData {
         val ui = createEditLayout(dto, userAccess)
         ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
+        // The way back to the legacy edit page of this very entry, shown by projectforge-next next to
+        // the page title. A new entry has no id yet, so it leads to the legacy add page instead.
+        ui.legacyUrl = getId(dto).let { id ->
+            if (id != null) {
+                NextMigration.legacyEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "$id")
+            } else {
+                NextMigration.legacyNewEntryUrl(category)
+            }
+        }
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)

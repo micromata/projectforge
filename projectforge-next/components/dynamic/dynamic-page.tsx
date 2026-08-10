@@ -3,6 +3,7 @@
 import { DynamicLayoutProvider } from "./dynamic-context";
 import { DynamicRenderer } from "./dynamic-renderer";
 import { DynamicActionGroup } from "./dynamic-action-group";
+import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import type { DynamicPageResponse } from "@/lib/rs/types";
 import type { ReactNode } from "react";
 
@@ -31,10 +32,14 @@ export function DynamicPage({
       queryKey={queryKey}
     >
       <div className="flex flex-1 flex-col overflow-hidden">
-        {response.ui.title && (
-          <h1 className="px-6 pt-4 pb-2 text-xl font-semibold">
-            {response.ui.title}
-          </h1>
+        {/* The link sits left of the title, so it is rendered even without one. */}
+        {(response.ui.title || response.ui.legacyUrl) && (
+          <div className="flex items-center gap-2 px-6 pt-4 pb-2">
+            <LegacyPageLink url={response.ui.legacyUrl} />
+            {response.ui.title && (
+              <h1 className="text-xl font-semibold">{response.ui.title}</h1>
+            )}
+          </div>
         )}
         <div className="flex-1 overflow-auto px-6 pb-6">
           <div className="flex flex-col gap-4">

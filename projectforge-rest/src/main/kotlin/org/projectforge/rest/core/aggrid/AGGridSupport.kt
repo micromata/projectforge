@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
@@ -107,8 +106,13 @@ class AGGridSupport {
             prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
         } else {
             if (userAccess.update == true) {
-                val redirectUrl =
-                    rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
+                // The edit page with the id placeholder, resolved per row by both frontends. Not the new-entry
+                // url with "/id" appended: that only happened to match for the generic React shape
+                // (react/<category>/edit + /id), while e.g. books uses next/books/new and next/books/:id, which
+                // turned a row click into next/books/new/<id> - the empty *new* form. Asking the pages rest also
+                // honours its getStandardEditPage() override (address, script, project, poll ...) and keeps a
+                // user who is looking at the legacy list of a migrated page in the legacy app.
+                val redirectUrl = rowClickUrl ?: "/${pagesRest.getEditPage(request)}"
                 agGrid.withRowClickRedirectUrl(redirectUrl, openModal = pagesRest.useModalEditDialog)
                 if (pageAfterMultiSelect != null) {
                     layout.multiSelectionSupported = true

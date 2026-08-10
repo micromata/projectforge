@@ -330,6 +330,12 @@ export interface DynamicUIResponse {
   actions?: ActionDef[];
   pageMenu?: DynamicLayoutNode[];
   title?: string;
+  /**
+   * The same page in the legacy React app, e.g. `react/book/edit/42` — the escape hatch shown next
+   * to the title while the migration runs (see LegacyPageLink). Absent for pages with no legacy
+   * counterpart.
+   */
+  legacyUrl?: string;
   translations?: Record<string, string>;
   watchFields?: string[];
   // An array, not a map: each container carries its own id (e.g. "searchFilter").
@@ -354,6 +360,12 @@ export interface InitialListData extends DynamicPageResponse {
   filter?: MagicFilter;
   filterFavorites?: FavoriteIdTitle[];
   standardEditPage?: string;
+  /**
+   * The legacy React edit page with `:id` for the id, e.g. `react/book/edit/:id`. Read by the hand
+   * built edit pages, which have no `{entity}/edit` response of their own to take `ui.legacyUrl`
+   * from (see LegacyPageLink).
+   */
+  legacyEditPage?: string;
   quickSelectUrl?: string;
   useModalEditDialog?: boolean;
 }

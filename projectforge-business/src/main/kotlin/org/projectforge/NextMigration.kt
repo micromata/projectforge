@@ -64,11 +64,17 @@ object NextMigration {
      * legacy React app. Hand built pages may deviate.
      * @param newEntryRoute Route for creating a new entry, e.g. `books/new`. Defaults to the
      * generic shape `<route>/edit`.
+     * @param legacyRoute Route of the same list page in the legacy React app, without the `react/`
+     * prefix. Only needed if it isn't the rest category itself, which is the React convention.
+     * @param legacyEditRoute Route of the legacy edit page with [ID_PLACEHOLDER]. Only needed if it
+     * isn't the generic React shape `<category>/edit/:id`.
      */
     class NextPage(
         val route: String,
         editRoute: String? = null,
         newEntryRoute: String? = null,
+        val legacyRoute: String? = null,
+        val legacyEditRoute: String? = null,
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
@@ -137,5 +143,38 @@ object NextMigration {
     fun newEntryUrl(category: String): String {
         val route = nextPage(category)?.newEntryRoute ?: "$category/edit"
         return "${appPath(category)}$route"
+    }
+
+    /**
+     * The way back: the same list page in the legacy React app, offered on the next page as an
+     * escape hatch while the migration runs (see `LegacyPageLink` in projectforge-next).
+     *
+     * Needed as its own mapping because [listUrl] is a one way function once a page is migrated -
+     * the React route isn't recoverable from the next one (`books` != `book`).
+     *
+     * @return The frontend url of the legacy list page without leading slash, e.g. `react/book`.
+     */
+    fun legacyListUrl(category: String): String {
+        return "${Constants.REACT_APP_PATH}${legacyRoute(category)}"
+    }
+
+    /**
+     * @return The frontend url template of the legacy edit page with [ID_PLACEHOLDER] for the id,
+     * e.g. `react/book/edit/:id`.
+     */
+    fun legacyEditPage(category: String): String {
+        val route = nextPage(category)?.legacyEditRoute ?: "${legacyRoute(category)}/edit/$ID_PLACEHOLDER"
+        return "${Constants.REACT_APP_PATH}$route"
+    }
+
+    /**
+     * @return The frontend url of the legacy page for creating a new entry, e.g. `react/book/edit`.
+     */
+    fun legacyNewEntryUrl(category: String): String {
+        return "${Constants.REACT_APP_PATH}${legacyRoute(category)}/edit"
+    }
+
+    private fun legacyRoute(category: String): String {
+        return nextPage(category)?.legacyRoute ?: category
     }
 }

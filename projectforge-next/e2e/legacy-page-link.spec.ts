@@ -1,0 +1,52 @@
+import { test, expect, goto } from "./fixtures/auth";
+import { userFormat } from "./fixtures/format";
+
+/**
+ * The escape hatch back to the legacy React page (see LegacyPageLink).
+ *
+ * The url is the server's (`UILayout.legacyUrl` / `InitialListData.legacyEditPage`, both from
+ * `NextMigration`), so what is checked here is that it arrives and is rendered as a real link out of
+ * this app - not a client-side route, which would never load the other frontend.
+ *
+ * Read-only: the link is inspected, never followed. Leaving the Next dev server for `/react/...`
+ * would land on its 404, since only Spring serves that app.
+ */
+/** Existing demo data, the same book books-edit.spec.ts reads. Nothing is written here either. */
+const BOOK_ID = 316163;
+
+test.describe("legacy page link", () => {
+  test("leads from the books list to /react/book", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/books");
+
+    const link = page.getByRole("link", { name: t("goreact.menu.classics") });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", "/react/book");
+  });
+
+  test("leads from a book to its legacy edit page", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, `/books/${BOOK_ID}`);
+
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveAttribute("href", `/react/book/edit/${BOOK_ID}`);
+  });
+
+  test("leads from a server-laid-out list to its own legacy page", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    // Not migrated, so the link points at the page the user is effectively looking at already. It is
+    // rendered all the same: the frontend doesn't decide which pages have a way back.
+    await goto(page, "/vacation");
+
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveAttribute("href", "/react/vacation");
+  });
+});

@@ -25,6 +25,7 @@ package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.NextMigration
@@ -80,5 +81,37 @@ class PageResolverTest {
         assertFalse(NextMigration.isMigrated("address"))
         assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
         assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+    }
+
+    /**
+     * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
+     * entry* url with an id appended, which is what it used to be built from. For the generic React
+     * shape both happened to be the same (`react/group/edit` + `/id`), so the difference only showed
+     * on a hand built page: books answered a row click with `next/books/new/<id>`, the empty add
+     * form.
+     */
+    @Test
+    fun rowClickUrlTest() {
+        assertEquals("next/books/:id", NextMigration.standardEditPage("book"))
+        assertNotEquals(
+            "${NextMigration.newEntryUrl("book")}/:id",
+            NextMigration.standardEditPage("book"),
+            "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
+        )
+        assertEquals("react/group/edit/:id", NextMigration.standardEditPage("group"))
+    }
+
+    /**
+     * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
+     * derivable from the next url: `books` is not `book`.
+     */
+    @Test
+    fun legacyPageTest() {
+        assertEquals("react/book", NextMigration.legacyListUrl("book"))
+        assertEquals("react/book/edit/:id", NextMigration.legacyEditPage("book"))
+        assertEquals("react/book/edit", NextMigration.legacyNewEntryUrl("book"))
+        // Not migrated: the legacy page is the page itself.
+        assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
+        assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))
     }
 }
