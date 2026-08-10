@@ -73,6 +73,14 @@ object GenerateNextI18nMessagesMain {
    */
   private val PREFIXES = listOf(
     "book.",
+    // Cost units (Kost1PagesRest, category cost1): the field labels of Kost1DO, the status of a cost
+    // unit and the errors its DAO refuses a write with (fibu.kost.error.*). Deliberately not the whole
+    // "fibu." tree — that is ~500 keys of invoices, orders and accounting, none of which next shows.
+    // Without the dot on "fibu.kost1", so the bare key exports too: it titles the number column and
+    // lands under "fibu.kost1._" (see JsonNode.put), its own subtree making it a namespace.
+    "fibu.kost1",
+    "fibu.kost.",
+    "menu.fibu.kost1",
     // Without the dot, so the bare "columns" key exports too (as "columns._", see JsonNode.put).
     "columns",
     "filter.",
@@ -167,6 +175,10 @@ object GenerateNextI18nMessagesMain {
     "menu.myAccount",
     // Category above a list page's heading, e.g. "Common / Books" — the entry's menu parent.
     "menu.common",
+    // The way back to the page's legacy version (see LegacyPageLink). One key, written for the
+    // Wicket -> React migration and reused verbatim for React -> next: it names the older version
+    // of the page at hand, whichever that is.
+    "goreact.menu.classics",
     // Gear menu of a list page (see ListGearMenu). Without the dot so the tooltip subkeys come
     // along; the bare title then lands under "_" (see JsonNode.put).
     "settings",

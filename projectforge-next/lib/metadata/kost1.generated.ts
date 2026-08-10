@@ -7,6 +7,11 @@ import type { EntityMetadata } from "./types";
 export const KOST1_METADATA = {
   entity: "Kost1DO",
   fields: {
+    bereich: {
+      dataType: "INT",
+      i18nKey: "fibu.kost1.bereich",
+      required: true,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",
@@ -22,6 +27,11 @@ export const KOST1_METADATA = {
       i18nKey: "description",
       required: false,
       maxLength: 4000,
+    },
+    endziffer: {
+      dataType: "INT",
+      i18nKey: "fibu.kost1.endziffer",
+      required: true,
     },
     formattedNumber: {
       dataType: "STRING",
@@ -57,6 +67,16 @@ export const KOST1_METADATA = {
       dataType: "TIMESTAMP",
       i18nKey: "modified",
       required: false,
+    },
+    nummernkreis: {
+      dataType: "INT",
+      i18nKey: "fibu.kost1.nummernkreis",
+      required: true,
+    },
+    teilbereich: {
+      dataType: "INT",
+      i18nKey: "fibu.kost1.teilbereich",
+      required: true,
     },
   },
 } as const satisfies EntityMetadata;

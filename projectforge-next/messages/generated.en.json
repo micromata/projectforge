@@ -155,6 +155,51 @@
     "_": "Favorites",
     "saveModification": "Save modification"
   },
+  "fibu": {
+    "kost": {
+      "error": {
+        "collision": "Collision with already existing cost.",
+        "invalidKost": "Invalid cost."
+      },
+      "kostentraeger": "Cost unit ids",
+      "reporting": {
+        "_": "Reporting",
+        "clearStorage": "Clear",
+        "createReport": "Create report",
+        "upload": "Upload of report objectives"
+      },
+      "status": {
+        "active": "active",
+        "ended": "ended",
+        "nonactive": "not active"
+      }
+    },
+    "kost1": {
+      "_": "Cost 1",
+      "art": "Type",
+      "bereich": "Area",
+      "endziffer": "Final digits",
+      "id": "Cost 1 id",
+      "kost1s": "Cost 1 ids",
+      "list": {
+        "select": {
+          "title": "Choose cost 1"
+        }
+      },
+      "number": "Cost1 number",
+      "nummernkreis": "Number range",
+      "teilbereich": "Sub-area",
+      "title": {
+        "add": "New cost 1",
+        "edit": "Edit cost 1",
+        "heading": "Cost 1 id",
+        "list": {
+          "_": "List of cost 1 ids",
+          "select": "Choose cost 1"
+        }
+      }
+    }
+  },
   "file": {
     "upload": {
       "audit": {
@@ -234,6 +279,11 @@
     "title": "Filter",
     "value": "Value",
     "valueTo": "To"
+  },
+  "goreact": {
+    "menu": {
+      "classics": "Go to classic UI"
+    }
   },
   "history": {
     "entry": "History entry",
@@ -331,6 +381,9 @@
     "common": "Common",
     "favorites": {
       "more": "More favorites"
+    },
+    "fibu": {
+      "kost1": "Cost 1 ids"
     },
     "main": {
       "title": "Main menu"

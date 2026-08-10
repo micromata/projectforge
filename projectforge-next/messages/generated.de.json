@@ -155,6 +155,51 @@
     "_": "Favoriten",
     "saveModification": "Änderungen speichern"
   },
+  "fibu": {
+    "kost": {
+      "error": {
+        "collision": "Kollision mit bereits vorhandenem Kostenträger.",
+        "invalidKost": "Ungültiger Kostenträger."
+      },
+      "kostentraeger": "Kostenträger",
+      "reporting": {
+        "_": "Reporting",
+        "clearStorage": "Leeren",
+        "createReport": "Report erstellen",
+        "upload": "Upload von Reportobjectives"
+      },
+      "status": {
+        "active": "aktiv",
+        "ended": "beendet",
+        "nonactive": "nicht aktiv"
+      }
+    },
+    "kost1": {
+      "_": "Kost1",
+      "art": "Art",
+      "bereich": "Bereich",
+      "endziffer": "Endziffer",
+      "id": "Kost1-ID",
+      "kost1s": "Kost1s",
+      "list": {
+        "select": {
+          "title": "Kost1 wählen"
+        }
+      },
+      "number": "Kost1-Nummer",
+      "nummernkreis": "Nummernkreis",
+      "teilbereich": "Teilbereich",
+      "title": {
+        "add": "Neue Kost1",
+        "edit": "Kost1 bearbeiten",
+        "heading": "Kost1",
+        "list": {
+          "_": "Liste der Kost1s",
+          "select": "Kost1 wählen"
+        }
+      }
+    }
+  },
   "file": {
     "upload": {
       "audit": {
@@ -234,6 +279,11 @@
     "title": "Filter",
     "value": "Wert",
     "valueTo": "Bis"
+  },
+  "goreact": {
+    "menu": {
+      "classics": "Zeige klassische Ansicht"
+    }
   },
   "history": {
     "entry": "Änderungseintrag",
@@ -331,6 +381,9 @@
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
+    },
+    "fibu": {
+      "kost1": "Kost1"
     },
     "main": {
       "title": "Hauptmenü"

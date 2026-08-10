@@ -46,7 +46,10 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     private lateinit var kostFormatter: KostFormatter
 
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
-        val kost1 = Kost1(obj)
+        val kost1 = Kost1()
+        // Not the Kost1DO constructor: that one copies the minimal set meant for embedded objects.
+        // The list and the edit page need every field, including the computed formattedNumber.
+        kost1.copyFrom(obj)
         return kost1
     }
 
