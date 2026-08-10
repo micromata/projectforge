@@ -112,7 +112,17 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   newTitleKey: string;
   savedMessageKey: string;
   sections: SectionDef<M>[];
-  /** Tabs leading to a page of their own, e.g. the history. Appended after the anchor tabs. */
+  /**
+   * Whether the entity has a change history — then the page gets a tab leading to
+   * `${route}/${id}/history` (see EntityHistoryPage), which needs a route of that name to exist.
+   *
+   * Declared rather than derived: `/rs/{entity}/history/{id}` answers for every `AbstractPagesRest`
+   * entity, and whether anything is *recorded* depends on the DO's `@WithHistory` — which the
+   * frontend cannot see. (Kost1DO has it commented out and still has a history, because
+   * `DefaultBaseDO` brings one.)
+   */
+  history?: boolean;
+  /** Further tabs leading to a page of their own. Appended after the history. */
   extraTabs?: (id: number) => EditPageTab[];
 }
 

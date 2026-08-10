@@ -27,6 +27,9 @@
       "newTitle": "New book"
     }
   },
+  "cost1": {
+    "searchPlaceholder": "Search cost 1 ids…"
+  },
   "dynamic": {
     "search": "Search…",
     "noOptions": "No options",

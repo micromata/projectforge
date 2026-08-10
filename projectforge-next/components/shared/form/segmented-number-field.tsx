@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { useStore } from "@tanstack/react-form";
 import { FieldDescription, FieldError } from "@/components/ui/field";
 import {
   splitPastedSegments,
@@ -61,9 +62,12 @@ export function SegmentedNumberField({
   );
 
   const required = segments.some((s) => metadata.fields[s.name]?.required);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const metas = form.useStore((state: any) =>
-    segments.map((s) => state.fieldMeta[s.name])
+  // `useStore` on the form's store, not the (nonexistent) `form.useStore`: the group needs the meta
+  // of *all* its segments at once to decide whether to show one shared error line, and subscribing
+  // per segment through `form.Field` would only give each box its own.
+  const metas = useStore(form.store, (state) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    segments.map((s) => (state as any).fieldMeta[s.name])
   ) as (FieldErrorMeta & { isTouched?: boolean; isValid?: boolean })[];
 
   const invalid =

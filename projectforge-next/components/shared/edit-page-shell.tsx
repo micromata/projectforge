@@ -27,11 +27,15 @@ export function EditPageShell({
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <div className="shrink-0">{header}</div>
-      <EditPageTabs
-        tabs={tabs}
-        activeIndex={activeIndex}
-        onSelect={scrollToSection}
-      />
+      {/* A single tab is no choice: an entity with one section and no page of its own (a cost unit
+          has neither history nor attachments) would show a bar with one item that does nothing. */}
+      {tabs.length > 1 && (
+        <EditPageTabs
+          tabs={tabs}
+          activeIndex={activeIndex}
+          onSelect={scrollToSection}
+        />
+      )}
       <div
         ref={scrollRef}
         onScroll={onScroll}

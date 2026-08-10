@@ -383,7 +383,11 @@
       "more": "Weitere Favoriten"
     },
     "fibu": {
-      "kost1": "Kost1"
+      "kost": "Kost",
+      "kost1": "Kost1",
+      "kost2": "Kost2",
+      "kost2arten": "Kost2-Arten",
+      "kostSearch": "Kost-Suche"
     },
     "main": {
       "title": "Hauptmenü"

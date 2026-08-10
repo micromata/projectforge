@@ -383,7 +383,11 @@
       "more": "More favorites"
     },
     "fibu": {
-      "kost1": "Cost 1 ids"
+      "kost": "Cost",
+      "kost1": "Cost 1 ids",
+      "kost2": "Cost 2 ids",
+      "kost2arten": "Cost 2 types",
+      "kostSearch": "Cost search"
     },
     "main": {
       "title": "Main menu"

@@ -27,6 +27,9 @@
       "newTitle": "Neues Buch"
     }
   },
+  "cost1": {
+    "searchPlaceholder": "Kost1-Liste durchsuchen…"
+  },
   "dynamic": {
     "search": "Suchen…",
     "noOptions": "Keine Auswahl",

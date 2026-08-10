@@ -80,7 +80,10 @@ object GenerateNextI18nMessagesMain {
     // lands under "fibu.kost1._" (see JsonNode.put), its own subtree making it a namespace.
     "fibu.kost1",
     "fibu.kost.",
-    "menu.fibu.kost1",
+    // Without the trailing digit, so the menu parent of the cost pages exports too: the cost 1 list
+    // sits under Finance > Cost (MenuItemDefId.COST), and that heading is what its page shows above
+    // its title. Brings the sibling entries (kost2, kost2arten, kostSearch) along, which is four keys.
+    "menu.fibu.kost",
     // Without the dot, so the bare "columns" key exports too (as "columns._", see JsonNode.put).
     "columns",
     "filter.",

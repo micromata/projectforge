@@ -8,7 +8,7 @@
  * is either hand built (listed here) or server-laid-out, never both. Both the
  * REST category and the next route are listed, because the url may carry either.
  */
-export const HAND_BUILT_CATEGORIES = ["book", "books"];
+export const HAND_BUILT_CATEGORIES = ["book", "books", "cost1"];
 
 export function isHandBuilt(category: string | undefined): boolean {
   return !!category && HAND_BUILT_CATEGORIES.includes(category);

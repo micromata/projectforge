@@ -89,7 +89,15 @@ export function EntityEditPage<
     return <Centered>{t("entityEdit.notFound")}</Centered>;
   }
 
-  const tabs = entityTabs(edit.sections, t, data?.id ?? null, edit.extraTabs);
+  const tabs = entityTabs({
+    sections: edit.sections,
+    t,
+    id: data?.id ?? null,
+    route: page.route,
+    history: edit.history,
+    extraTabs: edit.extraTabs,
+    onFormPage: true,
+  });
 
   return (
     <EntityEditFormProvider value={{ form, metadata: page.metadata }}>
