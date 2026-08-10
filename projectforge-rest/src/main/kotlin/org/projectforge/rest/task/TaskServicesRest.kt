@@ -102,7 +102,16 @@ class TaskServicesRest {
         var kost2WildCard: String? = null,
         var path: List<Task>? = null,
         var consumption: Consumption? = null,
-        var orderList: MutableList<Order>? = null
+        var orderList: MutableList<Order>? = null,
+        /**
+         * True for the tree's root node, which is only ever sent to admins and financial staff and only
+         * for display (see `showRootForAdmins`). The client cannot derive this: `parentTask` is not part
+         * of the tree's answer, and the root's id is 1 only by convention.
+         *
+         * It matters because the root may not be *selected* for anything but a task itself — booking a
+         * timesheet or an order position against it is meaningless.
+         */
+        var root: Boolean? = null,
     ) {
         val statusAsString: String? = status?.i18nKey?.let { translate(it) }
 
@@ -339,7 +348,8 @@ class TaskServicesRest {
                     accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
         ) {
             // Append root node for admins and financial staff only in table view for displaying purposes.
-            result.nodes.add(0, Task(rootNode))
+            // Last position, as the Wicket page shows it (TaskTreeProvider's comparator).
+            result.nodes.add(Task(rootNode).also { it.root = true })
         }
         val kost2Visible = Configuration.instance.isCostConfigured
         var ordersVisible = false

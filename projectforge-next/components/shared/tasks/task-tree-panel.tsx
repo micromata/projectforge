@@ -1,27 +1,14 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useTranslations } from "next-intl";
-import {
-  DataTable,
-  DataTableColumnPanel,
-  useColumnStatePersistenceByUrl,
-  useDataTable,
-  useGridStateReset,
-  useTableState,
-} from "@/components/data-table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
-import { resolveRestUrl } from "@/lib/dynamic/response-action";
-import type { TaskNode } from "@/lib/rs/task";
+import { Spinner } from "@/components/shared/spinner";
+import { isSelectableTask, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
-import { TaskTreeFilterBar } from "./task-tree-filter";
+import { TaskTreeTable } from "./task-tree-table";
 import type { TaskTreePanelProps } from "./types";
 import { useTaskTree } from "./use-task-tree";
-import { useTaskTreeColumns } from "./use-task-tree-columns";
-
-/** The tree column, whose click means "expand" rather than "select". */
-const TREE_COLUMN = "title";
 
 /**
  * The structure tree as a table: filter, tree and the hint how to select a folder.
@@ -37,6 +24,7 @@ export function TaskTreePanel({
   highlightTaskId,
   onSelect,
   showRootForAdmins,
+  rootSelectable,
   className,
 }: TaskTreePanelProps) {
   const t = useTranslations();
@@ -50,93 +38,37 @@ export function TaskTreePanel({
     },
     [toggleNode]
   );
-  const columns = useTaskTreeColumns(grid, toggle);
 
-  // The first answer already carries the user's restored state, so it is there on the first render
-  // that has columns at all — which is the same one, since both come from that answer.
-  const restoredState = useMemo(
-    () => (grid ? initialStateFrom(grid) : undefined),
-    [grid]
-  );
-  const state = useTableState({ restoredState });
-  const table = useDataTable<TaskNode>({
-    columns,
-    data: nodes,
-    sorting: state.sorting,
-    onSortingChange: state.setSorting,
-    columnFilters: state.columnFilters,
-    onColumnFiltersChange: state.setColumnFilters,
-    columnVisibility: state.columnVisibility,
-    onColumnVisibilityChange: state.setColumnVisibility,
-    columnPinning: state.columnPinning,
-    onColumnPinningChange: state.setColumnPinning,
-    columnSizing: state.columnSizing,
-    onColumnSizingChange: state.setColumnSizing,
-    columnOrder: state.columnOrder,
-    onColumnOrderChange: state.setColumnOrder,
-    enableColumnFilters: true,
-    enableColumnResizing: true,
-    manualSorting: false,
-    getRowId: (row, index) => String(row.id ?? index),
-  });
-
-  // Memoised so a render that changed no column state doesn't hand the hook a new object — it
-  // compares by serialization, but its effect would still re-run and re-arm the debounced write.
-  const persisted = useMemo(
-    () => ({
-      sorting: state.sorting,
-      columnVisibility: state.columnVisibility,
-      columnPinning: state.columnPinning,
-      columnSizing: state.columnSizing,
-      columnOrder: state.columnOrder,
-    }),
-    [
-      state.sorting,
-      state.columnVisibility,
-      state.columnPinning,
-      state.columnSizing,
-      state.columnOrder,
-    ]
-  );
-  const suspendPersistence = useColumnStatePersistenceByUrl(
-    grid?.onColumnStatesChangedUrl &&
-      resolveRestUrl(grid.onColumnStatesChangedUrl),
-    persisted
-  );
-  const resetColumns = useGridStateReset(
-    grid?.resetGridStateUrl && resolveRestUrl(grid.resetGridStateUrl),
-    state,
-    suspendPersistence
+  // Dropping the root here rather than in the table keeps the rule in one place: it holds for the
+  // click handler and for anything else that may come to select a row.
+  const select = useCallback(
+    (task: TaskNode) => {
+      if (!rootSelectable && !isSelectableTask(task)) return;
+      onSelect?.(task);
+    },
+    [onSelect, rootSelectable]
   );
 
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col gap-2", className)}>
-      <div className="flex items-center gap-2">
-        <TaskTreeFilterBar filter={filter} onChange={setFilter} />
-        <DataTableColumnPanel
-          table={table}
-          onReset={resetColumns}
-          className="h-8 rounded-full px-2.5 text-xs"
+      {/* The table only mounts once the initial answer is in: it seeds its column state from that
+          answer, and TanStack's initial state cannot be replaced afterwards (see TaskTreeTable). */}
+      {grid ? (
+        <TaskTreeTable
+          grid={grid}
+          nodes={nodes}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          filter={filter}
+          onFilterChange={setFilter}
+          onToggle={toggle}
+          onSelect={select}
         />
-      </div>
-      <DataTable<TaskNode>
-        table={table}
-        columns={columns}
-        data={nodes}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        emptyState={t("task.selectPanel.noTasksFound")}
-        // A folder's title expands it, every other column selects it — the rule the hint below
-        // states, and the reason DataTable knows about cells at all.
-        onCellClick={(row, columnId) => {
-          if (columnId === TREE_COLUMN && row.treeStatus !== "LEAF") {
-            toggle(row);
-          } else {
-            onSelect?.(row);
-          }
-        }}
-        className="flex-1"
-      />
+      ) : (
+        <div className="flex flex-1 items-center justify-center">
+          <Spinner />
+        </div>
+      )}
       <Alert>
         <AlertDescription>{t("task.selectPanel.info")}</AlertDescription>
       </Alert>

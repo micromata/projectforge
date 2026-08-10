@@ -68,6 +68,12 @@ function adaptColumn<TRow extends DataObject>(
     enableSorting: col.sortable ?? false,
     enableResizing: col.resizable ?? true,
     enableColumnFilter: !!filterKind,
+    // `lockPosition` (UIAgGridColumnDef.pinnedAndLocked) means the column holds its
+    // place: the backend pins it and skips it when restoring order and pinning from
+    // the user's prefs. So neither may the user move it — the structure tree's
+    // "title" column is the case this exists for.
+    enableHiding: !col.lockPosition,
+    enablePinning: !col.lockPosition,
     meta: {
       // The label is translated in the hook; the raw key would be unreadable here.
       label: col.headerName,

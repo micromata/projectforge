@@ -9,12 +9,23 @@ export interface TaskTreePanelProps {
    * of the whole tree, which is what makes the panel usable as the body of a select field.
    */
   highlightTaskId?: number | null;
-  /** Called when a row is picked — a click outside the first column, or on a leaf's title. */
+  /**
+   * Called when a row is picked — a click outside the first column, or on a leaf's title.
+   *
+   * Never called for the root node unless [rootSelectable] says so: the root is the tree's anchor, not
+   * a task another entity can be booked against (see isSelectableTask).
+   */
   onSelect?: (task: TaskNode) => void;
   /**
    * Show the root node, for admins and financial staff. The tree page does; a select field doesn't,
    * since the root is nothing anyone books against.
    */
   showRootForAdmins?: boolean;
+  /**
+   * Let the root be picked. Only the structure tree page does, where picking means "open this task's
+   * edit page" — and the root is a task with a page of its own. For every other entity the root is not
+   * a valid task, so the default is false.
+   */
+  rootSelectable?: boolean;
   className?: string;
 }

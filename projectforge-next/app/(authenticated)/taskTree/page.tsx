@@ -35,6 +35,9 @@ export default function TaskTreePage() {
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <TaskTreePanel
           showRootForAdmins
+          // Picking means "edit this task" here, and the root is a task with a page of its own. Every
+          // other caller selects a task *for* something else, where the root is not a valid value.
+          rootSelectable
           onSelect={(task) => {
             if (!editUrlTemplate) return;
             const url = editUrlTemplate.replace(":id", String(task.id));

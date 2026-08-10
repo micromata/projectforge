@@ -63,7 +63,33 @@ export function DataTableColumnPanel<TData>({
   const t = useTranslations("columns");
   const [dragId, setDragId] = useState<string | null>(null);
 
-  const hideable = table.getAllLeafColumns().filter((c) => c.getCanHide());
+  const allColumns = table.getAllLeafColumns();
+  // getAllLeafColumns returns the columns as defined, while the table renders by
+  // columnOrder. Both listing and reordering have to follow the order the user
+  // actually sees, and every setColumnOrder below has to carry all columns —
+  // rebuilding the order from a subset silently drops the rest out of it.
+  const order = table.getState().columnOrder;
+  const rank = (id: string) => {
+    const i = order.indexOf(id);
+    // Unordered columns keep their defined order behind the ordered ones (sort is stable).
+    return i < 0 ? allColumns.length : i;
+  };
+  const ordered = order.length
+    ? [...allColumns].sort((a, b) => rank(a.id) - rank(b.id))
+    : allColumns;
+  const orderedIds = ordered.map((c) => c.id);
+
+  // Counts *every* left-pinned column, not just the listed ones: a column with
+  // `enableHiding: false` (the task tree's structure column) is pinned and holds
+  // a leading slot in the order all the same. Counting only the listed ones puts
+  // a newly pinned column ahead of it, and since a pinned cell takes its sticky
+  // offset from the pinning order while it renders by columnOrder, the two
+  // disagree and the pinned columns overlap.
+  const leftPinnedIds = ordered
+    .filter((c) => c.getIsPinned() === "left")
+    .map((c) => c.id);
+
+  const hideable = ordered.filter((c) => c.getCanHide());
   const visibleCount = hideable.filter((c) => c.getIsVisible()).length;
 
   // Pinned columns lead the table, so they form their own group here. Dragging
@@ -85,20 +111,18 @@ export function DataTableColumnPanel<TData>({
 
     const activeId = String(active.id);
     const overId = String(over.id);
-    const isPinnedGroup = pinnedIds.includes(activeId);
-    const group = isPinnedGroup ? pinnedIds : unpinnedIds;
+    const group = pinnedIds.includes(activeId) ? pinnedIds : unpinnedIds;
 
-    const from = group.indexOf(activeId);
-    const to = group.indexOf(overId);
     // Ignore drops onto the other group — pinning moves columns between them.
-    if (from < 0 || to < 0) return;
+    if (!group.includes(activeId) || !group.includes(overId)) return;
 
-    const reordered = arrayMove(group, from, to);
-    table.setColumnOrder(
-      isPinnedGroup
-        ? [...reordered, ...unpinnedIds]
-        : [...pinnedIds, ...reordered]
-    );
+    // Moved within the full order rather than within the group, so columns the
+    // panel doesn't list (not hideable) keep their place instead of being
+    // dropped from the order entirely.
+    const from = orderedIds.indexOf(activeId);
+    const to = orderedIds.indexOf(overId);
+    if (from < 0 || to < 0) return;
+    table.setColumnOrder(arrayMove(orderedIds, from, to));
   }
 
   /**
@@ -108,19 +132,15 @@ export function DataTableColumnPanel<TData>({
    */
   function togglePin(column: Column<TData, unknown>) {
     const isPinned = !!column.getIsPinned();
-    const others = table
-      .getAllLeafColumns()
-      .map((c) => c.id)
-      .filter((id) => id !== column.id);
+    const others = orderedIds.filter((id) => id !== column.id);
+    // How many left-pinned columns remain once this one has moved — the slot the
+    // column has to take so pinning order and column order stay in step.
+    const remaining = leftPinnedIds.filter((id) => id !== column.id).length;
 
-    if (isPinned) {
-      column.pin(false);
-      // Just behind the columns that stay pinned.
-      others.splice(pinnedIds.length - 1, 0, column.id);
-    } else {
-      column.pin("left");
-      others.splice(pinnedIds.length, 0, column.id);
-    }
+    column.pin(isPinned ? false : "left");
+    // The same slot either way: as the last pinned column, or as the first
+    // scrolling one right behind the columns that stay pinned.
+    others.splice(remaining, 0, column.id);
     table.setColumnOrder(others);
   }
 

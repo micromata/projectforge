@@ -43,9 +43,29 @@ export interface TaskNode {
   kost2List?: TaskKost2[];
   /** Only sent by `info/{id}`: the ancestors, root first, *excluding* the task itself. */
   path?: TaskNode[];
+  /**
+   * The tree's root node, sent last and only to admins and financial staff (`showRootForAdmins`).
+   *
+   * Flagged by the backend rather than derived here: the tree's answer carries no `parentTask`, and
+   * the root's id is 1 only by convention. It may be shown and expanded, but not selected as the task
+   * of anything else — see [isSelectableTask].
+   */
+  root?: boolean;
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
+}
+
+/**
+ * Whether a node may be picked as the task of *another* entity — a timesheet, an order position, an
+ * access entry.
+ *
+ * Only the root is not: it is the tree's anchor, not a task anyone books against (Wicket leaves it out
+ * of the select panel's path for the same reason, and never offers it for selection). The structure
+ * tree page itself is exempt — there a click opens the task's own edit page, which the root has.
+ */
+export function isSelectableTask(task: TaskNode): boolean {
+  return task.root !== true;
 }
 
 /** The status filter of the tree, `TaskFilter`. Names are the request's parameter names. */
