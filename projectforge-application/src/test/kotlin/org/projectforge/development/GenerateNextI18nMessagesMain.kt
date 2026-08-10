@@ -157,6 +157,9 @@ object GenerateNextI18nMessagesMain {
     "validation.error.",
     // Saved list filters. Without the dot so the bare "favorite"/"favorites" keys export too.
     "favorite",
+    // Start page (app/(authenticated)/page-client.tsx): the greeting and the labels of the two
+    // links it offers (website, sources).
+    "index.",
     // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
     // only the chrome around them needs its own texts.
     "menu.main.title",

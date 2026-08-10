@@ -251,6 +251,11 @@
     },
     "was": "war"
   },
+  "index": {
+    "development": "Webseite für Entwicklung",
+    "website": "Webseite",
+    "welcome": "Willkommen bei ProjectForge."
+  },
   "jobs": {
     "error": {
       "refusedByAnotherRunningJob": "Job konnte nicht gestartet werden, weil bereits ein anderer Job für die gleiche Queue läuft.",

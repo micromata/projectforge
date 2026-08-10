@@ -59,11 +59,6 @@ function Grid({ grid }: { grid: AgGridNode }) {
     pageIndex: 0,
     pageSize: grid.paginationPageSize ?? DEFAULT_PAGE_SIZE,
   });
-  const resetColumns = useGridStateReset(
-    grid.resetGridStateUrl && resolveRestUrl(grid.resetGridStateUrl),
-    state
-  );
-
   const table = useDataTable<DataObject>({
     columns,
     data: rows,
@@ -89,7 +84,7 @@ function Grid({ grid }: { grid: AgGridNode }) {
     getRowId: (row, index) => String(row.id ?? index),
   });
 
-  useColumnStatePersistenceByUrl(
+  const suspendPersistence = useColumnStatePersistenceByUrl(
     grid.onColumnStatesChangedUrl &&
       resolveRestUrl(grid.onColumnStatesChangedUrl),
     {
@@ -100,6 +95,12 @@ function Grid({ grid }: { grid: AgGridNode }) {
       columnOrder: state.columnOrder,
       paginationPageSize: pagination.pageSize,
     }
+  );
+
+  const resetColumns = useGridStateReset(
+    grid.resetGridStateUrl && resolveRestUrl(grid.resetGridStateUrl),
+    state,
+    suspendPersistence
   );
 
   const rowClassName = useMemo(
