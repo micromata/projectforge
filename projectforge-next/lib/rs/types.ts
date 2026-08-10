@@ -361,11 +361,17 @@ export interface InitialListData extends DynamicPageResponse {
   filterFavorites?: FavoriteIdTitle[];
   standardEditPage?: string;
   /**
-   * The legacy React edit page with `:id` for the id, e.g. `react/book/edit/:id`. Read by the hand
-   * built edit pages, which have no `{entity}/edit` response of their own to take `ui.legacyUrl`
-   * from (see LegacyPageLink).
+   * The legacy edit page with `:id` for the id, e.g. `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
+   * Read by the hand built edit pages, which have no `{entity}/edit` response of their own to take
+   * `ui.legacyUrl` from (see LegacyPageLink).
    */
   legacyEditPage?: string;
+  /**
+   * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/cost1Edit`. Its own field,
+   * because dropping the id from `legacyEditPage` is a per-app rule (path segment vs. query
+   * parameter), not a suffix cut.
+   */
+  legacyNewEntryPage?: string;
   quickSelectUrl?: string;
   useModalEditDialog?: boolean;
 }

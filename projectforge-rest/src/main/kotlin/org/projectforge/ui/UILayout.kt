@@ -90,10 +90,11 @@ class UILayout(
   var hideSearchFilter: Boolean? = null
 
   /**
-   * The same page in the legacy React app, if this one is served by projectforge-next: the escape
-   * hatch offered next to the page title while the migration runs (`LegacyPageLink`).
+   * The same page in the frontend this one was migrated from - the legacy React app or, for a page
+   * the React migration never reached, Wicket: the escape hatch offered next to the page title while
+   * the migration runs (`LegacyPageLink`).
    *
-   * Only used by projectforge-next. The legacy frontend has its own version of this in reverse
+   * Only used by projectforge-next. The legacy React frontend has its own version of this in reverse
    * (`classicsLinkListUrl`, pointing at the Wicket page), so it ignores this field.
    *
    * @see org.projectforge.NextMigration.legacyListUrl

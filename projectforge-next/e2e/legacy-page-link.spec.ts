@@ -37,6 +37,24 @@ test.describe("legacy page link", () => {
     ).toHaveAttribute("href", `/react/book/edit/${BOOK_ID}`);
   });
 
+  test("leads to Wicket for a page the React migration never reached", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    // cost1 came straight from Wicket, whose mount points differ from React's: `<category>List`, and
+    // an id as a query parameter (see NextMigration.LegacyApp). The add url is therefore not the edit
+    // url with the id dropped, which is why the server sends it as its own field.
+    await goto(page, "/cost1");
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveAttribute("href", "/wa/cost1List");
+
+    await goto(page, "/cost1/new");
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveAttribute("href", "/wa/cost1Edit");
+  });
+
   test("leads from a server-laid-out list to its own legacy page", async ({
     loggedInPage: page,
   }) => {

@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -144,14 +145,20 @@ constructor(
         val ui: UILayout?,
         val standardEditPage: String,
         /**
-         * The legacy React edit page with [NextMigration.ID_PLACEHOLDER] for the id, e.g.
-         * `react/book/edit/:id`.
+         * The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, e.g.
+         * `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
          *
          * Needed by the hand built pages of projectforge-next: their edit page doesn't call
          * `{entity}/edit`, so it can't read [UILayout.legacyUrl] from there and takes the template
          * from the list response instead.
          */
         val legacyEditPage: String,
+        /**
+         * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/cost1Edit`. Served next
+         * to [legacyEditPage], because it isn't derivable from it: the Wicket edit page carries the
+         * id as a query parameter, so dropping the placeholder is a per-app rule, not a suffix cut.
+         */
+        val legacyNewEntryPage: String,
         val data: ResultSet<*>,
         val filterFavorites: List<Favorites.FavoriteIdTitle>,
         val filter: MagicFilter,
@@ -441,6 +448,7 @@ constructor(
             ui = ui,
             standardEditPage = getEditPage(request),
             legacyEditPage = NextMigration.legacyEditPage(category),
+            legacyNewEntryPage = NextMigration.legacyNewEntryUrl(category),
             quickSelectUrl = quickSelectUrl,
             useModalEditDialog = useModalEditDialog,
             data = resultSet,
@@ -463,20 +471,20 @@ constructor(
 
     /**
      * The edit page for the frontend that asked for this list: [getStandardEditPage] for
-     * projectforge-next, the legacy React page for the legacy React app.
+     * projectforge-next, the generic React page for the legacy React app.
      *
-     * A migrated page is still reachable under `react/<category>` - through the escape hatch next to
-     * the page title ([UILayout.legacyUrl]), a bookmark or the browser history. A user who is looking
-     * at that list must not be thrown into projectforge-next by a click on a row; they chose the
-     * legacy frontend.
+     * The layout of a migrated page is still served to the React app - it is reachable under
+     * `react/<category>` through a bookmark or the browser history, and for a page migrated from
+     * Wicket it may never have had a menu entry at all. A user who is looking at that list must not
+     * be thrown into projectforge-next by a click on a row; they are in the React app.
      *
-     * A migrated page whose legacy rows didn't open the generic edit form declares that in
-     * [NextMigration.NextPage.legacyEditRoute] - the [getStandardEditPage] override of such a page
-     * describes its *next* route and can't stand in for the legacy one.
+     * Deliberately not [NextMigration.legacyEditPage]: that names the page the way back leads to,
+     * which may be a Wicket page (`cost1`). Wicket renders server side and never asks here for a
+     * layout, so the only non-next caller is the React app.
      */
     open fun getEditPage(request: HttpServletRequest): String {
-        return if (servedByLegacyFrontend(request)) {
-            NextMigration.legacyEditPage(category)
+        return if (servedByReactApp(request)) {
+            NextMigration.reactEditPage(category)
         } else {
             getStandardEditPage()
         }
@@ -487,11 +495,31 @@ constructor(
      * depends on the caller.
      */
     protected open fun getAddNewEntryUrl(request: HttpServletRequest): String {
-        return if (servedByLegacyFrontend(request)) {
-            NextMigration.legacyNewEntryUrl(category)
+        return if (servedByReactApp(request)) {
+            NextMigration.reactNewEntryUrl(category)
         } else {
             addNewEntryUrl
         }
+    }
+
+    /**
+     * The list page to return to after an edit, for the frontend that asked: a user who saves in the
+     * React edit form of a migrated page returns to the React list, not to projectforge-next.
+     *
+     * @see getEditPage
+     */
+    private fun getListPageUrlAfterEdit(request: HttpServletRequest): String {
+        if (servedByReactApp(request)) {
+            // The hash is the same workaround as below: a new url makes the React app fetch initialList
+            // again, which restores the AG Grid state.
+            return "/${NextMigration.reactListUrl(category)}?hash=${NumberHelper.getSecureRandomAlphanumeric(4)}"
+        }
+        return PagesResolver.getListPageUrl(
+            this::class.java,
+            absolute = true,
+            // Force new hash for getting initialList (including ui on actions/list/index.js
+            forceAGGridReload = true,
+        )
     }
 
     /**
@@ -499,7 +527,7 @@ constructor(
      * legacy React app. Nothing is gated on this - it only picks which of the two urls of the same
      * page is handed out (see [RestAuthenticationUtils.isNextClient]).
      */
-    private fun servedByLegacyFrontend(request: HttpServletRequest): Boolean {
+    private fun servedByReactApp(request: HttpServletRequest): Boolean {
         return NextMigration.isMigrated(category) && !RestAuthenticationUtils.isNextClient(request)
     }
 
@@ -1367,13 +1395,7 @@ constructor(
             return responseAction
         }
         returnToCaller = afterOperationRedirectTo(obj, postData, event)
-                // Workaround to force reload to restore the AG Grid state (forceAGGridReload = true):
-            ?: PagesResolver.getListPageUrl(
-                this::class.java,
-                absolute = true,
-                // Force new hash for getting initialList (including ui on actions/list/index.js
-                forceAGGridReload = true,
-            )
+            ?: getListPageUrlAfterEdit(request)
         return ResponseAction(returnToCaller)
             .addVariable("id", obj.id ?: -1)
     }

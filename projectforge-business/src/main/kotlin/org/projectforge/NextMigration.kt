@@ -55,6 +55,32 @@ object NextMigration {
     const val ID_PLACEHOLDER = ":id"
 
     /**
+     * The frontend a page came from. Not every page reached projectforge-next through the legacy
+     * React app: the migration Wicket -> React never covered all of them, so some are migrated
+     * straight from Wicket (`cost1` e.g.), and their way back leads there.
+     *
+     * The routes are the mount point conventions of the two apps, so a page normally needs nothing
+     * but this value: React mounts `<category>`, `<category>/edit/<id>`, while Wicket mounts
+     * `<category>List` and `<category>Edit?id=<id>` (see `WebRegistry.addMountPages`).
+     */
+    enum class LegacyApp(val appPath: String) {
+        REACT(Constants.REACT_APP_PATH),
+        WICKET(Constants.WICKET_APPLICATION_PATH);
+
+        internal fun listRoute(category: String): String {
+            return if (this == WICKET) "${category}List" else category
+        }
+
+        internal fun editRoute(category: String): String {
+            return if (this == WICKET) "${category}Edit?id=$ID_PLACEHOLDER" else "$category/edit/$ID_PLACEHOLDER"
+        }
+
+        internal fun newEntryRoute(category: String): String {
+            return if (this == WICKET) "${category}Edit" else "$category/edit"
+        }
+    }
+
+    /**
      * A page served by projectforge-next.
      *
      * @param route The route of the list page inside projectforge-next, without the `next/` prefix,
@@ -64,15 +90,17 @@ object NextMigration {
      * legacy React app. Hand built pages may deviate.
      * @param newEntryRoute Route for creating a new entry, e.g. `books/new`. Defaults to the
      * generic shape `<route>/edit`.
-     * @param legacyRoute Route of the same list page in the legacy React app, without the `react/`
-     * prefix. Only needed if it isn't the rest category itself, which is the React convention.
-     * @param legacyEditRoute Route of the legacy edit page with [ID_PLACEHOLDER]. Only needed if it
-     * isn't the generic React shape `<category>/edit/:id`.
+     * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to.
+     * @param legacyRoute Route of the same list page in [legacyApp], without the app prefix. Only
+     * needed if the page doesn't follow that app's mount point convention.
+     * @param legacyEditRoute Route of the legacy edit page with [ID_PLACEHOLDER], without the app
+     * prefix. Only needed if the page doesn't follow the convention either.
      */
     class NextPage(
         val route: String,
         editRoute: String? = null,
         newEntryRoute: String? = null,
+        val legacyApp: LegacyApp = LegacyApp.REACT,
         val legacyRoute: String? = null,
         val legacyEditRoute: String? = null,
     ) {
@@ -87,6 +115,15 @@ object NextMigration {
     private val MIGRATED = mapOf(
         // Hand built feature, so its routes are /books, /books/new and /books/<id>.
         "book" to NextPage(route = "books", editRoute = "books/$ID_PLACEHOLDER", newEntryRoute = "books/new"),
+        // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
+        // which pointed at wa/cost1List): the way back leads to Wicket, not to the React page - that one
+        // exists as a layout (Kost1PagesRest) but was never mounted in the menu.
+        "cost1" to NextPage(
+            route = "cost1",
+            editRoute = "cost1/$ID_PLACEHOLDER",
+            newEntryRoute = "cost1/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
     )
 
     /**
@@ -146,35 +183,71 @@ object NextMigration {
     }
 
     /**
-     * The way back: the same list page in the legacy React app, offered on the next page as an
-     * escape hatch while the migration runs (see `LegacyPageLink` in projectforge-next).
+     * The generic React url of the edit page, for a list request that came from the legacy React app
+     * itself (see `AbstractPagesRest.getEditPage`).
+     *
+     * Not [legacyEditPage]: that one names the page the *way back* leads to, which may be a Wicket
+     * page. Wicket renders its own pages server side and never asks this REST for a layout, so the
+     * only non-next caller is the React app - and a user clicking a row there stays there.
+     *
+     * @return e.g. `react/book/edit/:id` or `react/cost1/edit/:id`.
+     */
+    fun reactEditPage(category: String): String {
+        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.editRoute(category)}"
+    }
+
+    /**
+     * The generic React url for adding an entry, for a request from the React app itself.
+     *
+     * @return e.g. `react/book/edit`.
+     */
+    fun reactNewEntryUrl(category: String): String {
+        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.newEntryRoute(category)}"
+    }
+
+    /**
+     * The generic React url of the list page, for a request from the React app itself.
+     *
+     * @return e.g. `react/book`.
+     */
+    fun reactListUrl(category: String): String {
+        return "${Constants.REACT_APP_PATH}${LegacyApp.REACT.listRoute(category)}"
+    }
+
+    /**
+     * The way back: the same list page in the frontend the page came from, offered on the next page
+     * as an escape hatch while the migration runs (see `LegacyPageLink` in projectforge-next).
      *
      * Needed as its own mapping because [listUrl] is a one way function once a page is migrated -
-     * the React route isn't recoverable from the next one (`books` != `book`).
+     * neither the route (`books` != `book`) nor the app is recoverable from the next url: a page may
+     * have been migrated straight from Wicket, which the React migration never reached (`cost1`).
      *
-     * @return The frontend url of the legacy list page without leading slash, e.g. `react/book`.
+     * @return The frontend url of the legacy list page without leading slash, e.g. `react/book` or
+     * `wa/cost1List`.
      */
     fun legacyListUrl(category: String): String {
-        return "${Constants.REACT_APP_PATH}${legacyRoute(category)}"
+        val page = nextPage(category)
+        val app = page?.legacyApp ?: LegacyApp.REACT
+        return "${app.appPath}${page?.legacyRoute ?: app.listRoute(category)}"
     }
 
     /**
      * @return The frontend url template of the legacy edit page with [ID_PLACEHOLDER] for the id,
-     * e.g. `react/book/edit/:id`.
+     * e.g. `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
      */
     fun legacyEditPage(category: String): String {
-        val route = nextPage(category)?.legacyEditRoute ?: "${legacyRoute(category)}/edit/$ID_PLACEHOLDER"
-        return "${Constants.REACT_APP_PATH}$route"
+        val page = nextPage(category)
+        val app = page?.legacyApp ?: LegacyApp.REACT
+        return "${app.appPath}${page?.legacyEditRoute ?: app.editRoute(category)}"
     }
 
     /**
-     * @return The frontend url of the legacy page for creating a new entry, e.g. `react/book/edit`.
+     * @return The frontend url of the legacy page for creating a new entry, e.g. `react/book/edit`
+     * or `wa/cost1Edit`.
      */
     fun legacyNewEntryUrl(category: String): String {
-        return "${Constants.REACT_APP_PATH}${legacyRoute(category)}/edit"
-    }
-
-    private fun legacyRoute(category: String): String {
-        return nextPage(category)?.legacyRoute ?: category
+        val page = nextPage(category)
+        val app = page?.legacyApp ?: LegacyApp.REACT
+        return "${app.appPath}${app.newEntryRoute(category)}"
     }
 }
