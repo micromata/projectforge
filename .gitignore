@@ -54,6 +54,11 @@ projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
 .claude
 
+# graphify: generated knowledge graph and its local venv (rebuild with `graphify update .`)
+graphify-out
+venv
+.venv
+
 # MCP Server Configuration (contains secrets)
 .mcp.json
 
