@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.api.impl.MatchType
 
@@ -53,6 +54,33 @@ class MagicFilterProcessorTest {
         testEntry("*abc", "abc",  MatchType.ENDS_WITH)
         testEntry("*abc*", "abc",  MatchType.CONTAINS)
         testEntry("abc*", "abc",  MatchType.STARTS_WITH)
+    }
+
+    /**
+     * A LIST filter may ask for entries without any value, alone or beside real ones
+     * (see [MagicFilterEntry.NULL_VALUE]).
+     */
+    @Test
+    fun enumNullValueTest() {
+        // 0 - deleted, 1 - form
+        Assertions.assertTrue(enumPredicate(FormOfAddress.MISTER.name) is DBPredicate.IsIn<*>)
+        Assertions.assertTrue(enumPredicate(MagicFilterEntry.NULL_VALUE) is DBPredicate.IsNull)
+        val both = enumPredicate(MagicFilterEntry.NULL_VALUE, FormOfAddress.MISTER.name)
+        Assertions.assertTrue(both is DBPredicate.Or)
+        val address = AddressDO()
+        Assertions.assertTrue(both.match(address), "form is null: matches the null part.")
+        address.form = FormOfAddress.MISTER
+        Assertions.assertTrue(both.match(address), "form is one of the given values.")
+        address.form = FormOfAddress.COMPANY
+        Assertions.assertFalse(both.match(address), "form is set, but not to one of the given values.")
+    }
+
+    private fun enumPredicate(vararg values: String): DBPredicate {
+        val magicFilter = MagicFilter()
+        val entry = MagicFilterEntry("form")
+        entry.value.values = arrayOf(*values)
+        magicFilter.entries.add(entry)
+        return MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter).createDBFilter().allPredicates[1]
     }
 
     private fun testEntry(value: String, expectedPlainString: String, matchType: MatchType, autoStartWithSearch: Boolean = false) {

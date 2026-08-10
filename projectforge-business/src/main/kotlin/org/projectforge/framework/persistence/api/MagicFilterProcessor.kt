@@ -188,12 +188,19 @@ object MagicFilterProcessor {
         } else if (I18nEnum::class.java.isAssignableFrom(fieldType)) {
             val values = magicFilterEntry.value.values
             if (!values.isNullOrEmpty()) {
+                // "no value set" is one of the selectable values, so it may arrive alone or beside real ones.
+                val nullSelected = values.contains(MagicFilterEntry.NULL_VALUE)
                 @Suppress("UNCHECKED_CAST")
                 val enumConstants = fieldType.enumConstants as Array<Enum<*>>
-                val list = values.map { value ->
+                val list = values.filter { it != MagicFilterEntry.NULL_VALUE }.map { value ->
                     enumConstants.first { it.name == value }
                 }
-                val predicate = DBPredicate.IsIn(field, list)
+                val predicate = when {
+                    !nullSelected -> DBPredicate.IsIn(field, list)
+                    list.isEmpty() -> DBPredicate.IsNull(field)
+                    // Both: the field is null *or* one of the chosen values.
+                    else -> DBPredicate.Or(DBPredicate.IsNull(field), DBPredicate.IsIn(field, list))
+                }
                 queryFilter.add(predicate)
             }
         } else {

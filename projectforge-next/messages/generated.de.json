@@ -278,6 +278,7 @@
     "timeTo": "Bis (Uhrzeit)",
     "title": "Filter",
     "value": "Wert",
+    "valueNotSet": "(nicht gesetzt)",
     "valueTo": "Bis"
   },
   "goreact": {

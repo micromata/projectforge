@@ -92,7 +92,12 @@ object LayoutListFilterUtils {
                 if (elInfo.propertyClass.isEnum) {
                     @Suppress("UNCHECKED_CAST")
                     element = UIFilterListElement(it)
-                        .buildValues(i18nEnum = elInfo.propertyClass as Class<out Enum<*>>)
+                        .buildValues(
+                            i18nEnum = elInfo.propertyClass as Class<out Enum<*>>,
+                            // Only where the column allows null: for a mandatory field the option would
+                            // be an option that never matches (see ElementsRegistry.getElementInfo).
+                            addNullValue = elInfo.required != true,
+                        )
                     element.label = element.id // Default label if no translation will be found below.
                 } else {
                     element = UIFilterElement(it)

@@ -117,4 +117,16 @@ class MagicFilterEntry(
         if (this.value != other.value) return true
         return false
     }
+
+    companion object {
+        /**
+         * The value a LIST filter sends for "no value is set": it selects the entries whose field is null,
+         * next to the values the field may have (see [MagicFilterProcessor.createFieldSearchEntry]).
+         *
+         * A pseudo value rather than a flag of its own, because that is what makes it one more option of
+         * the same combobox — client and stored filter treat it like any other. The name is no legal
+         * enum constant, so it cannot collide with one.
+         */
+        const val NULL_VALUE = "__NULL__"
+    }
 }

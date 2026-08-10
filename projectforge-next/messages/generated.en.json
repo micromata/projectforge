@@ -278,6 +278,7 @@
     "timeTo": "To (time)",
     "title": "Filter",
     "value": "Value",
+    "valueNotSet": "(not set)",
     "valueTo": "To"
   },
   "goreact": {
