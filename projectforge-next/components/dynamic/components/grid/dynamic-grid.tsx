@@ -21,7 +21,7 @@ import { useDynamicLayout } from "../../dynamic-context";
 import type { DynamicComponentProps } from "../../dynamic-renderer";
 import { DynamicGridFallback } from "./dynamic-grid-fallback";
 import { useDynamicGridColumns } from "./use-dynamic-grid-columns";
-import { useGridStateReset } from "./use-grid-state-reset";
+import { useGridStateReset } from "@/components/data-table";
 
 /**
  * Renders an AG_GRID / TABLE node of a UILayout with the app's DataTable.

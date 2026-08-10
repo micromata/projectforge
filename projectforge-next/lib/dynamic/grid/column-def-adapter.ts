@@ -10,8 +10,8 @@ import { parseValuePath } from "./value-path";
  * translation context, so `use-dynamic-grid-columns.tsx` adds them — everything
  * that is pure data mapping happens here.
  */
-export type AdaptedColumn = Omit<
-  AccessorFnColumnDef<DataObject, unknown>,
+export type AdaptedColumn<TRow extends DataObject = DataObject> = Omit<
+  AccessorFnColumnDef<TRow, unknown>,
   "header" | "cell" | "id"
 > & { id: string };
 
@@ -34,13 +34,22 @@ const FILTER_KINDS: Record<string, FilterKind> = {
  * locale/format block (those values come from `useFormatContext()`, so there is
  * one source rather than two).
  */
-export function adaptColumnDefs(grid: AgGridNode): AdaptedColumn[] {
+/**
+ * @param TRow the row type of the table the columns are for. Generic because a hand-built page knows
+ *   its rows (the structure tree's `TaskNode`) while a dynamic layout doesn't — the accessors read by
+ *   path either way, so nothing but the type varies.
+ */
+export function adaptColumnDefs<TRow extends DataObject = DataObject>(
+  grid: AgGridNode
+): AdaptedColumn<TRow>[] {
   return (grid.columnDefs ?? [])
-    .map(adaptColumn)
-    .filter((column): column is AdaptedColumn => column !== null);
+    .map((col) => adaptColumn<TRow>(col))
+    .filter((column): column is AdaptedColumn<TRow> => column !== null);
 }
 
-function adaptColumn(col: AgGridColumnDef): AdaptedColumn | null {
+function adaptColumn<TRow extends DataObject>(
+  col: AgGridColumnDef
+): AdaptedColumn<TRow> | null {
   const id = col.field;
   if (!id) return null;
 
@@ -52,7 +61,7 @@ function adaptColumn(col: AgGridColumnDef): AdaptedColumn | null {
 
   return {
     id,
-    accessorFn: (row: DataObject) => getByPath(row, path),
+    accessorFn: (row: TRow) => getByPath(row, path),
     size: col.width,
     minSize: col.minWidth,
     maxSize: col.maxWidth,

@@ -26,6 +26,16 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   isFetching?: boolean;
 
   onRowClick?: (row: TData) => void;
+  /**
+   * Click on a single cell, told apart by its column.
+   *
+   * Exists because a row-level handler cannot express what the structure tree needs: a click on the
+   * first column expands the node, a click on any other column selects it (which is what the hint
+   * below that table says). Same click, same row, two meanings — only the column tells them apart.
+   *
+   * Fires instead of [onRowClick] where both are set: the cell handler stops the event.
+   */
+  onCellClick?: (row: TData, columnId: string) => void;
   rowActions?: (row: TData) => React.ReactNode;
   /**
    * Highlight class for a whole row, e.g. "row-red" — the semantic classes in
@@ -45,6 +55,7 @@ export function DataTable<TData>({
   isLoading = false,
   isFetching = false,
   onRowClick,
+  onCellClick,
   rowActions,
   rowClassName,
   pageSizeOptions,
@@ -182,6 +193,7 @@ export function DataTable<TData>({
                     key={row.id}
                     row={row}
                     onRowClick={onRowClick}
+                    onCellClick={onCellClick}
                     rowActions={rowActions}
                     className={rowClassName?.(row.original)}
                   />

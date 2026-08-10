@@ -28,6 +28,7 @@ export { SELECTION_PREFERRED_MAX } from "./use-distinct-filter-values";
 export { useDataTable } from "./use-data-table";
 export type { UseDataTableOptions } from "./use-data-table";
 export { useMagicFilterQuery } from "./use-magic-filter-query";
+export { useGridStateReset } from "./use-grid-state-reset";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";
 export {

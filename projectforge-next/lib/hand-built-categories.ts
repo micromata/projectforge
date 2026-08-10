@@ -9,7 +9,7 @@
  * category — the route of a hand built page is its REST category, so the url reads
  * the same either way (`/next/book`, `/rs/book`).
  */
-export const HAND_BUILT_CATEGORIES = ["book", "cost1"];
+export const HAND_BUILT_CATEGORIES = ["book", "cost1", "order"];
 
 export function isHandBuilt(category: string | undefined): boolean {
   return !!category && HAND_BUILT_CATEGORIES.includes(category);

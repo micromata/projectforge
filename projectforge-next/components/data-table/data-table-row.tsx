@@ -43,6 +43,8 @@ export function pinnedClass<TData>(
 interface DataTableRowProps<TData> {
   row: Row<TData>;
   onRowClick?: (row: TData) => void;
+  /** Which column was clicked, when that is what decides the action (see DataTableProps). */
+  onCellClick?: (row: TData, columnId: string) => void;
   rowActions?: (row: TData) => React.ReactNode;
   /** Highlight class for the whole row, e.g. "row-red" (see globals.css). */
   className?: string;
@@ -51,18 +53,33 @@ interface DataTableRowProps<TData> {
 export function DataTableRow<TData>({
   row,
   onRowClick,
+  onCellClick,
   rowActions,
   className,
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
-      className={cn("group", onRowClick && "cursor-pointer", className)}
+      className={cn(
+        "group",
+        (onRowClick || onCellClick) && "cursor-pointer",
+        className
+      )}
       onClick={onRowClick ? () => onRowClick(row.original) : undefined}
     >
       {row.getVisibleCells().map((cell, index) => (
         <TableCell
           key={cell.id}
           style={pinnedStyle(cell.column)}
+          // stopPropagation, or a row-level handler would fire for the same click and both
+          // meanings of the cell would happen at once.
+          onClick={
+            onCellClick
+              ? (e) => {
+                  e.stopPropagation();
+                  onCellClick(row.original, cell.column.id);
+                }
+              : undefined
+          }
           className={cn(
             // border-b per cell: with border-separate the row's own border-b
             // doesn't render. Opaque background so columns scrolling past don't

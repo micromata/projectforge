@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import type { TableStateResult } from "@/components/data-table";
+import type { TableStateResult } from "./use-table-state";
 import { callDynamicAction } from "@/lib/rs/dynamic";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";

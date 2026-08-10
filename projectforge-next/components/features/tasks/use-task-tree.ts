@@ -1,0 +1,146 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import {
+  fetchTaskTree,
+  taskTreeFilterOf,
+  type TaskNode,
+  type TaskTreeFilter,
+} from "@/lib/rs/task";
+
+/** Which node the last chevron click asked the server to open or close. */
+interface Toggle {
+  open?: number;
+  close?: number;
+  /**
+   * Counts the clicks. Without it, collapsing a node the user had opened before would produce a
+   * query key that was already in the cache, and the tree would flash the state it had back then
+   * before the refetch replaced it.
+   */
+  revision: number;
+}
+
+interface UseTaskTreeOptions {
+  highlightTaskId?: number | null;
+  showRootForAdmins?: boolean;
+}
+
+/**
+ * One array identity for "no rows yet".
+ *
+ * A fresh `[]` per render would be a new `data` for the table on every render, and TanStack resets
+ * its row model when `data` changes — a state update during render, which re-renders, which produces
+ * the next `[]`. That is a synchronous commit loop: the tab goes to 100% CPU and stops responding.
+ */
+const NO_NODES: TaskNode[] = [];
+
+/**
+ * The visible structure tree, its columns and its filter.
+ *
+ * Two queries, one request on mount. The first call is the only one with `initial=true`, which is
+ * what makes the backend send the column defs, the grid-state urls and the filter it has in the
+ * session — and what makes it *ignore* filter parameters. It is cached for good (nothing about it
+ * changes while the panel is open), so the second query only exists from the first interaction on:
+ * as long as the user has neither filtered nor expanded anything, the initial answer *is* the tree.
+ *
+ * Expanding is a request, not local state (see lib/rs/task.ts), so both queries answer with the
+ * whole visible tree and the panel has no expansion model of its own.
+ *
+ * Everything returned is referentially stable across renders — the columns are memoised on the
+ * toggle callback, and the table's `data` must not change identity unless the rows did (see
+ * [NO_NODES]).
+ */
+export function useTaskTree({
+  highlightTaskId,
+  showRootForAdmins,
+}: UseTaskTreeOptions) {
+  // null while the session's filter is in effect: only the initial answer knows what that is, and
+  // overriding it with a default here would drop a filter set on the legacy page.
+  const [filter, setFilter] = useState<TaskTreeFilter | null>(null);
+  const [toggle, setToggle] = useState<Toggle>();
+
+  const scope = useMemo(
+    () => ({
+      highlightedTaskId: highlightTaskId ?? undefined,
+      showRootForAdmins: showRootForAdmins || undefined,
+    }),
+    [highlightTaskId, showRootForAdmins]
+  );
+
+  const initial = useQuery({
+    queryKey: ["taskTree", "initial", scope],
+    queryFn: ({ signal }) => fetchTaskTree({ ...scope, initial: true }, signal),
+    staleTime: Infinity,
+  });
+
+  const initFilter = initial.data?.initFilter;
+  const effective: TaskTreeFilter = useMemo(
+    () => filter ?? taskTreeFilterOf(initFilter),
+    [filter, initFilter]
+  );
+  // Only the search string is debounced: a checkbox is one deliberate click, a keystroke isn't.
+  const searchString = useDebouncedValue(effective.searchString, 250);
+
+  // Interacting at all switches to this query. It always carries the whole filter, even for a mere
+  // expand: the backend takes every parameter of a non-initial call as the user's new filter, so
+  // omitting the search string would clear the one stored in the session.
+  const interacted = filter !== null || toggle !== undefined;
+  const params = useMemo(
+    () => ({
+      ...scope,
+      ...effective,
+      searchString,
+      open: toggle?.open,
+      close: toggle?.close,
+    }),
+    [scope, effective, searchString, toggle]
+  );
+  const tree = useQuery({
+    // The revision belongs in the key, not in the request: it distinguishes two identical toggles
+    // for the cache, and the backend has no such parameter.
+    queryKey: ["taskTree", params, toggle?.revision],
+    queryFn: ({ signal }) => fetchTaskTree(params, signal),
+    enabled: interacted,
+    // The tree that was on screen stays there while the next one loads — a search narrowing row by
+    // row must not flash an empty table between two answers.
+    placeholderData: keepPreviousData,
+  });
+
+  // The first interaction has no previous data of *this* query to keep, so the rows of the initial
+  // answer stand in until the first one arrives. Without it the table would empty out on the first
+  // click and fill again a moment later.
+  const nodes =
+    (interacted ? tree.data : initial.data)?.nodes ??
+    initial.data?.nodes ??
+    NO_NODES;
+
+  const source = interacted ? tree : initial;
+
+  return {
+    /** The rows, flat and each with its `indent` and `treeStatus`. */
+    nodes,
+    /** Column defs, sort model and the grid-state urls — from the initial answer only. */
+    grid: initial.data,
+    filter: effective,
+    setFilter,
+    isLoading: source.isLoading,
+    isFetching: source.isFetching,
+    isError: initial.isError || tree.isError,
+    /**
+     * Open or collapse a node; the server remembers it for the user.
+     *
+     * Stable: the columns are memoised on it, and rebuilding them per render would remount every
+     * header (and, through the table's `data`/`columns`, loop the same way [NO_NODES] describes).
+     */
+    toggleNode: useCallback(
+      (id: number, open: boolean) =>
+        setToggle((previous) => ({
+          [open ? "open" : "close"]: id,
+          revision: (previous?.revision ?? 0) + 1,
+        })),
+      []
+    ),
+  };
+}
