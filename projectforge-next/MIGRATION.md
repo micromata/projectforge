@@ -1141,6 +1141,27 @@ Das **Auftragsbuch** ist der Referenz-Härtefall:
 **Verifikation.** Auftrag mit mehreren Positionen + Zahlungsplan
 anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 
+#### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
+
+Die **Kalenderseite** (`/react/calendar`) ist der zweite Härtefall und
+gleichzeitig die Standard-Startseite nach dem Login. Sie ist ebenfalls nicht über
+UILayout abbildbar (FullCalendar-Grid, Drag&Drop/Resize, Slot-Auswahl,
+Kalender-Multi-Select mit Farbwahl), das Backend liefert aber schon fertige
+FullCalendar-DTOs – es ist also fast reine Frontend-Arbeit.
+
+Vollständiger Umsetzungsplan: **[MIGRATION-calendar.md](MIGRATION-calendar.md)**
+(Dateiaufteilung, State-Modell über den Query-Cache statt der Legacy-Spiegel-Refs,
+FullCalendar-Theming über die shadcn-Tokens, Tooltip ohne
+`dangerouslySetInnerHTML`, i18n-Präfixe, Verifikation, Risiken). Noch nicht
+umgesetzt.
+
+Zwei **Voraussetzungen aus Phase 2** stecken darin, die auch anderen Seiten
+nützen: eine 2-Segment-Route `[category]/[type]` (der `action`-Endpunkt liefert
+für jede Neuanlage `/timesheet/edit?startDate=…` ohne id – dafür gibt es heute
+keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
+`UICustomized`-Registry mit `COLOR_CHOOSER`, weil das Kalender-Menü auf
+`calendarSettings` verlinkt.
+
 ### Phase 4 – Ablösung & Aufräumen
 
 - Pro vollständig migrierter Seite: Menü auf `next/`, alte Route deaktivieren.
