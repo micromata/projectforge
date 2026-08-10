@@ -73,6 +73,32 @@ test.describe("cost 1 list", () => {
     await expect(page.getByText("ACTIVE")).toHaveCount(0);
   });
 
+  test("sorts by the cost number", async ({ loggedInPage: page }) => {
+    const { t } = await userFormat(page);
+    await goto(page, "/cost1");
+    const numbers = page.getByRole("cell").filter({ hasText: /^\d\.\d{3}\./ });
+    await expect(numbers.first()).toBeVisible();
+
+    // A click on the header cell sorts (DataTable sorts on the whole cell, see
+    // DataTableColumnHeader), and the sort is the backend's: `manualSorting` is on.
+    await page.getByRole("columnheader", { name: t("fibu.kost1._") }).click();
+
+    // Every part of the number is a fixed count of digits, so the formatted numbers as shown sort
+    // like plain strings — which is what the four columns the backend orders by have to produce
+    // (Kost1PagesRest.postProcessMagicFilter). `formattedNumber` is a getter without a column of its
+    // own, so before that mapping the criteria query dropped the order and the list came back
+    // unsorted.
+    await expect
+      .poll(
+        async () => {
+          const shown = await numbers.allInnerTexts();
+          return shown.join() === [...shown].sort().join();
+        },
+        { message: "the number column must sort ascending" }
+      )
+      .toBe(true);
+  });
+
   test("narrows the list by the search box", async ({ loggedInPage: page }) => {
     const { t } = await userFormat(page);
     await goto(page, "/cost1");

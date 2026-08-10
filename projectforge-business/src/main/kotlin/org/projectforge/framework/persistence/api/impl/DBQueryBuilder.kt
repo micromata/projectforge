@@ -124,11 +124,13 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
             }
         }
 
-        var maxOrder = 3
+        // A column of the list may be made of several database columns — a cost number is four (see
+        // Kost1PagesRest.postProcessMagicFilter) — so one requested sort can be more than one order.
+        var maxOrder = MAX_ORDERS
         for (sortProperty in dbFilter.sortProperties) {
             addOrder(sortProperty)
             if (--maxOrder <= 0)
-                break // Add only 3 orders.
+                break
         }
         // TODO setCacheRegion(baseDao, criteria)
 
@@ -158,5 +160,13 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
             }
             dbQueryBuilderByCriteria.addOrder(sortProperty)
         }
+    }
+
+    companion object {
+        /**
+         * How many order-by clauses a query gets at most. The user sorts by one column and the stored
+         * sort order adds the previous ones, so this is a safety net, not a feature.
+         */
+        private const val MAX_ORDERS = 6
     }
 }

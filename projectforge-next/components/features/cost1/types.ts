@@ -27,6 +27,7 @@ export interface Cost1Detail {
    */
   formattedNumber?: string | null;
   created?: string | null;
+  lastUpdate?: string | null;
 }
 
 /** Projection the list page renders — the same DTO, with the id the table keys rows by. */

@@ -36,8 +36,9 @@ export const COST1_PAGE = definePage<
   addTitleKey: "fibu.kost1.title.add",
   searchPlaceholderKey: "cost1.searchPlaceholder",
   columns: [
-    // Sorted and filtered as text: the backend sorts by the property, and the formatted number reads
-    // as one ("6.100.01.02"), not as four values.
+    // Filtered as text: the formatted number reads as one ("6.100.01.02"), not as four values.
+    // Sorting is the backend's, which maps this property onto the four number columns it is made of
+    // (Kost1PagesRest.postProcessMagicFilter) — no column of its own holds it.
     {
       name: "formattedNumber",
       size: 120,
@@ -45,6 +46,10 @@ export const COST1_PAGE = definePage<
     },
     { name: "kostentraegerStatus", size: 110 },
     { name: "description", size: 400 },
+    // When an entry was created and last changed — the two the legacy list omits, but which say
+    // whether a cost unit is still being maintained.
+    { name: "created", size: 130 },
+    { name: "lastUpdate", size: 130 },
   ],
   edit: {
     schema: cost1Schema,
