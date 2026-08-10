@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { Spinner } from "@/components/shared/spinner";
@@ -9,24 +10,16 @@ import {
   DataTableColumnPanel,
   FilterFavoritesMenu,
   FilterPills,
-  filterValuesFromEntries,
-  DEFAULT_PAGE_SIZE,
   ListGearMenu,
-  useColumnStatePersistence,
-  useDataTable,
-  useFilterFavorites,
-  useListFilters,
-  useMagicFilterQuery,
   useRememberedFilter,
-  useRememberFilter,
   useStoredColumnState,
-  useTableState,
   type ColumnState,
-  type FilterValues,
 } from "@/components/data-table";
+import { ListToolbar } from "@/components/shared/list/list-toolbar";
+import { useEntityListPage } from "@/hooks/use-entity-list-page";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useBooksColumns } from "@/components/features/books/books-columns";
-import { BooksToolbar } from "@/components/features/books/books-toolbar";
+import { BOOKS_LIST_QUERY_KEY } from "@/components/features/books/edit/use-book-detail";
 import type { BookListRow } from "@/components/features/books/types";
 
 const ENTITY = "book";
@@ -67,158 +60,48 @@ function BooksList({
   restoredFilter?: MagicFilter;
 }) {
   const router = useRouter();
+  const t = useTranslations();
   const columns = useBooksColumns();
-  const filters = useListFilters(ENTITY, { restoredFilter });
 
-  const columnState = useTableState({
-    restoredState: storedState,
-    initialSorting: storedState.sorting,
-  });
-
-  const {
-    data,
-    rowCount,
-    isLoading,
-    isFetching,
-    filter,
-    sorting,
-    setSorting,
-    pagination,
-    setPagination,
-    globalFilter,
-    setGlobalFilter,
-    applyFilter,
-  } = useMagicFilterQuery<BookListRow>({
+  const list = useEntityListPage<BookListRow>({
     entity: ENTITY,
-    queryKey: ["books"],
-    // Stored per entity along with the column state, so the size the user picked survives a reload.
-    initialPageSize: storedState.paginationPageSize ?? DEFAULT_PAGE_SIZE,
-    // Sorting drives the backend query, so it lives with the query, not in the
-    // column state — the stored order seeds it here.
-    initialSorting: storedState.sorting,
-    // The search box belongs to the filter row, so it is restored with it.
-    initialGlobalFilter: restoredFilter?.searchString,
-    // The pill filters are applied server-side, unlike the header's column filters.
-    filterEntries: filters.entries,
-    // Has to go out with every list call: the backend stores the filter it gets as
-    // the user's current one, so without it the link to the favorite would be lost
-    // and the edited filter could no longer be saved back into it.
-    favoriteId: filters.favorite?.id,
-    favoriteName: filters.favorite?.name,
-  });
-
-  // The user's saved filters — the backend's filter favorites, so a filter saved
-  // here is the same one the legacy list page offers.
-  const favorites = useFilterFavorites({
-    entity: ENTITY,
-    filter,
-    current: filters.favorite,
-    onCurrentChange: filters.setFavorite,
-    onApply: (applied) => {
-      filters.setValues(filterValuesFromEntries(applied.entries));
-      applyFilter(applied);
-    },
-  });
-
-  // Owned here so the toolbar's column panel and the table share one instance.
-  const table = useDataTable<BookListRow>({
+    queryKey: BOOKS_LIST_QUERY_KEY,
     columns,
-    data,
-    rowCount,
-    sorting,
-    onSortingChange: setSorting,
-    pagination,
-    onPaginationChange: setPagination,
-    columnFilters: columnState.columnFilters,
-    onColumnFiltersChange: columnState.setColumnFilters,
-    columnVisibility: columnState.columnVisibility,
-    onColumnVisibilityChange: columnState.setColumnVisibility,
-    columnPinning: columnState.columnPinning,
-    onColumnPinningChange: columnState.setColumnPinning,
-    columnSizing: columnState.columnSizing,
-    onColumnSizingChange: columnState.setColumnSizing,
-    columnOrder: columnState.columnOrder,
-    onColumnOrderChange: columnState.setColumnOrder,
-    enableColumnFilters: true,
-    enableColumnResizing: true,
-    // Sorting and the search string go to Spring; the column filters and paging work
-    // on the client, because getList returns the whole result set at once.
-    manualSorting: true,
-    getRowId: (row: BookListRow) => String(row.id),
+    storedState,
+    restoredFilter,
   });
-
-  // Coming back to the list should show the filter it was left with, also without
-  // a reload — the cached initialList would otherwise still hold the old one.
-  // The filter already carries the favorite's id and name.
-  useRememberFilter(ENTITY, filter);
-
-  useColumnStatePersistence(ENTITY, {
-    sorting,
-    columnVisibility: columnState.columnVisibility,
-    columnPinning: columnState.columnPinning,
-    columnSizing: columnState.columnSizing,
-    columnOrder: columnState.columnOrder,
-    paginationPageSize: pagination.pageSize,
-  });
-
-  /** Back to the column defs' defaults; the next write stores the empty state. */
-  function resetColumns() {
-    setSorting([]);
-    columnState.setColumnVisibility({});
-    columnState.setColumnPinning({});
-    columnState.setColumnSizing({});
-    columnState.setColumnOrder([]);
-    columnState.setColumnFilters([]);
-  }
-
-  /**
-   * Takes the filter row's edits — and drops the link to the saved filter once nothing is left:
-   * an empty filter is no longer that favorite, so marking it as modified (and offering to save
-   * the emptiness back into it) would be wrong.
-   */
-  function applyValues(values: FilterValues) {
-    filters.setValues(values);
-    if (Object.keys(values).length === 0 && !globalFilter)
-      filters.setFavorite(undefined);
-  }
-
-  /**
-   * The local half of the gear menu's "reset filter": the endpoint only drops what the server
-   * stores. It discards the grid state along with the filter, so the columns go with it.
-   */
-  function resetFilter() {
-    filters.setValues({});
-    filters.setFavorite(undefined);
-    // Clears search string and sort order and returns to page 1.
-    applyFilter({ entries: [], sortProperties: [] });
-    resetColumns();
-  }
 
   return (
     <PageShell>
       <ListPageShell
         toolbar={
-          <BooksToolbar
-            search={globalFilter}
-            onSearch={setGlobalFilter}
+          <ListToolbar
+            title={t("books.title")}
+            category={t("menu.common")}
+            searchValue={list.globalFilter}
+            onSearchChange={list.setGlobalFilter}
+            searchPlaceholder={t("books.searchPlaceholder")}
+            addHref="/books/new"
+            addLabel={t("book.title.add")}
+            legacyUrl={list.legacyUrl}
             gearMenu={
-              <ListGearMenu entity={ENTITY} onFilterReset={resetFilter} />
+              <ListGearMenu entity={ENTITY} onFilterReset={list.resetFilter} />
             }
             columnPanel={
               <DataTableColumnPanel
-                table={table}
-                onReset={resetColumns}
+                table={list.table}
+                onReset={list.resetColumns}
                 className="h-6 rounded-full px-2.5 text-xs"
               />
             }
             filterPills={
               <FilterPills
-                elements={filters.elements}
-                values={filters.values}
-                onChange={applyValues}
+                elements={list.filters.elements}
+                values={list.filters.values}
+                onChange={list.applyValues}
                 trailing={
                   <FilterFavoritesMenu
-                    favorites={favorites}
+                    favorites={list.favorites}
                     className="h-6 gap-1 rounded-full px-2.5 text-xs"
                   />
                 }
@@ -228,11 +111,11 @@ function BooksList({
         }
       >
         <DataTable<BookListRow>
-          table={table}
+          table={list.table}
           columns={columns}
-          data={data}
-          isLoading={isLoading}
-          isFetching={isFetching}
+          data={list.data}
+          isLoading={list.isLoading}
+          isFetching={list.isFetching}
           onRowClick={(row) => router.push(`/books/${row.id}`)}
           className="flex-1"
         />

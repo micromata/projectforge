@@ -1,43 +1,58 @@
 "use client";
 
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 
-interface BooksToolbarProps {
-  search: string;
-  onSearch: (v: string) => void;
+export interface ListToolbarProps {
+  /** Heading of the page, e.g. "Bücherliste". */
+  title: string;
+  /** The menu parent above it, e.g. "Allgemein" — where the entry sits in the main menu. */
+  category: string;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  searchPlaceholder: string;
+  /** Route of the add page, e.g. `/books/new`. */
+  addHref: string;
+  addLabel: string;
+  /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
+  legacyUrl?: string;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
-  columnPanel?: React.ReactNode;
+  columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
-  filterPills?: React.ReactNode;
+  filterPills?: ReactNode;
   /** Maintenance actions of the list (re-index, reset filter), see ListGearMenu. */
-  gearMenu?: React.ReactNode;
+  gearMenu?: ReactNode;
 }
 
-export function BooksToolbar({
-  search,
-  onSearch,
+/** The head of every list page: where it sits, what it is called, search, filters and "add". */
+export function ListToolbar({
+  title,
+  category,
+  searchValue,
+  onSearchChange,
+  searchPlaceholder,
+  addHref,
+  addLabel,
+  legacyUrl,
   columnPanel,
   filterPills,
   gearMenu,
-}: BooksToolbarProps) {
-  const t = useTranslations();
-
+}: ListToolbarProps) {
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
+        <LegacyPageLink url={legacyUrl} className="-ml-1" />
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            {t("menu.common")}
+            {category}
           </p>
-          <h1 className="text-lg font-bold tracking-tight">
-            {t("books.title")}
-          </h1>
+          <h1 className="text-lg font-bold tracking-tight">{title}</h1>
         </div>
         <div className="flex-1" />
         {/* Divider only with a menu beside it: it separates the list's own actions from
@@ -49,9 +64,9 @@ export function BooksToolbar({
           </>
         )}
         <Button asChild size="sm" className="gap-1.5">
-          <Link href="/books/new">
+          <Link href={addHref}>
             <HugeiconsIcon icon={PlusSignIcon} size={13} />
-            {t("book.title.add")}
+            {addLabel}
           </Link>
         </Button>
       </div>
@@ -64,9 +79,10 @@ export function BooksToolbar({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder={t("books.searchPlaceholder")}
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
             className="h-9 pl-9"
           />
         </div>

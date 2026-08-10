@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import { BrandStripe } from "@/components/shared/brand-stripe";
@@ -9,11 +10,12 @@ import {
   DEFAULT_PAGE_SIZE,
   useMagicFilterQuery,
 } from "@/components/data-table";
+import { ListToolbar } from "@/components/shared/list/list-toolbar";
 import { useBooksColumns } from "@/components/features/books/books-columns";
-import { BooksToolbar } from "@/components/features/books/books-toolbar";
 import type { BookListRow } from "@/components/features/books/types";
 
 export default function DemoPage() {
+  const t = useTranslations();
   const columns = useBooksColumns();
   const {
     data,
@@ -40,7 +42,15 @@ export default function DemoPage() {
         <SidebarInset className="flex flex-1 flex-col overflow-hidden">
           <ListPageShell
             toolbar={
-              <BooksToolbar search={globalFilter} onSearch={setGlobalFilter} />
+              <ListToolbar
+                title={t("books.title")}
+                category={t("menu.common")}
+                searchValue={globalFilter}
+                onSearchChange={setGlobalFilter}
+                searchPlaceholder={t("books.searchPlaceholder")}
+                addHref="/books/new"
+                addLabel={t("book.title.add")}
+              />
             }
           >
             <DataTable<BookListRow>
