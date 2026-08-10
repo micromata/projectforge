@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const LEAVE_ACCOUNT_ENTRY_METADATA = {
   entity: "LeaveAccountEntryDO",
+  historizable: true,
   fields: {
     amount: {
       dataType: "DECIMAL",

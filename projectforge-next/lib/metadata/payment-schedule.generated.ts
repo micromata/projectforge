@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const PAYMENT_SCHEDULE_METADATA = {
   entity: "PaymentScheduleDO",
+  historizable: true,
   fields: {
     amount: {
       dataType: "DECIMAL",

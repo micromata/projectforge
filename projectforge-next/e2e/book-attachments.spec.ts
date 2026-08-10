@@ -50,7 +50,7 @@ test.describe("book attachments", () => {
   test("uploads, renames and deletes a file", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const name = fileName("upload");
     const renamed = fileName("renamed");
 
@@ -85,7 +85,7 @@ test.describe("book attachments", () => {
   test("shows the backend's message when the same file is uploaded twice", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const name = fileName("duplicate");
 
     try {
@@ -111,7 +111,7 @@ test.describe("book attachments", () => {
   test("shows the metadata the backend recorded for a file", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const name = fileName("metadata");
 
     try {
@@ -138,7 +138,7 @@ test.describe("book attachments", () => {
   test("downloads and deletes a whole selection", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const names = [fileName("multi-a"), fileName("multi-b")];
 
     try {
@@ -187,7 +187,7 @@ test.describe("book attachments", () => {
   test("downloads all files and opens the details on a row click", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const name = fileName("row-click");
 
     try {
@@ -223,7 +223,7 @@ test.describe("book attachments", () => {
   test("says attachments need a saved book when adding one", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, "/books/new");
+    await goto(page, "/book/new");
     // No id to hang a file off yet, so the section explains itself instead of offering an upload.
     await expect(
       page.getByText(/erst hochgeladen werden, nachdem/i)

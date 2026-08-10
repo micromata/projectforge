@@ -9,6 +9,7 @@ import {
 import { fetchOne } from "@/lib/rs/client";
 import {
   markEntityAsDeleted,
+  postEntityAction,
   saveOrUpdateEntity,
   type EntityWriteResult,
 } from "@/lib/rs/entity";
@@ -20,7 +21,7 @@ export interface EntityWithId {
 }
 
 interface WriteOptions {
-  /** Query key of the list page, so a write refreshes it. E.g. `["books"]`. */
+  /** Query key of the list page, so a write refreshes it. E.g. `["book"]`. */
   listQueryKey: readonly unknown[];
 }
 
@@ -49,6 +50,30 @@ export function useSaveEntity<T extends EntityWithId>(
     mutationFn: (data) => saveOrUpdateEntity(entity, data),
     onSuccess: (result, data) => {
       // A rejected entity is a regular answer here (HTTP 406), not an error - nothing changed.
+      if (result.kind !== "ok") return;
+      invalidateEntity(qc, entity, result.id ?? data.id, listQueryKey);
+    },
+  });
+}
+
+/**
+ * A write the entity's backend offers besides save — `book/lendOut`, `book/returnBook`
+ * (BookServicesRest).
+ *
+ * One mutation for all of them, with the action as a variable rather than a hook per name: which
+ * actions an entity has is known to its own buttons, not to this hook, and a hook per name could not
+ * be called from a component that renders a variable number of them.
+ *
+ * These endpoints save the whole posted entity, so they invalidate exactly what a save does.
+ */
+export function useEntityAction<T extends EntityWithId>(
+  entity: string,
+  { listQueryKey }: WriteOptions
+) {
+  const qc = useQueryClient();
+  return useMutation<EntityWriteResult, Error, { action: string; data: T }>({
+    mutationFn: ({ action, data }) => postEntityAction(entity, action, data),
+    onSuccess: (result, { data }) => {
       if (result.kind !== "ok") return;
       invalidateEntity(qc, entity, result.id ?? data.id, listQueryKey);
     },

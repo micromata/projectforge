@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const KONTO_METADATA = {
   entity: "KontoDO",
+  historizable: true,
   fields: {
     bezeichnung: {
       dataType: "STRING",

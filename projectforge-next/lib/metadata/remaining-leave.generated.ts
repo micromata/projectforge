@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const REMAINING_LEAVE_METADATA = {
   entity: "RemainingLeaveDO",
+  historizable: true,
   fields: {
     comment: {
       dataType: "STRING",

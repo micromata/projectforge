@@ -3,12 +3,13 @@
 import { notFound } from "next/navigation";
 import { useRouteParams } from "@/hooks/use-route-params";
 import { PageShell } from "@/components/shared/page-shell";
-import { BookHistoryPage } from "@/components/features/books/history/book-history-page";
+import { EntityHistoryPage } from "@/components/shared/edit/entity-history-page";
+import { BOOK_PAGE } from "@/components/features/book/book.page";
 
-// Reads the book id from the URL at runtime rather than from a server-provided route param, so any
-// id works under the static export (see page.tsx and use-route-params.ts).
+// Reads the id from the URL at runtime rather than from a server-provided route param, so any id
+// works under the static export (see page.tsx and use-route-params.ts).
 export function BookHistoryPageClient() {
-  const raw = useRouteParams<{ id: string }>("/books/[id]/history")?.id;
+  const raw = useRouteParams<{ id: string }>("/book/[id]/history")?.id;
   if (raw === undefined) return null;
   const id = Number(raw);
   // A book that isn't saved yet ("new") has no history to show.
@@ -16,7 +17,7 @@ export function BookHistoryPageClient() {
 
   return (
     <PageShell>
-      <BookHistoryPage bookId={id} />
+      <EntityHistoryPage page={BOOK_PAGE} id={id} />
     </PageShell>
   );
 }

@@ -61,7 +61,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * Next.js export places its assets under the base path ({@code /next/_next/**}). A naive forward of {@code /next/**}
      * to the SPA shell would therefore swallow asset requests. This resource handler instead serves real files first
      * (assets, per-route {@code index.html}) and only then falls back to the shell of the matching dynamic route for
-     * deep links such as {@code /next/books/5}. Missing assets still yield a real 404.
+     * deep links such as {@code /next/book/5}. Missing assets still yield a real 404.
      * <p>
      * The export is packaged into {@code classpath:/static/next/} (see projectforge-next Gradle build).
      */
@@ -78,15 +78,15 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * (directory {@code index.html}, {@code <route>.html}) and mapping deep links of a dynamic route onto the one
      * route Next prerendered for it.
      * <p>
-     * A static export has no file for {@code /next/books/25219084}: {@code books/[id]} is prerendered exactly once,
-     * from the placeholder of its {@code generateStaticParams} ({@code books/new}). That prerender — not
+     * A static export has no file for {@code /next/book/25219084}: {@code book/[id]} is prerendered exactly once,
+     * from the placeholder of its {@code generateStaticParams} ({@code book/new}). That prerender — not
      * {@code 404.html}, which is Next's own not-found page and renders as such wherever it is served — is the shell a
      * deep link has to be answered with, because the HTML carries the route's page component. Which shell belongs to
      * which route pattern is read from {@code next-spa-shell-map.json}, written by the Next build
      * (projectforge-next/scripts/generate-spa-shell-map.mjs), so a new dynamic route needs no change here.
      * <p>
      * Substituting the whole directory rather than just the HTML also serves the route's RSC payloads
-     * ({@code books/25219084/__next._tree.txt} → {@code books/new/__next._tree.txt}), which is what makes
+     * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
      * client-side navigation to a deep link work.
      */
     private static class NextSpaResourceResolver extends PathResourceResolver {
@@ -128,10 +128,10 @@ public class WebApplicationConfig implements WebMvcConfigurer {
          * <p>
          * Three shapes occur, all of which the client router needs:
          * <ol>
-         * <li>the page itself, {@code /books/5} → {@code books/new/index.html};</li>
-         * <li>the RSC payload of a client side navigation, {@code /books/5.txt} → {@code books/new/index.txt} — the
+         * <li>the page itself, {@code /book/5} → {@code book/new/index.html};</li>
+         * <li>the RSC payload of a client side navigation, {@code /book/5.txt} → {@code book/new/index.txt} — the
          * route with an extension appended, not a file below it;</li>
-         * <li>a file below the page, {@code /books/5/__next._tree.txt} → {@code books/new/__next._tree.txt}.</li>
+         * <li>a file below the page, {@code /book/5/__next._tree.txt} → {@code book/new/__next._tree.txt}.</li>
          * </ol>
          *
          * @param assetRequest whether a file was asked for rather than a page. For those only an exact hit counts: an
@@ -145,7 +145,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
             }
             // 3. before 2.: a file below the page, matching the route against the path without the file name. Tried
             // first because stripping the extension instead (below) can turn such a path into a match of a *different*
-            // route — "/books/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".
+            // route — "/book/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".
             int lastSlash = path.lastIndexOf('/');
             String shellDir = matchShellDir(path.substring(0, lastSlash), location);
             if (shellDir != null) {
@@ -185,7 +185,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
             try {
                 Resource resource = location.createRelative(SHELL_MAP);
                 if (!resource.isReadable()) {
-                    log.warn("{} not found in the Next.js export: deep links such as /{}books/5 will not work. Rebuild projectforge-next.",
+                    log.warn("{} not found in the Next.js export: deep links such as /{}book/5 will not work. Rebuild projectforge-next.",
                             SHELL_MAP, Constants.NEXT_APP_PATH);
                     return routes;
                 }

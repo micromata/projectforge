@@ -11,12 +11,15 @@ import {
   useMagicFilterQuery,
 } from "@/components/data-table";
 import { ListToolbar } from "@/components/shared/list/list-toolbar";
-import { useBooksColumns } from "@/components/features/books/books-columns";
-import type { BookListRow } from "@/components/features/books/types";
+import { useDeclaredColumns } from "@/components/shared/list/use-declared-columns";
+import { BOOK_PAGE } from "@/components/features/book/book.page";
+import type { BookListRow } from "@/components/features/book/types";
 
 export default function DemoPage() {
   const t = useTranslations();
-  const columns = useBooksColumns();
+  // The book columns as the list page renders them — the demo shows the table primitive, so it
+  // reuses the declaration rather than a second set of columns.
+  const columns = useDeclaredColumns(BOOK_PAGE.metadata, BOOK_PAGE.columns);
   const {
     data,
     rowCount,
@@ -48,7 +51,7 @@ export default function DemoPage() {
                 searchValue={globalFilter}
                 onSearchChange={setGlobalFilter}
                 searchPlaceholder={t("books.searchPlaceholder")}
-                addHref="/books/new"
+                addHref="/book/new"
                 addLabel={t("book.title.add")}
               />
             }

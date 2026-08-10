@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const GANTT_CHART_METADATA = {
   entity: "GanttChartDO",
+  historizable: false,
   fields: {
     created: {
       dataType: "TIMESTAMP",

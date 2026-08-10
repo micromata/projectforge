@@ -3,12 +3,10 @@
     "title": "Bücherliste",
     "searchPlaceholder": "Bücherliste durchsuchen…",
     "edit": {
-      "breadcrumbBack": "Bücherliste",
       "tabs": {
         "general": "Allgemein",
         "loan": "Ausleihe",
-        "notes": "Notizen",
-        "history": "Verlauf"
+        "notes": "Notizen"
       },
       "sections": {
         "general": "Allgemeine Informationen",
@@ -22,8 +20,6 @@
         "loaned": "Ausgeliehen"
       },
       "saved": "Buch gespeichert",
-      "loading": "Buch wird geladen…",
-      "notFound": "Buch nicht gefunden.",
       "newTitle": "Neues Buch"
     }
   },

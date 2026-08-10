@@ -25,7 +25,7 @@ export interface ListRow {
 export interface UseEntityListPageOptions<Row extends ListRow> {
   /** REST category, e.g. `book` — what every list call and the stored state are keyed by. */
   entity: string;
-  /** React Query key of the list, e.g. `["books"]`. */
+  /** React Query key of the list, e.g. `["book"]`. */
   queryKey: readonly unknown[];
   columns: ColumnDef<Row, unknown>[];
   /** Column layout the server had stored for this user (see useStoredColumnState). */

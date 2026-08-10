@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const USER_RIGHT_METADATA = {
   entity: "UserRightDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

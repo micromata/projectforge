@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const VISITORBOOK_METADATA = {
   entity: "VisitorbookDO",
+  historizable: true,
   fields: {
     comment: {
       dataType: "STRING",

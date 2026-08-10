@@ -4,6 +4,7 @@ import { alignFor, filterKindFor, labelKeyFor } from "./define-page";
 
 const METADATA: EntityMetadata = {
   entity: "kost1",
+  historizable: true,
   fields: {
     // Both a text of its own and the parent of fibu.kost1.title — the generator exports the leaf
     // as "fibu.kost1._".

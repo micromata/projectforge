@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const KOST2_METADATA = {
   entity: "Kost2DO",
+  historizable: true,
   fields: {
     comment: {
       dataType: "STRING",

@@ -52,7 +52,7 @@ test.describe("book lend out", () => {
 
   test.afterEach(async ({ loggedInPage: page }) => {
     // Leave the book free, whatever the test did to it.
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     await expect(page.getByRole("textbox", { name: title })).toHaveValue(
       /Selenium/
     );
@@ -66,7 +66,7 @@ test.describe("book lend out", () => {
   test("lends out to the logged-in user and stays on the page", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     await expect(page.getByRole("textbox", { name: title })).toHaveValue(
       /Selenium/
     );
@@ -87,7 +87,7 @@ test.describe("book lend out", () => {
     const today = format.date(new Date().toISOString().slice(0, 10));
     await expect(page.getByText(`, ${today}`, { exact: false })).toBeVisible();
     // Still on the edit page — the backend's REDIRECT to the list is ignored.
-    await expect(page).toHaveURL(new RegExp(`/books/${BOOK_ID}$`));
+    await expect(page).toHaveURL(new RegExp(`/book/${BOOK_ID}$`));
 
     // Reload: the loan and the unsaved note were really persisted, not just put into local state.
     await page.reload();
@@ -96,7 +96,7 @@ test.describe("book lend out", () => {
   });
 
   test("returning clears the loan", async ({ loggedInPage: page }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     await page.getByRole("button", { name: lendOut }).click();
     const back = page.getByRole("button", { name: returnBook });
     await expect(back).toBeVisible();
@@ -114,7 +114,7 @@ test.describe("book lend out", () => {
   test("offers no loan action before the first save", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, "/books/new");
+    await goto(page, "/book/new");
     await expect(page.getByRole("textbox", { name: title })).toBeVisible();
     // Lending out writes the entity; there is nothing to write yet (legacy: `if (dto.id != null)`).
     await expect(page.getByRole("button", { name: lendOut })).toHaveCount(0);
@@ -122,7 +122,7 @@ test.describe("book lend out", () => {
   });
 
   test("validates before lending out", async ({ loggedInPage: page }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     const titleField = page.getByRole("textbox", { name: title });
     await expect(titleField).toHaveValue(/Selenium/);
     await titleField.fill("");

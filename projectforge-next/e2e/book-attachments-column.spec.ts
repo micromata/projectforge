@@ -36,7 +36,7 @@ test.describe("books list attachments", () => {
       name: `${t("download._")}: ${FILE_NAME}`,
     });
 
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     await page.getByLabel(t("file.upload.choose")).setInputFiles({
       name: FILE_NAME,
       mimeType: "text/plain",
@@ -46,7 +46,7 @@ test.describe("books list attachments", () => {
 
     try {
       // Straight to the book through the search box: the column is only filled in its row.
-      await goto(page, "/books");
+      await goto(page, "/book");
       await page.getByPlaceholder(t("books.searchPlaceholder")).fill(FILE_NAME);
 
       // The backend formats size and count together ("28bytes (1)") in the user's locale, so the
@@ -55,7 +55,7 @@ test.describe("books list attachments", () => {
       await expect(summary.first()).toContainText("(1)");
       await expect(summary.first()).toContainText(/bytes|KB/);
     } finally {
-      await goto(page, `/books/${BOOK_ID}`);
+      await goto(page, `/book/${BOOK_ID}`);
       await page
         .getByRole("button", { name: `${t("delete")}: ${FILE_NAME}` })
         .click();
@@ -72,7 +72,7 @@ test.describe("books list attachments", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
 
     await page.getByRole("button", { name: t("filter.addField") }).click();
     await page

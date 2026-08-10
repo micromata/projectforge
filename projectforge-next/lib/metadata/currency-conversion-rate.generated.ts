@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const CURRENCY_CONVERSION_RATE_METADATA = {
   entity: "CurrencyConversionRateDO",
+  historizable: true,
   fields: {
     comment: {
       dataType: "STRING",

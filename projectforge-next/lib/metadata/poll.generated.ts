@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const POLL_METADATA = {
   entity: "PollDO",
+  historizable: true,
   fields: {
     attendeeIds: {
       dataType: "STRING",

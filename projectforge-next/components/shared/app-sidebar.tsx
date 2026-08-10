@@ -31,10 +31,10 @@ import { MicromataIcon } from "@/components/shared/micromata-icon";
 
 const projectMgmt = [
   {
-    id: "books",
+    id: "book",
     label: "Bücherliste",
     icon: BookIcon,
-    href: "/books",
+    href: "/book",
     active: true,
   },
   { id: "timesheets", label: "Zeiterfassung", icon: Clock01Icon, href: "#" },

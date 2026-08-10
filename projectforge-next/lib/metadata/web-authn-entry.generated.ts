@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const WEB_AUTHN_ENTRY_METADATA = {
   entity: "WebAuthnEntryDO",
+  historizable: false,
   fields: {
     created: {
       dataType: "TIMESTAMP",

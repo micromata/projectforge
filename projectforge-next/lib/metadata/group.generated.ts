@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const GROUP_METADATA = {
   entity: "GroupDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

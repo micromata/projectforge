@@ -65,7 +65,7 @@ export async function waitForHydration(page: Page): Promise<void> {
 /**
  * Navigates to an app path, failing with a usable message when nothing is listening.
  *
- * The path is app-relative ("/books/1"): BASE_PATH is prepended here rather than living in the
+ * The path is app-relative ("/book/1"): BASE_PATH is prepended here rather than living in the
  * config's `baseURL`, because an absolute path given to page.goto replaces the base URL's entire
  * path — a `/next` there would be dropped and every navigation would land on Next's 404.
  *

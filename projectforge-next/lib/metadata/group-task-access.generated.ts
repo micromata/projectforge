@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const GROUP_TASK_ACCESS_METADATA = {
   entity: "GroupTaskAccessDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

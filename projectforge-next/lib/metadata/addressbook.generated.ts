@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const ADDRESSBOOK_METADATA = {
   entity: "AddressbookDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

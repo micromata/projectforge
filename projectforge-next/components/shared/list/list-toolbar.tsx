@@ -17,7 +17,7 @@ export interface ListToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
-  /** Route of the add page, e.g. `/books/new`. */
+  /** Route of the add page, e.g. `/book/new`. */
   addHref: string;
   addLabel: string;
   /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */

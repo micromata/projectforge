@@ -130,7 +130,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
  * side redirect targets (see `PagesResolver`) from drifting apart.
  *
  * @param category The REST category (derived from the `@RequestMapping` of the `*PagesRest` class),
- * e.g. `book` - *not* the route of the next page (`books`).
+ * e.g. `book` - *not* the route of the next page, which may differ.
  */
 private fun getListUrl(category: String): String {
     return NextMigration.listUrl(category)

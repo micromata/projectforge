@@ -3,29 +3,29 @@ import { matchRoute } from "./route-params";
 
 describe("matchRoute", () => {
   it("reads a single param", () => {
-    expect(matchRoute("/books/[id]", "/books/25219084")).toEqual({
+    expect(matchRoute("/book/[id]", "/book/25219084")).toEqual({
       id: "25219084",
     });
   });
 
   it("accepts a trailing slash, as trailingSlash: true produces", () => {
-    expect(matchRoute("/books/[id]", "/books/42/")).toEqual({ id: "42" });
+    expect(matchRoute("/book/[id]", "/book/42/")).toEqual({ id: "42" });
   });
 
   it("keeps the literal segments apart from the params", () => {
-    expect(matchRoute("/books/[id]/history", "/books/42/history")).toEqual({
+    expect(matchRoute("/book/[id]/history", "/book/42/history")).toEqual({
       id: "42",
     });
-    // /books/[id] must not swallow the deeper route, or a deep link to the history page would
+    // /book/[id] must not swallow the deeper route, or a deep link to the history page would
     // render the edit form with id "42".
-    expect(matchRoute("/books/[id]", "/books/42/history")).toBeNull();
-    expect(matchRoute("/books/[id]/history", "/books/42")).toBeNull();
+    expect(matchRoute("/book/[id]", "/book/42/history")).toBeNull();
+    expect(matchRoute("/book/[id]/history", "/book/42")).toBeNull();
   });
 
   it("rejects a path that is short or of another route", () => {
-    expect(matchRoute("/books/[id]", "/books")).toBeNull();
-    expect(matchRoute("/books/[id]", "/demo/42")).toBeNull();
-    expect(matchRoute("/books/[id]", "/")).toBeNull();
+    expect(matchRoute("/book/[id]", "/book")).toBeNull();
+    expect(matchRoute("/book/[id]", "/demo/42")).toBeNull();
+    expect(matchRoute("/book/[id]", "/")).toBeNull();
   });
 
   it("collects a catch-all into a list and needs at least one part", () => {

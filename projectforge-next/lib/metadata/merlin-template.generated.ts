@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const MERLIN_TEMPLATE_METADATA = {
   entity: "MerlinTemplateDO",
+  historizable: false,
   fields: {
     attachmentsLastUserAction: {
       dataType: "STRING",

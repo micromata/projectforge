@@ -39,7 +39,7 @@ test.describe("login", () => {
     );
     await expect(page).toHaveURL(/\/login/);
     // No session was created, so the app is still out of reach.
-    await goto(page, "/books/");
+    await goto(page, "/book/");
     await expect(page).toHaveURL(/\/login/);
 
     // Wait out the time penalty this test just earned for the account: LoginProtection increments
@@ -51,8 +51,8 @@ test.describe("login", () => {
 
   test("returns to the page the user was sent away from", async ({ page }) => {
     // A deep link of this app, as WicketUserFilter/actions/authentication.js hand it over.
-    await login(page, "/next/books/");
-    await expect(page).toHaveURL(/\/next\/books/);
+    await login(page, "/next/book/");
+    await expect(page).toHaveURL(/\/next\/book/);
   });
 
   test("drops a returnUrl pointing at another host", async ({ page }) => {

@@ -40,7 +40,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
 
     await page.getByRole("button", { name: t("filter.addField") }).click();
     const list = page.getByRole("listbox");
@@ -63,7 +63,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     const request = listRequest(page);
@@ -87,7 +87,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t, context } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     // A preset fills both bounds, so the inputs show a real time without typing one.
@@ -107,7 +107,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
     await choosePeriod(page, t, t("search.lastMinutes", { arg0: 30 }));
 
@@ -137,7 +137,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t, context } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     // A preset first: without a date there is no instant to attach a time to, so the field waits.
@@ -177,7 +177,7 @@ test.describe("history filter", () => {
     ).userData;
     const term = (lastName ?? username).slice(0, 3);
 
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     await page.getByRole("combobox", { name: t("modifiedBy") }).click();
@@ -201,7 +201,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     await page.getByLabel(t("modifiedHistoryValue")).fill("Titel");
@@ -219,7 +219,7 @@ test.describe("history filter", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
 
     // The panel is the picker's second view, so it shares the "+" chip with the field list.
     await page.getByRole("button", { name: t("filter.addField") }).click();
@@ -247,7 +247,7 @@ test.describe("history filter", () => {
 
   test("removes all three criteria at once", async ({ loggedInPage: page }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
     await openHistoryPill(page, t);
 
     await page.getByLabel(t("modifiedHistoryValue")).fill("Titel");

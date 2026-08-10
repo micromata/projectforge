@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const BOOK_METADATA = {
   entity: "BookDO",
+  historizable: true,
   fields: {
     abstractText: {
       dataType: "STRING",

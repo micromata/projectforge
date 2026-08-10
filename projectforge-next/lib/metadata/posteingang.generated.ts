@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const POSTEINGANG_METADATA = {
   entity: "PosteingangDO",
+  historizable: true,
   fields: {
     absender: {
       dataType: "STRING",

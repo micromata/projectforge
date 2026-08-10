@@ -34,7 +34,7 @@ export function EntityHistoryPage<
     t,
     id,
     route: page.route,
-    history: page.edit.history,
+    history: page.metadata.historizable,
     extraTabs: page.edit.extraTabs,
     onFormPage: false,
   });
@@ -46,6 +46,7 @@ export function EntityHistoryPage<
           listRoute={page.route}
           listLabel={t(page.titleKey)}
           title={data ? page.edit.title(data) : ""}
+          trailing={page.edit.headerTrailing?.(data)}
           legacyUrl={legacyUrl}
         />
       </div>

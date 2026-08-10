@@ -48,7 +48,7 @@ stößt der backend-gesteuerte Dynamic-Renderer prinzipiell an seine Grenzen.
 3. **Dynamic-Renderer Dual-Track.** Der UILayout-Renderer in
    `components/dynamic/` wird zum vollwertigen Port ausgebaut, damit die ~36
    backend-getriebenen Seiten automatisch mitkommen. Komplexe Seiten werden
-   zusätzlich handgebaut (Muster: `books`).
+   zusätzlich handgebaut (Muster: `book`).
 
 ## Zwei Betriebsmodi (wichtig)
 
@@ -61,7 +61,7 @@ stößt der backend-gesteuerte Dynamic-Renderer prinzipiell an seine Grenzen.
 `output: 'export'` ist deshalb **nur in Prod** gesetzt (`isProd` in
 `next.config.ts`). Grund: der Dev-Server lehnt mit aktivem Export jeden
 dynamischen Param ab, den `generateStaticParams()` nicht auflistet – jeder
-Deep-Link (`/next/books/5`, `/next/address/edit/42`) antwortet dann mit 500, also
+Deep-Link (`/next/book/5`, `/next/address/edit/42`) antwortet dann mit 500, also
 genau die URLs, die man testen will. In Prod funktionieren sie, weil Spring auf
 die SPA-Shell (`404.html`) zurückfällt und der Client die Params zur Laufzeit
 liest; der Dev-Server hat diesen Fallback nicht und will stattdessen
@@ -107,7 +107,7 @@ einzige Quelle in `lib/config.ts`. Backend: `NEXT`/`NEXT_APP_PATH` in
   `WebApplicationConfig` nutzt daher einen `PathResourceResolver`: echte Dateien
   und Assets zuerst, dann `<route>/index.html` bzw. `<route>.html`, fehlende
   Assets → echter 404, und nur Page-Routen ohne eigene Datei → `404.html` als
-  SPA-Shell. Damit sind Deep-Links/Bookmarks (`/next/books/5`) möglich.
+  SPA-Shell. Damit sind Deep-Links/Bookmarks (`/next/book/5`) möglich.
   Der Wurzelpfad `/next/` braucht zusätzlich einen expliziten View-Controller
   (leerer Resource-Pfad wird vom Resolver nicht aufgelöst).
 - **API-Calls sind root-relativ**, nicht mit basePath geprefixt: Spring serviert
@@ -117,7 +117,7 @@ einzige Quelle in `lib/config.ts`. Backend: `NEXT`/`NEXT_APP_PATH` in
   `output: 'export'` grundsätzlich inkompatibel. `mock-data.ts` bleibt liegen,
   wird aber nirgends mehr importiert (Kandidat für MSW oder Löschung).
 - **Static-Export-Anpassungen:** `/login` braucht eine Suspense-Boundary
-  (`useSearchParams`); `books/[id]` ist in Server-Wrapper (`generateStaticParams`
+  (`useSearchParams`); `book/[id]` ist in Server-Wrapper (`generateStaticParams`
   mit Platzhalter) + Client-Component (`page-client.tsx`, ID via `useParams`)
   geteilt.
 - **i18n** ist client-seitig (`i18n/config.ts`, `i18n/locale-provider.tsx`):
@@ -126,14 +126,14 @@ einzige Quelle in `lib/config.ts`. Backend: `NEXT`/`NEXT_APP_PATH` in
   `timeZone`, sonst schlägt das Prerendering fehl. Das next-intl-**Plugin** und
   `i18n/request.ts` sind entfernt.
 
-**Verifiziert** gegen die laufende App: `/next/books/`, Deep-Links
-`/next/books/5` und `/next/order/edit/5` liefern die Shell (200), Assets laden
+**Verifiziert** gegen die laufende App: `/next/book/`, Deep-Links
+`/next/book/5` und `/next/order/edit/5` liefern die Shell (200), Assets laden
 korrekt, fehlende Assets ergeben 404, `/react` unbeschädigt. Der Gradle-Build ist
 inkrementell (kein Node-Build ohne Änderung).
 
 ### Phase 1 – Menü-gesteuertes Routing pro Seite ✅ erledigt
 
-`getNextListUrl()` in `MenuItemDefId.kt`; **`BOOK_LIST` ist auf `next/books`
+`getNextListUrl()` in `MenuItemDefId.kt`; **`BOOK_LIST` ist auf `next/book`
 umgestellt** – der erste Release-Schalter. Alle anderen Einträge zeigen weiter auf
 `react/...` bzw. `wa/...`.
 
@@ -145,16 +145,18 @@ Beide Frontends müssen das Präfix beachten:
 - **Alte React-App:** neue Route `/next/*` → `RedirectToNext.tsx` (analog zum
   bestehenden `/wa/*` → `RedirectToWicket`), in **beiden** Routen-Listen
   (`AuthorizedRoutes.jsx`, `ProjectForge.jsx`). Ohne das würde die alte App
-  `next/books` als eigene Kategorie interpretieren und ins Leere laufen.
+  `next/book` als eigene Kategorie interpretieren und ins Leere laufen.
 
 **Wichtig für weitere Umstellungen:** Die Menü-URL muss die **Next-Route** nennen,
-nicht die REST-Kategorie. Beispiel Bücher: Route `books` (Plural), REST-Kategorie
-`book` (Singular). Zeigt die URL auf eine nicht existierende Route, liefert Spring
-stillschweigend die SPA-Shell und die Seite bleibt leer.
+nicht die **Next-Route**, die von der REST-Kategorie abweichen darf. Die
+handgebauten Seiten benennen ihre Route deshalb absichtlich wie die Kategorie
+(`book`, `cost1`) – so muss sich niemand einen Plural merken. Zeigt die URL auf
+eine nicht existierende Route, liefert Spring stillschweigend die SPA-Shell und
+die Seite bleibt leer.
 
-### Phase 1.5 – `books` produktionsreif machen 🔶 in Arbeit
+### Phase 1.5 – `book` produktionsreif machen 🔶 in Arbeit
 
-`books` ist die Referenz-Implementierung: Was hier nicht funktioniert, fehlt
+`book` ist die Referenz-Implementierung: Was hier nicht funktioniert, fehlt
 später jeder migrierten Seite. Daher **vor** weiteren Seiten abschließen.
 
 **Erledigt:** Der `MagicFilter`-Kontrakt. Jeder `/rs/{entity}/list`-Aufruf endete
@@ -509,7 +511,7 @@ mehr im Projekt** – das ist die Prüfung.
    im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
    zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
    Favoriten-Bezug fallen.
-3. **Das Edit-Gerüst ist noch nicht geteilt.** `books/edit` hält Submit-Ablauf,
+3. **Das Edit-Gerüst ist noch nicht geteilt.** `book`-Edit hält Submit-Ablauf,
    406-Mapping, „gespeichert“-Toast, URL-Wechsel nach dem ersten Speichern,
    Lösch-Bestätigung und Aktionsleiste selbst. Jede weitere handgebaute Edit-Seite
    würde diese Blöcke kopieren. Sobald die zweite existiert (Phase 3,
@@ -593,15 +595,15 @@ auf `POST` umzustellen berührt beide Frontends – entweder beide Aufrufstellen
 mitziehen oder die Methode zusätzlich anbieten, solange `/react` lebt.
 
 **Nicht browserseitig verifiziert:** der Stay-logged-in-Retry, das erste echte
-Speichern aus `books`-Edit und der Dev-Betrieb auf `:3000` (dort greift die
+Speichern aus `book`-Edit und der Dev-Betrieb auf `:3000` (dort greift die
 `corsFilterEnabled`-Ausnahme in `checkSameSite`, weil der Dev-Server eine andere
 Origin ist).
 
-#### Erledigt: Speichern und Löschen (`books`-Edit konnte nie speichern)
+#### Erledigt: Speichern und Löschen (`book`-Edit konnte nie speichern)
 
 **Das Problem.** `lib/rs/client.ts` hatte ein `save(entity, id, body)`, das
 `PUT /rs/{entity}/{id}` ansprach – einen Endpunkt, den es nie gab (Überrest der
-entfernten Next-Mock-Routen). `books`-Edit konnte also von Anfang an nicht
+entfernten Next-Mock-Routen). `book`-Edit konnte also von Anfang an nicht
 speichern, und Löschen war ein `toast.info("noch nicht implementiert")`.
 
 **Der echte Kontrakt** (aus `AbstractPagesRest`/`AbstractPagesRestUtils`), jetzt in
@@ -617,7 +619,7 @@ Klartext-JSON-Form der übrigen Aufrufe hat:
 - Die Antwort ist eine `ResponseAction`, **nicht die gespeicherte Entität**. Die id
   eines neuen Datensatzes kommt nur als `variables.id` (aus `onAfterEdit`, `-1` =
   keine). Der Client muss die Entität also neu lesen – die Hooks invalidieren
-  deshalb (`["book", id]`, `["books"]`, `["history","book",id]`) statt den Cache mit
+  deshalb (`["book", id]`, `["book"]`, `["history","book",id]`) statt den Cache mit
   dem zu beschreiben, was sie abgeschickt haben.
 - **HTTP 406 ist eine reguläre Antwort** und trägt `validationErrors`. Kein Fehler:
   `EntityWriteResult` ist deshalb `{ kind: "ok" } | { kind: "validationErrors" }`,
@@ -671,8 +673,8 @@ also ist **jede** Section immer gemountet – und damit lud jedes Öffnen eines 
 sofort die komplette Historie. Bei Entitäten mit langer Historie ist das teuer und
 für die meisten Aufrufe umsonst.
 
-**Die Lösung: eine eigene Route.** `/next/books/{id}/history` ist eine echte Seite
-(`app/(authenticated)/books/[id]/history/`), die Historie mountet also erst, wenn
+**Die Lösung: eine eigene Route.** `/next/book/{id}/history` ist eine echte Seite
+(`app/(authenticated)/book/[id]/history/`), die Historie mountet also erst, wenn
 der Reiter geöffnet wird. `EditPageTabs` kennt dafür jetzt zwei Sorten Reiter:
 
 - ohne `href` → Scroll-Anker wie bisher, positionsgekoppelt an `sections`,
@@ -680,18 +682,18 @@ der Reiter geöffnet wird. `EditPageTabs` kennt dafür jetzt zwei Sorten Reiter:
 
 Welcher Reiter aktiv ist, bestimmt auf Routen-Seiten das neue Prop `activeId`
 (statt des Scroll-Spy-`activeIndex`). Die Reiterleiste selbst steht **einmal** in
-`components/features/books/book-tabs.ts` und wird von Formular und Historie-Seite
+`components/shared/edit/entity-tabs.ts` und wird von Formular und Historie-Seite
 geteilt – von der Historie aus zeigen die Formular-Reiter als Links zurück auf
-`/books/{id}` (ohne Sprung zur jeweiligen Section: der Scroll-Spy kennt keine
+`/book/{id}` (ohne Sprung zur jeweiligen Section: der Scroll-Spy kennt keine
 Hash-Ziele – bewusst offen).
 
 **Generisch, nicht buchspezifisch.** Historie gibt es für jede
-`AbstractPagesRest`-Entität, deshalb liegt nichts davon im `books`-Feature:
+`AbstractPagesRest`-Entität, deshalb liegt nichts davon im `book`-Feature:
 Kontrakt in `lib/rs/history.ts`, Query/Mutation in `hooks/use-history.ts`
 (Key `["history", entity, id]`), UI in `components/shared/history/`
 (`history-section` → `history-timeline` → `history-entry-item` → `history-attr-diff`,
-plus `history-comment-dialog`). Im `books`-Feature bleibt nur die Komposition
-(`components/features/books/history/book-history-page.tsx`).
+plus `history-comment-dialog`). Komponiert wird sie inzwischen generisch von
+`components/shared/edit/entity-history-page.tsx` aus der Seitendeklaration.
 
 **Backend: `history/{id}` erweitert statt zweitem Endpunkt.** Der Lese-Endpunkt
 existierte längst; gefehlt hat nur die Angabe, ob der Client Kommentare anhängen
@@ -716,8 +718,9 @@ würde das Verhalten des alten Frontends ändern).
 
 **i18n:** die Texte kommen jetzt aus dem Backend-Bundle
 (`label.historyOfChanges`, `history.*`, `operation.*`, `changes`, `nothingFound` –
-neu in `PREFIXES`); `books.edit.history.*` und `books.edit.sections.history` sind
-aus den handgeschriebenen Katalogen entfernt, nur `books.edit.tabs.history` bleibt.
+neu in `PREFIXES`); `books.edit.history.*`, `books.edit.sections.history` und
+inzwischen auch `books.edit.tabs.history` sind aus den handgeschriebenen Katalogen
+entfernt – den Reiter benennt `entity-tabs.ts` mit `label.historyOfChanges`.
 
 **Nicht browserseitig verifiziert:** dass das Öffnen eines Buchs keinen
 History-Request mehr auslöst und der Reiter „Verlauf“ ihn erst beim Wechsel
@@ -732,7 +735,7 @@ maxSizeInKB)` an; gerendert hat das im alten Frontend
 `DynamicAttachmentList.jsx` (Drop-Zone + AG-Grid + Mehrfachauswahl). In next ist
 daraus `components/shared/attachments/` geworden – Anhänge kann **jede**
 `AbstractPagesRest`-Entität haben (Bücher, Verträge, Aufträge, Rechnungen,
-Skripte), also liegt im `books`-Feature nur die Komposition
+Skripte), also liegt im `book`-Feature nur die Komposition
 (`edit/sections/attachment-section.tsx`, ein `SectionCard` um `AttachmentList`).
 Bausteine: Kontrakt in `lib/rs/attachments.ts`, Query/Mutationen in
 `hooks/use-attachments.ts` (Key `["attachments", entity, id]`), UI in
@@ -796,7 +799,7 @@ enthält die Boundary, die der Client nicht kennen kann; ein
 `download`, `description`, `question.deleteQuestion` – neu in `PREFIXES`). Der
 Reiter „Anhänge“ nutzt `attachment.list`, also den Titel, den `BookPagesRest`
 dem Fieldset gibt; `books.edit.tabs.*` bleibt nur für die Gruppierungen ohne
-Backend-Pendant (`book-tabs.ts` mappt beides).
+Backend-Pendant (`tabTitleKey` in der Seitendeklaration, siehe `entity-tabs.ts`).
 
 **Browserseitig verifiziert** gegen das echte Backend
 (`e2e/book-attachments.spec.ts`): Hochladen, Umbenennen inkl. Beschreibung,
@@ -811,9 +814,10 @@ und `POST /rs/book/returnBook` (`BookServicesRest`), beide mit dem
 `PostData`/`ResponseAction`/406-Kontrakt von `saveorupdate` – nur mit `POST`.
 Deshalb steht der Aufruf in `lib/rs/entity.ts` (`postEntityAction`) und nicht in
 `lib/rs/list-actions.ts`, das die Klartext-JSON-Form spricht. Bausteine sonst:
-`use-book-detail.ts` (`useLendOutBook`/`useReturnBook`, geteiltes `invalidate`),
-`edit/book-submit-meta.ts`, `edit/sections/loan-section.tsx`,
-`edit/sections/book-loan-actions.tsx`.
+`hooks/use-entity-detail.ts` (`useEntityAction`, geteiltes `invalidate`),
+`lib/rs/submit-meta.ts`, `edit/sections/loan-section.tsx`,
+`edit/sections/book-loan-actions.tsx`; welche Aktionen eine Entität hat, sagt
+`EditDef.actions` in ihrer Deklaration.
 
 - **Beide Aktionen speichern das ganze Buch mit** – sie laufen durch
   `saveOrUpdate`, sind also kein Teil-Update. Gesendet werden daher die
@@ -906,7 +910,7 @@ Server-Regel; die Autorität bleibt der Server (406).
 
    **Die Enum-Wertelisten kommen mit:** pro Enum-Property Konstantenname und
    `i18nKey` (`I18nEnum`), `dataType: "STRING"`. `BookStatus`/`BookType` in
-   `components/features/books/types.ts` leiten sich daraus ab, ebenso die
+   `components/features/book/types.ts` leiten sich daraus ab, ebenso die
    Optionslisten in `use-book-options.ts` – deren selbstgebauter `i18nKey()`-Rater
    (lowercase + Unterstriche strippen) ist weg.
 
@@ -987,8 +991,8 @@ aufgerufen (`/next/address/edit/42`).
   `/react` vs. `/next` entscheidet. `PagesResolver` (kein `REACT_PATH` mehr),
   `AbstractPagesRest.addNewEntryUrl`/`getStandardEditPage` und `MenuItemDefId`
   fragen dort. Eine Seite umschalten = ein Eintrag in `NextMigration.MIGRATED`.
-  Kategorie und next-Route dürfen abweichen (`book` → `books`), ebenso die
-  Edit-Route handgebauter Seiten (`books/:id` statt `books/edit/:id`).
+  Kategorie und next-Route dürfen abweichen (handgebaut: absichtlich gleich), ebenso die
+  Edit-Route handgebauter Seiten (`book/:id` statt `book/edit/:id`).
   Review-Gate bei jedem Flip: `grep -rn "REACT_APP_PATH"` – ca. 10 verstreute
   Literale (Timesheet, MyAccount, TeamEvent, Kalender, Login) und 7
   Plugin-Menü-Literale zeigen noch direkt auf `/react`.
@@ -1017,7 +1021,7 @@ aufgerufen (`/next/address/edit/42`).
 - **Routen:** `app/(authenticated)/[category]/[type]/[...params]/` mit
   Platzhalter-`generateStaticParams()` und `useParams()` zur Laufzeit; Deep-Links
   liefert `NextSpaResourceResolver` über `404.html`. Achtung Route-Shadowing:
-  konkrete Routen (`books`) gehen dem Catch-all vor – `HAND_BUILT_CATEGORIES` in
+  konkrete Routen (`book`) gehen dem Catch-all vor – `HAND_BUILT_CATEGORIES` in
   `page-client.tsx` hält das synchron mit `NextMigration.MIGRATED`.
 
 Verbliebene Lücken:
@@ -1059,7 +1063,7 @@ watchFields-Roundtrip, Speichern, Validierung, History).
 `components/dynamic/components/dynamic-table.tsx` (handgeschriebene `<table>`, las
 nur `hide`, `JSON.stringify` für Objekte) ist gelöscht. Jeder `AG_GRID`/`TABLE`-
 Knoten läuft jetzt durch `components/dynamic/components/grid/` auf dieselbe
-`DataTable` wie die `books`-Liste – mit Resize, Spalten-Panel, Pinning,
+`DataTable` wie die `book`-Liste – mit Resize, Spalten-Panel, Pinning,
 Header-Filtern und Zustands-Persistenz.
 
 - **Adapter in `lib/dynamic/grid/`** (reines TS): `column-def-adapter.ts`
@@ -1146,7 +1150,7 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `/` als Default.
 - `lib/api-client.ts` (veralteter Zweit-Client, unbenutzt) entfernen; `lib/rs/`
   bleibt einzige Backend-Schnittstelle.
-- `components/features/books/mock-data.ts` (seit Entfernen der Mock-Routen
+- `components/features/book/mock-data.ts` (seit Entfernen der Mock-Routen
   unbenutzt) entfernen – oder für Tests mit `msw` nutzen, das als Dependency
   vorhanden, aber nirgends eingebunden ist. Es gibt bislang **keine Tests**;
   `filter-fns.ts` und `lib/menu-url.ts` wären reine Funktionslogik und ein guter
@@ -1176,8 +1180,8 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   `projectforge-rest/.../ui/ElementsRegistry.kt` (+ `ElementInfo.kt`),
   `rest/core/ValidationUtils.kt`, `AbstractPagesRestUtils.kt` (406-Antwort);
   reflexive Metadaten `projectforge-business/.../framework/persistence/jpa/EntityMetaDataRegistry.kt`;
-  Frontend-Duplikat `projectforge-next/components/features/books/edit/book-edit-schema.ts`
-  (+ die Enum-Wertelisten in `components/features/books/types.ts`);
+  Frontend-Duplikat `projectforge-next/components/features/book/edit/book-edit-schema.ts`
+  (+ die Enum-Wertelisten in `components/features/book/types.ts`);
   406-Mapping `projectforge-next/lib/validation/server-errors.ts`
 - **Entitäts-Schreibaufrufe:** `projectforge-next/lib/rs/entity.ts`
   (`saveorupdate`/`markAsDeleted`/`undelete`), Backend
@@ -1190,8 +1194,8 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
   (`supportsHistoryUserComments`) + `HistoryUserCommentSupport`;
   Frontend `projectforge-next/lib/rs/history.ts`, `hooks/use-history.ts`,
   `components/shared/history/*`, Route
-  `app/(authenticated)/books/[id]/history/`, Reiterleiste
-  `components/features/books/book-tabs.ts`; Vorlage
+  `app/(authenticated)/book/[id]/history/`, Reiterleiste
+  `components/shared/edit/entity-tabs.ts`; Vorlage
   `projectforge-webapp/src/containers/page/form/history/`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
@@ -1222,7 +1226,7 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 **Erledigt:**
 
 - **Phase 0** – Parallelbetrieb, Static-Export-Packaging, client-seitige i18n.
-- **Phase 1** – Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/books`.
+- **Phase 1** – Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/book`.
 - **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
   Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
   Reorder, Spalten-Filter), Spaltenzustand-Persistenz, Listen-Filter als
@@ -1235,12 +1239,12 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 - **CSRF-Schutz** – zentral für alle `/rs/*`-Aufrufe (`RestCsrfProtection`:
   `Sec-Fetch-Site` + Session-Token im Header), damit erben neue Endpunkte den
   Schutz ohne Zutun. Damit darf eine next-Seite schreiben.
-- **Schreiben in `books`-Edit** – `saveorupdate`/`markAsDeleted` über
+- **Schreiben in `book`-Edit** – `saveorupdate`/`markAsDeleted` über
   `lib/rs/entity.ts` (PostData + ResponseAction, 406 als reguläre Antwort),
   406-`validationErrors` auf die Formularfelder gemappt, Anlegen inkl.
   URL-Wechsel auf die neue id, Löschen mit Bestätigung. Noch nicht im Browser
   gegen das echte Backend verifiziert.
-- **Änderungshistorie** – eigene Route `/books/{id}/history` mit echtem
+- **Änderungshistorie** – eigene Route `/book/{id}/history` mit echtem
   Link-Reiter statt Section im Scroll-Bereich (lädt damit erst beim Öffnen),
   generische UI in `components/shared/history/`, Kommentarfunktion über das
   Backend-Flag `supportsUserComments` gesteuert. Browser-Prüfung steht aus.
@@ -1265,7 +1269,7 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
    `filter/reset` samt `isFilterModified`, die Ausleih-/Rückgabe-Aktion des Buchs
    (s. eigener Abschnitt – die Felder stehen, die beiden `BookServicesRest`-
-   Endpunkte fehlen), und `books`-Edit als saubere
+   Endpunkte fehlen), und `book`-Edit als saubere
    Vorlage: Validierungsregeln und Enum-Wertelisten aus den Backend-Metadaten
    ableiten statt sie zu wiederholen (s. eigener Abschnitt). Vorher das visuelle
    Ergebnis der Tabelle, den Favoriten-Durchlauf sowie Speichern/Anlegen/Löschen
@@ -1290,5 +1294,5 @@ anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
    In-Session-2FA-Dialog der alten React-App (z. B. `/react/myAccount`), der
    weiterhin über `My2FAPageRest` läuft.
 
-**Reihenfolge-Grundsatz:** `books` bleibt die Vorlage – was dort fehlt, fehlt
-jeder migrierten Seite. Deshalb erst `books` fertig, dann in die Breite.
+**Reihenfolge-Grundsatz:** `book` bleibt die Vorlage – was dort fehlt, fehlt
+jeder migrierten Seite. Deshalb erst `book` fertig, dann in die Breite.

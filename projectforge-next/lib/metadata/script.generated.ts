@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const SCRIPT_METADATA = {
   entity: "ScriptDO",
+  historizable: true,
   fields: {
     attachmentsLastUserAction: {
       dataType: "STRING",

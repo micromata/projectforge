@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const KOST_ZUWEISUNG_METADATA = {
   entity: "KostZuweisungDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

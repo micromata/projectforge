@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const BUCHUNGSSATZ_METADATA = {
   entity: "BuchungssatzDO",
+  historizable: true,
   fields: {
     beleg: {
       dataType: "STRING",

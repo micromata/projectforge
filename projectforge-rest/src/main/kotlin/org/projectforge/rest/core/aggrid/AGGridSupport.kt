@@ -108,8 +108,8 @@ class AGGridSupport {
             if (userAccess.update == true) {
                 // The edit page with the id placeholder, resolved per row by both frontends. Not the new-entry
                 // url with "/id" appended: that only happened to match for the generic React shape
-                // (react/<category>/edit + /id), while e.g. books uses next/books/new and next/books/:id, which
-                // turned a row click into next/books/new/<id> - the empty *new* form. Asking the pages rest also
+                // (react/<category>/edit + /id), while e.g. book uses next/book/new and next/book/:id, which
+                // turned a row click into next/book/new/<id> - the empty *new* form. Asking the pages rest also
                 // honours its getStandardEditPage() override (address, script, project, poll ...) and keeps a
                 // user who is looking at the legacy list of a migrated page in the legacy app.
                 val redirectUrl = rowClickUrl ?: "/${pagesRest.getEditPage(request)}"

@@ -17,6 +17,7 @@ import {
  */
 const METADATA = {
   entity: "TestDO",
+  historizable: false,
   fields: {
     title: { dataType: "STRING", required: true, maxLength: 255 },
     authors: { dataType: "STRING", required: false, maxLength: 1000 },

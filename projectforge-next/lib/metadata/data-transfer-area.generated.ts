@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const DATA_TRANSFER_AREA_METADATA = {
   entity: "DataTransferAreaDO",
+  historizable: false,
   fields: {
     areaName: {
       dataType: "STRING",

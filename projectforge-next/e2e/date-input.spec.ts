@@ -121,7 +121,7 @@ test.describe("date input", () => {
  * never through a text written out here (see RangeField).
  */
 async function openDateFilter(page: Page, format: UserFormat) {
-  await goto(page, "/books");
+  await goto(page, "/book");
   const label = format.t("date._");
 
   await page.getByRole("button", { name: format.t("filter.addField") }).click();

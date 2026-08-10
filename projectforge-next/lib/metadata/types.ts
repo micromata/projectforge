@@ -60,5 +60,13 @@ export type FieldMetadata = {
 export type EntityMetadata = {
   /** Simple class name of the entity, e.g. `BookDO`. For error messages only. */
   entity: string;
+  /**
+   * Whether the entity records a change history, so an edit page gets a history tab.
+   *
+   * `HistoryBaseDaoAdapter.isHistorizable`: `@WithHistory` at the class or anywhere above it —
+   * which every `DefaultBaseDO` inherits through `AbstractHistorizableBaseDO`. That is why Kost1DO
+   * has one although its own `@WithHistory` is commented out.
+   */
+  historizable: boolean;
   fields: Readonly<Record<string, FieldMetadata>>;
 };

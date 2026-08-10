@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const TO_DO_METADATA = {
   entity: "ToDoDO",
+  historizable: true,
   fields: {
     assignee: {
       dataType: "USER",

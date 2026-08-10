@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const KOST2_ART_METADATA = {
   entity: "Kost2ArtDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

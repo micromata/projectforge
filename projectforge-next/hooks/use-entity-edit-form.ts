@@ -42,7 +42,7 @@ export interface UseEntityEditFormOptions<Values, Data> {
    * toast instead of being written into a field that never shows it.
    */
   fieldNames: readonly string[];
-  /** Where cancel and a successful save go, e.g. `/books`. */
+  /** Where cancel and a successful save go, e.g. `/book`. */
   listRoute: string;
   /** Toast text of a successful save, e.g. `t("saved")`. */
   savedMessage: string;

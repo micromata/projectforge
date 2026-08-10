@@ -92,6 +92,11 @@ export type FieldDeclaration<M extends EntityMetadata> =
 export interface SectionDef<M extends EntityMetadata> {
   id: string;
   titleKey: string;
+  /**
+   * Shorter label for the tab above, where the card's heading would not fit ("Allgemein" vs
+   * "Allgemeine Informationen"). Defaults to `titleKey`.
+   */
+  tabTitleKey?: string;
   fields?: FieldDeclaration<M>[];
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
@@ -113,15 +118,19 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   savedMessageKey: string;
   sections: SectionDef<M>[];
   /**
-   * Whether the entity has a change history — then the page gets a tab leading to
-   * `${route}/${id}/history` (see EntityHistoryPage), which needs a route of that name to exist.
+   * Names of the writes the entity offers besides save — `["lendOut", "returnBook"]` for a book.
    *
-   * Declared rather than derived: `/rs/{entity}/history/{id}` answers for every `AbstractPagesRest`
-   * entity, and whether anything is *recorded* depends on the DO's `@WithHistory` — which the
-   * frontend cannot see. (Kost1DO has it commented out and still has a history, because
-   * `DefaultBaseDO` brings one.)
+   * They run through the form's own submit, i.e. the same Zod validation, values and 406 handling
+   * (see lib/rs/submit-meta.ts); declaring the names is all the renderer needs to route
+   * `meta.action` to `/rs/{entity}/{action}` instead of `saveorupdate`. What *triggers* them stays
+   * the entity's own business: a section's `render` puts the buttons where they belong.
    */
-  history?: boolean;
+  actions?: readonly string[];
+  /**
+   * Beside the heading of the edit page — a badge saying whether the book is lent out. Rendered on
+   * the form and on the pages of its own alike, hence the entity rather than the form values.
+   */
+  headerTrailing?: (data: Data | undefined) => ReactNode;
   /** Further tabs leading to a page of their own. Appended after the history. */
   extraTabs?: (id: number) => EditPageTab[];
 }

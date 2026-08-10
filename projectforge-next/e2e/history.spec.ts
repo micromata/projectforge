@@ -13,7 +13,7 @@ import { userFormat, type UserFormat } from "./fixtures/format";
 const ENTITIES = [
   // The demo book book-lend-out.spec.ts writes to, so its history is never empty and its newest
   // entry is an update carrying attributes.
-  { name: "book", historyPath: "/books/316163/history" },
+  { name: "book", historyPath: "/book/316163/history" },
 ];
 
 test.describe("change history", () => {

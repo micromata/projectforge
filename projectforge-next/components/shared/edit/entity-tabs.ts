@@ -15,7 +15,12 @@ export interface EntityTabsOptions<M extends EntityMetadata> {
   id: number | null;
   /** Route of the list, e.g. `/cost1` — what the pages beside the form hang off. */
   route: string;
-  /** Whether the entity has a history page (see PageDef.edit.history). */
+  /**
+   * Whether the entity records a change history — then it gets a tab leading to
+   * `${route}/${id}/history`, which needs a route of that name to exist. Comes from the generated
+   * metadata (`EntityMetadata.historizable`), never from a page declaration: the entity's
+   * `@WithHistory` is the only authority, and a second place to say so is a place to drift.
+   */
   history?: boolean;
   extraTabs?: (id: number) => EditPageTab[];
   /**
@@ -43,7 +48,7 @@ export function entityTabs<M extends EntityMetadata>({
   const formHref = id != null && !onFormPage ? `${route}/${id}` : undefined;
   const anchors = sections.map((section) => ({
     id: section.id,
-    label: t(section.titleKey),
+    label: t(section.tabTitleKey ?? section.titleKey),
     href: formHref,
   }));
   if (id == null) return anchors;

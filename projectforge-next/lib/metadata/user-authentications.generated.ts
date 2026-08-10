@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const USER_AUTHENTICATIONS_METADATA = {
   entity: "UserAuthenticationsDO",
+  historizable: true,
   fields: {
     authenticatorToken: {
       dataType: "STRING",

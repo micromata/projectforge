@@ -3,12 +3,10 @@
     "title": "Books",
     "searchPlaceholder": "Search books…",
     "edit": {
-      "breadcrumbBack": "Books",
       "tabs": {
         "general": "General",
         "loan": "Loan",
-        "notes": "Notes",
-        "history": "History"
+        "notes": "Notes"
       },
       "sections": {
         "general": "General information",
@@ -22,8 +20,6 @@
         "loaned": "Lent out"
       },
       "saved": "Book saved",
-      "loading": "Loading book…",
-      "notFound": "Book not found.",
       "newTitle": "New book"
     }
   },

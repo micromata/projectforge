@@ -19,7 +19,7 @@ test.describe("legacy page link", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, "/books");
+    await goto(page, "/book");
 
     const link = page.getByRole("link", { name: t("goreact.menu.classics") });
     await expect(link).toBeVisible();
@@ -30,7 +30,7 @@ test.describe("legacy page link", () => {
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
 
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })

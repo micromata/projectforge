@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const TEAM_EVENT_ATTACHMENT_METADATA = {
   entity: "TeamEventAttachmentDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

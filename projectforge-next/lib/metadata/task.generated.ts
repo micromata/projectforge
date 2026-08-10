@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const TASK_METADATA = {
   entity: "TaskDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const TEAM_CAL_METADATA = {
   entity: "TeamCalDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

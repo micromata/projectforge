@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const SKILL_ENTRY_METADATA = {
   entity: "SkillEntryDO",
+  historizable: false,
   fields: {
     comment: {
       dataType: "STRING",

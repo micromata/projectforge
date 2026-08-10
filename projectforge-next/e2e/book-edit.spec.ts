@@ -16,7 +16,7 @@ test.describe("book edit", () => {
   test("shows the stored status and type in their selects", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
 
     // The type select renders in the always-present general section.
     const type = page.getByRole("combobox", { name: /typ/i });
@@ -33,7 +33,7 @@ test.describe("book edit", () => {
   test("labels the fields the way BookDO does", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
       /Selenium/
     );
@@ -58,7 +58,7 @@ test.describe("book edit", () => {
   test("reports no validation error for fields the backend omitted", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/books/${BOOK_ID}`);
+    await goto(page, `/book/${BOOK_ID}`);
     // Wait for the loaded data, so the assertion can't pass on an empty form.
     await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
       /Selenium/
@@ -83,7 +83,7 @@ test.describe("book edit", () => {
     test("stops typing at the column's length", async ({
       loggedInPage: page,
     }) => {
-      await goto(page, `/books/new`);
+      await goto(page, `/book/new`);
       const input = page.getByRole("textbox", { name: /titel/i });
       await input.fill("x".repeat(title.maxLength + 50));
       await expect(input).toHaveValue("x".repeat(title.maxLength));
@@ -106,7 +106,7 @@ test.describe("book edit", () => {
         return route.abort();
       });
 
-      await goto(page, `/books/new`);
+      await goto(page, `/book/new`);
       const input = page.getByRole("textbox", { name: /titel/i });
       // maxLength only bounds typing and pasting. A programmatic change — an import, a browser
       // extension, a future autofill — goes past it, which is why the schema keeps the rule too.
@@ -154,7 +154,7 @@ test.describe("book edit", () => {
         return route.abort();
       });
 
-      await goto(page, `/books/${BOOK_ID}`);
+      await goto(page, `/book/${BOOK_ID}`);
       const input = page.getByRole("textbox", { name: /titel/i });
       await expect(input).toHaveValue(/Selenium/);
       await input.fill("");
@@ -175,7 +175,7 @@ test.describe("book edit", () => {
       loggedInPage: page,
     }) => {
       const { t } = await userFormat(page);
-      await goto(page, `/books/${BOOK_ID}`);
+      await goto(page, `/book/${BOOK_ID}`);
       const type = page.getByRole("combobox", { name: /typ/i });
       await expect(type).toContainText(t("book.type.book"));
 
@@ -204,7 +204,7 @@ test.describe("book edit", () => {
       loggedInPage: page,
     }) => {
       const { t } = await userFormat(page);
-      await goto(page, `/books/${BOOK_ID}`);
+      await goto(page, `/book/${BOOK_ID}`);
       await expect(page.getByRole("combobox", { name: /typ/i })).toContainText(
         t("book.type.book")
       );

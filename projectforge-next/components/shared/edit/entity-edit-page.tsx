@@ -7,6 +7,7 @@ import { EditPageShell } from "@/components/shared/edit-page-shell";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import {
   useDeleteEntity,
+  useEntityAction,
   useEntityDetail,
   useSaveEntity,
   type EntityWithId,
@@ -55,6 +56,7 @@ export function EntityEditPage<
   const { data, isLoading, isError } = useEntityDetail<Data>(page.entity, id);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
+  const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
 
   const { form, isDirty, isSubmitting } = useEntityEditForm<Values, Data>({
@@ -67,7 +69,15 @@ export function EntityEditPage<
     savedMessage: t(edit.savedMessageKey),
     // The form's values are the DTO the backend expects — the type only differs in what it makes
     // optional (see the entity's schema file).
-    save: (values) => saveMutation.mutateAsync(values as unknown as Data),
+    save: (values, meta) => {
+      const data = values as unknown as Data;
+      // A declared action posts to `/rs/{entity}/{action}`; anything else is a save. An action name
+      // the declaration doesn't list can only come from a typo in a button, and saving instead of
+      // posting to a route that doesn't exist is the harmless of the two.
+      return edit.actions?.includes(meta.action)
+        ? actionMutation.mutateAsync({ action: meta.action, data })
+        : saveMutation.mutateAsync(data);
+    },
   });
 
   async function runDelete(): Promise<void> {
@@ -94,7 +104,7 @@ export function EntityEditPage<
     t,
     id: data?.id ?? null,
     route: page.route,
-    history: edit.history,
+    history: page.metadata.historizable,
     extraTabs: edit.extraTabs,
     onFormPage: true,
   });
@@ -114,6 +124,7 @@ export function EntityEditPage<
               listRoute={page.route}
               listLabel={t(page.titleKey)}
               title={data ? edit.title(data) : t(edit.newTitleKey)}
+              trailing={edit.headerTrailing?.(data)}
               legacyUrl={legacyUrl}
             />
           }

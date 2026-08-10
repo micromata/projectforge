@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const RECHNUNG_METADATA = {
   entity: "RechnungDO",
+  historizable: true,
   fields: {
     attachment: {
       dataType: "STRING",

@@ -71,17 +71,17 @@ class PageResolverTest {
     /**
      * Pages migrated to projectforge-next must resolve to `next/<route>`, so that server side
      * redirects don't throw the user back into the legacy React app. The route may differ from the
-     * rest category: `book` -> `books`.
+     * rest category; the hand built pages deliberately keep it equal (`book` -> `book`).
      */
     @Test
     fun migratedToNextTest() {
-        assertEquals("next/books", PagesResolver.getListPageUrl(BookPagesRest::class.java))
-        assertEquals("/next/books", PagesResolver.getListPageUrl(BookPagesRest::class.java, absolute = true))
-        assertEquals("next/books?str=test", PagesResolver.getListPageUrl(BookPagesRest::class.java, mapOf("str" to "test")))
-        // books is hand built in projectforge-next, so its edit route is /books/<id>, not /books/edit/<id>:
-        assertEquals("next/books/42", PagesResolver.getEditPageUrl(BookPagesRest::class.java, 42))
-        assertEquals("next/books/new", NextMigration.newEntryUrl("book"))
-        assertEquals("next/books/:id", NextMigration.standardEditPage("book"))
+        assertEquals("next/book", PagesResolver.getListPageUrl(BookPagesRest::class.java))
+        assertEquals("/next/book", PagesResolver.getListPageUrl(BookPagesRest::class.java, absolute = true))
+        assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookPagesRest::class.java, mapOf("str" to "test")))
+        // book is hand built in projectforge-next, so its edit route is /book/<id>, not /book/edit/<id>:
+        assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookPagesRest::class.java, 42))
+        assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
+        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
         // Not migrated: unchanged, and the category is used as the route.
         assertFalse(NextMigration.isMigrated("address"))
         assertEquals("react/address/edit", NextMigration.newEntryUrl("address"))
@@ -92,12 +92,12 @@ class PageResolverTest {
      * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
      * entry* url with an id appended, which is what it used to be built from. For the generic React
      * shape both happened to be the same (`react/group/edit` + `/id`), so the difference only showed
-     * on a hand built page: books answered a row click with `next/books/new/<id>`, the empty add
+     * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
      * form.
      */
     @Test
     fun rowClickUrlTest() {
-        assertEquals("next/books/:id", NextMigration.standardEditPage("book"))
+        assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
         assertNotEquals(
             "${NextMigration.newEntryUrl("book")}/:id",
             NextMigration.standardEditPage("book"),
@@ -115,10 +115,10 @@ class PageResolverTest {
     fun editPagePerFrontendTest() {
         val bookPagesRest = BookPagesRest()
         assertEquals("react/book/edit/:id", bookPagesRest.getEditPage(requestOf(null)))
-        assertEquals("next/books/:id", bookPagesRest.getEditPage(requestOf(Constants.NEXT)))
+        assertEquals("next/book/:id", bookPagesRest.getEditPage(requestOf(Constants.NEXT)))
         // The Referer is the fallback of RestAuthenticationUtils.isNextClient (the static export is
         // served under /next/).
-        assertEquals("next/books/:id", bookPagesRest.getEditPage(requestOf(null, referer = "https://pf/next/books")))
+        assertEquals("next/book/:id", bookPagesRest.getEditPage(requestOf(null, referer = "https://pf/next/book")))
         // Migrated from Wicket: the caller is still the React app, so it gets the React page - the
         // Wicket page renders server side and never asks here for a layout.
         val kost1PagesRest = Kost1PagesRest()
@@ -145,7 +145,8 @@ class PageResolverTest {
 
     /**
      * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
-     * derivable from the next url: `books` is not `book`.
+     * derivable from the next url: the app it leads back to isn't (`cost1` came from Wicket), and a
+     * route need not name its category.
      */
     @Test
     fun legacyPageTest() {

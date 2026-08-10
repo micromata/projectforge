@@ -3,9 +3,9 @@
  * Writes `out/next-spa-shell-map.json` after `next build`.
  *
  * A static export cannot emit a file per entity, so every dynamic route is prerendered exactly once
- * from the placeholder of its `generateStaticParams` (`/books/[id]` -> `/books/new`). Spring has to
- * answer a deep link such as `/next/books/25219084` with *that* route's HTML — any other shell boots
- * the wrong page component (`404.html` renders Next's not-found page, `books/index.html` the list).
+ * from the placeholder of its `generateStaticParams` (`/book/[id]` -> `/book/new`). Spring has to
+ * answer a deep link such as `/next/book/25219084` with *that* route's HTML — any other shell boots
+ * the wrong page component (`404.html` renders Next's not-found page, `book/index.html` the list).
  * The mapping is derived from Next's own manifests rather than hardcoded on the Java side, so a new
  * dynamic route reaches the server by rebuilding.
  *
@@ -24,7 +24,7 @@ const read = (/** @type {string} */ file) =>
 const routesManifest = read("routes-manifest.json");
 const prerenderManifest = read("prerender-manifest.json");
 
-// Which concrete route was prerendered for a given dynamic page, e.g. /books/[id] -> /books/new.
+// Which concrete route was prerendered for a given dynamic page, e.g. /book/[id] -> /book/new.
 /** @type {Map<string, string>} */
 const prerenderedBySrcRoute = new Map();
 for (const [route, entry] of Object.entries(prerenderManifest.routes ?? {})) {

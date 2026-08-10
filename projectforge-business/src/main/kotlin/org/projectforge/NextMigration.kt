@@ -38,9 +38,9 @@ package org.projectforge
  * the user is thrown from one frontend into the other in the middle of a workflow. Both therefore
  * ask this object instead of building urls themselves.
  *
- * Note that the REST category and the route of the next page may differ: the category is derived
- * from the `@RequestMapping` of the `*PagesRest` class (`book`), while projectforge-next uses the
- * plural noun as its route (`books`). That is exactly the drift this mapping removes.
+ * Note that the REST category and the route of the next page may differ - a next page is free to
+ * mount itself where it likes, e.g. under a route the category doesn't name. The hand built pages
+ * deliberately use the category itself (`book`, `cost1`), so no plural has to be remembered.
  *
  * This object lives in projectforge-business (next to [Constants]) because `MenuItemDefId` does,
  * and projectforge-rest depends on projectforge-business, not the other way round.
@@ -84,11 +84,11 @@ object NextMigration {
      * A page served by projectforge-next.
      *
      * @param route The route of the list page inside projectforge-next, without the `next/` prefix,
-     * e.g. `books`. May differ from the REST category (`book`).
-     * @param editRoute Route of the edit page with [ID_PLACEHOLDER] for the id, e.g. `books/:id`.
+     * e.g. `book`. May differ from the REST category.
+     * @param editRoute Route of the edit page with [ID_PLACEHOLDER] for the id, e.g. `book/:id`.
      * Defaults to the shape of the generic UILayout routes (`<route>/edit/:id`), which mirrors the
      * legacy React app. Hand built pages may deviate.
-     * @param newEntryRoute Route for creating a new entry, e.g. `books/new`. Defaults to the
+     * @param newEntryRoute Route for creating a new entry, e.g. `book/new`. Defaults to the
      * generic shape `<route>/edit`.
      * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to.
      * @param legacyRoute Route of the same list page in [legacyApp], without the app prefix. Only
@@ -113,8 +113,8 @@ object NextMigration {
      * projectforge-next, so the menu entry and all server side redirects point to `/next`.
      */
     private val MIGRATED = mapOf(
-        // Hand built feature, so its routes are /books, /books/new and /books/<id>.
-        "book" to NextPage(route = "books", editRoute = "books/$ID_PLACEHOLDER", newEntryRoute = "books/new"),
+        // Hand built feature, so its routes are /book, /book/new and /book/<id>.
+        "book" to NextPage(route = "book", editRoute = "book/$ID_PLACEHOLDER", newEntryRoute = "book/new"),
         // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
         // which pointed at wa/cost1List): the way back leads to Wicket, not to the React page - that one
         // exists as a layout (Kost1PagesRest) but was never mounted in the menu.
@@ -157,7 +157,7 @@ object NextMigration {
 
     /**
      * @param category The REST category, e.g. `book` or `address`.
-     * @return The frontend url of the list page without leading slash, e.g. `next/books`
+     * @return The frontend url of the list page without leading slash, e.g. `next/book`
      * or `react/address`.
      */
     fun listUrl(category: String): String {
@@ -166,7 +166,7 @@ object NextMigration {
 
     /**
      * @return The frontend url template of the edit page with [ID_PLACEHOLDER] for the id, e.g.
-     * `next/books/:id` or `react/address/edit/:id`.
+     * `next/book/:id` or `react/address/edit/:id`.
      */
     fun standardEditPage(category: String): String {
         val route = nextPage(category)?.editRoute ?: "$category/edit/$ID_PLACEHOLDER"
@@ -174,7 +174,7 @@ object NextMigration {
     }
 
     /**
-     * @return The frontend url for creating a new entry, e.g. `next/books/new` or
+     * @return The frontend url for creating a new entry, e.g. `next/book/new` or
      * `react/address/edit`.
      */
     fun newEntryUrl(category: String): String {
@@ -219,8 +219,9 @@ object NextMigration {
      * as an escape hatch while the migration runs (see `LegacyPageLink` in projectforge-next).
      *
      * Needed as its own mapping because [listUrl] is a one way function once a page is migrated -
-     * neither the route (`books` != `book`) nor the app is recoverable from the next url: a page may
-     * have been migrated straight from Wicket, which the React migration never reached (`cost1`).
+     * the app is not recoverable from the next url: a page may have been migrated straight from
+     * Wicket, which the React migration never reached (`cost1`), and its route need not name the
+     * category either.
      *
      * @return The frontend url of the legacy list page without leading slash, e.g. `react/book` or
      * `wa/cost1List`.

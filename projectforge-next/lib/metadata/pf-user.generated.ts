@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const PF_USER_METADATA = {
   entity: "PFUserDO",
+  historizable: true,
   fields: {
     created: {
       dataType: "TIMESTAMP",

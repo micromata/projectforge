@@ -25,6 +25,7 @@ package org.projectforge.development
 
 import jakarta.persistence.Entity
 import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.utils.SourcesUtils
 import org.projectforge.ui.ElementInfo
 import org.projectforge.ui.ElementsRegistry
@@ -210,6 +211,10 @@ object GenerateNextFieldMetadataMain {
     sb.append("\n")
     sb.append("export const ").append(constantName(clazz)).append(" = {\n")
     sb.append("  entity: ").append(quote(clazz.simpleName)).append(",\n")
+    // Whether the entity records a change history — the same answer Wicket's edit page asks for
+    // before showing its history panel (AbstractEditPage), so the next pages don't declare it a
+    // second time and can't drift from the entity.
+    sb.append("  historizable: ").append(HistoryServiceUtils.isHistorizable(clazz)).append(",\n")
     sb.append("  fields: {\n")
     fields.forEach { (property, properties) ->
       sb.append("    ").append(propertyKey(property)).append(": {\n")

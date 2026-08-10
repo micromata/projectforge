@@ -17,7 +17,8 @@ export const COST1_LIST_QUERY_KEY = ["cost1"] as const;
  * four parts are one control (see CostNumberField).
  *
  * One section and no attachments: the entity has no `jcrPath`, so there is nothing to attach. Its
- * change history is a tab of its own (see `edit.history`).
+ * change history is a tab of its own, which nothing here says — `KOST1_METADATA.historizable` does
+ * (Kost1DO's own `@WithHistory` is commented out, but `DefaultBaseDO` brings one).
  */
 export const COST1_PAGE = definePage<
   Cost1ListRow,
@@ -54,9 +55,6 @@ export const COST1_PAGE = definePage<
     title: (cost1) => cost1.formattedNumber ?? "",
     newTitleKey: "fibu.kost1.title.add",
     savedMessageKey: "message.successfullChanged",
-    // `@WithHistory` is commented out in Kost1DO, but a history is recorded and served all the same —
-    // `DefaultBaseDO` brings one, and `/rs/cost1/history/{id}` answers with the entry's changes.
-    history: true,
     sections: [
       {
         id: "general",

@@ -6,6 +6,7 @@ import type { EntityMetadata } from "./types";
 
 export const EMPLOYEE_SALARY_METADATA = {
   entity: "EmployeeSalaryDO",
+  historizable: true,
   fields: {
     bruttoMitAgAnteil: {
       dataType: "DECIMAL",

@@ -2,8 +2,6 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { SectionCard } from "@/components/shared/section-card";
-import { SectionHeader } from "@/components/shared/section-header";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate } from "@/lib/format";
 import { InputField } from "@/components/shared/form/input-field";
@@ -20,9 +18,11 @@ import type { UserRef } from "../../types";
  * cannot resolve. Only `lendOutComment` is the user's to write — hence `book.lendOutNote`
  * ("Ausleihnotiz (optional)").
  *
+ * The card and its heading (`book.lending`) come from the declaration; what is here is the body.
+ *
  * There is no loan history — BookDO stores only the *current* loan, and nothing in the backend
  * records past ones. What past loans there are show up as `lendOutBy` changes in the entity's
- * change history, which has a tab of its own (see bookTabs).
+ * change history, which has a tab of its own (EntityHistoryPage).
  *
  * `status` is not here but in the general section: it describes the book, not the loan (see
  * GeneralSection).
@@ -33,13 +33,12 @@ export function LoanSection() {
   const form = useEntityEditForm();
 
   // Read from the form, not from the fetched book: after a loan action the form is reset onto the
-  // server's values (see BookEditForm), and this way the line follows along.
+  // server's values (see useEntityEditForm), and this way the line follows along.
   const values = useStore(form.store, (s: unknown) => (s as FormState).values);
   const lendOutBy: UserRef | null = values.lendOutBy;
 
   return (
-    <SectionCard>
-      <SectionHeader title={t("lending")} />
+    <>
       <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
         <div className="flex flex-col gap-1.5">
           <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -63,7 +62,7 @@ export function LoanSection() {
         />
       </div>
       <BookLoanActions />
-    </SectionCard>
+    </>
   );
 }
 
