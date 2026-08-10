@@ -35,7 +35,8 @@
     "empty": "—"
   },
   "entityEdit": {
-    "lastSaved": "Last saved: {time}"
+    "lastSaved": "Last saved: {time}",
+    "notFound": "Entry not found."
   },
   "filter": {
     "selectNone": "Select none",
