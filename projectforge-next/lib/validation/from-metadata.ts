@@ -14,7 +14,13 @@
 
 import { z } from "zod";
 import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
-import { REQUIRED, maxLengthMarker } from "./markers";
+import {
+  INTEGER,
+  REQUIRED,
+  maxLengthMarker,
+  maxMarker,
+  minMarker,
+} from "./markers";
 
 type FieldsOf<M extends EntityMetadata> = M["fields"];
 type FieldName<M extends EntityMetadata> = keyof FieldsOf<M> & string;
@@ -96,6 +102,38 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
   }
 
   /**
+   * Whole-number field, bounded by the range the caller passes.
+   *
+   * The bounds are the one rule that does *not* come from the metadata: the generator drops
+   * `@Column(length = 3)` for non-strings, and a column length is a digit count anyway, not a
+   * `max = 999`. So a caller declares the range once next to the field (see
+   * `cost-number-segments.ts`) and the authority stays the backend's own check — a value the entity
+   * rejects still comes back as an HTTP 406 (`Kost1Dao.verifyKost`).
+   *
+   * `nullable`, and mandatory means "not null" rather than "not zero": an emptied box must be
+   * reportable as missing instead of silently saving a 0, which would be a different, valid number.
+   */
+  function intField(
+    name: FieldName<M>,
+    { min, max }: { min?: number; max?: number } = {}
+  ) {
+    let schema = z
+      .number()
+      .nullable()
+      .refine((v) => v == null || Number.isInteger(v), INTEGER);
+    if (field(name).required) {
+      schema = schema.refine((v): boolean => v != null, REQUIRED);
+    }
+    if (min !== undefined) {
+      schema = schema.refine((v) => v == null || v >= min, minMarker(min));
+    }
+    if (max !== undefined) {
+      schema = schema.refine((v) => v == null || v <= max, maxMarker(max));
+    }
+    return schema;
+  }
+
+  /**
    * Enum field, restricted to the constants of the backend enum. Stays `nullable` even when
    * mandatory: a value the entity doesn't have must be reportable as missing rather than replaced by
    * the first constant. The `: boolean` matters — an inferred type guard would narrow the field to
@@ -137,5 +175,12 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
     return values;
   }
 
-  return { field, requiredString, nullableString, enumField, enumOptions };
+  return {
+    field,
+    requiredString,
+    nullableString,
+    intField,
+    enumField,
+    enumOptions,
+  };
 }

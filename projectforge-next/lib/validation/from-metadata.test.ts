@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import { fromMetadata } from "./from-metadata";
-import { REQUIRED, maxLengthMarker } from "./markers";
+import {
+  INTEGER,
+  REQUIRED,
+  maxLengthMarker,
+  maxMarker,
+  minMarker,
+} from "./markers";
 
 /**
  * A hand-written stand-in for a generated file, so these tests state their own premises: a mandatory
@@ -16,6 +22,9 @@ const METADATA = {
     authors: { dataType: "STRING", required: false, maxLength: 1000 },
     // No maxLength: a non-string column, e.g. the "yyyy-MM-dd" of a LocalDate.
     lendOutDate: { dataType: "DATE", required: false },
+    // The two flavours of number: one the entity insists on, one it doesn't.
+    bereich: { dataType: "INT", required: true },
+    endziffer: { dataType: "INT", required: false },
     status: {
       dataType: "STRING",
       required: true,
@@ -71,6 +80,35 @@ describe("nullableString", () => {
 
   it("accepts any length where the metadata declare none", () => {
     expect(issue(m.nullableString("lendOutDate"), "x".repeat(5000))).toBeNull();
+  });
+});
+
+describe("intField", () => {
+  const bounded = m.intField("bereich", { min: 0, max: 999 });
+
+  it("reports an emptied box as missing rather than saving a 0", () => {
+    expect(issue(bounded, null)).toBe(REQUIRED);
+    expect(issue(bounded, 0)).toBeNull();
+  });
+
+  it("keeps a value out of range from ever being sent", () => {
+    expect(issue(bounded, 1000)).toBe(maxMarker(999));
+    expect(issue(m.intField("bereich", { min: 1 }), 0)).toBe(minMarker(1));
+    expect(issue(bounded, 999)).toBeNull();
+  });
+
+  it("refuses a fraction, which no number segment can hold", () => {
+    expect(issue(bounded, 1.5)).toBe(INTEGER);
+  });
+
+  it("leaves an optional field empty without complaining", () => {
+    expect(
+      issue(m.intField("endziffer", { min: 0, max: 99 }), null)
+    ).toBeNull();
+  });
+
+  it("needs no bounds at all — they are the caller's, not the metadata's", () => {
+    expect(issue(m.intField("endziffer"), 12345)).toBeNull();
   });
 });
 
