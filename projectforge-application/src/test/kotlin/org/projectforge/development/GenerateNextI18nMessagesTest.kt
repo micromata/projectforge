@@ -58,5 +58,12 @@ class GenerateNextI18nMessagesTest {
             " DevelopmentMainForRelease; hand-written texts belong in messages/$locale.json."
       )
     }
+    // No assertion: a key the bundle doesn't know is usually a plugin key (the plugins keep their own
+    // bundles) and never breaks the catalog. Printed so a typo in a page definition is visible.
+    GenerateNextI18nMessagesMain.unresolvedKeys(rootDir).let { unresolved ->
+      if (unresolved.isNotEmpty()) {
+        println("Not found in the bundle (${unresolved.size} keys): ${unresolved.joinToString()}")
+      }
+    }
   }
 }

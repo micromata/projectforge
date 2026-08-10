@@ -1,5 +1,62 @@
 {
   "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
+  "access": {
+    "rights": "Rights",
+    "type": "Access type"
+  },
+  "address": {
+    "addressStatus": {
+      "_": "Address status",
+      "leaved": "company left",
+      "outdated": "out-dated",
+      "uptodate": "up-to-date"
+    },
+    "addressText": "Address",
+    "addressText2": "Address 2",
+    "addressbooks": "Addressbooks",
+    "birthName": "Birth name",
+    "birthday": "Birthday",
+    "business": "business",
+    "city": "City",
+    "communicationLanguage": "Language of communication",
+    "contactStatus": {
+      "_": "Contact status",
+      "active": "active",
+      "departed": "departed",
+      "nonActive": "non-active",
+      "personaIngrata": "persona ingrata",
+      "uninteresting": "uninteresting"
+    },
+    "country": "Country",
+    "division": "Division",
+    "fingerprint": "Finger print",
+    "form": {
+      "_": "Form",
+      "company": "Company",
+      "misc": "Misc",
+      "miss": "Miss",
+      "mister": "Mister",
+      "unknown": "unknown"
+    },
+    "phone": "Phone",
+    "phoneType": {
+      "fax": "Fax",
+      "mobile": "Cellular phone"
+    },
+    "positionText": "Position",
+    "postal": "postal",
+    "private": "private",
+    "publicKey": "Public key",
+    "state": "State",
+    "title": "Title",
+    "website": "Website",
+    "zipCode": "Zip code"
+  },
+  "addressbook": {
+    "description": "Description",
+    "owner": "Owner",
+    "title": "Title"
+  },
   "apply": "Apply",
   "attachment": {
     "_": "Attachment",
@@ -43,16 +100,13 @@
     "_": "Attachments",
     "short": "Att."
   },
+  "attr": {
+    "validSince": "Valid since"
+  },
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
-    "books": "Books",
     "editor": "Editor",
-    "error": {
-      "number": "In Year of publishing are only numbers allowed",
-      "signatureAlreadyExists": "Signature already exists.",
-      "toFewFields": "To few fields given."
-    },
     "isbn": "ISBN",
     "keywords": "Keywords",
     "lendOut": "Lend out",
@@ -71,8 +125,6 @@
     "title": {
       "_": "Title",
       "add": "Add new book",
-      "edit": "Edit book",
-      "heading": "Books",
       "list": "Book list"
     },
     "type": {
@@ -97,7 +149,29 @@
   "calendar": {
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
-    "today": "Today"
+    "day": "day",
+    "filter": {
+      "vacation": {
+        "groups": {
+          "_": "Vacation groups",
+          "tooltip": "For these groups any vacation of their users will be displayed."
+        },
+        "users": {
+          "_": "Vacation users",
+          "tooltip": "For these users any vacation will be displayed."
+        }
+      }
+    },
+    "month": "Month",
+    "shortday": {
+      "friday": "Fr",
+      "monday": "Mo",
+      "thursday": "Th",
+      "tuesday": "Tu",
+      "wednesday": "We"
+    },
+    "today": "Today",
+    "year": "Year"
   },
   "cancel": "Cancel",
   "changes": "Changes",
@@ -116,7 +190,9 @@
     "unpin": "Unpin"
   },
   "comment": "Comment",
+  "contactPerson": "Contact person",
   "copy": "Copy",
+  "create": "Create",
   "created": "created",
   "createdBy": "created by",
   "date": {
@@ -138,7 +214,14 @@
     "_": "Download",
     "expired": "Download expired. Please retry for a new download."
   },
+  "dueDate": "Due date",
   "edit": "Edit",
+  "email": "E-mail",
+  "error": {
+    "_": "An error occurs: {arg0}",
+    "endDateBeforeBeginDate": "End date can't be before begin date.",
+    "posFromDateBeforeFromDate": "Start date of a position can't be before start date of order."
+  },
   "expand": "Expand",
   "favorite": {
     "_": "Favorite",
@@ -156,18 +239,153 @@
     "saveModification": "Save modification"
   },
   "fibu": {
+    "attachment": "Attachments",
+    "auftrag": {
+      "angebot": {
+        "datum": "Date of order"
+      },
+      "beauftragungsBeschreibung": "Description of assignment",
+      "beauftragungsdatum": "Date of assignment",
+      "bindungsFrist": "period of commitment",
+      "entscheidung": {
+        "datum": "Date of decision"
+      },
+      "erfassung": {
+        "datum": "Date of entry"
+      },
+      "forecastType": {
+        "_": "Forecast type",
+        "currentMonth": "Current month",
+        "followingMonth": "Following month (default)",
+        "info": "When will the sales be invoiced? Does not apply to payment schedule."
+      },
+      "nettoSumme": "Net sum",
+      "nummer": "Number",
+      "paymentschedule": {
+        "_": "Payment schedule",
+        "number": "No"
+      },
+      "position": {
+        "_": "Position",
+        "art": {
+          "_": "Order type",
+          "change_request": "Change Request",
+          "dauernde_leistung": "Continued services",
+          "neuentwicklung": "New development",
+          "wartung": "Maintenance"
+        },
+        "paymenttype": {
+          "_": "Payment type",
+          "festpreispaket": "Fixed price package",
+          "pauschale": "Flat rate",
+          "time_and_materials": "Time & materials"
+        }
+      },
+      "status": {
+        "abgelehnt": "declined",
+        "abgeschlossen": "completed",
+        "beauftragt": "commissioned",
+        "ersetzt": "replaced",
+        "eskalation": "Escalation",
+        "gelegt": "submitted",
+        "in_erstellung": "In progress",
+        "loi": "LOI",
+        "optional": "Optional position",
+        "potenzial": "Potential"
+      },
+      "statusBeschreibung": "Description of status",
+      "title": "Title",
+      "vollstaendigFakturiert": "completely invoiced"
+    },
+    "buchungssatz": {
+      "beleg": "Receipt",
+      "gegenKonto": "Contra account",
+      "konto": "Account",
+      "menge": "Quantity",
+      "satznr": "Record number",
+      "text": "Text"
+    },
+    "common": {
+      "betrag": "Amount",
+      "creditor": "Creditor",
+      "customer": {
+        "reference": "Customer reference"
+      },
+      "netto": "Net",
+      "reached": "reached",
+      "reference": "Reference"
+    },
+    "currencyConversion": {
+      "conversionRate": "Conversion rate",
+      "inverseConversionRate": "Inverse conversion rate"
+    },
+    "currencyPair": {
+      "_": "Currency pair",
+      "currencyCode": {
+        "tooltip": "ISO currency code (3 letters) is recommended, e.g. USD, EUR, GBP. These codes are also used when importing or creating currencies in the system."
+      },
+      "sourceCurrency": "Source currency",
+      "targetCurrency": "Target currency"
+    },
+    "customerref1": "Customer reference",
+    "employee": {
+      "_": "Employee",
+      "austrittsdatum": "Leaving date",
+      "division": "Division",
+      "eintrittsdatum": "Entry date",
+      "salary": {
+        "bruttoMitAgAnteil": "Gross with employers' share",
+        "type": {
+          "_": "Payment method",
+          "gehalt": "Salary",
+          "praemie": "Bonus",
+          "sonderzahlung": "Special payment",
+          "tantieme": "Royalty",
+          "zielvereinbarung": "Target agreement"
+        }
+      },
+      "staffNumber": "Staff number",
+      "status": {
+        "_": "Employee Status",
+        "aushilfe": "Help",
+        "azubi": "Apprentice",
+        "befristetAngestellter": "Employee limited in time",
+        "festAngestellter": "Permanent employee",
+        "freelancer": "Freelancer",
+        "praktikant": "Trainee",
+        "studentischeAbschlussarbeit": "Student research",
+        "studentischeHilfskraft": "Student assistant"
+      },
+      "urlaubstage": "Annual leave days",
+      "user": "User",
+      "wochenstunden": "Hours per week"
+    },
+    "fakturiert": "invoiced",
+    "headOfBusinessManager": "Head of business manager",
+    "konto": {
+      "_": "Account",
+      "bezeichnung": "Identifier",
+      "city": "City",
+      "contactPerson": "Contact person",
+      "country": "Country",
+      "eInvoiceEmail": "E-invoice email",
+      "leitwegId": "Leitweg-ID",
+      "nummer": "Account number",
+      "sellerBankAccountName": "Default bank account",
+      "status": {
+        "active": "active",
+        "nonactive": "non-active"
+      },
+      "street": "Street",
+      "vatId": "VAT ID",
+      "zipCode": "Zip code"
+    },
     "kost": {
       "error": {
         "collision": "Collision with already existing cost.",
         "invalidKost": "Invalid cost."
       },
       "kostentraeger": "Cost unit ids",
-      "reporting": {
-        "_": "Reporting",
-        "clearStorage": "Clear",
-        "createReport": "Create report",
-        "upload": "Upload of report objectives"
-      },
       "status": {
         "active": "active",
         "ended": "ended",
@@ -198,9 +416,130 @@
           "select": "Choose cost 1"
         }
       }
+    },
+    "kost2": {
+      "_": "Cost 2",
+      "art": "Type",
+      "workFraction": "Work time fraction"
+    },
+    "kost2art": {
+      "nummer": "Cost 2 number",
+      "projektStandard": "Project standard",
+      "workFraction": "Work time fraction"
+    },
+    "kunde": {
+      "_": "Customer",
+      "division": "Division",
+      "identifier": "Identifier",
+      "name": "Customer's name",
+      "nummer": "Customer's number",
+      "status": {
+        "acquisition": "acquisition",
+        "active": "active",
+        "ended": "ended",
+        "nonactive": "non-active",
+        "nonexistent": "non-existent"
+      },
+      "text": "Customer free text"
+    },
+    "modeOfPayment": {
+      "_": "Mode of payment",
+      "type": {
+        "annual": "annually",
+        "fixed": "fixed",
+        "monthly": "monthly",
+        "quarterly": "quarterly"
+      }
+    },
+    "payment": {
+      "type": {
+        "_": "Payment type",
+        "bankTransfer": "bank transfer",
+        "cash": "cash",
+        "credit": "credit",
+        "creditCard": "credit card",
+        "debit": "debit",
+        "salary": "salary"
+      }
+    },
+    "periodOfPerformance": {
+      "_": "Period of performance",
+      "from": "Period of performance from",
+      "to": "Period of performance to",
+      "type": {
+        "own": "own",
+        "seeabove": "see above"
+      }
+    },
+    "probabilityOfOccurrence": "Probability of occurrence in %",
+    "projectManager": "Project manager",
+    "projekt": {
+      "_": "Project",
+      "identifier": "Identifier",
+      "internKost2_4": "Internal: Koststellen 2-4",
+      "name": "Name",
+      "nummer": "Number",
+      "projektManagerGroup": "Group of project managers",
+      "status": {
+        "acquisition": "acquisition",
+        "build": "build phase",
+        "ended": "ended",
+        "maintenance": "maintenance",
+        "none": "none",
+        "onhold": "on hold",
+        "productive": "productive (without maintenance)"
+      }
+    },
+    "rechnung": {
+      "besonderheiten": "Specifics",
+      "betreff": "Subject",
+      "bezahlDatum": "Payment date",
+      "bic": "BIC",
+      "currency": "Currency",
+      "customernr": "Customer no.",
+      "datum": {
+        "_": "Date of invoice",
+        "short": "Date"
+      },
+      "discountMaturity": "Discount maturity",
+      "discountPercent": "Discount percent",
+      "faelligkeit": "Due date",
+      "iban": "IBAN",
+      "mehrwertSteuerSatz": "VAT",
+      "menge": "Quantity",
+      "nummer": "Number",
+      "position": {
+        "einzelNetto": "Unit net price"
+      },
+      "receiver": "Receiver",
+      "sellerBankAccount": "Bank account (seller)",
+      "status": {
+        "_": "Status of invoice",
+        "bezahlt": "paid",
+        "gemahnt": "commemorated",
+        "geplant": "intended",
+        "gestellt": "invoiced",
+        "storniert": "canceled",
+        "zahlungserinnerung1": "1st payment reminder",
+        "zahlungserinnerung2": "2nd payment reminder"
+      },
+      "text": "Text",
+      "typ": {
+        "_": "Type",
+        "cancellation": "Cancellation",
+        "gutschriftsAnzeigeDurchKunden": "Credit advice from customer",
+        "rechnung": "Invoice"
+      },
+      "zahlBetrag": "Paid amount",
+      "zahlungsZiel": "Payment target"
+    },
+    "salesManager": "Key account manager",
+    "tooltip": {
+      "nummerWirdAutomatischVergeben": "Number will automatically set."
     }
   },
   "file": {
+    "_": "file",
     "upload": {
       "audit": {
         "action": {
@@ -231,7 +570,9 @@
       }
     }
   },
+  "filing": "filing",
   "filter": {
+    "_": "filter",
     "activeCount": "Active filters: {arg0}",
     "addField": "Add filter",
     "after": "After",
@@ -281,10 +622,51 @@
     "valueNotSet": "(not set)",
     "valueTo": "To"
   },
+  "finance": {
+    "accountingRecord": {
+      "dc": {
+        "_": "DC",
+        "credit": "credit",
+        "debit": "debit"
+      }
+    }
+  },
+  "firstName": "First name",
+  "gantt": {
+    "duration": "Duration",
+    "endDate": "End date",
+    "name": "Name",
+    "objectType": {
+      "activity": "Activity (Standard)",
+      "milestone": "Milestone",
+      "summary": "Summary"
+    },
+    "owner": "Owner",
+    "relationType": {
+      "finish_finish": "finish-finish",
+      "finish_start": "finish-start (default)",
+      "start_finish": "start-finish",
+      "start_start": "start-start"
+    },
+    "startDate": "Start date"
+  },
+  "gender": {
+    "_": "Gender",
+    "diverse": "diverse",
+    "female": "female",
+    "male": "male",
+    "unknown": "unknown"
+  },
   "goreact": {
     "menu": {
       "classics": "Go to classic UI"
     }
+  },
+  "group": {
+    "_": "Group",
+    "assignedUsers": "Assigned users",
+    "localGroup": "Local group",
+    "owner": "Group owner"
   },
   "history": {
     "entry": "History entry",
@@ -302,6 +684,19 @@
     },
     "was": "was"
   },
+  "hours": "Hours",
+  "hr": {
+    "planning": {
+      "description": "Activity report",
+      "priority": "Priority",
+      "probability": {
+        "short": "%"
+      },
+      "unassignedHours": "without assigned day",
+      "weekend": "Week-end"
+    }
+  },
+  "id": "Id",
   "index": {
     "development": "Website for developers",
     "website": "Website",
@@ -342,8 +737,40 @@
     }
   },
   "label": {
-    "historyOfChanges": "History of changes"
+    "historyOfChanges": "History of changes",
+    "position": {
+      "short": "Pos"
+    }
   },
+  "lastUpdate": "last modification",
+  "ldap": "LDAP",
+  "legalAffaires": {
+    "contract": {
+      "coContractorA": "co-contractor A",
+      "coContractorB": "co-contractor B",
+      "contractPersonA": "contract person A",
+      "contractPersonB": "contract person B",
+      "number": "Contract number",
+      "signerA": "signer A",
+      "signerB": "signer B",
+      "signing": "signing",
+      "status": {
+        "completed": "completed",
+        "escalated": "escalated",
+        "inCoordination": "in coordination",
+        "inProgress": "in progress",
+        "signed": "signed",
+        "suspended": "suspended",
+        "unknown": "unknown"
+      },
+      "type": "Type",
+      "validity": {
+        "from": "Validity from",
+        "until": "Validity until"
+      }
+    }
+  },
+  "list": "List",
   "loading": "Loading...",
   "login": {
     "_": "Login",
@@ -384,11 +811,7 @@
       "more": "More favorites"
     },
     "fibu": {
-      "kost": "Cost",
-      "kost1": "Cost 1 ids",
-      "kost2": "Cost 2 ids",
-      "kost2arten": "Cost 2 types",
-      "kostSearch": "Cost search"
+      "kost": "Cost"
     },
     "main": {
       "title": "Main menu"
@@ -397,35 +820,30 @@
     "reindexAllDatabaseEntries": {
       "_": "Re-build whole search index",
       "tooltip": {
-        "content": "The whole index will be rebuilt. This may take a while (several minute for e.g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators.",
-        "title": "Re-build whole search index"
+        "content": "The whole index will be rebuilt. This may take a while (several minute for e.g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators."
       }
     },
     "reindexNewestDatabaseEntries": {
       "_": "Re-build search index",
       "tooltip": {
-        "content": "All entries created or modified since yesterday will be re-indexed, their change history included. Usually a matter of seconds.",
-        "title": "Re-build search index"
+        "content": "All entries created or modified since yesterday will be re-indexed, their change history included. Usually a matter of seconds."
       }
     },
     "resetFilter": {
       "_": "Reset filter",
       "info": "Resets the current filter if you have any trouble with the given search function."
-    }
+    },
+    "taskTree": "Structure tree"
   },
   "message": {
     "successfullChanged": "Successfully changed.",
     "successfullCompleted": "Successfully completed: {arg0}"
   },
-  "modificationTime": "Time of modification",
   "modified": "modified",
   "modifiedBy": "modified by",
-  "modifiedHistoryValue": "history value of modification",
   "name": "Name",
+  "nickname": "Nickname",
   "no": "No",
-  "notEnded": "not ended",
-  "notLoggedIn": "Not logged in.",
-  "notVisible": "not visible",
   "nothingFound": "Nothing found.",
   "operation": {
     "deleted": "deleted",
@@ -435,6 +853,49 @@
     "undeleted": "undeleted",
     "updated": "updated"
   },
+  "orga": {
+    "post": {
+      "inhalt": "Content",
+      "type": {
+        "_": "Type",
+        "brief": "Letter",
+        "e-mail": "E-mail",
+        "einschreiben": "Registered letter",
+        "einschreibenMitRueckschein": "Registered letter with return receipt",
+        "fax": "Fax",
+        "lieferung": "Shipment",
+        "paeckchen": "Small parcel",
+        "paket": "Parcel"
+      }
+    },
+    "postausgang": {
+      "empfaenger": "Receiver",
+      "person": "FAO"
+    },
+    "posteingang": {
+      "absender": "Sender",
+      "person": "Person"
+    },
+    "visitorbook": {
+      "company": "Company",
+      "contactPersons": "Contact persons",
+      "firstname": "Firstname",
+      "lastname": "Lastname",
+      "timeofvisit": {
+        "arrive": "Arrivaltime (HH:MM)",
+        "depart": "Departuretime (HH:MM)"
+      },
+      "visitortype": {
+        "_": "Visitor type",
+        "extended": "Extended",
+        "family": "Family",
+        "normal": "Normal",
+        "supplier": "Supplier",
+        "workman": "Workman"
+      }
+    }
+  },
+  "organization": "Organization",
   "password": {
     "_": "Password",
     "forgotten": {
@@ -460,47 +921,217 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "percentage": "Percentage",
+  "plugins": {
+    "teamcal": {
+      "calendar": "Calendar",
+      "description": "Description",
+      "event": {
+        "allDay": "Whole day",
+        "beginDate": "Begin",
+        "endDate": "End",
+        "location": "Location",
+        "note": "Note",
+        "subject": "Subject"
+      },
+      "externalsubscription": {
+        "label": "External subscription",
+        "updateInterval": "Update interval",
+        "url": "Calendar URL"
+      },
+      "owner": "Owner",
+      "title": "Title"
+    }
+  },
+  "poll": {
+    "attendees": "Attendees",
+    "deadline": "Deadline",
+    "description": "Description",
+    "location": "Location",
+    "owner": "Owner",
+    "state": "State",
+    "title": "Title"
+  },
+  "priority": {
+    "_": "Priority",
+    "high": "high",
+    "highest": "highest",
+    "least": "least",
+    "low": "low",
+    "middle": "middle"
+  },
+  "projectmanagement": {
+    "personDays": "Person days"
+  },
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
     "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
   },
   "rating": "Rating",
+  "recursive": "recursive",
   "rename": "rename",
   "reset": "Reset",
+  "resubmissionOnDate": "Resubmission on",
   "save": "Save",
+  "scripting": {
+    "script": {
+      "description": {
+        "tooltip": "Markdown format is supported."
+      },
+      "editForm": {
+        "file": {
+          "tooltip": "Within the script the file is available through 'script.file' and the name of the file through 'script.filename'. This is only for backward compatibility for older scripts, generated by classical version."
+        }
+      },
+      "executableByGroups": {
+        "_": "Allowed groups",
+        "info": "Users of these groups are allowed to execute this script (but they can't see or modify the sources of this script)."
+      },
+      "executableByUsers": {
+        "_": "Allowed users",
+        "info": "These users are allowed to execute this script (but they can't see or modify the sources of this script)."
+      },
+      "executeAsUser": {
+        "_": "Execute as user",
+        "info": "The script is executed with all rights of the given user. Be careful! The execute-as functionality must be enabled inside the script as well to avoid mis-configurations."
+      },
+      "includes": "Embedded scripts",
+      "name": "Name",
+      "parameterName": "Parameter",
+      "parameterType": {
+        "_": "Parameter type",
+        "boolean": "Boolean value",
+        "date": "Date",
+        "decimal": "Decimal number",
+        "integer": "Integer number",
+        "string": "Text",
+        "task": "Structure element",
+        "timePeriod": "Time period",
+        "user": "User"
+      },
+      "type": "Type"
+    }
+  },
   "search": {
+    "_": "Search",
+    "area": "Area",
+    "durationOfSearch": "duration of search",
+    "error": "Unfortunately an internal error occurred.",
     "lastDay": "Last day.",
     "lastDays": "Last {arg0} days.",
     "lastHour": "Last hour",
     "lastHours": "Last {arg0} hours",
     "lastMinute": "Last minute",
     "lastMinutes": "Last {arg0} minutes",
+    "lucene": {
+      "expression": "Modified expression for search machine:"
+    },
+    "maxRowsExceeded": "Maximum number {arg0} of result size exceeded. Result list is truncated.",
+    "nextDays": "Next {arg0} days",
+    "parseError": "Error while parsing search string: ''{arg0}''",
+    "periodOfModification": "Period of modification",
+    "search": "Search",
+    "searchHistory": {
+      "_": "History",
+      "additional": {
+        "tooltip": "If enabled all history entries will be searched for the given search string too."
+      }
+    },
     "sinceYesterday": "Since yesterday",
-    "today": "Today"
+    "string": {
+      "info": {
+        "_": "Use ''*'' for wild cards (automatically appended if token contains only alphanumeric characters, white spaces or \"@._-\"), ''-string'' for negation, ''fieldname:string'' for searching in fields, for further information see help pages (lucene is used as search engine).\nSearch in fields: {arg0}.",
+        "title": "Full text search"
+      }
+    },
+    "title": "Search",
+    "toDetailedSearch": "To detailed search",
+    "today": "Today",
+    "withoutTimePeriod": "Without time period"
   },
   "select": {
     "_": "Select",
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
-  "selectDate": "Select",
-  "selectGroup": "Select",
-  "selectTask": "Select",
   "settings": "Settings",
+  "shortDescription": "Short description",
   "status": "Status",
   "task": {
-    "consumption": "Consumption"
-  },
-  "undelete": "Undelete",
-  "uptodate": "up-to-date",
-  "user": {
-    "My2FA": {
-      "expired": "For the requested action a 2FA is required not older than {arg0}.",
-      "required": {
-        "_": "A (new) two-factor authentication is required for proceeding.",
-        "extended": "A (new) two-factor authentication is required for proceeding due to security reasons. You may request a code (see link below code field) or, if configured, use Your authenticator app."
+    "_": "Structure element",
+    "assignedUser": "Responsible user",
+    "consumption": "Consumption",
+    "maxHours": "Maximum hours",
+    "parentTask": "Parent structure element",
+    "path": {
+      "pleaseSelectTask": "Please select structure element"
+    },
+    "progress": "Progress",
+    "protectTimesheetsUntil": "Protect time sheets until",
+    "protectionOfPrivacy": "Protection of privacy",
+    "reference": "Reference",
+    "selectPanel": {
+      "info": "You may select folders by clicking in other columns of the row than the first.",
+      "noTasksFound": "No structure elements found.",
+      "selectAncestorTask": {
+        "tooltip": "Replace task by this ancestor structure element."
       }
     },
+    "status": {
+      "closed": "closed",
+      "notOpened": "not opened",
+      "opened": "opened"
+    },
+    "timesheetBooking": {
+      "_": "Time sheet booking",
+      "inherit": "inherit",
+      "noBooking": "no booking",
+      "onlyLeafs": "only leaf nodes",
+      "opened": "opened",
+      "treeClosed": "completely closed"
+    },
+    "title": "Title",
+    "tree": {
+      "rootNode": "Root node",
+      "title": {
+        "select": "Select structure element"
+      }
+    }
+  },
+  "text": "Text",
+  "timeNotation": {
+    "_": "Time notation",
+    "12": "12-hour notation",
+    "24": "24-hour notation"
+  },
+  "timesheet": {
+    "ai": {
+      "timeSavedByAI": {
+        "_": "Time savings AI",
+        "info": "Savings in hours through AI or in percent (example percent: I needed 9 hours and would have needed 10 hours without AI, then I saved 10%).\nThis information is used in evaluations and reports."
+      },
+      "timeSavedByAIDescription": {
+        "_": "AI description",
+        "info": "Optional description of which AI technology or methods were used to achieve the time saving."
+      },
+      "timeSavedByAIUnit": {
+        "_": "Unit",
+        "info": "Percentage time savings in percent in this time report (e.g. 10% of 10 hours is 1 hour) or in hours:\nNote: A time report of one hour can also save many hours or days of effort."
+      }
+    },
+    "description": "Activity report",
+    "location": "Location",
+    "reference": "Reference",
+    "startTime": "Start time",
+    "stopTime": "Stop time",
+    "tag": "Tag",
+    "user": "Employee"
+  },
+  "timezone": "Time zone",
+  "title": "Title",
+  "uptodate": "up-to-date",
+  "user": {
+    "_": "User",
     "My2FACode": {
       "authentification": {
         "info": "A second factor is required for proceeding. Please enter any 2nd factor (e.g. OTP) you have (requested): from Your Authenticator-App or received by SMS or mail or you may use any WebAuthn token you have registered."
@@ -537,28 +1168,103 @@
       },
       "title": "Two-factor authentication"
     },
-    "changePassword": {
-      "error": {
-        "noCharacter": "Password must have at minimum one letter.",
-        "noNonCharacter": "Password must have at minimum one non-letter.",
-        "notMinLength": "Password must have at least {arg0} characters.",
-        "oldPasswdEqualsNew": "New password should not be the same as the old one.",
-        "oldPasswordWrong": "Old password does not match.",
-        "passwordQualityCheck": "Password must have at least {arg0} characters and at minimum one letter and one non-letter character."
+    "authenticationToken": {
+      "authenticator_key": {
+        "_": "2FA authenticator key",
+        "tooltip": "This authentication token is usable for Authenticator clients for Two-factor-authentication with e.g. Microsoft-, Google-authenticator app, or Fortitoken."
       },
+      "calendar_rest": {
+        "_": "Authentication token for calendars",
+        "tooltip": "This authentication token is usable ical exports of calendars and the user's time sheets."
+      },
+      "dav_token": {
+        "_": "Authentication token for CalDav/CardDAV",
+        "tooltip": "This authentication token is usable the CalDAV/CardDAV functionality of ProjectForge."
+      },
+      "rest_client": {
+        "_": "Authentication token for rest clients",
+        "tooltip": "This authentication token is usable for rest clients if ProjectForge's password shouldn't be used there."
+      }
+    },
+    "changePassword": {
       "msg": {
         "passwordSuccessfullyChanged": "Password successfully changed."
       },
       "newPassword": "New password",
-      "notSupported": "The change of password isn't supported. Please contact your administrator.",
-      "oldPassword": "Old password",
       "password": {
         "lastChange": "Last change of password"
-      },
-      "title": "Change own password"
-    }
+      }
+    },
+    "changeWlanPassword": {
+      "lastChange": "Last change of WLAN/Samba password"
+    },
+    "deactivated": "deactivated",
+    "gpgPublicKey": "GPG public key",
+    "hrPlanningEnabled": "HR planning",
+    "jiraUsername": {
+      "_": "JIRA user name",
+      "tooltip": "Only needed, if the ProjectForge user name differs from the JIRA user name and the user want to work with JIRA inside ProjectForge."
+    },
+    "ldapValues": "LDAP",
+    "localUser": {
+      "_": "Local user",
+      "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "locale": "Language",
+    "mobilePhone": {
+      "_": "Mobile phone",
+      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services). You may configure this field by any admin or by configuring your two-factor-authentication."
+    },
+    "personalPhoneIdentifiers": {
+      "_": "Phone ids",
+      "tooltip": {
+        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated. In address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
+      }
+    },
+    "restrictedUser": {
+      "_": "Restricted user",
+      "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
+    },
+    "sshPublicKey": "SSH public key",
+    "username": "User name"
   },
   "username": "User name",
+  "vacation": {
+    "employee": "Employee",
+    "enddate": "End date",
+    "halfDayBegin": {
+      "_": "Half leave day at first day",
+      "tooltip": "The first leave day should be treated as half leave day, if it is a workday."
+    },
+    "halfDayEnd": {
+      "_": "Half leave day at last day",
+      "tooltip": "The last leave day should be treated as half leave day, if it is a workday."
+    },
+    "hr": "HR",
+    "leaveAccountEntry": {
+      "amount": "Correction value"
+    },
+    "manager": "Manager",
+    "other": "Other",
+    "own": "Own",
+    "previousyearleave": "Previous year leave",
+    "replacement": {
+      "_": "Substitution",
+      "others": "Other substitutes"
+    },
+    "special": {
+      "_": "Special leave",
+      "tooltip": "Special leave days will be excluded from the vacation account."
+    },
+    "startdate": "Start date",
+    "status": {
+      "_": "Status",
+      "approved": "Approved",
+      "inProgress": "In progress",
+      "rejected": "Rejected"
+    },
+    "vacationmode": "Assignment"
+  },
   "validation": {
     "error": {
       "fieldRequired": "Field ''{arg0}'' is required.",
@@ -575,7 +1281,16 @@
       }
     }
   },
+  "value": "Value",
+  "values": "Values",
   "webauthn": {
+    "entry": {
+      "displayName": "Display name",
+      "signCount": {
+        "_": "Sign count",
+        "info": "Counter of authentications (will be incremented on every token usage)"
+      }
+    },
     "error": {
       "process": "Error while processing authentication.",
       "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",

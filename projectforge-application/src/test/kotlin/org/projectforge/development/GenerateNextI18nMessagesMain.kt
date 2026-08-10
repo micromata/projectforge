@@ -23,7 +23,9 @@
 
 package org.projectforge.development
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.framework.utils.SourcesUtils
+import com.fasterxml.jackson.databind.JsonNode as JsonNodeJackson
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Properties
@@ -36,10 +38,21 @@ import java.util.Properties
  * (default), `I18nResources_de.properties` the German ones. Run [SortAndCheckI18nPropertiesMain]
  * first — that is what [DevelopmentMainForRelease] does.
  *
- * Keys are selected by prefix ([PREFIXES]) rather than listed individually, which keeps this in
- * sync as entities gain fields. That exports a few keys the frontend doesn't use; the alternative
- * is a list that silently goes stale. Exporting the whole bundle is not an option though: the
- * frontend ships its catalog to the browser.
+ * Which keys are exported is *derived*, not listed. Exporting the whole bundle is no option — the
+ * frontend ships its catalog to the browser — so three sources answer the question, and each of them
+ * is a place that has to be edited anyway when a text is needed:
+ *
+ * 1. [GenerateNextFieldMetadataMain.i18nKeys] — every key the generated field metadata refers to, i.e.
+ *    the `@PropertyInfo` labels, tooltips and enum value labels of all entities. A new field of an
+ *    entity brings its label along without anything being edited here.
+ * 2. [NextI18nKeyScanner] — the keys the sources of projectforge-next name, in a `t("…")` call, in the
+ *    `…Key` of a page definition or as a namespace of `useTranslations`.
+ * 3. [PREFIXES] — the key families the frontend builds at runtime, where no scan can see the key: the
+ *    markers of the validation, the operation names of a history entry, the status of a background job.
+ *
+ * Only keys the bundle actually knows are written, so the first two sources may over-deliver: an unused
+ * line in the catalog is cheap, a missing text shows the raw key on the screen. Whatever stays
+ * unresolved is reported (see [unresolvedKeys]) — for a page definition that is the typo check.
  *
  * Output goes to `messages/generated.<locale>.json`, kept separate from the hand-written catalogs
  * so frontend-only texts (e.g. `login.username`, which has no backend counterpart) survive.
@@ -68,140 +81,50 @@ object GenerateNextI18nMessagesMain {
   private val LOCALES = mapOf("en" to "", "de" to "_de")
 
   /**
-   * Key prefixes to export. Everything matching lands in the catalog under its dotted path.
-   * Prefixes without a dot match a single top-level key.
+   * Key prefixes of the families the frontend builds at runtime, where neither the entity metadata nor a
+   * scan of the sources can name the key: the message belongs to a value the server sends or to a marker a
+   * component maps. Everything a page spells out is found by [NextI18nKeyScanner] and does not belong here.
+   *
+   * Everything matching lands in the catalog under its dotted path; a prefix without a trailing dot
+   * matches the bare key as well, which then lands under the reserved "_" (see [JsonNode.put]).
    */
   private val PREFIXES = listOf(
-    "book.",
-    // Cost units (Kost1PagesRest, category cost1): the field labels of Kost1DO, the status of a cost
-    // unit and the errors its DAO refuses a write with (fibu.kost.error.*). Deliberately not the whole
-    // "fibu." tree — that is ~500 keys of invoices, orders and accounting, none of which next shows.
-    // Without the dot on "fibu.kost1", so the bare key exports too: it titles the number column and
-    // lands under "fibu.kost1._" (see JsonNode.put), its own subtree making it a namespace.
-    "fibu.kost1",
-    "fibu.kost.",
-    // Without the trailing digit, so the menu parent of the cost pages exports too: the cost 1 list
-    // sits under Finance > Cost (MenuItemDefId.COST), and that heading is what its page shows above
-    // its title. Brings the sibling entries (kost2, kost2arten, kostSearch) along, which is four keys.
-    "menu.fibu.kost",
-    // Without the dot, so the bare "columns" key exports too (as "columns._", see JsonNode.put).
-    "columns",
+    // Answers of a write: the generic success messages and the field errors, mapped from the markers of
+    // lib/validation/markers.ts by components/shared/form/use-field-errors.ts.
+    "message.successfull",
+    "validation.error.",
+    // Rules of a period of performance, reported by key at the date field they belong to (see
+    // PeriodOfPerformanceValidator.END_BEFORE_BEGIN_MESSAGE_KEY).
+    "error.endDateBeforeBeginDate",
+    "error.posFromDateBeforeFromDate",
+    // Errors a DAO refuses a write with, reported by key.
+    "fibu.kost.error.",
+    // Change history: the entry texts and the operation names the backend puts into
+    // DisplayHistoryEntry.operation / diffSummary.
+    "history.",
+    "operation.",
+    // Background jobs the frontend watches (components/shared/jobs/): the status names of a JobInfo.
+    "jobs.",
+    // List filters: the chrome of the filter bar and the quick-select periods of the history filter
+    // (components/data-table/history-interval-presets.ts builds search.lastMinutes & co. from a unit).
     "filter.",
-    "created",
-    "modified",
-    // Label of the combined history filter's period ("Änderungszeitraum"). Not covered by
-    // "modified" — the key is modificationTime.
-    "modificationTime",
-    // Quick-select periods of that filter (components/data-table/history-interval-presets.ts):
-    // search.lastMinute(s), lastHour(s), lastDay(s). Deliberately not the whole "search." tree —
-    // search.string.info and search.lucene.expression are long help blobs next never shows.
+    "favorite",
     "search.last",
     "search.today",
     "search.sinceYesterday",
-    // Field labels shared by many entities, as their @PropertyInfo names them: BookDO.comment,
-    // BookDO.status, BookDO.lendOutDate ("date"). Without the dot, so the bare "date" key exports
-    // too — as "date._", since its own subtree (date.begin, date.end …) makes it a namespace.
-    // "dateFormat" comes along for the ride, as "deleted" does with "delete".
-    "comment",
-    "status",
-    "date",
-    // Wait indicator, e.g. while a column filter builds its value list.
-    "loading",
-    // The popovers of a date and a time input (components/shared/date-input.tsx,
-    // components/shared/time-input.tsx). Only these keys, not the whole "calendar." tree — that one
-    // holds the holiday names and the calendar module's own texts, none of which next shows.
-    "calendar.chooseDate",
-    "calendar.chooseTime",
-    "calendar.today",
-    // Generic button labels. "delete" also matches "deleted" — harmless, and the alternative is
-    // spelling out every key that happens to share a prefix.
-    "apply",
-    "delete",
-    "markAsDeleted",
-    "undelete",
-    "save",
-    "name",
-    "rename",
-    // Clears a select back to no value (SelectField in book-edit-fields).
-    "reset",
-    // Attachments of an entity: the list, its hints and the errors an upload is refused with
-    // (see components/shared/attachments/). "edit" and "download" are the row actions,
-    // "description" the second editable field of an attachment (Attachment.description).
-    // Without the dot, so the bare "attachment" key exports too (as "attachment._"): it titles the
-    // detail dialog. "copy" is the checksum's copy button, which the legacy layout marks canCopy.
-    "attachment",
-    "copy",
+    // Column chooser and the column titles the data table asks for by name.
+    "columns",
+    // Zip mode of an attachment, whose value names its own key
+    // (components/shared/attachments/attachment-metadata.tsx).
+    "attachment.zip.",
+    // Errors an upload is refused with, reported by key.
     "file.upload.",
-    // Multi-selection of attachments: the row checkboxes ("select") and the select-all one
-    // ("selectAll"). Without the dot, so the bare "select" key exports too — as "select._", since
-    // select.placeholder makes it a namespace. selectDate/selectGroup/selectTask come along.
-    "select",
-    "edit",
-    "download",
-    "description",
-    // Deleting an attachment is final — the JCR keeps no history of removed files, so this is the
-    // irreversible question, not markAsDeletedQuestion.
-    "question.deleteQuestion",
-    "uptodate",
-    // Cell renderers of the data table: boolean ticks read "yes"/"no" as their accessible name,
-    // the rating stars "rating", the tree cell "expand"/"collapse". "no" also matches
-    // "nothingFound" (exported anyway), "notEnded", "notLoggedIn", "notVisible".
-    "yes",
-    "no",
-    "rating",
-    "expand",
-    "collapse",
-    // Consumption bar (task lists) and the attachment column's icon-only header.
-    "task.consumption",
-    "attachments.short",
-    // Confirmation before an entity is marked as deleted, plus the generic messages the server
-    // answers a write with (message.successfull*, validation.error.*).
-    "question.markAsDeletedQuestion",
-    // Change history of an entity: the tab's title, the entry texts and the operation names the
-    // backend puts into DisplayHistoryEntry.operation / diffSummary.
-    "label.historyOfChanges",
-    "history.",
-    "operation.",
-    "changes",
-    "nothingFound",
-    "message.successfull",
-    "validation.error.",
-    // Saved list filters. Without the dot so the bare "favorite"/"favorites" keys export too.
-    "favorite",
-    // Start page (app/(authenticated)/page-client.tsx): the greeting and the labels of the two
-    // links it offers (website, sources).
-    "index.",
-    // Top navigation. Not the whole "menu." tree: the entry titles come translated from /rs/menu,
-    // only the chrome around them needs its own texts.
-    "menu.main.title",
-    "menu.favorites.more",
-    "menu.myAccount",
-    // Category above a list page's heading, e.g. "Common / Books" — the entry's menu parent.
-    "menu.common",
-    // The way back to the page's legacy version (see LegacyPageLink). One key, written for the
-    // Wicket -> React migration and reused verbatim for React -> next: it names the older version
-    // of the page at hand, whichever that is.
-    "goreact.menu.classics",
-    // Gear menu of a list page (see ListGearMenu). Without the dot so the tooltip subkeys come
-    // along; the bare title then lands under "_" (see JsonNode.put).
-    "settings",
-    "menu.reindexNewestDatabaseEntries",
-    "menu.reindexAllDatabaseEntries",
-    "menu.resetFilter",
-    // Background jobs the frontend watches (see components/shared/jobs/): status names, the cancel
-    // question and the error a refused job carries. The progress texts themselves come translated
-    // from the server in JobInfo, but the toast around them is the frontend's.
-    "jobs.",
-    // Authentication (login, 2FA, password reset). Only the keys the frontend can show —
-    // user.My2FA.setup.* holds long markdown blobs of the setup page, which next doesn't have.
-    "cancel",
-    "login", // login (the button label), login.title, login.error.* …
-    "password", // password, passwordRepeat and password.forgotten/reset.*
-    "username",
-    "user.My2FA.expired",
-    "user.My2FA.required",
+    // Status names of the structure tree filter, sent as enum values.
+    "task.status.",
+    // Two factor authentication and webauthn: the code channels and the errors the browser API answers
+    // with, both named by their value. Not user.My2FA.setup.* — long markdown blobs of a page next
+    // doesn't have.
     "user.My2FACode.",
-    "user.changePassword.",
     "webauthn.error.",
     "webauthn.registration.button.",
   )
@@ -215,6 +138,67 @@ object GenerateNextI18nMessagesMain {
       outFile.writeText(json, ENCODING)
       println("Wrote ${outFile.path}")
     }
+    unresolvedKeys(rootDir).let { unresolved ->
+      if (unresolved.isNotEmpty()) {
+        println("Not found in the bundle (${unresolved.size} keys): ${unresolved.joinToString()}")
+      }
+    }
+  }
+
+  /**
+   * The keys the entity metadata and the sources of projectforge-next name that neither the bundle nor the
+   * hand-written catalogs know. Not an error: most of them are the keys of the plugins, which keep their own
+   * resource bundles this generator doesn't read (see `SortAndCheckI18nPropertiesMain.FILES`), and some are
+   * no keys at all (`ContractDO` declares `i18nKey = "'C-"`, a literal prefix).
+   *
+   * Worth a look nevertheless — a key of a page definition in here is a typo, and the page will show it
+   * verbatim instead of its text.
+   */
+  internal fun unresolvedKeys(rootDir: File): List<String> {
+    val known = readProperties(rootDir, "").stringPropertyNames() + handWrittenKeys(rootDir)
+    // A key that is a namespace of known keys counts as known: it may name the subtree a select reads its
+    // labels from (fibu.periodOfPerformance.type) or the namespace a component translates in.
+    val namespaces = known.mapTo(mutableSetOf()) { it.substringBeforeLast('.') }
+    val isKnown = { key: String -> key in known || key in namespaces }
+    val fromEntities = GenerateNextFieldMetadataMain.i18nKeys().filterNot(isKnown)
+    val fromFrontend = NextI18nKeyScanner.scanUnknownKeys(rootDir, isKnown)
+    return (fromEntities + fromFrontend).distinct().sorted()
+  }
+
+  /**
+   * The dotted keys of the hand-written catalogs (`messages/en.json`, `messages/de.json`), which hold the
+   * texts of the frontend itself (`books.searchPlaceholder`, `table.*`) — no backend counterpart to miss.
+   *
+   * Parsed, not matched by a regex: the values are ICU messages and carry braces of their own
+   * (`"Last saved: {time}"`), which no brace counting can tell from the nesting.
+   */
+  private fun handWrittenKeys(rootDir: File): Set<String> {
+    val keys = mutableSetOf<String>()
+    LOCALES.keys.forEach { locale ->
+      val file = File(rootDir, "$OUT_DIR/$locale.json")
+      if (file.exists()) {
+        collectKeys(ObjectMapper().readTree(file.readText(ENCODING)), "", keys)
+      }
+    }
+    return keys
+  }
+
+  /**
+   * Adds the dotted path of every leaf of [node] to [keys], plus the path of the node itself: a namespace
+   * of the hand-written catalog may well be the counterpart of a bare key of the bundle.
+   */
+  private fun collectKeys(node: JsonNodeJackson, path: String, keys: MutableSet<String>) {
+    if (path.isNotEmpty()) {
+      keys.add(path)
+    }
+    node.fields().forEach { (name, child) ->
+      val childPath = if (path.isEmpty()) name else "$path.$name"
+      if (child.isObject) {
+        collectKeys(child, childPath, keys)
+      } else {
+        keys.add(childPath)
+      }
+    }
   }
 
   /**
@@ -225,11 +209,21 @@ object GenerateNextI18nMessagesMain {
    */
   internal fun generate(rootDir: File): Map<String, String> {
     val defaults = readProperties(rootDir, "")
-    val exported = defaults.stringPropertyNames()
-      .filter { key -> PREFIXES.any { key.startsWith(it) } }
+    val bundleKeys = defaults.stringPropertyNames()
+    val requested = GenerateNextFieldMetadataMain.i18nKeys() + NextI18nKeyScanner.scan(rootDir)
+    // A key the frontend asks for as "<key>._" needs its subtree exported too, otherwise the catalog holds a
+    // plain string where the frontend expects a namespace (see NextI18nKeyScanner.scanSubtreePrefixes).
+    val prefixes = PREFIXES + NextI18nKeyScanner.scanSubtreePrefixes(rootDir)
+    val exported = (requested.filter { it in bundleKeys } +
+        bundleKeys.filter { key -> prefixes.any { key.startsWith(it) } })
+      .distinct()
       .sorted()
 
-    require(exported.isNotEmpty()) { "No keys matched $PREFIXES — check the prefixes." }
+    require(exported.isNotEmpty()) { "No keys matched — check the key sources." }
+    // A prefix that matches nothing is a typo the catalog wouldn't show.
+    PREFIXES.forEach { prefix ->
+      require(exported.any { it.startsWith(prefix) }) { "No key starts with '$prefix' — check PREFIXES." }
+    }
 
     return LOCALES.entries.associate { (locale, suffix) ->
       val properties = if (suffix.isEmpty()) defaults else readProperties(rootDir, suffix)

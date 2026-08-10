@@ -93,11 +93,7 @@ object GenerateNextFieldMetadataMain {
    */
   @Suppress("UNUSED_PARAMETER")
   internal fun generate(rootDir: File): Map<String, String> {
-    val entities = Reflections(SCAN_PACKAGE).getTypesAnnotatedWith(Entity::class.java)
-      .filterNot { it.name in SKIP }
-      .sortedBy { it.name }
-    require(entities.isNotEmpty()) { "No @Entity classes found in '$SCAN_PACKAGE' — is the classpath complete?" }
-
+    val entities = entityClasses()
     val result = sortedMapOf<String, String>()
     val fileOwners = mutableMapOf<String, String>() // file name -> class that claimed it
     val skipped = mutableListOf<String>()
@@ -134,6 +130,46 @@ object GenerateNextFieldMetadataMain {
       println("Not exported (${skipped.size} properties): ${skipped.joinToString()}")
     }
     return result
+  }
+
+  /**
+   * All entity classes this generator writes metadata for, sorted by name. Shared with
+   * [GenerateNextI18nMessagesMain], so both generators can't disagree about which entities exist.
+   */
+  internal fun entityClasses(): List<Class<*>> {
+    val entities = Reflections(SCAN_PACKAGE).getTypesAnnotatedWith(Entity::class.java)
+      .filterNot { it.name in SKIP }
+      .sortedBy { it.name }
+    require(entities.isNotEmpty()) { "No @Entity classes found in '$SCAN_PACKAGE' — is the classpath complete?" }
+    return entities
+  }
+
+  /**
+   * Every i18n key the metadata of [entityClasses] refers to: the label of a property, its second label
+   * (`@PropertyInfo.additionalI18nKey`), its tooltip and - for an enum property - the label of each of its
+   * constants. So [GenerateNextI18nMessagesMain] exports exactly the texts the generated metadata names,
+   * without a hand-kept list of its own.
+   *
+   * Includes the keys of properties [buildField] skips (a collection, a foreign DO): a page is free to label
+   * such a field itself, and one key too many costs a line in the catalog.
+   *
+   * Not every value is a key - `ContractDO.number` e.g. declares `i18nKey = "'C-"`, a literal prefix. The
+   * caller drops whatever the bundle doesn't know.
+   */
+  internal fun i18nKeys(): Set<String> {
+    val keys = mutableSetOf<String>()
+    entityClasses().forEach { clazz ->
+      ElementsRegistry.listProperties(clazz).forEach { property ->
+        val elementInfo = ElementsRegistry.getElementInfo(clazz, property) ?: return@forEach
+        keys.addAll(listOfNotNull(elementInfo.i18nKey, elementInfo.additionalI18nKey, elementInfo.tooltipI18nKey))
+        if (elementInfo.propertyClass.isEnum) {
+          elementInfo.propertyClass.enumConstants?.forEach { constant ->
+            (constant as? I18nEnum)?.i18nKey?.let { keys.add(it) }
+          }
+        }
+      }
+    }
+    return keys
   }
 
   internal fun outFile(rootDir: File, fileName: String) = File(rootDir, "$OUT_DIR/$fileName")
