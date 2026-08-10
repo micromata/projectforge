@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
-import { TaskTreePanel } from "@/components/features/tasks/task-tree-panel";
+import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
 import { useInitialList } from "@/hooks/use-initial-list";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
