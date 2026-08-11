@@ -85,10 +85,12 @@ class Kost1DtoTest : AbstractTestBase() {
         val dto = Kost1()
         dto.copyFrom(kost1DO)
         // KostFormatter.FormatType.TEXT wraps the translated status in asterisks and puts it before the
-        // description. The status word itself is the test locale's, so only the shape is asserted here.
+        // description. The status word itself is the test locale's, so only the shape is asserted here —
+        // and only up to the description, because the whole thing is then cut at ABBREVIATION_LENGTH (30)
+        // and how much of the description survives depends on the length of that locale's status word.
         val displayName = dto.displayName!!
         assertTrue(
-            displayName.matches(Regex("""6\.100\.01\.02: \*\S+\* Ended one""")),
+            displayName.matches(Regex("""6\.100\.01\.02: \*\S+\* \S+.*""")),
             "Expected the status in asterisks before the description, but got '$displayName'.",
         )
     }
