@@ -155,6 +155,14 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     auftrag.vollstaendigFakturiertWriteAccess = orderAccessChecker.hasLoggedInUserRight(
       RechnungDao.USER_RIGHT_ID, false, UserRightValue.READWRITE
     )
+    if (!editMode) {
+      // The list shows sums and a position *count*, never a position itself - and `copyFrom` has already
+      // derived those. Carrying the two collections regardless made `initialList` answer 26 MB in 99
+      // seconds for ~7000 orders (each position drags its task along, and each task its parents), which
+      // the list page spends waiting: it holds itself back until the remembered filter has arrived.
+      auftrag.positionen = null
+      auftrag.paymentSchedules = null
+    }
     if (obj.id == null) {
       return auftrag
     }

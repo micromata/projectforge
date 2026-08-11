@@ -19,7 +19,7 @@ interface ProjectDetail {
  * The project, the customer and the free-text customer of an order — three fields that only make sense
  * together.
  *
- * Custom rather than declared, twice over: `kunde` and `projekt` reference `KundeDO`/`ProjektDO`, for
+ * Custom rather than declared, twice over: `customer` and `project` reference `KundeDO`/`ProjektDO`, for
  * which there is no `UIDataType`, so the generated metadata cannot carry them however the entity is
  * annotated (hence `metadataLess`); and picking a project fills in what the project knows — its
  * customer and its three managers — which is a rule between fields, not a property of one.
@@ -42,7 +42,7 @@ export function CustomerProjectFields({ className }: { className?: string }) {
     fillIfEmpty("headOfBusinessManager", detail.headOfBusinessManager);
     fillIfEmpty("salesManager", detail.salesManager);
     if (!form.getFieldValue("kundeText")) {
-      fillIfEmpty("kunde", detail.customer);
+      fillIfEmpty("customer", detail.customer);
     }
   }
 
@@ -54,7 +54,7 @@ export function CustomerProjectFields({ className }: { className?: string }) {
   return (
     <>
       <EntityAutocompleteField
-        name="projekt"
+        name="project"
         label={t("fibu.projekt._")}
         entity="project"
         metadataLess
@@ -62,7 +62,7 @@ export function CustomerProjectFields({ className }: { className?: string }) {
         onPicked={(project) => void fillFromProject(project)}
       />
       <EntityAutocompleteField
-        name="kunde"
+        name="customer"
         label={t("fibu.kunde._")}
         entity="customer"
         metadataLess

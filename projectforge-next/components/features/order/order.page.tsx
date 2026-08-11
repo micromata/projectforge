@@ -55,15 +55,17 @@ export const ORDER_PAGE = definePage<
   columns: [
     { name: "nummer", size: 80, className: "font-semibold" },
     {
+      // Sorted on the server by the entity's property path, which is `kunde`, while the row carries the
+      // DTO's name — the two differ here (see Auftrag.copyTo).
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
-      accessor: (row) => row.kunde?.displayName ?? "",
+      accessor: (row) => row.customer?.displayName ?? "",
       size: 160,
     },
     {
       id: "projekt.displayName",
       labelKey: "fibu.projekt._",
-      accessor: (row) => row.projekt?.displayName ?? "",
+      accessor: (row) => row.project?.displayName ?? "",
       size: 160,
     },
     // No link in the cell: the whole row navigates to the edit page.

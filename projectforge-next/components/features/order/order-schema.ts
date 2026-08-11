@@ -22,9 +22,10 @@ const p = fromMetadata(AUFTRAGS_POSITION_METADATA);
 const s = fromMetadata(PAYMENT_SCHEDULE_METADATA);
 
 /**
- * A referenced entity the *order's* metadata has no field for: `kunde` and `projekt` are `KundeDO` and
- * `ProjektDO`, for which there is no `UIDataType`, so `ElementsRegistry` never reports them and the
- * generator cannot carry them (see UIDataTypeUtils). Written by id like every other reference.
+ * A referenced entity the *order's* metadata has no field for: the customer and the project are
+ * `KundeDO` and `ProjektDO`, for which there is no `UIDataType`, so `ElementsRegistry` never reports
+ * them and the generator cannot carry them (see UIDataTypeUtils). Written by id like every other
+ * reference — and under the DTO's names `customer`/`project`, not the entity's `kunde`/`projekt`.
  */
 const entityRef = z
   .looseObject({ id: z.number(), displayName: z.string().optional() })
@@ -78,9 +79,9 @@ export const orderSchema = z.object({
   titel: m.requiredString("titel"),
   referenz: m.nullableString("referenz"),
   status: m.enumField("status"),
-  kunde: entityRef,
+  customer: entityRef,
   kundeText: m.nullableString("kundeText"),
-  projekt: entityRef,
+  project: entityRef,
   contactPerson: m.entityField("contactPerson"),
   projectManager: m.entityField("projectManager"),
   headOfBusinessManager: m.entityField("headOfBusinessManager"),

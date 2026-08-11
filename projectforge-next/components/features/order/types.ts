@@ -108,9 +108,11 @@ export interface OrderDetail {
   titel?: string | null;
   referenz?: string | null;
   status?: AuftragsStatus | null;
-  kunde?: EntityRefDto | null;
+  // `customer`/`project` as the DTO names them, not `kunde`/`projekt` as the entity does — the JSON
+  // carries the DTO's names, and `Auftrag.copyTo` is what maps them back (see its comment there).
+  customer?: EntityRefDto | null;
   kundeText?: string | null;
-  projekt?: EntityRefDto | null;
+  project?: EntityRefDto | null;
   contactPerson?: EntityRefDto | null;
   projectManager?: EntityRefDto | null;
   headOfBusinessManager?: EntityRefDto | null;
