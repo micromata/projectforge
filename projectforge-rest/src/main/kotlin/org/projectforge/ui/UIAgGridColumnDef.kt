@@ -87,6 +87,17 @@ open class UIAgGridColumnDef(
 
     var tooltipField: String? = null
 
+    /**
+     * Optional field path of the row's json used for **sorting** this column instead of the
+     * displayed value. Useful for columns displaying pre-formatted strings
+     * (e. g. "11.08.2026 09:00-11:30"), which would otherwise be sorted alphanumerically.
+     * The displayed value ([field] / [valueGetter]) isn't affected.
+     *
+     * Please note: [LayoutContext.idPrefix] is **not** applied. Always specify the full path as
+     * it appears in the row's json, e. g. "timesheet.startTime".
+     */
+    var sortField: String? = null
+
     var suppressSizeToFit: Boolean? = null
 
     /**
@@ -297,6 +308,7 @@ open class UIAgGridColumnDef(
             cellRenderer: String? = null,
             resizable: Boolean? = null,
             pinnedAndLocked: Orientation? = null,
+            sortField: String? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 null,
@@ -315,6 +327,7 @@ open class UIAgGridColumnDef(
                 cellRenderer = cellRenderer,
                 resizable = resizable,
                 pinnedAndLocked = pinnedAndLocked,
+                sortField = sortField,
             )
         }
 
@@ -336,6 +349,7 @@ open class UIAgGridColumnDef(
             autoHeight: Boolean? = wrapText,
             valueIconMap: Map<Any, UIIconType?>? = null,
             tooltipField: String? = null,
+            sortField: String? = null,
         ): UIAgGridColumnDef {
             return createCol(
                 lc,
@@ -351,6 +365,7 @@ open class UIAgGridColumnDef(
                 autoHeight = autoHeight,
                 valueIconMap = valueIconMap,
                 tooltipField = tooltipField,
+                sortField = sortField,
             )
         }
 
@@ -384,6 +399,7 @@ open class UIAgGridColumnDef(
             pinnedAndLocked: Orientation? = null,
             headerClass: Array<String>? = null,
             suppressSizeToFit: Boolean? = null,
+            sortField: String? = null,
         ): UIAgGridColumnDef {
             val col = UIAgGridColumnDef(
                 field,
@@ -404,6 +420,9 @@ open class UIAgGridColumnDef(
             }
             if (tooltipField != null) {
                 col.tooltipField = tooltipField
+            }
+            if (sortField != null) {
+                col.sortField = sortField
             }
             if (minWidth != null) {
                 col.minWidth = minWidth

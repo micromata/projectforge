@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router';
 import { DynamicLayoutContext } from '../../context';
 import { getServiceURL } from '../../../../../utilities/rest';
-import { buildColumnDefs, modifyRedirectUrl, DataTableColumnDef } from './tanstack/tableUtils';
+import { buildColumnDefs, createValueComparator, modifyRedirectUrl, DataTableColumnDef } from './tanstack/tableUtils';
 import TanStackPagination from './tanstack/TanStackPagination';
 import TanStackColumnPanel from './tanstack/TanStackColumnPanel';
 import TanStackColumnFilter from './tanstack/TanStackColumnFilter';
@@ -192,6 +192,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         paginationPageSizeSelector,
         getRowClass,
         highlightId,
+        userLocale,
     } = props;
 
     const { data, variables, callAction } = React.useContext(DynamicLayoutContext);
@@ -210,7 +211,15 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         || (id ? ((Object as any).getByString(data, id) || (Object as any).getByString(variables, id)) : undefined)
         || EMPTY_ROW_DATA;
 
-    const baseColumns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
+    const collator = useMemo(
+        () => new Intl.Collator(userLocale || undefined, { numeric: true }),
+        [userLocale],
+    );
+    const compareValues = useMemo(() => createValueComparator(collator), [collator]);
+    const baseColumns = useMemo(
+        () => buildColumnDefs(columnDefs || [], compareValues),
+        [columnDefs, compareValues],
+    );
 
     // Initialize sorting from sortModel
     const initialSorting: SortingState = useMemo(() => {
