@@ -186,6 +186,27 @@ export function fetchOne<O>(
   return request<O>(`/rs/${entity}/${id}`, { method: "GET" }, signal);
 }
 
+/**
+ * The entity an "add" starts from, as the backend presets it: `AuftragPagesRest.newBaseDTO` puts today
+ * into the three dates of a new order, the logged-in project manager in as contact person and
+ * `IN_ERSTELLUNG` as its status — and `AuftragDao` refuses to save an order without one.
+ *
+ * `{entity}/edit` without an id is the endpoint that answers it (`AbstractPagesRest.getItemAndLayout`
+ * calls `newBaseDTO` when the id is missing). Only `data` is taken from the answer: the `ui` beside it
+ * is the server-rendered layout, which a hand-built page has no use for.
+ */
+export async function fetchNew<O>(
+  entity: string,
+  signal?: AbortSignal
+): Promise<O> {
+  const answer = await request<{ data: O }>(
+    `/rs/${entity}/edit`,
+    { method: "GET" },
+    signal
+  );
+  return answer.data;
+}
+
 // Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the
 // ResponseAction protocol, where 406 carries the validation errors, so they need the raw
 // Response rather than request()'s parsed body.

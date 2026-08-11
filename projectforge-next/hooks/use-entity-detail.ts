@@ -6,7 +6,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { fetchOne } from "@/lib/rs/client";
+import { fetchNew, fetchOne } from "@/lib/rs/client";
 import {
   markEntityAsDeleted,
   postEntityAction,
@@ -25,12 +25,26 @@ interface WriteOptions {
   listQueryKey: readonly unknown[];
 }
 
-/** id null = an entry being added, which has nothing to load yet. */
+/**
+ * The entity being edited, or — for id null — the preset one an "add" starts from.
+ *
+ * A new entry is loaded too, rather than starting from the form's own defaults: what a fresh entity
+ * looks like is the backend's decision (`newBaseDTO`), and an order in particular cannot be saved
+ * without the status it presets there. The two cases share the query so the form's reset path is the
+ * same for both.
+ */
 export function useEntityDetail<T>(entity: string, id: number | null) {
+  const isNew = id == null;
   return useQuery<T>({
     queryKey: [entity, id],
-    queryFn: ({ signal }) => fetchOne<T>(entity, id!, signal),
-    enabled: id != null && Number.isFinite(id) && id > 0,
+    queryFn: ({ signal }) =>
+      isNew ? fetchNew<T>(entity, signal) : fetchOne<T>(entity, id, signal),
+    enabled: isNew || (Number.isFinite(id) && id > 0),
+    // A preset is a starting point, not shared state: refetching it would overwrite a form the user
+    // has already begun to fill in.
+    staleTime: isNew ? Infinity : undefined,
+    refetchOnMount: isNew ? false : undefined,
+    refetchOnWindowFocus: isNew ? false : undefined,
   });
 }
 

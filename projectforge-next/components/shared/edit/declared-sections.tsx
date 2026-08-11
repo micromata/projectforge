@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
+import { DatePeriodField } from "@/components/shared/form/date-period-field";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NumberField } from "@/components/shared/form/number-field";
@@ -46,7 +47,7 @@ export function DeclaredSection<M extends EntityMetadata>({
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
           {section.fields?.map((field) => (
             <DeclaredFormField
-              key={"name" in field ? field.name : field.custom.name}
+              key={fieldKey(field)}
               field={field}
               metadata={metadata}
             />
@@ -55,6 +56,12 @@ export function DeclaredSection<M extends EntityMetadata>({
       )}
     </SectionCard>
   );
+}
+
+function fieldKey<M extends EntityMetadata>(field: FieldDeclaration<M>) {
+  if ("custom" in field) return field.custom.name;
+  if ("begin" in field) return field.begin;
+  return field.name;
 }
 
 function DeclaredFormField<M extends EntityMetadata>({
@@ -73,12 +80,32 @@ function DeclaredFormField<M extends EntityMetadata>({
     return <Custom className={className} />;
   }
 
+  const translate = t as unknown as ((key: string) => string) & {
+    has: (key: string) => boolean;
+  };
+
+  if ("begin" in field) {
+    // The two ends keep the labels of their own fields ("Leistungszeitraum von"/"… bis"): they name
+    // the boxes for a screen reader and carry any error the backend puts on one of them, while the
+    // legend above says the period once.
+    const bound = (name: string) => ({
+      name,
+      label: translate(labelKeyFor(metadata, name, translate.has)),
+    });
+    return (
+      <DatePeriodField
+        label={translate(field.periodLabelKey)}
+        begin={bound(field.begin)}
+        end={bound(field.end)}
+        hint={field.hintKey ? translate(field.hintKey) : undefined}
+        className={className}
+      />
+    );
+  }
+
   const meta: FieldMetadata = metadata.fields[field.name] ?? {
     dataType: "STRING",
     required: false,
-  };
-  const translate = t as unknown as ((key: string) => string) & {
-    has: (key: string) => boolean;
   };
   const label = translate(
     labelKeyFor(metadata, field.name, translate.has, field.labelKey)
@@ -104,11 +131,22 @@ function DeclaredFormField<M extends EntityMetadata>({
   if (meta.dataType === "BOOLEAN") {
     return <CheckboxField {...common} />;
   }
-  if (meta.dataType === "AMOUNT" || meta.dataType === "DECIMAL") {
-    // The currency behind the box comes from the user's settings, never from a text here.
+  if (
+    meta.dataType === "AMOUNT" ||
+    meta.dataType === "DECIMAL" ||
+    meta.dataType === "INT"
+  ) {
+    // A number is held as one, so it needs the number box even where it has no decimals: a plain text
+    // input would put the string "50" into a field the schema declares as `z.number()`, which fails
+    // validation on a value the user typed correctly.
     return (
       <NumberField
         {...common}
+        disabled={field.readOnly}
+        fractionDigits={meta.dataType === "INT" ? 0 : undefined}
+        maxDigits={field.maxDigits}
+        align={field.alignNumber}
+        // The currency behind the box comes from the user's settings, never from a text here.
         suffix={meta.dataType === "AMOUNT" ? format.currency : undefined}
       />
     );

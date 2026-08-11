@@ -75,7 +75,14 @@ export const paymentScheduleSchema = z.object({
 export const orderSchema = z.object({
   // null while the order is new — Spring assigns the id, and `nummer` on the first save.
   id: z.number().nullable(),
-  nummer: m.intField("nummer"),
+  /**
+   * Not `m.intField("nummer")`, the one rule deliberately taken away from the metadata: the column is
+   * `nullable = false`, so the entity reports it as mandatory, but the form can never supply it —
+   * `AuftragPagesRest.transformForDB` assigns it from `AuftragDao.getNextNumber` when it is missing.
+   * Validating it here would refuse to save any new order. The field is read-only in the form for the
+   * same reason.
+   */
+  nummer: z.number().nullable(),
   titel: m.requiredString("titel"),
   referenz: m.nullableString("referenz"),
   status: m.enumField("status"),

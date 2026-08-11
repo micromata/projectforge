@@ -156,7 +156,7 @@ export const ORDER_PAGE = definePage<
         fields: [
           // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never changed
           // afterwards — but shown, because it is how an order is referred to in every conversation.
-          { name: "nummer", readOnly: true },
+          { name: "nummer", readOnly: true, maxDigits: 6 },
           { name: "status", emphasized: true },
           { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
           { name: "titel", span: 2 },
@@ -170,9 +170,14 @@ export const ORDER_PAGE = definePage<
           { name: "angebotsDatum" },
           { name: "entscheidungsDatum" },
           { name: "bindungsFrist" },
-          { name: "probabilityOfOccurrence" },
-          { name: "periodOfPerformanceBegin" },
-          { name: "periodOfPerformanceEnd" },
+          // 0 to 100, so three digits are the most it ever shows.
+          { name: "probabilityOfOccurrence", maxDigits: 3 },
+          {
+            // One label, two dates — the way it reads on the paper the order came from.
+            periodLabelKey: "fibu.periodOfPerformance._",
+            begin: "periodOfPerformanceBegin",
+            end: "periodOfPerformanceEnd",
+          },
           { name: "beauftragungsDatum" },
           { name: "beauftragungsBeschreibung", span: 2 },
           { custom: OrderSumsLine, span: 3 },

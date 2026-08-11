@@ -12,6 +12,10 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./e2e",
+  // For every file Playwright transpiles, not only the ones under e2e/ — a spec that imports a page
+  // declaration pulls app code in, and that code has to resolve the same way. See e2e/tsconfig.json
+  // for the one mapping it adds.
+  tsconfig: "./e2e/tsconfig.json",
   // Serially by default: the tests share one backend and one test account, and a parallel run would
   // have them fight over the same entities.
   workers: 1,

@@ -29,8 +29,19 @@ export { expect };
  */
 export async function login(page: Page, returnUrl = "/next/"): Promise<void> {
   const { username, password } = readCredentials();
-  await goto(page, `/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-  await waitForHydration(page);
+  const path = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+  // Reloaded rather than awaited longer: the dev server occasionally serves a truncated chunk
+  // (ERR_CONTENT_LENGTH_MISMATCH), and a page whose script never arrived will not hydrate however
+  // long the test waits. A second request gets a whole one.
+  for (let attempt = 1; ; attempt++) {
+    await goto(page, path);
+    if (await hydrated(page)) break;
+    if (attempt === 3) {
+      throw new Error(
+        "The login page never hydrated. Is the Next dev server still compiling?"
+      );
+    }
+  }
   await page.fill("#username", username);
   await page.fill("#password", password);
   await page.locator('button[type="submit"]').click();
@@ -60,6 +71,13 @@ export async function waitForHydration(page: Page): Promise<void> {
     undefined,
     { timeout: 30_000 }
   );
+}
+
+/** The same wait, but as an answer rather than a failure — for the login's reload retry. */
+async function hydrated(page: Page): Promise<boolean> {
+  return waitForHydration(page)
+    .then(() => true)
+    .catch(() => false);
 }
 
 /**

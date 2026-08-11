@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar01Icon } from "@hugeicons/core-free-icons";
@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useFormatContext } from "@/hooks/use-format";
+import type { FormatContext } from "@/lib/format";
 import { dateOf, isoOf, todayIso } from "@/lib/date-parse";
 import { useDatePickerLocale } from "./use-date-picker-locale";
 
@@ -57,11 +58,20 @@ export function DateInputCalendar({
     if (asDate) setMonth(asDate);
   }
 
-  function close(next: string | null | undefined) {
-    if (next !== undefined) onChange(next);
-    onOpenChange(false);
-    onPicked();
-  }
+  // The callbacks arrive as inline arrows from [DateInput], i.e. new on every render. Kept in a ref
+  // and called through a stable wrapper, so [MonthGrid]'s memo actually holds — a changing `onPick`
+  // would remount the grid on every render and bring the swallowed first click back (see there).
+  const handlers = useRef({ onChange, onOpenChange, onPicked });
+  // In an effect, not during render: a ref must not be written while rendering, and the calendar can
+  // only be clicked once the render has committed anyway.
+  useEffect(() => {
+    handlers.current = { onChange, onOpenChange, onPicked };
+  }, [onChange, onOpenChange, onPicked]);
+  const close = useCallback((next: string | null | undefined) => {
+    if (next !== undefined) handlers.current.onChange(next);
+    handlers.current.onOpenChange(false);
+    handlers.current.onPicked();
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -91,23 +101,13 @@ export function DateInputCalendar({
           }
         }}
       >
-        <Calendar
-          mode="single"
-          selected={dateOf(value) ?? undefined}
+        <MonthGrid
+          value={value}
           month={month}
           onMonthChange={setMonth}
-          // Clicking the selected day again clears it, as in the legacy picker.
-          onSelect={(date) => close(date ? isoOf(date) : null)}
+          onPick={close}
           locale={pickerLocale}
           weekStartsOn={ctx.weekStartsOn}
-          captionLayout="dropdown"
-          // Today only gets a grey background from the primitive, which is hard to tell from a
-          // hovered day. A ring in the accent colour reads as "here you are" even when another day
-          // is selected; on the selected day itself it sits inside its filled button.
-          classNames={{
-            today:
-              "rounded-(--cell-radius) font-semibold text-primary ring-1 ring-inset ring-primary/70",
-          }}
         />
         <div className="flex gap-1 border-t p-2">
           <Button
@@ -134,3 +134,54 @@ export function DateInputCalendar({
     </Popover>
   );
 }
+
+/**
+ * The month grid, memoized — and the reason it is a component of its own.
+ *
+ * The primitive builds its `components` map inline on every render (`components/ui/calendar.tsx`,
+ * which must not be edited), so React sees new component *types* each time and remounts the whole
+ * grid rather than updating it. Any unrelated re-render of the form therefore replaced every day
+ * button — and when that happened between the mousedown and the mouseup of a click, the browser saw
+ * the two halves on different nodes and fired no click at all: the first pick in the calendar was
+ * swallowed. Memoizing keeps the grid mounted unless the value, the month or the locale really change.
+ *
+ * `selected` is derived here rather than passed in, because a fresh `Date` object per render would
+ * defeat the memo the same way. The ISO string is the prop; the Date stays inside.
+ */
+const MonthGrid = memo(function MonthGrid({
+  value,
+  month,
+  onMonthChange,
+  onPick,
+  locale,
+  weekStartsOn,
+}: {
+  value: string | null | undefined;
+  month: Date;
+  onMonthChange: (month: Date) => void;
+  onPick: (value: string | null) => void;
+  locale: ReturnType<typeof useDatePickerLocale>;
+  weekStartsOn: FormatContext["weekStartsOn"];
+}) {
+  const selected = useMemo(() => dateOf(value) ?? undefined, [value]);
+  return (
+    <Calendar
+      mode="single"
+      selected={selected}
+      month={month}
+      onMonthChange={onMonthChange}
+      // Clicking the selected day again clears it, as in the legacy picker.
+      onSelect={(date) => onPick(date ? isoOf(date) : null)}
+      locale={locale}
+      weekStartsOn={weekStartsOn}
+      captionLayout="dropdown"
+      // Today only gets a grey background from the primitive, which is hard to tell from a hovered
+      // day. A ring in the accent colour reads as "here you are" even when another day is selected;
+      // on the selected day itself it sits inside its filled button.
+      classNames={{
+        today:
+          "rounded-(--cell-radius) font-semibold text-primary ring-1 ring-inset ring-primary/70",
+      }}
+    />
+  );
+});

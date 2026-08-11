@@ -340,3 +340,19 @@
     animation: none;
   }
 }
+
+/*
+ * A number box no wider than the digits it can hold (`NumberField`'s `digits`): an order's number is
+ * six digits, a percentage three, and a box stretched over the whole column of the form suggests room
+ * that isn't there.
+ *
+ * `ch` of the monospace font the numbers are typed in, plus the field's own horizontal padding, plus
+ * the room a suffix takes where there is one ("EUR" behind an amount) — hence variables per instance
+ * rather than a fixed set of Tailwind widths, which cannot be built from a prop. Still `max-width`, so
+ * a narrower column shrinks it further.
+ */
+.number-box-sized {
+  max-width: calc(
+    var(--number-box-digits) * 1ch + 1.75rem + var(--number-box-suffix, 0rem)
+  );
+}

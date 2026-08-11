@@ -84,17 +84,24 @@ export function DateInput({
     }
   }
 
-  /** Reads the text and returns the value that is in effect afterwards. */
+  /**
+   * Reads the text and returns the value that is in effect afterwards.
+   *
+   * Only ever reports a value that differs from the current one. Blur commits too, and a blur happens
+   * in the middle of clicking a day in the calendar: an `onChange` there re-renders the form, which
+   * remounted the calendar between mousedown and mouseup — so the browser saw its two halves on
+   * different nodes and fired no click at all. The first pick was swallowed, the second one worked.
+   */
   function commit(raw: string): string | null {
     if (raw.trim() === "") {
-      onChange(null);
+      if (value != null) onChange(null);
       setText("");
       return null;
     }
     const parsed = parseDateInput(raw, ctx);
     // Not a date: keep the value and put its text back, rather than silently dropping what is there.
     setText(formatDateInput(parsed ?? value, ctx));
-    if (parsed) onChange(parsed);
+    if (parsed && parsed !== value) onChange(parsed);
     return parsed ?? value ?? null;
   }
 
@@ -105,7 +112,15 @@ export function DateInput({
   }
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div
+      className={cn(
+        // A date is ten characters wide and never more, so the field stops growing once it fits one
+        // comfortably instead of stretching over the whole column it sits in. It still shrinks below
+        // that where the space is narrower — a filter popover, the two halves of a DatePeriodField.
+        "flex w-full max-w-52 items-center gap-1",
+        className
+      )}
+    >
       <div className="relative flex-1">
         <Input
           ref={inputRef}

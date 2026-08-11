@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
+import { DatePeriodField } from "@/components/shared/form/date-period-field";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
@@ -134,15 +135,16 @@ export function PositionRow({
         />
         {ownPeriod && (
           <>
-            <InputField
-              name={name("periodOfPerformanceBegin")}
-              label={label("periodOfPerformanceBegin")}
-              type="date"
-            />
-            <InputField
-              name={name("periodOfPerformanceEnd")}
-              label={label("periodOfPerformanceEnd")}
-              type="date"
+            <DatePeriodField
+              label={t("fibu.periodOfPerformance._")}
+              begin={{
+                name: name("periodOfPerformanceBegin"),
+                label: label("periodOfPerformanceBegin"),
+              }}
+              end={{
+                name: name("periodOfPerformanceEnd"),
+                label: label("periodOfPerformanceEnd"),
+              }}
             />
             <SelectField
               name={name("modeOfPaymentType")}

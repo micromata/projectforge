@@ -20,7 +20,9 @@ export function OrderSumsLine({ className }: { className?: string }) {
   const { sums, isLoading } = useOrderSums();
 
   const entries: [string, string][] = [
-    ["fibu.auftrag.nettoSumme", formatCurrency(sums?.netSum, format)],
+    // `._` because the key is a text of its own *and* the parent of `fibu.auftrag.nettoSumme.weighted`,
+    // which the generator can only express as a nested object plus a `_` leaf.
+    ["fibu.auftrag.nettoSumme._", formatCurrency(sums?.netSum, format)],
     [
       "fibu.auftrag.commissioned",
       formatCurrency(sums?.commissionedNetSum, format),

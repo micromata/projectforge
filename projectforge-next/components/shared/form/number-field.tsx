@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Input } from "@/components/ui/input";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumberInput, parseNumberInput } from "@/lib/number-parse";
@@ -24,6 +24,22 @@ export interface NumberFieldProps extends BaseFieldProps {
   /** The currency behind the box, for an amount. Comes from the user's settings, never spelled out. */
   suffix?: string;
   disabled?: boolean;
+  /**
+   * Digits of the widest value this field can hold — the box stops growing there instead of taking the
+   * whole column: an order's number is six digits, a percentage three.
+   *
+   * Not derivable from the metadata: a column's precision is not a digit count, and the range that
+   * bounds a percentage lives in the schema (`probabilityOfOccurrence`), so the declaration says it.
+   */
+  maxDigits?: number;
+  /**
+   * Where the digits sit in the box. Left by default — a form is read down its labels, and a number
+   * pushed to the far end of its box reads as detached from the one naming it.
+   *
+   * The opposite of a *list*, where a column of numbers is compared line by line and therefore aligns
+   * on the right (see the `align` of a column declaration).
+   */
+  align?: "left" | "right";
 }
 
 /**
@@ -42,6 +58,8 @@ export function NumberField({
   fractionDigits,
   suffix,
   disabled,
+  maxDigits,
+  align,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -58,6 +76,7 @@ export function NumberField({
           <FieldShell
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -73,6 +92,8 @@ export function NumberField({
               invalid={invalid}
               disabled={disabled}
               suffix={suffix}
+              maxDigits={maxDigits}
+              align={align}
             />
           </FieldShell>
         );
@@ -95,6 +116,8 @@ function NumberBox({
   invalid,
   disabled,
   suffix,
+  maxDigits,
+  align,
 }: {
   id: string;
   value: number | null;
@@ -104,6 +127,8 @@ function NumberBox({
   invalid: boolean;
   disabled?: boolean;
   suffix?: string;
+  maxDigits?: number;
+  align?: "left" | "right";
 }) {
   const ctx = useFormatContext();
   // `shows` is the number the text stands for: while it equals the value the text is ours and is left
@@ -125,7 +150,21 @@ function NumberBox({
       : formatNumberInput(value, ctx, fractionDigits);
 
   return (
-    <div className="relative">
+    <div
+      className={cn("relative", maxDigits && "number-box-sized")}
+      // The one kind of inline style this project allows: a CSS variable driving a class from
+      // globals.css. A Tailwind arbitrary value cannot be built from a prop — the class would have to
+      // exist in the source for the compiler to emit it.
+      style={
+        maxDigits
+          ? ({
+              "--number-box-digits": maxDigits,
+              // The suffix sits inside the box, so it needs room of its own — the `pr-9` below.
+              "--number-box-suffix": suffix ? "2.25rem" : "0rem",
+            } as CSSProperties)
+          : undefined
+      }
+    >
       <Input
         id={id}
         value={text}
@@ -133,7 +172,11 @@ function NumberBox({
         autoComplete="off"
         disabled={disabled}
         aria-invalid={invalid || undefined}
-        className={cn("text-right font-mono", suffix && "pr-9")}
+        className={cn(
+          "font-mono",
+          align === "right" && "text-right",
+          suffix && "pr-9"
+        )}
         onChange={(e) => {
           const typed = e.target.value;
           const parsed = parseNumberInput(typed, ctx);

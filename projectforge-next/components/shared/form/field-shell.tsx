@@ -50,6 +50,7 @@ export interface FieldMetaState {
 export function FieldShell({
   label,
   required,
+  readOnly,
   hint,
   invalid,
   errors,
@@ -59,6 +60,8 @@ export function FieldShell({
 }: {
   label: string;
   required?: boolean;
+  /** Shown but not fillable — suppresses the asterisk, see below. */
+  readOnly?: boolean;
   hint?: string;
   invalid: boolean;
   errors: string[];
@@ -77,7 +80,11 @@ export function FieldShell({
         className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
       >
         {label}
-        {required && <span className="ml-0.5 text-primary">*</span>}
+        {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
+            number) is mandatory in the database but never the reader's obligation. */}
+        {required && !readOnly && (
+          <span className="ml-0.5 text-primary">*</span>
+        )}
       </FieldLabel>
       {children}
       {hint && !invalid && <FieldDescription>{hint}</FieldDescription>}

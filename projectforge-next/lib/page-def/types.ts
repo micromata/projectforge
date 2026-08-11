@@ -81,8 +81,44 @@ export interface DeclaredField<M extends EntityMetadata> extends FieldBase {
   hintKey?: string;
   /** Renders a textarea of this many rows instead of a single-line input. */
   rows?: number;
+  /**
+   * Digits of the widest value a numeric field can hold, so its box is that wide and no wider — six
+   * for an order's number, three for a percentage. See NumberField's `maxDigits` for why this is
+   * declared rather than derived.
+   */
+  maxDigits?: number;
+  /**
+   * Right-aligns a numeric field's digits, where a form does line up numbers to be compared. The
+   * default is left, like every other field of the form — unlike a *column*, which aligns on the right
+   * (see `align` above and NumberField's own).
+   */
+  alignNumber?: "left" | "right";
   /** Larger and in the accent colour — for the one value a reader looks for first. */
   emphasized?: boolean;
+  /**
+   * Shown but not editable — a value the backend assigns and the user only reads, like an order's
+   * number (`AuftragDao.getNextNumber` on the first save). Hiding it would be worse: it is how an
+   * order is referred to in every conversation.
+   */
+  readOnly?: boolean;
+}
+
+/**
+ * Two date fields of the entity shown as the one value they are: a period, under a single label, both
+ * ends optional (see DatePeriodField).
+ *
+ * A period is not a data type of its own and must not become one: the entity has two `LocalDate`
+ * properties, the metadata reports two dates, and the schema validates two dates. What is shared is
+ * only how they are *shown* — which is exactly what a declaration decides.
+ */
+export interface DatePeriodDeclaration<
+  M extends EntityMetadata,
+> extends FieldBase {
+  /** Label of the period as a whole, e.g. `fibu.periodOfPerformance._`. */
+  periodLabelKey: string;
+  begin: FieldNameOf<M>;
+  end: FieldNameOf<M>;
+  hintKey?: string;
 }
 
 /** A field the declaration cannot describe: a cost number, a keyword picker. */
@@ -92,6 +128,7 @@ export interface CustomField extends FieldBase {
 
 export type FieldDeclaration<M extends EntityMetadata> =
   | DeclaredField<M>
+  | DatePeriodDeclaration<M>
   | CustomField;
 
 /**
