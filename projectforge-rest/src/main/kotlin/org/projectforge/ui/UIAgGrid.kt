@@ -166,6 +166,8 @@ open class UIAgGrid(
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param width
      * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
+     * @param sortField Field path of the row's json to sort this column by (instead of the displayed value),
+     * e. g. "timesheet.startTime" for a column displaying a pre-formatted time period.
      * @return this for chaining.
      */
     fun add(
@@ -180,6 +182,7 @@ open class UIAgGrid(
         tooltipField: String? = null,
         type: UIAgGridColumnDef.Type? = null,
         cellRenderer: String? = null,
+        sortField: String? = null,
     ): UIAgGrid {
         add(
             UIAgGridColumnDef.createCol(
@@ -195,6 +198,7 @@ open class UIAgGrid(
                 tooltipField = tooltipField,
                 type = type,
                 cellRenderer = cellRenderer,
+                sortField = sortField,
             )
         )
         return this
@@ -205,6 +209,8 @@ open class UIAgGrid(
      * @param valueGetter Make only sense, if no multiple fields are given.
      * @param lcField Make only sense, if no multiple fields are given.
      * @param cellRenderer Custom cell renderer name (e.g., "formatter", "diffCell", or null for auto-detection of customized fields)
+     * @param sortField Field path of the row's json to sort this column by (instead of the displayed value).
+     * Make only sense, if no multiple fields are given.
      * @return this for chaining.
      */
     fun add(
@@ -231,6 +237,7 @@ open class UIAgGrid(
         pinnedAndLocked: UIAgGridColumnDef.Orientation? = null,
         headerClass: Array<String>? = null,
         suppressSizeToFit: Boolean? = null,
+        sortField: String? = null,
     ): UIAgGrid {
         columnIds.forEach {
             add(
@@ -258,6 +265,7 @@ open class UIAgGrid(
                     pinnedAndLocked = pinnedAndLocked,
                     headerClass = headerClass,
                     suppressSizeToFit = suppressSizeToFit,
+                    sortField = sortField,
                 )
             )
         }

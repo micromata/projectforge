@@ -25,6 +25,65 @@ export interface DataTableColumnDef {
     wrapText?: boolean;
     autoHeight?: boolean;
     tooltipField?: string;
+    /** Field path in the row's JSON used for sorting instead of the displayed value. */
+    sortField?: string;
+}
+
+// ISO date / timestamp as produced by the backend (LocalDate: yyyy-MM-dd,
+// java.util.Date: yyyy-MM-dd'T'HH:mm:ss.SSS'Z').
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?Z?)?)?$/;
+
+const displayNameOf = (v: unknown): string => (
+    v != null && typeof v === 'object'
+        ? String((v as Record<string, unknown>).displayName ?? '')
+        : String(v ?? '')
+);
+
+/**
+ * Reduces a cell value to a comparable primitive (number, string, or null for blank).
+ * ISO date/timestamp strings are converted to epoch millis so chronological order is preserved
+ * regardless of locale-specific display format.
+ */
+export function toSortPrimitive(value: unknown): number | string | null {
+    if (value == null) return null;
+    if (typeof value === 'number') return Number.isNaN(value) ? null : value;
+    if (typeof value === 'boolean') return value ? 1 : 0;
+    if (value instanceof Date) return value.getTime();
+    if (Array.isArray(value)) {
+        const s = value.map(displayNameOf).filter((x) => x !== '').join(', ');
+        return s === '' ? null : s;
+    }
+    if (typeof value === 'object') {
+        const s = displayNameOf(value).trim();
+        return s === '' ? null : s;
+    }
+    const s = String(value).trim();
+    if (s === '') return null;
+    if (ISO_DATE_RE.test(s)) {
+        const t = Date.parse(s);
+        if (!Number.isNaN(t)) return t;
+    }
+    return s;
+}
+
+/**
+ * Creates a locale-aware comparator using the given Intl.Collator.
+ * Blank/null values always sort last in ascending order (TanStack negates for descending),
+ * matching AG-Grid's former accentedSort behaviour.
+ */
+export function createValueComparator(collator: Intl.Collator): (a: unknown, b: unknown) => number {
+    return (a: unknown, b: unknown): number => {
+        const av = toSortPrimitive(a);
+        const bv = toSortPrimitive(b);
+        if (av === null || bv === null) {
+            if (av === null && bv === null) return 0;
+            return av === null ? 1 : -1;
+        }
+        if (typeof av === 'number' && typeof bv === 'number') {
+            return av === bv ? 0 : (av < bv ? -1 : 1);
+        }
+        return collator.compare(String(av), String(bv));
+    };
 }
 
 export function resolveNestedValue(row: Record<string, unknown>, fieldPath: string): unknown {
@@ -47,7 +106,13 @@ export function evaluateFieldExpression(expression: string, row: Record<string, 
     return resolveNestedValue(row, path);
 }
 
-export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record<string, unknown>>[] {
+const DEFAULT_COLLATOR = new Intl.Collator(undefined, { numeric: true });
+const DEFAULT_COMPARATOR = createValueComparator(DEFAULT_COLLATOR);
+
+export function buildColumnDefs(
+    columns: DataTableColumnDef[],
+    compareValues: (a: unknown, b: unknown) => number = DEFAULT_COMPARATOR,
+): ColumnDef<Record<string, unknown>>[] {
     return columns.map((col) => ({
         id: col.field,
         accessorFn: (row: Record<string, unknown>) => {
@@ -63,6 +128,20 @@ export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record
         enableSorting: col.sortable !== false,
         enableResizing: col.resizable !== false,
         enableHiding: true,
+        // Blank handling is done in compareValues; TanStack's default sortUndefined:1 would
+        // short-circuit before sortingFn is called, inspecting the display value which is
+        // unrelated for sortField columns.
+        sortUndefined: false,
+        sortingFn: (rowA, rowB, columnId) => {
+            const sortField = col.sortField;
+            const a = sortField
+                ? evaluateFieldExpression(sortField, rowA.original)
+                : rowA.getValue(columnId);
+            const b = sortField
+                ? evaluateFieldExpression(sortField, rowB.original)
+                : rowB.getValue(columnId);
+            return compareValues(a, b);
+        },
         meta: {
             field: col.field,
             cellRenderer: col.cellRenderer,
@@ -80,6 +159,7 @@ export function buildColumnDefs(columns: DataTableColumnDef[]): ColumnDef<Record
             type: col.type,
             wrapText: col.wrapText,
             autoHeight: col.autoHeight,
+            sortField: col.sortField,
         },
     }));
 }

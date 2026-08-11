@@ -102,6 +102,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val dayName: String,
         val timePeriod: String,
         val duration: String,
+        /** Duration in millis, used by the client only for sorting the [duration] column. */
+        val durationMillis: Long,
         val aiTimeSavings: String,
         val deleted: Boolean? = null,
     )
@@ -212,6 +214,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 dayName = day?.dayOfWeekAsShortString ?: "??",
                 timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
                 duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+                durationMillis = it.duration,
                 aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
                     AITimeSavings.getFormattedTimeSavedByAI(it)
                 } else "",
@@ -300,8 +303,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         table.add(lc, "task")
             .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)
             .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
-            .add("timePeriod", headerName = "timePeriod", width = 140)
-            .add("duration", headerName = "timesheet.duration", width = 50)
+            .add("timePeriod", headerName = "timePeriod", width = 140, sortField = "timesheet.startTime")
+            .add("duration", headerName = "timesheet.duration", width = 50, sortField = "durationMillis")
         if (baseDao.timeSavingsByAIEnabled) {
             table.add("aiTimeSavings", headerName = "timesheet.ai.timeSavedByAI", width = 50)
         }
