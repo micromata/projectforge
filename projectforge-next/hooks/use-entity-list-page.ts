@@ -17,9 +17,15 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useInitialList } from "@/hooks/use-initial-list";
 
-/** A row of a list, which only has to be addressable by id. */
+/**
+ * A row of a list: addressable by id, and marked as deleted or not.
+ *
+ * `deleted` comes from `BaseDTO` and every entity carries it; it is optional here only because
+ * `JsonInclude.NON_NULL` lets the server omit it for a row that isn't deleted.
+ */
 export interface ListRow {
   id: number;
+  deleted?: boolean;
 }
 
 export interface UseEntityListPageOptions<Row extends ListRow> {

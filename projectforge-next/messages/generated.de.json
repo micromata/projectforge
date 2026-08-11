@@ -245,10 +245,15 @@
       "angebot": {
         "datum": "Angebotsdatum"
       },
+      "auftraege": "Aufträge",
       "beauftragungsBeschreibung": "Beauftragungsbeschreibung",
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "datum": {
+        "_": "Angebotsdatum",
+        "short": "Datum"
+      },
       "entscheidung": {
         "datum": "Entscheidungsdatum"
       },
@@ -256,9 +261,77 @@
         "datum": "Erfassungsdatum"
       },
       "error": {
-        "auftragHatKeinePositionen": "Der Auftrag hat keine Auftragspositionen."
+        "amountsInPaymentScheduleAreGreaterThanNetSumOfPosition": "Die Summe der Beträge von Position {arg0} im Zahlplan übersteigt die Nettosumme dieser Position.",
+        "auftragHatKeinePositionen": "Der Auftrag hat keine Auftragspositionen.",
+        "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "Mindestens ein Datum des Zahlplans zu (den) Position(en) {arg0} liegt nicht im Leistungszeitraum (plus 3 Monate).",
+        "invalidPosition": "Ungültige Auftragsposition.",
+        "invalidStatus": "Bitte wählen Sie einen Status des Auftrags; \"optional\" wird nicht unterstützt.",
+        "nummerBereitsVergeben": "Die Auftragsnummer ist bereits vergeben.",
+        "nummerIstNichtFortlaufend": "Die Auftragsnummer ist nicht die nächstfolgende (nicht fortlaufend).",
+        "nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein": "Nur abgeschlossene Auftragspositionen können vollständig fakturiert sein.",
+        "vollstaendigFakturiertProtection": "Das Flag \"vollständig fakturiert\" darf nur durch die Buchhaltung manipuliert werden."
       },
-      "forecast": "Forecast",
+      "ersetzen": "Ersetzen",
+      "exportAnalysis": "Analyse",
+      "filter": {
+        "type": {
+          "all": "alle",
+          "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
+          "vollstaendigFakturiert": "vollständig fakturiert",
+          "zuFakturieren": "zu fakturieren"
+        }
+      },
+      "forecast": {
+        "_": "Forecast",
+        "analysis": {
+          "allPositions": "Forecast aller Positionen",
+          "distribution": {
+            "_": "Verteilung des Forecasts (Monatsverteilung)",
+            "fixedPrice": "werden am Ende des Leistungszeitraums eingeplant.",
+            "monthly": "werden monatlich über den Leistungszeitraum verteilt.",
+            "paymentSchedule": "Der Zahlplan wird zuerst verwendet, sofern vorhanden."
+          },
+          "error": {
+            "noPositions": "Keine Auftragspositionen für Auftrag #{arg0} gefunden.",
+            "orderNotFound": "Auftrag mit der ID {arg0} bzw. dessen Positionen nicht gefunden."
+          },
+          "legend": {
+            "blue": "blau,",
+            "forecast": "Forecast-Werte werden in",
+            "green": "grün dargestellt.",
+            "invoiced": "fakturierte Beträge in"
+          },
+          "lostBudget": {
+            "_": "Verlorenes Budget",
+            "warning": {
+              "_": "Es gibt eine Budget-Verlust-Warnung von {arg0} (siehe Positionen unten).",
+              "position": "Es gibt eine Budget-Verlust-Warnung von {arg0}."
+            }
+          },
+          "snapshotDate": "Snapshot-Datum",
+          "title": "Forecast-Analyse des Auftrags #{arg0}",
+          "variants": {
+            "column": "Budget-Szenario",
+            "configuredDefault": "konfigurierter Standard",
+            "default": "Konfigurierter Standard dieser ProjectForge-Instanz: {arg0}",
+            "false": {
+              "_": "Time-&-Material-Positionen werden über ihre Run-Rate (fakturierte Summe pro abgelaufenem Leistungsmonat, angebrochener erster Monat anteilig) extrapoliert. Nicht genutztes Budget ist nicht Teil des Forecasts, sondern wird als Differenz ausgewiesen. Ausnahme Anlaufphase: Solange weniger als {arg0} Leistungsmonate abgelaufen sind und noch nicht die Hälfte des Leistungszeitraums vorbei ist, ist die Faktura noch nicht repräsentativ (Projekt läuft hoch); in diesem Fall wird das Restbudget wie im optimistischen Szenario gleichmäßig verteilt.",
+              "label": "Konservativ (ohne Restverteilung)"
+            },
+            "info": "Die beiden Budget-Szenarien unterscheiden sich bei diesem Auftrag (Konfigurationsparameter {arg0}) und werden daher beide dargestellt:",
+            "true": {
+              "_": "Nicht genutztes Budget wird als künftiger Umsatz im letzten Monat des Leistungszeitraums verbucht.",
+              "label": "Optimistisch (mit Restverteilung)"
+            }
+          }
+        },
+        "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
+        "withoutProject": "ohne Projekt"
+      },
+      "forecastExportAsXls": {
+        "_": "Forecast",
+        "tooltip": "Export des Forecasts für die aktuelle Auftragsliste. Das Startdatum wird aus dem Leistungszeitraum Start Filter verwendet. Wenn nicht angegeben wird der 01.01.[aktuelles Jahr] verwendet."
+      },
       "forecastType": {
         "_": "Forecast-Typ",
         "currentMonth": "Aktueller Monat",
@@ -271,8 +344,20 @@
       "hint": {
         "kannVonProjektKundenAbweichen": "Kunde kann vom Projektkunden abweichen."
       },
-      "nettoSumme": "Nettosumme",
-      "nummer": "Nummer",
+      "invoice": {
+        "info": ", fakturiert: {arg0}, noch nicht fakturiert: {arg1}"
+      },
+      "mail": {
+        "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
+      },
+      "nettoSumme": {
+        "_": "Nettosumme",
+        "weighted": "Gewichtete Nettosumme"
+      },
+      "nummer": {
+        "_": "Nummer",
+        "short": "Nr."
+      },
       "paymentschedule": {
         "_": "Zahlplan",
         "number": "Nr."
@@ -301,12 +386,14 @@
         }
       },
       "positions": "Positionen",
+      "showInactivePosition": "Inaktive Positionen anzeigen",
       "status": {
         "abgelehnt": "abgelehnt",
         "abgeschlossen": "abgeschlossen",
         "beauftragt": "beauftragt",
         "ersetzt": "ersetzt",
         "eskalation": "Eskalation",
+        "fakturiert": "fakturiert",
         "gelegt": "gelegt",
         "in_erstellung": "in Erstellung",
         "loi": "LOI",
@@ -317,13 +404,17 @@
       "title": {
         "_": "Titel",
         "add": "Neuer/s Auftrag/Angebot",
+        "edit": "Auftrag/Angebot bearbeiten",
+        "heading": "Auftragsmanagement",
         "list": "Auftrags- und Angebotsbuch"
       },
       "tooltip": {
         "addPaymentschedule": "Zahlplanposition hinzufügen",
         "addPosition": "Auftragsposition hinzufügen"
       },
-      "vollstaendigFakturiert": "vollständig fakturiert"
+      "type": "Typ",
+      "vollstaendigFakturiert": "vollständig fakturiert",
+      "zahlung": "Zahlung"
     },
     "buchungssatz": {
       "beleg": "Beleg",
@@ -579,28 +670,98 @@
     },
     "rechnung": {
       "_": "Debitorenrechnung",
+      "beschreibung": "Beschreibung",
       "besonderheiten": "Besonderheiten",
       "betreff": "Betreff",
-      "bezahlDatum": "Bezahldatum",
+      "bezahlDatum": {
+        "_": "Bezahldatum",
+        "short": "Bezahlt"
+      },
       "bic": "BIC",
+      "bruttoBetrag": "Bruttobetrag",
       "currency": "Währung",
+      "currencyConversion": {
+        "warnings": {
+          "_": "Währungsumrechnungsfehler",
+          "header": "Folgende Rechnungen konnten nicht in die Systemwährung umgerechnet werden (Beträge in Originalwährung):"
+        }
+      },
+      "currencyConversionFailed": "Rechnung {arg0}: {arg1} → {arg2} am {arg3}                                                                                                           │",
       "customernr": "Kundennummer",
       "datum": {
         "_": "Rechnungsdatum",
         "short": "Datum"
       },
+      "discount": "Skonto (Datum und %-Wert)",
       "discountMaturity": "Skonto Fälligkeit",
       "discountPercent": "Skonto Prozent",
-      "faelligkeit": "Fälligkeit",
+      "eInvoice": {
+        "createAndOpen": "Anlegen und E-Rechnung",
+        "saveAndOpen": "Speichern und E-Rechnung",
+        "validationErrors": "E-Rechnung kann nicht exportiert werden"
+      },
+      "error": {
+        "bezahlDatumRequired": "Wenn der Zahlbetrag gegeben ist muss auch das zugehörige Bezahldatum eingegeben sein.",
+        "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "Eine Gutschriftsanzeige durch den Kunden hat keine Rechnungsnummer.",
+        "kundeTextOderProjektRequired": "Ein Kundentext oder ein Projekt müssen angegeben sein.",
+        "negativAmount": "Bei Überweisung kann kein negativer Brutto-Betrag existieren",
+        "rechnungHatKeinePositionen": "Die Rechnung hat keine Rechnungspositionen.",
+        "rechnungsNummerBereitsVergeben": "Die Rechnungsnummer ist bereits vergeben.",
+        "rechnungsNummerIstNichtFortlaufend": "Die Rechnungsnummer ist nicht die nächstfolgende (nicht fortlaufend).",
+        "statusBezahltErfordertZahlBetrag": "Die Rechnung kann nur auf \"bezahlt\" gesetzt werden, wenn auch ein Zahlbetrag eingetragen wurde.",
+        "unknownCurrency": "Die Währung '${currency}' ist unbekannt. Bitte entfernen für Verwendung der System-Standardwährung oder füge die Währung über die Funktion Währungsumrechnung hinzu.",
+        "zahlbetragRequired": "Wenn das Bezahldatum gegeben ist muss auch der zugehörige Zahlbetrag eingegeben sein."
+      },
+      "exportEInvoice": "XRechnung exportieren",
+      "exportInvoice": "Rechnung exportieren",
+      "exportZUGFeRD": "ZUGFeRD exportieren",
+      "faelligkeit": {
+        "_": "Fälligkeit",
+        "short": "Fällig"
+      },
+      "filter": {
+        "ueberfaellig": "überfällig",
+        "unbezahlt": "unbezahlt"
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Rechnungsempfänger kann vom Projektkunden abweichen."
+      },
       "iban": "IBAN",
+      "invoicePdf": {
+        "_": "Rechnungs-PDF",
+        "hint": "Wird als Basis-PDF für den ZUGFeRD-Export verwendet. Ohne Upload wird aus der Word-Vorlage konvertiert."
+      },
+      "konto": {
+        "tooltip": "Wird für den Export von Debitorenrechnungen verwendet. Wenn kein Konto angegeben, wird ein evtl. vorhandenes Konto des dieser Rechnung zugeordneten Projekts bzw. Kundens verwendet."
+      },
+      "kostExcelExport": {
+        "_": "Kostenzuweisungen exportieren",
+        "tootlip": "Excel-Export aller Rechnungen für den gewählten Zeitraum im Excel-Format inklusive der Kostenträgerzuweisungen."
+      },
+      "kostZuweisungFehlbetrag": "Kostzuweisungfehlbetrag",
       "mehrwertSteuerSatz": "Mwst-Satz",
       "menge": "Menge",
-      "nummer": "Nummer",
+      "mitSkonto": "mit Skonto",
+      "multiselected": {
+        "info": "Wenn das Bezahldatum ausgewählt ist werden alle Einträge auf bezahlt gesetzt. Der Bezahltbetrag wird ebenfalls gesetzt. Wenn der Betrag gelöscht werden soll, wird auch der Zahlbetrag gelöscht.",
+        "title": "Mehrfachauswahl Rechnungen"
+      },
+      "nummer": {
+        "_": "Nummer",
+        "short": "Nr."
+      },
+      "offen": "Offen",
       "position": {
         "einzelNetto": "Einzelnettopreis"
       },
       "receiver": "Empfänger",
+      "rechnungen": "Debitorenrechnungen",
       "sellerBankAccount": "Bankverbindung (Verkäufer)",
+      "showEditableKostZuweisungen": "Kostzuweisungen editieren",
+      "showKostZuweisungen": "Kostzuweisungen",
+      "showKostZuweisungstatus": "Kostzuweisungsstatus",
+      "showTextAreas": "Positionsbeschreibungen",
+      "skonto": "Skonto / Fehlbetrag",
       "status": {
         "_": "Rechnungsstatus",
         "bezahlt": "bezahlt",
@@ -612,14 +773,39 @@
         "zahlungserinnerung2": "2. Erinnerung"
       },
       "text": "Text",
+      "title": {
+        "add": "Neue Debitorenrechnung",
+        "edit": "Debitorenrechnung bearbeiten",
+        "heading": "Debitorenrechnungen",
+        "list": "Debitorenrechnungsliste"
+      },
+      "tooltip": {
+        "addPosition": "Rechnungsposition hinzufügen"
+      },
+      "transferExport": {
+        "_": "Überweisungen exportieren",
+        "error": {
+          "_": "Während des Exportes der Überweisung ist ein unerwarteter Fehler aufgetreten.",
+          "entries": "Export aufgrund fehlender oder ungültiger Angaben in den folgenden Rechnungen nicht möglich: {arg0}.",
+          "foreignCurrency": "SEPA-Export ist nur für Rechnungen in der Systemwährung ({arg0}) möglich. Die folgenden Rechnungen haben eine abweichende Währung und müssen aus der Selektion entfernt werden:",
+          "missing": "Export aufgrund fehlender oder ungültiger Angaben in den folgenden Feldern nicht möglich: {arg0}."
+        },
+        "tootlip": "Export der Überweisung dieser Rechnung im pain.001.003.03-Format."
+      },
       "typ": {
         "_": "Typ",
         "cancellation": "Storno",
         "gutschriftsAnzeigeDurchKunden": "Gutschriftsanzeige durch Kunden",
         "rechnung": "Rechnung"
       },
-      "zahlBetrag": "Zahlbetrag",
-      "zahlungsZiel": "Zahlungsziel"
+      "zahlBetrag": {
+        "_": "Zahlbetrag",
+        "short": "Bezahlt"
+      },
+      "zahlungsZiel": {
+        "_": "Zahlungsziel",
+        "actual": "Tatsächliches Zahlungsziel"
+      }
     },
     "rechnungen": "Debitorenrechnungen",
     "salesManager": "Key-Account-Manager:in",
@@ -902,7 +1088,30 @@
     },
     "fibu": {
       "_": "Fibu",
-      "kost": "Kost"
+      "buchungssaetze": "Buchungssätze",
+      "currencyPair": "Währungsumrechnung",
+      "datevImport": "Datev-Import",
+      "eInvoiceChecker": "E-Rechnungs-Checker",
+      "eingangsrechnungen": "Kreditorenrechnungen",
+      "employeeSalaries": "Gehälter",
+      "employeeSalariesImport": "Gehaltsimport",
+      "employees": "Mitarbeitende",
+      "konten": "Buchungskonten",
+      "kost": "Kost",
+      "kost1": "Kost1",
+      "kost2": "Kost2",
+      "kost2arten": "Kost2-Arten",
+      "kostSearch": "Kost-Suche",
+      "kunden": "Kunden",
+      "orderbook": {
+        "_": "Auftragsbuch",
+        "htmlSuffixTooltip": "Abgeschlossene und noch nicht vollständig fakturierte Aufträge."
+      },
+      "projekte": "Projekte",
+      "rechnungen": "Debitorenrechnungen",
+      "reporting": {
+        "reportObjectives": "Report-Objectives"
+      }
     },
     "main": {
       "title": "Hauptmenü"

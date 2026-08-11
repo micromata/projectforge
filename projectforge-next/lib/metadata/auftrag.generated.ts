@@ -19,6 +19,12 @@ export const AUFTRAG_METADATA = {
       required: false,
       maxLength: 10000,
     },
+    beauftragungsBeschreibung: {
+      dataType: "STRING",
+      i18nKey: "fibu.auftrag.beauftragungsBeschreibung",
+      required: false,
+      maxLength: 4000,
+    },
     beauftragungsDatum: {
       dataType: "DATE",
       i18nKey: "fibu.auftrag.beauftragungsdatum",

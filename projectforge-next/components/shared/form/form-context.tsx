@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
 
 /**
@@ -22,11 +22,42 @@ interface EntityEditFormContext {
    * rather than imported by the field components, so they work for any entity.
    */
   metadata: EntityMetadata;
+  /**
+   * Prefix the field names below carry over their name in [metadata] — `positionen[2].` for a row of a
+   * nested collection. Set by [NestedFieldMetadata], absent on the form itself.
+   */
+  namePrefix?: string;
 }
 
 const Ctx = createContext<EntityEditFormContext | null>(null);
 
 export const EntityEditFormProvider = Ctx.Provider;
+
+/**
+ * Scopes the field metadata to a nested entity: inside, `positionen[2].titel` is looked up as `titel`
+ * of the *position's* metadata.
+ *
+ * Without this every field of a row would miss in the order's metadata and silently fall back to
+ * "optional string" — losing `required`, `maxLength` and the enum constants, which is precisely the
+ * drift `useFieldMetadata` warns about. The form itself stays the one above; only what the fields are
+ * validated and labelled against changes.
+ */
+export function NestedFieldMetadata({
+  metadata,
+  namePrefix,
+  children,
+}: {
+  metadata: EntityMetadata;
+  namePrefix: string;
+  children: ReactNode;
+}) {
+  const { form } = useFormContext();
+  const value = useMemo(
+    () => ({ form, metadata, namePrefix }),
+    [form, metadata, namePrefix]
+  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
 
 function useFormContext(): EntityEditFormContext {
   const ctx = useContext(Ctx);
@@ -62,13 +93,32 @@ export function useEntityMetadata(): EntityMetadata {
  * `id` is a legitimate case, being the DTO's identity and not an editable field. Because a typo would
  * look exactly the same, it is logged in development: a field silently turning into "optional string"
  * is how the form and the entity drifted apart before.
+ *
+ * @param metadataLess Silences that warning for a field the metadata *cannot* carry, whatever the
+ * entity declares: an order's customer and project are `KundeDO`/`ProjektDO`, for which there is no
+ * `UIDataType`, so `ElementsRegistry` never reports them (see UIDataTypeUtils). Only for those — a
+ * field that is merely missing is drift, and the warning is what makes it visible.
  */
-export function useFieldMetadata(name: string): FieldMetadata {
-  const { metadata } = useFormContext();
-  const meta = metadata.fields[name];
-  if (!meta && name !== "id" && process.env.NODE_ENV !== "production") {
+export function useFieldMetadata(
+  name: string,
+  metadataLess = false
+): FieldMetadata {
+  const { metadata, namePrefix } = useFormContext();
+  // Inside a row of a nested collection the form name carries the path (`positionen[2].titel`), while
+  // the metadata knows the plain property — so the prefix comes off before the lookup.
+  const plain =
+    namePrefix && name.startsWith(namePrefix)
+      ? name.slice(namePrefix.length)
+      : name;
+  const meta = metadata.fields[plain];
+  if (
+    !meta &&
+    !metadataLess &&
+    plain !== "id" &&
+    process.env.NODE_ENV !== "production"
+  ) {
     console.warn(
-      `${metadata.entity} has no field "${name}" — treating it as an optional string. ` +
+      `${metadata.entity} has no field "${plain}" — treating it as an optional string. ` +
         "Check the name, or regenerate lib/metadata (DevelopmentMainForRelease)."
     );
   }

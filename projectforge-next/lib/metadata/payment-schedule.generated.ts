@@ -39,6 +39,16 @@ export const PAYMENT_SCHEDULE_METADATA = {
       i18nKey: "modified",
       required: false,
     },
+    number: {
+      dataType: "INT",
+      i18nKey: "fibu.auftrag.paymentschedule.number",
+      required: false,
+    },
+    positionNumber: {
+      dataType: "INT",
+      i18nKey: "fibu.auftrag.position",
+      required: false,
+    },
     reached: {
       dataType: "BOOLEAN",
       i18nKey: "fibu.common.reached",

@@ -73,9 +73,37 @@ export const AUFTRAGS_POSITION_METADATA = {
       i18nKey: "modified",
       required: false,
     },
+    modeOfPaymentType: {
+      dataType: "STRING",
+      i18nKey: "fibu.modeOfPayment",
+      required: false,
+      enumValues: [
+        {
+          value: "FIXED",
+          i18nKey: "fibu.modeOfPayment.type.fixed",
+        },
+        {
+          value: "MONTHLY",
+          i18nKey: "fibu.modeOfPayment.type.monthly",
+        },
+        {
+          value: "QUARTERLY",
+          i18nKey: "fibu.modeOfPayment.type.quarterly",
+        },
+        {
+          value: "ANNUAL",
+          i18nKey: "fibu.modeOfPayment.type.annual",
+        },
+      ],
+    },
     nettoSumme: {
       dataType: "DECIMAL",
       i18nKey: "fibu.auftrag.nettoSumme",
+      required: false,
+    },
+    number: {
+      dataType: "INT",
+      i18nKey: "fibu.auftrag.position",
       required: false,
     },
     paymentType: {
@@ -97,6 +125,31 @@ export const AUFTRAGS_POSITION_METADATA = {
         },
       ],
     },
+    periodOfPerformanceBegin: {
+      dataType: "DATE",
+      i18nKey: "fibu.periodOfPerformance.from",
+      required: false,
+    },
+    periodOfPerformanceEnd: {
+      dataType: "DATE",
+      i18nKey: "fibu.periodOfPerformance.to",
+      required: false,
+    },
+    periodOfPerformanceType: {
+      dataType: "STRING",
+      i18nKey: "fibu.periodOfPerformance",
+      required: false,
+      enumValues: [
+        {
+          value: "SEEABOVE",
+          i18nKey: "fibu.periodOfPerformance.type.seeabove",
+        },
+        {
+          value: "OWN",
+          i18nKey: "fibu.periodOfPerformance.type.own",
+        },
+      ],
+    },
     personDays: {
       dataType: "DECIMAL",
       i18nKey: "projectmanagement.personDays",
@@ -104,7 +157,7 @@ export const AUFTRAGS_POSITION_METADATA = {
     },
     status: {
       dataType: "STRING",
-      i18nKey: "fibu.auftrag.position.status",
+      i18nKey: "status",
       required: false,
       enumValues: [
         {
@@ -149,11 +202,21 @@ export const AUFTRAGS_POSITION_METADATA = {
         },
       ],
     },
+    task: {
+      dataType: "TASK",
+      i18nKey: "task",
+      required: false,
+    },
     titel: {
       dataType: "STRING",
       i18nKey: "fibu.auftrag.title",
       required: false,
       maxLength: 255,
+    },
+    vollstaendigFakturiert: {
+      dataType: "BOOLEAN",
+      i18nKey: "fibu.auftrag.vollstaendigFakturiert",
+      required: false,
     },
   },
 } as const satisfies EntityMetadata;

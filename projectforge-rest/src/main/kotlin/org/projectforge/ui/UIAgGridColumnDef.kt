@@ -157,6 +157,18 @@ open class UIAgGridColumnDef(
         PROJECT,
         TASK_PATH,
         USER,
+
+        /**
+         * The orders booked against a task: the value is a list of `TaskServicesRest.Task.Order`, shown
+         * as one link per order (`number` as its label, `title`/`text` as its tooltip).
+         */
+        ORDERS,
+
+        /**
+         * A task's status, coloured by the row's `status` (the enum letter, so the colour survives
+         * translation) and dimmed for a deleted task.
+         */
+        TASK_STATUS,
     }
 
     fun withAGType(type: AG_TYPE): UIAgGridColumnDef {

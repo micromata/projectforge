@@ -9,6 +9,7 @@
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import { rawRequest, RsError } from "./client";
+import { saveBlob } from "./download";
 import type {
   DynamicPageResponse,
   PostData,
@@ -142,20 +143,4 @@ export function buildPostData(
     ...(serverData ? { serverData } : {}),
     ...(watchFieldsTriggered?.length ? { watchFieldsTriggered } : {}),
   };
-}
-
-/**
- * Hands a blob to the browser as a download. Replaces the `js-file-download` dependency of the
- * legacy app: an object url on a synthetic anchor does the same in a few lines.
- */
-function saveBlob(blob: Blob, filename: string): void {
-  const objectUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = objectUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  // Chrome needs the url alive until the click was processed.
-  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
 }

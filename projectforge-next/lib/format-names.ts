@@ -33,7 +33,9 @@ export type FormatterName =
   | "KONTO"
   | "PROJECT"
   | "TASK_PATH"
-  | "USER";
+  | "USER"
+  | "ORDERS"
+  | "TASK_STATUS";
 
 /**
  * Spellings that are not in the enum but reach the client anyway, mapped onto
@@ -62,6 +64,8 @@ const CELL_KINDS: Partial<Record<FormatterName, CellKind>> = {
   RATING: "rating",
   CONSUMPTION: "consumption",
   TREE_NAVIGATION: "tree",
+  ORDERS: "orders",
+  TASK_STATUS: "taskStatus",
 };
 
 /** Which cell component renders this formatter. Everything else is text. */

@@ -25,6 +25,7 @@ interface Toggle {
 interface UseTaskTreeOptions {
   highlightTaskId?: number | null;
   showRootForAdmins?: boolean;
+  selectMode?: boolean;
 }
 
 /**
@@ -55,6 +56,7 @@ const NO_NODES: TaskNode[] = [];
 export function useTaskTree({
   highlightTaskId,
   showRootForAdmins,
+  selectMode,
 }: UseTaskTreeOptions) {
   // null while the session's filter is in effect: only the initial answer knows what that is, and
   // overriding it with a default here would drop a filter set on the legacy page.
@@ -65,8 +67,11 @@ export function useTaskTree({
     () => ({
       highlightedTaskId: highlightTaskId ?? undefined,
       showRootForAdmins: showRootForAdmins || undefined,
+      // In the scope, so it is part of both query keys: the two modes get different columns and
+      // must not share a cache entry.
+      select: selectMode || undefined,
     }),
-    [highlightTaskId, showRootForAdmins]
+    [highlightTaskId, showRootForAdmins, selectMode]
   );
 
   const initial = useQuery({

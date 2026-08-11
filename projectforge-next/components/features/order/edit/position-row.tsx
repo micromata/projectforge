@@ -1,0 +1,175 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
+import { CheckboxField } from "@/components/shared/form/checkbox-field";
+import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
+import { InputField } from "@/components/shared/form/input-field";
+import { NestedFieldMetadata } from "@/components/shared/form/form-context";
+import { NumberField } from "@/components/shared/form/number-field";
+import { RepeatableRow } from "@/components/shared/form/repeatable-row";
+import { SelectField } from "@/components/shared/form/select-field";
+import { TextAreaField } from "@/components/shared/form/text-area-field";
+import { useFieldLabels } from "@/components/shared/form/use-field-labels";
+import { useFormatContext } from "@/hooks/use-format";
+import { fromMetadata } from "@/lib/validation/from-metadata";
+import { PositionInvoices } from "./position-invoices";
+import { PositionRowHeader } from "./position-row-header";
+import type { OrderPositionValues } from "../order-schema";
+import type { PositionInvoiceInfo } from "../types";
+import type { OrderPositionSums } from "@/lib/rs/order";
+
+const p = fromMetadata(AUFTRAGS_POSITION_METADATA);
+
+export interface PositionRowProps {
+  position: OrderPositionValues;
+  /** Index in the form's `positionen` array — the row's field names are built from it. */
+  index: number;
+  /** Prefix of every field name of this row, e.g. `positionen[2].`. */
+  prefix: string;
+  sums: OrderPositionSums | undefined;
+  /** Absent when the position must not be removed — an invoice references it, or write access is missing. */
+  onRemove?: () => void;
+  /** Whether the `vollstaendigFakturiert` checkbox may be shown (FIBU right, see AuftragEditForm). */
+  invoiceWriteAccess: boolean;
+  /**
+   * Read-only invoice data of this position, from the loaded order rather than from the form — absent
+   * for a position that was never invoiced (and for one that was never saved).
+   */
+  invoiceInfo?: PositionInvoiceInfo;
+}
+
+/**
+ * One order position: everything of `AuftragsPositionDO` a user edits, plus the read-only sums and
+ * invoice links the backend fills in.
+ *
+ * Hand-written JSX rather than a declaration, and deliberately so (see `useFieldArray`): what a position
+ * looks like — a period of performance that appears only when it has its own, a task, an invoice
+ * summary — is this entity's business, and describing that declaratively would be a second form
+ * framework. What the row does take from the shared layer is every mechanism: the collapsing row, the
+ * fields, and their labels and rules from the position's own metadata ([NestedFieldMetadata]).
+ */
+export function PositionRow({
+  position,
+  index,
+  prefix,
+  sums,
+  onRemove,
+  invoiceWriteAccess,
+  invoiceInfo,
+}: PositionRowProps) {
+  const t = useTranslations();
+  const label = useFieldLabels(AUFTRAGS_POSITION_METADATA);
+  const format = useFormatContext();
+  const name = (field: string) => `${prefix}${field}`;
+  // The order's own period applies unless the position was given one — then, and only then, are the two
+  // date fields and the mode of payment hers to fill in (`PeriodOfPerformanceType`, and Wicket's form
+  // does the same).
+  const ownPeriod = position.periodOfPerformanceType === "OWN";
+
+  return (
+    <NestedFieldMetadata
+      metadata={AUFTRAGS_POSITION_METADATA}
+      namePrefix={prefix}
+    >
+      <RepeatableRow
+        header={<PositionRowHeader position={position} sums={sums} />}
+        // A row just added is there to be filled in; a stored one stays folded, which is what makes an
+        // order of a dozen positions readable at all.
+        defaultOpen={position.id == null}
+        onRemove={onRemove}
+        removeLabel={
+          position.titel ?? `${t("fibu.auftrag.position._")} ${index + 1}`
+        }
+      >
+        <InputField
+          name={name("titel")}
+          label={label("titel")}
+          className="md:col-span-2"
+        />
+        <SelectField
+          name={name("status")}
+          label={label("status")}
+          options={p.enumOptions("status", t)}
+          emphasized
+        />
+        <NumberField
+          name={name("nettoSumme")}
+          label={label("nettoSumme")}
+          // DECIMAL, not AMOUNT: `AuftragsPositionDO.nettoSumme` is a plain `BigDecimal`, so the
+          // currency and the two digits are passed explicitly rather than derived from the data type.
+          fractionDigits={2}
+          suffix={format.currency}
+        />
+        <NumberField
+          name={name("personDays")}
+          label={label("personDays")}
+          fractionDigits={2}
+        />
+        <SelectField
+          name={name("art")}
+          label={label("art")}
+          options={p.enumOptions("art", t)}
+        />
+        <SelectField
+          name={name("paymentType")}
+          label={label("paymentType")}
+          options={p.enumOptions("paymentType", t)}
+        />
+        <SelectField
+          name={name("forecastType")}
+          label={label("forecastType")}
+          hint={t("fibu.auftrag.forecastType.pos.info")}
+          options={p.enumOptions("forecastType", t)}
+        />
+        <EntityAutocompleteField
+          name={name("task")}
+          label={label("task")}
+          entity="task"
+        />
+        <SelectField
+          name={name("periodOfPerformanceType")}
+          label={label("periodOfPerformanceType")}
+          options={p.enumOptions("periodOfPerformanceType", t)}
+        />
+        {ownPeriod && (
+          <>
+            <InputField
+              name={name("periodOfPerformanceBegin")}
+              label={label("periodOfPerformanceBegin")}
+              type="date"
+            />
+            <InputField
+              name={name("periodOfPerformanceEnd")}
+              label={label("periodOfPerformanceEnd")}
+              type="date"
+            />
+            <SelectField
+              name={name("modeOfPaymentType")}
+              label={label("modeOfPaymentType")}
+              options={p.enumOptions("modeOfPaymentType", t)}
+            />
+          </>
+        )}
+        <TextAreaField
+          name={name("bemerkung")}
+          label={label("bemerkung")}
+          rows={2}
+          className="md:col-span-3"
+        />
+        {invoiceWriteAccess && (
+          <CheckboxField
+            name={name("vollstaendigFakturiert")}
+            label={label("vollstaendigFakturiert")}
+          />
+        )}
+        {invoiceInfo?.invoicedElsewhere && (
+          <PositionInvoices
+            invoiceInfo={invoiceInfo}
+            className="md:col-span-2"
+          />
+        )}
+      </RepeatableRow>
+    </NestedFieldMetadata>
+  );
+}

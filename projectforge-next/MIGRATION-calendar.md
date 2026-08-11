@@ -54,7 +54,7 @@ Drei Details, die den Frontend-Entwurf bestimmen:
 
 1. **Mutierende Endpunkte antworten mit Teilmengen** von `CalendarInit`, Keys
    genau `filter | activeCalendars | teamCalendars | styleMap | filterFavorites |
-   isFilterModified`. `selectFilter` liefert ein komplettes `CalendarInit`.
+isFilterModified`. `selectFilter` liefert ein komplettes `CalendarInit`.
    `changeStyle` liefert **kein** `isFilterModified`.
 2. **`start`/`end` der Events sind flach serialisiert** (`EventDateSerializer`):
    entweder ISO-Instant oder `yyyy-MM-dd`. Unverändert an FullCalendar
@@ -78,11 +78,11 @@ Arbeitszeit-Pause. Dafür gibt es heute keine Route: der Catch-All
 (`lib/route-params.ts` gibt bei `rest.length === 0` `null` zurück).
 
 1. **2-Segment-Route anlegen:** `app/(authenticated)/[category]/[type]/page.tsx`
-   + `page-client.tsx`. Den Body des bestehenden `[...params]/page-client.tsx`
-   nach `components/dynamic/dynamic-form-page.tsx` (`{category, type, id}`)
-   ausziehen, damit beide Routen ~25 Zeilen bleiben und es eine Implementierung
-   gibt. `generateStaticParams` liefern, damit
-   `scripts/generate-spa-shell-map.mjs` einen Eintrag erzeugt.
+   - `page-client.tsx`. Den Body des bestehenden `[...params]/page-client.tsx`
+     nach `components/dynamic/dynamic-form-page.tsx` (`{category, type, id}`)
+     ausziehen, damit beide Routen ~25 Zeilen bleiben und es eine Implementierung
+     gibt. `generateStaticParams` liefern, damit
+     `scripts/generate-spa-shell-map.mjs` einen Eintrag erzeugt.
 2. **Query-String durchreichen:** `fetchDynamic` in `lib/rs/client.ts` verwirft
    heute alles außer `id`. Signatur um `search?: string` erweitern, der
    Page-Client übergibt `useSearchParams().toString()` (ohne `id`) und nimmt ihn
@@ -168,7 +168,10 @@ Ersatz für das Legacy-`saveUpdateResponseInState`:
 
 ```ts
 const applyPatch = (qc, patch: CalendarInitPatch | CalendarInit) =>
-  qc.setQueryData<CalendarInit>(CALENDAR_INIT_KEY, (prev) => ({ ...prev, ...patch }));
+  qc.setQueryData<CalendarInit>(CALENDAR_INIT_KEY, (prev) => ({
+    ...prev,
+    ...patch,
+  }));
 ```
 
 Spring serialisiert mit `JsonInclude.NON_NULL`, ein fehlender Key ist also gar
@@ -176,15 +179,15 @@ nicht im Objekt – der Spread reicht und verliert im Gegensatz zum Legacy-`||`
 keine `false`/`0`-Werte (genau dafür existiert dort die
 `isFilterModified`-Sonderbehandlung).
 
-| Auslöser | Wirkung |
-|---|---|
-| `changeStyle`, `setVisibility` | `applyPatch` **+** `invalidateQueries(["calendar","events"])` (Farben und Sichtbarkeit stecken im Payload) |
+| Auslöser                                                                | Wirkung                                                                                                             |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `changeStyle`, `setVisibility`                                          | `applyPatch` **+** `invalidateQueries(["calendar","events"])` (Farben und Sichtbarkeit stecken im Payload)          |
 | `changeTimesheetUser`, `changeShowBreaks`, `changeVacationGroups/Users` | `applyPatch` + lokales `filter`-Patch (die Endpunkte liefern nur `isFilterModified`); Events refetchen über den Key |
-| `changeGridSize`, `changeFirstHour`, `changeDefaultCalendar` | nur `applyPatch` – rein darstellend, **kein** Events-Refetch |
-| Favoriten create/update/rename/delete | `applyPatch` |
-| `selectFilter` | ganzes `CalendarInit` setzen + Events invalidieren (activeCalendars, date und view ändern sich) |
-| Kalender-Auswahl ±  | lokales `activeCalendars`-Patch + `isFilterModified: true`; persistiert `storeState` |
-| `refresh` | `refreshSubscriptions()` + `invalidateQueries(["calendar"])` statt `window.location.reload()` |
+| `changeGridSize`, `changeFirstHour`, `changeDefaultCalendar`            | nur `applyPatch` – rein darstellend, **kein** Events-Refetch                                                        |
+| Favoriten create/update/rename/delete                                   | `applyPatch`                                                                                                        |
+| `selectFilter`                                                          | ganzes `CalendarInit` setzen + Events invalidieren (activeCalendars, date und view ändern sich)                     |
+| Kalender-Auswahl ±                                                      | lokales `activeCalendars`-Patch + `isFilterModified: true`; persistiert `storeState`                                |
+| `refresh`                                                               | `refreshSubscriptions()` + `invalidateQueries(["calendar"])` statt `window.location.reload()`                       |
 
 `staleTime`: Init 30 s, Events Default (60 s), dazu
 `placeholderData: keepPreviousData` – sonst blitzt beim Monatswechsel ein leeres
@@ -210,7 +213,7 @@ Zwei bewusste Abweichungen vom Legacy-Panel:
    `viewConfig`, `useCallback`-Handler, `data-grid-size`-Attribut.
 
 `initialDate` braucht die Legacy-Korrektur: bei `dayGridMonth` ist `init.date`
-der erste *sichtbare* Tag und kann zum Vormonat gehören – mit `date-fns` auf den
+der erste _sichtbare_ Tag und kann zum Vormonat gehören – mit `date-fns` auf den
 Monatsersten normalisieren (in `view-config.ts`, damit testbar).
 
 `locale`, `firstDay` (`firstDayOfWeekSunday0`) und `hour12`
@@ -254,13 +257,13 @@ Mechanismus, kein Hex-Literal im Quellcode.
 
 Routingtabelle nach `extendedProps.category` (`use-calendar-action.ts`):
 
-| Kategorie | Ziel |
-|---|---|
-| `timesheet-stats` | nichts |
-| `timesheet-break` | `/timesheet/edit?startDate=…&endDate=…` (2-Segment-Route) |
-| `vacation` | `/vacation/edit/<id>?returnToCaller=%2Fnext%2Fcalendar` |
-| `address` (Geburtstag) | `/addressView/dynamic/<id>?returnToCaller=%2Fnext%2Fcalendar` |
-| sonst (`timesheet`, `teamEvent`, `calEvent`, `holiday`) | `/<category>/edit/<id>?startDate=…&endDate=…` |
+| Kategorie                                               | Ziel                                                          |
+| ------------------------------------------------------- | ------------------------------------------------------------- |
+| `timesheet-stats`                                       | nichts                                                        |
+| `timesheet-break`                                       | `/timesheet/edit?startDate=…&endDate=…` (2-Segment-Route)     |
+| `vacation`                                              | `/vacation/edit/<id>?returnToCaller=%2Fnext%2Fcalendar`       |
+| `address` (Geburtstag)                                  | `/addressView/dynamic/<id>?returnToCaller=%2Fnext%2Fcalendar` |
+| sonst (`timesheet`, `teamEvent`, `calEvent`, `holiday`) | `/<category>/edit/<id>?startDate=…&endDate=…`                 |
 
 `id = extendedProps.uid ?? extendedProps.dbId`. `returnToCaller` jetzt
 `/next/calendar`.
@@ -299,7 +302,7 @@ braucht die UICustomized-Registry mit `COLOR_CHOOSER` (nutzt
 ## Menü-Umschaltung
 
 `NextMigration.MIGRATED` ist nach **REST-Kategorie** geschlüsselt, nicht nach „ist
-eine Entity-Liste“ – `calendar` *ist* eine Kategorie (`/rs/calendar`), nur nie in
+eine Entity-Liste“ – `calendar` _ist_ eine Kategorie (`/rs/calendar`), nur nie in
 `PagesResolver.pagesRegistry` registriert. Der Eintrag ist daher unbedenklich und
 gibt dem ganzen System eine konsistente Antwort. Die geerbten
 `editRoute`/`newEntryRoute`-Defaults sind tot, aber harmlos – kommentieren, weil
@@ -344,7 +347,8 @@ export function parseTooltipHtml(html: string): TooltipRow[] {
       return {
         label: (tr.querySelector("th")?.textContent ?? "").replace(/:$/, ""),
         value: td?.textContent?.trim() ?? "",
-        multiline: !!td?.querySelector("pre") || (td?.textContent ?? "").includes("\n"),
+        multiline:
+          !!td?.querySelector("pre") || (td?.textContent ?? "").includes("\n"),
       };
     })
     .filter((r) => r.value);

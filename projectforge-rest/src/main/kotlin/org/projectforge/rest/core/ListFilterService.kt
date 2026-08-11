@@ -39,8 +39,19 @@ class ListFilterService {
     @Autowired
     private lateinit var userPrefRestService: UserPrefRestService
 
-    fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
-        val filter = userPrefRestService.getEntry(session, PREF_AREA, filterClazz.name)
+    /**
+     * @param keySuffix Appended to the filter class' name, so two lists of the same filter type can
+     * keep their own settings. Used by the task tree, whose select popover filters independently of
+     * the page. Null (the default) is the filter of the entity's own list page.
+     */
+    @JvmOverloads
+    fun getSearchFilter(
+        session: HttpSession,
+        filterClazz: Class<out BaseSearchFilter>,
+        keySuffix: String? = null,
+    ): BaseSearchFilter {
+        val key = if (keySuffix != null) "${filterClazz.name}.$keySuffix" else filterClazz.name
+        val filter = userPrefRestService.getEntry(session, PREF_AREA, key)
         if (filter != null) {
             if (filter.javaClass == filterClazz) {
                 try {
@@ -59,7 +70,7 @@ class ListFilterService {
         }
         val result = filterClazz.getDeclaredConstructor().newInstance()
         result.reset()
-        userPrefRestService.putEntry(session, PREF_AREA, filterClazz.name, result, true)
+        userPrefRestService.putEntry(session, PREF_AREA, key, result, true)
         return result
     }
 

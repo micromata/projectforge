@@ -53,6 +53,13 @@
       "mailSent": "E-Mail-Code wurde gesendet"
     }
   },
+  "order": {
+    "searchPlaceholder": "Aufträge durchsuchen…",
+    "forecast": {
+      "unavailable": "Die Forecast-Analyse konnte nicht geladen werden.",
+      "jsonUnavailable": "Der JSON-Export steht nur im Entwicklungsmodus zur Verfügung."
+    }
+  },
   "passwordForgotten": {
     "submitting": "Sende…",
     "mailSent": "Sofern der Zugang existiert, wurde eine E-Mail mit einem Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.",

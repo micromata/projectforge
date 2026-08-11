@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import {
+  formatCurrency,
   formatDate,
+  formatNumber,
   formatTimestampMinutes,
   type FormatContext,
 } from "@/lib/format";
@@ -51,6 +53,20 @@ export function declaredCell(
       return (
         <span className={cn("text-muted-foreground", className)}>
           {formatDate(value, format)}
+        </span>
+      );
+    // An AMOUNT is money and carries the user's currency; a DECIMAL is a plain quantity (person days),
+    // which the entities declare with two digits as well (`@Column(scale = 2)`).
+    case "AMOUNT":
+      return (
+        <span className={cn("font-mono tabular-nums", className)}>
+          {formatCurrency(value, format)}
+        </span>
+      );
+    case "DECIMAL":
+      return (
+        <span className={cn("font-mono tabular-nums", className)}>
+          {formatNumber(value, format, 2)}
         </span>
       );
     default:

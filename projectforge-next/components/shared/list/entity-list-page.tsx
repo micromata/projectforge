@@ -17,6 +17,7 @@ import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
+import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -146,6 +147,7 @@ function DeclaredList<
           data={list.data}
           isLoading={list.isLoading}
           isFetching={list.isFetching}
+          rowClassName={deletedRowClass}
           onRowClick={(row) => router.push(`${page.route}/${row.id}`)}
           className="flex-1"
         />

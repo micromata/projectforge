@@ -245,10 +245,15 @@
       "angebot": {
         "datum": "Date of order"
       },
+      "auftraege": "Orders",
       "beauftragungsBeschreibung": "Description of assignment",
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
       "commissioned": "commissioned",
+      "datum": {
+        "_": "Date of order",
+        "short": "Date"
+      },
       "entscheidung": {
         "datum": "Date of decision"
       },
@@ -256,9 +261,77 @@
         "datum": "Date of entry"
       },
       "error": {
-        "auftragHatKeinePositionen": "The order has no positions."
+        "amountsInPaymentScheduleAreGreaterThanNetSumOfPosition": "The sum of amounts of position {arg0} in the payment schedule is greater than the net sum of this position.",
+        "auftragHatKeinePositionen": "The order has no positions.",
+        "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "At least one date of the position(s) {arg0} is not within the period of performance (plus 3 months).",
+        "invalidPosition": "Invalid order position.",
+        "invalidStatus": "Please choose a status of the order; 'optional' is not supported.",
+        "nummerBereitsVergeben": "The order number does already exist.",
+        "nummerIstNichtFortlaufend": "Order number is not the successive (not continued).",
+        "nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein": "Only finished orders can be completely invoiced.",
+        "vollstaendigFakturiertProtection": "The flag 'completely invoiced' can only be modified by the account staff."
       },
-      "forecast": "Forecast",
+      "ersetzen": "Replaced",
+      "exportAnalysis": "Analysis data",
+      "filter": {
+        "type": {
+          "all": "all",
+          "nochNichtVollstaendigFakturiert": "not completely invoiced",
+          "vollstaendigFakturiert": "completely invoiced",
+          "zuFakturieren": "to be invoiced"
+        }
+      },
+      "forecast": {
+        "_": "Forecast",
+        "analysis": {
+          "allPositions": "Forecast of all positions",
+          "distribution": {
+            "_": "Distribution of the forecast (monthly distribution)",
+            "fixedPrice": "scheduled at the end of the performance period.",
+            "monthly": "distributed monthly over the performance period.",
+            "paymentSchedule": "The payment schedule is used first, if available."
+          },
+          "error": {
+            "noPositions": "No order positions found for order #{arg0}.",
+            "orderNotFound": "Order with id {arg0} or its positions not found."
+          },
+          "legend": {
+            "blue": "blue,",
+            "forecast": "Forecast values are shown in",
+            "green": "green.",
+            "invoiced": "invoiced amounts in"
+          },
+          "lostBudget": {
+            "_": "Lost budget",
+            "warning": {
+              "_": "There is a lost-budget warning of {arg0} (see positions below).",
+              "position": "There is a lost-budget warning of {arg0}."
+            }
+          },
+          "snapshotDate": "Snapshot date",
+          "title": "Forecast order analysis of order #{arg0}",
+          "variants": {
+            "column": "Budget scenario",
+            "configuredDefault": "configured default",
+            "default": "Configured default of this ProjectForge instance: {arg0}",
+            "false": {
+              "_": "Time & materials positions are extrapolated by their run rate (invoiced sum per elapsed performance month, a partial first month counted proportionally). Unused budget is not part of the forecast, but shown as difference. Exception for the ramp-up phase: as long as less than {arg0} performance months have elapsed and less than half of the performance period is over, the invoicing is not yet representative (the project is ramping up); in this case the remaining budget is distributed evenly as in the optimistic scenario.",
+              "label": "Conservative (without distribution of unused budget)"
+            },
+            "info": "The two budget scenarios of this order differ (configuration parameter {arg0}) and are therefore both shown:",
+            "true": {
+              "_": "Unused budget is booked as future revenue in the last month of the performance period.",
+              "label": "Optimistic (with distribution of unused budget)"
+            }
+          }
+        },
+        "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
+        "withoutProject": "without project"
+      },
+      "forecastExportAsXls": {
+        "_": "Forecast",
+        "tooltip": "Forecast export for actual orderbook list. The start date will be taken from the period of performance begin. If not present it uses 01/01/[actual year]."
+      },
       "forecastType": {
         "_": "Forecast type",
         "currentMonth": "Current month",
@@ -271,8 +344,20 @@
       "hint": {
         "kannVonProjektKundenAbweichen": "Customer can be different to the customer of the project."
       },
-      "nettoSumme": "Net sum",
-      "nummer": "Number",
+      "invoice": {
+        "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
+      },
+      "mail": {
+        "intro": "the order #{arg0} was created or changed."
+      },
+      "nettoSumme": {
+        "_": "Net sum",
+        "weighted": "Weighted net sum"
+      },
+      "nummer": {
+        "_": "Number",
+        "short": "No"
+      },
       "paymentschedule": {
         "_": "Payment schedule",
         "number": "No"
@@ -301,12 +386,14 @@
         }
       },
       "positions": "Positions",
+      "showInactivePosition": "Show inactive positions",
       "status": {
         "abgelehnt": "declined",
         "abgeschlossen": "completed",
         "beauftragt": "commissioned",
         "ersetzt": "replaced",
         "eskalation": "Escalation",
+        "fakturiert": "invoiced",
         "gelegt": "submitted",
         "in_erstellung": "In progress",
         "loi": "LOI",
@@ -317,13 +404,17 @@
       "title": {
         "_": "Title",
         "add": "Create new order / tender",
+        "edit": "Edit order / tender",
+        "heading": "Order and tender management",
         "list": "Orders and tenders"
       },
       "tooltip": {
         "addPaymentschedule": "Add payment schedule position",
         "addPosition": "Add order position"
       },
-      "vollstaendigFakturiert": "completely invoiced"
+      "type": "Type",
+      "vollstaendigFakturiert": "completely invoiced",
+      "zahlung": "Payment"
     },
     "buchungssatz": {
       "beleg": "Receipt",
@@ -579,28 +670,98 @@
     },
     "rechnung": {
       "_": "Invoice",
+      "beschreibung": "Description",
       "besonderheiten": "Specifics",
       "betreff": "Subject",
-      "bezahlDatum": "Payment date",
+      "bezahlDatum": {
+        "_": "Payment date",
+        "short": "Paid"
+      },
       "bic": "BIC",
+      "bruttoBetrag": "Gross amount",
       "currency": "Currency",
+      "currencyConversion": {
+        "warnings": {
+          "_": "Currency Conversion Errors",
+          "header": "The following invoices could not be converted to the system currency."
+        }
+      },
+      "currencyConversionFailed": "Invoice {arg0}: {arg1} → {arg2} on {arg3}",
       "customernr": "Customer no.",
       "datum": {
         "_": "Date of invoice",
         "short": "Date"
       },
+      "discount": "Discount (Date and %-value)",
       "discountMaturity": "Discount maturity",
       "discountPercent": "Discount percent",
-      "faelligkeit": "Due date",
+      "eInvoice": {
+        "createAndOpen": "Create and e-invoice",
+        "saveAndOpen": "Save and e-invoice",
+        "validationErrors": "E-invoice cannot be exported"
+      },
+      "error": {
+        "bezahlDatumRequired": "If paid amount is given then the date of payment should be given.",
+        "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
+        "kundeTextOderProjektRequired": "Customer text or project required.",
+        "negativAmount": "It's not possible to have a negative gross value with bank transfer",
+        "rechnungHatKeinePositionen": "The invoice has no positions.",
+        "rechnungsNummerBereitsVergeben": "Invoice number does already exists.",
+        "rechnungsNummerIstNichtFortlaufend": "Invoice number is not continuously.",
+        "statusBezahltErfordertZahlBetrag": "If status is \"paid\" then a paid amount must be given.",
+        "unknownCurrency": "The currency '${currency}' is unknown. Please remove it to use the system default currency or add the currency using the currency conversion function.",
+        "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
+      },
+      "exportEInvoice": "Export XRechnung",
+      "exportInvoice": "Export invoice",
+      "exportZUGFeRD": "Export ZUGFeRD",
+      "faelligkeit": {
+        "_": "Due date",
+        "short": "due"
+      },
+      "filter": {
+        "ueberfaellig": "delinquent",
+        "unbezahlt": "not paid"
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Invoice receiver may differ from project's customer."
+      },
       "iban": "IBAN",
+      "invoicePdf": {
+        "_": "Invoice PDF",
+        "hint": "Used as base PDF for ZUGFeRD export. If not uploaded, the PDF is generated from the Word template."
+      },
+      "konto": {
+        "tooltip": "Is used for the export of invoices. If not given the account number of a assigned project or customer is used (if given)."
+      },
+      "kostExcelExport": {
+        "_": "Export of cost assignments",
+        "tootlip": "Excel export of all invoices of the given time period including cost assignments."
+      },
+      "kostZuweisungFehlbetrag": "Cost id assignment difference",
       "mehrwertSteuerSatz": "VAT",
       "menge": "Quantity",
-      "nummer": "Number",
+      "mitSkonto": "with discount",
+      "multiselected": {
+        "info": "If you choose a date of payment all entries will be set to paid including the paid amount. If you choose to delete the payment date, also the payment amounts will be deleted.",
+        "title": "Multiple selection invoices"
+      },
+      "nummer": {
+        "_": "Number",
+        "short": "No"
+      },
+      "offen": "Open",
       "position": {
         "einzelNetto": "Unit net price"
       },
       "receiver": "Receiver",
+      "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
+      "showEditableKostZuweisungen": "Editable cost id assignments",
+      "showKostZuweisungen": "Cost id assignments",
+      "showKostZuweisungstatus": "Status of cost id assignments",
+      "showTextAreas": "Position texts",
+      "skonto": "Discount",
       "status": {
         "_": "Status of invoice",
         "bezahlt": "paid",
@@ -612,14 +773,39 @@
         "zahlungserinnerung2": "2nd payment reminder"
       },
       "text": "Text",
+      "title": {
+        "add": "Add new invoice",
+        "edit": "Edit invoice",
+        "heading": "Invoices",
+        "list": "List of invoices"
+      },
+      "tooltip": {
+        "addPosition": "Add invoice position"
+      },
+      "transferExport": {
+        "_": "Export bank transfers",
+        "error": {
+          "_": "An error occurred during export of transfer.",
+          "entries": "Export of transfer not possible, missing or invalid values in following entries: {arg0}.",
+          "foreignCurrency": "SEPA export is only possible for invoices in the system currency ({arg0}). The following invoices have a different currency and must be removed from the selection:",
+          "missing": "Export of transfer not possible, missing or invalid values in: {arg0}."
+        },
+        "tootlip": "Export of transfer in pain.001.003.03 format."
+      },
       "typ": {
         "_": "Type",
         "cancellation": "Cancellation",
         "gutschriftsAnzeigeDurchKunden": "Credit advice from customer",
         "rechnung": "Invoice"
       },
-      "zahlBetrag": "Paid amount",
-      "zahlungsZiel": "Payment target"
+      "zahlBetrag": {
+        "_": "Paid amount",
+        "short": "Paid"
+      },
+      "zahlungsZiel": {
+        "_": "Payment target",
+        "actual": "Actual payment target"
+      }
     },
     "rechnungen": "Invoices",
     "salesManager": "Key account manager",
@@ -902,7 +1088,30 @@
     },
     "fibu": {
       "_": "Finance",
-      "kost": "Cost"
+      "buchungssaetze": "Accounting records",
+      "currencyPair": "Currency conversion",
+      "datevImport": "Datev import",
+      "eInvoiceChecker": "E-Invoice Checker",
+      "eingangsrechnungen": "Incoming invoices",
+      "employeeSalaries": "Salaries",
+      "employeeSalariesImport": "Import of salaries",
+      "employees": "Employees",
+      "konten": "Accounts",
+      "kost": "Cost",
+      "kost1": "Cost 1 ids",
+      "kost2": "Cost 2 ids",
+      "kost2arten": "Cost 2 types",
+      "kostSearch": "Cost search",
+      "kunden": "Customers",
+      "orderbook": {
+        "_": "Order book",
+        "htmlSuffixTooltip": "Finished but not fully invoiced orders."
+      },
+      "projekte": "Projects",
+      "rechnungen": "Invoices",
+      "reporting": {
+        "reportObjectives": "Report Objectives"
+      }
     },
     "main": {
       "title": "Main menu"

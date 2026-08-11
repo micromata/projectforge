@@ -203,6 +203,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
      */
+    @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsBeschreibung")
     @get:Column(name = "beauftragungs_beschreibung", length = 4000)
     open var beauftragungsBeschreibung: String? = null
 

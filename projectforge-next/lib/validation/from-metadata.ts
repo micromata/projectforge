@@ -134,6 +134,49 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
   }
 
   /**
+   * Decimal field — an amount, a quantity of person days: a `BigDecimal` of the entity, which travels
+   * as a JSON number and is held as one.
+   *
+   * No bounds and no digit count: `@Column(precision, scale)` is not carried by the generated metadata,
+   * and a scale is a rounding rule rather than a validation one — the backend rounds what it stores.
+   * `nullable` for the same reason as [intField]: an emptied box must be reportable as missing instead
+   * of silently saving a 0, which is a different, valid amount.
+   */
+  function decimalField(name: FieldName<M>) {
+    const schema = z.number().nullable();
+    return field(name).required
+      ? schema.refine((v): boolean => v != null, REQUIRED)
+      : schema;
+  }
+
+  /**
+   * Boolean field, never null: these are Kotlin primitives in the entities
+   * (`AuftragsPositionDO.vollstaendigFakturiert`), so "not set" is not a value the backend can hold —
+   * and `required` on one of them would mean "must be true", which no entity means by it.
+   */
+  function booleanField(name: FieldName<M>) {
+    // Only to make a name the entity doesn't have fail here as it does everywhere else.
+    field(name);
+    return z.boolean();
+  }
+
+  /**
+   * A referenced entity as the DTO carries it: `{id, displayName}` and whatever else the backend sent,
+   * of which only the id is written back (`BaseDTO.copyTo` resolves the object by id).
+   *
+   * `passthrough`, so a field the backend adds later is not stripped from a value that is only being
+   * handed back. Mandatory means "not null", the same as for the other non-string kinds.
+   */
+  function entityField(name: FieldName<M>) {
+    const schema = z
+      .looseObject({ id: z.number(), displayName: z.string().optional() })
+      .nullable();
+    return field(name).required
+      ? schema.refine((v): boolean => v != null, REQUIRED)
+      : schema;
+  }
+
+  /**
    * Enum field, restricted to the constants of the backend enum. Stays `nullable` even when
    * mandatory: a value the entity doesn't have must be reportable as missing rather than replaced by
    * the first constant. The `: boolean` matters — an inferred type guard would narrow the field to
@@ -180,6 +223,9 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
     requiredString,
     nullableString,
     intField,
+    decimalField,
+    booleanField,
+    entityField,
     enumField,
     enumOptions,
   };

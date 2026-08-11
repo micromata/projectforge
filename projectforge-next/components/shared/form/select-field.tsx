@@ -39,6 +39,16 @@ export interface SelectFieldProps extends BaseFieldProps {
    * the status of a book, the status of a cost unit — which the legacy pages buried among the others.
    */
   emphasized?: boolean;
+  /**
+   * The field holds a number, not a string — an order's payment schedule refers to a position by its
+   * number (`PaymentScheduleDO.positionNumber`, an INT), and choosing from a list is still the only
+   * sensible control for it.
+   *
+   * Here rather than in the calling feature because the whole point of this component is that a field
+   * binds to what the entity declares: a select handing a string to an INT field would fail the schema
+   * on save, and every caller would need the same two conversions.
+   */
+  numeric?: boolean;
 }
 
 export function SelectField({
@@ -49,6 +59,7 @@ export function SelectField({
   options,
   clearable,
   emphasized,
+  numeric,
 }: SelectFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -62,7 +73,10 @@ export function SelectField({
       {(field: any) => {
         const meta = field.state.meta as FieldMetaState;
         const invalid = meta.isTouched && !meta.isValid;
-        const raw = (field.state.value as string | null) ?? "";
+        // The option values are strings either way — Radix has no other kind — so a numeric field is
+        // read as one and written back as a number.
+        const value = field.state.value as string | number | null;
+        const raw = value == null ? "" : String(value);
         return (
           <FieldShell
             label={label}
@@ -87,7 +101,7 @@ export function SelectField({
                 // default.
                 onValueChange={(v) => {
                   if (v === "") return;
-                  field.handleChange(v);
+                  field.handleChange(numeric ? Number(v) : v);
                 }}
               >
                 {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}

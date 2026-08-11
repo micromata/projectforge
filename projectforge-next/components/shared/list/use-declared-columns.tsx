@@ -42,8 +42,13 @@ export function useDeclaredColumns<
     return columns.map((declaration) => {
       const isField = "name" in declaration;
       const name = isField ? declaration.name : declaration.id;
-      const field =
-        (isField ? metadata.fields[declaration.name] : undefined) ?? TEXT;
+      // A computed column may name its data type, since it has no field to derive one from — that is
+      // what makes an order's transient net sum read as money (see ComputedColumn.dataType).
+      const field = isField
+        ? (metadata.fields[declaration.name] ?? TEXT)
+        : declaration.dataType
+          ? { dataType: declaration.dataType, required: false }
+          : TEXT;
 
       const label = translate(
         labelKeyFor(metadata, name, translate.has, declaration.labelKey)

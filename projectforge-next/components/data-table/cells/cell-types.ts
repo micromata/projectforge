@@ -11,7 +11,9 @@ export type CellKind =
   | "rating"
   | "consumption"
   | "tree"
-  | "icon";
+  | "icon"
+  | "orders"
+  | "taskStatus";
 
 /** The icon names a backend column def may map a value onto (UIIconType). */
 export type CellIconName =

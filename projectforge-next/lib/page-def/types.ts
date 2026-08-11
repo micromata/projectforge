@@ -15,8 +15,7 @@ import type { ComponentType, ReactNode } from "react";
 import type { CellContext } from "@tanstack/react-table";
 import type { ZodType } from "zod";
 import type { FilterKind } from "@/components/data-table";
-import type { EditPageTab } from "@/components/shared/edit-page-tabs";
-import type { EntityMetadata } from "@/lib/metadata/types";
+import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 
@@ -55,6 +54,15 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
   id: string;
   labelKey: string;
   accessor: (row: Row) => unknown;
+  /**
+   * What kind of value it is, where that is not plain text: an order's net sum is money and reads as
+   * money (right-aligned, in the user's currency), although no field of the entity carries it — the
+   * sums are computed (`OrderInfo`) and transient.
+   *
+   * Only for computed columns, and only because there is no metadata to derive it from; a column of a
+   * real field must never state it, or the entity and the list could say different things.
+   */
+  dataType?: UIDataTypeName;
 }
 
 export type ColumnDeclaration<Row, M extends EntityMetadata> =
@@ -102,6 +110,18 @@ export interface SectionDef<M extends EntityMetadata> {
   render?: (ctx: { id: number | null }) => ReactNode;
 }
 
+/**
+ * A page of the entity beside the form and the history — an order's forecast analysis.
+ *
+ * Declared rather than built: its route follows the same convention the history's does
+ * (`${route}/${id}/${id of the tab}`), and its label is a message key like every other label here, so a
+ * declaration stays a value and needs no translator (see entityTabs).
+ */
+export interface ExtraTabDef {
+  id: string;
+  labelKey: string;
+}
+
 export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Zod schema of the form, built from the metadata (lib/validation/from-metadata.ts). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,7 +152,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   headerTrailing?: (data: Data | undefined) => ReactNode;
   /** Further tabs leading to a page of their own. Appended after the history. */
-  extraTabs?: (id: number) => EditPageTab[];
+  extraTabs?: ExtraTabDef[];
 }
 
 export interface PageDef<

@@ -51,6 +51,11 @@ export interface TaskNode {
    * of anything else — see [isSelectableTask].
    */
   root?: boolean;
+  /**
+   * Whether the task is marked as deleted — the tree's filter can include such tasks. The row is then
+   * tinted and struck through (see deletedRowClass); `statusAsString` reads "gelöscht".
+   */
+  deleted?: boolean;
   consumption?: unknown;
   /** Index signature so the node can be read as a table row (see DataObject). */
   [field: string]: unknown;
@@ -143,6 +148,11 @@ export interface TaskTreeParams extends Partial<TaskTreeFilter> {
   highlightedTaskId?: number;
   /** Prepend the root node, for admins and financial staff. */
   showRootForAdmins?: boolean;
+  /**
+   * Ask for the select popover's narrow set of columns instead of the page's full one, and for its
+   * own stored column state — hiding a column while picking a task must not change the tree page.
+   */
+  select?: boolean;
 }
 
 /**

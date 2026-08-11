@@ -25,6 +25,7 @@ package org.projectforge.rest.task
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.projectforge.NextMigration
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
@@ -39,6 +40,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ListFilterService
@@ -51,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 
 /**
  * For serving the task tree as tree or table..
@@ -60,13 +63,20 @@ import org.springframework.web.bind.annotation.*
 class TaskServicesRest {
     class Kost2(val id: Long, val title: String)
 
-    // class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
+    /**
+     * One order having at least one position assigned to a task, as the tree's `Aufträge` column shows
+     * it: the number as a link to the order, the rest as its tooltip.
+     */
     class Order(
+        /** The order number, e. g. `7242` — the link's label. */
         val number: String,
+        /** Title of the order, its person days on this task and its status — the tooltip's first line. */
         val title: String,
+        /** One line per position of this order on the task — the tooltip's body. */
         val text: String,
-        // val orderPositions: MutableList<OrderPosition>? = null
-    ) // Positions
+        /** Url of the order's page, ready to use (see [NextMigration.standardEditPage]). */
+        val url: String,
+    )
 
     enum class TreeStatus { LEAF, OPENED, CLOSED }
     class Task(
@@ -112,8 +122,22 @@ class TaskServicesRest {
          * timesheet or an order position against it is meaningless.
          */
         var root: Boolean? = null,
+        /**
+         * Whether the task is marked as deleted. On the wire because the tree's filter may include
+         * deleted tasks ([TaskFilter.deleted]) and this class is no `BaseDTO`, which would carry the
+         * flag itself. The client marks such a row (`row-deleted`).
+         */
+        val deleted: Boolean = false,
     ) {
-        val statusAsString: String? = status?.i18nKey?.let { translate(it) }
+        /**
+         * The status as the user reads it. `deleted` wins over the status itself: a deleted task is
+         * gone, and its last status says nothing worth reading (Wicket shows the status struck
+         * through instead, which reads as if the task were still closed).
+         */
+        val statusAsString: String? =
+            if (deleted) translate("deleted") else status?.i18nKey?.let { translate(it) }
+
+        val priorityAsString: String? = priority?.i18nKey?.let { translate(it) }
 
         constructor(node: TaskNode) : this(
             id = node.task.id!!,
@@ -123,7 +147,8 @@ class TaskServicesRest {
             reference = node.task.reference,
             priority = node.task.priority,
             status = node.task.status,
-            responsibleUser = node.task.responsibleUser
+            responsibleUser = node.task.responsibleUser,
+            deleted = node.task.deleted,
         )
 
         /**
@@ -148,7 +173,36 @@ class TaskServicesRest {
 
     companion object {
         private const val PREF_ARA = "task"
+
+        /**
+         * The two modes get their own stored column state, because they get their own columns: the page
+         * shows every column the data justifies, the select popover only the narrow ones it has room
+         * for. Sharing the category would let hiding a column in the popover change the page's layout.
+         */
         private const val GRID_CATEGORY = "taskTree"
+        private const val GRID_CATEGORY_SELECT = "taskTreeSelect"
+
+        private fun gridCategory(select: Boolean) = if (select) GRID_CATEGORY_SELECT else GRID_CATEGORY
+
+        /**
+         * Suffix of the select popover's stored search filter, so it filters independently of the page:
+         * a search typed while picking a task is about that one pick, not about the tree page the user
+         * left open behind it (and vice versa).
+         */
+        private const val FILTER_SUFFIX_SELECT = "select"
+
+        private fun filterKeySuffix(select: Boolean) = if (select) FILTER_SUFFIX_SELECT else null
+
+        /** REST category of the order book (`AuftragPagesRest`), whose page an order link leads to. */
+        private const val ORDER_CATEGORY = "order"
+
+        /** The groups that may see which orders are booked against a task, as `TaskTreePage` has it. */
+        private val ORDER_GROUPS = arrayOf(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP,
+            ProjectForgeGroup.PROJECT_ASSISTANT,
+            ProjectForgeGroup.PROJECT_MANAGER,
+        )
 
         fun createTask(id: Long?): Task? {
             if (id == null)
@@ -186,6 +240,49 @@ class TaskServicesRest {
             }
         }
 
+        /**
+         * The orders having a position assigned to this task, one entry per order, each with the tooltip
+         * the Wicket column shows (see `OrderPositionsPanel`).
+         *
+         * Only the task's own positions, as that column does (`getOrderPositionEntries`, not
+         * `getOrderPositionsUpwards`): an ancestor's order is not this task's. The tree caches the
+         * positions by task id, so this costs no query per node.
+         */
+        fun addOrderList(task: Task) {
+            val positions = TaskTree.instance.getOrderPositionEntries(task.id)
+            if (positions.isNullOrEmpty()) {
+                return
+            }
+            val personDaysUnit = translate("projectmanagement.personDays.short")
+            // Grouped by order, because a task may have several positions of the same one and the cell
+            // names the order once. Sorted by number, the cached set has no order of its own.
+            val orderList = positions.groupBy { it.auftragNummer }
+                .toSortedMap(nullsLast(naturalOrder()))
+                .map { (number, orderPositions) ->
+                    val order = orderPositions.first().auftrag
+                    val personDays = orderPositions.mapNotNull { it.personDays }
+                        .fold(BigDecimal.ZERO, BigDecimal::add)
+                    val status = order?.status?.let { ", ${translate(it.i18nKey)}" } ?: ""
+                    val title = "${order?.titel ?: ""} (${NumberFormatter.format(personDays)} " +
+                            "$personDaysUnit)$status"
+                    val text = orderPositions.sortedBy { it.number }.joinToString("\n") { pos ->
+                        val days = pos.personDays?.let { NumberFormatter.format(it) } ?: "??"
+                        "#${pos.number} ($days $personDaysUnit): ${pos.titel ?: ""}" +
+                                ", ${translate(pos.status.i18nKey)}"
+                    }
+                    Order(
+                        number = "$number",
+                        title = title,
+                        text = text,
+                        // The order's own page, wherever it is served: the url is a per-page decision the
+                        // client can't make (see NextMigration).
+                        url = NextMigration.standardEditPage(ORDER_CATEGORY)
+                            .replace(NextMigration.ID_PLACEHOLDER, "${orderPositions.first().auftragId}"),
+                    )
+                }
+            task.orderList = orderList.toMutableList()
+        }
+
         fun addTimesheetReferenceList(task: Task) {
             val timesheetReferenceList = listOf("Uni Kassel", "Uni Göttingen")
             task.timesheetReferenceList =
@@ -199,6 +296,24 @@ class TaskServicesRest {
         val taskFilter: TaskFilter,
         val openedNodes: MutableSet<Long>,
         var highlightedTaskNode: TaskNode? = null,
+        /** Whether the answer carries each node's orders, i. e. whether the user may see them at all. */
+        val withOrders: Boolean = false,
+    )
+
+    /**
+     * Which of the tree's optional columns to show: one is shown if any task in the tree has a value for
+     * it, as the Wicket page does (`TaskTreeBuilder.createColumns`), so a tree without a single reference
+     * doesn't carry an empty Reference column across the screen.
+     *
+     * Over the whole tree rather than over the answer, because the answer is a moving target — it depends
+     * on the filter, on which nodes are open and on the highlighted node, and the columns would come and
+     * go with every click. The tree is held in memory, so this costs no query.
+     */
+    private class ColumnVisibility(
+        val orders: Boolean = false,
+        val protectTimesheetsUntil: Boolean = false,
+        val reference: Boolean = false,
+        val priority: Boolean = false,
     )
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -222,10 +337,43 @@ class TaskServicesRest {
     private lateinit var agGridSupport: AGGridSupport
 
     /**
-     * Creates default column definitions for the task tree grid.
+     * Which optional columns the tree has data for, and which of them this user may see at all.
+     *
+     * The access rules are the Wicket page's (`TaskTreePage.onInitialize`): orders for project staff and
+     * above, the timesheet protection for financial staff only.
+     */
+    private fun columnVisibility(): ColumnVisibility {
+        val maySeeOrders = accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS)
+        val maySeeProtection = accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+        // One walk over the tasks in memory, so a column that nothing fills doesn't show up empty.
+        val tasks = mutableListOf<TaskDO>()
+        collectTasks(taskTree.rootTaskNode, tasks)
+        return ColumnVisibility(
+            orders = maySeeOrders && taskTree.hasOrderPositionsEntries(),
+            protectTimesheetsUntil = maySeeProtection && tasks.any { it.protectTimesheetsUntil != null },
+            reference = tasks.any { !it.reference.isNullOrBlank() },
+            priority = tasks.any { it.priority != null },
+        )
+    }
+
+    /**
+     * The node's task and those of all its descendants, depth first.
+     *
+     * Own walk rather than [TaskTree.getDescendants]: that one only collects the direct children.
+     */
+    private fun collectTasks(node: TaskNode, result: MutableList<TaskDO>) {
+        result.add(node.task)
+        node.children.forEach { collectTasks(it, result) }
+    }
+
+    /**
+     * The columns of the task tree, in the order the Wicket page shows them.
+     *
+     * @param columns Which optional columns have data. All off for the select mode, whose popover only
+     * has room for the narrow ones anyway.
      * @return MutableList of UIAgGridColumnDef with all default columns
      */
-    private fun createDefaultColumnDefs(): MutableList<UIAgGridColumnDef> {
+    private fun createDefaultColumnDefs(columns: ColumnVisibility = ColumnVisibility()): MutableList<UIAgGridColumnDef> {
         val lc = LayoutContext(TaskDO::class.java)
         val kost2Visible = Configuration.instance.isCostConfigured
         val columnDefs = mutableListOf<UIAgGridColumnDef>()
@@ -262,19 +410,64 @@ class TaskServicesRest {
                     .withTooltipField("kost2ListAsLines")
             )
         }
+        if (columns.orders) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "orderList",
+                    headerName = translate("fibu.auftrag.auftraege"),
+                    valueFormatter = UIAgGridColumnDef.Formatter.ORDERS,
+                    sortable = false,
+                    width = 100,
+                    filter = false,
+                )
+            )
+        }
+        columnDefs.add(
+            UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
+        )
+        if (columns.protectTimesheetsUntil) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    "protectTimesheetsUntil",
+                    headerName = translate("task.protectTimesheetsUntil.short"),
+                    valueFormatter = UIAgGridColumnDef.Formatter.DATE,
+                    sortable = false,
+                    width = 100,
+                    filter = false,
+                )
+            )
+        }
+        if (columns.reference) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(lc, "reference", sortable = false, filter = false)
+            )
+        }
+        if (columns.priority) {
+            columnDefs.add(
+                UIAgGridColumnDef.createCol(
+                    lc,
+                    "priorityAsString",
+                    lcField = "priority",
+                    sortable = false,
+                    width = 100,
+                    filter = false,
+                )
+            )
+        }
         columnDefs.add(
             UIAgGridColumnDef.createCol(
                 lc,
                 "statusAsString",
                 lcField = "status",
+                // Coloured like the Wicket page shows it, and the colour follows the status rather than
+                // the text, so it survives translation (see TaskStatusCell in projectforge-next).
+                formatter = UIAgGridColumnDef.Formatter.TASK_STATUS,
                 sortable = false,
                 width = 100,
                 filter = false,
             )
         )
-        columnDefs.add(
-            UIAgGridColumnDef.createCol(lc, "shortDescription", sortable = false, filter = false)
-        )
+        // Always shown, in both modes: it is one of the six the tree had from the start.
         columnDefs.add(
             UIAgGridColumnDef.createCol(lc, "responsibleUser", sortable = false, filter = false)
         )
@@ -307,11 +500,16 @@ class TaskServicesRest {
         @RequestParam("notOpened") notOpened: Boolean?,
         @RequestParam("closed") closed: Boolean?,
         @RequestParam("deleted") deleted: Boolean?,
-        @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?
+        @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?,
+        @RequestParam("select") select: Boolean?,
     )
             : Result {
+        val selectMode = select == true
         val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>())
-        val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
+        // Its own stored filter per mode (see filterKeySuffix), as with the column state.
+        val filter = listFilterService.getSearchFilter(
+            request.getSession(false), TaskFilter::class.java, filterKeySuffix(selectMode)
+        ) as TaskFilter
 
         if (initial != true) {
             // User filter settings not on initial call.
@@ -328,7 +526,14 @@ class TaskServicesRest {
             filter.isNotOpened = true
         }
         val result = Result()
-        val ctx = BuildContext(result, ThreadLocalUserContext.loggedInUser!!, filter, openNodes)
+        val ctx = BuildContext(
+            result, ThreadLocalUserContext.loggedInUser!!, filter, openNodes,
+            // Only where the column exists at all: the select popover doesn't show the orders, so the
+            // answer needn't carry them (see createDefaultColumnDefs). Access as the Wicket page has it
+            // (TaskTreePage.onInitialize): orders for project staff and above.
+            withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
+                    accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS),
+        )
         if (highlightedTaskId != null) {
             ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
         }
@@ -351,31 +556,25 @@ class TaskServicesRest {
             // Last position, as the Wicket page shows it (TaskTreeProvider's comparator).
             result.nodes.add(Task(rootNode).also { it.root = true })
         }
-        val kost2Visible = Configuration.instance.isCostConfigured
-        var ordersVisible = false
-        var protectionUntilVisible = false
-        var referenceVisible = false
-        var priorityVisible = false
-        var assignedUserVisible = false
-        root.children?.forEach { task ->
-            if (!ordersVisible && !task.orderList.isNullOrEmpty()) ordersVisible = true
-            if (!protectionUntilVisible && task.protectTimesheetsUntil != null) protectionUntilVisible = true
-            if (!referenceVisible && !task.reference.isNullOrBlank()) referenceVisible = true
-            if (!priorityVisible && task.priority != null) priorityVisible = true
-            if (!assignedUserVisible && task.responsibleUser != null) assignedUserVisible = true
-        }
         if (initial == true) {
-            // Create default column definitions
-            result.columnDefs.addAll(createDefaultColumnDefs())
+            // The select popover keeps the narrow set of columns, no matter what the tree has data for:
+            // the extra ones (orders, reference, priority, protection) don't fit and aren't what the user
+            // picks a task by.
+            result.columnDefs.addAll(
+                createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
+            )
 
-            // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest)
-            result.onColumnStatesChangedUrl = RestResolver.getRestUrl(this::class.java, "tree/${RestPaths.SET_COLUMN_STATES}")
-            result.resetGridStateUrl = RestResolver.getRestUrl(this::class.java, "tree/resetGridState")
+            // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest). The mode is
+            // part of them, because each mode stores its own column state (see gridCategory).
+            val modeParam = if (selectMode) "?select=true" else ""
+            result.onColumnStatesChangedUrl =
+                RestResolver.getRestUrl(this::class.java, "tree/${RestPaths.SET_COLUMN_STATES}$modeParam")
+            result.resetGridStateUrl = RestResolver.getRestUrl(this::class.java, "tree/resetGridState$modeParam")
 
             // Create temporary UIAgGrid to restore user preferences
             val agGrid = UIAgGrid("taskTree")
             result.columnDefs.forEach { agGrid.add(it) }
-            agGridSupport.restoreColumnsFromUserPref(GRID_CATEGORY, agGrid)
+            agGridSupport.restoreColumnsFromUserPref(gridCategory(selectMode), agGrid)
 
             // Copy restored state back to result
             result.columnDefs = agGrid.columnDefs
@@ -458,6 +657,7 @@ class TaskServicesRest {
                         if (!hidden) {
                             ctx.result.nodes.add(child) // All children are added to root task (table view!)
                             child.indent = indent
+                            completeVisible(ctx, child)
                             buildTree(
                                 ctx,
                                 child,
@@ -470,12 +670,25 @@ class TaskServicesRest {
                         if (task.children == null)
                             task.children = mutableListOf()
                         task.children!!.add(child)
+                        completeVisible(ctx, child)
                         buildTree(ctx, child, node, null) // Build as tree
                     }
                 }
             }
         } else {
             task.treeStatus = TreeStatus.CLOSED
+        }
+    }
+
+    /**
+     * What only a node the user actually gets to see is worth doing: its orders.
+     *
+     * Called for a node that made it into the answer, not for every one built — [buildTree] also builds
+     * ancestors of a highlighted node just to walk their children, and those never reach the client.
+     */
+    private fun completeVisible(ctx: BuildContext, task: Task) {
+        if (ctx.withOrders) {
+            addOrderList(task)
         }
     }
 
@@ -510,8 +723,11 @@ class TaskServicesRest {
      * Saves grid state (column order, width, visibility, filters, etc.) for task tree.
      */
     @PostMapping("tree/${RestPaths.SET_COLUMN_STATES}")
-    fun updateColumnStates(@Valid @RequestBody request: DataTableStateRequest): String {
-        agGridSupport.storeGridState(GRID_CATEGORY, request)
+    fun updateColumnStates(
+        @Valid @RequestBody request: DataTableStateRequest,
+        @RequestParam("select") select: Boolean?,
+    ): String {
+        agGridSupport.storeGridState(gridCategory(select == true), request)
         return "OK"
     }
 
@@ -519,12 +735,14 @@ class TaskServicesRest {
      * Resets the AG Grid state to defaults and returns fresh column definitions for task tree.
      */
     @GetMapping("tree/resetGridState")
-    fun resetGridState(): ResponseAction {
-        agGridSupport.resetGridState(GRID_CATEGORY)
+    fun resetGridState(@RequestParam("select") select: Boolean?): ResponseAction {
+        val selectMode = select == true
+        agGridSupport.resetGridState(gridCategory(selectMode))
 
-        // Rebuild fresh columnDefs with defaults using shared function
+        // The same set the initial call would send, so "reset" restores what the user started with.
         val agGrid = UIAgGrid("taskTree")
-        createDefaultColumnDefs().forEach { agGrid.add(it) }
+        createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
+            .forEach { agGrid.add(it) }
 
         // Create ResponseAction using AGGridSupport helper
         return agGridSupport.createResetGridStateResponse(agGrid)

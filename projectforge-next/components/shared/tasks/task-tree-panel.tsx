@@ -25,11 +25,12 @@ export function TaskTreePanel({
   onSelect,
   showRootForAdmins,
   rootSelectable,
+  selectMode,
   className,
 }: TaskTreePanelProps) {
   const t = useTranslations();
   const { nodes, grid, filter, setFilter, isLoading, isFetching, toggleNode } =
-    useTaskTree({ highlightTaskId, showRootForAdmins });
+    useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
 
   const toggle = useCallback(
     (task: TaskNode) => {

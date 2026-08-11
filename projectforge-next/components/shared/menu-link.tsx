@@ -23,7 +23,8 @@ export function MenuLink({
   children: React.ReactNode;
   className?: string;
   title?: string;
-  onClick?: () => void;
+  /** The event is passed on, so a link inside a clickable row can stop propagation. */
+  onClick?: (event: React.MouseEvent) => void;
 }) {
   const target = resolveMenuUrl(url);
   if (target.kind === "external") {

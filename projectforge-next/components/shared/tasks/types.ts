@@ -27,5 +27,10 @@ export interface TaskTreePanelProps {
    * a valid task, so the default is false.
    */
   rootSelectable?: boolean;
+  /**
+   * Show the narrow set of columns a select popover has room for, and keep its column state apart
+   * from the tree page's. Set by the select field; the tree page leaves it off.
+   */
+  selectMode?: boolean;
   className?: string;
 }

@@ -95,6 +95,8 @@ object NextMigration {
      * needed if the page doesn't follow that app's mount point convention.
      * @param legacyEditRoute Route of the legacy edit page with [ID_PLACEHOLDER], without the app
      * prefix. Only needed if the page doesn't follow the convention either.
+     * @param legacyNewEntryRoute Route of the legacy page for creating an entry, without the app prefix.
+     * Only needed if the page doesn't follow the convention.
      */
     class NextPage(
         val route: String,
@@ -103,6 +105,7 @@ object NextMigration {
         val legacyApp: LegacyApp = LegacyApp.REACT,
         val legacyRoute: String? = null,
         val legacyEditRoute: String? = null,
+        val legacyNewEntryRoute: String? = null,
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
@@ -123,6 +126,19 @@ object NextMigration {
             editRoute = "cost1/$ID_PLACEHOLDER",
             newEntryRoute = "cost1/new",
             legacyApp = LegacyApp.WICKET,
+        ),
+        // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
+        // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
+        // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back
+        // would 404.
+        "order" to NextPage(
+            route = "order",
+            editRoute = "order/$ID_PLACEHOLDER",
+            newEntryRoute = "order/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "orderBookList",
+            legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "orderBookEdit",
         ),
     )
 
@@ -249,6 +265,6 @@ object NextMigration {
     fun legacyNewEntryUrl(category: String): String {
         val page = nextPage(category)
         val app = page?.legacyApp ?: LegacyApp.REACT
-        return "${app.appPath}${app.newEntryRoute(category)}"
+        return "${app.appPath}${page?.legacyNewEntryRoute ?: app.newEntryRoute(category)}"
     }
 }

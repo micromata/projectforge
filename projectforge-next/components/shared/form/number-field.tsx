@@ -1,0 +1,166 @@
+"use client";
+
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useFormatContext } from "@/hooks/use-format";
+import { formatNumberInput, parseNumberInput } from "@/lib/number-parse";
+import { cn } from "@/lib/utils";
+import {
+  FieldShell,
+  useFieldIds,
+  type BaseFieldProps,
+  type FieldMetaState,
+} from "./field-shell";
+import { useEntityEditForm, useFieldMetadata } from "./form-context";
+import { useFieldErrors } from "./use-field-errors";
+
+export interface NumberFieldProps extends BaseFieldProps {
+  /**
+   * Digits after the decimal separator. Defaults to 2 for an `AMOUNT` and to none for anything else,
+   * i.e. to what the value is: an amount is written 1.500,00 even when it is round, a quantity like
+   * person days is not.
+   */
+  fractionDigits?: number;
+  /** The currency behind the box, for an amount. Comes from the user's settings, never spelled out. */
+  suffix?: string;
+  disabled?: boolean;
+}
+
+/**
+ * A decimal number, typed in the user's layout and held as a `number` — the wire format of a
+ * `BigDecimal`.
+ *
+ * Like [DateInput] and unlike `<input type="number">`, the separators are the user's
+ * ([useFormatContext]), not the browser's: "1.500,50" on a German account, "1500.50" on an English
+ * one, both saved as the same number. See lib/number-parse.ts for the reading side.
+ */
+export function NumberField({
+  name,
+  label,
+  hint,
+  className,
+  fractionDigits,
+  suffix,
+  disabled,
+}: NumberFieldProps) {
+  const form = useEntityEditForm();
+  const fieldErrors = useFieldErrors();
+  const ids = useFieldIds();
+  const { required, dataType } = useFieldMetadata(name);
+  const digits = fractionDigits ?? (dataType === "AMOUNT" ? 2 : undefined);
+  return (
+    <form.Field name={name as never}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {(field: any) => {
+        const meta = field.state.meta as FieldMetaState;
+        const invalid = meta.isTouched && !meta.isValid;
+        return (
+          <FieldShell
+            label={label}
+            required={required}
+            hint={hint}
+            invalid={invalid}
+            errors={fieldErrors(meta, label)}
+            className={className}
+            ids={ids}
+          >
+            <NumberBox
+              id={ids.controlId}
+              value={field.state.value as number | null}
+              onChange={(next) => field.handleChange(next)}
+              onBlur={field.handleBlur}
+              fractionDigits={digits}
+              invalid={invalid}
+              disabled={disabled}
+              suffix={suffix}
+            />
+          </FieldShell>
+        );
+      }}
+    </form.Field>
+  );
+}
+
+/**
+ * The box itself, separated from the form binding so the number and the text it is being typed as can
+ * live side by side — the same split [NumberSegmentInput] makes, and for the same reason: "1," is not
+ * yet a number, and rewriting it into "1" would correct the field under the user's fingers.
+ */
+function NumberBox({
+  id,
+  value,
+  onChange,
+  onBlur,
+  fractionDigits,
+  invalid,
+  disabled,
+  suffix,
+}: {
+  id: string;
+  value: number | null;
+  onChange: (next: number | null) => void;
+  onBlur: () => void;
+  fractionDigits?: number;
+  invalid: boolean;
+  disabled?: boolean;
+  suffix?: string;
+}) {
+  const ctx = useFormatContext();
+  // `shows` is the number the text stands for: while it equals the value the text is ours and is left
+  // alone. Adjusted during render, not in an effect, because it follows a value the *form* set —
+  // loading an entity (form.reset) or the recalculated sums coming back.
+  const [own, setOwn] = useState(() => ({
+    text: formatNumberInput(value, ctx, fractionDigits),
+    shows: value,
+  }));
+  if (value !== own.shows) {
+    setOwn({
+      text: formatNumberInput(value, ctx, fractionDigits),
+      shows: value,
+    });
+  }
+  const text =
+    value === own.shows
+      ? own.text
+      : formatNumberInput(value, ctx, fractionDigits);
+
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        value={text}
+        inputMode="decimal"
+        autoComplete="off"
+        disabled={disabled}
+        aria-invalid={invalid || undefined}
+        className={cn("text-right font-mono", suffix && "pr-9")}
+        onChange={(e) => {
+          const typed = e.target.value;
+          const parsed = parseNumberInput(typed, ctx);
+          // Not a number yet ("1,") keeps the text and the value it had, so nothing is lost while
+          // typing; an emptied box becomes null, which is how the backend stores "no value".
+          setOwn({ text: typed, shows: typed.trim() === "" ? null : parsed });
+          if (typed.trim() === "") onChange(null);
+          else if (parsed !== null) onChange(parsed);
+        }}
+        onBlur={() => {
+          // The padding to `fractionDigits` becomes visible only now, so it can't fight what is
+          // being typed.
+          setOwn({
+            text: formatNumberInput(value, ctx, fractionDigits),
+            shows: value,
+          });
+          onBlur();
+        }}
+      />
+      {suffix && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs text-muted-foreground"
+        >
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}

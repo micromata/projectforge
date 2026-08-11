@@ -42,6 +42,20 @@ interface Rule {
 }
 
 /**
+ * The row class of a deleted entity — tinted and struck through, wherever a table
+ * shows one (`globals.css`).
+ *
+ * Here rather than at the call sites so no table spells the class name itself, and
+ * next to [rowClassNameFor]: the dynamic grid gets the same class from the
+ * backend's `getRowClass`, hand-built tables pass this as their `rowClassName`.
+ */
+export function deletedRowClass(row: {
+  deleted?: boolean;
+}): string | undefined {
+  return row.deleted ? "row-deleted" : undefined;
+}
+
+/**
  * Builds the `rowClassName` callback for a grid. Returns undefined if the source
  * has no recognised rule at all, so DataTable can skip the whole mechanism.
  */

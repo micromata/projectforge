@@ -109,6 +109,13 @@
   --row-blue: rgba(0, 155, 163, 0.09);
   --row-grey: rgba(120, 120, 120, 0.07);
 
+  /*
+   * A task's status, as the Wicket page paints it (projectforge-css.less:
+   * .taskStatus_opened / .taskStatus_closed). "Not opened" stays the row's colour.
+   */
+  --task-status-opened: #518732;
+  --task-status-closed: #386773;
+
   /* Consumption bar (task lists): one fill colour per Consumption.Status */
   --consumption-track: oklch(0.93 0 0);
   --consumption-ok: var(--brand-green);
@@ -199,6 +206,10 @@
   --row-blue: rgba(0, 155, 163, 0.2);
   --row-grey: rgba(255, 255, 255, 0.04);
   --consumption-track: oklch(0.32 0 0);
+
+  /* Wicket's status colours are mixed for print; lightened to stay readable here */
+  --task-status-opened: #8dc46a;
+  --task-status-closed: #7fb3c2;
 }
 
 @layer base {
@@ -233,6 +244,18 @@
 }
 .row-grey > td {
   background-color: var(--row-grey);
+}
+
+/*
+ * A task's status (see TaskStatusCell). Semantic classes rather than utilities,
+ * because the colour is a token of its own and Tailwind has no arbitrary-value
+ * escape that keeps it out of the JSX.
+ */
+.task-status-opened {
+  color: var(--task-status-opened);
+}
+.task-status-closed {
+  color: var(--task-status-closed);
 }
 
 /* Consumption bar: a track with a fill whose width is the booked percentage. */

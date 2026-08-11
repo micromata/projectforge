@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { BooleanCell } from "./boolean-cell";
 import { ConsumptionCell } from "./consumption-cell";
 import { IconCell } from "./icon-cell";
+import { OrdersCell } from "./orders-cell";
 import { RatingCell } from "./rating-cell";
+import { TaskStatusCell } from "./task-status-cell";
 import { TextCell } from "./text-cell";
 import { TreeCell } from "./tree-cell";
 import type { CellKind, CellRenderProps } from "./cell-types";
@@ -19,6 +21,8 @@ const CELL_RENDERERS: Record<CellKind, (props: CellRenderProps) => ReactNode> =
     consumption: ConsumptionCell,
     tree: TreeCell,
     icon: IconCell,
+    orders: OrdersCell,
+    taskStatus: TaskStatusCell,
   };
 
 /**

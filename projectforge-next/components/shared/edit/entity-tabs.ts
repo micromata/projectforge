@@ -1,6 +1,6 @@
 import type { EditPageTab } from "@/components/shared/edit-page-tabs";
 import type { EntityMetadata } from "@/lib/metadata/types";
-import type { SectionDef } from "@/lib/page-def/types";
+import type { ExtraTabDef, SectionDef } from "@/lib/page-def/types";
 
 /** Id of the history tab, so its own page can mark itself as the open one. */
 export const HISTORY_TAB_ID = "history";
@@ -22,7 +22,11 @@ export interface EntityTabsOptions<M extends EntityMetadata> {
    * `@WithHistory` is the only authority, and a second place to say so is a place to drift.
    */
   history?: boolean;
-  extraTabs?: (id: number) => EditPageTab[];
+  /**
+   * Pages of the entity beside the form and the history, each at `${route}/${id}/${tab.id}` — the same
+   * convention the history follows, so a declaration says a key and an id and nothing about routing.
+   */
+  extraTabs?: ExtraTabDef[];
   /**
    * Whether the bar is rendered on the form itself. Seen from another page of the entity the section
    * tabs are links back to the form, not anchors into a scroll column that isn't there.
@@ -64,6 +68,10 @@ export function entityTabs<M extends EntityMetadata>({
           },
         ]
       : []),
-    ...(extraTabs?.(id) ?? []),
+    ...(extraTabs ?? []).map((tab) => ({
+      id: tab.id,
+      label: t(tab.labelKey),
+      href: `${route}/${id}/${tab.id}`,
+    })),
   ];
 }

@@ -90,7 +90,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
-    ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
+    // Migrated to projectforge-next; wa/orderBookList stays reachable through the escape hatch, see
+    // NextMigration.legacyListUrl.
+    ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
     PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //

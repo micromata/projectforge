@@ -45,6 +45,19 @@ export interface ServerValidationResult {
 }
 
 /**
+ * True when the form has a field of this name, a row of a nested collection included: an error of the
+ * order book arrives as `positionen[0].titel` (see `AuftragPagesRest.validateRows`), which is exactly
+ * the name the row's field is bound to — so it is accepted as soon as the form holds the array it
+ * indexes into. Checking the root rather than the whole path is what makes that possible: the form's
+ * field *names* only exist once a row is rendered, while the errors arrive for all of them at once.
+ */
+function isKnown(fieldId: string, knownFields: readonly string[]): boolean {
+  if (knownFields.includes(fieldId)) return true;
+  const root = fieldId.match(/^([^[.]+)\[\d+]\./)?.[1];
+  return !!root && knownFields.includes(root);
+}
+
+/**
  * @param knownFields Field names the form actually renders. An error for anything else would be
  * written into a field that never displays it, so it is reported back as unassigned instead.
  */
@@ -60,7 +73,7 @@ export function applyServerValidationErrors(
     // The backend always translates the message before sending it (ValidationError.create).
     const message = error.message?.trim();
     if (!message) continue;
-    if (error.fieldId && knownFields.includes(error.fieldId)) {
+    if (error.fieldId && isKnown(error.fieldId, knownFields)) {
       // Several errors on one field: keep them all rather than let the last one win.
       fields[error.fieldId] = fields[error.fieldId]
         ? `${fields[error.fieldId]}. ${message}`

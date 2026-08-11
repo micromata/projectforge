@@ -53,6 +53,13 @@
       "mailSent": "Email code has been sent"
     }
   },
+  "order": {
+    "searchPlaceholder": "Search orders…",
+    "forecast": {
+      "unavailable": "The forecast analysis could not be loaded.",
+      "jsonUnavailable": "The JSON export is only available in development mode."
+    }
+  },
   "passwordForgotten": {
     "submitting": "Sending…",
     "mailSent": "If the account exists, a mail with a reset link has been sent. Please check your spam folder as well.",

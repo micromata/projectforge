@@ -72,6 +72,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
     @Transient
     get() = "${auftrag?.nummer}.$number"
 
+  @PropertyInfo(i18nKey = "fibu.auftrag.position")
   @get:Column
   open var number: Short = 0
 
@@ -83,6 +84,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @JsonSerialize(using = IdOnlySerializer::class)
   open var auftrag: AuftragDO? = null
 
+  @PropertyInfo(i18nKey = "task")
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "task_fk", nullable = true)
   @JsonSerialize(using = IdOnlySerializer::class)
@@ -110,7 +112,9 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "forecast_type", length = 20)
   open var forecastType: AuftragForecastType? = null
 
-  @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
+  // Reuses the plain `status` key, as [AuftragDO.status] does: a position's status is the same
+  // vocabulary, and `fibu.auftrag.position.status` existed in neither resource bundle.
+  @PropertyInfo(i18nKey = "status")
   @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "status", length = 30)
@@ -142,19 +146,24 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   /**
    * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
    */
+  @PropertyInfo(i18nKey = "fibu.auftrag.vollstaendigFakturiert")
   @get:Column(name = "vollstaendig_fakturiert", nullable = false)
   open var vollstaendigFakturiert: Boolean? = false
 
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance")
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "period_of_performance_type", length = 10)
   open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE
 
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
   @get:Column(name = "period_of_performance_begin")
   open var periodOfPerformanceBegin: LocalDate? = null
 
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
   @get:Column(name = "period_of_performance_end")
   open var periodOfPerformanceEnd: LocalDate? = null
 
+  @PropertyInfo(i18nKey = "fibu.modeOfPayment")
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null

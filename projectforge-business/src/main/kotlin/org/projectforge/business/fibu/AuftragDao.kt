@@ -347,16 +347,16 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             throw UserException(
                 "validation.required.valueNotPresent",
                 MessageParam("fibu.auftrag.nummer", MessageParamType.I18N_KEY)
-            )
+            ).setCausedByField("nummer")
         }
         if (obj.status == null || obj.status == AuftragsStatus.OPTIONAL) {
-            throw UserException("Order status not given. OPTIONAL not supported.")
+            throw UserException("fibu.auftrag.error.invalidStatus").setCausedByField("status")
         }
         if (obj.id == null) {
             // Neuer Auftrag/Angebot
             val next = getNextNumber(obj)
             if (next != obj.nummer) {
-                throw UserException("fibu.auftrag.error.nummerIstNichtFortlaufend")
+                throw UserException("fibu.auftrag.error.nummerIstNichtFortlaufend").setCausedByField("nummer")
             }
         } else {
             val other = persistenceService.selectNamedSingleResult(
@@ -366,11 +366,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 Pair("id", obj.id),
             )
             if (other != null) {
-                throw UserException("fibu.auftrag.error.nummerBereitsVergeben")
+                throw UserException("fibu.auftrag.error.nummerBereitsVergeben").setCausedByField("nummer")
             }
         }
         if (obj.positionen.isNullOrEmpty()) {
-            throw UserException("fibu.auftrag.error.auftragHatKeinePositionen")
+            throw UserException("fibu.auftrag.error.auftragHatKeinePositionen").setCausedByField("positionen")
         }
         val positionen = obj.positionen
         if (!positionen.isNullOrEmpty()) {
@@ -385,8 +385,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 }
             }
         }
-        positionen?.forEach { position ->
-            position.checkVollstaendigFakturiert()
+        positionen?.forEachIndexed { index, position ->
+            try {
+                position.checkVollstaendigFakturiert()
+            } catch (ex: UserException) {
+                // The index is the one of the posted collection, so a REST client can show the error at the row
+                // that caused it instead of only as a toast.
+                throw ex.setCausedByField("positionen[$index].vollstaendigFakturiert")
+            }
         }
         val uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus())
         obj.uiStatusAsXml = uiStatusAsXml

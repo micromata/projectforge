@@ -12,6 +12,7 @@ import {
 } from "@/components/data-table";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
+import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
 import { TaskTreeFilterBar } from "./task-tree-filter";
@@ -122,6 +123,7 @@ export function TaskTreeTable({
         isLoading={isLoading}
         isFetching={isFetching}
         emptyState={t("task.selectPanel.noTasksFound")}
+        rowClassName={deletedRowClass}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {

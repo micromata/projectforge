@@ -4,9 +4,13 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { CheckboxField } from "@/components/shared/form/checkbox-field";
+import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { InputField } from "@/components/shared/form/input-field";
+import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
+import { useFormatContext } from "@/hooks/use-format";
 import { cn } from "@/lib/utils";
 import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
 import { labelKeyFor } from "@/lib/page-def/define-page";
@@ -61,6 +65,7 @@ function DeclaredFormField<M extends EntityMetadata>({
   metadata: M;
 }): ReactNode {
   const t = useTranslations();
+  const format = useFormatContext();
   const className = cn(SPAN_CLASS[field.span ?? 1]);
 
   if ("custom" in field) {
@@ -96,7 +101,40 @@ function DeclaredFormField<M extends EntityMetadata>({
   if (field.rows) {
     return <TextAreaField {...common} rows={field.rows} />;
   }
+  if (meta.dataType === "BOOLEAN") {
+    return <CheckboxField {...common} />;
+  }
+  if (meta.dataType === "AMOUNT" || meta.dataType === "DECIMAL") {
+    // The currency behind the box comes from the user's settings, never from a text here.
+    return (
+      <NumberField
+        {...common}
+        suffix={meta.dataType === "AMOUNT" ? format.currency : undefined}
+      />
+    );
+  }
+  const searchEntity = SEARCH_ENTITY[meta.dataType];
+  if (searchEntity) {
+    return <EntityAutocompleteField {...common} entity={searchEntity} />;
+  }
   return (
     <InputField {...common} type={meta.dataType === "DATE" ? "date" : "text"} />
   );
 }
+
+/**
+ * The REST category to search in for a field referencing another entity — `{category}/autosearch`, the
+ * same lookup the legacy pages use (`AutoCompletion.getAutoCompletion4Users` and its siblings).
+ *
+ * Only the types that have such an endpoint; a data type missing here falls through to a text input,
+ * which is visible enough to be fixed rather than silently rendering nothing.
+ */
+const SEARCH_ENTITY: Partial<Record<FieldMetadata["dataType"], string>> = {
+  USER: "user",
+  TASK: "task",
+  GROUP: "group",
+  EMPLOYEE: "employee",
+  COST1: "cost1",
+  COST2: "cost2",
+  KONTO: "account",
+};
