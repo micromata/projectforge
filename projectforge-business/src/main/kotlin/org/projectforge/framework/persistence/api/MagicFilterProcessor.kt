@@ -63,10 +63,7 @@ object MagicFilterProcessor {
         queryFilter.searchHistory = magicFilter.searchHistory
         queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
         queryFilter.sortProperties = magicFilter.sortProperties.map {
-            var property = it.property
-            if (property.indexOf('.') > 0)
-                property = property.substring(property.indexOf('.') + 1)
-            SortProperty(property, it.sortOrder)
+            SortProperty(resolveSortProperty(entityClass, it.property), it.sortOrder)
         }.toMutableList()
         queryFilter.extended = magicFilter.extended
         val searchString = magicFilter.searchString;
@@ -96,6 +93,38 @@ object MagicFilterProcessor {
             }
         }
         return queryFilter
+    }
+
+    /**
+     * The entity property a column's sort id refers to.
+     *
+     * A dotted id can mean either of two things, and the leading segment tells them apart:
+     *
+     * - a **path through the entity**, `kunde.displayName` or `projekt.kunde.name` of an `AuftragDO` —
+     *   kept whole, because the criteria builder can join and order by it (see
+     *   [DBCriteriaContext.getOrderField]). It used to be shortened unconditionally, which turned
+     *   `kunde.displayName` into `displayName` — a property no `AuftragDO` has, so `addOrder` failed,
+     *   logged "Can't add order" and left the order book in whatever order the database returned.
+     * - a path through a **DTO** that names the wrapper the entity has no property for:
+     *   `fibu.employee.user.lastname` of an `EmployeeSalary`. Those leading segments are dropped until
+     *   one names a property of the entity.
+     *
+     * The last segment is deliberately not checked: `displayName` and the other computed values are
+     * getters without a backing field, which no reflection over fields can confirm. An unorderable
+     * segment is reported by `addOrder` — and a `*PagesRest` may map it onto a real column beforehand
+     * (`postProcessMagicFilter`, e. g. `Kost1PagesRest` or `AuftragPagesRest`).
+     */
+    internal fun resolveSortProperty(entityClass: Class<*>, property: String): String {
+        var result = property
+        while (result.contains('.')) {
+            val head = result.substringBefore('.')
+            // suppressWarning: a DTO-only wrapper is the expected case here, not a defect.
+            if (PropUtils.getField(entityClass, head, true) != null) {
+                return result
+            }
+            result = result.substringAfter('.')
+        }
+        return result
     }
 
     internal fun createFieldSearchEntry(

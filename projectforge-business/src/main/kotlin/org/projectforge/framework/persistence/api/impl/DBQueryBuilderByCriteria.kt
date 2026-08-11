@@ -88,7 +88,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
         try {
             // Hibernate's criteria builder: JPA 3.1 has no null precedence of its own.
             val cb = ctx.cb as HibernateCriteriaBuilder
-            val field = ctx.getField<Any>(sortProperty.property)
+            val field = ctx.getOrderField<Any>(sortProperty.property)
             val expression: JpaExpression<*> = if (field.javaType == String::class.java) {
                 @Suppress("UNCHECKED_CAST")
                 cb.nullif(field as Path<String>, "") as JpaExpression<*>

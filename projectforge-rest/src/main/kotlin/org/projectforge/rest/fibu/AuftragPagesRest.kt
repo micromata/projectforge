@@ -36,6 +36,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
@@ -360,6 +361,24 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
+   * Orders the customer and project columns by the name they show, not by the computed string.
+   *
+   * Both columns are `displayName` — a `@Transient` getter formatting number and name
+   * (`KostFormatter`), so the database cannot order by it. The name is what a reader sorts by, and it is
+   * a column; the leading number is the customer id, which orders the same way for the customer column
+   * anyway.
+   *
+   * `MagicFilterProcessor` keeps these paths whole now, so without this the sort would reach
+   * `addOrder`, fail on the missing column and log per request.
+   */
+  override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+    target.sortProperties.replaceAll { sortProperty ->
+      DISPLAY_NAME_SORT_PROPERTIES[sortProperty.property]?.let { SortProperty(it, sortProperty.sortOrder) }
+        ?: sortProperty
+    }
+  }
+
+  /**
    * LAYOUT Edit page: attachments and a read-only summary of the order.
    *
    * The order is edited in projectforge-next (hand built, see `order.page.tsx`) and in Wicket, not
@@ -494,5 +513,13 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val analysis = forecastOrderAnalysis.exportOrderAnalysis(id)
       ?: return ResponseEntity.notFound().build<Any>()
     return RestUtils.downloadFile("orderAnalysis-${order?.nummer}.json", JsonUtils.toJson(analysis))
+  }
+
+  companion object {
+    /** Sort ids of the two `displayName` columns and the column each is ordered by. */
+    private val DISPLAY_NAME_SORT_PROPERTIES = mapOf(
+      "kunde.displayName" to "kunde.name",
+      "projekt.displayName" to "projekt.name",
+    )
   }
 }
