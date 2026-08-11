@@ -124,6 +124,7 @@ class LoggingFilter : Filter {
     private val KNOWN_PATHES = arrayOf(
       "/rs/", // Rest services
       "/react/",
+      "/next/", // Next.js app (pages, _next/static assets, RSC probes such as __next.*.txt)
       "/wa/", // Wicket stuff
       "/rsPublic/", // Public rest services (no login required)
       "/static/", // resources (css, images, js, ...)
@@ -140,6 +141,7 @@ class LoggingFilter : Filter {
     private val KNOWN_URLS = arrayOf(
       "/",
       "/wa", // Wicket start page
+      "/next", // Next.js app start page (without trailing slash)
       "/favicon.ico",
       "/favicon.png",
       "/manifest.json", // Requested by Safari
