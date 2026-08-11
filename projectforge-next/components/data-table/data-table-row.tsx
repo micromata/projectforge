@@ -93,6 +93,9 @@ export function DataTableRow<TData>({
             // would occupy a column slot and shift every cell out of its column.
             index === 0 &&
               "relative before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-primary before:opacity-0 before:transition-opacity group-hover:before:opacity-100",
+            // On the cell rather than in each cell renderer: it is the column that is a column of
+            // numbers, and both column paths write it (useDeclaredColumns, columnDefAdapter).
+            cell.column.columnDef.meta?.align === "right" && "text-right",
             pinnedClass(cell.column)
           )}
         >

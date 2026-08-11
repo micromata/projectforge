@@ -89,15 +89,17 @@ describe("filterKindFor", () => {
 });
 
 describe("alignFor", () => {
-  it("right-aligns quantities", () => {
+  it("right-aligns every kind of number", () => {
     expect(alignFor("DECIMAL")).toBe("right");
     expect(alignFor("AMOUNT")).toBe("right");
+    expect(alignFor("INT")).toBe("right");
+    expect(alignFor("LONG")).toBe("right");
   });
 
-  it("leaves everything else alone — an id or a year is no quantity", () => {
-    expect(alignFor("LONG")).toBe("left");
+  it("leaves everything else alone — a date or a text is no quantity", () => {
     expect(alignFor("STRING")).toBe("left");
     expect(alignFor("DATE")).toBe("left");
+    expect(alignFor("BOOLEAN")).toBe("left");
   });
 });
 

@@ -82,6 +82,8 @@ export const ORDER_PAGE = definePage<
       labelKey: "label.position.short",
       accessor: (row) => row.pos ?? "",
       size: 60,
+      // A count, although the accessor yields a string ("#3") and no data type derives it.
+      align: "right",
       className: "text-muted-foreground",
     },
     attachmentsColumn<OrderListRow>(),
@@ -154,7 +156,7 @@ export const ORDER_PAGE = definePage<
         fields: [
           // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never changed
           // afterwards — but shown, because it is how an order is referred to in every conversation.
-          { name: "nummer" },
+          { name: "nummer", readOnly: true },
           { name: "status", emphasized: true },
           { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
           { name: "titel", span: 2 },
@@ -203,6 +205,8 @@ export const ORDER_PAGE = definePage<
     ],
     // The analysis is computed over the *saved* order, so it is a page of its own rather than a section
     // of a form that may hold unsaved changes — see OrderForecastPage.
-    extraTabs: [{ id: FORECAST_TAB_ID, labelKey: "fibu.auftrag.forecast" }],
+    // `._`: the key is a text of its own *and* the parent of `fibu.auftrag.forecast.analysis.*`, which
+    // the generator can only export as a nested object plus a `_` leaf.
+    extraTabs: [{ id: FORECAST_TAB_ID, labelKey: "fibu.auftrag.forecast._" }],
   },
 });

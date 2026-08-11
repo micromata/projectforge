@@ -53,9 +53,20 @@ export function filterKindFor(dataType: UIDataTypeName): FilterKind | null {
   }
 }
 
-/** Numbers and amounts are read right-aligned; a date or an id is not a quantity. */
+/**
+ * Numbers, counts and amounts are read right-aligned — their digits line up, so a column of sums can
+ * be scanned by magnitude. A date or a text is no quantity and stays left.
+ */
 export function alignFor(dataType: UIDataTypeName): "left" | "right" {
-  return dataType === "DECIMAL" || dataType === "AMOUNT" ? "right" : "left";
+  switch (dataType) {
+    case "DECIMAL":
+    case "AMOUNT":
+    case "INT":
+    case "LONG":
+      return "right";
+    default:
+      return "left";
+  }
 }
 
 /**
