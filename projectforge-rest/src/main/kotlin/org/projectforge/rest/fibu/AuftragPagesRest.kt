@@ -175,11 +175,17 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
-   * Presets the three dates and the contact person of a new order, as `AuftragEditPage.onPreEdit` does.
+   * Presets the status, the three dates and the contact person of a new order, as
+   * `AuftragEditPage.onPreEdit` does.
    */
   override fun newBaseDTO(request: HttpServletRequest?): Auftrag {
     val auftrag = super.newBaseDTO(request)
     val today = LocalDate.now()
+    // `AuftragDO.status` has no default, and `AuftragDao.onInsertOrModify` refuses null (as well as
+    // OPTIONAL). Wicket gets away without a preset because its drop down cannot be empty
+    // (`setNullValid(false)`, AuftragEditForm), which silently makes the first constant the answer —
+    // so that constant is named here instead, for both frontends.
+    auftrag.status = AuftragsStatus.IN_ERSTELLUNG
     auftrag.angebotsDatum = today
     auftrag.erfassungsDatum = today
     auftrag.entscheidungsDatum = today
@@ -212,16 +218,14 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
-   * Validates the nested collections, which the generic field validation doesn't reach: it walks the
-   * properties of one class ([ValidationUtils.validateFields]) and doesn't descend into collections.
+   * The rules the period of performance adds on top of the field rules, which are validated generically
+   * for the order and its nested rows alike ([ValidationUtils.validateFields]).
    *
-   * The row index is the one of the posted list, so the client can show the error at the row that
-   * caused it. [ValidationError.fieldId] is free-form, so a nested path needs no framework change.
+   * These cannot be expressed as field annotations: they compare two dates, and two of them make a field
+   * mandatory only depending on another row's `periodOfPerformanceType`.
    */
   override fun validate(validationErrors: MutableList<ValidationError>, dto: Auftrag) {
     super.validate(validationErrors, dto)
-    validateRows(validationErrors, dto.positionen, "positionen")
-    validateRows(validationErrors, dto.paymentSchedules, "paymentSchedules")
     PeriodOfPerformanceValidator.validate(
       periodOfPerformanceBegin = dto.periodOfPerformanceBegin,
       periodOfPerformanceEnd = dto.periodOfPerformanceEnd,
@@ -235,21 +239,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     ).forEach { error ->
       val message = error.labelKey?.let { translateMsg(error.messageKey, translate(it)) } ?: translate(error.messageKey)
       validationErrors.add(ValidationError(message, fieldId = error.fieldId, messageId = error.messageKey))
-    }
-  }
-
-  private fun validateRows(
-    validationErrors: MutableList<ValidationError>,
-    rows: List<org.projectforge.rest.dto.BaseDTO<*>>?,
-    property: String,
-  ) {
-    rows?.forEachIndexed { index, row ->
-      if (row.deleted) {
-        return@forEachIndexed // A deleted row is only sent so it isn't removed physically.
-      }
-      ValidationUtils.validateFields(row).forEach { error ->
-        validationErrors.add(error.copy(fieldId = "$property[$index].${error.fieldId}"))
-      }
     }
   }
 
