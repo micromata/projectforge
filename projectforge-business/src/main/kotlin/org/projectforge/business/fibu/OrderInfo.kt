@@ -95,6 +95,13 @@ class OrderInfo : Serializable {
         )
         set(value) {
             field = value
+
+
+
+
+
+
+
         }
 
     /**
@@ -125,7 +132,7 @@ class OrderInfo : Serializable {
         kundeId = order.kunde?.id
         kundeAsString = order.kundeAsString
         projektId = order.projekt?.id
-        projektAsString = order.projekt?.name
+        projektAsString = order.projektAsString
         probabilityOfOccurrence = order.probabilityOfOccurrence
         forecastType = order.forecastType
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
