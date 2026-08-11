@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragForecastType
 import org.projectforge.business.fibu.AuftragsCache
@@ -107,7 +108,27 @@ class Auftrag(
      */
     var vollstaendigFakturiertWriteAccess: Boolean = false
 
+    /**
+     * Everything a list row shows, and nothing that costs a query.
+     *
+     * [AuftragDO.positionen] and [AuftragDO.paymentSchedules] are `FetchType.LAZY`, so reading either one
+     * is a select per order — and each position pulls its task, and each task its parents. Over a list of
+     * some 7000 orders that is what turned `initialList` into 26 MB in 99 seconds, while Wicket's list
+     * stayed fast: it reads the same sums from [AuftragsCache], which preloads positions and schedules in
+     * three bulk selects (see its `refresh`) and never walks a lazy collection.
+     *
+     * So the sums *and* the position count come from the cache here, and the two collections are only
+     * mapped when the caller asks for them — the edit page does, via [copyFromWithCollections].
+     *
+     * The six `ManyToOne`s are lazy as well, and mapping them reads more than an id: [User.copyFromMinimal]
+     * reads the user's name, [Customer]/[Project] their display name. So each one is another select per
+     * row, and [PfCaches.initialize] replaces all six with their cached instances first — which is exactly
+     * what `AuftragListPage` does for the customer and the project, under the comment "Avoid lazy loading".
+     */
     override fun copyFrom(src: AuftragDO) {
+        // Before super.copyFrom, which is what would otherwise touch the proxies. Mutates src, as the
+        // Wicket list does too: it swaps a proxy for the identical cached object, nothing more.
+        PfCaches.instance.initialize(src)
         super.copyFrom(src)
         // super.copyFrom covers the scalars and every *DO -> *DTO relation (contact person and the three
         // managers included, mapped by BaseDTO.copy via copyFromMinimal). Only the collections and the
@@ -118,15 +139,6 @@ class Auftrag(
         this.project = src.projekt?.let {
             Project(it)
         }
-        // Including the deleted rows: they have to be sent back on save, or the collection handler
-        // deletes them physically. See AuftragsPosition's class comment.
-        positionen = src.positionen?.map { position ->
-            AuftragsPosition().also { it.copyFrom(position) }
-        }?.toMutableList()
-        paymentSchedules = src.paymentSchedules?.map { schedule ->
-            PaymentSchedule().also { it.copyFrom(schedule) }
-        }?.toMutableList()
-
         val orderInfo = orderInfo(src)
         personDays = orderInfo.personDays
         assignedPersons = src.assignedPersons
@@ -138,10 +150,31 @@ class Auftrag(
         formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
         formattedZuFakturierenSum = NumberFormatter.formatCurrency(orderInfo.notYetInvoicedSum)
-        pos = "#" + positionen?.count { !it.deleted }
+        // From the info rather than from the collection, which counting would mean loading. Filtered
+        // explicitly: the cache holds the non-deleted positions only, but [calculateOrderInfo] builds an
+        // info for every posted position, deleted ones included.
+        pos = "#" + (orderInfo.infoPositions?.count { !it.deleted } ?: 0)
+    }
+
+    /**
+     * [copyFrom] plus the two collections, for the edit page: it has to show every row, and to send them
+     * all back on save.
+     *
+     * The deleted rows travel too. `AuftragDO.positionen` has `autoUpdateCollectionEntries` but no
+     * `@SoftDeleteCollection`, so the collection handler physically removes — history and all — whatever
+     * a posted collection leaves out. See [AuftragsPosition].
+     */
+    fun copyFromWithCollections(src: AuftragDO) {
+        copyFrom(src)
+        positionen = src.positionen?.map { position ->
+            AuftragsPosition().also { it.copyFrom(position) }
+        }?.toMutableList()
+        paymentSchedules = src.paymentSchedules?.map { schedule ->
+            PaymentSchedule().also { it.copyFrom(schedule) }
+        }?.toMutableList()
         // Matched by number, not by id: a snapshot's position infos may carry no id, and number is the
         // key of a position inside its order anyway.
-        val positionInfos = orderInfo.infoPositions
+        val positionInfos = orderInfo(src).infoPositions
         positionen?.forEach { position ->
             position.notInvoicedSum = positionInfos?.find { it.number == position.number }?.notYetInvoiced
         }

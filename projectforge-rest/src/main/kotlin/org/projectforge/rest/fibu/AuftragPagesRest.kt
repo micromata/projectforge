@@ -142,7 +142,13 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
 
   override fun transformFromDB(obj: AuftragDO, editMode: Boolean): Auftrag {
     val auftrag = Auftrag()
-    auftrag.copyFrom(obj)
+    // Only the edit page needs the positions and the payment schedules, and only it can afford them:
+    // both are lazy, so mapping them is a query per order (see Auftrag.copyFrom).
+    if (editMode) {
+      auftrag.copyFromWithCollections(obj)
+    } else {
+      auftrag.copyFrom(obj)
+    }
     auftrag.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
     auftrag.writeAccess = if (obj.id == null) {
       baseDao.hasLoggedInUserInsertAccess(obj, false)
@@ -155,14 +161,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     auftrag.vollstaendigFakturiertWriteAccess = orderAccessChecker.hasLoggedInUserRight(
       RechnungDao.USER_RIGHT_ID, false, UserRightValue.READWRITE
     )
-    if (!editMode) {
-      // The list shows sums and a position *count*, never a position itself - and `copyFrom` has already
-      // derived those. Carrying the two collections regardless made `initialList` answer 26 MB in 99
-      // seconds for ~7000 orders (each position drags its task along, and each task its parents), which
-      // the list page spends waiting: it holds itself back until the remembered filter has arrived.
-      auftrag.positionen = null
-      auftrag.paymentSchedules = null
-    }
     if (obj.id == null) {
       return auftrag
     }

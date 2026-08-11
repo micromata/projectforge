@@ -55,7 +55,7 @@ class AuftragDtoTest : AbstractTestBase() {
     fun `the round trip keeps id, number, deleted flag and the back reference of every position`() {
         val order = createOrder()
         val dto = Auftrag()
-        dto.copyFrom(order)
+        dto.copyFromWithCollections(order)
 
         // Deleted rows are carried, or the collection handler would delete them physically.
         assertEquals(3, dto.positionen?.size)
@@ -79,7 +79,7 @@ class AuftragDtoTest : AbstractTestBase() {
     @Test
     fun `the round trip keeps the payment schedules, including the position they point at`() {
         val dto = Auftrag()
-        dto.copyFrom(createOrder())
+        dto.copyFromWithCollections(createOrder())
         val dest = AuftragDO()
         dto.copyTo(dest)
 
@@ -98,7 +98,7 @@ class AuftragDtoTest : AbstractTestBase() {
         // Appending (as Rechnung.copyTo does) would duplicate every row of an order that already carries
         // positions, which is exactly what a second copyTo onto the same destination would show.
         val dto = Auftrag()
-        dto.copyFrom(createOrder())
+        dto.copyFromWithCollections(createOrder())
         val dest = AuftragDO()
         dto.copyTo(dest)
         dto.copyTo(dest)
@@ -111,7 +111,7 @@ class AuftragDtoTest : AbstractTestBase() {
     fun `the customer and the project are written back, although the DTO names them differently`() {
         val order = createOrder()
         val dto = Auftrag()
-        dto.copyFrom(order)
+        dto.copyFromWithCollections(order)
         assertEquals(11L, dto.customer?.id)
 
         val dest = AuftragDO()
@@ -144,7 +144,7 @@ class AuftragDtoTest : AbstractTestBase() {
     @Test
     fun `copyFrom fills the numeric sums the list sorts by, not only the formatted ones`() {
         val dto = Auftrag()
-        dto.copyFrom(createOrder().also { it.id = null })
+        dto.copyFromWithCollections(createOrder().also { it.id = null })
 
         assertEquals(BigDecimal("3000.00"), dto.nettoSumme)
         assertNotNull(dto.formattedNettoSumme)
@@ -153,10 +153,24 @@ class AuftragDtoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the list variant carries no collections, but still counts the positions`() {
+        // Both collections are lazy, so mapping them is a query per row - which is what made the list of
+        // some 7000 orders answer 26 MB in 99 seconds. The count comes from the info instead.
+        val dto = Auftrag()
+        dto.copyFrom(createOrder().also { it.id = null })
+
+        assertNull(dto.positionen, "The list shows no position, so none may be loaded.")
+        assertNull(dto.paymentSchedules)
+        // The deleted one of the three is not counted.
+        assertEquals("#2", dto.pos)
+        assertEquals(BigDecimal("3000.00"), dto.nettoSumme)
+    }
+
+    @Test
     fun `a deleted position is excluded from the period of performance rules`() {
         // Its dates are none of the user's business anymore; it travels only so it isn't removed.
         val dto = Auftrag()
-        dto.copyFrom(createOrder())
+        dto.copyFromWithCollections(createOrder())
         val live = dto.positionen?.filter { !it.deleted }
         assertEquals(2, live?.size)
         assertTrue(live?.none { it.number == 2.toShort() } == true)
