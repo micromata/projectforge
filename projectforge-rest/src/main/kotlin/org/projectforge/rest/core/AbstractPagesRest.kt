@@ -386,6 +386,15 @@ constructor(
     }
 
     /**
+     * The placeholder [InitialListData.data] carries for a projectforge-next client, which reads the rows
+     * from `list` instead. Not nullable, because the field isn't: making it so would touch every legacy
+     * caller for a value only one client ever reads.
+     */
+    private fun emptyResultSet(filter: MagicFilter): ResultSet<DTO> {
+        return ResultSet(resultSet = emptyList(), origResultSet = null, totalSize = 0, magicFilter = filter)
+    }
+
+    /**
      * Removes unknown filter entries. This is useful, if after migration etc. some filter entries are stored in the user
      * pref but that didn't exist.
      */
@@ -398,9 +407,18 @@ constructor(
 
     protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
-        val list = getList(request, this, baseDao, filter)
-        val resultSet = postProcessResultSet(list, request, filter)
-        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
+        // The React app renders the rows out of this response, projectforge-next fetches them from
+        // `list` right afterwards and never looks at [InitialListData.data] - so for a next client the
+        // whole result set would be queried, mapped and serialized only to be dropped. That is the
+        // entire list twice per page load: on the order book, two full table scans over some 7000 rows.
+        val resultSet = if (RestAuthenticationUtils.isNextClient(request)) {
+            emptyResultSet(filter)
+        } else {
+            val list = getList(request, this, baseDao, filter)
+            postProcessResultSet(list, request, filter).also {
+                it.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
+            }
+        }
         val ui = createListLayout(request, filter)
             .addTranslations(
                 "table.showing",
