@@ -2,12 +2,19 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { useAddEntryShortcut } from "@/hooks/use-add-entry-shortcut";
 
 export interface ListToolbarProps {
   /** Heading of the page, e.g. "Bücherliste". */
@@ -44,6 +51,8 @@ export function ListToolbar({
   filterPills,
   gearMenu,
 }: ListToolbarProps) {
+  const t = useTranslations();
+  useAddEntryShortcut(addHref);
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
@@ -63,12 +72,23 @@ export function ListToolbar({
             <Separator orientation="vertical" className="!h-5" />
           </>
         )}
-        <Button asChild size="sm" className="gap-1.5">
-          <Link href={addHref}>
-            <HugeiconsIcon icon={PlusSignIcon} size={13} />
-            {addLabel}
-          </Link>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button asChild size="sm" className="gap-1.5">
+              <Link href={addHref}>
+                <HugeiconsIcon icon={PlusSignIcon} size={13} />
+                {addLabel}
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="font-medium">
+              {t("tooltip.shortcut.addEntry.title")}
+            </p>
+            {/* `._`: the key has a child (.title), so it is nested under `_` in the catalog. */}
+            <p>{t("tooltip.shortcut.addEntry._")}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="flex items-center gap-3 px-4 py-2.5">

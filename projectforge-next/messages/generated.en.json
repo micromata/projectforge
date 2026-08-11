@@ -241,23 +241,35 @@
   "fibu": {
     "attachment": "Attachments",
     "auftrag": {
+      "_": "Order",
       "angebot": {
         "datum": "Date of order"
       },
       "beauftragungsBeschreibung": "Description of assignment",
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
+      "commissioned": "commissioned",
       "entscheidung": {
         "datum": "Date of decision"
       },
       "erfassung": {
         "datum": "Date of entry"
       },
+      "error": {
+        "auftragHatKeinePositionen": "The order has no positions."
+      },
+      "forecast": "Forecast",
       "forecastType": {
         "_": "Forecast type",
         "currentMonth": "Current month",
         "followingMonth": "Following month (default)",
-        "info": "When will the sales be invoiced? Does not apply to payment schedule."
+        "info": "When will the sales be invoiced? Does not apply to payment schedule.",
+        "pos": {
+          "info": "If empty, the value of the order is taken (see above)."
+        }
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Customer can be different to the customer of the project."
       },
       "nettoSumme": "Net sum",
       "nummer": "Number",
@@ -271,9 +283,16 @@
           "_": "Order type",
           "change_request": "Change Request",
           "dauernde_leistung": "Continued services",
+          "festpreispaket": "Fixed price package",
+          "hot_fix": "Hotfix",
           "neuentwicklung": "New development",
+          "time_and_materials": "Time & materials",
           "wartung": "Maintenance"
         },
+        "error": {
+          "notFound": "Order position not found."
+        },
+        "noTaskGiven": "No structure element given!",
         "paymenttype": {
           "_": "Payment type",
           "festpreispaket": "Fixed price package",
@@ -281,6 +300,7 @@
           "time_and_materials": "Time & materials"
         }
       },
+      "positions": "Positions",
       "status": {
         "abgelehnt": "declined",
         "abgeschlossen": "completed",
@@ -294,7 +314,15 @@
         "potenzial": "Potential"
       },
       "statusBeschreibung": "Description of status",
-      "title": "Title",
+      "title": {
+        "_": "Title",
+        "add": "Create new order / tender",
+        "list": "Orders and tenders"
+      },
+      "tooltip": {
+        "addPaymentschedule": "Add payment schedule position",
+        "addPosition": "Add order position"
+      },
       "vollstaendigFakturiert": "completely invoiced"
     },
     "buchungssatz": {
@@ -306,6 +334,7 @@
       "text": "Text"
     },
     "common": {
+      "assignedPersons": "PM/HOB/KAM/CP",
       "betrag": "Amount",
       "creditor": "Creditor",
       "customer": {
@@ -431,8 +460,19 @@
       "_": "Customer",
       "division": "Division",
       "identifier": "Identifier",
+      "konto": {
+        "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
+      },
+      "kunden": "Customers",
+      "list": {
+        "select": {
+          "title": "Select customer"
+        }
+      },
       "name": "Customer's name",
       "nummer": "Customer's number",
+      "pleaseSelectKunde": "Please select customer",
+      "select": "Customer select",
       "status": {
         "acquisition": "acquisition",
         "active": "active",
@@ -440,7 +480,22 @@
         "nonactive": "non-active",
         "nonexistent": "non-existent"
       },
-      "text": "Customer free text"
+      "text": "Customer free text",
+      "title": {
+        "add": "Add new customer",
+        "edit": "Edit customer",
+        "heading": "Customers",
+        "list": {
+          "_": "List of customers",
+          "select": "Choose customer"
+        }
+      },
+      "validation": {
+        "existingCustomerNr": "A customer with this customer number already exists"
+      },
+      "wizard": {
+        "notYetAvailable": "Wizard not yet available. Please note: You need only and only customer objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
+      }
     },
     "modeOfPayment": {
       "_": "Mode of payment",
@@ -475,11 +530,28 @@
     "projectManager": "Project manager",
     "projekt": {
       "_": "Project",
+      "edit": {
+        "kost2DoesAlreadyExists": "Cost2 does already exist."
+      },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",
+      "konto": {
+        "tooltip": "Is used for the export of invoices. If not given the account number of a assigned customer is used (if given)."
+      },
+      "leiter": "Project manager",
+      "list": {
+        "select": {
+          "title": "Select project"
+        }
+      },
+      "multiselected": {
+        "title": "Multiple selection projects"
+      },
       "name": "Name",
       "nummer": "Number",
+      "pleaseSelectProjekt": "Please choose project",
       "projektManagerGroup": "Group of project managers",
+      "projekte": "Projects",
       "status": {
         "acquisition": "acquisition",
         "build": "build phase",
@@ -488,9 +560,25 @@
         "none": "none",
         "onhold": "on hold",
         "productive": "productive (without maintenance)"
+      },
+      "title": {
+        "add": "Add new project",
+        "edit": "Edit project",
+        "heading": "Projects",
+        "list": {
+          "_": "List of projects",
+          "select": "Choose project"
+        }
+      },
+      "validation": {
+        "numbernotfreeforcustomer": "Number already exists for other customer project"
+      },
+      "wizard": {
+        "notYetAvailable": "Wizard not yet available. Please note: You need only and only project objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
       }
     },
     "rechnung": {
+      "_": "Invoice",
       "besonderheiten": "Specifics",
       "betreff": "Subject",
       "bezahlDatum": "Payment date",
@@ -533,7 +621,9 @@
       "zahlBetrag": "Paid amount",
       "zahlungsZiel": "Payment target"
     },
+    "rechnungen": "Invoices",
     "salesManager": "Key account manager",
+    "toBeInvoiced": "to be invoiced",
     "tooltip": {
       "nummerWirdAutomatischVergeben": "Number will automatically set."
     }
@@ -811,6 +901,7 @@
       "more": "More favorites"
     },
     "fibu": {
+      "_": "Finance",
       "kost": "Cost"
     },
     "main": {
@@ -961,7 +1052,10 @@
     "middle": "middle"
   },
   "projectmanagement": {
-    "personDays": "Person days"
+    "personDays": {
+      "_": "Person days",
+      "short": "pd"
+    }
   },
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
@@ -1129,6 +1223,14 @@
   },
   "timezone": "Time zone",
   "title": "Title",
+  "tooltip": {
+    "shortcut": {
+      "addEntry": {
+        "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
+        "title": "Keyboard shortcut N"
+      }
+    }
+  },
   "uptodate": "up-to-date",
   "user": {
     "_": "User",

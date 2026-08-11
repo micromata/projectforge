@@ -241,29 +241,41 @@
   "fibu": {
     "attachment": "Anlagen",
     "auftrag": {
+      "_": "Auftrag",
       "angebot": {
         "datum": "Angebotsdatum"
       },
       "beauftragungsBeschreibung": "Beauftragungsbeschreibung",
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
+      "commissioned": "beauftragt",
       "entscheidung": {
         "datum": "Entscheidungsdatum"
       },
       "erfassung": {
         "datum": "Erfassungsdatum"
       },
+      "error": {
+        "auftragHatKeinePositionen": "Der Auftrag hat keine Auftragspositionen."
+      },
+      "forecast": "Forecast",
       "forecastType": {
         "_": "Forecast-Typ",
         "currentMonth": "Aktueller Monat",
         "followingMonth": "Folgemonat (Standard)",
-        "info": "Wann wird der Umsatz fakturiert? Gilt nicht für den Zahlplan."
+        "info": "Wann wird der Umsatz fakturiert? Gilt nicht für den Zahlplan.",
+        "pos": {
+          "info": "Wenn leer, dann wird der Wert des Auftrags genommen (s. o.)."
+        }
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Kunde kann vom Projektkunden abweichen."
       },
       "nettoSumme": "Nettosumme",
       "nummer": "Nummer",
       "paymentschedule": {
         "_": "Zahlplan",
-        "number": "Nr"
+        "number": "Nr."
       },
       "position": {
         "_": "Position",
@@ -271,9 +283,16 @@
           "_": "Art",
           "change_request": "Change Request",
           "dauernde_leistung": "Dauernde Leistung",
+          "festpreispaket": "Festpreispaket",
+          "hot_fix": "Hot fix",
           "neuentwicklung": "Neuentwicklung",
+          "time_and_materials": "Time and materials",
           "wartung": "Wartung"
         },
+        "error": {
+          "notFound": "Auftragsposition nicht gefunden."
+        },
+        "noTaskGiven": "Keinem Strukturelement zugeordnet.",
         "paymenttype": {
           "_": "Abrechnungsart",
           "festpreispaket": "Festpreispaket",
@@ -281,6 +300,7 @@
           "time_and_materials": "Time and materials"
         }
       },
+      "positions": "Positionen",
       "status": {
         "abgelehnt": "abgelehnt",
         "abgeschlossen": "abgeschlossen",
@@ -294,7 +314,15 @@
         "potenzial": "Potenzial"
       },
       "statusBeschreibung": "Beschreibung Status",
-      "title": "Titel",
+      "title": {
+        "_": "Titel",
+        "add": "Neuer/s Auftrag/Angebot",
+        "list": "Auftrags- und Angebotsbuch"
+      },
+      "tooltip": {
+        "addPaymentschedule": "Zahlplanposition hinzufügen",
+        "addPosition": "Auftragsposition hinzufügen"
+      },
       "vollstaendigFakturiert": "vollständig fakturiert"
     },
     "buchungssatz": {
@@ -306,6 +334,7 @@
       "text": "Text"
     },
     "common": {
+      "assignedPersons": "PL/BUL/KAM/AP",
       "betrag": "Betrag",
       "creditor": "Kreditor",
       "customer": {
@@ -431,8 +460,19 @@
       "_": "Kunde",
       "division": "Bereich",
       "identifier": "Kurzbezeichner",
+      "konto": {
+        "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
+      },
+      "kunden": "Kunden",
+      "list": {
+        "select": {
+          "title": "Kunde wählen"
+        }
+      },
       "name": "Kundenname",
       "nummer": "Kundennummer",
+      "pleaseSelectKunde": "Bitte Kunde wählen",
+      "select": "Auswahl Kunde",
       "status": {
         "acquisition": "Akquise",
         "active": "aktiv",
@@ -440,10 +480,25 @@
         "nonactive": "nicht aktiv",
         "nonexistent": "nicht mehr existent"
       },
-      "text": "Kunde Freitext"
+      "text": "Kunde Freitext",
+      "title": {
+        "add": "Neuer Kunde",
+        "edit": "Kunde bearbeiten",
+        "heading": "Kunden",
+        "list": {
+          "_": "Kunden",
+          "select": "Kunde auswählen"
+        }
+      },
+      "validation": {
+        "existingCustomerNr": "Es existiert bereits ein Kunde mit dieser Kundennummer"
+      },
+      "wizard": {
+        "notYetAvailable": "Der Assistent ist noch nicht verfügbar. Bitte beachten: Kundenobjekte werden aktuell nur und nur für Kostenträgerrechnungen benötigt (s. Dokumentation). Bitte benutze den Strukturbaum, um eine Kunden-Projekt-Hierarchie abzubilden."
+      }
     },
     "modeOfPayment": {
-      "_": "Zahlungsweise",
+      "_": "Zahlungsart",
       "type": {
         "annual": "jährlich",
         "fixed": "fix",
@@ -475,11 +530,28 @@
     "projectManager": "Projektmanagement",
     "projekt": {
       "_": "Projekt",
+      "edit": {
+        "kost2DoesAlreadyExists": "Kost2 existiert bereits."
+      },
       "identifier": "Kurzbezeichner",
       "internKost2_4": "Intern: Koststellen 2-4",
+      "konto": {
+        "tooltip": "Wird für den Export von Debitorenrechnungen verwendet. Wenn kein Konto angegeben, wird ein evtl. vorhandenes Konto des diesem Projekt zugeordneten Kundens verwendet."
+      },
+      "leiter": "Projektmanagement",
+      "list": {
+        "select": {
+          "title": "Projekt wählen"
+        }
+      },
+      "multiselected": {
+        "title": "Mehrfachauswahl Projekte"
+      },
       "name": "Name",
       "nummer": "Nummer",
+      "pleaseSelectProjekt": "Bitte Projekt wählen",
       "projektManagerGroup": "Projektmanagergruppe",
+      "projekte": "Projekte",
       "status": {
         "acquisition": "Akquise",
         "build": "Entwicklungsphase",
@@ -488,9 +560,25 @@
         "none": "Nicht gesetzt.",
         "onhold": "vorrübergehend (noch) nicht aktiv",
         "productive": "produktiv (ohne Wartung)"
+      },
+      "title": {
+        "add": "Neues Projekt",
+        "edit": "Projekt bearbeiten",
+        "heading": "Projekte",
+        "list": {
+          "_": "Projekte",
+          "select": "Projekt auswählen"
+        }
+      },
+      "validation": {
+        "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben"
+      },
+      "wizard": {
+        "notYetAvailable": "Der Assistent ist noch nicht verfügbar. Bitte beachten: Projektobjekte werden aktuell nur und nur für Kostenträgerrechnungen benötigt (s. Dokumentation). Bitte benutzen den Strukturbaum, um eine Kunden-Projekt-Hierarchie abzubilden."
       }
     },
     "rechnung": {
+      "_": "Debitorenrechnung",
       "besonderheiten": "Besonderheiten",
       "betreff": "Betreff",
       "bezahlDatum": "Bezahldatum",
@@ -533,7 +621,9 @@
       "zahlBetrag": "Zahlbetrag",
       "zahlungsZiel": "Zahlungsziel"
     },
+    "rechnungen": "Debitorenrechnungen",
     "salesManager": "Key-Account-Manager:in",
+    "toBeInvoiced": "zu fakturieren",
     "tooltip": {
       "nummerWirdAutomatischVergeben": "Nummer wird automatisch vergeben."
     }
@@ -811,6 +901,7 @@
       "more": "Weitere Favoriten"
     },
     "fibu": {
+      "_": "Fibu",
       "kost": "Kost"
     },
     "main": {
@@ -961,7 +1052,10 @@
     "middle": "mittel"
   },
   "projectmanagement": {
-    "personDays": "Personentage"
+    "personDays": {
+      "_": "Personentage",
+      "short": "PT"
+    }
   },
   "question": {
     "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
@@ -1129,6 +1223,14 @@
   },
   "timezone": "Zeitzone",
   "title": "Titel",
+  "tooltip": {
+    "shortcut": {
+      "addEntry": {
+        "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
+        "title": "Tastaturkürzel N"
+      }
+    }
+  },
   "uptodate": "aktuell",
   "user": {
     "_": "Benutzer:in",
