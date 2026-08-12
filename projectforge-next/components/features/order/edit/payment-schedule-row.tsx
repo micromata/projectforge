@@ -63,6 +63,16 @@ export function PaymentScheduleRow({
             <span className="min-w-0 flex-1 truncate text-muted-foreground">
               {schedule.comment}
             </span>
+            {schedule.positionNumber != null && (
+              <span className="hidden shrink-0 text-muted-foreground md:inline">
+                {t("label.position.short")} {schedule.positionNumber}
+              </span>
+            )}
+            {schedule.reached && (
+              <span className="shrink-0 text-green-600 dark:text-green-400">
+                {t("fibu.common.reached")}
+              </span>
+            )}
             <span className="shrink-0 tabular-nums">
               {formatCurrency(schedule.amount, format)}
             </span>
