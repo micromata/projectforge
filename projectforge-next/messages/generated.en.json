@@ -1273,6 +1273,7 @@
   },
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
+    "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
     "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
   },
   "rating": "Rating",

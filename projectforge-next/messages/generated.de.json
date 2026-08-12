@@ -1273,6 +1273,7 @@
   },
   "question": {
     "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
+    "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },
   "rating": "Bewertung",

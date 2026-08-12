@@ -10,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 export interface RepeatableRowProps {
@@ -18,7 +19,10 @@ export interface RepeatableRowProps {
   children: ReactNode;
   /** Open by default: a row just added is there to be filled in. */
   defaultOpen?: boolean;
-  /** Absent when the row must not be removed (an order position already invoiced elsewhere). */
+  /**
+   * Absent when the row must not be removed (an order position already invoiced elsewhere). Runs only
+   * after the user confirmed — the row asks for itself.
+   */
   onRemove?: () => void;
   /** Accessible name of the remove button, naming the row it belongs to. */
   removeLabel: string;
@@ -42,6 +46,7 @@ export function RepeatableRow({
 }: RepeatableRowProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(defaultOpen ?? false);
+  const [confirming, setConfirming] = useState(false);
   return (
     <Collapsible
       open={open}
@@ -67,16 +72,30 @@ export function RepeatableRow({
           <span className="min-w-0 flex-1">{header}</span>
         </CollapsibleTrigger>
         {onRemove && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
-            aria-label={`${t("delete")}: ${removeLabel}`}
-            onClick={onRemove}
-          >
-            <HugeiconsIcon icon={Delete02Icon} size={14} />
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+              aria-label={`${t("delete")}: ${removeLabel}`}
+              onClick={() => setConfirming(true)}
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={14} />
+            </Button>
+            {/* A row is removed without an undo, and the button sits right beside the one that folds the
+                row open — a mis-click would silently drop a position or an instalment. The question says
+                what actually happens: the row is gone from the form and deleted when it is saved. */}
+            <ConfirmDialog
+              open={confirming}
+              onOpenChange={setConfirming}
+              title={`${t("delete")}: ${removeLabel}`}
+              description={t("question.deleteRowQuestion")}
+              confirmLabel={t("delete")}
+              destructive
+              onConfirm={onRemove}
+            />
+          </>
         )}
       </div>
       <CollapsibleContent>
