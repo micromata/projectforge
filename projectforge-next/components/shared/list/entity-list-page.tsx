@@ -75,9 +75,12 @@ export function EntityListPage<
 }
 
 /** Always includes the deleted entry first, then any entity-specific entries. */
-function legendEntries<Row extends ListRow, Values, Data extends EntityWithId, M extends EntityMetadata>(
-  page: PageDef<Row, Values, Data, M>
-): LegendEntry[] {
+function legendEntries<
+  Row extends ListRow,
+  Values,
+  Data extends EntityWithId,
+  M extends EntityMetadata,
+>(page: PageDef<Row, Values, Data, M>): LegendEntry[] {
   const deletedEntry: LegendEntry = {
     className: "row-deleted",
     labelKey: page.deletedLabelKey ?? "table.legend.deleted",

@@ -31,7 +31,10 @@ export function TableLegend({ entries, className }: TableLegendProps) {
       {entries.map((entry) => (
         <span key={entry.className} className="flex items-center gap-1.5">
           <span
-            className={cn("inline-block h-3 w-3 rounded-sm border", entry.className)}
+            className={cn(
+              "inline-block h-3 w-3 rounded-sm border",
+              entry.className
+            )}
             aria-hidden
           />
           <span className={cn(entry.strikethrough && "line-through")}>

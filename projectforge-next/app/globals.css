@@ -247,11 +247,21 @@
 }
 
 /* Legend swatches — same tokens applied to arbitrary inline elements. */
-span.row-deleted { background-color: var(--row-deleted); }
-span.row-red     { background-color: var(--row-red); }
-span.row-green   { background-color: var(--row-green); }
-span.row-blue    { background-color: var(--row-blue); }
-span.row-grey    { background-color: var(--row-grey); }
+span.row-deleted {
+  background-color: var(--row-deleted);
+}
+span.row-red {
+  background-color: var(--row-red);
+}
+span.row-green {
+  background-color: var(--row-green);
+}
+span.row-blue {
+  background-color: var(--row-blue);
+}
+span.row-grey {
+  background-color: var(--row-grey);
+}
 
 /*
  * A task's status (see TaskStatusCell). Semantic classes rather than utilities,
