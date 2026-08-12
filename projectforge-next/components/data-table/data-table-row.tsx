@@ -86,8 +86,8 @@ export function DataTableRow<TData>({
             // show through the pinned ones, which sit in the same stacking layer —
             // which also means the row's hover colour has to be applied per cell.
             // Fully opaque (no /50): a translucent hover would undo exactly the
-            // coverage the background provides. A highlighted row overrides this
-            // background from globals.css, for the same reason.
+            // coverage the background provides. A highlighted row keeps it and
+            // tints it as a background *image* instead (see globals.css).
             "truncate border-b bg-background group-hover:bg-muted",
             // Hover marker as a pseudo element on the first cell: a dedicated <td>
             // would occupy a column slot and shift every cell out of its column.

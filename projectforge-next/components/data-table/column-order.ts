@@ -1,0 +1,43 @@
+import type {
+  ColumnDef,
+  ColumnOrderState,
+  ColumnPinningState,
+} from "@tanstack/react-table";
+
+/**
+ * The id TanStack gives a column def — its `id`, or the accessor key it derives one from. The same
+ * rule the table itself applies, needed here because the ids are read before the table exists.
+ */
+export function columnIdOfDef<TData>(def: ColumnDef<TData, unknown>): string {
+  if (def.id) return def.id;
+  return "accessorKey" in def ? String(def.accessorKey) : "";
+}
+
+/**
+ * The column order with the pinned columns where they have to be: the left-pinned ones first, the
+ * right-pinned ones last, each group in its *pinning* order.
+ *
+ * A pinned cell takes its sticky offset from the pinning order (`column.getStart("left")` sums the
+ * widths of the left-pinned columns before it) while the table renders by `columnOrder`. Where the two
+ * disagree, the pinned columns overlap — which is exactly what a stored order from before a column was
+ * pinned does, and what the column panel keeps in step for the user's own pinning (see
+ * DataTableColumnPanel.togglePin).
+ *
+ * @param order The order to fix up; empty means "as the columns are declared", hence `allIds`.
+ */
+export function withPinnedFirst(
+  order: ColumnOrderState,
+  pinning: ColumnPinningState,
+  allIds: string[]
+): ColumnOrderState {
+  const left = pinning.left ?? [];
+  const right = pinning.right ?? [];
+  if (!left.length && !right.length) return order;
+  const base = order.length ? order : allIds;
+  const known = new Set(base);
+  return [
+    ...left.filter((id) => known.has(id)),
+    ...base.filter((id) => !left.includes(id) && !right.includes(id)),
+    ...right.filter((id) => known.has(id)),
+  ];
+}

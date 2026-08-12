@@ -13,7 +13,7 @@ import {
   type ColumnState,
   type FilterValues,
 } from "@/components/data-table";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, ColumnPinningState } from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useInitialList } from "@/hooks/use-initial-list";
 
@@ -38,6 +38,11 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
   storedState: ColumnState;
   /** The filter the user last used, as the backend remembered it. */
   restoredFilter?: MagicFilter;
+  /**
+   * Columns frozen to an edge as long as the user hasn't pinned anything themselves — the starting
+   * point of the list and what its reset returns to (see `defaultPinningOf`).
+   */
+  defaultPinning?: ColumnPinningState;
 }
 
 /**
@@ -56,6 +61,7 @@ export function useEntityListPage<Row extends ListRow>({
   columns,
   storedState,
   restoredFilter,
+  defaultPinning,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -64,6 +70,9 @@ export function useEntityListPage<Row extends ListRow>({
   const columnState = useTableState({
     restoredState: storedState,
     initialSorting: storedState.sorting,
+    // Only for a user who has never pinned anything: a stored `{}` means they unpinned every column,
+    // and that decision has to survive a reload.
+    initialPinning: defaultPinning,
   });
 
   const query = useMagicFilterQuery<Row>({
@@ -139,11 +148,15 @@ export function useEntityListPage<Row extends ListRow>({
     paginationPageSize: query.pagination.pageSize,
   });
 
-  /** Back to the column defs' defaults; the next write stores the empty state. */
+  /**
+   * Back to the column defs' defaults: an empty order is the order they are declared in, an empty
+   * visibility/sizing is "as declared", and the pinning is the one the page declares — the only slice
+   * with a default other than "nothing", so it is set rather than cleared.
+   */
   function resetColumns() {
     query.setSorting([]);
     columnState.setColumnVisibility({});
-    columnState.setColumnPinning({});
+    columnState.setColumnPinning(defaultPinning ?? {});
     columnState.setColumnSizing({});
     columnState.setColumnOrder([]);
     columnState.setColumnFilters([]);

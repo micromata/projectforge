@@ -14,6 +14,7 @@ import {
 } from "@/lib/page-def/define-page";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
 import { declaredCell } from "./declared-cell";
+import { periodColumnDef } from "./declared-period-column";
 
 /** A field the entity has no metadata for (a computed column) is plain text. */
 const TEXT: FieldMetadata = { dataType: "STRING", required: false };
@@ -40,6 +41,14 @@ export function useDeclaredColumns<
       has: (key: string) => boolean;
     };
     return columns.map((declaration) => {
+      // Two fields shown as one value, hence neither a field nor a computed column — see PeriodColumn.
+      if ("periodLabelKey" in declaration)
+        return periodColumnDef<Row, M>(
+          declaration,
+          metadata,
+          translate,
+          format
+        );
       const isField = "name" in declaration;
       const name = isField ? declaration.name : declaration.id;
       // A computed column may name its data type, since it has no field to derive one from — that is

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
-import { alignFor, filterKindFor, labelKeyFor } from "./define-page";
+import {
+  alignFor,
+  columnHeaderKeyOf,
+  columnIdOf,
+  defaultPinningOf,
+  filterKindFor,
+  labelKeyFor,
+} from "./define-page";
 
 const METADATA: EntityMetadata = {
   entity: "kost1",
@@ -137,5 +144,90 @@ describe("labelKeyFor", () => {
     expect(labelKeyFor(METADATA, "description", hasMessage, "fibu.kost1")).toBe(
       "fibu.kost1._"
     );
+  });
+});
+
+describe("columnIdOf", () => {
+  it("takes a field column's name, a computed column's id, and a period's begin", () => {
+    expect(columnIdOf({ name: "description" })).toBe("description");
+    expect(
+      columnIdOf({
+        id: "kunde.displayName",
+        labelKey: "fibu.kunde._",
+        accessor: () => "",
+      })
+    ).toBe("kunde.displayName");
+    expect(
+      columnIdOf({
+        periodLabelKey: "fibu.periodOfPerformance",
+        begin: "bereich",
+        end: "internal",
+      })
+    ).toBe("bereich");
+  });
+});
+
+describe("columnHeaderKeyOf", () => {
+  it("takes the entity's key for a field column", () => {
+    expect(columnHeaderKeyOf({ name: "bereich" }, METADATA)).toBe(
+      "fibu.kost1.bereich"
+    );
+  });
+
+  it("prefers the short header label over every other key", () => {
+    expect(
+      columnHeaderKeyOf(
+        {
+          name: "bereich",
+          labelKey: "attachments._",
+          headerLabelKey: "attachments.short",
+        },
+        METADATA
+      )
+    ).toBe("attachments.short");
+  });
+
+  it("takes a period's own label", () => {
+    expect(
+      columnHeaderKeyOf(
+        {
+          periodLabelKey: "fibu.periodOfPerformance",
+          begin: "bereich",
+          end: "internal",
+        },
+        METADATA
+      )
+    ).toBe("fibu.periodOfPerformance");
+  });
+
+  it("falls back to the column id where nothing names a key", () => {
+    expect(columnHeaderKeyOf({ name: "internal" }, METADATA)).toBe("internal");
+  });
+});
+
+describe("defaultPinningOf", () => {
+  it("collects the pinned columns per edge, in declaration order", () => {
+    expect(
+      defaultPinningOf([
+        { name: "bereich", pinned: "left" },
+        { name: "description" },
+        {
+          periodLabelKey: "fibu.periodOfPerformance",
+          begin: "internal",
+          end: "description",
+          pinned: "left",
+        },
+        {
+          id: "actions",
+          labelKey: "actions",
+          accessor: () => "",
+          pinned: "right",
+        },
+      ])
+    ).toEqual({ left: ["bereich", "internal"], right: ["actions"] });
+  });
+
+  it("leaves out an edge nothing is pinned to, so nothing is stored as a change", () => {
+    expect(defaultPinningOf([{ name: "description" }])).toEqual({});
   });
 });

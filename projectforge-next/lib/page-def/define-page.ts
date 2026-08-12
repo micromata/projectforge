@@ -10,7 +10,7 @@ import type { FilterKind } from "@/components/data-table";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
-import type { PageDef } from "./types";
+import type { ColumnDeclaration, PageDef } from "./types";
 
 /**
  * Binds a declaration to one entity: every `name` is checked against `keyof metadata.fields`, so a
@@ -25,6 +25,59 @@ export function definePage<
   M extends EntityMetadata,
 >(def: PageDef<Row, Values, Data, M>): PageDef<Row, Values, Data, M> {
   return def;
+}
+
+/**
+ * The table's column id of a declaration — which is also what the backend sorts by: a field's name, a
+ * computed column's explicit id, and a period's begin (the property of the pair the query orders on).
+ */
+export function columnIdOf<Row, M extends EntityMetadata>(
+  declaration: ColumnDeclaration<Row, M>
+): string {
+  if ("periodLabelKey" in declaration) return declaration.begin;
+  return "name" in declaration ? declaration.name : declaration.id;
+}
+
+/**
+ * The message key a column's header shows: the short label where one is declared, otherwise the
+ * column's own (a computed column's `labelKey`, a period's `periodLabelKey`), otherwise the `i18nKey`
+ * the field carries in the entity — and the column's id where the metadata knows none.
+ *
+ * Not the same as [labelKeyFor], which resolves the `<key>._` of a key that is both leaf and
+ * namespace: that needs a translator, and this is the part that doesn't.
+ */
+export function columnHeaderKeyOf<Row, M extends EntityMetadata>(
+  declaration: ColumnDeclaration<Row, M>,
+  metadata: EntityMetadata
+): string {
+  const id = columnIdOf(declaration);
+  const own =
+    "periodLabelKey" in declaration
+      ? declaration.periodLabelKey
+      : declaration.labelKey;
+  return (
+    declaration.headerLabelKey ?? own ?? metadata.fields[id]?.i18nKey ?? id
+  );
+}
+
+/**
+ * The pinning a list starts with, from the `pinned` of its column declarations — and what the reset
+ * returns to, which is why it is derived rather than written out a second time.
+ *
+ * The order within an edge follows the declaration, so pinned columns sit left to right as they are
+ * declared. An empty edge is left out: TanStack takes `{}` as "nothing pinned", and an empty array
+ * would be stored as a change the user never made.
+ */
+export function defaultPinningOf<Row, M extends EntityMetadata>(
+  columns: ColumnDeclaration<Row, M>[]
+): { left?: string[]; right?: string[] } {
+  const pinning: { left?: string[]; right?: string[] } = {};
+  for (const declaration of columns) {
+    const edge = declaration.pinned;
+    if (!edge) continue;
+    (pinning[edge] ??= []).push(columnIdOf(declaration));
+  }
+  return pinning;
 }
 
 /**

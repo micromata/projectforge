@@ -35,7 +35,8 @@ export const FORECAST_TAB_ID = "forecast";
  * around them is ordinary — the fields, their labels, their rules and the history tab come from
  * `AuftragDO` through the generated metadata, exactly as for a book or a cost unit.
  *
- * The columns are the 19 of `AuftragPagesRest.createListLayout`, in its order. Six of them are computed:
+ * The columns are the 19 of `AuftragPagesRest.createListLayout` — in an order of their own, and with the
+ * two ends of the period of performance as the one column they read as. Six of them are computed:
  * the customer and the project are `KundeDO`/`ProjektDO` and have no `UIDataType`, so the metadata
  * cannot carry them, while the position count, the assigned persons, the person days and the four sums
  * are transient properties of `AuftragDO` (`@get:Transient`, computed by `OrderInfo`). The amounts render
@@ -61,7 +62,10 @@ export const ORDER_PAGE = definePage<
   addTitleKey: "fibu.auftrag.title.add",
   searchPlaceholderKey: "order.searchPlaceholder",
   columns: [
-    { name: "nummer", size: 80, className: "font-semibold" },
+    // The five columns that identify the order stay in view while the sums, the period and the rest
+    // are scrolled sideways — the number is what it is referred to, the title what it is.
+    { name: "nummer", size: 80, className: "font-semibold", pinned: "left" },
+    { name: "erfassungsDatum", size: 110, pinned: "left" },
     {
       // Sorted on the server by the entity's property path, which is `kunde`, while the row carries the
       // DTO's name — the two differ here (see Auftrag.copyTo).
@@ -69,12 +73,14 @@ export const ORDER_PAGE = definePage<
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
       size: 160,
+      pinned: "left",
     },
     {
       id: "projekt.displayName",
       labelKey: "fibu.projekt._",
       accessor: (row) => row.project?.displayName ?? "",
       size: 160,
+      pinned: "left",
     },
     // No link in the cell: the whole row navigates to the edit page.
     {
@@ -82,38 +88,8 @@ export const ORDER_PAGE = definePage<
       size: 260,
       minSize: 180,
       className: "font-semibold text-primary",
+      pinned: "left",
     },
-    // "#3" — how many positions the order has. Not sortable in the database (transient), which the
-    // header offers regardless; the backend simply orders by nothing then.
-    {
-      id: "pos",
-      labelKey: "label.position.short",
-      accessor: (row) => row.pos ?? "",
-      size: 60,
-      // A count, although the accessor yields a string ("#3") and no data type derives it.
-      align: "right",
-      className: "text-muted-foreground",
-    },
-    attachmentsColumn<OrderListRow>(),
-    {
-      id: "personDays",
-      labelKey: "projectmanagement.personDays._",
-      accessor: (row) => row.personDays ?? null,
-      dataType: "DECIMAL",
-      size: 90,
-      headerLabelKey: "projectmanagement.personDays.short",
-    },
-    { name: "referenz", size: 120 },
-    // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").
-    {
-      id: "assignedPersons",
-      labelKey: "fibu.common.assignedPersons",
-      accessor: (row) => row.assignedPersons ?? "",
-      size: 180,
-      className: "text-muted-foreground",
-    },
-    { name: "erfassungsDatum", size: 110 },
-    { name: "entscheidungsDatum", size: 110 },
     {
       id: "nettoSumme",
       labelKey: "fibu.auftrag.nettoSumme",
@@ -142,11 +118,47 @@ export const ORDER_PAGE = definePage<
       dataType: "AMOUNT",
       size: 120,
     },
-    { name: "periodOfPerformanceBegin", size: 110 },
-    { name: "periodOfPerformanceEnd", size: 110 },
     { name: "probabilityOfOccurrence", size: 80 },
     // The one value a reader looks for first — where the order stands.
     { name: "status", size: 130 },
+    // Both ends in one column, as the edit form asks for them and the filter matches them (see
+    // PeriodColumn).
+    {
+      periodLabelKey: "fibu.periodOfPerformance",
+      begin: "periodOfPerformanceBegin",
+      end: "periodOfPerformanceEnd",
+      size: 190,
+    },
+    // "#3" — how many positions the order has. Not sortable in the database (transient), which the
+    // header offers regardless; the backend simply orders by nothing then.
+    {
+      id: "pos",
+      labelKey: "label.position.short",
+      accessor: (row) => row.pos ?? "",
+      size: 60,
+      // A count, although the accessor yields a string ("#3") and no data type derives it.
+      align: "right",
+      className: "text-muted-foreground",
+    },
+    {
+      id: "personDays",
+      labelKey: "projectmanagement.personDays._",
+      accessor: (row) => row.personDays ?? null,
+      dataType: "DECIMAL",
+      size: 90,
+      headerLabelKey: "projectmanagement.personDays.short",
+    },
+    { name: "referenz", size: 120 },
+    attachmentsColumn<OrderListRow>(),
+    // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").
+    {
+      id: "assignedPersons",
+      labelKey: "fibu.common.assignedPersons",
+      accessor: (row) => row.assignedPersons ?? "",
+      size: 180,
+      className: "text-muted-foreground",
+    },
+    { name: "entscheidungsDatum", size: 110 },
   ],
   // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
   // the untyped `ResultSet.statistics` becomes what `AuftragPagesRest.OrderStatistics` sends — see

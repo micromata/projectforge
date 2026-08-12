@@ -109,6 +109,42 @@ export function formatDate(value: unknown, ctx: FormatContext): string {
   }).format(date);
 }
 
+/**
+ * Both ends of a period as the one value it is, e.g. `01.01.2026 – 31.12.2026`.
+ *
+ * A half-open period reads with an ellipsis for its open end ("01.01.2026 – …"), so it is visibly a
+ * period and not a single date; empty on both ends it is the empty string, and a caller renders
+ * nothing at all rather than a dash.
+ *
+ * The one place a period becomes text: a filter pill, a list column and a position's header all show
+ * the same window and must show it the same way.
+ */
+export function formatDateRange(
+  begin: unknown,
+  end: unknown,
+  ctx: FormatContext
+): string {
+  return joinRange(formatDate(begin, ctx), formatDate(end, ctx));
+}
+
+/** [formatDateRange] for a period whose ends carry a time as well. */
+export function formatTimestampRange(
+  begin: unknown,
+  end: unknown,
+  ctx: FormatContext
+): string {
+  return joinRange(
+    formatTimestampMinutes(begin, ctx),
+    formatTimestampMinutes(end, ctx)
+  );
+}
+
+function joinRange(from: string, to: string): string {
+  if (!from && !to) return "";
+  if (from && to) return `${from} – ${to}`;
+  return from ? `${from} – …` : `… – ${to}`;
+}
+
 /** Date and time to the minute, e.g. 17.06.2016, 14:33. */
 export function formatTimestampMinutes(
   value: unknown,

@@ -4,6 +4,7 @@ import { formatCurrency, formatNumber } from "../lib/format";
 import { AUFTRAG_METADATA } from "../lib/metadata/auftrag.generated";
 import { AUFTRAGS_POSITION_METADATA } from "../lib/metadata/auftrags-position.generated";
 import { ORDER_PAGE } from "../components/features/order/order.page";
+import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import type { Page } from "@playwright/test";
 
 /**
@@ -52,15 +53,9 @@ test.describe("order book", () => {
     // `i18nKey` of the field in AuftragDO, which is exactly what the declaration does not repeat. A
     // computed column names its own key, since `KundeDO`/`ProjektDO` and the transient sums have no
     // metadata entry at all.
-    const fields: Record<string, { i18nKey?: string }> =
-      AUFTRAG_METADATA.fields;
     for (const column of ORDER_PAGE.columns) {
-      const name = "name" in column ? column.name : column.id;
-      const key =
-        ("headerLabelKey" in column ? column.headerLabelKey : undefined) ??
-        ("labelKey" in column ? column.labelKey : undefined) ??
-        fields[name]?.i18nKey ??
-        name;
+      const name = columnIdOf(column);
+      const key = columnHeaderKeyOf(column, AUFTRAG_METADATA);
       await expect(
         // Anchored at the start rather than `exact`: the accessible name of a header includes its
         // filter button and its resize handle ("Nummer Filter Spaltenbreite ändern"), while a plain

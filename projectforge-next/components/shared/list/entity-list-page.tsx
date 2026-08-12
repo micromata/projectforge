@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -18,6 +19,7 @@ import { Spinner } from "@/components/shared/spinner";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import { defaultPinningOf } from "@/lib/page-def/define-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -106,6 +108,12 @@ function DeclaredList<
   const router = useRouter();
   const t = useTranslations();
   const columns = useDeclaredColumns<Row, M>(page.metadata, page.columns);
+  // Derived from the same declarations as the columns, so the pinned edge and the order are one
+  // statement and cannot drift (see defaultPinningOf).
+  const defaultPinning = useMemo(
+    () => defaultPinningOf(page.columns),
+    [page.columns]
+  );
 
   const list = useEntityListPage<Row>({
     entity: page.entity,
@@ -113,6 +121,7 @@ function DeclaredList<
     columns,
     storedState,
     restoredFilter,
+    defaultPinning,
   });
 
   return (

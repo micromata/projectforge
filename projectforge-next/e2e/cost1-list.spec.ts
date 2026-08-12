@@ -2,6 +2,7 @@ import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { KOST1_METADATA } from "../lib/metadata/kost1.generated";
 import { COST1_PAGE } from "../components/features/cost1/cost1.page";
+import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 
 /**
  * The cost 1 list against the live backend — the first page rendered entirely from a declaration
@@ -41,10 +42,9 @@ test.describe("cost 1 list", () => {
     // `i18nKey` of the field in Kost1DO, which is exactly what the declaration does not repeat.
     // Widened, because a lookup by a name read off the declaration is a string lookup — the
     // generated metadata are `as const` and would otherwise narrow to the one field asked for.
-    const fields: Record<string, { i18nKey?: string }> = KOST1_METADATA.fields;
     for (const column of COST1_PAGE.columns) {
-      const name = "name" in column ? column.name : column.id;
-      const key = fields[name]?.i18nKey ?? name;
+      const name = columnIdOf(column);
+      const key = columnHeaderKeyOf(column, KOST1_METADATA);
       // `fibu.kost1` is a leaf *and* a namespace, so the generator writes it as `fibu.kost1._`.
       const label = t(key === "fibu.kost1" ? "fibu.kost1._" : key);
       await expect(

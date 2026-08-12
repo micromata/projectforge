@@ -46,6 +46,15 @@ interface ColumnBase<Row> {
   filterKind?: FilterKind | null;
   /** Renders the cell itself, instead of the default for the field's data type. */
   cell?: (ctx: CellContext<Row, unknown>) => ReactNode;
+  /**
+   * Frozen to that edge of the table until the user unpins it — for the columns that identify the row
+   * and have to stay readable while the rest is scrolled sideways (an order's number, customer,
+   * project and title).
+   *
+   * The starting point only: pinning is state the user owns, stored per user and entity, and this is
+   * what a reset returns to (see `defaultPinningOf`).
+   */
+  pinned?: "left" | "right";
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
@@ -77,9 +86,33 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
   dataType?: UIDataTypeName;
 }
 
+/**
+ * Two date (or timestamp) fields of the entity shown as the one value they are: a period under a
+ * single label, both ends optional — the column counterpart of [DatePeriodDeclaration].
+ *
+ * A period is not a data type of its own and must not become one, for the same reason it isn't one in
+ * a form: the entity has two properties, the metadata reports two dates, and the backend sorts by one
+ * of them (`begin`, which is therefore the column's id). What is shared is only how it is *shown*.
+ *
+ * No column filter: the two ends are one question and the backend answers it as one — an order's
+ * period of performance is a single window matched with overlap semantics
+ * (`AuftragPagesRest.addMagicFilterElements`), and a client-side filter over the rendered text would
+ * only be a second, weaker one.
+ */
+export interface PeriodColumn<M extends EntityMetadata> extends Omit<
+  ColumnBase<never>,
+  "cell" | "filterKind" | "align" | "labelKey"
+> {
+  /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
+  periodLabelKey: string;
+  begin: FieldNameOf<M>;
+  end: FieldNameOf<M>;
+}
+
 export type ColumnDeclaration<Row, M extends EntityMetadata> =
   | FieldColumn<Row, M>
-  | ComputedColumn<Row>;
+  | ComputedColumn<Row>
+  | PeriodColumn<M>;
 
 interface FieldBase {
   /** Columns of the section's grid this field spans. */

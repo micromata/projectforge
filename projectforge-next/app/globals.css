@@ -225,25 +225,30 @@
 }
 
 /*
- * Highlighted list rows. The cells carry their own opaque background (so pinned
- * columns cover the ones scrolling underneath), so the tint has to be set on the
- * cells rather than on the row. Hover still wins — it comes later in the cascade.
+ * Highlighted list rows. The tint sits on the cells rather than on the row, because the cells carry
+ * their own opaque background so pinned columns cover the ones scrolling underneath.
+ *
+ * As a background *image* — a gradient of the one colour — not as `background-color`: every one of
+ * these tokens is translucent, and setting it as the colour would replace the cell's opaque
+ * `bg-background` instead of tinting it, which makes exactly the pinned cells transparent and lets
+ * the scrolling columns show through them. An image layers over the colour, so both hold: the tint
+ * is visible and the cell stays opaque. Hover changes the colour underneath and keeps the tint.
  */
 .row-deleted > td {
-  background-color: var(--row-deleted);
+  background-image: linear-gradient(var(--row-deleted), var(--row-deleted));
   text-decoration: line-through;
 }
 .row-red > td {
-  background-color: var(--row-red);
+  background-image: linear-gradient(var(--row-red), var(--row-red));
 }
 .row-green > td {
-  background-color: var(--row-green);
+  background-image: linear-gradient(var(--row-green), var(--row-green));
 }
 .row-blue > td {
-  background-color: var(--row-blue);
+  background-image: linear-gradient(var(--row-blue), var(--row-blue));
 }
 .row-grey > td {
-  background-color: var(--row-grey);
+  background-image: linear-gradient(var(--row-grey), var(--row-grey));
 }
 
 /* Legend swatches — same tokens applied to arbitrary inline elements. */

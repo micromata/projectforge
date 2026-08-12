@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   getCoreRowModel,
   getFacetedRowModel,
@@ -20,6 +20,7 @@ import {
   type Table,
   type VisibilityState,
 } from "@tanstack/react-table";
+import { columnIdOfDef, withPinnedFirst } from "./column-order";
 import { universalFilterFnFor } from "./filter-fns";
 import { DEFAULT_PAGE_SIZE } from "./page-size-options";
 
@@ -109,6 +110,20 @@ export function useDataTable<TData>({
   const [internalSizing, setInternalSizing] = useState<ColumnSizingState>({});
   const [internalOrder, setInternalOrder] = useState<ColumnOrderState>([]);
 
+  const effectivePinning = columnPinning ?? internalPinning;
+  // The order the table renders in — not the one the caller holds and persists: a pinned column has
+  // to be rendered in its pinning group, or its sticky offset and its slot in the row disagree and the
+  // pinned columns overlap (see withPinnedFirst).
+  const effectiveOrder = useMemo(
+    () =>
+      withPinnedFirst(
+        columnOrder ?? internalOrder,
+        effectivePinning,
+        columns.map(columnIdOfDef)
+      ),
+    [columnOrder, internalOrder, effectivePinning, columns]
+  );
+
   return useReactTable({
     data,
     columns,
@@ -142,9 +157,9 @@ export function useDataTable<TData>({
       pagination: pagination ?? internalPagination,
       columnFilters: columnFilters ?? internalFilters,
       columnVisibility: columnVisibility ?? internalVisibility,
-      columnPinning: columnPinning ?? internalPinning,
+      columnPinning: effectivePinning,
       columnSizing: columnSizing ?? internalSizing,
-      columnOrder: columnOrder ?? internalOrder,
+      columnOrder: effectiveOrder,
     },
     onSortingChange: onSortingChange ?? setInternalSorting,
     onPaginationChange: onPaginationChange ?? setInternalPagination,
