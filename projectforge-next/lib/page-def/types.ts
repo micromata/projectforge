@@ -188,6 +188,14 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * the form and on the pages of its own alike, hence the entity rather than the form values.
    */
   headerTrailing?: (data: Data | undefined) => ReactNode;
+  /**
+   * Right of the save button — an order's "send an e-mail notification?" checkbox.
+   *
+   * A component rather than a field declaration, because what belongs here is not a property of the
+   * entity but a choice about the save itself, and it is read where the save is triggered. Rendered
+   * inside the form, so it may bind to a form value like any field ([CheckboxField]).
+   */
+  saveOption?: ComponentType;
   /** Further tabs leading to a page of their own. Appended after the history. */
   extraTabs?: ExtraTabDef[];
 }

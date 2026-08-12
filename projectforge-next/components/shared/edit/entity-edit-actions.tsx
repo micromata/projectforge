@@ -11,6 +11,11 @@ import { formatTimestampMinutes } from "@/lib/format";
 export interface EntityEditActionsProps {
   onCancel: () => void;
   /**
+   * Right of the save button — a choice about the save rather than about the entity (an order's
+   * "send an e-mail notification?", see `EditDef.saveOption`).
+   */
+  saveOption?: ReactNode;
+  /**
    * Delete button, rendered right-aligned. Omitted while the entry doesn't exist yet — deleting it
    * needs the saved entity (see [EntityDeleteButton]).
    */
@@ -36,6 +41,7 @@ export interface EntityEditActionsProps {
  */
 export function EntityEditActions({
   onCancel,
+  saveOption,
   deleteAction,
   isSaving,
   isDirty,
@@ -63,6 +69,7 @@ export function EntityEditActions({
         <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
         {t("save")}
       </Button>
+      {saveOption}
       {lastSaved && (
         <span className="text-xs text-muted-foreground">
           {t("entityEdit.lastSaved", {

@@ -140,6 +140,7 @@ export function EntityEditPage<
           actions={
             <EntityEditActions
               onCancel={() => router.push(page.route)}
+              saveOption={edit.saveOption && <edit.saveOption />}
               // Nothing to delete before the first save.
               deleteAction={
                 data ? (

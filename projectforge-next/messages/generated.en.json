@@ -1018,7 +1018,8 @@
     "historyOfChanges": "History of changes",
     "position": {
       "short": "Pos"
-    }
+    },
+    "sendEMailNotification": "Send an e-mail notification?"
   },
   "lastUpdate": "last modification",
   "ldap": "LDAP",

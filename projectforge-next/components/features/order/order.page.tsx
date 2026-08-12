@@ -6,6 +6,7 @@ import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { OrderSumsLine } from "./edit/order-sums-line";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
 import { PositionsSection } from "./edit/positions-section";
+import { SendNotificationOption } from "./edit/send-notification-option";
 import { orderSchema, ORDER_FIELDS, type OrderValues } from "./order-schema";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
@@ -219,6 +220,8 @@ export const ORDER_PAGE = definePage<
         render: ({ id }) => <AttachmentSection orderId={id} />,
       },
     ],
+    // Not a field of a section: it says what the save does, so it belongs where the save is pressed.
+    saveOption: SendNotificationOption,
     // The analysis is computed over the *saved* order, so it is a page of its own rather than a section
     // of a form that may hold unsaved changes — see OrderForecastPage.
     // `._`: the key is a text of its own *and* the parent of `fibu.auftrag.forecast.analysis.*`, which
