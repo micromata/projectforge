@@ -39,7 +39,12 @@ export function DeclaredFormField<M extends EntityMetadata>({
   field,
   metadata,
   /** Inside a group the width comes from the row, not from the section's grid. */
-  className = cn(SPAN_CLASS[field.span ?? 1]),
+  className = cn(
+    SPAN_CLASS[field.span ?? 1],
+    // Placing the field in the first column is what breaks the row: the grid's auto placement moves it
+    // to the next one wherever the current row has already started (see `startsRow`).
+    field.startsRow && "md:col-start-1"
+  ),
 }: {
   field: FieldDeclaration<M>;
   metadata: M;

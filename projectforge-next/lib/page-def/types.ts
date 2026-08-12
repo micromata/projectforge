@@ -117,6 +117,16 @@ export type ColumnDeclaration<Row, M extends EntityMetadata> =
 interface FieldBase {
   /** Columns of the section's grid this field spans. */
   span?: 1 | 2 | 3;
+  /**
+   * Starts a new row of the section's grid, leaving the rest of the current one empty — for a field that
+   * begins a group a reader is meant to see as one line (an order's three dates around the assignment,
+   * then its period, deadline and probability).
+   *
+   * Needed because the grid fills row by row: the field before may end anywhere, and a row of dates that
+   * begins in the last column and continues on the next line is not the line it was declared as. Only on
+   * the three-column layout — stacked on a phone every field is its own row anyway.
+   */
+  startsRow?: boolean;
 }
 
 /** A form field of the entity: which one, where, and how it is labelled. */

@@ -42,6 +42,14 @@ export interface OrderSums {
   weightedProbabilityOfOccurrence?: number | null;
   vollstaendigFakturiert: boolean;
   toBeInvoiced: boolean;
+  /**
+   * The period of performance over *all* positions, as ISO dates: the earliest begin and the latest end
+   * any position effectively has. Computed by the backend, because which of the two dates a position
+   * follows is its `periodOfPerformanceType`'s answer (`ForecastUtils.getStartLeistungszeitraum`), and
+   * the order's own two dates are only what a position of type SEEABOVE refers to.
+   */
+  periodOfPerformanceBegin?: string | null;
+  periodOfPerformanceEnd?: string | null;
   positions?: OrderPositionSums[] | null;
 }
 

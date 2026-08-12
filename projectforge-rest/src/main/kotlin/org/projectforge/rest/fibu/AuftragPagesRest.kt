@@ -533,6 +533,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val order = AuftragDO()
     postData.data.copyTo(order)
     val info = Auftrag.calculateOrderInfo(order)
+    val period = effectivePeriodOfPerformance(info)
     return OrderSums(
       netSum = info.netSum,
       commissionedNetSum = info.commissionedNetSum,
@@ -544,6 +545,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       weightedProbabilityOfOccurrence = ForecastUtils.getWeightedProbabilityOfAccurence(info),
       vollstaendigFakturiert = info.isVollstaendigFakturiert,
       toBeInvoiced = info.toBeInvoiced,
+      periodOfPerformanceBegin = period.first,
+      periodOfPerformanceEnd = period.second,
       positions = info.infoPositions?.map { position ->
         PositionSums(
           number = position.number,
@@ -554,6 +557,30 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
         )
       },
     )
+  }
+
+  /**
+   * The period of performance the order actually spans, over all of its positions: the earliest begin
+   * and the latest end each position effectively has.
+   *
+   * A position of type [PeriodOfPerformanceType.OWN] carries its own two dates, every other one refers
+   * to the order's - the same rule [ForecastUtils.getStartLeistungszeitraum] applies, spelled out here
+   * because that one substitutes *today* for a date that is not set. Today is the right answer for a
+   * forecast, which has to distribute the net sum over some months; it is the wrong one for a form,
+   * where it would show a period the user never entered.
+   *
+   * Deleted positions don't count, and an order without any position is its own period.
+   */
+  private fun effectivePeriodOfPerformance(info: OrderInfo): Pair<LocalDate?, LocalDate?> {
+    val positions = info.infoPositions?.filter { !it.deleted }
+    if (positions.isNullOrEmpty()) {
+      return info.periodOfPerformanceBegin to info.periodOfPerformanceEnd
+    }
+    val own = { pos: OrderPositionInfo -> pos.periodOfPerformanceType == PeriodOfPerformanceType.OWN }
+    return positions.mapNotNull { if (own(it)) it.periodOfPerformanceBegin else info.periodOfPerformanceBegin }
+      .minOrNull() to
+        positions.mapNotNull { if (own(it)) it.periodOfPerformanceEnd else info.periodOfPerformanceEnd }
+          .maxOrNull()
   }
 
   /**
@@ -577,6 +604,14 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val weightedProbabilityOfOccurrence: BigDecimal?,
     val vollstaendigFakturiert: Boolean,
     val toBeInvoiced: Boolean,
+    /**
+     * Begin of the period of performance over all positions, i.e. the earliest one any of them
+     * effectively has - see [effectivePeriodOfPerformance]. Null where neither the order nor a position
+     * of its own states one.
+     */
+    val periodOfPerformanceBegin: LocalDate?,
+    /** End of that same period: the latest one any position effectively has. */
+    val periodOfPerformanceEnd: LocalDate?,
     val positions: List<PositionSums>?,
   )
 

@@ -8,8 +8,9 @@ import { recalculateOrder, type OrderPositionSums } from "@/lib/rs/order";
 import type { OrderPositionValues, OrderValues } from "./order-schema";
 
 /**
- * What the sums depend on, and nothing else: the positions' amounts and statuses, the payment schedule,
- * and the order's own status and probability of occurrence.
+ * What the answer depends on, and nothing else: the positions' amounts and statuses, the payment
+ * schedule, the order's own status and probability of occurrence, and the dates of the period of
+ * performance — the endpoint answers the period over all positions along with the sums.
  *
  * Recalculating whenever the title changes would ask the server about something that cannot move the
  * numbers, so the query is keyed by this slice rather than by the whole form.
@@ -19,6 +20,8 @@ function sumsInput(values: OrderValues) {
     id: values.id,
     status: values.status,
     probabilityOfOccurrence: values.probabilityOfOccurrence,
+    periodOfPerformanceBegin: values.periodOfPerformanceBegin,
+    periodOfPerformanceEnd: values.periodOfPerformanceEnd,
     // Deleted rows are sent along: whether they count is `OrderInfo.calculateAll`'s decision (they
     // don't), not something to be silently filtered out here.
     positionen: values.positionen.map((pos: OrderPositionValues) => ({
@@ -29,6 +32,11 @@ function sumsInput(values: OrderValues) {
       personDays: pos.personDays,
       status: pos.status,
       vollstaendigFakturiert: pos.vollstaendigFakturiert,
+      // Sent for the period of performance over all positions, not for the sums: a position of type
+      // OWN spans its own two dates, every other one the order's (see OrderSums there).
+      periodOfPerformanceType: pos.periodOfPerformanceType,
+      periodOfPerformanceBegin: pos.periodOfPerformanceBegin,
+      periodOfPerformanceEnd: pos.periodOfPerformanceEnd,
     })),
     paymentSchedules: values.paymentSchedules,
   };

@@ -222,19 +222,22 @@ export const ORDER_PAGE = definePage<
           { name: "projectManager" },
           { name: "headOfBusinessManager" },
           { name: "salesManager" },
-          { name: "erfassungsDatum" },
+          // The three dates of the order's own progress — when it was entered, when it was decided, when
+          // it was assigned — as one line, which is how a reader compares them. `startsRow`, because the
+          // four managers above end mid-row and the line would otherwise begin in the last column.
+          { name: "erfassungsDatum", startsRow: true },
           { name: "entscheidungsDatum" },
-          { name: "bindungsFrist" },
-          // 0 to 100, so three digits are the most it ever shows.
-          { name: "probabilityOfOccurrence", maxDigits: 3 },
+          { name: "beauftragungsDatum" },
           {
             // One label, two dates — the way it reads on the paper the order came from.
             periodLabelKey: "fibu.periodOfPerformance._",
             begin: "periodOfPerformanceBegin",
             end: "periodOfPerformanceEnd",
+            startsRow: true,
           },
-          { name: "beauftragungsDatum" },
-          { name: "beauftragungsBeschreibung", span: 2 },
+          { name: "bindungsFrist" },
+          // 0 to 100, so three digits are the most it ever shows.
+          { name: "probabilityOfOccurrence", maxDigits: 3 },
         ],
       },
       {

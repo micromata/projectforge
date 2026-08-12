@@ -10,6 +10,7 @@ import {
 import { useFormatContext } from "@/hooks/use-format";
 import {
   formatCurrency,
+  formatDateRange,
   formatNumber,
   formatPercentageDecimal,
 } from "@/lib/format";
@@ -44,6 +45,17 @@ export function OrderSumsLine({ className }: { className?: string }) {
       formatNumber(sums?.personDays, format, 2),
     ],
   ];
+
+  // The period over *all* positions, beside the numbers it belongs with rather than in the head section:
+  // it is what the order spans, while the two date boxes below are only what a position of type
+  // "siehe oben" refers to (see OrderSums.periodOfPerformanceBegin). Left out entirely while neither end
+  // is known — an empty "… – …" would read as a period nobody entered.
+  const period = formatDateRange(
+    sums?.periodOfPerformanceBegin,
+    sums?.periodOfPerformanceEnd,
+    format
+  );
+  if (period) entries.push(["fibu.periodOfPerformance", period]);
 
   return (
     <dl

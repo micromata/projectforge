@@ -98,6 +98,14 @@ export const orderSchema = z.object({
   entscheidungsDatum: m.nullableString("entscheidungsDatum"),
   bindungsFrist: m.nullableString("bindungsFrist"),
   beauftragungsDatum: m.nullableString("beauftragungsDatum"),
+  /**
+   * Held but never shown: `AuftragDO` has had the column since 2016, yet no frontend ever offered a box
+   * for it — neither `AuftragEditForm` nor the legacy React page — so the next page doesn't either.
+   *
+   * Still part of the values, and it has to be: the form posts the whole DTO, and a key Spring doesn't
+   * receive leaves the DTO's field null, which `Auftrag.copyTo` would write over the stored text. Whatever
+   * an import or a historic entry put there travels back untouched.
+   */
   beauftragungsBeschreibung: m.nullableString("beauftragungsBeschreibung"),
   periodOfPerformanceBegin: m.nullableString("periodOfPerformanceBegin"),
   periodOfPerformanceEnd: m.nullableString("periodOfPerformanceEnd"),

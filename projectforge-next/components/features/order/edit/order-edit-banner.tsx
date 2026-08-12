@@ -26,6 +26,7 @@ export function OrderEditBanner() {
 
   const { nummer, status, forecastType } = useStore(
     form.store,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
       const v = state.values as OrderValues;
       return {
