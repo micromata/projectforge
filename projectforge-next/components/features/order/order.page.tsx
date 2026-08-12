@@ -151,8 +151,14 @@ export const ORDER_PAGE = definePage<
   // 2. toBeInvoiced → row-red  (highest business priority: something must be invoiced)
   // 3. BEAUFTRAGT or LOI → row-green  (active order)
   // 4. ESKALATION → row-red
+  deletedLabelKey: "order.legend.deleted",
+  legend: [
+    { className: "row-red", labelKey: "order.legend.toBeInvoiced" },
+    { className: "row-green", labelKey: "order.legend.commissioned" },
+  ],
   rowClassName: (row) => {
-    if (row.status === "ABGELEHNT" || row.status === "ERSETZT") return "row-deleted";
+    if (row.status === "ABGELEHNT" || row.status === "ERSETZT")
+      return "row-deleted";
     if (row.toBeInvoiced) return "row-red";
     if (row.status === "BEAUFTRAGT" || row.status === "LOI") return "row-green";
     if (row.status === "ESKALATION") return "row-red";

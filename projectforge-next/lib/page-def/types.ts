@@ -1,4 +1,16 @@
 /**
+ * One entry in the colour legend below a list table.
+ *
+ * The `className` is one of the `row-*` tokens defined in `globals.css`; `labelKey` is a full
+ * i18n key. Set `strikethrough` for entries whose rows are also struck through (row-deleted).
+ */
+export interface LegendEntry {
+  className: string;
+  labelKey: string;
+  strikethrough?: boolean;
+}
+
+/**
  * What a list and an edit page of one entity are made of, as data.
  *
  * A declaration says **what is shown, in which order, how wide and under which label**. It never
@@ -226,6 +238,21 @@ export interface PageDef<
   addTitleKey: string;
   searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
+  /**
+   * Colour legend shown below the table. `row-deleted` (struck-through, deleted entries) is
+   * always added as the first entry; set `legend` only for additional, entity-specific colours.
+   */
+  legend?: LegendEntry[];
+
+  /**
+   * Overrides the label of the always-present `row-deleted` legend entry.
+   *
+   * Defaults to `table.legend.deleted` ("Deleted"). Use when the page applies `row-deleted` to
+   * more states than just hard-deleted rows — e.g. the order book colours ABGELEHNT and ERSETZT
+   * the same way and needs "Deleted / rejected / replaced".
+   */
+  deletedLabelKey?: string;
+
   /**
    * Row highlight class, e.g. `"row-red"` — the semantic classes in `globals.css`.
    *

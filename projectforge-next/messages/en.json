@@ -55,6 +55,11 @@
   },
   "order": {
     "searchPlaceholder": "Search orders…",
+    "legend": {
+      "deleted": "Deleted / rejected / replaced",
+      "toBeInvoiced": "To be invoiced",
+      "commissioned": "Commissioned / LOI"
+    },
     "forecast": {
       "unavailable": "The forecast analysis could not be loaded.",
       "jsonUnavailable": "The JSON export is only available in development mode."
@@ -81,6 +86,9 @@
     "previousPage": "Previous page",
     "nextPage": "Next page",
     "rowsPerPage": "Rows / page:",
-    "resetFailed": "The columns could not be reset"
+    "resetFailed": "The columns could not be reset",
+    "legend": {
+      "deleted": "Deleted"
+    }
   }
 }

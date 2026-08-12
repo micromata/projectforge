@@ -47,6 +47,8 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   pageSizeOptions?: number[];
 
   emptyState?: React.ReactNode;
+  /** Rendered between the scrollable table area and the pagination bar (e.g. a colour legend). */
+  footer?: React.ReactNode;
   className?: string;
 }
 
@@ -60,6 +62,7 @@ export function DataTable<TData>({
   rowClassName,
   pageSizeOptions,
   emptyState,
+  footer,
   className,
   ...tableOptions
 }: DataTableProps<TData>) {
@@ -202,6 +205,7 @@ export function DataTable<TData>({
           </TableBody>
         </table>
       </div>
+      {footer}
       <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
     </div>
   );

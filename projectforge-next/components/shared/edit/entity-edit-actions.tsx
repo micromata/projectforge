@@ -70,6 +70,7 @@ export function EntityEditActions({
         {t("save")}
       </Button>
       {saveOption}
+      <div className="flex-1" />
       {lastSaved && (
         <span className="text-xs text-muted-foreground">
           {t("entityEdit.lastSaved", {
@@ -77,7 +78,6 @@ export function EntityEditActions({
           })}
         </span>
       )}
-      <div className="flex-1" />
       {deleteAction}
     </div>
   );

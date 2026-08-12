@@ -55,6 +55,11 @@
   },
   "order": {
     "searchPlaceholder": "Aufträge durchsuchen…",
+    "legend": {
+      "deleted": "Gelöscht / abgelehnt / ersetzt",
+      "toBeInvoiced": "Zu fakturieren",
+      "commissioned": "Beauftragt / LOI"
+    },
     "forecast": {
       "unavailable": "Die Forecast-Analyse konnte nicht geladen werden.",
       "jsonUnavailable": "Der JSON-Export steht nur im Entwicklungsmodus zur Verfügung."
@@ -81,6 +86,9 @@
     "previousPage": "Vorherige Seite",
     "nextPage": "Nächste Seite",
     "rowsPerPage": "Einträge / Seite:",
-    "resetFailed": "Die Spalten konnten nicht zurückgesetzt werden"
+    "resetFailed": "Die Spalten konnten nicht zurückgesetzt werden",
+    "legend": {
+      "deleted": "Gelöscht"
+    }
   }
 }

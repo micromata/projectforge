@@ -19,8 +19,9 @@ import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import type { EntityMetadata } from "@/lib/metadata/types";
-import type { PageDef } from "@/lib/page-def/types";
+import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
+import { TableLegend } from "@/components/data-table/table-legend";
 import { ListToolbar } from "./list-toolbar";
 import { useDeclaredColumns } from "./use-declared-columns";
 
@@ -71,6 +72,18 @@ export function EntityListPage<
       restoredFilter={remembered.filter}
     />
   );
+}
+
+/** Always includes the deleted entry first, then any entity-specific entries. */
+function legendEntries<Row extends ListRow, Values, Data extends EntityWithId, M extends EntityMetadata>(
+  page: PageDef<Row, Values, Data, M>
+): LegendEntry[] {
+  const deletedEntry: LegendEntry = {
+    className: "row-deleted",
+    labelKey: page.deletedLabelKey ?? "table.legend.deleted",
+    strikethrough: true,
+  };
+  return [deletedEntry, ...(page.legend ?? [])];
 }
 
 function DeclaredList<
@@ -155,6 +168,7 @@ function DeclaredList<
             deletedRowClass(row) ?? page.rowClassName?.(row)
           }
           onRowClick={(row) => router.push(`${page.route}/${row.id}`)}
+          footer={<TableLegend entries={legendEntries(page)} />}
           className="flex-1"
         />
       </ListPageShell>
