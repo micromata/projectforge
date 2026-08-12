@@ -27,7 +27,7 @@ export function EditPageShell({
   actions,
   banner,
 }: EditPageShellProps) {
-  const { scrollRef, sectionRef, activeIndex, scrollToSection, onScroll } =
+  const { scrollProps, sectionRef, activeIndex, scrollToSection } =
     useScrollSpy(sections.length);
 
   return (
@@ -44,12 +44,19 @@ export function EditPageShell({
       )}
       {banner && <div className="shrink-0">{banner}</div>}
       <div
-        ref={scrollRef}
-        onScroll={onScroll}
+        {...scrollProps}
         className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
       >
         {sections.map((section, i) => (
-          <div key={tabs[i]?.id ?? i} ref={sectionRef(i)} className="pt-4">
+          <div
+            key={tabs[i]?.id ?? i}
+            ref={sectionRef(i)}
+            // `data-active` is what the section's card and heading read to highlight themselves —
+            // the later sections can never reach the top of the column, so the card is the only
+            // place that says unambiguously which one the tab bar means.
+            data-active={i === activeIndex}
+            className="group/section pt-4"
+          >
             {section}
           </div>
         ))}
