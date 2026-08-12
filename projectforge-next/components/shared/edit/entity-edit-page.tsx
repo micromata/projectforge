@@ -13,6 +13,7 @@ import {
   type EntityWithId,
 } from "@/hooks/use-entity-detail";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
+import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
@@ -58,6 +59,8 @@ export function EntityEditPage<
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
+  // Adding an entry starts in the first field; editing one leaves the focus alone.
+  const formRef = useFocusFirstField<HTMLFormElement>(id == null);
 
   const { form, isDirty, isSubmitting } = useEntityEditForm<Values, Data>({
     data,
@@ -112,6 +115,7 @@ export function EntityEditPage<
   return (
     <EntityEditFormProvider value={{ form, metadata: page.metadata }}>
       <form
+        ref={formRef}
         onSubmit={(e) => {
           e.preventDefault();
           void form.handleSubmit();
@@ -142,9 +146,10 @@ export function EntityEditPage<
             <EntityEditActions
               onCancel={() => router.push(page.route)}
               saveOption={edit.saveOption && <edit.saveOption />}
-              // Nothing to delete before the first save.
+              // Nothing to delete before the first save. On `id` rather than on `data`: a new entry
+              // has data too — the preset the backend answers `fetchNew` with (see useEntityDetail).
               deleteAction={
-                data ? (
+                id != null && data ? (
                   <EntityDeleteButton
                     onDelete={runDelete}
                     disabled={isSubmitting || deleteMutation.isPending}
