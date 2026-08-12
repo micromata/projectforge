@@ -7,14 +7,18 @@ import type { Cost1Detail } from "./types";
  * input would read as "uncontrolled" and the schema as a missing value.
  */
 export function toFormValues(cost1: Cost1Detail): Cost1Values {
+  // A new entry comes from `cost1/edit` without an id, and `Kost1DO`'s four parts are Kotlin `Int`
+  // with no way to say "unset" — they arrive as 0. That is the entity's default, not a proposal, so
+  // the boxes stay empty rather than offering the number 0.000.00.00 (see emptyCost1Values). A saved
+  // entry keeps its zeros: 0 is a valid part.
+  const part = (value: number | null | undefined) =>
+    cost1.id == null && value === 0 ? null : (value ?? null);
   return {
     id: cost1.id ?? null,
-    // The DO's four parts are Kotlin `Int` and always present; `?? null` only covers a DTO that came
-    // from somewhere else than Kost1PagesRest.
-    nummernkreis: cost1.nummernkreis ?? null,
-    bereich: cost1.bereich ?? null,
-    teilbereich: cost1.teilbereich ?? null,
-    endziffer: cost1.endziffer ?? null,
+    nummernkreis: part(cost1.nummernkreis),
+    bereich: part(cost1.bereich),
+    teilbereich: part(cost1.teilbereich),
+    endziffer: part(cost1.endziffer),
     kostentraegerStatus: cost1.kostentraegerStatus ?? null,
     description: cost1.description ?? null,
     created: cost1.created ?? null,

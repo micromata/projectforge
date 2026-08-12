@@ -386,12 +386,24 @@ constructor(
     }
 
     /**
-     * The placeholder [InitialListData.data] carries for a projectforge-next client, which reads the rows
-     * from `list` instead. Not nullable, because the field isn't: making it so would touch every legacy
-     * caller for a value only one client ever reads.
+     * The placeholder [InitialListData.data] carries for a hand built projectforge-next page, which reads
+     * the rows from `list` instead. Not nullable, because the field isn't: making it so would touch every
+     * legacy caller for a value only one client ever reads.
      */
     private fun emptyResultSet(filter: MagicFilter): ResultSet<DTO> {
         return ResultSet(resultSet = emptyList(), origResultSet = null, totalSize = 0, magicFilter = filter)
+    }
+
+    /**
+     * Whether this response may leave the rows out, i.e. whether the client asking fetches them itself.
+     *
+     * Being a next client is not enough: projectforge-next serves the pages of the not yet migrated
+     * entities from the very same `UILayout` the React app gets, and that renderer
+     * (`components/dynamic/components/grid/`) has nothing but this response to render from - it never
+     * calls `list`. Only a page listed in [NextMigration] is hand built and does.
+     */
+    private fun skipResultSet(request: HttpServletRequest): Boolean {
+        return RestAuthenticationUtils.isNextClient(request) && NextMigration.isMigrated(category)
     }
 
     /**
@@ -407,11 +419,11 @@ constructor(
 
     protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
         val favorites = getFilterFavorites()
-        // The React app renders the rows out of this response, projectforge-next fetches them from
-        // `list` right afterwards and never looks at [InitialListData.data] - so for a next client the
+        // The React app renders the rows out of this response, a hand built next page fetches them from
+        // `list` right afterwards and never looks at [InitialListData.data] - so for such a page the
         // whole result set would be queried, mapped and serialized only to be dropped. That is the
         // entire list twice per page load: on the order book, two full table scans over some 7000 rows.
-        val resultSet = if (RestAuthenticationUtils.isNextClient(request)) {
+        val resultSet = if (skipResultSet(request)) {
             emptyResultSet(filter)
         } else {
             val list = getList(request, this, baseDao, filter)
