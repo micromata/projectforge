@@ -179,6 +179,8 @@ export function useEntityListPage<Row extends ListRow>({
     /** The legacy list page this one replaces (`ui.legacyUrl` of the list response). */
     legacyUrl: initialList.data?.ui?.legacyUrl,
     data: query.data,
+    /** What the backend aggregated over the result set, for a page that shows it (see PageDef.statistics). */
+    statistics: query.statistics,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     globalFilter: query.globalFilter,

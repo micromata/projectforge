@@ -211,5 +211,14 @@ export interface PageDef<
   addTitleKey: string;
   searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
+  /**
+   * Renders what the backend aggregated over the whole result set, between the toolbar and the table —
+   * the sums of the order book (`ResultSet.statistics`, see OrderStatisticsLine).
+   *
+   * The value is `unknown` because its shape belongs to the entity's rest class, and this is the one
+   * place that knows which: the declaration names the component, so it narrows there and nothing
+   * generic has to carry a type it cannot check.
+   */
+  statistics?: (ctx: { statistics: unknown; isFetching: boolean }) => ReactNode;
   edit: EditDef<Values, Data, M>;
 }

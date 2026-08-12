@@ -52,6 +52,20 @@ class ResultSet<O : Any>(
      */
     var reloadUI: Boolean = false
 
+    /**
+     * Aggregates of the whole result set as structured data, for a client that formats and colours them
+     * itself: the sums and counters of the order book (see `AuftragPagesRest.postProcessResultSet`).
+     *
+     * The typed counterpart of [resultInfo], which carries the same numbers as markdown with inline styles
+     * for the legacy React app. A hand built page in projectforge-next needs the values, not the markup —
+     * currency and separators are the user's and are formatted there (`lib/format.ts`), and a colour
+     * belongs to a css token rather than to a `<span style=…>` from the server.
+     *
+     * Untyped on purpose: what is worth aggregating is the entity's business (an order has six sums, a
+     * timesheet has one duration), so the type lives with the entity's rest class.
+     */
+    var statistics: Any? = null
+
     val size = resultSet.size
 
     var paginationPageSize = magicFilter.paginationPageSize

@@ -7,6 +7,8 @@ import { OrderSumsLine } from "./edit/order-sums-line";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
 import { PositionsSection } from "./edit/positions-section";
 import { orderSchema, ORDER_FIELDS, type OrderValues } from "./order-schema";
+import { OrderStatisticsLine } from "./order-statistics-line";
+import type { OrderStatistics } from "./order-statistics";
 import { emptyOrderValues, toFormValues } from "./order-values";
 import type { OrderDetail, OrderListRow } from "./types";
 
@@ -140,6 +142,15 @@ export const ORDER_PAGE = definePage<
     // The one value a reader looks for first — where the order stands.
     { name: "status", size: 130 },
   ],
+  // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
+  // the untyped `ResultSet.statistics` becomes what `AuftragPagesRest.OrderStatistics` sends — see
+  // PageDef.statistics for why this is the place for it.
+  statistics: ({ statistics, isFetching }) => (
+    <OrderStatisticsLine
+      statistics={statistics as OrderStatistics | undefined}
+      isFetching={isFetching}
+    />
+  ),
   edit: {
     schema: orderSchema,
     fieldNames: ORDER_FIELDS,

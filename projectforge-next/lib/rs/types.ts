@@ -72,6 +72,14 @@ export interface ResultSet<O> {
   totalSize?: number;
   paginationPageSize?: number;
   resultInfo?: string;
+  /**
+   * Aggregates over the whole result set, in the shape the entity's rest class defines
+   * (`AuftragPagesRest.OrderStatistics` for the order book) — see `ResultSet.statistics` there.
+   *
+   * `unknown` because the shape belongs to the entity: the page that declares the component rendering
+   * it is the one place that knows the type, and narrows there.
+   */
+  statistics?: unknown;
   highlightRowId?: number;
   reloadUI?: boolean;
 }

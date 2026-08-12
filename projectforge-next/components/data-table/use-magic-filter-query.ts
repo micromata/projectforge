@@ -49,6 +49,11 @@ interface UseMagicFilterQueryResult<O> {
    */
   data: O[];
   rowCount: number;
+  /**
+   * Aggregates the backend computed over the whole result set, untouched — the sums and counters of the
+   * order book (see `ResultSet.statistics` in lib/rs/types.ts). Undefined for an entity that sends none.
+   */
+  statistics?: unknown;
   /** The filter as sent, so it can be stored as a favorite. */
   filter: MagicFilter;
   isLoading: boolean;
@@ -142,6 +147,7 @@ export function useMagicFilterQuery<O>({
   return {
     data: rows,
     rowCount: query.data?.totalSize ?? rows.length,
+    statistics: query.data?.statistics,
     filter,
     isLoading: query.isLoading,
     isFetching: query.isFetching,

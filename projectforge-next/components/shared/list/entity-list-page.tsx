@@ -140,6 +140,10 @@ function DeclaredList<
             }
           />
         }
+        banner={page.statistics?.({
+          statistics: list.statistics,
+          isFetching: list.isFetching,
+        })}
       >
         <DataTable<Row>
           table={list.table}

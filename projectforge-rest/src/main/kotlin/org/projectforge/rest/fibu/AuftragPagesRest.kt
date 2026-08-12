@@ -43,6 +43,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.rest.dto.PostData
@@ -249,6 +250,51 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
      * Enable attachments for this entity.
      */
     enableJcr()
+  }
+
+  /**
+   * Adds the statistics of the whole result set, the ones the Wicket list shows above its table
+   * (`AuftragListForm.addStatistics`).
+   *
+   * Computed here rather than in the browser: two of the six sums — the acquisition sum and the not yet
+   * invoiced sum — are no property of the [Auftrag] DTO at all, and which statuses count as commissioned
+   * and how a probability of occurrence weighs into the acquisition sum is [OrderInfo]'s business. A
+   * second implementation on the client would be a second answer. It costs nothing beyond the rows that
+   * were loaded anyway: [AuftragsStatistik.add] is a map lookup in [AuftragsCache] per order.
+   *
+   * Sent as data, not as the markdown [ResultSet.resultInfo] carries for the legacy React app: the hand
+   * built next page formats currency in the user's locale and takes its colours from css tokens (see
+   * OrderStatisticsLine there).
+   */
+  override fun postProcessResultSet(
+    resultSet: ResultSet<AuftragDO>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter,
+  ): ResultSet<*> {
+    val orders = resultSet.resultSet
+    return super.postProcessResultSet(resultSet, request, magicFilter).also {
+      it.statistics = OrderStatistics(baseDao.buildStatistik(orders))
+    }
+  }
+
+  /**
+   * The sums and counters of a list of orders, each counter being the number of orders that contributed
+   * to the sum beside it — a sum of 0.00 over 0 orders is a line the client leaves out, exactly as the
+   * Wicket page hides it.
+   */
+  class OrderStatistics(statistics: AuftragsStatistik) {
+    val netSum: BigDecimal = statistics.nettoSum
+    val counter: Int = statistics.counter
+    val akquiseSum: BigDecimal = statistics.akquiseSum
+    val counterAkquise: Int = statistics.counterAkquise
+    val commissionedSum: BigDecimal = statistics.beauftragtSum
+    val counterCommissioned: Int = statistics.counterBeauftragt
+    val invoicedSum: BigDecimal = statistics.invoicedSum
+    val counterInvoiced: Int = statistics.counterInvoiced
+    val notYetInvoicedSum: BigDecimal = statistics.notYetInvoicedSum
+    val counterNotYetInvoiced: Int = statistics.counterNotYetInvoiced
+    val toBeInvoicedSum: BigDecimal = statistics.toBeInvoiced
+    val counterToBeInvoiced: Int = statistics.counterToBeInvoiced
   }
 
   /**
