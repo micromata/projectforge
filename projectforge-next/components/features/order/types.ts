@@ -153,5 +153,7 @@ export interface OrderListRow extends OrderDetail {
   beauftragtNettoSumme?: number | null;
   fakturiertSum?: number | null;
   zuFakturierenSum?: number | null;
+  /** True when at least one position/schedule is due to be invoiced — drives row highlighting. */
+  toBeInvoiced?: boolean | null;
   attachmentsSizeFormatted?: string | null;
 }

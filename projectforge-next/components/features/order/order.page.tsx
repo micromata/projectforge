@@ -3,7 +3,7 @@ import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
-import { OrderSumsLine } from "./edit/order-sums-line";
+import { OrderEditBanner } from "./edit/order-edit-banner";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
 import { PositionsSection } from "./edit/positions-section";
 import { SendNotificationOption } from "./edit/send-notification-option";
@@ -146,6 +146,18 @@ export const ORDER_PAGE = definePage<
   // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
   // the untyped `ResultSet.statistics` becomes what `AuftragPagesRest.OrderStatistics` sends — see
   // PageDef.statistics for why this is the place for it.
+  // Mirrors AuftragListPage's CellItemListener (first match wins):
+  // 1. deleted / ABGELEHNT / ERSETZT → row-deleted (struck-through grey)
+  // 2. toBeInvoiced → row-red  (highest business priority: something must be invoiced)
+  // 3. BEAUFTRAGT or LOI → row-green  (active order)
+  // 4. ESKALATION → row-red
+  rowClassName: (row) => {
+    if (row.status === "ABGELEHNT" || row.status === "ERSETZT") return "row-deleted";
+    if (row.toBeInvoiced) return "row-red";
+    if (row.status === "BEAUFTRAGT" || row.status === "LOI") return "row-green";
+    if (row.status === "ESKALATION") return "row-red";
+    return undefined;
+  },
   statistics: ({ statistics, isFetching }) => (
     <OrderStatisticsLine
       statistics={statistics as OrderStatistics | undefined}
@@ -192,7 +204,6 @@ export const ORDER_PAGE = definePage<
           },
           { name: "beauftragungsDatum" },
           { name: "beauftragungsBeschreibung", span: 2 },
-          { custom: OrderSumsLine, span: 3 },
         ],
       },
       {
@@ -220,6 +231,7 @@ export const ORDER_PAGE = definePage<
         render: ({ id }) => <AttachmentSection orderId={id} />,
       },
     ],
+    editBanner: OrderEditBanner,
     // Not a field of a section: it says what the save does, so it belongs where the save is pressed.
     saveOption: SendNotificationOption,
     // The analysis is computed over the *saved* order, so it is a page of its own rather than a section

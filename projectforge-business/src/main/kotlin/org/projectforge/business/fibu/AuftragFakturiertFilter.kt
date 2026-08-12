@@ -33,8 +33,15 @@ class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) :
         if (values.isEmpty() || values.contains(AuftragFakturiertFilterStatus.ALL)) {
             return true
         }
-        log.error { "Not yet implemented." }
-        return true
+        val orderInfo = AuftragsCache.instance.getOrderInfo(element)
+        return values.any { status ->
+            when (status) {
+                AuftragFakturiertFilterStatus.FAKTURIERT -> orderInfo.isVollstaendigFakturiert
+                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN -> orderInfo.toBeInvoiced
+                AuftragFakturiertFilterStatus.NICHT_FAKTURIERT -> !orderInfo.isVollstaendigFakturiert
+                AuftragFakturiertFilterStatus.ALL -> true
+            }
+        }
     }
 
     companion object {

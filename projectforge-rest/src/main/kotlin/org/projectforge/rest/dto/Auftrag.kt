@@ -71,6 +71,8 @@ class Auftrag(
     var beauftragtNettoSumme: BigDecimal? = null,
     var fakturiertSum: BigDecimal? = null,
     var zuFakturierenSum: BigDecimal? = null,
+    /** True when at least one position or payment schedule is due to be invoiced — used for list row highlighting. */
+    var toBeInvoiced: Boolean? = null,
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
     var probabilityOfOccurrence: Int? = null,
@@ -146,6 +148,7 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
+        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
         formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
         formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)

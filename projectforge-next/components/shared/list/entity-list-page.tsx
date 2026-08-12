@@ -151,7 +151,9 @@ function DeclaredList<
           data={list.data}
           isLoading={list.isLoading}
           isFetching={list.isFetching}
-          rowClassName={deletedRowClass}
+          rowClassName={(row) =>
+            deletedRowClass(row) ?? page.rowClassName?.(row)
+          }
           onRowClick={(row) => router.push(`${page.route}/${row.id}`)}
           className="flex-1"
         />

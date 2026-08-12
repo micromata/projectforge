@@ -196,6 +196,13 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * inside the form, so it may bind to a form value like any field ([CheckboxField]).
    */
   saveOption?: ComponentType;
+  /**
+   * Sticky banner between the tab strip and the scrollable sections — always visible while the user
+   * scrolls (e.g. an order's number, status, forecast type and running sums).
+   *
+   * Rendered inside the form so it can subscribe to live form values via `useEntityEditForm`.
+   */
+  editBanner?: ComponentType;
   /** Further tabs leading to a page of their own. Appended after the history. */
   extraTabs?: ExtraTabDef[];
 }
@@ -219,6 +226,13 @@ export interface PageDef<
   addTitleKey: string;
   searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
+  /**
+   * Row highlight class, e.g. `"row-red"` — the semantic classes in `globals.css`.
+   *
+   * Called once per row; return `undefined` for no highlight. Mirrors the `rowClassName` prop of
+   * `DataTable` and uses the same CSS tokens (`row-deleted`, `row-red`, `row-green`, `row-blue`).
+   */
+  rowClassName?: (row: Row) => string | undefined;
   /**
    * Renders what the backend aggregated over the whole result set, between the toolbar and the table —
    * the sums of the order book (`ResultSet.statistics`, see OrderStatisticsLine).
