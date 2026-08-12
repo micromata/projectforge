@@ -57,9 +57,10 @@ export function OrderSumsLine({ className }: { className?: string }) {
     >
       {entries.map(([key, value]) => (
         <div key={key} className="flex flex-col">
-          <dt className="text-[11.5px] font-semibold tracking-wide text-muted-foreground uppercase">
-            {t(key)}
-          </dt>
+          {/* Neither bold nor upper case, and the same size as in the list statistics
+              ([OrderStatisticsLine]): the two lines carry the same vocabulary, so a reader who knows
+              „zu fakturieren" from the list should meet it here in the same shape. */}
+          <dt className="text-[11px] opacity-70">{t(key)}</dt>
           <dd className="text-sm tabular-nums">{value}</dd>
         </div>
       ))}
@@ -88,7 +89,7 @@ function WeightedProbability({ value }: { value?: number | null }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <dt className="cursor-help text-[11.5px] font-semibold tracking-wide text-primary uppercase decoration-dotted underline-offset-2 hover:underline">
+            <dt className="cursor-help text-[11px] text-primary opacity-70 decoration-dotted underline-offset-2 hover:underline">
               {/* `._` because the key is a text of its own *and* the parent of `.info` — see the sums above. */}
               {t("fibu.auftrag.probabilityOfOccurrence.weighted._")}
             </dt>
