@@ -1,9 +1,10 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldDescription, FieldError } from "@/components/ui/field";
+import { Field, FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { FieldHint } from "./field-hint";
 import {
   useFieldIds,
   type BaseFieldProps,
@@ -63,8 +64,9 @@ export function CheckboxField({
               >
                 {label}
               </Label>
+              {/* Outside the <label>, which would forward a click on it to the box — see FieldShell. */}
+              {hint && <FieldHint hint={hint} label={label} />}
             </div>
-            {hint && !invalid && <FieldDescription>{hint}</FieldDescription>}
             {invalid && errors.length > 0 && (
               <FieldError>{errors.join(". ")}</FieldError>
             )}

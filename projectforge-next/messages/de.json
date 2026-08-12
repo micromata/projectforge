@@ -44,6 +44,9 @@
     "date": "Datum",
     "blank": "(leer)"
   },
+  "form": {
+    "hint": "Hinweis"
+  },
   "login": {
     "submitting": "Anmelden…",
     "twoFactor": {

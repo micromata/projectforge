@@ -1,9 +1,10 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { FieldDescription, FieldError } from "@/components/ui/field";
+import { FieldError } from "@/components/ui/field";
 import { DateInput } from "@/components/shared/date-input";
 import { cn } from "@/lib/utils";
+import { FieldHint } from "./field-hint";
 import { useEntityEditForm, useFieldMetadata } from "./form-context";
 import { useFieldErrors, type FieldErrorMeta } from "./use-field-errors";
 
@@ -81,11 +82,12 @@ export function DatePeriodField({
       // the viewport: the same field sits in a third of an edit page and in a narrow position row.
       className={cn("@container flex min-w-0 flex-col gap-1.5", className)}
     >
-      <legend className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <legend className="inline-flex items-center gap-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
         {bounds.some((b) => b.required) && !disabled && (
           <span className="ml-0.5 text-primary">*</span>
         )}
+        {hint && <FieldHint hint={hint} label={label} />}
       </legend>
       {/* Side by side where one column of the grid has room for both — otherwise stacked, because two
           date fields squeezed into that width truncate the very dates they show ("24.07.2"). The
@@ -129,7 +131,6 @@ export function DatePeriodField({
           </div>
         ))}
       </div>
-      {hint && !invalid && <FieldDescription>{hint}</FieldDescription>}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
       )}

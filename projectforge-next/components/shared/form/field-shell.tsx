@@ -1,13 +1,9 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { FieldHint } from "./field-hint";
 
 /**
  * What every field of a hand-built form takes.
@@ -20,6 +16,7 @@ export interface BaseFieldProps {
   /** Name of the form value, which is also the key of its entry in the entity's metadata. */
   name: string;
   label: string;
+  /** Explains the field; shown behind an ⓘ next to the label, see [FieldHint]. */
   hint?: string;
   className?: string;
 }
@@ -74,20 +71,26 @@ export function FieldShell({
       data-invalid={invalid || undefined}
       className={cn("gap-1.5", className)}
     >
-      <FieldLabel
-        id={ids.labelId}
-        htmlFor={ids.controlId}
-        className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
-      >
-        {label}
-        {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
-            number) is mandatory in the database but never the reader's obligation. */}
-        {required && !readOnly && (
-          <span className="ml-0.5 text-primary">*</span>
-        )}
-      </FieldLabel>
+      {/* The ⓘ beside the label rather than inside it: a <label> forwards a click anywhere in it to
+          its control, which would open the field instead of the explanation. */}
+      {/* `items-start`, so the ⓘ stays on the first line of a label that wrapped rather than centring
+          itself against two lines of it. */}
+      <div className="flex min-w-0 items-start gap-1">
+        <FieldLabel
+          id={ids.labelId}
+          htmlFor={ids.controlId}
+          className="min-w-0 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+        >
+          {label}
+          {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
+              number) is mandatory in the database but never the reader's obligation. */}
+          {required && !readOnly && (
+            <span className="ml-0.5 text-primary">*</span>
+          )}
+        </FieldLabel>
+        {hint && <FieldHint hint={hint} label={label} />}
+      </div>
       {children}
-      {hint && !invalid && <FieldDescription>{hint}</FieldDescription>}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
       )}

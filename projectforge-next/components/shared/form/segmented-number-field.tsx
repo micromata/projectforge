@@ -2,12 +2,13 @@
 
 import { useCallback, useRef } from "react";
 import { useStore } from "@tanstack/react-form";
-import { FieldDescription, FieldError } from "@/components/ui/field";
+import { FieldError } from "@/components/ui/field";
 import {
   splitPastedSegments,
   type NumberSegment,
 } from "@/lib/form/number-segments";
 import { cn } from "@/lib/utils";
+import { FieldHint } from "./field-hint";
 import { useEntityEditForm, useEntityMetadata } from "./form-context";
 import { NumberSegmentInput } from "./number-segment-input";
 import { useFieldErrors, type FieldErrorMeta } from "./use-field-errors";
@@ -83,9 +84,11 @@ export function SegmentedNumberField({
       data-invalid={invalid || undefined}
       className={cn("flex flex-col gap-1.5", className)}
     >
-      <legend className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {/* A <legend> names the group, it does not forward clicks like a <label>, so the ⓘ can sit in it. */}
+      <legend className="inline-flex items-center gap-1 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
         {required && <span className="ml-0.5 text-primary">*</span>}
+        {hint && <FieldHint hint={hint} label={label} />}
       </legend>
       <div className="flex items-center gap-1">
         {segments.map((segment, index) => (
@@ -111,7 +114,6 @@ export function SegmentedNumberField({
           </div>
         ))}
       </div>
-      {hint && !invalid && <FieldDescription>{hint}</FieldDescription>}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
       )}

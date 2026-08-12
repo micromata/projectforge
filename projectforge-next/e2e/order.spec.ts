@@ -1,5 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat, type UserFormat } from "./fixtures/format";
+import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { formatCurrency, formatNumber } from "../lib/format";
 import { AUFTRAG_METADATA } from "../lib/metadata/auftrag.generated";
 import { AUFTRAGS_POSITION_METADATA } from "../lib/metadata/auftrags-position.generated";
@@ -318,15 +318,6 @@ async function waitForList(page: Page, t: UserFormat["t"]) {
 /** Escapes what a label may contain that a regular expression would read as syntax ("Anh."). */
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** The label of a key as the page shows it, with the generator's `._` leaf where there is one. */
-function label(format: UserFormat, key: string): string {
-  try {
-    return format.t(`${key}._`);
-  } catch {
-    return format.t(key);
-  }
 }
 
 /** An amount as the page writes it — through the app's own helper, so neither side is spelled out. */

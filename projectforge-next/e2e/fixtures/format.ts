@@ -50,6 +50,19 @@ export async function userFormat(page: Page): Promise<UserFormat> {
 }
 
 /**
+ * The label of a field, however the catalog holds it: a key that is a text *and* the parent of others
+ * (`fibu.auftrag.forecastType`, which also has `.info`) is exported as a subtree plus a `_` leaf, so
+ * that is where the label is — see `labelKeyFor`, which appends the same suffix at runtime.
+ */
+export function label(format: UserFormat, key: string): string {
+  try {
+    return format.t(`${key}._`);
+  } catch {
+    return format.t(key);
+  }
+}
+
+/**
  * The message lookup of one locale, for the tests that have no session to derive the user's from —
  * a failed login, a password reset. They compare against *every* shipped language, because the
  * server picks it from `Accept-Language`.
