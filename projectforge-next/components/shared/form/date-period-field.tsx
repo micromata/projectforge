@@ -88,19 +88,23 @@ export function DatePeriodField({
         )}
       </legend>
       {/* Side by side where one column of the grid has room for both — otherwise stacked, because two
-          date fields squeezed into that width truncate the very dates they show ("24.07.2"). */}
-      <div className="flex flex-col gap-1.5 @xs:flex-row @xs:items-center">
+          date fields squeezed into that width truncate the very dates they show ("24.07.2"). The
+          threshold is what two of them plus the dash actually need (@2xs, 18rem); a date field is
+          bounded to the width of one date (see DateInput), so more room only leaves a gap. */}
+      <div className="flex flex-col gap-1.5 @2xs:flex-row @2xs:items-center">
         {bounds.map((bound, index) => (
           <div
             key={bound.name}
-            className="flex min-w-0 items-center gap-1.5 @xs:flex-1"
+            // Only as wide as one date needs, not half of whatever the column offers: a period reads
+            // as one value, and stretching the two ends apart pulls the dash into empty space.
+            className="flex min-w-0 shrink items-center gap-1.5"
           >
             {index > 0 && (
               // Decorative: each box is named by its own `aria-label` already. Only between them, so
               // stacked they simply sit under each other.
               <span
                 aria-hidden
-                className="hidden text-muted-foreground @xs:inline"
+                className="hidden text-muted-foreground @2xs:inline"
               >
                 –
               </span>

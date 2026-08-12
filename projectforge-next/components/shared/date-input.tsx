@@ -115,19 +115,27 @@ export function DateInput({
     <div
       className={cn(
         // A date is ten characters wide and never more, so the field stops growing once it fits one
-        // comfortably instead of stretching over the whole column it sits in. It still shrinks below
-        // that where the space is narrower — a filter popover, the two halves of a DatePeriodField.
-        "flex w-full max-w-52 items-center gap-1",
+        // plus its two buttons instead of stretching over the whole column it sits in. It still
+        // shrinks below that where the space is narrower — a filter popover, the two halves of a
+        // DatePeriodField.
+        "flex w-full max-w-32 items-center",
         className
       )}
     >
-      <div className="relative flex-1">
+      {/* The buttons sit *inside* the box, as they do in the search inputs of this app: a date is a
+          short value, and an icon parked beside its field made the whole thing wider than the ten
+          characters it holds. */}
+      <div className="relative min-w-0 flex-1">
         <Input
           ref={inputRef}
           id={id}
           aria-label={ariaLabel}
           aria-invalid={invalid || undefined}
           autoFocus={autoFocus}
+          // Never the field a form starts in, unless it is asked for explicitly: focusing this opens
+          // the calendar, and a form that greets the user with a popover over its own fields is worse
+          // than one whose cursor waits (see useFocusFirstField).
+          data-autofocus={autoFocus ? undefined : "skip"}
           disabled={disabled}
           required={required}
           inputMode="numeric"
@@ -135,7 +143,9 @@ export function DateInput({
           type="text"
           placeholder={ctx.datePattern}
           value={text}
-          className={cn(text !== "" && "pr-7")}
+          // Room for the calendar button, plus the clear button in front of it while there is
+          // something to clear.
+          className={cn("px-2.5", text !== "" ? "pr-11" : "pr-7")}
           onFocus={() => {
             if (!refocusing.current) setPickerOpen(true);
             refocusing.current = false;
@@ -186,26 +196,26 @@ export function DateInput({
               clear();
             }}
             aria-label={`${t("reset")}: ${ariaLabel ?? t("date._")}`}
-            className="absolute inset-y-0 right-1.5 flex cursor-pointer items-center text-muted-foreground hover:text-foreground"
+            className="absolute inset-y-0 right-6 flex cursor-pointer items-center text-muted-foreground hover:text-foreground"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
         )}
+        <DateInputCalendar
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          fieldRef={inputRef}
+          // Back into the field after a pick, so Tab carries on from here and a keyboard user is not
+          // left on a button that just disappeared.
+          onPicked={() => {
+            refocusing.current = true;
+            inputRef.current?.focus();
+          }}
+        />
       </div>
-      <DateInputCalendar
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        fieldRef={inputRef}
-        // Back into the field after a pick, so Tab carries on from here and a keyboard user is not
-        // left on a button that just disappeared.
-        onPicked={() => {
-          refocusing.current = true;
-          inputRef.current?.focus();
-        }}
-      />
     </div>
   );
 }

@@ -202,9 +202,17 @@ export const ORDER_PAGE = definePage<
         // The bare key of a namespace with children, hence `._` — see categoryKey above.
         titleKey: "fibu.auftrag._",
         fields: [
-          // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never changed
-          // afterwards — but shown, because it is how an order is referred to in every conversation.
-          { name: "nummer", readOnly: true, maxDigits: 6 },
+          // The number and the date of the offer in one cell of the three columns: neither needs a
+          // third of the page, and a cell of their own would push the forecast type into the next row.
+          {
+            group: [
+              // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never
+              // changed afterwards — but shown, because it is how an order is referred to in every
+              // conversation.
+              { name: "nummer", readOnly: true, maxDigits: 6 },
+              { name: "angebotsDatum" },
+            ],
+          },
           { name: "status", emphasized: true },
           { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
           { name: "titel", span: 2 },
@@ -215,7 +223,6 @@ export const ORDER_PAGE = definePage<
           { name: "headOfBusinessManager" },
           { name: "salesManager" },
           { name: "erfassungsDatum" },
-          { name: "angebotsDatum" },
           { name: "entscheidungsDatum" },
           { name: "bindungsFrist" },
           // 0 to 100, so three digits are the most it ever shows.

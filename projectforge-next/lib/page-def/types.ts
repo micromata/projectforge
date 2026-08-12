@@ -171,9 +171,30 @@ export interface CustomField extends FieldBase {
   custom: ComponentType<{ className?: string }>;
 }
 
+/**
+ * Two or three narrow fields sharing **one cell** of the section's grid, side by side — an order's
+ * number and the date of the offer it came from.
+ *
+ * Not a period ([DatePeriodDeclaration]) and not one value: each member keeps its own label, its own
+ * error line and its own metadata. What the grouping says is only that neither of them needs a third
+ * of the page — a number bounded to six digits leaves room for a date beside it — and that putting
+ * them in cells of their own would push the field after them into the next row, breaking the three
+ * columns the rest of the section reads in.
+ *
+ * A member declaring `maxDigits` stays as wide as its box (that is what the digit count is for); the
+ * others share what is left. Below the width of one grid column the members stack, for the same reason
+ * the two ends of a period do: squeezed side by side they would truncate the values they show.
+ */
+export interface FieldGroupDeclaration<
+  M extends EntityMetadata,
+> extends FieldBase {
+  group: DeclaredField<M>[];
+}
+
 export type FieldDeclaration<M extends EntityMetadata> =
   | DeclaredField<M>
   | DatePeriodDeclaration<M>
+  | FieldGroupDeclaration<M>
   | CustomField;
 
 /**

@@ -1,31 +1,17 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
-import { CheckboxField } from "@/components/shared/form/checkbox-field";
-import { DatePeriodField } from "@/components/shared/form/date-period-field";
-import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
-import { InputField } from "@/components/shared/form/input-field";
-import { NumberField } from "@/components/shared/form/number-field";
-import { SelectField } from "@/components/shared/form/select-field";
-import { TextAreaField } from "@/components/shared/form/text-area-field";
-import { useFormatContext } from "@/hooks/use-format";
-import { cn } from "@/lib/utils";
-import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
-import { labelKeyFor } from "@/lib/page-def/define-page";
-import type { FieldDeclaration, SectionDef } from "@/lib/page-def/types";
-
-const SPAN_CLASS = { 1: undefined, 2: "md:col-span-2", 3: "md:col-span-3" };
+import type { EntityMetadata } from "@/lib/metadata/types";
+import type { SectionDef } from "@/lib/page-def/types";
+import { DeclaredFormField, fieldKey } from "./declared-form-field";
 
 /**
  * One card of the edit page, rendered from its declaration: order, grouping, width and label.
  *
- * Which component a field gets follows its data type — a date goes through the shared DateInput, an
- * enum becomes a select of its own constants, a field declaring `rows` a textarea. `required`,
- * `maxLength` and the enum's values are never passed in: the field components read them from the
- * metadata in the form context, the same source the Zod schema reads.
+ * Which component each field gets is [DeclaredFormField]'s decision; this is only the card and the
+ * three-column grid its fields sit in.
  */
 export function DeclaredSection<M extends EntityMetadata>({
   section,
@@ -57,122 +43,3 @@ export function DeclaredSection<M extends EntityMetadata>({
     </SectionCard>
   );
 }
-
-function fieldKey<M extends EntityMetadata>(field: FieldDeclaration<M>) {
-  if ("custom" in field) return field.custom.name;
-  if ("begin" in field) return field.begin;
-  return field.name;
-}
-
-function DeclaredFormField<M extends EntityMetadata>({
-  field,
-  metadata,
-}: {
-  field: FieldDeclaration<M>;
-  metadata: M;
-}): ReactNode {
-  const t = useTranslations();
-  const format = useFormatContext();
-  const className = cn(SPAN_CLASS[field.span ?? 1]);
-
-  if ("custom" in field) {
-    const Custom = field.custom;
-    return <Custom className={className} />;
-  }
-
-  const translate = t as unknown as ((key: string) => string) & {
-    has: (key: string) => boolean;
-  };
-
-  if ("begin" in field) {
-    // The two ends keep the labels of their own fields ("Leistungszeitraum von"/"… bis"): they name
-    // the boxes for a screen reader and carry any error the backend puts on one of them, while the
-    // legend above says the period once.
-    const bound = (name: string) => ({
-      name,
-      label: translate(labelKeyFor(metadata, name, translate.has)),
-    });
-    return (
-      <DatePeriodField
-        label={translate(field.periodLabelKey)}
-        begin={bound(field.begin)}
-        end={bound(field.end)}
-        hint={field.hintKey ? translate(field.hintKey) : undefined}
-        className={className}
-      />
-    );
-  }
-
-  const meta: FieldMetadata = metadata.fields[field.name] ?? {
-    dataType: "STRING",
-    required: false,
-  };
-  const label = translate(
-    labelKeyFor(metadata, field.name, translate.has, field.labelKey)
-  );
-  const hint = field.hintKey ? translate(field.hintKey) : undefined;
-  const common = { name: field.name, label, hint, className };
-
-  if (meta.enumValues) {
-    return (
-      <SelectField
-        {...common}
-        emphasized={field.emphasized}
-        options={meta.enumValues.map((v) => ({
-          value: v.value,
-          label: v.i18nKey ? translate(v.i18nKey) : v.value,
-        }))}
-      />
-    );
-  }
-  if (field.rows) {
-    return <TextAreaField {...common} rows={field.rows} />;
-  }
-  if (meta.dataType === "BOOLEAN") {
-    return <CheckboxField {...common} />;
-  }
-  if (
-    meta.dataType === "AMOUNT" ||
-    meta.dataType === "DECIMAL" ||
-    meta.dataType === "INT"
-  ) {
-    // A number is held as one, so it needs the number box even where it has no decimals: a plain text
-    // input would put the string "50" into a field the schema declares as `z.number()`, which fails
-    // validation on a value the user typed correctly.
-    return (
-      <NumberField
-        {...common}
-        disabled={field.readOnly}
-        fractionDigits={meta.dataType === "INT" ? 0 : undefined}
-        maxDigits={field.maxDigits}
-        align={field.alignNumber}
-        // The currency behind the box comes from the user's settings, never from a text here.
-        suffix={meta.dataType === "AMOUNT" ? format.currency : undefined}
-      />
-    );
-  }
-  const searchEntity = SEARCH_ENTITY[meta.dataType];
-  if (searchEntity) {
-    return <EntityAutocompleteField {...common} entity={searchEntity} />;
-  }
-  return (
-    <InputField {...common} type={meta.dataType === "DATE" ? "date" : "text"} />
-  );
-}
-
-/**
- * The REST category to search in for a field referencing another entity — `{category}/autosearch`, the
- * same lookup the legacy pages use (`AutoCompletion.getAutoCompletion4Users` and its siblings).
- *
- * Only the types that have such an endpoint; a data type missing here falls through to a text input,
- * which is visible enough to be fixed rather than silently rendering nothing.
- */
-const SEARCH_ENTITY: Partial<Record<FieldMetadata["dataType"], string>> = {
-  USER: "user",
-  TASK: "task",
-  GROUP: "group",
-  EMPLOYEE: "employee",
-  COST1: "cost1",
-  COST2: "cost2",
-  KONTO: "account",
-};

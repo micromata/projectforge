@@ -81,7 +81,9 @@ export function DateInputCalendar({
           variant="ghost"
           size="icon"
           disabled={disabled}
-          className="size-7 shrink-0 text-muted-foreground"
+          // Inside the text field, at its right edge — the field reserves the padding for it (see
+          // DateInput). Not `size-7`: a button that tall would sit on the box's border.
+          className="absolute inset-y-0.5 right-0.5 size-auto w-5 text-muted-foreground"
           aria-label={t("calendar.chooseDate")}
         >
           <HugeiconsIcon icon={Calendar01Icon} size={14} />

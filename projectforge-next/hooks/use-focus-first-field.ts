@@ -2,10 +2,17 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 
-/** Controls that take typed text — the ones a form starts in. */
+/**
+ * Controls that take typed text — the ones a form starts in.
+ *
+ * `[data-autofocus="skip"]` is how a control opts out although it is one: [DateInput] opens its
+ * calendar on focus, so a date as the entry point of a form would greet the user with a popover over
+ * the fields they came to fill in. A form of nothing but dates therefore starts in no field at all,
+ * which is the quieter of the two wrong answers.
+ */
 const TEXT_CONTROLS = [
-  'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"])',
-  "textarea",
+  'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([data-autofocus="skip"])',
+  'textarea:not([data-autofocus="skip"])',
 ].join(",");
 
 /**
