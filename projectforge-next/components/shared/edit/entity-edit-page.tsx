@@ -152,9 +152,15 @@ export function EntityEditPage<
               }
               isSaving={isSubmitting}
               isDirty={isDirty}
-              // Saving leaves the page, so there is never a "just saved" moment to show here — what
-              // remains is when the entry was created.
+              // Saving leaves the page, so this is always the write before the one being made now:
+              // `lastUpdate` from the backend, falling back to `created` for an entry never changed
+              // since (both are on `BaseDTO`, so every entity carries them).
               lastSaved={
+                (
+                  data as
+                    | { lastUpdate?: string | null; created?: string | null }
+                    | undefined
+                )?.lastUpdate ??
                 (data as { created?: string | null } | undefined)?.created ??
                 null
               }
