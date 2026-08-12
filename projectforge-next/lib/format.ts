@@ -50,6 +50,21 @@ function toBcp47(locale: string | undefined): string {
   return locale ? locale.replace("_", "-") : "de-DE";
 }
 
+/**
+ * Translates a Java-format date pattern into the user's language for display as a placeholder.
+ *
+ * The backend stores patterns in Java/ISO letter conventions ("dd.MM.yyyy"), which are English
+ * abbreviations. German users should see "TT.MM.JJJJ" (Tag / Monat / Jahr).
+ */
+function localisePattern(pattern: string, locale: string): string {
+  const lang = locale.split("-")[0].toLowerCase();
+  if (lang === "de") {
+    // d→T (Tag), y→J (Jahr); M stays — "Monat" also starts with M
+    return pattern.replace(/d/g, "T").replace(/y/g, "J");
+  }
+  return pattern;
+}
+
 function toWeekStartsOn(
   value: number | undefined
 ): FormatContext["weekStartsOn"] {
@@ -65,7 +80,9 @@ export function formatContextFrom(
     timeZone: user?.timeZone,
     currency: user?.currency,
     weekStartsOn: toWeekStartsOn(user?.firstDayOfWeekSunday0),
-    datePattern: user?.dateFormat,
+    datePattern: user?.dateFormat
+      ? localisePattern(user.dateFormat, toBcp47(user?.locale))
+      : undefined,
     // Unset when the backend sends neither, so Intl keeps deciding by locale.
     hour12: user?.timeNotation
       ? user.timeNotation.toUpperCase() === "H12"
