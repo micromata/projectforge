@@ -160,6 +160,65 @@ class Auftrag(
     }
 
     /**
+     * The lean row of the hand built next list: only the 19 columns of `order.page.tsx`, everything else
+     * left null so `JsonInclude.Include.NON_NULL` keeps it off the wire.
+     *
+     * Not a [copyFrom] with a trimmed [Auftrag]: the legacy AG-Grid columns bind to the very fields this
+     * leaves out — `formattedNettoSumme` & co., and the nested `contactPerson`/`customer`/`project`. Hence
+     * two fillings of one DTO rather than two DTOs.
+     *
+     * Measured over the order book of a real installation (7132 rows), 1755 B/row become 741 B/row. What
+     * is left out and why:
+     * - the four `formatted*` sums (~141 B/row): the client formats currency in the user's locale
+     *   (`lib/format.ts`), and a string column would sort "900,00" after "1.100,00" anyway.
+     * - [contactPerson] and the three managers (~524 B/row): the column shows the derived
+     *   [assignedPersons] string, nothing of the users themselves.
+     * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
+     *   carries a [Customer]/[Project] holding that name and nothing else.
+     * - `bemerkung`, `statusBeschreibung`, `created`/`lastUpdate`, `bindungsFrist`, `beauftragungs*`,
+     *   `kundeText`, `forecastType`, `angebotsDatum`: read by no column of the list.
+     *
+     * The four boolean flags ([sendEMailNotification], [writeAccess], [deleteAccess],
+     * [vollstaendigFakturiertWriteAccess]) still travel, ~107 B/row: they are non-null `Boolean`s, so
+     * `NON_NULL` cannot drop them, and making them nullable for the list's sake would push the
+     * false-vs-absent distinction into the edit form. Left as it is until it is worth that.
+     *
+     * Costs no query beyond [copyFrom]'s: [PfCaches.initialize] for the two relations, [AuftragsCache] for
+     * the sums and the position count. See the KDoc of [copyFrom] for what walking the lazy collections
+     * instead once cost.
+     */
+    override fun copyFrom4ListRow(src: AuftragDO) {
+        PfCaches.instance.initialize(src)
+        id = src.id
+        deleted = src.deleted
+        nummer = src.nummer
+        titel = src.titel
+        referenz = src.referenz
+        status = src.status
+        // The display name only — a Customer/Project carrying its id and name, not the whole entity. The
+        // free text customer is the fallback of an order naming a customer that is not in the list, as
+        // `KundeFormatter` does it for the Wicket list.
+        customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText)
+        project = src.projekt?.let { Project(displayName = it.displayName) }
+        erfassungsDatum = src.erfassungsDatum
+        entscheidungsDatum = src.entscheidungsDatum
+        periodOfPerformanceBegin = src.periodOfPerformanceBegin
+        periodOfPerformanceEnd = src.periodOfPerformanceEnd
+        probabilityOfOccurrence = src.probabilityOfOccurrence
+        assignedPersons = src.assignedPersons
+        attachmentsCounter = src.attachmentsCounter
+        attachmentsSize = src.attachmentsSize
+        val orderInfo = orderInfo(src)
+        personDays = orderInfo.personDays
+        nettoSumme = orderInfo.netSum
+        beauftragtNettoSumme = orderInfo.commissionedNetSum
+        fakturiertSum = orderInfo.invoicedSum
+        zuFakturierenSum = orderInfo.notYetInvoicedSum
+        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
+        pos = "#" + (orderInfo.infoPositions?.count { !it.deleted } ?: 0)
+    }
+
+    /**
      * [copyFrom] plus the two collections, for the edit page: it has to show every row, and to send them
      * all back on save.
      *

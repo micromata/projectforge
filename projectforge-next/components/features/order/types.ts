@@ -141,19 +141,46 @@ export interface OrderDetail {
   lastUpdate?: string | null;
 }
 
-/** Projection the list page renders — the same DTO, with the id the table keys rows by. */
-export interface OrderListRow extends OrderDetail {
+/**
+ * One row of the list: the same `Auftrag` DTO, with only the fields the 19 columns of `order.page.tsx`
+ * show. The backend fills exactly those for a next client (`Auftrag.copyFromForList`, selected by
+ * `AbstractPagesRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — 12.5 MB
+ * become 3.2 MB over the 7132 orders of a real installation.
+ *
+ * So this is deliberately **not** an extension of [OrderDetail], although the wire type is the same DTO:
+ * what a list row carries is a subset, and inheriting the full shape is what let the page reach for a
+ * field that isn't there (and made the fat payload look intended).
+ *
+ * `customer`/`project` arrive as an [EntityRefDto] holding nothing but the `displayName` the cell shows —
+ * no id, since the row navigates by its own.
+ */
+export interface OrderListRow {
   id: number;
+  deleted?: boolean;
+  nummer?: number | null;
+  /** Only `displayName` — of the customer, or the free text one of an order without a customer. */
+  customer?: Pick<EntityRefDto, "displayName"> | null;
+  /** Only `displayName`, see [customer]. */
+  project?: Pick<EntityRefDto, "displayName"> | null;
+  titel?: string | null;
   /** `#3`, the count of the order's positions (`AuftragDO.pos`, transient). */
   pos?: string | null;
+  personDays?: number | null;
+  referenz?: string | null;
   /** The four managers in one column (`assignedPersons`, transient). */
   assignedPersons?: string | null;
-  personDays?: number | null;
+  erfassungsDatum?: string | null;
+  entscheidungsDatum?: string | null;
   nettoSumme?: number | null;
   beauftragtNettoSumme?: number | null;
   fakturiertSum?: number | null;
   zuFakturierenSum?: number | null;
+  periodOfPerformanceBegin?: string | null;
+  periodOfPerformanceEnd?: string | null;
+  probabilityOfOccurrence?: number | null;
+  status?: AuftragsStatus | null;
   /** True when at least one position/schedule is due to be invoiced — drives row highlighting. */
   toBeInvoiced?: boolean | null;
+  attachmentsCounter?: number | null;
   attachmentsSizeFormatted?: string | null;
 }

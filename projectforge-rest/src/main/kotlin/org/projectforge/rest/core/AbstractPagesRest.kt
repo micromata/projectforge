@@ -407,6 +407,35 @@ constructor(
     }
 
     /**
+     * Whether the rows of this response should be the lean ones of [createListRow].
+     *
+     * The same condition as [skipResultSet], and for the same reason: only a hand built projectforge-next
+     * page knows which columns it renders, so only for that page is a partly filled DTO the complete
+     * answer. Every other client renders from `UILayout`, whose columns bind to fields a lean row leaves
+     * empty.
+     *
+     * A page that offers no lean row is unaffected — [createListRow] falls back to the full DTO.
+     */
+    protected fun useListRow(request: HttpServletRequest): Boolean {
+        return RestAuthenticationUtils.isNextClient(request) && NextMigration.isMigrated(category)
+    }
+
+    /**
+     * The row of a list as a hand built projectforge-next page renders it: the same DTO, with only the
+     * fields its columns show.
+     *
+     * Answered by the DTO rather than by the page — `BaseDTO.copyFrom4ListRow` is where an entity says what
+     * a row of it consists of, so [AbstractDTOPagesRest] implements this once for every DTO page. Override
+     * here only if building the row needs something the DTO cannot reach (as `AddressPagesRest` needs its
+     * image cache).
+     *
+     * The default is the full DTO, so this costs a page that overrides neither nothing.
+     */
+    protected open fun createListRow(obj: O): DTO {
+        return transformFromDB(obj, false)
+    }
+
+    /**
      * Removes unknown filter entries. This is useful, if after migration etc. some filter entries are stored in the user
      * pref but that didn't exist.
      */

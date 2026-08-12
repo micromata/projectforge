@@ -37,35 +37,33 @@ export function PositionsSection({ id }: { id: number | null }) {
 
   return (
     <RepeatableList
-        array={array}
-        emptyText={t("fibu.auftrag.error.auftragHatKeinePositionen")}
-        addLabel={
-          writeAccess ? t("fibu.auftrag.tooltip.addPosition") : undefined
-        }
-        onAdd={writeAccess ? () => array.add(emptyPositionValues()) : undefined}
-        row={(position, index) => {
-          const invoiceInfo =
-            position.id == null ? undefined : invoiceInfoById.get(position.id);
-          return (
-            <PositionRow
-              position={position}
-              index={index}
-              prefix={array.fieldName(index, "")}
-              sums={positionSums(position.number)}
-              // Removing a position an invoice points at would leave that invoice pointing at nothing —
-              // Wicket hides the button for the same reason (`positionInInvoiceExists`).
-              onRemove={
-                writeAccess && !invoiceInfo?.invoicedElsewhere
-                  ? () => array.remove(index)
-                  : undefined
-              }
-              invoiceWriteAccess={
-                order?.vollstaendigFakturiertWriteAccess === true
-              }
-              invoiceInfo={invoiceInfo}
-            />
-          );
-        }}
+      array={array}
+      emptyText={t("fibu.auftrag.error.auftragHatKeinePositionen")}
+      addLabel={writeAccess ? t("fibu.auftrag.tooltip.addPosition") : undefined}
+      onAdd={writeAccess ? () => array.add(emptyPositionValues()) : undefined}
+      row={(position, index) => {
+        const invoiceInfo =
+          position.id == null ? undefined : invoiceInfoById.get(position.id);
+        return (
+          <PositionRow
+            position={position}
+            index={index}
+            prefix={array.fieldName(index, "")}
+            sums={positionSums(position.number)}
+            // Removing a position an invoice points at would leave that invoice pointing at nothing —
+            // Wicket hides the button for the same reason (`positionInInvoiceExists`).
+            onRemove={
+              writeAccess && !invoiceInfo?.invoicedElsewhere
+                ? () => array.remove(index)
+                : undefined
+            }
+            invoiceWriteAccess={
+              order?.vollstaendigFakturiertWriteAccess === true
+            }
+            invoiceInfo={invoiceInfo}
+          />
+        );
+      }}
     />
   );
 }

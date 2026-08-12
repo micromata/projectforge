@@ -4,9 +4,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useAddEntryShortcut } from "@/hooks/use-add-entry-shortcut";
+import { SearchInput } from "./search-input";
 
 export interface ListToolbarProps {
   /** Heading of the page, e.g. "Bücherliste". */
@@ -22,6 +22,7 @@ export interface ListToolbarProps {
   /** The menu parent above it, e.g. "Allgemein" — where the entry sits in the main menu. */
   category: string;
   searchValue: string;
+  /** Called with the typed value once it has settled, see [SearchInput]. */
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
   /** Route of the add page, e.g. `/book/new`. */
@@ -93,17 +94,10 @@ export function ListToolbar({
 
       <div className="flex items-center gap-3 px-4 py-2.5">
         <div className="relative max-w-md flex-1">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
+          <SearchInput
             value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={onSearchChange}
             placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-            className="h-9 pl-9"
           />
         </div>
       </div>

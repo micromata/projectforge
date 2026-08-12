@@ -1,9 +1,9 @@
 # Server-side paging for entity lists, and one unified filter state
 
 Detail plan alongside [MIGRATION.md](MIGRATION.md), like
-[MIGRATION-calendar.md](MIGRATION-calendar.md). Stage 1 is partly done (see below); stages 2–6 are
-**not yet implemented** — this document holds the analysis so the work can start without exploring
-again.
+[MIGRATION-calendar.md](MIGRATION-calendar.md). Stage 1 is done and stage 3a is done (see below);
+stages 2, 3b and 4–6 are **not yet implemented** — this document holds the analysis so the work can
+start without exploring again.
 
 ## Context
 
@@ -46,27 +46,62 @@ No contract change, and it decides how urgent the rest is.
 12.5 MB → 1.5 MB. Check no reverse proxy in the deployment compresses already, or the work is done
 twice.
 
-**1b. Trim the order list row. — open.** Follow the existing precedent (`ListAddress` in
-`AddressPagesRest.postProcessResultSet`, `Timesheet4ListExport`) with a **new list-only DTO** rather
-than trimming `Auftrag` — the legacy AG-Grid columns bind to `formattedNettoSumme` & co. and would
-break. New `projectforge-rest/src/main/kotlin/org/projectforge/rest/dto/OrderListRow.kt`; return it from
-`AuftragPagesRest.postProcessResultSet` for next clients only (the
-`RestAuthenticationUtils.isNextClient(request)` branch already exists in
-`AbstractPagesRest.getInitialList`).
+**1b. Trim the list row. — done, as a generic mechanism.** Not the list-only DTO this document first
+proposed (`OrderListRow.kt`, after the `ListAddress` precedent): more entities need this, so the
+question "what does a row of this entity consist of?" belongs to the DTO, not to a second class per
+page. What was built instead — a **third filling of the same DTO**, beside `copyFromMinimal` and
+`copyFrom`:
 
-Measured fat, per row ~1280 bytes over 30 fields: `contactPerson` 180 B, `project` 164 B, `customer`
-58 B are full nested DTOs where the column shows one name; and every sum travels twice, raw and
-pre-formatted (`nettoSumme` + `formattedNettoSumme`, ×4). Send the name and the number; the client
-already formats through `lib/format.ts`. Frontend: `OrderListRow` in
-`components/features/order/types.ts` must stop extending `OrderDetail` — that inheritance is why it
-carries the fat shape — and `order.page.tsx` reads `customerName`/`projectName` while keeping the column
-`id` for the sort path.
+- `BaseDTO.copyFrom4ListRow(src)` — defaults to `copyFrom`, so an entity whose rows are small enough
+  (book, cost unit) needs nothing. Overriding it is what opts an entity in.
+- `AbstractPagesRest.useListRow(request)` — the switch: next client **and** the page is in
+  `NextMigration`, i.e. the same condition as `skipResultSet` and for the same reason. Only a hand
+  built page knows which columns it renders; every other client renders from `UILayout`, whose columns
+  bind to fields a lean row leaves empty.
+- `AbstractPagesRest.createListRow(obj)` / `AbstractDTOPagesRest.newDTO()` — the DTO page implements
+  the row generically; an entity opts in with `override fun newDTO() = Auftrag()`. `newDTO` exists
+  because Kotlin cannot reach `DTO` at runtime (erasure), and resolving it from the generic supertype
+  breaks for a page inheriting through an intermediate class. Override `createListRow` directly only
+  when building the row needs something the DTO cannot reach (as `AddressPagesRest` needs its image
+  cache).
+- `Auftrag.copyFrom4ListRow` — fills the 19 columns of `order.page.tsx`; `JsonInclude.NON_NULL` keeps
+  the rest off the wire.
 
-**1c. Debounce the search box. — open.** `hooks/use-debounced-value.ts` exists and `list-toolbar.tsx`
-doesn't use it. 300 ms before the value reaches `query.setGlobalFilter`.
+Measured fat, per row ~1755 bytes over 30 fields: the four manager DTOs cost ~524 B/row for a column
+showing nothing but the derived `assignedPersons` string; `customer`/`project` are full nested DTOs
+where the cell shows one name; every sum travels twice, raw and pre-formatted; and a dozen fields
+(`bemerkung`, `statusBeschreibung`, the three access flags, `sendEMailNotification`,
+`created`/`lastUpdate`, `bindungsFrist`, `beauftragungs*`, `kundeText`, `forecastType`,
+`angebotsDatum`) are read by no column. The four boolean flags still travel (~107 B/row): they are
+non-null `Boolean`s, so `NON_NULL` cannot drop them, and making them nullable would push the
+false-vs-absent distinction into the edit form.
 
-**Then re-measure and re-argue Stage 2's priority.** Expected after 1a+1b: ~300 KB on the wire,
-sub-second download, leaving the 3.5–5.8 s of server time. That is what Stage 2 addresses.
+`customer`/`project` stay nested (an `EntityRefDto` carrying only `displayName`) rather than becoming
+flat `customerName`/`projectName` strings: measured, flattening saves a further 21 KB gzipped — 4% —
+and the row would stop being a projection of the DTO for it. So `order.page.tsx` keeps its accessors
+unchanged. `OrderListRow` in `components/features/order/types.ts` no longer extends `OrderDetail`
+though: a row carries a subset, and inheriting the full shape is what let the page reach for fields
+that are not there.
+
+**1c. Debounce the search box. — done.** New `components/shared/list/search-input.tsx`: it owns the
+typed value and lets it through `useDebouncedValue` at 300 ms, so `ListToolbar` (and with it every
+list page) debounces the same way. The caller's value still wins when it changes for another reason —
+filter reset, saved filter applied — compared against what was last sent so the user's own typing is
+not overwritten while typing.
+
+**Re-measured after 1a+1b (live).** `POST /rs/order/list` against the changed backend, same account
+and same 7132 rows:
+
+|               | before       | after         |
+| ------------- | ------------ | ------------- |
+| wire (gzip)   | 1,534,730 B  | **548,625 B** |
+| raw JSON      | 12,517,393 B | 5,281,610 B   |
+| per row (raw) | 1755 B       | 741 B         |
+| total request | 4.98 s       | **2.68 s**    |
+
+2.80× smaller on the wire, matching the 527 KB projection. What is left is server time: the pipeline
+still queries, maps and access-checks all 7132 rows before sending any of them, which is what Stage 2
+addresses and what 1b barely touches.
 
 ---
 
