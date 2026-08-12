@@ -105,6 +105,12 @@ object GenerateNextI18nMessagesMain {
     "operation.",
     // Background jobs the frontend watches (components/shared/jobs/): the status names of a JobInfo.
     "jobs.",
+    // The labels of the three history filter fields, which the backend sends with the layout
+    // (LayoutListFilterUtils.createNamedSearchFilterContainer translates them server-side). The frontend
+    // shows what it is given and never names the key, so no scan can find it — but the e2e tests have to
+    // resolve the label they expect, and spelling it out there would only pass for a German account.
+    "modificationTime",
+    "modifiedHistoryValue",
     // List filters: the chrome of the filter bar and the quick-select periods of the history filter
     // (components/data-table/history-interval-presets.ts builds search.lastMinutes & co. from a unit).
     "filter.",

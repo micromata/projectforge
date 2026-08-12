@@ -57,6 +57,7 @@
     "owner": "Owner",
     "title": "Title"
   },
+  "akquise": "Acquisition",
   "apply": "Apply",
   "attachment": {
     "_": "Attachment",
@@ -597,6 +598,7 @@
         "quarterly": "quarterly"
       }
     },
+    "notYetInvoiced": "not yet invoiced",
     "payment": {
       "type": {
         "_": "Payment type",
@@ -1139,8 +1141,10 @@
     "successfullChanged": "Successfully changed.",
     "successfullCompleted": "Successfully completed: {arg0}"
   },
+  "modificationTime": "Time of modification",
   "modified": "modified",
   "modifiedBy": "modified by",
+  "modifiedHistoryValue": "history value of modification",
   "name": "Name",
   "nickname": "Nickname",
   "no": "No",
@@ -1359,6 +1363,7 @@
   "selectAll": "Select all",
   "settings": "Settings",
   "shortDescription": "Short description",
+  "statistics": "Statistics",
   "status": "Status",
   "task": {
     "_": "Structure element",

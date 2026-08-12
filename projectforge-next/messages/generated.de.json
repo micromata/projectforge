@@ -57,6 +57,7 @@
     "owner": "Eigner:in",
     "title": "Titel"
   },
+  "akquise": "Akquise",
   "apply": "Übernehmen",
   "attachment": {
     "_": "Anhang",
@@ -597,6 +598,7 @@
         "quarterly": "quartalsweise"
       }
     },
+    "notYetInvoiced": "noch nicht fakturiert",
     "payment": {
       "type": {
         "_": "Zahlungsart",
@@ -1139,8 +1141,10 @@
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
     "successfullCompleted": "Aktion erfolgreich durchgeführt: {arg0}"
   },
+  "modificationTime": "Änderungszeitraum",
   "modified": "geändert",
   "modifiedBy": "geändert durch",
+  "modifiedHistoryValue": "Wert in der Änderungshistorie",
   "name": "Name",
   "nickname": "Rufname",
   "no": "Nein",
@@ -1359,6 +1363,7 @@
   "selectAll": "Alle auswählen",
   "settings": "Einstellungen",
   "shortDescription": "Kurzbeschreibung",
+  "statistics": "Statistik",
   "status": "Status",
   "task": {
     "_": "Strukturelement",
