@@ -62,7 +62,8 @@
     },
     "forecast": {
       "unavailable": "The forecast analysis could not be loaded.",
-      "jsonUnavailable": "The JSON export is only available in development mode."
+      "jsonUnavailable": "The JSON export is only available in development mode.",
+      "savedOnlyHint": "Note: the forecast is computed from the saved order only; unsaved local changes are not taken into account."
     }
   },
   "passwordForgotten": {

@@ -65,6 +65,10 @@ export function OrderForecastPage({ id }: { id: number }) {
       </div>
       <EditPageTabs tabs={tabs} activeId={FORECAST_TAB_ID} />
       <div className="flex-1 overflow-y-auto bg-muted/30 px-6 pt-4 pb-6">
+        {/* The analysis is computed over the saved order, see above — so say so where it is read. */}
+        <p className="mb-3 text-sm text-muted-foreground">
+          {t("order.forecast.savedOnlyHint")}
+        </p>
         <div className="mb-3 flex items-center gap-2">
           <Button
             type="button"
