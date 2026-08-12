@@ -54,7 +54,13 @@ export function DataTableColumnHeader<TData, TValue>({
     <span className="flex items-center gap-1">
       {/* min-w-0 lets the label shrink below its content width; without it the
           filter icon gets pushed out of the cell and clipped. */}
-      <span className={cn("min-w-0 flex-1 truncate", className)}>
+      {/* data-overflow-text marks this as the header's text for the overflow
+          tooltip: the cell also holds the sort index and the filter button, and
+          their glyphs are not part of the label. */}
+      <span
+        data-overflow-text
+        className={cn("min-w-0 flex-1 truncate", className)}
+      >
         {children}
       </span>
 
@@ -79,11 +85,18 @@ export function DataTableColumnHeader<TData, TValue>({
         </span>
       )}
       {!sorted && column.getCanSort() && (
-        <HugeiconsIcon
-          icon={SortingIcon}
-          size={12}
-          className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/th:opacity-60"
-        />
+        // The hint sits on the indicator rather than on the header cell, where it
+        // would cover the label and hide its overflow tooltip.
+        <span
+          className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/th:opacity-60"
+          title={t("sort")}
+        >
+          <HugeiconsIcon
+            icon={SortingIcon}
+            size={12}
+            className="text-muted-foreground"
+          />
+        </span>
       )}
 
       {canFilter && (

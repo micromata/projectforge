@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
+import { useOverflowTooltip } from "./use-overflow-tooltip";
 
 const ROW_ACTIONS_WIDTH = 80;
 
@@ -67,7 +68,6 @@ export function DataTable<TData>({
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
-  const tColumns = useTranslations("columns");
   // Only used when no table was passed in; the hook must run unconditionally.
   const ownTable = useDataTable(tableOptions);
   const table = tableProp ?? ownTable;
@@ -79,10 +79,14 @@ export function DataTable<TData>({
   const totalWidth =
     table.getTotalSize() + (rowActions ? ROW_ACTIONS_WIDTH : 0);
   const showSkeleton = isLoading && table.getRowModel().rows.length === 0;
+  const overflowTooltip = useOverflowTooltip();
 
   return (
     <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
-      <div className="relative flex-1 overflow-auto bg-background">
+      <div
+        className="relative flex-1 overflow-auto bg-background"
+        {...overflowTooltip.handlers}
+      >
         {isFetching && !showSkeleton && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse bg-primary/40" />
         )}
@@ -118,9 +122,6 @@ export function DataTable<TData>({
                     // pushes it out of a narrow column. Shift-click adds a column
                     // to the sort (TanStack's default).
                     onClick={header.column.getToggleSortingHandler()}
-                    title={
-                      header.column.getCanSort() ? tColumns("sort") : undefined
-                    }
                     className={cn(
                       // sticky per cell (not on thead): with border-collapse
                       // sticky is ignored on thead/tr. Own opaque background so
@@ -204,6 +205,7 @@ export function DataTable<TData>({
             )}
           </TableBody>
         </table>
+        {overflowTooltip.tooltip}
       </div>
       {footer}
       <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
