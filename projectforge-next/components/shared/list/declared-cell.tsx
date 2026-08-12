@@ -45,13 +45,13 @@ export function declaredCell(
   switch (field.dataType) {
     case "TIMESTAMP":
       return (
-        <span className={cn("text-muted-foreground", className)}>
+        <span className={cn("text-muted-foreground tabular-nums", className)}>
           {formatTimestampMinutes(value, format)}
         </span>
       );
     case "DATE":
       return (
-        <span className={cn("text-muted-foreground", className)}>
+        <span className={cn("text-muted-foreground tabular-nums", className)}>
           {formatDate(value, format)}
         </span>
       );
@@ -67,6 +67,14 @@ export function declaredCell(
       return (
         <span className={cn("font-mono tabular-nums", className)}>
           {formatNumber(value, format, 2)}
+        </span>
+      );
+    // Whole numbers line up in their column like the decimals do; only the digit grouping differs.
+    case "INT":
+    case "LONG":
+      return (
+        <span className={cn("font-mono tabular-nums", className)}>
+          {String(value)}
         </span>
       );
     default:
