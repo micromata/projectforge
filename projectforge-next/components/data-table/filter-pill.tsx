@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormatContext } from "@/hooks/use-format";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { FilterField } from "./filter-field";
 import { FilterPillShell } from "./filter-pill-shell";
@@ -32,11 +33,12 @@ export function FilterPill({
   onDelete,
 }: FilterPillProps) {
   const [draft, setDraft] = useState(value);
+  const ctx = useFormatContext();
 
   return (
     <FilterPillShell
       label={element.label ?? element.id}
-      text={describeFilterValue(value, element)}
+      text={describeFilterValue(value, element, ctx)}
       tooltip={element.tooltip}
       active={!isEmptyFilterValue(value)}
       open={open}

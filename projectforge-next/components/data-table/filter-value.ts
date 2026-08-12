@@ -1,4 +1,9 @@
 import {
+  formatDate,
+  formatTimestampMinutes,
+  type FormatContext,
+} from "@/lib/format";
+import {
   PAGINATION_PAGE_SIZE_FIELD,
   type FilterElement,
   type MagicFilterEntry,
@@ -98,10 +103,14 @@ export function withFilterValue(
  * Renders a filter value the way it was entered: LIST ids resolve to their
  * display names, ranges read as "from – to", and the wildcards a STRING filter
  * needs for its LIKE query are stripped again.
+ *
+ * Date bounds travel as ISO strings and are shown in the user's layout and time zone, so a pill reads
+ * like the column beside it — the same reason [describeHistoryFilter] formats its interval.
  */
 export function describeFilterValue(
   value: MagicFilterEntryValue | undefined,
-  element: FilterElement | undefined
+  element: FilterElement | undefined,
+  ctx: FormatContext
 ): string {
   if (!value) return "";
   if (value.values?.length) {
@@ -110,7 +119,14 @@ export function describeFilterValue(
       .join(", ");
   }
   if (value.from || value.to) {
-    return [value.from, value.to].filter(Boolean).join(" – ");
+    const bound = (iso: string | undefined) =>
+      element?.filterType === "TIMESTAMP"
+        ? formatTimestampMinutes(iso, ctx)
+        : formatDate(iso, ctx);
+    // A half-open range reads as "from …" / "… to", the ellipsis standing for the open end.
+    const from = bound(value.from);
+    const to = bound(value.to);
+    return from && to ? `${from} – ${to}` : from ? `${from} – …` : `… – ${to}`;
   }
   if (value.displayName) return value.displayName;
   if (value.value == null) return "";

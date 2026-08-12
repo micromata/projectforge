@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -367,6 +368,18 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     )
     val statusFilter = elements.find { it is UIFilterElement && it.id == "status" } as UIFilterElement
     statusFilter.defaultFilter = true
+    // The two ends of the period of performance are one question, as the edit form asks it: one label,
+    // two dates. `searchFields` yields them as two independent date range filters ("Leistungszeitraum
+    // von" with its own from/to, the same for "bis"), which are four dates for what a user reads as a
+    // single time window — and each of them alone matches orders whose *other* end lies outside it.
+    elements.removeIf { it is UIFilterElement && it.id in PERIOD_OF_PERFORMANCE_FIELDS }
+    elements.add(
+      UIFilterElement(
+        PERIOD_OF_PERFORMANCE_FILTER,
+        UIFilterElement.FilterType.DATE,
+        label = translate("fibu.periodOfPerformance"),
+      )
+    )
   }
 
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AuftragDO>>? {
@@ -403,7 +416,28 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
         filters.add(AuftragFakturiertFilter.create(it))
       }
     }
+    addPeriodOfPerformanceCriterion(target, source)
     return filters
+  }
+
+  /**
+   * Turns the single [PERIOD_OF_PERFORMANCE_FILTER] entry into the overlap criterion Wicket's
+   * "Leistungszeitraum" fieldset uses (see [AuftragAndRechnungDaoHelper]): an order matches if its own
+   * period reaches into the window asked for — end not before the window's start, begin not after its
+   * end. Filtering `periodOfPerformanceBegin` by the window instead would hide a two-year order from a
+   * one-month window it runs right through.
+   *
+   * Synthetic, because the entry's field is no property of [AuftragDO]: the predicate is over two of
+   * them, so [MagicFilterProcessor] cannot derive it.
+   */
+  private fun addPeriodOfPerformanceCriterion(target: QueryFilter, source: MagicFilter) {
+    val entry = source.entries.find { it.field == PERIOD_OF_PERFORMANCE_FILTER } ?: return
+    entry.synthetic = true
+    val filter = object : SearchFilterWithPeriodOfPerformance {
+      override val periodOfPerformanceStartDate = PFDayUtils.parseDate(entry.value.fromValue)
+      override val periodOfPerformanceEndDate = PFDayUtils.parseDate(entry.value.toValue)
+    }
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(filter).ifPresent { target.add(it) }
   }
 
   /**
@@ -567,5 +601,14 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       "kunde.displayName" to "kunde.name",
       "projekt.displayName" to "projekt.name",
     )
+
+    /**
+     * Id of the combined period-of-performance filter — a pseudo field, standing for a criterion over
+     * [PERIOD_OF_PERFORMANCE_FIELDS] (see [addPeriodOfPerformanceCriterion]).
+     */
+    internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
+
+    /** The two date properties the combined filter replaces in the filter field list. */
+    private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
   }
 }
