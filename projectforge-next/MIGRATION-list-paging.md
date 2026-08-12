@@ -1,9 +1,23 @@
 # Server-side paging for entity lists, and one unified filter state
 
 Detail plan alongside [MIGRATION.md](MIGRATION.md), like
-[MIGRATION-calendar.md](MIGRATION-calendar.md). Stage 1 is done and stage 3a is done (see below);
-stages 2, 3b and 4–6 are **not yet implemented** — this document holds the analysis so the work can
-start without exploring again.
+[MIGRATION-calendar.md](MIGRATION-calendar.md). This document holds the analysis so the work can start
+without exploring again.
+
+**Status**
+
+| Stage                                 | State                                                   |
+| ------------------------------------- | ------------------------------------------------------- |
+| 1a gzip                               | **done**                                                |
+| 1b lean list row                      | **done** — generic `BaseDTO.copyFrom4ListRow` mechanism |
+| 1c debounced search                   | **done** — `components/shared/list/search-input.tsx`    |
+| Re-measure after stage 1              | **done** — live numbers below, and they decide stage 2  |
+| 2 server-side paging                  | open — analysis complete, nothing implemented           |
+| 3a nested sort paths                  | **done**                                                |
+| 3b sort the id list for computed cols | open — depends on stage 2's materialized id list        |
+| 4 one filter state                    | open — ships together with stage 2 for `order`          |
+| 5 optimizations                       | open — behind measurement                               |
+| 6 roll out to further entities        | open                                                    |
 
 ## Context
 
@@ -37,9 +51,9 @@ favorites) become one coherent state instead of three that can silently disagree
 
 ---
 
-## Stage 1 — the cheap wins, then re-measure
+## Stage 1 — the cheap wins, then re-measure — done
 
-No contract change, and it decides how urgent the rest is.
+No contract change, and it decided how urgent the rest is.
 
 **1a. Enable gzip. — done.** `projectforge-business/src/main/resources/application.properties` now sets
 `server.compression.enabled`, a JSON/HTML/CSS/JS mime list and `min-response-size=2048`. Verified:
@@ -99,13 +113,20 @@ and same 7132 rows:
 | per row (raw) | 1755 B       | 741 B         |
 | total request | 4.98 s       | **2.68 s**    |
 
-2.80× smaller on the wire, matching the 527 KB projection. What is left is server time: the pipeline
-still queries, maps and access-checks all 7132 rows before sending any of them, which is what Stage 2
-addresses and what 1b barely touches.
+2.80× smaller on the wire, matching the 527 KB projection. What is left is server time: of the 2.68 s
+only ~0.4 s is download on a local connection, so ~2.3 s is the pipeline querying, mapping and
+access-checking all 7132 rows before sending any of them — which 1b barely touches.
+
+**Verdict on Stage 2.** Risk 1 below asked whether Stage 1 alone suffices. It does not: 2.7 s for a
+list of 50 visible rows is still the dominant cost, and it is paid again on every pill edit. But the
+remaining cost is now entirely server-side, which shifts the priority — **Stage 5's hybrid fast path
+(real `OFFSET/LIMIT` for a user with uniform select access) is worth measuring before committing to
+Stage 2's full id-list architecture**, since most finance users see every order anyway. Stage 2 stays
+the correct general answer, and Stage 4 and 3b still depend on it.
 
 ---
 
-## Stage 2 — server-side paging
+## Stage 2 — server-side paging — open
 
 ### The design decision
 
@@ -134,8 +155,9 @@ filters, `ensureUniqueSet`, fulltext Kotlin sorting all run once, exactly as tod
 `AbstractPagesRestUtils`), and it makes transient-column sorting possible at all (Stage 3). 7132 `Long`
 = 57 KB, so memory is a non-issue.
 
-What it does **not** fix: the _first_ request for a cold filter still pays the pipeline. Stage 1 takes
-the DTO mapping down from 7132 rows to 50, which is most of it; the rest is Stage 5.
+What it does **not** fix: the _first_ request for a cold filter still pays the pipeline. It does take
+the DTO mapping down from 7132 rows to 50 — which Stage 1 did _not_: 1b made each row cheaper, not
+fewer. The rest is Stage 5.
 
 ### Backend
 
@@ -252,7 +274,7 @@ yields a short page, not an exception.
 
 ---
 
-## Stage 3 — sorting under paging
+## Stage 3 — sorting under paging — 3a done, 3b open
 
 **3a. Resolve nested sort paths. — done.** `MagicFilterProcessor` stripped everything before the first
 dot, so `kunde.displayName` became `displayName`, which `AuftragDO` hasn't got →
@@ -292,7 +314,7 @@ nothing, which was the behaviour before 3a and worse.
 
 ---
 
-## Stage 4 — one filter state (ships with Stage 2 for `order`)
+## Stage 4 — one filter state (ships with Stage 2 for `order`) — open
 
 Column filters must not regress, so paging and unification land together for the order list. Without
 this, `manualFiltering` would let a column filter narrow only the loaded page while the footer still
@@ -351,7 +373,7 @@ for.
 
 ---
 
-## Stage 5 — optimizations, behind measurement
+## Stage 5 — optimizations, behind measurement — open
 
 - `SELECT id` projection in `selectIds` (scope to CRITERIA mode: `DBFullTextResultIterator.sort` sorts
   entities after the loop, so the fulltext path needs that sort reworked first).
@@ -365,7 +387,7 @@ for.
 - Remove `AddressPagesRest`'s `limitResultSize` ("first page only, no offset, no total") when address
   gets `serverPaging`, or the two mechanisms fight and produce a 25-row `totalSize`.
 
-## Stage 6 — roll out
+## Stage 6 — roll out — open
 
 `book`, `cost1`, `taskTree`, the `components/dynamic/` grids. Then retire client paging from
 `use-data-table`.
@@ -374,9 +396,11 @@ for.
 
 ## Verification
 
-**Stage 1.** `curl -s -o /dev/null -D - -H 'Accept-Encoding: gzip' -X POST .../rs/order/list` shows
-`Content-Encoding: gzip`; payload ≤ ~400 KB after the DTO trim. Re-run the timing probe: first row well
-under 1 s. Then re-argue Stage 2's priority against the new numbers.
+**Stage 1. — done.** `curl -s -o /dev/null -D - -H 'Accept-Encoding: gzip' -X POST .../rs/order/list`
+shows `Content-Encoding: gzip`; payload 549 KB after the DTO trim (target was ~400 KB — the four
+non-null booleans and the still-nested customer/project account for the difference, both deliberate).
+Total 2.68 s, so "first row well under 1 s" is _not_ reached and the remaining cost is server-side. See
+the verdict under Stage 1 for what that means for Stage 2's priority.
 
 **Stage 2.** The invariant test above (pages concatenate to the unpaged result, with the four custom
 filters active). Then in the browser: page 2/3 flip with no full reload, footer total = 7132, sorting a
@@ -398,10 +422,10 @@ logged-in user via `e2e/fixtures/format.ts` — never hardcoded.
 
 ## Risks
 
-1. **Stage 1 may be enough.** 7.1 s of the measured cost was download, and gzip + the DTO diet plausibly
-   remove ~95 % of it. The remaining server time is better and more cheaply addressed by Stage 5's fast
-   path than by the full paging architecture, for the users who see everything. **Do not start Stage 2
-   before re-measuring.**
+1. **Stage 1 may be enough. — measured, and it is not.** The wire is down to 549 KB / ~0.4 s, but the
+   request still takes 2.68 s, and that residue is the pipeline over all 7132 rows. So the risk
+   materialized only in part: Stage 2 remains justified, and the re-measurement moved Stage 5's fast
+   path forward as the cheaper first attempt at the server-side residue for users who see everything.
 2. **The first request stays slow.** Paging makes every request _after_ the first cheap. A user who edits
    a pill on every interaction re-materializes the id list each time and gains only wire size — which
    Stage 1 already gave them.
