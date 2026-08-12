@@ -13,6 +13,11 @@ export interface EditPageShellProps {
   tabs: EditPageTab[];
   sections: ReactNode[];
   actions?: ReactNode;
+  /**
+   * Sticky bar between the tab strip and the scrollable content — stays visible while the user
+   * scrolls through the sections (e.g. the order's number/status/sums strip).
+   */
+  banner?: ReactNode;
 }
 
 export function EditPageShell({
@@ -20,6 +25,7 @@ export function EditPageShell({
   tabs,
   sections,
   actions,
+  banner,
 }: EditPageShellProps) {
   const { scrollRef, sectionRef, activeIndex, scrollToSection, onScroll } =
     useScrollSpy(sections.length);
@@ -36,6 +42,7 @@ export function EditPageShell({
           onSelect={scrollToSection}
         />
       )}
+      {banner && <div className="shrink-0">{banner}</div>}
       <div
         ref={scrollRef}
         onScroll={onScroll}

@@ -129,6 +129,7 @@ export function EntityEditPage<
             />
           }
           tabs={tabs}
+          banner={edit.editBanner && <edit.editBanner />}
           sections={edit.sections.map((section) => (
             <DeclaredSection
               key={section.id}

@@ -120,7 +120,9 @@ export function PositionRowHeader({
             </Badge>
           ))}
           {textChips.map((chip, i) => (
-            <span key={i} className="shrink-0">{chip}</span>
+            <span key={i} className="shrink-0">
+              {chip}
+            </span>
           ))}
           {position.bemerkung && (
             <TooltipProvider>
