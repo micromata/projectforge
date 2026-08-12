@@ -18,6 +18,13 @@ export interface OrderPositionSums {
   invoicedSum?: number | null;
   notYetInvoicedSum?: number | null;
   /**
+   * Whether this position is due to be invoiced. Not the same as `notYetInvoicedSum > 0`, which holds for
+   * every commissioned position that isn't fully invoiced yet: this one is true only once the position or
+   * its order is closed, or a payment schedule entry of the position has been reached
+   * (`OrderPositionInfo.recalculateAll`) — which is what Wicket's edit form highlights a position by.
+   */
+  toBeInvoiced?: boolean | null;
+  /**
    * The probability the forecast applies to this position, as a factor between 0 and 1: it follows from the
    * status of the order *and* of the position, so the order's `probabilityOfOccurrence` field is only what
    * it falls back to (`ForecastUtils.getProbabilityOfAccurence`).

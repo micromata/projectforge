@@ -553,6 +553,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           netSum = position.netSum,
           invoicedSum = position.invoicedSum,
           notYetInvoicedSum = position.notYetInvoiced,
+          toBeInvoiced = position.toBeInvoiced,
           probabilityOfOccurrence = ForecastUtils.getProbabilityOfAccurence(info, position),
         )
       },
@@ -620,6 +621,13 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val netSum: BigDecimal,
     val invoicedSum: BigDecimal,
     val notYetInvoicedSum: BigDecimal,
+    /**
+     * Whether this position is due to be invoiced - see [OrderPositionInfo.recalculateAll]. Unlike
+     * [notYetInvoicedSum], which is positive for every commissioned position that is not fully invoiced,
+     * this is what marks a position as overdue: the position or its order is closed, or a payment schedule
+     * entry of this position has been reached.
+     */
+    val toBeInvoiced: Boolean,
     /**
      * The probability the forecast applies to this position, following from the status of the order and of
      * the position - see [ForecastUtils.getProbabilityOfAccurence]. A factor between 0 and 1.

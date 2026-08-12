@@ -88,9 +88,10 @@ export function PositionRow({
         removeLabel={
           position.titel ?? `${t("fibu.auftrag.position._")} ${index + 1}`
         }
-        highlighted={
-          sums?.notYetInvoicedSum != null && sums.notYetInvoicedSum > 0
-        }
+        // Overdue, as Wicket's form marks it (`AuftragEditForm.refreshPositions`): the position or its
+        // order is closed, or a reached payment schedule entry points at it — not merely "not fully
+        // invoiced yet", which is true of every open commissioned position.
+        highlighted={!!sums?.toBeInvoiced}
       >
         <InputField
           name={name("titel")}
