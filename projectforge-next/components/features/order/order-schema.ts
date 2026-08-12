@@ -128,3 +128,13 @@ export type PaymentScheduleValues = z.infer<typeof paymentScheduleSchema>;
 export const ORDER_FIELDS = Object.keys(
   orderSchema.shape
 ) as readonly (keyof OrderValues)[];
+
+/**
+ * Names of the array fields of this form. A bare server error on one of these (e.g. "order has no
+ * positions") has no mounted `<form.Field>` to display it and must surface as a toast instead of
+ * being silently dropped into a field slot that nobody reads.
+ */
+export const ORDER_ARRAY_FIELDS: readonly string[] = [
+  "positionen",
+  "paymentSchedules",
+];

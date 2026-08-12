@@ -68,6 +68,7 @@ export function EntityEditPage<
     defaultValues: edit.defaultValues(),
     schema: edit.schema,
     fieldNames: edit.fieldNames,
+    arrayFieldNames: edit.arrayFieldNames,
     listRoute: page.route,
     savedMessage: t(edit.savedMessageKey),
     // The form's values are the DTO the backend expects — the type only differs in what it makes

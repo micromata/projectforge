@@ -177,6 +177,12 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   schema: ZodType<any, any>;
   /** Names of the fields the form holds, so a server error naming another one becomes a toast. */
   fieldNames: readonly string[];
+  /**
+   * Names of the array (collection) fields. A bare server error on one of these (e.g. "order has no
+   * positions") has no mounted `<form.Field>` to display it, so it surfaces as a toast instead.
+   * Indexed paths (`positionen[0].titel`) still land on the row's field as normal.
+   */
+  arrayFieldNames?: readonly string[];
   /** Values of a new, empty entry. */
   defaultValues: () => Values;
   toFormValues: (data: Data) => Values;

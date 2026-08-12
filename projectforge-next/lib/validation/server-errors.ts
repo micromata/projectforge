@@ -42,29 +42,43 @@ export interface ServerValidationResult {
    * the save silently does nothing.
    */
   unassigned: string[];
+  /** True when at least one error was written into a known field's error slot. */
+  hasAssigned: boolean;
 }
 
 /**
- * True when the form has a field of this name, a row of a nested collection included: an error of the
- * order book arrives as `positionen[0].titel` (see `AuftragPagesRest.validateRows`), which is exactly
- * the name the row's field is bound to — so it is accepted as soon as the form holds the array it
- * indexes into. Checking the root rather than the whole path is what makes that possible: the form's
- * field *names* only exist once a row is rendered, while the errors arrive for all of them at once.
+ * True when the form has a mounted field that will display this error.
+ *
+ * - A plain field name (`"titel"`) is known when it is in `knownFields` and not in `arrayFields`.
+ * - An indexed path (`"positionen[0].titel"`) is known when the collection root is in `knownFields`:
+ *   the row's `<form.Field>` renders it, and checking the root is enough because errors for all rows
+ *   arrive at once while the fields only exist once the row is rendered.
+ * - A bare collection name (`"positionen"`) is NOT known: no `<form.Field name="positionen">` is
+ *   mounted, so TanStack Form would silently drop the error. It surfaces as a toast instead.
  */
-function isKnown(fieldId: string, knownFields: readonly string[]): boolean {
-  if (knownFields.includes(fieldId)) return true;
+function isKnown(
+  fieldId: string,
+  knownFields: readonly string[],
+  arrayFields: readonly string[]
+): boolean {
+  // Indexed path into a collection: positionen[0].titel
   const root = fieldId.match(/^([^[.]+)\[\d+]\./)?.[1];
-  return !!root && knownFields.includes(root);
+  if (root) return knownFields.includes(root);
+  // Plain field, but not a bare array name (no form.Field is mounted for the collection itself).
+  return knownFields.includes(fieldId) && !arrayFields.includes(fieldId);
 }
 
 /**
  * @param knownFields Field names the form actually renders. An error for anything else would be
  * written into a field that never displays it, so it is reported back as unassigned instead.
+ * @param arrayFields Names of array (collection) fields. A bare error on one of these has no mounted
+ * `<form.Field>` and must travel through `unassigned` rather than being silently dropped.
  */
 export function applyServerValidationErrors(
   form: ErrorMapTarget,
   errors: ValidationError[],
-  knownFields: readonly string[]
+  knownFields: readonly string[],
+  arrayFields: readonly string[] = []
 ): ServerValidationResult {
   const fields: Record<string, string> = {};
   const unassigned: string[] = [];
@@ -73,7 +87,7 @@ export function applyServerValidationErrors(
     // The backend always translates the message before sending it (ValidationError.create).
     const message = error.message?.trim();
     if (!message) continue;
-    if (error.fieldId && isKnown(error.fieldId, knownFields)) {
+    if (error.fieldId && isKnown(error.fieldId, knownFields, arrayFields)) {
       // Several errors on one field: keep them all rather than let the last one win.
       fields[error.fieldId] = fields[error.fieldId]
         ? `${fields[error.fieldId]}. ${message}`
@@ -93,7 +107,7 @@ export function applyServerValidationErrors(
     },
   });
 
-  return { unassigned };
+  return { unassigned, hasAssigned: Object.keys(fields).length > 0 };
 }
 
 /** Clears a previous round of server errors, e.g. before the next submit. */

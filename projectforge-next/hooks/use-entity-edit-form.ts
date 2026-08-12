@@ -42,6 +42,11 @@ export interface UseEntityEditFormOptions<Values, Data> {
    * toast instead of being written into a field that never shows it.
    */
   fieldNames: readonly string[];
+  /**
+   * Names of the array (collection) fields. A bare error on one of these has no `<form.Field>` to
+   * display it and must surface as a toast (see applyServerValidationErrors).
+   */
+  arrayFieldNames?: readonly string[];
   /** Where cancel and a successful save go, e.g. `/book`. */
   listRoute: string;
   /** Toast text of a successful save, e.g. `t("saved")`. */
@@ -69,6 +74,7 @@ export function useEntityEditForm<Values, Data>({
   defaultValues,
   schema,
   fieldNames,
+  arrayFieldNames,
   listRoute,
   savedMessage,
   save,
@@ -85,14 +91,15 @@ export function useEntityEditForm<Values, Data>({
       const result = await save(value as Values, meta);
       if (result.kind === "validationErrors") {
         // The server rejected the entity: its rules are the authority, ours only anticipate them.
-        const { unassigned } = applyServerValidationErrors(
+        const { unassigned, hasAssigned } = applyServerValidationErrors(
           form,
           result.validationErrors,
-          fieldNames
+          fieldNames,
+          arrayFieldNames
         );
         // Anything the form can't show next to a field would be invisible otherwise.
         unassigned.forEach((message) => toast.error(message));
-        if (unassigned.length === 0)
+        if (unassigned.length === 0 && !hasAssigned)
           toast.error(tCommon("validation.error.generic"));
         return;
       }

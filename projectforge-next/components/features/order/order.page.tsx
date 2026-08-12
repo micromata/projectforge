@@ -7,7 +7,7 @@ import { OrderEditBanner } from "./edit/order-edit-banner";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
 import { PositionsSection } from "./edit/positions-section";
 import { SendNotificationOption } from "./edit/send-notification-option";
-import { orderSchema, ORDER_FIELDS, type OrderValues } from "./order-schema";
+import { orderSchema, ORDER_FIELDS, ORDER_ARRAY_FIELDS, type OrderValues } from "./order-schema";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
 import { emptyOrderValues, toFormValues } from "./order-values";
@@ -173,6 +173,7 @@ export const ORDER_PAGE = definePage<
   edit: {
     schema: orderSchema,
     fieldNames: ORDER_FIELDS,
+    arrayFieldNames: ORDER_ARRAY_FIELDS,
     defaultValues: emptyOrderValues,
     toFormValues,
     title: (order) => order.titel ?? "",
