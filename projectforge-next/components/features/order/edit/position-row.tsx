@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { DatePeriodField } from "@/components/shared/form/date-period-field";
-import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
+import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
@@ -74,7 +74,7 @@ export function PositionRow({
       namePrefix={prefix}
     >
       <RepeatableRow
-        header={<PositionRowHeader position={position} sums={sums} />}
+        header={<PositionRowHeader position={position} sums={sums} invoiceInfo={invoiceInfo} />}
         // A row just added is there to be filled in; a stored one stays folded, which is what makes an
         // order of a dozen positions readable at all.
         defaultOpen={position.id == null}
@@ -123,11 +123,7 @@ export function PositionRow({
           hint={t("fibu.auftrag.forecastType.pos.info")}
           options={p.enumOptions("forecastType", t)}
         />
-        <EntityAutocompleteField
-          name={name("task")}
-          label={label("task")}
-          entity="task"
-        />
+        <TaskSelectField name={name("task")} label={label("task")} />
         <SelectField
           name={name("periodOfPerformanceType")}
           label={label("periodOfPerformanceType")}
