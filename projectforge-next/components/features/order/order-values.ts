@@ -100,7 +100,7 @@ function toScheduleValues(schedule: PaymentScheduleDto): PaymentScheduleValues {
  *
  * Nothing is proposed here, dates and status included: the backend presets them in `newBaseDTO`
  * (offer/entry/decision date = today, contact person = the logged-in user when they are a project
- * manager), and the edit page fetches `/rs/order/new` for a new entry — so those are the values a user
+ * manager), and the edit page fetches `/rs/order/edit` for a new entry — so those are the values a user
  * actually sees. This is only the shape the form starts out with.
  */
 export function emptyOrderValues(): OrderValues {

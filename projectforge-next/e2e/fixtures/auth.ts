@@ -35,7 +35,10 @@ export async function login(page: Page, returnUrl = "/next/"): Promise<void> {
   // long the test waits. A second request gets a whole one.
   for (let attempt = 1; ; attempt++) {
     await goto(page, path);
-    if (await hydrated(page)) break;
+    // A short wait per attempt on purpose: the fixture has the test's own budget, so three waits of
+    // the full length would run out before the second request is even sent. The route is compiled
+    // once per dev-server start, and this is the route every test begins with.
+    if (await hydrated(page, 10_000)) break;
     if (attempt === 3) {
       throw new Error(
         "The login page never hydrated. Is the Next dev server still compiling?"
@@ -62,20 +65,23 @@ export async function login(page: Page, returnUrl = "/next/"): Promise<void> {
  * is the only direct signal — everything else (a visible button, an awaited response) is present in
  * the server-rendered markup already.
  */
-export async function waitForHydration(page: Page): Promise<void> {
+export async function waitForHydration(
+  page: Page,
+  timeout = 30_000
+): Promise<void> {
   await page.waitForFunction(
     () =>
       Object.keys(document.querySelector("form") ?? {}).some((key) =>
         key.startsWith("__reactProps$")
       ),
     undefined,
-    { timeout: 30_000 }
+    { timeout }
   );
 }
 
 /** The same wait, but as an answer rather than a failure — for the login's reload retry. */
-async function hydrated(page: Page): Promise<boolean> {
-  return waitForHydration(page)
+async function hydrated(page: Page, timeout: number): Promise<boolean> {
+  return waitForHydration(page, timeout)
     .then(() => true)
     .catch(() => false);
 }
