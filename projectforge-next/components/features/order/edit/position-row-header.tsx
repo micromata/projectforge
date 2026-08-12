@@ -12,7 +12,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatNumber,
+  formatPercentageDecimal,
+} from "@/lib/format";
 import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { cn } from "@/lib/utils";
@@ -106,6 +111,29 @@ export function PositionRowHeader({
           <Badge variant="secondary" className="shrink-0 font-normal">
             {status.label}
           </Badge>
+        )}
+        {/*
+         * The probability the forecast applies to this position, next to the sum it weighs — the same number
+         * the sums line shows for the order, but here per position, which is where it is actually defined
+         * (see `ForecastUtils.getProbabilityOfAccurence`). Absent until the first recalculation answers, and
+         * for a position that has no number yet.
+         */}
+        {sums?.probabilityOfOccurrence != null && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="shrink-0 cursor-help text-xs font-semibold text-primary tabular-nums">
+                  {formatPercentageDecimal(
+                    sums.probabilityOfOccurrence,
+                    format
+                  )}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                {t("fibu.auftrag.probabilityOfOccurrence.effective.info")}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         <span className="shrink-0 tabular-nums">
           {formatCurrency(netSum, format)}

@@ -17,6 +17,12 @@ export interface OrderPositionSums {
   netSum?: number | null;
   invoicedSum?: number | null;
   notYetInvoicedSum?: number | null;
+  /**
+   * The probability the forecast applies to this position, as a factor between 0 and 1: it follows from the
+   * status of the order *and* of the position, so the order's `probabilityOfOccurrence` field is only what
+   * it falls back to (`ForecastUtils.getProbabilityOfAccurence`).
+   */
+  probabilityOfOccurrence?: number | null;
 }
 
 /** What `AuftragPagesRest.recalculate` answers (`OrderSums` there). */
@@ -28,6 +34,12 @@ export interface OrderSums {
   notYetInvoicedSum?: number | null;
   toBeInvoicedSum?: number | null;
   personDays?: number | null;
+  /**
+   * The probability of occurrence the forecast effectively works with, as a factor between 0 and 1:
+   * weighted over the positions' net sums, because the probability itself is defined per position
+   * (`ForecastUtils.getWeightedProbabilityOfAccurence`). Absent for an order without net sums.
+   */
+  weightedProbabilityOfOccurrence?: number | null;
   vollstaendigFakturiert: boolean;
   toBeInvoiced: boolean;
   positions?: OrderPositionSums[] | null;

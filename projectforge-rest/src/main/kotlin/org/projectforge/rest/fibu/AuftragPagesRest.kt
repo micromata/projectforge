@@ -541,6 +541,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       notYetInvoicedSum = info.notYetInvoicedSum,
       toBeInvoicedSum = info.toBeInvoicedSum,
       personDays = info.personDays,
+      weightedProbabilityOfOccurrence = ForecastUtils.getWeightedProbabilityOfAccurence(info),
       vollstaendigFakturiert = info.isVollstaendigFakturiert,
       toBeInvoiced = info.toBeInvoiced,
       positions = info.infoPositions?.map { position ->
@@ -549,6 +550,7 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
           netSum = position.netSum,
           invoicedSum = position.invoicedSum,
           notYetInvoicedSum = position.notYetInvoiced,
+          probabilityOfOccurrence = ForecastUtils.getProbabilityOfAccurence(info, position),
         )
       },
     )
@@ -568,6 +570,11 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val notYetInvoicedSum: BigDecimal,
     val toBeInvoicedSum: BigDecimal,
     val personDays: BigDecimal,
+    /**
+     * The probability the forecast effectively works with, weighted over the positions' net sums - see
+     * [ForecastUtils.getWeightedProbabilityOfAccurence]. Null for an order whose positions have no net sum.
+     */
+    val weightedProbabilityOfOccurrence: BigDecimal?,
     val vollstaendigFakturiert: Boolean,
     val toBeInvoiced: Boolean,
     val positions: List<PositionSums>?,
@@ -578,6 +585,11 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val netSum: BigDecimal,
     val invoicedSum: BigDecimal,
     val notYetInvoicedSum: BigDecimal,
+    /**
+     * The probability the forecast applies to this position, following from the status of the order and of
+     * the position - see [ForecastUtils.getProbabilityOfAccurence]. A factor between 0 and 1.
+     */
+    val probabilityOfOccurrence: BigDecimal,
   )
 
   /**

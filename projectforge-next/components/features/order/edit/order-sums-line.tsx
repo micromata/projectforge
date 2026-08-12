@@ -1,8 +1,18 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercentageDecimal,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useOrderSums } from "../use-order-sums";
 
@@ -53,6 +63,44 @@ export function OrderSumsLine({ className }: { className?: string }) {
           <dd className="text-sm tabular-nums">{value}</dd>
         </div>
       ))}
+      <WeightedProbability value={sums?.weightedProbabilityOfOccurrence} />
     </dl>
+  );
+}
+
+/**
+ * The probability the forecast actually applies, next to the sums it weighs.
+ *
+ * Set apart from them on purpose: it is the one number here that is not money, and the one a reader is
+ * most likely to mistake for the `probabilityOfOccurrence` field above — that field is only the *given*
+ * probability, which the statuses of the order and of each position may override entirely (see
+ * `ForecastUtils.getProbabilityOfAccurence`, hence the tooltip saying so).
+ *
+ * Nothing is shown for an order whose positions carry no net sum: a weighted probability would be a
+ * division by zero, and the backend answers null rather than a 0 % that would read as "lost".
+ */
+function WeightedProbability({ value }: { value?: number | null }) {
+  const t = useTranslations();
+  const format = useFormatContext();
+  if (value == null) return null;
+  return (
+    <div className="flex flex-col">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <dt className="cursor-help text-[11.5px] font-semibold tracking-wide text-primary uppercase decoration-dotted underline-offset-2 hover:underline">
+              {/* `._` because the key is a text of its own *and* the parent of `.info` — see the sums above. */}
+              {t("fibu.auftrag.probabilityOfOccurrence.weighted._")}
+            </dt>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            {t("fibu.auftrag.probabilityOfOccurrence.weighted.info")}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <dd className="text-base font-semibold text-primary tabular-nums">
+        {formatPercentageDecimal(value, format)}
+      </dd>
+    </div>
   );
 }

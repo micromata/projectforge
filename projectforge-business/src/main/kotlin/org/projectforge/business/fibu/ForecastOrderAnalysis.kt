@@ -234,7 +234,18 @@ class ForecastOrderAnalysis {
                 translate("fibu.periodOfPerformance"),
                 "${orderInfo.periodOfPerformanceBegin.formatForUser()} - ${orderInfo.periodOfPerformanceEnd.formatForUser()}"
             )
+            // The given probability and the one the forecast actually applies. Both, because they may differ
+            // entirely: the status of the order and of each position may override the given value - a replaced
+            // order never occurs, whatever its field says - and showing only the field made the table
+            // contradict the probabilities of the positions below it.
             addRow(table, translate("fibu.probabilityOfOccurrence"), "${orderInfo.probabilityOfOccurrence} %")
+            addRow(
+                table,
+                // No `._` here: that suffix only exists in the generated next-intl catalogs, where a key that
+                // is also a namespace has to carry its own text as a leaf. The bundle key is the plain one.
+                translate("fibu.auftrag.probabilityOfOccurrence.weighted"),
+                ForecastUtils.getWeightedProbabilityOfAccurence(orderInfo).formatFractionAsPercent(true),
+            )
             addRow(
                 table,
                 translate("fibu.auftrag.forecastType"),

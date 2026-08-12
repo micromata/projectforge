@@ -392,6 +392,15 @@
         }
       },
       "positions": "Positions",
+      "probabilityOfOccurrence": {
+        "effective": {
+          "info": "The probability the forecast applies to this position. It follows from the status of the order and of the position; the probability of occurrence entered for the order is only used where those leave it open."
+        },
+        "weighted": {
+          "_": "Effective probability",
+          "info": "The probability the forecast works with. It follows from the status of the order and of each position; the given probability of occurrence is only used where the status leaves it open. Shown weighted by the net sums of the positions: sum(net sum x probability) / net sum."
+        }
+      },
       "showInactivePosition": "Show inactive positions",
       "status": {
         "abgelehnt": "declined",
