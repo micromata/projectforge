@@ -17,6 +17,10 @@ import { cn } from "@/lib/utils";
  * migrated page replaces its React counterpart everywhere (menu and all server side redirects, see
  * `NextMigration`), so without this the user is stuck here if the new page has a gap.
  *
+ * Deliberately loud (brand yellow, with its label spelled out): as long as the new pages have gaps,
+ * finding the way back has to be obvious, not a discovery. Yellow and not the primary teal, so it
+ * doesn't compete with the action the page is actually for — "add", "save".
+ *
  * The url comes from the server (`UILayout.legacyUrl` / `InitialListData.legacyEditPage`), because
  * it isn't derivable here: `books` is not `book`, and pages whose rows open something other than an
  * edit form point somewhere else entirely.
@@ -41,16 +45,18 @@ export function LegacyPageLink({
       <TooltipTrigger asChild>
         <Button
           asChild
-          variant="ghost"
-          size="icon"
+          size="sm"
           aria-label={label}
           className={cn(
-            "size-7 shrink-0 text-muted-foreground hover:text-foreground",
+            "gap-1.5 bg-legacy text-legacy-foreground hover:bg-legacy-hover",
             className
           )}
         >
           <a href={toAbsoluteUrl(resolveMenuUrl(url))}>
-            <HugeiconsIcon icon={CircleArrowReload01Icon} size={15} />
+            <HugeiconsIcon icon={CircleArrowReload01Icon} size={13} />
+            {/* Icon only where the row is tight: `sr-only`, not `hidden`, keeps the accessible
+                name on the link itself. */}
+            <span className="sr-only md:not-sr-only">{label}</span>
           </a>
         </Button>
       </TooltipTrigger>

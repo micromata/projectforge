@@ -27,10 +27,11 @@ export default function TaskTreePage() {
   return (
     <PageShell>
       <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
-        <LegacyPageLink url="wa/taskTree" className="-ml-1" />
         <h1 className="text-lg font-bold tracking-tight">
           {t("menu.taskTree")}
         </h1>
+        <div className="flex-1" />
+        <LegacyPageLink url="wa/taskTree" />
       </div>
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <TaskTreePanel

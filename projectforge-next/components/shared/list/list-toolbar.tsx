@@ -57,7 +57,6 @@ export function ListToolbar({
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
-        <LegacyPageLink url={legacyUrl} className="-ml-1" />
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {category}
@@ -65,6 +64,8 @@ export function ListToolbar({
           <h1 className="text-lg font-bold tracking-tight">{title}</h1>
         </div>
         <div className="flex-1" />
+        {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
+        <LegacyPageLink url={legacyUrl} />
         {/* Divider only with a menu beside it: it separates the list's own actions from
             "add", which creates an entity. */}
         {gearMenu && (

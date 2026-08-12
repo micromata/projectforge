@@ -24,6 +24,9 @@
   --color-status-available: var(--status-available);
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
+  --color-legacy: var(--legacy);
+  --color-legacy-hover: var(--legacy-hover);
+  --color-legacy-foreground: var(--legacy-foreground);
   --color-history-insert: var(--history-insert);
   --color-history-update: var(--history-update);
   --color-history-delete: var(--history-delete);
@@ -87,6 +90,15 @@
   --status-available: var(--brand-green);
   --status-available-bg: rgba(117, 190, 1, 0.1);
   --status-available-border: rgba(117, 190, 1, 0.3);
+
+  /*
+   * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is
+   * visible without competing with the primary action of the page, which is teal.
+   */
+  --legacy: var(--brand-yellow-dark);
+  --legacy-hover: #e58a00;
+  /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
+  --legacy-foreground: #3d2200;
 
   /* Change history: one colour per operation, plus the diff and comment backgrounds */
   --history-insert: var(--brand-green-dark);
