@@ -86,6 +86,11 @@
       "successful": "Entschlüsselung erfolgreich."
     },
     "upload": {
+      "add": {
+        "_": "Dateien hinzufügen",
+        "info": "Eine oder mehrere Dateien auswählen oder einfach in diesen Bereich ziehen."
+      },
+      "dropHere": "Dateien hier ablegen",
       "title": "Dateien durch Klick auswählen oder Dateien hier hinziehen."
     },
     "zip": {

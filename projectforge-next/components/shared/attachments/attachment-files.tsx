@@ -9,7 +9,7 @@ import { useAttachmentSelection } from "@/hooks/use-attachment-selection";
 import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
 import { AttachmentRow } from "./attachment-row";
-import { AttachmentSelectionBar } from "./attachment-selection-bar";
+import { AttachmentToolbar } from "./attachment-toolbar";
 
 interface Props {
   /** The stored attachments, in the order the backend returned them. */
@@ -18,16 +18,27 @@ interface Props {
   id: number;
   /** Only downloads are offered — no selection, no rename, no delete. */
   readOnly?: boolean;
+  /**
+   * Adds the "add files" button to the toolbar — the embedded variant, where no permanent drop area
+   * offers the click (see AttachmentList).
+   */
+  onFiles?: (files: File[]) => void;
 }
 
 /**
  * The stored attachments of an entity: rename, delete, and the actions on a whole selection
- * (download as one ZIP, delete at once — see AttachmentSelectionBar).
+ * (download as one ZIP, delete at once — see AttachmentToolbar).
  *
  * Split from AttachmentList so that one keeps to the uploads and the query while this one holds the
  * selection and both dialogs.
  */
-export function AttachmentFiles({ attachments, entity, id, readOnly }: Props) {
+export function AttachmentFiles({
+  attachments,
+  entity,
+  id,
+  readOnly,
+  onFiles,
+}: Props) {
   const t = useTranslations();
   const { rename, remove, removeMany } = useAttachmentMutations(entity, id);
   const selection = useAttachmentSelection(attachments);
@@ -76,13 +87,14 @@ export function AttachmentFiles({ attachments, entity, id, readOnly }: Props) {
   return (
     <>
       {!readOnly && (
-        <AttachmentSelectionBar
+        <AttachmentToolbar
           attachments={attachments}
           selection={selection}
           entity={entity}
           id={id}
           busy={busy}
           onDeleteSelected={setDeleting}
+          onFiles={onFiles}
         />
       )}
       <ul className="flex flex-col">

@@ -11,6 +11,7 @@ import {
 import { useAttachmentUploads } from "@/hooks/use-attachment-uploads";
 import type { AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentDropArea } from "./attachment-drop-area";
+import { AttachmentDropZone } from "./attachment-drop-zone";
 import { AttachmentFiles } from "./attachment-files";
 import { AttachmentUploadRow } from "./attachment-upload-row";
 
@@ -21,6 +22,14 @@ export interface AttachmentListProps {
   id: number | null;
   /** Only downloads are offered — for a user without write access to the entity. */
   readOnly?: boolean;
+  /**
+   * Compact variant for a section between the fields of a form (books, orders, …): no permanent drop
+   * box, the click sits as a button in the toolbar and the whole section takes a drop.
+   *
+   * Left off where the attachments are the page (a standalone transfer area): there the big dashed
+   * box is the point — it says what the page is for and gives the drop a target one can aim at.
+   */
+  embedded?: boolean;
 }
 
 /**
@@ -36,7 +45,12 @@ export interface AttachmentListProps {
  * The selection is a set of `fileId`s of its own (see useAttachmentSelection) rather than the
  * table's index-keyed row selection.
  */
-export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
+export function AttachmentList({
+  entity,
+  id,
+  readOnly,
+  embedded,
+}: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
   const { mergeResult } = useAttachmentMutations(entity, id);
@@ -83,10 +97,14 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
   }
 
   const attachments = data ?? [];
+  // Embedded, the toolbar carries the add button, so it has to be there before the first file too.
+  const showFiles = attachments.length > 0 || (embedded && !readOnly);
 
-  return (
+  const content = (
     <div className="flex flex-col gap-3">
-      {!readOnly && <AttachmentDropArea onFiles={uploads.enqueue} />}
+      {!embedded && !readOnly && (
+        <AttachmentDropArea onFiles={uploads.enqueue} />
+      )}
       {/* The uploads sit above the list: they are what just happened, and each finished one moves
           down into the list by itself. */}
       {uploads.jobs.length > 0 && (
@@ -100,19 +118,26 @@ export function AttachmentList({ entity, id, readOnly }: AttachmentListProps) {
           ))}
         </ul>
       )}
-      {attachments.length === 0 ? (
-        // Nothing stored and nothing on its way: the uploads above would otherwise be contradicted.
-        uploads.jobs.length === 0 && (
-          <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
-        )
-      ) : (
+      {showFiles && (
         <AttachmentFiles
           attachments={attachments}
           entity={entity}
           id={id}
           readOnly={readOnly}
+          onFiles={embedded ? uploads.enqueue : undefined}
         />
       )}
+      {/* Nothing stored and nothing on its way: the uploads above would otherwise be contradicted. */}
+      {attachments.length === 0 && uploads.jobs.length === 0 && (
+        <p className="text-xs text-muted-foreground">{t("nothingFound")}</p>
+      )}
     </div>
+  );
+
+  // Embedded there is no dashed box to aim at, so the whole section takes the drop instead.
+  return embedded && !readOnly ? (
+    <AttachmentDropZone onFiles={uploads.enqueue}>{content}</AttachmentDropZone>
+  ) : (
+    content
   );
 }

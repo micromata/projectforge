@@ -30,7 +30,7 @@ function storedRow(page: import("@playwright/test").Page, name: string) {
   return page.getByRole("link", { name: `Download: ${name}` });
 }
 
-/** Uploads through the section's file input, which the drop area keeps `sr-only`. */
+/** Uploads through the section's file input, which the add button keeps `sr-only`. */
 async function upload(page: import("@playwright/test").Page, name: string) {
   await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
   await expect(storedRow(page, name)).toBeVisible();

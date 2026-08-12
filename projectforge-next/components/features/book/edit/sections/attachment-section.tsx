@@ -16,5 +16,6 @@ interface Props {
  * section body of the book's own rather than a declared field.
  */
 export function AttachmentSection({ bookId }: Props) {
-  return <AttachmentList entity="book" id={bookId} />;
+  // embedded: inline in the form, so the compact toolbar instead of a permanent drop box.
+  return <AttachmentList entity="book" id={bookId} embedded />;
 }

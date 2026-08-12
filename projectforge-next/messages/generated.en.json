@@ -86,6 +86,11 @@
       "successful": "Decryption was successful."
     },
     "upload": {
+      "add": {
+        "_": "Add files",
+        "info": "Choose one or more files, or drag them anywhere into this section."
+      },
+      "dropHere": "Drop files here",
       "title": "You may upload multiple files here by dropping in or clicking."
     },
     "zip": {

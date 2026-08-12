@@ -13,5 +13,6 @@ import { AttachmentList } from "@/components/shared/attachments/attachment-list"
  * the JCR node hangs off the persisted id.
  */
 export function AttachmentSection({ orderId }: { orderId: number | null }) {
-  return <AttachmentList entity="order" id={orderId} />;
+  // embedded: inline in the form, so the compact toolbar instead of a permanent drop box.
+  return <AttachmentList entity="order" id={orderId} embedded />;
 }
