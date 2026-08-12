@@ -22,6 +22,8 @@ export interface RepeatableRowProps {
   onRemove?: () => void;
   /** Accessible name of the remove button, naming the row it belongs to. */
   removeLabel: string;
+  /** Draws attention to rows that require action — e.g. an order position with outstanding invoicing. */
+  highlighted?: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ export function RepeatableRow({
   defaultOpen,
   onRemove,
   removeLabel,
+  highlighted,
 }: RepeatableRowProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(defaultOpen ?? false);
@@ -45,7 +48,12 @@ export function RepeatableRow({
       onOpenChange={setOpen}
       className="rounded-md border border-border bg-background"
     >
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div
+        className={cn(
+          "flex items-center gap-2 rounded-t-md px-3 py-2",
+          highlighted && "bg-destructive/15"
+        )}
+      >
         <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left">
           <HugeiconsIcon
             icon={ArrowDown01Icon}

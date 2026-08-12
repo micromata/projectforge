@@ -74,13 +74,22 @@ export function PositionRow({
       namePrefix={prefix}
     >
       <RepeatableRow
-        header={<PositionRowHeader position={position} sums={sums} invoiceInfo={invoiceInfo} />}
+        header={
+          <PositionRowHeader
+            position={position}
+            sums={sums}
+            invoiceInfo={invoiceInfo}
+          />
+        }
         // A row just added is there to be filled in; a stored one stays folded, which is what makes an
         // order of a dozen positions readable at all.
         defaultOpen={position.id == null}
         onRemove={onRemove}
         removeLabel={
           position.titel ?? `${t("fibu.auftrag.position._")} ${index + 1}`
+        }
+        highlighted={
+          sums?.notYetInvoicedSum != null && sums.notYetInvoicedSum > 0
         }
       >
         <InputField
