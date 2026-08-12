@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
 import { EditPageTabs, type EditPageTab } from "./edit-page-tabs";
 
@@ -29,6 +29,7 @@ export function EditPageShell({
 }: EditPageShellProps) {
   const { scrollProps, sectionRef, activeIndex, scrollToSection } =
     useScrollSpy(sections.length);
+  useSectionFromHash(tabs, scrollToSection);
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -64,4 +65,29 @@ export function EditPageShell({
       {actions && <div className="shrink-0">{actions}</div>}
     </div>
   );
+}
+
+/**
+ * Opens the section the URL's hash names, once, on entering the page.
+ *
+ * The hash is what a section tab on another page of the entity (its history, its forecast) links back
+ * to — those tabs are links, not anchors into a column that isn't there, so without this the form
+ * would always start at its first section. See `entityTabs`.
+ */
+function useSectionFromHash(
+  tabs: EditPageTab[],
+  scrollToSection: (index: number) => void
+) {
+  // The anchor tabs are the sections in order. Joined to a string so the effect isn't rerun for every
+  // fresh array a render produces.
+  const anchorIds = tabs
+    .filter((tab) => !tab.href)
+    .map((tab) => tab.id)
+    .join(",");
+  useEffect(() => {
+    const index = anchorIds.split(",").indexOf(window.location.hash.slice(1));
+    // Not `>= 0`: the first section is where the page opens anyway, and scrolling to it would undo a
+    // scroll restored by the browser on a reload.
+    if (index > 0) scrollToSection(index);
+  }, [anchorIds, scrollToSection]);
 }

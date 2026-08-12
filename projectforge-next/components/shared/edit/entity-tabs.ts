@@ -49,11 +49,13 @@ export function entityTabs<M extends EntityMetadata>({
   extraTabs,
   onFormPage,
 }: EntityTabsOptions<M>): EditPageTab[] {
-  const formHref = id != null && !onFormPage ? `${route}/${id}` : undefined;
+  const formPage = id != null && !onFormPage ? `${route}/${id}` : undefined;
   const anchors = sections.map((section) => ({
     id: section.id,
     label: t(section.tabTitleKey ?? section.titleKey),
-    href: formHref,
+    // The section goes into the hash: seen from another page of the entity this is a navigation, and
+    // without it the form would mount at its first section no matter which tab was clicked.
+    href: formPage && `${formPage}#${section.id}`,
   }));
   if (id == null) return anchors;
   return [
