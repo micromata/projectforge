@@ -64,33 +64,43 @@ export function ListToolbar({
           <h1 className="text-lg font-bold tracking-tight">{title}</h1>
         </div>
         <div className="flex-1" />
-        {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
-        <LegacyPageLink url={legacyUrl} />
-        {/* Divider only with a menu beside it: it separates the list's own actions from
-            "add", which creates an entity. */}
-        {gearMenu && (
-          <>
-            {gearMenu}
-            <Separator orientation="vertical" className="!h-5" />
-          </>
-        )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button asChild size="sm" className="gap-1.5">
-              <Link href={addHref}>
-                <HugeiconsIcon icon={PlusSignIcon} size={13} />
-                {addLabel}
-              </Link>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="font-medium">
-              {t("tooltip.shortcut.addEntry.title")}
-            </p>
-            {/* `._`: the key has a child (.title), so it is nested under `_` in the catalog. */}
-            <p>{t("tooltip.shortcut.addEntry._")}</p>
-          </TooltipContent>
-        </Tooltip>
+        {/* `self-start`: the actions line up with the top of the two-line title block rather than
+            with its middle. Their own row keeps them centered among themselves. */}
+        <div className="flex items-center gap-3 self-start">
+          {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
+          <LegacyPageLink url={legacyUrl} />
+          {/* Divider only with a menu beside it: it separates the list's own actions from
+              "add", which creates an entity. */}
+          {gearMenu && (
+            <>
+              {gearMenu}
+              {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
+                  flex-start and hangs the line above the buttons. The `!` is needed because the
+                  primitive's `data-vertical:self-stretch` carries an attribute selector and would
+                  otherwise outweigh a plain `self-center`. */}
+              <Separator orientation="vertical" className="!h-5 !self-center" />
+            </>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild size="sm" className="gap-1.5">
+                <Link href={addHref}>
+                  <HugeiconsIcon icon={PlusSignIcon} size={13} />
+                  {addLabel}
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            {/* `flex-col`: the primitive lays its children out as a centered row, which would put
+                the heading beside its explanation instead of above it. */}
+            <TooltipContent className="flex-col items-start gap-0.5">
+              <p className="font-medium">
+                {t("tooltip.shortcut.addEntry.title")}
+              </p>
+              {/* `._`: the key has a child (.title), so it is nested under `_` in the catalog. */}
+              <p>{t("tooltip.shortcut.addEntry._")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 px-4 py-2.5">
