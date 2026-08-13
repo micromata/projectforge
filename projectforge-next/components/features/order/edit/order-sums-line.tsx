@@ -55,7 +55,7 @@ export function OrderSumsLine({ className }: { className?: string }) {
     sums?.periodOfPerformanceEnd,
     format
   );
-  if (period) entries.push(["fibu.periodOfPerformance", period]);
+  if (period) entries.push(["fibu.periodOfPerformance._", period]);
 
   return (
     <dl

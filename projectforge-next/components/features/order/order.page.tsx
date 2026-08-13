@@ -124,7 +124,7 @@ export const ORDER_PAGE = definePage<
     // Both ends in one column, as the edit form asks for them and the filter matches them (see
     // PeriodColumn).
     {
-      periodLabelKey: "fibu.periodOfPerformance",
+      periodLabelKey: "fibu.periodOfPerformance._",
       begin: "periodOfPerformanceBegin",
       end: "periodOfPerformanceEnd",
       size: 190,
