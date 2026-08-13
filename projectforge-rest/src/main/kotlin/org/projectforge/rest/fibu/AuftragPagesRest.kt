@@ -188,8 +188,9 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
-   * Presets the status, the three dates and the contact person of a new order, as
-   * `AuftragEditPage.onPreEdit` does.
+   * Presets the status, the date of entry, the date of offer and the contact person of a new order, as
+   * `AuftragEditPage.onPreEdit` does. The date of decision stays empty: it is only known once the
+   * customer has decided.
    */
   override fun newBaseDTO(request: HttpServletRequest?): Auftrag {
     val auftrag = super.newBaseDTO(request)
@@ -201,7 +202,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     auftrag.status = AuftragsStatus.IN_ERSTELLUNG
     auftrag.angebotsDatum = today
     auftrag.erfassungsDatum = today
-    auftrag.entscheidungsDatum = today
     if (orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
       // The project manager is the contact person of their own order, so there is nobody to notify.
       auftrag.contactPerson = ThreadLocalUserContext.loggedInUser?.let { org.projectforge.rest.dto.User(it) }

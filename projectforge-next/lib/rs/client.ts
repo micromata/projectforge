@@ -188,7 +188,8 @@ export function fetchOne<O>(
 
 /**
  * The entity an "add" starts from, as the backend presets it: `AuftragPagesRest.newBaseDTO` puts today
- * into the three dates of a new order, the logged-in project manager in as contact person and
+ * into the date of entry and the date of offer of a new order (but not into the date of decision, which
+ * is only known once the customer has decided), the logged-in project manager in as contact person and
  * `IN_ERSTELLUNG` as its status — and `AuftragDao` refuses to save an order without one.
  *
  * `{entity}/edit` without an id is the endpoint that answers it (`AbstractPagesRest.getItemAndLayout`
