@@ -1,5 +1,7 @@
+import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat } from "./fixtures/format";
+import { userFormat, type UserFormat } from "./fixtures/format";
+import { DEFAULT_PAGE_SIZE } from "../components/data-table/page-size-options";
 
 /**
  * The structure tree page (`/next/taskTree`) against the live backend.
@@ -17,6 +19,46 @@ const PAGE = "/taskTree";
 
 /** The tree column, pinned left; the one whose click expands rather than selects. */
 const TREE_CELL = "tbody tr td:nth-child(1)";
+
+/**
+ * Narrows the tree to the seeded task and answers its row together with the number of rows left.
+ *
+ * Necessary, not merely tidy: the tasks of every run stay in the database (see fixtures/seed.ts), so
+ * the root's children outgrow a page of the table, and the newest of them — this run's — lands on the
+ * last one. A search asks the backend for the matching subtrees, which brings the row onto page one.
+ *
+ * The count comes from here rather than from the caller, and only after the *filtered* answer has
+ * arrived: the search is debounced, so for a while the table still shows the unfiltered page — a count
+ * taken then is a count of the wrong list, and a later "more rows than before" can never reach it.
+ * Keyed on the response rather than on "the row count stopped changing", because between the
+ * keystrokes and the answer the table sits still at the old number for longer than any poll interval.
+ */
+async function narrowToSeeded(page: Page, t: UserFormat["t"], title: string) {
+  // The last word of the title, not the whole one: the client builds the query with URLSearchParams,
+  // which writes a space as "+" rather than "%20" — matching the encoded title would never hit.
+  const term = title.split(" ").at(-1) ?? title;
+  const filtered = page.waitForResponse(
+    (response) =>
+      response.url().includes("/rs/task/tree") &&
+      response.url().includes(term) &&
+      response.status() === 200,
+    { timeout: 20_000 }
+  );
+  await page.getByLabel(t("search._")).fill(title);
+  const { nodes = [] } = (await (await filtered).json()) as {
+    nodes?: unknown[];
+  };
+  const rows = page.locator("tbody tr");
+  // The answer says how many rows the table will have, so waiting for that number is waiting for the
+  // rendering of *this* answer rather than for an arbitrary moment of quiet. Capped at a page, since
+  // a wider result would be paginated — the seeded subtree is far below one page.
+  await expect(rows).toHaveCount(Math.min(nodes.length, DEFAULT_PAGE_SIZE), {
+    timeout: 20_000,
+  });
+  const row = rows.filter({ hasText: title }).first();
+  await expect(row).toBeVisible();
+  return { row, count: await rows.count() };
+}
 
 test.describe("task tree", () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
@@ -37,6 +79,7 @@ test.describe("task tree", () => {
 
   test("renders the backend's columns and the selection hint", async ({
     loggedInPage: page,
+    seededTask,
   }) => {
     const { t } = await userFormat(page);
     await goto(page, PAGE);
@@ -57,9 +100,11 @@ test.describe("task tree", () => {
     // The hint below the table is what makes the cell-level click discoverable at all.
     await expect(page.getByText(t("task.selectPanel.info"))).toBeVisible();
 
-    // A row shows its title rather than an object or an empty cell. The root is always there, so this
-    // holds on a fresh database too.
-    await expect(page.locator(TREE_CELL).first()).toHaveText(/\p{L}/u);
+    // A row shows its title rather than an object or an empty cell. The seeded task's row, not the
+    // first one: the root is appended only for admins and financial staff (`showRootForAdmins`), so on
+    // a fresh database with an ordinary account there would be no guaranteed row at all.
+    const { row } = await narrowToSeeded(page, t, seededTask.title);
+    await expect(row.locator("td").first()).toHaveText(/\p{L}/u);
   });
 
   test("keeps an expanded node across a reload", async ({
@@ -74,14 +119,14 @@ test.describe("task tree", () => {
 
     const rows = page.locator("tbody tr");
     await expect(rows.first()).toBeVisible({ timeout: 20_000 });
-    const before = await rows.count();
 
     // The seeded task, not "the first collapsed node": it has a child, so it is certainly a folder,
     // and a database without one (a fresh one, or one whose folders the account has all open) offers
     // no chevron to click at all. Its chevron carries the accessible name of the action it offers.
     const title = seededTask.title;
-    const folder = rows.filter({ hasText: title }).first();
-    await expect(folder).toBeVisible({ timeout: 20_000 });
+    // Counted by the helper, after the search: the filter is session-scoped, so it survives the
+    // reload below and both counts are of the same list.
+    const { row: folder, count: before } = await narrowToSeeded(page, t, title);
     await folder.getByRole("img", { name: t("expand") }).click();
     // More rows: the children the server added, since the client has no expansion model to unfold.
     await expect
@@ -150,12 +195,14 @@ test.describe("task tree", () => {
 
     const rows = page.locator("tbody tr");
     await expect(rows.first()).toBeVisible({ timeout: 20_000 });
-    const before = await rows.count();
 
     // The seeded task: a folder (it has a child), and only for a folder do the two columns differ. Any
     // other row would be one of the database's own — and on a fresh database there is none.
-    const folder = rows.filter({ hasText: seededTask.title }).first();
-    await expect(folder).toBeVisible({ timeout: 20_000 });
+    const { row: folder, count: before } = await narrowToSeeded(
+      page,
+      t,
+      seededTask.title
+    );
 
     // Inside the tree column: expands, and the url stays.
     await folder.locator("td").first().click();

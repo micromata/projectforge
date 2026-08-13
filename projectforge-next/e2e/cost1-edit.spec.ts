@@ -63,13 +63,15 @@ test.describe("cost 1 edit", () => {
   }) => {
     await goto(page, "/cost1/new");
     await (await box(page, "nummernkreis")).click();
-    // One run of digits, no separators: a full box hands the focus to the next one.
-    await page.keyboard.type("61000102");
+    // One run of digits, no separators: a full box hands the focus to the next one. Nummernkreis 9 as
+    // in [createCost1], so the digits are not a number of the real chart of accounts even though
+    // nothing here is ever saved.
+    await page.keyboard.type("98765432");
 
-    await expect(await box(page, "nummernkreis")).toHaveValue("6");
-    await expect(await box(page, "bereich")).toHaveValue("100");
-    await expect(await box(page, "teilbereich")).toHaveValue("01");
-    await expect(await box(page, "endziffer")).toHaveValue("02");
+    await expect(await box(page, "nummernkreis")).toHaveValue("9");
+    await expect(await box(page, "bereich")).toHaveValue("876");
+    await expect(await box(page, "teilbereich")).toHaveValue("54");
+    await expect(await box(page, "endziffer")).toHaveValue("32");
   });
 
   test("refuses to save a number that is missing a part", async ({
@@ -84,7 +86,7 @@ test.describe("cost 1 edit", () => {
 
     await goto(page, "/cost1/new");
     await (await box(page, "nummernkreis")).click();
-    await page.keyboard.type("61000102");
+    await page.keyboard.type("98765432");
     const bereich = await box(page, "bereich");
     await bereich.fill("");
     await bereich.blur();

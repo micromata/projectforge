@@ -1,4 +1,6 @@
+import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
+import { userFormat, type UserFormat } from "./fixtures/format";
 import { purgeTestAttachments } from "./fixtures/attachments";
 import { createBook, type SeededBook } from "./fixtures/seed";
 
@@ -30,24 +32,27 @@ const FILE = {
  * same name (see AttachmentUploadRow), and the backend's refusal message repeats it once more in a
  * toast. Only the stored rows offer a download.
  */
-function storedRow(page: import("@playwright/test").Page, name: string) {
-  return page.getByRole("link", { name: `Download: ${name}` });
+function storedRow(page: Page, t: UserFormat["t"], name: string) {
+  return page.getByRole("link", { name: `${t("download._")}: ${name}` });
 }
 
 /** Uploads through the section's file input, which the add button keeps `sr-only`. */
-async function upload(page: import("@playwright/test").Page, name: string) {
-  await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
-  await expect(storedRow(page, name)).toBeVisible();
+async function upload(page: Page, t: UserFormat["t"], name: string) {
+  await page
+    .getByLabel(t("file.upload.choose"))
+    .setInputFiles({ name, ...FILE });
+  await expect(storedRow(page, t, name)).toBeVisible();
 }
 
 /** Removes an attachment again — also the cleanup, so it must not depend on the test's own state. */
-async function remove(page: import("@playwright/test").Page, name: string) {
-  await page.getByRole("button", { name: `Löschen: ${name}` }).click();
+async function remove(page: Page, t: UserFormat["t"], name: string) {
+  await page.getByRole("button", { name: `${t("delete")}: ${name}` }).click();
+  // The confirmation's button carries the bare label, unlike the row's.
   await page
-    .getByRole("button", { name: /^löschen$/i })
+    .getByRole("button", { name: t("delete"), exact: true })
     .last()
     .click();
-  await expect(storedRow(page, name)).toHaveCount(0);
+  await expect(storedRow(page, t, name)).toHaveCount(0);
 }
 
 test.describe("book attachments", () => {
@@ -68,33 +73,36 @@ test.describe("book attachments", () => {
   test("uploads, renames and deletes a file", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, `/book/${book.id}`);
     const name = fileName("upload");
     const renamed = fileName("renamed");
 
     try {
-      await upload(page, name);
+      await upload(page, t, name);
 
       // The row's actions all repeat per file, so each carries the name — that is what makes them
       // addressable here and distinguishable for a screen reader.
-      await page.getByRole("button", { name: `Bearbeiten: ${name}` }).click();
-      await page.getByRole("textbox", { name: /dateiname/i }).fill(renamed);
+      await page.getByRole("button", { name: `${t("edit")}: ${name}` }).click();
       await page
-        .getByRole("textbox", { name: /beschreibung/i })
+        .getByRole("textbox", { name: t("attachment.fileName") })
+        .fill(renamed);
+      await page
+        .getByRole("textbox", { name: t("description") })
         .fill("e2e description");
-      await page.getByRole("button", { name: /^speichern$/i }).click();
+      await page.getByRole("button", { name: t("save"), exact: true }).click();
 
       // `modify` answers with the entity's whole new list, so the rename shows without a re-read.
-      await expect(storedRow(page, renamed)).toBeVisible();
+      await expect(storedRow(page, t, renamed)).toBeVisible();
       await expect(page.getByText("e2e description")).toBeVisible();
-      await expect(storedRow(page, name)).toHaveCount(0);
+      await expect(storedRow(page, t, name)).toHaveCount(0);
 
-      await remove(page, renamed);
+      await remove(page, t, renamed);
     } finally {
       // A failed assertion must not leave the file behind, or the duplicate case below sees it.
       for (const leftover of [name, renamed]) {
-        if (await storedRow(page, leftover).count()) {
-          await remove(page, leftover);
+        if (await storedRow(page, t, leftover).count()) {
+          await remove(page, t, leftover);
         }
       }
     }
@@ -103,14 +111,17 @@ test.describe("book attachments", () => {
   test("shows the backend's message when the same file is uploaded twice", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, `/book/${book.id}`);
     const name = fileName("duplicate");
 
     try {
-      await upload(page, name);
+      await upload(page, t, name);
       // The refusal arrives as a regular HTTP 200 carrying a TOAST (see lib/rs/attachments.ts) —
       // the regression this guards is treating it as success, which would drop the file silently.
-      await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
+      await page
+        .getByLabel(t("file.upload.choose"))
+        .setInputFiles({ name, ...FILE });
       // The refused file keeps a row of its own carrying the reason, so it stays clear *which* file
       // was turned away. Scoped to `main`, because the same text also arrives as a toast and sonner
       // renders one as a `<li>` too (in its own `<ol>` next to the page, see app/layout.tsx) — an
@@ -119,58 +130,73 @@ test.describe("book attachments", () => {
       const refused = page
         .locator("main")
         .getByRole("listitem")
-        .filter({ hasText: /existiert bereits/i });
+        .filter({
+          hasText: t("file.upload.error.fileAlreadyExists", { arg0: name }),
+        });
       await expect(refused).toHaveCount(1);
       // Dismissing it is the user's move, and it leaves the one stored file untouched.
-      await page.getByRole("button", { name: `Abbrechen: ${name}` }).click();
+      await page
+        .getByRole("button", { name: `${t("cancel")}: ${name}` })
+        .click();
       await expect(refused).toHaveCount(0);
-      await expect(storedRow(page, name)).toBeVisible();
+      await expect(storedRow(page, t, name)).toBeVisible();
     } finally {
-      await remove(page, name);
+      await remove(page, t, name);
     }
   });
 
   test("shows the metadata the backend recorded for a file", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, `/book/${book.id}`);
     const name = fileName("metadata");
 
     try {
-      await upload(page, name);
-      await page.getByRole("button", { name: `Bearbeiten: ${name}` }).click();
+      await upload(page, t, name);
+      await page.getByRole("button", { name: `${t("edit")}: ${name}` }).click();
 
       const dialog = page.getByRole("dialog");
       // Everything below is the backend's own wording and formatting — the point of the assertions
       // is that the fields arrive at all (the upload answer carries them, see AttachmentMetadata).
-      await expect(dialog.getByText("Dateigröße")).toBeVisible();
-      await expect(dialog.getByText("ohne Verschlüsselung")).toBeVisible();
-      await expect(dialog.getByText("angelegt", { exact: true })).toBeVisible();
+      await expect(dialog.getByText(t("attachment.fileSize"))).toBeVisible();
+      // A file that was never encrypted has no zipMode, which the section reads as the STANDARD one.
+      await expect(
+        dialog.getByText(t("attachment.zip.standard"))
+      ).toBeVisible();
+      await expect(
+        dialog.getByText(t("created"), { exact: true })
+      ).toBeVisible();
       await expect(dialog.getByText(/SHA256:/)).toBeVisible();
       await expect(
-        dialog.getByRole("button", { name: /kopieren: prüfsumme/i })
+        dialog.getByRole("button", {
+          name: `${t("copy")}: ${t("attachment.checksum")}`,
+        })
       ).toBeVisible();
 
-      await page.getByRole("button", { name: /^abbrechen$/i }).click();
+      await page
+        .getByRole("button", { name: t("cancel"), exact: true })
+        .click();
     } finally {
-      await remove(page, name);
+      await remove(page, t, name);
     }
   });
 
   test("downloads and deletes a whole selection", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, `/book/${book.id}`);
     const names = [fileName("multi-a"), fileName("multi-b")];
 
     try {
-      for (const name of names) await upload(page, name);
+      for (const name of names) await upload(page, t, name);
 
       // The rows are picked one by one rather than through select-all: what is asserted below is that
       // a *selection* is downloaded and deleted, which select-all would not distinguish from "all".
       for (const name of names) {
         await page
-          .getByRole("checkbox", { name: `Auswählen: ${name}` })
+          .getByRole("checkbox", { name: `${t("select._")}: ${name}` })
           .click();
       }
 
@@ -178,29 +204,31 @@ test.describe("book attachments", () => {
       // are inside it, out of the test's reach.
       const download = page.waitForEvent("download");
       await page
-        .getByRole("link", { name: /ausgewählte herunterladen/i })
+        .getByRole("link", { name: t("file.upload.downloadSelected") })
         .click();
       expect((await download).suggestedFilename()).toMatch(/\.zip$/);
 
-      await page.getByRole("button", { name: /ausgewählte löschen/i }).click();
+      await page
+        .getByRole("button", { name: t("file.upload.deleteSelected._") })
+        .click();
       // The plural question, not the single row's: multiDelete is just as final, but it says how
       // many files it takes.
       await expect(
-        page.getByText(/alle ausgewählten dateien unwiderruflich/i)
+        page.getByText(t("file.upload.deleteSelected.confirm"))
       ).toBeVisible();
       await page
-        .getByRole("button", { name: /^löschen$/i })
+        .getByRole("button", { name: t("delete"), exact: true })
         .last()
         .click();
 
       // multiDelete answers with the one list that remains, so both rows go in a single update.
       for (const name of names) {
-        await expect(storedRow(page, name)).toHaveCount(0);
+        await expect(storedRow(page, t, name)).toHaveCount(0);
       }
     } finally {
       for (const leftover of names) {
-        if (await storedRow(page, leftover).count()) {
-          await remove(page, leftover);
+        if (await storedRow(page, t, leftover).count()) {
+          await remove(page, t, leftover);
         }
       }
     }
@@ -209,21 +237,24 @@ test.describe("book attachments", () => {
   test("downloads all files and opens the details on a row click", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, `/book/${book.id}`);
     const name = fileName("row-click");
 
     try {
-      await upload(page, name);
+      await upload(page, t, name);
 
-      // "Alle herunterladen" needs no selection — it asks for the ZIP of every file (see
+      // "Download all" needs no selection — it asks for the ZIP of every file (see
       // AttachmentSelectionBar).
       const all = page.waitForEvent("download");
-      await page.getByRole("link", { name: /alle herunterladen/i }).click();
+      await page
+        .getByRole("link", { name: t("attachment.downloadAll") })
+        .click();
       expect((await all).suggestedFilename()).toMatch(/\.zip$/);
 
       // The name is the file itself, not the dialog: the shortest way to a download.
       const single = page.waitForEvent("download");
-      await storedRow(page, name).click();
+      await storedRow(page, t, name).click();
       expect((await single).suggestedFilename()).toBe(name);
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
@@ -234,22 +265,27 @@ test.describe("book attachments", () => {
         .filter({ hasText: name })
         .click({ position: { x: 300, y: 26 } });
       await expect(
-        page.getByRole("dialog").getByRole("textbox", { name: /dateiname/i })
+        page
+          .getByRole("dialog")
+          .getByRole("textbox", { name: t("attachment.fileName") })
       ).toHaveValue(name);
-      await page.getByRole("button", { name: /^abbrechen$/i }).click();
+      await page
+        .getByRole("button", { name: t("cancel"), exact: true })
+        .click();
     } finally {
-      await remove(page, name);
+      await remove(page, t, name);
     }
   });
 
   test("says attachments need a saved book when adding one", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, "/book/new");
     // No id to hang a file off yet, so the section explains itself instead of offering an upload.
     await expect(
-      page.getByText(/erst hochgeladen werden, nachdem/i)
+      page.getByText(t("attachment.onlyAvailableAfterSave"))
     ).toBeVisible();
-    await expect(page.getByLabel(/datei wählen/i)).toHaveCount(0);
+    await expect(page.getByLabel(t("file.upload.choose"))).toHaveCount(0);
   });
 });

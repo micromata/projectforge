@@ -1,4 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { userFormat } from "./fixtures/format";
 import type { Page } from "@playwright/test";
 
 /**
@@ -17,9 +18,15 @@ import type { Page } from "@playwright/test";
  */
 const LIST = "/vacation";
 
-/** Column labels come from the layout as plain text (`headerName`), not as i18n keys. */
-const EMPLOYEE = "Mitarbeiter";
-const COMMENT = "Bemerkung";
+/**
+ * The layout sends its column labels as text (`headerName`), already translated — so the expectation
+ * translates the same keys rather than spelling out one language's word (see projectforge-next/CLAUDE.md).
+ * These are the keys `VacationDO` carries as `@PropertyInfo(i18nKey = …)`, which is where `lc` takes
+ * the header names from.
+ */
+const EMPLOYEE_KEY = "vacation.employee";
+const START_DATE_KEY = "vacation.startdate";
+const COMMENT_KEY = "comment";
 
 /**
  * Skips the case when the list has no row, and answers the rows otherwise.
@@ -73,13 +80,14 @@ test.describe("dynamic grid", () => {
   test("renders the layout's columns, formatted values and row colours", async ({
     loggedInPage: page,
   }) => {
+    const { t } = await userFormat(page);
     await goto(page, LIST);
 
     // The header proves the column defs survived the adapter, including the one whose value comes
     // from a valueGetter rather than from its own field.
-    await headerCell(page, EMPLOYEE);
-    await headerCell(page, "Startdatum");
-    await headerCell(page, COMMENT);
+    await headerCell(page, t(EMPLOYEE_KEY));
+    await headerCell(page, t(START_DATE_KEY));
+    await headerCell(page, t(COMMENT_KEY));
 
     const rows = await requireRows(page);
 
@@ -128,6 +136,7 @@ test.describe("dynamic grid", () => {
     // Login, two full list loads and two round trips to the user prefs don't fit into the default
     // 30s against a dev server that compiles on demand.
     test.setTimeout(90_000);
+    const { t } = await userFormat(page);
     await goto(page, LIST);
     // The sorted-first-cell assertion below needs a row; the column state itself would persist
     // without one.
@@ -135,7 +144,7 @@ test.describe("dynamic grid", () => {
 
     // Sorting: a click on the header cell sorts (DataTable sorts on the whole cell), which posts to
     // onColumnStatesChangedUrl.
-    await (await headerCell(page, EMPLOYEE)).click();
+    await (await headerCell(page, t(EMPLOYEE_KEY))).click();
     const sortedFirst = await page
       .locator("tbody tr")
       .first()
@@ -146,7 +155,7 @@ test.describe("dynamic grid", () => {
     // Hiding: through the column panel, the same path the book list uses. The write is debounced, so
     // the test has to see it land before reloading — otherwise it races the client and the reload
     // shows the state from before the click.
-    const panel = page.getByRole("button", { name: /Spalten/ });
+    const panel = page.getByRole("button", { name: t("columns._") });
     await panel.click();
     const checkbox = page.locator("#col-comment");
     await expect(checkbox).toHaveAttribute("data-state", "checked");
@@ -154,18 +163,18 @@ test.describe("dynamic grid", () => {
     await checkbox.click();
     await expect(checkbox).toHaveAttribute("data-state", "unchecked");
     await page.keyboard.press("Escape");
-    await expect(page.locator("th").filter({ hasText: COMMENT })).toHaveCount(
-      0
-    );
+    await expect(
+      page.locator("th").filter({ hasText: t(COMMENT_KEY) })
+    ).toHaveCount(0);
     await stored;
 
     // The reload is the actual assertion: the state has to come back through the *layout* response,
     // which the backend rewrites in restoreColumnsFromUserPref — nothing is stored in the client.
     await page.reload({ waitUntil: "domcontentloaded" });
-    await headerCell(page, EMPLOYEE);
-    await expect(page.locator("th").filter({ hasText: COMMENT })).toHaveCount(
-      0
-    );
+    await headerCell(page, t(EMPLOYEE_KEY));
+    await expect(
+      page.locator("th").filter({ hasText: t(COMMENT_KEY) })
+    ).toHaveCount(0);
     await expect(
       page.locator("tbody tr").first().locator("td").first()
     ).toHaveText(sortedFirst);
@@ -180,13 +189,13 @@ test.describe("dynamic grid", () => {
           response.url().includes("/resetGridState") &&
           response.status() === 200
       ),
-      page.getByRole("button", { name: /zurücksetzen/i }).click(),
+      page.getByRole("button", { name: t("columns.reset") }).click(),
     ]);
     await expect(page.locator("#col-comment")).toHaveAttribute(
       "data-state",
       "checked"
     );
     await page.keyboard.press("Escape");
-    await headerCell(page, COMMENT);
+    await headerCell(page, t(COMMENT_KEY));
   });
 });

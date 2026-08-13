@@ -62,11 +62,18 @@ test.describe("books list attachments", () => {
         .getByPlaceholder(t("books.searchPlaceholder"))
         .fill(book.signature);
 
+      // Inside the seeded book's own row, not the first one that has a summary: the filtered answer
+      // may not have arrived yet, and until it does the rows on screen are still the unfiltered
+      // list's — an attachment on any of them would satisfy `.first()`.
+      const row = page
+        .locator("table tbody tr")
+        .filter({ hasText: book.signature });
+      await expect(row).toHaveCount(1, { timeout: 30_000 });
       // The backend formats size and count together ("28bytes (1)") in the user's locale, so the
       // assertion pins the count and the unit rather than a hand-built string.
-      const summary = page.getByRole("img", { name: t("attachments._") });
-      await expect(summary.first()).toContainText("(1)");
-      await expect(summary.first()).toContainText(/bytes|KB/);
+      const summary = row.getByRole("img", { name: t("attachments._") });
+      await expect(summary).toContainText("(1)");
+      await expect(summary).toContainText(/bytes|KB/);
     } finally {
       await goto(page, `/book/${book.id}`);
       await page

@@ -1,4 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { userFormat } from "./fixtures/format";
 
 /**
  * The gear menu of the book list against the live backend.
@@ -12,22 +13,29 @@ test.describe("book list gear menu", () => {
   test("offers the maintenance actions of the list", async ({
     loggedInPage: page,
   }) => {
+    // Every text through the catalogs the menu itself reads, never spelled out: an assertion on
+    // "Suchindex reindizieren" passes only for a German account (see projectforge-next/CLAUDE.md).
+    const { t } = await userFormat(page);
     await goto(page, "/book");
 
-    await page.getByRole("button", { name: /einstellungen/i }).click();
+    await page
+      .getByRole("button", { name: t("settings"), exact: true })
+      .click();
 
     const menu = page.getByRole("menu");
+    const reindexNewest = menu.getByRole("menuitem", {
+      name: t("menu.reindexNewestDatabaseEntries._"),
+    });
+    await expect(reindexNewest).toBeVisible();
     await expect(
-      menu.getByRole("menuitem", { name: "Suchindex reindizieren" })
-    ).toBeVisible();
-    await expect(
-      menu.getByRole("menuitem", { name: "Filter zurücksetzen" })
+      menu.getByRole("menuitem", { name: t("menu.resetFilter._") })
     ).toBeVisible();
 
     // Tooltips come from the same bundle keys the legacy gear menu used.
-    await expect(
-      menu.getByRole("menuitem", { name: "Suchindex reindizieren" })
-    ).toHaveAttribute("title", /seit gestern angelegt oder modifiziert/);
+    await expect(reindexNewest).toHaveAttribute(
+      "title",
+      t("menu.reindexNewestDatabaseEntries.tooltip.content")
+    );
   });
 
   test("shows the full reindex only to an admin", async ({
@@ -41,11 +49,16 @@ test.describe("book list gear menu", () => {
     const isAdmin = ((await status.json()) as { adminUser?: boolean })
       .adminUser;
 
+    const { t } = await userFormat(page);
     await goto(page, "/book");
-    await page.getByRole("button", { name: /einstellungen/i }).click();
+    await page
+      .getByRole("button", { name: t("settings"), exact: true })
+      .click();
 
     await expect(
-      page.getByRole("menuitem", { name: "Suchindex voll indizieren" })
+      page.getByRole("menuitem", {
+        name: t("menu.reindexAllDatabaseEntries._"),
+      })
     ).toHaveCount(isAdmin ? 1 : 0);
   });
 });
