@@ -18,6 +18,12 @@ export interface DateInputProps {
   /** The date as `yyyy-MM-dd` — the wire format of a LocalDate (see lib/date-parse.ts). */
   value: string | null | undefined;
   onChange: (value: string | null) => void;
+  /**
+   * The month the calendar opens on while the field is empty, as `yyyy-MM-dd`. For the end of a
+   * period: with a begin entered and no end yet, browsing starts at the begin's month instead of at
+   * today's — the end is nearly always in or after it (see [DatePeriodField]).
+   */
+  defaultMonth?: string | null;
   id?: string;
   /** Accessible name, when no `<label htmlFor>` names the field. */
   "aria-label"?: string;
@@ -49,6 +55,7 @@ export interface DateInputProps {
 export function DateInput({
   value,
   onChange,
+  defaultMonth,
   id,
   className,
   autoFocus,
@@ -203,6 +210,7 @@ export function DateInput({
         )}
         <DateInputCalendar
           value={value}
+          defaultMonth={defaultMonth}
           onChange={onChange}
           disabled={disabled}
           open={pickerOpen}

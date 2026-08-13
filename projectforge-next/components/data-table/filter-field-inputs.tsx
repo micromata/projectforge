@@ -144,6 +144,7 @@ export function RangeField({
           autoFocus={autoFocus}
           aria-label={`${label}: ${t("value")}`}
           value={value?.from}
+          defaultMonth={value?.to}
           onChange={(iso) => onChange(next("from", iso))}
           // The date [DateInput] just committed, since `value` here is still the previous one.
           onSubmit={(iso) => onSubmit?.(next("from", iso))}
@@ -151,6 +152,8 @@ export function RangeField({
         <DateInput
           aria-label={`${label}: ${t("valueTo")}`}
           value={value?.to}
+          // Opens in the month of the range's start while the end is still empty.
+          defaultMonth={value?.from}
           onChange={(iso) => onChange(next("to", iso))}
           onSubmit={(iso) => onSubmit?.(next("to", iso))}
         />

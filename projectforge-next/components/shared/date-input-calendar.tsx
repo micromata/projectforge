@@ -27,6 +27,7 @@ import { useDatePickerLocale } from "./use-date-picker-locale";
  */
 export function DateInputCalendar({
   value,
+  defaultMonth,
   onChange,
   disabled,
   open,
@@ -35,6 +36,8 @@ export function DateInputCalendar({
   fieldRef,
 }: {
   value: string | null | undefined;
+  /** Where an empty field opens the calendar, as `yyyy-MM-dd`; see [DateInput]. */
+  defaultMonth?: string | null;
   onChange: (value: string | null) => void;
   disabled?: boolean;
   open: boolean;
@@ -47,14 +50,17 @@ export function DateInputCalendar({
   const t = useTranslations();
   const ctx = useFormatContext();
   const pickerLocale = useDatePickerLocale();
-  const [month, setMonth] = useState(() => dateOf(value) ?? new Date());
+  const [month, setMonth] = useState(
+    () => dateOf(value) ?? dateOf(defaultMonth) ?? new Date()
+  );
 
   // Follows the value while the popover is closed, so opening it lands on the month of the date in
-  // the field rather than on wherever it was browsed to last.
-  const [synced, setSynced] = useState(value);
-  if (synced !== value) {
-    setSynced(value);
-    const asDate = dateOf(value);
+  // the field rather than on wherever it was browsed to last. An empty field follows `defaultMonth`
+  // instead — the other end of a period, which is only known once that one is filled in.
+  const [synced, setSynced] = useState({ value, defaultMonth });
+  if (synced.value !== value || synced.defaultMonth !== defaultMonth) {
+    setSynced({ value, defaultMonth });
+    const asDate = dateOf(value) ?? (value ? null : dateOf(defaultMonth));
     if (asDate) setMonth(asDate);
   }
 

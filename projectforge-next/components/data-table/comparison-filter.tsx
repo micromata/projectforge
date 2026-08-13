@@ -62,12 +62,15 @@ function operatorKey(mode: FilterKind, operator: string): string {
 function ValueInput({
   mode,
   value,
+  defaultMonth,
   onChange,
   onSubmit,
   label,
 }: {
   mode: FilterKind;
   value: string;
+  /** The other end of a `between`, so an empty box opens on its month (see [DateInput]). */
+  defaultMonth?: string;
   onChange: (value: string) => void;
   /** Called on Enter, with the value as it stands at that moment (see [ComparisonFilter.apply]). */
   onSubmit: (value: string) => void;
@@ -77,6 +80,7 @@ function ValueInput({
     return (
       <DateInput
         value={value || null}
+        defaultMonth={defaultMonth || null}
         onChange={(next) => onChange(next ?? "")}
         onSubmit={(committed) => onSubmit(committed ?? "")}
         aria-label={label}
@@ -169,6 +173,7 @@ export function ComparisonFilter<TData>({
         <ValueInput
           mode={mode}
           value={value}
+          defaultMonth={needsRange ? valueTo : undefined}
           onChange={setValue}
           onSubmit={(committed) => apply(committed)}
           label={t("value")}
@@ -178,6 +183,7 @@ export function ComparisonFilter<TData>({
         <ValueInput
           mode={mode}
           value={valueTo}
+          defaultMonth={value}
           onChange={setValueTo}
           onSubmit={(committed) => apply(value, committed)}
           label={t("valueTo")}

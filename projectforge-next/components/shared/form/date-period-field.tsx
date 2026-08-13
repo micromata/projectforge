@@ -65,6 +65,16 @@ export function DatePeriodField({
     bounds.map((b) => (state as any).fieldMeta[b.name])
   ) as (FieldErrorMeta & { isTouched?: boolean; isValid?: boolean })[];
 
+  // The other end's date, so an empty box opens its calendar in the month of the one that is filled
+  // in rather than in the current one — the two ends of a period lie close together, and the end is
+  // typically entered right after the begin (see DateInput's `defaultMonth`).
+  const values = useStore(form.store, (state) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bounds.map(
+      (b) => (state as any).values[b.name] as string | null | undefined
+    )
+  );
+
   const invalid =
     metas.some((m) => m?.isTouched) &&
     metas.some((m) => m && m.isValid === false);
@@ -120,6 +130,7 @@ export function DatePeriodField({
                   className="min-w-0 flex-1"
                   aria-label={bound.label}
                   value={field.state.value as string | null}
+                  defaultMonth={values[index === 0 ? 1 : 0]}
                   invalid={invalid}
                   required={bound.required}
                   disabled={disabled}
