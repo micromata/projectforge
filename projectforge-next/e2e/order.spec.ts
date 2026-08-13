@@ -5,6 +5,7 @@ import { AUFTRAG_METADATA } from "../lib/metadata/auftrag.generated";
 import { AUFTRAGS_POSITION_METADATA } from "../lib/metadata/auftrags-position.generated";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import { findProjectWithCustomer, ownUserSearchTerm } from "./fixtures/seed";
 import type { Page } from "@playwright/test";
 
 /**
@@ -143,7 +144,10 @@ test.describe("order book", () => {
       await fillHead(page, format);
       await addPosition(page, format, 0, { net: "1000", days: "3" });
       await addPosition(page, format, 1, { net: "2500", days: "5" });
-      await addSchedule(page, format, { amount: "500" });
+      // Pointed at the second position, i.e. at one that does not exist in the database yet: the form
+      // gives a new position a provisional number so it can be referred to, and the backend renumbers
+      // position and instalment together on save.
+      await addSchedule(page, format, { amount: "500", positionNumber: 2 });
 
       await page
         .getByRole("button", { name: format.t("save"), exact: true })
@@ -168,6 +172,12 @@ test.describe("order book", () => {
         1000, 2500,
       ]);
       expect(stored.paymentSchedules?.map((s) => s.number)).toEqual([1]);
+      // The instalment still points at the position it was pointed at — the numbers the backend handed
+      // out happen to match the provisional ones here, which is exactly what must not be relied upon
+      // silently: it is asserted against the position's stored number.
+      expect(stored.paymentSchedules?.map((s) => s.positionNumber)).toEqual([
+        stored.positionen?.[1].number,
+      ]);
       expect(stored.nettoSumme).toBe(3500);
       expect(stored.personDays).toBe(8);
     } finally {
@@ -230,29 +240,33 @@ test.describe("order book", () => {
 
     // A manager chosen by hand first — the autofill must leave it alone. An order may deliberately
     // name a stand-in (`fibu.auftrag.hint.kannVonProjektKundenAbweichen`).
+    // The logged-in account's own name, so the lookup is certain to match without naming a person in
+    // the source (see fixtures/seed.ts).
     const manager = await pickFirst(
       page,
       label(format, "fibu.projectManager"),
-      // Two characters at least: `EntityAutocomplete` has `minChars = 2` and never asks the backend
-      // for a shorter term, so a single letter would look like "no user matched".
-      "er"
+      await ownUserSearchTerm(page)
     );
     test.skip(
       manager === null,
       "no user matched the lookup, so there is nothing to overwrite"
     );
-    // A customer's name rather than a syllable: `ProjektDao`'s lookup searches identifier, name and
-    // customer, and a two-letter term matches enough rows for the list to still be changing when it
-    // is clicked.
+    // A whole project name rather than a syllable: `ProjektDao`'s lookup searches identifier, name
+    // and customer, and a short term matches enough rows for the list to still be changing when it is
+    // clicked. Read off the database at runtime — a project with a customer cannot be created here
+    // (`KundeDO` has no generated id, see fixtures/seed.ts), and naming one would put a customer of
+    // the production copy into the source.
+    const withCustomer = await findProjectWithCustomer(page.request);
+    test.skip(
+      withCustomer === null,
+      "the account sees no project with a customer (PM_PROJECT right, or an empty database)"
+    );
     const project = await pickFirst(
       page,
       label(format, "fibu.projekt._"),
-      "AUDI"
+      withCustomer!.searchTerm
     );
-    test.skip(
-      project === null,
-      "the account sees no project (PM_PROJECT right)"
-    );
+    test.skip(project === null, "no project matched its own name");
 
     await expect(
       trigger(page, label(format, "fibu.projectManager")),
@@ -397,6 +411,13 @@ async function addPosition(
     .blur();
 }
 
+/**
+ * Removes a position and confirms the question that asks about it.
+ *
+ * The confirmation is the point, not an obstacle: a row is dropped without an undo and its button sits
+ * beside the one that folds the row open, so [RepeatableRow] asks first. Scoped to the dialog, because
+ * "Löschen" is also the name of the button that opened it.
+ */
 async function removePosition(page: Page, format: UserFormat, index: number) {
   await page
     .getByRole("button", {
@@ -404,12 +425,24 @@ async function removePosition(page: Page, format: UserFormat, index: number) {
       exact: true,
     })
     .click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: format.t("delete"), exact: true })
+    .click();
 }
 
+/**
+ * Adds an instalment to the payment schedule and, when a position number is given, points it at that
+ * position.
+ *
+ * The position is picked by *number*, which is what `PaymentScheduleDO.positionNumber` holds — and a
+ * position of an unsaved order has to be pickable already, which is the regression this covers: the
+ * select used to be empty on a new order, because a number was only assigned on save.
+ */
 async function addSchedule(
   page: Page,
   format: UserFormat,
-  values: { amount: string }
+  values: { amount: string; positionNumber?: number }
 ) {
   await page
     .getByRole("button", {
@@ -421,6 +454,26 @@ async function addSchedule(
     .last();
   await amount.fill(values.amount);
   await amount.blur();
+  if (values.positionNumber != null) {
+    const position = page
+      .getByRole("combobox", {
+        name: new RegExp(
+          `^${escapeRegExp(label(format, "fibu.auftrag.position"))}`
+        ),
+      })
+      .last();
+    await position.click();
+    await page
+      .getByRole("option", {
+        name: new RegExp(
+          `^${escapeRegExp(`${format.t("label.position.short")} ${values.positionNumber}`)}`
+        ),
+      })
+      .click();
+    await expect(position).toContainText(
+      `${format.t("label.position.short")} ${values.positionNumber}`
+    );
+  }
 }
 
 /**
@@ -473,7 +526,7 @@ interface StoredOrder {
   nettoSumme?: number;
   personDays?: number;
   positionen?: { number: number; nettoSumme?: number; deleted?: boolean }[];
-  paymentSchedules?: { number: number }[];
+  paymentSchedules?: { number: number; positionNumber?: number }[];
 }
 
 /**

@@ -67,7 +67,11 @@ test.describe("login", () => {
   test("confirms a password reset request without revealing the account", async ({
     page,
   }) => {
-    const { username } = readCredentials();
+    // A username that exists nowhere, deliberately: for an existing account the backend really sends
+    // a mail (`PasswordResetService.sendMail`), and the account of this database is a person whose
+    // address would receive one on every run. The assertion does not need an account to hold —
+    // answering the same either way is the very property under test.
+    const username = "pf-e2e-no-such-account";
     await goto(page, "/password-forgotten");
     await waitForHydration(page);
     await page.fill("#usernameEmail", username);

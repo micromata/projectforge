@@ -69,8 +69,8 @@ export function DatePeriodField({
   // in rather than in the current one — the two ends of a period lie close together, and the end is
   // typically entered right after the begin (see DateInput's `defaultMonth`).
   const values = useStore(form.store, (state) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bounds.map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (b) => (state as any).values[b.name] as string | null | undefined
     )
   );

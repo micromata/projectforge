@@ -1,19 +1,111 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import {
+  test as base,
+  expect,
+  request as apiRequest,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 import { readCredentials } from "./credentials";
 import { BASE_PATH } from "../../lib/config";
+import {
+  createBook,
+  createCost1,
+  createOrder,
+  createTask,
+  type SeededBook,
+  type SeededCost1,
+  type SeededOrder,
+  type SeededTask,
+} from "./seed";
 
 /**
- * Base test with a logged-in page.
+ * Base test with a logged-in page, and the test data a spec asks for.
  *
  * Every test gets its own browser context (Playwright's default), so the login runs per test rather
  * than being shared through a storage state file — the session lives in a `JSESSIONID` cookie whose
  * lifetime the tests don't control, and a stale one would fail in a way that looks like a UI bug.
+ *
+ * The seeded entities are **worker-scoped**: one book, one cost unit and one task per run, not per
+ * test. They are inserts into a real database (and cannot be removed again — see ./seed.ts), so
+ * creating them per test would add a row for every case that merely reads one.
  */
-export const test = base.extend<{ loggedInPage: Page }>({
+export const test = base.extend<
+  { loggedInPage: Page },
+  {
+    /** A logged-in API context, for the seeds — they run before any page exists. */
+    seedRequest: APIRequestContext;
+    /** A book of the tests' own, with the field shape the book specs assert on. */
+    seededBook: SeededBook;
+    /** A cost unit of the tests' own, whose number is free. */
+    seededCost1: SeededCost1;
+    /** A task of the tests' own with one child, so the tree has a collapsible node. */
+    seededTask: SeededTask;
+    /** An order of the tests' own, whose title is wider than any column shows. */
+    seededOrder: SeededOrder;
+  }
+>({
   loggedInPage: async ({ page }, use) => {
     await login(page);
     await use(page);
   },
+
+  seedRequest: [
+    // `baseURL` is read off the project's `use` block rather than taken as a fixture: that one is
+    // test-scoped, and a worker fixture may not depend on it.
+    async ({}, use, workerInfo) => {
+      const context = await apiRequest.newContext({
+        // 127.0.0.1 rather than the configured "localhost": Node resolves that to `::1` first, and
+        // the dev server listens on IPv4 only — the browser tries both, an API context does not.
+        baseURL: (workerInfo.project.use.baseURL ?? "").replace(
+          "localhost",
+          "127.0.0.1"
+        ),
+      });
+      const { username, password } = readCredentials();
+      // The REST login rather than the form: this context has no browser, and the session cookie is
+      // all the seeds need (see CLAUDE.md, "Testing against the running system").
+      const res = await context.post("/rsPublic/nextLogin", {
+        data: { username, password },
+      });
+      if (!res.ok()) {
+        throw new Error(
+          `Could not log in to create the test data (HTTP ${res.status()}). Is ProjectForge on ` +
+            `:8080 and are the credentials in ~/ProjectForge/testAccount.txt current?`
+        );
+      }
+      await use(context);
+      await context.dispose();
+    },
+    { scope: "worker" },
+  ],
+
+  seededBook: [
+    async ({ seedRequest }, use) => {
+      await use(await createBook(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededCost1: [
+    async ({ seedRequest }, use) => {
+      await use(await createCost1(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededTask: [
+    async ({ seedRequest }, use) => {
+      await use(await createTask(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededOrder: [
+    async ({ seedRequest }, use) => {
+      await use(await createOrder(seedRequest));
+    },
+    { scope: "worker" },
+  ],
 });
 
 export { expect };

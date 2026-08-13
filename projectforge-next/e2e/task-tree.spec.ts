@@ -57,12 +57,14 @@ test.describe("task tree", () => {
     // The hint below the table is what makes the cell-level click discoverable at all.
     await expect(page.getByText(t("task.selectPanel.info"))).toBeVisible();
 
-    // Every row shows its title rather than an object or an empty cell.
+    // A row shows its title rather than an object or an empty cell. The root is always there, so this
+    // holds on a fresh database too.
     await expect(page.locator(TREE_CELL).first()).toHaveText(/\p{L}/u);
   });
 
   test("keeps an expanded node across a reload", async ({
     loggedInPage: page,
+    seededTask,
   }) => {
     // Login, three tree loads and two round trips to the user prefs don't fit into the default 30s
     // against a dev server that compiles on demand.
@@ -74,14 +76,12 @@ test.describe("task tree", () => {
     await expect(rows.first()).toBeVisible({ timeout: 20_000 });
     const before = await rows.count();
 
-    // The first collapsed node — its chevron carries the accessible name of the action it offers.
-    const folder = rows
-      .filter({ has: page.getByRole("img", { name: t("expand") }) })
-      .first();
-    // Its title, so the cleanup below collapses *this* node again. Taking "the first collapse icon"
-    // instead would hit whichever node happens to sit highest, and any node the account had open
-    // before this run is above it.
-    const title = (await folder.locator("td").first().innerText()).trim();
+    // The seeded task, not "the first collapsed node": it has a child, so it is certainly a folder,
+    // and a database without one (a fresh one, or one whose folders the account has all open) offers
+    // no chevron to click at all. Its chevron carries the accessible name of the action it offers.
+    const title = seededTask.title;
+    const folder = rows.filter({ hasText: title }).first();
+    await expect(folder).toBeVisible({ timeout: 20_000 });
     await folder.getByRole("img", { name: t("expand") }).click();
     // More rows: the children the server added, since the client has no expansion model to unfold.
     await expect
@@ -115,7 +115,10 @@ test.describe("task tree", () => {
     await expect.poll(() => rows.count(), { timeout: 20_000 }).toBe(before);
   });
 
-  test("searching narrows the tree", async ({ loggedInPage: page }) => {
+  test("searching narrows the tree", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
     const { t } = await userFormat(page);
     await goto(page, PAGE);
 
@@ -123,12 +126,15 @@ test.describe("task tree", () => {
     await expect(rows.first()).toBeVisible({ timeout: 20_000 });
     const before = await rows.count();
 
-    // A term matching a title of the demo data. Searched server-side, so the answer is the matching
-    // subtrees rather than a filtered page.
-    await page.getByLabel(t("search._")).fill("Business");
+    // The seeded task's own title, not a term of the database: every title of this instance is
+    // production content (see fixtures/seed.ts), and on a fresh database none of them exists.
+    // Searched server-side, so the answer is the matching subtrees rather than a filtered page.
+    await page.getByLabel(t("search._")).fill(seededTask.title);
     await expect
       .poll(() => rows.count(), { timeout: 20_000 })
       .toBeLessThanOrEqual(before);
+    // The task and its child, plus the ancestors the backend sends along to place them.
+    await expect(rows.filter({ hasText: seededTask.title })).toHaveCount(1);
     for (const text of await page.locator(TREE_CELL).allInnerTexts()) {
       expect(text.trim().length).toBeGreaterThan(0);
     }
@@ -136,6 +142,7 @@ test.describe("task tree", () => {
 
   test("a click outside the tree column selects, inside it expands", async ({
     loggedInPage: page,
+    seededTask,
   }) => {
     test.setTimeout(60_000);
     const { t } = await userFormat(page);
@@ -145,10 +152,10 @@ test.describe("task tree", () => {
     await expect(rows.first()).toBeVisible({ timeout: 20_000 });
     const before = await rows.count();
 
-    // A folder row: only those have a chevron, and only for them do the two columns differ.
-    const folder = rows
-      .filter({ has: page.getByRole("img", { name: t("expand") }) })
-      .first();
+    // The seeded task: a folder (it has a child), and only for a folder do the two columns differ. Any
+    // other row would be one of the database's own — and on a fresh database there is none.
+    const folder = rows.filter({ hasText: seededTask.title }).first();
+    await expect(folder).toBeVisible({ timeout: 20_000 });
 
     // Inside the tree column: expands, and the url stays.
     await folder.locator("td").first().click();
@@ -158,13 +165,7 @@ test.describe("task tree", () => {
     expect(page.url()).toContain(PAGE);
 
     // Outside it: selects, which on this page means opening the task's (legacy) edit page.
-    await page
-      .locator("tbody tr")
-      .filter({ has: page.getByRole("img", { name: t("collapse") }) })
-      .first()
-      .locator("td")
-      .nth(3)
-      .click();
+    await folder.locator("td").nth(3).click();
     await expect(page).toHaveURL(/task/i, { timeout: 20_000 });
   });
 });

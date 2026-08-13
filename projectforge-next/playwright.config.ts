@@ -22,6 +22,21 @@ export default defineConfig({
   fullyParallel: false,
   // Never in CI: without a Spring backend these tests can only fail, and a retry won't change that.
   retries: 0,
+  /**
+   * Well above Playwright's 5 s, because of what these tests run against: the dev server compiles a
+   * route on the first navigation to it, and the assertion that follows that navigation is the one
+   * waiting for it. At 5 s it is a race the slower half of a full run loses — a different handful of
+   * tests each time, all of them with the same "element(s) not found" on a page that was still being
+   * built. Which is the least useful kind of red: it says nothing about the code under test.
+   *
+   * Raising this rather than adding a longer timeout per call: the wait is a property of the
+   * environment, not of any one expectation. A test that genuinely fails still fails — only later.
+   */
+  expect: { timeout: 20_000 },
+  // And a test budget that has room for a few of those waits: at Playwright's 30 s a single route
+  // compilation plus the steps after it can end the test in the middle of what it was checking, which
+  // is how `cost1-edit` failed while waiting for a button that arrived a second later.
+  timeout: 90_000,
   reporter: process.env.CI ? "line" : [["list"], ["html", { open: "never" }]],
   use: {
     // Without BASE_PATH: an absolute path passed to page.goto replaces the whole path of the

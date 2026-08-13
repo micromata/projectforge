@@ -5,37 +5,43 @@ import { BOOK_METADATA } from "../lib/metadata/book.generated";
 /**
  * The book edit page against the live backend.
  *
- * Book 316163 ("Selenium. Web-Applikationen automatisiert testen", signature WT-53) is existing
- * demo data whose REST answer covers the interesting cases at once: `status` and `type` are set,
- * while `editor` and `lendOutComment` are null and therefore *absent* from the JSON
+ * The book is the test's own (`seededBook`, see fixtures/seed.ts), not a row of the database: the
+ * local instance holds a copy of production, so naming one of its books would copy confidential data
+ * into the repository — and a spec that needs a particular row cannot run against a fresh database at
+ * all.
+ *
+ * The seed is shaped for what is asserted here: `status` and `type` are set, while `editor` and
+ * `lendOutComment` stay unset and are therefore *absent* from the JSON
  * (`JsonInclude.Include.NON_NULL`). All assertions are read-only — nothing is saved.
  */
-const BOOK_ID = 316163;
 
 test.describe("book edit", () => {
   test("shows the stored status and type in their selects", async ({
     loggedInPage: page,
+    seededBook,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    const { t } = await userFormat(page);
+    await goto(page, `/book/${seededBook.id}`);
 
     // The type select renders in the always-present general section.
     const type = page.getByRole("combobox", { name: /typ/i });
-    await expect(type).toContainText("Buch");
+    await expect(type).toContainText(t("book.type.book"));
 
-    // The regression this guards: `status` is the one select whose loaded value differs from the
-    // form's default, so it is the only one where the value changes while the dropdown is closed —
-    // which used to make Radix's hidden native select bounce an empty value back and wipe the field
-    // (see SelectField in components/shared/form/select-field.tsx).
+    // The regression this guards: the seeded `status` differs from the form's default, so it is the
+    // one select whose value changes while the dropdown is closed — which used to make Radix's hidden
+    // native select bounce an empty value back and wipe the field (see
+    // components/shared/form/select-field.tsx).
     const status = page.getByRole("combobox", { name: /^status/i });
-    await expect(status).toContainText("entsorgt");
+    await expect(status).toContainText(t("book.status.disposed"));
   });
 
   test("labels the fields the way BookDO does", async ({
     loggedInPage: page,
+    seededBook,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${seededBook.id}`);
     await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
-      /Selenium/
+      seededBook.title
     );
 
     // These four used to carry invented texts ("Auflage", "Bemerkung zur Ausleihe", "Interne
@@ -57,11 +63,12 @@ test.describe("book edit", () => {
 
   test("reports no validation error for fields the backend omitted", async ({
     loggedInPage: page,
+    seededBook,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${seededBook.id}`);
     // Wait for the loaded data, so the assertion can't pass on an empty form.
     await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
-      /Selenium/
+      seededBook.title
     );
 
     // `editor` and `lendOutComment` are missing from the response. Zod's own English messages must
@@ -146,6 +153,7 @@ test.describe("book edit", () => {
 
     test("demands a title with the backend's own wording", async ({
       loggedInPage: page,
+      seededBook,
     }) => {
       const { t } = await userFormat(page);
       let saveAttempted = false;
@@ -154,9 +162,9 @@ test.describe("book edit", () => {
         return route.abort();
       });
 
-      await goto(page, `/book/${BOOK_ID}`);
+      await goto(page, `/book/${seededBook.id}`);
       const input = page.getByRole("textbox", { name: /titel/i });
-      await expect(input).toHaveValue(/Selenium/);
+      await expect(input).toHaveValue(seededBook.title);
       await input.fill("");
       await input.blur();
       await page.getByRole("button", { name: t("save") }).click();
@@ -173,9 +181,10 @@ test.describe("book edit", () => {
 
     test("offers every constant of BookType and BookStatus, labelled by the backend", async ({
       loggedInPage: page,
+      seededBook,
     }) => {
       const { t } = await userFormat(page);
-      await goto(page, `/book/${BOOK_ID}`);
+      await goto(page, `/book/${seededBook.id}`);
       const type = page.getByRole("combobox", { name: /typ/i });
       await expect(type).toContainText(t("book.type.book"));
 
@@ -202,9 +211,10 @@ test.describe("book edit", () => {
 
     test("lets the optional type be cleared and the mandatory status not", async ({
       loggedInPage: page,
+      seededBook,
     }) => {
       const { t } = await userFormat(page);
-      await goto(page, `/book/${BOOK_ID}`);
+      await goto(page, `/book/${seededBook.id}`);
       await expect(page.getByRole("combobox", { name: /typ/i })).toContainText(
         t("book.type.book")
       );

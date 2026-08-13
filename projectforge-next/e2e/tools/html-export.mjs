@@ -2,9 +2,13 @@
  * Exports a rendered page of the running Next app as a self-contained HTML file (styles inlined),
  * for handing to a design tool.
  *
- *   PF_USER=… PF_PASS=… node e2e/tools/html-export.mjs /order/62589779 /tmp/pf-export
+ *   PF_USER=… PF_PASS=… node e2e/tools/html-export.mjs /order/<id> /tmp/pf-export
  *
- * The order page is opened with one position expanded and one payment schedule row added, so the
+ * The page is required rather than defaulted: an id is a row of the local database, which is a copy
+ * of production — one written in here would be a customer's order in a public repository. Take one
+ * from the list of the running instance.
+ *
+ * An order page is opened with one position expanded and one payment schedule row added, so the
  * export shows every kind of element the page has rather than only the collapsed ones.
  */
 import { chromium } from "playwright";
@@ -12,22 +16,37 @@ import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 
-const appPath = process.argv[2] ?? "/order/62589779";
+const appPath = process.argv[2];
+if (!appPath?.startsWith("/")) {
+  console.error(
+    "usage: node e2e/tools/html-export.mjs <app path, e.g. /order/123> [out dir]"
+  );
+  process.exit(2);
+}
 const outDir = path.resolve(process.argv[3] ?? "html-export");
 const BASE = "http://localhost:3000/next";
 
-// PF_USER/PF_PASS override the local test account file (whose user may require a 2nd factor).
-const creds = (
-  await readFile(
-    path.join(homedir(), "ProjectForge/localTestAccount.txt"),
-    "utf8"
-  )
-)
-  .split(/\r?\n/)
-  .map((l) => l.trim())
-  .filter(Boolean);
-const username = process.env.PF_USER ?? creds[0];
-const password = process.env.PF_PASS ?? creds[1];
+// The same file and format the e2e tests use (see fixtures/credentials.ts): one line
+// "username/password" in ~/ProjectForge/testAccount.txt, outside the repository. Read here rather
+// than imported, because this is plain ESM and that module is TypeScript.
+// PF_USER/PF_PASS override it — the file's account may require a second factor.
+async function readAccount() {
+  const file = path.join(homedir(), "ProjectForge", "testAccount.txt");
+  const line = (await readFile(file, "utf8")).split("\n")[0]?.trim() ?? "";
+  // The password may contain slashes, the username may not — so split at the first one only.
+  const slash = line.indexOf("/");
+  if (slash <= 0 || slash === line.length - 1) {
+    // Without the line itself: it holds the password.
+    console.error(`${file} must hold "username/password" on its first line.`);
+    process.exit(2);
+  }
+  return { username: line.slice(0, slash), password: line.slice(slash + 1) };
+}
+
+const account =
+  process.env.PF_USER && process.env.PF_PASS ? null : await readAccount();
+const username = process.env.PF_USER ?? account.username;
+const password = process.env.PF_PASS ?? account.password;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1600, height: 1200 } });

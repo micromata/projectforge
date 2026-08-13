@@ -1,23 +1,30 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { purgeTestAttachments } from "./fixtures/attachments";
+import { createBook, type SeededBook } from "./fixtures/seed";
 
 /**
  * The attachments column and the "has attachments" filter of the books list, against the live
  * backend.
  *
- * The books of a fresh database have no attachments at all, so the column can't be asserted on a
- * row's content — the test uploads one, checks what the list shows for exactly that book, and
- * deletes it again. The file name carries the `pf-e2e-` prefix so a leftover is recognizable (as in
- * book-attachments.spec.ts, which owns the same book).
+ * No book can be assumed to have an attachment, so the column can't be asserted on a row's content —
+ * the test uploads one onto a book of its own (`createBook`), checks what the list shows for exactly
+ * that row, and deletes it again. The file name carries the `pf-e2e-` prefix so a leftover is
+ * recognizable, and `purgeTestAttachments` removes one before the count is pinned.
  *
  * The filter's own assertion is on the request body: the backend turns `hasAttachments` into a
  * predicate on `attachmentsCounter` (AttachmentsFilterSupport), and a value sent in the wrong shape
  * would be dropped silently — the list would look fine and simply not filter.
  */
-const BOOK_ID = 316163;
 const FILE_NAME = "pf-e2e-column.txt";
 
 test.describe("books list attachments", () => {
+  let book: SeededBook;
+
+  test.beforeAll(async ({ seedRequest }) => {
+    book = await createBook(seedRequest);
+  });
+
   // Before each, not only at the end: the filter is stored per user and per entity, so a
   // `hasAttachments` criterion left behind by an earlier (or aborted) run would hide the very book
   // the first case uploads to — the column would then be asserted on a list the filter emptied.
@@ -25,6 +32,9 @@ test.describe("books list attachments", () => {
     await page.request
       .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
+    // A file an aborted run left on the book would be counted by the assertion below, which pins the
+    // count exactly ("(1)").
+    await purgeTestAttachments(page, "book", book.id);
   });
 
   test("shows count and total size of a book's attachments", async ({
@@ -36,7 +46,7 @@ test.describe("books list attachments", () => {
       name: `${t("download._")}: ${FILE_NAME}`,
     });
 
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     await page.getByLabel(t("file.upload.choose")).setInputFiles({
       name: FILE_NAME,
       mimeType: "text/plain",
@@ -45,9 +55,12 @@ test.describe("books list attachments", () => {
     await expect(downloadLink).toBeVisible();
 
     try {
-      // Straight to the book through the search box: the column is only filled in its row.
+      // Straight to the book through the search box: the column is only filled in its row, and the
+      // title is unique per run (see fixtures/seed.ts), so the list holds this one book.
       await goto(page, "/book");
-      await page.getByPlaceholder(t("books.searchPlaceholder")).fill(FILE_NAME);
+      await page
+        .getByPlaceholder(t("books.searchPlaceholder"))
+        .fill(book.signature);
 
       // The backend formats size and count together ("28bytes (1)") in the user's locale, so the
       // assertion pins the count and the unit rather than a hand-built string.
@@ -55,7 +68,7 @@ test.describe("books list attachments", () => {
       await expect(summary.first()).toContainText("(1)");
       await expect(summary.first()).toContainText(/bytes|KB/);
     } finally {
-      await goto(page, `/book/${BOOK_ID}`);
+      await goto(page, `/book/${book.id}`);
       await page
         .getByRole("button", { name: `${t("delete")}: ${FILE_NAME}` })
         .click();

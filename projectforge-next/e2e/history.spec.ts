@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
+import { createBookWithHistory, type SeededBook } from "./fixtures/seed";
 
 /**
  * The change history, against the live backend. Read-only: it opens a history and toggles rows, it
@@ -9,11 +10,17 @@ import { userFormat, type UserFormat } from "./fixtures/format";
  * entity, and the endpoint is `/rs/{entity}/history/{id}` for all of them. Books are merely the
  * vehicle: today they are the only hand-built page with a history route. When a second one arrives,
  * add it to `ENTITIES` rather than copying the spec.
+ *
+ * The history is the test's own, produced by `createBookWithHistory`: history exists only where
+ * something was written, so no row of a database can be relied on to have one — and a row of *this*
+ * database is a row of production (see fixtures/seed.ts).
  */
 const ENTITIES = [
-  // The demo book book-lend-out.spec.ts writes to, so its history is never empty and its newest
-  // entry is an update carrying attributes.
-  { name: "book", historyPath: "/book/316163/history" },
+  {
+    name: "book",
+    seed: createBookWithHistory,
+    historyPath: (book: SeededBook) => `/book/${book.id}/history`,
+  },
 ];
 
 test.describe("change history", () => {
@@ -24,10 +31,16 @@ test.describe("change history", () => {
   });
 
   for (const entity of ENTITIES) {
+    // One seed per entity, not per case: the two cases only read the history they are given.
+    let seeded: SeededBook;
+    test.beforeAll(async ({ seedRequest }) => {
+      seeded = await entity.seed(seedRequest);
+    });
+
     test(`${entity.name}: entries are collapsed and reveal their values on demand`, async ({
       loggedInPage: page,
     }) => {
-      await goto(page, entity.historyPath);
+      await goto(page, entity.historyPath(seeded));
 
       // One row per entry, each a disclosure button. Addressed through the list item, not through
       // `{ expanded: false }`: that predicate would re-resolve to a *different* row the moment this
@@ -57,7 +70,7 @@ test.describe("change history", () => {
     test(`${entity.name}: a row toggles with the keyboard`, async ({
       loggedInPage: page,
     }) => {
-      await goto(page, entity.historyPath);
+      await goto(page, entity.historyPath(seeded));
       const first = page.getByRole("listitem").first().getByRole("button");
       await expect(first).toBeVisible();
 

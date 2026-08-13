@@ -1,4 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { purgeTestAttachments } from "./fixtures/attachments";
+import { createBook, type SeededBook } from "./fixtures/seed";
 
 /**
  * The attachments section of the book edit page, against the live JCR.
@@ -6,8 +8,10 @@ import { test, expect, goto } from "./fixtures/auth";
  * Unlike the other book specs this one writes: there is no way to see an upload, a rename or the
  * backend's duplicate check without performing them. Everything it creates it deletes again through
  * the UI, and the file names carry the `pf-e2e-` prefix so a leftover is recognizable.
+ *
+ * A book of its own (`createBook`): the files go onto a real JCR node, and doing that to a row of the
+ * production copy would mean uploading into a customer's document set.
  */
-const BOOK_ID = 316163;
 
 /** Distinct per run: the backend refuses a name that is already attached, which is the point of the last test. */
 function fileName(suffix: string): string {
@@ -47,10 +51,24 @@ async function remove(page: import("@playwright/test").Page, name: string) {
 }
 
 test.describe("book attachments", () => {
+  let book: SeededBook;
+
+  // One book for the file, not one per case: every case cleans its own files up again, and each
+  // insert stays in the database (see fixtures/seed.ts).
+  test.beforeAll(async ({ seedRequest }) => {
+    book = await createBook(seedRequest);
+  });
+
+  // A failed case may have left a file behind — through the API rather than the UI, so a leftover
+  // cannot make the *next* case fail on a count or on a duplicate name. Only `pf-e2e-` files go.
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    await purgeTestAttachments(page, "book", book.id);
+  });
+
   test("uploads, renames and deletes a file", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const name = fileName("upload");
     const renamed = fileName("renamed");
 
@@ -73,7 +91,7 @@ test.describe("book attachments", () => {
 
       await remove(page, renamed);
     } finally {
-      // A failed assertion must not leave the file on a real book.
+      // A failed assertion must not leave the file behind, or the duplicate case below sees it.
       for (const leftover of [name, renamed]) {
         if (await storedRow(page, leftover).count()) {
           await remove(page, leftover);
@@ -85,7 +103,7 @@ test.describe("book attachments", () => {
   test("shows the backend's message when the same file is uploaded twice", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const name = fileName("duplicate");
 
     try {
@@ -94,8 +112,12 @@ test.describe("book attachments", () => {
       // the regression this guards is treating it as success, which would drop the file silently.
       await page.getByLabel(/datei wählen/i).setInputFiles({ name, ...FILE });
       // The refused file keeps a row of its own carrying the reason, so it stays clear *which* file
-      // was turned away. The same text also appears in a toast, hence the row-scoped locator.
+      // was turned away. Scoped to `main`, because the same text also arrives as a toast and sonner
+      // renders one as a `<li>` too (in its own `<ol>` next to the page, see app/layout.tsx) — an
+      // unscoped listitem locator counts the row and the toast, and it does so for a while: the
+      // toast outlives the row's own lifetime.
       const refused = page
+        .locator("main")
         .getByRole("listitem")
         .filter({ hasText: /existiert bereits/i });
       await expect(refused).toHaveCount(1);
@@ -111,7 +133,7 @@ test.describe("book attachments", () => {
   test("shows the metadata the backend recorded for a file", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const name = fileName("metadata");
 
     try {
@@ -138,14 +160,14 @@ test.describe("book attachments", () => {
   test("downloads and deletes a whole selection", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const names = [fileName("multi-a"), fileName("multi-b")];
 
     try {
       for (const name of names) await upload(page, name);
 
-      // The rows are picked one by one, not through select-all: the book is a real one and may
-      // already carry attachments this test must not touch.
+      // The rows are picked one by one rather than through select-all: what is asserted below is that
+      // a *selection* is downloaded and deleted, which select-all would not distinguish from "all".
       for (const name of names) {
         await page
           .getByRole("checkbox", { name: `Auswählen: ${name}` })
@@ -187,7 +209,7 @@ test.describe("book attachments", () => {
   test("downloads all files and opens the details on a row click", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const name = fileName("row-click");
 
     try {

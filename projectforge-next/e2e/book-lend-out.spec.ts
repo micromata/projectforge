@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
+import { createBook, type SeededBook } from "./fixtures/seed";
 
 /**
  * Lending a book out and returning it, against the live backend.
@@ -11,9 +12,10 @@ import { userFormat, type UserFormat } from "./fixtures/format";
  * Labels and the date are taken from the logged-in user's locale (see fixtures/format), never spelled
  * out here.
  *
- * Same demo book as book-edit.spec.ts.
+ * A book of its own (`createBook`), not the one the other book specs share: this spec is the only one
+ * that changes persistent fields, and a loan it fails to give back would leave `book-edit.spec.ts`
+ * looking at a book whose `lendOutComment` is no longer null — the very case that spec exists for.
  */
-const BOOK_ID = 316163;
 
 function escape(label: string): string {
   return label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -41,6 +43,13 @@ test.describe("book lend out", () => {
   let returnBook: RegExp;
   let title: RegExp;
   let note: RegExp;
+  let book: SeededBook;
+
+  // Once for the whole file, not per case: the cases are serial and each leaves the book free again,
+  // so they can share one — and every insert stays in the database (see fixtures/seed.ts).
+  test.beforeAll(async ({ seedRequest }) => {
+    book = await createBook(seedRequest);
+  });
 
   test.beforeEach(async ({ loggedInPage: page }) => {
     format = await userFormat(page);
@@ -52,9 +61,9 @@ test.describe("book lend out", () => {
 
   test.afterEach(async ({ loggedInPage: page }) => {
     // Leave the book free, whatever the test did to it.
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     await expect(page.getByRole("textbox", { name: title })).toHaveValue(
-      /Selenium/
+      book.title
     );
     const back = page.getByRole("button", { name: returnBook });
     if (await back.isVisible()) {
@@ -66,9 +75,9 @@ test.describe("book lend out", () => {
   test("lends out to the logged-in user and stays on the page", async ({
     loggedInPage: page,
   }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     await expect(page.getByRole("textbox", { name: title })).toHaveValue(
-      /Selenium/
+      book.title
     );
 
     // A note that was never saved: it has to travel with the action, because the endpoint saves the
@@ -87,7 +96,7 @@ test.describe("book lend out", () => {
     const today = format.date(new Date().toISOString().slice(0, 10));
     await expect(page.getByText(`, ${today}`, { exact: false })).toBeVisible();
     // Still on the edit page — the backend's REDIRECT to the list is ignored.
-    await expect(page).toHaveURL(new RegExp(`/book/${BOOK_ID}$`));
+    await expect(page).toHaveURL(new RegExp(`/book/${book.id}$`));
 
     // Reload: the loan and the unsaved note were really persisted, not just put into local state.
     await page.reload();
@@ -96,7 +105,7 @@ test.describe("book lend out", () => {
   });
 
   test("returning clears the loan", async ({ loggedInPage: page }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     await page.getByRole("button", { name: lendOut }).click();
     const back = page.getByRole("button", { name: returnBook });
     await expect(back).toBeVisible();
@@ -122,9 +131,9 @@ test.describe("book lend out", () => {
   });
 
   test("validates before lending out", async ({ loggedInPage: page }) => {
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${book.id}`);
     const titleField = page.getByRole("textbox", { name: title });
-    await expect(titleField).toHaveValue(/Selenium/);
+    await expect(titleField).toHaveValue(book.title);
     await titleField.fill("");
 
     let posted = false;

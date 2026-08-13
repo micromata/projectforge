@@ -3,6 +3,7 @@ import { userFormat } from "./fixtures/format";
 import { KOST1_METADATA } from "../lib/metadata/kost1.generated";
 import { COST1_PAGE } from "../components/features/cost1/cost1.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
+import type { SeededCost1 } from "./fixtures/seed";
 
 /**
  * The cost 1 list against the live backend — the first page rendered entirely from a declaration
@@ -13,15 +14,16 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * `copyFromMinimal`, so every row arrived with four zeros and no `formattedNumber` — hence the
  * assertion that the number cell is a *number*, not merely present.
  *
- * Read-only: nothing is written, and the stored filter is reset before each case so a criterion left
- * behind by another run cannot empty the list under test.
+ * Read-only: nothing is written here, and the stored filter is reset before each case so a criterion
+ * left behind by another run cannot empty the list under test. The row it searches for is the one
+ * `seededCost1` created (see fixtures/seed.ts) — the list of this database is a production chart of
+ * accounts, and a fresh one holds no cost unit at all.
  */
-
-/** A cost unit of the demo data whose description is unique enough to search for. */
-const COST1 = { id: 8692225, number: "1.007.04.00", description: "Incentive" };
-
 test.describe("cost 1 list", () => {
-  test.beforeEach(async ({ loggedInPage: page }) => {
+  let cost1: SeededCost1;
+
+  test.beforeEach(async ({ loggedInPage: page, seededCost1 }) => {
+    cost1 = seededCost1;
     await page.request
       .get("/rs/cost1/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
@@ -60,10 +62,10 @@ test.describe("cost 1 list", () => {
     await goto(page, "/cost1");
 
     // `formattedNumber` is computed by the DO and has to be copied explicitly — the regression this
-    // guards showed every row as "0.000.00.00" or empty.
+    // guards showed every row as "0.000.00.00" or empty. Asserted on *a* row rather than on a count:
+    // the seeded entry is the only one the test may rely on being there.
     const numbers = page.getByRole("cell").filter({ hasText: /^\d\.\d{3}\./ });
     await expect(numbers.first()).toBeVisible();
-    expect(await numbers.count()).toBeGreaterThan(1);
 
     // The status is an enum, so the cell must read the backend's label and not the constant.
     const { t } = await userFormat(page);
@@ -102,26 +104,24 @@ test.describe("cost 1 list", () => {
   test("narrows the list by the search box", async ({ loggedInPage: page }) => {
     const { t } = await userFormat(page);
     await goto(page, "/cost1");
-    const rows = page.getByRole("row");
-    // Only count once the first page of the list has arrived — read straight after the navigation the
-    // table is still empty, and "fewer than 0 rows" can never hold.
-    await expect(
-      page
-        .getByRole("cell")
-        .filter({ hasText: /^\d\.\d{3}\./ })
-        .first()
-    ).toBeVisible();
-    const before = await rows.count();
+    const numbers = page.getByRole("cell").filter({ hasText: /^\d\.\d{3}\./ });
+    // Wait for the first page before searching — read straight after the navigation the table is
+    // still empty, and every statement about a narrowed list would hold vacuously.
+    await expect(numbers.first()).toBeVisible();
 
     await page
       .getByPlaceholder(t(COST1_PAGE.searchPlaceholderKey))
-      .fill(COST1.description);
+      .fill(cost1.suffix);
 
-    await expect(page.getByRole("cell", { name: COST1.number })).toBeVisible();
-    // Fewer rows than before — the whole list is 548 entries, the search hits a handful.
+    // The run's suffix alone, not the whole description: the rest of it is the same in every run, and
+    // the backend's search matches a row on any word — the entries of earlier runs would be hits too.
+    // The suffix leaves exactly one row, which says more than "fewer rows than before" and holds on a
+    // database of any size.
     await expect
-      .poll(() => rows.count(), { message: "the search must narrow the list" })
-      .toBeLessThan(before);
+      .poll(() => numbers.allInnerTexts(), {
+        message: "the search must leave exactly the searched row",
+      })
+      .toEqual([cost1.number]);
   });
 
   test("opens a cost unit by clicking its row", async ({
@@ -131,14 +131,14 @@ test.describe("cost 1 list", () => {
     await goto(page, "/cost1");
     await page
       .getByPlaceholder(t(COST1_PAGE.searchPlaceholderKey))
-      .fill(COST1.description);
+      .fill(cost1.description);
 
-    await page.getByRole("cell", { name: COST1.number }).click();
+    await page.getByRole("cell", { name: cost1.number }).click();
 
-    await expect(page).toHaveURL(new RegExp(`/cost1/${COST1.id}$`));
+    await expect(page).toHaveURL(new RegExp(`/cost1/${cost1.id}$`));
     // The edit page loaded the entry the row stands for: its description is in the form.
     await expect(
       page.getByRole("textbox", { name: t("description") })
-    ).toHaveValue(new RegExp(COST1.description));
+    ).toHaveValue(cost1.description);
   });
 });

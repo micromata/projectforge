@@ -32,8 +32,10 @@ export function readCredentials(): Credentials {
   // The password may contain slashes; the username may not, so split at the first one only.
   const slash = line.indexOf("/");
   if (slash <= 0 || slash === line.length - 1) {
+    // The offending line is deliberately not part of the message: it is the line that holds the
+    // password, and a failing test's output ends up in a log or a terminal recording.
     throw new Error(
-      `${CREDENTIALS_FILE} must hold "username/password" on its first line, found: "${line}".`
+      `${CREDENTIALS_FILE} must hold "username/password" on its first line.`
     );
   }
   return {

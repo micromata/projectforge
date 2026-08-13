@@ -9,12 +9,36 @@ import type { Page } from "@playwright/test";
  * SHOW_LIST_OF_DISPLAYNAMES one, explicit widths, a `getRowClass` with two branches and a
  * `rowClickRedirectUrl` ending in `/id`. The list is read-only, so no test data is created; the
  * persistence test does write the account's column state and resets it again at the end.
+ *
+ * A vacation entry cannot be created from here (it needs an employee, a leave account and an
+ * approver, none of which exist on a fresh database), so the cases that need a row skip when the list
+ * is empty rather than failing — see [requireRows]. Nothing of the rows is named in this file: what is
+ * asserted is their *shape* (a date is a date, a nested displayName is a name), never a value.
  */
 const LIST = "/vacation";
 
 /** Column labels come from the layout as plain text (`headerName`), not as i18n keys. */
 const EMPLOYEE = "Mitarbeiter";
 const COMMENT = "Bemerkung";
+
+/**
+ * Skips the case when the list has no row, and answers the rows otherwise.
+ *
+ * Only a spec whose entity it can create may insist on data. Vacation entries are not among those, so
+ * "the list is empty" is a statement about the database rather than about the code under test.
+ */
+async function requireRows(page: Page) {
+  const rows = page.locator("tbody tr");
+  // A page of the list has to have arrived first: straight after the navigation every list is empty.
+  await expect(page.locator("table")).toBeVisible({ timeout: 20_000 });
+  const count = await rows
+    .first()
+    .waitFor({ state: "visible", timeout: 20_000 })
+    .then(() => 1)
+    .catch(() => 0);
+  test.skip(count === 0, "no vacation entry in this database");
+  return rows;
+}
 
 async function headerCell(page: Page, label: string) {
   const cell = page.locator("th").filter({ hasText: label }).first();
@@ -57,8 +81,7 @@ test.describe("dynamic grid", () => {
     await headerCell(page, "Startdatum");
     await headerCell(page, COMMENT);
 
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible();
+    const rows = await requireRows(page);
 
     // valueGetter: the employee cell must show the nested displayName, not "[object Object]" or
     // JSON — that is what the replaced hand-written table did.
@@ -73,16 +96,22 @@ test.describe("dynamic grid", () => {
       expect(text.trim()).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
     }
 
-    // getRowClass, translated by row-class.ts: conflicting entries are red. There are a handful in
-    // the demo data, but none of them on the first page of 50 — so widen the page first.
+    // getRowClass, translated by row-class.ts: a row the layout's rule does not match gets no class
+    // at all, so what can be asserted without knowing the data is that every class a row *does* carry
+    // is one the stylesheet defines — an unrecognised rule (or a class name the parser passed through)
+    // would show up here as a row-* that globals.css never styles.
     await page.getByRole("combobox").last().selectOption("100");
-    await expect(page.locator("tbody tr.row-red").first()).toBeVisible();
+    const classes = await page
+      .locator("tbody tr")
+      .evaluateAll((rows) => rows.flatMap((row) => Array.from(row.classList)));
+    for (const className of classes.filter((name) => name.startsWith("row-"))) {
+      expect(className).toMatch(/^row-(deleted|red|green|blue|grey)$/);
+    }
   });
 
   test("row click opens the entry", async ({ loggedInPage: page }) => {
     await goto(page, LIST);
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const rows = await requireRows(page);
 
     await rows.first().click();
     // `rowClickRedirectUrl` is "/react/vacation/edit/id": vacation is not in NextMigration.MIGRATED,
@@ -100,6 +129,9 @@ test.describe("dynamic grid", () => {
     // 30s against a dev server that compiles on demand.
     test.setTimeout(90_000);
     await goto(page, LIST);
+    // The sorted-first-cell assertion below needs a row; the column state itself would persist
+    // without one.
+    await requireRows(page);
 
     // Sorting: a click on the header cell sorts (DataTable sorts on the whole cell), which posts to
     // onColumnStatesChangedUrl.

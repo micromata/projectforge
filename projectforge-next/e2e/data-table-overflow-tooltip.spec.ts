@@ -1,28 +1,41 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { userFormat } from "./fixtures/format";
+import { ORDER_PAGE } from "../components/features/order/order.page";
 
 /**
  * The overflow tooltip of the data table against the live backend.
  *
- * Read-only, and deliberately on the order list: it is the widest list in the app, so several of its
- * columns are narrower than their content on any screen — which is the condition the tooltip exists
- * for and which a fixture could not produce as honestly.
+ * On the order list, filtered down to the order the tests created: `seededOrder` carries a title far
+ * wider than its column, so a clipped cell is guaranteed rather than hoped for — on a fresh database
+ * the list would otherwise be empty, and on this one the clipped cells would be production content.
  *
- * The truncated cell is found by measuring rather than named: which column overflows depends on the
- * viewport, the account's stored column widths and the data, and a hard-coded column would pass or
- * fail for reasons that have nothing to do with the tooltip.
+ * The truncated cell is still found by measuring rather than named: which column overflows depends on
+ * the viewport and the account's stored column widths, and a hard-coded column would pass or fail for
+ * reasons that have nothing to do with the tooltip.
  */
 test.describe("data table overflow tooltip", () => {
   const TOOLTIP = "[data-slot=tooltip-content]";
 
-  /** Cell indices of the body, split by whether their content is clipped. */
-  async function measureCells(page: import("@playwright/test").Page) {
-    return page.evaluate(() => {
+  /**
+   * Cell indices of one row, split by whether their content is clipped.
+   *
+   * Indices within that row, so hovering can address them again: the row itself is located by the
+   * text the caller passes, because a search may leave more rows than the one asked for (the backend
+   * matches a term anywhere) and the guaranteed-wide title is in exactly one of them.
+   */
+  async function measureCells(
+    page: import("@playwright/test").Page,
+    rowText: string
+  ) {
+    return page.evaluate((text) => {
       const clipped = (el: HTMLElement) =>
         // +1: sub-pixel layout makes scrollWidth exceed clientWidth on text that fits.
         el.scrollWidth > el.clientWidth + 1;
-      const cells = Array.from(
-        document.querySelectorAll("table tbody td")
-      ) as HTMLElement[];
+      const row = Array.from(document.querySelectorAll("table tbody tr")).find(
+        (tr) => (tr as HTMLElement).innerText.includes(text)
+      );
+      if (!row) return { overflowing: [], fitting: [] };
+      const cells = Array.from(row.querySelectorAll("td")) as HTMLElement[];
       const overflowing: { index: number; text: string }[] = [];
       const fitting: number[] = [];
       cells.forEach((td, index) => {
@@ -39,29 +52,44 @@ test.describe("data table overflow tooltip", () => {
         }
       });
       return { overflowing, fitting };
-    });
+    }, rowText);
   }
 
   test("reveals the full content of clipped cells and headers", async ({
     loggedInPage: page,
+    seededOrder,
   }) => {
     await goto(page, "/order");
     await expect(page.locator("table tbody tr").first()).toBeVisible({
       timeout: 30_000,
     });
+    // Narrowed to the seeded order, so the measured row is its own: its title is the one value that is
+    // certainly wider than its column. The run's suffix as the term — the rest of the title is the
+    // same in every run.
+    const term = seededOrder.title.split(" ")[3] ?? seededOrder.title;
+    await page
+      .getByPlaceholder(
+        (await userFormat(page)).t(ORDER_PAGE.searchPlaceholderKey)
+      )
+      .fill(term);
+    const row = page
+      .locator("table tbody tr")
+      .filter({ hasText: term })
+      .first();
+    await expect(row).toBeVisible({ timeout: 30_000 });
     // The skeleton rows are rows too, and their cells never overflow.
     await expect(page.locator("[data-slot=skeleton]")).toHaveCount(0, {
       timeout: 60_000,
     });
 
-    const { overflowing, fitting } = await measureCells(page);
+    const { overflowing, fitting } = await measureCells(page, term);
     expect(
       overflowing.length,
-      "no clipped cell in the order list — has a column width or the viewport changed?"
+      "the seeded order's title must be too wide for its column"
     ).toBeGreaterThan(0);
 
     const cell = overflowing[0];
-    await page.locator("table tbody td").nth(cell.index).hover();
+    await row.locator("td").nth(cell.index).hover();
     // The tooltip waits out a delay, so hovering the whole way across a table does not flash one
     // tooltip per column.
     await expect(page.locator(TOOLTIP)).toBeVisible({ timeout: 5_000 });
@@ -73,7 +101,7 @@ test.describe("data table overflow tooltip", () => {
     if (fitting.length > 0) {
       await page.mouse.move(0, 0);
       await expect(page.locator(TOOLTIP)).toHaveCount(0);
-      await page.locator("table tbody td").nth(fitting[0]).hover();
+      await row.locator("td").nth(fitting[0]).hover();
       await page.waitForTimeout(1_500);
       await expect(page.locator(TOOLTIP)).toHaveCount(0);
     }

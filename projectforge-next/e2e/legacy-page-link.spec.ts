@@ -11,9 +11,6 @@ import { userFormat } from "./fixtures/format";
  * Read-only: the link is inspected, never followed. Leaving the Next dev server for `/react/...`
  * would land on its 404, since only Spring serves that app.
  */
-/** Existing demo data, the same book books-edit.spec.ts reads. Nothing is written here either. */
-const BOOK_ID = 316163;
-
 test.describe("legacy page link", () => {
   test("leads from the books list to /react/book", async ({
     loggedInPage: page,
@@ -28,13 +25,14 @@ test.describe("legacy page link", () => {
 
   test("leads from a book to its legacy edit page", async ({
     loggedInPage: page,
+    seededBook,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, `/book/${BOOK_ID}`);
+    await goto(page, `/book/${seededBook.id}`);
 
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", `/react/book/edit/${BOOK_ID}`);
+    ).toHaveAttribute("href", `/react/book/edit/${seededBook.id}`);
   });
 
   test("leads to Wicket for a page the React migration never reached", async ({
