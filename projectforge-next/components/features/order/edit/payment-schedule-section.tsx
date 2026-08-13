@@ -28,8 +28,9 @@ export function PaymentScheduleSection({ id }: { id: number | null }) {
   const order = useEntityDetail<OrderDetail>("order", id).data;
   const writeAccess = id == null || order?.writeAccess === true;
 
-  // Only positions that have a number can be referred to: the number is assigned on save, and an
-  // instalment pointing at nothing would be rejected by `AuftragDao`.
+  // Only positions that have a number can be referred to — an instalment pointing at nothing would be
+  // rejected by `AuftragDao`. A position added in this form already carries a provisional one, so it can
+  // be picked before the order is saved (see emptyPositionValues); the backend renumbers both together.
   const positions = useStore(form.store, (state: unknown) =>
     ((state as FormState).values.positionen ?? []).filter(
       (pos) => !pos.deleted && pos.number != null

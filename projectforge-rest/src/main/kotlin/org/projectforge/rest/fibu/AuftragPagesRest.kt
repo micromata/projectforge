@@ -120,17 +120,27 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
    *
    * A payment schedule points at a position by number as well, so a schedule referring to a position
    * that just got its number has to follow. The old number of a new position is the placeholder the
-   * client sent (0 for the first one, since the form has no numbers to give), which is why the mapping
-   * is built before anything is renumbered.
+   * client gave it — the next free one as far as the form can tell (see `nextPositionNumber` of the
+   * next frontend), so that an instalment can refer to a position before it is saved — which is why the
+   * mapping is built before anything is renumbered.
+   *
+   * The next free number is taken from the **stored** positions only: the placeholders are the client's
+   * guess and are about to be replaced, so counting them in would leave a gap for every new row (and,
+   * for a brand new order, start its positions above 1).
    */
   private fun assignNumbersToNewRows(order: AuftragDO) {
     val positions = order.positionen ?: return
-    var nextNumber = (positions.maxOfOrNull { it.number } ?: 0).toInt()
+    val storedNumbers = positions.filter { it.id != null }.map { it.number }.toSet()
+    var nextNumber = (storedNumbers.maxOrNull() ?: 0).toInt()
     val renumbered = mutableMapOf<Short, Short>()
     positions.filter { it.id == null }.forEach { position ->
       val oldNumber = position.number
       position.number = (++nextNumber).toShort()
-      renumbered[oldNumber] = position.number
+      // A placeholder colliding with a stored position's number is not mapped: the schedules pointing
+      // at that number mean the stored position, which keeps its number.
+      if (oldNumber != position.number && oldNumber !in storedNumbers) {
+        renumbered[oldNumber] = position.number
+      }
     }
     order.paymentSchedules?.forEach { schedule ->
       schedule.positionNumber?.let { positionNumber ->

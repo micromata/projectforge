@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useFieldArray } from "@/hooks/use-field-array";
-import { emptyPositionValues } from "../order-values";
+import { emptyPositionValues, nextPositionNumber } from "../order-values";
 import { useOrderSums } from "../use-order-sums";
 import { PositionRow } from "./position-row";
 import type { OrderPositionValues } from "../order-schema";
@@ -40,7 +40,13 @@ export function PositionsSection({ id }: { id: number | null }) {
       array={array}
       emptyText={t("fibu.auftrag.error.auftragHatKeinePositionen")}
       addLabel={writeAccess ? t("fibu.auftrag.tooltip.addPosition") : undefined}
-      onAdd={writeAccess ? () => array.add(emptyPositionValues()) : undefined}
+      // A new position is numbered here rather than only on save, so the payment schedule can refer to
+      // it right away (see emptyPositionValues); the backend renumbers it afterwards.
+      onAdd={
+        writeAccess
+          ? () => array.add(emptyPositionValues(nextPositionNumber(array.rows)))
+          : undefined
+      }
       row={(position, index) => {
         const invoiceInfo =
           position.id == null ? undefined : invoiceInfoById.get(position.id);

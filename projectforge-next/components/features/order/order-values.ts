@@ -107,9 +107,30 @@ export function emptyOrderValues(): OrderValues {
   return toFormValues({ id: null });
 }
 
-/** A fresh position, with the defaults its entity brings; the backend assigns the number on save. */
-export function emptyPositionValues(): OrderPositionValues {
-  return toPositionValues({});
+/**
+ * A fresh position, with the defaults its entity brings.
+ *
+ * The number is the form's own, provisional one, not the backend's: the payment schedule refers to a
+ * position **by number** (`PaymentScheduleDO.positionNumber`), so a position without one cannot be
+ * picked as an instalment's position — which used to leave the select of a new order empty. The backend
+ * still has the last word and renumbers every new row on save (`AuftragPagesRest.transformForDB`),
+ * carrying the schedules along; it just needs something to carry.
+ *
+ * @param number What [nextPositionNumber] yields for the rows the form currently holds.
+ */
+export function emptyPositionValues(number: number): OrderPositionValues {
+  return toPositionValues({ number });
+}
+
+/**
+ * The number the next position gets: one past the highest in the form, deleted and stored rows
+ * included — a number is what a schedule and the backend's collection handler identify a position by,
+ * so reusing one would re-point whatever still refers to it.
+ */
+export function nextPositionNumber(
+  positions: readonly OrderPositionValues[]
+): number {
+  return positions.reduce((max, pos) => Math.max(max, pos.number ?? 0), 0) + 1;
 }
 
 /** A fresh instalment of the payment schedule. */
