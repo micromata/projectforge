@@ -35,6 +35,7 @@ import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.PaymentScheduleDO
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.rest.fibu.AuftragPagesRest
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -176,6 +177,75 @@ class AuftragDtoTest : AbstractTestBase() {
         assertTrue(live?.none { it.number == 2.toShort() } == true)
     }
 
+    @Test
+    fun `a new instalment gets the number past the highest stored one, deleted rows included`() {
+        val order = createOrder()
+        // #1 is stored and marked deleted, #2 is stored, and the client adds one with the number it
+        // previewed in the row's header (nextScheduleNumber of the next frontend: 3).
+        order.paymentSchedules = mutableListOf(
+            schedule(order, id = 7L, number = 1, amount = "100.00", deleted = true),
+            schedule(order, id = 8L, number = 2, amount = "200.00"),
+            schedule(order, id = null, number = 3, amount = "300.00"),
+        )
+
+        AuftragPagesRest.assignNumbersToNewRows(order)
+
+        // The deleted row keeps its number — it is still in the database, and `payment#1` is its history
+        // key — so the new row is #3, exactly what the client showed.
+        assertEquals(listOf<Short>(1, 2, 3), order.paymentSchedules?.map { it.number })
+        assertEquals(listOf(true, false, false), order.paymentSchedules?.map { it.deleted })
+    }
+
+    @Test
+    fun `a gap in the stored instalment numbers is kept, not filled`() {
+        val order = createOrder()
+        order.paymentSchedules = mutableListOf(
+            schedule(order, id = 7L, number = 1, amount = "100.00"),
+            schedule(order, id = 9L, number = 5, amount = "500.00"),
+            schedule(order, id = null, number = 6, amount = "600.00"),
+        )
+
+        AuftragPagesRest.assignNumbersToNewRows(order)
+
+        // 2 to 4 belong to rows that were deleted, and reusing one would merge the new instalment with a
+        // deleted one's history. Both sides compute 6, which is what makes the preview trustworthy.
+        assertEquals(listOf<Short>(1, 5, 6), order.paymentSchedules?.map { it.number })
+    }
+
+    @Test
+    fun `the instalments of an order without positions are numbered as well`() {
+        // The positions branch used to return early, which left every new instalment of such an order at
+        // whatever number the client had guessed.
+        val order = createOrder()
+        order.positionen = null
+        order.paymentSchedules = mutableListOf(
+            schedule(order, id = null, number = 17, amount = "100.00"),
+        )
+
+        AuftragPagesRest.assignNumbersToNewRows(order)
+
+        assertEquals(listOf<Short>(1), order.paymentSchedules?.map { it.number })
+    }
+
+    @Test
+    fun `a new position is renumbered and the instalment pointing at it follows`() {
+        val order = createOrder()
+        // A new position with the placeholder #4 (one past the highest stored one), and an instalment
+        // pointing at it — the case a new order runs into: the schedule may only refer to a number.
+        order.positionen?.add(position(order, id = null, number = 4, netSum = "500.00"))
+        order.paymentSchedules = mutableListOf(
+            schedule(order, id = null, number = 2, amount = "500.00").also { it.positionNumber = 4 },
+        )
+
+        AuftragPagesRest.assignNumbersToNewRows(order)
+
+        // The stored positions keep 1..3, so the new one becomes #4 as well — and the instalment, being
+        // new too, is renumbered to #1, since no instalment is stored yet.
+        assertEquals(listOf<Short>(1, 2, 3, 4), order.positionen?.map { it.number })
+        assertEquals(4.toShort(), order.paymentSchedules?.first()?.positionNumber)
+        assertEquals(1.toShort(), order.paymentSchedules?.first()?.number)
+    }
+
     private fun createOrder(): AuftragDO {
         val order = AuftragDO()
         order.id = 4711L
@@ -204,9 +274,25 @@ class AuftragDtoTest : AbstractTestBase() {
         return order
     }
 
+    private fun schedule(
+        order: AuftragDO,
+        id: Long?,
+        number: Short,
+        amount: String,
+        deleted: Boolean = false,
+    ): PaymentScheduleDO {
+        return PaymentScheduleDO().also {
+            it.id = id
+            it.auftrag = order
+            it.number = number
+            it.amount = BigDecimal(amount)
+            it.deleted = deleted
+        }
+    }
+
     private fun position(
         order: AuftragDO,
-        id: Long,
+        id: Long?,
         number: Short,
         netSum: String,
         deleted: Boolean = false,

@@ -133,7 +133,30 @@ export function nextPositionNumber(
   return positions.reduce((max, pos) => Math.max(max, pos.number ?? 0), 0) + 1;
 }
 
-/** A fresh instalment of the payment schedule. */
-export function emptyScheduleValues(): PaymentScheduleValues {
-  return toScheduleValues({});
+/**
+ * A fresh instalment of the payment schedule, carrying the number it will be stored with.
+ *
+ * Numbered here rather than only on save for the same reason a position is: the header of a row shows
+ * its number, and a preview that differs from what the backend then assigns is worse than none.
+ *
+ * @param number What [nextScheduleNumber] yields for the rows the form currently holds.
+ */
+export function emptyScheduleValues(number: number): PaymentScheduleValues {
+  return toScheduleValues({ number });
+}
+
+/**
+ * The number the next instalment gets: one past the highest in the form, deleted and stored rows
+ * included — `PaymentScheduleDO`'s identity is `(number, auftrag)` and its history key is
+ * `payment#<number>`, so reusing one would merge a new row with a deleted row's past.
+ */
+export function nextScheduleNumber(
+  schedules: readonly PaymentScheduleValues[]
+): number {
+  return (
+    schedules.reduce(
+      (max, schedule) => Math.max(max, schedule.number ?? 0),
+      0
+    ) + 1
+  );
 }

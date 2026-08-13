@@ -3,7 +3,11 @@
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowTurnBackwardIcon,
+  Delete02Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -24,10 +28,23 @@ export interface RepeatableRowProps {
    * after the user confirmed — the row asks for itself.
    */
   onRemove?: () => void;
-  /** Accessible name of the remove button, naming the row it belongs to. */
+  /** Accessible name of the remove and the restore button, naming the row it belongs to. */
   removeLabel: string;
   /** Draws attention to rows that require action — e.g. an order position with outstanding invoicing. */
   highlighted?: boolean;
+  /**
+   * The row is soft-deleted and only shown because the user asked to see the deleted ones
+   * ([RepeatableList]): struck through, greyed, and its fields are not rendered at all.
+   *
+   * Not merely folded away — the fields bind to the form, and a row that is on its way out must not
+   * offer values to edit or a tab stop to reach them by.
+   */
+  deleted?: boolean;
+  /**
+   * Takes the row back. Only meaningful together with `deleted`, and absent where the user may not
+   * write — restoring is the harmless direction, so it needs no confirmation.
+   */
+  onRestore?: () => void;
 }
 
 /**
@@ -43,10 +60,35 @@ export function RepeatableRow({
   onRemove,
   removeLabel,
   highlighted,
+  deleted,
+  onRestore,
 }: RepeatableRowProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(defaultOpen ?? false);
   const [confirming, setConfirming] = useState(false);
+
+  if (deleted) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2">
+        <span className="min-w-0 flex-1 text-muted-foreground line-through">
+          {header}
+        </span>
+        {onRestore && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label={`${t("undelete")}: ${removeLabel}`}
+            onClick={onRestore}
+          >
+            <HugeiconsIcon icon={ArrowTurnBackwardIcon} size={14} />
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <Collapsible
       open={open}

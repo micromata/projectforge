@@ -31,6 +31,8 @@ export interface PositionRowProps {
   sums: OrderPositionSums | undefined;
   /** Absent when the position must not be removed — an invoice references it, or write access is missing. */
   onRemove?: () => void;
+  /** Takes a soft-deleted position back — see [RepeatableRow], which renders the deleted state. */
+  onRestore?: () => void;
   /** Whether the `vollstaendigFakturiert` checkbox may be shown (FIBU right, see AuftragEditForm). */
   invoiceWriteAccess: boolean;
   /**
@@ -56,6 +58,7 @@ export function PositionRow({
   prefix,
   sums,
   onRemove,
+  onRestore,
   invoiceWriteAccess,
   invoiceInfo,
 }: PositionRowProps) {
@@ -84,7 +87,9 @@ export function PositionRow({
         // A row just added is there to be filled in; a stored one stays folded, which is what makes an
         // order of a dozen positions readable at all.
         defaultOpen={position.id == null}
+        deleted={position.deleted}
         onRemove={onRemove}
+        onRestore={onRestore}
         removeLabel={
           position.titel ?? `${t("fibu.auftrag.position._")} ${index + 1}`
         }

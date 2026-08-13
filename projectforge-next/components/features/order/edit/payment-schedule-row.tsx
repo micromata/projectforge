@@ -15,12 +15,13 @@ import type { PaymentScheduleValues } from "../order-schema";
 
 export interface PaymentScheduleRowProps {
   schedule: PaymentScheduleValues;
-  index: number;
   /** Prefix of every field name of this row, e.g. `paymentSchedules[1].`. */
   prefix: string;
   /** The positions to pick from, as `{value, label}` — an instalment refers to one by its number. */
   positionOptions: { value: string; label: string }[];
   onRemove?: () => void;
+  /** Takes a soft-deleted instalment back — see [RepeatableRow], which renders the deleted state. */
+  onRestore?: () => void;
   /** Whether the `vollstaendigFakturiert` checkbox may be shown (FIBU right, as for a position). */
   invoiceWriteAccess: boolean;
 }
@@ -35,10 +36,10 @@ export interface PaymentScheduleRowProps {
  */
 export function PaymentScheduleRow({
   schedule,
-  index,
   prefix,
   positionOptions,
   onRemove,
+  onRestore,
   invoiceWriteAccess,
 }: PaymentScheduleRowProps) {
   const t = useTranslations();
@@ -56,7 +57,7 @@ export function PaymentScheduleRow({
         header={
           <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
             <span className="shrink-0 text-muted-foreground">
-              {schedule.number ?? index + 1}
+              {schedule.number}
             </span>
             <span className="shrink-0 tabular-nums">
               {formatDate(schedule.scheduleDate, format)}
@@ -80,8 +81,10 @@ export function PaymentScheduleRow({
           </span>
         }
         defaultOpen={schedule.id == null}
+        deleted={schedule.deleted}
         onRemove={onRemove}
-        removeLabel={`${t("fibu.auftrag.paymentschedule._")} ${schedule.number ?? index + 1}`}
+        onRestore={onRestore}
+        removeLabel={`${t("fibu.auftrag.paymentschedule._")} ${schedule.number}`}
       >
         <InputField
           name={name("scheduleDate")}

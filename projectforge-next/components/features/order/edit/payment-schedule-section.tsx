@@ -6,7 +6,7 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useFieldArray } from "@/hooks/use-field-array";
-import { emptyScheduleValues } from "../order-values";
+import { emptyScheduleValues, nextScheduleNumber } from "../order-values";
 import { PaymentScheduleRow } from "./payment-schedule-row";
 import type {
   OrderPositionValues,
@@ -50,14 +50,22 @@ export function PaymentScheduleSection({ id }: { id: number | null }) {
       addLabel={
         writeAccess ? t("fibu.auftrag.tooltip.addPaymentschedule") : undefined
       }
-      onAdd={writeAccess ? () => array.add(emptyScheduleValues()) : undefined}
+      // Numbered here already, as a position is: the number the row's header shows has to be the one it
+      // is stored with (see emptyScheduleValues).
+      onAdd={
+        writeAccess
+          ? () => array.add(emptyScheduleValues(nextScheduleNumber(array.rows)))
+          : undefined
+      }
       row={(schedule, index) => (
         <PaymentScheduleRow
           schedule={schedule}
-          index={index}
           prefix={array.fieldName(index, "")}
           positionOptions={positionOptions}
           onRemove={writeAccess ? () => array.remove(index) : undefined}
+          // Restoring is gated by the write access alone: it undoes a deletion the same user made in
+          // this form, and the row it brings back is the one that was already there.
+          onRestore={writeAccess ? () => array.restore(index) : undefined}
           invoiceWriteAccess={order?.vollstaendigFakturiertWriteAccess === true}
         />
       )}

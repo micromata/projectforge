@@ -112,47 +112,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     return auftragDO
   }
 
-  /**
-   * Numbers the rows the client added, leaving every stored row untouched: `number` is what the
-   * collection handler matches a posted row against its database row by, and `AuftragRight` looks a
-   * position up by number to protect `vollstaendigFakturiert` — renumbering an existing position would
-   * make both compare the wrong pairs.
-   *
-   * A payment schedule points at a position by number as well, so a schedule referring to a position
-   * that just got its number has to follow. The old number of a new position is the placeholder the
-   * client gave it — the next free one as far as the form can tell (see `nextPositionNumber` of the
-   * next frontend), so that an instalment can refer to a position before it is saved — which is why the
-   * mapping is built before anything is renumbered.
-   *
-   * The next free number is taken from the **stored** positions only: the placeholders are the client's
-   * guess and are about to be replaced, so counting them in would leave a gap for every new row (and,
-   * for a brand new order, start its positions above 1).
-   */
-  private fun assignNumbersToNewRows(order: AuftragDO) {
-    val positions = order.positionen ?: return
-    val storedNumbers = positions.filter { it.id != null }.map { it.number }.toSet()
-    var nextNumber = (storedNumbers.maxOrNull() ?: 0).toInt()
-    val renumbered = mutableMapOf<Short, Short>()
-    positions.filter { it.id == null }.forEach { position ->
-      val oldNumber = position.number
-      position.number = (++nextNumber).toShort()
-      // A placeholder colliding with a stored position's number is not mapped: the schedules pointing
-      // at that number mean the stored position, which keeps its number.
-      if (oldNumber != position.number && oldNumber !in storedNumbers) {
-        renumbered[oldNumber] = position.number
-      }
-    }
-    order.paymentSchedules?.forEach { schedule ->
-      schedule.positionNumber?.let { positionNumber ->
-        renumbered[positionNumber]?.let { schedule.positionNumber = it }
-      }
-    }
-    var nextScheduleNumber = (order.paymentSchedules?.maxOfOrNull { it.number } ?: 0).toInt()
-    order.paymentSchedules?.filter { it.id == null }?.forEach { schedule ->
-      schedule.number = (++nextScheduleNumber).toShort()
-    }
-  }
-
   override fun transformFromDB(obj: AuftragDO, editMode: Boolean): Auftrag {
     val auftrag = Auftrag()
     // Only the edit page needs the positions and the payment schedules, and only it can afford them:
@@ -674,6 +633,63 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   companion object {
+    /**
+     * Numbers the rows the client added, leaving every stored row untouched: `number` is what the
+     * collection handler matches a posted row against its database row by, and `AuftragRight` looks a
+     * position up by number to protect `vollstaendigFakturiert` — renumbering an existing position would
+     * make both compare the wrong pairs.
+     *
+     * A payment schedule points at a position by number as well, so a schedule referring to a position
+     * that just got its number has to follow. The old number of a new position is the placeholder the
+     * client gave it — the next free one as far as the form can tell (see `nextPositionNumber` of the
+     * next frontend), so that an instalment can refer to a position before it is saved — which is why
+     * the mapping is built before anything is renumbered.
+     *
+     * The next free number is taken from the **stored** positions only: the placeholders are the
+     * client's guess and are about to be replaced, so counting them in would leave a gap for every new
+     * row (and, for a brand new order, start its positions above 1). The payment schedules follow the
+     * same rule, because the client numbers a new instalment as well now — it shows that number in the
+     * row's header, and a preview differing from what is stored would be worse than none.
+     *
+     * A stored row that the client marked deleted still counts: its number stays taken (the row remains
+     * in the database, `UNIQUE(auftrag_id, number)`, and `payment#<number>` is its history key), so a
+     * number is never reused — a gap is the record of what was deleted, and the next frontend offers to
+     * bring such a row back (see `RepeatableList`).
+     *
+     * `internal` and in the companion object rather than a private method: it needs nothing of the
+     * instance, and this is what the numbering of a whole posted order can be tested through
+     * (`AuftragDtoTest`) without a Spring context.
+     */
+    internal fun assignNumbersToNewRows(order: AuftragDO) {
+      val positions = order.positionen
+      if (positions != null) {
+        val storedNumbers = positions.filter { it.id != null }.map { it.number }.toSet()
+        var nextNumber = (storedNumbers.maxOrNull() ?: 0).toInt()
+        val renumbered = mutableMapOf<Short, Short>()
+        positions.filter { it.id == null }.forEach { position ->
+          val oldNumber = position.number
+          position.number = (++nextNumber).toShort()
+          // A placeholder colliding with a stored position's number is not mapped: the schedules
+          // pointing at that number mean the stored position, which keeps its number.
+          if (oldNumber != position.number && oldNumber !in storedNumbers) {
+            renumbered[oldNumber] = position.number
+          }
+        }
+        order.paymentSchedules?.forEach { schedule ->
+          schedule.positionNumber?.let { positionNumber ->
+            renumbered[positionNumber]?.let { schedule.positionNumber = it }
+          }
+        }
+      }
+      // Outside the positions branch: an order may carry a payment schedule and no position of its own
+      // (the instalments then refer to nothing), and its new rows still need a number.
+      val schedules = order.paymentSchedules ?: return
+      var nextScheduleNumber = (schedules.filter { it.id != null }.maxOfOrNull { it.number } ?: 0).toInt()
+      schedules.filter { it.id == null }.forEach { schedule ->
+        schedule.number = (++nextScheduleNumber).toShort()
+      }
+    }
+
     /** Sort ids of the two `displayName` columns and the column each is ordered by. */
     private val DISPLAY_NAME_SORT_PROPERTIES = mapOf(
       "kunde.displayName" to "kunde.name",

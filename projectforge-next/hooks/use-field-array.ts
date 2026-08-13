@@ -22,6 +22,13 @@ export interface FieldArray<Row extends ArrayRow> {
   rows: Row[];
   /** `[row, index]` of the rows a user sees, i.e. everything not soft-deleted. */
   visible: [Row, number][];
+  /**
+   * `[row, index]` of the soft-deleted rows — what a restore affordance offers (see [restore]).
+   *
+   * Kept apart from [visible] rather than left to the caller: a row is identified by its index in the
+   * values, so pairing the two has to happen where the array is (see [fieldName]).
+   */
+  deleted: [Row, number][];
   /** Name prefix of the fields of one row, e.g. `positionen[2].` — what the field components bind to. */
   fieldName: (index: number, field: string) => string;
   /** Appends a row and returns its index. */
@@ -116,11 +123,12 @@ export function useFieldArray<Row extends ArrayRow>(
     [setRows]
   );
 
+  const indexed = rows.map((row, index) => [row, index] as [Row, number]);
+
   return {
     rows,
-    visible: rows
-      .map((row, index) => [row, index] as [Row, number])
-      .filter(([row]) => !row.deleted),
+    visible: indexed.filter(([row]) => !row.deleted),
+    deleted: indexed.filter(([row]) => row.deleted),
     fieldName: (index, field) => `${name}[${index}].${field}`,
     add,
     remove,

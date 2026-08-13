@@ -204,9 +204,9 @@ test.describe("order book", () => {
 
       // Reopen and remove the second position, then save again.
       await goto(page, `/order/${id}`);
-      await expect(positionRows(page)).toHaveCount(2);
+      await expect(positionRows(page, format)).toHaveCount(2);
       await removePosition(page, format, 1);
-      await expect(positionRows(page)).toHaveCount(1);
+      await expect(positionRows(page, format)).toHaveCount(1);
       await page
         .getByRole("button", { name: format.t("save"), exact: true })
         .click();
@@ -222,6 +222,75 @@ test.describe("order book", () => {
         [1, false],
         [2, true],
       ]);
+    } finally {
+      await removeOrder(page, id);
+    }
+  });
+
+  test("takes a deleted instalment back with its own number", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    let id: number | null = null;
+    try {
+      await goto(page, "/order/new");
+      await fillHead(page, format);
+      await addPosition(page, format, 0, { net: "1000", days: "3" });
+      await addSchedule(page, format, { amount: "400" });
+      await addSchedule(page, format, { amount: "600" });
+      await page
+        .getByRole("button", { name: format.t("save"), exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });
+      id = await findOrderId(page);
+      expect(id).not.toBe(null);
+
+      // Delete the *first* instalment and save — the case a user hit: the row is gone, and a new one
+      // would be #3, so #1 was unreachable for good.
+      await goto(page, `/order/${id}`);
+      await expect(scheduleRows(page, format)).toHaveCount(2);
+      await removeSchedule(page, format, 1);
+      await expect(scheduleRows(page, format)).toHaveCount(1);
+      await page
+        .getByRole("button", { name: format.t("save"), exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });
+
+      // Reopen: only the live row is listed, and the toggle says how many are hidden.
+      await goto(page, `/order/${id}`);
+      await expect(scheduleRows(page, format)).toHaveCount(1);
+      const reveal = page.getByRole("button", {
+        name: `${format.t("deleted")} (1)`,
+      });
+      await expect(
+        reveal,
+        "a deleted row has to be reachable, or its number is spent"
+      ).toBeVisible();
+      await reveal.click();
+      await page
+        .getByRole("button", {
+          name: `${format.t("undelete")}: ${format.t("fibu.auftrag.paymentschedule._")} 1`,
+          exact: true,
+        })
+        .click();
+      // Restored rows are live rows again, so the row count is what proves it took effect.
+      await expect(scheduleRows(page, format)).toHaveCount(2);
+      await page
+        .getByRole("button", { name: format.t("save"), exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/order$/, { timeout: 30_000 });
+
+      const stored = await fetchOrder(page, id!);
+      // The point of the whole exercise: #1 is back — the same row, with the number and therefore the
+      // history (`payment#1`) it always had. This is also what proves the backend writes `deleted = false`
+      // back for a kept row; nothing in `CollectionHandler` treats the flag specially on that path.
+      expect(
+        stored.paymentSchedules?.map((s) => [s.number, s.deleted === true])
+      ).toEqual([
+        [1, false],
+        [2, false],
+      ]);
+      expect(stored.paymentSchedules?.map((s) => s.amount)).toEqual([400, 600]);
     } finally {
       await removeOrder(page, id);
     }
@@ -358,10 +427,28 @@ function trigger(page: Page, name: string) {
 }
 
 /** The position rows currently shown — the soft-deleted ones are not rendered. */
-function positionRows(page: Page) {
+function positionRows(page: Page, format: UserFormat) {
+  return rowsOf(page, format, "fibu.auftrag.positions");
+}
+
+/** The instalments currently shown, the soft-deleted ones again excluded. */
+function scheduleRows(page: Page, format: UserFormat) {
+  return rowsOf(page, format, "fibu.auftrag.paymentschedule._");
+}
+
+/**
+ * The rows of the collection in the section with that title.
+ *
+ * By title rather than by the n-th section holding rows: a section whose rows are all deleted holds
+ * none, and every index after it would then point at the wrong collection. A deleted row is not a
+ * `Collapsible` at all — [RepeatableRow] renders it as a header only, so it has no field to tab into —
+ * which is what makes this the count of the live rows.
+ */
+function rowsOf(page: Page, format: UserFormat, titleKey: string) {
   return page
-    .locator("section", { has: page.locator('[data-slot="collapsible"]') })
-    .first()
+    .locator("section", {
+      has: page.getByText(format.t(titleKey), { exact: true }),
+    })
     .locator('[data-slot="collapsible"]');
 }
 
@@ -395,7 +482,7 @@ async function addPosition(
   await page
     .getByRole("button", { name: format.t("fibu.auftrag.tooltip.addPosition") })
     .click();
-  const row = positionRows(page).nth(index);
+  const row = positionRows(page, format).nth(index);
   await row
     .getByLabel(label(format, "fibu.auftrag.title"), { exact: true })
     .fill(`${TITLE} ${index + 1}`);
@@ -477,6 +564,25 @@ async function addSchedule(
 }
 
 /**
+ * Removes the instalment with that number and confirms the question, as [removePosition] does.
+ *
+ * By number, not by index: the number is what a user sees in the row's header and what the row is
+ * identified by afterwards — an instalment carries no title to name it with.
+ */
+async function removeSchedule(page: Page, format: UserFormat, number: number) {
+  await page
+    .getByRole("button", {
+      name: `${format.t("delete")}: ${format.t("fibu.auftrag.paymentschedule._")} ${number}`,
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: format.t("delete"), exact: true })
+    .click();
+}
+
+/**
  * Picks the first hit of an autocomplete and returns what it says, or null when nothing matched.
  *
  * The trigger is a popover button, so its handle is the `aria-label`; the search box inside is a
@@ -526,7 +632,12 @@ interface StoredOrder {
   nettoSumme?: number;
   personDays?: number;
   positionen?: { number: number; nettoSumme?: number; deleted?: boolean }[];
-  paymentSchedules?: { number: number; positionNumber?: number }[];
+  paymentSchedules?: {
+    number: number;
+    positionNumber?: number;
+    amount?: number;
+    deleted?: boolean;
+  }[];
 }
 
 /**
