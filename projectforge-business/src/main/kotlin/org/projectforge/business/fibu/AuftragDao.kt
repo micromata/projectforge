@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ge
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
@@ -100,6 +101,16 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
+
+    /**
+     * The order book is read newest first: the number is assigned on the first save
+     * ([getNextNumber]), so the highest one is the order entered last.
+     *
+     * Only used when the caller asks for no order of its own (see [BaseDao.select]); the Wicket list
+     * page adds the same order explicitly ([getList]).
+     */
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
 
     init {
         userRightId = USER_RIGHT_ID
@@ -640,6 +651,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         const val START_NUMBER: Int = 1
 
         private val log: Logger = LoggerFactory.getLogger(AuftragDao::class.java)
+
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(desc("nummer"))
 
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "contactPerson.username",
