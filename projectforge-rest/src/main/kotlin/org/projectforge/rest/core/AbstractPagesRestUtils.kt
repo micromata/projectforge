@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         getList(
     request: HttpServletRequest,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     baseDao: BaseDao<O>,
     magicFilter: MagicFilter
 )
@@ -64,7 +64,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
 
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         getObjectList(
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     baseDao: BaseDao<O>,
     magicFilter: MagicFilter
 )
@@ -87,7 +87,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -129,7 +129,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -153,7 +153,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -180,7 +180,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>
+    pagesRest: AbstractEntityRest<O, DTO, B>
 )
         : ResponseEntity<ResponseAction> {
     try {
@@ -202,7 +202,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {

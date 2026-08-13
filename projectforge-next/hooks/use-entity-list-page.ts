@@ -15,7 +15,7 @@ import {
 } from "@/components/data-table";
 import type { ColumnDef, ColumnPinningState } from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
-import { useInitialList } from "@/hooks/use-initial-list";
+import { useListMeta } from "@/hooks/use-list-meta";
 
 /**
  * A row of a list: addressable by id, and marked as deleted or not.
@@ -65,7 +65,7 @@ export function useEntityListPage<Row extends ListRow>({
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
-  const initialList = useInitialList(entity);
+  const meta = useListMeta(entity);
 
   const columnState = useTableState({
     restoredState: storedState,
@@ -135,7 +135,7 @@ export function useEntityListPage<Row extends ListRow>({
   });
 
   // Coming back to the list should show the filter it was left with, also without a reload — the
-  // cached initialList would otherwise still hold the old one. The filter already carries the
+  // cached listMeta would otherwise still hold the old one. The filter already carries the
   // favorite's id and name.
   useRememberFilter(entity, query.filter);
 
@@ -189,8 +189,8 @@ export function useEntityListPage<Row extends ListRow>({
     table,
     filters,
     favorites,
-    /** The legacy list page this one replaces (`ui.legacyUrl` of the list response). */
-    legacyUrl: initialList.data?.ui?.legacyUrl,
+    /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
+    legacyUrl: meta.data?.legacyListPage,
     data: query.data,
     /** What the backend aggregated over the result set, for a page that shows it (see PageDef.statistics). */
     statistics: query.statistics,

@@ -29,13 +29,12 @@ import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.Validation
 import org.projectforge.rest.dto.Book
-import org.projectforge.ui.*
+import org.projectforge.ui.ValidationError
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.annotation.PostConstruct
@@ -43,7 +42,7 @@ import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest : AbstractDTOPagesRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
+class BookPagesRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
 
   @PostConstruct
   private fun postConstruct() {
@@ -88,71 +87,5 @@ class BookPagesRest : AbstractDTOPagesRest<BookDO, Book, BookDao>(BookDao::class
     )
     if (baseDao.doesSignatureAlreadyExist(dto.signature, dto.id))
       validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
-  }
-
-  /**
-   * LAYOUT List page
-   */
-  override fun createListLayout(
-    request: HttpServletRequest,
-    layout: UILayout,
-    magicFilter: MagicFilter,
-    userAccess: UILayout.UserAccess
-  ) {
-    val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this, userAccess = userAccess)
-    table.add(
-      lc,
-      "created",
-      "yearOfPublishing",
-      "signature",
-      "authors",
-      "title",
-      "keywords",
-      "lendOutBy",
-      "attachmentsSizeFormatted",
-    )
-  }
-
-  /**
-   * LAYOUT Edit page
-   */
-  override fun createEditLayout(dto: Book, userAccess: UILayout.UserAccess): UILayout {
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(lc, "title", "authors")
-      .add(
-        UIRow()
-          .add(
-            UICol(6)
-              .add(
-                UIRow()
-                  .add(UICol(6).add(lc, "type"))
-                  .add(UICol(6).add(lc, "status"))
-              )
-              .add(lc, "yearOfPublishing", "signature")
-          )
-          .add(
-            UICol(6)
-              .add(lc, "isbn", "publisher", "editor")
-          )
-      )
-      .add(lc, "keywords")
-
-    if (dto.id != null) // Show lend out functionality only for existing books:
-      layout.add(
-        UIFieldset(title = "book.lending")
-          .add(UICustomized("book.lendOutComponent"))
-          .add(lc, "lendOutComment")
-      )
-    layout.add(
-      UIFieldset(title = "attachment.list")
-        .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
-    )
-    layout.add(lc, "abstractText", "comment")
-
-    layout.getInputById("title").focus = true
-    layout.getTextAreaById("authors").rows = 1
-    layout.addTranslations("book.lendOut")
-      .addTranslations("book.returnBook")
-    return LayoutUtils.processEditPage(layout, dto, this)
   }
 }

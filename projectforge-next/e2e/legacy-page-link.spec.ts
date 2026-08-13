@@ -2,37 +2,33 @@ import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 
 /**
- * The escape hatch back to the legacy React page (see LegacyPageLink).
+ * The escape hatch back to the legacy page (see LegacyPageLink).
  *
- * The url is the server's (`UILayout.legacyUrl` / `InitialListData.legacyEditPage`, both from
- * `NextMigration`), so what is checked here is that it arrives and is rendered as a real link out of
- * this app - not a client-side route, which would never load the other frontend.
+ * The url is the server's (`UILayout.legacyUrl` / `ListMetaData.legacyListPage` /
+ * `legacyEditPage`, all from `NextMigration`), so what is checked here is that it arrives and is
+ * rendered as a real link out of this app - not a client-side route, which would never load the
+ * other frontend.
  *
  * Read-only: the link is inspected, never followed. Leaving the Next dev server for `/react/...`
  * would land on its 404, since only Spring serves that app.
  */
 test.describe("legacy page link", () => {
-  test("leads from the books list to /react/book", async ({
-    loggedInPage: page,
-  }) => {
-    const { t } = await userFormat(page);
-    await goto(page, "/book");
-
-    const link = page.getByRole("link", { name: t("goreact.menu.classics") });
-    await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", "/react/book");
-  });
-
-  test("leads from a book to its legacy edit page", async ({
+  test("is absent for a page whose legacy counterpart is gone", async ({
     loggedInPage: page,
     seededBook,
   }) => {
     const { t } = await userFormat(page);
-    await goto(page, `/book/${seededBook.id}`);
-
+    // book is fully migrated: BookPagesRest extends AbstractDTOEntityRest and serves no layout, so
+    // its React page no longer exists and NextMigration answers with no legacy url at all.
+    await goto(page, "/book");
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", `/react/book/edit/${seededBook.id}`);
+    ).toHaveCount(0);
+
+    await goto(page, `/book/${seededBook.id}`);
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveCount(0);
   });
 
   test("leads to Wicket for a page the React migration never reached", async ({

@@ -37,7 +37,6 @@ import org.projectforge.business.password.PasswordQualityService
 import org.projectforge.business.user.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
@@ -81,9 +80,6 @@ class UserPagesRest
     UserDao::class.java, "user.title",
     cloneSupport = CloneSupport.CLONE,
 ) {
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var groupDao: GroupDao

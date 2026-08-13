@@ -395,8 +395,9 @@ internal class I18nKeysSourceAnalyzer {
      * -> registers usage for fibu.employee.title.add, .edit, .list, .heading
      */
     private fun findAbstractPagesRestKeys(file: File, content: String) {
-        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or AbstractPagesRest
-        val pattern = "Abstract(?:DTO|DO)?PagesRest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
+        // Pattern matches: AbstractDTOPagesRest<...>(..., "i18nKeyPrefix") or AbstractDOPagesRest or
+        // AbstractPagesRest, and their layout free counterparts Abstract(DTO|DO)?EntityRest.
+        val pattern = "Abstract(?:DTO|DO)?(?:Pages|Entity)Rest<[^>]+>\\s*\\([^,]+,\\s*\"([a-zA-Z0-9\\.]+)\""
         val baseKeys = find(content, pattern)
 
         // For each base key, register the 4 derived keys

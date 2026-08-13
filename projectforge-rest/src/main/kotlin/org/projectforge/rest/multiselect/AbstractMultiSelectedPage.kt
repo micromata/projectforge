@@ -105,7 +105,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
 
     abstract fun getTitleKey(): String
 
-    protected lateinit var pagesRest: AbstractPagesRest<*, *, *>
+    protected lateinit var pagesRest: AbstractEntityRest<*, *, *>
 
     /**
      * Create log subscription, if the user should view the log messages. At default it's disabled.

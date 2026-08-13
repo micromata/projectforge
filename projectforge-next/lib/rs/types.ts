@@ -385,6 +385,54 @@ export interface InitialListData extends DynamicPageResponse {
 }
 
 /**
+ * What `{entity}/listMeta` returns for a hand built list page (`rest/core/ListMetaData.kt`):
+ * everything the page needs beside its rows.
+ *
+ * The layout free counterpart of {@link InitialListData} — no `ui`, no translations and no result
+ * set, because the page renders itself and fetches its rows from `list`.
+ */
+export interface ListMetaData {
+  /** The filter the user left this page with, restored from their user prefs. */
+  filter?: MagicFilter;
+  filterFavorites?: FavoriteIdTitle[];
+  /**
+   * The filter fields of this entity, derived by the backend from the DAO's search fields — which is
+   * why they can't be declared in the frontend.
+   */
+  filterElements?: FilterElement[];
+  /** Url template of the page a row leads to, with `:id` for the id. */
+  standardEditPage?: string;
+  /**
+   * The way back to the legacy list page, e.g. `wa/orderBookList`. Absent for a page whose legacy
+   * counterpart is gone (see LegacyPageLink).
+   */
+  legacyListPage?: string;
+  /** The legacy edit page with `:id` for the id, e.g. `wa/orderBookEdit?id=:id`. */
+  legacyEditPage?: string;
+  /**
+   * The legacy page for adding an entry. Its own field, because dropping the id from
+   * `legacyEditPage` is a per-app rule (path segment vs. query parameter), not a suffix cut.
+   */
+  legacyNewEntryPage?: string;
+  userAccess?: UserAccess;
+  variables?: Record<string, unknown>;
+}
+
+/**
+ * What the logged-in user may do with an entity (`UILayout.UserAccess`). Every flag is optional:
+ * Spring omits the ones the backend left null (`JsonInclude.NON_NULL`).
+ */
+export interface UserAccess {
+  insert?: boolean;
+  update?: boolean;
+  delete?: boolean;
+  /** Whether the change history may be seen. */
+  history?: boolean;
+  /** Whether history entries may be commented (`BaseDao.supportsHistoryUserComments`). */
+  editHistoryComments?: boolean;
+}
+
+/**
  * Answer of `filter/create|rename|update|delete`: a map holding whichever of the
  * two values the endpoint touched. `filter/update` returns an empty map.
  */

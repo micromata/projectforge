@@ -37,7 +37,6 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -73,9 +72,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
     GroupDao::class.java, "group.title",
     cloneSupport = CloneSupport.CLONE,
 ) {
-
-    @Autowired
-    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var groupDOConverter: GroupDOConverter

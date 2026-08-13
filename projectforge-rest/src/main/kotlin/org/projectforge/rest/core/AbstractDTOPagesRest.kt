@@ -114,6 +114,6 @@ abstract class AbstractDTOPagesRest<
   }
 
   override fun isHistorizable(): Boolean {
-    return AbstractDOPagesRest.isHistorizable(baseDao.doClass)
+    return isHistorizable(baseDao.doClass)
   }
 }

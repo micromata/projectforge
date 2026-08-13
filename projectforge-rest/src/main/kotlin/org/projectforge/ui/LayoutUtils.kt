@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.ServerData
 
@@ -81,7 +81,7 @@ object LayoutUtils {
     @JvmStatic
     fun processListPage(
         layout: UILayout,
-        pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>
+        pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>
     ): UILayout {
         layout.layout.find { it is UIAgGrid }?.let { agGrid ->
             pagesRest.agGridSupport.restoreColumnsFromUserPref(pagesRest.category, agGrid as UIAgGrid)
@@ -118,7 +118,7 @@ object LayoutUtils {
     fun <O : ExtendedBaseDO<Long>> processEditPage(
         layout: UILayout,
         dto: Any,
-        pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>,
+        pagesRest: AbstractEntityRest<O, *, out BaseDao<O>>,
     )
             : UILayout {
         val userAccess = layout.userAccess
@@ -184,7 +184,7 @@ object LayoutUtils {
             layout.addTranslations("yes", "cancel")
         }
         if (pagesRest.getId(dto) != null) {
-            if (pagesRest.cloneSupport != AbstractPagesRest.CloneSupport.NONE) {
+            if (pagesRest.cloneSupport != AbstractEntityRest.CloneSupport.NONE) {
                 layout.addAction(
                     UIButton.createCloneButton(
                         ResponseAction(pagesRest.getRestPath(RestPaths.CLONE), targetType = TargetType.POST)
@@ -220,7 +220,7 @@ object LayoutUtils {
      * Will only be added, if user has delete access as well as the baseDao.isForceDeletionSupport == true.
      */
     private fun addForceDeleteButton(
-        pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
+        pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
         layout: UILayout,
         userAccess: UILayout.UserAccess,
     ) {

@@ -65,7 +65,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
     @Autowired
     protected lateinit var scriptExecution: ScriptExecution
 
-    protected abstract val pagesRest: AbstractPagesRest<*, *, *>
+    protected abstract val pagesRest: AbstractEntityRest<*, *, *>
 
     protected open val accessCheckOnExecute = true
 

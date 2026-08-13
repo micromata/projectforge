@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest.Companion.USER_PREF_PARAM_HIGHLIGHT_ROW
+import org.projectforge.rest.core.AbstractEntityRest.Companion.USER_PREF_PARAM_HIGHLIGHT_ROW
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.ResponseAction
 import org.springframework.http.ResponseEntity
@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * Helper for getting url of list and edit pages.
  */
 object PagesResolver {
-    private val pagesRegistry = mutableMapOf<String, AbstractPagesRest<*, *, *>>()
+    private val pagesRegistry = mutableMapOf<String, AbstractEntityRest<*, *, *>>()
 
     /**
      * The url of the edit page. For pages migrated to projectforge-next the route registered in
@@ -51,7 +51,7 @@ object PagesResolver {
      */
     @JvmStatic
     fun getEditPageUrl(
-        pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
+        pagesRestClass: Class<out AbstractEntityRest<*, *, *>>,
         id: Long? = null,
         params: Map<String, Any?>? = null,
         absolute: Boolean = false,
@@ -90,7 +90,7 @@ object PagesResolver {
     @JvmStatic
     @JvmOverloads
     fun getListPageUrl(
-        pagesRestClass: Class<out AbstractPagesRest<*, *, *>>,
+        pagesRestClass: Class<out AbstractEntityRest<*, *, *>>,
         params: Map<String, Any?>? = null,
         absolute: Boolean = false,
         forceAGGridReload: Boolean = false,
@@ -110,7 +110,7 @@ object PagesResolver {
     @JvmStatic
     @JvmOverloads
     fun getMultiSelectionPageUrl(
-        multiSelectedPageClass: Class<out AbstractPagesRest<*, *, *>>,
+        multiSelectedPageClass: Class<out AbstractEntityRest<*, *, *>>,
         absolute: Boolean = false
     ): String {
         return getBasePageUrl(multiSelectedPageClass, null, MultiSelectionSupport.getMultiSelectionParamMap(), absolute)
@@ -143,14 +143,14 @@ object PagesResolver {
         return "/${NextMigration.listUrl("calendar")}"
     }
 
-    fun register(category: String, pagesRest: AbstractPagesRest<*, *, *>) {
+    fun register(category: String, pagesRest: AbstractEntityRest<*, *, *>) {
         if (pagesRegistry.containsKey(category)) {
             throw IllegalArgumentException("Category name '$category' is already registered. Can't register ${pagesRest::class.java.name}.")
         }
         pagesRegistry[category] = pagesRest
     }
 
-    fun getPagesRest(category: String): AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? {
+    fun getPagesRest(category: String): AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? {
         return pagesRegistry[category]
     }
 

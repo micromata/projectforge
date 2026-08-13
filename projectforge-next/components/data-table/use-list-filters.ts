@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useInitialList } from "@/hooks/use-initial-list";
+import { useListMeta } from "@/hooks/use-list-meta";
 import { filterElementsOf } from "@/lib/rs/filter-elements";
 import type {
   FilterElement,
@@ -16,7 +16,7 @@ import {
 
 export interface UseListFiltersOptions {
   /**
-   * The filter the backend has stored for this user (from `initialList`). Its
+   * The filter the backend has stored for this user (from `listMeta`). Its
    * field entries seed the values, so coming back to the list shows the filter
    * the user left it with.
    *
@@ -53,7 +53,7 @@ export interface UseListFiltersResult {
  * The server-side filter fields of a list page and their current values.
  *
  * Which fields exist is decided by the backend per entity (derived from the DAO's
- * search fields), so they come from the list layout rather than from the frontend.
+ * search fields), so they come from `listMeta` rather than from the frontend.
  * The values are the caller's, because they feed the list query.
  *
  * Saved filters are a separate hook ([useFilterFavorites]): they need the filter
@@ -73,12 +73,9 @@ export function useListFilters(
       ? { id: restoredFilter.id, name: restoredFilter.name }
       : undefined
   );
-  const layout = useInitialList(entity);
+  const meta = useListMeta(entity);
 
-  const elements = useMemo(
-    () => filterElementsOf(layout.data?.ui),
-    [layout.data]
-  );
+  const elements = useMemo(() => filterElementsOf(meta.data), [meta.data]);
   const entries = useMemo(() => filterEntriesOf(values), [values]);
 
   return { elements, values, setValues, entries, favorite, setFavorite };

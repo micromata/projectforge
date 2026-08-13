@@ -25,14 +25,14 @@ package org.projectforge.rest.scripting
 
 import org.projectforge.business.scripting.ScriptDO
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 
 /**
  * Will be accessible by Groovy and Kotlin scripts for loading files.
  */
 class ScriptFileAccessor(
   private val attachmentsService: AttachmentsService,
-  private val scriptPagesRest: AbstractPagesRest<*, *, *>,
+  private val scriptPagesRest: AbstractEntityRest<*, *, *>,
   private val scriptDO: ScriptDO,
 ) {
   val attachments =

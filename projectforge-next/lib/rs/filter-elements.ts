@@ -1,31 +1,21 @@
-import type {
-  DynamicLayoutNode,
-  DynamicUIResponse,
-  FilterElement,
-} from "./types";
-
-/** Container id the backend uses for a list page's filter fields. */
-const SEARCH_FILTER_CONTAINER = "searchFilter";
+import type { FilterElement, ListMetaData } from "./types";
 
 /**
- * The filter fields a list page offers, read out of the layout's `searchFilter`
- * container.
+ * The filter fields a list page offers, taken from its `listMeta`.
  *
  * The set is derived per entity from the DAO's search fields
  * (LayoutListFilterUtils.createNamedSearchFilterContainer), so it can't be
  * hard-coded in the frontend.
+ *
+ * The backend types the list as `UILabelledElement`, so an entry that isn't a
+ * filter field is possible on the wire and is dropped here.
  */
 export function filterElementsOf(
-  ui: DynamicUIResponse | undefined
+  meta: ListMetaData | undefined
 ): FilterElement[] {
-  const container = ui?.namedContainers?.find(
-    (c) => c.id === SEARCH_FILTER_CONTAINER
-  );
-  return (container?.content ?? []).filter(isFilterElement);
+  return (meta?.filterElements ?? []).filter(isFilterElement);
 }
 
-function isFilterElement(
-  node: DynamicLayoutNode
-): node is DynamicLayoutNode & FilterElement {
-  return node.type === "FILTER_ELEMENT" && typeof node.id === "string";
+function isFilterElement(element: FilterElement): boolean {
+  return element.type === "FILTER_ELEMENT" && typeof element.id === "string";
 }

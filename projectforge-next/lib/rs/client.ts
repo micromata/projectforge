@@ -2,6 +2,7 @@ import type {
   DynamicPageResponse,
   FilterFavoritesResponse,
   InitialListData,
+  ListMetaData,
   MagicFilter,
   MenuData,
   ResultSet,
@@ -192,20 +193,12 @@ export function fetchOne<O>(
  * is only known once the customer has decided), the logged-in project manager in as contact person and
  * `IN_ERSTELLUNG` as its status — and `AuftragDao` refuses to save an order without one.
  *
- * `{entity}/edit` without an id is the endpoint that answers it (`AbstractPagesRest.getItemAndLayout`
- * calls `newBaseDTO` when the id is missing). Only `data` is taken from the answer: the `ui` beside it
- * is the server-rendered layout, which a hand-built page has no use for.
+ * `{entity}/newEntry` answers with that preset and nothing else
+ * (`AbstractEntityRest.getNewEntry`). Its predecessor `{entity}/edit` wrapped it in the
+ * server-rendered edit layout, which a hand-built page has no use for.
  */
-export async function fetchNew<O>(
-  entity: string,
-  signal?: AbortSignal
-): Promise<O> {
-  const answer = await request<{ data: O }>(
-    `/rs/${entity}/edit`,
-    { method: "GET" },
-    signal
-  );
-  return answer.data;
+export function fetchNew<O>(entity: string, signal?: AbortSignal): Promise<O> {
+  return request<O>(`/rs/${entity}/newEntry`, { method: "GET" }, signal);
 }
 
 // Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the
@@ -255,17 +248,19 @@ export async function logout(signal?: AbortSignal): Promise<unknown> {
 // --- Saved list filters (AbstractPagesRest "filter/*", stored in the user's prefs) ---
 
 /**
- * Applies a saved filter and returns the whole list page state for it.
+ * Applies a saved filter and returns the list page state for it.
  *
- * The endpoint also makes it the user's current filter server-side, so the answer
- * is an InitialListData — the same payload initialList delivers.
+ * The endpoint also makes it the user's current filter server-side, so the answer is the same payload
+ * the page loaded initially: [ListMetaData] for a hand built page, `InitialListData` for one rendered
+ * from a `UILayout` (see `AbstractPagesRest.selectFavoriteFilter`). Only the fields both share are
+ * read here.
  */
 export function selectFilterFavorite(
   entity: string,
   id: number,
   signal?: AbortSignal
-): Promise<InitialListData> {
-  return request<InitialListData>(
+): Promise<FilterFavoritesResponse> {
+  return request<FilterFavoritesResponse>(
     `/rs/${entity}/filter/select?id=${id}`,
     { method: "GET" },
     signal
@@ -338,6 +333,24 @@ export function fetchInitialList(
 ): Promise<InitialListData> {
   return request<InitialListData>(
     `/rs/${category}/initialList`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Everything a hand built list page needs beside its rows: the filter fields of the entity, the filter
+ * the user left the page with, and their saved filters (`AbstractEntityRest.requestListMeta`).
+ *
+ * The layout free counterpart of {@link fetchInitialList}, which additionally builds the whole page
+ * layout and — for a client that fetches the rows itself — the whole result set.
+ */
+export function fetchListMeta(
+  entity: string,
+  signal?: AbortSignal
+): Promise<ListMetaData> {
+  return request<ListMetaData>(
+    `/rs/${entity}/listMeta`,
     { method: "GET" },
     signal
   );

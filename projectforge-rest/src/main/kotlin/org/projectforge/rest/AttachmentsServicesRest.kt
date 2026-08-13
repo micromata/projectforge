@@ -44,7 +44,7 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
@@ -486,7 +486,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     internal fun getPagesRest(
         category: String,
         listId: String?
-    ): AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>> {
+    ): AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>> {
         val pagesRest = PagesResolver.getPagesRest(category)
             ?: throw UnsupportedOperationException("PagesRest class for category '$category' not known (registered).")
         pagesRest.attachmentsAccessChecker.let {
@@ -516,13 +516,13 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
     }
 
     internal fun getAttachment(
-        pagesRest: AbstractPagesRest<*, *, *>,
+        pagesRest: AbstractEntityRest<*, *, *>,
         data: AttachmentsServicesRest.AttachmentData
     ): Attachment {
         return getAttachment(pagesRest.jcrPath!!, pagesRest.attachmentsAccessChecker, data)
     }
 
-    internal fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Long): ExtendedBaseDO<Long> {
+    internal fun getDataObject(pagesRest: AbstractEntityRest<*, *, *>, id: Long): ExtendedBaseDO<Long> {
         return pagesRest.baseDao.find(id)
             ?: throw TechnicalException(
                 "Entity with id $id not accessible for category '$pagesRest.category' or doesn't exist.",
@@ -545,7 +545,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
         val fileObject: FileObject? = null,
         val attachment: Attachment? = null,
         val obj: ExtendedBaseDO<Long>? = null,
-        val pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? = null,
+        val pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>? = null,
     )
 
     companion object {

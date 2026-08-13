@@ -1132,7 +1132,7 @@ Das **Auftragsbuch** ist der Referenz-Härtefall:
   (Projekt→Kunde/PM/HOBM/SM), Forecast-Typen, Period-of-Performance. Dem
   `UILayout`-DSL fehlt das Primitive „wiederholbare, geschachtelte editierbare
   Sub-Entität mit Live-Server-Neuberechnung".
-- **Vorgehen:** handgebaute Next-Seite (`components/features/orders/`) mit RHF+Zod
+- **Vorgehen:** handgebaute Next-Seite (`components/features/order/`) mit RHF+Zod
   gegen ein **echtes, geschachteltes Order-DTO** (heute `Auftrag.kt` `positionen`
   als rohe `MutableList<AuftragsPositionDO>`). Neue/erweiterte REST-Endpunkte für
   Positions-CRUD + Live-Kalkulation (Backend-Logik `AuftragDao`/`AuftragsCache`

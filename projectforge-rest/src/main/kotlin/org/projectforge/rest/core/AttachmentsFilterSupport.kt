@@ -60,7 +60,7 @@ object AttachmentsFilterSupport {
    * Whether this list page can offer the filter: the entity has to support attachments
    * ([AbstractPagesRest.enableJcr]) and its data object has to store their number.
    */
-  fun supported(pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>): Boolean {
+  fun supported(pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>): Boolean {
     return pagesRest.jcrPath != null && AttachmentsInfo::class.java.isAssignableFrom(pagesRest.baseDao.doClass)
   }
 

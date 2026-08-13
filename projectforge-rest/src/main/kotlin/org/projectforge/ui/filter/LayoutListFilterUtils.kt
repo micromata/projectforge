@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.AttachmentsFilterSupport
 import org.projectforge.ui.*
 
@@ -44,7 +44,7 @@ val PAGINATION_PAGE_SIZES = intArrayOf(25, 50, 100, 200, 500, 1000)
  */
 object LayoutListFilterUtils {
     fun createNamedSearchFilterContainer(
-        pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
+        pagesRest: AbstractEntityRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
         lc: LayoutContext
     ): UINamedContainer {
         val container = UINamedContainer("searchFilter")

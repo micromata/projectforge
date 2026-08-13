@@ -79,7 +79,7 @@ export function ListGearMenu({
     onFilterReset();
     // The server dropped the stored filter and grid state with it, so the cached copies of both
     // would otherwise come back on the next mount.
-    await queryClient.invalidateQueries({ queryKey: ["initialList", entity] });
+    await queryClient.invalidateQueries({ queryKey: ["listMeta", entity] });
     await queryClient.invalidateQueries({
       queryKey: ["columnStates", `/rs/${entity}/columnStates`],
     });

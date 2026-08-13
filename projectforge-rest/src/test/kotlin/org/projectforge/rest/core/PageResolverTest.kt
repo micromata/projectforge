@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -107,23 +108,24 @@ class PageResolverTest {
     }
 
     /**
-     * The layout of a migrated page is still served to the legacy React app (bookmark, browser
-     * history). The row click url therefore follows the frontend that asked - a user on `/react/book`
-     * must not be thrown into projectforge-next by clicking a row.
+     * As long as a page's layout is still served to the legacy React app (bookmark, browser history),
+     * the row click url follows the frontend that asked - a user on `/react/cost1` must not be thrown
+     * into projectforge-next by clicking a row. `book` no longer takes part: it extends
+     * AbstractDTOEntityRest, which serves no layout at all, so there is no React page to stay on.
      */
     @Test
     fun editPagePerFrontendTest() {
-        val bookPagesRest = BookPagesRest()
-        assertEquals("react/book/edit/:id", bookPagesRest.getEditPage(requestOf(null)))
-        assertEquals("next/book/:id", bookPagesRest.getEditPage(requestOf(Constants.NEXT)))
-        // The Referer is the fallback of RestAuthenticationUtils.isNextClient (the static export is
-        // served under /next/).
-        assertEquals("next/book/:id", bookPagesRest.getEditPage(requestOf(null, referer = "https://pf/next/book")))
         // Migrated from Wicket: the caller is still the React app, so it gets the React page - the
         // Wicket page renders server side and never asks here for a layout.
         val kost1PagesRest = Kost1PagesRest()
         assertEquals("react/cost1/edit/:id", kost1PagesRest.getEditPage(requestOf(null)))
         assertEquals("next/cost1/:id", kost1PagesRest.getEditPage(requestOf(Constants.NEXT)))
+        // The Referer is the fallback of RestAuthenticationUtils.isNextClient (the static export is
+        // served under /next/).
+        assertEquals(
+            "next/cost1/:id",
+            kost1PagesRest.getEditPage(requestOf(null, referer = "https://pf/next/cost1")),
+        )
         // Not migrated: there is only one frontend, so the caller makes no difference.
         val addressPagesRest = AddressPagesRest()
         assertEquals(
@@ -150,9 +152,11 @@ class PageResolverTest {
      */
     @Test
     fun legacyPageTest() {
-        assertEquals("react/book", NextMigration.legacyListUrl("book"))
-        assertEquals("react/book/edit/:id", NextMigration.legacyEditPage("book"))
-        assertEquals("react/book/edit", NextMigration.legacyNewEntryUrl("book"))
+        // book has no way back: its React page is gone (BookPagesRest serves no layout), so
+        // projectforge-next offers no legacy link for it.
+        assertNull(NextMigration.legacyListUrl("book"))
+        assertNull(NextMigration.legacyEditPage("book"))
+        assertNull(NextMigration.legacyNewEntryUrl("book"))
         // Not migrated: the legacy page is the page itself.
         assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
         assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))

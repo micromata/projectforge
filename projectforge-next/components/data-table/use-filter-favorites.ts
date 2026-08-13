@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useInitialList } from "@/hooks/use-initial-list";
+import { useListMeta } from "@/hooks/use-list-meta";
 import {
   createFilterFavorite,
   deleteFilterFavorite,
@@ -13,7 +13,7 @@ import {
 import type {
   FavoriteIdTitle,
   FilterFavoritesResponse,
-  InitialListData,
+  ListMetaData,
   MagicFilter,
 } from "@/lib/rs/types";
 import { filterFingerprint } from "./filter-value";
@@ -21,10 +21,10 @@ import type { FavoriteRef } from "./use-list-filters";
 
 /**
  * The user's saved filters for one list, kept where the backend keeps them
- * (AbstractPagesRest `filter/*`, user prefs) — so they follow the user across
+ * (AbstractEntityRest `filter/*`, user prefs) — so they follow the user across
  * devices, and are the same favorites the legacy frontend shows.
  *
- * The list itself lives in the `initialList` query cache rather than in state of
+ * The list itself lives in the `listMeta` query cache rather than in state of
  * its own: that is where it arrives, and every endpoint here returns the updated
  * list, so patching the cache keeps one source of truth.
  */
@@ -74,12 +74,12 @@ export function useFilterFavorites({
   const queryClient = useQueryClient();
   // Through the query, not queryClient.getQueryData: reading the cache directly
   // doesn't subscribe, so a renamed or deleted favorite wouldn't re-render.
-  const layout = useInitialList(entity);
+  const layout = useListMeta(entity);
 
   const currentId = current?.id;
 
   // What the favorite has stored, to tell "modified" from "up to date". Only known
-  // for a favorite that was applied or written in this session: initialList carries
+  // for a favorite that was applied or written in this session: listMeta carries
   // the favorites' names, not their values (Favorites.idTitleList). Unknown means
   // modified, so saving stays reachable — the legacy frontend goes further and
   // hardcodes it (SearchFilter.jsx passes isModified unconditionally).
@@ -90,8 +90,8 @@ export function useFilterFavorites({
   const patchList = useCallback(
     (response: FilterFavoritesResponse) => {
       if (!response.filterFavorites) return;
-      queryClient.setQueryData<InitialListData>(
-        ["initialList", entity],
+      queryClient.setQueryData<ListMetaData>(
+        ["listMeta", entity],
         (previous) =>
           previous
             ? { ...previous, filterFavorites: response.filterFavorites }

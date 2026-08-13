@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
-import { useInitialList } from "@/hooks/use-initial-list";
+import { useListMeta } from "@/hooks/use-list-meta";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
 /**
@@ -21,8 +21,9 @@ export default function TaskTreePage() {
   const t = useTranslations();
   // A task is edited on its legacy page — that one isn't migrated. The template (`:id` for the id)
   // comes from the backend, because whether the id is a path segment or a query parameter depends on
-  // which app serves the page. `task` is the entity of TaskPagesRest; `taskTree` is no category.
-  const editUrlTemplate = useInitialList("task").data?.legacyEditPage;
+  // which app serves the page. `task` is the entity of TaskPagesRest; `taskTree` is no category — and
+  // `listMeta` is served by every entity rest class, migrated or not.
+  const editUrlTemplate = useListMeta("task").data?.legacyEditPage;
 
   return (
     <PageShell>
