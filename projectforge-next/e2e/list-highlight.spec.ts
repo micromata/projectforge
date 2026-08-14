@@ -1,6 +1,11 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat } from "./fixtures/format";
-import { createBook, MARKER, type SeededBook } from "./fixtures/seed";
+import {
+  createBook,
+  MARKER,
+  uniqueSuffix,
+  type SeededBook,
+} from "./fixtures/seed";
 import type { ResultSet } from "../lib/rs/types";
 
 /**
@@ -22,9 +27,12 @@ import type { ResultSet } from "../lib/rs/types";
  */
 test.describe("list highlight", () => {
   let book: SeededBook;
+  /** A second book, for the cancel case — see [cancelAndReturnToList]. */
+  let cancelledBook: SeededBook;
 
   test.beforeAll(async ({ seedRequest }) => {
     book = await createBook(seedRequest);
+    cancelledBook = await createBook(seedRequest, `${uniqueSuffix()}c`);
   });
 
   // A criterion left behind by another run would hide the book, and only a row the list holds can be
@@ -65,6 +73,35 @@ test.describe("list highlight", () => {
       { timeout: 30_000 }
     );
     await page.getByRole("button", { name: t("save") }).click();
+    await expect(page).toHaveURL(/\/book\/?$/, { timeout: 30_000 });
+    return (await (await listResponse).json()) as ResultSet<{ id: number }>;
+  }
+
+  /**
+   * Opens a book and leaves it through cancel, then answers with the list's response.
+   *
+   * Cancel is worth its own case because it writes nothing: the marked id comes from the extra call
+   * the page makes to `/rs/book/cancel` (`onCancelEdit` → `onAfterEdit`), so a page that merely
+   * navigated back would leave the previously marked entry in place.
+   */
+  async function cancelAndReturnToList(
+    page: Parameters<typeof userFormat>[0],
+    target: SeededBook
+  ): Promise<ResultSet<{ id: number }>> {
+    const { t } = await userFormat(page);
+    await goto(page, `/book/${target.id}`);
+    await expect(page.getByRole("textbox", { name: /titel/i })).toHaveValue(
+      target.title
+    );
+
+    const listResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/rs/book/list") &&
+        response.request().method() === "POST" &&
+        response.status() === 200,
+      { timeout: 30_000 }
+    );
+    await page.getByRole("button", { name: t("cancel") }).click();
     await expect(page).toHaveURL(/\/book\/?$/, { timeout: 30_000 });
     return (await (await listResponse).json()) as ResultSet<{ id: number }>;
   }
@@ -119,5 +156,26 @@ test.describe("list highlight", () => {
     await expect(
       page.locator(`tbody tr[data-row-id="${book.id}"]`)
     ).toBeInViewport({ timeout: 30_000 });
+  });
+
+  test("marks the row an edit was cancelled on", async ({
+    loggedInPage: page,
+  }) => {
+    test.setTimeout(120_000);
+    // Another entry is marked first, so the assertion below cannot pass on a leftover: the pref is
+    // never cleared, so without this a cancel that reported nothing would still be answered with
+    // *some* id — just the wrong one.
+    const saved = await saveAndReturnToList(page);
+    expect(saved.highlightRowId).toBe(book.id);
+
+    const result = await cancelAndReturnToList(page, cancelledBook);
+    expect(
+      result.highlightRowId,
+      "cancelling must move the marker to the entry it was cancelled on"
+    ).toBe(cancelledBook.id);
+
+    const row = page.locator(`tbody tr[data-row-id="${cancelledBook.id}"]`);
+    await expect(row).toHaveClass(/row-highlighted/, { timeout: 30_000 });
+    await expect(row).toBeInViewport({ timeout: 30_000 });
   });
 });

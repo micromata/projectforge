@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { fetchNew, fetchOne } from "@/lib/rs/client";
 import {
+  cancelEntityEdit,
   markEntityAsDeleted,
   postEntityAction,
   saveOrUpdateEntity,
@@ -90,6 +91,26 @@ export function useEntityAction<T extends EntityWithId>(
     onSuccess: (result, { data }) => {
       if (result.kind !== "ok") return;
       invalidateEntity(qc, entity, result.id ?? data.id, listQueryKey);
+    },
+  });
+}
+
+/**
+ * Tells the backend the edit was cancelled, so the list can mark the entry the user came from.
+ *
+ * The entity is not written (see `cancelEntityEdit`), so only the list is invalidated — and it has
+ * to be: the id the list marks travels with its response, and a cached one still names the entry
+ * before this.
+ */
+export function useCancelEntityEdit<T extends EntityWithId>(
+  entity: string,
+  { listQueryKey }: WriteOptions
+) {
+  const qc = useQueryClient();
+  return useMutation<EntityWriteResult, Error, T>({
+    mutationFn: (data) => cancelEntityEdit(entity, data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: listQueryKey });
     },
   });
 }

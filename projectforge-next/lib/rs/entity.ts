@@ -70,6 +70,21 @@ export function undeleteEntity<D extends object>(
 }
 
 /**
+ * Tells the backend that editing was cancelled — nothing is written.
+ *
+ * Worth a call even though it changes no data: `onCancelEdit` runs the same `onAfterEdit` as a save
+ * does (see AbstractEntityRest), which remembers the entry as the one edited last, so the list can
+ * mark it. The answer is a plain redirect the hand built pages have no use for.
+ */
+export function cancelEntityEdit<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/cancel`, "POST", data, signal);
+}
+
+/**
  * Action of an entity page that writes the entity as a side effect — `book/lendOut` and
  * `book/returnBook` (BookServicesRest) are the case: they change a few fields server-side and
  * then run through the very same `saveOrUpdate`, so the *whole* posted entity is persisted.

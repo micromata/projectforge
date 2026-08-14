@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { EditPageShell } from "@/components/shared/edit-page-shell";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import {
+  useCancelEntityEdit,
   useDeleteEntity,
   useEntityAction,
   useEntityDetail,
@@ -58,6 +59,7 @@ export function EntityEditPage<
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
+  const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
   // Adding an entry starts in the first field; editing one leaves the focus alone.
   const formRef = useFocusFirstField<HTMLFormElement>(id == null);
@@ -83,6 +85,21 @@ export function EntityEditPage<
         : saveMutation.mutateAsync(data);
     },
   });
+
+  /**
+   * Leaves the page without saving — and tells the backend so, which is what makes the list mark the
+   * entry the user was looking at (`onCancelEdit`, same as after a save).
+   *
+   * Awaited, so the list is refetched with the id already remembered; a cancel the server never
+   * answers must still leave the page, hence the caught error. A new entry has no id to mark and
+   * nothing to report, so it skips the call.
+   */
+  async function runCancel(): Promise<void> {
+    if (id != null && data) {
+      await cancelMutation.mutateAsync(data).catch(() => undefined);
+    }
+    router.push(page.route);
+  }
 
   async function runDelete(): Promise<void> {
     if (!data) return;
@@ -145,7 +162,7 @@ export function EntityEditPage<
           ))}
           actions={
             <EntityEditActions
-              onCancel={() => router.push(page.route)}
+              onCancel={() => void runCancel()}
               saveOption={edit.saveOption && <edit.saveOption />}
               // Nothing to delete before the first save. On `id` rather than on `data`: a new entry
               // has data too — the preset the backend answers `fetchNew` with (see useEntityDetail).
