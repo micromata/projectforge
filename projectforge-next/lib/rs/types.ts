@@ -74,7 +74,7 @@ export interface ResultSet<O> {
   resultInfo?: string;
   /**
    * Aggregates over the whole result set, in the shape the entity's rest class defines
-   * (`AuftragPagesRest.OrderStatistics` for the order book) — see `ResultSet.statistics` there.
+   * (`OrderEntityRest.OrderStatistics` for the order book) — see `ResultSet.statistics` there.
    *
    * `unknown` because the shape belongs to the entity: the page that declares the component rendering
    * it is the one place that knows the type, and narrows there.

@@ -193,7 +193,7 @@ class TaskServicesRest {
 
         private fun filterKeySuffix(select: Boolean) = if (select) FILTER_SUFFIX_SELECT else null
 
-        /** REST category of the order book (`AuftragPagesRest`), whose page an order link leads to. */
+        /** REST category of the order book (`OrderEntityRest`), whose page an order link leads to. */
         private const val ORDER_CATEGORY = "order"
 
         /** The groups that may see which orders are booked against a task, as `TaskTreePage` has it. */

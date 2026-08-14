@@ -33,13 +33,12 @@ test.describe.configure({ timeout: 120_000 });
 
 test.describe("order book", () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
-    // Both are stored per user, so a criterion or a hidden column left behind by another run — or by
-    // someone working with the account — would otherwise decide what these tests see.
-    for (const path of ["/rs/order/filter/reset", "/rs/order/resetGridState"]) {
-      await page.request
-        .get(path, { headers: { "X-PF-Frontend": "next" } })
-        .catch(() => undefined);
-    }
+    // The filter and the grid state are stored per user, so a criterion or a hidden column left behind
+    // by another run — or by someone working with the account — would otherwise decide what these tests
+    // see. One call resets both: `AbstractEntityRest.resetListFilter` drops the grid state as well.
+    await page.request
+      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .catch(() => undefined);
   });
 
   test("shows the declared columns under the labels of AuftragDO", async ({
@@ -78,7 +77,7 @@ test.describe("order book", () => {
     await goto(page, "/order");
     await waitForList(page, t);
 
-    // `fakturiert` is one of the four synthetic filters of `AuftragPagesRest` — a criterion with no
+    // `fakturiert` is one of the four synthetic filters of `OrderEntityRest` — a criterion with no
     // column behind it, whose options the layout carries. The chip is named "Filter <x> bearbeiten".
     await page
       .locator(

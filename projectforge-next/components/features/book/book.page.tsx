@@ -42,7 +42,7 @@ export const BOOK_PAGE = definePage<
   titleKey: "book.title.list",
   addTitleKey: "book.title.add",
   searchPlaceholderKey: "books.searchPlaceholder",
-  // The columns of BookPagesRest.createListLayout, in its order.
+  // The columns of BookEntityRest.createListLayout, in its order.
   columns: [
     { name: "created", size: 130 },
     {
@@ -124,7 +124,7 @@ export const BOOK_PAGE = definePage<
       },
       {
         id: "attachments",
-        // The title BookPagesRest gives the attachment fieldset, reused rather than written again.
+        // The title BookEntityRest gives the attachment fieldset, reused rather than written again.
         titleKey: "attachment.list",
         render: ({ id }) => <AttachmentSection bookId={id} />,
       },

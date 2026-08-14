@@ -46,8 +46,9 @@ import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.rest.AttachmentsServicesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.fibu.AuftragPagesRest
+import org.projectforge.rest.fibu.OrderEntityRest
 import org.projectforge.web.URLHelper
 import org.projectforge.web.WicketSupport
 import org.projectforge.web.task.TaskSelectPanel
@@ -393,11 +394,11 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
             // attachments
             var attachments = ""
             if ((data?.attachmentsCounter ?: 0) > 0) {
-                val auftragPagesRest = WicketSupport.get(AuftragPagesRest::class.java)
+                val orderRest = WicketSupport.get(OrderEntityRest::class.java)
                 attachments = WicketSupport.get(AttachmentsService::class.java).getAttachments(
-                    auftragPagesRest.jcrPath!!,
+                    orderRest.jcrPath!!,
                     data!!.id!!,
-                    auftragPagesRest.attachmentsAccessChecker
+                    orderRest.attachmentsAccessChecker
                 )
                     ?.joinToString(
                         "<br/>",
@@ -408,7 +409,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
                                 AttachmentsServicesRest::class.java,
                                 AttachmentsServicesRest.getDownloadUrl(
                                     it,
-                                    category = auftragPagesRest.category,
+                                    category = orderRest.category,
                                     id = data!!.id!!,
                                     listId = "attachments"
                                 )
@@ -417,7 +418,13 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
                     }
                     ?: ""
             }
-            val editLink = "<a href=\"/react/order/edit/${data?.id}\" target=\"_blank\" \">${getString("edit")}</a>"
+            // The attachments are edited in projectforge-next, which is where the order's page lives now
+            // (PagesResolver answers NextMigration's route for it, so this follows a route change).
+            // Only for a saved order: an unsaved one has nothing to attach to yet.
+            val editLink = data?.id?.let { id ->
+                val url = PagesResolver.getEditPageUrl(OrderEntityRest::class.java, id, absolute = true)
+                "<a href=\"$url\" target=\"_blank\">${getString("edit")}</a>"
+            } ?: ""
             val divTextPanel = DivTextPanel(fs.newChildId(), "$attachments$editLink")
             divTextPanel.setEscapeModelStringsInLabel(false)
             fs.add(divTextPanel)

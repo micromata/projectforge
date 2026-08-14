@@ -42,7 +42,7 @@ import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
+class BookEntityRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
 
   @PostConstruct
   private fun postConstruct() {

@@ -4,7 +4,7 @@
  *
  * They are here rather than behind `postEntityAction` because they don't speak the `ResponseAction`
  * protocol: `recalculate` answers a plain sums object, and the forecast analysis answers an HTML
- * fragment. Both are GET/POST endpoints of `AuftragPagesRest`.
+ * fragment. Both are GET/POST endpoints of `OrderEntityRest`.
  */
 
 import { rawRequest, request, RsError } from "./client";
@@ -32,7 +32,7 @@ export interface OrderPositionSums {
   probabilityOfOccurrence?: number | null;
 }
 
-/** What `AuftragPagesRest.recalculate` answers (`OrderSums` there). */
+/** What `OrderEntityRest.recalculate` answers (`OrderSums` there). */
 export interface OrderSums {
   netSum?: number | null;
   commissionedNetSum?: number | null;

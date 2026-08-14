@@ -111,8 +111,9 @@ object MagicFilterProcessor {
      *
      * The last segment is deliberately not checked: `displayName` and the other computed values are
      * getters without a backing field, which no reflection over fields can confirm. An unorderable
-     * segment is reported by `addOrder` — and a `*PagesRest` may map it onto a real column beforehand
-     * (`postProcessMagicFilter`, e. g. `Kost1PagesRest` or `AuftragPagesRest`).
+     * segment is reported by `addOrder` — and a rest class may handle it in `postProcessMagicFilter`
+     * beforehand, either by mapping it onto a real column (`Kost1PagesRest`) or by taking it out of the
+     * query and sorting the loaded list instead (`OrderEntityRest`).
      */
     internal fun resolveSortProperty(entityClass: Class<*>, property: String): String {
         var result = property

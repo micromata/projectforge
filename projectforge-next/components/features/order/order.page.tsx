@@ -18,7 +18,7 @@ import type { OrderStatistics } from "./order-statistics";
 import { emptyOrderValues, toFormValues } from "./order-values";
 import type { OrderDetail, OrderListRow } from "./types";
 
-/** REST category of an order — `AuftragPagesRest` is mapped to "order", not to "auftrag". */
+/** REST category of an order — `OrderEntityRest` is mapped to "order", not to "auftrag". */
 export const ORDER_ENTITY = "order";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const ORDER_LIST_QUERY_KEY = ["order"] as const;
@@ -35,7 +35,7 @@ export const FORECAST_TAB_ID = "forecast";
  * around them is ordinary — the fields, their labels, their rules and the history tab come from
  * `AuftragDO` through the generated metadata, exactly as for a book or a cost unit.
  *
- * The columns are the 19 of `AuftragPagesRest.createListLayout` — in an order of their own, and with the
+ * The columns are the 19 of `OrderEntityRest.createListLayout` — in an order of their own, and with the
  * two ends of the period of performance as the one column they read as. Six of them are computed:
  * the customer and the project are `KundeDO`/`ProjektDO` and have no `UIDataType`, so the metadata
  * cannot carry them, while the position count, the assigned persons, the person days and the four sums
@@ -67,8 +67,9 @@ export const ORDER_PAGE = definePage<
     { name: "nummer", size: 80, className: "font-semibold", pinned: "left" },
     { name: "erfassungsDatum", size: 110, pinned: "left" },
     {
-      // Sorted on the server by the entity's property path, which is `kunde`, while the row carries the
-      // DTO's name — the two differ here (see Auftrag.copyTo).
+      // The sort id is the entity's property path (`kunde`), while the row carries the DTO's name — the
+      // two differ here (see Auftrag.copyTo). Sorted in memory by this very string, since it is composed
+      // of number and name and no column holds it (see OrderEntityRest.filterList).
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
@@ -129,8 +130,8 @@ export const ORDER_PAGE = definePage<
       end: "periodOfPerformanceEnd",
       size: 190,
     },
-    // "#3" — how many positions the order has. Not sortable in the database (transient), which the
-    // header offers regardless; the backend simply orders by nothing then.
+    // "#3" — how many positions the order has. No database column, so the backend sorts it in memory,
+    // by the count rather than by this string (see OrderEntityRest.filterList).
     {
       id: "pos",
       labelKey: "label.position.short",
@@ -161,7 +162,7 @@ export const ORDER_PAGE = definePage<
     { name: "entscheidungsDatum", size: 110 },
   ],
   // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
-  // the untyped `ResultSet.statistics` becomes what `AuftragPagesRest.OrderStatistics` sends — see
+  // the untyped `ResultSet.statistics` becomes what `OrderEntityRest.OrderStatistics` sends — see
   // PageDef.statistics for why this is the place for it.
   // Mirrors AuftragListPage's CellItemListener (first match wins):
   // 1. deleted / ABGELEHNT / ERSETZT → row-deleted (struck-through grey)
@@ -260,7 +261,7 @@ export const ORDER_PAGE = definePage<
       },
       {
         id: "attachments",
-        // The title AuftragPagesRest gives the attachment fieldset, reused rather than written again.
+        // The title OrderEntityRest gives the attachment fieldset, reused rather than written again.
         titleKey: "attachment.list",
         render: ({ id }) => <AttachmentSection orderId={id} />,
       },

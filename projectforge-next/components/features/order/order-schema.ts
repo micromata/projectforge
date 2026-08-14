@@ -78,7 +78,7 @@ export const orderSchema = z.object({
   /**
    * Not `m.intField("nummer")`, the one rule deliberately taken away from the metadata: the column is
    * `nullable = false`, so the entity reports it as mandatory, but the form can never supply it —
-   * `AuftragPagesRest.transformForDB` assigns it from `AuftragDao.getNextNumber` when it is missing.
+   * `OrderEntityRest.transformForDB` assigns it from `AuftragDao.getNextNumber` when it is missing.
    * Validating it here would refuse to save any new order. The field is read-only in the form for the
    * same reason.
    */

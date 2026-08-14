@@ -35,7 +35,7 @@ import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.PaymentScheduleDO
 import org.projectforge.business.test.AbstractTestBase
-import org.projectforge.rest.fibu.AuftragPagesRest
+import org.projectforge.rest.fibu.OrderEntityRest
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -188,7 +188,7 @@ class AuftragDtoTest : AbstractTestBase() {
             schedule(order, id = null, number = 3, amount = "300.00"),
         )
 
-        AuftragPagesRest.assignNumbersToNewRows(order)
+        OrderEntityRest.assignNumbersToNewRows(order)
 
         // The deleted row keeps its number — it is still in the database, and `payment#1` is its history
         // key — so the new row is #3, exactly what the client showed.
@@ -205,7 +205,7 @@ class AuftragDtoTest : AbstractTestBase() {
             schedule(order, id = null, number = 6, amount = "600.00"),
         )
 
-        AuftragPagesRest.assignNumbersToNewRows(order)
+        OrderEntityRest.assignNumbersToNewRows(order)
 
         // 2 to 4 belong to rows that were deleted, and reusing one would merge the new instalment with a
         // deleted one's history. Both sides compute 6, which is what makes the preview trustworthy.
@@ -222,7 +222,7 @@ class AuftragDtoTest : AbstractTestBase() {
             schedule(order, id = null, number = 17, amount = "100.00"),
         )
 
-        AuftragPagesRest.assignNumbersToNewRows(order)
+        OrderEntityRest.assignNumbersToNewRows(order)
 
         assertEquals(listOf<Short>(1), order.paymentSchedules?.map { it.number })
     }
@@ -237,7 +237,7 @@ class AuftragDtoTest : AbstractTestBase() {
             schedule(order, id = null, number = 2, amount = "500.00").also { it.positionNumber = 4 },
         )
 
-        AuftragPagesRest.assignNumbersToNewRows(order)
+        OrderEntityRest.assignNumbersToNewRows(order)
 
         // The stored positions keep 1..3, so the new one becomes #4 as well — and the instalment, being
         // new too, is renumbered to #1, since no instalment is stored yet.

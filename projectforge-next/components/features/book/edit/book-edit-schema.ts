@@ -20,7 +20,7 @@ const userRefSchema = z
  * Which fields the form has mirrors org.projectforge.rest.dto.Book — that is a hand-written decision,
  * because the DTO has neither the field set nor the names of the DO. What each field *allows* is not.
  *
- * The server validates too and has the last word (BookPagesRest.validate, HTTP 406 → see
+ * The server validates too and has the last word (BookEntityRest.validate, HTTP 406 → see
  * lib/validation/server-errors.ts); this only anticipates the rules for immediate feedback. Rules
  * the client can't know — "signature already exists" — are deliberately absent.
  */

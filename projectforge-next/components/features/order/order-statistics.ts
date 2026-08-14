@@ -5,7 +5,7 @@
  * without a DOM, the same split `lib/page-def/define-page.ts` follows.
  */
 
-/** Mirrors `AuftragPagesRest.OrderStatistics`, the aggregates of the whole result set. */
+/** Mirrors `OrderEntityRest.OrderStatistics`, the aggregates of the whole result set. */
 export interface OrderStatistics {
   netSum?: number | null;
   counter?: number | null;

@@ -96,7 +96,7 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  *
  * No column filter: the two ends are one question and the backend answers it as one — an order's
  * period of performance is a single window matched with overlap semantics
- * (`AuftragPagesRest.addMagicFilterElements`), and a client-side filter over the rendered text would
+ * (`OrderEntityRest.addMagicFilterElements`), and a client-side filter over the rendered text would
  * only be a second, weaker one.
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<

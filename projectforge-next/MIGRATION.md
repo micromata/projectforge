@@ -729,7 +729,7 @@ User/Gruppe dort keine handgebaute Editierseite haben) und die beiden Backend-Fi
 
 #### Erledigt: Anhänge (`UIAttachmentList`) – generisch, nicht buchspezifisch
 
-**Was ersetzt wurde.** `BookPagesRest.createEditLayout` hängt ein
+**Was ersetzt wurde.** `BookEntityRest.createEditLayout` hängt ein
 `UIFieldset(title = "attachment.list")` mit `UIAttachmentList(category, dto.id,
 maxSizeInKB)` an; gerendert hat das im alten Frontend
 `DynamicAttachmentList.jsx` (Drop-Zone + AG-Grid + Mehrfachauswahl). In next ist
@@ -797,7 +797,7 @@ enthält die Boundary, die der Client nicht kennen kann; ein
 
 **i18n:** alles aus dem Backend-Bundle (`attachment.`, `file.upload.`, `edit`,
 `download`, `description`, `question.deleteQuestion` – neu in `PREFIXES`). Der
-Reiter „Anhänge“ nutzt `attachment.list`, also den Titel, den `BookPagesRest`
+Reiter „Anhänge“ nutzt `attachment.list`, also den Titel, den `BookEntityRest`
 dem Fieldset gibt; `books.edit.tabs.*` bleibt nur für die Gruppierungen ohne
 Backend-Pendant (`tabTitleKey` in der Seitendeklaration, siehe `entity-tabs.ts`).
 
@@ -1120,7 +1120,7 @@ serverseitige Sortierung.
 
 Das **Auftragsbuch** ist der Referenz-Härtefall:
 
-- Die **Liste** ist bereits REST-migriert (`AuftragPagesRest.createListLayout`,
+- Die **Liste** ist bereits REST-migriert (`OrderEntityRest.createListLayout`,
   Filter in `addMagicFilterElements`/`preProcessMagicFilter`) → läuft über den
   Phase-2-Renderer.
 - Das **Edit** ist über UILayout **nicht** abbildbar: `createEditLayout` ist
@@ -1240,7 +1240,7 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
   `projectforge-rest/.../core/aggrid/AGGridSupport.kt`, `GridState.kt`,
   `rest/dto/datatable/DataTableStateRequest.kt`
 - **Auftragsbuch:** `projectforge-wicket/.../web/fibu/AuftragEditForm.kt`,
-  `projectforge-rest/.../fibu/AuftragPagesRest.kt`, `rest/dto/Auftrag.kt`
+  `projectforge-rest/.../fibu/OrderEntityRest.kt`, `rest/dto/Auftrag.kt`
 
 ## Stand & nächste Schritte
 

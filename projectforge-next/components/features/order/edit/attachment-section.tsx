@@ -4,7 +4,7 @@ import { AttachmentList } from "@/components/shared/attachments/attachment-list"
 
 /**
  * The attachments of an order — the `UIAttachmentList` the legacy edit layout is reduced to
- * (AuftragPagesRest, whose title `attachment.list` the section declares).
+ * (OrderEntityRest, whose title `attachment.list` the section declares).
  *
  * Nothing but the entity name: attachments are not an order feature, every `AbstractPagesRest` entity
  * can have them (see components/shared/attachments/).

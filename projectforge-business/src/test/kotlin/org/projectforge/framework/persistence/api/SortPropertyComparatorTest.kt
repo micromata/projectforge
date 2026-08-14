@@ -85,7 +85,7 @@ class SortPropertyComparatorTest {
 
     /**
      * What the order list needs it for: a sum that is no database column, so the caller reads it rather
-     * than reflection (see `AuftragPagesRest.filterList`). Numbers compare as numbers — a string column
+     * than reflection (see `OrderEntityRest.filterList`). Numbers compare as numbers — a string column
      * would sort "900,00" after "1.100,00".
      */
     @Test

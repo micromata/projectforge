@@ -53,7 +53,7 @@ import java.time.LocalDate
 class AuftragsPosition(
     /**
      * Position number inside the order, 1-based and stable. Assigned by the backend for new positions
-     * (see `AuftragPagesRest.transformForDB`); an existing position is never renumbered.
+     * (see `OrderEntityRest.transformForDB`); an existing position is never renumbered.
      */
     var number: Short = 0,
     var titel: String? = null,

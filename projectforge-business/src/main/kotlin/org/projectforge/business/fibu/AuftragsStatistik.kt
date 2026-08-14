@@ -98,7 +98,7 @@ class AuftragsStatistik() : Serializable {
 
     fun add(auftrag: AuftragDO) {
         // From the cache singleton rather than through WicketSupport: the statistics are built for the
-        // rest list as well (see AuftragPagesRest.postProcessResultSet), where no Wicket page is involved.
+        // rest list as well (see OrderEntityRest.postProcessResultSet), where no Wicket page is involved.
         val info = AuftragsCache.instance.getOrderInfo(auftrag)
         if (info.akquiseSum > BigDecimal.ZERO) {
             akquiseSum = add(akquiseSum, info.akquiseSum)

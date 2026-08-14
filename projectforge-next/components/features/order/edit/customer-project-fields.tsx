@@ -79,7 +79,7 @@ export function CustomerProjectFields({ className }: { className?: string }) {
         name="kundeText"
         label={t("fibu.kunde.text")}
         // Says what the field is for: a customer that has no record of its own. The backend drops it
-        // when a customer *is* chosen (`AuftragPagesRest.transformForDB`), so the two cannot disagree.
+        // when a customer *is* chosen (`OrderEntityRest.transformForDB`), so the two cannot disagree.
         hint={t("fibu.auftrag.hint.kannVonProjektKundenAbweichen")}
       />
     </div>

@@ -34,7 +34,7 @@ import org.mockito.Mockito
 import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.rest.AddressPagesRest
-import org.projectforge.rest.BookPagesRest
+import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
 import org.projectforge.rest.fibu.kost.Kost1PagesRest
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -76,11 +76,11 @@ class PageResolverTest {
      */
     @Test
     fun migratedToNextTest() {
-        assertEquals("next/book", PagesResolver.getListPageUrl(BookPagesRest::class.java))
-        assertEquals("/next/book", PagesResolver.getListPageUrl(BookPagesRest::class.java, absolute = true))
-        assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookPagesRest::class.java, mapOf("str" to "test")))
+        assertEquals("next/book", PagesResolver.getListPageUrl(BookEntityRest::class.java))
+        assertEquals("/next/book", PagesResolver.getListPageUrl(BookEntityRest::class.java, absolute = true))
+        assertEquals("next/book?str=test", PagesResolver.getListPageUrl(BookEntityRest::class.java, mapOf("str" to "test")))
         // book is hand built in projectforge-next, so its edit route is /book/<id>, not /book/edit/<id>:
-        assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookPagesRest::class.java, 42))
+        assertEquals("next/book/42", PagesResolver.getEditPageUrl(BookEntityRest::class.java, 42))
         assertEquals("next/book/new", NextMigration.newEntryUrl("book"))
         assertEquals("next/book/:id", NextMigration.standardEditPage("book"))
         // Not migrated: unchanged, and the category is used as the route.
@@ -152,7 +152,7 @@ class PageResolverTest {
      */
     @Test
     fun legacyPageTest() {
-        // book has no way back: its React page is gone (BookPagesRest serves no layout), so
+        // book has no way back: its React page is gone (BookEntityRest serves no layout), so
         // projectforge-next offers no legacy link for it.
         assertNull(NextMigration.legacyListUrl("book"))
         assertNull(NextMigration.legacyEditPage("book"))

@@ -18,7 +18,7 @@ test.describe("legacy page link", () => {
     seededBook,
   }) => {
     const { t } = await userFormat(page);
-    // book is fully migrated: BookPagesRest extends AbstractDTOEntityRest and serves no layout, so
+    // book is fully migrated: BookEntityRest extends AbstractDTOEntityRest and serves no layout, so
     // its React page no longer exists and NextMigration answers with no legacy url at all.
     await goto(page, "/book");
     await expect(

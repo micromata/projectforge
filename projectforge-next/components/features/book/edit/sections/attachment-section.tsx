@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * The attachments of a book — the legacy page's `UIAttachmentList` (BookPagesRest, whose title
+ * The attachments of a book — the legacy page's `UIAttachmentList` (BookEntityRest, whose title
  * `attachment.list` the section declares).
  *
  * Everything but this line lives in `components/shared/attachments/`: attachments are not a book

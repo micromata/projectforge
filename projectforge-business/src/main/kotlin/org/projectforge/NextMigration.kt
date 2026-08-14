@@ -119,7 +119,7 @@ object NextMigration {
      */
     private val MIGRATED = mapOf(
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
-        // migrated from is removed (its layout is gone with BookPagesRest.createListLayout), so there is
+        // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.
         "book" to NextPage(
             route = "book",

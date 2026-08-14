@@ -54,7 +54,7 @@ class ResultSet<O : Any>(
 
     /**
      * Aggregates of the whole result set as structured data, for a client that formats and colours them
-     * itself: the sums and counters of the order book (see `AuftragPagesRest.postProcessResultSet`).
+     * itself: the sums and counters of the order book (see `OrderEntityRest.postProcessResultSet`).
      *
      * The typed counterpart of [resultInfo], which carries the same numbers as markdown with inline styles
      * for the legacy React app. A hand built page in projectforge-next needs the values, not the markup —

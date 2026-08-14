@@ -100,7 +100,7 @@ function toScheduleValues(schedule: PaymentScheduleDto): PaymentScheduleValues {
  *
  * Nothing is proposed here, dates and status included: the backend presets them in `newBaseDTO`
  * (offer/entry/decision date = today, contact person = the logged-in user when they are a project
- * manager), and the edit page fetches `/rs/order/edit` for a new entry — so those are the values a user
+ * manager), and the edit page fetches `/rs/order/newEntry` for a new entry — so those are the values a user
  * actually sees. This is only the shape the form starts out with.
  */
 export function emptyOrderValues(): OrderValues {
@@ -113,7 +113,7 @@ export function emptyOrderValues(): OrderValues {
  * The number is the form's own, provisional one, not the backend's: the payment schedule refers to a
  * position **by number** (`PaymentScheduleDO.positionNumber`), so a position without one cannot be
  * picked as an instalment's position — which used to leave the select of a new order empty. The backend
- * still has the last word and renumbers every new row on save (`AuftragPagesRest.transformForDB`),
+ * still has the last word and renumbers every new row on save (`OrderEntityRest.transformForDB`),
  * carrying the schedules along; it just needs something to carry.
  *
  * @param number What [nextPositionNumber] yields for the rows the form currently holds.

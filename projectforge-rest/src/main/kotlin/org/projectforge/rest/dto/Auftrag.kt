@@ -90,7 +90,7 @@ class Auftrag(
 
     /**
      * Whether the e-mail notification to the contact person should be sent on save. Not a persisted
-     * field — the checkbox of the edit form, which `AuftragPagesRest.onAfterSaveOrUpdate` reads.
+     * field — the checkbox of the edit form, which `OrderEntityRest.onAfterSaveOrUpdate` reads.
      */
     var sendEMailNotification: Boolean = false
 
@@ -269,7 +269,7 @@ class Auftrag(
     companion object {
         /**
          * The calculated sums of an order, from the cache for a stored order and computed on the spot for
-         * an unstored one. The same helper the recalculate endpoint of `AuftragPagesRest` uses, so the
+         * an unstored one. The same helper the recalculate endpoint of `OrderEntityRest` uses, so the
          * numbers a form shows before and after the first save come from one code path.
          *
          * [AuftragsCache.getOrderInfo] answers an empty [OrderInfo] (all sums 0.00) for an order without

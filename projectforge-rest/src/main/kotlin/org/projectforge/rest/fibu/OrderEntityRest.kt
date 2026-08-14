@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.NextMigration
 import org.projectforge.SystemStatus
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.user.ProjectForgeGroup
@@ -50,6 +51,7 @@ import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,7 +69,7 @@ import java.time.LocalDate
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
-open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying.
+open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   AbstractDTOEntityRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
 
   @Autowired
@@ -377,26 +379,13 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
-   * Orders the customer and project columns by the name they show, not by the computed string, and takes
-   * the columns no `ORDER BY` can express out of the query — [filterList] sorts by those.
+   * Takes the columns no `ORDER BY` can express out of the query — [filterList] sorts by those.
    *
-   * The customer and the project are `displayName` — a `@Transient` getter formatting number and name
-   * (`KostFormatter`), so the database cannot order by it. The name is what a reader sorts by, and it is
-   * a column; the leading number is the customer id, which orders the same way for the customer column
-   * anyway.
-   *
-   * `MagicFilterProcessor` keeps these paths whole now, so without this the sort would reach
-   * `addOrder`, fail on the missing column and log per request.
-   *
-   * Removing the computed ones is what keeps that from happening for the sums: `addOrder` swallows the
-   * exception, so the query went out with no `ORDER BY` at all and the list came back in whatever order
-   * the database produced — the sort a user asked for silently did nothing.
+   * `addOrder` swallows the exception such a property causes, so the query went out with no `ORDER BY`
+   * at all and the list came back in whatever order the database produced — the sort a user asked for
+   * silently did nothing.
    */
   override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
-    target.sortProperties.replaceAll { sortProperty ->
-      DISPLAY_NAME_SORT_PROPERTIES[sortProperty.property]?.let { SortProperty(it, sortProperty.sortOrder) }
-        ?: sortProperty
-    }
     target.sortProperties.removeIf { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
   }
 
@@ -404,11 +393,17 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
    * Sorts the loaded orders by the columns that are no database column, the way the Wicket list page has
    * always done it (`MyListPageSortableDataProvider` with `MyBeanComparator`).
    *
-   * Six of the list's columns are computed: the four sums and the person days are `@get:Transient` getters
-   * of [AuftragDO] over [OrderInfo], and the position count is a string ("#3"). They are exactly what a
-   * reader of the order book sorts by, so "not sortable" is no answer — and they are readable here for
-   * free: [AuftragsCache] answered them for every row that was loaded anyway, so this is a map lookup per
-   * comparison, not a query. The count sorts numerically, so `#2` comes before `#10`.
+   * Eight of the list's columns are computed. The four sums and the person days are `@get:Transient`
+   * getters of [AuftragDO] over [OrderInfo], and the position count is a string ("#3"); all six are
+   * readable here for free, because [AuftragsCache] answered them for every row that was loaded anyway —
+   * a map lookup per comparison, not a query. The count sorts numerically, so `#2` comes before `#10`.
+   *
+   * The customer and the project are the other two, and they sort by the very string the cell shows —
+   * `displayName`, formatted by `KostFormatter` out of number and name ("473 - Air Liquide",
+   * "5.100.06: Xmlgate"), which is also what the Wicket list sorts its two columns by. Ordering by
+   * `kunde.name`/`projekt.name` instead, as this did before, produced a list that looks unsorted to
+   * whoever reads it: the numbers lead every cell, so the names they hide sort in no visible order. The
+   * numbers are left padded, so ordering by the string is ordering by the number.
    *
    * The place for it: the whole result set is loaded (there is no server side paging yet, see
    * `MIGRATION-list-paging.md`), so sorting it here is sorting all of it. Once paging lands, this moves
@@ -422,11 +417,12 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     if (computed.isEmpty()) {
       return resultSet
     }
-    // The number as the last criterion, so equal sums (0.00 is the most common value of all four) keep a
-    // deterministic order instead of shifting between two requests over the same data.
+    // The number as the last criterion, so equal values (0.00 is the most common one of all four sums,
+    // and a customer has many orders) keep a deterministic order instead of shifting between two
+    // requests over the same data.
     val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
     return SortPropertyComparator.sort(resultSet, sortProperties) { order, property ->
-      COMPUTED_SORT_PROPERTIES[property]?.invoke(Auftrag.orderInfo(order))
+      COMPUTED_SORT_PROPERTIES[property]?.invoke(order)
     }
   }
 
@@ -635,15 +631,8 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
       }
     }
 
-    /** Sort ids of the two `displayName` columns and the column each is ordered by. */
-    private val DISPLAY_NAME_SORT_PROPERTIES = mapOf(
-      "kunde.displayName" to "kunde.name",
-      "projekt.displayName" to "projekt.name",
-    )
-
     /**
-     * The sort ids no database column can answer, and the [OrderInfo] value each one sorts by (see
-     * [filterList]).
+     * The sort ids no database column can answer, and the value each one sorts by (see [filterList]).
      *
      * The ids are the DTO's property names, which is what the list's columns are declared by
      * (`order.page.tsx`) — and what the Wicket list declares as its sort properties too, since
@@ -653,19 +642,37 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
      * would put #10 before #2. It sorts by the count, and by the same count the cell shows — the deleted
      * positions left out.
      *
+     * The customer and the project sort by their `displayName`, which is the string the cell shows: the
+     * row carries nothing else of them ([Auftrag.copyFrom4ListRow]). Both are read through [PfCaches] —
+     * [filterList] runs before the rows are mapped, so the two relations are still lazy proxies here, and
+     * a `displayName` off a proxy would be a select per row. The free text customer stands in for an
+     * order naming a customer that is not in the list, as the cell does.
+     *
      * `assignedPersons` is deliberately absent: it is a `@Transient` getter of [AuftragDO], so reflection
      * reads it, and it costs a `UserGroupCache` lookup per user rather than a map lookup — the default
      * path handles it. It resolves against the entity, so the sort reaches the query and only its own
      * `addOrder` fails.
      */
-    private val COMPUTED_SORT_PROPERTIES = mapOf<String, (OrderInfo) -> Comparable<*>?>(
-      Auftrag::nettoSumme.name to { it.netSum },
-      Auftrag::beauftragtNettoSumme.name to { it.commissionedNetSum },
-      Auftrag::fakturiertSum.name to { it.invoicedSum },
-      Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
-      Auftrag::personDays.name to { it.personDays },
-      Auftrag::pos.name to { info -> info.infoPositions?.count { !it.deleted } ?: 0 },
+    private val COMPUTED_SORT_PROPERTIES = mapOf<String, (AuftragDO) -> Comparable<*>?>(
+      Auftrag::nettoSumme.name to { Auftrag.orderInfo(it).netSum },
+      Auftrag::beauftragtNettoSumme.name to { Auftrag.orderInfo(it).commissionedNetSum },
+      Auftrag::fakturiertSum.name to { Auftrag.orderInfo(it).invoicedSum },
+      Auftrag::zuFakturierenSum.name to { Auftrag.orderInfo(it).notYetInvoicedSum },
+      Auftrag::personDays.name to { Auftrag.orderInfo(it).personDays },
+      Auftrag::pos.name to { order ->
+        Auftrag.orderInfo(order).infoPositions?.count { !it.deleted } ?: 0
+      },
+      CUSTOMER_SORT_PROPERTY to { order ->
+        PfCaches.instance.getKundeIfNotInitialized(order.kunde)?.displayName ?: order.kundeText
+      },
+      PROJECT_SORT_PROPERTY to { order ->
+        PfCaches.instance.getProjektIfNotInitialized(order.projekt)?.displayName
+      },
     )
+
+    /** Sort ids of the customer and the project column, as `order.page.tsx` declares them. */
+    private const val CUSTOMER_SORT_PROPERTY = "kunde.displayName"
+    private const val PROJECT_SORT_PROPERTY = "projekt.displayName"
 
     /**
      * Id of the combined period-of-performance filter — a pseudo field, standing for a criterion over

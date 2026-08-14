@@ -6,18 +6,18 @@ without exploring again.
 
 **Status**
 
-| Stage                                 | State                                                   |
-| ------------------------------------- | ------------------------------------------------------- |
-| 1a gzip                               | **done**                                                |
-| 1b lean list row                      | **done** — generic `BaseDTO.copyFrom4ListRow` mechanism |
-| 1c debounced search                   | **done** — `components/shared/list/search-input.tsx`    |
-| Re-measure after stage 1              | **done** — live numbers below, and they decide stage 2  |
-| 2 server-side paging                  | open — analysis complete, nothing implemented           |
-| 3a nested sort paths                  | **done**                                                |
-| 3b sort in Kotlin for computed cols   | **done** — in `filterList`; moves onto the id list later |
-| 4 one filter state                    | open — ships together with stage 2 for `order`          |
-| 5 optimizations                       | open — behind measurement                               |
-| 6 roll out to further entities        | open                                                    |
+| Stage                               | State                                                    |
+| ----------------------------------- | -------------------------------------------------------- |
+| 1a gzip                             | **done**                                                 |
+| 1b lean list row                    | **done** — generic `BaseDTO.copyFrom4ListRow` mechanism  |
+| 1c debounced search                 | **done** — `components/shared/list/search-input.tsx`     |
+| Re-measure after stage 1            | **done** — live numbers below, and they decide stage 2   |
+| 2 server-side paging                | open — analysis complete, nothing implemented            |
+| 3a nested sort paths                | **done**                                                 |
+| 3b sort in Kotlin for computed cols | **done** — in `filterList`; moves onto the id list later |
+| 4 one filter state                  | open — ships together with stage 2 for `order`           |
+| 5 optimizations                     | open — behind measurement                                |
+| 6 roll out to further entities      | open                                                     |
 
 ## Context
 
@@ -142,7 +142,7 @@ SQL offset is _incorrect_ here, because rows are dropped **after** the database 
 2. **`resultPredicates`** — predicates supporting neither criteria nor fulltext run in Kotlin
    (`DBQueryBuilder`). In FULLTEXT mode _every_ criteria-only predicate lands here, so the same entity
    filters in SQL or in Kotlin depending on whether the user typed in the search box.
-3. **`customResultFilters`** — the order list has four: `AuftragPagesRest.preProcessMagicFilter` marks
+3. **`customResultFilters`** — the order list has four: `OrderEntityRest.preProcessMagicFilter` marks
    `positionsArt`, `positionsStatus`, `positionsPaymentType`, `fakturiert` as `synthetic = true` and
    walks `positionenExcludingDeleted` per row.
 
@@ -174,7 +174,7 @@ open fun <O : ExtendedBaseDO<Long>> selectIds(
 
 Initially it delegates to the existing `select` and maps to ids — saving nothing on the database, but
 removing what actually costs: `Auftrag.copyFrom` × 7132 (`PfCaches.initialize`, `orderInfo`, four
-currency formats), the three access checks per row in `AuftragPagesRest.transformFromDB`, and 11.9 MB
+currency formats), the three access checks per row in `OrderEntityRest.transformFromDB`, and 11.9 MB
 of Jackson. A `SELECT id` projection is Stage 5, behind measurement — it is the only place semantics
 could drift, so it must not be in Stage 2. Mirror as `BaseDao.selectIds`, next to `select`.
 
@@ -282,7 +282,7 @@ dot, so `kunde.displayName` became `displayName`, which `AuftragDO` hasn't got �
 list came back silently unordered**. It now keeps a nested path that resolves against the entity and
 shortens only one that doesn't (the legacy DTO paths this was written for), and `DBCriteriaContext`
 creates the `LEFT` joins such a path needs — an implicit inner join would drop every order without a
-customer as soon as the list is sorted by one. `AuftragPagesRest.postProcessMagicFilter` maps the two
+customer as soon as the list is sorted by one. `OrderEntityRest.postProcessMagicFilter` maps the two
 DTO-only paths onto columns (`kunde.displayName` → `kunde.name`, `projekt.displayName` →
 `projekt.name`), the way `Kost1PagesRest` does for `formattedNumber`.
 
@@ -302,7 +302,7 @@ pushes these into the query either, it loads the complete list and sorts it with
   cheaply. Keeps the criteria search's semantics (blank ranks lowest and therefore flips with the
   direction, strings through a locale `Collator`), so a list sorted in Kotlin and one sorted by the
   database read the same. Covered by `SortPropertyComparatorTest`.
-- `AuftragPagesRest.postProcessMagicFilter` removes the computed sort properties from the `QueryFilter`
+- `OrderEntityRest.postProcessMagicFilter` removes the computed sort properties from the `QueryFilter`
   (else `addOrder` logs per request), and `filterList` sorts the loaded orders by them —
   `COMPUTED_SORT_PROPERTIES` maps each sort id onto an `OrderInfo` accessor, so each comparison is a map
   lookup in `AuftragsCache`, not a query. `pos` sorts by the position count, so `#2` precedes `#10`.
