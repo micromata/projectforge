@@ -35,6 +35,7 @@ export type { ColumnState, TableStateResult } from "./use-table-state";
 export {
   useColumnStatePersistence,
   useColumnStatePersistenceByUrl,
+  useRememberColumnState,
   useStoredColumnState,
   useStoredColumnStateByUrl,
 } from "./use-column-state-persistence";

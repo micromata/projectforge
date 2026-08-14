@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchColumnStatesFromUrl,
   saveColumnStatesToUrl,
@@ -34,6 +34,37 @@ export function useStoredColumnState(entity: string | undefined) {
   return useStoredColumnStateByUrl(
     entity ? `/rs/${entity}/columnStates` : undefined
   );
+}
+
+/**
+ * Keeps the cached stored state in step with the state the table is actually using.
+ *
+ * The read above is cached for the whole session (`staleTime: Infinity`), so what a later mount seeds
+ * itself from is that cache entry rather than the server. Without this, leaving the list and coming
+ * back would restore the columns and the sort order as of the *first* page load — and a lost sort
+ * order also costs the highlight: the row the user just edited then sits on a different page than the
+ * one the list opens on, so there is nothing on screen to mark (see useHighlightedRow). The backend
+ * has the newest state either way (it is posted below); this is only about the copy in the cache.
+ *
+ * The counterpart for the filter is `useRememberFilter`, for the same reason.
+ */
+export function useRememberColumnState(
+  entity: string | undefined,
+  state: ColumnState
+) {
+  const queryClient = useQueryClient();
+  const serialized = JSON.stringify(state);
+
+  useEffect(() => {
+    if (!entity) return;
+    queryClient.setQueryData<ColumnStateDto>(
+      ["columnStates", `/rs/${entity}/columnStates`],
+      // Only for an entry that was read: seeding a missing one from here would let the first render's
+      // defaults pass for something the server had stored, and the real read would then be skipped.
+      (previous) =>
+        previous ? (JSON.parse(serialized) as ColumnStateDto) : previous
+    );
+  }, [queryClient, entity, serialized]);
 }
 
 /**
@@ -107,11 +138,15 @@ export function useColumnStatePersistenceByUrl(
   }, []);
 }
 
-/** The same, for a list page addressed by its entity category. */
+/**
+ * The same, for a list page addressed by its entity category — and it holds the cached copy of the
+ * stored state to what it writes, since here both URLs are known (see useRememberColumnState).
+ */
 export function useColumnStatePersistence(
   entity: string | undefined,
   state: ColumnState
 ) {
+  useRememberColumnState(entity, state);
   return useColumnStatePersistenceByUrl(
     entity ? `/rs/${entity}/setColumnStates` : undefined,
     state
