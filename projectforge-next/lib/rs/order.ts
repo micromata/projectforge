@@ -7,9 +7,10 @@
  * fragment. Both are GET/POST endpoints of `OrderEntityRest`.
  */
 
+import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 import { rawRequest, request, RsError } from "./client";
 import { saveBlob } from "./download";
-import type { PostData } from "./types";
+import type { MagicFilter, PostData } from "./types";
 
 /** Sums of one position, matched by its number — a new position has no id yet. */
 export interface OrderPositionSums {
@@ -134,4 +135,90 @@ export async function downloadOrderForecastJson(
   // The endpoint sends no `Content-Disposition`, so the name is built here — from the order's id, which
   // is what identifies the export.
   saveBlob(await res.blob(), `forecast-order-${id}.json`);
+}
+
+/**
+ * What the forecast export dialog asks for, mirroring `OrderEntityRest.ForecastExportSettings`.
+ *
+ * The backend remembers them per user, so the dialog is preset with the answer given last time — unlike
+ * Wicket, which derives the start month from the period-of-performance filter without saying so.
+ */
+export interface ForecastExportSettings {
+  /** First month of the forecast as `yyyy-MM-dd`; the backend takes the begin of its month. */
+  startDate: string | null;
+  /** The optimistic variant — unused budget booked as future revenue. */
+  distributeUnusedBudget: boolean;
+}
+
+/** React Query key of the settings, shared by the dialog that reads them and the export that writes them. */
+export const FORECAST_SETTINGS_QUERY_KEY = [
+  "order",
+  "forecastExportSettings",
+] as const;
+
+/** The stored settings, or the backend's defaults when the user hasn't exported yet. */
+export function fetchForecastExportSettings(
+  signal?: AbortSignal
+): Promise<ForecastExportSettings> {
+  return request<ForecastExportSettings>(
+    "/rs/order/forecastExportSettings",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The filtered order list as the three-sheet Excel file of `OrderExport` — what Wicket's "Excel export"
+ * produces.
+ */
+export function downloadOrderExcel(
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadOrderFile(
+    "/rs/order/exportAsExcel",
+    JSON.stringify(filter),
+    signal
+  );
+}
+
+/**
+ * The forecast of the filtered orders as xlsx. The settings travel with the filter and are persisted by
+ * the backend on the way, so a following [fetchForecastExportSettings] answers them.
+ */
+export function downloadOrderForecast(
+  filter: MagicFilter,
+  settings: ForecastExportSettings,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadOrderFile(
+    "/rs/order/exportForecast",
+    JSON.stringify({ filter, settings }),
+    signal
+  );
+}
+
+/**
+ * Posts a body and saves the file that comes back.
+ *
+ * A POST rather than a link, because the filter is the body — which is also why the browser cannot do
+ * the saving and `saveBlob` has to. The name comes from `Content-Disposition`, which both endpoints send
+ * (`RestUtils.downloadFile`), so it is the backend that names the file, as with every other export.
+ *
+ * A 404 is passed on as it is: it means the filter matched nothing, and the caller says so instead of
+ * reporting an error (see OrderListActions).
+ */
+async function downloadOrderFile(
+  path: string,
+  body: string,
+  signal?: AbortSignal
+): Promise<void> {
+  const res = await rawRequest(path, { method: "POST", body }, signal);
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  saveBlob(
+    await res.blob(),
+    parseContentDispositionFilename(res.headers.get("Content-Disposition"))
+  );
 }

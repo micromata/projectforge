@@ -114,6 +114,14 @@ open class ForecastExport { // open needed by Wicket.
      * @param origFilter The filter for the orders to export.
      * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
      * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
+     * @param copyAllFilterCriteria Whether the status, position and date criteria of [origFilter] are applied as well.
+     * False (the Wicket page and the forecast scripts) keeps this to the search string, the projects and the
+     * user, which is all these two callers ever set. True is for a caller that hands over the filter of a
+     * whole list page and expects the export to show what the list shows (see `OrderEntityRest`).
+     *
+     * The period of performance is **not** part of it either way: it is what the start date of the forecast
+     * is derived from, and the query needs to reach three years further back than that (the sheets of the
+     * two prior years' invoices), so an end date or a later begin from the filter would leave them empty.
      * @param fillUnitCol The function to get the unit of the order to show in the unit column.
      */
     @JvmOverloads
@@ -123,18 +131,11 @@ open class ForecastExport { // open needed by Wicket.
         planningDate: LocalDate? = null,
         snapshotDate: LocalDate? = null,
         distributeUnusedBudget: Boolean? = null,
+        copyAllFilterCriteria: Boolean = false,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)? = null,
     ): ByteArray? {
-        val startDateParam = origFilter.periodOfPerformanceStartDate
-        val startDate = if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
-        val filter = AuftragFilter()
-        filter.searchString = origFilter.searchString
-        filter.projectList = origFilter.projectList
-        //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
-        //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
-        filter.periodOfPerformanceStartDate =
-            startDate.plusYears(-3).localDate // Go 3 years back for getting all orders referred by invoices of the two prior years.
-        filter.user = origFilter.user
+        val startDate = getStartDate(origFilter)
+        val filter = buildQueryFilter(origFilter, startDate, copyAllFilterCriteria)
         val scriptLogger = ThreadLocalScriptingContext.getLogger()
         val closestPlanningDate = getClosestSnapshotDate(planningDate, scriptLogger, "planning")
         val closestSnapshotDate = getClosestSnapshotDate(snapshotDate, scriptLogger, "snapshot")
@@ -188,6 +189,37 @@ open class ForecastExport { // open needed by Wicket.
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
         val startDateParam = origFilter.periodOfPerformanceStartDate
         return if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
+    }
+
+    /**
+     * The filter the orders are actually queried with — a fresh one rather than the caller's, since the
+     * period of performance has to be rewritten and the caller's filter also serves the sheet's own
+     * filter selection.
+     *
+     * `internal` so [ForecastExportTest] can assert what [copyAllFilterCriteria] does and does not copy:
+     * the criteria only show up in which orders the sheet holds, so getting one wrong is invisible in the
+     * export itself.
+     */
+    internal fun buildQueryFilter(
+        origFilter: AuftragFilter,
+        startDate: PFDay,
+        copyAllFilterCriteria: Boolean,
+    ): AuftragFilter {
+        val filter = AuftragFilter()
+        filter.searchString = origFilter.searchString
+        filter.projectList = origFilter.projectList
+        if (copyAllFilterCriteria) {
+            filter.auftragsStatuses.addAll(origFilter.auftragsStatuses)
+            filter.auftragsPositionsArten.addAll(origFilter.auftragsPositionsArten)
+            filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
+            filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
+            filter.startDate = origFilter.startDate
+            filter.endDate = origFilter.endDate
+        }
+        filter.periodOfPerformanceStartDate =
+            startDate.plusYears(-3).localDate // Go 3 years back for getting all orders referred by invoices of the two prior years.
+        filter.user = origFilter.user
+        return filter
     }
 
     @JvmOverloads

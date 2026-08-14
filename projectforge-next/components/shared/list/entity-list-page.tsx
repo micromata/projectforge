@@ -140,6 +140,7 @@ function DeclaredList<
     defaultPinning,
     defaultVisibility: declarations.defaultVisibility,
   });
+  const ListActions = page.listActions;
 
   return (
     <PageShell>
@@ -154,6 +155,7 @@ function DeclaredList<
             addHref={`${page.route}/new`}
             addLabel={t(page.addTitleKey)}
             legacyUrl={list.legacyUrl}
+            actions={ListActions && <ListActions filter={list.filter} />}
             gearMenu={
               <ListGearMenu
                 entity={page.entity}

@@ -201,6 +201,9 @@
   "create": "Anlegen",
   "created": "angelegt",
   "createdBy": "angelegt von",
+  "datatable": {
+    "no-records-found": "Keine Einträge gefunden."
+  },
   "date": {
     "_": "Datum",
     "begin": "Beginndatum",
@@ -229,6 +232,7 @@
     "posFromDateBeforeFromDate": "Das Anfangsdatum einer Position darf nicht vor dem Anfangsdatum des Auftrages liegen."
   },
   "expand": "Aufklappen",
+  "exportAsXls": "Excel-Export",
   "favorite": {
     "_": "Favorit",
     "addNew": "Neuer Favorit",
@@ -333,6 +337,13 @@
         },
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
         "withoutProject": "ohne Projekt"
+      },
+      "forecastExport": {
+        "startDate": {
+          "_": "Erster Monat des Forecasts",
+          "info": "Der Forecast beginnt mit dem Monat, in dem dieses Datum liegt. Der Wert wird für den nächsten Export gemerkt."
+        },
+        "tooltip": "Export des Forecasts für die gefilterten Aufträge. Der erste Monat und das Budget-Szenario werden erfragt."
       },
       "forecastExportAsXls": {
         "_": "Forecast",
@@ -1454,6 +1465,9 @@
   "timezone": "Zeitzone",
   "title": "Titel",
   "tooltip": {
+    "export": {
+      "excel": "Export im Excelformat"
+    },
     "shortcut": {
       "addEntry": {
         "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",

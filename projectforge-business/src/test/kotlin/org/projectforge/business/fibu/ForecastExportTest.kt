@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.Locale
 
 class ForecastExportTest : AbstractTestBase() {
@@ -140,6 +141,51 @@ class ForecastExportTest : AbstractTestBase() {
         Assertions.assertTrue(forecastExport.getFilename(startDate).endsWith(default))
         Assertions.assertEquals("_optimistisch", forecastExport.variantSuffix(true))
         Assertions.assertEquals("_konservativ", forecastExport.variantSuffix(false))
+    }
+
+    /**
+     * copyAllFilterCriteria is what a caller handing over the filter of a whole list page relies on (the
+     * order list of the next frontend, see `OrderEntityRest.exportForecast`) — but the period of performance
+     * must stay out of it in either case: the query has to reach three years further back than the start of
+     * the forecast, or the sheets of the two prior years' invoices come out empty.
+     */
+    @Test
+    fun queryFilterCriteriaTest() {
+        val startDate = PFDay.withDate(2025, java.time.Month.MARCH, 1)
+        val origFilter = AuftragFilter()
+        origFilter.searchString = "ACME"
+        origFilter.auftragsStatuses.add(AuftragsStatus.BEAUFTRAGT)
+        origFilter.auftragsPositionsArten.add(AuftragsPositionsArt.WARTUNG)
+        origFilter.auftragsPositionsPaymentType = AuftragsPositionsPaymentType.TIME_AND_MATERIALS
+        origFilter.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ZU_FAKTURIEREN
+        origFilter.startDate = LocalDate.of(2024, 1, 1)
+        origFilter.endDate = LocalDate.of(2024, 12, 31)
+        origFilter.periodOfPerformanceStartDate = startDate.localDate
+        origFilter.periodOfPerformanceEndDate = LocalDate.of(2025, 12, 31)
+
+        val copied = forecastExport.buildQueryFilter(origFilter, startDate, copyAllFilterCriteria = true)
+        Assertions.assertEquals("ACME", copied.searchString)
+        Assertions.assertEquals(listOf(AuftragsStatus.BEAUFTRAGT), copied.auftragsStatuses)
+        Assertions.assertEquals(listOf(AuftragsPositionsArt.WARTUNG), copied.auftragsPositionsArten)
+        Assertions.assertEquals(AuftragsPositionsPaymentType.TIME_AND_MATERIALS, copied.auftragsPositionsPaymentType)
+        Assertions.assertEquals(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN, copied.auftragFakturiertFilterStatus)
+        Assertions.assertEquals(LocalDate.of(2024, 1, 1), copied.startDate)
+        Assertions.assertEquals(LocalDate.of(2024, 12, 31), copied.endDate)
+        Assertions.assertEquals(
+            LocalDate.of(2022, 3, 1), copied.periodOfPerformanceStartDate,
+            "Three years before the start of the forecast, never the filter's own value."
+        )
+        Assertions.assertNull(copied.periodOfPerformanceEndDate, "An end would cut off the prior years' invoices.")
+
+        // Wicket and the forecast scripts: only the search string, the projects and the user.
+        val plain = forecastExport.buildQueryFilter(origFilter, startDate, copyAllFilterCriteria = false)
+        Assertions.assertEquals("ACME", plain.searchString)
+        Assertions.assertTrue(plain.auftragsStatuses.isEmpty())
+        Assertions.assertTrue(plain.auftragsPositionsArten.isEmpty())
+        Assertions.assertNull(plain.auftragsPositionsPaymentType)
+        Assertions.assertNull(plain.startDate)
+        Assertions.assertNull(plain.endDate)
+        Assertions.assertEquals(LocalDate.of(2022, 3, 1), plain.periodOfPerformanceStartDate)
     }
 
     /**

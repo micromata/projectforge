@@ -31,6 +31,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  experimental: {
+    // Dev-only, for the rewrites below: the proxy gives up after 30s by default and answers 500,
+    // while the forecast export of the whole order book takes just over that on a real database
+    // (ForecastExport walks every order and every invoice of three years). Prod has no proxy — Spring
+    // serves both — so this only makes dev behave like it.
+    proxyTimeout: 300_000,
+  },
   // Dev-only: proxy backend calls to Spring on :8080. `basePath: false` keeps
   // the source paths at the root (/rs, /rsPublic) instead of /next/rs, matching
   // the root-relative calls in lib/rs/client.ts. rewrites() do NOT run in the

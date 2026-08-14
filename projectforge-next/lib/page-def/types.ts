@@ -30,6 +30,7 @@ import type { FilterKind } from "@/components/data-table";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import type { MagicFilter } from "@/lib/rs/types";
 
 /** The field names of an entity, so a typo in a declaration fails the typecheck. */
 export type FieldNameOf<M extends EntityMetadata> = keyof M["fields"] & string;
@@ -339,5 +340,14 @@ export interface PageDef<
    * generic has to carry a type it cannot check.
    */
   statistics?: (ctx: { statistics: unknown; isFetching: boolean }) => ReactNode;
+  /**
+   * Actions on the whole list, rendered in the toolbar left of the gear menu — the Excel and forecast
+   * exports of the order book (see OrderListActions).
+   *
+   * It is handed the filter the list call sends, so an export acts on exactly the rows the table shows.
+   * A component rather than a list of declarations: an export may need a dialog of its own, and what it
+   * asks for there belongs to the entity, not to this shell.
+   */
+  listActions?: ComponentType<{ filter: MagicFilter }>;
   edit: EditDef<Values, Data, M>;
 }

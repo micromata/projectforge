@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import mu.KotlinLogging
 import org.projectforge.NextMigration
 import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
@@ -41,8 +42,10 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -54,6 +57,7 @@ import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.inGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -66,6 +70,9 @@ import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Date
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/order")
@@ -80,6 +87,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var forecastOrderAnalysis: ForecastOrderAnalysis
+
+  @Autowired
+  private lateinit var orderExport: OrderExport
+
+  @Autowired
+  private lateinit var forecastExport: ForecastExport
 
   /**
    * Builds a fresh [AuftragDO] instead of mutating the persisted one on purpose: the persistence layer
@@ -284,21 +297,27 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+    // The group the position filters belong to, hand-set: the three below are not derived from a property,
+    // and the ones that are get "Pos." from AuftragDO.positionen (label.position.short), which is the
+    // abbreviation of a table column, not a heading.
+    val positions = translate("fibu.auftrag.positions")
+    elements.filterIsInstance<UIFilterElement>()
+      .filter { it.id.startsWith("positionen.") }
+      .forEach { it.group = positions }
     elements.add(
-      UIFilterListElement("positionsArt", label = translate("fibu.auftrag.position.art"), defaultFilter = true)
+      UIFilterListElement("positionsArt", label = translate("fibu.auftrag.position.art"))
         .buildValues(AuftragsPositionsArt::class.java)
+        .inGroup(positions, translate("fibu.auftrag.position.art"))
     )
     elements.add(
       UIFilterListElement("positionsStatus", label = translate("fibu.auftrag.positions"), defaultFilter = true)
         .buildValues(AuftragsStatus::class.java)
+        .inGroup(positions, translate("status"))
     )
     elements.add(
-      UIFilterListElement(
-        "positionsPaymentType",
-        label = translate("fibu.auftrag.position.paymenttype"),
-        defaultFilter = true
-      )
+      UIFilterListElement("positionsPaymentType", label = translate("fibu.auftrag.position.paymenttype"))
         .buildValues(AuftragsPositionsPaymentType::class.java)
+        .inGroup(positions, translate("fibu.auftrag.position.paymenttype"))
     )
     elements.add(
       UIFilterListElement("fakturiert", label = translate("fibu.auftrag.status.fakturiert"), defaultFilter = true)
@@ -573,7 +592,148 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     return RestUtils.downloadFile("orderAnalysis-${order?.nummer}.json", JsonUtils.toJson(analysis))
   }
 
+  /**
+   * The whole filtered list as the three sheet Excel file Wicket's "Excel export" produces
+   * (`AuftragListPage`, [OrderExport]).
+   *
+   * The rows come from [getResultList], i.e. through the same pipeline the list itself uses
+   * (`preProcessMagicFilter` with its synthetic position filters, then `filterList`) - calling
+   * `getObjectList` directly would export orders the list doesn't show.
+   *
+   * An empty result answers 404 rather than a file: Wicket reports it as a form error
+   * (`datatable.no-records-found`), and a downloaded file saying "nothing to export" looks like a
+   * successful export in the download folder.
+   */
+  @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+  fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+    log.info("Exporting orders as Excel file.")
+    val list = getResultList(filter)
+    val xls = orderExport.export(list)
+    if (xls == null || xls.isEmpty()) {
+      return ResponseEntity.notFound().build<Any>()
+    }
+    val filename = "ProjectForge-OrderExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xls"
+    return RestUtils.downloadFile(filename, xls)
+  }
+
+  /**
+   * What the forecast export dialog of the next frontend is preset with, remembered per user.
+   *
+   * Unlike Wicket, which derives the start month silently from the period of performance filter, the
+   * next frontend asks for it: the start date is what the whole sheet is laid out around, so it is a
+   * question of the export and not of the list. Storing the answer means it only has to be given once.
+   */
+  @GetMapping("forecastExportSettings")
+  fun getForecastExportSettings(): ForecastExportSettings {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val stored = userPrefService.getEntry(category, USER_PREF_PARAM_FORECAST_EXPORT, ForecastExportSettings::class.java)
+    return ForecastExportSettings(
+      // The same fallback ForecastExport itself uses for a filter without a period of performance.
+      startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate,
+      distributeUnusedBudget = stored?.distributeUnusedBudget
+        ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+    )
+  }
+
+  /**
+   * The forecast of the filtered orders as the xlsx file Wicket's "Forecast" button produces
+   * ([ForecastExport]), with the start date and the budget variant taken from the dialog instead of from
+   * the filter, and remembered for the next time.
+   *
+   * The settings are stored before the export runs: it is the answer the user gave, and it should be
+   * preset next time whether or not there was anything to export.
+   */
+  @PostMapping("exportForecast")
+  fun exportForecast(@RequestBody request: ForecastExportRequest): ResponseEntity<*> {
+    log.info("Exporting forecast of orders as Excel file.")
+    val settings = request.settings ?: ForecastExportSettings()
+    userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_EXPORT, settings, true)
+    val filter = toAuftragFilter(request.filter ?: MagicFilter())
+    // The dialog's answer replaces the filter's, which is what Wicket goes by.
+    filter.periodOfPerformanceStartDate = settings.startDate
+    filter.periodOfPerformanceEndDate = null
+    val xls = forecastExport.xlsExport(
+      filter,
+      distributeUnusedBudget = settings.distributeUnusedBudget,
+      copyAllFilterCriteria = true,
+    )
+    if (xls == null || xls.isEmpty()) {
+      return ResponseEntity.notFound().build<Any>()
+    }
+    return RestUtils.downloadFile(
+      forecastExport.getExcelFilenmame(filter, settings.distributeUnusedBudget),
+      xls,
+    )
+  }
+
+  /** What the forecast export dialog asks for, and what is remembered of it per user. */
+  class ForecastExportSettings(
+    /**
+     * The month the forecast starts with. [ForecastExport] takes the begin of its month, so any day of
+     * it means the same thing.
+     */
+    var startDate: LocalDate? = null,
+    /** See [ForecastOrderPosInfo.distributeUnusedBudget] - the optimistic variant of the forecast. */
+    var distributeUnusedBudget: Boolean? = null,
+  )
+
+  /**
+   * The two halves of a forecast export: what to export and how. Separate objects, so the filter never
+   * ends up in what is stored as the user's settings.
+   */
+  class ForecastExportRequest(
+    var filter: MagicFilter? = null,
+    var settings: ForecastExportSettings? = null,
+  )
+
   companion object {
+    /**
+     * The list's [MagicFilter] as the [AuftragFilter] the two exports of `projectforge-business` take.
+     *
+     * A translation rather than a shared filter object: the exports predate the magic filter and are used
+     * by Wicket and by the forecast scripts as well, so they keep their own filter type. The field names
+     * are the ones [addMagicFilterElements] declares and [preProcessMagicFilter] reads.
+     *
+     * `user` and `projectList` stay empty - the order list of the next frontend offers no filter for
+     * either, and guessing one from the search string would filter by something nobody asked for.
+     *
+     * `internal` and in the companion object rather than a private method, as [assignNumbersToNewRows]:
+     * it needs nothing of the instance, which is what makes it testable without a Spring context
+     * (`OrderFilterTest`).
+     */
+    internal fun toAuftragFilter(magicFilter: MagicFilter): AuftragFilter {
+      val filter = AuftragFilter()
+      filter.searchString = magicFilter.searchString
+      magicFilter.entries.forEach { entry ->
+        val values = entry.value.values?.filter { it.isNotBlank() } ?: emptyList()
+        when (entry.field) {
+          "status" -> filter.auftragsStatuses.addAll(values.mapNotNull { AuftragsStatus.safeValueOf(it) })
+          "positionsArt" -> filter.auftragsPositionsArten.addAll(
+            values.mapNotNull { AuftragsPositionsArt.safeValueOf(it) })
+          // Single valued in AuftragFilter, multi valued in the filter panel: the export can only be told
+          // one, so the first is used and the rest is lost - the same choice the legacy filter form offers.
+          "positionsPaymentType" -> filter.auftragsPositionsPaymentType =
+            values.firstNotNullOfOrNull { AuftragsPositionsPaymentType.safeValueOf(it) }
+
+          // A java enum, so it has no safeValueOf of its own.
+          "fakturiert" -> filter.auftragFakturiertFilterStatus = values.firstNotNullOfOrNull { value ->
+            AuftragFakturiertFilterStatus.values().firstOrNull { it.name == value }
+          }
+
+          PERIOD_OF_PERFORMANCE_FILTER -> {
+            filter.periodOfPerformanceStartDate = PFDayUtils.parseDate(entry.value.fromValue)
+            filter.periodOfPerformanceEndDate = PFDayUtils.parseDate(entry.value.toValue)
+          }
+          // The date the order was entered, which AuftragFilter calls startDate/endDate.
+          AuftragDO::erfassungsDatum.name -> {
+            filter.startDate = PFDayUtils.parseDate(entry.value.fromValue)
+            filter.endDate = PFDayUtils.parseDate(entry.value.toValue)
+          }
+        }
+      }
+      return filter
+    }
+
     /**
      * Numbers the rows the client added, leaving every stored row untouched: `number` is what the
      * collection handler matches a posted row against its database row by, and `AuftragRight` looks a
@@ -682,5 +842,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
     /** The two date properties the combined filter replaces in the filter field list. */
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
+
+    /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
+    private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
   }
 }

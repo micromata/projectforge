@@ -133,6 +133,9 @@ object GenerateNextI18nMessagesMain {
     "user.My2FACode.",
     "webauthn.error.",
     "webauthn.registration.button.",
+    // "Keine Einträge gefunden" — reported when an export has nothing to write (see the order list's
+    // export buttons). The hyphens put it outside the key shape [NextI18nKeyScanner] looks for.
+    "datatable.no-records-found",
   )
 
   @JvmStatic

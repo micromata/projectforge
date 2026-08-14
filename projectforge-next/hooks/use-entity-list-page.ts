@@ -205,6 +205,11 @@ export function useEntityListPage<Row extends ListRow>({
     /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
     legacyUrl: meta.data?.legacyListPage,
     data: query.data,
+    /**
+     * The MagicFilter exactly as the list call sends it — what a list-level action has to post to act on
+     * the same rows the table shows (see PageDef.listActions and the order book's exports).
+     */
+    filter: query.filter,
     /** What the backend aggregated over the result set, for a page that shows it (see PageDef.statistics). */
     statistics: query.statistics,
     /** The entry the user edited last, which the list marks and scrolls to (see useHighlightedRow). */

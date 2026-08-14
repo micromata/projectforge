@@ -201,6 +201,9 @@
   "create": "Create",
   "created": "created",
   "createdBy": "created by",
+  "datatable": {
+    "no-records-found": "No records were found."
+  },
   "date": {
     "_": "date",
     "begin": "Start date",
@@ -229,6 +232,7 @@
     "posFromDateBeforeFromDate": "Start date of a position can't be before start date of order."
   },
   "expand": "Expand",
+  "exportAsXls": "Excel export",
   "favorite": {
     "_": "Favorite",
     "addNew": "New favorite",
@@ -333,6 +337,13 @@
         },
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
         "withoutProject": "without project"
+      },
+      "forecastExport": {
+        "startDate": {
+          "_": "First month of the forecast",
+          "info": "The forecast starts with the month this date lies in. The value is remembered for the next export."
+        },
+        "tooltip": "Forecast export of the filtered orders. The first month and the budget scenario are asked for."
       },
       "forecastExportAsXls": {
         "_": "Forecast",
@@ -1454,6 +1465,9 @@
   "timezone": "Time zone",
   "title": "Title",
   "tooltip": {
+    "export": {
+      "excel": "Export as Excel file"
+    },
     "shortcut": {
       "addEntry": {
         "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",

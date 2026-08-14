@@ -13,6 +13,7 @@ import {
   ORDER_ARRAY_FIELDS,
   type OrderValues,
 } from "./order-schema";
+import { OrderListActions } from "./order-list-actions";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
 import { emptyOrderValues, toFormValues } from "./order-values";
@@ -193,6 +194,7 @@ export const ORDER_PAGE = definePage<
       isFetching={isFetching}
     />
   ),
+  listActions: OrderListActions,
   edit: {
     schema: orderSchema,
     fieldNames: ORDER_FIELDS,

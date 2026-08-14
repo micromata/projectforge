@@ -30,6 +30,11 @@ export interface ListToolbarProps {
   addLabel: string;
   /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
   legacyUrl?: string;
+  /**
+   * Actions of the list itself — the exports of the order book (see PageDef.listActions). Between the
+   * legacy link and the gear menu: they act on the page, but on all of it rather than on its settings.
+   */
+  actions?: ReactNode;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
   columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
@@ -48,6 +53,7 @@ export function ListToolbar({
   addHref,
   addLabel,
   legacyUrl,
+  actions,
   columnPanel,
   filterPills,
   gearMenu,
@@ -69,6 +75,7 @@ export function ListToolbar({
         <div className="flex items-center gap-3 self-start">
           {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
           <LegacyPageLink url={legacyUrl} />
+          {actions}
           {/* Divider only with a menu beside it: it separates the list's own actions from
               "add", which creates an entity. */}
           {gearMenu && (
