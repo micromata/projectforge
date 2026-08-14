@@ -37,18 +37,19 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.rest.dto.PostData
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,7 +68,7 @@ import java.time.LocalDate
 @RestController
 @RequestMapping("${Rest.URL}/order")
 open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying.
-  AbstractDTOPagesRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
+  AbstractDTOEntityRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
 
   @Autowired
   private lateinit var orderAccessChecker: AccessChecker
@@ -280,53 +281,6 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     val counterToBeInvoiced: Int = statistics.counterToBeInvoiced
   }
 
-  /**
-   * LAYOUT List page
-   */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    layout.add(UITable.createUIResultSetTable()
-          .add(lc, "nummer")
-          .add(UITableColumn("kunde.displayName", title = "fibu.kunde"))
-          .add(UITableColumn("projekt.displayName", title = "fibu.projekt"))
-          .add(lc, "titel")
-          .add(UITableColumn("pos", title = "label.position.short"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP))
-          .add(
-            UITableColumn(
-              "personDays", title = "projectmanagement.personDays",
-              dataType = UIDataType.DECIMAL
-            )
-          )
-          .add(lc, "referenz")
-          .add(
-            UITableColumn(
-              "assignedPersons", title = "fibu.common.assignedPersons",
-              dataType = UIDataType.STRING
-            )
-          )
-          .add(lc, "erfassungsDatum", "entscheidungsDatum")
-          .add(
-            UITableColumn(
-              "formattedNettoSumme", title = "fibu.auftrag.nettoSumme",
-              dataType = UIDataType.DECIMAL
-            )
-          )
-          .add(
-            UITableColumn(
-              "formattedBeauftragtNettoSumme", title = "fibu.auftrag.commissioned",
-              dataType = UIDataType.DECIMAL
-            )
-          )
-          .add(UITableColumn("formattedFakturiertSum", title = "fibu.fakturiert"))
-          .add(UITableColumn("formattedZuFakturierenSum", title = "fibu.toBeInvoiced"))
-          .add(lc, "periodOfPerformanceBegin", "periodOfPerformanceEnd", "probabilityOfOccurrence", "status")
-      )
-    layout.getTableColumnById("erfassungsDatum").formatter = UITableColumn.Formatter.DATE
-    layout.getTableColumnById("entscheidungsDatum").formatter = UITableColumn.Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceBegin").formatter = UITableColumn.Formatter.DATE
-    layout.getTableColumnById("periodOfPerformanceEnd").formatter = UITableColumn.Formatter.DATE
-  }
-
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
     elements.add(
       UIFilterListElement("positionsArt", label = translate("fibu.auftrag.position.art"), defaultFilter = true)
@@ -423,66 +377,57 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
   }
 
   /**
-   * Orders the customer and project columns by the name they show, not by the computed string.
+   * Orders the customer and project columns by the name they show, not by the computed string, and takes
+   * the columns no `ORDER BY` can express out of the query — [filterList] sorts by those.
    *
-   * Both columns are `displayName` — a `@Transient` getter formatting number and name
+   * The customer and the project are `displayName` — a `@Transient` getter formatting number and name
    * (`KostFormatter`), so the database cannot order by it. The name is what a reader sorts by, and it is
    * a column; the leading number is the customer id, which orders the same way for the customer column
    * anyway.
    *
    * `MagicFilterProcessor` keeps these paths whole now, so without this the sort would reach
    * `addOrder`, fail on the missing column and log per request.
+   *
+   * Removing the computed ones is what keeps that from happening for the sums: `addOrder` swallows the
+   * exception, so the query went out with no `ORDER BY` at all and the list came back in whatever order
+   * the database produced — the sort a user asked for silently did nothing.
    */
   override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
     target.sortProperties.replaceAll { sortProperty ->
       DISPLAY_NAME_SORT_PROPERTIES[sortProperty.property]?.let { SortProperty(it, sortProperty.sortOrder) }
         ?: sortProperty
     }
+    target.sortProperties.removeIf { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
   }
 
   /**
-   * LAYOUT Edit page: attachments and a read-only summary of the order.
+   * Sorts the loaded orders by the columns that are no database column, the way the Wicket list page has
+   * always done it (`MyListPageSortableDataProvider` with `MyBeanComparator`).
    *
-   * The order is edited in projectforge-next (hand built, see `order.page.tsx`) and in Wicket, not
-   * through this layout — an order is a tree of two nested collections with server-side sums, which the
-   * generic UILayout renderer cannot express. What is left here is the attachment list, which needs an
-   * edit layout to be reachable at all, plus the few fields naming the order the attachments belong to.
+   * Six of the list's columns are computed: the four sums and the person days are `@get:Transient` getters
+   * of [AuftragDO] over [OrderInfo], and the position count is a string ("#3"). They are exactly what a
+   * reader of the order book sorts by, so "not sortable" is no answer — and they are readable here for
+   * free: [AuftragsCache] answered them for every row that was loaded anyway, so this is a map lookup per
+   * comparison, not a query. The count sorts numerically, so `#2` comes before `#10`.
    *
-   * `userAccess` is no longer forced to false: the DTO round trip is complete now (see [transformForDB]
-   * / [Auftrag.copyTo]), so saving this layout writes the order back unchanged instead of emptying it.
+   * The place for it: the whole result set is loaded (there is no server side paging yet, see
+   * `MIGRATION-list-paging.md`), so sorting it here is sorting all of it. Once paging lands, this moves
+   * onto the materialized id list — the ordering itself stays as it is.
+   *
+   * Sorts only by what [postProcessMagicFilter] took out of the query, and leaves the order the database
+   * produced alone otherwise: a stable sort by nothing is not the same as no sort.
    */
-  override fun createEditLayout(dto: Auftrag, userAccess: UILayout.UserAccess): UILayout {
-    val layout = super.createEditLayout(dto, userAccess)
-      .add(
-        UIRow()
-          .add(
-            UICol()
-              .add(UIReadOnlyField("nummer", lc))
-              .add(UIReadOnlyField("customer.displayName", lc, label = "fibu.kunde"))
-          )
-          .add(
-            UICol()
-              .add(UIReadOnlyField("formattedNettoSumme", lc, label = "fibu.auftrag.nettoSumme"))
-              .add(UIReadOnlyField("project.displayName", lc, label = "fibu.projekt"))
-          )
-      )
-      .add(
-        UIRow()
-          .add(
-            UICol()
-              .add(UIReadOnlyField("titel", lc))
-          )
-      )
-      .add(
-        UIFieldset(title = "attachment.list")
-          .add(
-            UIAttachmentList(
-              category, dto.id, maxSizeInKB = getMaxFileSizeKB()
-            )
-          )
-      )
-    //layout.enableHistoryBackButton()
-    return LayoutUtils.processEditPage(layout, dto, this)
+  override fun filterList(resultSet: MutableList<AuftragDO>, filter: MagicFilter): List<AuftragDO> {
+    val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
+    if (computed.isEmpty()) {
+      return resultSet
+    }
+    // The number as the last criterion, so equal sums (0.00 is the most common value of all four) keep a
+    // deterministic order instead of shifting between two requests over the same data.
+    val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
+    return SortPropertyComparator.sort(resultSet, sortProperties) { order, property ->
+      COMPUTED_SORT_PROPERTIES[property]?.invoke(Auftrag.orderInfo(order))
+    }
   }
 
   /**
@@ -694,6 +639,32 @@ open class AuftragPagesRest : // open needed by Wicket's SpringBean for proxying
     private val DISPLAY_NAME_SORT_PROPERTIES = mapOf(
       "kunde.displayName" to "kunde.name",
       "projekt.displayName" to "projekt.name",
+    )
+
+    /**
+     * The sort ids no database column can answer, and the [OrderInfo] value each one sorts by (see
+     * [filterList]).
+     *
+     * The ids are the DTO's property names, which is what the list's columns are declared by
+     * (`order.page.tsx`) — and what the Wicket list declares as its sort properties too, since
+     * [AuftragDO] carries the same names as deprecated getters over `info`.
+     *
+     * `pos` is the one that is not the value it shows: the cell reads "#3", and comparing that as a string
+     * would put #10 before #2. It sorts by the count, and by the same count the cell shows — the deleted
+     * positions left out.
+     *
+     * `assignedPersons` is deliberately absent: it is a `@Transient` getter of [AuftragDO], so reflection
+     * reads it, and it costs a `UserGroupCache` lookup per user rather than a map lookup — the default
+     * path handles it. It resolves against the entity, so the sort reaches the query and only its own
+     * `addOrder` fails.
+     */
+    private val COMPUTED_SORT_PROPERTIES = mapOf<String, (OrderInfo) -> Comparable<*>?>(
+      Auftrag::nettoSumme.name to { it.netSum },
+      Auftrag::beauftragtNettoSumme.name to { it.commissionedNetSum },
+      Auftrag::fakturiertSum.name to { it.invoicedSum },
+      Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
+      Auftrag::personDays.name to { it.personDays },
+      Auftrag::pos.name to { info -> info.infoPositions?.count { !it.deleted } ?: 0 },
     )
 
     /**

@@ -14,7 +14,7 @@ without exploring again.
 | Re-measure after stage 1              | **done** — live numbers below, and they decide stage 2  |
 | 2 server-side paging                  | open — analysis complete, nothing implemented           |
 | 3a nested sort paths                  | **done**                                                |
-| 3b sort the id list for computed cols | open — depends on stage 2's materialized id list        |
+| 3b sort in Kotlin for computed cols   | **done** — in `filterList`; moves onto the id list later |
 | 4 one filter state                    | open — ships together with stage 2 for `order`          |
 | 5 optimizations                       | open — behind measurement                               |
 | 6 roll out to further entities        | open                                                    |
@@ -274,7 +274,7 @@ yields a short page, not an exception.
 
 ---
 
-## Stage 3 — sorting under paging — 3a done, 3b open
+## Stage 3 — sorting under paging — done
 
 **3a. Resolve nested sort paths. — done.** `MagicFilterProcessor` stripped everything before the first
 dot, so `kunde.displayName` became `displayName`, which `AuftragDO` hasn't got →
@@ -286,31 +286,40 @@ customer as soon as the list is sorted by one. `AuftragPagesRest.postProcessMagi
 DTO-only paths onto columns (`kunde.displayName` → `kunde.name`, `projekt.displayName` →
 `projekt.name`), the way `Kost1PagesRest` does for `formattedNumber`.
 
-**3b. Sort the id list in Kotlin for the computed columns. — open.** This is where the id-list design
-pays off — 8 of 19 order columns cannot be an `ORDER BY` at all (`personDays`, `nettoSumme`,
-`beauftragtNettoSumme`, `fakturiertSum`, `zuFakturierenSum` are `@get:Transient` on `AuftragDO` and come
-from `OrderInfo`; `pos` is `"#" + count`; `assignedPersons` is a transient getter over four users) — and
-those money columns are exactly what users sort by.
+**3b. Sort the loaded list in Kotlin for the computed columns. — done, ahead of paging.** 6 of the 19
+order columns cannot be an `ORDER BY` at all — `nettoSumme`, `beauftragtNettoSumme`, `fakturiertSum`,
+`zuFakturierenSum` and `personDays` are `@get:Transient` on `AuftragDO` and come from `OrderInfo`, `pos`
+is `"#" + count` — and those money columns are exactly what users sort by. Sorting by one of them did
+**nothing**: `addOrder` swallowed the exception, logged `Can't add order`, and the query went out with no
+`ORDER BY` at all.
 
-```kotlin
-/**
- * Reorders the materialized id list for sort properties no database column can express.
- * Called once per (user, filter), not per page. Implementations must not query: an order's net sum is
- * a map lookup in AuftragsCache, which is what makes sorting 7000 ids a matter of milliseconds.
- * @return the reordered ids, or null if the order the database produced stands.
- */
-open fun sortIds(ids: LongArray, magicFilter: MagicFilter): LongArray? = null
-```
+Done without waiting for the id list, since the whole result set is loaded anyway (that is what stage 2
+changes) — and done the way the **Wicket** list has always done it: `MyListPageSortableDataProvider` never
+pushes these into the query either, it loads the complete list and sorts it with `MyBeanComparator`.
 
-Override in `AuftragPagesRest`, mapping each sort id to an `OrderInfo` accessor. Two consequences:
-remove those sort properties from the `QueryFilter` in `postProcessMagicFilter` (else `addOrder` logs
-per request and the DB order is arbitrary), and add a stable tie-breaker (`nummer` desc) so page
-boundaries are deterministic. `assignedPersons` needs `OrderInfo` to carry the joined names — fill it in
-`AuftragsCache.refresh`, where the users are resolved anyway.
+- `SortPropertyComparator` (`projectforge-business/.../persistence/api/`) — the comparator that was inline
+  in `DBFullTextResultIterator.sort`, extracted, with a `valueOf` hook for values reflection cannot reach
+  cheaply. Keeps the criteria search's semantics (blank ranks lowest and therefore flips with the
+  direction, strings through a locale `Collator`), so a list sorted in Kotlin and one sorted by the
+  database read the same. Covered by `SortPropertyComparatorTest`.
+- `AuftragPagesRest.postProcessMagicFilter` removes the computed sort properties from the `QueryFilter`
+  (else `addOrder` logs per request), and `filterList` sorts the loaded orders by them —
+  `COMPUTED_SORT_PROPERTIES` maps each sort id onto an `OrderInfo` accessor, so each comparison is a map
+  lookup in `AuftragsCache`, not a query. `pos` sorts by the position count, so `#2` precedes `#10`.
+  Tie-breaker `nummer` desc, since 0.00 is the most common value of all four sums.
 
-Rule for other lists: a computed column is sortable if derivable from a cache or the id alone — declare
-it in `sortIds`; otherwise set `enableSorting: false` in the page-def rather than silently doing
-nothing, which was the behaviour before 3a and worse.
+When stage 2 lands, this moves from `filterList` onto the materialized id list (`sortIds(ids, filter)`,
+once per (user, filter) rather than per page); the ordering itself stays as it is.
+
+`assignedPersons` is left to reflection: it is a `@Transient` getter of `AuftragDO`, so it resolves
+against the entity and only its own `addOrder` fails — but it works in fulltext mode, where the sort runs
+in Kotlin. Making it work in criteria mode too means either letting `OrderInfo` carry the joined names
+(fill it in `AuftragsCache.refresh`, where the users are resolved anyway) or sorting it in `filterList`
+at the cost of a `UserGroupCache` lookup per user per comparison.
+
+Rule for other lists: a computed column is sortable if derivable from a cache or the id alone — map it
+like `COMPUTED_SORT_PROPERTIES` does; otherwise set `enableSorting: false` in the page-def rather than
+silently doing nothing, which was the behaviour before this and worse.
 
 ---
 

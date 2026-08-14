@@ -27,14 +27,11 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
-import org.apache.commons.lang3.builder.CompareToBuilder
 import org.hibernate.search.mapper.orm.Search
-import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.text.Collator
+import org.projectforge.framework.persistence.api.SortPropertyComparator
 
 
 private val log = KotlinLogging.logger {}
@@ -80,73 +77,12 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     }
 
     /**
-     * Entries without a value count as the smallest value, matching the criteria search (see
-     * DBQueryBuilderByCriteria.addOrder): they lead an ascending sort and trail a descending one,
-     * so reversing the sort brings them into view. Text columns hold two representations of "no
-     * value" — `null` and, in some records, an empty string — which are treated alike; otherwise
-     * which blank entries surface depends on the representation a record happens to use.
+     * A full text query answers in relevance order, so the sort happens here — with the semantics of the
+     * criteria search (see [SortPropertyComparator] and `DBQueryBuilderByCriteria.addOrder`), so that a
+     * list the user searched in and one they only filtered read the same.
      */
     override fun sort(list: List<O>): List<O> {
-        val collator = Collator.getInstance(ThreadLocalUserContext.locale)
-        val errorProperties = mutableListOf<String>()
-        return list.sortedWith(object : Comparator<O> {
-            /** null and blank strings count as "no value". */
-            fun isBlank(value: Any?): Boolean = value == null || (value is String && value.isEmpty())
-
-            override fun compare(o1: O, o2: O): Int {
-                if (sortProperties.isEmpty()) {
-                    return 0
-                }
-                val ctb = CompareToBuilder()
-                for (sortProperty in sortProperties) {
-                    try {
-                        val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
-                        val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
-                        val blank1 = isBlank(val1)
-                        val blank2 = isBlank(val2)
-                        if (blank1 || blank2) {
-                            if (blank1 != blank2) {
-                                // Blank ranks lowest, so the order flips with the direction.
-                                val rank1 = if (blank1) 0 else 1
-                                val rank2 = if (blank2) 0 else 1
-                                if (sortProperty.ascending) {
-                                    ctb.append(rank1, rank2)
-                                } else {
-                                    ctb.append(rank2, rank1)
-                                }
-                            }
-                            continue // Both blank: equal for this property, compare the next one.
-                        }
-                        if (val1 is String) {
-                            // Strings should be compared by using locale dependent collator (especially for german Umlaute)
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2, collator)
-                            } else {
-                                ctb.append(val2, val1, collator)
-                            }
-                        } else if (val1 is Comparable<*>) {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2)
-                            } else {
-                                ctb.append(val2, val1)
-                            }
-                        } else {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1.toString(), val2?.toString())
-                            } else {
-                                ctb.append(val2?.toString(), val1.toString())
-                            }
-                        }
-                    } catch (ex: Exception) {
-                        if (!errorProperties.contains(ex.message)) {
-                            errorProperties.add("${ex.message}")
-                            log.warn("Ignore sort property (OK): ${ex.message}")
-                        }
-                    }
-                }
-                return ctb.toComparison()
-            }
-        })
+        return SortPropertyComparator.sort(list, sortProperties.toList())
     }
 
     private fun internalNext(): O? {
