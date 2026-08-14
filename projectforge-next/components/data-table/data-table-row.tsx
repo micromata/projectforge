@@ -59,6 +59,9 @@ export function DataTableRow<TData>({
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
+      // The entity's id on both list paths (both set `getRowId` to it), which is what makes the row
+      // addressable from outside the table — see useHighlightedRow, and the e2e specs.
+      data-row-id={row.id}
       className={cn(
         "group",
         (onRowClick || onCellClick) && "cursor-pointer",

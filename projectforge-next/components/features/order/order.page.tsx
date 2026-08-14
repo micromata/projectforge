@@ -35,8 +35,9 @@ export const FORECAST_TAB_ID = "forecast";
  * around them is ordinary — the fields, their labels, their rules and the history tab come from
  * `AuftragDO` through the generated metadata, exactly as for a book or a cost unit.
  *
- * The columns are the 19 of `OrderEntityRest.createListLayout` — in an order of their own, and with the
- * two ends of the period of performance as the one column they read as. Six of them are computed:
+ * The columns are the 19 of `OrderEntityRest.createListLayout` plus `lastUpdate` — in an order of their
+ * own, and with the two ends of the period of performance as the one column they read as (`created`
+ * comes on top of them, as it does for every list; see lib/page-def/audit-columns.ts). Six are computed:
  * the customer and the project are `KundeDO`/`ProjektDO` and have no `UIDataType`, so the metadata
  * cannot carry them, while the position count, the assigned persons, the person days and the four sums
  * are transient properties of `AuftragDO` (`@get:Transient`, computed by `OrderInfo`). The amounts render
@@ -160,6 +161,10 @@ export const ORDER_PAGE = definePage<
       className: "text-muted-foreground",
     },
     { name: "entscheidungsDatum", size: 110 },
+    // When the order was last touched — which of two orders of the same status is the one being worked
+    // on. Declared, unlike `created`, which every list offers hidden (see lib/page-def/audit-columns.ts):
+    // the order book is the list where this is read, not an option of it.
+    { name: "lastUpdate", size: 130 },
   ],
   // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
   // the untyped `ResultSet.statistics` becomes what `OrderEntityRest.OrderStatistics` sends — see

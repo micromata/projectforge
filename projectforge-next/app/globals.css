@@ -122,6 +122,13 @@
   --row-grey: rgba(120, 120, 120, 0.07);
 
   /*
+   * The row that was edited last (ResultSet.highlightRowId). Named after its
+   * meaning, unlike the ones above: this one is the app's own, not a colour the
+   * backend asked for.
+   */
+  --row-highlighted: rgba(255, 157, 1, 0.9);
+
+  /*
    * A task's status, as the Wicket page paints it (projectforge-css.less:
    * .taskStatus_opened / .taskStatus_closed). "Not opened" stays the row's colour.
    */
@@ -217,6 +224,8 @@
   --row-green: rgba(117, 190, 1, 0.18);
   --row-blue: rgba(0, 155, 163, 0.2);
   --row-grey: rgba(255, 255, 255, 0.04);
+  /* Lightened, since the marker is drawn against the dark row rather than a white one */
+  --row-highlighted: rgba(255, 183, 77, 0.95);
   --consumption-track: oklch(0.32 0 0);
 
   /* Wicket's status colours are mixed for print; lightened to stay readable here */
@@ -261,6 +270,27 @@
 }
 .row-grey > td {
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
+}
+
+/*
+ * The row edited last (see useHighlightedRow). An inset shadow rather than a tint, because the
+ * classes above already own `background-image` on the cell: a fill would replace the row's own
+ * colour, and the row a user just edited is quite often the one they just marked as deleted. Two
+ * properties, two layers — the marker and the colour both show.
+ *
+ * The bar on the first cell sits where the hover marker does (see DataTableRow), so while the
+ * pointer rests on the row the hover bar covers it. The rules above and below stay visible.
+ */
+.row-highlighted > td {
+  box-shadow:
+    inset 0 1px 0 var(--row-highlighted),
+    inset 0 -1px 0 var(--row-highlighted);
+}
+.row-highlighted > td:first-child {
+  box-shadow:
+    inset 3px 0 0 var(--row-highlighted),
+    inset 0 1px 0 var(--row-highlighted),
+    inset 0 -1px 0 var(--row-highlighted);
 }
 
 /* Legend swatches — same tokens applied to arbitrary inline elements. */

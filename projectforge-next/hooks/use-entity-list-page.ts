@@ -13,7 +13,11 @@ import {
   type ColumnState,
   type FilterValues,
 } from "@/components/data-table";
-import type { ColumnDef, ColumnPinningState } from "@tanstack/react-table";
+import type {
+  ColumnDef,
+  ColumnPinningState,
+  VisibilityState,
+} from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useListMeta } from "@/hooks/use-list-meta";
 
@@ -43,6 +47,12 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    * point of the list and what its reset returns to (see `defaultPinningOf`).
    */
   defaultPinning?: ColumnPinningState;
+  /**
+   * Columns hidden until the user asks for them — the two audit columns every list offers (see
+   * `auditColumnsFor`). Per column, so a stored visibility overrides only what the user themselves
+   * switched.
+   */
+  defaultVisibility?: VisibilityState;
 }
 
 /**
@@ -62,6 +72,7 @@ export function useEntityListPage<Row extends ListRow>({
   storedState,
   restoredFilter,
   defaultPinning,
+  defaultVisibility,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -73,6 +84,8 @@ export function useEntityListPage<Row extends ListRow>({
     // Only for a user who has never pinned anything: a stored `{}` means they unpinned every column,
     // and that decision has to survive a reload.
     initialPinning: defaultPinning,
+    // Merged per column with the stored visibility, unlike the pinning — see useTableState.
+    initialVisibility: defaultVisibility,
   });
 
   const query = useMagicFilterQuery<Row>({
@@ -150,12 +163,12 @@ export function useEntityListPage<Row extends ListRow>({
 
   /**
    * Back to the column defs' defaults: an empty order is the order they are declared in, an empty
-   * visibility/sizing is "as declared", and the pinning is the one the page declares — the only slice
-   * with a default other than "nothing", so it is set rather than cleared.
+   * sizing is "as declared", and the pinning and the visibility are the ones the page declares — the
+   * two slices with a default other than "nothing", so they are set rather than cleared.
    */
   function resetColumns() {
     query.setSorting([]);
-    columnState.setColumnVisibility({});
+    columnState.setColumnVisibility(defaultVisibility ?? {});
     columnState.setColumnPinning(defaultPinning ?? {});
     columnState.setColumnSizing({});
     columnState.setColumnOrder([]);
@@ -194,6 +207,8 @@ export function useEntityListPage<Row extends ListRow>({
     data: query.data,
     /** What the backend aggregated over the result set, for a page that shows it (see PageDef.statistics). */
     statistics: query.statistics,
+    /** The entry the user edited last, which the list marks and scrolls to (see useHighlightedRow). */
+    highlightRowId: query.highlightRowId,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     globalFilter: query.globalFilter,

@@ -62,9 +62,14 @@ export function useTableState({
     restoredState?.sorting?.length ? restoredState.sorting : initialSorting
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    restoredState?.columnVisibility ?? initialVisibility
-  );
+  // Merged rather than replaced, unlike the other slices: the initial visibility is what the columns
+  // themselves say (a list's audit columns start hidden, see auditColumnsFor), and a stored state
+  // holding one unrelated hidden column must not turn all of them on. The user's own choice wins per
+  // column, which is exactly what the merge does.
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    ...initialVisibility,
+    ...restoredState?.columnVisibility,
+  });
   const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(
     restoredState?.columnPinning ?? initialPinning
   );

@@ -54,6 +54,12 @@ interface UseMagicFilterQueryResult<O> {
    * order book (see `ResultSet.statistics` in lib/rs/types.ts). Undefined for an entity that sends none.
    */
   statistics?: unknown;
+  /**
+   * The row the user edited last, as the backend remembers it per user and category
+   * (`AbstractEntityRest.onAfterEdit` writes it, `getList` hands it back). What lets a list mark the
+   * entry someone just came back from — see useHighlightedRow.
+   */
+  highlightRowId?: number;
   /** The filter as sent, so it can be stored as a favorite. */
   filter: MagicFilter;
   isLoading: boolean;
@@ -148,6 +154,7 @@ export function useMagicFilterQuery<O>({
     data: rows,
     rowCount: query.data?.totalSize ?? rows.length,
     statistics: query.data?.statistics,
+    highlightRowId: query.data?.highlightRowId,
     filter,
     isLoading: query.isLoading,
     isFetching: query.isFetching,

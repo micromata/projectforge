@@ -101,9 +101,22 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
      * Why not a row class of its own (as `ListAddress` is): the client's row type stays one projection of
      * one DTO, `id`/`deleted` stay where the framework reads them, and a column added to a next page is one
      * line here instead of a new class plus its `getId` override.
+     *
+     * An override has to fill [created] and [lastUpdate] as well as the columns of its page: every next list
+     * offers those two as columns of its own, hidden until the user switches them on
+     * (`lib/page-def/audit-columns.ts`), so a row leaving them out shows an empty column instead of a date.
+     * That is what [copyAuditFieldsFrom] is for.
      */
     open fun copyFrom4ListRow(src: T) {
         copyFrom(src)
+    }
+
+    /**
+     * The two timestamps every list offers as a column, for an override of [copyFrom4ListRow] — see there.
+     */
+    protected fun copyAuditFieldsFrom(src: T) {
+        created = src.created
+        lastUpdate = src.lastUpdate
     }
 
     private fun _copyFromMinimal(src: Any?) {

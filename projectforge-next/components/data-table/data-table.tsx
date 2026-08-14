@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { useDataTable, type UseDataTableOptions } from "./use-data-table";
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
+import { useHighlightedRow } from "./use-highlighted-row";
 import { useOverflowTooltip } from "./use-overflow-tooltip";
 
 const ROW_ACTIONS_WIDTH = 80;
@@ -44,6 +46,19 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * globals.css. Used by the dynamic grid to reproduce a list's row colours.
    */
   rowClassName?: (row: TData) => string | undefined;
+  /**
+   * The row the user edited last: marked, and brought into view once (see useHighlightedRow). Its
+   * own prop rather than something a caller folds into [rowClassName], because the marker and the
+   * row's colour are two layers, and because the scrolling belongs to the table's own container.
+   */
+  highlightRowId?: number | null;
+  /**
+   * What the highlighted id is counted per, e.g. the entity name — so two tables cannot mistake each
+   * other's ids for one already scrolled to, and so the scroll happens once for the whole session
+   * rather than on every visit to the list. Left out where a table should scroll again whenever it
+   * mounts (see useHighlightedRow).
+   */
+  highlightScope?: string;
 
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
@@ -62,6 +77,8 @@ export function DataTable<TData>({
   onCellClick,
   rowActions,
   rowClassName,
+  highlightRowId,
+  highlightScope,
   pageSizeOptions,
   emptyState,
   footer,
@@ -82,6 +99,18 @@ export function DataTable<TData>({
   const showSkeleton = isLoading && table.getRowModel().rows.length === 0;
   const overflowTooltip = useOverflowTooltip();
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useHighlightedRow({
+    table,
+    highlightRowId,
+    containerRef: scrollRef,
+    // Only on rows that are settled. A skeleton has no row to scroll to, and rows still being
+    // fetched are the *previous* result set (`keepPreviousData`): jumping to a page of those is
+    // undone a moment later, because TanStack resets the page index when the data is replaced.
+    ready: !showSkeleton && !isFetching,
+    scope: highlightScope,
+  });
+
   return (
     <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
       {/* The overlay's positioning parent, and not the scroll container below it: `inset-0` there
@@ -90,6 +119,7 @@ export function DataTable<TData>({
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {isFetching && !showSkeleton && <TableLoadingOverlay />}
         <div
+          ref={scrollRef}
           className="relative flex-1 overflow-auto bg-background"
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
@@ -194,18 +224,23 @@ export function DataTable<TData>({
                   </TableCell>
                 </TableRow>
               ) : (
-                table
-                  .getRowModel()
-                  .rows.map((row) => (
-                    <DataTableRow
-                      key={row.id}
-                      row={row}
-                      onRowClick={onRowClick}
-                      onCellClick={onCellClick}
-                      rowActions={rowActions}
-                      className={rowClassName?.(row.original)}
-                    />
-                  ))
+                table.getRowModel().rows.map((row) => (
+                  <DataTableRow
+                    key={row.id}
+                    row={row}
+                    onRowClick={onRowClick}
+                    onCellClick={onCellClick}
+                    rowActions={rowActions}
+                    // The row's colour and the marker are two layers, so both classes apply — see
+                    // `row-highlighted` in globals.css, which is why it is no background.
+                    className={cn(
+                      rowClassName?.(row.original),
+                      highlightRowId != null &&
+                        row.id === String(highlightRowId) &&
+                        "row-highlighted"
+                    )}
+                  />
+                ))
               )}
             </TableBody>
           </table>

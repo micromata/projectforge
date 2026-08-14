@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { PaginationState } from "@tanstack/react-table";
 import {
   DataTable,
@@ -40,6 +41,7 @@ export function DynamicGrid({ node }: DynamicComponentProps) {
 function Grid({ grid }: { grid: AgGridNode }) {
   const { data, variables, callAction } = useDynamicLayout();
   const columns = useDynamicGridColumns(grid);
+  const pathname = usePathname();
 
   // The rows live under the node's own id ("resultSet" for a list page), in data
   // or - for the pages that recompute their table - in variables.
@@ -109,6 +111,13 @@ function Grid({ grid }: { grid: AgGridNode }) {
   );
   const clickable = !!(grid.rowClickRedirectUrl || grid.rowClickPostUrl);
 
+  // The layout response *is* the ResultSet for these pages, so the row the user edited last sits
+  // beside the rows — the same place the legacy React grid read it from. Scoped by the page's path,
+  // which is the category for a list page, so the scroll happens once per session and not on every
+  // visit (see useHighlightedRow).
+  const highlightRowId =
+    typeof data.highlightRowId === "number" ? data.highlightRowId : undefined;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-1">
       <div className="flex justify-end">
@@ -123,6 +132,8 @@ function Grid({ grid }: { grid: AgGridNode }) {
         columns={columns}
         data={rows}
         rowClassName={rowClassName}
+        highlightRowId={highlightRowId}
+        highlightScope={pathname}
         pageSizeOptions={grid.paginationPageSizeSelector ?? PAGE_SIZE_OPTIONS}
         onRowClick={
           clickable

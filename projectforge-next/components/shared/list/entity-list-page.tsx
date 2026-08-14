@@ -19,6 +19,10 @@ import { Spinner } from "@/components/shared/spinner";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import {
+  auditColumnsFor,
+  defaultVisibilityOf,
+} from "@/lib/page-def/audit-columns";
 import { defaultPinningOf } from "@/lib/page-def/define-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { LegendEntry, PageDef } from "@/lib/page-def/types";
@@ -107,12 +111,24 @@ function DeclaredList<
 }) {
   const router = useRouter();
   const t = useTranslations();
-  const columns = useDeclaredColumns<Row, M>(page.metadata, page.columns);
+  // Every list offers `created` and `lastUpdate`, hidden until the user asks for them — appended here
+  // rather than declared per page (see auditColumnsFor).
+  const declarations = useMemo(() => {
+    const appended = auditColumnsFor(page.columns, page.metadata);
+    return {
+      columns: appended.length ? [...page.columns, ...appended] : page.columns,
+      defaultVisibility: defaultVisibilityOf(appended),
+    };
+  }, [page.columns, page.metadata]);
+  const columns = useDeclaredColumns<Row, M>(
+    page.metadata,
+    declarations.columns
+  );
   // Derived from the same declarations as the columns, so the pinned edge and the order are one
   // statement and cannot drift (see defaultPinningOf).
   const defaultPinning = useMemo(
-    () => defaultPinningOf(page.columns),
-    [page.columns]
+    () => defaultPinningOf(declarations.columns),
+    [declarations.columns]
   );
 
   const list = useEntityListPage<Row>({
@@ -122,6 +138,7 @@ function DeclaredList<
     storedState,
     restoredFilter,
     defaultPinning,
+    defaultVisibility: declarations.defaultVisibility,
   });
 
   return (
@@ -179,6 +196,10 @@ function DeclaredList<
           rowClassName={(row) =>
             deletedRowClass(row) ?? page.rowClassName?.(row)
           }
+          // Coming back from the edit page: the backend remembers which entry that was, so the list
+          // marks it and brings it into view (see useHighlightedRow).
+          highlightRowId={list.highlightRowId}
+          highlightScope={page.entity}
           onRowClick={(row) => router.push(`${page.route}/${row.id}`)}
           footer={<TableLegend entries={legendEntries(page)} />}
           className="flex-1"

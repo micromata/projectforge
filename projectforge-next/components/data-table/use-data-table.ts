@@ -124,6 +124,17 @@ export function useDataTable<TData>({
     [columnOrder, internalOrder, effectivePinning, columns]
   );
 
+  const changePagination = onPaginationChange ?? setInternalPagination;
+  /**
+   * A column filter changes which rows exist, so the page the user was on may be gone — page 1 is the
+   * only one sure to be there. Done here rather than by TanStack's `autoResetPageIndex` (switched off
+   * above), which cannot tell a new set of rows from the same rows fetched again.
+   */
+  const changeColumnFilters: OnChangeFn<ColumnFiltersState> = (updater) => {
+    (onColumnFiltersChange ?? setInternalFilters)(updater);
+    changePagination((previous) => ({ ...previous, pageIndex: 0 }));
+  };
+
   return useReactTable({
     data,
     columns,
@@ -148,6 +159,13 @@ export function useDataTable<TData>({
     },
     enableColumnResizing,
     columnResizeMode: "onChange",
+    // TanStack resets the page index whenever the data array is replaced, which here happens on every
+    // refetch of an unchanged list — the user would be thrown back to page 1 by a background refresh,
+    // and the jump to the last-edited row (see useHighlightedRow) would be undone a moment after it
+    // happened. The case that really does need page 1 is a *changed* result set, which is reset
+    // deliberately: for the server-side filters in useMagicFilterQuery, and for the client-side column
+    // filters above.
+    autoResetPageIndex: false,
     manualSorting,
     manualPagination,
     manualFiltering,
@@ -162,8 +180,8 @@ export function useDataTable<TData>({
       columnOrder: effectiveOrder,
     },
     onSortingChange: onSortingChange ?? setInternalSorting,
-    onPaginationChange: onPaginationChange ?? setInternalPagination,
-    onColumnFiltersChange: onColumnFiltersChange ?? setInternalFilters,
+    onPaginationChange: changePagination,
+    onColumnFiltersChange: changeColumnFilters,
     onColumnVisibilityChange: onColumnVisibilityChange ?? setInternalVisibility,
     onColumnPinningChange: onColumnPinningChange ?? setInternalPinning,
     onColumnSizingChange: onColumnSizingChange ?? setInternalSizing,

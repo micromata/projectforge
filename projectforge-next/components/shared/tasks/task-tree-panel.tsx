@@ -58,6 +58,7 @@ export function TaskTreePanel({
         <TaskTreeTable
           grid={grid}
           nodes={nodes}
+          highlightTaskId={highlightTaskId}
           isLoading={isLoading}
           isFetching={isFetching}
           filter={filter}

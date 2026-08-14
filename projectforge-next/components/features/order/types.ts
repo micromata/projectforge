@@ -142,8 +142,8 @@ export interface OrderDetail {
 }
 
 /**
- * One row of the list: the same `Auftrag` DTO, with only the fields the 19 columns of `order.page.tsx`
- * show. The backend fills exactly those for a next client (`Auftrag.copyFromForList`, selected by
+ * One row of the list: the same `Auftrag` DTO, with only the fields the columns of `order.page.tsx`
+ * show. The backend fills exactly those for a next client (`Auftrag.copyFrom4ListRow`, selected by
  * `AbstractPagesRest.createListRow`) and `JsonInclude.NON_NULL` keeps the rest off the wire — 12.5 MB
  * become 3.2 MB over the 7132 orders of a real installation.
  *
@@ -183,4 +183,7 @@ export interface OrderListRow {
   toBeInvoiced?: boolean | null;
   attachmentsCounter?: number | null;
   attachmentsSizeFormatted?: string | null;
+  /** Every list offers both as a column, `lastUpdate` shown from the start (see lib/page-def/audit-columns.ts). */
+  created?: string | null;
+  lastUpdate?: string | null;
 }

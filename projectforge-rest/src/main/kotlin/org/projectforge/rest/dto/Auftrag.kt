@@ -175,8 +175,11 @@ class Auftrag(
      *   [assignedPersons] string, nothing of the users themselves.
      * - [customer] and [project] as objects (~257 B/row): only their `displayName` is a column, so the row
      *   carries a [Customer]/[Project] holding that name and nothing else.
-     * - `bemerkung`, `statusBeschreibung`, `created`/`lastUpdate`, `bindungsFrist`, `beauftragungs*`,
-     *   `kundeText`, `forecastType`, `angebotsDatum`: read by no column of the list.
+     * - `bemerkung`, `statusBeschreibung`, `bindungsFrist`, `beauftragungs*`, `kundeText`, `forecastType`,
+     *   `angebotsDatum`: read by no column of the list.
+     *
+     * [created] and [lastUpdate] travel, ~44 B/row: every next list offers them as columns (see
+     * [copyFrom4ListRow]), and the order book shows `lastUpdate` from the start.
      *
      * The four boolean flags ([sendEMailNotification], [writeAccess], [deleteAccess],
      * [vollstaendigFakturiertWriteAccess]) still travel, ~107 B/row: they are non-null `Boolean`s, so
@@ -191,6 +194,9 @@ class Auftrag(
         PfCaches.instance.initialize(src)
         id = src.id
         deleted = src.deleted
+        // `created` and `lastUpdate`: two columns every next list offers, hidden until the user switches
+        // them on (see [copyFrom4ListRow] and `lib/page-def/audit-columns.ts`).
+        copyAuditFieldsFrom(src)
         nummer = src.nummer
         titel = src.titel
         referenz = src.referenz

@@ -25,6 +25,8 @@ interface TaskTreeTableProps {
   /** The initial answer, which carries the column defs and the grid-state urls. */
   grid: AgGridNode;
   nodes: TaskNode[];
+  /** The task to mark and scroll to — the one the panel was opened at (see TaskTreePanelProps). */
+  highlightTaskId?: number | null;
   isLoading: boolean;
   isFetching: boolean;
   filter: TaskTreeFilter;
@@ -42,6 +44,7 @@ interface TaskTreeTableProps {
 export function TaskTreeTable({
   grid,
   nodes,
+  highlightTaskId,
   isLoading,
   isFetching,
   filter,
@@ -124,6 +127,10 @@ export function TaskTreeTable({
         isFetching={isFetching}
         emptyState={t("task.selectPanel.noTasksFound")}
         rowClassName={deletedRowClass}
+        // The server already opened the ancestors of this task (see useTaskTree); marking it and
+        // scrolling to it is what makes it findable in a tree of thousands. No scope: the dialog is
+        // reopened in order to see the selected task, so it scrolls there every time.
+        highlightRowId={highlightTaskId}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {
