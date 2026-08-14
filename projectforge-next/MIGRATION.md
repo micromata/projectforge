@@ -599,6 +599,79 @@ Speichern aus `book`-Edit und der Dev-Betrieb auf `:3000` (dort greift die
 `corsFilterEnabled`-Ausnahme in `checkSameSite`, weil der Dev-Server eine andere
 Origin ist).
 
+#### Erledigt: Access-Checking der neuen Endpunkte (Audit)
+
+**Warum überhaupt.** ProjectForge ist an zwei Stellen solide abgesichert:
+`RestUserFilter` lässt nichts Unangemeldetes an `/rs/**`, und die eigentliche
+Autorisierung liegt im Keller bei den DAOs (`BaseDao.find` →
+`checkLoggedInUserSelectAccess`, `BaseDao.select`, Schreibrechte in
+`BaseDOPersistenceService`). Eine dritte Schranke lag aber im **Layout**: Wicket und
+die `UILayout`-Seiten haben Menüeinträge und Buttons ausgeblendet, die der Benutzer
+nicht benutzen darf. next baut seine Seiten und sein Menü selbst – diese Schranke
+fällt weg. `AbstractEntityRest.reindexFull` ist genau deshalb schon explizit auf die
+Admin-Gruppe geprüft. Das Audit hat die übrigen neuen Endpunkte am selben Maßstab
+durchgesehen.
+
+**Ergebnis: eine echte Lücke.** `EInvoiceCheckerPageRest` (`/rs/eInvoiceChecker`,
+neu) hatte keinerlei Prüfung – und als `AbstractDynamicPageRest` auch keine DAO, die
+im Keller einspringen könnte. Der Schutz war ausschließlich der Menüeintrag
+(`MenuCreator`, `checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }`), also genau das
+Muster, das für next nicht mehr trägt. Alle vier Endpunkte prüfen jetzt
+`accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)`
+– dieselbe Konstante, aus der auch der Menüeintrag seine Gruppen zieht. Die Wirkung
+war begrenzt (die Daten liegen in der eigenen Session, `ExpiringSessionAttributes`),
+die offene Tür trotzdem real: jeder Angemeldete durfte den E-Rechnungs-Parser
+benutzen.
+
+**Alles andere ist gedeckt** – über die DAO, nicht über einen Check im
+Rest-Controller: `GET {id}`, `list`, `startMultiSelection`, `saveorupdate`,
+`markAsDeleted`/`undelete`/`delete`, `history/{id}`, die Order-Exporte und
+`recalculate`/`forecastExportSettings` (die beiden prüfen zusätzlich selbst
+`hasLoggedInUserSelectAccess`, weil sie nichts schreiben und ohne DAO-Aufruf
+antworten). `columnStates` und `filter/*` fassen nur die Prefs des Aufrufers an.
+`JobsMonitorPageRest` hat keinen `accessChecker`, aber der `JobHandler` prüft pro Job
+(`readAccess`/`writeAccess`, siehe `ReindexJob`).
+
+**`userAccess` ist ein UI-Hinweis, keine Autorisierung.** `listMeta` liefert
+`update = true` ungeprüft (aus `AbstractPagesRest` übernommen), die übrigen Flags mit
+`throwException = false`. next liest das Feld derzeit gar nicht – KDoc an
+`ListMetaData.userAccess` hält jetzt fest, dass die DAO die Autorität bleibt, damit
+eine künftige Seite sich nicht darauf verlässt.
+
+**Kein Filter, der prüft, „ob ein AccessChecker gewerkelt hat".** Naheliegend, aber
+nicht tragfähig: `BookDao` überschreibt `hasUserSelectAccess` und `hasAccess` mit
+konstantem `true` (Bücher darf jeder sehen – so ist es auch in Wicket) und berührt
+den `AccessChecker` nie. Ein solcher Filter würde jeden `/rs/book/…`-Request als
+Verstoß melden; 20 DAOs überschreiben `hasAccess`, 11 `hasUserSelectAccess`.
+Umgekehrt hätte ein Filter, der auf den DAO-Eintritt prüft, kein Signal für die
+`AbstractDynamicPageRest`-Seiten – also gerade für die Klasse, in der die eine Lücke
+lag. Dazu prüft ein Filter erst _nach_ der Ausführung. Statt Mechanik daher Doku:
+`AbstractDynamicPageRest` sagt im KDoc, dass es hier keinen Backstop gibt, jede
+Unterklasse selbst prüfen muss und ein ausgeblendeter Menüeintrag für next nichts
+mehr zählt (`BirthdayButlerPageRest` als Vorbild).
+
+**Bewusst nicht angefasst** (alle drei existieren so in `master`):
+
+- `GET /rs/task/info/{id}` (`TaskServicesRest`) liest direkt aus dem `TaskTree` ohne
+  `hasUserSelectAccess` – anders als `getTree`, das pro Knoten prüft. Neu ist nur,
+  dass next den Endpunkt aufruft (`lib/rs/task.ts`).
+- Der fehlende `writeAccess`-Check im History-Append-Pfad (siehe oben).
+- `AbstractEntityRest.forceDelete` ist der einzige Schreib-Endpunkt ohne
+  `validateCsrfToken`; von next nicht verdrahtet (`lib/rs/entity.ts` nennt
+  `DELETE`/`FORCE_DELETE` ausdrücklich als nicht angebunden), betrifft also nur die
+  Alt-Clients.
+
+**Offen, kein Access-Thema, aber hier entdeckt:** eine `AccessException` kommt als
+**HTTP 200 mit Toast** zurück, weil `UserException.displayUserMessage` default `true`
+ist (`GlobalDefaultExceptionHandler`). `lib/rs/entity.ts` liest das als
+`kind: "ok"`, und `use-entity-edit-form.ts` meldet dann Erfolg und leitet zur Liste
+weiter. Geschrieben wird nichts – die DAO hat abgelehnt –, aber die Rückmeldung ist
+falsch. Noch nicht gefixt.
+
+**Nicht verifiziert:** die Ablehnung des E-Rechnungs-Prüfers. Das lokale Testkonto
+ist Admin und in den FiBu-Gruppen, damit ist nur der Erfolgsfall prüfbar; für den
+403-Fall braucht es einen Benutzer ohne FIBU/ORGA-Mitgliedschaft.
+
 #### Erledigt: Speichern und Löschen (`book`-Edit konnte nie speichern)
 
 **Das Problem.** `lib/rs/client.ts` hatte ein `save(entity, id, body)`, das

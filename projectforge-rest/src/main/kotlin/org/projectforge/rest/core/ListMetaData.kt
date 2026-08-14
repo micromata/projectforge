@@ -68,7 +68,14 @@ class ListMetaData(
      * placeholder is a per-app rule, not a suffix cut.
      */
     val legacyNewEntryPage: String?,
-    /** What the logged-in user may do with this entity: insert, update, delete, see the history. */
+    /**
+     * What the logged-in user may do with this entity: insert, update, delete, see the history.
+     *
+     * A hint for the UI, **not** an authorization: `update` is reported as true without asking anybody
+     * (see `AbstractEntityRest.getListMeta`), and the flags that are asked for are read with
+     * `throwException = false`. The DAO stays the authority — a client that offers a button on the
+     * strength of a flag here still gets an `AccessException` from the write it triggers.
+     */
     val userAccess: UILayout.UserAccess,
     /** Page specific additions, see [AbstractEntityRest.addVariablesForListPage]. */
     var variables: Map<String, Any>? = null,

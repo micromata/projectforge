@@ -27,7 +27,9 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EInvoiceData
 import org.projectforge.business.fibu.EInvoiceReadService
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -57,10 +59,25 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
     }
 
     @Autowired
+    private lateinit var accessChecker: AccessChecker
+
+    @Autowired
     private lateinit var eInvoiceReadService: EInvoiceReadService
+
+    /**
+     * The groups the menu entry of this page requires (`MenuCreator`, `MenuItemDefId.E_INVOICE_CHECKER`).
+     *
+     * Every endpoint checks them itself: there is no DAO behind this page that could do it, and the classic
+     * frontends only ever hid the menu entry. projectforge-next builds its menu on its own, so a hidden
+     * entry no longer keeps anybody out.
+     */
+    private fun checkAccess() {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+    }
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
+        checkAccess()
         val sessionData = getSessionData(request)
         return if (sessionData != null) {
             createResultLayout(request, sessionData)
@@ -74,6 +91,7 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
         request: HttpServletRequest,
         @RequestParam("file") file: MultipartFile,
     ): ResponseEntity<*> {
+        checkAccess()
         val filename = file.originalFilename ?: "unknown"
         log.info { "User uploads e-invoice file: '$filename', size=${file.size} bytes." }
 
@@ -126,6 +144,7 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
         @PathVariable id: Int,
         request: HttpServletRequest,
     ): ResponseEntity<ResponseAction> {
+        checkAccess()
         return ResponseEntity.ok(
             ResponseAction(
                 RestResolver.getRestUrl(this::class.java, "downloadAttachment/file/$id"),
@@ -139,6 +158,7 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
         @PathVariable id: Int,
         request: HttpServletRequest,
     ): ResponseEntity<*> {
+        checkAccess()
         val sessionData = getSessionData(request)
             ?: return ResponseEntity.notFound().build<Any>()
 

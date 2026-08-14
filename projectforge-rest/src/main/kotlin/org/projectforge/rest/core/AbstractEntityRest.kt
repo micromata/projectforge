@@ -266,6 +266,9 @@ constructor(
         val userAccess = UILayout.UserAccess()
         checkUserAccess(null, userAccess)
         // Assume that the user has general update access (change this, see GroupPagesRest).
+        // So this flag is unchecked, and the ones checkUserAccess did fill are read with
+        // throwException = false: userAccess describes what the UI should offer, it does not authorize
+        // anything. The DAO decides that when the call arrives (see ListMetaData.userAccess).
         userAccess.update = true
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
