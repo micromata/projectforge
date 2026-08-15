@@ -306,7 +306,6 @@ export interface PageDef<
   /** The menu parent above the title, e.g. `menu.fibu`. */
   categoryKey: string;
   titleKey: string;
-  addTitleKey: string;
   searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
   /**

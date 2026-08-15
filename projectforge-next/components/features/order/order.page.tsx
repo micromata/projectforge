@@ -61,7 +61,6 @@ export const ORDER_PAGE = definePage<
   // translated as it is written, unlike a column label, which falls back to it (see labelKeyFor).
   categoryKey: "menu.fibu._",
   titleKey: "fibu.auftrag.title.list",
-  addTitleKey: "fibu.auftrag.title.add",
   searchPlaceholderKey: "order.searchPlaceholder",
   columns: [
     // The five columns that identify the order stay in view while the sums, the period and the rest

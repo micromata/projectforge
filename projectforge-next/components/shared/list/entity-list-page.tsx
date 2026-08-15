@@ -153,7 +153,6 @@ function DeclaredList<
             onSearchChange={list.setGlobalFilter}
             searchPlaceholder={t(page.searchPlaceholderKey)}
             addHref={`${page.route}/new`}
-            addLabel={t(page.addTitleKey)}
             legacyUrl={list.legacyUrl}
             actions={ListActions && <ListActions filter={list.filter} />}
             gearMenu={

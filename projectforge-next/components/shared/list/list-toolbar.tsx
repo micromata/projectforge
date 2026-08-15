@@ -27,7 +27,6 @@ export interface ListToolbarProps {
   searchPlaceholder: string;
   /** Route of the add page, e.g. `/book/new`. */
   addHref: string;
-  addLabel: string;
   /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
   legacyUrl?: string;
   /**
@@ -51,7 +50,6 @@ export function ListToolbar({
   onSearchChange,
   searchPlaceholder,
   addHref,
-  addLabel,
   legacyUrl,
   actions,
   columnPanel,
@@ -90,19 +88,25 @@ export function ListToolbar({
           )}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button asChild size="sm" className="gap-1.5">
+              {/* Icon only, and the same on every list: what is added is said by the page's own
+                  heading, so a label ("New book", "New order/offer") only repeats it — and reads
+                  badly wherever the noun has no good article. The accessible name stays generic
+                  for the same reason; the tooltip beside it names the shortcut. */}
+              <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
                 <Link href={addHref}>
-                  <HugeiconsIcon icon={PlusSignIcon} size={13} />
-                  {addLabel}
+                  {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
+                      width/height attribute would win over that class. */}
+                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
                 </Link>
               </Button>
             </TooltipTrigger>
             {/* `flex-col`: the primitive lays its children out as a centered row, which would put
                 the heading beside its explanation instead of above it. */}
             <TooltipContent className="flex-col items-start gap-0.5">
-              <p className="font-medium">
-                {t("tooltip.shortcut.addEntry.title")}
-              </p>
+              {/* With no label on the button the tooltip has to say what it does before it says
+                  how to reach it by keyboard. */}
+              <p className="font-medium">{t("menu.addNewEntry")}</p>
+              <p>{t("tooltip.shortcut.addEntry.title")}</p>
               {/* `._`: the key has a child (.title), so it is nested under `_` in the catalog. */}
               <p>{t("tooltip.shortcut.addEntry._")}</p>
             </TooltipContent>

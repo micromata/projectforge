@@ -80,7 +80,6 @@ interface PageDef<Row, Values, Data, M extends EntityMetadata> {
   queryKey: readonly unknown[]; // React Query key of the list
   categoryKey: string; // the menu parent above the title, e.g. "menu.fibu"
   titleKey: string;
-  addTitleKey: string;
   searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
   legend?: LegendEntry[]; // extra colour legend entries below the table

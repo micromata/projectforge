@@ -52,7 +52,6 @@ export default function DemoPage() {
                 onSearchChange={setGlobalFilter}
                 searchPlaceholder={t("books.searchPlaceholder")}
                 addHref="/book/new"
-                addLabel={t("book.title.add")}
               />
             }
           >
