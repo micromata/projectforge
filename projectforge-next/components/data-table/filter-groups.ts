@@ -11,8 +11,6 @@ export interface FilterFieldGroup {
   /** null for the three groups above — the caller translates those headings. */
   groupLabel: string | null;
   elements: FilterElement[];
-  /** Open unless the user says otherwise: the groups worth reading without a click. */
-  defaultOpen: boolean;
 }
 
 /** The parents of a field, from the backend or — for an older one — off its label. */
@@ -105,19 +103,17 @@ export function buildFilterGroups(
   const add = (
     id: string,
     groupLabel: string | null,
-    members: FilterElement[],
-    defaultOpen: boolean
+    members: FilterElement[]
   ) => {
-    if (members.length)
-      groups.push({ id, groupLabel, elements: members, defaultOpen });
+    if (members.length) groups.push({ id, groupLabel, elements: members });
   };
 
-  add(ACTIVE_GROUP_ID, null, active, true);
-  add(PLAIN_GROUP_ID, null, plain, true);
+  add(ACTIVE_GROUP_ID, null, active);
+  add(PLAIN_GROUP_ID, null, plain);
   for (const [group, members] of named) {
-    add(`group:${group}`, group, members, false);
+    add(`group:${group}`, group, members);
   }
-  add(TECHNICAL_GROUP_ID, null, technical, false);
+  add(TECHNICAL_GROUP_ID, null, technical);
   return groups;
 }
 

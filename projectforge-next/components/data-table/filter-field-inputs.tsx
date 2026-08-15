@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/shared/date-input";
+import { RangeBounds } from "@/components/shared/range-bounds";
 import type { MagicFilterEntryValue } from "@/lib/rs/types";
 import { fromLikeTerm, toLikeTerm } from "./filter-value";
 
@@ -98,7 +99,7 @@ export function RangeField({
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium">{label}</p>
-      <div className="space-y-1">
+      <RangeBounds breakpoint="@2xs">
         <DateInput
           autoFocus={autoFocus}
           aria-label={`${label}: ${t("value")}`}
@@ -116,7 +117,7 @@ export function RangeField({
           onChange={(iso) => onChange(next("to", iso))}
           onSubmit={(iso) => onSubmit?.(next("to", iso))}
         />
-      </div>
+      </RangeBounds>
     </div>
   );
 }

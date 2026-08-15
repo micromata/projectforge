@@ -7,8 +7,8 @@ import type { FilterElement } from "../lib/rs/types";
  * The grouped "all filters" dialog of the next lists, against the live backend.
  *
  * What it guards is the pairing of the two halves this feature has: the backend sends `group` and
- * `shortLabel` per filter field ([UIFilterElement]) and the dialog turns them into collapsed
- * sections. Neither half can be checked alone — a client-side test would have to invent the
+ * `shortLabel` per filter field ([UIFilterElement]) and the dialog turns them into sections.
+ * Neither half can be checked alone — a client-side test would have to invent the
  * metadata, and a `listMeta` assertion says nothing about what a user can reach. So the group names
  * here are read from `listMeta` rather than spelled out, which also keeps the test honest for a
  * non-German account.
@@ -45,22 +45,17 @@ test.describe("all-filters dialog", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
 
-    // A nested group starts closed: its heading is there, the field behind it is not.
-    const heading = dialog.getByRole("button", {
-      name: new RegExp(escape(group.label)),
-    });
-    await expect(heading).toBeVisible();
-    const field = dialog.getByText(group.shortLabel, { exact: true });
-    await expect(field).toHaveCount(0);
-
+    // Every group is open: the heading is there and so are its fields, without a click.
+    await expect(
+      dialog.getByRole("heading", { name: new RegExp(escape(group.label)) })
+    ).toBeVisible();
     // And the label inside the group is the leaf alone — the heading carries the parents.
-    await heading.click();
-    await expect(field.first()).toBeVisible();
+    await expect(
+      dialog.getByText(group.shortLabel, { exact: true }).first()
+    ).toBeVisible();
   });
 
-  test("narrows to the searched group and opens it", async ({
-    loggedInPage: page,
-  }) => {
+  test("narrows to the searched group", async ({ loggedInPage: page }) => {
     const format = await userFormat(page);
     const elements = await filterElements(page, "order");
     const group = firstGroup(elements);
@@ -71,9 +66,9 @@ test.describe("all-filters dialog", () => {
 
     await dialog.getByLabel(format.t("filter.search")).fill(group.label);
 
-    // Only the searched group is left, and a search opens what it leaves standing: no click needed.
+    // Only the searched group is left standing.
     await expect(
-      dialog.getByRole("button", { name: new RegExp(escape(group.label)) })
+      dialog.getByRole("heading", { name: new RegExp(escape(group.label)) })
     ).toHaveCount(1);
     await expect(
       dialog.getByText(group.shortLabel, { exact: true }).first()
@@ -84,7 +79,7 @@ test.describe("all-filters dialog", () => {
     ).toHaveCount(0);
   });
 
-  test("keeps the index-only fields in a group of their own, closed", async ({
+  test("keeps the index-only fields in a group of their own, last", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -94,12 +89,10 @@ test.describe("all-filters dialog", () => {
 
     // `attachmentsIds`/`attachmentsNames` have no @PropertyInfo, so they arrive untranslated and
     // used to sit among the real fields under their raw property name.
-    const heading = dialog.getByRole("button", {
-      name: new RegExp(escape(format.t("filter.moreFields"))),
-    });
-    await expect(heading).toBeVisible();
-    await expect(dialog.getByText("attachmentsIds")).toHaveCount(0);
-    await heading.click();
+    const headings = dialog.getByRole("heading", { level: 3 });
+    await expect(headings.last()).toHaveText(
+      new RegExp(escape(format.t("filter.moreFields")))
+    );
     await expect(dialog.getByText("attachmentsIds")).toBeVisible();
   });
 });

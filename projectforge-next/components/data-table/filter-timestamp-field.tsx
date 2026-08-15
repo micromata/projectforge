@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { DateTimeInput } from "@/components/shared/date-time-input";
+import { RangeBounds } from "@/components/shared/range-bounds";
 import {
   Select,
   SelectContent,
@@ -52,7 +53,8 @@ export function TimestampRangeField({
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-medium">{label}</p>
-      <div className="space-y-1">
+      {/* A date plus a time per bound, so the two only fit next to each other in a wide column. */}
+      <RangeBounds breakpoint="@xl">
         <DateTimeInput
           autoFocus={autoFocus}
           dateLabel={`${label}: ${t("dateFrom")}`}
@@ -71,7 +73,7 @@ export function TimestampRangeField({
           onChange={(iso) => onChange(next("to", iso))}
           onSubmit={(iso) => onSubmit?.(next("to", iso))}
         />
-      </div>
+      </RangeBounds>
       {showPresets && (
         // A list, not a row of chips: thirteen periods as buttons is a wall of text above the two
         // bounds they set, and only one of them can be in effect at a time anyway.

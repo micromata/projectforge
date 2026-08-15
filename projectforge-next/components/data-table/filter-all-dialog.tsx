@@ -44,8 +44,8 @@ interface FilterAllDialogProps {
  * Every filter field of the list at once — the overview the pill row can't give.
  *
  * A list offers every search field of its entity, which is a flat wall of 40 for an order, so the
- * fields are grouped ([buildFilterGroups]) and all but the first groups start closed. The search
- * narrows across all of them and opens whatever survives.
+ * fields are grouped under headings ([buildFilterGroups]). Every group stays open — the point of this
+ * dialog is to see what there is — and the search narrows across all of them at once.
  *
  * Edits a draft and only applies on demand: each applied change is a new query key, so filtering per
  * keystroke would refetch the list while the dialog is still open. Mount this only while it is open,
@@ -61,8 +61,6 @@ export function FilterAllDialog({
   const tAction = useTranslations();
   const [draft, setDraft] = useState(initial);
   const [term, setTerm] = useState("");
-  const [closed, setClosed] = useState<Set<string>>(new Set());
-  const [opened, setOpened] = useState<Set<string>>(new Set());
 
   const history = historyFilterGroupOf(elements);
   const groups = filterGroupsBySearch(
@@ -108,9 +106,11 @@ export function FilterAllDialog({
         <div className="min-h-0 space-y-1 overflow-y-auto pr-1">
           {showHistory && history && (
             <div className="space-y-1.5 px-2 pb-2">
-              <p className="text-xs font-semibold">{t("history")}</p>
+              <h3 className="text-xs font-semibold">{t("history")}</h3>
               <div className="grid auto-rows-min items-start gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
                 <HistoryFilterFields
+                  // Its three criteria are cells of the grid above, like every other group's fields.
+                  layout="grid"
                   group={history}
                   values={pickHistoryFilters(draft)}
                   onChange={(next) =>
@@ -127,15 +127,6 @@ export function FilterAllDialog({
               label={headingOf(group.id, group.groupLabel)}
               values={draft}
               onChange={setDraft}
-              // A search opens every group it left standing; clearing it returns to the user's own
-              // open and closed ones.
-              open={
-                term
-                  ? true
-                  : opened.has(group.id) ||
-                    (group.defaultOpen && !closed.has(group.id))
-              }
-              onOpenChange={(open) => toggle(group.id, open)}
             />
           ))}
           {groups.length === 0 && !showHistory && (
@@ -163,21 +154,4 @@ export function FilterAllDialog({
       </DialogContent>
     </Dialog>
   );
-
-  /** Kept as the two things a user did, so a group's default survives a search. */
-  function toggle(id: string, open: boolean) {
-    setOpened(withMember(opened, id, open));
-    setClosed(withMember(closed, id, !open));
-  }
-}
-
-function withMember(
-  ids: Set<string>,
-  id: string,
-  member: boolean
-): Set<string> {
-  const next = new Set(ids);
-  if (member) next.add(id);
-  else next.delete(id);
-  return next;
 }

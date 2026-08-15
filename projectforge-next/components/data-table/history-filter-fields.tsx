@@ -18,12 +18,18 @@ interface HistoryFilterFieldsProps {
   autoFocus?: boolean;
   /** Enter in one of the inputs; carries the values that are in effect afterwards. */
   onSubmit?: (values: FilterValues) => void;
+  /**
+   * `grid` hands the three criteria to the caller's grid as its own cells instead of stacking them
+   * in one. For the dialog, whose section is three columns wide: stacked, the three sat in a single
+   * column and left two thirds of the row empty.
+   */
+  layout?: "stacked" | "grid";
 }
 
 /**
- * The three history criteria stacked: who changed it, when, and which value the change history
- * holds. Rendered identically by the group pill and by the "all filters" dialog, so the two never
- * drift apart.
+ * The three history criteria: who changed it, when, and which value the change history holds.
+ * Rendered identically by the group pill and by the "all filters" dialog, so the two never drift
+ * apart — only their arrangement differs (`layout`).
  *
  * The labels are the layout's own (`element.label`), not looked up here — they are the same texts
  * Wicket shows.
@@ -34,9 +40,12 @@ export function HistoryFilterFields({
   onChange,
   autoFocus,
   onSubmit,
+  layout = "stacked",
 }: HistoryFilterFieldsProps) {
   return (
-    <div className="space-y-2">
+    // `contents`: the wrapper leaves no box of its own, so each field becomes a cell of the grid
+    // around it.
+    <div className={layout === "grid" ? "contents" : "space-y-2"}>
       {group.user && (
         <FilterObjectField
           element={group.user}
@@ -49,16 +58,20 @@ export function HistoryFilterFields({
         />
       )}
       {group.interval && (
-        <TimestampRangeField
-          element={group.interval}
-          label={group.interval.label ?? group.interval.id}
-          id={group.interval.id}
-          // Only the first field takes the focus; without a user field that is this one.
-          autoFocus={autoFocus && !group.user}
-          value={values[HISTORY_FILTER_FIELDS.interval]}
-          onChange={(value) => change(HISTORY_FILTER_FIELDS.interval, value)}
-          onSubmit={(value) => submit(HISTORY_FILTER_FIELDS.interval, value)}
-        />
+        // Two columns of the three: the widest of the criteria, and only in a column that wide do
+        // its two bounds fit next to each other rather than under one another.
+        <div className={layout === "grid" ? "lg:col-span-2" : undefined}>
+          <TimestampRangeField
+            element={group.interval}
+            label={group.interval.label ?? group.interval.id}
+            id={group.interval.id}
+            // Only the first field takes the focus; without a user field that is this one.
+            autoFocus={autoFocus && !group.user}
+            value={values[HISTORY_FILTER_FIELDS.interval]}
+            onChange={(value) => change(HISTORY_FILTER_FIELDS.interval, value)}
+            onSubmit={(value) => submit(HISTORY_FILTER_FIELDS.interval, value)}
+          />
+        </div>
       )}
       {group.value && (
         <TextField

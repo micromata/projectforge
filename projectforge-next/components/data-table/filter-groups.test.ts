@@ -134,17 +134,6 @@ describe("buildFilterGroups", () => {
     expect(groups.map((group) => group.id)).toEqual([PLAIN_GROUP_ID]);
   });
 
-  it("opens all but the nested and technical groups", () => {
-    const groups = buildFilterGroups(elements, { titel: { value: "x" } });
-    expect(groups.map((group) => group.defaultOpen)).toEqual([
-      true,
-      true,
-      false,
-      false,
-      false,
-    ]);
-  });
-
   it("groups an older backend's fields by their label prefix", () => {
     const groups = buildFilterGroups(
       [

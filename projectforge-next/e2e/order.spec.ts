@@ -85,16 +85,20 @@ test.describe("order book", () => {
       )
       .click();
 
-    const popover = page.locator('[data-slot="popover-content"]');
+    // A LIST filter is a combobox ([ValueCombobox]), so its options are one click further in — the
+    // point of that being that the field stays one line tall wherever it is shown.
+    await page.locator("#filter-fakturiert").click();
+
     for (const key of [
       "fibu.auftrag.filter.type.all",
       "fibu.auftrag.filter.type.vollstaendigFakturiert",
       "fibu.auftrag.filter.type.zuFakturieren",
       "fibu.auftrag.filter.type.nochNichtVollstaendigFakturiert",
     ]) {
-      await expect(popover.getByText(t(key), { exact: true }), key).toHaveCount(
-        1
-      );
+      await expect(
+        page.getByRole("option", { name: t(key), exact: true }),
+        key
+      ).toHaveCount(1);
     }
   });
 
