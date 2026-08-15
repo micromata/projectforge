@@ -39,7 +39,8 @@ export function ConsumptionCell({ value, t }: CellRenderProps) {
       aria-label={
         title ? `${t("task.consumption")}: ${title}` : t("task.consumption")
       }
-      title={title}
+      // Shown by the table's one delegated tooltip, see useOverflowTooltip.
+      data-tooltip={title}
     >
       <span className="consumption-bar" style={{ width: `${percentage}%` }} />
     </span>

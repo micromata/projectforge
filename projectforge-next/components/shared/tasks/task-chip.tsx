@@ -3,12 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HierarchyIcon } from "@hugeicons/core-free-icons";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { fetchTaskInfo } from "@/lib/rs/task";
 
 interface TaskChipProps {
@@ -35,20 +30,15 @@ export function TaskChip({ taskId, displayName }: TaskChipProps) {
       : null;
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="flex items-center gap-1">
-            <HugeiconsIcon
-              icon={HierarchyIcon}
-              size={12}
-              className="shrink-0 text-muted-foreground"
-            />
-            <span>{title}</span>
-          </span>
-        </TooltipTrigger>
-        {pathLabel && <TooltipContent>{pathLabel}</TooltipContent>}
-      </Tooltip>
-    </TooltipProvider>
+    <HintTooltip plain text={pathLabel}>
+      <span className="flex items-center gap-1">
+        <HugeiconsIcon
+          icon={HierarchyIcon}
+          size={12}
+          className="shrink-0 text-muted-foreground"
+        />
+        <span>{title}</span>
+      </span>
+    </HintTooltip>
   );
 }

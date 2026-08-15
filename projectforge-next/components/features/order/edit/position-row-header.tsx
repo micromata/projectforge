@@ -5,12 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Invoice01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import {
   formatCurrency,
@@ -119,21 +114,13 @@ export function PositionRowHeader({
          * for a position that has no number yet.
          */}
         {sums?.probabilityOfOccurrence != null && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="shrink-0 cursor-help text-xs font-semibold text-primary tabular-nums">
-                  {formatPercentageDecimal(
-                    sums.probabilityOfOccurrence,
-                    format
-                  )}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                {t("fibu.auftrag.probabilityOfOccurrence.effective.info")}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <HintTooltip
+            text={t("fibu.auftrag.probabilityOfOccurrence.effective.info")}
+          >
+            <span className="shrink-0 cursor-help text-xs font-semibold text-primary tabular-nums">
+              {formatPercentageDecimal(sums.probabilityOfOccurrence, format)}
+            </span>
+          </HintTooltip>
         )}
         <span className="shrink-0 tabular-nums">
           {formatCurrency(netSum, format)}
@@ -153,18 +140,11 @@ export function PositionRowHeader({
             </span>
           ))}
           {position.bemerkung && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="max-w-48 truncate italic">
-                    {position.bemerkung}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs whitespace-pre-wrap">
-                  {position.bemerkung}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <HintTooltip plain text={position.bemerkung}>
+              <span className="max-w-48 truncate italic">
+                {position.bemerkung}
+              </span>
+            </HintTooltip>
           )}
           {position.task?.id && position.task.displayName && (
             <span className="shrink-0">
@@ -175,36 +155,33 @@ export function PositionRowHeader({
             </span>
           )}
           {invoices.map((invoice) => (
-            <TooltipProvider key={invoice.id}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="flex shrink-0 items-center gap-1">
-                    <HugeiconsIcon
-                      icon={Invoice01Icon}
-                      size={12}
-                      className="text-muted-foreground"
-                    />
-                    <Link
-                      href={`/outgoingInvoice/edit/${invoice.id}`}
-                      className="text-primary underline-offset-2 hover:underline"
-                      aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
-                    >
-                      {invoice.nummer}
-                    </Link>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {[
-                    invoice.date ? formatDate(invoice.date, format) : null,
-                    invoice.netSum != null
-                      ? formatCurrency(invoice.netSum, format)
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <HintTooltip
+              key={invoice.id}
+              plain
+              text={[
+                invoice.date ? formatDate(invoice.date, format) : null,
+                invoice.netSum != null
+                  ? formatCurrency(invoice.netSum, format)
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            >
+              <span className="flex shrink-0 items-center gap-1">
+                <HugeiconsIcon
+                  icon={Invoice01Icon}
+                  size={12}
+                  className="text-muted-foreground"
+                />
+                <Link
+                  href={`/outgoingInvoice/edit/${invoice.id}`}
+                  className="text-primary underline-offset-2 hover:underline"
+                  aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
+                >
+                  {invoice.nummer}
+                </Link>
+              </span>
+            </HintTooltip>
           ))}
         </span>
       )}

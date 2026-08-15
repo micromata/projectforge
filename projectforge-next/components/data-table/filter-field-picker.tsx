@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { FilterElement } from "@/lib/rs/types";
 import { FilterAllDialog } from "./filter-all-dialog";
 import {
@@ -57,29 +58,31 @@ export function FilterFieldPicker({
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          {/* Icon-only: the pill row is where the eye goes, and a "+" chip reads as "add" there. */}
-          <button
-            type="button"
-            title={t("addField")}
-            aria-label={
-              activeCount > 0
-                ? `${t("addField")} – ${t("activeCount", { arg0: activeCount })}`
-                : t("addField")
-            }
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-1 text-muted-foreground hover:border-primary/40 hover:text-primary"
-          >
-            <HugeiconsIcon icon={PlusSignIcon} size={13} />
-            {activeCount > 0 && (
-              <span
-                aria-hidden
-                className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground"
-              >
-                {activeCount}
-              </span>
-            )}
-          </button>
-        </PopoverTrigger>
+        {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+        <HintTooltip text={t("addField")}>
+          <PopoverTrigger asChild>
+            {/* Icon-only: the pill row is where the eye goes, and a "+" chip reads as "add" there. */}
+            <button
+              type="button"
+              aria-label={
+                activeCount > 0
+                  ? `${t("addField")} – ${t("activeCount", { arg0: activeCount })}`
+                  : t("addField")
+              }
+              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-1 text-muted-foreground hover:border-primary/40 hover:text-primary"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} size={13} />
+              {activeCount > 0 && (
+                <span
+                  aria-hidden
+                  className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground"
+                >
+                  {activeCount}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+        </HintTooltip>
         <PopoverContent align="start" className="w-72 p-0">
           <FilterFieldList
             entries={entries}

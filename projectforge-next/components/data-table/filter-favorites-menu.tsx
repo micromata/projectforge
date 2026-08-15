@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 import { FilterFavoriteEntry } from "./filter-favorite-entry";
 import type { UseFilterFavoritesResult } from "./use-filter-favorites";
@@ -44,31 +45,36 @@ export function FilterFavoritesMenu({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          // The trigger names the applied favorite: the pill row shows its values,
-          // but nothing there says which saved filter they came from.
-          title={
-            current ? `${tFilter("list")}: ${current.name}` : tFilter("list")
-          }
-          className={cn(className, current && "border-primary/40 text-primary")}
-        >
-          <HugeiconsIcon icon={Bookmark02Icon} size={13} />
-          <span className="max-w-32 truncate">
-            {current?.name ?? tFilter("list")}
-          </span>
-          {/* Says there is something to save without opening the menu. */}
-          {current && favorites.isModified && (
-            <HugeiconsIcon
-              icon={AsteriskIcon}
-              size={10}
-              aria-label={t("favorites.saveModification")}
-            />
-          )}
-        </Button>
-      </PopoverTrigger>
+      {/* The tooltip names the applied favorite: the pill row shows its values, but nothing there
+          says which saved filter they came from. Wrapping the trigger, not wrapped by it — `asChild`
+          has to reach a DOM element. */}
+      <HintTooltip
+        text={current ? `${tFilter("list")}: ${current.name}` : tFilter("list")}
+      >
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              className,
+              current && "border-primary/40 text-primary"
+            )}
+          >
+            <HugeiconsIcon icon={Bookmark02Icon} size={13} />
+            <span className="max-w-32 truncate">
+              {current?.name ?? tFilter("list")}
+            </span>
+            {/* Says there is something to save without opening the menu. */}
+            {current && favorites.isModified && (
+              <HugeiconsIcon
+                icon={AsteriskIcon}
+                size={10}
+                aria-label={t("favorites.saveModification")}
+              />
+            )}
+          </Button>
+        </PopoverTrigger>
+      </HintTooltip>
       <PopoverContent align="start" className="w-72 p-1">
         {favorites.favorites.length === 0 ? (
           <p className="px-2 py-1.5 text-xs text-muted-foreground">
@@ -143,16 +149,17 @@ function SaveAsRow({
         }}
         className="h-7 text-xs"
       />
-      <Button
-        size="sm"
-        variant="ghost"
-        title={label}
-        aria-label={label}
-        onClick={save}
-        className="h-7 shrink-0 px-2"
-      >
-        <HugeiconsIcon icon={PlusSignIcon} size={13} />
-      </Button>
+      <HintTooltip text={label}>
+        <Button
+          size="sm"
+          variant="ghost"
+          aria-label={label}
+          onClick={save}
+          className="h-7 shrink-0 px-2"
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={13} />
+        </Button>
+      </HintTooltip>
     </div>
   );
 }

@@ -4,11 +4,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -72,16 +68,15 @@ export function HistoryEntryHeader({ entry, open }: HistoryEntryHeaderProps) {
           </span>
         )}
       </CollapsibleTrigger>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="mt-0.5 shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">
-            {entry.timeAgo}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          {formatTimestampMinutes(entry.modifiedAt, ctx)}
-        </TooltipContent>
-      </Tooltip>
+      <HintTooltip
+        plain
+        side="left"
+        text={formatTimestampMinutes(entry.modifiedAt, ctx)}
+      >
+        <span className="mt-0.5 shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">
+          {entry.timeAgo}
+        </span>
+      </HintTooltip>
     </div>
   );
 }

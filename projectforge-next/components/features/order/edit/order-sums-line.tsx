@@ -1,12 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import {
   formatCurrency,
@@ -98,19 +93,14 @@ function WeightedProbability({ value }: { value?: number | null }) {
   if (value == null) return null;
   return (
     <div className="flex flex-col">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <dt className="cursor-help text-[11px] text-primary opacity-70 decoration-dotted underline-offset-2 hover:underline">
-              {/* `._` because the key is a text of its own *and* the parent of `.info` — see the sums above. */}
-              {t("fibu.auftrag.probabilityOfOccurrence.weighted._")}
-            </dt>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            {t("fibu.auftrag.probabilityOfOccurrence.weighted.info")}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <HintTooltip
+        text={t("fibu.auftrag.probabilityOfOccurrence.weighted.info")}
+      >
+        <dt className="cursor-help text-[11px] text-primary opacity-70 decoration-dotted underline-offset-2 hover:underline">
+          {/* `._` because the key is a text of its own *and* the parent of `.info` — see the sums above. */}
+          {t("fibu.auftrag.probabilityOfOccurrence.weighted._")}
+        </dt>
+      </HintTooltip>
       <dd className="text-base font-semibold text-primary tabular-nums">
         {formatPercentageDecimal(value, format)}
       </dd>

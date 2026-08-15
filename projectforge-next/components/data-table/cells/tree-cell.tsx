@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { getByPath } from "@/lib/dynamic/path";
 import type { CellRenderProps } from "./cell-types";
 
 /** TaskNode.treeStatus as the backend sends it alongside the row's `indent`. */
@@ -20,6 +21,11 @@ export function TreeCell({
   t,
   onToggle,
 }: CellRenderProps & { onToggle?: () => void }) {
+  const declared = spec.tooltipPath
+    ? getByPath(row, spec.tooltipPath)
+    : undefined;
+  const tooltip =
+    typeof declared === "string" && declared ? declared : undefined;
   const status = (row.treeStatus as TreeStatus | undefined) ?? "LEAF";
   const indent = typeof row.indent === "number" ? row.indent : 0;
   const icon =
@@ -44,10 +50,9 @@ export function TreeCell({
           />
         ) : null}
       </span>
-      <span
-        className="truncate"
-        title={spec.tooltipPath ? undefined : String(value ?? "")}
-      >
+      {/* The declared tooltip where the column has one (the task's description), otherwise none: the
+          delegated tooltip shows the title itself as soon as the cell clips it. */}
+      <span className="truncate" data-tooltip={tooltip}>
         {String(value ?? "")}
       </span>
     </span>

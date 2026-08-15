@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 
 interface FilterPillShellProps {
@@ -64,17 +65,19 @@ export function FilterPillShell({
       )}
     >
       <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            title={tooltip}
-            aria-label={t("editEntry", { arg0: label })}
-            className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
-          >
-            {label}
-            {text && `: ${text}`}
-          </button>
-        </PopoverTrigger>
+        {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+        <HintTooltip text={tooltip}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={t("editEntry", { arg0: label })}
+              className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
+            >
+              {label}
+              {text && `: ${text}`}
+            </button>
+          </PopoverTrigger>
+        </HintTooltip>
         <PopoverContent
           align="start"
           className={cn("w-72 space-y-2 p-3", contentClassName)}

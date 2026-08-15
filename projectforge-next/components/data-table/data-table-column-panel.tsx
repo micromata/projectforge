@@ -34,6 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 
 interface DataTableColumnPanelProps<TData> {
@@ -150,18 +151,21 @@ export function DataTableColumnPanel<TData>({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        {/* Short label, full one as the tooltip: this sits in the filter row, not in a menu. */}
-        <Button
-          variant="outline"
-          size="sm"
-          title={t("manage")}
-          className={cn("gap-1.5", className)}
-        >
-          <HugeiconsIcon icon={TableIcon} size={14} />
-          <span>{t("_")}</span>
-        </Button>
-      </PopoverTrigger>
+      {/* Short label, full one as the tooltip: this sits in the filter row, not in a menu. The
+          tooltip wraps the popover trigger, not the other way round — `asChild` has to reach a DOM
+          element, and a Radix root is not one. */}
+      <HintTooltip text={t("manage")}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("gap-1.5", className)}
+          >
+            <HugeiconsIcon icon={TableIcon} size={14} />
+            <span>{t("_")}</span>
+          </Button>
+        </PopoverTrigger>
+      </HintTooltip>
       <PopoverContent align="end" className="w-80 p-0">
         <DndContext
           sensors={sensors}

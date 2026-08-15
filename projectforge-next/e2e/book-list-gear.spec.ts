@@ -31,9 +31,9 @@ test.describe("book list gear menu", () => {
       menu.getByRole("menuitem", { name: t("menu.resetFilter._") })
     ).toBeVisible();
 
-    // Tooltips come from the same bundle keys the legacy gear menu used.
-    await expect(reindexNewest).toHaveAttribute(
-      "title",
+    // The explanation stands in the entry instead of in a tooltip, so it needs no hover — same bundle
+    // keys the legacy gear menu used for its tooltips.
+    await expect(reindexNewest).toContainText(
       t("menu.reindexNewestDatabaseEntries.tooltip.content")
     );
   });

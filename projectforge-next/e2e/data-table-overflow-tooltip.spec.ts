@@ -44,8 +44,9 @@ test.describe("data table overflow tooltip", () => {
           ...Array.from(td.querySelectorAll("*")),
         ] as HTMLElement[];
         const hit = all.find((el) => clipped(el) && el.innerText.trim());
-        // A cell with a native title of its own is left to that title (see useOverflowTooltip).
-        if (hit && !td.querySelector("[title]")) {
+        // A declared tooltip wins over the clipped text (see useOverflowTooltip), so such a cell says
+        // nothing about the overflow behaviour.
+        if (hit && !td.querySelector("[data-tooltip]")) {
           overflowing.push({ index, text: hit.innerText.trim() });
         } else if (!hit && td.innerText.trim()) {
           fitting.push(index);
@@ -124,5 +125,19 @@ test.describe("data table overflow tooltip", () => {
       await expect(page.locator(TOOLTIP)).toBeVisible({ timeout: 5_000 });
       await expect(page.locator(TOOLTIP)).toContainText(header.text);
     }
+
+    // A declared tooltip goes through the same single tooltip — the app's styled one, not the
+    // browser's grey box. The order list always has one: the sort indicator of the sorted column.
+    const declared = page.locator("table [data-tooltip]").first();
+    const declaredText = await declared.getAttribute("data-tooltip");
+    expect(
+      declaredText,
+      "the sorted column's indicator declares a tooltip"
+    ).toBeTruthy();
+    await page.mouse.move(0, 0);
+    await expect(page.locator(TOOLTIP)).toHaveCount(0);
+    await declared.hover();
+    await expect(page.locator(TOOLTIP)).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator(TOOLTIP)).toContainText(declaredText!);
   });
 });

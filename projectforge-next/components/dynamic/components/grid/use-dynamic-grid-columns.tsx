@@ -48,7 +48,7 @@ export function useDynamicGridColumns(
             >
               {/* An icon-only header (attachments) sends an empty name and a
                   tooltip instead; without it the column would be unnamed. */}
-              <span title={tooltip}>{label || tooltip}</span>
+              <span data-tooltip={tooltip}>{label || tooltip}</span>
             </DataTableColumnHeader>
           ),
           cell: ({ getValue, row }) =>

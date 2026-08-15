@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { logout } from "@/lib/rs/client";
 import { Menubar } from "@/components/ui/menubar";
 import { MainMenuDropdown } from "@/components/shared/main-menu-dropdown";
+import { QuickAccessSearch } from "@/components/shared/quick-access-search";
 import { FavoritesBar } from "@/components/shared/favorites-bar";
 import { UserMenu } from "@/components/shared/user-menu";
 
@@ -31,6 +32,7 @@ export function TopNavigation() {
     >
       <nav>
         <MainMenuDropdown categories={menu?.mainMenu?.menuItems ?? []} />
+        <QuickAccessSearch />
         <FavoritesBar items={menu?.favoritesMenu?.menuItems ?? []} />
         {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
         <div className="ml-auto flex shrink-0 items-center">

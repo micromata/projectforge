@@ -62,11 +62,7 @@ export function UserMenu({
           }
           return (
             <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
-              <MenuLink
-                url={item.url}
-                title={item.title}
-                className={MENU_HOVER_CLASS}
-              >
+              <MenuLink url={item.url} className={MENU_HOVER_CLASS}>
                 <span className="truncate">{item.title}</span>
                 {/* "2FA setup" carries a counter; without this it would be lost here. */}
                 {item.badge?.counter ? (

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download04Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { RsError } from "@/lib/rs/client";
 import { downloadOrderExcel } from "@/lib/rs/order";
@@ -43,33 +44,35 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="gap-1.5"
-        title={t("tooltip.export.excel")}
-        onClick={() => excel.mutate()}
-        disabled={excel.isPending}
-      >
-        {excel.isPending ? (
-          <Spinner className="h-3.5 w-3.5 border-2" />
-        ) : (
+      <HintTooltip text={t("tooltip.export.excel")}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => excel.mutate()}
+          disabled={excel.isPending}
+        >
+          {excel.isPending ? (
+            <Spinner className="h-3.5 w-3.5 border-2" />
+          ) : (
+            <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
+          )}
+          {t("exportAsXls")}
+        </Button>
+      </HintTooltip>
+      <HintTooltip text={t("fibu.auftrag.forecastExport.tooltip")}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => setForecastOpen(true)}
+        >
           <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-        )}
-        {t("exportAsXls")}
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="gap-1.5"
-        title={t("fibu.auftrag.forecastExport.tooltip")}
-        onClick={() => setForecastOpen(true)}
-      >
-        <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-        {t("fibu.auftrag.forecastExportAsXls._")}
-      </Button>
+          {t("fibu.auftrag.forecastExportAsXls._")}
+        </Button>
+      </HintTooltip>
       {forecastOpen && (
         <ForecastExportDialog
           filter={filter}

@@ -7,11 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useAddEntryShortcut } from "@/hooks/use-add-entry-shortcut";
 import { SearchInput } from "./search-input";
@@ -86,31 +82,25 @@ export function ListToolbar({
               <Separator orientation="vertical" className="!h-5 !self-center" />
             </>
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* Icon only, and the same on every list: what is added is said by the page's own
-                  heading, so a label ("New book", "New order/offer") only repeats it — and reads
-                  badly wherever the noun has no good article. The accessible name stays generic
-                  for the same reason; the tooltip beside it names the shortcut. */}
-              <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
-                <Link href={addHref}>
-                  {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
-                      width/height attribute would win over that class. */}
-                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            {/* `flex-col`: the primitive lays its children out as a centered row, which would put
-                the heading beside its explanation instead of above it. */}
-            <TooltipContent className="flex-col items-start gap-0.5">
-              {/* With no label on the button the tooltip has to say what it does before it says
-                  how to reach it by keyboard. */}
-              <p className="font-medium">{t("menu.addNewEntry")}</p>
-              <p>{t("tooltip.shortcut.addEntry.title")}</p>
-              {/* `._`: the key has a child (.title), so it is nested under `_` in the catalog. */}
-              <p>{t("tooltip.shortcut.addEntry._")}</p>
-            </TooltipContent>
-          </Tooltip>
+          {/* With no label on the button the tooltip has to say what it does before it says how to
+              reach it by keyboard. `._`: the shortcut key has a child (.title), so it is nested
+              under `_` in the catalog. */}
+          <HintTooltip
+            title={t("menu.addNewEntry")}
+            text={`${t("tooltip.shortcut.addEntry.title")}\n\n${t("tooltip.shortcut.addEntry._")}`}
+          >
+            {/* Icon only, and the same on every list: what is added is said by the page's own
+                heading, so a label ("New book", "New order/offer") only repeats it — and reads
+                badly wherever the noun has no good article. The accessible name stays generic
+                for the same reason; the tooltip beside it names the shortcut. */}
+            <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
+              <Link href={addHref}>
+                {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
+                    width/height attribute would win over that class. */}
+                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
+              </Link>
+            </Button>
+          </HintTooltip>
         </div>
       </div>
 

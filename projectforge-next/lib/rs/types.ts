@@ -147,13 +147,21 @@ export interface MenuBadge {
   tooltip?: string;
 }
 
+/**
+ * What the client is meant to do with a menu entry's url (see MenuItemTargetType). Absent means
+ * `REDIRECT` — the backend only sends the field where it is something else.
+ */
+export type MenuItemTargetType = "REDIRECT" | "MODAL" | "DOWNLOAD" | "RESTCALL";
+
 export interface MenuItem {
   id?: string;
   title: string;
   url?: string;
+  /** Unique across the whole menu, unlike `id`, whose dots the backend replaces for the DOM. */
   key?: string;
   badge?: MenuBadge;
   subMenu?: MenuItem[];
+  type?: MenuItemTargetType;
 }
 
 export interface Menu {

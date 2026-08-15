@@ -4,11 +4,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CircleArrowReload01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { cn } from "@/lib/utils";
 
@@ -41,26 +37,23 @@ export function LegacyPageLink({
   const label = t("classics");
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          asChild
-          size="sm"
-          aria-label={label}
-          className={cn(
-            "gap-1.5 bg-legacy text-legacy-foreground hover:bg-legacy-hover",
-            className
-          )}
-        >
-          <a href={toAbsoluteUrl(resolveMenuUrl(url))}>
-            <HugeiconsIcon icon={CircleArrowReload01Icon} size={13} />
-            {/* Icon only where the row is tight: `sr-only`, not `hidden`, keeps the accessible
+    <HintTooltip text={label}>
+      <Button
+        asChild
+        size="sm"
+        aria-label={label}
+        className={cn(
+          "gap-1.5 bg-legacy text-legacy-foreground hover:bg-legacy-hover",
+          className
+        )}
+      >
+        <a href={toAbsoluteUrl(resolveMenuUrl(url))}>
+          <HugeiconsIcon icon={CircleArrowReload01Icon} size={13} />
+          {/* Icon only where the row is tight: `sr-only`, not `hidden`, keeps the accessible
                 name on the link itself. */}
-            <span className="sr-only md:not-sr-only">{label}</span>
-          </a>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+          <span className="sr-only md:not-sr-only">{label}</span>
+        </a>
+      </Button>
+    </HintTooltip>
   );
 }

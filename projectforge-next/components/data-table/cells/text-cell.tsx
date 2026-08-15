@@ -16,7 +16,10 @@ export function TextCell({ spec, value, row, ctx }: CellRenderProps) {
   return (
     <span
       className={cn("block truncate", spec.align === "right" && "text-right")}
-      title={typeof tooltip === "string" && tooltip ? tooltip : undefined}
+      // Shown by the table's one delegated tooltip, see useOverflowTooltip.
+      data-tooltip={
+        typeof tooltip === "string" && tooltip ? tooltip : undefined
+      }
     >
       {text}
     </span>

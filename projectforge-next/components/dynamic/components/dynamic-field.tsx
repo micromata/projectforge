@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useDynamicLayout } from "../dynamic-context";
 import { Label } from "@/components/ui/label";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { DynamicLayoutNode } from "@/lib/rs/types";
 
 /** The html id of a field. Prefixed with the layout's uid, so two layouts never collide. */
@@ -34,20 +35,22 @@ export function DynamicField({ node, children }: DynamicFieldProps) {
   const domId = fieldDomId(ui.uid, id);
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1.5" title={tooltip}>
-      {label && (
-        <Label htmlFor={domId} className="text-sm">
-          {translate(label)}
-          {required && <span className="ml-0.5 text-destructive">*</span>}
-          {additionalLabel && (
-            <span className="ml-1 text-muted-foreground">
-              {translate(additionalLabel)}
-            </span>
-          )}
-        </Label>
-      )}
-      {children(domId, error != null)}
-      {error && <p className="text-xs text-destructive">{error.message}</p>}
-    </div>
+    <HintTooltip text={tooltip}>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        {label && (
+          <Label htmlFor={domId} className="text-sm">
+            {translate(label)}
+            {required && <span className="ml-0.5 text-destructive">*</span>}
+            {additionalLabel && (
+              <span className="ml-1 text-muted-foreground">
+                {translate(additionalLabel)}
+              </span>
+            )}
+          </Label>
+        )}
+        {children(domId, error != null)}
+        {error && <p className="text-xs text-destructive">{error.message}</p>}
+      </div>
+    </HintTooltip>
   );
 }

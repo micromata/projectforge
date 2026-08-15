@@ -10,6 +10,13 @@ import {
 /** Delay before a truncated cell reveals its full content, ms. */
 const DELAY = 400;
 
+/**
+ * Marks an element inside a cell or header as carrying its own tooltip: a column's declared
+ * `tooltipPath`, a backend `headerTooltip`, the sort indicators. Shown by this hook rather than by a
+ * [HintTooltip] of its own — one Radix root per cell would be hundreds per page (see below).
+ */
+export const TOOLTIP_ATTR = "data-tooltip";
+
 interface OverflowTarget {
   /** Viewport rect of the clipped element; the tooltip is anchored to it. */
   rect: DOMRect;
@@ -39,20 +46,20 @@ function findClipped(cell: HTMLElement): HTMLElement | null {
 }
 
 /**
- * Shows the full content of a truncated table cell or header on hover.
+ * Shows a table cell's or header's tooltip on hover: its declared one
+ * ([TOOLTIP_ATTR]) where there is one, the full content otherwise where the cell
+ * clips it.
  *
  * One tooltip for the whole table, driven by event delegation, rather than a
  * Tooltip per cell: a page of rows times its columns is several hundred cells,
- * and each would carry its own Radix root and its own measurement.
- *
- * Where a cell already carries a native `title` (a column's declared
- * tooltipPath, a backend header tooltip), that one is left to do the work — two
- * tooltips for the same text would otherwise show at once.
+ * and each would carry its own Radix root and its own measurement. Which is why
+ * the declared tooltips go through here as well instead of through
+ * [HintTooltip] — the look is the same either way.
  */
 export function useOverflowTooltip() {
   const [target, setTarget] = React.useState<OverflowTarget | null>(null);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** The cell the pending or shown tooltip belongs to. */
+  /** The element the pending or shown tooltip belongs to. */
   const current = React.useRef<HTMLElement | null>(null);
 
   const clear = React.useCallback(() => {
@@ -72,27 +79,29 @@ export function useOverflowTooltip() {
         clear();
         return;
       }
+      // A declared tooltip wins over the clipped text, and is anchored to the
+      // element that declares it: the sort indicator explains itself, not the
+      // column label beside it.
+      const declared = node!.closest<HTMLElement>(`[${TOOLTIP_ATTR}]`);
+      const anchor =
+        declared && cell.contains(declared) ? declared : findClipped(cell);
+      const text =
+        anchor && anchor === declared
+          ? declared.getAttribute(TOOLTIP_ATTR)?.trim()
+          : anchor?.innerText.trim();
+      if (!anchor || !text) {
+        clear();
+        return;
+      }
       // pointerover bubbles once per descendant the pointer enters, so the same
-      // cell arrives repeatedly; re-measuring it would restart the delay and the
-      // tooltip would never appear.
-      if (cell === current.current) return;
-      // Only a title *inside* the cell counts: one on the cell itself would
-      // suppress the tooltip for the whole column.
-      const titled = node!.closest<HTMLElement>("[title]");
-      if (titled && titled !== cell && cell.contains(titled)) {
-        clear();
-        return;
-      }
-      const clipped = findClipped(cell);
-      const text = clipped?.innerText.trim();
-      if (!clipped || !text) {
-        clear();
-        return;
-      }
+      // anchor arrives repeatedly; re-measuring it would restart the delay and
+      // the tooltip would never appear. Keyed on the anchor rather than the cell,
+      // so moving from a header's label to its sort indicator does switch.
+      if (anchor === current.current) return;
       if (timer.current) clearTimeout(timer.current);
-      current.current = cell;
+      current.current = anchor;
       timer.current = setTimeout(
-        () => setTarget({ rect: clipped.getBoundingClientRect(), text }),
+        () => setTarget({ rect: anchor.getBoundingClientRect(), text }),
         DELAY
       );
     },
@@ -142,9 +151,10 @@ function OverflowTooltip({
           }}
         />
       </TooltipTrigger>
+      {/* The same shape as [HintTooltip]: this is the app's tooltip, only anchored by delegation. */}
       <TooltipContent
         sideOffset={4}
-        className="max-w-sm whitespace-pre-wrap break-words"
+        className="max-w-sm whitespace-pre-wrap break-words text-[11px] leading-relaxed"
       >
         {text}
       </TooltipContent>

@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 
 /** One pickable entry: a backend filter field, or a group of them like the change history. */
 export interface FilterFieldPickerEntry {
@@ -60,15 +61,16 @@ export function FilterFieldList({
       <CommandList>
         <CommandEmpty>{t("noMatch")}</CommandEmpty>
         {entries.map((entry) => (
-          <CommandItem
-            key={entry.id}
-            value={`${entry.label} ${entry.id}`}
-            title={entry.tooltip}
-            data-checked={activeIds.includes(entry.id)}
-            onSelect={() => onSelect(entry.id)}
-          >
-            <span className="truncate">{entry.label}</span>
-          </CommandItem>
+          // The tooltip sits on the right: an item's own explanation would cover the items below it.
+          <HintTooltip key={entry.id} text={entry.tooltip} side="right">
+            <CommandItem
+              value={`${entry.label} ${entry.id}`}
+              data-checked={activeIds.includes(entry.id)}
+              onSelect={() => onSelect(entry.id)}
+            >
+              <span className="truncate">{entry.label}</span>
+            </CommandItem>
+          </HintTooltip>
         ))}
       </CommandList>
     </Command>

@@ -4,6 +4,7 @@ import type { DynamicComponentProps } from "../dynamic-renderer";
 import { useDynamicLayout } from "../dynamic-context";
 import { fieldDomId } from "./dynamic-field";
 import { Label } from "@/components/ui/label";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { getByPath } from "@/lib/dynamic/path";
 
 /**
@@ -24,23 +25,25 @@ export function DynamicRadioButton({ node }: DynamicComponentProps) {
   const domId = `${fieldDomId(ui.uid, id)}-${value}`;
 
   return (
-    <div className="flex items-center gap-2" title={node.tooltip as string}>
-      <input
-        type="radio"
-        id={domId}
-        name={fieldDomId(ui.uid, name)}
-        value={value}
-        checked={getByPath(data, id) === value}
-        className="size-4 accent-primary"
-        onChange={(e) => {
-          if (e.target.checked) setData({ [id]: value });
-        }}
-      />
-      {label && (
-        <Label htmlFor={domId} className="text-sm font-normal">
-          {translate(label)}
-        </Label>
-      )}
-    </div>
+    <HintTooltip text={node.tooltip as string | undefined}>
+      <div className="flex items-center gap-2">
+        <input
+          type="radio"
+          id={domId}
+          name={fieldDomId(ui.uid, name)}
+          value={value}
+          checked={getByPath(data, id) === value}
+          className="size-4 accent-primary"
+          onChange={(e) => {
+            if (e.target.checked) setData({ [id]: value });
+          }}
+        />
+        {label && (
+          <Label htmlFor={domId} className="text-sm font-normal">
+            {translate(label)}
+          </Label>
+        )}
+      </div>
+    </HintTooltip>
   );
 }

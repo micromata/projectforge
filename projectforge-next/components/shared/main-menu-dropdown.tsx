@@ -99,11 +99,7 @@ function CategoryColumn({ category }: { category: MenuItem }) {
         // MenubarItem, not a bare link: it is what closes the panel on click and wires up
         // keyboard navigation.
         <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
-          <MenuLink
-            url={item.url}
-            title={item.title}
-            className={cn("text-sm", MENU_HOVER_CLASS)}
-          >
+          <MenuLink url={item.url} className={cn("text-sm", MENU_HOVER_CLASS)}>
             <span className="truncate">{item.title}</span>
             {item.badge?.counter ? (
               <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">

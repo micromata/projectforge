@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useReindex } from "@/hooks/use-reindex";
 import { showResponseMessage } from "@/lib/dynamic/response-toast";
@@ -87,44 +88,46 @@ export function ListGearMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label={t("settings")}
-          title={t("settings")}
-          className={cn("gap-1", className)}
-        >
-          <HugeiconsIcon icon={Settings02Icon} size={16} />
-          <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <HintTooltip text={t("settings")}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={t("settings")}
+            className={cn("gap-1", className)}
+          >
+            <HugeiconsIcon icon={Settings02Icon} size={16} />
+            <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
+          </Button>
+        </DropdownMenuTrigger>
+      </HintTooltip>
+      <DropdownMenuContent align="end" className="w-72">
         {/* The bare menu titles live under "_": their own tooltip subkeys make them a namespace
-            in the generated catalog (see GenerateNextI18nMessagesMain.JsonNode). */}
-        <DropdownMenuItem
-          title={tMenu("reindexNewestDatabaseEntries.tooltip.content")}
+            in the generated catalog (see GenerateNextI18nMessagesMain.JsonNode).
+
+            The explanation stands in the entry instead of in a tooltip: a tooltip inside a dropdown
+            competes with the menu for hover and focus, and these three entries do something that is
+            worth reading about *before* clicking — one of them re-indexes the whole database. */}
+        <GearMenuItem
+          label={tMenu("reindexNewestDatabaseEntries._")}
+          description={tMenu("reindexNewestDatabaseEntries.tooltip.content")}
           onSelect={() => void reindex.start(false)}
-        >
-          {tMenu("reindexNewestDatabaseEntries._")}
-        </DropdownMenuItem>
+        />
         {/* Rebuilding everything includes the history and hits the whole system, so it is for admins
             only — the endpoint checks that as well, this merely hides a dead entry. */}
         {isAdmin && (
-          <DropdownMenuItem
-            title={tMenu("reindexAllDatabaseEntries.tooltip.content")}
+          <GearMenuItem
+            label={tMenu("reindexAllDatabaseEntries._")}
+            description={tMenu("reindexAllDatabaseEntries.tooltip.content")}
             onSelect={() => void reindex.start(true)}
-          >
-            {tMenu("reindexAllDatabaseEntries._")}
-          </DropdownMenuItem>
+          />
         )}
-        <DropdownMenuItem
+        <GearMenuItem
+          label={tMenu("resetFilter._")}
+          description={tMenu("resetFilter.info")}
           disabled={running}
-          title={tMenu("resetFilter.info")}
           onSelect={() => void resetFilter()}
-        >
-          {tMenu("resetFilter._")}
-        </DropdownMenuItem>
+        />
         {children && (
           <>
             <DropdownMenuSeparator />
@@ -133,5 +136,32 @@ export function ListGearMenu({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** One standard entry: what it does, and below it what that means. */
+function GearMenuItem({
+  label,
+  description,
+  disabled,
+  onSelect,
+}: {
+  label: string;
+  description: string;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <DropdownMenuItem
+      disabled={disabled}
+      onSelect={onSelect}
+      className="flex-col items-start gap-0.5"
+    >
+      <span>{label}</span>
+      {/* `whitespace-normal`: the menu primitive keeps its items on one line. */}
+      <span className="text-[11px] whitespace-normal text-muted-foreground">
+        {description}
+      </span>
+    </DropdownMenuItem>
   );
 }

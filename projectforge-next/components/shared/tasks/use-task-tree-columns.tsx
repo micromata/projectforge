@@ -47,7 +47,7 @@ export function useTaskTreeColumns(
             table={table}
             filterKind={meta?.filterKind}
           >
-            <span title={tooltip}>{label || tooltip}</span>
+            <span data-tooltip={tooltip}>{label || tooltip}</span>
           </DataTableColumnHeader>
         ),
         cell: ({ getValue, row }: CellContext<TaskNode, unknown>) => {

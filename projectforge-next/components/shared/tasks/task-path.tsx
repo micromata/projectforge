@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { TaskNode } from "@/lib/rs/task";
 
 interface TaskPathProps {
@@ -31,26 +32,28 @@ export function TaskPath({ task, onSelect }: TaskPathProps) {
       aria-label={t("task.path.pleaseSelectTask")}
       className="flex min-w-0 flex-wrap items-center gap-1 text-xs"
     >
-      <button
-        type="button"
-        onClick={() => onSelect(null)}
-        aria-label={t("task.tree.rootNode")}
-        title={t("task.tree.rootNode")}
-        className="cursor-pointer text-muted-foreground hover:text-foreground"
-      >
-        <HugeiconsIcon icon={Home01Icon} size={14} />
-      </button>
+      <HintTooltip text={t("task.tree.rootNode")}>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          aria-label={t("task.tree.rootNode")}
+          className="cursor-pointer text-muted-foreground hover:text-foreground"
+        >
+          <HugeiconsIcon icon={Home01Icon} size={14} />
+        </button>
+      </HintTooltip>
       {ancestors.map((ancestor) => (
         <span key={ancestor.id} className="flex min-w-0 items-center gap-1">
           <span className="text-muted-foreground">/</span>
-          <button
-            type="button"
-            onClick={() => onSelect(ancestor)}
-            title={t("task.selectPanel.selectAncestorTask.tooltip")}
-            className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline"
-          >
-            {ancestor.title}
-          </button>
+          <HintTooltip text={t("task.selectPanel.selectAncestorTask.tooltip")}>
+            <button
+              type="button"
+              onClick={() => onSelect(ancestor)}
+              className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline"
+            >
+              {ancestor.title}
+            </button>
+          </HintTooltip>
         </span>
       ))}
       {task && (

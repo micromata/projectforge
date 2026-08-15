@@ -5,11 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CloudUploadIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 
 interface Props {
   /** Called once with all chosen files — the endpoint takes a single file per call. */
@@ -34,23 +30,20 @@ export function AttachmentAddButton({ onFiles, disabled }: Props) {
 
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 gap-1.5 text-[11px]"
-            disabled={disabled}
-            onClick={() => inputRef.current?.click()}
-          >
-            <HugeiconsIcon icon={CloudUploadIcon} size={13} />
-            {/* `_`, since the key has an `info` subkey and so becomes a namespace. */}
-            {t("attachment.upload.add._")}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{t("attachment.upload.add.info")}</TooltipContent>
-      </Tooltip>
+      <HintTooltip text={t("attachment.upload.add.info")}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 text-[11px]"
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+        >
+          <HugeiconsIcon icon={CloudUploadIcon} size={13} />
+          {/* `_`, since the key has an `info` subkey and so becomes a namespace. */}
+          {t("attachment.upload.add._")}
+        </Button>
+      </HintTooltip>
       <input
         ref={inputRef}
         type="file"

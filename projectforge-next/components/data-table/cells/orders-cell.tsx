@@ -35,16 +35,24 @@ export function OrdersCell({ value }: CellRenderProps) {
       {orders.map((order, index) => (
         <span key={order.number}>
           {index > 0 && ", "}
-          <MenuLink
-            url={order.url}
-            className="text-primary hover:underline"
-            title={[order.title, order.text].filter(Boolean).join("\n")}
-            // The row itself is clickable (it opens the task), so a click on the
-            // link must not count as picking the row.
-            onClick={(event) => event.stopPropagation()}
+          {/* On the wrapper rather than the link: the table's delegated tooltip finds it by
+              `closest`, and MenuLink renders an anchor it doesn't own. */}
+          <span
+            data-tooltip={
+              [order.title, order.text].filter(Boolean).join("\n\n") ||
+              undefined
+            }
           >
-            {order.number}
-          </MenuLink>
+            <MenuLink
+              url={order.url}
+              className="text-primary hover:underline"
+              // The row itself is clickable (it opens the task), so a click on the
+              // link must not count as picking the row.
+              onClick={(event) => event.stopPropagation()}
+            >
+              {order.number}
+            </MenuLink>
+          </span>
         </span>
       ))}
     </span>

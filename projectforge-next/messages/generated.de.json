@@ -340,9 +340,9 @@
       "forecastExport": {
         "startDate": {
           "_": "Erster Monat des Forecasts",
-          "info": "Der Forecast beginnt mit dem Monat, in dem dieses Datum liegt. Der Wert wird für den nächsten Export gemerkt."
+          "info": "Der Forecast beginnt mit dem Monat, in dem dieses Datum liegt.\n\nDer Wert wird für den nächsten Export gemerkt."
         },
-        "tooltip": "Export des Forecasts für die gefilterten Aufträge. Der erste Monat und das Budget-Szenario werden erfragt."
+        "tooltip": "Export des Forecasts für die gefilterten Aufträge.\n\nDer erste Monat und das Budget-Szenario werden erfragt."
       },
       "forecastExportAsXls": {
         "_": "Forecast",
@@ -352,7 +352,7 @@
         "_": "Forecast-Typ",
         "currentMonth": "Aktueller Monat",
         "followingMonth": "Folgemonat (Standard)",
-        "info": "Wann wird der Umsatz fakturiert? Gilt nicht für den Zahlplan.",
+        "info": "Wann wird der Umsatz fakturiert?\n\nGilt nicht für den Zahlplan.",
         "pos": {
           "info": "Wenn leer, dann wird der Wert des Auftrags genommen (s. o.)."
         }
@@ -404,11 +404,11 @@
       "positions": "Positionen",
       "probabilityOfOccurrence": {
         "effective": {
-          "info": "Die Wahrscheinlichkeit, mit der der Forecast diese Position rechnet. Sie ergibt sich aus dem Status des Auftrags und dem der Position; die am Auftrag eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo diese sie offen lassen."
+          "info": "Die Wahrscheinlichkeit, mit der der Forecast diese Position rechnet.\n\nSie ergibt sich aus dem Status des Auftrags und dem der Position; die am Auftrag eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo diese sie offen lassen."
         },
         "weighted": {
           "_": "Tats. Eintrittswahrsch.",
-          "info": "Die Wahrscheinlichkeit, mit der der Forecast rechnet. Sie ergibt sich aus dem Status des Auftrags und dem jeder Position; die eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo der Status sie offen lässt. Angezeigt wird sie mit den Nettosummen der Positionen gewichtet: Summe(Nettosumme x Wahrscheinlichkeit) / Nettosumme."
+          "info": "Die Wahrscheinlichkeit, mit der der Forecast rechnet.\n\nSie ergibt sich aus dem Status des Auftrags und dem jeder Position; die eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo der Status sie offen lässt.\n\nAngezeigt wird sie mit den Nettosummen der Positionen gewichtet: Summe(Nettosumme x Wahrscheinlichkeit) / Nettosumme."
         }
       },
       "showInactivePosition": "Inaktive Positionen anzeigen",
@@ -467,7 +467,7 @@
     "currencyPair": {
       "_": "Währungspaar",
       "currencyCode": {
-        "tooltip": "ISO-Währungscode (3 Buchstaben) wird empfohlen, z.B. USD, EUR, GBP. Diese Codes werden auch beim Import oder Anlage von Währungen im System genutzt."
+        "tooltip": "ISO-Währungscode (3 Buchstaben) wird empfohlen, z.B. USD, EUR, GBP.\n\nDiese Codes werden auch beim Import oder Anlage von Währungen im System genutzt."
       },
       "sourceCurrency": "Quellwährung",
       "targetCurrency": "Zielwährung"
@@ -985,7 +985,7 @@
       "_": "Änderungskommentar",
       "append": "Kommentar anhängen",
       "edit": "Änderungskommentar editieren",
-      "info": "Hier kann ein optionaler Kommentar eingegeben werden, z. B. warum die Änderung erfolgte. Dieser Kommentar wird in der Historie angezeigt."
+      "info": "Hier kann ein optionaler Kommentar eingegeben werden, z. B. warum die Änderung erfolgte.\n\nDieser Kommentar wird in der Historie angezeigt."
     },
     "was": "war"
   },
@@ -1148,6 +1148,12 @@
       "title": "Hauptmenü"
     },
     "myAccount": "Mein Zugang",
+    "quickAccess": {
+      "_": "Schnellzugriff",
+      "placeholder": "Menü durchsuchen",
+      "recent": "Zuletzt verwendet",
+      "searchAllData": "\"{arg0}\" in allen Daten suchen"
+    },
     "reindexAllDatabaseEntries": {
       "_": "Suchindex voll indizieren",
       "tooltip": {
@@ -1317,7 +1323,7 @@
       },
       "editForm": {
         "file": {
-          "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar. Diese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
+          "tooltip": "Die Datei ist im Script über 'script.file' und der Dateiname über 'script.filename' erreichbar.\n\nDiese Datei ist aus Abwährtskompatibiltätsgründen noch nutzbar für ältere Scripte."
         }
       },
       "executableByGroups": {
@@ -1330,7 +1336,7 @@
       },
       "executeAsUser": {
         "_": "Als andere:r User:in ausführen",
-        "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden! Im Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
+        "info": "Das Script wird mit ALLEN Rechten dieser oder der Benutzer:in ausgeführt. Bitte vorsichtig verwenden!\n\nIm Script selber muss diese Funktion auch aktiviert werden, um Fehlkonfigurationen zu vermeiden."
       },
       "includes": "Eingebundene Scripts",
       "name": "Name",
@@ -1446,7 +1452,7 @@
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
-        "info": "Geschätze Zeitersparnis in Prozent oder Stunden durch den Einsatz von KI in diesem Zeitbericht.\nDiese Angabe wird in Auswertungen und Reports verwendet."
+        "info": "Geschätze Zeitersparnis in Prozent oder Stunden durch den Einsatz von KI in diesem Zeitbericht.\n\nDiese Angabe wird in Auswertungen und Reports verwendet."
       },
       "timeSavedByAIDescription": {
         "_": "KI-Beschreibung",
@@ -1454,7 +1460,7 @@
       },
       "timeSavedByAIUnit": {
         "_": "Einheit",
-        "info": "Ersparnis in Stunden durch KI oder in Prozent (Beispiel Prozent: ich habe 9 Stunden gebraucht und hätte ohne KI 10 h gebraucht, dann habe ich 10% gespart):\nBeachte: Es kann bei einem Zeitbericht von einer Stunde auch ein Aufwand von vielen Stunden oder Tagen eingespart werden. "
+        "info": "Ersparnis in Stunden durch KI oder in Prozent (Beispiel Prozent: ich habe 9 Stunden gebraucht und hätte ohne KI 10 h gebraucht, dann habe ich 10% gespart):\n\nBeachte: Es kann bei einem Zeitbericht von einer Stunde auch ein Aufwand von vielen Stunden oder Tagen eingespart werden. "
       }
     },
     "description": "Tätigkeitsbericht",
@@ -1484,7 +1490,7 @@
     "_": "Benutzer:in",
     "My2FACode": {
       "authentification": {
-        "info": "Ein zweiter Faktor ist nun erforderlich. Hier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, ein angeforderter Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token."
+        "info": "Ein zweiter Faktor ist nun erforderlich.\n\nHier kann ein 2. Faktor (z. B. OTP-Einmalpasswort) eingegeben werden: Aus einer Authenticator-App, ein angeforderter Code per SMS oder E-Mail oder über einen registrierten WebAuthn-Token."
       },
       "code": {
         "_": "Code",
@@ -1563,17 +1569,17 @@
     "locale": "Sprache",
     "mobilePhone": {
       "_": "Mobilnummer",
-      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen. Die Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden."
+      "info": "Die Nummer kann als 2. Faktor benutzt werden, um z. B. das Passwort zurückzusetzen oder andere sicherheitsrelevante Bereiche zu nutzen.\n\nDie Nummer kann im Bereich Zwei-Faktor-Authentifizierung geändert werden."
     },
     "personalPhoneIdentifiers": {
       "_": "Telefonkennungen",
       "tooltip": {
-        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden. In der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
+        "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
       }
     },
     "restrictedUser": {
       "_": "Eingeschränkte:r Nutzer:in",
-      "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern. Der oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
+      "tooltip": "Ein eingeschränkte:r (restricted) Nutzer:in darf sich lediglich anmelden und sein Passwort ändern.\n\nDer oder die Nutzer:in wird mit einem externen Usermanagementsystem synchronisiert."
     },
     "sshPublicKey": "SSH public key",
     "username": "Benutzer:inname"

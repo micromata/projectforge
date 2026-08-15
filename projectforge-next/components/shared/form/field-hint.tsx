@@ -3,11 +3,7 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { InformationCircleIcon } from "@hugeicons/core-free-icons";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 
 /**
  * The explanation of a field, behind an icon next to its label.
@@ -23,19 +19,15 @@ import {
 export function FieldHint({ hint, label }: { hint: string; label: string }) {
   const t = useTranslations("form");
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <HintTooltip text={hint}>
+      <button
         type="button"
         // `-m-1 p-1`: a target big enough to hit without making the label line taller or wider.
         className="-m-1 shrink-0 p-1 text-muted-foreground/70 transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
         aria-label={`${t("hint")}: ${label}`}
       >
         <HugeiconsIcon icon={InformationCircleIcon} size={13} strokeWidth={2} />
-      </TooltipTrigger>
-      {/* The hints are sentences, and a few of them are two — hence wrapping rather than one long line. */}
-      <TooltipContent className="max-w-xs whitespace-pre-wrap">
-        {hint}
-      </TooltipContent>
-    </Tooltip>
+      </button>
+    </HintTooltip>
   );
 }

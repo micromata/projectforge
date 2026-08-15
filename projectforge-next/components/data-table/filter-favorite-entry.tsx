@@ -10,6 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 import type { FavoriteIdTitle } from "@/lib/rs/types";
 
@@ -115,20 +116,21 @@ function EntryAction({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
-      title={label}
-      aria-label={label}
-      className={cn(
-        "shrink-0 rounded-sm p-1 text-muted-foreground",
-        onClick ? "cursor-pointer hover:text-foreground" : "cursor-default",
-        className
-      )}
-    >
-      <HugeiconsIcon icon={icon} size={12} />
-    </button>
+    <HintTooltip text={label}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!onClick}
+        aria-label={label}
+        className={cn(
+          "shrink-0 rounded-sm p-1 text-muted-foreground",
+          onClick ? "cursor-pointer hover:text-foreground" : "cursor-default",
+          className
+        )}
+      >
+        <HugeiconsIcon icon={icon} size={12} />
+      </button>
+    </HintTooltip>
   );
 }
 
@@ -160,18 +162,19 @@ function RenameRow({
         className="h-7 text-xs"
       />
       {/* mousedown, not click: the input's blur cancels the edit before a click would land. */}
-      <button
-        type="button"
-        title={t("save")}
-        aria-label={t("save")}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          onSave(value.trim());
-        }}
-        className="shrink-0 cursor-pointer rounded-sm p-1 text-muted-foreground hover:text-foreground"
-      >
-        <HugeiconsIcon icon={Tick01Icon} size={12} />
-      </button>
+      <HintTooltip text={t("save")}>
+        <button
+          type="button"
+          aria-label={t("save")}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            onSave(value.trim());
+          }}
+          className="shrink-0 cursor-pointer rounded-sm p-1 text-muted-foreground hover:text-foreground"
+        >
+          <HugeiconsIcon icon={Tick01Icon} size={12} />
+        </button>
+      </HintTooltip>
     </div>
   );
 }

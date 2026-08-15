@@ -37,12 +37,19 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.registry.WebRegistryEntry;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
+import org.projectforge.web.wicket.WicketUtils;
 
 public class SearchPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
   private static final long serialVersionUID = -8416731462457080883L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchPage.class);
+
+  /**
+   * Page parameter carrying the term to search for, e.g. from the quick access palette of the next
+   * frontend: /wa/search?searchString=...
+   */
+  public static final String PARAMETER_KEY_SEARCH_STRING = "searchString";
 
   private final SearchForm form;
 
@@ -53,7 +60,9 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
 
   public SearchPage(final PageParameters parameters)
   {
-    this(parameters, null);
+    // A caller may hand the term over as a page parameter. Without one this behaves as before: the
+    // page opens with the user's stored filter and shows no results until the search is submitted.
+    this(parameters, WicketUtils.getAsString(parameters, PARAMETER_KEY_SEARCH_STRING));
   }
 
   /**

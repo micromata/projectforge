@@ -65,10 +65,14 @@ export function DataTableColumnHeader<TData, TValue>({
       </span>
 
       {/* shrink-0 on the indicators: they keep their width in narrow columns. */}
+      {/* The hints go through the table's one delegated tooltip (see useOverflowTooltip), and sit on
+          the indicators rather than on the header cell, where they would cover the label. */}
       {sorted && (
         <span
           className="flex shrink-0 items-center text-primary"
-          title={sorted === "asc" ? t("sortAscending") : t("sortDescending")}
+          data-tooltip={
+            sorted === "asc" ? t("sortAscending") : t("sortDescending")
+          }
         >
           <HugeiconsIcon
             icon={sorted === "asc" ? ArrowUp01Icon : ArrowDown01Icon}
@@ -77,7 +81,7 @@ export function DataTableColumnHeader<TData, TValue>({
           {sortIndex !== null && (
             <span
               className="text-[9px] font-bold tabular-nums"
-              title={t("sortPosition", { arg0: sortIndex })}
+              data-tooltip={t("sortPosition", { arg0: sortIndex })}
             >
               {sortIndex}
             </span>
@@ -85,11 +89,9 @@ export function DataTableColumnHeader<TData, TValue>({
         </span>
       )}
       {!sorted && column.getCanSort() && (
-        // The hint sits on the indicator rather than on the header cell, where it
-        // would cover the label and hide its overflow tooltip.
         <span
           className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/th:opacity-60"
-          title={t("sort")}
+          data-tooltip={t("sort")}
         >
           <HugeiconsIcon
             icon={SortingIcon}
