@@ -130,7 +130,6 @@
     },
     "title": {
       "_": "Title",
-      "add": "Add new book",
       "list": "Book list"
     },
     "type": {
@@ -877,6 +876,7 @@
   "filter": {
     "_": "filter",
     "activeCount": "Active filters: {arg0}",
+    "activeFilters": "Active filters",
     "addField": "Add filter",
     "after": "After",
     "all": "all",
@@ -899,10 +899,12 @@
     "equals": "Equals",
     "extendedSearch": "Extended search",
     "faulty": "faulty",
+    "generalFields": "General",
     "greaterThan": "Greater than",
     "hide": "Hide filter",
     "history": "Modified",
     "lessThan": "Less than",
+    "moreFields": "Other fields",
     "newest": "newest",
     "noFields": "No filter fields available",
     "noMatch": "No matching filter field",
@@ -1110,6 +1112,7 @@
   },
   "markAsDeleted": "Delete",
   "menu": {
+    "addNewEntry": "New entry",
     "common": "Common",
     "favorites": {
       "more": "More favorites"

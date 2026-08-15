@@ -9,9 +9,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { FilterElement } from "@/lib/rs/types";
-import { FilterAllPanel } from "./filter-all-panel";
+import { FilterAllDialog } from "./filter-all-dialog";
 import {
   FilterFieldList,
   type FilterFieldPickerEntry,
@@ -37,6 +36,10 @@ interface FilterFieldPickerProps {
  *
  * Both live behind this chip so the toolbar keeps a single entry point; the count of applied
  * filters rides on the chip because the panel that used to carry it is now inside.
+ *
+ * "Every field at once" is a modal dialog rather than a second view of this popover: it is a form
+ * with 40 fields, which a popover anchored to a chip either clips at the viewport edge or has to be
+ * dragged wider than the chip's screen half.
  */
 export function FilterFieldPicker({
   entries,
@@ -51,68 +54,59 @@ export function FilterFieldPicker({
   const [showAll, setShowAll] = useState(false);
   const activeCount = Object.keys(values).length;
 
-  function close() {
-    setOpen(false);
-    setShowAll(false);
-  }
-
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => (next ? setOpen(true) : close())}
-    >
-      <PopoverTrigger asChild>
-        {/* Icon-only: the pill row is where the eye goes, and a "+" chip reads as "add" there. */}
-        <button
-          type="button"
-          title={t("addField")}
-          aria-label={
-            activeCount > 0
-              ? `${t("addField")} – ${t("activeCount", { arg0: activeCount })}`
-              : t("addField")
-          }
-          className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-1 text-muted-foreground hover:border-primary/40 hover:text-primary"
-        >
-          <HugeiconsIcon icon={PlusSignIcon} size={13} />
-          {activeCount > 0 && (
-            <span
-              aria-hidden
-              className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground"
-            >
-              {activeCount}
-            </span>
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className={cn(
-          showAll ? "w-[min(1100px,calc(100vw-2rem))] p-3" : "w-72 p-0"
-        )}
-      >
-        {showAll ? (
-          // Mounted only while shown, so every draft starts from the applied filters.
-          <FilterAllPanel
-            elements={elements}
-            initial={values}
-            onApply={(next) => {
-              onApply(next);
-              close();
-            }}
-            onCancel={() => setShowAll(false)}
-          />
-        ) : (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          {/* Icon-only: the pill row is where the eye goes, and a "+" chip reads as "add" there. */}
+          <button
+            type="button"
+            title={t("addField")}
+            aria-label={
+              activeCount > 0
+                ? `${t("addField")} – ${t("activeCount", { arg0: activeCount })}`
+                : t("addField")
+            }
+            className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-1 text-muted-foreground hover:border-primary/40 hover:text-primary"
+          >
+            <HugeiconsIcon icon={PlusSignIcon} size={13} />
+            {activeCount > 0 && (
+              <span
+                aria-hidden
+                className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground"
+              >
+                {activeCount}
+              </span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-72 p-0">
           <FilterFieldList
             entries={entries}
             activeIds={activeIds}
             onSelect={(id) => {
-              close();
+              setOpen(false);
               onSelect(id);
             }}
-            onShowAll={() => setShowAll(true)}
+            onShowAll={() => {
+              setOpen(false);
+              setShowAll(true);
+            }}
           />
-        )}
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {showAll && (
+        // Mounted only while shown, so every draft starts from the applied filters.
+        <FilterAllDialog
+          elements={elements}
+          initial={values}
+          onApply={(next) => {
+            onApply(next);
+            setShowAll(false);
+          }}
+          onClose={() => setShowAll(false)}
+        />
+      )}
+    </>
   );
 }

@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils";
 export function DynamicSelect({ node }: DynamicComponentProps) {
   const { data, setData } = useDynamicLayout();
   // These labels have no backend counterpart - the layout's translations only cover its own fields.
-  const t = useTranslations("dynamic");
+  const t = useTranslations("select");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 

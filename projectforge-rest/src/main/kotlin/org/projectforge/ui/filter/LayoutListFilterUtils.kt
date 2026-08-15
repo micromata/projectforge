@@ -106,6 +106,19 @@ object LayoutListFilterUtils {
                 }
                 element as UILabelledElement
                 element.label = getLabel(elInfo)
+                if (element is UIFilterElement) {
+                    // Nested fields carry their parents in the label ("Kunde - Name"), which is what the
+                    // client groups them by; it shows the leaf alone under the group's heading.
+                    groupLabel(elInfo)?.let { group ->
+                        element.group = group
+                        element.shortLabel = leafLabel(elInfo)
+                    }
+                    // No @PropertyInfo, so no translation: getLabel fell back to the property name above
+                    // (attachmentsIds). Indexed plumbing, searchable but not a field a user looks for.
+                    if (elInfo.i18nKey.isNullOrBlank()) {
+                        element.technical = true
+                    }
+                }
                 elements.add(element)
             }
         }
@@ -116,9 +129,32 @@ object LayoutListFilterUtils {
         return container
     }
 
+    /**
+     * The full label of a field, its parents first: "Projekt - Kunde - Name".
+     */
     fun getLabel(elInfo: ElementInfo): String {
         val sb = StringBuilder()
         addLabel(sb, elInfo)
+        return sb.toString()
+    }
+
+    /**
+     * The parents of a field alone ("Projekt - Kunde"), or null for a field of the entity itself.
+     *
+     * Together with [leafLabel] this is [getLabel] split in two, for a client that shows the parents once
+     * as a group heading instead of in every field's label (see [UIFilterElement.group]).
+     */
+    fun groupLabel(elInfo: ElementInfo): String? {
+        val parent = elInfo.parent ?: return null
+        val sb = StringBuilder()
+        addLabel(sb, parent)
+        return sb.toString()
+    }
+
+    /** The field's own label, without its parents: "Name". */
+    fun leafLabel(elInfo: ElementInfo): String {
+        val sb = StringBuilder()
+        addOwnLabel(sb, elInfo)
         return sb.toString()
     }
 
@@ -130,6 +166,10 @@ object LayoutListFilterUtils {
         }
         addLabel(sb, elInfo.parent)
         if (elInfo.parent != null) sb.append(" - ")
+        addOwnLabel(sb, elInfo)
+    }
+
+    private fun addOwnLabel(sb: StringBuilder, elInfo: ElementInfo) {
         if (!elInfo.i18nKey.isNullOrBlank()) {
             sb.append(translate(elInfo.i18nKey))
         } else {

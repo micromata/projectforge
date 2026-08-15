@@ -223,6 +223,18 @@ export interface FilterElement {
   defaultFilter?: boolean;
   /** Explains a cryptic field name; the only place the backend can do so. */
   tooltip?: string;
+  /**
+   * Translated label of the group the field belongs to, from its parent chain ("Kunde" for
+   * `kunde.name`); absent for a field of the entity itself. See [buildFilterGroups].
+   */
+  group?: string;
+  /** The field's label without the group prefix ("Name"); only set where `group` is. */
+  shortLabel?: string;
+  /**
+   * A field the entity indexes but never declares (no `@PropertyInfo`, so `label` is the raw property
+   * name, e.g. `attachmentsIds`) — searchable, but not a field a user came for.
+   */
+  technical?: boolean;
 }
 
 export interface ValidationError {

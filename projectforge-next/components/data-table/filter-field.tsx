@@ -1,12 +1,8 @@
 "use client";
 
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
-import {
-  BooleanField,
-  ListField,
-  RangeField,
-  TextField,
-} from "./filter-field-inputs";
+import { BooleanField, RangeField, TextField } from "./filter-field-inputs";
+import { ListField } from "./filter-list-field";
 import { FilterObjectField } from "./filter-object-field";
 import { TimestampRangeField } from "./filter-timestamp-field";
 
@@ -14,6 +10,11 @@ interface FilterFieldProps {
   element: FilterElement;
   value: MagicFilterEntryValue | undefined;
   onChange: (value: MagicFilterEntryValue | undefined) => void;
+  /**
+   * Overrides the element's own label. Used where the context already says what the full label
+   * spells out — a group heading, see [fieldLabelInGroup].
+   */
+  label?: string;
   /** Focus on mount, so a filter opened from the pill row is ready to type into. */
   autoFocus?: boolean;
   /** Enter in a single-line input; used by the pill popover to save and close. */
@@ -28,8 +29,12 @@ interface FilterFieldProps {
  * bounds, while a TIMESTAMP needs a time of day on each — sent without one, the backend parses it
  * to null and drops the bound (see [TimestampRangeField]).
  */
-export function FilterField({ element, ...rest }: FilterFieldProps) {
-  const props = { ...rest, label: element.label ?? element.id, id: element.id };
+export function FilterField({ element, label, ...rest }: FilterFieldProps) {
+  const props = {
+    ...rest,
+    label: label ?? element.label ?? element.id,
+    id: element.id,
+  };
 
   switch (element.filterType) {
     case "LIST":

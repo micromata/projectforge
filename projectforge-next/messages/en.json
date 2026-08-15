@@ -26,13 +26,6 @@
   "cost1": {
     "searchPlaceholder": "Search cost 1 ids…"
   },
-  "dynamic": {
-    "search": "Search…",
-    "noOptions": "No options",
-    "create": "Add \"{value}\"",
-    "remove": "Remove {label}",
-    "empty": "—"
-  },
   "entityEdit": {
     "lastSaved": "Last saved: {time}",
     "notFound": "Entry not found."
@@ -81,6 +74,13 @@
     "requestNewLink": "Request a new link",
     "backToLogin": "Back to login",
     "error": "The password could not be changed"
+  },
+  "select": {
+    "search": "Search…",
+    "noOptions": "No options",
+    "create": "Add \"{value}\"",
+    "remove": "Remove {label}",
+    "empty": "—"
   },
   "table": {
     "resize": "Resize column",

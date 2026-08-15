@@ -61,6 +61,32 @@ open class UIFilterElement(
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
     enum class FilterType { STRING, DATE, TIMESTAMP, BOOLEAN, OBJECT, LIST }
 
+    /**
+     * Translated label of the group this field belongs to, taken from the parent chain of its
+     * [org.projectforge.ui.ElementInfo] (e. g. "Kunde" for `kunde.name`), or null for a top level field.
+     *
+     * A grouping hint for the client: a list offers every search field of its entity, which is a flat
+     * list of 40 fields for an order. Where the client groups by this, [shortLabel] is what it shows.
+     */
+    var group: String? = null
+
+    /**
+     * The field's own label without the group prefix ("Name" instead of "Kunde - Name"), or null if
+     * [label] already is it.
+     *
+     * [label] stays the full path on purpose: it is the sort key of the field list, the text of the
+     * client's filter pill and the text its field search matches. Shortened, an order would show
+     * "Name" three times with no way to tell the fields apart.
+     */
+    var shortLabel: String? = null
+
+    /**
+     * A field the entity indexes but never declares: no `@PropertyInfo`, so it has no translation and
+     * its label falls back to the property name (`attachmentsIds`). Offered, because it is searchable,
+     * but not worth a place among the fields a user came for.
+     */
+    var technical: Boolean? = null
+
     init {
         key = id
     }
@@ -81,4 +107,23 @@ open class UIFilterElement(
                 filterType = FilterType.TIMESTAMP
         }
     }
+}
+
+/**
+ * Puts a hand-made filter element into a group, for the elements an
+ * [org.projectforge.rest.core.AbstractEntityRest.addMagicFilterElements] adds itself: only the fields
+ * derived from a property have a parent chain [LayoutListFilterUtils] could read the group from.
+ *
+ * @param shortLabel The label to show inside the group; the full label is kept where the group isn't shown.
+ */
+fun <T : UIFilterElement> T.inGroup(group: String, shortLabel: String? = null): T {
+    this.group = group
+    this.shortLabel = shortLabel
+    return this
+}
+
+/** Marks a hand-made element as [UIFilterElement.technical], which is autodetected for property fields. */
+fun <T : UIFilterElement> T.asTechnical(): T {
+    technical = true
+    return this
 }
