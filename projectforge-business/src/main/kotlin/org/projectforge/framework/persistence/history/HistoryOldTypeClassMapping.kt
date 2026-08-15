@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object HistoryOldTypeClassMapping {
     internal fun getMappedClass(className: String): String {

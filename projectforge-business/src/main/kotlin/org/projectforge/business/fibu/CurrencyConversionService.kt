@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Service for currency conversion and currency pair management.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class CurrencyConversionService {

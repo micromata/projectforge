@@ -48,7 +48,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {

@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 /**
  * This class contains some helper methods for evaluation of user and group access'.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 public interface AccessChecker

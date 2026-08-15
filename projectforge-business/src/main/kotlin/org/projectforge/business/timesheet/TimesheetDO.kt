@@ -44,7 +44,7 @@ import java.util.*
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

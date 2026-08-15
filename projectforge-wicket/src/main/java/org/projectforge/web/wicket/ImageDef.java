@@ -25,7 +25,7 @@ package org.projectforge.web.wicket;
 
 /**
  * TODO: To be done: add alt i18n key to every image.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum ImageDef

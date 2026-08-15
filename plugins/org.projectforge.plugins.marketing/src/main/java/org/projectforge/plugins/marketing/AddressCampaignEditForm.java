@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 /**
  * This is the edit formular page.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO, AddressCampaignEditPage>
 {

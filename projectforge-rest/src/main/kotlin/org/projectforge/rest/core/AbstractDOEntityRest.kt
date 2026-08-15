@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
  * The counterpart of [AbstractDOPagesRest], whose body this repeats - see [AbstractDTOEntityRest] for
  * why.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractDOEntityRest<
         O : ExtendedBaseDO<Long>,

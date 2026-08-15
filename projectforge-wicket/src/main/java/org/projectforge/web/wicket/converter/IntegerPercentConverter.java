@@ -29,7 +29,7 @@ import java.util.Locale;
 
 /**
  * Supports text fields with % symbol.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class IntegerPercentConverter extends IntegerConverter
 {

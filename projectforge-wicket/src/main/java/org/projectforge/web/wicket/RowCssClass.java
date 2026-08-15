@@ -25,7 +25,7 @@ package org.projectforge.web.wicket;
 
 /**
  * CSS classes of dataview table rows.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum RowCssClass

@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 class BaseDOSupport {
     private var transientAttributes: MutableMap<String, Any?>? = null

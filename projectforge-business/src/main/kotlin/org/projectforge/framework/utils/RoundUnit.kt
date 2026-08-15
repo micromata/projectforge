@@ -24,7 +24,7 @@
 package org.projectforge.framework.utils
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class RoundUnit {
     /**

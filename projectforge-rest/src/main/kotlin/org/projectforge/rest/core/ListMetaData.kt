@@ -37,7 +37,7 @@ import org.projectforge.ui.UILayout
  * layout, no page menu, no translations and no result set - the page fetches the rows from `list`
  * itself, which is the only call it needs on every filter change.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class ListMetaData(
     /** The filter the user left this page with, restored from their user prefs. */

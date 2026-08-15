@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Skill statistics cache holds ratings of all skills stored in the data base.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillEntryDO> {

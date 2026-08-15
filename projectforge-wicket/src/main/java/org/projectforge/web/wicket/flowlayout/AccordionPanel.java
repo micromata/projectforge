@@ -32,7 +32,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 
 /**
  * Represents one or more accordions.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class AccordionPanel extends Panel

@@ -26,7 +26,7 @@ package org.projectforge.common;
 /**
  * Some useful methods for handling integer values.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class IntegerHelper

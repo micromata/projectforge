@@ -27,7 +27,7 @@ import org.projectforge.business.address.AddressFilter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AddressCampaignValueFilter extends AddressFilter
 {

@@ -52,7 +52,7 @@ import java.util.Map;
  * language similar to html will be used instead of plain xsl-fo. The html file with jelly script elements will be
  * rendered via xslt-scripts into xsl-fo and afterwards to pdf.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class PdfRenderer {

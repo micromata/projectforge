@@ -32,7 +32,7 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchAuftragsPositionTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {

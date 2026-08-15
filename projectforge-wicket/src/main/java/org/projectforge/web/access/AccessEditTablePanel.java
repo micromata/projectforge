@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 
 /**
  * Rows of access rights (without header).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class AccessEditTablePanel extends Panel

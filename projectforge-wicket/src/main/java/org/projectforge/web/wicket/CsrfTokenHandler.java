@@ -36,7 +36,7 @@ import java.io.Serializable;
 /**
  * Every form should use this handler for preventing cross site request forgery attacks.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class CsrfTokenHandler implements Serializable
 {

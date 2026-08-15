@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.components.TooltipImage;
 
 /**
  * Represents a field set panel. A form or page can contain multiple field sets.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class ImagePanel extends Panel

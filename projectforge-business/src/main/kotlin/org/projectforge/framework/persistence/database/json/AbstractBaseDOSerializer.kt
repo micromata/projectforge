@@ -33,7 +33,7 @@ import java.io.IOException
 /**
  * WIP: Trying to export and import whole database as json (for db migration and for creating test data).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 internal class AbstractBaseDOSerializer(private val defaultSerializer: JsonSerializer<Any>, val objectIdRegistry: ObjectIdRegistry) : JsonSerializer<AbstractBaseDO<*>>() {
 

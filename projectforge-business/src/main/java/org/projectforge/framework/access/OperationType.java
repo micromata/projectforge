@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  * Represents the available operation types as enum.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum OperationType implements I18nEnum {
   SELECT("select"), INSERT("insert"), UPDATE("update"), DELETE("delete"), UNDELETE("undelete");

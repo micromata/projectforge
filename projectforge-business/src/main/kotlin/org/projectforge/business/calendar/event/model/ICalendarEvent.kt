@@ -26,7 +26,7 @@ package org.projectforge.business.calendar.event.model
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface ICalendarEvent {
     val uid: String?

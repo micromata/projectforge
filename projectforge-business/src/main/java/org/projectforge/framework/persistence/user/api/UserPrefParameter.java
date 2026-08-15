@@ -32,7 +32,7 @@ import static java.lang.annotation.ElementType.FIELD;
 /**
  * An user preference parameter is a parameter which can be stored via UserPrefDao in the data base. It's used e. g. for storing favorite
  * time sheets of the user (see annotated fields of TimesheetDO).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target( { FIELD})
 @Retention(RetentionPolicy.RUNTIME)

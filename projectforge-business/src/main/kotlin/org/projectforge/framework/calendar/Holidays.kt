@@ -38,7 +38,7 @@ import java.time.ZonedDateTime
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class Holidays private constructor() {
     /**

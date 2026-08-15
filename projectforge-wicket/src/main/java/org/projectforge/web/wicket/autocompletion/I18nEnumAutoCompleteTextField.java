@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * Autocompletion field that represents localized enum values.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class I18nEnumAutoCompleteTextField<T extends I18nEnum> extends PFAutoCompleteTextField<T>

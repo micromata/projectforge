@@ -31,7 +31,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * LabelForPanel is a label tag with for attribute.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @SuppressWarnings("serial")

@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 /**
  * Proxy for Kost2ArtDO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see Kost2ArtDO
  */
 public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Serializable

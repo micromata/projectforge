@@ -35,7 +35,7 @@ import org.projectforge.web.wicket.flowlayout.DivType;
 /**
  * For displaying messages such as errors etc.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ModalMessageDialog extends ModalDialog

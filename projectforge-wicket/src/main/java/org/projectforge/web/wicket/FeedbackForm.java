@@ -35,7 +35,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 /**
  * Standard error page should be shown in production mode.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class FeedbackForm extends AbstractStandardForm<SendFeedbackData, FeedbackPage>
 {

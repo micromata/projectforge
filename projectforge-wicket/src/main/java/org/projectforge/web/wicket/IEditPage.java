@@ -34,7 +34,7 @@ import org.projectforge.web.task.TaskTreePage;
  * IEditPages such as AbstractEditPage and AbstractMobileEditPage are supported by EditPageSupport.
  *
  * @see EditPageSupport
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface IEditPage<O extends AbstractBaseDO<Long>, D extends BaseDao<O>>
 {

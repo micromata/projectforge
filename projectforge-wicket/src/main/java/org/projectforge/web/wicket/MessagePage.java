@@ -31,7 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 /**
  * Standard error page should be shown in production mode.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class MessagePage extends AbstractSecuredPage

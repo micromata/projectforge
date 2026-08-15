@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Support class for currency conversion service providing database query methods.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 internal class CurrencyConversionServiceSupport {

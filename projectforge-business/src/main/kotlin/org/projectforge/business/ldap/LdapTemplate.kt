@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Template for closing contexts and result properly.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class LdapTemplate(private val ldapConnector: LdapConnector) {
   //private static int openResults = 0;

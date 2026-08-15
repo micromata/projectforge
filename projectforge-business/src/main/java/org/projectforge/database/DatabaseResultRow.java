@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * For storing the ResultSet.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public interface DatabaseResultRow

@@ -26,7 +26,7 @@ package org.projectforge.business.teamcal.event.model;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum TeamEventStatus implements I18nEnum
 {

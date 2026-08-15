@@ -42,7 +42,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class HRListResourceLinkPanel extends Panel {
 

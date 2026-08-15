@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 /**
  * Separate cache for incoming invoices due to performance reasons.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 internal class EingangsrechnungCache(rechnungJdbcService: RechnungJdbcService) :

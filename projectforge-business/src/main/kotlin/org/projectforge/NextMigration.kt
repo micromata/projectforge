@@ -45,7 +45,7 @@ package org.projectforge
  * This object lives in projectforge-business (next to [Constants]) because `MenuItemDefId` does,
  * and projectforge-rest depends on projectforge-business, not the other way round.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object NextMigration {
     /**

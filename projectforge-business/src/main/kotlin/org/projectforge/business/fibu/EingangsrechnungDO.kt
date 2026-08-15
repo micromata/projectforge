@@ -39,7 +39,7 @@ import org.projectforge.framework.utils.StringComparator
 /**
  * Eingehende Rechnungen.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

@@ -43,7 +43,7 @@ import java.util.Date;
 /**
  * Model for date and time of day components.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DateTimePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel
 {

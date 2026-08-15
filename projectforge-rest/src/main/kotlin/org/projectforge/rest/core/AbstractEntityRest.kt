@@ -86,7 +86,7 @@ private val log = KotlinLogging.logger {}
  * both frontends. What is gone is the page layout: grid columns, edit form, page menu and the ~50
  * translations that come with them.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractEntityRest<
         O : ExtendedBaseDO<Long>,

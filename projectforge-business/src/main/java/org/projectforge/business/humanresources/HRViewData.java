@@ -36,7 +36,7 @@ import java.util.*;
 
 /**
  * Is not synchronized.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class HRViewData implements Serializable

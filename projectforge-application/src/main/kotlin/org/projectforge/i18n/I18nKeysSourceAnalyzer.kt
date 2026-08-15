@@ -53,7 +53,7 @@ private val log = KotlinLogging.logger {}
  * Tries to get all used i18n keys from the sources (java, kotlin, html, tsx, jsx, js). As result a file is written which will be checked
  * by AdminAction.checkI18nProperties. Unused i18n keys should be detected.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 internal class I18nKeysSourceAnalyzer {
     private val i18nKeyMap = mutableMapOf<String, I18nKeyUsageEntry>()

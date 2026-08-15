@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * For manipulating the database (patching data etc.)
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public interface DatabaseExecutor

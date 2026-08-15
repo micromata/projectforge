@@ -40,7 +40,7 @@ import java.util.Hashtable;
  * Should be initialized on start-up and will be called every time if config.xml is reread. This class is needed for
  * initialization of the spring beans with properties configured in config.xml.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class LdapConnector implements ConfigurationListener {

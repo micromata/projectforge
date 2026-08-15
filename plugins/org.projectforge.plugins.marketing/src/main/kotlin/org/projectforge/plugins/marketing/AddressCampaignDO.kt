@@ -37,7 +37,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 /**
  * A marketing campaign for addresses (eg. mailings).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

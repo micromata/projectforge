@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * Creates events for FullCalendar.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public abstract class MyFullCalendarEventsProvider implements EventProvider

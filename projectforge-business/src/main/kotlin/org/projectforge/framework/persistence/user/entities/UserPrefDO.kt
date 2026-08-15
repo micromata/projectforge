@@ -60,7 +60,7 @@ private val log = KotlinLogging.logger {}
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
  * etc.).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @NoHistory
 @Entity

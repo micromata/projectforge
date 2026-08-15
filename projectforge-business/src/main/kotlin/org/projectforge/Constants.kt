@@ -28,7 +28,7 @@ import java.math.BigDecimal
 
 /**
  * Defines different constants (typical length of string columns) usable by plugins and core package.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object Constants {
   /** The default length of comment strings in the data base. Used by data base definition and front-end validation.  */

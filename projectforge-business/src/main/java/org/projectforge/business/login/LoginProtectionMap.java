@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  * Class used by {@link LoginProtection} for handling maps, time offsets etc.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class LoginProtectionMap

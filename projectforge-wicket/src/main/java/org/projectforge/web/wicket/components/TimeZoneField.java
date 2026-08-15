@@ -41,7 +41,7 @@ import java.util.TimeZone;
  * Text field contains a ajax autocompletion text field for choosing and displaying a time zone. The time zones of all
  * users will be shown as favorite list.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TimeZoneField extends PFAutoCompleteTextField<TimeZone>

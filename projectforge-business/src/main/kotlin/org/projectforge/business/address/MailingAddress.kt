@@ -27,7 +27,7 @@ package org.projectforge.business.address
  * Lightweight DTO containing only mailing address fields for display purposes.
  * Uses the mailing address priority: postal → business → private.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 data class MailingAddress(
     var addressText: String? = null,

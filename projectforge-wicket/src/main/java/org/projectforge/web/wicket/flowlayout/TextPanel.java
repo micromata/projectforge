@@ -30,7 +30,7 @@ import org.apache.wicket.model.Model;
 
 /**
  * Represents a simple text panel. The enclosed span element is only shown if any behavior is added.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TextPanel extends Panel

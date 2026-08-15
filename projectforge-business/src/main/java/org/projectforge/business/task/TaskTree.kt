@@ -63,7 +63,7 @@ private val log = KotlinLogging.logger {}
  * Holds the complete task list in a tree. It will be initialized by the values read from the database. Any changes will
  * be written to this tree and to the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class TaskTree : AbstractCache(TICKS_PER_HOUR),

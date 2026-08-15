@@ -28,7 +28,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 /**
  * Bean used by ConfigXML (config.xml) for configuring the storage (JackRabit repository). The storage runs on a separate web server or as
  * own war on the same web server.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class StorageConfig
 {

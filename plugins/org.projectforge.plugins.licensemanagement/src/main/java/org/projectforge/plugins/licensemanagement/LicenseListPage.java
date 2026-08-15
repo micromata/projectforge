@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @ListPage(editPage = LicenseEditPage.class)
 public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDao, LicenseDO>

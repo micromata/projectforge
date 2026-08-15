@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Serialization and deserialization for rest calls.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object JsonUtils {
     private val typeAdapterMap: MutableMap<Class<*>, Any> = HashMap()

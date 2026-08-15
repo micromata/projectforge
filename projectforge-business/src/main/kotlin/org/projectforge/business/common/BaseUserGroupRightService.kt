@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service
 /**
  * Utils for user and group based rights.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 @Service
 class BaseUserGroupRightService {

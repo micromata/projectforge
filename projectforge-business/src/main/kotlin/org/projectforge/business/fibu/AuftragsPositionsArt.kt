@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import org.projectforge.common.i18n.I18nEnum
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
+ * @author Kai Reinhard, Florian Blumenstein
  */
 enum class AuftragsPositionsArt(key: String) : I18nEnum {
     CHANGE_REQUEST("change_request"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG("wartung"), NEUENTWICKLUNG("neuentwicklung");

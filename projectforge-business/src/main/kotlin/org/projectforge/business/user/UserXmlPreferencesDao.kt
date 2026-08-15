@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as
  * xml (compressed (gzip and base64) for larger xml content).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class UserXmlPreferencesDao {

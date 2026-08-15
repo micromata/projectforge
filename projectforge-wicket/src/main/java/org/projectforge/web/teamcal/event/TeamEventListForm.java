@@ -56,7 +56,7 @@ import java.util.Collection;
 import java.util.Date;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage> {
   private static final long serialVersionUID = 3659495003810851072L;

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 /**
  * Caches the order positions assigned to invoice positions.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class RechnungCache(rechnungJdbcService: RechnungJdbcService) :

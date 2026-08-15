@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class BookDao extends BaseDao<BookDO> {

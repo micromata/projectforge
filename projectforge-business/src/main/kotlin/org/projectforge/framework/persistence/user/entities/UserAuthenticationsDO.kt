@@ -34,7 +34,7 @@ import org.projectforge.framework.json.IdOnlySerializer
 /**
  * Users may have several authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens
  * may easily be revokable. In addition, no password may be stored on smartphone client e. g. for using ProjectForge's CardDAV/CalDAV service.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(

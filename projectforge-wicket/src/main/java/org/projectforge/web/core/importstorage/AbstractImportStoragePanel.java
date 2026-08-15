@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>> extends Panel {
     private static final long serialVersionUID = 6755444819211298966L;

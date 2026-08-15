@@ -32,7 +32,7 @@ import java.util.Locale;
  * ConnectionSettings is used for configuring single rest calls. This class also stores a connection settings object in
  * ThreadLocal.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ConnectionSettings

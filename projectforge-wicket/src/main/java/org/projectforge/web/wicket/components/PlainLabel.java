@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Renders only the body of the Html markup component. For example for &lt;span wicket:id="label"&gt;...&lt;/span&gt; the output of the span
  * tag is suppressed.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.apache.wicket.Component#setRenderBodyOnly(boolean)
  */
 public class PlainLabel extends Label

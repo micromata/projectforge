@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * For documentation please refer the ProjectForge-API: DefaultBaseDO object.
  * Base fields (like DefaultBaseDO of ProjectForge webapp package).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractBaseObject
 {

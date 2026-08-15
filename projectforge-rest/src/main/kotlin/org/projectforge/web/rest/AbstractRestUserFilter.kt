@@ -43,7 +43,7 @@ private val log = KotlinLogging.logger {}
  * Does the authentication stuff for restful requests.
  *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter {
   private lateinit var springContext: WebApplicationContext

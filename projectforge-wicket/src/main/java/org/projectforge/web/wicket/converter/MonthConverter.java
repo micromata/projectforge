@@ -27,7 +27,7 @@ import java.util.Locale;
 
 /**
  * Format month, e. g. "01" instead of "1".
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MonthConverter extends IntegerConverter
 {

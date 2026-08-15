@@ -27,7 +27,7 @@ import org.projectforge.web.SendFeedbackData;
 
 /**
  * Data of feedback panel in error page.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ErrorPageData extends SendFeedbackData

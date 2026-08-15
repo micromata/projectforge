@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum LoginResultStatus implements I18nEnum {
   ADMIN_LOGIN_REQUIRED("adminLoginRequired"),

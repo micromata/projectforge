@@ -36,7 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LiquidityForecastCashFlow implements Serializable {
   private static final long serialVersionUID = 7567091917817930061L;

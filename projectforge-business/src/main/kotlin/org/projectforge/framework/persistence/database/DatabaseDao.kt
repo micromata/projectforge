@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Creates index creation script and re-indexes data-base.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Check open connections in PostgreSQL:
 // SELECT backend_start, query_start, state_change, wait_event_type, state, query  FROM pg_stat_activity where state <> 'idle';

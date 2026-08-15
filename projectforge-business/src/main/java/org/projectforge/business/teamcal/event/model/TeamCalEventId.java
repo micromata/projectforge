@@ -39,7 +39,7 @@ import java.util.TimeZone;
  * id (pk). The id of recurrence events is the data-base id of the master {@link TeamEventDO} followed by the date, e.
  * g. "42-20121222".
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TeamCalEventId

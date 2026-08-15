@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Reads numbers, devices, users etc. from the remote Sipgate server.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateSyncService {

@@ -39,7 +39,7 @@ import java.util.TimeZone;
 /**
  * Parse and formats dates. Holds a PFDateTime object, which handles all operations. You may use PFDateTime directly.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DateHolder implements Serializable, Cloneable, Comparable<DateHolder> {
   private static final long serialVersionUID = -5373883617915418698L;

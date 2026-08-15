@@ -36,7 +36,7 @@ import java.math.BigDecimal
 import java.time.Year
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {

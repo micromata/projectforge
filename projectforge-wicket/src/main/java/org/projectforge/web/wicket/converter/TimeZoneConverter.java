@@ -31,7 +31,7 @@ import java.util.TimeZone;
 
 /**
  * Supports only €.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TimeZoneConverter implements IConverter
 {

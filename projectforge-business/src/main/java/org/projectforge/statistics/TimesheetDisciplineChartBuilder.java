@@ -51,7 +51,7 @@ import java.util.List;
  * Buchung liegen.</li>
  * </ol>
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TimesheetDisciplineChartBuilder

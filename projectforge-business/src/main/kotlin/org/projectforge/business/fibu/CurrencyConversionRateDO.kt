@@ -40,7 +40,7 @@ import java.time.LocalDate
  * Represents time-dependent currency conversion rates for a currency pair.
  * Each rate is valid from a specific date until the next rate becomes valid.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(

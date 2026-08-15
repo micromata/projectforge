@@ -32,7 +32,7 @@ import java.util.Locale;
 
 /**
  * Format I18nEnums.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class I18nEnumConverter implements IConverter
 {

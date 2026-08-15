@@ -36,7 +36,7 @@ import java.util.Collection;
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @Service

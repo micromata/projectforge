@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 {

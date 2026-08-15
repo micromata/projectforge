@@ -33,7 +33,7 @@ import kotlin.reflect.full.memberProperties
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object KClassUtils {
     /**

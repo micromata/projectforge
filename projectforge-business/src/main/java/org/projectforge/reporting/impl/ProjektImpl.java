@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Proxy for ProjektDO;
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see ProjektDO
  */
 public class ProjektImpl implements Projekt

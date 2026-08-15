@@ -34,7 +34,7 @@ import org.projectforge.web.WicketSupport
 import org.projectforge.web.plugin.PluginWicketRegistrationService
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LicenseManagementPlugin : AbstractPlugin(
     PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID,

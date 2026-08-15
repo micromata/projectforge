@@ -32,7 +32,7 @@ import java.lang.reflect.ParameterizedType
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ClassUtils {
 

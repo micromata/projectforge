@@ -32,7 +32,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.pacman.PacmanViewPage;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("serial")
 public class FeedbackPage extends AbstractStandardFormPage

@@ -56,7 +56,7 @@ import java.util.MissingResourceException;
  * Your wicket tester class must extend this or any derived class from AbstractTestBase for correct initialization of
  * Spring, database, resource locator etc. Before your tests a new data-base is initialized and set-up with test data.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class WicketPageTestBase extends AbstractTestBase {
     protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";

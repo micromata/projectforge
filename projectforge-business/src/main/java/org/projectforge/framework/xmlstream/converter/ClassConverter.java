@@ -28,7 +28,7 @@ import org.projectforge.framework.xmlstream.XmlConstants;
 
 /**
  * Class names are stored as full qualified strings such as "org.projectforge.web.calendar.CalendarPage".
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class ClassConverter implements IConverter<Class< ? >>

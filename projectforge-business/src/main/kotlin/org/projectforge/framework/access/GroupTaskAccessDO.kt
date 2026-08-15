@@ -47,7 +47,7 @@ import java.io.Serializable
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
  * GroupTaskAccess.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

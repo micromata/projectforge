@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service
 private val log = KotlinLogging.logger {}
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateDirectCallService {

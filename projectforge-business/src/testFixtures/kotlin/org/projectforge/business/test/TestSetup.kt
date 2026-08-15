@@ -39,7 +39,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object TestSetup {
     /**

@@ -31,7 +31,7 @@ import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * Annotation for properties which shouldn't be serialized.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target( { FIELD})
 @Retention(RetentionPolicy.RUNTIME)

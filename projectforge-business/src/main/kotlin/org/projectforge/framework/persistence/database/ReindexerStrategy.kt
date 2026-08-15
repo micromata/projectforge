@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.database
 
 /**
  * You may define different strategies for hibernate search reindexing by registering in ReindexerRegistry.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class ReindexerStrategy(
         /**

@@ -46,7 +46,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TeamAttendeesPanel extends Panel
 {

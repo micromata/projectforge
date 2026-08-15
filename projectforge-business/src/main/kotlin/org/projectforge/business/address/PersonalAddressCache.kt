@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Caches the personal addresses of users for faster access.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class PersonalAddressCache : AbstractCache() {

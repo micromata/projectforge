@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The kost2 entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class KundeCache : AbstractCache() {

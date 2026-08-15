@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 @DependsOn("entityManagerFactory")

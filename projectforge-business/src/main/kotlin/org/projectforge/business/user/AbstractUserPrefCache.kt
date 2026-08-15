@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  *
  * Extended by [UserPrefCache] and [UserXmlPreferencesCache].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     val title: String,

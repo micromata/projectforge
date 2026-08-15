@@ -29,7 +29,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * A simple &lt;a href="..."&gt;label&lt;a&gt;.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class ExternalLinkPanel extends Panel

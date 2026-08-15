@@ -46,7 +46,7 @@ import java.util.LinkedList;
  * Represents a text panel showing the difference between two texts. The old and new version of the text is shown in a
  * pop-over.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DiffTextPanel extends Panel
 {

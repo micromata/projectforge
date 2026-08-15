@@ -41,7 +41,7 @@ import java.awt.*;
 import java.util.Date;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class LiquidityChartBuilder

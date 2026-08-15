@@ -33,7 +33,7 @@ import java.io.Serializable
 /**
  * User context for logged-in users. Contains the user etc.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolean = false) : Serializable {
     init {

@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
     override fun newInstance(): ScriptDO {

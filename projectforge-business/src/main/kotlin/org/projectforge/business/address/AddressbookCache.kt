@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The address book entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class AddressbookCache : AbstractCache() {

@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Represents &lt;h1&gt;heading&lt;/h1&gt;.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @SuppressWarnings("serial")

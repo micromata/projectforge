@@ -38,7 +38,7 @@ import java.sql.Timestamp
 /**
  * Serialization of dates in ISO format and UTC time-zone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Timestamp>(Timestamp::class.java) {
 
@@ -56,7 +56,7 @@ class TimestampSerializer(private val format: UtilDateFormat) : StdSerializer<Ti
 /**
  * Deserialization of dates in ISO format and UTC time-zone.
  * @param format If given, only the given format will be tried for deserialization. If null, all formats will be tried (recommended).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TimestampDeserializer(private val format: UtilDateFormat? = null) : StdDeserializer<Timestamp>(Timestamp::class.java) {
 

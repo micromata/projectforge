@@ -35,7 +35,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
  * Panel containing only one drop down choice box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("serial")
 public class Select2MultiChoicePanel<T> extends Panel implements ComponentWrapperPanel

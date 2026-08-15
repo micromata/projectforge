@@ -37,7 +37,7 @@ import java.io.ByteArrayOutputStream
 // private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class MerlinTemplateDefinitionHandler {

@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 /**
  * DAO for currency pairs and their conversion rates.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class CurrencyPairDao : BaseDao<CurrencyPairDO>(CurrencyPairDO::class.java) {

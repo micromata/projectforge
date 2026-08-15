@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.IdObject
 import java.util.Date
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @NamedQueries(
     NamedQuery(

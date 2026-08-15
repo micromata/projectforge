@@ -34,7 +34,7 @@ import kotlin.reflect.KMutableProperty1
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object HibernateMetaModel {
     private lateinit var sessionFactory: SessionFactoryImplementor

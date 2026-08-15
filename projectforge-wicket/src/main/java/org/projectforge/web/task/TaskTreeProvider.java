@@ -39,7 +39,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TaskTreeProvider implements ITreeProvider<TaskNode>

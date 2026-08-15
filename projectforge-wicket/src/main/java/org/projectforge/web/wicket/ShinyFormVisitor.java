@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Visitor for highlighting form components with validation errors. A border around the error fields with error highlighting and validation
  * message will be shown.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ShinyFormVisitor implements IVisitor<Component, Void>, Serializable

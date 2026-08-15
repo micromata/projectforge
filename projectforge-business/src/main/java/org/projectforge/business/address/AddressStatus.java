@@ -33,7 +33,7 @@ import org.projectforge.common.i18n.I18nEnum;
  * <li>OUTDATED - Address needs update.</li>
  * <li>LEAVED - Person has leaved the company.</li>
  * </ul>
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum AddressStatus implements I18nEnum

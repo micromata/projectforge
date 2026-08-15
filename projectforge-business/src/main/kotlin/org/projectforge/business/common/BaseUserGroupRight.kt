@@ -35,7 +35,7 @@ import org.projectforge.web.WicketSupport
  * Base class for objects supporting user and group specific rights. You may define single group and user ids for the
  * different access types, such as owner, full access, readonly access and minimal access.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected constructor(
   id: IUserRightId?,

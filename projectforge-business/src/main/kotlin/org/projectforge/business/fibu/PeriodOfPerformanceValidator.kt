@@ -39,7 +39,7 @@ import java.time.LocalDate
  * client, but a form should be able to show every offending row at once. So these rules answer a list
  * and the caller decides what to do with it.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object PeriodOfPerformanceValidator {
     /**

@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  *
  * You may add your predicates (independent of which strategy is used behind). The query strategy is automatically done.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     private val predicates = mutableListOf<DBPredicate>()

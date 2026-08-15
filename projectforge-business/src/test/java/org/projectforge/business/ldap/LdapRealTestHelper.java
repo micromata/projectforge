@@ -52,7 +52,7 @@ import java.io.IOException;
  * &lt;/ldapConfig&gt;
  * </pre>
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LdapRealTestHelper
 {

@@ -30,7 +30,7 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 
 /**
  * Base class for selecting and unselecting items of type T.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public abstract class AbstractSelectPanel<T> extends FormComponentPanel<T>

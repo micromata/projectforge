@@ -39,7 +39,7 @@ import java.io.Serializable;
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
  * assessment.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "row")

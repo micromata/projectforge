@@ -27,7 +27,7 @@ import java.time.LocalDate
 import java.time.Month
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LocalDatePeriod(val begin: LocalDate, val end: LocalDate) {
     companion object {

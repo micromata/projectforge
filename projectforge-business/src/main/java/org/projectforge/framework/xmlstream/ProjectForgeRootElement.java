@@ -31,7 +31,7 @@ import java.util.TimeZone;
 
 /**
  * For export and import it's useful to use an instance of this object to define for example the time zone, version etc.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public abstract class ProjectForgeRootElement

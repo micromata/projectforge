@@ -40,7 +40,7 @@ import java.io.*;
 /**
  * Build of the user's personal menu (depending on the access rights of the user).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class WicketMenuBuilder implements Serializable {

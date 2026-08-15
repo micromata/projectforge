@@ -39,7 +39,7 @@ import org.projectforge.web.wicket.AbstractSecuredPage;
 /**
  * Combo box for showing and selecting favorites quickly.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<String>
 {

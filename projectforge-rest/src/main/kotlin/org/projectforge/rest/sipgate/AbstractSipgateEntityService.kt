@@ -35,7 +35,7 @@ import jakarta.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 abstract class AbstractSipgateEntityService<T>(
   val path: String,

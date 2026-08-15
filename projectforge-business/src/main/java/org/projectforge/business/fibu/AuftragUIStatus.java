@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  * Stores the user interface status of an order (such as opened/closed order positions). This class will be marshalled and unmarshalled
  * as XML.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "auftragUIStatus")

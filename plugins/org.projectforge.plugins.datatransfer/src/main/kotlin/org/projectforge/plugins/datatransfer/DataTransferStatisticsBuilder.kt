@@ -36,7 +36,7 @@ import org.projectforge.web.WicketSupport
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class DataTransferStatisticsBuilder() : SystemsStatisticsBuilderInterface {
     override fun addStatisticsEntries(stats: SystemStatisticsData) {

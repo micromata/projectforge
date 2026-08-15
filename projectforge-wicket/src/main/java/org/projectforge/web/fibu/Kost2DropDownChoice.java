@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class Kost2DropDownChoice extends DropDownChoice<Long>
 {

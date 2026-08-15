@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Simple class for storing a user favorite. It contains only a reference to one user.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class UserFavorite

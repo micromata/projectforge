@@ -45,7 +45,7 @@ import java.time.LocalDate;
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
  * filter settings.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, LiquidityEntryListPage> {
   private static final long serialVersionUID = 2040255193023406307L;

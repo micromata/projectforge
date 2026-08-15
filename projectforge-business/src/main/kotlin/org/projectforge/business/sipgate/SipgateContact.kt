@@ -29,7 +29,7 @@ import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.utils.NumberHelper
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class SipgateContact {
   enum class Scope { PRIVATE, SHARED, INTERNAL }

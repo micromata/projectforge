@@ -56,7 +56,7 @@ import java.util.List;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @ListPage(editPage = HRPlanningEditPage.class)
 public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUserData> implements ISelectCallerPage {

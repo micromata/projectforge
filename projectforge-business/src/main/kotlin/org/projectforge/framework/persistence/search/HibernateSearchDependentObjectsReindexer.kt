@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class HibernateSearchDependentObjectsReindexer {

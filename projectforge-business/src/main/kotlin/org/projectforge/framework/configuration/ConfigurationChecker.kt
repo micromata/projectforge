@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
  * Configuration values persistet in the data base. Please access the configuration parameters via
  * [Configuration].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class ConfigurationChecker {

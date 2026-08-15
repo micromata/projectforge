@@ -37,7 +37,7 @@ import org.projectforge.rest.dto.BaseDTO
  * inheritance, so the DTO half cannot be shared between the layout free hierarchy and the deprecated
  * one. The duplication ends with [AbstractPagesRest].
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractDTOEntityRest<
         O : ExtendedBaseDO<Long>,

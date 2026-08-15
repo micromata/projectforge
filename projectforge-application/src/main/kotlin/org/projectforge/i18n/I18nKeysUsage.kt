@@ -45,7 +45,7 @@ fun main() {
  * sources are available). Otherwise, the i18n keys will be load from json file. If runMode is FILESYSTEM the i18n keys
  * will be load from the filesystem (source dir) instead of the classpath (in production mode).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class I18nKeysUsage(runmode: RUN_MODE? = null, useTmpFile: Boolean = false) : I18nKeysUsageInterface {

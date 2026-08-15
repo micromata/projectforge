@@ -47,7 +47,7 @@ import java.util.List;
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> extends Panel
 {

@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * Contains all additional load fonts from the font base directory (FOP). Original code from Wolfgang Jung from Micromata's SvgCombine.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class FontMap
 {

@@ -57,7 +57,7 @@ import java.util.*
  *
  * @param year
  * @param month 1-based: 1 - January, ..., 12 - December
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializable {
     class Kost2Row(@JvmField val kost2: Kost2DO?) : Serializable {

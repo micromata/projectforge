@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  * calendar filter.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class CalendarFilter(
   name: String? = null,

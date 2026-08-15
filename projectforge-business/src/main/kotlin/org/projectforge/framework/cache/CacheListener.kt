@@ -24,7 +24,7 @@
 package org.projectforge.framework.cache
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface CacheListener {
     fun onBeforeCacheRefresh() {}

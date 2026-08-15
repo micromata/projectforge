@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Caches the order positions assigned to invoice positions.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractRechnungCache(
     val entityClass: KClass<out AbstractRechnungDO>,

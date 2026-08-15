@@ -45,7 +45,7 @@ import org.projectforge.web.WicketSupport
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MerlinPlugin :
     AbstractPlugin(

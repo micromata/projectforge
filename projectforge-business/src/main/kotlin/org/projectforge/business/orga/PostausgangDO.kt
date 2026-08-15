@@ -34,7 +34,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 /**
  * Posteingangsbuch
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

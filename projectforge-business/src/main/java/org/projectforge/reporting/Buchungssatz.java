@@ -31,7 +31,7 @@ import java.time.LocalDate;
 
 /**
  * Interface for reporting.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.projectforge.business.fibu.kost.BuchungssatzDO
  */
 public interface Buchungssatz

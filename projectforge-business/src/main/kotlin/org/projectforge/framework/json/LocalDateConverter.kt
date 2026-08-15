@@ -39,7 +39,7 @@ internal val jsonDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 /**
  * Serialization of dates in ISO format and UTC time-zone.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
 
@@ -56,7 +56,7 @@ class LocalDateSerializer : StdSerializer<LocalDate>(LocalDate::class.java) {
 
 /**
  * Deserialization for dates in ISO format as well as from users date format.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LocalDateDeserializer : StdDeserializer<LocalDate>(LocalDate::class.java) {
 

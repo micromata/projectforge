@@ -50,7 +50,7 @@ import java.util.Objects;
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskNode implements IdObject<Long>, Serializable {
   @Serial

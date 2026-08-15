@@ -45,7 +45,7 @@ import org.projectforge.web.wicket.components.TooltipImage;
 /**
  * This panel show the actual kunde and buttons for select/unselect kunde.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO> {
     private static final long serialVersionUID = 5452693296383142460L;

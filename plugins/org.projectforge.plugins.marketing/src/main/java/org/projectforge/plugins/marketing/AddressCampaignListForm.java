@@ -31,7 +31,7 @@ import org.slf4j.Logger;
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
  * filter settings.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class AddressCampaignListForm extends AbstractListForm<BaseSearchFilter, AddressCampaignListPage>

@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
  * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
  * number&gt>).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
     override fun write(

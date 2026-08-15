@@ -32,7 +32,7 @@ import java.util.List;
 
 /**
  * For displaying the total number of new items as sum of all counters from the sub menu entries.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TotalNewCounterModel extends Model<Integer>

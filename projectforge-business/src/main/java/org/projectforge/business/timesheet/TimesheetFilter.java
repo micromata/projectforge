@@ -32,7 +32,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TimesheetFilter extends BaseSearchFilter implements Serializable, TaskDependentFilter
 {

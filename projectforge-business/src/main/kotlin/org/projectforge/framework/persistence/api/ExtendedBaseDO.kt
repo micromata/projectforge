@@ -32,7 +32,7 @@ import jakarta.persistence.Basic
 /**
  * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface ExtendedBaseDO<I : Serializable> : BaseDO<I>, MarkDeletableRecord<I> {
     /**

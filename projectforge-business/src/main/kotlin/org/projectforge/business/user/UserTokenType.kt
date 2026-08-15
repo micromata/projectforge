@@ -26,7 +26,7 @@ package org.projectforge.business.user
 /**
  * Supported tokens
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class UserTokenType {
     CALENDAR_REST,

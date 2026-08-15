@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * List of components should be updated after every Ajax call. They will be added to the AjaxTarget.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyAjaxComponentHolder implements Serializable
 {

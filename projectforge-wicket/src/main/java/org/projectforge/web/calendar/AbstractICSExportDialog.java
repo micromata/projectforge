@@ -39,7 +39,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractICSExportDialog extends ModalDialog
 {

@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 /**
  * Holder for LoginResultStatus and user (if login was successful).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LoginResult {
   private PFUserDO user;

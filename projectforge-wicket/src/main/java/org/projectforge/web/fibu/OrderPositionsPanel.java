@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * This panel shows order positions including links to the corresponding order pages.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class OrderPositionsPanel extends Panel {
     private static final long serialVersionUID = 3427047480792831602L;

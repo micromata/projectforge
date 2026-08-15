@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 /**
  * This panel shows the actual customer.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel {
     private static final long serialVersionUID = -7461448790487855518L;

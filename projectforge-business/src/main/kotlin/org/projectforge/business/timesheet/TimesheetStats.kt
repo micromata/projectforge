@@ -32,7 +32,7 @@ import java.util.*
 /**
  * Stores some statistics of time sheets.
  * Doesn't support multiple users.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TimesheetStats(fromDate: Date?, toDate: Date?) {
     /**

@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ReindexerRegistry {
     private val registryMap = mutableMapOf<Class<*>, ReindexerStrategy>()

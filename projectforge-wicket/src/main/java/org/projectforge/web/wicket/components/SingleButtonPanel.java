@@ -34,7 +34,7 @@ import org.projectforge.web.wicket.WicketUtils;
 /**
  * Panel for using as single button (needed for css decoration).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class SingleButtonPanel extends Panel
 {

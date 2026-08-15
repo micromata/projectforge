@@ -46,7 +46,7 @@ import org.projectforge.framework.persistence.search.ClassBridge
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

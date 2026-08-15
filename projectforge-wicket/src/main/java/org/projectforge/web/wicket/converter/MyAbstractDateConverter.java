@@ -44,7 +44,7 @@ import java.util.TimeZone;
 /**
  * Concepts and implementation based on Stripes DateTypeConverter implementation.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class MyAbstractDateConverter extends DateConverter
 {

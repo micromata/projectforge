@@ -29,7 +29,7 @@ import java.util.Locale;
 
 /**
  * Format digits, e. g. "001" instead of "1".
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class IntegerConverter extends org.apache.wicket.util.convert.converter.IntegerConverter
 {

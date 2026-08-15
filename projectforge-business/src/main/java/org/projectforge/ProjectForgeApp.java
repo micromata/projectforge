@@ -60,7 +60,7 @@ import java.util.TimeZone;
 /**
  * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by SrpingApplication.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class ProjectForgeApp {

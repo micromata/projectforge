@@ -69,7 +69,7 @@ import java.util.Optional;
 /**
  * Displays the favorite menu.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class NavTopPanel extends NavAbstractPanel {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);

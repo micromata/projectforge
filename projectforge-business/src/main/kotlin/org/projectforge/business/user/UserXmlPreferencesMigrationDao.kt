@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserXmlPreferencesMigrationDao {

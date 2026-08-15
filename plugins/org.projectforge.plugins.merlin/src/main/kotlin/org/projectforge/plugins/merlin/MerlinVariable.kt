@@ -34,7 +34,7 @@ import org.projectforge.ui.UIColor
 import java.math.BigDecimal
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Suppress("unused")
 class MerlinVariable : MerlinVariableBase() {

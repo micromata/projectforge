@@ -28,7 +28,7 @@ import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
 import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchProjectKostTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {

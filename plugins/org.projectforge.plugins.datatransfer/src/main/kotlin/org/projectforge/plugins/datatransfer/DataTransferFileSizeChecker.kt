@@ -31,7 +31,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.calcu
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class DataTransferFileSizeChecker(val globalMaxFileSizeOfDataTransfer: Long) : FileSizeChecker {
 

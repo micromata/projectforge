@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * (otherwise the slower refresh overwrites the result of the faster one with older data), nested access from inside a
  * refresh must not recurse, and a refresh caused only by expiration time must not block the calling thread.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class AbstractCacheTest {
     /**

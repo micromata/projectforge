@@ -34,7 +34,7 @@ import static java.lang.annotation.ElementType.METHOD;
 
 /**
  * Annotation for properties of DO classes for handling i18n keys and Excel-Exports.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target({ FIELD, METHOD})
 @Retention(RetentionPolicy.RUNTIME)

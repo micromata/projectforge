@@ -53,7 +53,7 @@ import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
  * This dialog is modal.<br/>
  *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class ModalDialog extends Panel
 {

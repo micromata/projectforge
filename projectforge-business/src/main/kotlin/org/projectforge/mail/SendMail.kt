@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Open needed for mocking.
 @Service

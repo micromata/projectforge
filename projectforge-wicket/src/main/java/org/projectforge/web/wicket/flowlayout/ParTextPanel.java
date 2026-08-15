@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Represents &lt;h1&gt;heading&lt;/h1&gt;, also base class for h2, h3 etc.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @SuppressWarnings("serial")

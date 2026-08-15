@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
  * delete etc. is implemented by the super class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::class.java) {

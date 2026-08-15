@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Represents a gantt object such as a task and a milestone.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public interface GanttTask

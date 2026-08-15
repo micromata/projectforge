@@ -43,7 +43,7 @@ private const val USER_PREF_AREA_ACCESS_LOG_ENTRIES = "Authentication.accessLog"
  * as for rest clients.
  * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
  * tokens without the knowledge of this key.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserAuthenticationsService {

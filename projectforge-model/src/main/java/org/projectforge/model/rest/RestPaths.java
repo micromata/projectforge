@@ -24,7 +24,7 @@
 package org.projectforge.model.rest;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class RestPaths
 {

@@ -35,7 +35,7 @@ import java.util.*
  * Date formats. All the formats base on the given defaultDateFormat. Default date formats are e. g. "dd.MM.yyyy", "dd.MM.yy", "dd/MM/yyyy",
  * "dd/MM/yy", "MM/dd/yyyy", "MM/dd/yy".
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object DateFormats {
   const val COMPACT_DATE = "yyyyMMdd"

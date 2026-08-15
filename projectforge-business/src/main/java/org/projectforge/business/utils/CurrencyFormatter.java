@@ -33,7 +33,7 @@ import java.util.Locale;
 
 /**
  * Converts BigDecimal values to formatted currency strings.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class CurrencyFormatter

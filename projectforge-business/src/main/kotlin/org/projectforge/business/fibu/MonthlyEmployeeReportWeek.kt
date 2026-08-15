@@ -34,7 +34,7 @@ import java.io.Serializable
 /**
  * Repräsentiert einen Wochenbericht eines Mitarbeiters. Diese Wochenberichte sind dem MonthlyEmployeeReport zugeordnet.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
     private var fromDate: PFDateTime

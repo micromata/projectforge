@@ -53,7 +53,7 @@ import java.util.Map;
 /**
  * Creates events for FullCalendar.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider.class);

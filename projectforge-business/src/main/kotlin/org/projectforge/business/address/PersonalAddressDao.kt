@@ -45,7 +45,7 @@ import java.io.Serializable
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class PersonalAddressDao {

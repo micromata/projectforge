@@ -31,7 +31,7 @@ import java.util.Locale;
 /**
  * For documentation please refer the ProjectForge-API: AddressDO object. AddressObject object for REST,
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AddressObject extends AbstractBaseObject {
   private String uid;

@@ -61,7 +61,7 @@ import java.util.Map;
  *
  * I didn't want to declare all Kotlin components as open, so I use this workaround. Wicket will be removed in the future.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 public class WicketSupport {

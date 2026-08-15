@@ -34,7 +34,7 @@ import org.apache.wicket.request.resource.IResource;
 import org.projectforge.web.session.MySession;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnauthorizedComponentInstantiationListener
 {

@@ -30,7 +30,7 @@ import java.util.*
 /**
  * This Exception will be thrown by the application and the message should be displayed.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class UserException(val i18nKey: String) : ProjectForgeException(i18nKey) {
 

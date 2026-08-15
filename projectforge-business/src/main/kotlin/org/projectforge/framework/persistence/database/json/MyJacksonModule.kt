@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO
 /**
  * WIP: Trying to export and import whole database as json (for db migration and for creating test data).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MyJacksonModule: SimpleModule() {
     private val objectIdRegistry = ObjectIdRegistry()

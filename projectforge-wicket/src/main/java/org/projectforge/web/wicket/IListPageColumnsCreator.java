@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * Needed by SearchPage for creating the result tables.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public interface IListPageColumnsCreator<O extends BaseDO< ? >>

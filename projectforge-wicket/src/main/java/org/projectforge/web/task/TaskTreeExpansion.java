@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.tree.TableTreeExpansion;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("TaskTreeExpansion")
 public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>

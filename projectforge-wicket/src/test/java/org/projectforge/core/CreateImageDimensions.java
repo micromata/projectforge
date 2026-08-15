@@ -47,7 +47,7 @@ import org.projectforge.web.wicket.WebConstants;
  * file which is read by PresizedImage. Test case should be executed every time after modifying dimensions of web app
  * images or adding new images.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class CreateImageDimensions

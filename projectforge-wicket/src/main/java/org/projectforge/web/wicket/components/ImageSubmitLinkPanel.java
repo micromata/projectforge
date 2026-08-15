@@ -31,7 +31,7 @@ import org.projectforge.web.wicket.PresizedImage;
 
 /**
  * An image as submit button and optional with a tooltip.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public abstract class ImageSubmitLinkPanel extends Panel

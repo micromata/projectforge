@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 /**
  * Bean used by ConfigXML (config.xml) for configuring security stuff.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class SecurityConfig

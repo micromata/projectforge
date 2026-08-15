@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.api.RightRightIdProviderService
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Indexed //@ClassBridge(index = Index.YES /* TOKENIZED */, store = Store.NO, impl = HibernateSearchUserRightIdBridge.class)
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchUserRightIdTypeBinder::class))

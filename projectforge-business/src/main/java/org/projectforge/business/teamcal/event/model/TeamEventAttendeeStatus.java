@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.i18n.I18nHelper;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum TeamEventAttendeeStatus implements I18nEnum
 {

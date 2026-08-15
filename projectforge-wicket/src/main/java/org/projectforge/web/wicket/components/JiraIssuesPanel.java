@@ -34,7 +34,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Panel containing only one check-box.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @SuppressWarnings("serial")

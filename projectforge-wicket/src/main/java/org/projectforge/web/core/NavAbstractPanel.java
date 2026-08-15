@@ -41,7 +41,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class NavAbstractPanel extends Panel {
   private static final long serialVersionUID = -1019454504282157440L;

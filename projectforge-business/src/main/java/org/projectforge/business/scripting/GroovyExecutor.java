@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Executes groovy templates. For more functionality please refer GroovyEngine.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class GroovyExecutor {

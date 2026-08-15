@@ -43,7 +43,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The vacation entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {

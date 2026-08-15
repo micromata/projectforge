@@ -37,7 +37,7 @@ import org.projectforge.framework.time.DateFormats;
 import java.util.Locale;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class JodaDateConverter implements IConverter<DateMidnight>
 {

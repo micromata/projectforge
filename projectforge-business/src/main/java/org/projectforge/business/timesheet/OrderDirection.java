@@ -25,7 +25,7 @@ package org.projectforge.business.timesheet;
 
 /*
  * Represents the order by direction asc or desc.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum OrderDirection
 {

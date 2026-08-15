@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * Stores multiple business assessments in a list. A table with different business assessment columns can be used.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class BusinessAssessmentTable

@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 /**
  * Helper for creating re-index menu items in the top right drop down menu.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public abstract class AbstractReindexTopRightMenu implements Serializable

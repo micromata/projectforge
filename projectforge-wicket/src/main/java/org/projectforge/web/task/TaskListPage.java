@@ -67,7 +67,7 @@ import java.util.Set;
 /**
  * This page is shown when the user searches in the task tree. The task will be displayed as list.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @ListPage(editPage = TaskEditPage.class)
 public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO>

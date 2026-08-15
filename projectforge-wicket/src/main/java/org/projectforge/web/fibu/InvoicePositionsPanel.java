@@ -51,7 +51,7 @@ import java.util.TreeSet;
 /**
  * This panel shows invoice positions including links to the corresponding order pages.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class InvoicePositionsPanel extends Panel {
     private static final long serialVersionUID = 4744964208090705536L;

@@ -30,7 +30,7 @@ import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
 /**
  * Display a drop-down menu
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MenuBarPanel extends Panel
 {

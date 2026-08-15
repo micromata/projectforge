@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  * @param pluginId See. [PluginInfo]
  * @param pluginName See. [PluginInfo]
  * @param pluginDescription See. [PluginInfo]
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescription: String): Serializable {
     val id: String

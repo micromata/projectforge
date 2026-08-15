@@ -30,7 +30,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TimesheetsICSExportDialog extends AbstractICSExportDialog
 {

@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class AddressImageCache : AbstractCache() {

@@ -29,7 +29,7 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  * MaxLengthTextField with required-validation.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class AjaxRequiredMaxLengthEditableLabel extends AjaxMaxLengthEditableLabel

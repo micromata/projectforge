@@ -31,7 +31,7 @@ import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 /**
  * UserRightId bridge for hibernate search uses the id string of UserRightId for search.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see UserRightId.getId
  */
 class HibernateSearchUserRightIdBridge : TypeBridge<UserRightId> {

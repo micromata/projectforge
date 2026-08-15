@@ -88,7 +88,7 @@ import kotlin.jvm.java
 /**
  * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [TestConfiguration::class])

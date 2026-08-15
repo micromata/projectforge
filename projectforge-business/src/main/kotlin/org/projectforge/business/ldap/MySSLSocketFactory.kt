@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
  * http://stackoverflow.com/questions/3964703/can-i-add-a-new-certificate-to-the-keystore-without-restarting-the-jvm
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MySSLSocketFactory : SSLSocketFactory() {
   private val sf: SSLSocketFactory

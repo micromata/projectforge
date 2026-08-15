@@ -41,7 +41,7 @@ import java.io.Serializable;
 /**
  * Represents an icon. Supports Ajax onclick behavior if {@link #enableAjaxOnClick()} is called.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class IconPanel extends Panel
 {

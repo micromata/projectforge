@@ -35,7 +35,7 @@ import java.util.Map;
  *  getString("message.download", new I18nParams().put("title", data.getTitle().put("date", "2013-04-06"));
  *  i18n.properties: message.download=This is a message for ${title}. The date is ${date}.
  * </code>
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class I18nParamMap extends MapModel<String, String>

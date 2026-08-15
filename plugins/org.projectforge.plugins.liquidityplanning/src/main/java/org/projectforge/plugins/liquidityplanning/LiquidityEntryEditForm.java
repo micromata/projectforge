@@ -40,7 +40,7 @@ import java.time.LocalDate;
 /**
  * This is the edit formular page.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, LiquidityEntryEditPage>

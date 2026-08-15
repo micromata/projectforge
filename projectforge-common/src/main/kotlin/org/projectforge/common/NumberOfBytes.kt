@@ -29,7 +29,7 @@ import java.text.NumberFormat
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object NumberOfBytes {
   const val KILO_BYTES = 1024L

@@ -26,7 +26,7 @@ package org.projectforge.business.ldap;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LdapPerson extends LdapObject<String>
 {

@@ -27,7 +27,7 @@ import java.io.Serializable;
 
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public interface DivPanelVisibility extends Serializable

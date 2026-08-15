@@ -29,7 +29,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * Represents an icon.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class InputPanel extends Panel implements ComponentWrapperPanel

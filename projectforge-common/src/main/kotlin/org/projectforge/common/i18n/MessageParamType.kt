@@ -25,7 +25,7 @@ package org.projectforge.common.i18n
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class MessageParamType {
   VALUE, I18N_KEY

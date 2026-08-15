@@ -5495,7 +5495,7 @@
         <id>2</id>
         <propertyName>stringValue</propertyName>
         <propertyType>java.lang.String</propertyType>
-        <newValue>k.reinhard@me.com</newValue>
+        <newValue>k.reinhard@acme.com</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
     </deltaSet>
     <type>UPDATE</type>
@@ -5511,7 +5511,7 @@
         <id>3</id>
         <propertyName>stringValue</propertyName>
         <propertyType>java.lang.String</propertyType>
-        <newValue>k.reinhard@me.com</newValue>
+        <newValue>k.reinhard@acme.com</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
     </deltaSet>
     <type>UPDATE</type>
@@ -8387,7 +8387,7 @@
         <id>116</id>
         <propertyName>stringValue</propertyName>
         <propertyType>java.lang.String</propertyType>
-        <oldValue>k.reinhard@me.com</oldValue>
+        <oldValue>k.reinhard@acme.com</oldValue>
         <newValue>admin@dev-null.com</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
     </deltaSet>
@@ -8404,7 +8404,7 @@
         <id>117</id>
         <propertyName>stringValue</propertyName>
         <propertyType>java.lang.String</propertyType>
-        <oldValue>k.reinhard@me.com</oldValue>
+        <oldValue>k.reinhard@acme.com</oldValue>
         <newValue>admin@dev-null.com</newValue>
       </de.micromata.hibernate.history.delta.SimplePropertyDelta>
     </deltaSet>

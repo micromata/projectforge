@@ -53,7 +53,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Provides some system routines.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
+ * @author Kai Reinhard, Florian Blumenstein
  */
 @Service
 class SystemService {

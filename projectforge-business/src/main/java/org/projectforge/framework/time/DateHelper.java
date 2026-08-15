@@ -39,7 +39,7 @@ import java.util.TimeZone;
 /**
  * Parse and formats dates.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DateHelper implements Serializable {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateHelper.class);

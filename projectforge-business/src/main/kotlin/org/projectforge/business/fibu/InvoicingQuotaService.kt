@@ -33,7 +33,7 @@ import java.math.RoundingMode
  * The invoicing quota is the percentage of work time that is billed to customers,
  * based on configurable patterns for Kost2 display names.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class InvoicingQuotaService(

@@ -55,7 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("deprecation")
 @Service

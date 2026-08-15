@@ -31,7 +31,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 
 /**
  * Panel containing buttons. <br/>
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @SuppressWarnings("serial")

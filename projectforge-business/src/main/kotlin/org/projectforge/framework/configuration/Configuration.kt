@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
  * are cached. <br></br>
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 class Configuration(

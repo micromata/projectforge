@@ -30,7 +30,7 @@ import java.io.Serializable;
 
 /**
  * Represents a date (day of month, month and year). It contains three integer values and has no time zone information.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @XStreamAlias("day")

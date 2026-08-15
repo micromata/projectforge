@@ -31,7 +31,7 @@ import static java.lang.annotation.ElementType.TYPE;
 
 /**
  * Annotation for objects which should be (de-)serialized from and to xml.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target( { TYPE})
 @Retention(RetentionPolicy.RUNTIME)

@@ -30,7 +30,7 @@ import org.projectforge.business.converter.LanguageConverter;
 import java.util.Locale;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class WicketLanguageConverter implements IConverter
 {

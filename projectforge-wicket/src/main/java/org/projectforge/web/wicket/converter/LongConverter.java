@@ -30,7 +30,7 @@ import java.util.Locale;
 /**
  * Format digits, e. g. "001" instead of "1".
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LongConverter extends org.apache.wicket.util.convert.converter.LongConverter {
     private static final long serialVersionUID = 8150882431021230194L;

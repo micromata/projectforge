@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import java.util.Locale;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyXlsExportContext implements ExportContext
 {

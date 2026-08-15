@@ -26,7 +26,7 @@ package org.projectforge.web.session;
 /**
  * See: http://www.quirksmode.org/js/detect.html
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class UserAgentDetection

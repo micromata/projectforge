@@ -38,7 +38,7 @@ import java.time.LocalDate
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

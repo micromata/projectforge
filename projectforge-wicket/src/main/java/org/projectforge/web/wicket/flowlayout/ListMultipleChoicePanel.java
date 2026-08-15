@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Panel containing only one drop down choice box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ListMultipleChoicePanel<T> extends Panel implements ComponentWrapperPanel

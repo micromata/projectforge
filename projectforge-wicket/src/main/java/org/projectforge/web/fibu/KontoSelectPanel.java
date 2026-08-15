@@ -47,7 +47,7 @@ import java.util.Locale;
 /**
  * This panel is a autocompletion text field for selecting an account (DATEV-Konto).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements ComponentWrapperPanel {
     private static final long serialVersionUID = 5452693296383142460L;

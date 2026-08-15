@@ -39,7 +39,7 @@ import org.projectforge.web.session.MySession;
 /**
  * All pages with required login should be derived from this page.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
     private static final long serialVersionUID = 3225994698301133706L;

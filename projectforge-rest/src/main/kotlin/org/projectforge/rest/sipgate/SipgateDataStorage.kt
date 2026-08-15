@@ -30,7 +30,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class SipgateDataStorage {
   val lastSyncInEpochMillis = System.currentTimeMillis()

@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  * Base class of a favorite (used for user's preferences, such as filters, common used tasks,
  * time sheet templates etc.).
  *
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 abstract class AbstractFavorite(var name: String? = null,
                                 var id: Long? = null)

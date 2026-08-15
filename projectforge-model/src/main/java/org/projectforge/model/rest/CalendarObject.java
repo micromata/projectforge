@@ -30,7 +30,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 /**
  * For documentation please refer the ProjectForge-API: TeamCalDO object.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class CalendarObject extends AbstractBaseObject
 {

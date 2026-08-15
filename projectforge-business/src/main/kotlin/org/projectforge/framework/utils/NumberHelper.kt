@@ -42,7 +42,7 @@ import java.util.*
 /**
  * Some helper methods ...
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object NumberHelper {
     const val ALLOWED_PHONE_NUMBER_CHARS = "+-/()."

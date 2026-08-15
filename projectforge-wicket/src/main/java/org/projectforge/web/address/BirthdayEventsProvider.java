@@ -43,7 +43,7 @@ import java.util.Set;
 /**
  * Creates events for FullCalendar.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // TODO: Skip
 public class BirthdayEventsProvider extends MyFullCalendarEventsProvider

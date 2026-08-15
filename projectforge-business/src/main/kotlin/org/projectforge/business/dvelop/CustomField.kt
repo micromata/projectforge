@@ -24,7 +24,7 @@
 package org.projectforge.business.dvelop
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class CustomField(
   var configID: String? = null,

@@ -52,7 +52,7 @@ private val log = KotlinLogging.logger {}
  *   - Hilfreich wäre eine Reference-ID (String oder Zahl) zum Verknüpfen von Sipgate und Fremdsystemadressen.
  *   - Hilfreich wäre ansonsten als Antwort nach einem Insert die Contact-id.
  *   - Typ von Nummern in Kontakten werden nicht immer korrekt zurückgegeben (Beispiele heraussuchen, wie cell-home, fax, ...)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {

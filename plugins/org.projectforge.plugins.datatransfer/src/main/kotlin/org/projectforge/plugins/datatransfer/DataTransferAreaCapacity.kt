@@ -28,7 +28,7 @@ import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translateMsg
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class DataTransferAreaCapacity(
   used: Long?,

@@ -25,7 +25,7 @@ package org.projectforge.web.session;
 
 /**
  * Helper class for UserAgentDetection.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 class UserAgentDetectionBrowser

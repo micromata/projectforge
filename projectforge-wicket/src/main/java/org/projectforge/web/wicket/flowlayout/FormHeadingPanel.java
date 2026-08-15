@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Represents a simple text panel enclosed in a div element.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class FormHeadingPanel extends Panel

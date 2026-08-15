@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * Creates events corresponding to the hr planning entries.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
 {

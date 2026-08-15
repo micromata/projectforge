@@ -39,7 +39,7 @@ import java.util.Date;
 /**
  * Table view property columns representing date or time stamps.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DatePropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {

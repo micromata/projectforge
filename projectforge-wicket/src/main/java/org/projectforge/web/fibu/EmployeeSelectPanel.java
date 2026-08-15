@@ -50,7 +50,7 @@ import java.util.Locale;
 /**
  * This panel shows the actual employee and buttons for select/unselect employee.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO> {
     private static final long serialVersionUID = -9161889503240264619L;

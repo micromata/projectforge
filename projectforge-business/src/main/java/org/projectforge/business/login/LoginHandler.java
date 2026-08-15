@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Different implementations of login handling are supported.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public interface LoginHandler {

@@ -34,7 +34,7 @@ import java.io.Reader;
 /**
  * Some helper methods used by different packages of ProjectForge.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class StorageUtils

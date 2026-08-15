@@ -38,7 +38,7 @@ private val log = KotlinLogging.logger {}
  * Utility class for testing purposes.
  * It provides methods to create test files and directories and to suppress error log entries.
  * The base directory is determined by the module name.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TestUtils(modulName: String) {
     val baseDir: File = File(".").absoluteFile.parentFile

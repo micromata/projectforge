@@ -25,7 +25,7 @@ package org.projectforge.framework.utils;
 
 /**
  * Simply an holder for a key value property.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface ILabelValueBean<L, V>
 {

@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.mail.IMailAttachment
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 @Entity

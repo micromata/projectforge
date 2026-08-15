@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
  * delete etc. is implemented by the super class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class MemoDao extends BaseDao<MemoDO> {

@@ -38,7 +38,7 @@ import java.time.LocalDate;
 /**
  * Table view property columns representing LocalDate.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LocalDatePropertyColumn<T> extends CellItemListenerPropertyColumn<T> {
   public LocalDatePropertyColumn(final String label, final String sortProperty, final String property,

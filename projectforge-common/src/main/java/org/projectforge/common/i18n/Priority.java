@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Needed for example to give tasks a priority.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum Priority implements I18nEnum

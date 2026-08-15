@@ -38,7 +38,7 @@ import java.time.LocalDate
  * project manager groups). If you choose [UserRightValue.READWRITE] for such users, they'll have full read/write
  * access to all orders.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
     UserRightId.PM_ORDER_BOOK, UserRightCategory.PM,

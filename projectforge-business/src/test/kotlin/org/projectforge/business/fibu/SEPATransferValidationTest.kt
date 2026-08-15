@@ -47,7 +47,7 @@ import javax.xml.xpath.XPathFactory
  * Validation test to ensure SEPA XMLs conform to pain.001.003.03 schema
  * and match golden reference files after migration.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SEPATransferValidationTest : AbstractTestBase() {
 

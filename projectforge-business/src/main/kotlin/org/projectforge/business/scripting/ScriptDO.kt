@@ -42,7 +42,7 @@ import java.io.UnsupportedEncodingException
 /**
  * Scripts can be stored and executed by authorized users.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

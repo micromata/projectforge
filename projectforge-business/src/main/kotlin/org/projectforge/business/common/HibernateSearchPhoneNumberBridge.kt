@@ -30,7 +30,7 @@ import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 
 /**
  * StringBridge for hibernate search to search in phone numbers (reduce phone number fields to digits without white spaces and non digits).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class HibernateSearchPhoneNumberBridge : ValueBridge<String?, String> {
     override fun toIndexedValue(

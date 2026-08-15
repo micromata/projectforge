@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.candh.CandHIgnore
  * For configuration entries persisted in the data base. Please access the configuration parameters via
  * [Configuration]
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

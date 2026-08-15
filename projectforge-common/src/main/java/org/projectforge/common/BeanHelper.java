@@ -33,7 +33,7 @@ import java.util.*;
 /**
  * Some useful methods for determining and converting property, getter and setter names.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class BeanHelper {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);

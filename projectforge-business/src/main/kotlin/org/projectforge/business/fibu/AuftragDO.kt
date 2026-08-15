@@ -51,7 +51,7 @@ import java.time.LocalDate
  * Informationen enthalten, wie beispielsweise die Beauftragungshistorie: LOI am 05.03.08 durch Herrn Müller und
  * schriftlich am 04.04.08 durch Beschaffung.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

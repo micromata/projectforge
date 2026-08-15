@@ -24,7 +24,7 @@
 package org.projectforge.web.wicket.flowlayout;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum FieldType
 {

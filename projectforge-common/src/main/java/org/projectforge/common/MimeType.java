@@ -25,7 +25,7 @@ package org.projectforge.common;
 
 /**
  * Determines the mime-types of files by the file-name's extension.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum MimeType

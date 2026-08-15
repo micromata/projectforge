@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
  * Special ProjectForge user groups, such as Administrators and Finance. Some system functionality is only available for
  * user's which are member of the required group.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public enum ProjectForgeGroup

@@ -40,7 +40,7 @@ import java.util.Date;
 /**
  * Supports CellItemListener.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("serial")
 public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>

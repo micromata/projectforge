@@ -39,7 +39,7 @@ import javax.naming.directory.*;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapUserDao extends LdapDao<String, LdapUser> {

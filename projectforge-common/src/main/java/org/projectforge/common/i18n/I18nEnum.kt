@@ -28,7 +28,7 @@ import mu.KotlinLogging
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface I18nEnum {
     val i18nKey: String?

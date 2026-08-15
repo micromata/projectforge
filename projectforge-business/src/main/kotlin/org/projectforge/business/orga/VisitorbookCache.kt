@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Caches employees with actual status and annual leave days for faster access.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class VisitorbookCache : AbstractCache() {

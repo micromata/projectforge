@@ -70,7 +70,7 @@ private val log = KotlinLogging.logger {}
  *  * **UID**: UID:19960401T080045Z-4000F192713-0052@example.com
  *
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity

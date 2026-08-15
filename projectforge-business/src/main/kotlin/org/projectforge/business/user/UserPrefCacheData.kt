@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
  * Also, persistent user preferences in the database are supported.<br>
  * The values are stored by area and identifier.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("userPreferences")
 class UserPrefCacheData {

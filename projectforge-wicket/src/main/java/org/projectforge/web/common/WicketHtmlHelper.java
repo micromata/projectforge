@@ -28,7 +28,7 @@ package org.projectforge.web.common;
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2014 Kai Reinhard
 //
 // ProjectForge is dual-licensed.
 //

@@ -26,7 +26,7 @@ package org.projectforge.business.test
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object DatabaseHelper {
     @JvmStatic

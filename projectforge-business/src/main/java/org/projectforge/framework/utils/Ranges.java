@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Holds number ranges, such as "10,20-25,30-35,50" (comma separated ranges and values).
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public abstract class Ranges<T extends Comparable<T>> implements Serializable

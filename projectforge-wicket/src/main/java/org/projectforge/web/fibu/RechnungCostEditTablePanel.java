@@ -59,7 +59,7 @@ import java.math.RoundingMode;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class RechnungCostEditTablePanel extends Panel
 {

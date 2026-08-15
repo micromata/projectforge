@@ -26,7 +26,7 @@ package org.projectforge.business.teamcal
 import org.projectforge.common.i18n.I18nEnum
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class CalendarAccessStatus(val key: String) : I18nEnum {
     OWNER("owner"), FULL_ACCESS("fullAccess"), READONLY_ACCESS("readonlyAccess"), MINIMAL_ACCESS("minimalAccess"), ADMIN_ACCESS("adminAccess");

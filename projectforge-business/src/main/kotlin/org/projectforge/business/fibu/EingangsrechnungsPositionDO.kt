@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

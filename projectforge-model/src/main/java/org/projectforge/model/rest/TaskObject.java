@@ -35,7 +35,7 @@ import org.projectforge.common.task.TimesheetBookingStatus;
  * For documentation please refer the ProjectForge-API: TaskDO object.
  * TaskDO object for REST,
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskObject extends AbstractBaseObject implements Comparable<TaskObject>
 {

@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class RechnungFilter extends BaseSearchFilter implements Serializable
 {

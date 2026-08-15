@@ -58,7 +58,7 @@ import java.util.*;
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {

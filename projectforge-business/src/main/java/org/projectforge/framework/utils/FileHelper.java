@@ -29,7 +29,7 @@ import org.projectforge.common.FilenameUtils;
 /**
  * Some helper methods ...
  * Deprecated: Use {@link org.projectforge.common.FileUtils} and {@link org.projectforge.common.FilenameUtils} instead.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Deprecated
 public class FileHelper {

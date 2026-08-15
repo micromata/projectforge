@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 /**
  * Fragen:
  * * Unterschiedliche Rechnungsadressen für einen TradingPartner?
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class TradingPartner {
   enum class TypeValue { VENDOR, CUSTOMER, PARTNER }

@@ -30,7 +30,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.springframework.stereotype.Service
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class TradingPartnerService :

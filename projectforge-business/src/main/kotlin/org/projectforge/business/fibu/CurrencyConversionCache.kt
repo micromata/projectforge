@@ -49,7 +49,7 @@ data class CurrencyPairLookup(
 /**
  * Caches currency pairs and their conversion rates for faster access.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 open class CurrencyConversionCache : AbstractCache(), BaseDOModifiedListener<CurrencyPairDO> {

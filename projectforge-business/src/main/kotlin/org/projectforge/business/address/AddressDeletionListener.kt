@@ -24,7 +24,7 @@
 package org.projectforge.business.address
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 interface AddressDeletionListener {
   fun onDelete(address: AddressDO)

@@ -59,7 +59,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {

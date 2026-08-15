@@ -31,7 +31,7 @@ import java.util.Date;
 
 /**
  * Helper class for writing comma separated key-value-pairs.
- * @author K.Reinhard@micromata.com
+ * @author K. Reinhard
  */
 public class KeyValuePairWriter
 {

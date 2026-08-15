@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * ThreadLocal context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object I18nHelper {
     private val BUNDLE_NAMES: MutableSet<String> = LinkedHashSet()

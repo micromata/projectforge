@@ -31,7 +31,7 @@ import static java.lang.annotation.ElementType.TYPE;
 
 /**
  * Annotation for classes of type AbstractListPage.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target( { TYPE})
 @Retention(RetentionPolicy.RUNTIME)

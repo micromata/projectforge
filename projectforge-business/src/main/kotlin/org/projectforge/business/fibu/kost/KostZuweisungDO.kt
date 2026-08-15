@@ -50,7 +50,7 @@ import java.math.BigDecimal
  * können mehrere KostZuweisungen zugeordnet sein. Die Summe aller Einzelkostzuweisung sollte dem Betrag der
  * Rechnung/Gehaltszahlung entsprechen.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

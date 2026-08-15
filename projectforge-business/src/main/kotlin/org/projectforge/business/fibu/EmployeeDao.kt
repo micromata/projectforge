@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {

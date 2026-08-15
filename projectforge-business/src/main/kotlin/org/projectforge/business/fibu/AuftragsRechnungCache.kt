@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * Caches the order positions assigned to invoice positions.
  * Separate cache for incoming invoices due to performance reasons.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class AuftragsRechnungCache : AbstractCache() {

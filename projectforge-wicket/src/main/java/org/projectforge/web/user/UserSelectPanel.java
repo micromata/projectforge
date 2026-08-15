@@ -55,7 +55,7 @@ import java.util.Objects;
 /**
  * This panel shows the actual user and buttons for select/unselect user.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements ComponentWrapperPanel
 {

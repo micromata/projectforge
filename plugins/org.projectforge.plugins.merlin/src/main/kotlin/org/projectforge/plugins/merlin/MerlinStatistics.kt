@@ -32,7 +32,7 @@ import de.micromata.merlin.word.templating.WordTemplateChecker
 import org.projectforge.framework.ToStringUtil
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MerlinStatistics {
   val variables = mutableListOf<MerlinVariable>()

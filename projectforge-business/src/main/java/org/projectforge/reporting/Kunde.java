@@ -27,7 +27,7 @@ import org.projectforge.business.fibu.KundeStatus;
 
 /**
  * Interface for reporting.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.projectforge.business.fibu.KundeDO
  */
 public interface Kunde

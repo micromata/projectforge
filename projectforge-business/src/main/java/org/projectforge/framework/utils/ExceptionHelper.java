@@ -30,7 +30,7 @@ import java.io.StringWriter;
 
 /**
  * Some helper methods ...
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ExceptionHelper
 {

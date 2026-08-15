@@ -39,7 +39,7 @@ import org.projectforge.web.wicket.components.TooltipImage;
 /**
  * This panel show the actual kost2 and buttons for select/unselect kost2s.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
 {
