@@ -211,6 +211,6 @@ What goes into them for an entity is not written per page but declared once — 
   filter and column-order derivations). Deliberately DOM-free: what is worth asserting is the
   derivation, not the JSX around it.
 - `npm run e2e` — Playwright against the **running** system. Credentials of a local test account are
-  in `~/ProjectForge/testAccount.txt`; the suite logs in via `POST /rsPublic/nextLogin` and takes the
+  in `~/ProjectForge/testAccount.txt` (format `username/password` in one line); the suite logs in via `POST /rsPublic/nextLogin` and takes the
   `csrfToken` from `GET /rs/userStatus`. Seeing a real response settles at once whether a field is
   missing, null or merely displayed wrong.
