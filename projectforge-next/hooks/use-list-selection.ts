@@ -95,10 +95,17 @@ export function useListSelection({
   const serializedFilter = JSON.stringify(filter);
   useEffect(() => {
     if (!active || !endpoint) return;
-    const running = startMultiSelection(entity, filter).catch(() => {
-      // A failed registration surfaces on the mass update page, which reports what it found; the
-      // list itself must not throw a toast at a user who only ticked a row.
-    });
+    const running = startMultiSelection(entity, filter)
+      // The ticks are restated right after, because `startSelection` replaces the whole session
+      // context and takes the ticked subset with it (`MultiSelectionSupport
+      // .registerEntityIdsForSelection`, "Clear session"). Without this, changing the filter while
+      // the mode is on would silently drop what the user had picked — and the selection is meant to
+      // hold across a filter change, entries outside the new result set included.
+      .then(() => selectEntries(endpoint, latestIds.current))
+      .catch(() => {
+        // A failed registration surfaces on the mass update page, which reports what it found; the
+        // list itself must not throw a toast at a user who only ticked a row.
+      });
     registration.current = running;
     // The filter is serialized into the key rather than compared by identity: it is rebuilt on every
     // render of the query hook.

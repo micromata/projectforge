@@ -531,6 +531,27 @@ constructor(
     }
 
     /**
+     * The given entries as list rows, for a page that holds a selection as ids only.
+     *
+     * Lives here rather than at the caller because `O` is only in scope here: [AbstractMultiSelectedPage]
+     * knows its list rest as `AbstractEntityRest<*, *, *>` and could not build the [ResultSet] of `O`
+     * that [postProcessResultSet] takes. And going through that method is the point of this one - it is
+     * where [AbstractDTOEntityRest] turns the database objects into the lean rows of a hand built next
+     * page (see [createListRow]), so the answer has the same shape as the rows of the entity's list and
+     * needs no columns of its own.
+     *
+     * Read only, and access checked where every list is: `BaseDao.select(idList)`.
+     */
+    fun getResultSetByIds(request: HttpServletRequest, entityIds: Collection<Serializable>?): ResultSet<*> {
+        // Not the user's current filter: nothing here is filtered, and the result set only reads it to
+        // tell whether it was truncated (see ResultSet). Passing the stored one would also mean this
+        // read could change what the list page shows next.
+        val filter = MagicFilter()
+        val resultSet = ResultSet(getListByIds(entityIds), null, magicFilter = filter)
+        return postProcessResultSet(resultSet, request, filter)
+    }
+
+    /**
      * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
      */
     fun getResultList(filter: MagicFilter): List<O> {

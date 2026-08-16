@@ -18,7 +18,12 @@
 import { rawRequest, request, RsError } from "./client";
 import { downloadFile } from "./download";
 import type { UIDataTypeName } from "@/lib/metadata/types";
-import type { MagicFilter, UISelectValue, ValidationError } from "./types";
+import type {
+  MagicFilter,
+  ResultSet,
+  UISelectValue,
+  ValidationError,
+} from "./types";
 
 /** HTTP status Spring answers with when the update was rejected (see AbstractPagesRestUtils). */
 const NOT_ACCEPTABLE = 406;
@@ -172,6 +177,24 @@ export function fetchMultiSelectMeta(
 ): Promise<MultiSelectMeta> {
   return request<MultiSelectMeta>(
     `/rs/${page}/meta`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The selected entries themselves, in the same row shape the entity's list serves — so the page's own
+ * column declarations render them (see SelectedEntriesPanel).
+ *
+ * Asked of the server rather than taken from the list's rows, because the selection is kept across a
+ * change of the filter: an entry ticked under an earlier filter was never transferred to this client.
+ */
+export function fetchSelectedEntries<Row>(
+  page: string,
+  signal?: AbortSignal
+): Promise<ResultSet<Row>> {
+  return request<ResultSet<Row>>(
+    `/rs/${page}/selectedList`,
     { method: "GET" },
     signal
   );

@@ -156,6 +156,24 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
+     * The selected entries themselves, as the rows of the entity's list.
+     *
+     * So a hand built page can *show* what a mass update is about to change, not only how many entries
+     * that is ([requestMeta] answers the count). The client cannot answer this itself: the ids are kept
+     * across a change of the list's filter, so the selection is the union over several filter runs while
+     * the list only ever holds what the current filter matched.
+     *
+     * Read only, and no session state of its own - the ids come from where [select] put them, the rows
+     * from the list rest (see [AbstractEntityRest.getResultSetByIds]). Nothing selected answers an empty
+     * result set.
+     */
+    @GetMapping("selectedList")
+    fun requestSelectedList(request: HttpServletRequest): ResultSet<*> {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        return pagesRest.getResultSetByIds(request, selectedIds)
+    }
+
+    /**
      * Runs the mass update and answers what it did.
      *
      * The layout free counterpart of [massUpdate], which answers the same counters and errors wrapped in

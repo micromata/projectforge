@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -28,12 +28,20 @@ export function MassUpdateForm({
   endpoint,
   meta,
   statisticsLine: StatisticsLine,
+  selectedEntries,
   onLeave,
 }: {
   endpoint: string;
   meta: MultiSelectMeta;
   /** How the summary of the picked entries reads (see `MassUpdateDef.statisticsLine`). */
   statisticsLine?: ComponentType<{ statistics: unknown }>;
+  /**
+   * The collapsible list of the picked entries (see SelectedEntriesPanel).
+   *
+   * A slot rather than something built here, because it renders the *list's* columns: which those are
+   * is the entity's business, and only the page that declares the list knows their types.
+   */
+  selectedEntries?: ReactNode;
   onLeave: () => void;
 }) {
   const t = useTranslations();
@@ -79,6 +87,10 @@ export function MassUpdateForm({
       {StatisticsLine && meta.statisticsData != null && (
         <StatisticsLine statistics={meta.statisticsData} />
       )}
+
+      {/* Above the fields, because it says what they are about to change — and closed, because the
+          count and the sums answer the question for most visits. */}
+      {selectedEntries}
 
       <div className="rounded-md border px-3">
         {meta.fields.map((field) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -23,12 +24,21 @@ export function MassUpdatePage({
   entity,
   massUpdate: def,
   listRoute,
+  selectedEntries,
 }: {
   /** REST category of the list this came from, so leaving can drop its selection mode. */
   entity: string;
   massUpdate: MassUpdateDef;
   /** Where "back" leads — this app's list, not the legacy one the session remembers. */
   listRoute: string;
+  /**
+   * The collapsible list of the picked entries, as a function of how many those are.
+   *
+   * Built by the route rather than here, since it renders the list's columns (see
+   * SelectedEntriesPanel); the count comes from the metadata this page fetches, which is also what
+   * makes the panel refetch after the selection changed in another tab.
+   */
+  selectedEntries?: (count: number) => ReactNode;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -71,6 +81,7 @@ export function MassUpdatePage({
         endpoint={def.endpoint}
         meta={meta.data}
         statisticsLine={def.statisticsLine}
+        selectedEntries={selectedEntries?.(meta.data.selectedCount)}
         // The form's own leave already told the backend to forget the selection (`{page}/cancel`), so
         // the list's mode has to go with it — otherwise it would come back showing ticks that only
         // this app still believes in.

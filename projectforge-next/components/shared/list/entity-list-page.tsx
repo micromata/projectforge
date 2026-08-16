@@ -32,9 +32,8 @@ import type { EntityMetadata } from "@/lib/metadata/types";
 import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
+import { ListSelectionSection } from "./list-selection-section";
 import { ListToolbar } from "./list-toolbar";
-import { MassUpdateButton } from "./mass-update-button";
-import { SelectionBar } from "./selection-bar";
 import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
 
@@ -239,18 +238,12 @@ function DeclaredList<
         selectionBar={
           page.massUpdate &&
           mode.active && (
-            <SelectionBar
-              count={mode.selectedIds.length}
+            <ListSelectionSection<Row, M>
+              massUpdate={page.massUpdate}
+              mode={mode}
+              metadata={page.metadata}
+              columns={declarations.columns}
               onSelectAll={selectAll}
-              onClear={() => mode.selection?.clear()}
-              onLeave={mode.leave}
-              actions={
-                <MassUpdateButton
-                  massUpdate={page.massUpdate}
-                  selectedIds={mode.selectedIds}
-                  flush={mode.flush}
-                />
-              }
             />
           )
         }

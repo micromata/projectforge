@@ -1143,7 +1143,8 @@
     },
     "fields": {
       "changed": "Changed fields"
-    }
+    },
+    "selectedEntries": "Selected entries"
   },
   "menu": {
     "addNewEntry": "New entry",
