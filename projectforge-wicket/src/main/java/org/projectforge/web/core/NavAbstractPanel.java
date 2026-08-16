@@ -83,6 +83,11 @@ public abstract class NavAbstractPanel extends Panel {
       link.add(new Label("label", new ResourceModel(i18nKey)).setRenderBodyOnly(true));
     }
     link.add(AttributeModifier.append("ref", menuEntry.getId()));
+    // What pfInitMenuUsageReporting (projectforge.js) listens for: a click reports the entry as used,
+    // so the quick access search of projectforge-next offers it again. WicketMenuEntry.getId() is
+    // MenuItem.key, which is the identity the other two frontends report as well. The menu links are
+    // bookmarkable <a href>s without a Java onClick, hence a delegated handler rather than an AjaxLink.
+    link.add(AttributeModifier.append("data-menu-key", menuEntry.getId()));
     final Label menuSuffixLabel = getSuffixLabel(menuEntry);
     link.add(menuSuffixLabel);
     return link;

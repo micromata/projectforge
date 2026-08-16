@@ -20,6 +20,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /** Shared by the real entries and the hidden measurement row, so both are exactly as wide. */
 const ENTRY_CLASS = cn(
@@ -96,9 +97,14 @@ export function FavoritesBar({ items }: { items: MenuItem[] }) {
  * (see FavoritesMenuCreator: "Administration", "Projektmanagement", …), which opens its entries.
  */
 function FavoriteEntry({ item }: { item: MenuItem }) {
+  const report = useReportMenuUsage();
   if (!item.subMenu?.length) {
     return (
-      <MenuLink url={item.url} className={ENTRY_CLASS}>
+      <MenuLink
+        url={item.url}
+        onClick={() => report(item.key)}
+        className={ENTRY_CLASS}
+      >
         {item.title}
       </MenuLink>
     );
@@ -121,10 +127,15 @@ function FavoriteEntry({ item }: { item: MenuItem }) {
 
 /** A favourite inside an open menu: folders become a submenu, links a plain item. */
 function MenuEntry({ item }: { item: MenuItem }) {
+  const report = useReportMenuUsage();
   if (!item.subMenu?.length) {
     return (
       <MenubarItem asChild>
-        <MenuLink url={item.url} className={MENU_HOVER_CLASS}>
+        <MenuLink
+          url={item.url}
+          onClick={() => report(item.key)}
+          className={MENU_HOVER_CLASS}
+        >
           {item.title}
         </MenuLink>
       </MenubarItem>

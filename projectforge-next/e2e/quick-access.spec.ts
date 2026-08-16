@@ -117,17 +117,67 @@ test.describe("quick access", () => {
     await goto(page, "/");
     const field = await focusSearch(page, format);
     await field.fill(entry.title);
-    await page.keyboard.press("Enter");
+    // The history is the backend's, shared by all three frontends: the entry is reported, and only
+    // the next `/rs/menu` carries it back. Awaiting both beats reopening the palette and hoping.
+    await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().includes("/rs/menu/recent") && res.status() === 204
+      ),
+      page.waitForResponse((res) => res.url().endsWith("/rs/menu") && res.ok()),
+      page.keyboard.press("Enter"),
+    ]);
     await expect(results(page)).toHaveCount(0);
 
     // Reopened with an empty field, which is the only state the history is shown in: with a term the
     // ranking is the answer and the history would push a worse match above a better one.
     await focusSearch(page, format);
-    const recent = results(page).getByRole("group", {
-      name: format.t("menu.quickAccess.recent"),
-    });
     await expect(
-      recent.getByRole("option", { name: entry.title, exact: true })
+      recentGroup(page, format).getByRole("option", {
+        name: entry.title,
+        exact: true,
+      })
+    ).toBeVisible();
+  });
+
+  test("offers an entry opened from the main menu as a recent one", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // From the main menu dropdown, not from the palette: that is the path a user takes, and the
+    // history exists for exactly those clicks rather than for what was searched here before.
+    const entry = (await menuEntries(page)).find(
+      (e) => e.fromMainMenu && e.url.startsWith("next/")
+    );
+    if (!entry) {
+      throw new Error("No main menu entry served by this app.");
+    }
+
+    await goto(page, "/");
+    // The trigger is a Radix MenubarTrigger, i.e. a `menuitem` itself and not a `button`. Retried,
+    // for the same reason focusSearch retries: a click before hydration lands on nothing.
+    const trigger = page.getByRole("menuitem", {
+      name: format.t("menu.main.title"),
+    });
+    // A `link`, not a `menuitem`: the MenubarItems render `asChild`, so the role is the anchor's.
+    const target = page.getByRole("link", { name: entry.title, exact: true });
+    await expect(async () => {
+      await trigger.click();
+      await expect(target.first()).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 30_000 });
+    await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().includes("/rs/menu/recent") && res.status() === 204
+      ),
+      page.waitForResponse((res) => res.url().endsWith("/rs/menu") && res.ok()),
+      target.first().click(),
+    ]);
+
+    await focusSearch(page, format);
+    await expect(
+      recentGroup(page, format).getByRole("option", {
+        name: entry.title,
+        exact: true,
+      })
     ).toBeVisible();
   });
 
@@ -213,6 +263,13 @@ function label(format: UserFormat): string {
   return format.t("menu.quickAccess._");
 }
 
+/** The "recently used" group of the open palette, shown only while the field is empty. */
+function recentGroup(page: Page, format: UserFormat): Locator {
+  return results(page).getByRole("group", {
+    name: format.t("menu.quickAccess.recent"),
+  });
+}
+
 /** The hits, which hang below the field as a popover rather than covering the page as a modal. */
 function results(page: Page): Locator {
   return page.locator('[data-slot="popover-content"]');
@@ -236,15 +293,23 @@ async function menuEntries(page: Page): Promise<Entry[]> {
   const menu = (await res.json()) as MenuData;
   const entries: Entry[] = [];
   const seen = new Set<string>();
+  let fromMainMenu = false;
   const collect = (items: MenuItem[] | undefined, category: string) => {
     items?.forEach((item) => {
       if (item.subMenu?.length) return collect(item.subMenu, item.title);
       if (!item.url || item.type === "RESTCALL" || seen.has(item.url)) return;
       seen.add(item.url);
-      entries.push({ title: item.title, url: item.url, category });
+      entries.push({
+        title: item.title,
+        url: item.url,
+        category,
+        fromMainMenu,
+      });
     });
   };
+  fromMainMenu = true;
   collect(menu.mainMenu?.menuItems, "");
+  fromMainMenu = false;
   collect(menu.favoritesMenu?.menuItems, "");
   // The account entries hang below a single item carrying the user's name, which is no category.
   menu.myAccountMenu?.menuItems.forEach((item) =>
@@ -258,6 +323,8 @@ interface Entry {
   url: string;
   /** Title of the entry's category, searchable in the palette as well — hence needed here. */
   category: string;
+  /** Whether the main menu dropdown offers it, i.e. whether a case can click it there. */
+  fromMainMenu: boolean;
 }
 
 /** The entries a term matches, by title or by category, as the search decides it. */

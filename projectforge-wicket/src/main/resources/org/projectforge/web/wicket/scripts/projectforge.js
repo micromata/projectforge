@@ -11,6 +11,43 @@ function toggle(component) {
 }
 
 /**
+ * Reports a click on a menu entry, so the quick access search of the new UI offers it again. The
+ * history is the backend's and shared by all three frontends (RecentMenuEntriesService).
+ *
+ * Called once per page by NavTopPanel.renderHead. The handler is delegated on the body, because the
+ * menu is rendered anew with every request, and it is registered only once even if a page should
+ * render two nav panels. The menu links are bookmarkable <a href>s without a Java onClick, which is
+ * why the reporting happens here and not in a Wicket link.
+ *
+ * @param url absolute url of MenuRest.reportMenuUsage.
+ */
+var pfMenuUsageReportingUrl = null;
+
+function pfInitMenuUsageReporting(url) {
+    var alreadyInitialized = pfMenuUsageReportingUrl !== null;
+    pfMenuUsageReportingUrl = url;
+    if (alreadyInitialized) {
+        return;
+    }
+    $('body').on('click', 'a[data-menu-key]', function () {
+        var key = $(this).attr('data-menu-key');
+        if (!key || !pfMenuUsageReportingUrl) {
+            return;
+        }
+        // keepalive: the click navigates away, so the document is being torn down while this is in
+        // flight. Errors are ignored - a convenience list is worth no interruption of the navigation.
+        fetch(pfMenuUsageReportingUrl, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({key: key}),
+            keepalive: true
+        }).catch(function () {
+        });
+    });
+}
+
+/**
  * Function for tree view, which disable the row click to enable expanding and collapsing tree model.
  *
  */

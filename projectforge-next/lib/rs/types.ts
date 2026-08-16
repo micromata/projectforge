@@ -173,6 +173,12 @@ export interface MenuData {
   mainMenu: Menu;
   favoritesMenu: Menu;
   myAccountMenu: Menu;
+  /**
+   * The entries the user opened last, most recent first, resolved out of the three menus above
+   * (RecentMenuEntriesService). Optional, so a build against an older backend degrades to an empty
+   * history instead of breaking.
+   */
+  recentMenu?: Menu;
 }
 
 // --- Dynamic Layout ---

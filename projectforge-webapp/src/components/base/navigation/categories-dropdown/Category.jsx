@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { Collapse } from 'reactstrap';
+import reportMenuUsage from '../../../../utilities/menuUsage';
 import style from '../Navigation.module.scss';
 import MenuBadge from './MenuBadge';
 
@@ -23,7 +24,9 @@ function Category({
         }
     };
 
-    const handleLinkClick = () => {
+    // The main menu does not go through NavigationAction, so this is where its usage is reported.
+    const handleLinkClick = (item) => {
+        reportMenuUsage(item.key);
         closeMenu?.();
     };
 
@@ -66,7 +69,7 @@ function Category({
                             key={`category-link-${item.key}`}
                         >
                             <Link
-                                onClick={handleLinkClick}
+                                onClick={() => handleLinkClick(item)}
                                 to={`/${item.url}/`}
                             >
                                 {item.title}

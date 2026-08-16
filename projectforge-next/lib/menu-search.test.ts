@@ -65,6 +65,25 @@ describe("flattenMenuEntries", () => {
     ]);
   });
 
+  it("passes MenuItem.key through as menuKey, for reporting the entry as used", () => {
+    const entries = flattenMenuEntries(
+      menu({
+        favoritesMenu: { menuItems: [bareLeaf("VACATION", "Vacation")] },
+      }),
+      LABELS
+    );
+    // Unchanged, qualified or bare as the tree sent it: the server normalizes it, and the entry's
+    // identity here stays the url.
+    expect(entries[0]).toMatchObject({
+      key: "next/ADDRESS_LIST",
+      menuKey: "COMMON.ADDRESS_LIST",
+    });
+    expect(entries.at(-1)).toMatchObject({
+      key: "next/VACATION",
+      menuKey: "VACATION",
+    });
+  });
+
   it("answers with nothing while the menu is still loading", () => {
     expect(flattenMenuEntries(undefined, LABELS)).toEqual([]);
   });

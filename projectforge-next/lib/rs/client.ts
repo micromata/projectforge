@@ -325,6 +325,28 @@ export function fetchMenu(signal?: AbortSignal): Promise<MenuData> {
   return request<MenuData>("/rs/menu", { method: "GET" }, signal);
 }
 
+/**
+ * Reports a menu entry the user just opened, so `MenuData.recentMenu` offers it again. All three
+ * frontends do this; the server owns the history (RecentMenuEntriesService).
+ *
+ * @param key `MenuItem.key` as this client received it — the server normalizes and ignores anything
+ * that is no menu entry, so a caller needs to know none of those rules.
+ */
+export async function reportMenuUsage(key: string): Promise<void> {
+  try {
+    // `keepalive`, because most menu entries still point at Wicket or the legacy app: the document
+    // is being torn down while this is in flight, which would cancel an ordinary fetch.
+    // The answer is 204, so there is no body to read.
+    await rawRequest("/rs/menu/recent", {
+      method: "POST",
+      body: JSON.stringify({ key }),
+      keepalive: true,
+    });
+  } catch {
+    // A history is worth no interruption of the navigation the user asked for.
+  }
+}
+
 // --- Dynamic Pages ---
 
 export function fetchInitialList(

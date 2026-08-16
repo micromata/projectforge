@@ -76,8 +76,8 @@ export function QuickAccessResults({
         .map((key) => entries.find((entry) => entry.key === key))
         .filter((entry): entry is MenuEntry => entry !== undefined);
 
-  function go(url: string, rememberKey?: string) {
-    if (rememberKey) remember(rememberKey);
+  function go(url: string, menuKey?: string) {
+    remember(menuKey);
     onNavigate();
     const target = resolveMenuUrl(url);
     if (target.kind === "internal") {
@@ -149,7 +149,7 @@ function QuickAccessItem({
   /** Which group renders it — see the `value` below. */
   group: string;
   entry: MenuEntry;
-  onSelect: (url: string, key: string) => void;
+  onSelect: (url: string, menuKey?: string) => void;
 }) {
   return (
     <CommandItem
@@ -157,7 +157,7 @@ function QuickAccessItem({
       // screen twice: once under "recently used" and once in its category. With one value for both
       // rows, arrow keys would select them together and skip one of them.
       value={`${group}:${entry.key}`}
-      onSelect={() => onSelect(entry.url, entry.key)}
+      onSelect={() => onSelect(entry.url, entry.menuKey)}
     >
       <span className="truncate">{entry.title}</span>
       {entry.badgeCounter ? (

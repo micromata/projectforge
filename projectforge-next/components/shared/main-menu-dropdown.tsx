@@ -15,6 +15,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /**
  * Column count and panel width come from the same place: with the two split up, the panel used to
@@ -89,6 +90,7 @@ export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
 }
 
 function CategoryColumn({ category }: { category: MenuItem }) {
+  const report = useReportMenuUsage();
   return (
     <div className="flex flex-col gap-0.5">
       {/* The brand token, not text-primary: --primary turns near-white in dark mode. */}
@@ -99,7 +101,11 @@ function CategoryColumn({ category }: { category: MenuItem }) {
         // MenubarItem, not a bare link: it is what closes the panel on click and wires up
         // keyboard navigation.
         <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
-          <MenuLink url={item.url} className={cn("text-sm", MENU_HOVER_CLASS)}>
+          <MenuLink
+            url={item.url}
+            onClick={() => report(item.key)}
+            className={cn("text-sm", MENU_HOVER_CLASS)}
+          >
             <span className="truncate">{item.title}</span>
             {item.badge?.counter ? (
               <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">

@@ -11,6 +11,10 @@ export const MENU_HOVER_CLASS =
 /**
  * Renders a menu entry as a client-side link when it belongs to this app, and as a plain anchor
  * (full page load) when it points at the legacy React app or Wicket.
+ *
+ * Deliberately free of state and side effects, so it stays usable from a Server Component and costs
+ * nothing per instance — it is rendered per table row in places like OrdersCell. Reporting an opened
+ * menu entry is therefore the caller's job (useReportMenuUsage), not this component's.
  */
 export function MenuLink({
   url,

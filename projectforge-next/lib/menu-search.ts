@@ -15,6 +15,11 @@ export interface MenuEntry {
   key: string;
   title: string;
   url: string;
+  /**
+   * `MenuItem.key` as the backend sent it, for reporting the entry as used (see reportMenuUsage).
+   * Not the identity of the entry, for the reason given above — the server normalizes it.
+   */
+  menuKey?: string;
   /** Translated title of the category the entry sits in — the palette's group heading. */
   category: string;
   badgeCounter?: number;
@@ -64,6 +69,7 @@ export function flattenMenuEntries(
         key: item.url,
         title: item.title,
         url: item.url,
+        menuKey: item.key,
         category,
         badgeCounter: item.badge?.counter,
       });

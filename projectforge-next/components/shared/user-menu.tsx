@@ -13,6 +13,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /**
  * "My account" menu on the right of the nav bar; logout is handled in-app, not as a link.
@@ -31,6 +32,7 @@ export function UserMenu({
   onLogout: () => void;
 }) {
   const t = useTranslations("menu");
+  const report = useReportMenuUsage();
   // Tolerate a flat menu too: the wrapper is MenuRest's doing, not part of the contract.
   const entries = items.flatMap((item) => item.subMenu ?? [item]);
 
@@ -62,7 +64,11 @@ export function UserMenu({
           }
           return (
             <MenubarItem key={item.key ?? item.url ?? item.title} asChild>
-              <MenuLink url={item.url} className={MENU_HOVER_CLASS}>
+              <MenuLink
+                url={item.url}
+                onClick={() => report(item.key)}
+                className={MENU_HOVER_CLASS}
+              >
                 <span className="truncate">{item.title}</span>
                 {/* "2FA setup" carries a counter; without this it would be lost here. */}
                 {item.badge?.counter ? (
