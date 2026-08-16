@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRowSelection, type RowSelection } from "@/components/data-table";
 import {
   cancelMultiSelection,
+  MULTI_SELECTION_PARAM,
   selectEntries,
   startMultiSelection,
 } from "@/lib/rs/multi-select";
@@ -79,6 +81,17 @@ export function useListSelection({
     if (!endpoint || !restoredIds?.length) return;
     restoreRows(entity, restoredIds);
   }, [entity, endpoint, restoredIds, restoreRows]);
+
+  // A list opened *for* a mass update comes with the mode already on (see MULTI_SELECTION_PARAM).
+  const requested = useMultiSelectionRequest();
+  const honoured = useRef(false);
+  useEffect(() => {
+    if (!endpoint || !requested || honoured.current) return;
+    // Once per mount, so leaving the mode is final: the parameter stays in the url until the user
+    // navigates away, and without this the very next render would switch the mode straight back on.
+    honoured.current = true;
+    enterMode(entity);
+  }, [endpoint, entity, enterMode, requested]);
 
   /** The `startSelection` currently in flight, which every `select` waits for. */
   const registration = useRef<Promise<unknown> | null>(null);
@@ -178,4 +191,15 @@ export function useListSelection({
     leave,
     flush,
   };
+}
+
+/**
+ * Whether the url asks for the selection mode — `?multiSelectionMode=true`, as the backend links to a
+ * list that is opened in order to mass update from it (`PagesResolver.getMultiSelectionPageUrl`).
+ *
+ * `useSearchParams()` needs a `Suspense` boundary above it under `output: "export"`; the one in the
+ * authenticated layout covers every list page.
+ */
+function useMultiSelectionRequest(): boolean {
+  return useSearchParams().get(MULTI_SELECTION_PARAM) === "true";
 }

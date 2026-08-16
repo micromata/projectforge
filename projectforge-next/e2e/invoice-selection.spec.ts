@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
+import { MULTI_SELECTION_PARAM } from "../lib/rs/multi-select";
 
 /**
  * The selection mode of the invoice list against the live backend: what it makes appear, whether the
@@ -144,6 +145,28 @@ test.describe("invoice selection mode", () => {
     await modeToggle(page, format).click();
   });
 
+  test("opens in the mode when the url asks for it", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // How the backend links to a list that is opened *for* a mass update (`PagesResolver
+    // .getMultiSelectionPageUrl`) — the mode must not have to be switched on by hand then.
+    await openList(page, `?${MULTI_SELECTION_PARAM}=true`);
+    await expect(modeToggle(page, format)).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(1);
+
+    // And leaving is final, although the parameter is still in the url.
+    await modeToggle(page, format).click();
+    await expect(modeToggle(page, format)).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
+  });
+
   test("carries the selection to the mass update page", async ({
     loggedInPage: page,
   }) => {
@@ -177,8 +200,8 @@ test.describe("invoice selection mode", () => {
 /** Where the selection lives server-side, and where the mass update page is — off the declaration. */
 const MASS_UPDATE = INVOICE_PAGE.massUpdate!;
 
-async function openList(page: Page): Promise<void> {
-  await goto(page, INVOICE_PAGE.route);
+async function openList(page: Page, query = ""): Promise<void> {
+  await goto(page, `${INVOICE_PAGE.route}${query}`);
   // Rows that are *there*, not the loading skeleton: it renders a row per placeholder, so waiting for
   // a `tr` would enter the selection mode over an empty table — the mode focuses the first row as it
   // is switched on, and there would be none.

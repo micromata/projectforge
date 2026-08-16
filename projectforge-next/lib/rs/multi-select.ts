@@ -28,6 +28,16 @@ import type {
 /** HTTP status Spring answers with when the update was rejected (see AbstractPagesRestUtils). */
 const NOT_ACCEPTABLE = 406;
 
+/**
+ * The query parameter that asks a list to open in selection mode — the backend's
+ * `MultiSelectionSupport.REQUEST_PARAM_MULTI_SELECTION`, and what `PagesResolver
+ * .getMultiSelectionPageUrl` puts into every link that leads to a list *for* a mass update.
+ *
+ * Spelled the same here because those links are the backend's, not this app's: a page reached through
+ * one must not open as a plain list the user has to switch over by hand.
+ */
+export const MULTI_SELECTION_PARAM = "multiSelectionMode";
+
 /** One field the page may change — the backend's `MassUpdateFieldMeta`. */
 export interface MassUpdateFieldMeta {
   /** Name of the field, and the key of its parameter in the posted map. */
