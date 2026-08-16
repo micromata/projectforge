@@ -152,10 +152,35 @@ object NextMigration {
     )
 
     /**
+     * The REST categories served by projectforge-next.
+     *
+     * Exposed for `NextMigrationTest`, which asserts that this set is the one
+     * `HAND_BUILT_CATEGORIES` in projectforge-next names: the two lists encode the same decision in
+     * two languages, and a category missing from either one fails silently - the frontend serves the
+     * generic UILayout page under `next/<category>`, or the menu points at a page that isn't there.
+     */
+    val categories: Set<String>
+        get() = MIGRATED.keys
+
+    /**
      * @return true, if the page of the given REST category is served by projectforge-next.
      */
     fun isMigrated(category: String): Boolean {
         return MIGRATED.containsKey(category)
+    }
+
+    /**
+     * Whether a frontend url points into projectforge-next, no matter which category produced it.
+     *
+     * Needed where only the url is left and the category isn't known any more - the menu is built from
+     * [org.projectforge.menu.builder.MenuItemDefId], which carries the url of a page, not its category
+     * (see `WicketMenuBuilder`).
+     *
+     * @param url A frontend url with or without leading slash, e.g. `next/order` or `/wa/cost1List`.
+     */
+    @JvmStatic
+    fun isNextUrl(url: String?): Boolean {
+        return url?.removePrefix("/")?.startsWith(Constants.NEXT_APP_PATH) == true
     }
 
     /**

@@ -5,7 +5,8 @@
  * wrong, not that the generic renderer should take over.
  *
  * Keep in sync with `NextMigration.MIGRATED` in projectforge-business: a category
- * is either hand built (listed here) or server-laid-out, never both. One entry per
+ * is either hand built (listed here) or server-laid-out, never both (asserted by
+ * `NextMigrationTest`, which parses this array). One entry per
  * category — the route of a hand built page is its REST category, so the url reads
  * the same either way (`/next/book`, `/rs/book`).
  */
