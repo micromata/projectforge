@@ -26,8 +26,8 @@ CREATE INDEX idx_fk_t_pf_user_stay_logged_in_user
 
 -- The shared key per user is gone: it made a targeted logout impossible (one key for all devices) and
 -- was stored reversibly encrypted, while the new token is only stored as a SHA-256 hash.
-ALTER TABLE T_PF_USER_AUTHENTICATIONS DROP COLUMN stay_logged_in_key;
-ALTER TABLE T_PF_USER_AUTHENTICATIONS DROP COLUMN stay_logged_in_key_creation_date;
+-- ALTER TABLE T_PF_USER_AUTHENTICATIONS DROP COLUMN stay_logged_in_key;
+-- ALTER TABLE T_PF_USER_AUTHENTICATIONS DROP COLUMN stay_logged_in_key_creation_date;
 
 -- Rollback:
 -- The dropped columns can be re-created, but their content is gone for good - a rollback therefore means
