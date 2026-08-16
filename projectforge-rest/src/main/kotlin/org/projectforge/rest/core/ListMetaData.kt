@@ -28,6 +28,7 @@ import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UILayout
+import java.io.Serializable
 
 /**
  * Everything a hand built list page needs beside its rows, served by
@@ -77,6 +78,21 @@ class ListMetaData(
      * strength of a flag here still gets an `AccessException` from the write it triggers.
      */
     val userAccess: UILayout.UserAccess,
+    /**
+     * The entries this user had ticked for a mass update, so a reload or a detour through the legacy
+     * app restores them ([org.projectforge.rest.multiselect.MultiSelectionSupport.SessionContext]).
+     *
+     * Null while no selection is open, which is the normal case - the page then shows a plain list.
+     * The ids are the ones `{page}/select` was last posted, under the same session key
+     * (`AbstractEntityRest::class.java.name`), so the list and its mass update page agree without
+     * either of them saying so.
+     *
+     * Served here rather than on [ResultSet.selectedEntityIds], which carries the same ids for the
+     * legacy grid: that one is only filled in the `?multiSelectionMode=true` branch of
+     * `AbstractPagesRestUtils`, which replaces the result set with `getListByIds` and flips the
+     * user's stored filter - a list-wide mode, where this is one restored detail of a normal list.
+     */
+    val selectedIds: Collection<Serializable>? = null,
     /** Page specific additions, see [AbstractEntityRest.addVariablesForListPage]. */
     var variables: Map<String, Any>? = null,
 )

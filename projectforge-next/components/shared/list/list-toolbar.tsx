@@ -35,6 +35,12 @@ export interface ListToolbarProps {
    * legacy link and the gear menu: they act on the page, but on all of it rather than on its settings.
    */
   actions?: ReactNode;
+  /**
+   * Switches the list into selection mode — its own prop rather than one of [actions], because it
+   * changes what the page *is* (clicks select, checkboxes appear) instead of acting on the list.
+   * Absent for a list with no mass update, which has nothing to select for.
+   */
+  selectionToggle?: ReactNode;
   /** Column visibility/pinning panel, rendered once the table instance exists. */
   columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
@@ -53,6 +59,7 @@ export function ListToolbar({
   addIsLegacy,
   legacyUrl,
   actions,
+  selectionToggle,
   columnPanel,
   filterPills,
   gearMenu,
@@ -74,6 +81,7 @@ export function ListToolbar({
         <div className="flex items-center gap-3 self-start">
           {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
           <LegacyPageLink url={legacyUrl} />
+          {selectionToggle}
           {actions}
           {/* Divider only with a menu beside it: it separates the list's own actions from
               "add", which creates an entity. */}

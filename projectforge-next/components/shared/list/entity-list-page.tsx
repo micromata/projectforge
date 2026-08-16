@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -20,6 +20,8 @@ import { Spinner } from "@/components/shared/spinner";
 import { useEditTargets } from "@/hooks/use-edit-targets";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
+import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
+import { useEntitySelection } from "@/store/selection-store";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import {
   auditColumnsFor,
@@ -32,6 +34,8 @@ import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
 import { ListToolbar } from "./list-toolbar";
 import { MassUpdateButton } from "./mass-update-button";
+import { SelectionBar } from "./selection-bar";
+import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
 
 export interface EntityListPageProps<
@@ -83,6 +87,12 @@ export function EntityListPage<
   );
 }
 
+/**
+ * The checkbox column leads every row, whatever the user's stored layout says — constant, so the
+ * table's memoization is not defeated by a fresh array on every render (see withLockedFirst).
+ */
+const LOCKED_COLUMN_IDS = [SELECTION_COLUMN_ID];
+
 /** Always includes the deleted entry first, then any entity-specific entries. */
 function legendEntries<
   Row extends ListRow,
@@ -129,20 +139,27 @@ function DeclaredList<
     page.metadata,
     declarations.columns
   );
+  // The mode read straight from the store, because the columns depend on it and they are an argument
+  // of the hook that owns the selection (see useListSelection, which reads the same entry).
+  const selectionActive = useEntitySelection(page.entity).active;
   // Prepended rather than declared, and outside useDeclaredColumns: it shows no property of the
-  // entity, so there is nothing for a declaration to name and no metadata to derive it from.
+  // entity, so there is nothing for a declaration to name and no metadata to derive it from. Only
+  // inside the mode — outside it, a column of unticked checkboxes is a column of nothing.
   const columns = useMemo(
-    () => (page.massUpdate ? [selectionColumn<Row>(), ...declared] : declared),
-    [declared, page.massUpdate]
+    () =>
+      page.massUpdate && selectionActive
+        ? [selectionColumn<Row>(), ...declared]
+        : declared,
+    [declared, page.massUpdate, selectionActive]
   );
   // Derived from the same declarations as the columns, so the pinned edge and the order are one
-  // statement and cannot drift (see defaultPinningOf). The checkboxes are pinned first: they belong
-  // to the row as a whole, so scrolling sideways must not take them away.
-  const defaultPinning = useMemo(() => {
-    const pinning = defaultPinningOf(declarations.columns);
-    if (!page.massUpdate) return pinning;
-    return { ...pinning, left: [SELECTION_COLUMN_ID, ...(pinning.left ?? [])] };
-  }, [declarations.columns, page.massUpdate]);
+  // statement and cannot drift (see defaultPinningOf). The checkbox column is not in here: it leads
+  // the row as a *locked* column, which is a render-time derivation and stays out of the layout the
+  // user owns and the backend stores (see withLockedFirst).
+  const defaultPinning = useMemo(
+    () => defaultPinningOf(declarations.columns),
+    [declarations.columns]
+  );
 
   const list = useEntityListPage<Row>({
     entity: page.entity,
@@ -152,9 +169,19 @@ function DeclaredList<
     restoredFilter,
     defaultPinning,
     defaultVisibility: declarations.defaultVisibility,
-    enableSelection: !!page.massUpdate,
+    massUpdateEndpoint: page.massUpdate?.endpoint,
+    lockedColumnIds: LOCKED_COLUMN_IDS,
   });
   const ListActions = page.listActions;
+  const mode = list.selectionMode;
+  const table = list.table;
+  // Both the shortcut and the bar's button mean the whole result set, which is the set the table's own
+  // header checkbox covers as well (the list holds it all on the client).
+  const selectAll = useCallback(
+    () => table.toggleAllRowsSelected(true),
+    [table]
+  );
+  useSelectAllShortcut(mode.active, selectAll);
 
   return (
     <PageShell>
@@ -168,19 +195,15 @@ function DeclaredList<
             addHref={targets.addHref}
             addIsLegacy={targets.legacy}
             legacyUrl={list.legacyUrl}
-            actions={
-              <>
-                {page.massUpdate && list.selection && (
-                  <MassUpdateButton
-                    entity={page.entity}
-                    massUpdate={page.massUpdate}
-                    filter={list.filter}
-                    selectedIds={list.selection.selectedIds}
-                  />
-                )}
-                {ListActions && <ListActions filter={list.filter} />}
-              </>
+            selectionToggle={
+              page.massUpdate && (
+                <SelectionModeToggle
+                  active={mode.active}
+                  onToggle={() => (mode.active ? mode.leave() : mode.enter())}
+                />
+              )
             }
+            actions={ListActions && <ListActions filter={list.filter} />}
             gearMenu={
               <ListGearMenu
                 entity={page.entity}
@@ -213,6 +236,24 @@ function DeclaredList<
           statistics: list.statistics,
           isFetching: list.isFetching,
         })}
+        selectionBar={
+          page.massUpdate &&
+          mode.active && (
+            <SelectionBar
+              count={mode.selectedIds.length}
+              onSelectAll={selectAll}
+              onClear={() => mode.selection?.clear()}
+              onLeave={mode.leave}
+              actions={
+                <MassUpdateButton
+                  massUpdate={page.massUpdate}
+                  selectedIds={mode.selectedIds}
+                  flush={mode.flush}
+                />
+              }
+            />
+          )
+        }
       >
         <DataTable<Row>
           table={list.table}
@@ -228,9 +269,9 @@ function DeclaredList<
           highlightRowId={list.highlightRowId}
           highlightScope={page.entity}
           onRowClick={(row) => targets.openEntry(row.id)}
-          // Both, and not one or the other: while nothing is picked a plain click still opens the
-          // entry, and the selection declines it (see useRowSelection.onRowClick).
-          selection={list.selection}
+          // The mode decides what a click means: outside it every click opens the entry, inside it
+          // every click selects (`selection` is undefined outside, so nothing of it is wired up).
+          selection={mode.selection}
           footer={<TableLegend entries={legendEntries(page)} />}
           className="flex-1"
         />

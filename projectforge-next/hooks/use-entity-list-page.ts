@@ -9,12 +9,11 @@ import {
   useListFilters,
   useMagicFilterQuery,
   useRememberFilter,
-  useRowSelection,
   useTableState,
   type ColumnState,
   type FilterValues,
 } from "@/components/data-table";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type {
   ColumnDef,
   ColumnPinningState,
@@ -23,6 +22,7 @@ import type {
 } from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useListMeta } from "@/hooks/use-list-meta";
+import { useListSelection } from "@/hooks/use-list-selection";
 
 /**
  * A row of a list: addressable by id, and marked as deleted or not.
@@ -57,13 +57,18 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    */
   defaultVisibility?: VisibilityState;
   /**
-   * The list lets the user pick rows for a mass update (see PageDef.massUpdate).
+   * REST base of the entity's mass update page (`invoiceSelected`), for a list that offers one — see
+   * `MassUpdateDef.endpoint`, and useListSelection for what it is called with.
    *
-   * Off by default, and not merely a cosmetic switch: with selection on, a click on a row selects it
-   * instead of opening it, so a list that has nothing to select would stop reacting the way its users
-   * expect.
+   * What switches the selection mode on is the user, not this: absent it there is no mode to enter,
+   * because a selection nothing can be done with is only a way to stop a click from opening a row.
    */
-  enableSelection?: boolean;
+  massUpdateEndpoint?: string;
+  /**
+   * Columns that lead the table whatever the user's stored layout says — the selection checkbox (see
+   * withLockedFirst).
+   */
+  lockedColumnIds?: string[];
 }
 
 /**
@@ -84,7 +89,8 @@ export function useEntityListPage<Row extends ListRow>({
   restoredFilter,
   defaultPinning,
   defaultVisibility,
-  enableSelection = false,
+  massUpdateEndpoint,
+  lockedColumnIds,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -137,9 +143,19 @@ export function useEntityListPage<Row extends ListRow>({
   // after the table below is built. A ref rather than a second render pass: nothing renders from it,
   // it is only read inside an event handler, by which time the effect has long run.
   const tableRef = useRef<TanstackTable<Row> | null>(null);
-  const selection = useRowSelection(() =>
-    (tableRef.current?.getRowModel().rows ?? []).map((row) => row.id)
+  const displayedRowIds = useCallback(
+    () => (tableRef.current?.getRowModel().rows ?? []).map((row) => row.id),
+    []
   );
+  const selectionMode = useListSelection({
+    entity,
+    endpoint: massUpdateEndpoint,
+    filter: query.filter,
+    // What the session still had ticked; restored once, and only into a store that knows nothing yet.
+    restoredIds: meta.data?.selectedIds,
+    displayedRowIds,
+  });
+  const selection = selectionMode.selection;
 
   // Owned here so the toolbar's column panel and the table share one instance.
   const table = useDataTable<Row>({
@@ -160,9 +176,12 @@ export function useEntityListPage<Row extends ListRow>({
     onColumnSizingChange: columnState.setColumnSizing,
     columnOrder: columnState.columnOrder,
     onColumnOrderChange: columnState.setColumnOrder,
-    rowSelection: selection.state,
-    onRowSelectionChange: selection.setState,
-    enableRowSelection: enableSelection,
+    lockedColumnIds,
+    rowSelection: selection?.state,
+    onRowSelectionChange: selection?.setState,
+    // Only inside the selection mode: with it on, the header checkbox and `row.getIsSelected()` mean
+    // something, and outside it there is nothing to render them into.
+    enableRowSelection: selectionMode.active,
     enableColumnFilters: true,
     enableColumnResizing: true,
     // Sorting and the search string go to Spring; the column filters and paging work on the client,
@@ -230,10 +249,11 @@ export function useEntityListPage<Row extends ListRow>({
     filters,
     favorites,
     /**
-     * The rows the user picked, or undefined for a list that offers no mass update — the flag decides
-     * it, so a page cannot show a checkbox column that selects nothing (see EntityListPage).
+     * The selection mode: whether it is on, what is ticked, and how to enter and leave it (see
+     * useListSelection). `selection` inside it is undefined while the mode is off, which is what
+     * keeps the checkbox column, the keyboard and the selecting click out of a plain list.
      */
-    selection: enableSelection ? selection : undefined,
+    selectionMode,
     /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
     legacyUrl: meta.data?.legacyListPage,
     data: query.data,

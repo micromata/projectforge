@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
 import { fetchMultiSelectMeta } from "@/lib/rs/multi-select";
+import { useSelectionStore } from "@/store/selection-store";
 import type { MassUpdateDef } from "@/lib/page-def/types";
 import { MassUpdateForm } from "./mass-update-form";
 
@@ -19,15 +20,19 @@ import { MassUpdateForm } from "./mass-update-form";
  * there by the list before it routed here, which is also why a reload works and a deep link does not.
  */
 export function MassUpdatePage({
+  entity,
   massUpdate: def,
   listRoute,
 }: {
+  /** REST category of the list this came from, so leaving can drop its selection mode. */
+  entity: string;
   massUpdate: MassUpdateDef;
   /** Where "back" leads — this app's list, not the legacy one the session remembers. */
   listRoute: string;
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const leaveSelection = useSelectionStore((state) => state.leave);
   const meta = useQuery({
     queryKey: ["massUpdateMeta", def.endpoint],
     queryFn: ({ signal }) => fetchMultiSelectMeta(def.endpoint, signal),
@@ -66,7 +71,13 @@ export function MassUpdatePage({
         endpoint={def.endpoint}
         meta={meta.data}
         statisticsLine={def.statisticsLine}
-        onLeave={() => router.push(listRoute)}
+        // The form's own leave already told the backend to forget the selection (`{page}/cancel`), so
+        // the list's mode has to go with it — otherwise it would come back showing ticks that only
+        // this app still believes in.
+        onLeave={() => {
+          leaveSelection(entity);
+          router.push(listRoute);
+        }}
       />
     </PageShell>
   );

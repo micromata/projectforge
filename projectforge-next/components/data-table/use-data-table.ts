@@ -21,7 +21,11 @@ import {
   type Table,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { columnIdOfDef, withPinnedFirst } from "./column-order";
+import {
+  columnIdOfDef,
+  withLockedFirst,
+  withPinnedFirst,
+} from "./column-order";
 import { universalFilterFnFor } from "./filter-fns";
 import { DEFAULT_PAGE_SIZE } from "./page-size-options";
 
@@ -45,6 +49,13 @@ export interface UseDataTableOptions<TData> {
   onColumnSizingChange?: OnChangeFn<ColumnSizingState>;
   columnOrder?: ColumnOrderState;
   onColumnOrderChange?: OnChangeFn<ColumnOrderState>;
+  /**
+   * Columns that lead the table whatever the user's stored layout says — the selection checkbox.
+   *
+   * Folded into the order and the left pinning at render time only, so nothing of it reaches the state
+   * the caller persists (see withLockedFirst for why the order alone would not do).
+   */
+  lockedColumnIds?: string[];
   /**
    * Which rows are picked, keyed by row id — held by the caller, because the selection outlives the
    * table: it is posted to the backend and read by a toolbar (see useRowSelection).
@@ -92,6 +103,7 @@ export function useDataTable<TData>({
   onColumnSizingChange,
   columnOrder,
   onColumnOrderChange,
+  lockedColumnIds,
   rowSelection,
   onRowSelectionChange,
   enableRowSelection = false,
@@ -122,18 +134,40 @@ export function useDataTable<TData>({
   const [internalSizing, setInternalSizing] = useState<ColumnSizingState>({});
   const [internalOrder, setInternalOrder] = useState<ColumnOrderState>([]);
 
-  const effectivePinning = columnPinning ?? internalPinning;
+  const allIds = useMemo(() => columns.map(columnIdOfDef), [columns]);
+  // Only the locked columns that are actually declared: the selection column is added to `columns` for
+  // the duration of the selection mode, while the id stays passed in.
+  const lockedIds = useMemo(
+    () => (lockedColumnIds ?? []).filter((id) => allIds.includes(id)),
+    [lockedColumnIds, allIds]
+  );
+
+  // A locked column leads the table, so it is left-pinned whatever the user's stored pinning says —
+  // frozen like the columns that identify the row, and ahead of them.
+  const effectivePinning = useMemo(() => {
+    const pinning = columnPinning ?? internalPinning;
+    if (!lockedIds.length) return pinning;
+    return {
+      ...pinning,
+      left: [
+        ...lockedIds,
+        ...(pinning.left ?? []).filter((id) => !lockedIds.includes(id)),
+      ],
+    };
+  }, [columnPinning, internalPinning, lockedIds]);
+
   // The order the table renders in — not the one the caller holds and persists: a pinned column has
   // to be rendered in its pinning group, or its sticky offset and its slot in the row disagree and the
-  // pinned columns overlap (see withPinnedFirst).
+  // pinned columns overlap (see withPinnedFirst). The locked ones go first, before that fix-up runs, so
+  // withPinnedFirst finds them in the order it works over (it drops a pinned id the order lacks).
   const effectiveOrder = useMemo(
     () =>
       withPinnedFirst(
-        columnOrder ?? internalOrder,
+        withLockedFirst(columnOrder ?? internalOrder, lockedIds, allIds),
         effectivePinning,
-        columns.map(columnIdOfDef)
+        allIds
       ),
-    [columnOrder, internalOrder, effectivePinning, columns]
+    [columnOrder, internalOrder, lockedIds, effectivePinning, allIds]
   );
 
   const changePagination = onPaginationChange ?? setInternalPagination;

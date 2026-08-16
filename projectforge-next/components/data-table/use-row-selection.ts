@@ -15,14 +15,21 @@ export interface RowSelection {
   clear: () => void;
   /**
    * Click on a row: Ctrl/Cmd toggles it, Shift extends from the anchor, and a plain click selects only
-   * it — but only while something is already picked. Answers whether it took the click, so the first,
-   * unmodified click on an untouched list still opens the entry (see DataTableRow.onSelectClick).
+   * it. Always takes the click — inside the selection mode that is what a click *is*, and outside it
+   * this hook's handlers are not wired up at all (see EntityListPage).
+   *
+   * Still answers a boolean, which is what tells [DataTableRow] not to open the entry as well.
    */
   onRowClick: (rowId: string, modifiers: ClickModifiers) => boolean;
   /** Arrow keys move the focus, Shift+Arrow extends, Space toggles the focused row. */
   onKeyDown: (event: React.KeyboardEvent) => void;
   /** Row the keyboard is on, so the table can mark it. */
   focusedRowId: string | null;
+  /**
+   * Puts the keyboard on the first row without selecting it — the anchor entering the mode sets, so
+   * `↑`/`↓` and `Shift+↓` work at once instead of after a first click (see DataTable's focus effect).
+   */
+  focusFirstRow: () => void;
 }
 
 /**
@@ -37,29 +44,32 @@ export interface RowSelection {
  * table is created with this selection's state (so it does not exist yet when this runs), and the
  * ranges have to be taken over the order the user currently sees and drags over — which is read when
  * the click happens, not when the hook does.
+ *
+ * The ticked rows may be held outside (`state`/`setState`), because the selection outlives the list:
+ * it is remembered per entity while the user visits the mass update page and comes back, and it is
+ * posted to the backend from there (see useListSelection). Without them it keeps its own state, which
+ * is what a table with no such lifetime needs.
  */
-export function useRowSelection(displayedRowIds: () => string[]): RowSelection {
-  const [state, setStateInternal] = useState<RowSelectionState>({});
+export function useRowSelection(
+  displayedRowIds: () => string[],
+  external?: {
+    state: RowSelectionState;
+    setState: React.Dispatch<React.SetStateAction<RowSelectionState>>;
+  }
+): RowSelection {
+  const [internalState, setInternalState] = useState<RowSelectionState>({});
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   /** Where a Shift range starts: the row last clicked or toggled, as an id. */
   const anchorRowId = useRef<string | null>(null);
-  /**
-   * Read in the click handler, which must stay the same function across renders (the table is built
-   * with it): as a dependency it would rebuild the handler on every change of the selection. Kept
-   * current in the state updater instead of during render — every change comes through `setState`,
-   * the checkbox column's included (TanStack is given it as `onRowSelectionChange`).
-   */
-  const hasSelection = useRef(false);
 
+  const state = external?.state ?? internalState;
+  const setExternalState = external?.setState;
   const setState = useCallback<
     React.Dispatch<React.SetStateAction<RowSelectionState>>
-  >((value) => {
-    setStateInternal((previous) => {
-      const next = typeof value === "function" ? value(previous) : value;
-      hasSelection.current = Object.values(next).some(Boolean);
-      return next;
-    });
-  }, []);
+  >(
+    (value) => (setExternalState ?? setInternalState)(value),
+    [setExternalState]
+  );
 
   const selectedIds = Object.keys(state)
     .filter((id) => state[id])
@@ -72,14 +82,15 @@ export function useRowSelection(displayedRowIds: () => string[]): RowSelection {
     anchorRowId.current = null;
   }, [setState]);
 
+  const focusFirstRow = useCallback(() => {
+    const [first] = displayedRowIds();
+    if (!first) return;
+    setFocusedRowId(first);
+    anchorRowId.current = first;
+  }, [displayedRowIds]);
+
   const onRowClick = useCallback(
     (rowId: string, modifiers: ClickModifiers) => {
-      const modified =
-        modifiers.shiftKey || modifiers.ctrlKey || modifiers.metaKey;
-      // A plain click means "select only this row" once a selection is running, and "open this entry"
-      // before it is — the checkbox, Ctrl+click or Shift+click is how one starts.
-      if (!modified && !hasSelection.current) return false;
-
       const rowIds = displayedRowIds();
       setFocusedRowId(rowId);
       if (modifiers.shiftKey && anchorRowId.current) {
@@ -149,6 +160,7 @@ export function useRowSelection(displayedRowIds: () => string[]): RowSelection {
     onRowClick,
     onKeyDown,
     focusedRowId,
+    focusFirstRow,
   };
 }
 

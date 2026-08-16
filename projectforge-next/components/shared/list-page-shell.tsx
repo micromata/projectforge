@@ -10,18 +10,28 @@ export interface ListPageShellProps {
    * whole list, not to the page of rows that happens to be visible.
    */
   banner?: ReactNode;
+  /**
+   * Directly above the table while the list is in selection mode — the count and what can be done
+   * with it (see SelectionBar).
+   *
+   * Below the statistics banner rather than beside the toolbar: it is a *state* of the table, and it
+   * appears and disappears, so it must not move the toolbar's own rows around when it does.
+   */
+  selectionBar?: ReactNode;
   children: ReactNode;
 }
 
 export function ListPageShell({
   toolbar,
   banner,
+  selectionBar,
   children,
 }: ListPageShellProps) {
   return (
     <>
       {toolbar}
       {banner}
+      {selectionBar}
       <div className="flex flex-1 overflow-hidden">{children}</div>
     </>
   );

@@ -14,6 +14,29 @@ export function columnIdOfDef<TData>(def: ColumnDef<TData, unknown>): string {
 }
 
 /**
+ * The column order with the locked columns in front of everything, in the order they are given.
+ *
+ * A locked column is one whose position is not the user's to change — the selection checkbox, which
+ * leads the row or is useless. It cannot be expressed as pinning alone: TanStack appends a column the
+ * `columnOrder` does not name to the *end* (ColumnOrdering's "if there are any columns left, add them
+ * to the end"), so for every user with a stored order from before the column existed it would render
+ * last and off-screen. The legacy grid called this `UIAgGridColumnDef.lockPosition`.
+ *
+ * Applied at render time over the stored order, and the locked ids are stripped from it first — so a
+ * stored order that wrongly holds one (written before it was locked) is corrected, and nothing has to
+ * be migrated in what the user persisted.
+ */
+export function withLockedFirst(
+  order: ColumnOrderState,
+  lockedIds: string[],
+  allIds: string[]
+): ColumnOrderState {
+  if (!lockedIds.length) return order;
+  const base = order.length ? order : allIds;
+  return [...lockedIds, ...base.filter((id) => !lockedIds.includes(id))];
+}
+
+/**
  * The column order with the pinned columns where they have to be: the left-pinned ones first, the
  * right-pinned ones last, each group in its *pinning* order.
  *

@@ -218,6 +218,7 @@
   "delete": "Löschen",
   "deleted": "gelöscht",
   "description": "Beschreibung",
+  "deselectAll": "Alle abwählen",
   "download": {
     "_": "Download",
     "expired": "Downloaddatei nicht mehr verfügbar. Bitte Aktion wiederholen."
@@ -1114,6 +1115,7 @@
   },
   "markAsDeleted": "Löschen",
   "massUpdate": {
+    "button": "Massenänderung",
     "confirmQuestion": "Sollen nun alle {arg0} Objekte geändert werden?",
     "entriesFound": "Es sind {arg0} Einträge ausgewählt.",
     "error": {
@@ -1524,6 +1526,10 @@
       "addEntry": {
         "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
         "title": "Tastaturkürzel N"
+      },
+      "selectAll": {
+        "_": "STRG-A (macOS: CMD-A) wählt im Auswahlmodus alle Einträge der Liste aus.",
+        "title": "Tastaturkürzel STRG-A"
       }
     }
   },

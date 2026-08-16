@@ -283,6 +283,10 @@ constructor(
             legacyEditPage = NextMigration.legacyEditPage(category),
             legacyNewEntryPage = NextMigration.legacyNewEntryUrl(category),
             userAccess = userAccess,
+            // What this user last ticked for a mass update, so a reload (or a detour through the legacy
+            // app) restores it. Read under this rest class, the identifier startSelection registers and
+            // {page}/select narrows under - see ListMetaData.selectedIds.
+            selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, this::class.java),
             variables = addVariablesForListPage(),
         )
     }

@@ -10,6 +10,7 @@ import { INVOICE_PAGE } from "@/components/features/invoice/invoice.page";
 export default function InvoiceMassUpdatePage() {
   return (
     <MassUpdatePage
+      entity={INVOICE_PAGE.entity}
       massUpdate={INVOICE_PAGE.massUpdate!}
       listRoute={INVOICE_PAGE.route}
     />

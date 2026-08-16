@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { useDataTable, type UseDataTableOptions } from "./use-data-table";
@@ -112,6 +112,16 @@ export function DataTable<TData>({
   const overflowTooltip = useOverflowTooltip();
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
+  // below, so without this they do nothing until a click happens to focus it — which is what made
+  // "↑/↓ only work after I marked a row" the way the mode used to behave.
+  const bodyRef = useRef<HTMLTableSectionElement | null>(null);
+  const focusFirstRow = selection?.focusFirstRow;
+  useEffect(() => {
+    if (!focusFirstRow) return;
+    bodyRef.current?.focus({ preventScroll: true });
+    focusFirstRow();
+  }, [focusFirstRow]);
   useHighlightedRow({
     table,
     highlightRowId,
@@ -213,9 +223,13 @@ export function DataTable<TData>({
                 </TableRow>
               ))}
             </TableHeader>
-            {/* Focusable while rows can be picked, so the arrow keys reach the table at all; a click
-                on a row focuses it, which is what makes "click, then Shift+Down" work. */}
+            {/* Focusable while rows can be picked, so the arrow keys reach the table at all — focused
+                by the effect above the moment the mode is entered, and by a click on a row after that.
+                `outline-none`: the focus ring would frame the whole body, while what the user follows
+                is the marked row (`row-focused`). */}
             <TableBody
+              ref={bodyRef}
+              className={selection ? "outline-none" : undefined}
               tabIndex={selection ? 0 : undefined}
               onKeyDown={selection?.onKeyDown}
               aria-multiselectable={selection ? true : undefined}

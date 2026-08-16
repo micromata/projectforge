@@ -49,6 +49,18 @@ const KEYS = [
   "fibu.rechnung.offen",
   "fibu.rechnung.kostExcelExport",
   "exportAsXls",
+  // The selection mode's own texts, composed in place (see SelectionBar and ListToolbar). Both
+  // shortcut keys are a text *and* a namespace, which is exactly what leafKeyOf is for.
+  "tooltip.shortcut.addEntry",
+  "tooltip.shortcut.addEntry.title",
+  "tooltip.shortcut.selectAll",
+  "tooltip.shortcut.selectAll.title",
+  "multiselection.button",
+  "multiselection.aggrid.selection.info.title",
+  "multiselection.aggrid.selection.info.message",
+  "selectAll",
+  "deselectAll",
+  "cancel",
 ];
 
 function resolve(

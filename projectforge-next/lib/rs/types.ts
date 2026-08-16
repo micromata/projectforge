@@ -441,6 +441,15 @@ export interface ListMetaData {
    */
   legacyNewEntryPage?: string;
   userAccess?: UserAccess;
+  /**
+   * The entries this user last ticked for a mass update, so entering the selection mode after a
+   * reload — or after a detour through the legacy app — comes back to what was picked.
+   *
+   * Lives in the HTTP session for 60 minutes (`MultiSelectionSupport.SessionContext`), under the
+   * same key `{page}/select` writes; absent while nothing is selected. It restores the *ticks*, not
+   * the mode: the page decides whether it is in selection mode (see useListSelection).
+   */
+  selectedIds?: number[];
   variables?: Record<string, unknown>;
 }
 

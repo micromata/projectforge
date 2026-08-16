@@ -218,6 +218,7 @@
   "delete": "Delete",
   "deleted": "deleted",
   "description": "Description",
+  "deselectAll": "Deselect all",
   "download": {
     "_": "Download",
     "expired": "Download expired. Please retry for a new download."
@@ -1114,6 +1115,7 @@
   },
   "markAsDeleted": "Delete",
   "massUpdate": {
+    "button": "Mass update",
     "confirmQuestion": "Do you really want to update all {arg0} objects now?",
     "entriesFound": "There are {arg0} entries selected.",
     "error": {
@@ -1524,6 +1526,10 @@
       "addEntry": {
         "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
         "title": "Keyboard shortcut N"
+      },
+      "selectAll": {
+        "_": "Press CTRL-A (macOS: CMD-A) to select all entries of the list while the selection mode is on.",
+        "title": "Keyboard shortcut CTRL-A"
       }
     }
   },
