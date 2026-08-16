@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.JoinType
 import org.apache.commons.collections4.CollectionUtils
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragsPositionsPaymentTypeFilter.Companion.create
@@ -527,6 +528,13 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     /**
      * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
      *
+     * The order's relations are resolved from the caches first: the REST layer builds the [AuftragDO]
+     * from its DTO, so contact person, customer and project arrive as id-only stubs. Without the e-mail
+     * address of the contact person there is no recipient at all ([Mail.setTo] ignores such a user
+     * silently and [SendMail.send] then throws `mail.error.missingToAddress` after the order has already
+     * been written), and the template would render the customer and the project as `110 - null`. For
+     * Wicket, which passes its fully loaded object, this is a no-op.
+     *
      * @param auftrag
      * @param operationType
      * @return
@@ -538,6 +546,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (!configurationService.isSendMailConfigured) {
             return false
         }
+        PfCaches.instance.initialize(auftrag)
         val contactPerson = auftrag.contactPerson ?: return false
         if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
             return false

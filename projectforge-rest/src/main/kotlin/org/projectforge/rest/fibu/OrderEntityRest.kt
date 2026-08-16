@@ -192,6 +192,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * `EntityCopyStatus.MAJOR`: that status doesn't reach this hook, so every save notifies here. The
    * checkbox is unchecked by default whenever the contact person is the logged-in user, so this affects
    * the case of an explicit request only.
+   *
+   * A failing notification must never fail the save: this hook runs after the order has been committed
+   * (`AbstractPagesRestUtils.saveOrUpdate`), so an exception escaping here would answer a written order
+   * with HTTP 406 and the client would show an error for a change that did happen. Mail delivery is out
+   * of the user's hands anyway (no reachable SMTP server, no address for the contact person), hence it is
+   * logged rather than reported.
    */
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AuftragDO, postData: PostData<Auftrag>) {
     super.onAfterSaveOrUpdate(request, obj, postData)
@@ -202,7 +208,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     val url = domainService.getDomain(
       NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
     )
-    baseDao.sendNotificationIfRequired(obj, operationType, url)
+    try {
+      baseDao.sendNotificationIfRequired(obj, operationType, url)
+    } catch (ex: Exception) {
+      log.error(ex) { "Order #${obj.nummer} (id=${obj.id}) was saved, but sending the notification mail failed: ${ex.message}" }
+    }
   }
 
   /**
