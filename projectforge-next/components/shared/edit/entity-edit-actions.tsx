@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/shared/spinner";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatTimestampMinutes } from "@/lib/format";
 
@@ -65,8 +66,18 @@ export function EntityEditActions({
         size="sm"
         disabled={isSaving || !isDirty}
         className="gap-1.5"
+        // The button is the only thing that changes while saving, so it carries the busy state.
+        aria-busy={isSaving}
       >
-        <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+        {/* In place of the icon, not next to it, so the label doesn't move. A save can take seconds —
+            the order's notification mail is sent synchronously (AuftragDao.sendNotificationIfRequired)
+            and waits for the SMTP server — and a disabled button alone doesn't say that anything is
+            happening. */}
+        {isSaving ? (
+          <Spinner className="h-3.5 w-3.5 border-2" />
+        ) : (
+          <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+        )}
         {t("save")}
       </Button>
       {saveOption}

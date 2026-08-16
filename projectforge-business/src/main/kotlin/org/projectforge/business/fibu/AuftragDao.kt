@@ -529,11 +529,16 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
      *
      * The order's relations are resolved from the caches first: the REST layer builds the [AuftragDO]
-     * from its DTO, so contact person, customer and project arrive as id-only stubs. Without the e-mail
-     * address of the contact person there is no recipient at all ([Mail.setTo] ignores such a user
-     * silently and [SendMail.send] then throws `mail.error.missingToAddress` after the order has already
-     * been written), and the template would render the customer and the project as `110 - null`. For
-     * Wicket, which passes its fully loaded object, this is a no-op.
+     * from its DTO ([org.projectforge.rest.dto.Auftrag.copyTo]), so contact person, customer and project
+     * arrive as id-only stubs. Without the e-mail address of the contact person there is no recipient at
+     * all ([Mail.setTo] ignores such a user silently and [SendMail.send] then throws
+     * `mail.error.missingToAddress` after the order has already been written), and the template would
+     * render the customer and the project as `110 - null`.
+     *
+     * The lookup is by id and not [PfCaches.initialize]: that one goes through
+     * `get*IfNotInitialized`, which only replaces a *Hibernate proxy* — a hand built `PFUserDO` carrying
+     * nothing but an id passes `HibernateUtils.isFullyInitialized` and would be kept as it is. For
+     * Wicket, which passes its fully loaded object, the lookup yields the same entities from the cache.
      *
      * @param auftrag
      * @param operationType
@@ -546,7 +551,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (!configurationService.isSendMailConfigured) {
             return false
         }
-        PfCaches.instance.initialize(auftrag)
+        resolveRelationsForNotification(auftrag)
         val contactPerson = auftrag.contactPerson ?: return false
         if (!hasAccess(contactPerson, auftrag, null, OperationType.SELECT, false)) {
             return false
@@ -576,7 +581,31 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         )
         msg.content = content
         msg.contentType = Mail.CONTENTTYPE_HTML
-        return sendMail.send(msg, null, null)
+        // Synchronously: the user asked for this mail while saving a form, so the answer to that form is
+        // the only place a failure can still be shown (see OrderEntityRest.onAfterSaveOrUpdate). An
+        // asynchronous send reports nothing but a log entry, minutes after the response has gone out. How
+        // long the save may be delayed by this is bounded by the SMTP timeouts of SendMail.
+        return sendMail.send(msg, null, null, async = false)
+    }
+
+    /**
+     * Replaces the relations the notification reads by the cached entities, looked up by id.
+     *
+     * Only the fields the mail needs: its recipient ([AuftragDO.contactPerson], for the e-mail address)
+     * and the two the template prints ([AuftragDO.kunde], [AuftragDO.projekt], for their display names).
+     * A stub whose id is unknown to the cache is left alone rather than nulled — the order was written
+     * with it, so dropping it here would silently change what the mail says about the order.
+     */
+    private fun resolveRelationsForNotification(auftrag: AuftragDO) {
+        val caches = PfCaches.instance
+        auftrag.contactPerson?.id?.let { id -> caches.getUser(id)?.let { auftrag.contactPerson = it } }
+        auftrag.kunde?.id?.let { id -> caches.getKunde(id)?.let { auftrag.kunde = it } }
+        auftrag.projekt?.id?.let { id ->
+            caches.getProjekt(id)?.let { projekt ->
+                // The project prints its customer's name as well (see OldKostFormatter.formatProjekt).
+                auftrag.projekt = projekt.also { it.kunde = caches.getKundeIfNotInitialized(it.kunde) }
+            }
+        }
     }
 
     val nextNumber: Int

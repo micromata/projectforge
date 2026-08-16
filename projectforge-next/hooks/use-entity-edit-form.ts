@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { EntityWriteResult } from "@/lib/rs/entity";
 import type { EntityForm } from "@/components/shared/form/form-context";
 import { applyServerValidationErrors } from "@/lib/validation/server-errors";
+import { showResponseMessage } from "@/lib/dynamic/response-toast";
 import { SAVE_META, type SubmitMeta } from "@/lib/rs/submit-meta";
 import type { ZodType } from "zod";
 
@@ -103,15 +104,23 @@ export function useEntityEditForm<Values, Data>({
           toast.error(tCommon("validation.error.generic"));
         return;
       }
+      // Something the write has to say beyond having gone through — the order's notification mail that
+      // could not be sent is the case (OrderEntityRest.onAfterEdit). Shown next to the success message
+      // and not instead of it: the entity *was* written, and only the extra step failed. After that
+      // message, so it ends up on top of it and not behind it; it is also the only one of the two that
+      // stays until it is closed (see showResponseMessage).
+      const extraMessage = result.action.message;
       if (meta.action !== "save") {
         // A further action stays on the page: its result is what the user came for. The backend's
         // ResponseAction is a REDIRECT to the list here too (both run through saveOrUpdate), and is
         // ignored just as it is for a save. The values it computed arrive with the invalidated
         // detail query, and the effect below resets the form onto them.
         toast.success(tCommon("message.successfullChanged"));
+        if (extraMessage) showResponseMessage(extraMessage);
         return;
       }
       toast.success(savedMessage);
+      if (extraMessage) showResponseMessage(extraMessage);
       // Back to the list, which is where the backend points too (its ResponseAction is a REDIRECT)
       // and what deleting does. The form is reset first so leaving it doesn't look like unsaved
       // changes; the list refetches on its own, the caches having been invalidated.

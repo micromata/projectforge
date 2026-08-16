@@ -371,6 +371,9 @@
         "_": "Nettosumme",
         "weighted": "Gewichtete Nettosumme"
       },
+      "notification": {
+        "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
+      },
       "nummer": {
         "_": "Nummer",
         "short": "Nr."

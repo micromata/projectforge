@@ -41,7 +41,13 @@ class ResponseAction(
    */
   var merge: Boolean? = null,
   val validationErrors: List<ValidationError>? = null,
-  val message: Message? = null,
+  /**
+   * Var, so a hook that only learns of something to report after the action was built can attach it —
+   * see [org.projectforge.rest.fibu.OrderEntityRest.onAfterEdit]. Setting it does not change
+   * [targetType]: the redirect of the action stays the action's business, the message is shown on top
+   * of it (the client toasts it before it follows the target, see lib/dynamic/response-toast.ts).
+   */
+  var message: Message? = null,
   variables: MutableMap<String, Any>? = null
 ) {
   class Message(

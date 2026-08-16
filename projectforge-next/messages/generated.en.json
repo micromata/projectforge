@@ -371,6 +371,9 @@
         "_": "Net sum",
         "weighted": "Weighted net sum"
       },
+      "notification": {
+        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
+      },
       "nummer": {
         "_": "Number",
         "short": "No"

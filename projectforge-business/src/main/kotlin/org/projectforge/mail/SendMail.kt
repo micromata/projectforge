@@ -111,6 +111,26 @@ open class SendMail {
   @Value("\${mail.session.pfmailsession.smtp.password}")
   private var mailSmtpPassword: String? = null
 
+  /**
+   * Milliseconds to wait for the connection to the SMTP server, 0 means: wait forever (the
+   * JavaMail/Angus semantics). Without it the OS TCP timeout applies, which is more than a minute — far
+   * too long for a mail sent inside a user's request (see [send] with `async = false`).
+   */
+  @Value("\${mail.session.pfmailsession.smtp.connectionTimeout:10000}")
+  private var mailSmtpConnectionTimeout: String? = null
+
+  /**
+   * Milliseconds to wait for an answer of the SMTP server (socket read timeout), 0 means: wait forever.
+   */
+  @Value("\${mail.session.pfmailsession.smtp.timeout:10000}")
+  private var mailSmtpTimeout: String? = null
+
+  /**
+   * Milliseconds to wait while writing to the SMTP server, 0 means: wait forever.
+   */
+  @Value("\${mail.session.pfmailsession.smtp.writeTimeout:10000}")
+  private var mailSmtpWriteTimeout: String? = null
+
   private val random = Random()
 
   @PostConstruct
@@ -119,11 +139,12 @@ open class SendMail {
   }
 
   /**
+   * Sends the message asynchronously, see [send].
+   *
    * @param composedMessage the message to send
    * @param attachments     other attachments to add
-   * @return true for successful sending, otherwise an exception will be thrown.
+   * @return see [send] — for this overload true only means that the sending was dispatched.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures.
    */
   fun send(
     composedMessage: Mail?,
@@ -136,9 +157,14 @@ open class SendMail {
    * @param composedMessage the message to send
    * @param icalContent     the ical content to add
    * @param attachments     other attachments to add
-   * @return true for successful sending, otherwise an exception will be thrown.
+   * @param async           if true (the default), the message is handed to a [CompletableFuture] and this
+   *                        method returns before anything was sent.
+   * @return true if the message was sent (`async = false`) or handed over for sending (`async = true`),
+   *         false if it was not even attempted: no message given, or mailing is not configured. Note that
+   *         for `async = true` a failure of the sending itself can only be found in the log — nobody waits
+   *         for the future. Pass `async = false` where the outcome has to be reported to the user.
    * @throws UserException          if to address is not given.
-   * @throws InternalErrorException due to technical failures.
+   * @throws InternalErrorException due to technical failures, for `async = false` only.
    */
   @JvmOverloads
   fun send(
@@ -153,6 +179,7 @@ open class SendMail {
     }
     if (!isConfigured) {
       log.error { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+      return false
     }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
@@ -181,6 +208,11 @@ open class SendMail {
         ?.let { properties["mail.smtp.localhost"] = it.trim() } // FQDN setzen
       // properties["mail.smtp.starttls.enable"] = "true"
       // properties["mail.smtp.ssl.protocols"] = "TLSv1.2"
+
+      // Bounds how long a synchronous send can block, see the fields' KDoc.
+      properties["mail.smtp.connectiontimeout"] = this.mailSmtpConnectionTimeout ?: DEFAULT_TIMEOUT_MS
+      properties["mail.smtp.timeout"] = this.mailSmtpTimeout ?: DEFAULT_TIMEOUT_MS
+      properties["mail.smtp.writetimeout"] = this.mailSmtpWriteTimeout ?: DEFAULT_TIMEOUT_MS
 
       this.mailSmtpUser?.let { properties["mail.smtp.user"] = it }
       this.mailSmtpPassword?.let { properties["mail.smtp.password"] = it }
@@ -413,7 +445,10 @@ open class SendMail {
           Protocol.fromString(
             mailSmtpEncryptionProtocol
           )
-        }', auth=$mailSmtpAuth, port=$mailSmtpPort, from='$mailFromStandardEmailSender'"
+        }', auth=$mailSmtpAuth, port=$mailSmtpPort, from='$mailFromStandardEmailSender'" +
+            ", connectionTimeout=${mailSmtpConnectionTimeout ?: DEFAULT_TIMEOUT_MS}" +
+            ", timeout=${mailSmtpTimeout ?: DEFAULT_TIMEOUT_MS}" +
+            ", writeTimeout=${mailSmtpWriteTimeout ?: DEFAULT_TIMEOUT_MS}"
       )
       mailSmtpUser?.let {
         if (it.isNotBlank()) {
@@ -432,6 +467,9 @@ open class SendMail {
     private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
 
     private const val CHARSET = "UTF-8"
+
+    /** Fallback for the three SMTP timeouts, used when the property is not set at all. */
+    private const val DEFAULT_TIMEOUT_MS = "10000"
 
     /**
      * Get the ProjectForge standard subject: "[ProjectForge] ..."

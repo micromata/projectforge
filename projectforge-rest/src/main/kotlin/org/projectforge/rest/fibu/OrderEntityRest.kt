@@ -31,8 +31,10 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
@@ -49,10 +51,13 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
@@ -93,6 +98,13 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var forecastExport: ForecastExport
+
+  /**
+   * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
+   * [onAfterEdit] within one request. A thread local because this rest service is a singleton serving
+   * every user, so a field would leak one user's message into another user's response.
+   */
+  private val notificationFailure = ThreadLocal<String?>()
 
   /**
    * Builds a fresh [AuftragDO] instead of mutating the persisted one on purpose: the persistence layer
@@ -195,9 +207,10 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    *
    * A failing notification must never fail the save: this hook runs after the order has been committed
    * (`AbstractPagesRestUtils.saveOrUpdate`), so an exception escaping here would answer a written order
-   * with HTTP 406 and the client would show an error for a change that did happen. Mail delivery is out
-   * of the user's hands anyway (no reachable SMTP server, no address for the contact person), hence it is
-   * logged rather than reported.
+   * with HTTP 406 and the client would show an error for a change that did happen. It must not stay
+   * silent either — the user asked for the mail, and a save reported as successful while the mail was
+   * never sent is the worst of the two. Hence it is remembered here and attached to the response as a
+   * warning by [onAfterEdit], which is what the client toasts.
    */
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AuftragDO, postData: PostData<Auftrag>) {
     super.onAfterSaveOrUpdate(request, obj, postData)
@@ -212,7 +225,42 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       baseDao.sendNotificationIfRequired(obj, operationType, url)
     } catch (ex: Exception) {
       log.error(ex) { "Order #${obj.nummer} (id=${obj.id}) was saved, but sending the notification mail failed: ${ex.message}" }
+      // The reason as the user can read it. Both exception types of SendMail.send carry an i18n key
+      // (`mail.error.missingToAddress`, `mail.error.exception`) — and put that key in their `message`, so
+      // without translating it the user would read the key itself. Anything else has nothing translatable
+      // to say, and its message is the best there is.
+      val reason = when (ex) {
+        is UserException -> translateMsg(ex)
+        is InternalErrorException -> translateMsg(ex.i18nKey, *(ex.params ?: emptyArray()))
+        else -> ex.message
+      }
+      notificationFailure.set(translateMsg("fibu.auftrag.notification.error", reason ?: ""))
     }
+  }
+
+  /**
+   * The response of a save, carrying the warning of a notification that could not be sent.
+   *
+   * Here rather than in [onAfterSaveOrUpdate], because that hook has no response to write to yet: the
+   * action is built afterwards, by the [onAfterSave]/[onAfterUpdate] this method backs (see
+   * `AbstractPagesRestUtils.saveOrUpdate`). The two run in the same request on the same thread, which is
+   * what the thread local hands the message over by — and why it is cleared here, so a message left
+   * behind by an earlier request of the same worker thread can't surface on an unrelated save.
+   */
+  override fun onAfterEdit(
+    request: HttpServletRequest,
+    obj: AuftragDO,
+    postData: PostData<Auftrag>,
+    event: RestButtonEvent
+  ): ResponseAction {
+    val responseAction = super.onAfterEdit(request, obj, postData, event)
+    val message = notificationFailure.get()
+    // Unconditionally, so nothing is left behind for the next request on this thread.
+    notificationFailure.remove()
+    message?.let {
+      responseAction.message = ResponseAction.Message(message = it, color = UIColor.WARNING)
+    }
+    return responseAction
   }
 
   /**
