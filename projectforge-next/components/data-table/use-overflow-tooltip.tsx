@@ -23,26 +23,54 @@ interface OverflowTarget {
   text: string;
 }
 
-function isOverflowing(el: HTMLElement) {
-  // +1: sub-pixel layout makes scrollWidth exceed clientWidth on text that fits.
-  return el.scrollWidth > el.clientWidth + 1;
+/** Sub-pixel tolerance, px: a fractional text width is not clipped content. */
+const EPSILON = 1;
+
+/**
+ * Whether `el` cuts its own text off — the text measured directly rather than via
+ * `scrollWidth`.
+ *
+ * `scrollWidth` rounds the whole scrollable area up to an integer *including the
+ * padding*, so it exceeds `clientWidth` on any cell whose text ends within a
+ * pixel or two of the content box. That was most of them, and each offered a
+ * tooltip repeating what the cell already showed. A Range over the contents gives
+ * the text's real width, `clientWidth` minus the horizontal padding the room it
+ * has.
+ */
+function clipsText(el: HTMLElement): boolean {
+  const style = getComputedStyle(el);
+  // Only an element hiding its overflow can clip anything — and an inline one
+  // reports `clientWidth` 0, which would make every text look wider than its box.
+  if (style.overflowX !== "hidden" && style.overflowX !== "clip") return false;
+  const available =
+    el.clientWidth -
+    parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight);
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width > available + EPSILON;
 }
 
 /**
- * The element that actually clips its text. Not necessarily the cell: `truncate`
- * sits on the <td>, but many cell renderers truncate in an inner span as well,
- * and then the cell itself measures as fitting.
+ * The innermost element of a cell that cuts its text off, or null while all of it
+ * is readable.
+ *
+ * Innermost, because a Range over an element measures its children's *boxes*: on
+ * a cell whose renderer truncates in a span of its own, a Range over the <td>
+ * returns that span's clipped width and reports the cell as fitting. Only the
+ * element directly holding the text yields the width the text wants.
  */
 function findClipped(cell: HTMLElement): HTMLElement | null {
   // A header's label is marked, because the cell also holds the sort index and
   // the filter button and their text is not part of the label.
   const marked = cell.querySelector<HTMLElement>("[data-overflow-text]");
-  if (marked) return isOverflowing(marked) ? marked : null;
-  if (isOverflowing(cell)) return cell;
-  for (const el of cell.querySelectorAll<HTMLElement>("*")) {
-    if (isOverflowing(el)) return el;
+  if (marked) return clipsText(marked) ? marked : null;
+  const nodes = cell.querySelectorAll<HTMLElement>("*");
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    if (clipsText(nodes[i])) return nodes[i];
   }
-  return null;
+  // No wrapper of its own: the <td> is `truncate` itself (the hand built columns).
+  return clipsText(cell) ? cell : null;
 }
 
 /**

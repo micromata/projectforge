@@ -28,9 +28,22 @@ test.describe("data table overflow tooltip", () => {
     rowText: string
   ) {
     return page.evaluate((text) => {
-      const clipped = (el: HTMLElement) =>
-        // +1: sub-pixel layout makes scrollWidth exceed clientWidth on text that fits.
-        el.scrollWidth > el.clientWidth + 1;
+      // The same measurement the hook makes, and deliberately not `scrollWidth`: that one is a
+      // rounded-up integer over the whole scrollable area and exceeds `clientWidth` on cells whose
+      // text fits, so a spec built on it would expect a tooltip where the user needs none.
+      const clipped = (el: HTMLElement) => {
+        const style = getComputedStyle(el);
+        if (style.overflowX !== "hidden" && style.overflowX !== "clip") {
+          return false;
+        }
+        const available =
+          el.clientWidth -
+          parseFloat(style.paddingLeft) -
+          parseFloat(style.paddingRight);
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return range.getBoundingClientRect().width > available + 1;
+      };
       const row = Array.from(document.querySelectorAll("table tbody tr")).find(
         (tr) => (tr as HTMLElement).innerText.includes(text)
       );
@@ -39,9 +52,11 @@ test.describe("data table overflow tooltip", () => {
       const overflowing: { index: number; text: string }[] = [];
       const fitting: number[] = [];
       cells.forEach((td, index) => {
+        // Innermost first, like the hook: a cell renderer's inner span is what clips the text, and a
+        // range over the cell would measure that span's box rather than the text in it.
         const all = [
+          ...Array.from(td.querySelectorAll("*")).reverse(),
           td,
-          ...Array.from(td.querySelectorAll("*")),
         ] as HTMLElement[];
         const hit = all.find((el) => clipped(el) && el.innerText.trim());
         // A declared tooltip wins over the clipped text (see useOverflowTooltip), so such a cell says
@@ -98,22 +113,40 @@ test.describe("data table overflow tooltip", () => {
     await expect(page.locator(TOOLTIP)).toContainText(cell.text.split("\n")[0]);
 
     // A cell whose content fits gets none — the tooltip is for what the column hides, not a
-    // second rendering of every value.
-    if (fitting.length > 0) {
+    // second rendering of every value. Several of them rather than one: a tooltip repeating the
+    // cell verbatim is what a too-lenient overflow measurement produces, and it shows up on the
+    // ordinary short values (a date, an amount), not on the one cell a spec happens to pick.
+    for (const index of fitting.slice(0, 4)) {
       await page.mouse.move(0, 0);
       await expect(page.locator(TOOLTIP)).toHaveCount(0);
-      await row.locator("td").nth(fitting[0]).hover();
+      await row.locator("td").nth(index).hover();
       await page.waitForTimeout(1_500);
-      await expect(page.locator(TOOLTIP)).toHaveCount(0);
+      await expect(
+        page.locator(TOOLTIP),
+        `the cell in column ${index} shows all of its text, so it needs no tooltip`
+      ).toHaveCount(0);
     }
 
     // Headers too: a narrow column shows an abbreviated label, and the full one is what says which
-    // column it is.
+    // column it is. Measured like the cells above, and only within the viewport — a column scrolled
+    // out horizontally cannot be hovered.
     const header = await page.evaluate(() => {
       const ths = Array.from(document.querySelectorAll("table thead th"));
       for (const th of ths) {
         const label = th.querySelector<HTMLElement>("[data-overflow-text]");
-        if (label && label.scrollWidth > label.clientWidth + 1) {
+        if (!label) continue;
+        const style = getComputedStyle(label);
+        const available =
+          label.clientWidth -
+          parseFloat(style.paddingLeft) -
+          parseFloat(style.paddingRight);
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        const rect = label.getBoundingClientRect();
+        if (
+          range.getBoundingClientRect().width > available + 1 &&
+          rect.right <= window.innerWidth
+        ) {
           return { index: ths.indexOf(th), text: label.innerText.trim() };
         }
       }
