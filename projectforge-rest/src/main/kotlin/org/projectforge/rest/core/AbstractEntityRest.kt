@@ -55,6 +55,7 @@ import org.projectforge.rest.core.aggrid.GridState
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.jobs.ReindexJob
+import org.projectforge.rest.multiselect.MultiSelectNavigation
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
@@ -590,11 +591,36 @@ constructor(
      */
     @PostMapping(RestPaths.REST_START_MULTI_SELECTION)
     fun startMultiSelections(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResponseAction {
-        log.info("User wants to start multiselection")
-        val resultSet = getList(request, filter).resultSet
-        val list = resultSet.mapNotNull { getId(it) }
-        MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, list)
+        val count = registerForSelection(request, filter)
+        log.info("User wants to start multiselection of $count entries.")
         return ResponseAction(url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true))
+    }
+
+    /**
+     * Starts multi selection and answers how many entries the filter matched.
+     *
+     * The layout free counterpart of [startMultiSelections], whose answer is a redirect to the mass
+     * update page of the legacy frontend - a hand built page routes itself and only needs to know that
+     * the session now holds the ids (see `MultiSelectMetaData`).
+     */
+    @PostMapping("startSelection")
+    fun startSelection(
+        request: HttpServletRequest,
+        @RequestBody filter: MagicFilter,
+    ): MultiSelectNavigation {
+        val count = registerForSelection(request, filter)
+        log.info("User wants to start multiselection of $count entries.")
+        return MultiSelectNavigation(
+            url = PagesResolver.getMultiSelectionPageUrl(this::class.java, absolute = true),
+            selectedCount = count,
+        )
+    }
+
+    /** Registers every id the filter matches as selectable and returns how many those are. */
+    private fun registerForSelection(request: HttpServletRequest, filter: MagicFilter): Int {
+        val ids = getList(request, filter).resultSet.mapNotNull { getId(it) }
+        MultiSelectionSupport.registerEntityIdsForSelection(request, this::class.java, ids)
+        return ids.size
     }
 
     /**

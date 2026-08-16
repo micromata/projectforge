@@ -45,6 +45,15 @@ interface DataTableRowProps<TData> {
   onRowClick?: (row: TData) => void;
   /** Which column was clicked, when that is what decides the action (see DataTableProps). */
   onCellClick?: (row: TData, columnId: string) => void;
+  /**
+   * A click while the rows can be picked, with the modifier keys — they are what tells a plain click
+   * (select only this row) from Ctrl/Cmd (toggle) and Shift (extend the range).
+   *
+   * Answers whether it took the click. A plain click on a list where nothing is picked yet is *not* a
+   * selection but the usual "open this entry", so the caller declines it and [onRowClick] runs instead
+   * (see DataTable) — otherwise a list that offers a mass update could no longer be browsed.
+   */
+  onSelectClick?: (rowId: string, event: React.MouseEvent) => boolean;
   rowActions?: (row: TData) => React.ReactNode;
   /** Highlight class for the whole row, e.g. "row-red" (see globals.css). */
   className?: string;
@@ -54,6 +63,7 @@ export function DataTableRow<TData>({
   row,
   onRowClick,
   onCellClick,
+  onSelectClick,
   rowActions,
   className,
 }: DataTableRowProps<TData>) {
@@ -62,12 +72,22 @@ export function DataTableRow<TData>({
       // The entity's id on both list paths (both set `getRowId` to it), which is what makes the row
       // addressable from outside the table — see useHighlightedRow, and the e2e specs.
       data-row-id={row.id}
+      aria-selected={onSelectClick ? row.getIsSelected() : undefined}
       className={cn(
         "group",
-        (onRowClick || onCellClick) && "cursor-pointer",
+        (onRowClick || onCellClick || onSelectClick) && "cursor-pointer",
+        // Shift-clicking would otherwise select the text between the two rows.
+        onSelectClick && "select-none",
         className
       )}
-      onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+      onClick={
+        onSelectClick || onRowClick
+          ? (event) => {
+              if (onSelectClick?.(row.id, event)) return;
+              onRowClick?.(row.original);
+            }
+          : undefined
+      }
     >
       {row.getVisibleCells().map((cell, index) => (
         <TableCell

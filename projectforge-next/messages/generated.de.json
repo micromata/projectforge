@@ -452,6 +452,7 @@
     "common": {
       "assignedPersons": "PL/BUL/KAM/AP",
       "betrag": "Betrag",
+      "brutto": "Brutto",
       "creditor": "Kreditor",
       "customer": {
         "reference": "Kundenreferenz"
@@ -762,7 +763,7 @@
       },
       "kostExcelExport": {
         "_": "Kostenzuweisungen exportieren",
-        "tootlip": "Excel-Export aller Rechnungen für den gewählten Zeitraum im Excel-Format inklusive der Kostenträgerzuweisungen."
+        "tooltip": "Excel-Export aller Rechnungen für den gewählten Zeitraum im Excel-Format inklusive der Kostenträgerzuweisungen."
       },
       "kostZuweisungFehlbetrag": "Kostzuweisungfehlbetrag",
       "mehrwertSteuerSatz": "Mwst-Satz",
@@ -816,7 +817,7 @@
           "foreignCurrency": "SEPA-Export ist nur für Rechnungen in der Systemwährung ({arg0}) möglich. Die folgenden Rechnungen haben eine abweichende Währung und müssen aus der Selektion entfernt werden:",
           "missing": "Export aufgrund fehlender oder ungültiger Angaben in den folgenden Feldern nicht möglich: {arg0}."
         },
-        "tootlip": "Export der Überweisung dieser Rechnung im pain.001.003.03-Format."
+        "tooltip": "Export der Überweisung dieser Rechnung im pain.001.003.03-Format."
       },
       "typ": {
         "_": "Typ",
@@ -916,6 +917,7 @@
     "removeEntry": "Filter {arg0} entfernen",
     "reset": "Zurücksetzen",
     "search": "Suchen...",
+    "searchList": "Liste durchsuchen...",
     "selectAll": "Alles auswählen",
     "selection": "Auswahl",
     "show": "Filter anzeigen",
@@ -1111,6 +1113,36 @@
     "title": "Anmeldung"
   },
   "markAsDeleted": "Löschen",
+  "massUpdate": {
+    "confirmQuestion": "Sollen nun alle {arg0} Objekte geändert werden?",
+    "entriesFound": "Es sind {arg0} Einträge ausgewählt.",
+    "error": {
+      "table": {
+        "title": "Fehlermeldungen"
+      },
+      "unspecifiedError": "Es ist ein Fehler aufgetreten."
+    },
+    "excel": {
+      "download": "Exceldatei mit allen Änderungen"
+    },
+    "field": {
+      "checkbox4appending": {
+        "_": "Anhängen?",
+        "info": "Wenn ausgewählt, wird der Text angehängt (wenn nicht bereits im Feld enthalten). Wenn nicht ausgewählt, wird das bestehende Feld ersetzt."
+      },
+      "checkbox4deletion": {
+        "_": "Löschen?",
+        "info": "Wenn diese Option ausgewählt ist, wird für alle Datensätze dieses Feld gelöscht (bzw. geleert). Wenn ein Text angegeben ist, wird nur der Text gelöscht, wenn vorhanden."
+      },
+      "replace": {
+        "_": "Ersetzen durch?",
+        "info": "Wenn hier ein Text angegeben ist, werden alle gefundenen Vorkommnisse durch diesen Text ersetzt."
+      }
+    },
+    "fields": {
+      "changed": "Geänderte Felder"
+    }
+  },
   "menu": {
     "addNewEntry": "Neuer Eintrag",
     "common": "Allgemein",
@@ -1180,6 +1212,17 @@
   "modified": "geändert",
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
+  "multiselection": {
+    "aggrid": {
+      "selection": {
+        "info": {
+          "message": "* **Klick** auf eine Zeile selektiert diese (und hebt vorherige Auswahl auf).\n* **Strg+Klick** (Mac: Cmd+Klick) fügt einzelne Zeilen zur Auswahl hinzu oder entfernt sie.\n* **Shift+Klick** selektiert alle Zeilen zwischen der zuletzt angeklickten und der aktuellen Zeile.\n* **Pfeiltasten** ↑↓ navigieren durch die Zeilen, **Shift+Pfeil** erweitert die Auswahl, **Leertaste** toggelt die fokussierte Zeile.\n* Die Checkbox im Tabellenkopf wählt alle Zeilen aus bzw. ab.",
+          "title": "Mehrfachauswahl"
+        }
+      }
+    },
+    "button": "Mehrfachauswahl"
+  },
   "name": "Name",
   "nickname": "Rufname",
   "no": "Nein",

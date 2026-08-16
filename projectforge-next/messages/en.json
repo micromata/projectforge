@@ -1,7 +1,6 @@
 {
   "books": {
     "title": "Books",
-    "searchPlaceholder": "Search books…",
     "edit": {
       "tabs": {
         "general": "General",
@@ -22,9 +21,6 @@
       "saved": "Book saved",
       "newTitle": "New book"
     }
-  },
-  "cost1": {
-    "searchPlaceholder": "Search cost 1 ids…"
   },
   "entityEdit": {
     "lastSaved": "Last saved: {time}",
@@ -50,7 +46,6 @@
     }
   },
   "order": {
-    "searchPlaceholder": "Search orders…",
     "legend": {
       "deleted": "Deleted / rejected / replaced",
       "toBeInvoiced": "To be invoiced",

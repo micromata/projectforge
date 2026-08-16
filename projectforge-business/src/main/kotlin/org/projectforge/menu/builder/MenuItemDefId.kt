@@ -94,7 +94,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // NextMigration.legacyListUrl.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
-    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
+    // The list is migrated to projectforge-next, the edit form isn't: wa/outgoingInvoiceList stays
+    // reachable through the escape hatch, and a row click leads to wa/outgoingInvoiceEdit, see
+    // NextMigration.legacyListUrl and NextMigration.MIGRATED["outgoingInvoice"].
+    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
     PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //

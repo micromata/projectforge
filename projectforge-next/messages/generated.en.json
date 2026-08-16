@@ -452,6 +452,7 @@
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",
       "betrag": "Amount",
+      "brutto": "Gross",
       "creditor": "Creditor",
       "customer": {
         "reference": "Customer reference"
@@ -762,7 +763,7 @@
       },
       "kostExcelExport": {
         "_": "Export of cost assignments",
-        "tootlip": "Excel export of all invoices of the given time period including cost assignments."
+        "tooltip": "Excel export of all invoices of the given time period including cost assignments."
       },
       "kostZuweisungFehlbetrag": "Cost id assignment difference",
       "mehrwertSteuerSatz": "VAT",
@@ -816,7 +817,7 @@
           "foreignCurrency": "SEPA export is only possible for invoices in the system currency ({arg0}). The following invoices have a different currency and must be removed from the selection:",
           "missing": "Export of transfer not possible, missing or invalid values in: {arg0}."
         },
-        "tootlip": "Export of transfer in pain.001.003.03 format."
+        "tooltip": "Export of transfer in pain.001.003.03 format."
       },
       "typ": {
         "_": "Type",
@@ -916,6 +917,7 @@
     "removeEntry": "Remove filter {arg0}",
     "reset": "Reset",
     "search": "Search...",
+    "searchList": "Search list...",
     "selectAll": "Select all",
     "selection": "Selection",
     "show": "Show filter",
@@ -1111,6 +1113,36 @@
     "title": "Login"
   },
   "markAsDeleted": "Delete",
+  "massUpdate": {
+    "confirmQuestion": "Do you really want to update all {arg0} objects now?",
+    "entriesFound": "There are {arg0} entries selected.",
+    "error": {
+      "table": {
+        "title": "Error messages"
+      },
+      "unspecifiedError": "An error occurred."
+    },
+    "excel": {
+      "download": "Excel file with all modifications"
+    },
+    "field": {
+      "checkbox4appending": {
+        "_": "Append?",
+        "info": "If checked, text will be appended (if not already part of the field). If not checked, the field will be replaced."
+      },
+      "checkbox4deletion": {
+        "_": "Delete?",
+        "info": "If chosen, for all entries this field will be deleted (or set to empty). If a text is given, only any occurrence of this text will be deleted."
+      },
+      "replace": {
+        "_": "Replace by?",
+        "info": "All occurrences will be searched and replaced by this text."
+      }
+    },
+    "fields": {
+      "changed": "Changed fields"
+    }
+  },
   "menu": {
     "addNewEntry": "New entry",
     "common": "Common",
@@ -1180,6 +1212,17 @@
   "modified": "modified",
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",
+  "multiselection": {
+    "aggrid": {
+      "selection": {
+        "info": {
+          "message": "* **Click** a row to select it (clears previous selection).\n* **Ctrl+Click** (Mac: Cmd+Click) adds or removes individual rows from the selection.\n* **Shift+Click** selects all rows between the last clicked row and the current one.\n* **Arrow keys** ↑↓ navigate rows, **Shift+Arrow** extends the selection, **Space** toggles the focused row.\n* The checkbox in the table header selects or deselects all rows.",
+          "title": "Multi selection of rows"
+        }
+      }
+    },
+    "button": "Multi selection"
+  },
   "name": "Name",
   "nickname": "Nickname",
   "no": "No",

@@ -18,7 +18,7 @@ import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
-import type { PageDef } from "@/lib/page-def/types";
+import type { EditablePageDef } from "@/lib/page-def/types";
 import { DeclaredSection } from "./declared-sections";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
@@ -31,7 +31,7 @@ export interface EntityEditPageProps<
   Data extends EntityWithId,
   M extends EntityMetadata,
 > {
-  page: PageDef<Row, Values, Data, M>;
+  page: EditablePageDef<Row, Values, Data, M>;
   /** null adds a new entry: nothing is fetched and the form starts out blank. */
   id: number | null;
 }

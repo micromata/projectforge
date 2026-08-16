@@ -247,7 +247,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
       final StringBuilder attachmentsHtml = new StringBuilder();
       if (data.getId() != null) {
-        final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
+        final org.projectforge.rest.fibu.OutgoingInvoiceEntityRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.OutgoingInvoiceEntityRest.class);
         final org.projectforge.framework.jcr.AttachmentsService attachmentsService = WicketSupport.get(org.projectforge.framework.jcr.AttachmentsService.class);
         final java.util.List<org.projectforge.framework.jcr.Attachment> attachments = attachmentsService.getAttachments(
             rechnungPagesRest.getJcrPath(),
@@ -607,7 +607,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       {
         // Show attachments that will be embedded in the e-invoice
         if (data.getId() != null) {
-          final org.projectforge.rest.fibu.RechnungPagesRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.RechnungPagesRest.class);
+          final org.projectforge.rest.fibu.OutgoingInvoiceEntityRest rechnungPagesRest = WicketSupport.get(org.projectforge.rest.fibu.OutgoingInvoiceEntityRest.class);
           final org.projectforge.framework.jcr.AttachmentsService attachmentsService = WicketSupport.get(org.projectforge.framework.jcr.AttachmentsService.class);
           final java.util.List<org.projectforge.framework.jcr.Attachment> attachments = attachmentsService.getAttachments(
               rechnungPagesRest.getJcrPath(),

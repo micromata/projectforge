@@ -58,12 +58,13 @@ test.describe("audit columns", () => {
       page.getByRole("columnheader", { name: new RegExp(`^${created}(\\s|$)`) })
     ).toHaveCount(0);
 
-    // Switching it on is what makes it a column — and it, too, has to arrive filled. By its tooltip
-    // as well as its label: "Spalten" is a prefix of the panel's own "Spalten zurücksetzen" button, so
-    // the label alone matches two elements once the panel is open.
+    // Switching it on is what makes it a column — and it, too, has to arrive filled. Matched on the
+    // whole label, not a substring of it: "Spalten" is a prefix of the panel's own
+    // "Spalten zurücksetzen" button, so a substring match hits two elements once the panel is open.
+    // (Not on the tooltip either: it is the app's own, so it names the trigger only while it shows.)
     const panel = page.getByRole("button", {
       name: t("columns._"),
-      description: t("columns.manage"),
+      exact: true,
     });
     await panel.click();
     const checkbox = page.locator("#col-created");

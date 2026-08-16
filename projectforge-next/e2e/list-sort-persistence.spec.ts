@@ -148,7 +148,7 @@ async function cancelAndReturnToList(
   // of production, so the book sits on an arbitrary page of it. The signature is unique per run (see
   // fixtures/seed.ts), and the search leaves the sort order alone — it only returns to page one.
   await page
-    .getByPlaceholder(format.t(BOOK_PAGE.searchPlaceholderKey))
+    .getByPlaceholder(format.t("filter.searchList"))
     .fill(book.signature);
   const row = page.locator(`tbody tr[data-row-id="${book.id}"]`);
   await expect(row).toHaveCount(1, { timeout: 30_000 });

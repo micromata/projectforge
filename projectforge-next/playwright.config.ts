@@ -9,7 +9,16 @@ import { defineConfig, devices } from "@playwright/test";
  * Both servers have to be up; the tests fail with a hint rather than starting them (see
  * e2e/fixtures/auth.ts). `webServer` is deliberately unset: a dev server started per run would
  * recompile every route and outlast the tests' patience.
+ *
+ * `E2E_BASE_URL` switches the target. Against the default :3000 a run competes with the dev server:
+ * every first navigation to a route compiles it, and an edit made while the run is going invalidates
+ * modules under the test's feet — which is why a different handful goes red each time. Pointing it at
+ * Spring on :8080 instead runs against the static export it serves from the classpath
+ * (`classpath:/static/next/`, see WebApplicationConfig), so nothing is compiled during the run and
+ * editing sources cannot disturb it. The trade is that :8080 shows the last `npm run build` copied
+ * there by Gradle, not the working tree.
  */
+const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 export default defineConfig({
   testDir: "./e2e",
   // For every file Playwright transpiles, not only the ones under e2e/ — a spec that imports a page
@@ -41,7 +50,7 @@ export default defineConfig({
   use: {
     // Without BASE_PATH: an absolute path passed to page.goto replaces the whole path of the
     // baseURL, so a base path here would silently vanish. `goto` (e2e/fixtures/auth.ts) prefixes it.
-    baseURL: "http://localhost:3000",
+    baseURL: BASE_URL,
     // A failed UI test is a question about what the page looked like — so keep the evidence.
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

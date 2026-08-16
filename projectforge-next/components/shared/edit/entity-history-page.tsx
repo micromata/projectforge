@@ -7,7 +7,7 @@ import { useEntityDetail, type EntityWithId } from "@/hooks/use-entity-detail";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
-import type { PageDef } from "@/lib/page-def/types";
+import type { EditablePageDef } from "@/lib/page-def/types";
 import { EntityEditHeader } from "./entity-edit-header";
 import { entityTabs, HISTORY_TAB_ID } from "./entity-tabs";
 
@@ -24,7 +24,7 @@ export function EntityHistoryPage<
   Values,
   Data extends EntityWithId,
   M extends EntityMetadata,
->({ page, id }: { page: PageDef<Row, Values, Data, M>; id: number }) {
+>({ page, id }: { page: EditablePageDef<Row, Values, Data, M>; id: number }) {
   const t = useTranslations();
   const { data } = useEntityDetail<Data>(page.entity, id);
   const legacyUrl = useLegacyEditUrl(page.entity, id);

@@ -58,9 +58,7 @@ test.describe("books list attachments", () => {
       // Straight to the book through the search box: the column is only filled in its row, and the
       // title is unique per run (see fixtures/seed.ts), so the list holds this one book.
       await goto(page, "/book");
-      await page
-        .getByPlaceholder(t("books.searchPlaceholder"))
-        .fill(book.signature);
+      await page.getByPlaceholder(t("filter.searchList")).fill(book.signature);
 
       // Inside the seeded book's own row, not the first one that has a summary: the filtered answer
       // may not have arrived yet, and until it does the rows on screen are still the unfiltered
@@ -79,10 +77,13 @@ test.describe("books list attachments", () => {
       await page
         .getByRole("button", { name: `${t("delete")}: ${FILE_NAME}` })
         .click();
-      // The confirmation's own button carries the bare label, unlike the row's.
+      // The confirmation's own button carries the bare label, unlike the row's — and is looked up
+      // inside the dialog rather than as the last one on the page: until the dialog has mounted,
+      // "the last delete button" is the row's own, and clicking that reopens the question instead of
+      // answering it. The file then stays, and the next run fails on a count one too high.
       await page
+        .getByRole("alertdialog")
         .getByRole("button", { name: t("delete"), exact: true })
-        .last()
         .click();
       await expect(downloadLink).toHaveCount(0);
     }
@@ -99,8 +100,13 @@ test.describe("books list attachments", () => {
       .getByRole("option", { name: t("attachments._"), exact: true })
       .click();
 
-    // A single-select LIST field, so picking the second choice replaces the first.
-    await page.getByRole("checkbox", { name: t("yes") }).click();
+    // A LIST field, i.e. a ValueCombobox: the choices live in a popover behind the trigger rather
+    // than as a flat checkbox list, which is what keeps the field one line tall in the filter grid.
+    await page.getByRole("combobox", { name: t("attachments._") }).click();
+    await page
+      .locator('[data-slot="popover-content"]')
+      .getByRole("option", { name: t("yes"), exact: true })
+      .click();
 
     const request = page.waitForRequest(
       (candidate) =>

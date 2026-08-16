@@ -56,6 +56,16 @@ interface ColumnBase<Row> {
    * what a reset returns to (see `defaultPinningOf`).
    */
   pinned?: "left" | "right";
+  /**
+   * What the cell explains on hover, where its own text is not the whole story — an invoice's cost
+   * units show their numbers ("5.100.01, 5.100.02") and name the units and amounts behind them in the
+   * tooltip (`kost1Info`, the `tooltipField` of the legacy grid).
+   *
+   * Read from the row rather than named as a field, since the explaining value is usually one the list
+   * has no column for. Returning nothing means no tooltip, and the cell keeps the one the table shows
+   * for text it clips (see useOverflowTooltip).
+   */
+  tooltip?: (row: Row) => string | undefined;
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
@@ -102,7 +112,7 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<
   ColumnBase<never>,
-  "cell" | "filterKind" | "align" | "labelKey"
+  "cell" | "filterKind" | "align" | "labelKey" | "tooltip"
 > {
   /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
   periodLabelKey: string;
@@ -290,6 +300,38 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   extraTabs?: ExtraTabDef[];
 }
 
+/**
+ * Where the mass update of a list lives — see [PageDef.massUpdate] for why this is all a page says.
+ */
+export interface MassUpdateDef {
+  /**
+   * REST base of the mass update page, e.g. `invoiceSelected` (`AbstractMultiSelectedPage`).
+   *
+   * Not `${entity}Selected`: the backend mounts these pages under the *entity's* legacy name, which
+   * for the outgoing invoice is `invoice` and not `outgoingInvoice`.
+   */
+  endpoint: string;
+  /**
+   * Route of the mass update page, e.g. `/invoice/mass-update`.
+   *
+   * Declared rather than composed from [PageDef.route], because it is a route of this app and Next
+   * resolves it statically: the page has to exist as a file either way, so naming it here keeps the
+   * declaration and the file in one place.
+   */
+  route: string;
+  /**
+   * How the summary of the picked entries reads — for the invoice its statistics line, the same
+   * component the list shows above its table.
+   *
+   * A component rather than a rendering of `MultiSelectMetaData.statistics`: that markdown is the
+   * `UILayout` form's, with its amounts formatted server side and its colours as raw
+   * `<span style="color:blue">`. The values come from `meta.statisticsData` in the shape the entity's
+   * own list already knows, so a next page formats them in the user's locale and reads in the same
+   * tokens as everywhere else.
+   */
+  statisticsLine?: ComponentType<{ statistics: unknown }>;
+}
+
 export interface PageDef<
   Row extends ListRow,
   Values,
@@ -306,7 +348,6 @@ export interface PageDef<
   /** The menu parent above the title, e.g. `menu.fibu`. */
   categoryKey: string;
   titleKey: string;
-  searchPlaceholderKey: string;
   columns: ColumnDeclaration<Row, M>[];
   /**
    * Colour legend shown below the table. `row-deleted` (struck-through, deleted entries) is
@@ -348,5 +389,44 @@ export interface PageDef<
    * asks for there belongs to the entity, not to this shell.
    */
   listActions?: ComponentType<{ filter: MagicFilter }>;
+  /**
+   * The list lets the user pick several rows and change them in one go.
+   *
+   * Which fields that offers, of which type, with which of the four actions (set, clear, replace,
+   * append) is **not** declared here: the backend answers it (`{page}/meta`, see
+   * `MassUpdateFieldMeta`), from the same `ElementsRegistry` the metadata comes from. What a page
+   * decides is only where that page lives, which is not derivable — the mass update of
+   * `outgoingInvoice` is served under `invoiceSelected`.
+   */
+  massUpdate?: MassUpdateDef;
+  /**
+   * The form behind a row — absent for an entity whose list is migrated but whose form is not yet.
+   *
+   * A page without it is a complete list: the columns, the filters, the favorites and the column
+   * state are the list's own business, and none of `EntityListPage` reads this. What changes is
+   * only where a row click and the add button lead — to the legacy page the backend names
+   * (`listMeta.legacyEditPage`, see useEditTargets), instead of `${route}/${id}`. Declaring an
+   * `edit` half nobody renders, just to satisfy the type, would mean inventing a schema and a
+   * section that no form validates.
+   *
+   * [EditablePageDef] is the same declaration with the form present, which is what `EntityEditPage`
+   * and `EntityHistoryPage` take — so a list-only page cannot be handed to them by accident.
+   */
+  edit?: EditDef<Values, Data, M>;
+}
+
+/**
+ * A page declaration that has a form — what the edit and the history renderer require.
+ *
+ * The distinction is a type, not a check: `EntityEditPage` reads `page.edit` in every branch, so a
+ * declaration without one is a compile error at the route that wires them together, which is the one
+ * place that knows whether the form exists.
+ */
+export interface EditablePageDef<
+  Row extends ListRow,
+  Values,
+  Data extends EntityWithId,
+  M extends EntityMetadata,
+> extends PageDef<Row, Values, Data, M> {
   edit: EditDef<Values, Data, M>;
 }

@@ -293,3 +293,11 @@ tasks.named("processResources") {
 }
 
 description = "projectforge-application"
+
+/** Runs DevelopmentMainForRelease (source headers, i18n sorting, next catalogs and metadata). */
+tasks.register<JavaExec>("developmentMainForRelease") {
+    group = "development"
+    mainClass.set("org.projectforge.development.DevelopmentMainForReleaseKt")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+}

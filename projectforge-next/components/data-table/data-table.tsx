@@ -18,6 +18,7 @@ import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
 import { useHighlightedRow } from "./use-highlighted-row";
 import { useOverflowTooltip } from "./use-overflow-tooltip";
+import type { RowSelection } from "./use-row-selection";
 
 const ROW_ACTIONS_WIDTH = 80;
 
@@ -60,6 +61,16 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    */
   highlightScope?: string;
 
+  /**
+   * Rows can be picked for a mass update: a click selects instead of opening, the arrow keys move
+   * through the rows and the checkbox column is shown (see useRowSelection, which produces this).
+   *
+   * Passed as a whole rather than as single handlers, because the table has to render what the same
+   * state says — the tinted rows, the focused one — and half of it would be a table that answers
+   * clicks without showing their effect.
+   */
+  selection?: RowSelection;
+
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
 
@@ -79,6 +90,7 @@ export function DataTable<TData>({
   rowClassName,
   highlightRowId,
   highlightScope,
+  selection,
   pageSizeOptions,
   emptyState,
   footer,
@@ -201,7 +213,13 @@ export function DataTable<TData>({
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            {/* Focusable while rows can be picked, so the arrow keys reach the table at all; a click
+                on a row focuses it, which is what makes "click, then Shift+Down" work. */}
+            <TableBody
+              tabIndex={selection ? 0 : undefined}
+              onKeyDown={selection?.onKeyDown}
+              aria-multiselectable={selection ? true : undefined}
+            >
               {showSkeleton ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -230,6 +248,7 @@ export function DataTable<TData>({
                     row={row}
                     onRowClick={onRowClick}
                     onCellClick={onCellClick}
+                    onSelectClick={selection?.onRowClick}
                     rowActions={rowActions}
                     // The row's colour and the marker are two layers, so both classes apply — see
                     // `row-highlighted` in globals.css, which is why it is no background.
@@ -237,7 +256,9 @@ export function DataTable<TData>({
                       rowClassName?.(row.original),
                       highlightRowId != null &&
                         row.id === String(highlightRowId) &&
-                        "row-highlighted"
+                        "row-highlighted",
+                      selection && row.getIsSelected() && "row-selected",
+                      selection?.focusedRowId === row.id && "row-focused"
                     )}
                   />
                 ))

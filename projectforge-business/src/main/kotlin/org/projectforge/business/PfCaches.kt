@@ -186,14 +186,29 @@ class PfCaches {
     }
 
     fun initialize(invoice: RechnungDO): RechnungDO {
-        rechnungCache.ensureRechnungInfo(invoice)
-        invoice.kunde = getKundeIfNotInitialized(invoice.kunde)
-        invoice.projekt = getProjektIfNotInitialized(invoice.projekt)
+        initializeWithoutPositions(invoice)
         invoice.positionen?.forEach { pos ->
             // pos.rechnung = invoice
             // pos.auftragsPosition
             rechnungCache.ensureRechnungPosInfo(pos)
         }
+        return invoice
+    }
+
+    /**
+     * [initialize] without touching [RechnungDO.positionen] - for a caller that reads the invoice itself and
+     * its [RechnungInfo], but none of the position entities.
+     *
+     * `positionen` is a lazy collection, so iterating it means one `SELECT` per invoice: over a list of
+     * 17.000 invoices that is 17.000 queries and ~20 s of the request, while the sums and the cost unit
+     * columns of a list row come from the cached [RechnungInfo] (whose own positions are preloaded by
+     * `RechnungJdbcService`) and need no entity at all. Compare [initialize] for [AuftragDO], which leaves
+     * its positions alone for the same reason.
+     */
+    fun initializeWithoutPositions(invoice: RechnungDO): RechnungDO {
+        rechnungCache.ensureRechnungInfo(invoice)
+        invoice.kunde = getKundeIfNotInitialized(invoice.kunde)
+        invoice.projekt = getProjektIfNotInitialized(invoice.projekt)
         return invoice
     }
 

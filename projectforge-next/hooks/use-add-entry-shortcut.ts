@@ -14,7 +14,7 @@ import { isTypingTarget } from "@/lib/typing-target";
  * `event.code` rather than `event.key`, because `ALT-N` on macOS produces a dead key (`˜`) instead
  * of an `n` — `code` names the physical key and stays `KeyN`.
  */
-export function useAddEntryShortcut(addHref: string) {
+export function useAddEntryShortcut(addHref: string, isLegacy = false) {
   const router = useRouter();
 
   useEffect(() => {
@@ -25,10 +25,13 @@ export function useAddEntryShortcut(addHref: string) {
       if (!event.altKey && (event.ctrlKey || isTypingTarget(event.target)))
         return;
       event.preventDefault();
-      router.push(addHref);
+      // The add page of a list whose form is still the legacy one belongs to another app and needs a
+      // full page load, exactly as the button beside it does (see useEditTargets).
+      if (isLegacy) window.location.href = addHref;
+      else router.push(addHref);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [addHref, router]);
+  }, [addHref, isLegacy, router]);
 }

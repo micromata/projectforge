@@ -9,13 +9,16 @@ import {
   useListFilters,
   useMagicFilterQuery,
   useRememberFilter,
+  useRowSelection,
   useTableState,
   type ColumnState,
   type FilterValues,
 } from "@/components/data-table";
+import { useEffect, useRef } from "react";
 import type {
   ColumnDef,
   ColumnPinningState,
+  Table as TanstackTable,
   VisibilityState,
 } from "@tanstack/react-table";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -53,6 +56,14 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    * switched.
    */
   defaultVisibility?: VisibilityState;
+  /**
+   * The list lets the user pick rows for a mass update (see PageDef.massUpdate).
+   *
+   * Off by default, and not merely a cosmetic switch: with selection on, a click on a row selects it
+   * instead of opening it, so a list that has nothing to select would stop reacting the way its users
+   * expect.
+   */
+  enableSelection?: boolean;
 }
 
 /**
@@ -73,6 +84,7 @@ export function useEntityListPage<Row extends ListRow>({
   restoredFilter,
   defaultPinning,
   defaultVisibility,
+  enableSelection = false,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -120,6 +132,15 @@ export function useEntityListPage<Row extends ListRow>({
     },
   });
 
+  // The selection has to exist before the table, because the table renders it, while its ranges are
+  // taken over the rows the table displays — so it reads them back through this box, which is filled
+  // after the table below is built. A ref rather than a second render pass: nothing renders from it,
+  // it is only read inside an event handler, by which time the effect has long run.
+  const tableRef = useRef<TanstackTable<Row> | null>(null);
+  const selection = useRowSelection(() =>
+    (tableRef.current?.getRowModel().rows ?? []).map((row) => row.id)
+  );
+
   // Owned here so the toolbar's column panel and the table share one instance.
   const table = useDataTable<Row>({
     columns,
@@ -139,6 +160,9 @@ export function useEntityListPage<Row extends ListRow>({
     onColumnSizingChange: columnState.setColumnSizing,
     columnOrder: columnState.columnOrder,
     onColumnOrderChange: columnState.setColumnOrder,
+    rowSelection: selection.state,
+    onRowSelectionChange: selection.setState,
+    enableRowSelection: enableSelection,
     enableColumnFilters: true,
     enableColumnResizing: true,
     // Sorting and the search string go to Spring; the column filters and paging work on the client,
@@ -146,6 +170,9 @@ export function useEntityListPage<Row extends ListRow>({
     manualSorting: true,
     getRowId: (row: Row) => String(row.id),
   });
+  useEffect(() => {
+    tableRef.current = table;
+  }, [table]);
 
   // Coming back to the list should show the filter it was left with, also without a reload — the
   // cached listMeta would otherwise still hold the old one. The filter already carries the
@@ -202,6 +229,11 @@ export function useEntityListPage<Row extends ListRow>({
     table,
     filters,
     favorites,
+    /**
+     * The rows the user picked, or undefined for a list that offers no mass update — the flag decides
+     * it, so a page cannot show a checkbox column that selects nothing (see EntityListPage).
+     */
+    selection: enableSelection ? selection : undefined,
     /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
     legacyUrl: meta.data?.legacyListPage,
     data: query.data,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { LegendEntry } from "@/lib/page-def/types";
 
@@ -38,7 +39,8 @@ export function TableLegend({ entries, className }: TableLegendProps) {
             aria-hidden
           />
           <span className={cn(entry.strikethrough && "line-through")}>
-            {t(entry.labelKey)}
+            {/* A backend key may be a namespace as well as a text, and the pages name the bare one. */}
+            {t(leafKeyOf(entry.labelKey, t.has))}
           </span>
         </span>
       ))}

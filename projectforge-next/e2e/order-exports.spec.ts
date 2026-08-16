@@ -114,9 +114,7 @@ async function waitForList(page: Page, t: UserFormat["t"]) {
  * order book is 11 MB of Excel, and the exports read the same filter the list does.
  */
 async function narrowTo(page: Page, format: UserFormat, title: string) {
-  await page
-    .getByPlaceholder(format.t(ORDER_PAGE.searchPlaceholderKey))
-    .fill(title);
+  await page.getByPlaceholder(format.t("filter.searchList")).fill(title);
   await expect(page.getByRole("row", { name: new RegExp(title) })).toHaveCount(
     1,
     { timeout: 60_000 }

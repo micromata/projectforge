@@ -50,7 +50,6 @@ export default function DemoPage() {
                 category={t("menu.common")}
                 searchValue={globalFilter}
                 onSearchChange={setGlobalFilter}
-                searchPlaceholder={t("books.searchPlaceholder")}
                 addHref="/book/new"
               />
             }

@@ -16,6 +16,7 @@ import {
   type ColumnSizingState,
   type OnChangeFn,
   type PaginationState,
+  type RowSelectionState,
   type SortingState,
   type Table,
   type VisibilityState,
@@ -44,6 +45,14 @@ export interface UseDataTableOptions<TData> {
   onColumnSizingChange?: OnChangeFn<ColumnSizingState>;
   columnOrder?: ColumnOrderState;
   onColumnOrderChange?: OnChangeFn<ColumnOrderState>;
+  /**
+   * Which rows are picked, keyed by row id — held by the caller, because the selection outlives the
+   * table: it is posted to the backend and read by a toolbar (see useRowSelection).
+   */
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  /** Whether rows can be picked at all; only a page with a mass update switches this on. */
+  enableRowSelection?: boolean;
 
   /** Column filters are applied client-side; the backend returns the full result set. */
   enableColumnFilters?: boolean;
@@ -83,6 +92,9 @@ export function useDataTable<TData>({
   onColumnSizingChange,
   columnOrder,
   onColumnOrderChange,
+  rowSelection,
+  onRowSelectionChange,
+  enableRowSelection = false,
   enableColumnFilters = false,
   enableColumnResizing = false,
   manualSorting = false,
@@ -178,7 +190,9 @@ export function useDataTable<TData>({
       columnPinning: effectivePinning,
       columnSizing: columnSizing ?? internalSizing,
       columnOrder: effectiveOrder,
+      rowSelection: rowSelection ?? {},
     },
+    enableRowSelection,
     onSortingChange: onSortingChange ?? setInternalSorting,
     onPaginationChange: changePagination,
     onColumnFiltersChange: changeColumnFilters,
@@ -186,6 +200,7 @@ export function useDataTable<TData>({
     onColumnPinningChange: onColumnPinningChange ?? setInternalPinning,
     onColumnSizingChange: onColumnSizingChange ?? setInternalSizing,
     onColumnOrderChange: onColumnOrderChange ?? setInternalOrder,
+    onRowSelectionChange,
     getRowId,
   });
 }

@@ -89,7 +89,9 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * ({@code book/25219084/__next._tree.txt} → {@code book/new/__next._tree.txt}), which is what makes
      * client-side navigation to a deep link work.
      */
-    private static class NextSpaResourceResolver extends PathResourceResolver {
+    // Package private rather than private: the order of the cases below is the whole correctness
+    // argument, so NextSpaResourceResolverTest exercises them directly.
+    static class NextSpaResourceResolver extends PathResourceResolver {
         private static final String SHELL_MAP = "next-spa-shell-map.json";
 
         /** Lazily loaded: the location isn't known before the first request. */
@@ -133,6 +135,8 @@ public class WebApplicationConfig implements WebMvcConfigurer {
          * route with an extension appended, not a file below it;</li>
          * <li>a file below the page, {@code /book/5/__next._tree.txt} → {@code book/new/__next._tree.txt}.</li>
          * </ol>
+         * A static route's own payload ({@code /book.txt} → {@code book/index.txt}) is looked up before all of them:
+         * it is no dynamic route at all, but its path matches one once the extension is stripped.
          *
          * @param assetRequest whether a file was asked for rather than a page. For those only an exact hit counts: an
          *                     unresolvable asset has to stay a 404 rather than be masked with HTML.
@@ -143,6 +147,14 @@ public class WebApplicationConfig implements WebMvcConfigurer {
                 String shellDir = matchShellDir(path, location);
                 return shellDir == null ? null : tryResource(shellDir + "/index.html", location);
             }
+            // The payload of a *static* route, which the export stores as that route's own index file
+            // ("/book.txt" → "book/index.txt"). Before any shell match: "/book" without the extension also matches the
+            // catch-all "/[category]", whose shell then answers a client side navigation to /next/book with the
+            // payload of a page that renders its own not-found for every route it does not own — the list would
+            // arrive as a 404 although its own prerender is right there.
+            int extension = path.lastIndexOf('.');
+            Resource own = tryResource(path.substring(1, extension) + "/index" + path.substring(extension), location);
+            if (own != null) return own;
             // 3. before 2.: a file below the page, matching the route against the path without the file name. Tried
             // first because stripping the extension instead (below) can turn such a path into a match of a *different*
             // route — "/book/5/__next._tree.txt" without ".txt" looks like "/[category]/[type]/[...params]".

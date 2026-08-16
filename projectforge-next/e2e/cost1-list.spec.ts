@@ -109,9 +109,7 @@ test.describe("cost 1 list", () => {
     // still empty, and every statement about a narrowed list would hold vacuously.
     await expect(numbers.first()).toBeVisible();
 
-    await page
-      .getByPlaceholder(t(COST1_PAGE.searchPlaceholderKey))
-      .fill(cost1.suffix);
+    await page.getByPlaceholder(t("filter.searchList")).fill(cost1.suffix);
 
     // The run's suffix alone, not the whole description: the rest of it is the same in every run, and
     // the backend's search matches a row on any word — the entries of earlier runs would be hits too.
@@ -129,9 +127,7 @@ test.describe("cost 1 list", () => {
   }) => {
     const { t } = await userFormat(page);
     await goto(page, "/cost1");
-    await page
-      .getByPlaceholder(t(COST1_PAGE.searchPlaceholderKey))
-      .fill(cost1.description);
+    await page.getByPlaceholder(t("filter.searchList")).fill(cost1.description);
 
     await page.getByRole("cell", { name: cost1.number }).click();
 

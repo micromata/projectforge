@@ -6,11 +6,18 @@
  *
  * Keep in sync with `NextMigration.MIGRATED` in projectforge-business: a category
  * is either hand built (listed here) or server-laid-out, never both (asserted by
- * `NextMigrationTest`, which parses this array). One entry per
- * category — the route of a hand built page is its REST category, so the url reads
- * the same either way (`/next/book`, `/rs/book`).
+ * `NextMigrationTest`, which parses this array). One entry per category, and the
+ * REST category is what a category is keyed by here — usually also its route
+ * (`/next/book`, `/rs/book`), but not always: the outgoing invoice is served under
+ * `/next/invoice`, because that is what the entity is called (see
+ * `NextMigration.MIGRATED["outgoingInvoice"]`).
  */
-export const HAND_BUILT_CATEGORIES = ["book", "cost1", "order"];
+export const HAND_BUILT_CATEGORIES = [
+  "book",
+  "cost1",
+  "order",
+  "outgoingInvoice",
+];
 
 export function isHandBuilt(category: string | undefined): boolean {
   return !!category && HAND_BUILT_CATEGORIES.includes(category);

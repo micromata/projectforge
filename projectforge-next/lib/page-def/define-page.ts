@@ -7,23 +7,43 @@
  */
 
 import type { FilterKind } from "@/components/data-table";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
-import type { ColumnDeclaration, PageDef } from "./types";
+import type { ColumnDeclaration, EditablePageDef, PageDef } from "./types";
 
 /**
  * Binds a declaration to one entity: every `name` is checked against `keyof metadata.fields`, so a
  * field renamed in the entity fails the typecheck instead of silently rendering an empty column.
  *
  * Nothing else happens here — the declaration is the value, and both renderers read it as it is.
+ *
+ * For a page with a form. A page whose list is migrated and whose form is not yet uses
+ * [defineListPage]: `PageDef.edit` is optional, so a single function would hand `EntityEditPage` a
+ * declaration that may have no form, and the check would move from the typechecker into the renderer.
  */
 export function definePage<
   Row extends ListRow,
   Values,
   Data extends EntityWithId,
   M extends EntityMetadata,
->(def: PageDef<Row, Values, Data, M>): PageDef<Row, Values, Data, M> {
+>(
+  def: EditablePageDef<Row, Values, Data, M>
+): EditablePageDef<Row, Values, Data, M> {
+  return def;
+}
+
+/**
+ * A list whose entries are still edited in the legacy page — the same declaration without the form
+ * half (see PageDef.edit and useEditTargets).
+ *
+ * It names no `Values`/`Data`, because those describe a form: what such a page has is rows, and the
+ * row type is all its columns, `rowClassName` and `statistics` ever read.
+ */
+export function defineListPage<Row extends ListRow, M extends EntityMetadata>(
+  def: Omit<PageDef<Row, never, EntityWithId, M>, "edit">
+): PageDef<Row, never, EntityWithId, M> {
   return def;
 }
 
@@ -127,9 +147,8 @@ export function alignFor(dataType: UIDataTypeName): "left" | "right" {
  *
  * `i18nKey` is what the entity declares in its `@PropertyInfo`, so the wording matches the rest of
  * ProjectForge and no text is invented in the frontend. A key that is both a leaf and an object in
- * the bundle — `fibu.kost1` is a text of its own *and* the parent of `fibu.kost1.title` — is
- * exported by the generator as `<key>._`, because a JSON object cannot also be a string. Hence the
- * fallback: where `<key>._` exists, that is the leaf.
+ * the bundle — `fibu.kost1` is a text of its own *and* the parent of `fibu.kost1.title` — resolves
+ * to its exported leaf (see [leafKeyOf]).
  *
  * A field the metadata knows no key for falls back to its name, which is visible enough to be fixed
  * in the entity rather than papered over here.
@@ -144,6 +163,8 @@ export function labelKeyFor(
   hasMessage: (key: string) => boolean,
   override?: string
 ): string {
-  const base = override ?? metadata.fields[name]?.i18nKey ?? name;
-  return hasMessage(`${base}._`) ? `${base}._` : base;
+  return leafKeyOf(
+    override ?? metadata.fields[name]?.i18nKey ?? name,
+    hasMessage
+  );
 }

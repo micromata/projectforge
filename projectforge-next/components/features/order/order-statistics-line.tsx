@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import {
   orderStatisticsEntries,
@@ -58,7 +59,11 @@ export function OrderStatisticsLine({
               emphasizes none — the two coloured entries are what stands out, as in the legacy list.
               Upper case would also cost the width six labels don't have on a narrow screen. The
               wording is the bundle's, so it reads as written ("zu fakturieren"). */}
-          <dt className="text-[11px] opacity-70">{t(entry.labelKey)}</dt>
+          <dt className="text-[11px] opacity-70">
+            {/* No order key is a namespace as well as a text today, but that is a property of the
+                bundle and changes with it — see leafKeyOf. */}
+            {t(leafKeyOf(entry.labelKey, t.has))}
+          </dt>
           <dd className="tabular-nums">
             {formatCurrency(entry.amount, format)}
             {/* The number of orders behind the sum, as "(42)" — quieter than the amount, which is

@@ -7,9 +7,8 @@
  * fragment. Both are GET/POST endpoints of `OrderEntityRest`.
  */
 
-import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 import { rawRequest, request, RsError } from "./client";
-import { saveBlob } from "./download";
+import { downloadPost, saveBlob } from "./download";
 import type { MagicFilter, PostData } from "./types";
 
 /** Sums of one position, matched by its number — a new position has no id yet. */
@@ -175,11 +174,7 @@ export function downloadOrderExcel(
   filter: MagicFilter,
   signal?: AbortSignal
 ): Promise<void> {
-  return downloadOrderFile(
-    "/rs/order/exportAsExcel",
-    JSON.stringify(filter),
-    signal
-  );
+  return downloadPost("/rs/order/exportAsExcel", filter, signal);
 }
 
 /**
@@ -191,34 +186,5 @@ export function downloadOrderForecast(
   settings: ForecastExportSettings,
   signal?: AbortSignal
 ): Promise<void> {
-  return downloadOrderFile(
-    "/rs/order/exportForecast",
-    JSON.stringify({ filter, settings }),
-    signal
-  );
-}
-
-/**
- * Posts a body and saves the file that comes back.
- *
- * A POST rather than a link, because the filter is the body — which is also why the browser cannot do
- * the saving and `saveBlob` has to. The name comes from `Content-Disposition`, which both endpoints send
- * (`RestUtils.downloadFile`), so it is the backend that names the file, as with every other export.
- *
- * A 404 is passed on as it is: it means the filter matched nothing, and the caller says so instead of
- * reporting an error (see OrderListActions).
- */
-async function downloadOrderFile(
-  path: string,
-  body: string,
-  signal?: AbortSignal
-): Promise<void> {
-  const res = await rawRequest(path, { method: "POST", body }, signal);
-  if (!res.ok) {
-    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
-  }
-  saveBlob(
-    await res.blob(),
-    parseContentDispositionFilename(res.headers.get("Content-Disposition"))
-  );
+  return downloadPost("/rs/order/exportForecast", { filter, settings }, signal);
 }

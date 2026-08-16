@@ -88,14 +88,25 @@ export function useDeclaredColumns<
             {headerLabel}
           </DataTableColumnHeader>
         ),
-        cell:
-          declaration.cell ??
-          ((ctx) =>
-            declaredCell(ctx.getValue(), field, {
-              format,
-              t: translate,
-              className: declaration.className,
-            })),
+        cell: (ctx) => {
+          const rendered = declaration.cell
+            ? declaration.cell(ctx)
+            : declaredCell(ctx.getValue(), field, {
+                format,
+                t: translate,
+                className: declaration.className,
+              });
+          const tooltip = declaration.tooltip?.(ctx.row.original);
+          if (!tooltip) return rendered;
+          // A wrapper rather than an attribute on the rendered element: the cell may be the
+          // declaration's own JSX, which this must not reach into. The table's one delegated tooltip
+          // finds it by `closest` and prefers it over the clipped text (see useOverflowTooltip).
+          return (
+            <span className="block truncate" data-tooltip={tooltip}>
+              {rendered}
+            </span>
+          );
+        },
       } as ColumnDef<Row>;
     });
   }, [columns, metadata, t, format]);

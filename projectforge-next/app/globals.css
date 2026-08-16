@@ -273,6 +273,36 @@
 }
 
 /*
+ * A row picked for a mass update (see useRowSelection).
+ *
+ * A pseudo element rather than a background, because both background layers of a cell are taken: the
+ * colour keeps it opaque and the image carries the row's own tint (above). The tint of a selection has
+ * to be visible on top of either, and on top of the hover colour, so it gets a layer of its own —
+ * transparent to the pointer, or the cell's click handlers would never fire.
+ */
+.row-selected > td {
+  /* The layer below is positioned against the cell; only the first one is `relative` already. */
+  position: relative;
+}
+.row-selected > td::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--primary);
+  opacity: 0.14;
+}
+
+/*
+ * The row the keyboard is on while picking rows. An outline, which nothing else on a cell uses: the
+ * focused row is usually also a selected one, and the two have to be told apart.
+ */
+.row-focused > td {
+  outline: 1px dashed var(--primary);
+  outline-offset: -1px;
+}
+
+/*
  * The row edited last (see useHighlightedRow). An inset shadow rather than a tint, because the
  * classes above already own `background-image` on the cell: a fill would replace the row's own
  * colour, and the row a user just edited is quite often the one they just marked as deleted. Two

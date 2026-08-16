@@ -511,21 +511,21 @@ mehr im Projekt** – das ist die Prüfung.
    im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
    zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
    Favoriten-Bezug fallen.
-3. **Das Edit-Gerüst ist noch nicht geteilt.** `book`-Edit hält Submit-Ablauf,
-   406-Mapping, „gespeichert“-Toast, URL-Wechsel nach dem ersten Speichern,
-   Lösch-Bestätigung und Aktionsleiste selbst. Jede weitere handgebaute Edit-Seite
-   würde diese Blöcke kopieren. Sobald die zweite existiert (Phase 3,
-   Auftragsbuch), gehören sie generalisiert nach `components/shared/` bzw.
-   `hooks/` – ein `useEntityEditForm(entity, schema, …)` plus eine
-   `EntityEditActions`-Leiste. Bewusst erst dann: mit nur einem Aufrufer wäre die
-   Abstraktion geraten, nicht abgeleitet.
-4. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
+3. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
    Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
    (Spaltenbreiten, Resize, Popovers), der Favoriten-Durchlauf
    (anwenden/anlegen/umbenennen/überschreiben/löschen) sowie Speichern, Anlegen
    und Löschen eines Buchs gegen das echte Backend.
 
-Erledigt seit der letzten Fassung: die Form-Library-Drift (`CLAUDE.md` schreibt
+Erledigt seit der letzten Fassung: **das geteilte Edit-Gerüst.** Was `book`-Edit
+zuerst allein hielt – Submit-Ablauf, 406-Mapping, „gespeichert“-Toast, URL-Wechsel
+nach dem ersten Speichern, Lösch-Bestätigung und Aktionsleiste – liegt inzwischen in
+`hooks/use-entity-edit-form.ts` und `components/shared/edit/`, und alle drei
+handgebauten Seiten (`book`, `cost1`, `order`) laufen darüber: nicht als Kopie,
+sondern als Deklaration (`PageDef`, s. `docs/page-declarations.md`). Abgeleitet, wie
+vorgesehen, an der zweiten und dritten Seite – nicht an der ersten geraten.
+
+Außerdem erledigt: die Form-Library-Drift (`CLAUDE.md` schreibt
 inzwischen `@tanstack/react-form` + Zod für handgebaute Formulare vor, dynamische
 Seiten bleiben bewusst ohne Form-Library – s. Phase 2) und die doppelt deklarierten
 Validierungsregeln (s. „Erledigt: Validierungsregeln nicht duplizieren“ – die Regeln
@@ -1213,6 +1213,33 @@ Das **Auftragsbuch** ist der Referenz-Härtefall:
 
 **Verifikation.** Auftrag mit mehreren Positionen + Zahlungsplan
 anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
+
+#### Debitorenrechnungen (`outgoingInvoice`) – in Arbeit, Liste zuerst
+
+Die vierte Seite nach `book`, `cost1` und `order`, und die erste, die **nur als
+Liste** migriert wird: `RechnungDO` hat mit `RechnungsPosition` →
+`KostZuweisung` drei Schachtelungsebenen, mehr als die Auftragsposition, und das
+DTO ist dafür heute nicht vollständig. Die Liste ist davon unabhängig, also läuft
+sie voraus; die Edit-Seite bleibt bis dahin Wicket.
+
+Zwei Dinge folgen daraus, beide bewusst generisch gebaut statt für die Rechnung:
+
+- **`PageDef.edit` ist optional.** Eine Deklaration ohne Form-Hälfte entsteht über
+  `defineListPage` statt `definePage`; wohin Zeilenklick und „Neu" führen,
+  entscheidet `useEditTargets` – bei fehlender Form auf die Legacy-Seite, die das
+  Backend selbst benennt (`listMeta.legacyEditPage`). `EntityEditPage` verlangt
+  weiterhin eine Form (`EditablePageDef`), kann eine solche Seite also nicht
+  bekommen.
+- **Mehrfachauswahl** (`AbstractMultiSelectedPage`, `MultiSelectionSupport`) ist die
+  erste Fähigkeit, die keine migrierte Seite hatte. Sie gehört als Primitive in
+  `components/data-table` + `PageDef.massUpdate`, nicht in die Rechnung: das
+  Backend-Protokoll ist für jede Entität dasselbe. Achtung, der Zustand liegt in
+  der HTTP-Session (Schlüssel ist die _PagesRest_-Klasse, TTL 60 min) – das
+  braucht Sticky Sessions.
+
+**Verifikation** steht noch aus und hängt an einem Recht: `FIBU_AUSGANGSRECHNUNGEN`
+muss das Testkonto haben (s. oben, Phase 2). Ohne das ist die Seite nicht gegen
+echte Daten geprüft, und das ist dann auch so zu sagen.
 
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 

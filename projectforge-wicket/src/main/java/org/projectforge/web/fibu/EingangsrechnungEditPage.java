@@ -70,7 +70,7 @@ public class EingangsrechnungEditPage
           public void onClick() {
             EingangsrechnungEditPage.this.exportInvoiceAsXML();
           }
-        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
+        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tooltip"));
     if (isNew()) {
       exportInvoiceButton.setVisible(false);
     }

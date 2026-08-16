@@ -214,3 +214,33 @@ What goes into them for an entity is not written per page but declared once — 
   in `~/ProjectForge/testAccount.txt` (format `username/password` in one line); the suite logs in via `POST /rsPublic/nextLogin` and takes the
   `csrfToken` from `GET /rs/userStatus`. Seeing a real response settles at once whether a field is
   missing, null or merely displayed wrong.
+
+### Which server the E2E suite runs against
+
+`E2E_BASE_URL` picks the target; the default is the dev server on `:3000`.
+
+```bash
+npm run e2e                                          # dev server on :3000 (default)
+E2E_BASE_URL=http://localhost:8080 npm run e2e       # the static export Spring serves
+E2E_BASE_URL=http://localhost:8080 npx playwright test e2e/order.spec.ts
+```
+
+**Against `:8080` — the faster and steadier one.** Spring serves the build from the classpath
+(`classpath:/static/next/`, see `WebApplicationConfig`), so nothing is compiled during the run and
+**editing sources while the suite runs cannot disturb it**. Measured on the same machine: ten tests in
+14 s against `:8080` versus minutes against `:3000`, a full suite in ~4 min. Use this whenever the
+frontend is being worked on in parallel.
+
+The trade: `:8080` shows the **last build copied there by Gradle**, not the working tree. `out/` is not
+read live — after `npm run build` the files reach the classpath only via `copyNextBuild` (or
+`./gradlew build`), and because the resource chain caches and the shell map is read once per JVM,
+a new dynamic route needs Spring restarted.
+
+**Against `:3000`** — the default, and the only way to test uncommitted frontend changes. But a run
+competes with the dev server: the first navigation to a route compiles it, and an edit made mid-run
+invalidates modules under the test's feet. That is why a _different_ handful goes red each time, all
+with "element(s) not found" on a page that was still being built — the reason `expect.timeout` is 20 s
+and `timeout` 90 s in `playwright.config.ts`. Two habits make it bearable: restart `next dev` before a
+full run (it grew to 18 GB RSS at 400–700 % CPU over a long session, and at that size the process
+spends its time in GC while browser contexts die), and request every route once to warm it up before
+the first test. Don't edit while it runs.

@@ -40,7 +40,6 @@ export const BOOK_PAGE = definePage<
   // Where the entry sits in the main menu: General > Books (MenuItemDefId.BOOK_LIST).
   categoryKey: "menu.common",
   titleKey: "book.title.list",
-  searchPlaceholderKey: "books.searchPlaceholder",
   // The columns of BookEntityRest.createListLayout, in its order.
   columns: [
     { name: "created", size: 130 },

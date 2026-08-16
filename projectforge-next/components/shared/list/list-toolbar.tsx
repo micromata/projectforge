@@ -20,9 +20,14 @@ export interface ListToolbarProps {
   searchValue: string;
   /** Called with the typed value once it has settled, see [SearchInput]. */
   onSearchChange: (value: string) => void;
-  searchPlaceholder: string;
   /** Route of the add page, e.g. `/book/new`. */
   addHref: string;
+  /**
+   * Whether [addHref] leaves this app — the add page of an entity whose list is migrated but whose
+   * form is not (see useEditTargets). Rendered as a plain anchor then, because client-side routing
+   * would not find a Wicket page.
+   */
+  addIsLegacy?: boolean;
   /** The legacy list page (`ui.legacyUrl` of the list response), see LegacyPageLink. */
   legacyUrl?: string;
   /**
@@ -44,8 +49,8 @@ export function ListToolbar({
   category,
   searchValue,
   onSearchChange,
-  searchPlaceholder,
   addHref,
+  addIsLegacy,
   legacyUrl,
   actions,
   columnPanel,
@@ -53,7 +58,7 @@ export function ListToolbar({
   gearMenu,
 }: ListToolbarProps) {
   const t = useTranslations();
-  useAddEntryShortcut(addHref);
+  useAddEntryShortcut(addHref, addIsLegacy);
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
@@ -94,11 +99,17 @@ export function ListToolbar({
                 badly wherever the noun has no good article. The accessible name stays generic
                 for the same reason; the tooltip beside it names the shortcut. */}
             <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
-              <Link href={addHref}>
-                {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
-                    width/height attribute would win over that class. */}
-                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
-              </Link>
+              {addIsLegacy ? (
+                <a href={addHref}>
+                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
+                </a>
+              ) : (
+                <Link href={addHref}>
+                  {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
+                      width/height attribute would win over that class. */}
+                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
+                </Link>
+              )}
             </Button>
           </HintTooltip>
         </div>
@@ -106,11 +117,7 @@ export function ListToolbar({
 
       <div className="flex items-center gap-3 px-4 py-2.5">
         <div className="relative max-w-md flex-1">
-          <SearchInput
-            value={searchValue}
-            onChange={onSearchChange}
-            placeholder={searchPlaceholder}
-          />
+          <SearchInput value={searchValue} onChange={onSearchChange} />
         </div>
       </div>
 

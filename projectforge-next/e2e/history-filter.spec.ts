@@ -181,7 +181,10 @@ test.describe("history filter", () => {
     await openHistoryPill(page, t);
 
     await page.getByRole("combobox", { name: t("modifiedBy") }).click();
-    await page.getByPlaceholder(t("filter.search")).fill(term);
+    // Scoped to the popover the click opened, not by placeholder: `getByPlaceholder` matches a
+    // substring, so "Suchen..." also hits the list's own "Liste durchsuchen..." box behind it.
+    const popover = page.locator('[data-slot="popover-content"]');
+    await popover.getByPlaceholder(t("filter.search")).fill(term);
     // Scoped to the suggestion list: the page-size select contributes options of its own.
     const suggestion = page.getByRole("listbox").getByRole("option").first();
     await expect(suggestion).toBeVisible();
@@ -268,7 +271,7 @@ test.describe("history filter", () => {
     // to ask for a filter no cache has — and it carries the remaining entries along, which is what
     // this asserts on. (Turning a page would not: the page index is a client-side concern here.)
     const request = listRequest(page);
-    await page.getByPlaceholder(t("books.searchPlaceholder")).fill("x");
+    await page.getByPlaceholder(t("filter.searchList")).fill("x");
 
     const fields = (await request).entries.map((entry) => entry.field);
     expect(fields).not.toContain("historySearch");

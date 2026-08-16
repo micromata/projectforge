@@ -47,10 +47,12 @@ async function upload(page: Page, t: UserFormat["t"], name: string) {
 /** Removes an attachment again — also the cleanup, so it must not depend on the test's own state. */
 async function remove(page: Page, t: UserFormat["t"], name: string) {
   await page.getByRole("button", { name: `${t("delete")}: ${name}` }).click();
-  // The confirmation's button carries the bare label, unlike the row's.
+  // The confirmation's button carries the bare label, unlike the row's — and is looked up inside the
+  // dialog rather than as the last one on the page: before the dialog has mounted, "the last delete
+  // button" is still the row's, and clicking that only reopens the question.
   await page
+    .getByRole("alertdialog")
     .getByRole("button", { name: t("delete"), exact: true })
-    .last()
     .click();
   await expect(storedRow(page, t, name)).toHaveCount(0);
 }

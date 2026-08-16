@@ -5,9 +5,11 @@ import {
   columnHeaderKeyOf,
   columnIdOf,
   defaultPinningOf,
+  defineListPage,
   filterKindFor,
   labelKeyFor,
 } from "./define-page";
+import type { ListRow } from "@/hooks/use-entity-list-page";
 
 const METADATA: EntityMetadata = {
   entity: "kost1",
@@ -229,5 +231,30 @@ describe("defaultPinningOf", () => {
 
   it("leaves out an edge nothing is pinned to, so nothing is stored as a change", () => {
     expect(defaultPinningOf([{ name: "description" }])).toEqual({});
+  });
+});
+
+describe("defineListPage", () => {
+  interface Row extends ListRow {
+    formattedNumber?: string;
+  }
+
+  /** A list whose entries are still edited in the legacy page — see PageDef.edit. */
+  const LIST_ONLY = defineListPage<Row, typeof METADATA>({
+    entity: "cost1",
+    metadata: METADATA,
+    route: "/cost1",
+    queryKey: ["cost1"],
+    categoryKey: "menu.fibu._",
+    titleKey: "fibu.kost1.title.list",
+    columns: [{ name: "formattedNumber" }],
+    massUpdate: { endpoint: "cost1Selected", route: "/cost1/mass-update" },
+  });
+
+  it("declares a complete list without a form", () => {
+    expect(LIST_ONLY.edit).toBeUndefined();
+    // What the list renderer reads is all there, so nothing had to be invented to satisfy a type.
+    expect(columnIdOf(LIST_ONLY.columns[0])).toBe("formattedNumber");
+    expect(LIST_ONLY.massUpdate?.endpoint).toBe("cost1Selected");
   });
 });

@@ -1,6 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { ORDER_PAGE } from "../components/features/order/order.page";
 
 /**
  * The overflow tooltip of the data table against the live backend.
@@ -84,9 +83,7 @@ test.describe("data table overflow tooltip", () => {
     // same in every run.
     const term = seededOrder.title.split(" ")[3] ?? seededOrder.title;
     await page
-      .getByPlaceholder(
-        (await userFormat(page)).t(ORDER_PAGE.searchPlaceholderKey)
-      )
+      .getByPlaceholder((await userFormat(page)).t("filter.searchList"))
       .fill(term);
     const row = page
       .locator("table tbody tr")

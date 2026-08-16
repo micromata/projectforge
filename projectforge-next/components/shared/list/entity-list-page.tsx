@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -9,6 +8,8 @@ import {
   FilterFavoritesMenu,
   FilterPills,
   ListGearMenu,
+  selectionColumn,
+  SELECTION_COLUMN_ID,
   useRememberedFilter,
   useStoredColumnState,
   type ColumnState,
@@ -16,6 +17,7 @@ import {
 import { ListPageShell } from "@/components/shared/list-page-shell";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
+import { useEditTargets } from "@/hooks/use-edit-targets";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
@@ -29,6 +31,7 @@ import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
 import { ListToolbar } from "./list-toolbar";
+import { MassUpdateButton } from "./mass-update-button";
 import { useDeclaredColumns } from "./use-declared-columns";
 
 export interface EntityListPageProps<
@@ -109,8 +112,10 @@ function DeclaredList<
   storedState: ColumnState;
   restoredFilter?: MagicFilter;
 }) {
-  const router = useRouter();
   const t = useTranslations();
+  // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
+  // migrated and whose form is not yet (see useEditTargets).
+  const targets = useEditTargets(page.entity, page.route, !!page.edit);
   // Every list offers `created` and `lastUpdate`, hidden until the user asks for them — appended here
   // rather than declared per page (see auditColumnsFor).
   const declarations = useMemo(() => {
@@ -120,16 +125,24 @@ function DeclaredList<
       defaultVisibility: defaultVisibilityOf(appended),
     };
   }, [page.columns, page.metadata]);
-  const columns = useDeclaredColumns<Row, M>(
+  const declared = useDeclaredColumns<Row, M>(
     page.metadata,
     declarations.columns
   );
-  // Derived from the same declarations as the columns, so the pinned edge and the order are one
-  // statement and cannot drift (see defaultPinningOf).
-  const defaultPinning = useMemo(
-    () => defaultPinningOf(declarations.columns),
-    [declarations.columns]
+  // Prepended rather than declared, and outside useDeclaredColumns: it shows no property of the
+  // entity, so there is nothing for a declaration to name and no metadata to derive it from.
+  const columns = useMemo(
+    () => (page.massUpdate ? [selectionColumn<Row>(), ...declared] : declared),
+    [declared, page.massUpdate]
   );
+  // Derived from the same declarations as the columns, so the pinned edge and the order are one
+  // statement and cannot drift (see defaultPinningOf). The checkboxes are pinned first: they belong
+  // to the row as a whole, so scrolling sideways must not take them away.
+  const defaultPinning = useMemo(() => {
+    const pinning = defaultPinningOf(declarations.columns);
+    if (!page.massUpdate) return pinning;
+    return { ...pinning, left: [SELECTION_COLUMN_ID, ...(pinning.left ?? [])] };
+  }, [declarations.columns, page.massUpdate]);
 
   const list = useEntityListPage<Row>({
     entity: page.entity,
@@ -139,6 +152,7 @@ function DeclaredList<
     restoredFilter,
     defaultPinning,
     defaultVisibility: declarations.defaultVisibility,
+    enableSelection: !!page.massUpdate,
   });
   const ListActions = page.listActions;
 
@@ -151,10 +165,22 @@ function DeclaredList<
             category={t(page.categoryKey)}
             searchValue={list.globalFilter}
             onSearchChange={list.setGlobalFilter}
-            searchPlaceholder={t(page.searchPlaceholderKey)}
-            addHref={`${page.route}/new`}
+            addHref={targets.addHref}
+            addIsLegacy={targets.legacy}
             legacyUrl={list.legacyUrl}
-            actions={ListActions && <ListActions filter={list.filter} />}
+            actions={
+              <>
+                {page.massUpdate && list.selection && (
+                  <MassUpdateButton
+                    entity={page.entity}
+                    massUpdate={page.massUpdate}
+                    filter={list.filter}
+                    selectedIds={list.selection.selectedIds}
+                  />
+                )}
+                {ListActions && <ListActions filter={list.filter} />}
+              </>
+            }
             gearMenu={
               <ListGearMenu
                 entity={page.entity}
@@ -201,7 +227,10 @@ function DeclaredList<
           // marks it and brings it into view (see useHighlightedRow).
           highlightRowId={list.highlightRowId}
           highlightScope={page.entity}
-          onRowClick={(row) => router.push(`${page.route}/${row.id}`)}
+          onRowClick={(row) => targets.openEntry(row.id)}
+          // Both, and not one or the other: while nothing is picked a plain click still opens the
+          // entry, and the selection declines it (see useRowSelection.onRowClick).
+          selection={list.selection}
           footer={<TableLegend entries={legendEntries(page)} />}
           className="flex-1"
         />

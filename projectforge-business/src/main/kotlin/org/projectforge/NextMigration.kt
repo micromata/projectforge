@@ -90,6 +90,11 @@ object NextMigration {
      * legacy React app. Hand built pages may deviate.
      * @param newEntryRoute Route for creating a new entry, e.g. `book/new`. Defaults to the
      * generic shape `<route>/edit`.
+     * @param listOnly Only the list page is migrated, the form is still the legacy one: every url of
+     * the edit page stays in [legacyApp], so a row click, the add button and every server side
+     * redirect after a save lead there ([standardEditPage] and [newEntryUrl] answer the legacy url).
+     * Set together with [legacyApp] - a page whose legacy implementation is gone cannot keep its form
+     * there, and [editRoute] / [newEntryRoute] are then unused.
      * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to,
      * or null once that page is gone: a page whose legacy implementation has been removed has no way
      * back, and [legacyListUrl] & co. answer null for it.
@@ -104,6 +109,7 @@ object NextMigration {
         val route: String,
         editRoute: String? = null,
         newEntryRoute: String? = null,
+        val listOnly: Boolean = false,
         val legacyApp: LegacyApp? = LegacyApp.REACT,
         val legacyRoute: String? = null,
         val legacyEditRoute: String? = null,
@@ -111,6 +117,12 @@ object NextMigration {
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
+
+        init {
+            require(!listOnly || legacyApp != null) {
+                "A list only page keeps its form in the legacy app, so legacyApp must be given: route=$route"
+            }
+        }
     }
 
     /**
@@ -148,6 +160,17 @@ object NextMigration {
             legacyRoute = "orderBookList",
             legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "orderBookEdit",
+        ),
+        // The list only (listOnly = true): the invoice form with its positions, cost assignments and
+        // e-invoice export stays Wicket's for now, so a row click and the add button lead to
+        // wa/outgoingInvoiceEdit. The route is `invoice`, not the category: the entity is "Rechnung" to
+        // its users, and which side of it the category names (outgoing vs. incoming) is what the menu
+        // says, not what the url has to spell out. Wicket's mount points follow the convention
+        // (DaoConst.OUTGOING_INVOICE + List/Edit), so no legacy route has to be spelled out.
+        "outgoingInvoice" to NextPage(
+            route = "invoice",
+            listOnly = true,
+            legacyApp = LegacyApp.WICKET,
         ),
     )
 
@@ -216,19 +239,29 @@ object NextMigration {
 
     /**
      * @return The frontend url template of the edit page with [ID_PLACEHOLDER] for the id, e.g.
-     * `next/book/:id` or `react/address/edit/:id`.
+     * `next/book/:id` or `react/address/edit/:id`. For a [NextPage.listOnly] page the legacy edit page,
+     * e.g. `wa/outgoingInvoiceEdit?id=:id`: that is where its form is.
      */
     fun standardEditPage(category: String): String {
-        val route = nextPage(category)?.editRoute ?: "$category/edit/$ID_PLACEHOLDER"
+        val page = nextPage(category)
+        if (page?.listOnly == true) {
+            // Not null: a listOnly page has a legacyApp (see NextPage.init).
+            return legacyEditPage(category)!!
+        }
+        val route = page?.editRoute ?: "$category/edit/$ID_PLACEHOLDER"
         return "${appPath(category)}$route"
     }
 
     /**
      * @return The frontend url for creating a new entry, e.g. `next/book/new` or
-     * `react/address/edit`.
+     * `react/address/edit`, and the legacy one for a [NextPage.listOnly] page.
      */
     fun newEntryUrl(category: String): String {
-        val route = nextPage(category)?.newEntryRoute ?: "$category/edit"
+        val page = nextPage(category)
+        if (page?.listOnly == true) {
+            return legacyNewEntryUrl(category)!!
+        }
+        val route = page?.newEntryRoute ?: "$category/edit"
         return "${appPath(category)}$route"
     }
 

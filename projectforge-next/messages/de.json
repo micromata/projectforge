@@ -1,7 +1,6 @@
 {
   "books": {
     "title": "Bücherliste",
-    "searchPlaceholder": "Bücherliste durchsuchen…",
     "edit": {
       "tabs": {
         "general": "Allgemein",
@@ -22,9 +21,6 @@
       "saved": "Buch gespeichert",
       "newTitle": "Neues Buch"
     }
-  },
-  "cost1": {
-    "searchPlaceholder": "Kost1-Liste durchsuchen…"
   },
   "entityEdit": {
     "lastSaved": "Zuletzt gespeichert: {time}",
@@ -50,7 +46,6 @@
     }
   },
   "order": {
-    "searchPlaceholder": "Aufträge durchsuchen…",
     "legend": {
       "deleted": "Gelöscht / abgelehnt / ersetzt",
       "toBeInvoiced": "Zu fakturieren",

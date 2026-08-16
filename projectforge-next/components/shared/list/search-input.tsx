@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
@@ -14,7 +15,6 @@ export interface SearchInputProps {
   value: string;
   /** Called once the typing has settled — not per keystroke. */
   onChange: (value: string) => void;
-  placeholder: string;
 }
 
 /**
@@ -25,13 +25,13 @@ export interface SearchInputProps {
  * sees. Debouncing here rather than in the query hook keeps the input responsive: the value it renders is
  * its own state, and only the settled one leaves.
  *
- * Owned by this component and not by the pages, so every list debounces the same way.
+ * Owned by this component and not by the pages, so every list debounces the same way — including its
+ * label: "Suchen…" says everything a list-specific wording would, and a phrase per entity is one more
+ * text to translate for no reader who was in doubt about what the box above the table searches.
  */
-export function SearchInput({
-  value,
-  onChange,
-  placeholder,
-}: SearchInputProps) {
+export function SearchInput({ value, onChange }: SearchInputProps) {
+  const t = useTranslations();
+  const placeholder = t("filter.searchList");
   const [typed, setTyped] = useState(value);
   const debounced = useDebouncedValue(typed, SEARCH_DELAY_MS);
 

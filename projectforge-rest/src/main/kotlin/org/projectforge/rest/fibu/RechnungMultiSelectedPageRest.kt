@@ -36,6 +36,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
+import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAlert
@@ -60,7 +61,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   private lateinit var rechnungDao: RechnungDao
 
   @Autowired
-  private lateinit var rechnungPagesRest: RechnungPagesRest
+  private lateinit var outgoingInvoiceEntityRest: OutgoingInvoiceEntityRest
 
   override val layoutContext: LayoutContext = LayoutContext(RechnungDO::class.java)
 
@@ -72,7 +73,47 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
 
   @PostConstruct
   private fun postConstruct() {
-    pagesRest = rechnungPagesRest
+    pagesRest = outgoingInvoiceEntityRest
+  }
+
+  /**
+   * The same three fields [fillForm] lays out, for a client that renders the form itself.
+   */
+  override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+    return listOf(
+      MassUpdateFieldDeclaration("status"),
+      MassUpdateFieldDeclaration("bezahlDatum"),
+      MassUpdateFieldDeclaration("bemerkung", showAppendOption = true),
+    )
+  }
+
+  override fun infoMessageKey(): String {
+    return "fibu.rechnung.multiselected.info"
+  }
+
+  override fun getStatistics(selectedIds: Collection<Serializable>?): String {
+    return buildStatistics(selectedIds).asMarkdown
+  }
+
+  /**
+   * The same numbers [getStatistics] renders as markdown, as the values the list serves.
+   *
+   * The two exist side by side because their readers differ, not because the statistics do: the
+   * `UILayout` form has nowhere to put a number but a `UIAlert`, so for it the sums are pre-rendered
+   * text - complete with the `<span style="color:blue">` `MarkdownBuilder` colours them with. A hand
+   * built page renders its own statistics line and needs the numbers, which is also the only way it can
+   * format an amount in the *user's* locale and currency.
+   */
+  override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
+    return OutgoingInvoiceEntityRest.InvoiceStatistics(buildStatistics(selectedIds))
+  }
+
+  private fun buildStatistics(selectedIds: Collection<Serializable>?): RechnungsStatistik {
+    val stats = RechnungsStatistik()
+    rechnungDao.select(selectedIds)?.forEach { invoice ->
+      stats.add(invoice)
+    }
+    return stats
   }
 
   override fun fillForm(
@@ -83,11 +124,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     variables: MutableMap<String, Any>,
   ) {
     val lc = LayoutContext(RechnungDO::class.java)
-    val stats = RechnungsStatistik()
-    rechnungDao.select(selectedIds)?.forEach { invoice ->
-      stats.add(invoice)
-    }
-    layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
+    layout.add(UIAlert("'${getStatistics(selectedIds)}", color = UIColor.LIGHT, markdown = true))
     createAndAddFields(
       lc,
       massUpdateData,
@@ -96,7 +133,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       "bezahlDatum",
     )
     createAndAddFields(lc, massUpdateData, layout, "bemerkung", showAppendOption = true)
-    layout.add(UIAlert("fibu.rechnung.multiselected.info", color = UIColor.INFO, markdown = true))
+    layout.add(UIAlert(infoMessageKey(), color = UIColor.INFO, markdown = true))
   }
 
   override fun proceedMassUpdate(

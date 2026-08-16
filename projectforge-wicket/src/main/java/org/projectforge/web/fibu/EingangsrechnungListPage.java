@@ -253,7 +253,7 @@ public class EingangsrechnungListPage
                             exportExcelWithCostAssignments();
                         }
 
-                    }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
+                    }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tooltip"));
             addContentMenuEntry(exportKostzuweisungButton);
         }
         final ExternalLink importLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(EingangsrechnungUploadPageRest.class, null, null, true));
