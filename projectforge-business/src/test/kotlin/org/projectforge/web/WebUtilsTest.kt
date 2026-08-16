@@ -44,6 +44,12 @@ class WebUtilsTest {
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../.."))
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../../"))
     assertEquals("<invalid>", WebUtils.normalizeUri("/react/../rs/../../react"))
+    // Two dots inside a file name are no unresolved path segment: Next.js names its build chunks like this.
+    assertEquals(
+      "/next/_next/static/chunks/0b4s9fzw~-kl..js",
+      WebUtils.normalizeUri("/next/_next/static/chunks/0b4s9fzw~-kl..js")
+    )
+    assertEquals("/next/chunks/a..b..c", WebUtils.normalizeUri("/next/chunks/a..b..c"))
   }
 
   @Test

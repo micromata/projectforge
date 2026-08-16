@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
@@ -81,6 +82,14 @@ class MagicFilter(
     entries.removeIf { it.field.isNullOrBlank() } // Former filter versions (7.0-SNAPSHOT in 2019 supported entries with no values. This is now replaced by searchString.
   }
 
+  /**
+   * Derived from the entry with field [PAGINATION_PAGE_SIZE] — it is serialized (the clients read it from
+   * [org.projectforge.rest.core.ResultSet]), but never deserialized: a client echoing a filter it got from the
+   * server back to `{entity}/list` would otherwise fail the whole request with an unrecognized field, because
+   * there is no setter to bind it to. Read only, so Jackson knows the property and drops an incoming value; the
+   * page size itself travels in [entries].
+   */
+  @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
   val paginationPageSize: Int?
     get() {
       var size: Int? = null

@@ -82,12 +82,16 @@ object WebUtils {
   /**
    * If an invalid relative url is found, "<invalid>" is returned (e. g. for "../react", because .. cannot
    * be resolved.
+   *
+   * Only a `..` of its own is a path segment that couldn't be resolved; two dots inside a file name are not
+   * (Next.js build chunks such as `/next/_next/static/chunks/0b4s9fzw~-kl..js` are legal names, and treating them
+   * as an attack made every page load of the app a suspicious request).
    * @return Absolute uri: "" -> "/", "/react" -> "/react", "/react/../rs/" -> "/rs"
    */
   fun normalizeUri(uriString: String?): String? {
     uriString ?: return null
     val path = URI(uriString).normalize().path ?: return null
-    return if (path.contains("..")) {
+    return if (path.split('/').any { it == ".." }) {
       "<invalid>" // login required
     } else if (path.startsWith("/")) {
       path
