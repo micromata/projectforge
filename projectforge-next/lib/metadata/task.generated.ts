@@ -36,7 +36,7 @@ export const TASK_METADATA = {
     },
     ganttObjectType: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.objectType",
       required: false,
       enumValues: [
         {
@@ -55,17 +55,17 @@ export const TASK_METADATA = {
     },
     ganttPredecessor: {
       dataType: "TASK",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.predecessor",
       required: false,
     },
     ganttPredecessorOffset: {
       dataType: "INT",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.predecessorOffset",
       required: false,
     },
     ganttRelationType: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.relationType",
       required: false,
       enumValues: [
         {
@@ -96,6 +96,11 @@ export const TASK_METADATA = {
       i18nKey: "fibu.kost2",
       required: false,
       maxLength: 1024,
+    },
+    kost2IsBlackList: {
+      dataType: "BOOLEAN",
+      i18nKey: "task.kost2list.type",
+      required: false,
     },
     lastUpdate: {
       dataType: "TIMESTAMP",
@@ -230,7 +235,7 @@ export const TASK_METADATA = {
     },
     workpackageCode: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "task.workpackageCode",
       required: false,
       maxLength: 100,
     },

@@ -948,12 +948,16 @@
     "endDate": "End date",
     "name": "Name",
     "objectType": {
+      "_": "Gantt type",
       "activity": "Activity (Standard)",
       "milestone": "Milestone",
       "summary": "Summary"
     },
     "owner": "Owner",
+    "predecessor": "Predecessor",
+    "predecessorOffset": "Offset",
     "relationType": {
+      "_": "Relation type",
       "finish_finish": "finish-finish",
       "finish_start": "finish-start (default)",
       "start_finish": "start-finish",
@@ -1454,6 +1458,9 @@
     "_": "Structure element",
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
+    "kost2list": {
+      "type": "Type of Kost2 list"
+    },
     "maxHours": "Maximum hours",
     "parentTask": "Parent structure element",
     "path": {
@@ -1489,7 +1496,8 @@
       "title": {
         "select": "Select structure element"
       }
-    }
+    },
+    "workpackageCode": "Work package code"
   },
   "text": "Text",
   "timeNotation": {

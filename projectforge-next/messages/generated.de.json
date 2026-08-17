@@ -948,12 +948,16 @@
     "endDate": "Endedatum",
     "name": "Name",
     "objectType": {
+      "_": "Gantt-Objekttyp",
       "activity": "Aktivität (Standard)",
       "milestone": "Meilenstein",
       "summary": "Zusammenfassung"
     },
     "owner": "Eigner",
+    "predecessor": "Vorgänger",
+    "predecessorOffset": "Offset",
     "relationType": {
+      "_": "Beziehung",
       "finish_finish": "Ende-Ende",
       "finish_start": "Ende-Beginn (Standard)",
       "start_finish": "Beginn-Ende",
@@ -1454,6 +1458,9 @@
     "_": "Strukturelement",
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
+    "kost2list": {
+      "type": "Art der Kost2-Liste"
+    },
     "maxHours": "Maximalstunden",
     "parentTask": "Übergeordnetes Strukturelement",
     "path": {
@@ -1489,7 +1496,8 @@
       "title": {
         "select": "Strukturelement auswählen"
       }
-    }
+    },
+    "workpackageCode": "Arbeitspaket-Code"
   },
   "text": "Text",
   "timeNotation": {
