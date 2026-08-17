@@ -133,6 +133,9 @@ abstract class AbstractTestBase protected constructor() {
     @Autowired
     protected lateinit var persistenceService: PfPersistenceService
 
+    @Autowired
+    private lateinit var caches: PfCaches
+
     @PostConstruct
     private fun postConstruct() {
         if (DatabaseSupport.getInstance() == null) {
@@ -167,7 +170,9 @@ abstract class AbstractTestBase protected constructor() {
                 }
             }
         }
-        PfCaches.internalSetupForTestCases()
+        // The wired bean, not internalSetupForTestCases(): that one builds caches with nothing injected,
+        // and here there is a context that has them properly. See PfCaches.internalSetInstanceForTestCases.
+        PfCaches.internalSetInstanceForTestCases(caches)
     }
 
     protected var mCount: Int = 0

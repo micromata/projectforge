@@ -426,6 +426,22 @@ class PfCaches {
             return initialize(vacation)
         }
 
+        /**
+         * For test cases that do have a Spring context: puts the wired bean back in place.
+         *
+         * [internalSetupForTestCases] builds caches without any dependency injected, so anything reaching
+         * [instance] afterwards fails on an uninitialized `persistenceService`. Whether it does depends on
+         * the order the beans are created in, which is why this only shows up in some modules
+         * (`Kost2DO.effectiveKostentraegerStatus` is such a caller).
+         */
+        @JvmStatic
+        fun internalSetInstanceForTestCases(caches: PfCaches) {
+            instance = caches
+        }
+
+        /**
+         * For test cases without a Spring context, see [internalSetInstanceForTestCases] for the ones with.
+         */
         @JvmStatic
         fun internalSetupForTestCases() {
             instance = PfCaches()
