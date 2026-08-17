@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.task
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -32,7 +33,11 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessType
+import org.projectforge.rest.dto.Task
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * The per-field access flags of the task DTO, which decide what the hand built next form offers. The DAO
@@ -124,6 +129,46 @@ class TaskPagesRestTest : AbstractTestBase() {
             assertFalse(dto.protectTimesheetsUntilWriteAccess)
             null
         }
+    }
+
+    /**
+     * The rules Wicket enforces in its form and the backend didn't, so a save through the rest api slipped
+     * past them. At the boundaries, because that is where an off-by-one shows.
+     */
+    @Test
+    fun `validate refuses what the Wicket form refuses`() {
+        logon(TEST_FINANCE_USER)
+        assertNoError(Task(progress = 0, maxHours = 0, duration = BigDecimal.ZERO))
+        assertNoError(Task(progress = 100, maxHours = 9999, duration = BigDecimal(10000)))
+        // Scheduled by duration or by end date, never by both - TaskEditForm's only IFormValidator.
+        assertNoError(Task(duration = BigDecimal.ONE))
+        assertNoError(Task(endDate = LocalDate.of(2026, 3, 4)))
+        assertError(
+            Task(duration = BigDecimal.ONE, endDate = LocalDate.of(2026, 3, 4)),
+            "gantt.error.durationAndEndDateAreMutuallyExclusive",
+            "endDate",
+        )
+        val outOfRange = "validation.error.range.integerOutOfRange"
+        assertError(Task(progress = 101), outOfRange, "progress")
+        assertError(Task(progress = -1), outOfRange, "progress")
+        assertError(Task(maxHours = 10000), outOfRange, "maxHours")
+        assertError(Task(maxHours = -1), outOfRange, "maxHours")
+        assertError(Task(duration = BigDecimal(10001)), outOfRange, "duration")
+        assertError(Task(duration = BigDecimal(-1)), outOfRange, "duration")
+    }
+
+    private fun assertNoError(dto: Task) {
+        val errors = mutableListOf<ValidationError>()
+        taskPagesRest.validate(errors, dto)
+        assertTrue(errors.isEmpty(), "Expected no validation error, but got: $errors")
+    }
+
+    private fun assertError(dto: Task, messageId: String, fieldId: String) {
+        val errors = mutableListOf<ValidationError>()
+        taskPagesRest.validate(errors, dto)
+        assertEquals(1, errors.size, "Expected exactly one validation error, but got: $errors")
+        assertEquals(messageId, errors[0].messageId)
+        assertEquals(fieldId, errors[0].fieldId, "The message must land at its field, not in the general area.")
     }
 
     private fun transformFromDB(task: TaskDO) = taskPagesRest.transformFromDB(task, editMode = true)

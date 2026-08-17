@@ -27,8 +27,11 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -37,6 +40,7 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
+import java.math.BigDecimal
 
 @RestController
 @RequestMapping("${Rest.URL}/task")
@@ -84,10 +88,55 @@ class TaskPagesRest
         return taskDO
     }
 
+    /**
+     * The rules Wicket has and the backend hasn't. `TaskDao.onInsertOrModify` checks the title, the cyclic
+     * reference and the kost2 syntax, but nothing of the following - Wicket enforces it in the form and
+     * therefore only for Wicket, so a save through the rest api slips past it.
+     *
+     * Every message lands at its field ([ValidationError.fieldId]), which is what the next form needs to
+     * show it there instead of in the general area (`AbstractPagesRestUtils.handleException` does the same
+     * with a `UserException.causedByField`).
+     *
+     * Not here: the per-field access refusals. Only `TaskDao.checkUpdateAccess` knows whether the value
+     * has *changed* at all (it compares against `dbObj`), so a pre-check here would refuse saves the DAO
+     * accepts. The access flags of the dto keep the honest client from offering the change, the DAO stops
+     * the dishonest one.
+     */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Task) {
-        /* if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
-             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
-         }*/
+        // A Gantt task is scheduled either by its duration or by its end date, never by both - the only
+        // IFormValidator of TaskEditForm.
+        if (dto.duration != null && dto.endDate != null) {
+            val i18nKey = "gantt.error.durationAndEndDateAreMutuallyExclusive"
+            validationErrors.add(
+                ValidationError(translate(i18nKey), fieldId = "endDate", messageId = i18nKey)
+            )
+        }
+        validateRange(
+            validationErrors, "progress", dto.progress?.let { BigDecimal(it) }, BigDecimal.ZERO, NumberHelper.HUNDRED
+        )
+        validateRange(validationErrors, "maxHours", dto.maxHours?.let { BigDecimal(it) }, BigDecimal.ZERO, MAX_HOURS)
+        // Wicket: MinMaxNumberField(0, TaskEditForm.MAX_DURATION_DAYS).
+        validateRange(validationErrors, "duration", dto.duration, BigDecimal.ZERO, MAX_DURATION_DAYS)
+    }
+
+    private fun validateRange(
+        validationErrors: MutableList<ValidationError>,
+        fieldId: String,
+        value: BigDecimal?,
+        min: BigDecimal,
+        max: BigDecimal,
+    ) {
+        value ?: return
+        if (value < min || value > max) {
+            val i18nKey = "validation.error.range.integerOutOfRange"
+            validationErrors.add(
+                ValidationError(
+                    translateMsg(i18nKey, NumberFormatter.format(min), NumberFormatter.format(max)),
+                    fieldId = fieldId,
+                    messageId = i18nKey,
+                )
+            )
+        }
     }
 
     /**
@@ -109,5 +158,11 @@ class TaskPagesRest
                 )
         Favorites.addTranslations(layout.translations)
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    companion object {
+        /** The upper bounds of Wicket's `MinMaxNumberField`s, see `TaskEditForm` (`MAX_DURATION_DAYS`). */
+        private val MAX_HOURS = BigDecimal(9999)
+        private val MAX_DURATION_DAYS = BigDecimal(10000)
     }
 }
