@@ -22,8 +22,11 @@ export interface PaymentScheduleRowProps {
   onRemove?: () => void;
   /** Takes a soft-deleted instalment back — see [RepeatableRow], which renders the deleted state. */
   onRestore?: () => void;
-  /** Whether the `vollstaendigFakturiert` checkbox may be shown (FIBU right, as for a position). */
-  invoiceWriteAccess: boolean;
+  /**
+   * Whether the `vollstaendigFakturiert` checkbox may be ticked — the invoice right and PF_Finance, as for
+   * a position. False shows it read-only rather than hiding it.
+   */
+  invoiceFlagWriteAccess: boolean;
 }
 
 /**
@@ -40,7 +43,7 @@ export function PaymentScheduleRow({
   positionOptions,
   onRemove,
   onRestore,
-  invoiceWriteAccess,
+  invoiceFlagWriteAccess,
 }: PaymentScheduleRowProps) {
   const t = useTranslations();
   const label = useFieldLabels(PAYMENT_SCHEDULE_METADATA);
@@ -110,12 +113,17 @@ export function PaymentScheduleRow({
           className="md:col-span-2"
         />
         <CheckboxField name={name("reached")} label={label("reached")} />
-        {invoiceWriteAccess && (
-          <CheckboxField
-            name={name("vollstaendigFakturiert")}
-            label={label("vollstaendigFakturiert")}
-          />
-        )}
+        {/* Always rendered, read-only without the right — as in a position (PositionRow). */}
+        <CheckboxField
+          name={name("vollstaendigFakturiert")}
+          label={label("vollstaendigFakturiert")}
+          disabled={!invoiceFlagWriteAccess}
+          hint={
+            invoiceFlagWriteAccess
+              ? undefined
+              : t("fibu.auftrag.error.vollstaendigFakturiertProtection")
+          }
+        />
       </RepeatableRow>
     </NestedFieldMetadata>
   );

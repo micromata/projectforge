@@ -103,10 +103,18 @@ class Auftrag(
     var deleteAccess: Boolean = false
 
     /**
-     * Whether the `vollstaendigFakturiert` checkboxes of the positions and payment schedules are shown.
-     * Mirrors Wicket, which shows them for `FIBU_AUSGANGSRECHNUNGEN = READWRITE`
-     * (`AuftragEditForm`) while `AuftragRight` enforces FINANCE group membership on write — an
-     * asymmetry kept on purpose, so the form doesn't offer a field the DAO would refuse.
+     * Whether the `vollstaendigFakturiert` checkboxes of the positions and payment schedules may be
+     * *changed* — the invoice right (`FIBU_AUSGANGSRECHNUNGEN = READWRITE`) **and** membership of
+     * `FINANCE_GROUP`, which is what `AuftragRight.hasAccess` enforces on write (it throws
+     * `fibu.auftrag.error.vollstaendigFakturiertProtection` for anybody else).
+     *
+     * Whether they are *shown* is not asked: the flag says something about the order everybody who may
+     * read it should see, so the next form renders it read-only rather than leaving it out. That is
+     * deliberately more than Wicket does — `AuftragEditForm` and `PaymentSchedulePanel` render the
+     * checkbox only with the invoice right and hide the information from everybody else, while offering
+     * an editable box to a non-finance user whose save the DAO then refuses. Both ways round here: show
+     * the flag, and don't offer a change that is bound to fail. The DAO stays the authority in every
+     * case; this only decides what is rendered.
      */
     var vollstaendigFakturiertWriteAccess: Boolean = false
 
@@ -182,7 +190,8 @@ class Auftrag(
      * [copyFrom4ListRow]), and the order book shows `lastUpdate` from the start.
      *
      * The four boolean flags ([sendEMailNotification], [writeAccess], [deleteAccess],
-     * [vollstaendigFakturiertWriteAccess]) still travel, ~107 B/row: they are non-null `Boolean`s, so
+     * [vollstaendigFakturiertWriteAccess]) still travel: they are
+     * non-null `Boolean`s, so
      * `NON_NULL` cannot drop them, and making them nullable for the list's sake would push the
      * false-vs-absent distinction into the edit form. Left as it is until it is worth that.
      *

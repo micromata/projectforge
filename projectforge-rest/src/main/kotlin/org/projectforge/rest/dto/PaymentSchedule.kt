@@ -48,8 +48,12 @@ class PaymentSchedule(
     var comment: String? = null,
     var reached: Boolean = false,
     /**
-     * Only writable with `FIBU_AUSGANGSRECHNUNGEN = READWRITE`, see
+     * Readable by everyone who may read the order, changeable only by the accounting staff, see
      * [Auftrag.vollstaendigFakturiertWriteAccess].
+     *
+     * `AuftragRight.hasAccess` enforces that, for the schedules as for the positions — it long protected
+     * the positions' flag alone, although the column means the same thing and `PaymentScheduleDO`
+     * documents it the same way ("wird manuell von der FiBu gesetzt").
      */
     var vollstaendigFakturiert: Boolean = false,
 ) : BaseDTO<PaymentScheduleDO>() {

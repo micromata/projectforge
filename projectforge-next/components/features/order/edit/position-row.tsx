@@ -33,8 +33,12 @@ export interface PositionRowProps {
   onRemove?: () => void;
   /** Takes a soft-deleted position back — see [RepeatableRow], which renders the deleted state. */
   onRestore?: () => void;
-  /** Whether the `vollstaendigFakturiert` checkbox may be shown (FIBU right, see AuftragEditForm). */
-  invoiceWriteAccess: boolean;
+  /**
+   * Whether the `vollstaendigFakturiert` checkbox may be ticked — the invoice right and PF_Finance, which
+   * is what `AuftragRight` enforces on write. False shows the flag read-only rather than hiding it, with
+   * the very message the backend would answer a change with.
+   */
+  invoiceFlagWriteAccess: boolean;
   /**
    * Read-only invoice data of this position, from the loaded order rather than from the form — absent
    * for a position that was never invoiced (and for one that was never saved).
@@ -59,7 +63,7 @@ export function PositionRow({
   sums,
   onRemove,
   onRestore,
-  invoiceWriteAccess,
+  invoiceFlagWriteAccess,
   invoiceInfo,
 }: PositionRowProps) {
   const t = useTranslations();
@@ -170,12 +174,20 @@ export function PositionRow({
           rows={2}
           className="md:col-span-3"
         />
-        {invoiceWriteAccess && (
-          <CheckboxField
-            name={name("vollstaendigFakturiert")}
-            label={label("vollstaendigFakturiert")}
-          />
-        )}
+        {/* Always rendered — the flag says something about the position everybody who may read the order
+            should see; only ticking it is the accounting staff's. */}
+        <CheckboxField
+          name={name("vollstaendigFakturiert")}
+          label={label("vollstaendigFakturiert")}
+          disabled={!invoiceFlagWriteAccess}
+          // Only where it explains why the box cannot be ticked — and then in the backend's own words,
+          // the message `AuftragRight` would answer the save with.
+          hint={
+            invoiceFlagWriteAccess
+              ? undefined
+              : t("fibu.auftrag.error.vollstaendigFakturiertProtection")
+          }
+        />
         {invoiceInfo?.invoicedElsewhere && (
           <PositionInvoices
             invoiceInfo={invoiceInfo}

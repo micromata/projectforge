@@ -89,29 +89,54 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
                 return false
             }
         }
-        if (obj != null && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
-            && CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)
-        ) {
+        if (obj != null && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
             // Special field check for non finance administrative staff members:
-            if (operationType == OperationType.INSERT) {
-                for (position in obj.positionenExcludingDeleted) {
-                    if (position.vollstaendigFakturiert!!) {
-                        throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
-                    }
-                }
-            } else if (oldObj != null) {
-                for (number in 1..obj.positionenIncludingDeleted!!.size) {
-                    val position = obj.getPosition(number.toShort()) ?: continue
-                    val dbPosition = oldObj.getPosition(number.toShort())
-
-                    // check if deleted
-                    if (position.deleted == true) continue
-                    if (dbPosition == null) {
-                        if (position.vollstaendigFakturiert == true) {
+            if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
+                if (operationType == OperationType.INSERT) {
+                    for (position in obj.positionenExcludingDeleted) {
+                        if (position.vollstaendigFakturiert!!) {
                             throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
                         }
-                    } else if (position.vollstaendigFakturiert != dbPosition.vollstaendigFakturiert) {
-                        throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                    }
+                } else if (oldObj != null) {
+                    for (number in 1..obj.positionenIncludingDeleted!!.size) {
+                        val position = obj.getPosition(number.toShort()) ?: continue
+                        val dbPosition = oldObj.getPosition(number.toShort())
+
+                        // check if deleted
+                        if (position.deleted == true) continue
+                        if (dbPosition == null) {
+                            if (position.vollstaendigFakturiert == true) {
+                                throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                            }
+                        } else if (position.vollstaendigFakturiert != dbPosition.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
+                    }
+                }
+            }
+            // The same flag of the payment schedules, protected the same way: the column means the same
+            // thing ("wird manuell von der FiBu gesetzt", PaymentScheduleDO) and every frontend offers it
+            // next to the positions' one, so leaving it unchecked would let anybody with write access to
+            // the order mark an instalment as invoiced.
+            if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {
+                if (operationType == OperationType.INSERT) {
+                    for (schedule in obj.paymentSchedulesExcludingDeleted) {
+                        if (schedule.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
+                    }
+                } else if (oldObj != null) {
+                    for (schedule in obj.paymentSchedules!!) {
+                        if (schedule.deleted) continue
+                        val dbSchedule = oldObj.getPaymentSchedule(schedule.number)
+                        if (dbSchedule == null) {
+                            if (schedule.vollstaendigFakturiert) {
+                                throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                            }
+                        } else if (schedule.vollstaendigFakturiert != dbSchedule.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
                     }
                 }
             }

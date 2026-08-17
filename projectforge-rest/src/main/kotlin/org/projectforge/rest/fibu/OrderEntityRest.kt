@@ -155,12 +155,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     } else {
       baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
     }
-    // Mirrors AuftragEditForm, which shows the checkboxes for FIBU_AUSGANGSRECHNUNGEN = READWRITE while
-    // AuftragRight enforces FINANCE group membership on write. Kept asymmetric on purpose: hiding what
-    // Wicket hides, and leaving the DAO the authority on what may be written.
+    // Changeable only for the accounting staff with the invoice right, which is what
+    // AuftragRight.hasAccess enforces on write. Wicket offers the checkbox to a non-finance user anyway
+    // and lets the save fail with `fibu.auftrag.error.vollstaendigFakturiertProtection`; the next form
+    // disables it instead, so it never offers a change the DAO would refuse — and shows it to everybody
+    // else read-only rather than hiding the information, as Wicket does. The DAO stays the authority.
     auftrag.vollstaendigFakturiertWriteAccess = orderAccessChecker.hasLoggedInUserRight(
       RechnungDao.USER_RIGHT_ID, false, UserRightValue.READWRITE
-    )
+    ) && orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
     if (obj.id == null) {
       return auftrag
     }

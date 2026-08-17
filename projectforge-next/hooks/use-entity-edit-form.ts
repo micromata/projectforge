@@ -90,6 +90,13 @@ export function useEntityEditForm<Values, Data>({
     onSubmitMeta: SAVE_META,
     onSubmit: async ({ value, meta }) => {
       const result = await save(value as Values, meta);
+      if (result.kind === "rejected") {
+        // The backend refused the write and said why (an AccessException, see lib/rs/entity.ts). Not a
+        // field error and not the form's own doing, so it is shown as it came and the form stays put
+        // with the user's values — leaving the page would look like the save had gone through.
+        toast.error(result.message || tCommon("validation.error.generic"));
+        return;
+      }
       if (result.kind === "validationErrors") {
         // The server rejected the entity: its rules are the authority, ours only anticipate them.
         const { unassigned, hasAssigned } = applyServerValidationErrors(
