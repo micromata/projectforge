@@ -32,6 +32,7 @@ import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.persistence.api.BaseDO
 import java.math.BigDecimal
+import java.time.LocalDate
 
 class Task(id: Long? = null,
            displayName: String? = null,
@@ -43,10 +44,10 @@ class Task(id: Long? = null,
            var description: String? = null,
            var progress: Int? = null,
            var maxHours: Int? = null,
-           var startDate: java.util.Date? = null,
-           var endDate: java.util.Date? = null,
+           var startDate: LocalDate? = null,
+           var endDate: LocalDate? = null,
            var duration: BigDecimal? = null,
-           var protectTimesheetsUntil: java.util.Date? = null,
+           var protectTimesheetsUntil: LocalDate? = null,
            var responsibleUser: User? = null,
            var reference: String? = null,
            var timesheetBookingStatus: TimesheetBookingStatus? = null,
