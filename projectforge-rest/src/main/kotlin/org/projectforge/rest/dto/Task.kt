@@ -59,7 +59,29 @@ class Task(id: Long? = null,
            var ganttRelationType: GanttRelationType? = null,
            var ganttObjectType: GanttObjectType? = null,
            var ganttPredecessor: Task? = null
-) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName) {
+) : BaseDTODisplayObject<TaskDO>(id, displayName = displayName), EntityAccessSupport {
+
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
+
+    /**
+     * Whether `kost2BlackWhiteList`, `kost2IsBlackList` and `timesheetBookingStatus` may be changed:
+     * `TaskDao.hasAccessForKost2AndTimesheetBookingStatus`, i.e. the finance group or the project
+     * manager/assistant of the project of this task. `TaskDao.checkInsertAccess`/`checkUpdateAccess`
+     * refuse a change with `task.error.kost2Readonly` /
+     * `task.error.timesheetBookingStatus2Readonly` for anybody else.
+     *
+     * One flag per *rule*, not per field - the DAO knows exactly two, and Wicket disables exactly
+     * these two groups (`TaskEditForm.onBeforeRender`).
+     */
+    var kost2AndBookingStatusWriteAccess: Boolean = false
+
+    /**
+     * Whether `protectTimesheetsUntil` and `protectionOfPrivacy` may be changed: membership of the
+     * finance group, refused otherwise with `task.error.protectTimesheetsUntilReadonly` /
+     * `task.error.protectionOfPrivacyReadonly`.
+     */
+    var protectTimesheetsUntilWriteAccess: Boolean = false
 
     /**
      * @see copyFromMinimal

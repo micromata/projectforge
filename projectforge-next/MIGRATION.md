@@ -757,11 +757,17 @@ zeigt es jedem den Speichern-Button und lernt erst nach dem Abschicken, dass die
 ablehnt. Autorisierung bleibt Sache der DAO; hier geht es darum, dem Benutzer nichts
 anzubieten, was er nicht darf.
 
-**Die generische Schranke: zwei Flags am DTO.** `writeAccess`/`deleteAccess`, gefüllt
-in `transformFromDB` (Vorbild `Auftrag.kt` + `OrderEntityRest`:
-`hasLoggedInUserInsertAccess` bzw. `hasLoggedInUserUpdateAccess`,
-`hasLoggedInUserDeleteAccess`, alle mit `throwException = false`). Gelesen wird sie an
-genau einer Stelle, `lib/rs/entity-access.ts`:
+**Die generische Schranke: zwei Flags am DTO.** `writeAccess`/`deleteAccess`, deklariert
+im Interface `rest/dto/EntityAccessSupport.kt` und **an einer Stelle für alle Entitäten**
+gefüllt: `AbstractEntityRest.getById` setzt sie, wenn das DTO das Interface implementiert
+und `editMode` gilt – aus genau denselben DAO-Aufrufen, die `checkUserAccess` für die
+`UILayout.UserAccess` der layoutgetriebenen Seiten macht (`hasLoggedInUserUpdateAccess`,
+`hasLoggedInUserDeleteAccess`, beide mit `throwException = false`). Ein eigener Block im
+`transformFromDB` einer Rest-Klasse würde die DAO nur ein zweites Mal fragen; `Auftrag`
+und `Task` implementieren deshalb nur noch das Interface. `null` heißt „nicht gefragt" –
+was eine Listenzeile bekommt, denn kein Listeneintrag hat einen Speichern-Button.
+
+Gelesen wird das an genau einer Stelle, `lib/rs/entity-access.ts`:
 
 - **Fehlendes Flag heißt erlaubt** (`flags.writeAccess !== false`). Anders herum
   müsste jede nicht umgestellte Entität ihr Formular sofort verlieren – ein
@@ -1507,11 +1513,14 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
       `AddressbookDao` und der `UIInput(… DATE)`-Workaround in `TaskPagesRest` weg
       (den brauchte es nur, weil `lc` den Typ aus dem DTO ableitete);
    3. `causedByField` an den vier readonly-`AccessException`s der `TaskDao`;
-   4. die vier Zugriffs-Flags am `Task`-DTO (`writeAccess`, `deleteAccess`,
-      `kost2AndBookingStatusWriteAccess`, `protectTimesheetsUntilWriteAccess`), in
-      `transformFromDB` nur bei `editMode` gefüllt – die Methode läuft auch pro
-      Listenzeile, und der Kost2-Check kostet eine Projektauflösung plus
-      Gruppen-Lookup. **Falle:** Wicket fragt bei einer neuen Aufgabe mit dem
+   4. die Zugriffs-Flags am `Task`-DTO. `writeAccess`/`deleteAccess` sind nicht Sache
+      dieser Rest-Klasse: sie kommen aus `EntityAccessSupport` +
+      `AbstractEntityRest.getById` und gelten für jede Entität, die das Interface
+      implementiert (siehe „Zugriffsrechte im Formular"). Eigen sind nur die beiden
+      feldweisen `kost2AndBookingStatusWriteAccess` und
+      `protectTimesheetsUntilWriteAccess`, in `transformFromDB` nur bei `editMode`
+      gefüllt – die Methode läuft auch pro Listenzeile, und der Kost2-Check kostet eine
+      Projektauflösung plus Gruppen-Lookup. **Falle:** Wicket fragt bei einer neuen Aufgabe mit dem
       *Eltern*-Knoten; `hasAccessForKost2AndTimesheetBookingStatus` fällt auf
       `obj.parentTaskId` zurück, also muss `newBaseDO(request)` die Eltern-Id aus dem
       Request übernehmen (`parentTaskId`), sonst sieht ein Projektassistent die
@@ -1610,7 +1619,8 @@ prüfbar (das Testkonto ist Admin und in den FiBu-Gruppen) – dafür Unit-Tests
   `components/shared/edit/entity-edit-page.tsx` + `entity-edit-actions.tsx`,
   feldweise `components/features/order/edit/position-row.tsx` +
   `payment-schedule-row.tsx`; Backend `projectforge-rest/.../rest/dto/Auftrag.kt`
-  (`writeAccess`/`deleteAccess`/`vollstaendigFakturiertWriteAccess`) +
+  (`vollstaendigFakturiertWriteAccess`; die generischen `writeAccess`/`deleteAccess`
+  in `rest/dto/EntityAccessSupport.kt`, gefüllt in `rest/core/AbstractEntityRest.getById`) +
   `rest/fibu/OrderEntityRest.kt` (`transformFromDB`),
   `projectforge-business/.../fibu/AuftragRight.kt`; Wicket-Vorbild
   `AbstractEditForm.updateButtonVisibility`
@@ -1697,8 +1707,9 @@ prüfbar (das Testkonto ist Admin und in den FiBu-Gruppen) – dafür Unit-Tests
   entscheidenden Detail, dass eine Ablehnung als HTTP 200 mit `TOAST` kommt und
   jede Schreibantwort schon die ganze neue Liste enthält. Gegen das laufende
   System geprüft (`e2e/book-attachments.spec.ts`).
-- **Zugriffsrechte im Formular** – `writeAccess`/`deleteAccess` am DTO, gelesen in
-  `lib/rs/entity-access.ts` (fehlendes Flag = erlaubt), Speichern-Button und
+- **Zugriffsrechte im Formular** – `writeAccess`/`deleteAccess` am DTO
+  (`EntityAccessSupport`, für alle Entitäten in `AbstractEntityRest.getById` gefüllt),
+  gelesen in `lib/rs/entity-access.ts` (fehlendes Flag = erlaubt), Speichern-Button und
   Löschen-Button werden ohne Recht weggelassen statt ausgegraut, Tastatur-Abkürzung
   mitgeprüft; feldweise Rechte am Beispiel „vollständig fakturiert" (immer sichtbar,
   read-only, Hinweis = die Meldung des Backends); Ablehnungen aus eigenen Endpunkten

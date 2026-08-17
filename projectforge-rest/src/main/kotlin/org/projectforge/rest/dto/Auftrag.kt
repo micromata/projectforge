@@ -80,7 +80,7 @@ class Auftrag(
     override var attachmentsCounter: Int? = null,
     override var attachmentsSize: Long? = null,
     override var attachments: List<Attachment>? = null,
-) : BaseDTO<AuftragDO>(), AttachmentsSupport {
+) : BaseDTO<AuftragDO>(), AttachmentsSupport, EntityAccessSupport {
     var pos: String? = null
 
     var formattedNettoSumme: String? = null
@@ -94,13 +94,8 @@ class Auftrag(
      */
     var sendEMailNotification: Boolean = false
 
-    /**
-     * Access flags, so the hand built next form knows what to offer. The `UILayout.UserAccess` the
-     * legacy frontends use doesn't reach it: `GET /rs/order/{id}` passes no user access, and the next
-     * pages read none. The DAO stays the authority in every case — these only decide what is shown.
-     */
-    var writeAccess: Boolean = false
-    var deleteAccess: Boolean = false
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
 
     /**
      * Whether the `vollstaendigFakturiert` checkboxes of the positions and payment schedules may be

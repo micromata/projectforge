@@ -25,8 +25,11 @@ package org.projectforge.rest.task
 
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Task
@@ -45,6 +48,33 @@ class TaskPagesRest
     override fun transformFromDB(obj: TaskDO, editMode: Boolean): Task {
         val task = Task()
         task.copyFrom(obj)
+        if (editMode) {
+            // Only the edit page asks, and only it can afford it: this method runs per list row as well, and
+            // hasAccessForKost2AndTimesheetBookingStatus resolves the project through the task tree and looks
+            // up the groups of the user. writeAccess/deleteAccess are not filled here: they are the same for
+            // every entity and come from AbstractEntityRest.getById, see EntityAccessSupport.
+            val user = ThreadLocalUserContext.loggedInUser
+            task.kost2AndBookingStatusWriteAccess = baseDao.hasAccessForKost2AndTimesheetBookingStatus(user, obj)
+            task.protectTimesheetsUntilWriteAccess =
+                accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+        }
+        return task
+    }
+
+    /**
+     * A new task is created below a parent, and that parent decides its rights: with no id of its own,
+     * `TaskDao.hasAccessForKost2AndTimesheetBookingStatus` falls back to `parentTaskId` to resolve the
+     * project (Wicket passes the parent explicitly, see `TaskEditForm.onBeforeRender`). Without the parent
+     * a project assistant would see the kost2 fields disabled although the DAO would accept his save.
+     *
+     * The parameter is named as in Wicket (`TaskEditPage.PARAM_PARENT_TASK_ID`).
+     */
+    override fun newBaseDO(request: HttpServletRequest?): TaskDO {
+        val task = super.newBaseDO(request)
+        val parentTaskId = NumberHelper.parseLong(request?.getParameter("parentTaskId"))
+        if (parentTaskId != null) {
+            baseDao.setParentTask(task, parentTaskId)
+        }
         return task
     }
 

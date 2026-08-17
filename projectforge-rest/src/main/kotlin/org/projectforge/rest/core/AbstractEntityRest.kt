@@ -714,6 +714,14 @@ constructor(
         val item = baseDao.find(id) ?: return null
         checkUserAccess(item, userAccess)
         val result = transformFromDB(item, editMode)
+        if (editMode && result is EntityAccessSupport) {
+            // What the hand built next form may offer, asked here and not per rest class: the DAO calls
+            // are the same ones checkUserAccess makes for the layout driven frontends, so a second set
+            // in a transformFromDB override would only ask the DAO twice. Edit mode only - a list row
+            // has no save button, and every row would cost these two calls.
+            result.writeAccess = userAccess?.update ?: baseDao.hasLoggedInUserUpdateAccess(item, item, false)
+            result.deleteAccess = userAccess?.delete ?: baseDao.hasLoggedInUserDeleteAccess(item, item, false)
+        }
         jcrPath?.let {
             if (result is AttachmentsSupport) {
                 result.attachments = attachmentsService.getAttachments(it, id, attachmentsAccessChecker)
