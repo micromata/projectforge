@@ -27,6 +27,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.NextMigration
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
 import org.projectforge.business.user.ProjectForgeGroup
@@ -62,6 +64,64 @@ import java.math.BigDecimal
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
     class Kost2(val id: Long, val title: String)
+
+    /**
+     * The project a task's cost units come from, resolved by walking up the tree
+     * ([TaskTree.getProjekt]) — so a task without a project of its own reports its ancestor's, which is
+     * the one its kost2 list is built from.
+     */
+    class Projekt(
+        val id: Long?,
+        val name: String?,
+        /**
+         * The cost number of the project without the two Kost2Art digits, e. g. `5.123.45`
+         * ([ProjektDO.kost]). What the Wicket form shows as `<kost>.*` next to the black/white list.
+         */
+        val kost: String?,
+    )
+
+    /**
+     * The state of the kost2 block of the task form, for a list that is not saved yet: everything derived
+     * from `kost2BlackWhiteList` + `kost2IsBlackList` the client cannot derive itself.
+     *
+     * Not reimplemented in TypeScript on purpose. [TaskTree.getKost2List] matches the entries of the list
+     * as suffixes against the active cost units of the project (`KostCache`), and [TaskHelper.addKost2]
+     * abbreviates a picked unit to its two Kost2Art digits — except for a task that has no id but a parent,
+     * where it appends the full number. A copy of that would have to duplicate the number format, the
+     * Kost2Art ids and the project resolution.
+     */
+    class Kost2Preview(
+        /** The black/white list, normalized and sorted ([TaskHelper.normalizeKost2BlackWhiteList]). */
+        val kost2BlackWhiteList: String?,
+        /** [Projekt.kost] of the resolved project, or null if the task has none. */
+        val projektKost: String?,
+        /** The resulting cost units in wild card form, e. g. `5.123.45.*`. */
+        val kost2WildCard: String?,
+        /** The resulting cost units, one formatted number per line — the Wicket tooltip's content. */
+        val kost2ListAsLines: String?,
+    )
+
+    /**
+     * What the client asks a [Kost2Preview] for: the black/white list as the user has it in the form,
+     * plus the task it belongs to.
+     */
+    class Kost2PreviewRequest(
+        /** Id of the task being edited, null while it is being added. */
+        var id: Long? = null,
+        /**
+         * Id of the parent task. The only way to resolve the project of a task that has no id yet, and
+         * what `TaskHelper.addKost2` and `TaskDao.hasAccessForKost2AndTimesheetBookingStatus` fall back
+         * on (Wicket passes the parent for the same reason, see `TaskEditForm.onBeforeRender`).
+         */
+        var parentTaskId: Long? = null,
+        var kost2BlackWhiteList: String? = null,
+        var kost2IsBlackList: Boolean = false,
+        /**
+         * A cost unit just picked from the list, to be appended before the preview is computed — one round
+         * trip instead of two, because after a pick the client needs the new preview anyway.
+         */
+        var addKost2Id: Long? = null,
+    )
 
     /**
      * One order having at least one position assigned to a task, as the tree's `Aufträge` column shows
@@ -110,6 +170,18 @@ class TaskServicesRest {
          * Wild card form of kost2List, e. g. 5.123.456.*
          */
         var kost2WildCard: String? = null,
+        /**
+         * The project the cost units come from, resolved through the ancestors. Only filled by
+         * [createTask] (`info/{id}`), not per tree node: the edit form needs it to show `<kost>.*` and to
+         * prefilter the cost unit picker, the tree shows the units themselves.
+         */
+        var projekt: Projekt? = null,
+        /**
+         * Whether cost units are configured at all ([Configuration.isCostConfigured]) — the gate for
+         * showing the kost2 block of the form in the first place, as in `TaskEditForm.init`. Not
+         * derivable from an empty `projekt`: a task simply without a project looks the same.
+         */
+        var costConfigured: Boolean? = null,
         var path: List<Task>? = null,
         var consumption: Consumption? = null,
         var orderList: MutableList<Order>? = null,
@@ -212,6 +284,8 @@ class TaskServicesRest {
             val task = Task(taskNode)
             addKost2List(task)
             addTimesheetReferenceList(task)
+            task.costConfigured = Configuration.instance.isCostConfigured
+            task.projekt = taskTree.getProjekt(id)?.let { Projekt(it.id, it.name, it.kost) }
             task.consumption = Consumption.create(taskNode)
             val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
             val pathArray = mutableListOf<Task>()
@@ -320,6 +394,9 @@ class TaskServicesRest {
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var listFilterService: ListFilterService
@@ -603,6 +680,46 @@ class TaskServicesRest {
     fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
         val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
+    }
+
+    /**
+     * What the kost2 block of the task form would resolve to for a black/white list the user has typed but
+     * not saved — and, with [Kost2PreviewRequest.addKost2Id], the list with a picked cost unit appended.
+     *
+     * Wicket recomputes this locally on every render from the unsaved form model
+     * (`TaskEditForm`, the tooltip of `projektKostLabel`); a hand built page has to ask, because the three
+     * calls behind it need the cost cache, the project of the task and the number format.
+     *
+     * Read only, but a POST: the black/white list is form content, and a GET would carry it in the url and
+     * into every log.
+     */
+    @PostMapping("kost2Preview")
+    fun getKost2Preview(@RequestBody request: Kost2PreviewRequest): ResponseEntity<Kost2Preview> {
+        // The task as the form has it, not as the database has it: the preview is about the unsaved list.
+        // Access is not checked - nothing is written, and what may be seen is the cost units of a project,
+        // which the tree shows to everybody who may see the task. A task id that doesn't exist resolves no
+        // project and answers an empty preview.
+        val task = TaskDO()
+        task.id = request.id
+        request.parentTaskId?.let { taskDao.setParentTask(task, it) }
+        task.kost2IsBlackList = request.kost2IsBlackList
+        task.kost2BlackWhiteList = request.kost2BlackWhiteList
+        request.addKost2Id?.let { kost2Id ->
+            // Appends the two Kost2Art digits, or the whole number - see TaskHelper.addKost2, whose
+            // branches are the reason this is not done in the client.
+            task.kost2BlackWhiteList = TaskHelper.addKost2(taskTree, task, kostCache.getKost2(kost2Id))
+        }
+        val projekt = taskTree.getProjekt(task.id ?: task.parentTaskId)
+        val kost2List = taskTree.getKost2List(projekt, task, task.kost2BlackWhiteItems, task.kost2IsBlackList)
+        return ResponseEntity(
+            Kost2Preview(
+                kost2BlackWhiteList = TaskHelper.normalizeKost2BlackWhiteList(task),
+                projektKost = projekt?.kost,
+                kost2WildCard = kost2List?.let { KostHelper.getWildCardString(it, "*") },
+                kost2ListAsLines = kost2List?.let { KostHelper.getFormattedNumberLines(it) },
+            ),
+            HttpStatus.OK,
+        )
     }
 
     /**
