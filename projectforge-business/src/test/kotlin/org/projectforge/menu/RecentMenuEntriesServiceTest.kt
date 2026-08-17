@@ -102,16 +102,16 @@ class RecentMenuEntriesServiceTest : AbstractTestBase() {
      */
     @Test
     fun persistenceTest() {
-        logon(TEST_USER2)
+        val userId = logon(TEST_USER2).id!!
         clearHistory()
         recentMenuEntriesService.append("COMMON.ADDRESS_LIST")
         recentMenuEntriesService.append("COMMON.TASK_TREE")
-        logoff()
-        suppressErrorLogs {
-            userPrefCache.flushToDB(getUserId(TEST_USER2)) // User 'null' is not allowed.
-        }
-        userPrefCache.setExpired()
-        logon(TEST_USER2)
+        // Written and dropped from the cache for this user only, while they are logged in: flushToDB checks
+        // the access and writes nothing after a logoff, and setExpired would flush the whole cache, whose
+        // entries of other users may be older than the last recreateDataBase of another test class.
+        userPrefCache.flushToDB(userId)
+        // The next access has to read the pref back from the database.
+        assertNull(userPrefCache.getUserPreferencesData(userId), "Flushed users are dropped from the cache.")
         assertEquals(listOf("TASK_TREE", "ADDRESS_LIST"), recentMenuEntriesService.getRecentIds())
     }
 
