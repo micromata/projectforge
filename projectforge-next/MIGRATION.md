@@ -1262,6 +1262,151 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
 `UICustomized`-Registry mit `COLOR_CHOOSER`, weil das Kalender-Menü auf
 `calendarSettings` verlinkt.
 
+#### Aufgabenbaum (dritter handgebauter Fall) – Bestandsaufnahme
+
+Der **Aufgabenbaum** liegt produktiv unter `wa/taskTree` (Wicket, nicht React) und
+ist der dritte Fall, der handgebaut werden muss: die Baumdarstellung selbst kennt
+`UILayout` nicht (`TaskPagesRest.createListLayout` besteht aus einer einzigen
+Spalte `title`), die Spalten kommen stattdessen aus einem eigenen Endpunkt
+`TaskServicesRest`. Anders als bei Auftragsbuch und Kalender ist die Baumseite
+in next aber **schon weitgehend gebaut** (Commits `d9c0e6a2c`, `522f3bbc3`,
+`0e7f9fe44`, `ecf3e544c`).
+
+**Grundsatz für diese Seite: erst alles aus Wicket nachbauen – Baum *und*
+Edit-Seite –, dann umschalten.** Kein Teil-Umstieg, bei dem der Zeilenklick nach
+`wa/taskEdit` zurückführt: die Wicket-Edit-Seite hat Felder und Rechte-Logik, die
+`TaskPagesRest.createEditLayout` heute nicht abbildet, ein Teilumstieg würde also
+Funktionalität verlieren statt gewinnen.
+
+##### Was in next steht (`/next/taskTree`, ~1030 Z. in 12 Dateien)
+
+`app/(authenticated)/taskTree/page.tsx` ist eine konkrete Route, die den
+`[category]`-Catch-all überschattet – `taskTree` ist **keine** REST-Kategorie, die
+Entität heißt `task`. Der Baum selbst liegt bewusst in
+`components/shared/tasks/`, weil ihn `TaskSelectField` (Auftragsposition) im
+Auswahlmodus mitbenutzt: `task-tree-panel.tsx`, `task-tree-table.tsx`,
+`task-tree-filter.tsx`, `use-task-tree.ts`, `use-task-tree-columns.tsx`,
+`types.ts`, dazu `lib/rs/task.ts` und die Picker-Familie (`task-select-field`,
+`task-select-modal`, `task-select`, `task-chip`, `task-path`).
+
+Damit sind aus Wicket bereits nachgebaut: Baum mit Einrückung, die vollständige
+Spaltenliste inkl. Verbrauchsbalken, Kost2-Label und Auftragspositionen (aus
+`TaskServicesRest.createDefaultColumnDefs`, mit denselben Sichtbarkeitsregeln –
+Kost2 nur bei `isCostConfigured`, Aufträge/„Schutz bis" nur für FiBu), Suchfeld
+(debounced), die vier Status-Häkchen (`opened`/`notOpened`/`closed`/`deleted`),
+serverseitiges Auf-/Zuklappen über die User-Prefs (`TaskTree.USER_PREFS_KEY_OPEN_TASKS`
+– Aufklappen ist ein Request, kein Client-State), Wurzelknoten nur für Admin/FiBu,
+Klickverhalten „Titelspalte klappt auf, andere Spalte wählt", markierte Zeile
+inkl. geöffneter Vorfahren, gelöschte durchgestrichen, Auswahlmodus und die
+URL-basierte Spaltenzustands-Persistenz (`tree/setColumnStates`,
+`tree/resetGridState`). Gegen das laufende System geprüft: `e2e/task-tree.spec.ts`
+(4 Fälle).
+
+##### Lücke 1 – Routing/Menü (blockiert alles Weitere)
+
+`MenuItemDefId.TASK_TREE` steht auf `"wa/taskTree"`, `task` fehlt in
+`NextMigration.MIGRATED`, `taskTree` fehlt in `lib/hand-built-categories.ts`
+(`NextMigrationTest` erzwingt den Gleichstand). Zwei Eigenheiten, die keine der
+vier bisherigen Seiten hatte:
+
+- Die Route (`taskTree`) ist weder die REST-Kategorie (`task`) noch eine
+  Listenseite im Sinne von `NextMigration.listUrl()`. `NextPage.route` kann das
+  ausdrücken, aber jeder `PagesResolver`-Redirect für `task` zeigt dann auf
+  `next/taskTree` – für den Baum richtig, für die (unmigrierte) Listenperspektive
+  falsch. Das ist zu entscheiden, nicht mechanisch zu erledigen.
+- Der Wicket-Rückweg folgt **nicht** der Konvention `<category>List`
+  (`WebRegistry` mountet `taskList`/`taskEdit`), `legacyRoute` braucht also den
+  expliziten Wert `taskTree` bei `legacyApp = WICKET`.
+
+##### Lücke 2 – die Aktionen der Baumseite (`TaskTreePage.init()`, `TaskTreeForm`)
+
+| Aktion | Backend |
+| --- | --- |
+| **Neue Aufgabe** (`+`, Access-Key) | `PUT /rs/task/saveorupdate` vorhanden – es fehlt die Zielseite (s. Lücke 3) |
+| **Favoriten** (`UserPrefArea.TASK_FAVORITE`) | `TaskFavoritesRest` (`/rs/task/favorites/list\|create\|select\|delete\|rename`) vollständig, in next unbenutzt. Achtung: auch die schreibenden Aufrufe sind dort `@GetMapping` |
+| **Aufgaben-Assistent** (nur Admin) | `TaskWizardPageRest` ist ein Torso: `UIAlert("To-do: watchfields, create new entities, show no action")`, Abbrechen redirectet hart auf `/wa/taskTree`. Vorlage ist `TaskWizardForm.java` (Aufgabe + Manager-Gruppe/Team/externe Gruppe, Gruppe/Aufgabe anlegen) |
+| **Reindex** (nur Admin) | `AbstractEntityRest.reindexFull` vorhanden |
+| **Listenansicht** (Umschalten Baum ↔ Tabelle, `TaskListForm` mit `task.tree.perspective` zurück) | `createListLayout` hat **eine** Spalte, die Wicket-Liste zehn – erst das Listen-Layout füllen |
+| **Filter zurücksetzen** | kein Endpunkt; `TaskFilter.reset()` ist Wicket-intern. Hängt an der offenen `filter/reset`-Lücke aus Phase 1.5 |
+| **Lucene-Hilfe am Suchfeld** (`tooltip.lucene.link` → `Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE`) | reine Frontend-Arbeit |
+
+Kleinigkeit dazu: der Hinweistext unten nutzt `task.selectPanel.info` (Text des
+Auswahl-Panels); die Baumseite hat mit `task.tree.info` einen eigenen.
+
+##### Lücke 3 – die Edit-Seite, handgebaut als `PageDef`
+
+Der Zeilenklick geht heute auf `listMeta.legacyEditPage` → `wa/taskEdit?id=…`.
+Ziel ist eine handgebaute Seite wie `book`/`order` (`docs/page-declarations.md`),
+**nicht** der Dynamic-Renderer: dessen Entity-Picker sind nicht migriert
+(`dynamic-input-resolver.tsx:15`), und `createEditLayout` deckt nur
+`parentTask, title, status, priority, responsibleUser, shortDescription,
+reference, description, protectTimesheetsUntil` ab – also weder den Gantt- noch
+den Kost2-Block.
+
+Was schon trägt: `lib/metadata/task.generated.ts` hat alle 26 Felder mit
+`required`/`maxLength`/`enumValues` (nie im Frontend wiederholen),
+`historizable: true` bringt den History-Reiter mit, `DeclaredFormField` deckt
+`STRING`/`INT`/`DECIMAL`/`DATE`/`BOOLEAN` und die Enums ab, `SEARCH_ENTITY`
+kennt `TASK`/`USER`/`COST2`, und `TaskSelectField` (Modal-Baum) steht für
+`parentTask`/`ganttPredecessor` bereit.
+
+Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
+
+1. **DTO unvollständig** (`rest/dto/Task.kt`): kein `projekt`/`kost2List` für den
+   Kost2-Block; `startDate`/`endDate`/`protectTimesheetsUntil` sind dort
+   `java.util.Date`, im `TaskDO` aber `LocalDate` – Draht-Format muss `yyyy-MM-dd`
+   sein.
+2. **Feldweise Schreibrechte.** `TaskDao.hasAccessForKost2AndTimesheetBookingStatus`
+   schaltet in Wicket `kost2BlackWhiteList`, `kost2IsBlackList` und
+   `timesheetBookingStatus` read-only, `protectTimesheetsUntil` nur für die
+   FiBu-Gruppe. `checkInsertAccess`/`checkUpdateAccess` werfen sonst
+   `AccessException` – und die kommt heute als **HTTP 200 mit Toast** zurück, was
+   `lib/rs/entity.ts` als `kind: "ok"` liest und `use-entity-edit-form.ts` als
+   Erfolg meldet (s. oben, bekannter offener Punkt). Hier fällt das zum ersten Mal
+   real auf. `PageDef` hat außerdem kein `readOnlyWhen`.
+3. **Cross-Feld-Validierung:** `duration` und `endDate` schließen sich aus
+   (`gantt.error.durationAndEndDateAreMutuallyExclusive`) – in Wicket ein
+   `IFormValidator`, im Backend **nirgends** (`TaskPagesRest.validate` ist leer).
+   Gehört ins Backend, nicht ins Zod-Schema.
+4. **Zwei zugeklappte Sektionen:** `task.gantt.settings` (ganttObjectType,
+   startDate, endDate, progress 0–100 %, duration 0–10000, ganttPredecessorOffset,
+   ganttRelationType, ganttPredecessor) und `financeAdministration`.
+   `SectionCard` braucht dafür einen collapsed-Zustand.
+5. **Kost2-Block ist ein Custom-Fall:** Anzeige `projekt.kost + ".*"` mit Tooltip
+   über die aufgelösten Kost2-Nummern, Freitextfeld `kost2BlackWhiteList`,
+   Weiß/Schwarz-Umschalter und ein auf `nummer:<projekt.kost>.*` vorgefilterter
+   Kost2-Picker, der Nummern **anhängt** (`TaskHelper.addKost2`). Braucht einen
+   Server-Roundtrip; heute gibt es keinen Endpunkt dafür.
+6. **Kleinteile:** `maxHours` mit Warn-Tooltip bei zugeordneten
+   Auftragspositionen (`task.edit.maxHoursIngoredDueToAssignedOrders`),
+   `progress` als Prozentfeld, JIRA-Hinweis an `shortDescription`/`description`,
+   `parentTask` nur außerhalb des Wurzelknotens pflichtig.
+7. **Fünf Querverweise im Kopfmenü** (`TaskEditPage.addTopMenuPanel`, nur bei
+   bestehendem Datensatz): Unteraufgabe anlegen (`PARAM_PARENT_TASK_ID`),
+   Zeitbuchung anlegen, Zeitbuchungen anzeigen, Gantt-Diagramm anlegen und im
+   erweiterten Menü Zugriffsrechte. Vier davon zeigen auf **unmigrierte** Seiten
+   (`wa/timesheetEdit`, `wa/timesheetList`, `wa/ganttChartEdit`, `wa/accessList`)
+   – bleiben also zunächst Links ins Alt-Frontend.
+
+##### Reihenfolge
+
+1. Backend-Vorarbeit für die Edit-Seite: DTO vervollständigen,
+   `AccessException` → 406 statt 200-Toast, `durationAndEndDate` in `validate()`,
+   read-only-Flags für die vier rechtegeschützten Felder, Endpunkt für den
+   Kost2-Anhang.
+2. Handgebaute Edit-Seite als `PageDef` inkl. der beiden zugeklappten Sektionen
+   und des Kost2-Custom-Felds; Zeilenklick des Baums darauf umlenken.
+3. Aktionsleiste des Baums: Reindex, Neu, Favoriten, Filter zurücksetzen,
+   Lucene-Hilfe, `task.tree.info`.
+4. Listenperspektive (`createListLayout` auf die zehn Wicket-Spalten bringen) und
+   Aufgaben-Assistent (`TaskWizardPageRest` ausbauen).
+5. Erst dann Menü + `NextMigration.MIGRATED["task"]` umschalten.
+
+**Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
+Kost2-Felder mit *und* ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
+nicht als Erfolg), Suche und Klappzustand über einen Reload, Auswahlmodus aus der
+Auftragsposition, History.
+
 ### Phase 4 – Ablösung & Aufräumen
 
 - Pro vollständig migrierter Seite: Menü auf `next/`, alte Route deaktivieren.
@@ -1341,6 +1486,17 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
   `rest/dto/datatable/DataTableStateRequest.kt`
 - **Auftragsbuch:** `projectforge-wicket/.../web/fibu/AuftragEditForm.kt`,
   `projectforge-rest/.../fibu/OrderEntityRest.kt`, `rest/dto/Auftrag.kt`
+- **Aufgabenbaum:** Wicket `projectforge-wicket/.../web/task/`
+  (`TaskTreePage.java`, `TaskTreeForm.java`, `TaskTreeBuilder.java`,
+  `TaskEditPage.java`, `TaskEditForm.java`, `TaskListForm.java`,
+  `web/admin/TaskWizardForm.java`); Backend
+  `projectforge-rest/.../rest/task/TaskServicesRest.kt` (Baum + Spalten),
+  `TaskPagesRest.kt`, `TaskFavoritesRest.kt`, `TaskWizardPageRest.kt` (Torso),
+  `rest/dto/Task.kt`, Rechte `projectforge-business/.../task/TaskDao.kt`
+  (`hasAccessForKost2AndTimesheetBookingStatus`), Klappzustand
+  `.../task/TaskTree.kt` (`USER_PREFS_KEY_OPEN_TASKS`), Kost2-Anhang
+  `.../task/TaskHelper.kt`; next `app/(authenticated)/taskTree/page.tsx`,
+  `components/shared/tasks/*`, `lib/rs/task.ts`, `e2e/task-tree.spec.ts`
 
 ## Stand & nächste Schritte
 
@@ -1400,7 +1556,9 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
-   möglich).
+   möglich). Beim **Aufgabenbaum** steht die Baumseite schon; dort fehlen die
+   Edit-Seite und die Aktionen, und beides muss vor dem Menü-Umschalten fertig
+   sein (s. eigener Abschnitt).
 4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
