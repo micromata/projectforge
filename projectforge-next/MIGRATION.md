@@ -1504,7 +1504,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
 
 ##### Reihenfolge
 
-1. Backend-Vorarbeit für die Edit-Seite, sechs eigenständige Commits:
+1. **Erledigt.** Backend-Vorarbeit für die Edit-Seite, sechs eigenständige Commits:
    1. die fünf falschen `@PropertyInfo`-Keys im `TaskDO`, `@PropertyInfo` für
       `kost2IsBlackList`, die neuen Bundle-Keys – zusammen mit den regenerierten
       Dateien im *selben* Commit (`GenerateNextFieldMetadataTest` /
@@ -1543,6 +1543,17 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
       Nummernformat in die URL zieht und serverseitig neu geparst wird. Für Schritt 2
       gemerkt: `EntityAutocompleteField` hat `${entity}/autosearch?search=` fest
       verdrahtet und braucht eine Extra-Parameter-Möglichkeit.
+
+   Unterwegs mitgefunden: `AbstractTestBase` ersetzte `PfCaches.instance` durch
+   `internalSetupForTestCases()`, also durch Caches ohne jede Injektion – wer danach an
+   `PfCaches.instance` kam, lief in ein nicht initialisiertes `persistenceService`
+   (`Kost2DO.effectiveKostentraegerStatus` tut das). Dass es nur in manchen Modulen auffiel, lag
+   an der Reihenfolge der Bean-Erzeugung. In Spring-Tests bleibt jetzt die verdrahtete Bean
+   stehen; `internalSetupForTestCases()` bleibt für `TestSetup`, das keinen Kontext hat.
+
+   Nicht live geprüft: die *Ablehnungen* aus 1.3/1.4. Der Testaccount ist Admin und in den
+   FiBu-Gruppen, dort gibt es nichts abzulehnen – dafür stehen die Unit-Tests (`TaskTest`,
+   `TaskPagesRestTest`).
 2. Handgebaute Edit-Seite als `PageDef` inkl. der beiden zugeklappten Sektionen
    und des Kost2-Custom-Felds; Zeilenklick des Baums darauf umlenken.
 3. Aktionsleiste des Baums: Reindex, Neu, Favoriten, Filter zurücksetzen,
@@ -1738,8 +1749,8 @@ prüfbar (das Testkonto ist Admin und in den FiBu-Gruppen) – dafür Unit-Tests
    möglich). Beim **Aufgabenbaum** steht die Baumseite schon; dort fehlen die
    Edit-Seite und die Aktionen, und beides muss vor dem Menü-Umschalten fertig
    sein (s. eigener Abschnitt). Routing ist entschieden (Baum `/next/taskTree`,
-   Liste `/next/task`, Edit `/next/task/:id`); in Arbeit ist die Backend-Vorarbeit
-   (Schritt 1 der dortigen Reihenfolge).
+   Liste `/next/task`, Edit `/next/task/:id`); die Backend-Vorarbeit (Schritt 1 der
+   dortigen Reihenfolge) steht, als nächstes kommt die handgebaute Edit-Seite.
 4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
