@@ -661,12 +661,22 @@ mehr zählt (`BirthdayButlerPageRest` als Vorbild).
   `DELETE`/`FORCE_DELETE` ausdrücklich als nicht angebunden), betrifft also nur die
   Alt-Clients.
 
-**Offen, kein Access-Thema, aber hier entdeckt:** eine `AccessException` kommt als
-**HTTP 200 mit Toast** zurück, weil `UserException.displayUserMessage` default `true`
-ist (`GlobalDefaultExceptionHandler`). `lib/rs/entity.ts` liest das als
-`kind: "ok"`, und `use-entity-edit-form.ts` meldet dann Erfolg und leitet zur Liste
-weiter. Geschrieben wird nichts – die DAO hat abgelehnt –, aber die Rückmeldung ist
-falsch. Noch nicht gefixt.
+**Hier entdeckt, inzwischen erledigt:** eine `AccessException` konnte als **HTTP 200
+mit Toast** zurückkommen, weil `UserException.displayUserMessage` default `true` ist
+(`GlobalDefaultExceptionHandler`). `lib/rs/entity.ts` las das als `kind: "ok"`, und
+`use-entity-edit-form.ts` meldete dann Erfolg und leitete zur Liste weiter –
+geschrieben wurde nichts, die Rückmeldung war trotzdem falsch. Zwei Präzisierungen
+gegenüber der ersten Diagnose:
+
+- **Die vier CRUD-Endpunkte waren nie betroffen.** `AbstractPagesRestUtils` fängt in
+  `saveOrUpdate`/`delete`/`markAsDeleted`/`undelete` jede Exception selbst ab;
+  `handleException` macht aus einer `UserException` – und `AccessException` *ist* eine
+  – ein **HTTP 406** mit `ValidationError(msg, messageId = ex.i18nKey)` und, falls
+  gesetzt, `fieldId = ex.causedByField`. Der `GlobalDefaultExceptionHandler` sieht die
+  Exception dort gar nicht.
+- **Betroffen waren die eigenen Endpunkte hinter `postEntityAction`** (Ausleihen,
+  Order-Aktionen …), die keinen solchen `try/catch` haben. Die lesen jetzt
+  `kind: "rejected"` – siehe „Erledigt: Zugriffsrechte im Formular".
 
 **Nicht verifiziert:** die Ablehnung des E-Rechnungs-Prüfers. Das lokale Testkonto
 ist Admin und in den FiBu-Gruppen, damit ist nur der Erfolgsfall prüfbar; für den
@@ -737,6 +747,74 @@ Zwei Details:
 - Lösch-Bestätigung: `components/shared/confirm-dialog.tsx` (shadcn
   `alert-dialog`), Texte aus dem Backend-Bundle
   (`question.markAsDeletedQuestion`, `markAsDeleted`).
+
+#### Erledigt: Zugriffsrechte im Formular (Speichern/Löschen und einzelne Felder)
+
+**Warum das eine eigene Schranke ist.** Wicket blendet Buttons aus, die der Benutzer
+nicht drücken darf (`AbstractEditForm.updateButtonVisibility`), die UILayout-Seiten
+bekommen `userAccess` mitgeliefert. next baut sein Formular selbst – ohne Gegenstück
+zeigt es jedem den Speichern-Button und lernt erst nach dem Abschicken, dass die DAO
+ablehnt. Autorisierung bleibt Sache der DAO; hier geht es darum, dem Benutzer nichts
+anzubieten, was er nicht darf.
+
+**Die generische Schranke: zwei Flags am DTO.** `writeAccess`/`deleteAccess`, gefüllt
+in `transformFromDB` (Vorbild `Auftrag.kt` + `OrderEntityRest`:
+`hasLoggedInUserInsertAccess` bzw. `hasLoggedInUserUpdateAccess`,
+`hasLoggedInUserDeleteAccess`, alle mit `throwException = false`). Gelesen wird sie an
+genau einer Stelle, `lib/rs/entity-access.ts`:
+
+- **Fehlendes Flag heißt erlaubt** (`flags.writeAccess !== false`). Anders herum
+  müsste jede nicht umgestellte Entität ihr Formular sofort verlieren – ein
+  Doku-Versäumnis würde als Rechteproblem erscheinen.
+- **`data: unknown` als Parametertyp** ist Absicht: mit einem Interface aus zwei
+  optionalen Feldern schlägt TypeScripts Weak-Type-Erkennung bei jedem konkreten DTO
+  zu, das die Flags (noch) nicht hat.
+- **`isNew` wird separat übergeben**, weil Einfüge-Recht keine Eigenschaft des
+  Datensatzes ist, sondern der *Liste* (`userAccess.insert`). Ein neues Objekt hat
+  daher `write = true`, `delete = false`.
+
+Verbraucher: `entity-edit-page.tsx` (Löschen-Button nur bei `access.delete`, `canSave`
+an die Aktionsleiste) und `entity-edit-actions.tsx`. Zwei Details:
+
+- Der Speichern-Button und die `saveOption`-Auswahl werden **ganz weggelassen**, nicht
+  ausgegraut. Ein grauer Button liest sich als „noch nicht", und es gibt nichts, was
+  dieser Benutzer tun könnte, um ihn zu aktivieren.
+- Die Return-/CTRL-Return-Abkürzung ist mitgeprüft. Sonst speichert die Tastatur, was
+  die Maus nicht anbietet.
+
+**Feldweise Rechte: `vollstaendigFakturiertWriteAccess`.** Das Flag „vollständig
+fakturiert" (Auftragsposition *und* Zahlungsplan) darf nur ändern, wer
+`RechnungDao.USER_RIGHT_ID` mit `READWRITE` hat **und** in der FiBu-Gruppe ist –
+dieselbe Bedingung, die `AuftragRight` beim Speichern prüft. Das Muster für solche
+Felder, zweifach bewusst anders als Wicket:
+
+- Das Feld wird **immer gerendert**, ohne das Recht read-only. Wicket blendet es
+  komplett aus; dann sieht der Benutzer den Zustand des Datensatzes nicht.
+- Der Hinweis am read-only-Feld ist **die Meldung, mit der das Backend die Änderung
+  ablehnen würde** (`fibu.auftrag.error.vollstaendigFakturiertProtection`) – eine
+  Quelle für Regel und Erklärung. Wicket bietet umgekehrt ein editierbares
+  Kästchen an, dessen Speichern die DAO anschließend verweigert.
+
+Arbeitsteilung: **die Flags stoppen den ehrlichen Client, die DAO den unehrlichen.**
+Kein Vorab-Check im `validate()` – nur `checkUpdateAccess` weiß, ob sich der Wert
+gegenüber `dbObj` überhaupt *geändert* hat.
+
+**`kind: "rejected"` in `lib/rs/entity.ts`.** Eine Ablehnung aus einem eigenen
+Endpunkt (hinter `postEntityAction`) kommt als HTTP 200 mit nichts als einem
+Danger-Toast. Unterschieden von einem geglückten Speichern *mit* Warnung wird sie am
+`targetType`: eine Ablehnung ist `TOAST` und nur das, ein Speichern antwortet mit
+`REDIRECT`. `use-entity-edit-form.ts` zeigt den Toast und bleibt auf der Seite.
+
+**Backend-Fund nebenbei:** `AuftragRight.hasAccess` schützte das Flag der
+*Positionen*, nicht das der *Zahlungspläne* – dasselbe Feld, dieselbe Regel, eine
+Lücke. Jetzt beide, mit Test in `AuftragDaoTest`.
+
+**Die Grenzen, damit keine spätere Seite mehr annimmt als da ist:** `page-def` hat
+**kein** `readOnlyWhen`; `readOnly` in `DeclaredField` ist ein statisches Flag und
+wird nur von `NumberField` beachtet (`declared-form-field.tsx:153`) –
+Select/Input/TextArea/Checkbox ignorieren es. Genau deshalb sind die Checkboxen des
+Auftragsformulars in `position-row.tsx`/`payment-schedule-row.tsx` handgerendert. Wer
+feldweise Rechte deklarativ braucht, muss das erst im `page-def` nachziehen.
 
 #### Erledigt: Änderungshistorie als eigene Route (echter Tab-Reiter)
 
@@ -1302,21 +1380,23 @@ URL-basierte Spaltenzustands-Persistenz (`tree/setColumnStates`,
 `tree/resetGridState`). Gegen das laufende System geprüft: `e2e/task-tree.spec.ts`
 (4 Fälle).
 
-##### Lücke 1 – Routing/Menü (blockiert alles Weitere)
+##### Lücke 1 – Routing/Menü (entschieden, umzuschalten in Schritt 5)
 
 `MenuItemDefId.TASK_TREE` steht auf `"wa/taskTree"`, `task` fehlt in
 `NextMigration.MIGRATED`, `taskTree` fehlt in `lib/hand-built-categories.ts`
-(`NextMigrationTest` erzwingt den Gleichstand). Zwei Eigenheiten, die keine der
-vier bisherigen Seiten hatte:
+(`NextMigrationTest` liest die `.ts` per Regex und erzwingt den Gleichstand).
 
-- Die Route (`taskTree`) ist weder die REST-Kategorie (`task`) noch eine
-  Listenseite im Sinne von `NextMigration.listUrl()`. `NextPage.route` kann das
-  ausdrücken, aber jeder `PagesResolver`-Redirect für `task` zeigt dann auf
-  `next/taskTree` – für den Baum richtig, für die (unmigrierte) Listenperspektive
-  falsch. Das ist zu entscheiden, nicht mechanisch zu erledigen.
-- Der Wicket-Rückweg folgt **nicht** der Konvention `<category>List`
-  (`WebRegistry` mountet `taskList`/`taskEdit`), `legacyRoute` braucht also den
-  expliziten Wert `taskTree` bei `legacyApp = WICKET`.
+**Die Entscheidung:** der Baum bleibt auf `/next/taskTree` (keine REST-Kategorie, eine
+eigene konkrete Route), und `task` wird als **normale Entität** eingetragen –
+`route = "task"` für die Listenperspektive wie bei jeder anderen Seite,
+`editRoute = "task/:id"`. Damit zeigt kein `PagesResolver`-Redirect für `task` auf den
+Baum, und der Konflikt „Baum kapert die Listen-URL" entsteht nicht. Der Menüeintrag
+`TASK_TREE` zeigt weiter auf den Baum, unabhängig von `MIGRATED`.
+
+Die frühere Notiz, `legacyRoute` müsse explizit auf `taskTree` gesetzt werden, ist
+damit hinfällig – und war auch so nicht richtig: Wicket mountet `taskList`/`taskEdit`,
+also genau das, was `LegacyApp.WICKET.listRoute`/`editRoute` aus der Kategorie bauen.
+Für einen `task`-Eintrag braucht es **kein** `legacyRoute`.
 
 ##### Lücke 2 – die Aktionen der Baumseite (`TaskTreePage.init()`, `TaskTreeForm`)
 
@@ -1350,20 +1430,43 @@ Was schon trägt: `lib/metadata/task.generated.ts` hat alle 26 Felder mit
 kennt `TASK`/`USER`/`COST2`, und `TaskSelectField` (Modal-Baum) steht für
 `parentTask`/`ganttPredecessor` bereit.
 
+Die Metadaten sind allerdings an sechs Stellen falsch – nicht in next, sondern in den
+Annotationen des `TaskDO`, und damit auch in Wicket und `/react/task`:
+`workpackageCode`, `ganttPredecessorOffset`, `ganttRelationType`, `ganttObjectType`
+und `ganttPredecessor` tragen alle fünf `@PropertyInfo(i18nKey = "task.parentTask")`,
+würden also als „Übergeordnete Aufgabe" beschriftet. `kost2IsBlackList` hat gar keine
+`@PropertyInfo` und fehlt dadurch in `lib/metadata/task.generated.ts` vollständig.
+Vier der fünf richtigen Keys existieren im Bundle (`gantt.objectType`,
+`gantt.predecessor`, `gantt.predecessorOffset`, `gantt.relationType`); für
+`workpackageCode` gibt es in **keinem** der beiden Bundles einen `workpackage*`-Key,
+der muss neu angelegt werden.
+
 Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
 
-1. **DTO unvollständig** (`rest/dto/Task.kt`): kein `projekt`/`kost2List` für den
-   Kost2-Block; `startDate`/`endDate`/`protectTimesheetsUntil` sind dort
-   `java.util.Date`, im `TaskDO` aber `LocalDate` – Draht-Format muss `yyyy-MM-dd`
-   sein.
+1. **DTO unvollständig und in drei Feldern stumm defekt** (`rest/dto/Task.kt`): kein
+   `projekt`/`kost2List` für den Kost2-Block. `startDate`/`endDate`/
+   `protectTimesheetsUntil` sind dort `java.util.Date`, im `TaskDO` aber `LocalDate` –
+   und das ist schlimmer als ein falsches Draht-Format: `BaseDTO.copy` kopiert nur bei
+   `srcField.type == destType`, sonst landet das Feld im Zweig
+   `log.debug("Unsupported field to copy …")`. Die drei Felder werden also **in
+   keiner Richtung übertragen**; `/react/task` zeigt „Schutz bis" leer und speichert
+   es leer. Mit `LocalDate?` ist nichts weiter zu tun: `LocalDateSerializer`/
+   `-Deserializer` sind global registriert (`JsonUtils.initializeMapper`) und
+   schreiben `yyyy-MM-dd` – genau was `components/shared/date-input.tsx` erwartet
+   (wie `Book.lendOutDate`, `Vacation`, `Auftrag`).
 2. **Feldweise Schreibrechte.** `TaskDao.hasAccessForKost2AndTimesheetBookingStatus`
    schaltet in Wicket `kost2BlackWhiteList`, `kost2IsBlackList` und
-   `timesheetBookingStatus` read-only, `protectTimesheetsUntil` nur für die
-   FiBu-Gruppe. `checkInsertAccess`/`checkUpdateAccess` werfen sonst
-   `AccessException` – und die kommt heute als **HTTP 200 mit Toast** zurück, was
-   `lib/rs/entity.ts` als `kind: "ok"` liest und `use-entity-edit-form.ts` als
-   Erfolg meldet (s. oben, bekannter offener Punkt). Hier fällt das zum ersten Mal
-   real auf. `PageDef` hat außerdem kein `readOnlyWhen`.
+   `timesheetBookingStatus` read-only, `protectTimesheetsUntil` und
+   `protectionOfPrivacy` nur für die FiBu-Gruppe. Das Muster steht seit dem
+   Auftragsformular (`vollstaendigFakturiertWriteAccess`, s. „Erledigt:
+   Zugriffsrechte im Formular"): ein Flag pro **Regel**, nicht pro Feld – die DAO
+   kennt hier genau zwei. Die Ablehnung selbst kommt korrekt als **406** an
+   (`AbstractPagesRestUtils.handleException`), der frühere 200-mit-Toast-Befund
+   betraf nur die Endpunkte hinter `postEntityAction`. Was fehlt, ist das
+   `causedByField` an den `AccessException`s der `TaskDao` – ohne das landet der
+   Fehler im allgemeinen Bereich der Form statt am Feld. Weiterhin gilt: `PageDef`
+   hat kein `readOnlyWhen` und `readOnly` erreicht nur `NumberField`, die
+   betroffenen Felder müssen also handgerendert werden wie im Auftragsformular.
 3. **Cross-Feld-Validierung:** `duration` und `endDate` schließen sich aus
    (`gantt.error.durationAndEndDateAreMutuallyExclusive`) – in Wicket ein
    `IFormValidator`, im Backend **nirgends** (`TaskPagesRest.validate` ist leer).
@@ -1374,9 +1477,14 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    `SectionCard` braucht dafür einen collapsed-Zustand.
 5. **Kost2-Block ist ein Custom-Fall:** Anzeige `projekt.kost + ".*"` mit Tooltip
    über die aufgelösten Kost2-Nummern, Freitextfeld `kost2BlackWhiteList`,
-   Weiß/Schwarz-Umschalter und ein auf `nummer:<projekt.kost>.*` vorgefilterter
-   Kost2-Picker, der Nummern **anhängt** (`TaskHelper.addKost2`). Braucht einen
-   Server-Roundtrip; heute gibt es keinen Endpunkt dafür.
+   Weiß/Schwarz-Umschalter und ein auf das Projekt vorgefilterter Kost2-Picker, der
+   Nummern **anhängt** (`TaskHelper.addKost2`). Braucht einen Server-Roundtrip; heute
+   gibt es keinen Endpunkt dafür – und nachbauen in TypeScript ist keine Option:
+   `addKost2` hängt nur die zweistellige `Kost2ArtDO`-Id an, wenn die Nummer mit der
+   Projekt-Kost beginnt – **außer** bei `id == null && parentTaskId != null`, dann die
+   vollständige formatierte Nummer. Eine TS-Kopie müsste zusätzlich `KostFormatter`,
+   die Projektauflösung über den Baum und das Suffix-Matching von
+   `TaskTree.getKost2List` gegen den `KostCache` duplizieren.
 6. **Kleinteile:** `maxHours` mit Warn-Tooltip bei zugeordneten
    Auftragspositionen (`task.edit.maxHoursIngoredDueToAssignedOrders`),
    `progress` als Prozentfeld, JIRA-Hinweis an `shortDescription`/`description`,
@@ -1390,22 +1498,67 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
 
 ##### Reihenfolge
 
-1. Backend-Vorarbeit für die Edit-Seite: DTO vervollständigen,
-   `AccessException` → 406 statt 200-Toast, `durationAndEndDate` in `validate()`,
-   read-only-Flags für die vier rechtegeschützten Felder, Endpunkt für den
-   Kost2-Anhang.
+1. Backend-Vorarbeit für die Edit-Seite, sechs eigenständige Commits:
+   1. die fünf falschen `@PropertyInfo`-Keys im `TaskDO`, `@PropertyInfo` für
+      `kost2IsBlackList`, die neuen Bundle-Keys – zusammen mit den regenerierten
+      Dateien im *selben* Commit (`GenerateNextFieldMetadataTest` /
+      `GenerateNextI18nMessagesTest` sind Drift-Tests);
+   2. `Task.kt`: die drei Datumsfelder auf `LocalDate?`, dazu der tote
+      `AddressbookDao` und der `UIInput(… DATE)`-Workaround in `TaskPagesRest` weg
+      (den brauchte es nur, weil `lc` den Typ aus dem DTO ableitete);
+   3. `causedByField` an den vier readonly-`AccessException`s der `TaskDao`;
+   4. die vier Zugriffs-Flags am `Task`-DTO (`writeAccess`, `deleteAccess`,
+      `kost2AndBookingStatusWriteAccess`, `protectTimesheetsUntilWriteAccess`), in
+      `transformFromDB` nur bei `editMode` gefüllt – die Methode läuft auch pro
+      Listenzeile, und der Kost2-Check kostet eine Projektauflösung plus
+      Gruppen-Lookup. **Falle:** Wicket fragt bei einer neuen Aufgabe mit dem
+      *Eltern*-Knoten; `hasAccessForKost2AndTimesheetBookingStatus` fällt auf
+      `obj.parentTaskId` zurück, also muss `newBaseDO(request)` die Eltern-Id aus dem
+      Request übernehmen (`parentTaskId`), sonst sieht ein Projektassistent die
+      Kost2-Felder gesperrt, obwohl die DAO speichern würde;
+   5. `TaskPagesRest.validate`: `duration` ⇔ `endDate` plus die Bereichsregeln, die
+      Wicket nur als Feld-Validator hat (`progress` 0–100, `maxHours` 0–9999,
+      `duration` 0–10000) – eigener Commit, weil `validate` auch für `/react/task`
+      läuft und alleine rückrollbar sein muss;
+   6. der Kost2-Kontrakt: `GET /rs/task/info/{id}` um das aufgelöste Projekt und
+      `costConfigured` erweitern, dazu **ein** `POST /rs/task/kost2Preview`
+      (`{id, parentTaskId, kost2BlackWhiteList, kost2IsBlackList, addKost2Id?}` →
+      `{kost2BlackWhiteList, projektKost, kost2WildCard, kost2ListAsLines}`), das
+      Anhängen und Vorschau in einem Roundtrip macht – nach einer Auswahl braucht der
+      Client die neue Vorschau ohnehin. Serverseitig dieselben drei Aufrufe, die
+      `addKost2List` schon macht. Auf `TaskServicesRest`, nicht auf `TaskPagesRest`
+      (das bleibt ein reines `AbstractDTOPagesRest`). Der Picker wird über einen neuen
+      Request-Parameter `projektId` an `cost2/autosearch` vorgefiltert
+      (`Kost2PagesRest.queryAutocompleteObjects` liest mit `onlyActiveEntries` schon
+      genau so einen Extra-Parameter) – nicht über Wickets `"nummer:<kost>.*"`, das das
+      Nummernformat in die URL zieht und serverseitig neu geparst wird. Für Schritt 2
+      gemerkt: `EntityAutocompleteField` hat `${entity}/autosearch?search=` fest
+      verdrahtet und braucht eine Extra-Parameter-Möglichkeit.
 2. Handgebaute Edit-Seite als `PageDef` inkl. der beiden zugeklappten Sektionen
    und des Kost2-Custom-Felds; Zeilenklick des Baums darauf umlenken.
 3. Aktionsleiste des Baums: Reindex, Neu, Favoriten, Filter zurücksetzen,
    Lucene-Hilfe, `task.tree.info`.
 4. Listenperspektive (`createListLayout` auf die zehn Wicket-Spalten bringen) und
    Aufgaben-Assistent (`TaskWizardPageRest` ausbauen).
-5. Erst dann Menü + `NextMigration.MIGRATED["task"]` umschalten.
+5. Erst dann Menü + `NextMigration.MIGRATED["task"]` und
+   `lib/hand-built-categories.ts` umschalten (beides zusammen, `NextMigrationTest`
+   erzwingt es).
+
+**Bewusst aufgeschoben:** `createListLayout` bleibt einspaltig. Die Filterzeile kommt
+aus `baseDao.searchFields` über `LayoutListFilterUtils`, nicht aus dem Layout, und eine
+handgebaute `/next/task`-Liste deklariert ihre Spalten selbst im `PageDef`. Zehn
+`UITable`-Spalten würden nur `/react/task` dienen, das nach dem Umschalten niemand mehr
+aufruft. Die bedingten Spalten (Verbrauch, Kost2, Auftragspositionen, FiBu-only
+„Schutz bis") gehören in den Listen-Commit, zusammen mit `copyFrom4ListRow` und
+`listMeta`.
 
 **Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
 Kost2-Felder mit *und* ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
 nicht als Erfolg), Suche und Klappzustand über einen Reload, Auswahlmodus aus der
-Auftragsposition, History.
+Auftragsposition, History. Maßstab für den Kost2-Block ist **Gleichstand mit Wicket**:
+dieselbe Liste im Wicket-Formular öffnen, die Tooltip-Zeilen notieren, `kost2Preview`
+mit derselben Liste aufrufen, vergleichen. Die *Ablehnungs*pfade sind lokal nicht
+prüfbar (das Testkonto ist Admin und in den FiBu-Gruppen) – dafür Unit-Tests.
 
 ### Phase 4 – Ablösung & Aufräumen
 
@@ -1453,6 +1606,14 @@ Auftragsposition, History.
   (`saveorupdate`/`markAsDeleted`/`undelete`), Backend
   `projectforge-rest/.../rest/core/AbstractPagesRest.kt` +
   `AbstractPagesRestUtils.kt`, `framework/persistence/api/RestPaths.java`
+- **Zugriffsrechte im Formular:** `projectforge-next/lib/rs/entity-access.ts`,
+  `components/shared/edit/entity-edit-page.tsx` + `entity-edit-actions.tsx`,
+  feldweise `components/features/order/edit/position-row.tsx` +
+  `payment-schedule-row.tsx`; Backend `projectforge-rest/.../rest/dto/Auftrag.kt`
+  (`writeAccess`/`deleteAccess`/`vollstaendigFakturiertWriteAccess`) +
+  `rest/fibu/OrderEntityRest.kt` (`transformFromDB`),
+  `projectforge-business/.../fibu/AuftragRight.kt`; Wicket-Vorbild
+  `AbstractEditForm.updateButtonVisibility`
 - **Änderungshistorie:** Backend `projectforge-rest/.../rest/core/AbstractPagesRest.kt`
   (`HistoryInfo`, `history/{id}`), `HistoryEntryUserCommentModalRest.kt`,
   `projectforge-business/.../framework/persistence/history/HistoryService.kt`
@@ -1536,6 +1697,13 @@ Auftragsposition, History.
   entscheidenden Detail, dass eine Ablehnung als HTTP 200 mit `TOAST` kommt und
   jede Schreibantwort schon die ganze neue Liste enthält. Gegen das laufende
   System geprüft (`e2e/book-attachments.spec.ts`).
+- **Zugriffsrechte im Formular** – `writeAccess`/`deleteAccess` am DTO, gelesen in
+  `lib/rs/entity-access.ts` (fehlendes Flag = erlaubt), Speichern-Button und
+  Löschen-Button werden ohne Recht weggelassen statt ausgegraut, Tastatur-Abkürzung
+  mitgeprüft; feldweise Rechte am Beispiel „vollständig fakturiert" (immer sichtbar,
+  read-only, Hinweis = die Meldung des Backends); Ablehnungen aus eigenen Endpunkten
+  als `kind: "rejected"` statt als Erfolg. Grenze: `page-def` kennt kein
+  `readOnlyWhen`.
 - **Datumseingabe international** – eine geteilte Komponente
   (`components/shared/date-input.tsx`) statt vier `<input type="date">`: Layout,
   Platzhaltermaske und erster Wochentag aus `userData`, Wert immer ISO
@@ -1558,7 +1726,9 @@ Auftragsposition, History.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich). Beim **Aufgabenbaum** steht die Baumseite schon; dort fehlen die
    Edit-Seite und die Aktionen, und beides muss vor dem Menü-Umschalten fertig
-   sein (s. eigener Abschnitt).
+   sein (s. eigener Abschnitt). Routing ist entschieden (Baum `/next/taskTree`,
+   Liste `/next/task`, Edit `/next/task/:id`); in Arbeit ist die Backend-Vorarbeit
+   (Schritt 1 der dortigen Reihenfolge).
 4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
