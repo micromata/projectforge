@@ -41,6 +41,12 @@ export const EntityEditFormProvider = Ctx.Provider;
  * "optional string" — losing `required`, `maxLength` and the enum constants, which is precisely the
  * drift `useFieldMetadata` warns about. The form itself stays the one above; only what the fields are
  * validated and labelled against changes.
+ *
+ * @param namePrefix The **full** path prefix of the row, not one relative to an enclosing provider:
+ *   `positionen[1].kostZuweisungen[0].` for a cost assignment of the invoice form's second nesting
+ *   level. This provider *replaces* the context rather than extending it, and `useFieldMetadata` strips
+ *   exactly **one** prefix off the field name — so a relative prefix would leave `positionen[1].` in
+ *   front of `kost1` and the lookup would miss.
  */
 export function NestedFieldMetadata({
   metadata,

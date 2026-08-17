@@ -215,6 +215,7 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
+  "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
   "description": "Description",
@@ -463,7 +464,9 @@
       },
       "netto": "Net",
       "reached": "reached",
-      "reference": "Reference"
+      "reference": "Reference",
+      "vat": "VAT",
+      "vatAmount": "VAT amount"
     },
     "currencyConversion": {
       "conversionRate": "Conversion rate",
@@ -518,8 +521,12 @@
       "city": "City",
       "contactPerson": "Contact person",
       "country": "Country",
+      "eInvoice": "E-Invoice",
       "eInvoiceEmail": "E-invoice email",
-      "leitwegId": "Leitweg-ID",
+      "leitwegId": {
+        "_": "Leitweg-ID",
+        "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
+      },
       "nummer": "Account number",
       "sellerBankAccountName": "Default bank account",
       "status": {
@@ -782,9 +789,11 @@
         "short": "No"
       },
       "offen": "Open",
+      "paymentTerms": "Payment terms",
       "position": {
         "einzelNetto": "Unit net price"
       },
+      "positions": "Positions",
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
@@ -811,6 +820,7 @@
         "list": "List of invoices"
       },
       "tooltip": {
+        "addKostZuweisung": "Add cost id assignment",
         "addPosition": "Add invoice position"
       },
       "transferExport": {

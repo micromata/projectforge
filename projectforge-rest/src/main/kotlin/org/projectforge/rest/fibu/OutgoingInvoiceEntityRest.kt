@@ -30,9 +30,12 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
 import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungInfo
+import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.business.fibu.SearchFilterWithPeriodOfPerformance
 import org.projectforge.business.fibu.kost.KostZuweisungExport
@@ -51,6 +54,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
@@ -63,6 +67,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Date
 
 private val log = KotlinLogging.logger {}
@@ -73,10 +78,11 @@ private val log = KotlinLogging.logger {}
  * `open` for the same reason [OrderEntityRest] is: Wicket asks for this bean through `WicketSupport`,
  * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
  *
- * The edit page is still Wicket's - this class answers the list, its statistics, its two exports and the
- * multi selection the mass update page runs on ([RechnungMultiSelectedPageRest]). It carries no
- * `createEditLayout` any more, and with it the legacy React page of this entity is gone: it only ever
- * showed a read only header plus the attachment list.
+ * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
+ * ([RechnungMultiSelectedPageRest]) and the read/write path of the hand built edit page of
+ * `/next/invoice/[id]` — including its [recalculate]. It carries no `createEditLayout` any more, and with it
+ * the legacy React page of this entity is gone: it only ever showed a read only header plus the attachment
+ * list. Wicket's edit page is still reachable and writes through the same [RechnungDao].
  *
  * @author Kai Reinhard
  */
@@ -96,28 +102,156 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         enableJcr()
     }
 
+    /**
+     * Builds a fresh [RechnungDO] instead of mutating the persisted one, for the reason
+     * [OrderEntityRest.transformForDB] spells out: the persistence layer merges the posted object over the
+     * database row, and `RechnungRight.hasAccess(obj, oldObj)` compares the two.
+     *
+     * Because of that merge, every field the DTO doesn't carry ends up as null in the database — the five
+     * attachment columns are such fields (written by the attachment endpoints, not by this form), so they
+     * are copied back from the database row, as `RechnungEditPage.update` does.
+     *
+     * [RechnungDO.nummer] is deliberately *not* assigned here, unlike the order's: `RechnungDao` assigns it
+     * itself on the transition from [org.projectforge.business.fibu.RechnungStatus.GEPLANT] to any other
+     * status, and a `GUTSCHRIFTSANZEIGE_DURCH_KUNDEN` must have no number at all.
+     */
     override fun transformForDB(dto: Rechnung): RechnungDO {
         val rechnungDO = RechnungDO()
         dto.copyTo(rechnungDO)
+        if (rechnungDO.kunde != null) {
+            // A customer chosen from the list wins over the free text one, see RechnungEditPage.onSaveOrUpdate.
+            rechnungDO.kundeText = null
+        }
+        assignNumbersAndIndicesToNewRows(rechnungDO)
+        dto.id?.let { id ->
+            baseDao.find(id, checkAccess = false)?.let { dbObj ->
+                rechnungDO.attachmentsCounter = dbObj.attachmentsCounter
+                rechnungDO.attachmentsNames = dbObj.attachmentsNames
+                rechnungDO.attachmentsIds = dbObj.attachmentsIds
+                rechnungDO.attachmentsSize = dbObj.attachmentsSize
+                rechnungDO.attachmentsLastUserAction = dbObj.attachmentsLastUserAction
+            }
+        }
         return rechnungDO
     }
 
     override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
         val rechnung = Rechnung()
-        rechnung.copyFrom(obj)
+        // Only the edit page needs the positions with their cost assignments, and only it can afford them:
+        // both collections are lazy, so mapping them is a query per invoice.
         if (editMode) {
-            rechnung.copyPositionenFrom(obj)
+            rechnung.copyFromWithCollections(obj)
         } else {
+            rechnung.copyFrom(obj)
             rechnung.project?.displayName = obj.projekt?.name
         }
-        val kost1Sorted = obj.info.sortedKost1
+        rechnung.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
+        rechnung.writeAccess = if (obj.id == null) {
+            baseDao.hasLoggedInUserInsertAccess(obj, false)
+        } else {
+            baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
+        }
+        // What hides the cost assignments of a position, as `AbstractRechnungEditForm` hides its whole
+        // cost table where no cost ids are configured.
+        rechnung.costConfigured = Configuration.instance.isCostConfigured
+        // ensuredInfo, not info: for a new invoice (see [newBaseDTO]) that lateinit would throw.
+        val info = obj.ensuredInfo
+        val kost1Sorted = info.sortedKost1
         rechnung.kost1List = RechnungInfo.numbersAsString(kost1Sorted)
         rechnung.kost1Info = RechnungInfo.detailsAsString(kost1Sorted)
-        val kost2Sorted = obj.info.sortedKost2
+        val kost2Sorted = info.sortedKost2
         rechnung.kost2List = RechnungInfo.numbersAsString(kost2Sorted)
         rechnung.kost2Info = RechnungInfo.detailsAsString(kost2Sorted)
         return rechnung
     }
+
+    /**
+     * Presets the date, the status and the type of a new invoice, as `RechnungEditPage.onPreEdit` does.
+     *
+     * The date is required: `RechnungDao.onInsertOrModify` refuses a null one, and every other date of the
+     * form (due date, discount maturity) is derived from it. The status and the type have no default in
+     * [RechnungDO] either, and Wicket gets away without a preset only because its two drop downs cannot be
+     * empty (`setNullValid(false)`) — which silently makes the first constant the answer. The first
+     * constant of the status is `GEPLANT` though, whose invoice gets no number, so `GESTELLT` is named here.
+     */
+    override fun newBaseDTO(request: HttpServletRequest?): Rechnung {
+        val rechnung = super.newBaseDTO(request)
+        rechnung.datum = LocalDate.now()
+        rechnung.status = RechnungStatus.GESTELLT
+        rechnung.typ = RechnungTyp.RECHNUNG
+        return rechnung
+    }
+
+    /**
+     * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on
+     * the stored one.
+     *
+     * Needed because a hand built form has to show the same sums the list and the Wicket page show, and
+     * those are calculated server side by [RechnungCalculator] from the whole invoice — how a position is
+     * rounded before it enters a sum (`roundPositionsBeforeSum`, German law) is its rule, and a client
+     * re-implementing that would drift. The cache is no help either: it answers the stored positions of an
+     * invoice whose form the user has changed, and nothing at all for one without an id.
+     *
+     * Deleted positions may be posted untouched — [RechnungCalculator] skips them itself.
+     *
+     * Not a `saveOrUpdate` in disguise: nothing is written, so the read access has to be checked here.
+     */
+    @PostMapping("recalculate")
+    fun recalculate(@RequestBody postData: PostData<Rechnung>): InvoiceSums {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val invoice = RechnungDO()
+        postData.data.copyTo(invoice)
+        val info = Rechnung.calculateInvoiceInfo(invoice)
+        return InvoiceSums(
+            netSum = info.netSum,
+            vatAmount = info.vatAmount,
+            grossSum = info.grossSum,
+            grossSumWithDiscount = info.grossSumWithDiscount,
+            kostZuweisungenNetSum = info.kostZuweisungenNetSum,
+            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag,
+            bezahlt = info.isBezahlt,
+            ueberfaellig = info.isUeberfaellig,
+            positions = info.positions?.map { position ->
+                PositionSums(
+                    number = position.number,
+                    netSum = position.netSum,
+                    vatAmount = position.vatAmount,
+                    grossSum = position.grossSum,
+                    kostZuweisungNetSum = position.kostZuweisungNetSum,
+                    kostZuweisungNetFehlbetrag = position.kostZuweisungNetFehlbetrag,
+                )
+            },
+        )
+    }
+
+    /**
+     * The sums [recalculate] answers, one flat object — the invoice's own plus one entry per position.
+     */
+    class InvoiceSums(
+        val netSum: BigDecimal,
+        val vatAmount: BigDecimal,
+        val grossSum: BigDecimal,
+        val grossSumWithDiscount: BigDecimal,
+        val kostZuweisungenNetSum: BigDecimal,
+        /**
+         * How much of [netSum] is not assigned to a cost unit yet. A hint for the user only: `RechnungDao`
+         * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+         */
+        val kostZuweisungenFehlbetrag: BigDecimal,
+        val bezahlt: Boolean,
+        val ueberfaellig: Boolean,
+        val positions: List<PositionSums>?,
+    )
+
+    class PositionSums(
+        val number: Short,
+        val netSum: BigDecimal,
+        val vatAmount: BigDecimal,
+        val grossSum: BigDecimal,
+        val kostZuweisungNetSum: BigDecimal,
+        /** The per position counterpart of [InvoiceSums.kostZuweisungenFehlbetrag], which Wicket paints red. */
+        val kostZuweisungNetFehlbetrag: BigDecimal,
+    )
 
     /**
      * Opts the invoice list into the lean row of [Rechnung.copyFrom4ListRow]: only the columns
@@ -401,6 +535,43 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     companion object {
+        /**
+         * Gives every posted row that has no id yet its number: the positions of the invoice, and the cost
+         * assignments of each position.
+         *
+         * Both are `@OrderColumn`s the client cannot assign, and both identify a row inside its collection:
+         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` with `@ListIndexBase(1)`, and
+         * `KostZuweisungDO.index` is the order column of a position's assignments (0-based, as
+         * `AbstractRechnungsPositionDO.addKostZuweisung` assigns it).
+         *
+         * The next free number is taken from the **stored** rows only: whatever number the client gave a new
+         * row is its guess and is about to be replaced, so counting those in would leave a gap for every new
+         * row. A stored row the client marked deleted still counts — it stays in the database, so its number
+         * is never reused, and a gap is the record of what was deleted.
+         *
+         * No renumbering map is needed, unlike the order's: nothing refers to an invoice position by number
+         * the way a payment schedule refers to an order position.
+         *
+         * `internal` and in the companion object rather than a private method: it needs nothing of the
+         * instance, and this is what the numbering of a whole posted invoice can be tested through without a
+         * Spring context (`RechnungDtoTest`).
+         */
+        internal fun assignNumbersAndIndicesToNewRows(invoice: RechnungDO) {
+            val positions = invoice.positionen ?: return
+            var nextNumber = (positions.filter { it.id != null }.maxOfOrNull { it.number } ?: 0).toInt()
+            positions.filter { it.id == null }.forEach { position ->
+                position.number = (++nextNumber).toShort()
+            }
+            positions.forEach { position ->
+                val assignments = position.kostZuweisungen ?: return@forEach
+                // -1, not 0: the index is 0-based, so the first assignment of a position has to become 0.
+                var nextIndex = (assignments.filter { it.id != null }.maxOfOrNull { it.index } ?: -1).toInt()
+                assignments.filter { it.id == null }.forEach { assignment ->
+                    assignment.index = (++nextIndex).toShort()
+                }
+            }
+        }
+
         /**
          * Id of the payment state filter - a pseudo field standing for `RechnungFilter.listType`, whose
          * values are the three constants below (`RechnungFilter.FILTER_*`).

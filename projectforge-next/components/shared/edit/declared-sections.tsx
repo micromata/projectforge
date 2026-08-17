@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { SectionDef } from "@/lib/page-def/types";
 import { DeclaredFormField, fieldKey } from "./declared-form-field";
@@ -26,7 +27,8 @@ export function DeclaredSection<M extends EntityMetadata>({
   const t = useTranslations();
   return (
     <SectionCard>
-      <SectionHeader title={t(section.titleKey)} />
+      {/* Through leafKeyOf, as the tab bar resolves the same key — see entityTabs. */}
+      <SectionHeader title={t(leafKeyOf(section.titleKey, t.has))} />
       {section.render ? (
         section.render({ id })
       ) : (

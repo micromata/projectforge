@@ -33,13 +33,26 @@ import java.time.LocalDate
 class Rechnung(
     var nummer: Int? = null,
     var customer: Customer? = null,
+    /**
+     * Free text customer, for customers not in the list. Nulled by the backend if [customer] is given (as
+     * `RechnungEditPage.onSaveOrUpdate` does), so a customer chosen from the list always wins.
+     */
     var kundeText: String? = null,
     var project: Project? = null,
     var status: RechnungStatus? = null,
     var typ: RechnungTyp? = null,
     var customerref1: String? = null,
     var attachment: String? = null,
+    var customerContactPerson: String? = null,
     var customerAddress: String? = null,
+    var customerZipCode: String? = null,
+    var customerCity: String? = null,
+    var customerCountry: String? = null,
+    var customerVatId: String? = null,
+    var customerLeitwegId: String? = null,
+    var customerEInvoiceEmail: String? = null,
+    /** IBAN of the seller's bank account, one of `EInvoiceSellerConfig.bankAccounts`. */
+    var sellerBankAccount: String? = null,
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
     var datum: LocalDate? = null,
@@ -51,7 +64,9 @@ class Rechnung(
     var zahlungsZielInTagen: Int? = null,
     var discountZahlungsZielInTagen: Int? = null,
     var bezahlDatum: LocalDate? = null,
-    override val currency: String? = null,
+    // `var`, not `val`: a form has to be able to send it back, and a read only property is silently
+    // dropped by Jackson on the way in.
+    override var currency: String? = null,
     override var zahlBetrag: BigDecimal? = null,
     var konto: Konto? = null,
     var discountPercent: BigDecimal? = null,
@@ -80,10 +95,31 @@ class Rechnung(
 
     var kost2Info: String? = null
 
-    val isBezahlt: Boolean
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.bezahlDatum != null && this.zahlBetrag != null
+    /**
+     * The net sum of all cost assignments of all positions, and how much of [netSum] is not assigned to a
+     * cost unit yet ([RechnungInfo.kostZuweisungenFehlbetrag]). Read-only, and a hint only: `RechnungDao`
+     * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+     */
+    var kostZuweisungenNetSum: BigDecimal? = null
+    var kostZuweisungenFehlbetrag: BigDecimal? = null
+
+    /**
+     * Access flags, so the hand built next form knows what to offer. The `UILayout.UserAccess` the legacy
+     * frontends use doesn't reach it: `GET /rs/outgoingInvoice/{id}` passes no user access, and the next
+     * pages read none. The DAO stays the authority in every case — these only decide what is shown.
+     */
+    var writeAccess: Boolean = false
+    var deleteAccess: Boolean = false
+
+    /**
+     * Whether cost accounting is configured at all ([org.projectforge.business.configuration.ConfigurationServiceImpl]
+     * / `Configuration.isCostConfigured`). The form hides the cost assignments of a position when it is
+     * false, as `AbstractRechnungEditForm` hides the whole table then.
+     *
+     * On the DTO rather than behind a config endpoint of its own: it is one boolean the edit page needs and
+     * nothing else reads.
+     */
+    var costConfigured: Boolean = false
 
     override fun copyFrom(src: RechnungDO) {
         super.copyFrom(src)
@@ -95,11 +131,16 @@ class Rechnung(
             customer = Customer()
             customer?.copyFromMinimal(c)
         }
-        this.netSum = src.info.netSum
-        this.vatAmountSum = src.info.vatAmount
-        this.grossSum = src.info.grossSum
-        this.grossSumWithDiscount = src.info.grossSumWithDiscount
-        ueberfaellig = src.info.isUeberfaellig
+        // ensuredInfo, not info: the latter is a lateinit that throws for an invoice nobody calculated yet,
+        // which is every invoice the recalculate endpoint and `newBaseDTO` build.
+        val info = src.ensuredInfo
+        this.netSum = info.netSum
+        this.vatAmountSum = info.vatAmount
+        this.grossSum = info.grossSum
+        this.grossSumWithDiscount = info.grossSumWithDiscount
+        this.kostZuweisungenNetSum = info.kostZuweisungenNetSum
+        this.kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag
+        ueberfaellig = info.isUeberfaellig
         src.status?.let {
             statusAsString = translate(it.i18nKey)
         }
@@ -168,31 +209,67 @@ class Rechnung(
         kost2Info = RechnungInfo.detailsAsString(kost2Sorted)
     }
 
-    fun copyPositionenFrom(src: RechnungDO) {
-        val list = positionen ?: mutableListOf()
-        src.positionen?.forEach {
-            list.add(RechnungsPosition(it))
+    /**
+     * [copyFrom] plus the positions with their cost assignments, for the edit page: it has to show every
+     * row, and to send them all back on save.
+     *
+     * The deleted rows travel too. Neither `RechnungDO.positionen` nor `RechnungsPositionDO.kostZuweisungen`
+     * carries `@SoftDeleteCollection` (only `EingangsrechnungDO.positionen` does), so the collection handler
+     * physically removes — history and all — whatever a posted collection leaves out. See [RechnungsPosition].
+     *
+     * Replaces the former `copyPositionenFrom`, which appended to [positionen] instead of building it and
+     * overwrote [kundeText] with `src.kundeAsString` — the merged display string, which the next save then
+     * wrote into the raw column. That belongs to [copyFrom4ListRow], which puts it into
+     * `customer.displayName` where it is read.
+     */
+    fun copyFromWithCollections(src: RechnungDO) {
+        // First, so the RechnungInfo and with it every position's RechnungPosInfo exists (copyFrom goes
+        // through ensuredInfo).
+        copyFrom(src)
+        positionen = src.positionen?.map { position ->
+            RechnungsPosition().also { it.copyFrom(position) }
+        }?.toMutableList()
+        // Matched by number, not by id: a position of an unsaved invoice has none, and number is the key of
+        // a position inside its invoice anyway. RechnungCalculator builds no info for a deleted position,
+        // whose sums the form doesn't show either.
+        val positionInfos = src.ensuredInfo.positions
+        positionen?.forEach { position ->
+            positionInfos?.find { it.number == position.number }?.let { position.assignSums(it) }
         }
-        src.projekt?.let {
-            project = Project()
-            project?.copyFromMinimal(it)
-        }
-        kundeText = src.kundeAsString
-        src.konto?.let {
-            konto = Konto()
-            konto?.copyFromMinimal(it)
-        }
-        positionen = list
     }
 
+    /**
+     * Rebuilds [RechnungDO.positionen] instead of appending to it: the destination is a fresh [RechnungDO]
+     * per request, and appending would duplicate every row of an invoice that already carries positions.
+     *
+     * Each position keeps its `id`, `number` and `deleted` flag and gets the back reference to [dest] — that
+     * pair is what `CollectionHandler` matches a posted row against its database row by, and `rechnung_fk` is
+     * `nullable = false` anyway. [RechnungsPosition.copyTo] does the same for the cost assignments.
+     *
+     * The two relations are set by hand as well: [BaseDTO.copy] maps a `*DTO -> *DO` relation by id, but only
+     * between fields of the same name, and these are named `customer`/`project` here and `kunde`/`projekt`
+     * there. [konto] needs no such line — same name on both sides.
+     */
     override fun copyTo(dest: RechnungDO) {
         super.copyTo(dest)
-        val list = dest.positionen ?: mutableListOf()
-        positionen?.forEach {
-            val pos = RechnungsPositionDO()
-            it.copyTo(pos)
-            list.add(pos)
+        dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
+        dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
+        dest.positionen = positionen?.map { dto ->
+            RechnungsPositionDO().also { dto.copyTo(it, dest) }
+        }?.toMutableList()
+    }
+
+    companion object {
+        /**
+         * The calculated sums of an invoice, computed from its own (possibly unsaved) positions without
+         * touching the caches — [RechnungCalculator] would otherwise look a [RechnungPosInfo] up by a
+         * position id the posted rows of an edit form do not have yet.
+         *
+         * The one code path the recalculate endpoint of `OutgoingInvoiceEntityRest` and a fresh DTO share,
+         * as [Auftrag.calculateOrderInfo] is for orders.
+         */
+        fun calculateInvoiceInfo(src: RechnungDO): RechnungInfo {
+            return RechnungCalculator.calculate(src, useCaches = false)
         }
-        dest.positionen = list
     }
 }

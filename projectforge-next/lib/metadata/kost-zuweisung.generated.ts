@@ -8,6 +8,12 @@ export const KOST_ZUWEISUNG_METADATA = {
   entity: "KostZuweisungDO",
   historizable: true,
   fields: {
+    comment: {
+      dataType: "STRING",
+      i18nKey: "comment",
+      required: false,
+      maxLength: 4000,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",

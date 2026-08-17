@@ -124,6 +124,11 @@ export const RECHNUNG_METADATA = {
       i18nKey: "fibu.rechnung.discountPercent",
       required: false,
     },
+    discountZahlungsZielInTagen: {
+      dataType: "INT",
+      i18nKey: "fibu.rechnung.zahlungsZiel",
+      required: false,
+    },
     faelligkeit: {
       dataType: "DATE",
       i18nKey: "fibu.rechnung.faelligkeit",

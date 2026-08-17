@@ -215,6 +215,7 @@
     "_": "Datumsformat",
     "xls": "Exceldatumsformat"
   },
+  "days": "Tage",
   "delete": "Löschen",
   "deleted": "gelöscht",
   "description": "Beschreibung",
@@ -463,7 +464,9 @@
       },
       "netto": "Netto",
       "reached": "erreicht",
-      "reference": "Referenz"
+      "reference": "Referenz",
+      "vat": "Mwst.",
+      "vatAmount": "Mwst.-Betrag"
     },
     "currencyConversion": {
       "conversionRate": "Umrechnungskurs",
@@ -518,8 +521,12 @@
       "city": "Ort",
       "contactPerson": "Ansprechpartner",
       "country": "Land",
+      "eInvoice": "E-Rechnung",
       "eInvoiceEmail": "E-Rechnungs-E-Mail",
-      "leitwegId": "Leitweg-ID",
+      "leitwegId": {
+        "_": "Leitweg-ID",
+        "tooltip": "Pflicht für E-Rechnungen an öffentliche Auftraggeber (z.B. 04011000-1234512345-12)"
+      },
       "nummer": "Kontonummer",
       "sellerBankAccountName": "Vorausgewählte Bankverbindung",
       "status": {
@@ -782,9 +789,11 @@
         "short": "Nr."
       },
       "offen": "Offen",
+      "paymentTerms": "Zahlungsbedingungen",
       "position": {
         "einzelNetto": "Einzelnettopreis"
       },
+      "positions": "Positionen",
       "receiver": "Empfänger",
       "rechnungen": "Debitorenrechnungen",
       "sellerBankAccount": "Bankverbindung (Verkäufer)",
@@ -811,6 +820,7 @@
         "list": "Debitorenrechnungsliste"
       },
       "tooltip": {
+        "addKostZuweisung": "Kostzuweisung hinzufügen",
         "addPosition": "Rechnungsposition hinzufügen"
       },
       "transferExport": {
