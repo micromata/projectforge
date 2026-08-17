@@ -3,7 +3,50 @@
 ProjectForge is a web-based solution for project management including time tracking, team calendar, gantt-charting, financial administration, issue management,
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
-== Building and testing docker image locally
+== Building a local image with the helper script
+
+`docker/build-local.sh` is the fastest way to get a self-contained instance, e. g. for handing a test or
+pentest system over to somebody else. It detects `docker`/`podman`, finds the boot jar built by Gradle
+(the version string doesn't have to be known), copies it into the build context and cleans up afterwards.
+
+1. `./gradlew :projectforge-application:bootJar`
+2. `docker/build-local.sh --save` (see `--help` for all options)
+
+Options worth knowing: `--platform linux/amd64` (cross build via buildx, needed if the recipient isn't on
+arm64), `--save` (writes `build/docker/projectforge-pentest.tar` for handing the image over),
+`--run` (starts the container right away), `--tag`, `--dir`, `--base-image`.
+
+=== Test/pentest instance with the embedded HSQLDB
+
+The single container supports the embedded HSQLDB: `docker/entrypoint.sh` starts with `-Ddocker=single`
+by default, and only `-Ddocker=stack` (docker compose) or `-Dprojectforge.setup=postgres` removes the
+embedded option from the setup wizard.
+
+Two ways to set the instance up:
+
+*a) Interactive*: start the container with `-t -i` (mandatory on the first start: without
+`/ProjectForge/projectforge.properties` the entrypoint runs the console setup wizard in the foreground).
+The embedded database is the default, the base directory selection is skipped in docker mode.
+
+*b) Non-interactive*: pre-seed `<hostdir>/projectforge.properties` before the first start, then the
+entrypoint does a "Normal start" without any wizard:
+
+[source,properties]
+----
+server.address=0.0.0.0
+server.port=8080
+projectforge.domain=http://localhost:8080
+# Activate all plugins (test systems), instead of clicking them in administration -> plugins:
+projectforge.plugins.active=all
+----
+
+Afterwards open http://localhost:8080 and complete the setup page. Choose target *Test system* for a
+database filled with test data.
+
+Reset the instance by removing the container and the host directory - the embedded database lives in
+`<hostdir>/database`.
+
+== Building and testing docker image locally (manually)
 
 1. `docker login`
 2. `export PF_VERSION=8.0`
@@ -40,6 +83,7 @@ Please refer /doc/deployment.adoc for detailed information.
 == FAQ
 
 - *Can't access port 8080?* +
-  The built-in main `application.properties` defines `server.address=localhost`, therefore this port can't be exported to the host system. The Dockerfile of
-  ProjectForge attaches an additional `application.properties` to the container which overrides `server.address=0.0.0.0`. +
+  The built-in main `application.properties` defines `server.address=localhost`, therefore this port can't be exported to the host system. In docker mode
+  ProjectForge forces `server.address=0.0.0.0` (see `LantSetupWizard`), so the setup wizard writes this value into
+  `/ProjectForge/projectforge.properties`. When seeding that file manually, set `server.address=0.0.0.0` yourself. +
   Through the `docker run` option `-p 8080:8080` the port is exported to the host.
