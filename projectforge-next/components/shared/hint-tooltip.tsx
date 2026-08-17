@@ -56,7 +56,7 @@ export function HintTooltip({
           put the title beside its explanation instead of above it. */}
       <TooltipContent
         side={side}
-        className="max-w-sm flex-col items-start gap-1 text-[11px] leading-relaxed"
+        className="max-w-sm flex-col items-start gap-2 text-[11px] leading-relaxed"
       >
         {title && <span className="font-semibold">{title}</span>}
         {text &&

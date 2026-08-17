@@ -3,6 +3,7 @@
 import { DynamicLayoutProvider } from "./dynamic-context";
 import { DynamicRenderer } from "./dynamic-renderer";
 import { DynamicActionGroup } from "./dynamic-action-group";
+import { DynamicDefaultAction } from "./dynamic-default-action";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import type { DynamicPageResponse } from "@/lib/rs/types";
 import type { ReactNode } from "react";
@@ -31,7 +32,9 @@ export function DynamicPage({
       category={category}
       queryKey={queryKey}
     >
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* The frame is also what listens for Return — the page has no `<form>` the browser could
+          submit, so the shortcut goes to the action the backend marked as the default. */}
+      <DynamicDefaultAction className="flex flex-1 flex-col overflow-hidden">
         {/* The link is an action of the page, not part of its title, so it is rendered even without one. */}
         {(response.ui.title || response.ui.legacyUrl) && (
           <div className="flex items-center gap-2 px-6 pt-4 pb-2">
@@ -54,7 +57,7 @@ export function DynamicPage({
             <DynamicRenderer content={response.ui.layoutBelowActions} />
           </div>
         )}
-      </div>
+      </DynamicDefaultAction>
     </DynamicLayoutProvider>
   );
 }

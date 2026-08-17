@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { DateInput } from "@/components/shared/date-input";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
+import {
+  useSubmitShortcut,
+  useSubmitShortcutHint,
+} from "@/hooks/use-submit-shortcut";
 import {
   downloadOrderForecast,
   fetchForecastExportSettings,
@@ -49,6 +54,7 @@ export function ForecastExportDialog({
   onError,
 }: ForecastExportDialogProps) {
   const t = useTranslations();
+  const shortcutHint = useSubmitShortcutHint();
   const queryClient = useQueryClient();
   const stored = useQuery({
     queryKey: FORECAST_SETTINGS_QUERY_KEY,
@@ -83,12 +89,23 @@ export function ForecastExportDialog({
     },
   });
 
+  // Return exports — except inside the date field, which reads Return itself to commit what was
+  // typed (see DateInput, and isSubmitShortcut on `defaultPrevented`).
+  const canSubmit = Boolean(values?.startDate) && !download.isPending;
+  const onKeyDown = useSubmitShortcut(
+    () => values && download.mutate(values),
+    canSubmit
+  );
+
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       {/* Radix focuses the first field when the dialog opens, and focusing [DateInput] opens its
           calendar — over the very date it is showing. The dialog opens with nothing focused instead;
           the remembered answer is usually the one wanted, and Tab reaches the field. */}
-      <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
+      <DialogContent
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onKeyDown={onKeyDown}
+      >
         <DialogHeader>
           <DialogTitle>{t("fibu.auftrag.forecastExportAsXls._")}</DialogTitle>
           <DialogDescription>
@@ -148,14 +165,16 @@ export function ForecastExportDialog({
           <Button type="button" variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button
-            type="button"
-            onClick={() => values && download.mutate(values)}
-            disabled={!values?.startDate || download.isPending}
-          >
-            {download.isPending && <Spinner className="h-4 w-4 border-2" />}
-            {t("exportAsXls")}
-          </Button>
+          <HintTooltip {...shortcutHint}>
+            <Button
+              type="button"
+              onClick={() => values && download.mutate(values)}
+              disabled={!canSubmit}
+            >
+              {download.isPending && <Spinner className="h-4 w-4 border-2" />}
+              {t("exportAsXls")}
+            </Button>
+          </HintTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

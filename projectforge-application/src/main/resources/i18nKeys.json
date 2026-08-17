@@ -2808,6 +2808,8 @@
   {"i18nKey":"tooltip.shortcut.addEntry.title","bundleName":"I18nResources","translation":"Keyboard shortcut N","translationDE":"Tastaturkürzel N","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"tooltip.shortcut.selectAll","bundleName":"I18nResources","translation":"Press CTRL-A (macOS: CMD-A) to select all entries of the list while the selection mode is on.","translationDE":"STRG-A (macOS: CMD-A) wählt im Auswahlmodus alle Einträge der Liste aus.","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"tooltip.shortcut.selectAll.title","bundleName":"I18nResources","translation":"Keyboard shortcut CTRL-A","translationDE":"Tastaturkürzel STRG-A","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"tooltip.shortcut.submitForm","bundleName":"I18nResources","translation":"Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).","translationDE":"Return drücken, in mehrzeiligen Textfeldern STRG-Return (macOS: CMD-Return).","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"tooltip.shortcut.submitForm.title","bundleName":"I18nResources","translation":"Keyboard shortcut Return","translationDE":"Tastaturkürzel Return","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"tooltip.unassign","bundleName":"I18nResources","translation":"Unassign selected elements","translationDE":"Zuweisung für selektierte Einträge aufheben","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"tooltip.unselect","bundleName":"I18nResources","translation":"Unselect item","translationDE":"Auswahl aufheben","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"tooltip.unselectBirthday","bundleName":"I18nResources","translation":"Unselect birthday","translationDE":"Geburtstag löschen","usedInClasses":[],"usedInFiles":[]},

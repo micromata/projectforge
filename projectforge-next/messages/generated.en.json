@@ -1534,6 +1534,10 @@
       "selectAll": {
         "_": "Press CTRL-A (macOS: CMD-A) to select all entries of the list while the selection mode is on.",
         "title": "Keyboard shortcut CTRL-A"
+      },
+      "submitForm": {
+        "_": "Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).",
+        "title": "Keyboard shortcut Return"
       }
     }
   },

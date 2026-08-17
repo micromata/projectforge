@@ -15,6 +15,7 @@ import {
 } from "@/hooks/use-entity-detail";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
+import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
@@ -86,6 +87,13 @@ export function EntityEditPage<
     },
   });
 
+  // Return, and CTRL-Return inside a textarea, save — as the default button of a Wicket form does.
+  // Under the same condition the save button carries, so the shortcut is never the looser way in.
+  const onKeyDown = useSubmitShortcut(
+    () => void form.handleSubmit(),
+    isDirty && !isSubmitting
+  );
+
   /**
    * Leaves the page without saving — and tells the backend so, which is what makes the list mark the
    * entry the user was looking at (`onCancelEdit`, same as after a save).
@@ -138,6 +146,7 @@ export function EntityEditPage<
           e.preventDefault();
           void form.handleSubmit();
         }}
+        onKeyDown={onKeyDown}
         className="flex min-w-0 flex-1 flex-col overflow-hidden"
       >
         <EditPageShell

@@ -14,7 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
+import {
+  useSubmitShortcut,
+  useSubmitShortcutHint,
+} from "@/hooks/use-submit-shortcut";
 import { AttachmentMetadata } from "./attachment-metadata";
 import type { Attachment } from "@/lib/rs/attachments";
 
@@ -46,10 +51,18 @@ export function AttachmentEditDialog({
   const ids = useId();
   const [name, setName] = useState(attachment.name);
   const [description, setDescription] = useState(attachment.description ?? "");
+  const shortcutHint = useSubmitShortcutHint();
+
+  // An empty name would leave the file unreachable in the list — the button's own condition.
+  const canSubmit = name.trim().length > 0 && !saving;
+  const onKeyDown = useSubmitShortcut(
+    () => onSave(name.trim(), description.trim()),
+    canSubmit
+  );
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent onKeyDown={onKeyDown}>
         <DialogHeader>
           {/* "Anhang", not "Dateiname": the dialog shows all of an attachment, not just its name. */}
           <DialogTitle>{t("attachment._")}</DialogTitle>
@@ -82,15 +95,16 @@ export function AttachmentEditDialog({
           <Button type="button" variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button
-            type="button"
-            // An empty name would leave the file unreachable in the list.
-            disabled={name.trim().length === 0 || saving}
-            onClick={() => onSave(name.trim(), description.trim())}
-          >
-            {saving && <Spinner className="h-4 w-4 border-2" />}
-            {t("save")}
-          </Button>
+          <HintTooltip {...shortcutHint}>
+            <Button
+              type="button"
+              disabled={!canSubmit}
+              onClick={() => onSave(name.trim(), description.trim())}
+            >
+              {saving && <Spinner className="h-4 w-4 border-2" />}
+              {t("save")}
+            </Button>
+          </HintTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

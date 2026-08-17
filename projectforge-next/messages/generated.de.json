@@ -1534,6 +1534,10 @@
       "selectAll": {
         "_": "STRG-A (macOS: CMD-A) wählt im Auswahlmodus alle Einträge der Liste aus.",
         "title": "Tastaturkürzel STRG-A"
+      },
+      "submitForm": {
+        "_": "Return drücken, in mehrzeiligen Textfeldern STRG-Return (macOS: CMD-Return).",
+        "title": "Tastaturkürzel Return"
       }
     }
   },

@@ -7,8 +7,13 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
+import {
+  useSubmitShortcut,
+  useSubmitShortcutHint,
+} from "@/hooks/use-submit-shortcut";
 import {
   cancelMultiSelection,
   massUpdate,
@@ -45,6 +50,7 @@ export function MassUpdateForm({
   onLeave: () => void;
 }) {
   const t = useTranslations();
+  const shortcutHint = useSubmitShortcutHint();
   // One parameter per field, by field name — exactly the map the backend takes.
   const [params, setParams] = useState<Record<string, MassUpdateParameter>>({});
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -73,8 +79,16 @@ export function MassUpdateForm({
     onSettled: onLeave,
   });
 
+  // Return asks the question the button asks, not the write itself — every picked entry changes at
+  // once, and a keystroke must not be the way around the confirmation.
+  const canSubmit = !update.isPending && meta.selectedCount > 0;
+  const onKeyDown = useSubmitShortcut(() => setConfirming(true), canSubmit);
+
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 p-4">
+    <div
+      className="mx-auto w-full max-w-3xl space-y-4 p-4"
+      onKeyDown={onKeyDown}
+    >
       <div>
         <h1 className="text-lg font-bold tracking-tight">{meta.title}</h1>
         <p className="text-xs text-muted-foreground">
@@ -124,16 +138,18 @@ export function MassUpdateForm({
       {result && <MassUpdateResultPanel result={result} />}
 
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          disabled={update.isPending || meta.selectedCount === 0}
-          onClick={() => setConfirming(true)}
-        >
-          {update.isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : null}
-          {t("save")}
-        </Button>
+        <HintTooltip {...shortcutHint}>
+          <Button
+            type="button"
+            disabled={!canSubmit}
+            onClick={() => setConfirming(true)}
+          >
+            {update.isPending ? (
+              <Spinner className="h-3.5 w-3.5 border-2" />
+            ) : null}
+            {t("save")}
+          </Button>
+        </HintTooltip>
         <Button type="button" variant="ghost" onClick={() => leave.mutate()}>
           {t("cancel")}
         </Button>

@@ -55,6 +55,9 @@ const KEYS = [
   "tooltip.shortcut.addEntry.title",
   "tooltip.shortcut.selectAll",
   "tooltip.shortcut.selectAll.title",
+  // The shortcut of the default button, composed by useSubmitShortcutHint.
+  "tooltip.shortcut.submitForm",
+  "tooltip.shortcut.submitForm.title",
   "multiselection.button",
   "multiselection.aggrid.selection.info.title",
   "multiselection.aggrid.selection.info.message",

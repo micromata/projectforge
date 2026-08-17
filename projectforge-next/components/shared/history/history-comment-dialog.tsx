@@ -14,8 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { useAppendHistoryComment } from "@/hooks/use-history";
+import {
+  useSubmitShortcut,
+  useSubmitShortcutHint,
+} from "@/hooks/use-submit-shortcut";
 import type { HistoryEntry } from "@/lib/rs/history";
 
 export interface HistoryCommentDialogProps {
@@ -38,6 +43,7 @@ export function HistoryCommentDialog({
   onClose,
 }: HistoryCommentDialogProps) {
   const t = useTranslations();
+  const shortcutHint = useSubmitShortcutHint();
   const [comment, setComment] = useState("");
   const append = useAppendHistoryComment(entity, entityId);
 
@@ -50,9 +56,13 @@ export function HistoryCommentDialog({
     }
   };
 
+  // The comment is a textarea, so here it is CTRL-Return that appends — Return stays the line break.
+  const canSubmit = comment.trim().length > 0 && !append.isPending;
+  const onKeyDown = useSubmitShortcut(() => void submit(), canSubmit);
+
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent onKeyDown={onKeyDown}>
         <DialogHeader>
           <DialogTitle>{t("history.entry")}</DialogTitle>
           <DialogDescription>
@@ -86,14 +96,16 @@ export function HistoryCommentDialog({
           <Button type="button" variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button
-            type="button"
-            onClick={() => void submit()}
-            disabled={comment.trim().length === 0 || append.isPending}
-          >
-            {append.isPending && <Spinner className="h-4 w-4 border-2" />}
-            {t("save")}
-          </Button>
+          <HintTooltip {...shortcutHint}>
+            <Button
+              type="button"
+              onClick={() => void submit()}
+              disabled={!canSubmit}
+            >
+              {append.isPending && <Spinner className="h-4 w-4 border-2" />}
+              {t("save")}
+            </Button>
+          </HintTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { useFormatContext } from "@/hooks/use-format";
+import { useSubmitShortcutHint } from "@/hooks/use-submit-shortcut";
 import { formatTimestampMinutes } from "@/lib/format";
 
 export interface EntityEditActionsProps {
@@ -50,6 +52,7 @@ export function EntityEditActions({
 }: EntityEditActionsProps) {
   const t = useTranslations();
   const format = useFormatContext();
+  const shortcutHint = useSubmitShortcutHint();
   return (
     <div className="flex shrink-0 items-center gap-3 border-t border-border bg-background px-6 py-2.5 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
       <Button
@@ -61,25 +64,29 @@ export function EntityEditActions({
       >
         {t("cancel")}
       </Button>
-      <Button
-        type="submit"
-        size="sm"
-        disabled={isSaving || !isDirty}
-        className="gap-1.5"
-        // The button is the only thing that changes while saving, so it carries the busy state.
-        aria-busy={isSaving}
-      >
-        {/* In place of the icon, not next to it, so the label doesn't move. A save can take seconds —
-            the order's notification mail is sent synchronously (AuftragDao.sendNotificationIfRequired)
-            and waits for the SMTP server — and a disabled button alone doesn't say that anything is
-            happening. */}
-        {isSaving ? (
-          <Spinner className="h-3.5 w-3.5 border-2" />
-        ) : (
-          <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
-        )}
-        {t("save")}
-      </Button>
+      {/* The default button of the form, so its tooltip is where the keyboard shortcut is named
+          (see useSubmitShortcut). */}
+      <HintTooltip {...shortcutHint}>
+        <Button
+          type="submit"
+          size="sm"
+          disabled={isSaving || !isDirty}
+          className="gap-1.5"
+          // The button is the only thing that changes while saving, so it carries the busy state.
+          aria-busy={isSaving}
+        >
+          {/* In place of the icon, not next to it, so the label doesn't move. A save can take seconds —
+              the order's notification mail is sent synchronously (AuftragDao.sendNotificationIfRequired)
+              and waits for the SMTP server — and a disabled button alone doesn't say that anything is
+              happening. */}
+          {isSaving ? (
+            <Spinner className="h-3.5 w-3.5 border-2" />
+          ) : (
+            <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+          )}
+          {t("save")}
+        </Button>
+      </HintTooltip>
       {saveOption}
       <div className="flex-1" />
       {lastSaved && (
