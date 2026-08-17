@@ -421,6 +421,71 @@ class AuftragDaoTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * The same flag of a payment schedule entry is protected the same way as a position's: it means the same
+     * thing and is set by the accounting staff alone (see [AuftragRight.hasAccess]).
+     */
+    @Test
+    fun checkVollstaendigFakturiertOfPaymentSchedule() {
+        logon(TEST_FINANCE_USER)
+        val auftrag = createOrder().also {
+            it.nummer = auftragDao.getNextNumber(it)
+            auftragDao.setContactPerson(it, getUserId(TEST_PROJECT_MANAGER_USER))
+            it.addPosition(createOrderPos().also { pos -> pos.nettoSumme = BigDecimal.TEN })
+            it.addPaymentSchedule(PaymentScheduleDO().also { schedule ->
+                schedule.positionNumber = 1
+                schedule.scheduleDate = LocalDate.now()
+                schedule.amount = BigDecimal.TEN
+            })
+        }
+        val id = auftragDao.insert(auftrag)
+        dbNumber++ // Needed for getNextNumber test;
+
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_PROJECT_MANAGER_USER)
+            val order = auftragDao.find(id)!!
+            order.paymentSchedules!![0].vollstaendigFakturiert = true
+            try {
+                suppressErrorLogs {
+                    auftragDao.update(order)
+                }
+                Assertions.fail { "AccessException expected: Project manager should not be able to set a payment schedule entry as fully invoiced." }
+            } catch (ex: AccessException) {
+                Assertions.assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.i18nKey)
+            }
+        }
+        // Adding an entry that is already flagged is refused as well, not only changing an existing one:
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_PROJECT_MANAGER_USER)
+            val order = auftragDao.find(id)!!
+            order.addPaymentSchedule(PaymentScheduleDO().also { schedule ->
+                schedule.positionNumber = 1
+                schedule.scheduleDate = LocalDate.now()
+                schedule.amount = BigDecimal.ONE
+                schedule.vollstaendigFakturiert = true
+            })
+            try {
+                suppressErrorLogs {
+                    auftragDao.update(order)
+                }
+                Assertions.fail { "AccessException expected: Project manager should not be able to add a fully invoiced payment schedule entry." }
+            } catch (ex: AccessException) {
+                Assertions.assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.i18nKey)
+            }
+        }
+        // ... while the accounting staff may do both:
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val order = auftragDao.find(id, attached = true)!!
+            order.paymentSchedules!![0].vollstaendigFakturiert = true
+            auftragDao.update(order)
+        }
+        persistenceService.runInTransaction { _ ->
+            val order = auftragDao.find(id)!!
+            Assertions.assertTrue(order.paymentSchedules!![0].vollstaendigFakturiert)
+        }
+    }
+
     @Test
     fun checkEmptyAuftragsPositionen() {
         logon(TEST_FINANCE_USER)

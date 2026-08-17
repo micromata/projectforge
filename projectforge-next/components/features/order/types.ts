@@ -136,6 +136,11 @@ export interface OrderDetail {
   /** Access flags, filled by `transformFromDB` — `GET /rs/order/{id}` sends no `userAccess`. */
   writeAccess?: boolean;
   deleteAccess?: boolean;
+  /**
+   * Whether the `vollstaendigFakturiert` checkboxes may be changed — the invoice right **and** membership
+   * of PF_Finance, which is what `AuftragRight` enforces on write. False renders them read-only rather
+   * than hiding them, so a reader sees the flag without being offered a change the backend would refuse.
+   */
   vollstaendigFakturiertWriteAccess?: boolean;
   created?: string | null;
   lastUpdate?: string | null;

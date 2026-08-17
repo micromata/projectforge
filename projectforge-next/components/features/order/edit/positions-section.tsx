@@ -66,7 +66,9 @@ export function PositionsSection({ id }: { id: number | null }) {
             // Not blocked by `invoicedElsewhere`: bringing a position back makes the invoice's link
             // valid again, so the reason to block the removal argues for allowing the restore.
             onRestore={writeAccess ? () => array.restore(index) : undefined}
-            invoiceWriteAccess={
+            // Readable by everyone who may read the order, changeable only by the accounting staff
+            // (see Auftrag.vollstaendigFakturiertWriteAccess).
+            invoiceFlagWriteAccess={
               order?.vollstaendigFakturiertWriteAccess === true
             }
             invoiceInfo={invoiceInfo}

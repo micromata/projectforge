@@ -20,6 +20,7 @@ import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
+import { entityAccess } from "@/lib/rs/entity-access";
 import { DeclaredSection } from "./declared-sections";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
@@ -87,11 +88,18 @@ export function EntityEditPage<
     },
   });
 
+  // What the backend says this user may do with this entry — the counterpart of Wicket's
+  // `AbstractEditForm.updateButtonVisibility`, which hides the save button without update access and
+  // the delete button without delete access.
+  const access = entityAccess(data, id == null);
+
   // Return, and CTRL-Return inside a textarea, save — as the default button of a Wicket form does.
-  // Under the same condition the save button carries, so the shortcut is never the looser way in.
+  // Under the same condition the save button carries, so the shortcut is never the looser way in —
+  // including the write access, or it would submit a form that offers no save button (Wicket makes
+  // cancel the default button in that case, see AbstractEditForm.updateButtonVisibility).
   const onKeyDown = useSubmitShortcut(
     () => void form.handleSubmit(),
-    isDirty && !isSubmitting
+    isDirty && !isSubmitting && access.write
   );
 
   /**
@@ -115,6 +123,11 @@ export function EntityEditPage<
     if (result.kind === "validationErrors") {
       // Nothing was deleted; the server explains why (e.g. the entry is still referenced).
       result.validationErrors.forEach((error) => toast.error(error.message));
+      return;
+    }
+    if (result.kind === "rejected") {
+      // The delete was refused, not merely invalid — an AccessException (see lib/rs/entity.ts).
+      toast.error(result.message || t("validation.error.generic"));
       return;
     }
     toast.success(t("message.successfullChanged"));
@@ -176,13 +189,14 @@ export function EntityEditPage<
               // Nothing to delete before the first save. On `id` rather than on `data`: a new entry
               // has data too — the preset the backend answers `fetchNew` with (see useEntityDetail).
               deleteAction={
-                id != null && data ? (
+                id != null && data && access.delete ? (
                   <EntityDeleteButton
                     onDelete={runDelete}
                     disabled={isSubmitting || deleteMutation.isPending}
                   />
                 ) : undefined
               }
+              canSave={access.write}
               isSaving={isSubmitting}
               isDirty={isDirty}
               // Saving leaves the page, so this is always the write before the one being made now:

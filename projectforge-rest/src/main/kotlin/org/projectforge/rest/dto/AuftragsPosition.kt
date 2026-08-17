@@ -65,8 +65,9 @@ class AuftragsPosition(
     var personDays: BigDecimal? = null,
     var bemerkung: String? = null,
     /**
-     * Only writable with `FIBU_AUSGANGSRECHNUNGEN = READWRITE` and only for finished positions; the
-     * `AuftragRight` of the DAO is the authority (see [Auftrag.vollstaendigFakturiertWriteAccess]).
+     * Only writable by the accounting staff (`FIBU_AUSGANGSRECHNUNGEN = READWRITE` **and**
+     * `FINANCE_GROUP`) and only for finished positions; the `AuftragRight` of the DAO is the authority
+     * (see [Auftrag.vollstaendigFakturiertWriteAccess]).
      */
     var vollstaendigFakturiert: Boolean? = false,
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE,

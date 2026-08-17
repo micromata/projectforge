@@ -28,7 +28,12 @@ export type EntityWriteResult =
       /** Where the backend wants the user to go next; hand built pages usually route themselves. */
       action: ResponseAction;
     }
-  | { kind: "validationErrors"; validationErrors: ValidationError[] };
+  | { kind: "validationErrors"; validationErrors: ValidationError[] }
+  | {
+      kind: "rejected";
+      /** Already translated by the backend, and the only thing it says about the refusal. */
+      message: string;
+    };
 
 /** HTTP status Spring answers with when the entity failed validation. */
 const NOT_ACCEPTABLE = 406;
@@ -134,6 +139,30 @@ async function write<D extends object>(
     return {
       kind: "validationErrors",
       validationErrors: action.validationErrors,
+    };
+  }
+  // A refusal the backend reports as an exception that escaped the controller: `GlobalDefaultExceptionHandler`
+  // answers a `UserException` with `displayUserMessage` with HTTP *200* and nothing but a danger toast
+  // (`UIToast.createExceptionToast`), so without this branch such an answer would read as a successful
+  // write and the form would reset and navigate away although nothing was written.
+  //
+  // Not the path of the four CRUD endpoints above: there `AbstractPagesRestUtils` catches everything
+  // around the DAO call and `handleException` turns a `UserException` — an `AccessException` among them
+  // — into HTTP 406 with a `validationErrors` entry (fieldless, as `AccessException` sets no
+  // `causedByField`), which the branch above already handles. What is left for this one are the custom
+  // endpoints reached through [postEntityAction], which have no such catch.
+  //
+  // Told apart from a successful save with an extra warning (the order's notification mail that could
+  // not be sent) by the target type: a refusal is a TOAST and nothing else, while a save answers with
+  // the REDIRECT its message rides along on.
+  if (action?.targetType === "TOAST" && action.message?.color === "danger") {
+    return {
+      kind: "rejected",
+      message:
+        action.message.message ??
+        action.message.technicalMessage ??
+        action.message.i18nKey ??
+        "",
     };
   }
   return { kind: "ok", id: readId(action), action: action ?? {} };

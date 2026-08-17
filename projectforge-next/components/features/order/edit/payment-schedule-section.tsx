@@ -66,7 +66,9 @@ export function PaymentScheduleSection({ id }: { id: number | null }) {
           // Restoring is gated by the write access alone: it undoes a deletion the same user made in
           // this form, and the row it brings back is the one that was already there.
           onRestore={writeAccess ? () => array.restore(index) : undefined}
-          invoiceWriteAccess={order?.vollstaendigFakturiertWriteAccess === true}
+          invoiceFlagWriteAccess={
+            order?.vollstaendigFakturiertWriteAccess === true
+          }
         />
       )}
     />

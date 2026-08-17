@@ -23,6 +23,11 @@ export interface EntityEditActionsProps {
    * needs the saved entity (see [EntityDeleteButton]).
    */
   deleteAction?: ReactNode;
+  /**
+   * Whether this user may save at all (`writeAccess` of the entity). False leaves the save button and
+   * its option out; the read-only form stays readable and cancel stays the way out.
+   */
+  canSave: boolean;
   isSaving: boolean;
   isDirty: boolean;
   /**
@@ -46,6 +51,7 @@ export function EntityEditActions({
   onCancel,
   saveOption,
   deleteAction,
+  canSave,
   isSaving,
   isDirty,
   lastSaved,
@@ -64,30 +70,37 @@ export function EntityEditActions({
       >
         {t("cancel")}
       </Button>
-      {/* The default button of the form, so its tooltip is where the keyboard shortcut is named
-          (see useSubmitShortcut). */}
-      <HintTooltip {...shortcutHint}>
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isSaving || !isDirty}
-          className="gap-1.5"
-          // The button is the only thing that changes while saving, so it carries the busy state.
-          aria-busy={isSaving}
-        >
-          {/* In place of the icon, not next to it, so the label doesn't move. A save can take seconds —
-              the order's notification mail is sent synchronously (AuftragDao.sendNotificationIfRequired)
-              and waits for the SMTP server — and a disabled button alone doesn't say that anything is
-              happening. */}
-          {isSaving ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
-          )}
-          {t("save")}
-        </Button>
-      </HintTooltip>
-      {saveOption}
+      {/* Left out entirely without write access rather than disabled, as Wicket leaves it out
+          (AbstractEditForm.updateButtonVisibility): a greyed-out save reads as "not yet", while there is
+          nothing this user could do to enable it. Cancel stays — it is the way out. */}
+      {canSave && (
+        <>
+          {/* The default button of the form, so its tooltip is where the keyboard shortcut is named
+              (see useSubmitShortcut). */}
+          <HintTooltip {...shortcutHint}>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSaving || !isDirty}
+              className="gap-1.5"
+              // The button is the only thing that changes while saving, so it carries the busy state.
+              aria-busy={isSaving}
+            >
+              {/* In place of the icon, not next to it, so the label doesn't move. A save can take seconds —
+                  the order's notification mail is sent synchronously (AuftragDao.sendNotificationIfRequired)
+                  and waits for the SMTP server — and a disabled button alone doesn't say that anything is
+                  happening. */}
+              {isSaving ? (
+                <Spinner className="h-3.5 w-3.5 border-2" />
+              ) : (
+                <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+              )}
+              {t("save")}
+            </Button>
+          </HintTooltip>
+          {saveOption}
+        </>
+      )}
       <div className="flex-1" />
       {lastSaved && (
         <span className="text-xs text-muted-foreground">
