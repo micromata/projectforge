@@ -334,7 +334,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2BlackWhiteList", ex.causedByField)
             }
             try {
                 task1.kost2BlackWhiteList = null
@@ -342,7 +343,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2IsBlackList", ex.causedByField)
             }
             try {
                 task1.kost2IsBlackList = false
@@ -350,7 +352,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey)
+                Assertions.assertEquals("timesheetBookingStatus", ex.causedByField)
             }
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2IsBlackList = true
@@ -362,7 +365,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2BlackWhiteList", ex.causedByField)
             }
             try {
                 task1.kost2BlackWhiteList = null
@@ -370,7 +374,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2IsBlackList", ex.causedByField)
             }
             try {
                 task1.kost2IsBlackList = true
@@ -378,7 +383,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey)
+                Assertions.assertEquals("timesheetBookingStatus", ex.causedByField)
             }
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2BlackWhiteList = "123456"
@@ -402,6 +408,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectTimesheetsUntilReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectTimesheetsUntil", ex.causedByField)
         }
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
@@ -411,6 +418,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectionOfPrivacy", ex.causedByField)
         }
         taskDao.find(id)!!
         task = TaskDO()
@@ -422,6 +430,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectTimesheetsUntilReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectTimesheetsUntil", ex.causedByField)
         }
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
@@ -431,6 +440,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectionOfPrivacy", ex.causedByField)
         }
         taskDao.find(id)!!
     }

@@ -371,19 +371,22 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         super.checkInsertAccess(user, obj)
         if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
             if (obj.protectTimesheetsUntil != null) {
-                throw AccessException("task.error.protectTimesheetsUntilReadonly")
+                throw AccessException("task.error.protectTimesheetsUntilReadonly").setCausedByField("protectTimesheetsUntil")
             }
             if (obj.protectionOfPrivacy) {
-                throw AccessException("task.error.protectionOfPrivacyReadonly")
+                throw AccessException("task.error.protectionOfPrivacyReadonly").setCausedByField("protectionOfPrivacy")
             }
         }
         if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
             // Non project managers are not able to manipulate the following fields:
-            if (StringUtils.isNotBlank(obj.kost2BlackWhiteList) || obj.kost2IsBlackList) {
-                throw AccessException("task.error.kost2Readonly")
+            if (StringUtils.isNotBlank(obj.kost2BlackWhiteList)) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2BlackWhiteList")
+            }
+            if (obj.kost2IsBlackList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2IsBlackList")
             }
             if (obj.timesheetBookingStatus != TimesheetBookingStatus.DEFAULT) {
-                throw AccessException("task.error.timesheetBookingStatus2Readonly")
+                throw AccessException("task.error.timesheetBookingStatus2Readonly").setCausedByField("timesheetBookingStatus")
             }
         }
     }
@@ -401,19 +404,22 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                 ts2 = dbObj.protectTimesheetsUntil!!.toEpochDay()
             }
             if (ts1 != ts2) {
-                throw AccessException("task.error.protectTimesheetsUntilReadonly")
+                throw AccessException("task.error.protectTimesheetsUntilReadonly").setCausedByField("protectTimesheetsUntil")
             }
             if (obj.protectionOfPrivacy != dbObj.protectionOfPrivacy) {
-                throw AccessException("task.error.protectionOfPrivacyReadonly")
+                throw AccessException("task.error.protectionOfPrivacyReadonly").setCausedByField("protectionOfPrivacy")
             }
         }
         if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
             // Non project managers are not able to manipulate the following fields:
-            if (obj.kost2BlackWhiteList != dbObj.kost2BlackWhiteList || obj.kost2IsBlackList != dbObj.kost2IsBlackList) {
-                throw AccessException("task.error.kost2Readonly")
+            if (obj.kost2BlackWhiteList != dbObj.kost2BlackWhiteList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2BlackWhiteList")
+            }
+            if (obj.kost2IsBlackList != dbObj.kost2IsBlackList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2IsBlackList")
             }
             if (obj.timesheetBookingStatus != dbObj.timesheetBookingStatus) {
-                throw AccessException("task.error.timesheetBookingStatus2Readonly")
+                throw AccessException("task.error.timesheetBookingStatus2Readonly").setCausedByField("timesheetBookingStatus")
             }
         }
     }
