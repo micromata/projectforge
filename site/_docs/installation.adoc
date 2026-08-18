@@ -218,6 +218,21 @@ If you want to use HSTS (which makes browsers show an error page when the SSL ce
 
 **Remember to replace *projectforge.example.com* with the actual domain you'll run ProjectForge on!**
 
+==== File uploads
+
+`client_max_body_size` limits the size of an upload (attachments, data transfer areas). NGINX
+defaults to 1 MB and answers anything larger with `413 Request Entity Too Large`, so ProjectForge
+never sees the request and cannot report the refusal itself. Keep the value at least as high as
+`spring.servlet.multipart.max-request-size` in `projectforge.properties`.
+
+Every reverse proxy in front of ProjectForge enforces its own limit, and the smallest one wins
+silently. If requests pass through a load balancer or an SSO proxy such as Authentik, the value has
+to be raised there as well - a 413 arriving from such a hop looks exactly like one from NGINX. The
+`Server` response header of the 413 tells which hop refused it.
+
+The template also switches `proxy_request_buffering` off and raises the timeouts, so a large upload
+is streamed through rather than spooled to disk first, and a slow connection isn't cut while the
+body is still on its way.
 
 To activate the NGINX configuration, you'll need to symlink the configuration file we just created to `/etc/nginx/sites-enabled`. This can be done by using the following command:
 
