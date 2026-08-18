@@ -736,6 +736,34 @@ constructor(
     }
 
     /**
+     * The clone of an entity for a page built by hand: prepared by [prepareClone] and answered as it is,
+     * without saving it.
+     *
+     * The layout free counterpart of `AbstractPagesRest.clone`, and deliberately a different path
+     * ([RestPaths.CLONE_DATA]): that one is mapped by a subclass of this one, so the same path here would
+     * be ambiguous for every legacy page. It also answers something else - a `ResponseAction` carrying
+     * data *and* a rebuilt layout - which a hand built page has no use for. What travels here is the DTO,
+     * and where it is edited is the client's business.
+     *
+     * The posted entity is **not** validated: it is the form as the user has it in front of them, errors
+     * and all, and nothing is written (Wicket clones from an invalid form too, see
+     * `RechnungEditForm.ignoreErrorOnClone`). [CloneSupport.AUTOSAVE] is not honoured either - no
+     * layout free entity asks for it, so anything but [CloneSupport.NONE] means "prepare and return".
+     *
+     * @return The prepared clone, or HTTP 501 if this entity has no clone support.
+     */
+    @PostMapping(RestPaths.CLONE_DATA)
+    fun cloneData(@RequestBody postData: PostData<DTO>): ResponseEntity<Any> {
+        if (cloneSupport == CloneSupport.NONE) {
+            return ResponseEntity(HttpStatus.NOT_IMPLEMENTED)
+        }
+        // Throws an AccessException, which the exception handler answers as HTTP 406 with a validation
+        // error - the client shouldn't have offered the button (see ListMetaData.userAccess.insert).
+        baseDao.hasLoggedInUserInsertAccess()
+        return ResponseEntity(prepareClone(postData.data) as Any, HttpStatus.OK)
+    }
+
+    /**
      * Will be called by clone service. Override this method for more complex clone functionality.
      * @return The object itself with id set to null if of type BaseDO and deleted to false and lastUpdate and created
      * to null if ExtendecBaseDO.

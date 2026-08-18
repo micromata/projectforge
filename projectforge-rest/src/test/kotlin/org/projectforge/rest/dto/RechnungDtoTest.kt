@@ -227,6 +227,86 @@ class RechnungDtoTest : AbstractTestBase() {
         assertEquals(listOf<Short>(0), invoice.positionen?.last()?.kostZuweisungen?.map { it.index })
     }
 
+    @Test
+    fun `a clone keeps the content of an invoice and none of what the original earned`() {
+        val dto = clonedInvoice()
+
+        assertNull(dto.id, "A clone is a new invoice.")
+        assertNull(dto.nummer, "A number is spent once handed out; RechnungDao assigns the next free one.")
+        // Not the original's GEPLANT/BEZAHLT state and nothing paid on an invoice that doesn't exist yet.
+        assertEquals(RechnungStatus.GESTELLT, dto.status)
+        assertNull(dto.zahlBetrag)
+        assertNull(dto.bezahlDatum)
+        // The content is what a clone is for.
+        assertEquals("Test invoice", dto.betreff)
+        assertEquals(11L, dto.customer?.id)
+    }
+
+    @Test
+    fun `a clone is dated today, with both payment targets derived again`() {
+        val dto = clonedInvoice()
+
+        assertEquals(TODAY, dto.datum)
+        // Derived, not copied: the original's due date lies in the past, so a copy would be overdue on the
+        // day it is written (see AuftragAndRechnungDaoHelper.onSaveOrModify, which derives it the same way).
+        assertEquals(TODAY.plusDays(30), dto.faelligkeit)
+        assertEquals(TODAY.plusDays(14), dto.discountMaturity)
+    }
+
+    @Test
+    fun `a clone carries every live position and cost assignment, none of them with an id`() {
+        val dto = clonedInvoice()
+
+        // The deleted position is left out: it is on its way out of the *old* invoice.
+        assertEquals(2, dto.positionen?.size)
+        assertEquals(listOf("Position 1", "Position 3"), dto.positionen?.map { it.text })
+        dto.positionen?.forEach { position ->
+            // Every row has to be written as a new one, which is also what makes
+            // assignNumbersAndIndicesToNewRows renumber them from 1 on the save.
+            assertNull(position.id, "Position ${position.text} would be merged into the original's row.")
+            position.kostZuweisungen?.forEach { assignment ->
+                assertNull(assignment.id, "A cost assignment of ${position.text} kept its id.")
+            }
+        }
+        // The split itself travels — that is content, unlike the ids above.
+        assertEquals(2, dto.positionen?.first()?.kostZuweisungen?.size)
+        assertEquals(BigDecimal("600.00"), dto.positionen?.first()?.kostZuweisungen?.first()?.netto)
+    }
+
+    @Test
+    fun `a clone has no attachments, the files staying with the original`() {
+        // They live in JCR under the old invoice's id, so a counter naming them would promise files that
+        // aren't there.
+        val dto = clonedInvoice()
+
+        assertNull(dto.attachments)
+        assertNull(dto.attachmentsCounter)
+        assertNull(dto.attachmentsSize)
+    }
+
+    /**
+     * The invoice of [createInvoice] as the clone endpoint answers it: paid, overdue, with an attachment —
+     * i.e. carrying everything a clone has to drop.
+     */
+    private fun clonedInvoice(): Rechnung {
+        val invoice = createInvoice()
+        invoice.faelligkeit = LocalDate.of(2026, 3, 15)
+        invoice.zahlungsZielInTagen = 30
+        invoice.discountZahlungsZielInTagen = 14
+        invoice.discountMaturity = LocalDate.of(2026, 3, 8)
+        invoice.bezahlDatum = LocalDate.of(2026, 3, 10)
+        invoice.zahlBetrag = BigDecimal("2380.00")
+        invoice.attachmentsCounter = 2
+        invoice.attachmentsSize = 4096L
+        val dto = Rechnung()
+        dto.copyFromWithCollections(invoice)
+        // Both steps the endpoint runs: the generic stripping of AbstractEntityRest.prepareClone, then the
+        // invoice's own rules.
+        dto.id = null
+        dto.deleted = false
+        return OutgoingInvoiceEntityRest.prepareInvoiceClone(dto, TODAY)
+    }
+
     private fun createInvoice(): RechnungDO {
         val invoice = RechnungDO()
         invoice.id = 4711L
@@ -283,5 +363,10 @@ class RechnungDtoTest : AbstractTestBase() {
             it.kost1 = Kost1DO().also { kost -> kost.id = 21L }
             it.kost2 = Kost2DO().also { kost -> kost.id = 22L }
         }
+    }
+
+    companion object {
+        /** Passed in rather than read from the clock, so the derived dates are assertable at all. */
+        private val TODAY = LocalDate.of(2026, 6, 15)
     }
 }

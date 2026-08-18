@@ -194,6 +194,9 @@ export const INVOICE_PAGE = definePage<
     title: (invoice) => invoice.betreff ?? "",
     newTitleKey: "fibu.rechnung.title.add",
     savedMessageKey: "message.successfullChanged",
+    // The recurring monthly invoice: the next one is the last one with a new date, so it is written by
+    // cloning it (see OutgoingInvoiceEntityRest.prepareClone for what a clone keeps and what it drops).
+    clone: true,
     sections: [
       {
         id: "head",

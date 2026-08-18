@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -17,11 +18,19 @@ import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
+import { useInsertAccess } from "@/hooks/use-insert-access";
+import {
+  CLONE_PARAM,
+  setPendingClone,
+  usePendingClone,
+} from "@/hooks/use-pending-clone";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import { entityAccess } from "@/lib/rs/entity-access";
+import { cloneEntity } from "@/lib/rs/entity";
 import { DeclaredSection } from "./declared-sections";
+import { EntityCloneButton } from "./entity-clone-button";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityEditHeader } from "./entity-edit-header";
@@ -57,12 +66,24 @@ export function EntityEditPage<
   const writeOptions = { listQueryKey: page.queryKey };
 
   // A new entry has nothing to load — the hook stays disabled for id null.
-  const { data, isLoading, isError } = useEntityDetail<Data>(page.entity, id);
+  const {
+    data: loaded,
+    isLoading,
+    isError,
+  } = useEntityDetail<Data>(page.entity, id);
+  // An add page opened by the clone button starts from the clone instead of from the backend's preset
+  // (see runClone). Recognised by `?clone=1`, so a reload or a later add is a plain add again.
+  const clone = usePendingClone<Data>(page.entity, id == null);
+  const data = clone ?? loaded;
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
+  // Cloning writes nothing, but it produces a *new* entry, so it needs the insert right and not the
+  // write right of the entry on screen.
+  const canInsert = useInsertAccess(page.entity);
+  const [isCloning, setCloning] = useState(false);
   // Adding an entry starts in the first field; editing one leaves the focus alone.
   const formRef = useFocusFirstField<HTMLFormElement>(id == null);
 
@@ -134,6 +155,35 @@ export function EntityEditPage<
     router.push(page.route);
   }
 
+  /**
+   * Opens a new entry built from this one — Wicket's `RechnungEditPage.cloneData`.
+   *
+   * Posted are the *form's current values*, not the loaded entity, so unsaved edits travel; neither
+   * side validates them (Wicket's `ignoreErrorOnClone` says the same), because a clone is a starting
+   * point and not a write.
+   *
+   * The prepared clone is handed to the add page outside React (see usePendingClone) — under
+   * `output: "export"` no state rides along a navigation.
+   */
+  async function runClone(): Promise<void> {
+    setCloning(true);
+    try {
+      const prepared = await cloneEntity<Data>(
+        page.entity,
+        form.state.values as unknown as Data
+      );
+      setPendingClone(page.entity, prepared);
+      // The parameter is what tells the add page to take it (see usePendingClone) — and what keeps a
+      // later plain `/new` a plain add, without the handover having to clear itself on the first read.
+      router.push(`${page.route}/new?${CLONE_PARAM}=1`);
+    } catch {
+      // Nothing was written and the page stays, so the form is still the way forward.
+      toast.error(t("validation.error.generic"));
+    } finally {
+      setCloning(false);
+    }
+  }
+
   if (isLoading) {
     return <Centered>{t("loading")}</Centered>;
   }
@@ -186,6 +236,17 @@ export function EntityEditPage<
             <EntityEditActions
               onCancel={() => void runCancel()}
               saveOption={edit.saveOption && <edit.saveOption />}
+              // Only for a stored entry: cloning an entry that isn't saved yet would copy a form the
+              // user can simply keep filling in. `canInsert` is undefined until `listMeta` is there,
+              // which keeps the button out of a page whose access is not known yet.
+              cloneAction={
+                edit.clone && id != null && canInsert ? (
+                  <EntityCloneButton
+                    onClone={runClone}
+                    disabled={isSubmitting || isCloning}
+                  />
+                ) : undefined
+              }
               // Nothing to delete before the first save. On `id` rather than on `data`: a new entry
               // has data too — the preset the backend answers `fetchNew` with (see useEntityDetail).
               deleteAction={

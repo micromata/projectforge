@@ -89,7 +89,13 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
 open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSupport.
-    AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+    AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(
+        RechnungDao::class.java,
+        "fibu.rechnung.title",
+        // The recurring invoice is what this exists for. CLONE, not AUTOSAVE: the copy is offered for
+        // editing and saved by the user, as `RechnungEditPage.cloneData` does it.
+        cloneSupport = CloneSupport.CLONE,
+    ) {
 
     @Autowired
     private lateinit var kontoCache: KontoCache
@@ -180,6 +186,16 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         rechnung.status = RechnungStatus.GESTELLT
         rechnung.typ = RechnungTyp.RECHNUNG
         return rechnung
+    }
+
+    /**
+     * A new invoice built from this one, as `RechnungEditPage.cloneData` builds it — the recurring monthly
+     * invoice is what a clone is for.
+     *
+     * @see prepareInvoiceClone for what a clone is and isn't.
+     */
+    override fun prepareClone(dto: Rechnung): Rechnung {
+        return prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
     }
 
     /**
@@ -535,6 +551,53 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     companion object {
+        /**
+         * Turns a copy of an invoice into a new one, the way `RechnungEditPage.cloneData` does it.
+         *
+         * A clone is not a duplicate: it is a fresh invoice with the same content. So everything the *first*
+         * invoice earned is dropped, and everything derived from a date is derived again from today:
+         *
+         * - No number. A number is spent once handed out, and `RechnungDao.onInsertOrModify` assigns the next
+         *   free one on the transition out of [RechnungStatus.GEPLANT].
+         * - Dated today, with the due date and the discount maturity re-derived from the agreed payment
+         *   targets in days — copying the old dates would produce an invoice overdue on the day it is written.
+         * - Nothing paid: no payment date, no paid amount, and [RechnungStatus.GESTELLT] as the status, which
+         *   is also what [newBaseDTO] presets.
+         * - Every position and every cost assignment loses its id, so the save writes new rows and
+         *   [assignNumbersAndIndicesToNewRows] numbers them from 1 (`RechnungsPositionDO.newClone` and
+         *   `KostZuweisungDO.newClone` drop nothing but the id either). Positions the user had marked as
+         *   deleted are left out entirely — they are on their way out of the *old* invoice and have no
+         *   meaning in a new one.
+         * - No attachments: the files live in JCR under the old invoice's id and are not copied, as Wicket
+         *   copies none.
+         *
+         * The read-only sums are left as they are: the form asks [recalculate] for them as soon as it is
+         * shown, and they are no part of what is saved.
+         *
+         * `internal` and in the companion object rather than a method: it needs nothing of the instance, and
+         * [today] as a parameter is what makes it testable without a Spring context (`RechnungDtoTest`).
+         *
+         * @param dto The copy, already stripped of id, deleted flag and timestamps by
+         * `AbstractEntityRest.prepareClone`.
+         */
+        internal fun prepareInvoiceClone(dto: Rechnung, today: LocalDate): Rechnung {
+            dto.nummer = null
+            dto.datum = today
+            dto.faelligkeit = today.plusDays((dto.zahlungsZielInTagen ?: 0).toLong())
+            dto.discountMaturity = today.plusDays((dto.discountZahlungsZielInTagen ?: 0).toLong())
+            dto.zahlBetrag = null
+            dto.bezahlDatum = null
+            dto.status = RechnungStatus.GESTELLT
+            dto.attachments = null
+            dto.attachmentsCounter = null
+            dto.attachmentsSize = null
+            dto.positionen = dto.positionen?.filter { !it.deleted }?.onEach { position ->
+                position.id = null
+                position.kostZuweisungen?.forEach { it.id = null }
+            }?.toMutableList()
+            return dto
+        }
+
         /**
          * Gives every posted row that has no id yet its number: the positions of the invoice, and the cost
          * assignments of each position.

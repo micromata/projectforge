@@ -231,6 +231,69 @@ test.describe("outgoing invoice edit", () => {
     }
   });
 
+  test("opens a clone as a new invoice, positions and unsaved edits included", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [
+        { number: 1, text: `${SUBJECT} 1`, menge: 2, einzelNetto: 1000 },
+        { number: 2, text: `${SUBJECT} 2`, menge: 1, einzelNetto: 500 },
+      ]);
+      await goto(page, `/invoice/${id}`);
+
+      const subject = page.getByLabel(label(format, "fibu.rechnung.betreff"), {
+        exact: true,
+      });
+      await expect(subject).toHaveValue(SUBJECT, { timeout: 60_000 });
+      await expect(positionRows(page, format)).toHaveCount(2);
+      // Not saved: what the clone posts are the form's current values, so this edit has to travel —
+      // the whole reason Wicket sets `ignoreErrorOnClone` (see lib/rs/entity.ts).
+      await subject.fill(`${SUBJECT} edited`);
+      await subject.blur();
+
+      // The add page loads the backend's preset for a new invoice like any other add does, and that
+      // answer is the moment the form could be reset onto it. Awaited before anything is asserted,
+      // because every edit page of this entity is the *same* route (`invoice/[id]`, "new" being one of
+      // its ids): until the preset has arrived the fields still hold the old form's values, and an
+      // assertion made before it would pass without saying anything about the clone.
+      const preset = page.waitForResponse(
+        (response) =>
+          response.url().includes(`/rs/${INVOICE_PAGE.entity}/newEntry`) &&
+          response.ok()
+      );
+      await page
+        .getByRole("button", { name: format.t("clone"), exact: true })
+        .click();
+      // `?clone=1` is what the add page reads the clone by (see usePendingClone), so it is part of
+      // what a working clone looks like and not incidental to the navigation.
+      await expect(page).toHaveURL(/\/invoice\/new\?clone=1$/);
+      await preset;
+      // The clone button needs a stored entry, so its disappearance says the page really has become
+      // the add page — and, coming after the preset, that the form has been rebuilt for it.
+      await expect(
+        page.getByRole("button", { name: format.t("clone"), exact: true })
+      ).toHaveCount(0);
+
+      // What the clone is for: the preset did *not* win, the clone did.
+      await expect(subject).toHaveValue(`${SUBJECT} edited`);
+      await expect(positionRows(page, format)).toHaveCount(2);
+      // Nothing is stored yet, so there is no number — `RechnungDao` hands one out on the save.
+      await expect(
+        page.getByLabel(label(format, "fibu.rechnung.nummer"), { exact: true })
+      ).toHaveValue("");
+
+      // And the *next* plain add starts from the backend's preset again, not from the clone: the
+      // handover is read only under `?clone=1`, which this navigation does not carry.
+      await goto(page, "/invoice");
+      await goto(page, "/invoice/new");
+      await expect(subject).toHaveValue("", { timeout: 60_000 });
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
   test("reports an invoice left without positions instead of swallowing it", async ({
     loggedInPage: page,
   }) => {

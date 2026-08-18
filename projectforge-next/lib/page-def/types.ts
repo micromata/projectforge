@@ -277,6 +277,15 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   actions?: readonly string[];
   /**
+   * Whether the edit page offers a clone — a new entry built from the one on screen.
+   *
+   * The counterpart of `cloneSupport` in the entity's REST class, which is where the *semantics* live
+   * (`prepareClone`, e.g. an invoice's number and payment dropped). Both are needed: that one decides
+   * what a clone is, this one puts the button on the page. So switching an entity on is two lines,
+   * plus a `prepareClone` override if dropping the ids doesn't suffice.
+   */
+  clone?: boolean;
+  /**
    * Beside the heading of the edit page — a badge saying whether the book is lent out. Rendered on
    * the form and on the pages of its own alike, hence the entity rather than the form values.
    */
