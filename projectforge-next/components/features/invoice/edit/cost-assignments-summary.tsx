@@ -2,8 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatCurrency, formatDisplayName } from "@/lib/format";
+import {
+  formatCurrency,
+  formatDisplayName,
+  formatPercentageDecimal,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { shareOfNetSum } from "../invoice-values";
 import type { KostZuweisungValues } from "../invoice-schema";
 
 /**
@@ -20,9 +25,12 @@ import type { KostZuweisungValues } from "../invoice-schema";
  */
 export function CostAssignmentsSummary({
   assignments,
+  positionNetSum,
   className,
 }: {
   assignments: readonly KostZuweisungValues[];
+  /** The position's net sum, for the share each line carries of it; absent until the sums arrive. */
+  positionNetSum?: number | null;
   className?: string;
 }) {
   const t = useTranslations();
@@ -33,13 +41,17 @@ export function CostAssignmentsSummary({
   return (
     <span className={cn("flex min-w-0 flex-col gap-0.5", className)}>
       {live.map((assignment, index) => {
-        // The order of the open row's fields, so the two readings match: cost 1, cost 2, amount, why.
+        // The order of the open row's fields, so the two readings match: cost 1, cost 2, amount, the
+        // share that is of the position, why.
+        const share = shareOfNetSum(assignment.netto, positionNetSum);
         const parts = [
           formatDisplayName(assignment.kost1),
           formatDisplayName(assignment.kost2),
           assignment.netto != null
             ? formatCurrency(assignment.netto, format)
             : "",
+          // Whole percent, as in the open row ([CostAssignmentShare]).
+          share != null ? formatPercentageDecimal(share, format, 0) : "",
           assignment.comment ?? "",
         ].filter(Boolean);
         return (

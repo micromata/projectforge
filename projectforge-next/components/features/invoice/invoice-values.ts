@@ -143,17 +143,72 @@ export function nextPositionNumber(
  * @param index What [nextKostZuweisungIndex] yields for the rows the position currently holds.
  * @param predecessor The row it is added below, if any. Its two cost units are proposed — splitting a
  *   position across cost 2 units usually keeps cost 1, and Wicket's dialog carries them over the same
- *   way. The amount is not: what is left over is the whole point of the Fehlbetrag.
+ *   way.
+ * @param netto What of the position is still unassigned, which is what the new row is most likely for:
+ *   the whole net sum on the first row, the rest on a later one. A proposal like the two cost units and
+ *   nothing more — the field stays editable, and the Fehlbetrag still says whether it adds up.
+ *   `RechnungCostEditTablePanel.addZuweisung` presets the same amount.
  */
 export function emptyKostZuweisungValues(
   index: number,
-  predecessor?: KostZuweisungValues
+  predecessor?: KostZuweisungValues,
+  netto?: number | null
 ): KostZuweisungValues {
   return toKostZuweisungValues({
     index,
+    netto,
     kost1: predecessor?.kost1 ?? null,
     kost2: predecessor?.kost2 ?? null,
   });
+}
+
+/**
+ * What of a position's net sum is not assigned to a cost unit yet — the amount a new row is proposed
+ * with ([emptyKostZuweisungValues]), and `null` where there is nothing to propose.
+ *
+ * Half server, half form on purpose. `netSum` is the server's (`RechnungCalculator` rounds a position
+ * before it enters a sum, which is German law and not to be reimplemented here — see [useInvoiceSums]),
+ * while what is already assigned is read from the form: the sums are debounced by 400 ms, so a row added
+ * right after an amount was typed would otherwise be prefilled from a number that is no longer on
+ * screen. No rounding rule is duplicated by this — it only adds up amounts the user entered.
+ *
+ * Deleted rows don't count, as they don't for `RechnungCalculator`. A remaining of zero yields `null`
+ * rather than 0: an empty box is filled in, a `0,00 €` has to be cleared first. An over-assigned
+ * position yields a negative amount, which is what Wicket proposes too — the row that is one too many
+ * should read as one too many.
+ */
+export function remainingNet(
+  netSum: number | null | undefined,
+  assignments: readonly KostZuweisungValues[]
+): number | null {
+  if (netSum == null) return null;
+  const assigned = assignments.reduce(
+    (sum, entry) => (entry.deleted ? sum : sum + (entry.netto ?? 0)),
+    0
+  );
+  // Rounded to the two digits an amount has: 2000 - 1900.1 is 99.90000000000009 in binary floating
+  // point, and that is what would land in the box.
+  const remaining = Number((netSum - assigned).toFixed(2));
+  return remaining === 0 ? null : remaining;
+}
+
+/**
+ * The share of its position one cost assignment carries, as a fraction — 0.5 for half of it.
+ *
+ * `null` where there is no share to state: an amount that is not filled in yet, or a position that sums
+ * to nothing, which is also what keeps the division defined. Wicket's `Prozent` column leaves its cell
+ * blank in exactly those two cases (`RechnungCostEditTablePanel`).
+ *
+ * Unrounded: what it is rounded to is the reader's business, not the ratio's (see
+ * [formatPercentageDecimal], which the two places showing this pass 0 digits to).
+ */
+export function shareOfNetSum(
+  netto: number | null | undefined,
+  netSum: number | null | undefined
+): number | null {
+  if (netto == null || netto === 0 || netSum == null || netSum === 0)
+    return null;
+  return netto / netSum;
 }
 
 /**

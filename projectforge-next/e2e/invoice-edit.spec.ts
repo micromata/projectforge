@@ -1,6 +1,11 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
-import { formatCurrency, formatNumber } from "../lib/format";
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercentageDecimal,
+} from "../lib/format";
+import { formatNumberInput } from "../lib/number-parse";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
 import { MARKER, uniqueSuffix } from "./fixtures/seed";
 import type { Page } from "@playwright/test";
@@ -105,8 +110,16 @@ test.describe("outgoing invoice edit", () => {
       const netto = row.getByLabel(label(format, "fibu.common.netto"), {
         exact: true,
       });
+
+      // Prefilled with what the position still has unassigned, which on the first row is all of it —
+      // so the difference is closed by the click alone and the row reads as the whole position.
+      await expect(netto).toHaveValue(amountInput(format, 2000));
+      await expect(fehlbetrag).toHaveCount(0);
+      await expect(row).toContainText(percent(format, 1));
+
       await netto.fill("1500");
       await netto.blur();
+      await expect(row).toContainText(percent(format, 0.75));
 
       // Live, without a save: the sums come from `POST /rs/outgoingInvoice/recalculate` over the form's
       // current state, which is the whole point of the endpoint.
@@ -183,8 +196,10 @@ test.describe("outgoing invoice edit", () => {
       await comment.blur();
       await header.click();
 
+      // The share is part of the folded reading too, in the order the open row has it: amount, share,
+      // why (see CostAssignmentsSummary).
       await expect(header).toContainText(
-        `${currency(format, 1500)} · ${MARKER} split`
+        `${currency(format, 1500)} · ${percent(format, 0.75)} · ${MARKER} split`
       );
     } finally {
       await removeInvoice(page, id);
@@ -346,6 +361,18 @@ test.describe("outgoing invoice edit", () => {
 /** An amount as the page writes it — through the app's own helper, so neither side is spelled out. */
 function currency(format: UserFormat, value: unknown): string {
   return formatCurrency(value, format.context);
+}
+
+/**
+ * An amount as it stands in an input box — ungrouped, unlike a rendered one (see formatNumberInput).
+ */
+function amountInput(format: UserFormat, value: number): string {
+  return formatNumberInput(value, format.context, 2);
+}
+
+/** A share as a row states it: whole percent in the user's layout (see CostAssignmentShare). */
+function percent(format: UserFormat, value: number): string {
+  return formatPercentageDecimal(value, format.context, 0);
 }
 
 /** One entry of a sums line, addressed by the term above it (see InvoiceSumsLine). */

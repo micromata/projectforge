@@ -215,17 +215,24 @@ export function formatPercentage(value: unknown, ctx: FormatContext): string {
   }).format(numeric / 100);
 }
 
-/** Decimal fraction as a percentage, e.g. 0.19 → "19 %". */
+/**
+ * Decimal fraction as a percentage, e.g. 0.19 → "19 %".
+ *
+ * @param fractionDigits Digits behind the separator, at most; one by default. Zero where the percentage
+ *   is a share read at a glance rather than a rate — the share a cost assignment carries of its
+ *   position, which Wicket rounds to whole percent as well (`RechnungCostEditTablePanel`).
+ */
 export function formatPercentageDecimal(
   value: unknown,
-  ctx: FormatContext
+  ctx: FormatContext,
+  fractionDigits = 1
 ): string {
   if (value == null || value === "") return "";
   const numeric = typeof value === "number" ? value : Number(value);
   if (Number.isNaN(numeric)) return "";
   return new Intl.NumberFormat(ctx.locale, {
     style: "percent",
-    maximumFractionDigits: 1,
+    maximumFractionDigits: fractionDigits,
   }).format(numeric);
 }
 

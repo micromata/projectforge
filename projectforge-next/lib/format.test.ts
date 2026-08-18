@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDateRange,
+  formatPercentageDecimal,
   formatTimestampRange,
   type FormatContext,
 } from "./format";
@@ -37,5 +38,21 @@ describe("formatTimestampRange", () => {
     expect(
       formatTimestampRange("2026-06-17T10:33:00Z", "2026-06-17T12:00:00Z", CTX)
     ).toBe("17.06.2026, 12:33 – 17.06.2026, 14:00");
+  });
+});
+
+describe("formatPercentageDecimal", () => {
+  /** The space `Intl` puts before the sign is a non-breaking one, and the layout is the user's. */
+  const percent = (text: string) => text.replace(" ", " ");
+
+  it("shows one digit behind the separator by default", () => {
+    expect(formatPercentageDecimal(0.1925, CTX)).toBe(percent("19,3 %"));
+  });
+
+  it("rounds to whole percent where it is asked to — the share of a cost assignment", () => {
+    expect(formatPercentageDecimal(1 / 3, CTX, 0)).toBe(percent("33 %"));
+    expect(formatPercentageDecimal(1, CTX, 0)).toBe(percent("100 %"));
+    // Signed: a row of the wrong sign against a positive net sum reads as one.
+    expect(formatPercentageDecimal(-0.2, CTX, 0)).toBe(percent("-20 %"));
   });
 });

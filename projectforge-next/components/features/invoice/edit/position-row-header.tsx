@@ -100,6 +100,7 @@ export function PositionRowHeader({
       {costConfigured && (
         <CostAssignmentsSummary
           assignments={position.kostZuweisungen}
+          positionNetSum={netSum}
           // Only while the row is folded: unfolded, the editable rows of the very same split are
           // directly below it, and the same amounts twice in a row read as two different splits. The
           // state comes from the enclosing `Collapsible` ([RepeatableRow]) rather than through a prop,

@@ -15,6 +15,7 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { KOST_ZUWEISUNG_METADATA } from "@/lib/metadata/kost-zuweisung.generated";
 import { cn } from "@/lib/utils";
+import { CostAssignmentShare } from "./cost-assignment-share";
 
 export interface CostAssignmentRowProps {
   /**
@@ -26,6 +27,9 @@ export interface CostAssignmentRowProps {
   /** 0-based index the row is stored with; shown so a row can be named in a confirmation. */
   index: number;
   deleted?: boolean;
+  /** The row's own amount and the position's net sum, for the share it carries of it. */
+  netto?: number | null;
+  positionNetSum?: number | null;
   onRemove?: () => void;
   onRestore?: () => void;
 }
@@ -42,6 +46,8 @@ export function CostAssignmentRow({
   prefix,
   index,
   deleted,
+  netto,
+  positionNetSum,
   onRemove,
   onRestore,
 }: CostAssignmentRowProps) {
@@ -100,6 +106,12 @@ export function CostAssignmentRow({
           suffix={format.currency}
           align="right"
           className="min-w-0 flex-1 basis-32"
+        />
+        {/* Behind the amount, as in Wicket's table: kost 1, kost 2, amount, then the share it is. */}
+        <CostAssignmentShare
+          netto={netto}
+          positionNetSum={positionNetSum}
+          className="shrink-0 basis-16"
         />
         <InputField
           name={name("comment")}

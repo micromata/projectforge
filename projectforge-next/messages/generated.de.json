@@ -1324,6 +1324,7 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "percent": "Prozent",
   "percentage": "Prozentsatz",
   "plugins": {
     "teamcal": {

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   emptyKostZuweisungValues,
   nextKostZuweisungIndex,
+  remainingNet,
 } from "../invoice-values";
 import { CostAssignmentRow } from "./cost-assignment-row";
 import type { KostZuweisungValues } from "../invoice-schema";
@@ -83,7 +84,9 @@ export function CostAssignmentsSection({
                     nextKostZuweisungIndex(array.rows),
                     // The row it is added below, so its cost units carry over — splitting a position
                     // usually keeps cost 1.
-                    array.rows[array.rows.length - 1]
+                    array.rows[array.rows.length - 1],
+                    // And what is left of the position, which is what the row is there to assign.
+                    remainingNet(sums?.netSum, array.rows)
                   )
                 )
             : undefined
@@ -93,6 +96,8 @@ export function CostAssignmentsSection({
             prefix={array.fieldName(index, "")}
             index={index}
             deleted={assignment.deleted}
+            netto={assignment.netto}
+            positionNetSum={sums?.netSum}
             onRemove={writeAccess ? () => array.remove(index) : undefined}
             onRestore={writeAccess ? () => array.restore(index) : undefined}
           />
