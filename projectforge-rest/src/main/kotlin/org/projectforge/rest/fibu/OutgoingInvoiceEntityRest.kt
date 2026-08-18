@@ -385,7 +385,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         elements.add(
             UIFilterListElement(
                 LIST_TYPE_FILTER,
-                label = translate("fibu.rechnung.status"),
+                // Its own label, not the status of RechnungDO: the two sit next to each other in the filter
+                // bar, and this one asks whether the money arrived (unpaid, delinquent, paid), not which of
+                // the seven states the invoice is in.
+                label = translate("fibu.rechnung.filter.paymentStatus"),
                 multi = false,
                 defaultFilter = true,
             ).also { element ->
