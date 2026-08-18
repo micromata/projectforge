@@ -4,6 +4,7 @@
     "rights": "Rights",
     "type": "Access type"
   },
+  "add": "Add",
   "address": {
     "addressStatus": {
       "_": "Address status",
@@ -215,6 +216,7 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
+  "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
   "description": "Description",
@@ -570,6 +572,21 @@
     "kost2": {
       "_": "Cost 2",
       "art": "Type",
+      "error": {
+        "projektNeededForNummernkreis": "The project is required for number range 4 and 5."
+      },
+      "id": "Cost 2 id",
+      "kost2s": "cost 2 ids",
+      "number": "Cost2 number",
+      "title": {
+        "add": "New cost 2",
+        "edit": "Edit cost 2",
+        "heading": "Cost 2",
+        "list": {
+          "_": "List of cost 2 ids",
+          "select": "Choose cost 2"
+        }
+      },
       "workFraction": "Work time fraction"
     },
     "kost2art": {
@@ -942,6 +959,7 @@
       }
     }
   },
+  "financeAdministration": "Finance administration",
   "firstName": "First name",
   "gantt": {
     "duration": "Duration",
@@ -1313,6 +1331,7 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "percent": "Percent",
   "percentage": "Percentage",
   "plugins": {
     "teamcal": {
@@ -1458,8 +1477,22 @@
     "_": "Structure element",
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
+    "edit": {
+      "maxHoursIngoredDueToAssignedOrders": "This value may be ignored - There are order positions with given person days assigned to this node or any subnode. A zero value suppresses displaying a maximum value in the consumption bar."
+    },
+    "error": {
+      "kost2Readonly": "Kost2 is read-only for non accounting staff members.",
+      "protectTimesheetsUntilReadonly": "The time sheet protection is read-only for non accounting staff members.",
+      "protectionOfPrivacyReadonly": "The flag privacy of protection is read-only for non accounting staff members.",
+      "timesheetBookingStatus2Readonly": "The status of time sheet booking is read-only for non accounting staff members and non project managers."
+    },
+    "gantt": {
+      "settings": "Gantt settings"
+    },
     "kost2list": {
-      "type": "Type of Kost2 list"
+      "blackList": "Black list",
+      "type": "Type of Kost2 list",
+      "whiteList": "White list"
     },
     "maxHours": "Maximum hours",
     "parentTask": "Parent structure element",
@@ -1468,7 +1501,10 @@
     },
     "progress": "Progress",
     "protectTimesheetsUntil": "Protect time sheets until",
-    "protectionOfPrivacy": "Protection of privacy",
+    "protectionOfPrivacy": {
+      "_": "Protection of privacy",
+      "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
+    },
     "reference": "Reference",
     "selectPanel": {
       "info": "You may select folders by clicking in other columns of the row than the first.",
@@ -1490,7 +1526,12 @@
       "opened": "opened",
       "treeClosed": "completely closed"
     },
-    "title": "Title",
+    "title": {
+      "_": "Title",
+      "add": "Add new structure element",
+      "heading": "Structure elements",
+      "list": "Structure elements"
+    },
     "tree": {
       "rootNode": "Root node",
       "title": {

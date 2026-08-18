@@ -20,6 +20,17 @@ export interface TaskKost2 {
 }
 
 /**
+ * The project a task's cost units come from, `TaskServicesRest.Projekt` — resolved through the
+ * ancestors, so a task without a project of its own reports the one it inherits.
+ */
+export interface TaskProjekt {
+  id?: number | null;
+  name?: string | null;
+  /** The cost number without the two Kost2Art digits, e.g. `5.123.45` — shown as `<kost>.*`. */
+  kost?: string | null;
+}
+
+/**
  * One node, `TaskServicesRest.Task`. Only the fields the backend actually sends, and only for the
  * two shapes this app asks for: the flat tree (`table=true`) and a single task (`info/{id}`).
  *
@@ -43,6 +54,10 @@ export interface TaskNode {
   kost2List?: TaskKost2[];
   /** Only sent by `info/{id}`: the ancestors, root first, *excluding* the task itself. */
   path?: TaskNode[];
+  /** Only sent by `info/{id}`: the project the cost units come from (see FinanceSection). */
+  projekt?: TaskProjekt | null;
+  /** Only sent by `info/{id}`: whether cost units are configured at all (`Configuration`). */
+  costConfigured?: boolean;
   /**
    * The tree's root node, sent last and only to admins and financial staff (`showRootForAdmins`).
    *
@@ -187,4 +202,50 @@ export function fetchTaskInfo(
   signal?: AbortSignal
 ): Promise<TaskNode> {
   return request<TaskNode>(`/rs/task/info/${id}`, { method: "GET" }, signal);
+}
+
+/** What the client asks a preview for, `TaskServicesRest.Kost2PreviewRequest`. */
+export interface Kost2PreviewRequest {
+  /** Id of the task being edited, null while it is being added. */
+  id?: number | null;
+  /** The only way to resolve the project of a task that has no id yet. */
+  parentTaskId?: number | null;
+  kost2BlackWhiteList?: string | null;
+  kost2IsBlackList: boolean;
+  /** A cost unit just picked, appended by the backend before the preview is computed. */
+  addKost2Id?: number | null;
+}
+
+/** `TaskServicesRest.Kost2Preview`. */
+export interface Kost2Preview {
+  /** The list, normalized and sorted — what the form's field is set to after a pick. */
+  kost2BlackWhiteList?: string | null;
+  /** The cost number of the resolved project, or null if the task has none. */
+  projektKost?: string | null;
+  /** The resulting cost units in wild card form, e.g. `5.123.45.*`. */
+  kost2WildCard?: string | null;
+  /** The resulting cost units, one formatted number per line — the Wicket tooltip's content. */
+  kost2ListAsLines?: string | null;
+}
+
+/**
+ * What the kost2 block of the task form resolves to for a black/white list the user has typed but not
+ * saved — and, with `addKost2Id`, for the list with a picked cost unit appended.
+ *
+ * Asked rather than computed here: the three calls behind it need the cost cache, the project of the
+ * task and the number format, and `TaskHelper.addKost2` has a branch a TypeScript copy would get wrong
+ * (see the backend's own note on `Kost2Preview`).
+ *
+ * A POST although nothing is written: the list is form content, and a GET would carry it in the url and
+ * into every log.
+ */
+export function postKost2Preview(
+  body: Kost2PreviewRequest,
+  signal?: AbortSignal
+): Promise<Kost2Preview> {
+  return request<Kost2Preview>(
+    "/rs/task/kost2Preview",
+    { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
 }

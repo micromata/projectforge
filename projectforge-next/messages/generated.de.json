@@ -4,6 +4,7 @@
     "rights": "Rechte",
     "type": "Zugriffstyp"
   },
+  "add": "Hinzufügen",
   "address": {
     "addressStatus": {
       "_": "Adressstatus",
@@ -215,6 +216,7 @@
     "_": "Datumsformat",
     "xls": "Exceldatumsformat"
   },
+  "days": "Tage",
   "delete": "Löschen",
   "deleted": "gelöscht",
   "description": "Beschreibung",
@@ -570,6 +572,21 @@
     "kost2": {
       "_": "Kost2",
       "art": "Art",
+      "error": {
+        "projektNeededForNummernkreis": "Das Projekt muss für die Nummernkreise 4 und 5 zwingend angegeben sein."
+      },
+      "id": "Kost2-ID",
+      "kost2s": "Kost2s",
+      "number": "Kost2-Nummer",
+      "title": {
+        "add": "Neue Kost2",
+        "edit": "Kost2 bearbeiten",
+        "heading": "Kost2",
+        "list": {
+          "_": "Liste der Kost2s",
+          "select": "Kost2 wählen"
+        }
+      },
       "workFraction": "Arbeitszeitanteil"
     },
     "kost2art": {
@@ -942,6 +959,7 @@
       }
     }
   },
+  "financeAdministration": "Finanzbuchhaltung",
   "firstName": "Vorname",
   "gantt": {
     "duration": "Dauer",
@@ -1313,6 +1331,7 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "percent": "Prozent",
   "percentage": "Prozentsatz",
   "plugins": {
     "teamcal": {
@@ -1458,8 +1477,22 @@
     "_": "Strukturelement",
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
+    "edit": {
+      "maxHoursIngoredDueToAssignedOrders": "Diese Angabe wird ggf. ignoriert. - Zu diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Die Angabe einer Null verhindert jedoch die Anzeige des Maximalwerts in den Verbrauchsbalken."
+    },
+    "error": {
+      "kost2Readonly": "Eine Kost2-Zuordnung kann nur durch die Buchhaltung vorgenommen werden.",
+      "protectTimesheetsUntilReadonly": "Der Zeitberichtsschutz kann nur durch die Buchhaltung manipuliert werden.",
+      "protectionOfPrivacyReadonly": "Die Datenschutzoption kann nur durch die Buchhaltung geändert werden.",
+      "timesheetBookingStatus2Readonly": "Der Status für Zeitberichtsbuchungen kann nur durch die Buchhaltung oder Projektmanager manipuliert werden."
+    },
+    "gantt": {
+      "settings": "Ganttwerte"
+    },
     "kost2list": {
-      "type": "Art der Kost2-Liste"
+      "blackList": "Negativliste",
+      "type": "Art der Kost2-Liste",
+      "whiteList": "Positivliste"
     },
     "maxHours": "Maximalstunden",
     "parentTask": "Übergeordnetes Strukturelement",
@@ -1468,7 +1501,10 @@
     },
     "progress": "Fortschritt",
     "protectTimesheetsUntil": "Zeitberichtsschutz bis",
-    "protectionOfPrivacy": "Datenschutz",
+    "protectionOfPrivacy": {
+      "_": "Datenschutz",
+      "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Tasks zugegriffen werden."
+    },
     "reference": "Referenz",
     "selectPanel": {
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).",
@@ -1490,7 +1526,12 @@
       "opened": "geöffnet",
       "treeClosed": "komplett geschlossen"
     },
-    "title": "Titel",
+    "title": {
+      "_": "Titel",
+      "add": "Neues Strukturelement",
+      "heading": "Strukturelemente",
+      "list": "Strukturelemente"
+    },
     "tree": {
       "rootNode": "Wurzelstrukturelement",
       "title": {
