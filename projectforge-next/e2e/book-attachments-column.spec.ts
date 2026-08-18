@@ -100,9 +100,8 @@ test.describe("books list attachments", () => {
       .getByRole("option", { name: t("attachments._"), exact: true })
       .click();
 
-    // A LIST field, i.e. a ValueCombobox: the choices live in a popover behind the trigger rather
-    // than as a flat checkbox list, which is what keeps the field one line tall in the filter grid.
-    await page.getByRole("combobox", { name: t("attachments._") }).click();
+    // A LIST field in a pill: its choices lie open in the pill's popover ([ListField]'s inline
+    // mode), so they cannot cover the save button below them.
     await page
       .locator('[data-slot="popover-content"]')
       .getByRole("option", { name: t("yes"), exact: true })

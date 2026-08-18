@@ -6,6 +6,8 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
+import { useFormatContext } from "@/hooks/use-format";
 import { PAGE_SIZE_OPTIONS } from "./page-size-options";
 
 interface DataTablePaginationProps<TData> {
@@ -18,13 +20,20 @@ export function DataTablePagination<TData>({
   pageSizeOptions = PAGE_SIZE_OPTIONS,
 }: DataTablePaginationProps<TData>) {
   const t = useTranslations("table");
+  const formatCtx = useFormatContext();
   const { pageIndex, pageSize } = table.getState().pagination;
   const total = table.getRowCount();
   const from = total === 0 ? 0 : pageIndex * pageSize + 1;
   const to = Math.min(total, (pageIndex + 1) * pageSize);
   const pageCount = table.getPageCount();
 
-  const label = t("range", { from, to, total });
+  // Formatted here, not left to the message's ICU argument: the numbers are the user's and must
+  // carry their grouping separator ("17.152"), which comes from userData, not from the UI locale.
+  const label = t("range", {
+    from: formatNumber(from, formatCtx),
+    to: formatNumber(to, formatCtx),
+    total: formatNumber(total, formatCtx),
+  });
   // A page can set a size of its own (the address import uses 500), and a size stored for the user may
   // predate the current list - so the active one is always offered, or the select would show blank.
   const sizes = pageSizeOptions.includes(pageSize)

@@ -202,6 +202,12 @@ export function EntityEditPage<
     return <Centered>{t("entityEdit.notFound")}</Centered>;
   }
 
+  // On `id`, not on `data`: a new entry has data too — the preset the backend answers `fetchNew`
+  // with (see useEntityDetail) — and `edit.title` of a blank preset is the empty string, which left
+  // the breadcrumb of an added entry ending in a bare slash.
+  const headerTitle =
+    id == null || !data ? t(edit.newTitleKey) : edit.title(data);
+
   const tabs = entityTabs({
     sections: edit.sections,
     t,
@@ -228,7 +234,7 @@ export function EntityEditPage<
             <EntityEditHeader
               listRoute={page.route}
               listLabel={t(page.titleKey)}
-              title={data ? edit.title(data) : t(edit.newTitleKey)}
+              title={headerTitle}
               trailing={edit.headerTrailing?.(data)}
               legacyUrl={legacyUrl}
             />

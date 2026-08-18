@@ -56,6 +56,9 @@ export function FilterPill({
         value={draft}
         onChange={setDraft}
         autoFocus
+        // The pill's own popover already holds the field; a field opening a second one over it would
+        // cover the save button below.
+        inline
         onSubmit={(committed) => save(committed)}
       />
     </FilterPillShell>
