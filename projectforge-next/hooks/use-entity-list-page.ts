@@ -268,6 +268,12 @@ export function useEntityListPage<Row extends ListRow>({
     highlightRowId: query.highlightRowId,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
+    /**
+     * The list call failed. Passed on because an empty table is the one thing a caller must *not* show
+     * for it: a 403 here means the backend refused the read (see useReadAccessGuard).
+     */
+    isError: query.isError,
+    error: query.error,
     globalFilter: query.globalFilter,
     setGlobalFilter: query.setGlobalFilter,
     resetColumns,

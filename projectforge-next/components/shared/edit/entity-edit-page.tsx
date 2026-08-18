@@ -24,6 +24,7 @@ import {
   setPendingClone,
   usePendingClone,
 } from "@/hooks/use-pending-clone";
+import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
@@ -70,11 +71,16 @@ export function EntityEditPage<
     data: loaded,
     isLoading,
     isError,
+    error,
   } = useEntityDetail<Data>(page.entity, id);
   // An add page opened by the clone button starts from the clone instead of from the backend's preset
   // (see runClone). Recognised by `?clone=1`, so a reload or a later add is a plain add again.
   const clone = usePendingClone<Data>(page.entity, id == null);
   const data = clone ?? loaded;
+  // Whether this user may see this entity at all. Not the same question as the write access below: that
+  // one hides the save and delete buttons of an entry the user may read, this one keeps the page from
+  // existing. The list meta data it reads is the one `useLegacyEditUrl` already loads.
+  const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
@@ -184,7 +190,12 @@ export function EntityEditPage<
     }
   }
 
-  if (isLoading) {
+  // Before the two branches below: a refused read is an error here as well, and "not found" would be
+  // the wrong thing to say about an entry the user merely may not see.
+  if (readAccess.denied) {
+    return null;
+  }
+  if (isLoading || readAccess.isPending) {
     return <Centered>{t("loading")}</Centered>;
   }
   if (id != null && (isError || !data)) {

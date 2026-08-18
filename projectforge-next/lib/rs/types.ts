@@ -465,6 +465,11 @@ export interface UserAccess {
   history?: boolean;
   /** Whether history entries may be commented (`BaseDao.supportsHistoryUserComments`). */
   editHistoryComments?: boolean;
+  /**
+   * Whether the user may see the entity's entries at all — the one flag here that is more than a hint:
+   * false means every read is refused, so there is no page to show (see useReadAccessGuard).
+   */
+  read?: boolean;
 }
 
 /**
