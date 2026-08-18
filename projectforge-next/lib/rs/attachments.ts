@@ -145,7 +145,7 @@ export async function uploadAttachment(
   if (res.status < 200 || res.status >= 300) {
     throw new RsError(res.status, `${res.status}: ${path}`);
   }
-  return interpret(parseAction(res.text));
+  return interpretWriteBody(res.text, res.status, path);
 }
 
 /** Renames an attachment and/or changes its description. Both are sent, so both must be given. */
@@ -262,31 +262,56 @@ async function write(
   if (!res.ok) {
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
-  return interpret(
-    (await res.json().catch(() => null)) as ResponseAction | null
-  );
+  return interpretWriteBody(await res.text(), res.status, path);
 }
 
-function parseAction(text: string): ResponseAction | null {
-  try {
-    return JSON.parse(text) as ResponseAction;
-  } catch {
-    return null;
+/**
+ * What a write's body means: the new list, or the refusal it carries.
+ *
+ * Exported for its unit test only — every caller goes through the functions above.
+ *
+ * @throws RsError if the body is not a `ResponseAction`. Every write of this module answers with
+ * one (`AttachmentsActionListener.afterUpload`/`afterModification`/`afterDeletion`), so anything
+ * else did not come from ProjectForge: a proxy's HTML error page, or an empty body from a
+ * connection that was cut. Nothing can be concluded from that — least of all success. Reading it
+ * as an empty "ok" is how an upload that never arrived used to remove its own progress row
+ * without a word.
+ */
+export function interpretWriteBody(
+  text: string,
+  status: number,
+  path: string
+): AttachmentWriteResult {
+  const action = parseAction(text);
+  if (!action) {
+    throw new RsError(
+      status,
+      `${status}: unexpected response body for ${path}`
+    );
   }
-}
-
-function interpret(action: ResponseAction | null): AttachmentWriteResult {
   // A refusal comes back as HTTP 200 with a TOAST (see the module comment). Treating it as
   // success would drop a file silently and leave a stale list on screen. But a TOAST is not a
   // refusal by itself — `AttachmentsServicesRest.testDecryption` reports its *success* with one
   // (color "success"), so the colour is what distinguishes them, not the target type.
-  if (action?.targetType === "TOAST" && action.message?.color !== "success") {
+  if (action.targetType === "TOAST" && action.message?.color !== "success") {
     return {
       kind: "rejected",
       message: action.message?.message ?? "",
     };
   }
   return { kind: "ok", attachments: readAttachments(action) };
+}
+
+function parseAction(text: string): ResponseAction | null {
+  try {
+    const action = JSON.parse(text) as unknown;
+    // `{}`, `null` and a bare string all parse; only an object with a target type is an action.
+    return action && typeof action === "object" && "targetType" in action
+      ? (action as ResponseAction)
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Unwraps `ResponseAction.variables.data.attachments`, which every write answers with. */

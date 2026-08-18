@@ -26,7 +26,10 @@ export interface UploadableFile {
     // Thank you for the bug report SMC Alpha - https://www.youtube.com/channel/UC9C4AlREWdLoKbiLNiZ7XEA
     id: number;
     file: File;
+    /** Rejected by the dropzone before any transfer started (too large, too many files). */
     errors: FileError[];
+    /** Set once the transfer itself failed; already translated and ready to display. */
+    uploadError?: string;
 }
 
 /*
@@ -72,8 +75,11 @@ export function MultipleFileUploadArea(
             id: getNewId(),
         }));
 
+        // Keep whatever is still on screen. Dropping the failed entries here (as this did before)
+        // meant a rejection or a broken transfer disappeared as soon as the user tried again -
+        // exactly when they would want to compare the two attempts.
         setFiles((curr) => [
-            ...curr.filter((fw) => fw.errors.length === 0),
+            ...curr,
             ...mappedAcc,
             ...mappedRej,
         ]);
@@ -112,6 +118,14 @@ export function MultipleFileUploadArea(
         afterFileUpload(response);
     };
 
+    // A failed transfer keeps its row, now showing why. Removing it (which is what happened before,
+    // by way of an unhandled rejection) left the user with a progress bar that simply vanished.
+    const onUploadFailed = (file: File, error: string) => {
+        setFiles((curr) => curr.map((fw) => (
+            fw.file === file ? { ...fw, uploadError: error } : fw
+        )));
+    };
+
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
         maxSize: maxSizeInKB * 1024,
@@ -146,10 +160,10 @@ export function MultipleFileUploadArea(
 
             {files.map((fileWrapper) => (
                 <div key={fileWrapper.id}>
-                    {fileWrapper.errors.length ? (
+                    {fileWrapper.errors.length || fileWrapper.uploadError ? (
                         <UploadError
                             file={fileWrapper.file}
-                            error={translateError(fileWrapper.errors)}
+                            error={fileWrapper.uploadError || translateError(fileWrapper.errors)}
                         />
                     ) : (
                         <SingleFileUploadWithProgress
@@ -157,6 +171,8 @@ export function MultipleFileUploadArea(
                             file={fileWrapper.file}
                             url={url}
                             afterFileUpload={onAfterUpload}
+                            onUploadFailed={onUploadFailed}
+                            translations={translations}
                         />
                     )}
                 </div>
