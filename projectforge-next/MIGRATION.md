@@ -1636,8 +1636,25 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    geht auf `/task/:id?returnTo=/taskTree`, der `legacyEditPage`-Umweg über
    `window.location` ist weg.
 
-   Nicht lokal prüfbar: die Read-only-Pfade der fünf Felder – das Testkonto ist Admin und
-   in den FiBu-Gruppen, `kost2AndBookingStatusWriteAccess` und
+   **Gleichstand mit Wicket ist geprüft** – der Maßstab, den die Verifikation unten für den
+   Kost2-Block nennt, und zwar ohne eine Aufgabe der Produktionskopie zu ändern:
+   `e2e/task-kost2-preview.spec.ts` vergleicht `kost2ListAsLines` des Baums mit der Antwort
+   von `POST /rs/task/kost2Preview` zur *gespeicherten* Liste derselben Aufgabe. Beide
+   Zahlen kommen aus `TaskTree.getKost2List` über `KostHelper.getFormattedNumberLines` –
+   genau die drei Aufrufe, aus denen Wicket seinen Tooltip baut –, nur eben über den ganzen
+   Baum statt über die eine Aufgabe, die jemand aufgeschlagen hätte. Stand heute: 128
+   Aufgaben, 8 mit aufgelösten Kostenträgern, 8-mal gleich, 0 Abweichungen. Dazu Runden über
+   dieselbe Aufgabe: leere Liste = alle Einheiten, `"*"` = alle, Schwarzliste = das Komplement
+   der Weißliste derselben Einträge, `"  17,  02 ; 02  "` normalisiert zu `"02,17"`, und eine
+   unbekannte Id antwortet eine leere Vorschau statt eines Fehlers.
+
+   `e2e/task-edit.spec.ts` deckt die drei Dinge ab, die es nur auf dieser Seite gibt: die
+   beiden zugeklappten Sektionen (samt `#sectionId` beim Ankommen), `?returnTo=` in beide
+   Richtungen inkl. eines nicht deklarierten Ziels, und den Kost2-Block einer Aufgabe *ohne*
+   Projekt – der Zustand, den er überleben muss.
+
+   Nicht lokal prüfbar bleiben die Read-only-Pfade der fünf Felder – das Testkonto ist Admin
+   und in den FiBu-Gruppen, `kost2AndBookingStatusWriteAccess` und
    `protectTimesheetsUntilWriteAccess` sind dort immer true. Dafür stehen die Unit-Tests
    aus Schritt 1.
 
@@ -1666,10 +1683,12 @@ aufruft. Die bedingten Spalten (Verbrauch, Kost2, Auftragspositionen, FiBu-only
 **Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
 Kost2-Felder mit _und_ ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
 nicht als Erfolg), Suche und Klappzustand über einen Reload, Auswahlmodus aus der
-Auftragsposition, History. Maßstab für den Kost2-Block ist **Gleichstand mit Wicket**:
-dieselbe Liste im Wicket-Formular öffnen, die Tooltip-Zeilen notieren, `kost2Preview`
-mit derselben Liste aufrufen, vergleichen. Die *Ablehnungs*pfade sind lokal nicht
-prüfbar (das Testkonto ist Admin und in den FiBu-Gruppen) – dafür Unit-Tests.
+Auftragsposition, History. Maßstab für den Kost2-Block ist **Gleichstand mit Wicket** –
+für Schritt 2 erledigt und als `e2e/task-kost2-preview.spec.ts` festgehalten, das den
+Vergleich gegen `kost2ListAsLines` des Baums führt statt gegen abgeschriebene
+Tooltip-Zeilen (dieselben drei Aufrufe, und keine Änderung an einer Aufgabe nötig). Die
+*Ablehnungs*pfade sind lokal nicht prüfbar (das Testkonto ist Admin und in den
+FiBu-Gruppen) – dafür Unit-Tests.
 
 ### Phase 4 – Ablösung & Aufräumen
 
