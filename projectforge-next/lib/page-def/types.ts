@@ -318,6 +318,16 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * there is no redirect to reason about.
    */
   returnTargets?: { route: string; labelKey: string }[];
+  /**
+   * Query parameters of the *add* url that are handed on to the preset (`{entity}/newEntry`).
+   *
+   * `newBaseDO` is given the request, so an entity may preset a field from a parameter: the tree's
+   * "add subtask" opens `/task/new?parentTaskId=42`, and `TaskPagesRest` puts that task in as the
+   * parent. Declared by name rather than forwarded wholesale, for the same reason [returnTargets] is a
+   * whitelist — everything else in the url (`returnTo`) is the page's own business and has nothing to
+   * do with the entity.
+   */
+  newEntryParams?: readonly string[];
 }
 
 /**

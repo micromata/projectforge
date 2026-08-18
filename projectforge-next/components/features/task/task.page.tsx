@@ -3,7 +3,11 @@ import { definePage } from "@/lib/page-def/define-page";
 import { FinanceSection } from "./edit/finance-section";
 import { taskSchema, TASK_FIELDS, type TaskValues } from "./task-schema";
 import { emptyTaskValues, toFormValues } from "./task-values";
-import type { TaskDetail, TaskListRow } from "./types";
+import {
+  TASK_NEW_ENTRY_PARAMS,
+  type TaskDetail,
+  type TaskListRow,
+} from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const TASK_LIST_QUERY_KEY = ["task"] as const;
@@ -48,6 +52,10 @@ export const TASK_PAGE = definePage<
     newTitleKey: "task.title.add",
     savedMessageKey: "message.successfullChanged",
     returnTargets: [{ route: TASK_TREE_ROUTE, labelKey: "menu.taskTree" }],
+    // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend
+    // can resolve what hangs on it — the project of the cost unit block, and the rights of the two
+    // access-gated groups (see TaskPagesRest.newBaseDO and useNewEntryParams).
+    newEntryParams: TASK_NEW_ENTRY_PARAMS,
     sections: [
       {
         id: "general",

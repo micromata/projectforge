@@ -6,10 +6,11 @@ import { InputField } from "@/components/shared/form/input-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
+import { useNewEntryParams } from "@/hooks/use-new-entry-params";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { Kost2Block } from "./kost2-block";
-import type { TaskDetail } from "../types";
+import { TASK_NEW_ENTRY_PARAMS, type TaskDetail } from "../types";
 
 const m = fromMetadata(TASK_METADATA);
 
@@ -34,8 +35,13 @@ export function FinanceSection({ id }: { id: number | null }) {
   const t = useTranslations();
   const label = useFieldLabels(TASK_METADATA);
   // A cache read of the task the form was filled from, not a second request: the access flags are the
-  // server's and are not part of the form's values.
-  const task = useEntityDetail<TaskDetail>("task", id).data;
+  // server's and are not part of the form's values. The parameter names have to be the page's own, or
+  // a new task's preset would be read under a second key and fetched again (see useEntityDetail).
+  const task = useEntityDetail<TaskDetail>(
+    "task",
+    id,
+    useNewEntryParams(TASK_NEW_ENTRY_PARAMS)
+  ).data;
   // A new task is editable by definition — the flags only come with a loaded one.
   const kost2Access =
     id == null || task?.kost2AndBookingStatusWriteAccess === true;

@@ -7,6 +7,17 @@
 
 import type { TASK_METADATA } from "@/lib/metadata/task.generated";
 
+/**
+ * Parameters of `/task/new` the backend reads for its preset: the parent of a new subtask, which
+ * `TaskPagesRest.newBaseDO` resolves (and with it the project the cost unit block needs).
+ *
+ * Here rather than beside the page declaration, because the declaration and every section that reads
+ * the preset back out of the cache need the same list — the parameters are part of the query key, so a
+ * second read spelling them differently would be a second request (see useEntityDetail). A section is
+ * imported *by* the declaration, so the shared constant cannot live there.
+ */
+export const TASK_NEW_ENTRY_PARAMS = ["parentTaskId"] as const;
+
 type EnumOf<F extends { enumValues?: readonly { value: string }[] }> =
   NonNullable<F["enumValues"]>[number]["value"];
 

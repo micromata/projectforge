@@ -14,6 +14,7 @@ import {
   type EntityWithId,
 } from "@/hooks/use-entity-detail";
 import { useEditReturn } from "@/hooks/use-edit-return";
+import { useNewEntryParams } from "@/hooks/use-new-entry-params";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
@@ -63,10 +64,14 @@ export function EntityEditPage<
     fallback: { route: page.route, labelKey: page.titleKey },
   });
 
+  // What an "add" starts from: `/task/new?parentTaskId=42` presets the parent, and only the backend
+  // can resolve it (see useNewEntryParams). Ignored for an existing entry.
+  const newParams = useNewEntryParams(edit.newEntryParams);
   // A new entry has nothing to load — the hook stays disabled for id null.
   const { data, isLoading, isError, error } = useEntityDetail<Data>(
     page.entity,
-    id
+    id,
+    newParams
   );
   // Whether this user may see this entity at all. Not the same question as the write access below: that
   // one hides the save and delete buttons of an entry the user may read, this one keeps the page from
