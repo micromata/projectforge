@@ -85,10 +85,8 @@ test.describe("order book", () => {
       )
       .click();
 
-    // A LIST filter is a combobox ([ValueCombobox]), so its options are one click further in — the
-    // point of that being that the field stays one line tall wherever it is shown.
-    await page.locator("#filter-fakturiert").click();
-
+    // In a pill the options of a LIST filter lie open ([ListField]'s inline mode), so that nothing
+    // covers the pill's save button.
     for (const key of [
       "fibu.auftrag.filter.type.all",
       "fibu.auftrag.filter.type.vollstaendigFakturiert",
