@@ -55,6 +55,18 @@ class UILayout(
      * @see [org.projectforge.framework.persistence.api.BaseDao.supportsHistoryUserComments]
      */
     var editHistoryComments: Boolean? = null,
+    /**
+     * The user may see the entity's entries at all.
+     *
+     * Unlike the other flags this one is not merely a hint for the UI: false means the DAO will refuse
+     * every read (`BaseDao.hasUserSelectAccess`), so there is nothing a page could show. projectforge-next
+     * uses it to keep the whole page from rendering (see `useReadAccessGuard`); the authorization itself
+     * stays where it was, in the DAO.
+     *
+     * Last in the parameter list because the leading ones are passed positionally in places
+     * (`UILayout.UserAccess(true, true, true, true)`).
+     */
+    var read: Boolean? = null,
   ) {
     fun copyFrom(userAccess: UserAccess?) {
       this.history = userAccess?.history
@@ -63,6 +75,7 @@ class UILayout(
       this.delete = userAccess?.delete
       this.cancel = userAccess?.cancel ?: true
       this.editHistoryComments = userAccess?.editHistoryComments
+      this.read = userAccess?.read
     }
 
     fun onlySelectAccess(): Boolean {

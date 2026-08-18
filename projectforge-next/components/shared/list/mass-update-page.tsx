@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
 import { fetchMultiSelectMeta } from "@/lib/rs/multi-select";
+import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import { useSelectionStore } from "@/store/selection-store";
 import type { MassUpdateDef } from "@/lib/page-def/types";
 import { MassUpdateForm } from "./mass-update-form";
@@ -50,7 +51,15 @@ export function MassUpdatePage({
     staleTime: 0,
   });
 
-  if (meta.isPending) {
+  // The entity of the list this came from, not the mass update endpoint: a user who may not see the
+  // entries may not update them in bulk either, and `{page}/meta` performs no rights check of its own
+  // (AbstractMultiSelectedPage.requestMeta).
+  const readAccess = useReadAccessGuard(entity);
+
+  if (readAccess.denied) {
+    return null;
+  }
+  if (meta.isPending || readAccess.isPending) {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">

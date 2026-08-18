@@ -20,6 +20,11 @@ import { Spinner } from "@/components/shared/spinner";
 import { useEditTargets } from "@/hooks/use-edit-targets";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
+import {
+  isAccessDenied,
+  useAccessDeniedRedirect,
+  useReadAccessGuard,
+} from "@/hooks/use-read-access-guard";
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
 import { useEntitySelection } from "@/store/selection-store";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
@@ -65,8 +70,12 @@ export function EntityListPage<
   // edits. Same for the filter the user last used, which the backend remembers per user.
   const stored = useStoredColumnState(page.entity);
   const remembered = useRememberedFilter(page.entity);
+  // Whether this user may see this entity at all. Blocking, and before everything else: a user without
+  // the right must not get the page - not even its toolbar, its columns or its exports - around an
+  // empty table (see useReadAccessGuard, which redirects).
+  const access = useReadAccessGuard(page.entity);
 
-  if (stored.isPending || remembered.isPending) {
+  if (access.isPending || stored.isPending || remembered.isPending) {
     return (
       <PageShell>
         <div className="flex flex-1 items-center justify-center">
@@ -74,6 +83,9 @@ export function EntityListPage<
         </div>
       </PageShell>
     );
+  }
+  if (access.denied) {
+    return null;
   }
 
   // A failed read is not worth blocking the page for — start from the defaults.
@@ -171,6 +183,11 @@ function DeclaredList<
     massUpdateEndpoint: page.massUpdate?.endpoint,
     lockedColumnIds: LOCKED_COLUMN_IDS,
   });
+  // The shell's guard has already passed the meta data, so what is left for this one is a right the
+  // list call is the first to see refused - withdrawn mid-session, or an entity whose rest class fills
+  // no read flag (see useAccessDeniedRedirect).
+  const denied = isAccessDenied(list.error);
+  useAccessDeniedRedirect(denied);
   const ListActions = page.listActions;
   const mode = list.selectionMode;
   const table = list.table;
@@ -181,6 +198,11 @@ function DeclaredList<
     [table]
   );
   useSelectAllShortcut(mode.active, selectAll);
+
+  // After every hook, so the early return doesn't change their order.
+  if (denied) {
+    return null;
+  }
 
   return (
     <PageShell>

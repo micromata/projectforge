@@ -17,6 +17,7 @@ import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
+import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
@@ -57,7 +58,14 @@ export function EntityEditPage<
   const writeOptions = { listQueryKey: page.queryKey };
 
   // A new entry has nothing to load — the hook stays disabled for id null.
-  const { data, isLoading, isError } = useEntityDetail<Data>(page.entity, id);
+  const { data, isLoading, isError, error } = useEntityDetail<Data>(
+    page.entity,
+    id
+  );
+  // Whether this user may see this entity at all. Not the same question as the write access below: that
+  // one hides the save and delete buttons of an entry the user may read, this one keeps the page from
+  // existing. The list meta data it reads is the one `useLegacyEditUrl` already loads.
+  const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
@@ -134,7 +142,12 @@ export function EntityEditPage<
     router.push(page.route);
   }
 
-  if (isLoading) {
+  // Before the two branches below: a refused read is an error here as well, and "not found" would be
+  // the wrong thing to say about an entry the user merely may not see.
+  if (readAccess.denied) {
+    return null;
+  }
+  if (isLoading || readAccess.isPending) {
     return <Centered>{t("loading")}</Centered>;
   }
   if (id != null && (isError || !data)) {

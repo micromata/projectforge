@@ -270,6 +270,11 @@ constructor(
         // So this flag is unchecked, and the ones checkUserAccess did fill are read with
         // throwException = false: userAccess describes what the UI should offer, it does not authorize
         // anything. The DAO decides that when the call arrives (see ListMetaData.userAccess).
+        //
+        // The exception is `read`: a user without select access has no list to be shown at all, so
+        // projectforge-next keeps the page from rendering rather than offering an empty one. Still not
+        // the authorization - `list` is refused by the DAO either way, and answers 403 for a next client
+        // (see GlobalDefaultExceptionHandler).
         userAccess.update = true
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
@@ -732,6 +737,17 @@ constructor(
                 userAccess.history = baseDao.hasLoggedInUserHistoryAccess(false)
             }
             userAccess.insert = baseDao.hasLoggedInUserInsertAccess()
+            // Whether this user may see the entity's entries at all - the one flag here that isn't a mere
+            // UI hint (see UILayout.UserAccess.read).
+            //
+            // Caught, because this must not be the thing that breaks a layout or the list meta data: a DAO
+            // with neither a userRightId nor an override throws UnsupportedOperationException here
+            // (BaseDao.hasAccess). Such an entity has no readable list either way, so null - "not known" -
+            // is the honest answer, and the client then falls back to what the read itself reports.
+            userAccess.read = runCatching {
+                if (obj != null) baseDao.hasLoggedInUserSelectAccess(obj, false)
+                else baseDao.hasLoggedInUserSelectAccess(false)
+            }.getOrNull()
         }
     }
 
