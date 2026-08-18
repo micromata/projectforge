@@ -66,6 +66,17 @@ interface ColumnBase<Row> {
    * for text it clips (see useOverflowTooltip).
    */
   tooltip?: (row: Row) => string | undefined;
+  /**
+   * Offered but not shown until the user switches it on — for a column not every reader of the list
+   * needs, and no reader should have to do without: an invoice's cost assignment difference is checked
+   * by whoever books the costs and is noise to everyone else.
+   *
+   * The starting point only, like `pinned`: what the user chooses in the column panel is stored per
+   * user and entity and wins over this (the visibility is *merged*, see useTableState), and a reset
+   * returns here. The two audit columns every list appends carry it as well
+   * (`auditColumnsFor`), so "hidden at first" is one rule and not two.
+   */
+  hiddenByDefault?: boolean;
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */

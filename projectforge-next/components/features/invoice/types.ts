@@ -189,6 +189,12 @@ export interface InvoiceListRow extends ListRow, RowWithAttachments {
    * partial payment counts as paid is `RechnungCalculator`'s rule.
    */
   ueberfaellig?: boolean;
+  /**
+   * How much of the net sum is not assigned to a cost unit yet
+   * (`RechnungInfo.kostZuweisungenFehlbetrag`). Absent where cost accounting is not configured at all,
+   * so the column is empty rather than a row of "0,00 €" (see `Rechnung.copyFrom4ListRow`).
+   */
+  kostZuweisungenFehlbetrag?: number;
   /** The cost 1 units the invoice is assigned to, as numbers ("5.100.01, 5.100.02"). */
   kost1List?: string;
   /** The same with names and amounts, for the cell's tooltip. */

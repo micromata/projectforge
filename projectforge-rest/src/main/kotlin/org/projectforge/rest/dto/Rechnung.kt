@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.Attachment
 import java.math.BigDecimal
@@ -99,6 +100,9 @@ class Rechnung(
      * The net sum of all cost assignments of all positions, and how much of [netSum] is not assigned to a
      * cost unit yet ([RechnungInfo.kostZuweisungenFehlbetrag]). Read-only, and a hint only: `RechnungDao`
      * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+     *
+     * The difference is on the list row as well (see [copyFrom4ListRow]), as the column that replaced
+     * Wicket's `showKostZuweisungStatus` switch; the net sum is not, no list has a column for it.
      */
     var kostZuweisungenNetSum: BigDecimal? = null
     var kostZuweisungenFehlbetrag: BigDecimal? = null
@@ -200,6 +204,13 @@ class Rechnung(
         grossSumWithDiscount = info.grossSumWithDiscount
         // Both are row colours rather than columns: overdue reads red, unpaid blue (see invoice.page.tsx).
         ueberfaellig = info.isUeberfaellig
+        // What Wicket's `showKostZuweisungStatus` switch appended to the first cell, as a column of its own
+        // (`invoice.page.tsx`). Only where cost accounting is configured at all - otherwise no invoice has a
+        // single assignment, and `JsonInclude.NON_NULL` keeps a column of "0.00" off the wire entirely, as
+        // `AbstractRechnungListForm` hides the switch there.
+        if (Configuration.instance.isCostConfigured) {
+            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag
+        }
         src.status?.let { statusAsString = translate(it.i18nKey) }
         val kost1Sorted = info.sortedKost1
         kost1List = RechnungInfo.numbersAsString(kost1Sorted)

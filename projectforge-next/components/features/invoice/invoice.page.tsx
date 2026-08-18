@@ -1,6 +1,7 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { CostAssignmentCell } from "./cost-assignment-cell";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -44,6 +45,11 @@ export const INVOICE_ROUTE = "/invoice";
  * customer, the project and the account are entities of their own and have no `UIDataType`, while the
  * two sums and the cost unit lists are transient — computed by `RechnungInfo` and filled by
  * `Rechnung.copyFrom4ListRow`.
+ *
+ * One column is new: the cost assignment difference, which replaces Wicket's `showKostZuweisungStatus`
+ * checkbox. That switch appended the amount to the first cell of every row it didn't add up for; here it
+ * is a column that can be sorted and switched off, and the question itself ("show only those") is a
+ * filter of the backend (`OutgoingInvoiceEntityRest.COST_ASSIGNMENT_FILTER`).
  */
 export const INVOICE_PAGE = definePage<
   InvoiceListRow,
@@ -115,6 +121,23 @@ export const INVOICE_PAGE = definePage<
       accessor: (row) => row.grossSumWithDiscount ?? null,
       dataType: "AMOUNT",
       size: 120,
+    },
+    // What Wicket's "Kostzuweisungsstatus" switch marked the rows with, as a column: the part of the net
+    // sum no cost unit was assigned to yet. Off at first — it is read by whoever books the costs and is
+    // noise to everyone else — and empty for an installation without cost accounting, which sends none
+    // (see `Rechnung.copyFrom4ListRow`).
+    {
+      id: "kostZuweisungenFehlbetrag",
+      labelKey: "fibu.rechnung.kostZuweisungFehlbetrag",
+      accessor: (row) => row.kostZuweisungenFehlbetrag ?? null,
+      dataType: "AMOUNT",
+      size: 150,
+      hiddenByDefault: true,
+      // Its own cell, because the default amount renderer paints every sum alike and this one has to say
+      // that it isn't zero — the red the form's line and the position rows use for the same number.
+      cell: ({ getValue }) => (
+        <CostAssignmentCell value={getValue() as number | null} />
+      ),
     },
     attachmentsColumn<InvoiceListRow>(),
     {
