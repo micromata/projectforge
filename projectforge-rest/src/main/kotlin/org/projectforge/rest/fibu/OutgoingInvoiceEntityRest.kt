@@ -199,6 +199,37 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
+     * Hands a new invoice its number, as `RechnungEditPage.onSaveOrUpdate` does it.
+     *
+     * It has to happen here and not in [transformForDB]: a number is spent once handed out, so it may only
+     * be taken when the invoice is actually about to be inserted — and this hook is the last step before
+     * `insertOrUpdate` (see `AbstractPagesRestUtils.saveOrUpdate`), while `transformForDB` also runs for
+     * every validation and every recalculation.
+     *
+     * [RechnungDao] assigns a number itself only on the transition of a *stored* invoice out of
+     * [RechnungStatus.GEPLANT]; for a new one it insists the number is already there and is the next free
+     * one (`validation.required.valueNotPresent`, then
+     * `fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend`). So without this, no invoice could be
+     * created through this form at all — neither a clone nor a plain new one.
+     *
+     * The two exceptions are Wicket's, and both are the same rule seen twice: a number says an invoice was
+     * issued. A [RechnungStatus.GEPLANT] one is not issued yet (it gets its number when it leaves that
+     * status), and a [RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN] is the customer's document rather than
+     * ours, so it must have none at all
+     * (`fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben`). A number the client sent is
+     * left alone: the field is read-only in the form, and overwriting it would hide rather than report a
+     * mismatch, which [RechnungDao] checks for.
+     */
+    override fun onBeforeSave(request: HttpServletRequest, obj: RechnungDO, postData: PostData<Rechnung>) {
+        if (obj.nummer == null &&
+            obj.typ != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN &&
+            obj.status != RechnungStatus.GEPLANT
+        ) {
+            obj.nummer = baseDao.getNextNumber(obj)
+        }
+    }
+
+    /**
      * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on
      * the stored one.
      *
