@@ -270,6 +270,8 @@ object ElementsRegistry {
                 }
             }
         }
+        elementInfo.min = parseBound(clazz, property, "min", propertyInfo.min)
+        elementInfo.max = parseBound(clazz, property, "max", propertyInfo.max)
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo.i18nKey)
         elementInfo.propertyType = propertyInfo.type
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo.additionalI18nKey)
@@ -318,6 +320,26 @@ object ElementsRegistry {
         if (entity == null)
             return null
         return EntityMetaDataRegistry.getColumnMetaData(entity, property)
+    }
+
+    /**
+     * A bound of [PropertyInfo.min]/[PropertyInfo.max] as the number it denotes.
+     *
+     * Throws rather than ignoring a malformed literal: the annotation is written by hand and a dropped
+     * bound is a rule that silently stops being enforced. The registry is built on the first request
+     * for the property, so a typo surfaces the first time the entity is used.
+     */
+    private fun parseBound(clazz: Class<*>, property: String, name: String, value: String): BigDecimal? {
+        if (value.isEmpty()) {
+            return null
+        }
+        try {
+            return BigDecimal(value)
+        } catch (ex: NumberFormatException) {
+            throw IllegalArgumentException(
+                "@PropertyInfo($name = \"$value\") of ${clazz.name}.$property is no number.", ex
+            )
+        }
     }
 
     private fun getNullIfEmpty(value: String?): String? {

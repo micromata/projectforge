@@ -262,7 +262,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
+    @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence", min = "0", max = "100")
     @get:Column(name = "probability_of_occurrence")
     open var probabilityOfOccurrence: Int? = null
 

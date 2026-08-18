@@ -28,6 +28,8 @@ export const TASK_METADATA = {
       dataType: "DECIMAL",
       i18nKey: "gantt.duration",
       required: false,
+      min: 0,
+      max: 10000,
     },
     endDate: {
       dataType: "DATE",
@@ -111,6 +113,8 @@ export const TASK_METADATA = {
       dataType: "INT",
       i18nKey: "task.maxHours",
       required: false,
+      min: 0,
+      max: 9999,
     },
     parentTask: {
       dataType: "TASK",
@@ -148,6 +152,8 @@ export const TASK_METADATA = {
       dataType: "INT",
       i18nKey: "task.progress",
       required: false,
+      min: 0,
+      max: 100,
     },
     protectTimesheetsUntil: {
       dataType: "DATE",

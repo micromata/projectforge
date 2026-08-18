@@ -30,8 +30,11 @@ import org.hibernate.Hibernate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MarkDeletableRecord
+import org.projectforge.framework.utils.NumberFormatter
+import org.projectforge.ui.ElementInfo
 import org.projectforge.ui.ElementsRegistry
 import org.projectforge.ui.ValidationError
+import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
@@ -41,9 +44,11 @@ private val log = KotlinLogging.logger {}
 object ValidationUtils {
     /**
      * Validates an object against the field rules declared in the backend: `required` (from
-     * `@PropertyInfo(required = true)` or a `NOT NULL` column) and the maximum length of strings
-     * (from the JPA `@Column(length = …)`). Both are read from [ElementsRegistry.getElementInfo],
-     * the single place those two annotations are merged — nothing is restated here.
+     * `@PropertyInfo(required = true)` or a `NOT NULL` column), the maximum length of strings
+     * (from the JPA `@Column(length = …)`) and the bounds of numbers (from
+     * `@PropertyInfo(min = …, max = …)`, see [validateRange]). All of them are read from
+     * [ElementsRegistry.getElementInfo], the single place those annotations are merged — nothing is
+     * restated here.
      *
      * The properties come from [ElementsRegistry.listProperties], i.e. from the annotations of the
      * class, **not** from [ElementsRegistry.getProperties]: that one only returns what a UILayout
@@ -118,8 +123,52 @@ object ValidationUtils {
                     )
                 )
             }
+            validateRange(elementInfo, value, "$prefix$property")?.let { validationErrors.add(it) }
         }
         return validationErrors
+    }
+
+    /**
+     * The bounds of `@PropertyInfo(min = …, max = …)`, the numeric rule of the domain (0 to 100 percent) that
+     * no `@Column` can state — see [org.projectforge.common.anots.PropertyInfo.min].
+     *
+     * Reported with the message Wicket's `MinMaxNumberField` uses, so both frontends say the same thing for
+     * the same value.
+     *
+     * @return the error, or null if the value is inside the bounds, is no number, or the property declares none.
+     */
+    private fun validateRange(elementInfo: ElementInfo, value: Any?, fieldId: String): ValidationError? {
+        val min = elementInfo.min
+        val max = elementInfo.max
+        if (min == null && max == null) {
+            return null
+        }
+        // Compared as BigDecimal, so an Int property and a BigDecimal one are checked by the same code. Any
+        // other type would be a misannotated property, not a value the user could correct.
+        val number = when (value) {
+            null -> return null
+            is BigDecimal -> value
+            is Int -> BigDecimal(value)
+            is Long -> BigDecimal(value)
+            is Short -> BigDecimal(value.toInt())
+            is Double -> BigDecimal.valueOf(value)
+            else -> {
+                log.warn("@PropertyInfo(min/max) of '$fieldId' ignored: '${value::class.java}' is no number.")
+                return null
+            }
+        }
+        if ((min != null && number < min) || (max != null && number > max)) {
+            val i18nKey = "validation.error.range.integerOutOfRange"
+            return ValidationError(
+                translateMsg(
+                    i18nKey,
+                    min?.let { NumberFormatter.format(it) } ?: "",
+                    max?.let { NumberFormatter.format(it) } ?: "",
+                ),
+                fieldId = fieldId, messageId = i18nKey
+            )
+        }
+        return null
     }
 
     /**

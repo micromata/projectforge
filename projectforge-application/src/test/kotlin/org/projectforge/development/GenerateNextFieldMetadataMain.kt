@@ -203,6 +203,11 @@ object GenerateNextFieldMetadataMain {
     if (propertyClass == String::class.java) {
       elementInfo.maxLength?.let { properties.add("maxLength" to it.toString()) }
     }
+    // The bounds of a number, from @PropertyInfo(min/max) — a rule of the domain (0 to 100 percent), which
+    // is why they are emitted for every numeric type alike. `toPlainString`, so a bound of 10000 does not
+    // reach TypeScript as "1E+4".
+    elementInfo.min?.let { properties.add("min" to it.toPlainString()) }
+    elementInfo.max?.let { properties.add("max" to it.toPlainString()) }
     elementInfo.tooltipI18nKey?.let { properties.add("tooltipI18nKey" to quote(it)) }
     if (isEnum) {
       properties.add("enumValues" to renderEnumValues(propertyClass))

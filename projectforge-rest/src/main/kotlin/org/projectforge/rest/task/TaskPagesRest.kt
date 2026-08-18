@@ -28,10 +28,8 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -40,7 +38,6 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
-import java.math.BigDecimal
 
 @RestController
 @RequestMapping("${Rest.URL}/task")
@@ -89,13 +86,18 @@ class TaskPagesRest
     }
 
     /**
-     * The rules Wicket has and the backend hasn't. `TaskDao.onInsertOrModify` checks the title, the cyclic
-     * reference and the kost2 syntax, but nothing of the following - Wicket enforces it in the form and
-     * therefore only for Wicket, so a save through the rest api slips past it.
+     * The one rule Wicket has and neither the dao nor the field annotations have. `TaskDao.onInsertOrModify`
+     * checks the title, the cyclic reference and the kost2 syntax, but not this one - Wicket enforces it in
+     * the form and therefore only for Wicket, so a save through the rest api slips past it.
      *
-     * Every message lands at its field ([ValidationError.fieldId]), which is what the next form needs to
+     * The message lands at its field ([ValidationError.fieldId]), which is what the next form needs to
      * show it there instead of in the general area (`AbstractPagesRestUtils.handleException` does the same
      * with a `UserException.causedByField`).
+     *
+     * Not here either: the ranges of `progress`, `maxHours` and `duration`. They are declared on the
+     * properties of `TaskDO` (`@PropertyInfo(min = …, max = …)`) and enforced for every entity alike by
+     * [org.projectforge.rest.core.ValidationUtils.validateFields] - a rule of the domain belongs to the
+     * property, not to one page's validate.
      *
      * Not here: the per-field access refusals. Only `TaskDao.checkUpdateAccess` knows whether the value
      * has *changed* at all (it compares against `dbObj`), so a pre-check here would refuse saves the DAO
@@ -109,32 +111,6 @@ class TaskPagesRest
             val i18nKey = "gantt.error.durationAndEndDateAreMutuallyExclusive"
             validationErrors.add(
                 ValidationError(translate(i18nKey), fieldId = "endDate", messageId = i18nKey)
-            )
-        }
-        validateRange(
-            validationErrors, "progress", dto.progress?.let { BigDecimal(it) }, BigDecimal.ZERO, NumberHelper.HUNDRED
-        )
-        validateRange(validationErrors, "maxHours", dto.maxHours?.let { BigDecimal(it) }, BigDecimal.ZERO, MAX_HOURS)
-        // Wicket: MinMaxNumberField(0, TaskEditForm.MAX_DURATION_DAYS).
-        validateRange(validationErrors, "duration", dto.duration, BigDecimal.ZERO, MAX_DURATION_DAYS)
-    }
-
-    private fun validateRange(
-        validationErrors: MutableList<ValidationError>,
-        fieldId: String,
-        value: BigDecimal?,
-        min: BigDecimal,
-        max: BigDecimal,
-    ) {
-        value ?: return
-        if (value < min || value > max) {
-            val i18nKey = "validation.error.range.integerOutOfRange"
-            validationErrors.add(
-                ValidationError(
-                    translateMsg(i18nKey, NumberFormatter.format(min), NumberFormatter.format(max)),
-                    fieldId = fieldId,
-                    messageId = i18nKey,
-                )
             )
         }
     }
@@ -158,11 +134,5 @@ class TaskPagesRest
                 )
         Favorites.addTranslations(layout.translations)
         return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    companion object {
-        /** The upper bounds of Wicket's `MinMaxNumberField`s, see `TaskEditForm` (`MAX_DURATION_DAYS`). */
-        private val MAX_HOURS = BigDecimal(9999)
-        private val MAX_DURATION_DAYS = BigDecimal(10000)
     }
 }

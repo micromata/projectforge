@@ -112,12 +112,12 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
-    @PropertyInfo(i18nKey = "task.progress")
+    @PropertyInfo(i18nKey = "task.progress", min = "0", max = "100")
     @get:Column
     open var progress: Int? = null
 
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
-    @PropertyInfo(i18nKey = "task.maxHours")
+    @PropertyInfo(i18nKey = "task.maxHours", min = "0", max = "9999")
     @get:Column(name = "max_hours")
     open var maxHours: Int? = null
 
@@ -145,7 +145,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * @see org.projectforge.business.gantt.GanttTask.getDuration
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "gantt.duration")
+    @PropertyInfo(i18nKey = "gantt.duration", min = "0", max = "10000")
     @get:Column(name = "duration", scale = 2, precision = 10)
     open var duration: BigDecimal? = null
 

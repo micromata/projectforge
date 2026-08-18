@@ -50,6 +50,13 @@ export type FieldMetadata = {
   required: boolean;
   /** Only set for strings — `@Column.length` is preset to 255 for other types as well. */
   maxLength?: number;
+  /**
+   * Bounds of a numeric property, from `@PropertyInfo(min = …, max = …)` — the rule of the domain
+   * ("0 to 100 percent") that no `@Column` can state, so it is declared on the property and enforced
+   * by the backend's own `ValidationUtils.validateFields` as well. Absent means unbounded.
+   */
+  min?: number;
+  max?: number;
   /** A getter without a setter: the backend computes the value, the frontend must not send one. */
   readOnly?: boolean;
   tooltipI18nKey?: string;
