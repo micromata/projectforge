@@ -670,7 +670,7 @@ gegenüber der ersten Diagnose:
 
 - **Die vier CRUD-Endpunkte waren nie betroffen.** `AbstractPagesRestUtils` fängt in
   `saveOrUpdate`/`delete`/`markAsDeleted`/`undelete` jede Exception selbst ab;
-  `handleException` macht aus einer `UserException` – und `AccessException` *ist* eine
+  `handleException` macht aus einer `UserException` – und `AccessException` _ist_ eine
   – ein **HTTP 406** mit `ValidationError(msg, messageId = ex.i18nKey)` und, falls
   gesetzt, `fieldId = ex.causedByField`. Der `GlobalDefaultExceptionHandler` sieht die
   Exception dort gar nicht.
@@ -776,7 +776,7 @@ Gelesen wird das an genau einer Stelle, `lib/rs/entity-access.ts`:
   optionalen Feldern schlägt TypeScripts Weak-Type-Erkennung bei jedem konkreten DTO
   zu, das die Flags (noch) nicht hat.
 - **`isNew` wird separat übergeben**, weil Einfüge-Recht keine Eigenschaft des
-  Datensatzes ist, sondern der *Liste* (`userAccess.insert`). Ein neues Objekt hat
+  Datensatzes ist, sondern der _Liste_ (`userAccess.insert`). Ein neues Objekt hat
   daher `write = true`, `delete = false`.
 
 Verbraucher: `entity-edit-page.tsx` (Löschen-Button nur bei `access.delete`, `canSave`
@@ -789,7 +789,7 @@ an die Aktionsleiste) und `entity-edit-actions.tsx`. Zwei Details:
   die Maus nicht anbietet.
 
 **Feldweise Rechte: `vollstaendigFakturiertWriteAccess`.** Das Flag „vollständig
-fakturiert" (Auftragsposition *und* Zahlungsplan) darf nur ändern, wer
+fakturiert" (Auftragsposition _und_ Zahlungsplan) darf nur ändern, wer
 `RechnungDao.USER_RIGHT_ID` mit `READWRITE` hat **und** in der FiBu-Gruppe ist –
 dieselbe Bedingung, die `AuftragRight` beim Speichern prüft. Das Muster für solche
 Felder, zweifach bewusst anders als Wicket:
@@ -803,16 +803,16 @@ Felder, zweifach bewusst anders als Wicket:
 
 Arbeitsteilung: **die Flags stoppen den ehrlichen Client, die DAO den unehrlichen.**
 Kein Vorab-Check im `validate()` – nur `checkUpdateAccess` weiß, ob sich der Wert
-gegenüber `dbObj` überhaupt *geändert* hat.
+gegenüber `dbObj` überhaupt _geändert_ hat.
 
 **`kind: "rejected"` in `lib/rs/entity.ts`.** Eine Ablehnung aus einem eigenen
 Endpunkt (hinter `postEntityAction`) kommt als HTTP 200 mit nichts als einem
-Danger-Toast. Unterschieden von einem geglückten Speichern *mit* Warnung wird sie am
+Danger-Toast. Unterschieden von einem geglückten Speichern _mit_ Warnung wird sie am
 `targetType`: eine Ablehnung ist `TOAST` und nur das, ein Speichern antwortet mit
 `REDIRECT`. `use-entity-edit-form.ts` zeigt den Toast und bleibt auf der Seite.
 
 **Backend-Fund nebenbei:** `AuftragRight.hasAccess` schützte das Flag der
-*Positionen*, nicht das der *Zahlungspläne* – dasselbe Feld, dieselbe Regel, eine
+_Positionen_, nicht das der _Zahlungspläne_ – dasselbe Feld, dieselbe Regel, eine
 Lücke. Jetzt beide, mit Test in `AuftragDaoTest`.
 
 **Die Grenzen, damit keine spätere Seite mehr annimmt als da ist:** `page-def` hat
@@ -1132,6 +1132,59 @@ in der Datei der jeweiligen Entität, eine geschachtelte Form muss sie dort hole
 Nicht verifiziert: ein zu langer Wert über eine UILayout-Seite (`/react/address`) –
 das braucht einen Neustart der laufenden Instanz auf dem neuen Build.
 
+**Nachtrag (Aufgabenbaum, Schritt 2): Zahlenbereiche gehören derselben Quelle.**
+`@Column` kann sie nicht ausdrücken – `length` ist bei Zahlen eine Ziffernanzahl,
+`precision`/`scale` eine Speichergröße, keines davon „0 bis 100 Prozent". Wicket sagte
+es deshalb pro Formularfeld (`MinMaxNumberField`), und `TaskPagesRest.validate` hatte
+die drei Bereiche des `TaskDO` als handgeschriebene Prüfung. Jetzt:
+
+- **`@PropertyInfo(min = "…", max = "…")`** (Strings, weil eine Annotation nur
+  Compile-Zeit-Konstanten hält) an der Property – `TaskDO.progress` 0–100,
+  `maxHours` 0–9999, `duration` 0–10000, `AuftragDO.probabilityOfOccurrence` 0–100.
+- `ElementsRegistry.getElementInfo` parst sie nach `ElementInfo.min/max`
+  (`BigDecimal`); ein unlesbares Literal wirft, statt eine Regel still fallen zu lassen.
+- **`ValidationUtils.validateFields` erzwingt sie für jede Entität** – mit der
+  Meldung, die Wickets `MinMaxNumberField` benutzt
+  (`validation.error.range.integerOutOfRange`), damit beide Frontends zum selben Wert
+  dasselbe sagen. Die Kopie in `TaskPagesRest.validate` ist entfallen; dort steht nur
+  noch die Kreuzregel `duration` ⇔ `endDate`.
+- `GenerateNextFieldMetadataMain` emittiert `min`/`max` (als `toPlainString`, sonst
+  käme 10000 als `1E+4` an), `lib/metadata/types.ts` hält sie im Kontrakt und
+  `from-metadata.ts` baut daraus die Zod-Refinements. `order-schema.ts` und
+  `task-schema.ts` deklarieren also **keinen** Bereich mehr selbst; der
+  `overrides`-Parameter bleibt nur für die Kostennummern-Segmente, die der
+  `SegmentedNumberField` ohnehin pro Segment braucht, und die Metadaten gewinnen.
+
+#### Erledigt: das Edit-Gerüst für Seiten mit mehreren Aufrufern (Aufgabenbaum, Schritt 2)
+
+Drei Ergänzungen am geteilten Gerüst, alle drei aus dem Aufgabenformular entstanden und
+für jede weitere Seite gültig:
+
+- **`SectionDef.collapsed`.** Eine Sektion startet zugeklappt (dieselbe `Collapsible`
+  wie `RepeatableRow`, Kopfzeile = Trigger). `EditPageShell.sections` nimmt jetzt
+  `ReactNode | ((active: boolean) => ReactNode)`, damit eine geklappte Sektion erfährt,
+  dass ihr Anker-Tab angeklickt wurde – dann öffnet sie sich, schließt aber beim
+  Wegscrollen nie wieder. Das Öffnen passiert beim Rendern (abgeleiteter State), nicht
+  im Effekt: React verlangt es so, und die Karte flackert dadurch nicht.
+- **`readOnly` jenseits von `NumberField`.** `InputField`, `SelectField` und
+  `TextAreaField` haben jetzt `disabled` und geben `readOnly` an `FieldShell` weiter
+  (kein Pflicht-Stern an einem Feld, das dieser Nutzer nicht füllen darf).
+  `SelectField.numeric` wurde zu **`valueType: "string" | "number" | "boolean"`** –
+  Radix kennt nur String-Optionen, und `TaskDO.kost2IsBlackList` ist ein `Boolean`.
+- **`EditDef.returnTargets` + `?returnTo=`.** Eine Edit-Seite kehrt zum _Aufrufer_
+  zurück, nicht zu einer festen Liste: eine Aufgabe wird aus dem Baum geöffnet und
+  (nach Schritt 4) aus ihrer eigenen Liste. `hooks/use-edit-return.ts` löst den
+  Parameter gegen die deklarierten Ziele auf – eine **Whitelist**, kein Saubermachen
+  von URLs, ein unbekannter Wert fällt auf das erste Ziel zurück. Der Parameter wandert
+  über `entityTabs` mit, damit der Umweg über die History den Aufrufer nicht vergisst.
+  Seiten ohne `returnTargets` (`book`, `cost1`, `order`) verhalten sich unverändert.
+  Wer `useSearchParams` nutzt, braucht im Static Export eine `<Suspense>`-Grenze – das
+  ist der Grund, warum `app/(authenticated)/task/[id]/page-client.tsx` eine hat.
+- Außerdem: `dataType: "TASK"` wird in `DeclaredFormField` auf `TaskSelectField`
+  (Modal-Baum) verteilt statt auf die Entitäts-Autocomplete, und
+  `EntityAutocomplete`/`EntityAutocompleteField` nehmen `params` (im Query-Key
+  enthalten, sonst bediente ein Projektwechsel den Cache des alten Projekts).
+
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
 Port der Referenz `projectforge-webapp/src/components/base/dynamicLayout/` nach
@@ -1356,7 +1409,7 @@ Spalte `title`), die Spalten kommen stattdessen aus einem eigenen Endpunkt
 in next aber **schon weitgehend gebaut** (Commits `d9c0e6a2c`, `522f3bbc3`,
 `0e7f9fe44`, `ecf3e544c`).
 
-**Grundsatz für diese Seite: erst alles aus Wicket nachbauen – Baum *und*
+**Grundsatz für diese Seite: erst alles aus Wicket nachbauen – Baum _und_
 Edit-Seite –, dann umschalten.** Kein Teil-Umstieg, bei dem der Zeilenklick nach
 `wa/taskEdit` zurückführt: die Wicket-Edit-Seite hat Felder und Rechte-Logik, die
 `TaskPagesRest.createEditLayout` heute nicht abbildet, ein Teilumstieg würde also
@@ -1406,15 +1459,15 @@ Für einen `task`-Eintrag braucht es **kein** `legacyRoute`.
 
 ##### Lücke 2 – die Aktionen der Baumseite (`TaskTreePage.init()`, `TaskTreeForm`)
 
-| Aktion | Backend |
-| --- | --- |
-| **Neue Aufgabe** (`+`, Access-Key) | `PUT /rs/task/saveorupdate` vorhanden – es fehlt die Zielseite (s. Lücke 3) |
-| **Favoriten** (`UserPrefArea.TASK_FAVORITE`) | `TaskFavoritesRest` (`/rs/task/favorites/list\|create\|select\|delete\|rename`) vollständig, in next unbenutzt. Achtung: auch die schreibenden Aufrufe sind dort `@GetMapping` |
-| **Aufgaben-Assistent** (nur Admin) | `TaskWizardPageRest` ist ein Torso: `UIAlert("To-do: watchfields, create new entities, show no action")`, Abbrechen redirectet hart auf `/wa/taskTree`. Vorlage ist `TaskWizardForm.java` (Aufgabe + Manager-Gruppe/Team/externe Gruppe, Gruppe/Aufgabe anlegen) |
-| **Reindex** (nur Admin) | `AbstractEntityRest.reindexFull` vorhanden |
-| **Listenansicht** (Umschalten Baum ↔ Tabelle, `TaskListForm` mit `task.tree.perspective` zurück) | `createListLayout` hat **eine** Spalte, die Wicket-Liste zehn – erst das Listen-Layout füllen |
-| **Filter zurücksetzen** | kein Endpunkt; `TaskFilter.reset()` ist Wicket-intern. Hängt an der offenen `filter/reset`-Lücke aus Phase 1.5 |
-| **Lucene-Hilfe am Suchfeld** (`tooltip.lucene.link` → `Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE`) | reine Frontend-Arbeit |
+| Aktion                                                                                           | Backend                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Neue Aufgabe** (`+`, Access-Key)                                                               | `PUT /rs/task/saveorupdate` vorhanden – es fehlt die Zielseite (s. Lücke 3)                                                                                                                                                                                      |
+| **Favoriten** (`UserPrefArea.TASK_FAVORITE`)                                                     | `TaskFavoritesRest` (`/rs/task/favorites/list\|create\|select\|delete\|rename`) vollständig, in next unbenutzt. Achtung: auch die schreibenden Aufrufe sind dort `@GetMapping`                                                                                   |
+| **Aufgaben-Assistent** (nur Admin)                                                               | `TaskWizardPageRest` ist ein Torso: `UIAlert("To-do: watchfields, create new entities, show no action")`, Abbrechen redirectet hart auf `/wa/taskTree`. Vorlage ist `TaskWizardForm.java` (Aufgabe + Manager-Gruppe/Team/externe Gruppe, Gruppe/Aufgabe anlegen) |
+| **Reindex** (nur Admin)                                                                          | `AbstractEntityRest.reindexFull` vorhanden                                                                                                                                                                                                                       |
+| **Listenansicht** (Umschalten Baum ↔ Tabelle, `TaskListForm` mit `task.tree.perspective` zurück) | `createListLayout` hat **eine** Spalte, die Wicket-Liste zehn – erst das Listen-Layout füllen                                                                                                                                                                    |
+| **Filter zurücksetzen**                                                                          | kein Endpunkt; `TaskFilter.reset()` ist Wicket-intern. Hängt an der offenen `filter/reset`-Lücke aus Phase 1.5                                                                                                                                                   |
+| **Lucene-Hilfe am Suchfeld** (`tooltip.lucene.link` → `Constants.WEB_DOCS_LINK_HANDBUCH_LUCENE`) | reine Frontend-Arbeit                                                                                                                                                                                                                                            |
 
 Kleinigkeit dazu: der Hinweistext unten nutzt `task.selectPanel.info` (Text des
 Auswahl-Panels); die Baumseite hat mit `task.tree.info` einen eigenen.
@@ -1507,7 +1560,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
 1. **Erledigt.** Backend-Vorarbeit für die Edit-Seite, sechs eigenständige Commits:
    1. die fünf falschen `@PropertyInfo`-Keys im `TaskDO`, `@PropertyInfo` für
       `kost2IsBlackList`, die neuen Bundle-Keys – zusammen mit den regenerierten
-      Dateien im *selben* Commit (`GenerateNextFieldMetadataTest` /
+      Dateien im _selben_ Commit (`GenerateNextFieldMetadataTest` /
       `GenerateNextI18nMessagesTest` sind Drift-Tests);
    2. `Task.kt`: die drei Datumsfelder auf `LocalDate?`, dazu der tote
       `AddressbookDao` und der `UIInput(… DATE)`-Workaround in `TaskPagesRest` weg
@@ -1521,7 +1574,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
       `protectTimesheetsUntilWriteAccess`, in `transformFromDB` nur bei `editMode`
       gefüllt – die Methode läuft auch pro Listenzeile, und der Kost2-Check kostet eine
       Projektauflösung plus Gruppen-Lookup. **Falle:** Wicket fragt bei einer neuen Aufgabe mit dem
-      *Eltern*-Knoten; `hasAccessForKost2AndTimesheetBookingStatus` fällt auf
+      _Eltern_-Knoten; `hasAccessForKost2AndTimesheetBookingStatus` fällt auf
       `obj.parentTaskId` zurück, also muss `newBaseDO(request)` die Eltern-Id aus dem
       Request übernehmen (`parentTaskId`), sonst sieht ein Projektassistent die
       Kost2-Felder gesperrt, obwohl die DAO speichern würde;
@@ -1551,13 +1604,51 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    an der Reihenfolge der Bean-Erzeugung. In Spring-Tests bleibt jetzt die verdrahtete Bean
    stehen; `internalSetupForTestCases()` bleibt für `TestSetup`, das keinen Kontext hat.
 
-   Nicht live geprüft: die *Ablehnungen* aus 1.3/1.4. Der Testaccount ist Admin und in den
+   Nicht live geprüft: die _Ablehnungen_ aus 1.3/1.4. Der Testaccount ist Admin und in den
    FiBu-Gruppen, dort gibt es nichts abzulehnen – dafür stehen die Unit-Tests (`TaskTest`,
    `TaskPagesRestTest`).
-2. Handgebaute Edit-Seite als `PageDef` inkl. der beiden zugeklappten Sektionen
-   und des Kost2-Custom-Felds; Zeilenklick des Baums darauf umlenken.
+
+2. **Erledigt.** Handgebaute Edit-Seite als `PageDef` inkl. der beiden zugeklappten
+   Sektionen und des Kost2-Custom-Felds; Zeilenklick des Baums darauf umlenken.
+
+   Die drei Gerüst-Ergänzungen, die dabei entstanden sind, stehen in Phase 1.5 unter
+   „Erledigt: das Edit-Gerüst für Seiten mit mehreren Aufrufern", die Bereichsregel als
+   Nachtrag zu „Validierungsregeln nicht duplizieren". Im Feature selbst:
+   `components/features/task/` mit `task-schema.ts` (jede Regel aus
+   `lib/metadata/task.generated.ts`, keine einzige davon hier wiederholt),
+   `task-values.ts` (`emptyTaskValues()` ist `toFormValues({id: null})` – eine zweite
+   Feldliste wäre genau die Drift, die die Normalisierung verhindern soll),
+   `task.page.tsx` mit den drei Sektionen und `edit/` mit `finance-section.tsx`,
+   `kost2-block.tsx` und `use-kost2-preview.ts`.
+
+   Der Kost2-Block rechnet nichts selbst: die Formularwerte gehen serialisiert und
+   entprellt an `POST /rs/task/kost2Preview` (dasselbe „erst serialisieren, dann
+   entprellen"-Muster wie `use-order-sums.ts` – ein Selektor, der ein frisches Objekt
+   liefert, kommt sonst nie zur Ruhe), und eine Auswahl aus dem auf `projektId`
+   vorgefilterten `cost2/autosearch` schickt `addKost2Id` mit und schreibt die
+   _geantwortete_ Liste ins Feld. Die fünf zugriffsgeschützten Felder werden gerendert
+   und ohne Recht gesperrt, mit der Ablehnungsmeldung des Backends als Hinweis – die
+   bewusste Abweichung von Wicket, die schon der „vollständig fakturiert"-Schalter des
+   Auftrags eingeführt hat.
+
+   `/next/task` selbst hat noch keine Route (die Liste ist Schritt 4); `route: "/task"`
+   ist trotzdem richtig, es ist die Basis von `${route}/${id}`. Der Zeilenklick des Baums
+   geht auf `/task/:id?returnTo=/taskTree`, der `legacyEditPage`-Umweg über
+   `window.location` ist weg.
+
+   Nicht lokal prüfbar: die Read-only-Pfade der fünf Felder – das Testkonto ist Admin und
+   in den FiBu-Gruppen, `kost2AndBookingStatusWriteAccess` und
+   `protectTimesheetsUntilWriteAccess` sind dort immer true. Dafür stehen die Unit-Tests
+   aus Schritt 1.
+
 3. Aktionsleiste des Baums: Reindex, Neu, Favoriten, Filter zurücksetzen,
    Lucene-Hilfe, `task.tree.info`.
+
+   Dabei fällig: **`fetchNew` kennt keine Parameter.** `lib/rs/client.ts` ruft
+   `GET /rs/{entity}/newEntry` ohne Query, `TaskPagesRest.newBaseDO` liest aber
+   `parentTaskId` (s. die Falle in Schritt 1.4). „Unteraufgabe anlegen" braucht also
+   erst ein Parameter-Argument an `fetchNew`/`useEntityDetail`.
+
 4. Listenperspektive (`createListLayout` auf die zehn Wicket-Spalten bringen) und
    Aufgaben-Assistent (`TaskWizardPageRest` ausbauen).
 5. Erst dann Menü + `NextMigration.MIGRATED["task"]` und
@@ -1573,7 +1664,7 @@ aufruft. Die bedingten Spalten (Verbrauch, Kost2, Auftragspositionen, FiBu-only
 `listMeta`.
 
 **Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
-Kost2-Felder mit *und* ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
+Kost2-Felder mit _und_ ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
 nicht als Erfolg), Suche und Klappzustand über einen Reload, Auswahlmodus aus der
 Auftragsposition, History. Maßstab für den Kost2-Block ist **Gleichstand mit Wicket**:
 dieselbe Liste im Wicket-Formular öffnen, die Tooltip-Zeilen notieren, `kost2Preview`
