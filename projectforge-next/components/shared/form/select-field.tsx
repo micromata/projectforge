@@ -40,15 +40,18 @@ export interface SelectFieldProps extends BaseFieldProps {
    */
   emphasized?: boolean;
   /**
-   * The field holds a number, not a string — an order's payment schedule refers to a position by its
-   * number (`PaymentScheduleDO.positionNumber`, an INT), and choosing from a list is still the only
-   * sensible control for it.
+   * What the bound form value holds, where it is not a string: an order's payment schedule refers to a
+   * position by its number (`PaymentScheduleDO.positionNumber`, an INT), and a task's kost2 list is
+   * either a white or a black one (`TaskDO.kost2IsBlackList`, a BOOLEAN) — both are a choice from a
+   * fixed list, for which a select is still the only sensible control.
    *
    * Here rather than in the calling feature because the whole point of this component is that a field
    * binds to what the entity declares: a select handing a string to an INT field would fail the schema
    * on save, and every caller would need the same two conversions.
    */
-  numeric?: boolean;
+  valueType?: "string" | "number" | "boolean";
+  /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
+  disabled?: boolean;
 }
 
 export function SelectField({
@@ -59,28 +62,31 @@ export function SelectField({
   options,
   clearable,
   emphasized,
-  numeric,
+  valueType = "string",
+  disabled,
 }: SelectFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const tCommon = useTranslations();
   const { required } = useFieldMetadata(name);
-  const canClear = clearable ?? !required;
+  // Never on a field the user may not change: clearing it is a change like any other.
+  const canClear = !disabled && (clearable ?? !required);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => {
         const meta = field.state.meta as FieldMetaState;
         const invalid = meta.isTouched && !meta.isValid;
-        // The option values are strings either way — Radix has no other kind — so a numeric field is
-        // read as one and written back as a number.
-        const value = field.state.value as string | number | null;
+        // The option values are strings either way — Radix has no other kind — so a field of another
+        // type is read as a string and written back as its own type (see valueType).
+        const value = field.state.value as string | number | boolean | null;
         const raw = value == null ? "" : String(value);
         return (
           <FieldShell
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -90,6 +96,7 @@ export function SelectField({
             <div className="flex items-center gap-1">
               <Select
                 value={raw}
+                disabled={disabled}
                 // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
                 // so it can only come from its own hidden native <select> (SelectBubbleInput): that
                 // mirrors every value change into the native element and dispatches a change event,
@@ -101,7 +108,7 @@ export function SelectField({
                 // default.
                 onValueChange={(v) => {
                   if (v === "") return;
-                  field.handleChange(numeric ? Number(v) : v);
+                  field.handleChange(parseOptionValue(v, valueType));
                 }}
               >
                 {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
@@ -142,4 +149,19 @@ export function SelectField({
       }}
     </form.Field>
   );
+}
+
+/**
+ * The chosen option as the value the form field holds.
+ *
+ * Only the two literals `"true"`/`"false"` count as a boolean, which is what `String(value)` produced
+ * on the way in — anything else would be an option value that doesn't belong to the field.
+ */
+function parseOptionValue(
+  value: string,
+  valueType: "string" | "number" | "boolean"
+): string | number | boolean {
+  if (valueType === "number") return Number(value);
+  if (valueType === "boolean") return value === "true";
+  return value;
 }

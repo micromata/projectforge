@@ -32,6 +32,11 @@ export interface EntityTabsOptions<M extends EntityMetadata> {
    * tabs are links back to the form, not anchors into a scroll column that isn't there.
    */
   onFormPage: boolean;
+  /**
+   * Query string (without the `?`) every link to a page of the entity carries along — `returnTo=…`,
+   * so a detour through the history does not forget where the user came from (see useEditReturn).
+   */
+  query?: string;
 }
 
 /**
@@ -48,14 +53,16 @@ export function entityTabs<M extends EntityMetadata>({
   history,
   extraTabs,
   onFormPage,
+  query,
 }: EntityTabsOptions<M>): EditPageTab[] {
+  const suffix = query ? `?${query}` : "";
   const formPage = id != null && !onFormPage ? `${route}/${id}` : undefined;
   const anchors = sections.map((section) => ({
     id: section.id,
     label: t(section.tabTitleKey ?? section.titleKey),
     // The section goes into the hash: seen from another page of the entity this is a navigation, and
     // without it the form would mount at its first section no matter which tab was clicked.
-    href: formPage && `${formPage}#${section.id}`,
+    href: formPage && `${formPage}${suffix}#${section.id}`,
   }));
   if (id == null) return anchors;
   return [
@@ -66,14 +73,14 @@ export function entityTabs<M extends EntityMetadata>({
             id: HISTORY_TAB_ID,
             // The backend's own name for it, the same heading the section carries.
             label: t("label.historyOfChanges"),
-            href: `${route}/${id}/history`,
+            href: `${route}/${id}/history${suffix}`,
           },
         ]
       : []),
     ...(extraTabs ?? []).map((tab) => ({
       id: tab.id,
       label: t(tab.labelKey),
-      href: `${route}/${id}/${tab.id}`,
+      href: `${route}/${id}/${tab.id}${suffix}`,
     })),
   ];
 }

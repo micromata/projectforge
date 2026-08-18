@@ -15,6 +15,8 @@ export interface InputFieldProps extends BaseFieldProps {
   /** `date` is a `LocalDate` and goes through the shared [DateInput], never a native date field. */
   type?: "text" | "date";
   placeholder?: string;
+  /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
+  disabled?: boolean;
 }
 
 export function InputField({
@@ -24,6 +26,7 @@ export function InputField({
   className,
   type = "text",
   placeholder,
+  disabled,
 }: InputFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -40,6 +43,7 @@ export function InputField({
           <FieldShell
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -52,6 +56,7 @@ export function InputField({
                 value={raw}
                 invalid={invalid}
                 required={required}
+                disabled={disabled}
                 // Same null-vs-"" rule as below.
                 onChange={(next) =>
                   field.handleChange(required ? (next ?? "") : next)
@@ -63,6 +68,7 @@ export function InputField({
                 id={ids.controlId}
                 type={type}
                 placeholder={placeholder}
+                disabled={disabled}
                 // The column's length, so typing stops at the limit instead of only complaining
                 // afterwards. The Zod rule stays as the net for a value that didn't come from typing
                 // (a paste is truncated by the browser, but a programmatic change isn't).

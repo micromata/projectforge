@@ -34,6 +34,13 @@ export interface EntityAutocompleteProps {
   onChange: (value: EntityRef | null) => void;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
+  /**
+   * Further request parameters the endpoint reads besides the search term — `{projektId}` narrows
+   * `cost2/autosearch` to the cost units of one project (`Kost2PagesRest.queryAutocompleteObjects`).
+   *
+   * Part of the query key, so a changed value asks again instead of serving the previous answer.
+   */
+  params?: Record<string, unknown>;
   id?: string;
   /** Accessible name of the trigger, when no `<label htmlFor>` names it. */
   "aria-label"?: string;
@@ -54,6 +61,7 @@ export function EntityAutocomplete({
   value,
   onChange,
   minChars = 2,
+  params,
   id,
   className,
   autoFocus,
@@ -64,9 +72,9 @@ export function EntityAutocomplete({
   const [search, setSearch] = useState("");
 
   const { data: found, isFetching } = useQuery({
-    queryKey: ["entity-autocomplete", url, search],
+    queryKey: ["entity-autocomplete", url, search, params ?? null],
     queryFn: ({ signal }) =>
-      fetchAutoCompletion<EntityRef>(url, search, undefined, signal),
+      fetchAutoCompletion<EntityRef>(url, search, params, signal),
     // Below minChars the backend would answer with everything it has, which is neither useful nor
     // cheap — `user/autosearch` without a term lists every active user.
     enabled: open && search.trim().length >= minChars,

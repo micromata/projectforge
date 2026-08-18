@@ -11,7 +11,14 @@ export interface EditPageShellProps {
    * tabs with an `href` lead to their own page and are appended after them.
    */
   tabs: EditPageTab[];
-  sections: ReactNode[];
+  /**
+   * The cards of the column, in the order of the anchor tabs.
+   *
+   * A function is called with whether its section is the active one — what a folded section needs to
+   * unfold when its tab is clicked (see DeclaredSection). The active index lives here, so passing it
+   * down is the alternative to every section reading the scroll position itself.
+   */
+  sections: (ReactNode | ((active: boolean) => ReactNode))[];
   actions?: ReactNode;
   /**
    * Sticky bar between the tab strip and the scrollable content — stays visible while the user
@@ -58,7 +65,9 @@ export function EditPageShell({
             data-active={i === activeIndex}
             className="group/section pt-4"
           >
-            {section}
+            {typeof section === "function"
+              ? section(i === activeIndex)
+              : section}
           </div>
         ))}
       </div>

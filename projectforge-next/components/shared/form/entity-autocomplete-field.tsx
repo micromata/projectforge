@@ -22,6 +22,11 @@ export interface EntityAutocompleteFieldProps extends BaseFieldProps {
   entity: string;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
+  /**
+   * Further request parameters of that search — `{projektId}` narrows the cost units to one project's
+   * (see EntityAutocomplete).
+   */
+  params?: Record<string, unknown>;
   /** Called after the value changed, for a field that fills others from it (project → customer). */
   onPicked?: (value: EntityRef | null) => void;
   /**
@@ -47,6 +52,7 @@ export function EntityAutocompleteField({
   className,
   entity,
   minChars,
+  params,
   onPicked,
   metadataLess,
 }: EntityAutocompleteFieldProps) {
@@ -77,6 +83,7 @@ export function EntityAutocompleteField({
               url={`${entity}/autosearch?search=:search`}
               value={(field.state.value as EntityRef | null) ?? null}
               minChars={minChars}
+              params={params}
               onChange={(value) => {
                 field.handleChange(value);
                 // Blurring by hand: the picker is a popover, so nothing else ever marks the field

@@ -105,7 +105,7 @@ export function PaymentScheduleRow({
           name={name("positionNumber")}
           label={label("positionNumber")}
           options={positionOptions}
-          numeric
+          valueType="number"
         />
         <InputField
           name={name("comment")}

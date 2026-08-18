@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { EditPageTabs } from "@/components/shared/edit-page-tabs";
 import { HistorySection } from "@/components/shared/history/history-section";
+import { useEditReturn } from "@/hooks/use-edit-return";
 import { useEntityDetail, type EntityWithId } from "@/hooks/use-entity-detail";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
@@ -28,6 +29,11 @@ export function EntityHistoryPage<
   const t = useTranslations();
   const { data } = useEntityDetail<Data>(page.entity, id);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
+  // Carried along from the form, so returning from here leads where the user came from.
+  const back = useEditReturn({
+    targets: page.edit.returnTargets,
+    fallback: { route: page.route, labelKey: page.titleKey },
+  });
 
   const tabs = entityTabs({
     sections: page.edit.sections,
@@ -37,14 +43,15 @@ export function EntityHistoryPage<
     history: page.metadata.historizable,
     extraTabs: page.edit.extraTabs,
     onFormPage: false,
+    query: back.query,
   });
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <div className="shrink-0">
         <EntityEditHeader
-          listRoute={page.route}
-          listLabel={t(page.titleKey)}
+          listRoute={back.route}
+          listLabel={back.label}
           title={data ? page.edit.title(data) : ""}
           trailing={page.edit.headerTrailing?.(data)}
           legacyUrl={legacyUrl}

@@ -13,6 +13,7 @@ import {
   useSaveEntity,
   type EntityWithId,
 } from "@/hooks/use-entity-detail";
+import { useEditReturn } from "@/hooks/use-edit-return";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
@@ -55,6 +56,11 @@ export function EntityEditPage<
   const t = useTranslations();
   const { edit } = page;
   const writeOptions = { listQueryKey: page.queryKey };
+  // Where leaving the page leads: the caller that sent the user here, or the entity's own list.
+  const back = useEditReturn({
+    targets: edit.returnTargets,
+    fallback: { route: page.route, labelKey: page.titleKey },
+  });
 
   // A new entry has nothing to load — the hook stays disabled for id null.
   const { data, isLoading, isError } = useEntityDetail<Data>(page.entity, id);
@@ -73,7 +79,7 @@ export function EntityEditPage<
     schema: edit.schema,
     fieldNames: edit.fieldNames,
     arrayFieldNames: edit.arrayFieldNames,
-    listRoute: page.route,
+    listRoute: back.route,
     savedMessage: t(edit.savedMessageKey),
     // The form's values are the DTO the backend expects — the type only differs in what it makes
     // optional (see the entity's schema file).
@@ -114,7 +120,7 @@ export function EntityEditPage<
     if (id != null && data) {
       await cancelMutation.mutateAsync(data).catch(() => undefined);
     }
-    router.push(page.route);
+    router.push(back.route);
   }
 
   async function runDelete(): Promise<void> {
@@ -131,7 +137,7 @@ export function EntityEditPage<
       return;
     }
     toast.success(t("message.successfullChanged"));
-    router.push(page.route);
+    router.push(back.route);
   }
 
   if (isLoading) {
@@ -149,6 +155,7 @@ export function EntityEditPage<
     history: page.metadata.historizable,
     extraTabs: edit.extraTabs,
     onFormPage: true,
+    query: back.query,
   });
 
   return (
@@ -165,8 +172,8 @@ export function EntityEditPage<
         <EditPageShell
           header={
             <EntityEditHeader
-              listRoute={page.route}
-              listLabel={t(page.titleKey)}
+              listRoute={back.route}
+              listLabel={back.label}
               title={data ? edit.title(data) : t(edit.newTitleKey)}
               trailing={edit.headerTrailing?.(data)}
               legacyUrl={legacyUrl}
@@ -174,14 +181,24 @@ export function EntityEditPage<
           }
           tabs={tabs}
           banner={edit.editBanner && <edit.editBanner />}
-          sections={edit.sections.map((section) => (
-            <DeclaredSection
-              key={section.id}
-              section={section}
-              metadata={page.metadata}
-              id={data?.id ?? null}
-            />
-          ))}
+          // A function per section, so a folded one learns that its tab was clicked (see
+          // EditPageShell and DeclaredSection). Not a component — the shell calls it with the flag,
+          // React never renders it — hence the named function rather than an arrow, which the
+          // display-name rule would read as an anonymous component.
+          sections={edit.sections.map(
+            (section) =>
+              function renderSection(active: boolean) {
+                return (
+                  <DeclaredSection
+                    key={section.id}
+                    section={section}
+                    metadata={page.metadata}
+                    id={data?.id ?? null}
+                    active={active}
+                  />
+                );
+              }
+          )}
           actions={
             <EntityEditActions
               onCancel={() => void runCancel()}

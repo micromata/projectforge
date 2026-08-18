@@ -34,7 +34,11 @@ export function TaskSelectField({
   label,
   hint,
   className,
-}: BaseFieldProps) {
+  disabled,
+}: BaseFieldProps & {
+  /** The path may be read but not changed (see DeclaredField.readOnly). */
+  disabled?: boolean;
+}) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
@@ -54,6 +58,7 @@ export function TaskSelectField({
           <FieldShell
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -63,6 +68,7 @@ export function TaskSelectField({
             <TaskSelectFieldContent
               taskId={taskId}
               ariaLabel={label}
+              disabled={disabled}
               onOpen={() => setOpen(true)}
               onSelect={(task) => {
                 field.handleChange(
@@ -92,11 +98,13 @@ export function TaskSelectField({
 function TaskSelectFieldContent({
   taskId,
   ariaLabel,
+  disabled,
   onOpen,
   onSelect,
 }: {
   taskId: number | null;
   ariaLabel: string;
+  disabled?: boolean;
   onOpen: () => void;
   onSelect: (task: TaskNode | null) => void;
 }) {
@@ -115,12 +123,14 @@ function TaskSelectFieldContent({
         <TaskPath
           task={(taskId != null && task) || null}
           onSelect={(node) => onSelect(node)}
+          disabled={disabled}
         />
       </div>
       <Button
         type="button"
         variant="outline"
         size="icon"
+        disabled={disabled}
         aria-label={t("task.tree.title.select") + " " + ariaLabel}
         onClick={onOpen}
         className="size-7 shrink-0"

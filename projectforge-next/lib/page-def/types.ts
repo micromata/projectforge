@@ -229,6 +229,15 @@ export interface SectionDef<M extends EntityMetadata> {
    * "Allgemeine Informationen"). Defaults to `titleKey`.
    */
   tabTitleKey?: string;
+  /**
+   * Starts folded: the card shows nothing but its heading until the user opens it or clicks its tab
+   * above (see DeclaredSection).
+   *
+   * For the settings a form has but hardly anyone fills in — a task's Gantt fields, its cost unit
+   * administration. Wicket says the same with a closed `ToggleContainerPanel`; here the tab bar makes
+   * a folded card discoverable, which the legacy page's stack of panels did not.
+   */
+  collapsed?: boolean;
   fields?: FieldDeclaration<M>[];
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
@@ -298,6 +307,17 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   editBanner?: ComponentType;
   /** Further tabs leading to a page of their own. Appended after the history. */
   extraTabs?: ExtraTabDef[];
+  /**
+   * Where cancel, a successful save, a delete and the breadcrumb lead — and, at the same time, the
+   * whitelist of callers a `?returnTo=` may name. The first entry is the default; absent means the
+   * entity's own list (`PageDef.route` under `PageDef.titleKey`), which is what every page did before.
+   *
+   * A task is reached from two places: the tree and, later, its own list. Neither is "the" way back —
+   * the way back is where the user came from, so the caller says so in the url and this is the set of
+   * answers that are allowed. A whitelist rather than a sanitizer: an unknown value is ignored, so
+   * there is no redirect to reason about.
+   */
+  returnTargets?: { route: string; labelKey: string }[];
 }
 
 /**
