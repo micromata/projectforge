@@ -32,6 +32,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import java.util.*
@@ -51,6 +52,14 @@ open class PluginAdminService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    /**
+     * Comma separated list of plugin ids to activate, independent of the configuration stored in the database.
+     * 'all' activates every available plugin. Useful for test and pentest instances:
+     * projectforge.plugins.active=all
+     */
+    @Value("\${projectforge.plugins.active:}")
+    private var activePluginsConfig: String? = null
 
     /**
      * All plugins registered as Spring components (activated as well as not activated ones).
@@ -155,9 +164,31 @@ open class PluginAdminService {
         initializeActivePlugins(false)
     }
 
+    /**
+     * Plugin ids forced to be active by projectforge.plugins.active, or null if the property isn't given.
+     * 'all' means all available plugins.
+     */
+    private val forcedActivePlugins: List<String>?
+        get() {
+            val config = activePluginsConfig
+            if (config.isNullOrBlank()) {
+                return null
+            }
+            val entries = config.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            return if (entries.any { it.equals("all", ignoreCase = true) }) {
+                allPlugins.map { it.info.id }
+            } else {
+                entries
+            }
+        }
+
     private fun initializeActivePlugins(onlyConfiguredActive: Boolean) {
         val plugins = allPlugins
-        val activatedPluginsByConfig = if (isFirstStart()) {
+        val forced = forcedActivePlugins
+        val activatedPluginsByConfig = if (forced != null) {
+            log.info { "Plugins forced to be active by projectforge.plugins.active: ${forced.joinToString()}." }
+            forced
+        } else if (isFirstStart()) {
             INITIAL_ACTIVATED_PLUGINS
         } else {
             activatedPluginsFromConfiguration
@@ -195,7 +226,8 @@ open class PluginAdminService {
         const val PLUGIN_BANKING_ID = "banking"
         const val PLUGIN_DATA_TRANSFER_ID = "datatransfer"
         const val PLUGIN_LICENSE_MANAGEMENT_ID = "licenseManagementPlugin"
-        const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquidityplanning"
+        // Must match the id used by LiquidityPlanningPlugin's constructor:
+        const val PLUGIN_LIQUIDITY_PLANNING_ID = "liquidplanning"
         const val PLUGIN_MEMO_ID = "memo"
         const val PLUGIN_MERLIN_ID = "merlin"
         const val PLUGIN_SKILL_MATRIX_ID = "skillmatrix"

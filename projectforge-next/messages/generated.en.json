@@ -1,6 +1,9 @@
 {
   "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
   "access": {
+    "exception": {
+      "noAccess": "No access."
+    },
     "rights": "Rights",
     "type": "Access type"
   },

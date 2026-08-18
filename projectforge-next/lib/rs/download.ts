@@ -44,7 +44,17 @@ export async function downloadFile(
 ): Promise<void> {
   const res = await rawRequest(path, init ?? { method: "GET" }, signal);
   if (!res.ok) {
-    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+    // A refusal explains itself in the body (`RestError`, e.g. the translated text of an
+    // AccessException), and every caller of this puts the message into a toast — where the status line
+    // would otherwise show the user a rest url.
+    const body = (await res
+      .clone()
+      .json()
+      .catch(() => null)) as { message?: string } | null;
+    throw new RsError(
+      res.status,
+      body?.message ?? `${res.status} ${res.statusText}: ${path}`
+    );
   }
   saveBlob(
     await res.blob(),

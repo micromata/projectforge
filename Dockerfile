@@ -1,4 +1,6 @@
-FROM openjdk:17-slim
+# Base image (openjdk:* is deprecated and its tags were removed from Docker Hub):
+ARG BASE_IMAGE=eclipse-temurin:17-jdk-jammy
+FROM ${BASE_IMAGE}
 
 # Argument for JAR file name to use in working directory:
 ARG JAR_FILE
@@ -30,6 +32,10 @@ RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
 # Expose the port and declare the volume
 RUN mkdir -p /ProjectForge && chown -R projectforge:projectforge /ProjectForge
 VOLUME /ProjectForge
+
+# ProjectForge's home dir inside the container. Without this, ProjectForgeHomeFinder falls back to
+# searching $HOME and the jar location, which doesn't work inside the container:
+ENV PROJECTFORGE_HOME=/ProjectForge
 
 COPY docker/environment.sh /ProjectForge
 

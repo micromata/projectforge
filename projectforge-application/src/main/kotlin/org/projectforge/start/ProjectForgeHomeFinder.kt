@@ -286,7 +286,13 @@ class ProjectForgeHomeFinder {
         if (location.indexOf('!') > 0) {
           location = location.substring(0, location.indexOf('!'))
         }
-        var file: File? = File(URI(location))
+        // Since Spring Boot 3.2 nested jar entries use the 'nested:' scheme, e. g.
+        // jar:nested:/app/application.jar/!BOOT-INF/classes/. File(URI) only accepts 'file:',
+        // so strip the scheme and use the plain path:
+        if (location.startsWith("nested:")) {
+          location = location.substring(7)
+        }
+        var file: File? = if (location.startsWith("file:")) File(URI(location)) else File(location)
         for (i in 0..99) { // Paranoi counter for endless loops (circular file system links)
           if (file == null) {
             return null
@@ -298,6 +304,9 @@ class ProjectForgeHomeFinder {
         }
         null
       } catch (ex: URISyntaxException) {
+        log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
+        null
+      } catch (ex: IllegalArgumentException) {
         log.error("Internal error while trying to get the location of ProjectForge's running code: " + ex.message, ex)
         null
       }
