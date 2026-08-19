@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
@@ -78,6 +79,13 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   /** Rendered between the scrollable table area and the pagination bar (e.g. a colour legend). */
   footer?: React.ReactNode;
   className?: string;
+  /**
+   * Whether scrolling this table collapses the app's logo row (see hooks/use-collapse-on-scroll.ts).
+   *
+   * Off by default, and set only where the table *is* the page's scroll column: a bounded table inside
+   * a form (SelectedEntriesTable) or inside a dialog (the task picker) must not move the app's header.
+   */
+  collapseLogoOnScroll?: boolean;
 }
 
 export function DataTable<TData>({
@@ -95,6 +103,7 @@ export function DataTable<TData>({
   emptyState,
   footer,
   className,
+  collapseLogoOnScroll = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -110,6 +119,7 @@ export function DataTable<TData>({
     table.getTotalSize() + (rowActions ? ROW_ACTIONS_WIDTH : 0);
   const showSkeleton = isLoading && table.getRowModel().rows.length === 0;
   const overflowTooltip = useOverflowTooltip();
+  const collapseLogo = useCollapseOnScroll(collapseLogoOnScroll);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
@@ -145,6 +155,12 @@ export function DataTable<TData>({
           className="relative flex-1 overflow-auto bg-background"
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
+          // Two listeners on the one column: the tooltip clears itself, the collapse drives the logo
+          // row. The spread has to come first, or it would drop this composed handler.
+          onScroll={(event) => {
+            overflowTooltip.handlers.onScroll();
+            collapseLogo.onScroll(event);
+          }}
         >
           {/* table-fixed makes the colgroup widths authoritative — without it the
               browser sizes columns by content and header and body drift apart.

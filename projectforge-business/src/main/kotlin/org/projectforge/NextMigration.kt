@@ -94,7 +94,9 @@ object NextMigration {
      * the edit page stays in [legacyApp], so a row click, the add button and every server side
      * redirect after a save lead there ([standardEditPage] and [newEntryUrl] answer the legacy url).
      * Set together with [legacyApp] - a page whose legacy implementation is gone cannot keep its form
-     * there, and [editRoute] / [newEntryRoute] are then unused.
+     * there. [editRoute] / [newEntryRoute] are not what a row click leads to, but they are still read:
+     * [nextEditPage] answers them, for the legacy form that links to a part of the next form it lacks
+     * itself (the invoice does, for its attachments).
      * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to,
      * or null once that page is gone: a page whose legacy implementation has been removed has no way
      * back, and [legacyListUrl] & co. answer null for it.
@@ -161,14 +163,18 @@ object NextMigration {
             legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "orderBookEdit",
         ),
-        // The list only (listOnly = true): the invoice form with its positions, cost assignments and
-        // e-invoice export stays Wicket's for now, so a row click and the add button lead to
-        // wa/outgoingInvoiceEdit. The route is `invoice`, not the category: the entity is "Rechnung" to
-        // its users, and which side of it the category names (outgoing vs. incoming) is what the menu
-        // says, not what the url has to spell out. Wicket's mount points follow the convention
-        // (DaoConst.OUTGOING_INVOICE + List/Edit), so no legacy route has to be spelled out.
+        // The list only (listOnly = true): the invoice form exists in next (/next/invoice/<id>), but the
+        // XRechnung/ZUGFeRD export and the invoice PDF upload are Wicket's alone, so a row click and the
+        // add button still lead to wa/outgoingInvoiceEdit - nobody is to lose those by clicking a row.
+        // `editRoute` is given nonetheless: the Wicket form links to the next form for the attachments,
+        // which are the one thing it cannot do itself (see RechnungEditForm and nextEditPage).
+        // The route is `invoice`, not the category: the entity is "Rechnung" to its users, and which side
+        // of it the category names (outgoing vs. incoming) is what the menu says, not what the url has to
+        // spell out. Wicket's mount points follow the convention (DaoConst.OUTGOING_INVOICE +
+        // List/Edit), so no legacy route has to be spelled out.
         "outgoingInvoice" to NextPage(
             route = "invoice",
+            editRoute = "invoice/$ID_PLACEHOLDER",
             listOnly = true,
             legacyApp = LegacyApp.WICKET,
         ),
@@ -250,6 +256,23 @@ object NextMigration {
         }
         val route = page?.editRoute ?: "$category/edit/$ID_PLACEHOLDER"
         return "${appPath(category)}$route"
+    }
+
+    /**
+     * The edit page in projectforge-next, whether or not it is the one a row click leads to.
+     *
+     * Not [standardEditPage], which answers the legacy url for a [NextPage.listOnly] page: this one names
+     * the next form even then. For the legacy form that links into it for a part it lacks itself - the
+     * invoice's attachments, whose React page was removed with `createEditLayout` (see
+     * `RechnungEditForm`).
+     *
+     * @return e.g. `next/invoice/:id` with [ID_PLACEHOLDER] for the id, or null if the category is not
+     * migrated at all.
+     */
+    @JvmStatic
+    fun nextEditPage(category: String): String? {
+        val page = nextPage(category) ?: return null
+        return "${Constants.NEXT_APP_PATH}${page.editRoute}"
     }
 
     /**
