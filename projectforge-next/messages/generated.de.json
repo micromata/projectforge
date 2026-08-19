@@ -1481,14 +1481,29 @@
     "_": "Strukturelement",
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
+    "deleted": "gelöscht",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "Diese Angabe wird ggf. ignoriert. - Zu diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Die Angabe einer Null verhindert jedoch die Anzeige des Maximalwerts in den Verbrauchsbalken."
     },
     "error": {
+      "couldNotDeleteRootTask": "Das Wurzelstrukturelement kann nicht gelöscht werden!",
+      "cyclicReference": "Zyklische Strukturhierarchie entdeckt, weil ein Strukturelement sich selbst oder ein Strukturunterelement als übergeordnetes Strukturelement besitzt.",
+      "duplicateChildTasks": "Strukturelemente müssen als Unterelemente unterschiedliche Titel haben.",
       "kost2Readonly": "Eine Kost2-Zuordnung kann nur durch die Buchhaltung vorgenommen werden.",
+      "parentTaskNotFound": "Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden.",
+      "parentTaskNotGiven": "Übergeordnetes Strukturelement muss angegeben sein.",
       "protectTimesheetsUntilReadonly": "Der Zeitberichtsschutz kann nur durch die Buchhaltung manipuliert werden.",
       "protectionOfPrivacyReadonly": "Die Datenschutzoption kann nur durch die Buchhaltung geändert werden.",
       "timesheetBookingStatus2Readonly": "Der Status für Zeitberichtsbuchungen kann nur durch die Buchhaltung oder Projektmanager manipuliert werden."
+    },
+    "favorite": {
+      "new": {
+        "_": "Neuer Strukturelementfavorit",
+        "tooltip": "Das aktuell ausgewählte Strukturelement kann hier unter einem Namen als Favorit gespeichert werden."
+      }
+    },
+    "favorites": {
+      "tooltip": "Verwaltung von Strukturelementen als Favoriten"
     },
     "gantt": {
       "settings": "Ganttwerte"
@@ -1498,19 +1513,36 @@
       "type": "Art der Kost2-Liste",
       "whiteList": "Positivliste"
     },
+    "maxDuration": "Maximaldauer",
     "maxHours": "Maximalstunden",
+    "menu": {
+      "addSubTask": "Neues Strukturunterelement",
+      "addTimesheet": "Neuer Zeitbericht",
+      "showAccessRights": "Zugriffsrechte",
+      "showTimesheets": "Zeitberichte anzeigen"
+    },
+    "onlyBillable": "nur fakturierbare Elemente",
     "parentTask": "Übergeordnetes Strukturelement",
     "path": {
-      "pleaseSelectTask": "Bitte Strukturelement wählen"
+      "_": "Strukturhierarchie",
+      "pleaseSelectTask": "Bitte Strukturelement wählen",
+      "rootTask": "Toplevel"
     },
     "progress": "Fortschritt",
-    "protectTimesheetsUntil": "Zeitberichtsschutz bis",
+    "protectTimesheetsUntil": {
+      "_": "Zeitberichtsschutz bis",
+      "short": "Schutz bis"
+    },
     "protectionOfPrivacy": {
       "_": "Datenschutz",
       "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Tasks zugegriffen werden."
     },
+    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
+      "displayTask": {
+        "tooltip": "Strukturelement anzeigen."
+      },
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).",
       "noTasksFound": "Keine Strukturelemente gefunden.",
       "selectAncestorTask": {
@@ -1518,10 +1550,12 @@
       }
     },
     "status": {
+      "_": "Status des Strukturelements",
       "closed": "geschlossen",
       "notOpened": "nicht begonnen",
       "opened": "begonnen"
     },
+    "tasks": "Strukturelemente",
     "timesheetBooking": {
       "_": "Zeitbuchungen",
       "inherit": "vererbt",
@@ -1533,14 +1567,60 @@
     "title": {
       "_": "Titel",
       "add": "Neues Strukturelement",
+      "edit": "Strukturelement bearbeiten",
       "heading": "Strukturelemente",
-      "list": "Strukturelemente"
+      "list": {
+        "_": "Strukturelemente",
+        "select": "Strukturelement auswählen"
+      }
     },
     "tree": {
+      "close": "Strukturelement zuklappen",
+      "explore": "Alle Strukturelemente auf-/zuklappen",
       "info": "Strukturelemente können auf- und zugeklappt werden, indem auf die Ordnersymbole oder Titel des gewünschten Strukturelements geklickt wird. Zur Auswahl eines Strukturelements kann jede andere Stelle innerhalb der Zeile angeklickt werden.",
+      "open": "Strukturelement aufklappen",
+      "perspective": "Baumansicht",
       "rootNode": "Wurzelstrukturelement",
       "title": {
+        "_": "Strukturbaum",
         "select": "Strukturelement auswählen"
+      }
+    },
+    "wizard": {
+      "action": {
+        "_": "Aktion",
+        "noactionRequired": "Keine Aktion notwendig, da keine Gruppen ausgewählt wurden. Demnach müssen keine Zugriffsrechte angelegt werden.",
+        "taskAndgroupsGiven": "Die notwendigen Zugriffsrechte für die oben angegebene(n) Gruppe(n) werden angelegt, nachdem der Anlegen-Button gedrückt wird. Diese können Sie jederzeit unter dem Menüpunkt Zugriffsverwaltung einsehen und ändern."
+      },
+      "button": {
+        "createGroup": {
+          "_": "Gruppe anlegen",
+          "tooltip": "Sie können eine existierende Benutzergruppe wählen oder eine neue durch Anklicken dieses Buttons anlegen."
+        },
+        "createTask": {
+          "_": "Strukturelement anlegen",
+          "tooltip": "Sie können ein existierendes Strukturelement wählen oder ein neues durch Anklicken dieses Buttons anlegen."
+        }
+      },
+      "externalGroup": {
+        "_": "Externe (optional)",
+        "groupNameSuffix": "extern",
+        "intro": "Die externen Benutzer:innen haben Gastrechte, so dürfen sie beispielsweise nur die eigenen Zeitberichte sehen."
+      },
+      "finish": "Fertig stellen",
+      "intro": "Benutzen Sie diesen Assistenten, um ein neues Strukturelement anzulegen. Dieses Strukturelement kann ein Projekt o. ä. repräsentieren auf welche Nutzer und Gruppen Zugriff haben sollen (z. B. für Zeitberichtserfassungen).",
+      "managerGroup": {
+        "_": "Teammanager:in (optional)",
+        "groupNameSuffix": "pm",
+        "intro": "Die Teammanager:innen haben mehr Rechte, so dürfen sie beispielsweise die Zeitberichte anderer Nutzer ändern. Wenn sie die Rolle Projektmanagement (Gruppe PF_MANAGER) haben, dürfen sie auch Personal-Planungen vornehmen."
+      },
+      "pageTitle": "Strukturassistent",
+      "task": {
+        "intro": "Für dieses Strukturelement sollen die Rechte automatisch für die unten angegebenen Gruppen eingerichtet werden. Dabei wird für alle Oberelemente ein minimales Leserecht, so dass aus der Baumansicht dieses Element für die Gruppen eingesehen werden kann. Andere Elemente aus höheren Ebenen bleiben unsichtbar."
+      },
+      "team": {
+        "_": "Team (optional)",
+        "intro": "Die Teammitglieder haben das Recht, Strukturunterelemente anzulegen oder zu ändern, sowie eigene Zeitberichte zu erfassen."
       }
     },
     "workpackageCode": "Arbeitspaket-Code"

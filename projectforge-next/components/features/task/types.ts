@@ -6,6 +6,7 @@
 // normalises that away (see task-values.ts).
 
 import type { TASK_METADATA } from "@/lib/metadata/task.generated";
+import type { TaskConsumption, TaskOrder } from "@/lib/rs/task";
 
 /**
  * Parameters of `/task/new` the backend reads for its preset: the parent of a new subtask, which
@@ -93,11 +94,32 @@ export interface TaskDetail {
 }
 
 /**
- * Projection the list page renders — the same DTO, with the id the table keys rows by.
+ * A row of the list, as `Task.copyFrom4ListRow` fills it — the ten columns of `TaskListPage` and
+ * nothing else.
  *
- * The list itself is not migrated yet (step 4 of projectforge-next/MIGRATION.md); the tree is what
- * shows tasks today.
+ * Not `TaskDetail`: the lean row deliberately omits `description`, `kost2BlackWhiteList`, the access
+ * flags and the nested `parentTask`, so a column reading one of those would be an empty column. The
+ * three values that are not on `TaskDO` are computed per row from the in-memory tree, the same
+ * functions the tree perspective calls.
  */
-export interface TaskListRow extends TaskDetail {
+export interface TaskListRow {
   id: number;
+  title?: string | null;
+  /** Whether the task is marked as deleted — the row is then tinted and struck through. */
+  deleted?: boolean;
+  shortDescription?: string | null;
+  /** `LocalDate` on the DTO, travelling as `yyyy-MM-dd`. */
+  protectTimesheetsUntil?: string | null;
+  reference?: string | null;
+  priority?: TaskPriority | null;
+  status?: TaskStatus | null;
+  responsibleUser?: EntityRefDto | null;
+  consumption?: TaskConsumption | null;
+  /** e.g. `6.000.00.*` — the shared prefix of the task's cost units. */
+  kost2WildCard?: string | null;
+  /** All cost 2 numbers, one per line — the kost2 column's tooltip. */
+  kost2ListAsLines?: string | null;
+  orderList?: TaskOrder[] | null;
+  created?: string | null;
+  lastUpdate?: string | null;
 }

@@ -79,6 +79,9 @@ export function useDeclaredColumns<
         meta: { label, align, filterKind: filterKind ?? undefined },
         size: declaration.size,
         minSize: declaration.minSize,
+        // Only where the declaration says so: the default is sortable, and the header renders no sort
+        // control for a column that isn't (see ColumnBase.sortable).
+        ...(declaration.sortable === false ? { enableSorting: false } : {}),
         header: ({ column, table }) => (
           <DataTableColumnHeader
             column={column}

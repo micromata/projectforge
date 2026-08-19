@@ -1173,7 +1173,7 @@ für jede weitere Seite gültig:
   Radix kennt nur String-Optionen, und `TaskDO.kost2IsBlackList` ist ein `Boolean`.
 - **`EditDef.returnTargets` + `?returnTo=`.** Eine Edit-Seite kehrt zum _Aufrufer_
   zurück, nicht zu einer festen Liste: eine Aufgabe wird aus dem Baum geöffnet und
-  (nach Schritt 4) aus ihrer eigenen Liste. `hooks/use-edit-return.ts` löst den
+  (seit Schritt 4a) aus ihrer eigenen Liste. `hooks/use-edit-return.ts` löst den
   Parameter gegen die deklarierten Ziele auf – eine **Whitelist**, kein Saubermachen
   von URLs, ein unbekannter Wert fällt auf das erste Ziel zurück. Der Parameter wandert
   über `entityTabs` mit, damit der Umweg über die History den Aufrufer nicht vergisst.
@@ -1184,6 +1184,46 @@ für jede weitere Seite gültig:
   (Modal-Baum) verteilt statt auf die Entitäts-Autocomplete, und
   `EntityAutocomplete`/`EntityAutocompleteField` nehmen `params` (im Query-Key
   enthalten, sonst bediente ein Projektwechsel den Cache des alten Projekts).
+
+#### Erledigt: zwei Vokabeln für Spalten (Aufgabenbaum, Schritt 4a)
+
+Beide am `ColumnBase` und für jede Liste gültig, entstanden an der Aufgabenliste:
+
+- **`visible?: (ctx) => boolean`.** Die Seite _hat_ die Spalte nicht – für eine, deren
+  Gegenstand in dieser Installation nicht existiert oder die dieser Nutzer nicht sehen
+  darf (Kostenträger konfiguriert, Auftragspositionen gebucht, FiBu-Gruppe). Das ist
+  **nicht** dieselbe Sache wie eine ausgeblendete Spalte: die ist die Wahl des Nutzers und
+  im Spaltenpanel umkehrbar. Gefiltert wird in `entity-list-page.tsx`, bevor die
+  Audit-Spalten angehängt werden, also erreicht so eine Spalte TanStack nie und kann auch
+  im Panel nicht auftauchen. Der Kontext ist `listMeta.variables`, das die Seite ohnehin
+  lädt – die Antwort auf so eine Frage ist die des Backends
+  (`AbstractEntityRest.addVariablesForListPage`), nicht eine im Client abgeleitete.
+- **`sortable: false`.** Ein berechneter Wert, nach dem das Backend nicht ordnen kann;
+  wird zu `enableSorting: false` an der Spaltendefinition, den Rest kann
+  `DataTableColumnHeader` schon.
+
+Dazu, backendseitig, `BaseDTO.copyFrom4ListRow` als das Mittel, eine Liste mit einer
+eigenen, schlanken Zeile zu bedienen: `Task` ist das erste Beispiel dafür, dass eine solche
+Zeile auch _berechnete_ Werte tragen darf, die am DO gar nicht stehen.
+
+Zwei weitere Korrekturen an der gemeinsamen Schicht, beide an der Aufgabenliste
+aufgefallen und beide für jede Liste gültig:
+
+- **Die Liste nennt sich selbst als Aufrufer.** `useEditTargets` hängt an die URL, die ein
+  Zeilenklick und der „Neuer Eintrag“-Knopf öffnen, ein `?returnTo=<eigene Route>` – aber
+  nur, wenn die Edit-Seite diese Route unter ihren `returnTargets` führt. Ohne das kehrte
+  eine aus der _Liste_ geöffnete Aufgabe beim Abbrechen in den **Baum** zurück, weil der
+  dort das erste und damit das Standardziel ist. Seiten ohne `returnTargets` (`book`,
+  `cost1`, `order`) bekommen weiterhin keinen Parameter: ihr Standard ist die eigene Liste
+  und sagt schon dasselbe.
+- **`leafKeyOf` an drei geteilten Stellen.** Ein Backend-Schlüssel, der Text _und_
+  Namensraum ist, liegt im Katalog als `<key>._`; die bloße Form lässt next-intl mit
+  `INSUFFICIENT_PATH` scheitern. `task.title.list` ist genau so einer geworden
+  (`…list.select` kam dazu), und das traf `entity-list-page.tsx` (Titel der Liste),
+  `use-edit-return.ts` (Beschriftung des Rückwegs) und `task-perspective-link.tsx`.
+  Gelöst wurde es in der geteilten Schicht mit `lib/leaf-key.ts`, nicht dadurch, dass die
+  Aufgabenseite den Schlüssel meidet – jede Seite, deren Titelschlüssel Kinder bekommt,
+  wäre sonst die nächste.
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -1474,8 +1514,13 @@ Auswahl-Panels); die Baumseite hat mit `task.tree.info` einen eigenen.
 
 Diese Tabelle ist die Bestandsaufnahme und bleibt so stehen; abgearbeitet ist sie in
 Schritt 3 der Reihenfolge unten – bis auf **Favoriten** und **Aufgaben-Assistent** (bewusst
-ausgelassen) und die **Listenansicht** (Schritt 4). „Filter zurücksetzen" hängt _nicht_ an
+ausgelassen). „Filter zurücksetzen" hängt _nicht_ an
 der `filter/reset`-Lücke, wie hier vermutet: der Baum hat seinen eigenen Filter, s. Schritt 3.
+
+Die **Listenansicht** ist in Schritt 4a erledigt – und die Vermutung „erst das Listen-Layout
+füllen" war falsch. Das `UITable`-Layout bleibt einspaltig; die zehn Spalten sind im `PageDef`
+deklariert, wo die Spalten einer handgebauten Liste hingehören. Der Umschaltknopf steht in
+beiden Richtungen.
 
 ##### Lücke 3 – die Edit-Seite, handgebaut als `PageDef`
 
@@ -1636,7 +1681,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    bewusste Abweichung von Wicket, die schon der „vollständig fakturiert"-Schalter des
    Auftrags eingeführt hat.
 
-   `/next/task` selbst hat noch keine Route (die Liste ist Schritt 4); `route: "/task"`
+   `/next/task` hatte in diesem Schritt noch keine Route (die Liste ist Schritt 4a); `route: "/task"`
    ist trotzdem richtig, es ist die Basis von `${route}/${id}`. Der Zeilenklick des Baums
    geht auf `/task/:id?returnTo=/taskTree`, der `legacyEditPage`-Umweg über
    `window.location` ist weg.
@@ -1691,8 +1736,8 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    `UserPrefArea.TASK_FAVORITE`, `TaskFavoritesRest` ist vollständig, aber es fehlt die
    Verwaltungsseite) und der **Aufgaben-Assistent** (`TaskWizardPageRest` ist ein Torso,
    s. Lücke 2). Beide bleiben über den Legacy-Link im Seitenkopf erreichbar. Wickets
-   **Listenansicht**-Knopf fehlt ebenfalls – das ist Schritt 4, dann wird er ein Link und
-   ein zweites `returnTarget`.
+   **Listenansicht**-Knopf fehlte in diesem Schritt noch – er ist in Schritt 4a ein Link
+   und ein zweites `returnTarget` geworden.
 
    **„Filter zurücksetzen" ist nicht `filter/reset`.** Der Endpunkt
    (`AbstractEntityRest.resetListFilter`) räumt den gespeicherten `MagicFilter` der Entität
@@ -1723,19 +1768,106 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    (also serverseitig angekommen), der Handbuch-Link, und das Auswahl-Panel _ohne_ all das.
    Die gemeinsamen Baum-Handgriffe liegen jetzt in `e2e/fixtures/task-tree.ts`.
 
-4. Listenperspektive (`createListLayout` auf die zehn Wicket-Spalten bringen) und
-   Aufgaben-Assistent (`TaskWizardPageRest` ausbauen).
+4. **a) Erledigt.** Listenperspektive: die zehn Spalten von `TaskListPage.createColumns`
+   als `PageDef`-Deklaration, plus die Route `/next/task` und die beiden
+   Perspektiv-Knöpfe.
+
+   Sieben Spalten sind Felder des DTOs und tragen **keinen** `labelKey` – die Beschriftung
+   ist der `i18nKey` des Feldes aus `lib/metadata/task.generated.ts` (`labelKeyFor` in
+   `use-declared-columns.tsx`). Nur die drei berechneten müssen einen nennen; die
+   Titelspalte nennt `task._` („Strukturelement"), weil beide Wicket-Seiten diese Spalte
+   mit dem Namen der Entität überschreiben, nicht mit dem des Feldes.
+
+   **Drei Werte stehen nicht am `TaskDO`** und kommen aus demselben Baum, aus dem die
+   Baumperspektive sie rechnet – `Task.copyFrom4ListRow` ruft `Consumption.create`,
+   `TaskServicesRest.addKost2List` (ohne die Kostenträger-Objekte, die nur der Picker des
+   Baums braucht) und `addOrderList`. Dieselben Funktionen, also können beide
+   Perspektiven nie verschiedene Zahlen zeigen; und es kostet keine Abfrage, weil der
+   Baum im Speicher liegt und die Auftragspositionen nach Task-Id cacht. Die lean row
+   lässt alles weg, was nur das Formular braucht (`description`, die geschachtelten
+   Tasks, die Zugriffs-Flags) – `JsonInclude.Include.NON_NULL` hält es damit pro Zeile
+   von der Leitung. Die Renderer selbst sind die des Baums, über `renderCell` aus
+   `components/data-table` adaptiert (`task-list-cells.tsx`), damit es pro Zelle eine
+   Implementierung bleibt.
+
+   **Die Sichtbarkeitsregeln sind die des Baums**, nicht eine Kopie:
+   `TaskServicesRest.columnVisibility()` ist als `TaskColumnVisibility` herausgezogen, und
+   `TaskPagesRest.addVariablesForListPage` beantwortet die drei Flags, auf die die Liste
+   gattert (`kost2Configured`, `orders`, `protectTimesheetsUntil`). Serviert statt im
+   Client abgeleitet, aus demselben Grund wie die Zugriffs-Flags: Gruppenmitgliedschaft
+   und Systemkonfiguration weiß das Backend.
+
+   **Sortierbar sind nur die sieben Feldspalten** (`sortable: false` an den drei
+   berechneten) – die Liste läuft über den `MagicFilterProcessor`, sortiert also nach
+   Entity-Property, und Wickets Liste sagt dasselbe, indem sie diesen drei Spalten keine
+   Sort-Property mitgibt. Die Verantwortlichen-Spalte sortiert nach
+   `responsibleUser.lastname`: der angezeigte Name ist zusammengesetzt
+   (`PFUserDO.displayName` ist `@Transient`), und Wickets eigene Sortierung nach
+   `responsibleUserId` ordnet nach etwas, das niemand sieht.
+
+   **Abweichung zwischen den beiden Wicket-Seiten, nicht hier entschieden:** der _Baum_
+   versteckt `reference` und `priority` zusätzlich, wenn keine Aufgabe im ganzen Baum
+   einen Wert hat; Wickets _Liste_ zeigt beide immer. Die next-Liste folgt der Liste.
+
+   Zwei neue Vokabeln im `ColumnBase` (in Phase 1.5 registriert): `visible` (die Seite
+   _hat_ die Spalte nicht – anders als eine im Spaltenpanel abgewählte) und
+   `sortable: false`.
+
+   Wickets **Listenansicht**-Knopf ist jetzt beidseitig da:
+   `components/shared/tasks/task-perspective-link.tsx` in beide Richtungen, in der Leiste
+   des Baums und über `PageDef.listActions` in der Toolbar der Liste. Die Rückrichtung ist
+   mit `task.title.list` beschriftet – Wickets eigener Knopf liest das unübersetzte Modell
+   `"listView"`, ein Fehler dort und kein Text zum Abschreiben. Dazu die Liste als
+   **zweites** `returnTarget`; der Baum bleibt das erste und damit das Ziel einer
+   Add-URL ohne `returnTo`. Genau deshalb musste `useEditTargets` lernen, den Parameter
+   selbst zu setzen (siehe Phase 1.5): sonst schickte ein Abbruch in der aus der Liste
+   geöffneten Aufgabe den Nutzer in den Baum.
+
+   `createListLayout` bleibt einspaltig, mit Begründung im Code: die Filterzeile kommt aus
+   `baseDao.searchFields` über `LayoutListFilterUtils` und nicht aus dem Layout, und die
+   Spalten einer handgebauten Liste gehören ins `PageDef` – sie tragen eigene Zellen,
+   eigene Sichtbarkeit und eigene Breiten, was keine `UITable`-Spalte ausdrücken kann.
+   Zehn `UITable`-Spalten würden nur `/react/task` dienen, wohin das Menü nicht mehr
+   zeigt.
+
+   `e2e/task-list.spec.ts` prüft die Spalten **gegen die Deklaration und die Metadaten**
+   statt gegen abgeschriebene Beschriftungen, und jede bedingte Spalte gegen ihr Flag aus
+   `listMeta.variables` (nicht gegen die Annahme, dieses Konto habe alle drei) – dazu die
+   drei berechneten Werte gegen die Antwort des Baums für dieselbe Aufgabe, das Fehlen des
+   Sortier-Angebots an genau den drei Spalten, `returnTo` in beide Richtungen und die beiden
+   Perspektiv-Links. Die Spalten werden dabei über das Element gefunden, das
+   `DataTableColumnHeader` als seinen Text markiert (`data-overflow-text`), nicht über den
+   Accessible Name der Zelle: die trägt auch Filterknopf und Breiten-Griff, deren Namen in
+   ihren eingehen. Und „sortierbar“ ist hier kein Knopf – diese Tabelle sortiert per Klick
+   auf die _ganze_ Kopfzelle (ein Knopf um die Beschriftung würde dem Filtersymbol den Platz
+   nehmen), also wird das Anzeichen geprüft, das der Kopf zeigt, solange er sortieren kann. Auf `TaskPagesRestTest`-Seite eine Runde über `copyFrom4ListRow`: die
+   zehn Spalten samt `created`/`lastUpdate` sind da, `description`, die Kost2-Liste, das
+   Elternteil und die Zugriffs-Flags nicht.
+
+   Nicht lokal prüfbar bleibt der _versteckte_ Zustand der drei bedingten Spalten – das
+   Testkonto ist Admin und in den FiBu-Gruppen, und die Installation hat Kostenträger
+   konfiguriert, also sind alle drei Flags wahr. Deshalb prüft der Spec jede Spalte gegen
+   ihr Flag; die Regeln selbst sind die des Baums (dieselbe Funktion, keine Kopie).
+
+   Unterwegs mitgefunden und mit erledigt: `TaskPagesRestTest.validate refuses what the
+Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
+   `TaskPagesRest.validate` an `@PropertyInfo(min/max)` am `TaskDO` gewandert und werden
+   generisch von `ValidationUtils.validateFields` über das **DO** geprüft – der Test hat
+   sie weiter am DTO-Override erwartet. Die Ränder stehen jetzt als eigener Test gegen
+   `validateFields`, der Override-Test nur noch für die eine Regel, die Wicket exklusiv
+   hatte.
+
+   **b) Offen: Aufgaben-Assistent.** `TaskWizardPageRest` ist schlimmer als ein Torso – es
+   hat nur `getForm`, und den `execute`-Endpunkt, auf den der eigene Fertig-Knopf postet,
+   **gibt es nicht**. Die eigentliche Arbeit ist `TaskWizardPage.create`: den Baum
+   hochlaufen und `GroupTaskAccessDO`-Zeilen schreiben (Leiter/Mitarbeiter/Extern
+   rekursiv, Gast an jedem Vorfahren), für drei Gruppen-Picker, für die next keine
+   Komponente hat. Also ein Schreib-Endpunkt plus ein Rechte-Feature, keine
+   Formular-Migration. Bis dahin über den Legacy-Link erreichbar.
+
 5. Erst dann Menü + `NextMigration.MIGRATED["task"]` und
    `lib/hand-built-categories.ts` umschalten (beides zusammen, `NextMigrationTest`
    erzwingt es).
-
-**Bewusst aufgeschoben:** `createListLayout` bleibt einspaltig. Die Filterzeile kommt
-aus `baseDao.searchFields` über `LayoutListFilterUtils`, nicht aus dem Layout, und eine
-handgebaute `/next/task`-Liste deklariert ihre Spalten selbst im `PageDef`. Zehn
-`UITable`-Spalten würden nur `/react/task` dienen, das nach dem Umschalten niemand mehr
-aufruft. Die bedingten Spalten (Verbrauch, Kost2, Auftragspositionen, FiBu-only
-„Schutz bis") gehören in den Listen-Commit, zusammen mit `copyFrom4ListRow` und
-`listMeta`.
 
 **Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
 Kost2-Felder mit _und_ ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,
@@ -1916,11 +2048,11 @@ FiBu-Gruppen) – dafür Unit-Tests.
    fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
-   möglich). Beim **Aufgabenbaum** steht die Baumseite schon; dort fehlen die
-   Edit-Seite und die Aktionen, und beides muss vor dem Menü-Umschalten fertig
-   sein (s. eigener Abschnitt). Routing ist entschieden (Baum `/next/taskTree`,
-   Liste `/next/task`, Edit `/next/task/:id`); die Backend-Vorarbeit (Schritt 1 der
-   dortigen Reihenfolge) steht, als nächstes kommt die handgebaute Edit-Seite.
+   möglich). Beim **Aufgabenbaum** stehen Baumseite, Aktionsleiste, die handgebaute
+   Edit-Seite und die Listenperspektive (Schritte 1–4a des eigenen Abschnitts); offen
+   sind nur noch der Aufgaben-Assistent (4b) und das Umschalten von Menü und
+   `NextMigration.MIGRATED["task"]` (5). Routing steht wie entschieden: Baum
+   `/next/taskTree`, Liste `/next/task`, Edit `/next/task/:id`.
 4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,

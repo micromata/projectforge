@@ -31,6 +31,37 @@ export interface TaskProjekt {
 }
 
 /**
+ * A task's booked-versus-planned effort, `rest/task/Consumption.kt` — pre-rendered by the backend,
+ * because the percentage, the wording and the colour all follow rules only it knows (the "finished"
+ * flag, the person-day unit, the user's number format).
+ *
+ * Declared here rather than beside the cell that paints it: both perspectives of a task carry the
+ * same value — the tree sends it per node, the list per row (`Task.copyFrom4ListRow`).
+ */
+export interface TaskConsumption {
+  /** Already localised, e.g. "350PT/188PT (186%)" — the bar's tooltip. */
+  title?: string;
+  /** One of the `progress-*` names of `Consumption.Status`, which picks the bar's colour. */
+  status?: string;
+  percentage?: number;
+  /** Capped at 100, unlike `percentage` — the width the bar is painted with. */
+  barPercentage?: number;
+}
+
+/**
+ * One order booked against a task, `TaskServicesRest.Task.Order`.
+ *
+ * The `url` is the backend's: the order's page may be Wicket's or this app's, which only
+ * `NextMigration` knows.
+ */
+export interface TaskOrder {
+  number: string;
+  title?: string;
+  text?: string;
+  url?: string;
+}
+
+/**
  * One node, `TaskServicesRest.Task`. Only the fields the backend actually sends, and only for the
  * two shapes this app asks for: the flat tree (`table=true`) and a single task (`info/{id}`).
  *

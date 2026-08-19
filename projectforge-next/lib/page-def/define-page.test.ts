@@ -8,7 +8,9 @@ import {
   defineListPage,
   filterKindFor,
   labelKeyFor,
+  visibleColumnsOf,
 } from "./define-page";
+import type { ColumnDeclaration } from "./types";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 
 const METADATA: EntityMetadata = {
@@ -231,6 +233,50 @@ describe("defaultPinningOf", () => {
 
   it("leaves out an edge nothing is pinned to, so nothing is stored as a change", () => {
     expect(defaultPinningOf([{ name: "description" }])).toEqual({});
+  });
+});
+
+describe("visibleColumnsOf", () => {
+  const COLUMNS: ColumnDeclaration<ListRow, typeof METADATA>[] = [
+    { name: "description" },
+    { name: "bereich", visible: ({ variables }) => variables?.orders === true },
+    { name: "internal", visible: () => true },
+  ];
+
+  it("keeps a column without a predicate and one whose predicate holds", () => {
+    expect(visibleColumnsOf(COLUMNS, { orders: true }).map(columnIdOf)).toEqual(
+      ["description", "bereich", "internal"]
+    );
+  });
+
+  it("drops the column the backend says this user does not have", () => {
+    expect(
+      visibleColumnsOf(COLUMNS, { orders: false }).map(columnIdOf)
+    ).toEqual(["description", "internal"]);
+  });
+
+  it("drops it while the meta data has not arrived yet, rather than flashing the column", () => {
+    expect(visibleColumnsOf(COLUMNS, undefined).map(columnIdOf)).toEqual([
+      "description",
+      "internal",
+    ]);
+  });
+
+  it("answers the very same array where nothing was dropped, so the columns keep their identity", () => {
+    const plain: ColumnDeclaration<ListRow, typeof METADATA>[] = [
+      { name: "description" },
+    ];
+    expect(visibleColumnsOf(plain, undefined)).toBe(plain);
+  });
+
+  it("keeps a dropped column out of the default pinning as well", () => {
+    const columns: ColumnDeclaration<ListRow, typeof METADATA>[] = [
+      { name: "description", pinned: "left" },
+      { name: "bereich", pinned: "left", visible: () => false },
+    ];
+    expect(defaultPinningOf(visibleColumnsOf(columns, undefined))).toEqual({
+      left: ["description"],
+    });
   });
 });
 

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 export interface EditReturn {
   /** Where cancel, save, delete and the breadcrumb lead. */
@@ -47,7 +48,9 @@ export function useEditReturn({
     fallback;
   return {
     route: target.route,
-    label: t(target.labelKey),
+    // Through leafKeyOf: a target's key may be a namespace as well (`task.title.list` is both the
+    // list's title and the parent of `task.title.list.select`), and the bare key would throw.
+    label: t(leafKeyOf(target.labelKey, t.has)),
     query: targets ? `returnTo=${encodeURIComponent(target.route)}` : undefined,
   };
 }

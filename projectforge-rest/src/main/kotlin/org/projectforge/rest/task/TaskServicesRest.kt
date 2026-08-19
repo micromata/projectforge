@@ -268,14 +268,6 @@ class TaskServicesRest {
         /** REST category of the order book (`OrderEntityRest`), whose page an order link leads to. */
         private const val ORDER_CATEGORY = "order"
 
-        /** The groups that may see which orders are booked against a task, as `TaskTreePage` has it. */
-        private val ORDER_GROUPS = arrayOf(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP,
-            ProjectForgeGroup.PROJECT_ASSISTANT,
-            ProjectForgeGroup.PROJECT_MANAGER,
-        )
-
         fun createTask(id: Long?): Task? {
             if (id == null)
                 return null
@@ -374,22 +366,6 @@ class TaskServicesRest {
         val withOrders: Boolean = false,
     )
 
-    /**
-     * Which of the tree's optional columns to show: one is shown if any task in the tree has a value for
-     * it, as the Wicket page does (`TaskTreeBuilder.createColumns`), so a tree without a single reference
-     * doesn't carry an empty Reference column across the screen.
-     *
-     * Over the whole tree rather than over the answer, because the answer is a moving target — it depends
-     * on the filter, on which nodes are open and on the highlighted node, and the columns would come and
-     * go with every click. The tree is held in memory, so this costs no query.
-     */
-    private class ColumnVisibility(
-        val orders: Boolean = false,
-        val protectTimesheetsUntil: Boolean = false,
-        val reference: Boolean = false,
-        val priority: Boolean = false,
-    )
-
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
     @Autowired
@@ -414,43 +390,15 @@ class TaskServicesRest {
     private lateinit var agGridSupport: AGGridSupport
 
     /**
-     * Which optional columns the tree has data for, and which of them this user may see at all.
-     *
-     * The access rules are the Wicket page's (`TaskTreePage.onInitialize`): orders for project staff and
-     * above, the timesheet protection for financial staff only.
-     */
-    private fun columnVisibility(): ColumnVisibility {
-        val maySeeOrders = accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS)
-        val maySeeProtection = accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
-        // One walk over the tasks in memory, so a column that nothing fills doesn't show up empty.
-        val tasks = mutableListOf<TaskDO>()
-        collectTasks(taskTree.rootTaskNode, tasks)
-        return ColumnVisibility(
-            orders = maySeeOrders && taskTree.hasOrderPositionsEntries(),
-            protectTimesheetsUntil = maySeeProtection && tasks.any { it.protectTimesheetsUntil != null },
-            reference = tasks.any { !it.reference.isNullOrBlank() },
-            priority = tasks.any { it.priority != null },
-        )
-    }
-
-    /**
-     * The node's task and those of all its descendants, depth first.
-     *
-     * Own walk rather than [TaskTree.getDescendants]: that one only collects the direct children.
-     */
-    private fun collectTasks(node: TaskNode, result: MutableList<TaskDO>) {
-        result.add(node.task)
-        node.children.forEach { collectTasks(it, result) }
-    }
-
-    /**
      * The columns of the task tree, in the order the Wicket page shows them.
      *
      * @param columns Which optional columns have data. All off for the select mode, whose popover only
      * has room for the narrow ones anyway.
      * @return MutableList of UIAgGridColumnDef with all default columns
      */
-    private fun createDefaultColumnDefs(columns: ColumnVisibility = ColumnVisibility()): MutableList<UIAgGridColumnDef> {
+    private fun createDefaultColumnDefs(
+        columns: TaskColumnVisibility = TaskColumnVisibility()
+    ): MutableList<UIAgGridColumnDef> {
         val lc = LayoutContext(TaskDO::class.java)
         val kost2Visible = Configuration.instance.isCostConfigured
         val columnDefs = mutableListOf<UIAgGridColumnDef>()
@@ -609,7 +557,7 @@ class TaskServicesRest {
             // answer needn't carry them (see createDefaultColumnDefs). Access as the Wicket page has it
             // (TaskTreePage.onInitialize): orders for project staff and above.
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
-                    accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS),
+                    accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
         )
         if (highlightedTaskId != null) {
             ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
@@ -638,7 +586,10 @@ class TaskServicesRest {
             // the extra ones (orders, reference, priority, protection) don't fit and aren't what the user
             // picks a task by.
             result.columnDefs.addAll(
-                createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
+                createDefaultColumnDefs(
+                    if (selectMode) TaskColumnVisibility()
+                    else TaskColumnVisibility.of(accessChecker, taskTree)
+                )
             )
 
             // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest). The mode is
@@ -858,8 +809,10 @@ class TaskServicesRest {
 
         // The same set the initial call would send, so "reset" restores what the user started with.
         val agGrid = UIAgGrid("taskTree")
-        createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
-            .forEach { agGrid.add(it) }
+        createDefaultColumnDefs(
+            if (selectMode) TaskColumnVisibility()
+            else TaskColumnVisibility.of(accessChecker, taskTree)
+        ).forEach { agGrid.add(it) }
 
         // Create ResponseAction using AGGridSupport helper
         return agGridSupport.createResetGridStateResponse(agGrid)

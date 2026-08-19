@@ -25,8 +25,10 @@ package org.projectforge.rest.task
 
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -35,6 +37,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
@@ -45,6 +48,9 @@ class TaskPagesRest
     : AbstractDTOPagesRest<TaskDO, Task, TaskDao>(
         TaskDao::class.java,
         "task.title") {
+
+    @Autowired
+    private lateinit var taskTree: TaskTree
 
     override fun transformFromDB(obj: TaskDO, editMode: Boolean): Task {
         val task = Task()
@@ -77,6 +83,39 @@ class TaskPagesRest
             baseDao.setParentTask(task, parentTaskId)
         }
         return task
+    }
+
+    /**
+     * Opts the list into the lean row: `Task.copyFrom4ListRow` fills the ten columns of the hand built next
+     * page (`task.page.tsx`) instead of the whole edit DTO. See [org.projectforge.rest.dto.BaseDTO].
+     */
+    override fun newDTO(): Task {
+        return Task()
+    }
+
+    /**
+     * Which of the list's optional columns exist for this user, so the declared columns of the next page can
+     * gate on them (`ColumnBase.visible`, fed from `ListMetaData.variables`).
+     *
+     * The rules are the backend's: whether cost units are configured at all is the installation's
+     * configuration, and who may see the orders or the timesheet protection is a question of group
+     * membership. Both are shared with the tree perspective, which sends the same flags as column defs -
+     * see [TaskColumnVisibility].
+     *
+     * `reference` and `priority` are *not* gated here, although the tree gates them on "some task has a
+     * value". Wicket's two pages differ in exactly this spot: `TaskListPage.createColumns` shows both
+     * unconditionally, `TaskTreeBuilder.createColumns` doesn't, and each perspective follows its own page.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        val columns = TaskColumnVisibility.of(accessChecker, taskTree)
+        return mapOf(
+            // The gate of the kost2 column. The same one the tree uses, so the two perspectives cannot
+            // disagree about whether the column exists — Wicket's list asks `KostCache.isKost2EntriesExists`
+            // instead, which is true only once a cost unit has actually been entered.
+            "kost2Configured" to Configuration.instance.isCostConfigured,
+            "orders" to columns.orders,
+            "protectTimesheetsUntil" to columns.protectTimesheetsUntil,
+        )
     }
 
     override fun transformForDB(dto: Task): TaskDO {
@@ -117,6 +156,12 @@ class TaskPagesRest
 
     /**
      * LAYOUT List page
+     *
+     * One column on purpose. The ten columns of Wicket's `TaskListPage` are declared in the next page
+     * (`components/features/task/task.page.tsx`), where a hand built list's columns belong: they carry their
+     * own cells (the consumption bar, the order links), their own visibility (see
+     * [addVariablesForListPage]) and their own sizes, none of which a `UITable` column can express. Adding
+     * them here as well would serve only `/react/task`, which the menu no longer points at.
      */
     override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
         layout.add(UITable.createUIResultSetTable()

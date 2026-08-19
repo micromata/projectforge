@@ -1481,14 +1481,29 @@
     "_": "Structure element",
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
+    "deleted": "deleted",
     "edit": {
       "maxHoursIngoredDueToAssignedOrders": "This value may be ignored - There are order positions with given person days assigned to this node or any subnode. A zero value suppresses displaying a maximum value in the consumption bar."
     },
     "error": {
+      "couldNotDeleteRootTask": "Root structure element can't be deleted!",
+      "cyclicReference": "Cyclic structure element path detected because parent structure element is the element itself or a descendant element.",
+      "duplicateChildTasks": "Duplicate structure element titles for sister elements detected.",
       "kost2Readonly": "Kost2 is read-only for non accounting staff members.",
+      "parentTaskNotFound": "Parent structure element is required but not found.",
+      "parentTaskNotGiven": "Parent structure element is required but not given.",
       "protectTimesheetsUntilReadonly": "The time sheet protection is read-only for non accounting staff members.",
       "protectionOfPrivacyReadonly": "The flag privacy of protection is read-only for non accounting staff members.",
       "timesheetBookingStatus2Readonly": "The status of time sheet booking is read-only for non accounting staff members and non project managers."
+    },
+    "favorite": {
+      "new": {
+        "_": "New favorite of structure element",
+        "tooltip": "You may save the chosen structure element as favorite here."
+      }
+    },
+    "favorites": {
+      "tooltip": "Organize here your structure elements as favorites."
     },
     "gantt": {
       "settings": "Gantt settings"
@@ -1498,19 +1513,36 @@
       "type": "Type of Kost2 list",
       "whiteList": "White list"
     },
+    "maxDuration": "Maximum duration",
     "maxHours": "Maximum hours",
+    "menu": {
+      "addSubTask": "Add new child structure element",
+      "addTimesheet": "Add time sheet",
+      "showAccessRights": "Access rights",
+      "showTimesheets": "Show time sheets"
+    },
+    "onlyBillable": "only billable elements",
     "parentTask": "Parent structure element",
     "path": {
-      "pleaseSelectTask": "Please select structure element"
+      "_": "Structure element path",
+      "pleaseSelectTask": "Please select structure element",
+      "rootTask": "Top level"
     },
     "progress": "Progress",
-    "protectTimesheetsUntil": "Protect time sheets until",
+    "protectTimesheetsUntil": {
+      "_": "Protect time sheets until",
+      "short": "Protect until"
+    },
     "protectionOfPrivacy": {
       "_": "Protection of privacy",
       "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
     },
+    "recursive": "incl. all structure sub elements",
     "reference": "Reference",
     "selectPanel": {
+      "displayTask": {
+        "tooltip": "Display structure element."
+      },
       "info": "You may select folders by clicking in other columns of the row than the first.",
       "noTasksFound": "No structure elements found.",
       "selectAncestorTask": {
@@ -1518,10 +1550,12 @@
       }
     },
     "status": {
+      "_": "Status of structure element",
       "closed": "closed",
       "notOpened": "not opened",
       "opened": "opened"
     },
+    "tasks": "Structure elements",
     "timesheetBooking": {
       "_": "Time sheet booking",
       "inherit": "inherit",
@@ -1533,14 +1567,60 @@
     "title": {
       "_": "Title",
       "add": "Add new structure element",
+      "edit": "Edit structure element",
       "heading": "Structure elements",
-      "list": "Structure elements"
+      "list": {
+        "_": "Structure elements",
+        "select": "Select structure element"
+      }
     },
     "tree": {
+      "close": "Close structure element",
+      "explore": "Close/open all structure sub elements",
       "info": "You may expand or collapse structure elements with structure sub elements by clicking the folder icons or the title of the element, you may select any element by clicking the row at any other position.",
+      "open": "Open structure element",
+      "perspective": "structure tree",
       "rootNode": "Root node",
       "title": {
+        "_": "structure tree",
         "select": "Select structure element"
+      }
+    },
+    "wizard": {
+      "action": {
+        "_": "Action",
+        "noactionRequired": "Nothing will be further done because you haven't defined any group, therefore no access rights will be created.",
+        "taskAndgroupsGiven": "The required access rights of the group(s) defined above will be set if you click on the create button. You can change these access rights via the menu item access management whenever needed."
+      },
+      "button": {
+        "createGroup": {
+          "_": "create group",
+          "tooltip": "You can choose an existing group or create a new group by using this button."
+        },
+        "createTask": {
+          "_": "create structure element",
+          "tooltip": "You can choose an existing structure element or create a new element by using this button."
+        }
+      },
+      "externalGroup": {
+        "_": "External stuff (optional)",
+        "groupNameSuffix": "external",
+        "intro": "The external users have guest rights, so they can only see their own time reports."
+      },
+      "finish": "Finish",
+      "intro": "Use this wizard to add a new structure element which represents e.g. a project with assigned groups and users. The assigned users will have access rights to this structure element (e.g. for booking time sheet etc.).",
+      "managerGroup": {
+        "_": "Managing users (optional)",
+        "groupNameSuffix": "pm",
+        "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
+      },
+      "pageTitle": "Structure wizard",
+      "task": {
+        "intro": "For this structure element the rights for the given groups will be configured: For all ancestor elements a minimal read access will be configured for the groups, but all other elements in the upper hierarchy will not be accessible without further grants."
+      },
+      "team": {
+        "_": "Team users (optional)",
+        "intro": "The team members are able to create and modify structure sub elements and to book their time sheets."
       }
     },
     "workpackageCode": "Work package code"

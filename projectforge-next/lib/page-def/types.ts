@@ -70,6 +70,29 @@ interface ColumnBase<Row> {
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
   headerLabelKey?: string;
+  /**
+   * Whether the page has this column at all — for one whose subject may not exist in this installation
+   * or may not be seen by this user: the task list shows its cost units only where cost units are
+   * configured, and its orders only to project staff and above.
+   *
+   * Not the same as a *hidden* column: that is the user's own choice, reversible in the column panel.
+   * A column dropped here never reaches the table, so it is not in the panel either — the page simply
+   * does not have it.
+   *
+   * The answer is the backend's, and it comes as it is: `variables` are `ListMetaData.variables` of
+   * this entity (`AbstractEntityRest.addVariablesForListPage`). Nothing is derived in the client,
+   * because group membership and the installation's configuration are not the client's to know.
+   */
+  visible?: (ctx: { variables?: Record<string, unknown> }) => boolean;
+  /**
+   * No sorting on this column.
+   *
+   * For a value the backend cannot order by: the list sorts by entity property
+   * (`MagicFilterProcessor`), so a column showing something computed per row — a task's consumption,
+   * its cost units, its orders — has nothing to sort by. Wicket's list says the same by passing no
+   * sort property for exactly these columns.
+   */
+  sortable?: false;
 }
 
 /** A column showing one property of the entity, labelled from its metadata. */

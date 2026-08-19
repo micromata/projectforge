@@ -5,6 +5,12 @@ import {
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FinanceSection } from "./edit/finance-section";
+import { TaskListActions } from "./task-list-actions";
+import {
+  TaskConsumptionCell,
+  TaskOrdersCell,
+  TaskStatusListCell,
+} from "./task-list-cells";
 import { taskSchema, TASK_FIELDS, type TaskValues } from "./task-schema";
 import { emptyTaskValues, toFormValues } from "./task-values";
 import {
@@ -27,9 +33,15 @@ export const TASK_LIST_QUERY_KEY = ["task"] as const;
  * Not on the Wicket form and therefore not here: `workpackageCode` (held in the values so a save does
  * not erase it, see task-schema.ts) and the computed `consumption`.
  *
- * The columns are a placeholder: the list is step 4 of projectforge-next/MIGRATION.md, and until then
- * `/task` has no page of its own — `route` is what `${route}/${id}` is built from. A task is reached
- * from the tree, which is why `returnTargets` names it (step 4 prepends the list).
+ * The columns are `TaskListPage.createColumns` — ten, in its order, with the three whose subject may
+ * not exist gated on the backend's answer (see TaskPagesRest.addVariablesForListPage). Three of them
+ * show a value that is not on `TaskDO` and is computed per row from the in-memory tree, so there is
+ * nothing to sort them by (`sortable: false`), which is what Wicket says too by passing them no sort
+ * property.
+ *
+ * Note the *tree* additionally hides `reference` and `priority` when no task in the whole tree fills
+ * them. Wicket's list shows both unconditionally, and this follows the list — the divergence is
+ * between the two Wicket pages, not a decision taken here.
  */
 export const TASK_PAGE = definePage<
   TaskListRow,
@@ -43,7 +55,79 @@ export const TASK_PAGE = definePage<
   queryKey: TASK_LIST_QUERY_KEY,
   categoryKey: "menu.taskTree",
   titleKey: "task.title.list",
-  columns: [{ name: "title", size: 400 }],
+  columns: [
+    // The one column a reader looks for first, so it stays in view while the rest scrolls sideways.
+    // Headed "Structure element" rather than the field's own "Title", as both Wicket pages head it
+    // (`getString("task")`, and the tree's column def) — in a list of tasks the column *is* the task.
+    {
+      name: "title",
+      headerLabelKey: "task._",
+      size: 400,
+      className: "font-semibold",
+      pinned: "left",
+    },
+    {
+      // Painted rather than written out: the bar, its colour and its tooltip are all the backend's
+      // (see Consumption.kt) — the same value and the same cell as in the tree.
+      id: "consumption",
+      labelKey: "task.consumption",
+      accessor: (row) => row.consumption,
+      cell: ({ row }) => <TaskConsumptionCell row={row.original} />,
+      size: 130,
+      sortable: false,
+      filterKind: null,
+    },
+    {
+      // The shared prefix of the task's cost units, with all of them as the tooltip — one column for
+      // what would otherwise be a list per row (`KostHelper.getWildCardString`).
+      id: "kost2WildCard",
+      labelKey: "fibu.kost2",
+      accessor: (row) => row.kost2WildCard ?? "",
+      tooltip: (row) => row.kost2ListAsLines ?? undefined,
+      size: 100,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.kost2Configured === true,
+    },
+    {
+      // One link per order, which is why the row carries the list rather than a joined string.
+      id: "orderList",
+      labelKey: "fibu.auftrag.auftraege",
+      accessor: (row) => row.orderList,
+      cell: ({ row }) => <TaskOrdersCell row={row.original} />,
+      size: 120,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.orders === true,
+    },
+    { name: "shortDescription", size: 300 },
+    {
+      name: "protectTimesheetsUntil",
+      headerLabelKey: "task.protectTimesheetsUntil.short",
+      size: 110,
+      visible: ({ variables }) => variables?.protectTimesheetsUntil === true,
+    },
+    { name: "reference", size: 120 },
+    { name: "priority", size: 110 },
+    {
+      // Coloured by the raw enum letter, worded by the bundle — as the Wicket page shows it.
+      name: "status",
+      size: 110,
+      cell: ({ row }) => <TaskStatusListCell row={row.original} />,
+    },
+    {
+      // Sorted by the user's surname, since the name the cell shows is assembled (`PFUserDO.displayName`
+      // is transient) and Wicket's own sort — by `responsibleUserId` — orders by nothing a reader sees.
+      id: "responsibleUser.lastname",
+      // The entity's own wording, so the column reads as the form's field does — a computed column has
+      // to name a key, and the generated metadata is where that key lives (see labelKeyFor).
+      labelKey: TASK_METADATA.fields.responsibleUser.i18nKey,
+      accessor: (row) => row.responsibleUser?.displayName ?? "",
+      size: 160,
+    },
+  ],
+  // The switch to the structure tree, Wicket's "tree view" button.
+  listActions: TaskListActions,
   edit: {
     schema: taskSchema,
     fieldNames: TASK_FIELDS,
@@ -52,7 +136,12 @@ export const TASK_PAGE = definePage<
     title: (task) => task.title ?? "",
     newTitleKey: "task.title.add",
     savedMessageKey: "message.successfullChanged",
-    returnTargets: [{ route: TASK_TREE_ROUTE, labelKey: "menu.taskTree" }],
+    // The tree first, so it stays where an add-url without `returnTo` leads — a task is reached from
+    // the tree by default, and the list always sends one.
+    returnTargets: [
+      { route: TASK_TREE_ROUTE, labelKey: "menu.taskTree" },
+      { route: TASK_ROUTE, labelKey: "task.title.list" },
+    ],
     // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend
     // can resolve what hangs on it — the project of the cost unit block, and the rights of the two
     // access-gated groups (see TaskPagesRest.newBaseDO and useNewEntryParams).

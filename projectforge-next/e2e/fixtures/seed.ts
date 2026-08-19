@@ -331,6 +331,12 @@ export async function fetchRootTaskId(
 export interface SeededTask {
   id: number;
   title: string;
+  /**
+   * The run's own suffix, and the one word of the title that hits this run only — the rest of it
+   * ("ZZ e2e task") is in every task an earlier run left, and the backend's search matches a row on
+   * any word of the term.
+   */
+  suffix: string;
   child: { id: number; title: string };
 }
 
@@ -357,7 +363,7 @@ export async function createTask(
     status: "O",
     parentTask: { id },
   });
-  return { id, title, child: { id: childId, title: childTitle } };
+  return { id, title, suffix, child: { id: childId, title: childTitle } };
 }
 
 /**

@@ -20,6 +20,7 @@ import { Spinner } from "@/components/shared/spinner";
 import { useEditTargets } from "@/hooks/use-edit-targets";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEntityListPage, type ListRow } from "@/hooks/use-entity-list-page";
+import { useListMeta } from "@/hooks/use-list-meta";
 import {
   isAccessDenied,
   useAccessDeniedRedirect,
@@ -28,11 +29,12 @@ import {
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
 import { useEntitySelection } from "@/store/selection-store";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
+import { leafKeyOf } from "@/lib/leaf-key";
 import {
   auditColumnsFor,
   defaultVisibilityOf,
 } from "@/lib/page-def/audit-columns";
-import { defaultPinningOf } from "@/lib/page-def/define-page";
+import { defaultPinningOf, visibleColumnsOf } from "@/lib/page-def/define-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -136,16 +138,30 @@ function DeclaredList<
   const t = useTranslations();
   // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
   // migrated and whose form is not yet (see useEditTargets).
-  const targets = useEditTargets(page.entity, page.route, !!page.edit);
+  // The return targets go with it: where the form has several callers, this list is one of them and has
+  // to name itself in the url it opens (see returnToQuery).
+  const targets = useEditTargets(
+    page.entity,
+    page.route,
+    !!page.edit,
+    page.edit?.returnTargets
+  );
+  // Which of the declared columns this installation and this user have at all — the backend's answer,
+  // as `ListMetaData.variables` (see ColumnBase.visible). Already in the cache: the page loads the
+  // list's meta data for its filter fields and its edit targets anyway.
+  const variables = useListMeta(page.entity).data?.variables;
   // Every list offers `created` and `lastUpdate`, hidden until the user asks for them — appended here
   // rather than declared per page (see auditColumnsFor).
   const declarations = useMemo(() => {
-    const appended = auditColumnsFor(page.columns, page.metadata);
+    // Dropped before the audit pair is appended and before the pinning is derived, so both see the
+    // set the table actually gets.
+    const kept = visibleColumnsOf(page.columns, variables);
+    const appended = auditColumnsFor(kept, page.metadata);
     return {
-      columns: appended.length ? [...page.columns, ...appended] : page.columns,
+      columns: appended.length ? [...kept, ...appended] : kept,
       defaultVisibility: defaultVisibilityOf(appended),
     };
-  }, [page.columns, page.metadata]);
+  }, [page.columns, page.metadata, variables]);
   const declared = useDeclaredColumns<Row, M>(
     page.metadata,
     declarations.columns
@@ -209,7 +225,9 @@ function DeclaredList<
       <ListPageShell
         toolbar={
           <ListToolbar
-            title={t(page.titleKey)}
+            // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
+            // heading and the parent of `task.title.list.select`), and the bare key would throw.
+            title={t(leafKeyOf(page.titleKey, t.has))}
             category={t(page.categoryKey)}
             searchValue={list.globalFilter}
             onSearchChange={list.setGlobalFilter}

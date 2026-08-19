@@ -25,6 +25,8 @@ package org.projectforge.rest.task
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.ProjektDO
@@ -32,7 +34,10 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.common.i18n.Priority
+import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.access.AccessType
+import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
@@ -132,15 +137,67 @@ class TaskPagesRestTest : AbstractTestBase() {
     }
 
     /**
-     * The rules Wicket enforces in its form and the backend didn't, so a save through the rest api slipped
-     * past them. At the boundaries, because that is where an off-by-one shows.
+     * The lean row of the hand built next list: the ten columns of `task.page.tsx` and the two audit ones,
+     * and nothing the edit form needs (see `Task.copyFrom4ListRow`).
+     *
+     * What it must *not* carry is the point of the override — every field left out is one Spring omits from
+     * the wire per row (`JsonInclude.Include.NON_NULL`).
+     */
+    @Test
+    fun `the list row carries the columns of the list and nothing else`() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val parent = initTestDB.addTask("taskListRowParent", "root")
+            val task = initTestDB.addTask("taskListRow", "taskListRowParent", "A short description")
+            task.reference = "the reference"
+            task.priority = Priority.HIGH
+            task.description = "The long description no column of the list shows."
+            // A budget, so the bar has something to fill: `Consumption.create` answers null for a task with
+            // neither planned nor booked effort - there is no consumption to show then, in either perspective.
+            task.maxHours = 8
+            task.kost2BlackWhiteList = "5.123.45.11"
+            task.responsibleUser = getUser(TEST_FINANCE_USER)
+            taskDao.update(task, checkAccess = false)
+
+            val row = Task()
+            row.copyFrom4ListRow(taskDao.find(task.id, checkAccess = false)!!)
+
+            assertEquals(task.id, row.id)
+            assertEquals("taskListRow", row.title)
+            assertEquals("A short description", row.shortDescription)
+            assertEquals("the reference", row.reference)
+            assertEquals(Priority.HIGH, row.priority)
+            assertEquals(TaskStatus.N, row.status)
+            assertEquals(getUser(TEST_FINANCE_USER).displayName, row.responsibleUser?.displayName)
+            // The two columns every next list offers, hidden until the user switches them on.
+            assertNotNull(row.created, "The created column is offered by every list.")
+            assertNotNull(row.lastUpdate, "The lastUpdate column is offered by every list.")
+            // Computed from the task tree, which holds the task: a row without it would show three empty
+            // columns for a task the list does show.
+            assertNotNull(row.consumption, "The consumption bar is one of the ten columns.")
+
+            assertNull(row.description, "Not a column of the list — it would be sent per row for nothing.")
+            assertNull(row.kost2BlackWhiteList, "Not a column of the list.")
+            assertNull(row.parentTask, "No column reads the parent; the path is the tree perspective's.")
+            assertFalse(row.kost2AndBookingStatusWriteAccess, "The access flags are the edit page's.")
+            assertFalse(row.protectTimesheetsUntilWriteAccess)
+            assertNotNull(parent.id) // The parent exists, so `parentTask` being null is the override's doing.
+            null
+        }
+    }
+
+    /**
+     * The one rule Wicket enforces in its form and the backend didn't, so a save through the rest api
+     * slipped past it: scheduled by duration or by end date, never by both - `TaskEditForm`'s only
+     * `IFormValidator`.
+     *
+     * The numeric ranges are *not* here any more: they are `@PropertyInfo(min/max)` on the `TaskDO` and are
+     * enforced for every entity by `ValidationUtils.validateFields` (see the range test below), so this
+     * override may not restate them.
      */
     @Test
     fun `validate refuses what the Wicket form refuses`() {
         logon(TEST_FINANCE_USER)
-        assertNoError(Task(progress = 0, maxHours = 0, duration = BigDecimal.ZERO))
-        assertNoError(Task(progress = 100, maxHours = 9999, duration = BigDecimal(10000)))
-        // Scheduled by duration or by end date, never by both - TaskEditForm's only IFormValidator.
         assertNoError(Task(duration = BigDecimal.ONE))
         assertNoError(Task(endDate = LocalDate.of(2026, 3, 4)))
         assertError(
@@ -148,13 +205,58 @@ class TaskPagesRestTest : AbstractTestBase() {
             "gantt.error.durationAndEndDateAreMutuallyExclusive",
             "endDate",
         )
-        val outOfRange = "validation.error.range.integerOutOfRange"
-        assertError(Task(progress = 101), outOfRange, "progress")
-        assertError(Task(progress = -1), outOfRange, "progress")
-        assertError(Task(maxHours = 10000), outOfRange, "maxHours")
-        assertError(Task(maxHours = -1), outOfRange, "maxHours")
-        assertError(Task(duration = BigDecimal(10001)), outOfRange, "duration")
-        assertError(Task(duration = BigDecimal(-1)), outOfRange, "duration")
+    }
+
+    /**
+     * The numeric bounds of the three Gantt fields, at the boundaries because that is where an off-by-one
+     * shows.
+     *
+     * Against the `TaskDO`, not the DTO: the bounds are declared there (`@PropertyInfo(min/max)`) and
+     * `AbstractEntityRest.validate` runs `ValidationUtils.validateFields` over the *DO* it is about to
+     * save. The same three numbers the next schema derives from the generated metadata, so neither side
+     * writes them out a second time.
+     */
+    @Test
+    fun `the ranges of the entity are enforced for every frontend`() {
+        logon(TEST_FINANCE_USER)
+        assertInRange(progress = 0, maxHours = 0, duration = BigDecimal.ZERO)
+        assertInRange(progress = 100, maxHours = 9999, duration = BigDecimal(10000))
+        assertOutOfRange("progress", progress = 101)
+        assertOutOfRange("progress", progress = -1)
+        assertOutOfRange("maxHours", maxHours = 10000)
+        assertOutOfRange("maxHours", maxHours = -1)
+        assertOutOfRange("duration", duration = BigDecimal(10001))
+        assertOutOfRange("duration", duration = BigDecimal(-1))
+    }
+
+    private fun rangeErrors(
+        progress: Int? = null,
+        maxHours: Int? = null,
+        duration: BigDecimal? = null,
+    ): List<ValidationError> {
+        val task = TaskDO()
+        task.progress = progress
+        task.maxHours = maxHours
+        task.duration = duration
+        // Only the range rule: a bare TaskDO is missing its title as well, and that is not what is under test.
+        return ValidationUtils.validateFields(task)
+            .filter { it.messageId == "validation.error.range.integerOutOfRange" }
+    }
+
+    private fun assertInRange(progress: Int? = null, maxHours: Int? = null, duration: BigDecimal? = null) {
+        val errors = rangeErrors(progress, maxHours, duration)
+        assertTrue(errors.isEmpty(), "Expected no range error, but got: $errors")
+    }
+
+    private fun assertOutOfRange(
+        fieldId: String,
+        progress: Int? = null,
+        maxHours: Int? = null,
+        duration: BigDecimal? = null,
+    ) {
+        val errors = rangeErrors(progress, maxHours, duration)
+        assertEquals(1, errors.size, "Expected exactly one range error, but got: $errors")
+        assertEquals(fieldId, errors[0].fieldId, "The message must land at its field, not in the general area.")
     }
 
     private fun assertNoError(dto: Task) {
