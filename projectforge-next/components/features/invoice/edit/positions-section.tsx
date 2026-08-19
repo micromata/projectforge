@@ -5,6 +5,7 @@ import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useFieldArray } from "@/hooks/use-field-array";
 import { emptyPositionValues, nextPositionNumber } from "../invoice-values";
+import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
 import { useInvoiceSums } from "../use-invoice-sums";
 import { PositionRow } from "./position-row";
 import type { InvoicePositionValues } from "../invoice-schema";
@@ -24,6 +25,9 @@ export function PositionsSection({ id }: { id: number | null }) {
   const t = useTranslations();
   const array = useFieldArray<InvoicePositionValues>("positionen");
   const { positionSums } = useInvoiceSums();
+  // The configured `fibu.defaultVAT`, for the first position of an invoice — from then on the row above
+  // is the better guess (see emptyPositionValues).
+  const defaults = useInvoiceFormDefaults();
   // A cache read of the invoice the form was filled from, not a second request: the access flags and
   // whether cost ids are configured are the server's and are not part of the form's values.
   const invoice = useEntityDetail<InvoiceDetail>("outgoingInvoice", id).data;
@@ -50,7 +54,8 @@ export function PositionsSection({ id }: { id: number | null }) {
                 emptyPositionValues(
                   nextPositionNumber(array.rows),
                   // The row it is added below, so its VAT rate carries over.
-                  array.rows[array.rows.length - 1]
+                  array.rows[array.rows.length - 1],
+                  defaults?.defaultVat ?? null
                 )
               )
           : undefined

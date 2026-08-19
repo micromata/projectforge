@@ -11,6 +11,7 @@ import {
   nextKostZuweisungIndex,
   remainingNet,
 } from "../invoice-values";
+import { useProjectKost2 } from "../use-project-kost2";
 import { CostAssignmentRow } from "./cost-assignment-row";
 import type { KostZuweisungValues } from "../invoice-schema";
 import type { InvoicePositionSums } from "@/lib/rs/invoice";
@@ -45,6 +46,8 @@ export function CostAssignmentsSection({
   const t = useTranslations();
   const format = useFormatContext();
   const array = useFieldArray<KostZuweisungValues>(`${prefix}kostZuweisungen`);
+  // The first cost unit of the invoice's project, for the very first row of a position.
+  const defaultKost2 = useProjectKost2();
   // Negated by `RechnungPosInfo`: an unassigned rest of 400,00 € arrives as -400,00 (see
   // InvoicePositionSums). Shown as the amount that is still missing, which is how Wicket words it.
   const fehlbetrag = sums?.kostZuweisungNetFehlbetrag;
@@ -86,7 +89,8 @@ export function CostAssignmentsSection({
                     // usually keeps cost 1.
                     array.rows[array.rows.length - 1],
                     // And what is left of the position, which is what the row is there to assign.
-                    remainingNet(sums?.netSum, array.rows)
+                    remainingNet(sums?.netSum, array.rows),
+                    defaultKost2
                   )
                 )
             : undefined

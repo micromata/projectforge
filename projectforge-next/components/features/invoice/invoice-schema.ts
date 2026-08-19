@@ -78,11 +78,21 @@ export const invoicePositionSchema = z.object({
   periodOfPerformanceBegin: p.nullableString("periodOfPerformanceBegin"),
   periodOfPerformanceEnd: p.nullableString("periodOfPerformanceEnd"),
   /**
-   * The order position this one bills. Read-only in the form — there is no picker for it — but part of
-   * the values, because the form posts the whole DTO and a missing key would drop the reference on save.
+   * The order position this one bills, picked through `order/positionAutosearch` (see
+   * OrderPositionField). Only `id` travels back — `RechnungsPosition.copyTo` writes nothing else — but
+   * the whole reference is held, because the row header links to the order by `auftragId` and names it
+   * by `auftragNummer`.`number`, and both are gone from the values once the user picks a new position.
+   *
+   * All fields nullable: a picked hit carries them, a value from an older stored invoice may not.
    */
   auftragsPosition: z
-    .looseObject({ id: z.number().nullable().optional() })
+    .looseObject({
+      id: z.number().nullable().optional(),
+      auftragId: z.number().nullable().optional(),
+      auftragNummer: z.number().nullable().optional(),
+      number: z.number().nullable().optional(),
+      displayName: z.string().nullable().optional(),
+    })
     .nullable(),
   kostZuweisungen: z.array(kostZuweisungSchema),
 });
@@ -117,8 +127,9 @@ export const invoiceSchema = z.object({
   customerLeitwegId: m.nullableString("customerLeitwegId"),
   customerEInvoiceEmail: m.nullableString("customerEInvoiceEmail"),
   /**
-   * A plain text field for now. Wicket offers a select over `EInvoiceSellerConfig.bankAccounts`, which
-   * needs an endpoint exposing them — deferred with the e-invoice export itself.
+   * The IBAN of one of the seller's bank accounts, chosen from `EInvoiceSellerConfig.bankAccounts` (see
+   * SellerBankAccountField). A string and not an id: the accounts come from the application configuration
+   * and have none, and the IBAN is both what the column holds and what `findBankAccount` resolves.
    */
   sellerBankAccount: m.nullableString("sellerBankAccount"),
   periodOfPerformanceBegin: m.nullableString("periodOfPerformanceBegin"),

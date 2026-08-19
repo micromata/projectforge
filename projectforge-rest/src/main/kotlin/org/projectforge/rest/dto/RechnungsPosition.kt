@@ -51,7 +51,10 @@ class RechnungsPosition(
     override var menge: BigDecimal? = null,
     override var einzelNetto: BigDecimal? = null,
     override var vat: BigDecimal? = null,
-    /** The order position this one invoices, if any. Read-only for now — there is no picker for it yet. */
+    /**
+     * The order position this one invoices, if any. Picked through `OrderEntityRest.positionAutosearch`;
+     * only [OrderPositionRef.id] is written back (see [copyTo]), the rest is what the link needs.
+     */
     var auftragsPosition: OrderPositionRef? = null,
     var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE,
     var periodOfPerformanceBegin: LocalDate? = null,

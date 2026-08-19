@@ -116,14 +116,23 @@ export function emptyInvoiceValues(): InvoiceValues {
  *
  * @param number What [nextPositionNumber] yields for the rows the form currently holds.
  * @param predecessor The row it is added below, if any. Its VAT rate is proposed — every position of an
- *   invoice is taxed the same in all but the rare case, and `AbstractRechnungEditForm` presets it the
- *   same way. Nothing else is: what is billed is what the new row is there to say.
+ *   invoice is taxed the same in all but the rare case. Nothing else is: what is billed is what the new
+ *   row is there to say.
+ * @param defaultVat The configured `fibu.defaultVAT`, used where there is no predecessor to take a rate
+ *   from. Wicket presets only this one (`AbstractRechnungEditForm.refreshPositions`) and even then only on
+ *   the very first position; carrying the predecessor's rate over is an improvement kept on purpose,
+ *   which is why it wins here — the row above is a better guess about *this* invoice than a value
+ *   configured once for the whole installation.
  */
 export function emptyPositionValues(
   number: number,
-  predecessor?: InvoicePositionValues
+  predecessor?: InvoicePositionValues,
+  defaultVat?: number | null
 ): InvoicePositionValues {
-  return toPositionValues({ number, vat: predecessor?.vat ?? null });
+  return toPositionValues({
+    number,
+    vat: predecessor?.vat ?? defaultVat ?? null,
+  });
 }
 
 /**
@@ -148,17 +157,22 @@ export function nextPositionNumber(
  *   the whole net sum on the first row, the rest on a later one. A proposal like the two cost units and
  *   nothing more — the field stays editable, and the Fehlbetrag still says whether it adds up.
  *   `RechnungCostEditTablePanel.addZuweisung` presets the same amount.
+ * @param defaultKost2 The first active cost unit of the invoice's project, used where there is no
+ *   predecessor to take one from — `RechnungCostEditTablePanel.newKostZuweisung` presets exactly that.
+ *   Which cost units a project has is the backend's answer (`fetchActiveKost2`), because the invoice
+ *   carries its project without the number range the lookup needs.
  */
 export function emptyKostZuweisungValues(
   index: number,
   predecessor?: KostZuweisungValues,
-  netto?: number | null
+  netto?: number | null,
+  defaultKost2?: KostZuweisungValues["kost2"]
 ): KostZuweisungValues {
   return toKostZuweisungValues({
     index,
     netto,
     kost1: predecessor?.kost1 ?? null,
-    kost2: predecessor?.kost2 ?? null,
+    kost2: predecessor?.kost2 ?? defaultKost2 ?? null,
   });
 }
 

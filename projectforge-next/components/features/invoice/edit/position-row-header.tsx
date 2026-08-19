@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -8,6 +7,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CostAssignmentsSummary } from "./cost-assignments-summary";
+import { OrderPositionLink } from "./order-position-link";
 import { usePositionDetailChips } from "./position-detail-chips";
 import type { InvoicePositionValues } from "../invoice-schema";
 import type { InvoicePositionSums } from "@/lib/rs/invoice";
@@ -84,17 +84,9 @@ export function PositionRowHeader({
               {chip.value}
             </span>
           ))}
-          {/* The order this position bills, as a link to it — read-only, since the form has no picker
-              for the reference (see the DTO's OrderPositionRef). */}
-          {order?.auftragId != null && (
-            <Link
-              href={`/order/${order.auftragId}`}
-              className="shrink-0 text-primary underline-offset-2 hover:underline"
-              aria-label={`${t("fibu.auftrag._")} ${order.auftragNummer ?? ""}`}
-            >
-              {`${t("fibu.auftrag._")} ${order.auftragNummer ?? ""}.${order.number ?? ""}`}
-            </Link>
-          )}
+          {/* The order this position bills, as a link to it — the same link the picker of the unfolded
+              row carries (see OrderPositionLink). */}
+          <OrderPositionLink order={order} />
         </span>
       )}
       {costConfigured && (

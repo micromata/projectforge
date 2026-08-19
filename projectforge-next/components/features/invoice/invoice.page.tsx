@@ -8,6 +8,7 @@ import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
+import { SellerBankAccountField } from "./edit/seller-bank-account-field";
 import { InvoiceListActions } from "./invoice-list-actions";
 import {
   invoiceSchema,
@@ -272,9 +273,9 @@ export const INVOICE_PAGE = definePage<
             hintKey: "fibu.konto.leitwegId.tooltip",
           },
           { name: "customerEInvoiceEmail" },
-          // A plain text box, not the select Wicket builds from `EInvoiceSellerConfig.bankAccounts`:
-          // exposing those needs an endpoint of its own, deferred with the export that reads them.
-          { name: "sellerBankAccount", startsRow: true },
+          // A select over the configured bank accounts, as Wicket has it — custom because the options
+          // are application configuration, which no field metadata can carry.
+          { custom: SellerBankAccountField, startsRow: true },
         ],
       },
       {

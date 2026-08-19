@@ -38,6 +38,7 @@ import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
@@ -70,6 +71,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
@@ -115,7 +117,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    *
    * Because of that merge, every field the DTO doesn't carry ends up as null in the database. The
    * attachment fields are such fields (they are written by the attachment endpoints, not by this form),
-   * so they are copied back from the database row, exactly as `AuftragEditPage.update` does.
+   * so they are copied back from the database row, exactly as `AuftragEditPage.update` does. So is
+   * `uiStatusAsXml`, which belongs to the Wicket form alone.
    */
   override fun transformForDB(dto: Auftrag): AuftragDO {
     val auftragDO = AuftragDO()
@@ -135,6 +138,11 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         auftragDO.attachmentsIds = dbObj.attachmentsIds
         auftragDO.attachmentsSize = dbObj.attachmentsSize
         auftragDO.attachmentsLastUserAction = dbObj.attachmentsLastUserAction
+        // Which position rows the Wicket form shows collapsed (`AuftragDao.onInsertOrModify` writes it on
+        // every save). Another field the DTO doesn't carry, and this form has no use for: the collapsed
+        // state of a row is the user's, not the order's, so projectforge-next keeps it in the browser
+        // instead. Copied back so a save from here doesn't clear what Wicket remembered.
+        auftragDO.uiStatusAsXml = dbObj.uiStatusAsXml
       }
     }
     return auftragDO
@@ -653,6 +661,99 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
+   * Searches order **positions**, for the field of an invoice position that says which order position it
+   * bills (Wicket's `AuftragsPositionFormComponent`).
+   *
+   * Its own endpoint rather than the generic `autosearch`: that one answers `DisplayObject(id,
+   * displayName)` over whole orders, while the picker needs positions, and needs the order's id and
+   * number per hit as well - the invoice's DTO carries them ([RechnungsPosition.OrderPositionRef]) and
+   * the row header links to the order by id.
+   *
+   * The search itself is Wicket's: the same three fields, `###.##` recognized as a direct hit, and
+   * deleted positions left out. `maxResults` bounds what a two character term may produce - the flattened
+   * positions of every matching order are easily a few thousand rows.
+   *
+   * Access is checked twice, and has to be: the category right says whether the user may search orders at
+   * all, while [AuftragRight.hasAccess] decides *which* order - a contact person or project manager sees
+   * only their own, and a non finance user none that is fully invoiced and older than about five years.
+   * The list search filters by it on its own ([BaseDao.select] with `checkAccess`), but the `###.##` hit
+   * goes through [AuftragDao.getAuftragsPosition], which queries the database directly and checks nothing,
+   * so an order the user may not read would otherwise be named by its number here.
+   */
+  @GetMapping("positionAutosearch")
+  fun positionAutosearch(
+    @RequestParam("search") search: String?,
+    @RequestParam("maxResults", required = false) maxResults: Int?,
+  ): List<OrderPositionHit> {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val term = search?.trim()
+    if (term.isNullOrEmpty()) {
+      return emptyList()
+    }
+    val limit = maxResults ?: 50
+    // "1234.5" names exactly one position, and searching for it as a text would find every order whose
+    // title happens to contain the digits instead.
+    baseDao.getAuftragsPosition(term)?.let { position ->
+      val order = position.auftrag
+      // Silently no hit rather than a 403: whether an order with this number exists is itself something
+      // the user may not be told, and Wicket's field says "not found" for both cases alike.
+      if (!position.deleted && order != null && baseDao.hasLoggedInUserSelectAccess(order, throwException = false)) {
+        return listOf(toHit(position))
+      }
+      return emptyList()
+    }
+    val filter = BaseSearchFilter()
+    filter.searchString = term
+    filter.searchFields = POSITION_SEARCH_FIELDS
+    return baseDao.select(filter)
+      .sortedBy { it.nummer ?: 0 }
+      .flatMap { order -> order.positionenExcludingDeleted }
+      .take(limit)
+      .map { toHit(it) }
+  }
+
+  /**
+   * One hit of [positionAutosearch]: the reference the invoice position stores, plus the label Wicket's
+   * picker shows for it.
+   */
+  class OrderPositionHit(
+    var id: Long? = null,
+    var auftragId: Long? = null,
+    var auftragNummer: Int? = null,
+    var number: Short? = null,
+    /**
+     * `<order number>.<position number>: <customer> - <project>: <title> / <position number>: <position
+     * title>`, as `AuftragsPositionFormComponent.getTooltip` builds it. Formatted here and not in the
+     * client: it is a sentence about the order, and the client has only the position.
+     */
+    var displayName: String? = null,
+  )
+
+  private fun toHit(position: AuftragsPositionDO): OrderPositionHit {
+    val order = position.auftrag
+    val sb = StringBuilder()
+    sb.append(order?.nummer).append(".").append(position.number).append(": ")
+    if (order?.kunde != null) {
+      sb.append(order.kundeAsString)
+      order.projekt?.let { sb.append(" - ").append(it.name) }
+      sb.append(": ")
+    } else if (order?.projekt != null) {
+      sb.append(order.projekt?.name).append(": ")
+    }
+    sb.append(order?.titel).append(" / ").append(position.number)
+    if (!position.titel.isNullOrBlank()) {
+      sb.append(": ").append(position.titel)
+    }
+    return OrderPositionHit(
+      id = position.id,
+      auftragId = order?.id,
+      auftragNummer = order?.nummer,
+      number = position.number,
+      displayName = sb.toString(),
+    )
+  }
+
+  /**
    * The whole filtered list as the three sheet Excel file Wicket's "Excel export" produces
    * (`AuftragListPage`, [OrderExport]).
    *
@@ -747,6 +848,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   )
 
   companion object {
+    /**
+     * What [positionAutosearch] matches a term against, the three fields of
+     * `AuftragsPositionFormComponent`: the formatted number of the order, its project and its customer.
+     */
+    private val POSITION_SEARCH_FIELDS = arrayOf("nummerAsString", "projekt.name", "kunde.name")
+
     /**
      * The list's [MagicFilter] as the [AuftragFilter] the two exports of `projectforge-business` take.
      *

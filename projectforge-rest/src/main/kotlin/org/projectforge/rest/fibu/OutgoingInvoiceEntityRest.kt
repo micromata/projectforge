@@ -29,7 +29,10 @@ import mu.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
+import org.projectforge.business.fibu.EInvoiceSellerConfig
+import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
@@ -38,10 +41,15 @@ import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.business.fibu.SearchFilterWithPeriodOfPerformance
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
+import org.projectforge.business.fibu.kost.KundeCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
@@ -55,17 +63,22 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.ValidationUtils
+import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -104,6 +117,26 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     @Autowired
     private lateinit var kostZuweisungExport: KostZuweisungExport
 
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    /**
+     * The two caches [getActiveKost2] and [checkKost2] resolve their arguments with, injected rather than taken
+     * from [PfCaches.instance]: that static is replaced by `PfCaches.internalSetupForTestCases`, which builds
+     * caches that never had their `persistenceService` injected, so every read through it fails in a test.
+     */
+    @Autowired
+    private lateinit var projektCache: ProjektCache
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
+    private lateinit var invoiceService: InvoiceService
+
+    @Autowired
+    private lateinit var sellerConfig: EInvoiceSellerConfig
+
     @PostConstruct
     private fun postConstruct() {
         enableJcr()
@@ -116,7 +149,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * Because of that merge, every field the DTO doesn't carry ends up as null in the database — the five
      * attachment columns are such fields (written by the attachment endpoints, not by this form), so they
-     * are copied back from the database row, as `RechnungEditPage.update` does.
+     * are copied back from the database row, as `RechnungEditPage.update` does. So is `uiStatusAsXml`,
+     * which belongs to the Wicket form alone.
      *
      * [RechnungDO.nummer] is deliberately *not* assigned here, unlike the order's: `RechnungDao` assigns it
      * itself on the transition from [org.projectforge.business.fibu.RechnungStatus.GEPLANT] to any other
@@ -137,6 +171,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 rechnungDO.attachmentsIds = dbObj.attachmentsIds
                 rechnungDO.attachmentsSize = dbObj.attachmentsSize
                 rechnungDO.attachmentsLastUserAction = dbObj.attachmentsLastUserAction
+                // Which position rows the Wicket form shows collapsed (`RechnungDao.writeUiStatusToXml`).
+                // Another field the DTO doesn't carry, and this form has no use for: the collapsed state of
+                // a row is the user's, not the invoice's, so projectforge-next keeps it in the browser
+                // instead. Copied back so a save from here doesn't clear what Wicket remembered.
+                rechnungDO.uiStatusAsXml = dbObj.uiStatusAsXml
             }
         }
         return rechnungDO
@@ -229,6 +268,159 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             obj.nummer = baseDao.getNextNumber(obj)
         }
     }
+
+    /**
+     * The rules the period of performance adds on top of the field rules, which are validated generically
+     * for the invoice and its nested rows alike ([ValidationUtils.validateFields]).
+     *
+     * The same rules the order has, applied through the same [PeriodOfPerformanceValidator] — they used to
+     * live in the Wicket form of both (`PeriodOfPerformanceHelper`), which is why neither [RechnungDao] nor
+     * this class enforced them before: a hand built form has no date panels to hang them on.
+     *
+     * Deleted positions are left out: such a position is only posted so the persistence layer doesn't remove
+     * it physically, and its dates are none of the user's business anymore.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Rechnung) {
+        super.validate(validationErrors, dto)
+        PeriodOfPerformanceValidator.validate(
+            periodOfPerformanceBegin = dto.periodOfPerformanceBegin,
+            periodOfPerformanceEnd = dto.periodOfPerformanceEnd,
+            positions = dto.positionen?.filter { !it.deleted }?.map { position ->
+                PeriodOfPerformanceValidator.Position(
+                    type = position.periodOfPerformanceType,
+                    begin = position.periodOfPerformanceBegin,
+                    end = position.periodOfPerformanceEnd,
+                )
+            },
+        ).forEach { error ->
+            val message =
+                error.labelKey?.let { translateMsg(error.messageKey, translate(it)) } ?: translate(error.messageKey)
+            validationErrors.add(ValidationError(message, fieldId = error.fieldId, messageId = error.messageKey))
+        }
+    }
+
+    /**
+     * Everything the hand built form has to know before the user touches it, in one read.
+     *
+     * All four values are configuration and none of them belongs to an invoice, so none travels on the DTO.
+     * Wicket asks its four sources one by one while it builds the page; a hand built form would need a
+     * request each, on every mount, for values that change about once per installation.
+     *
+     * Read only, so the select access of the category is what has to be checked here — nothing is written.
+     */
+    @GetMapping("formDefaults")
+    fun getFormDefaults(): FormDefaults {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        return FormDefaults(
+            defaultVat = Configuration.instance.getPercentValue(ConfigurationParam.FIBU_DEFAULT_VAT),
+            bankAccounts = sellerConfig.bankAccounts.map { BankAccount(value = it.iban, label = it.displayName) },
+            eInvoiceConfigured = sellerConfig.isConfigured(),
+            templateVariants = invoiceService.getTemplateVariants().toList(),
+        )
+    }
+
+    /**
+     * The values [getFormDefaults] answers.
+     */
+    class FormDefaults(
+        /**
+         * The VAT rate a new position starts with, `fibu.defaultVAT` (as a fraction, i.e. 0.19 for 19 %).
+         * Null where the installation configured none, in which case the field simply starts empty.
+         */
+        val defaultVat: BigDecimal?,
+        /** The seller's bank accounts, for the `sellerBankAccount` select of the e-invoice address block. */
+        val bankAccounts: List<BankAccount>,
+        /**
+         * Whether the seller address is complete enough for an e-invoice export — the condition under which
+         * Wicket offers its e-invoice menu at all (`RechnungEditPage.addEInvoiceMenu`).
+         */
+        val eInvoiceConfigured: Boolean,
+        /**
+         * The variants of the Word invoice template, one entry per export the form offers. A single empty
+         * string means the installation has no custom template, i.e. exactly one, unnamed variant.
+         */
+        val templateVariants: List<String>,
+    )
+
+    /**
+     * One entry of the `sellerBankAccount` select. The value is the IBAN and not an id, because that is what
+     * the column holds and what `EInvoiceSellerConfig.findBankAccount` looks an account up by — the accounts
+     * come from the application configuration and have no ids.
+     */
+    class BankAccount(val value: String, val label: String)
+
+    /**
+     * The cost units of a project, for the Kost2 preselection of a new cost assignment
+     * (`RechnungCostEditTablePanel.newKostZuweisung` takes the first one).
+     *
+     * Answered by the project rather than looked up in the browser: which cost units belong to a project
+     * follows from its number range, area and number ([ProjektDO.nummernkreis] and friends), and the invoice
+     * DTO carries its project the `copyFromMinimal` way, which omits all three.
+     *
+     * An empty list where the project has no area — [KostCache] cannot be asked without one, and a project
+     * in that state has no cost units to offer.
+     */
+    @GetMapping("activeKost2")
+    fun getActiveKost2(@RequestParam("projektId") projektId: Long?): List<Kost2> {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
+        val bereich = projekt.bereich ?: return emptyList()
+        return kostCache.getActiveKost2(projekt.nummernkreis, bereich, projekt.teilbereich)
+            .sorted()
+            .map { Kost2(it) }
+    }
+
+    /**
+     * Whether a cost unit belongs to the project (or, for an invoice naming none, to the customer) of the
+     * invoice — the question `RechnungEditForm.onRenderCostRow` answers by outlining the field in Wicket.
+     *
+     * Server side for the same reason [getActiveKost2] is: the comparison is over the number range, the area
+     * and the number of the project or the customer, and neither `Project` nor `Customer` carries those on
+     * the wire (`Customer` has no number range at all). Three integers the caches hold anyway against
+     * widening two DTOs other pages use — and the rule stays next to Wicket's copy of it.
+     *
+     * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
+     * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
+     */
+    @GetMapping("kost2Check")
+    fun checkKost2(
+        @RequestParam("kost2Id") kost2Id: Long?,
+        @RequestParam("projektId", required = false) projektId: Long?,
+        @RequestParam("kundeId", required = false) kundeId: Long?,
+    ): Kost2Check {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val kost2 = kostCache.getKost2(kost2Id) ?: return Kost2Check(matchesInvoice = true)
+        // The project wins over the customer, as the Wicket form reads them: a project already names its
+        // customer, and its area narrows the answer further.
+        val projekt = projektCache.getProjekt(projektId)
+        val numberRange: Int
+        // -1 means "don't compare", which is what an invoice without a project leaves the area at.
+        var area = -1
+        val number: Long
+        if (projekt != null) {
+            numberRange = projekt.nummernkreis
+            area = projekt.bereich ?: -1
+            number = projekt.nummer.toLong()
+        } else {
+            val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
+            numberRange = kunde.nummernkreis
+            number = kunde.nummer ?: return Kost2Check(matchesInvoice = true)
+        }
+        val differs = if (numberRange >= 0 && kost2.nummernkreis != numberRange) {
+            true
+        } else if (area >= 0 && kost2.bereich != area) {
+            true
+        } else {
+            number >= 0 && kost2.teilbereich.toLong() != number
+        }
+        return Kost2Check(matchesInvoice = !differs)
+    }
+
+    /**
+     * The answer of [checkKost2] — an object rather than a bare boolean so the client reads a name instead of
+     * a `true` whose meaning has to be looked up.
+     */
+    class Kost2Check(val matchesInvoice: Boolean)
 
     /**
      * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on

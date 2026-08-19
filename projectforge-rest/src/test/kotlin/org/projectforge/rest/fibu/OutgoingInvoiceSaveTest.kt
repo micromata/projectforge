@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.fibu.PeriodOfPerformanceType
+import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungStatus
@@ -37,6 +39,8 @@ import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
+import org.projectforge.rest.dto.RechnungsPosition
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -114,6 +118,93 @@ class OutgoingInvoiceSaveTest : AbstractTestBase() {
         // (fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend) - and the field is read-only in the form,
         // so a number that is there came from the backend in the first place.
         assertEquals(4711, invoice.nummer)
+    }
+
+    @Test
+    fun `a save from the next form keeps the collapsed positions the Wicket form remembered`() {
+        logon(TEST_FINANCE_USER)
+        val invoice = newInvoice()
+        onBeforeSave(invoice)
+        val id = rechnungDao.insert(invoice)
+        // As `AbstractRechnungEditForm` writes it: the numbers of the position rows shown collapsed. Set on
+        // the database row directly, because that form is the only thing that ever produces it.
+        val uiStatus = "<rechnungUIStatus><closedPositions><short>1</short></closedPositions></rechnungUIStatus>"
+        rechnungDao.find(id)!!.let { dbObj ->
+            dbObj.uiStatusAsXml = uiStatus
+            rechnungDao.update(dbObj)
+        }
+
+        // The round trip of the next form: read it as a DTO, post it back unchanged.
+        val dto = outgoingInvoiceEntityRest.transformFromDB(rechnungDao.find(id)!!, editMode = true)
+        val posted = outgoingInvoiceEntityRest.transformForDB(dto)
+
+        // The DTO doesn't carry the field, so transformForDB has to copy it back from the database row -
+        // otherwise the merge nulls the column and the Wicket form forgets what the user collapsed.
+        assertEquals(uiStatus, posted.uiStatusAsXml)
+    }
+
+    @Test
+    fun `an invoice whose period of performance ends before it begins is refused`() {
+        logon(TEST_FINANCE_USER)
+        val dto = Rechnung(
+            periodOfPerformanceBegin = LocalDate.of(2026, 8, 18),
+            periodOfPerformanceEnd = LocalDate.of(2026, 8, 1),
+        )
+
+        val errors = validate(dto)
+
+        // The rules used to live in the Wicket form alone, so a post from the next form got through
+        // unchecked - see OutgoingInvoiceEntityRest.validate.
+        assertEquals(1, errors.size, "One error, at the end date: $errors")
+        assertEquals("periodOfPerformanceEnd", errors[0].fieldId)
+        assertEquals(PeriodOfPerformanceValidator.END_BEFORE_BEGIN_MESSAGE_KEY, errors[0].messageId)
+    }
+
+    @Test
+    fun `a position with its own period may not begin before the invoice does`() {
+        logon(TEST_FINANCE_USER)
+        val dto = Rechnung(periodOfPerformanceBegin = LocalDate.of(2026, 8, 18)).also { invoice ->
+            invoice.positionen = mutableListOf(
+                RechnungsPosition(
+                    periodOfPerformanceType = PeriodOfPerformanceType.OWN,
+                    periodOfPerformanceBegin = LocalDate.of(2026, 8, 1),
+                    periodOfPerformanceEnd = LocalDate.of(2026, 8, 31),
+                )
+            )
+        }
+
+        val errors = validate(dto)
+
+        // Anchored at the row, so the form can show it where the wrong date is.
+        assertEquals(1, errors.size, "One error, at the position's begin date: $errors")
+        assertEquals("positionen[0].periodOfPerformanceBegin", errors[0].fieldId)
+        assertEquals(PeriodOfPerformanceValidator.POS_BEGIN_BEFORE_BEGIN_MESSAGE_KEY, errors[0].messageId)
+    }
+
+    @Test
+    fun `the dates of a deleted position are none of the user's business anymore`() {
+        logon(TEST_FINANCE_USER)
+        val dto = Rechnung(periodOfPerformanceBegin = LocalDate.of(2026, 8, 18)).also { invoice ->
+            invoice.positionen = mutableListOf(
+                RechnungsPosition(
+                    periodOfPerformanceType = PeriodOfPerformanceType.OWN,
+                    periodOfPerformanceBegin = LocalDate.of(2026, 8, 1),
+                    periodOfPerformanceEnd = LocalDate.of(2026, 8, 31),
+                ).also { it.deleted = true }
+            )
+        }
+
+        // Such a row is only posted so the persistence layer doesn't remove it physically; refusing the save
+        // over its dates would leave the user with an error at a row that is gone from the form.
+        assertEquals(0, validate(dto).size)
+    }
+
+    private fun validate(dto: Rechnung): List<ValidationError> {
+        val errors = mutableListOf<ValidationError>()
+        outgoingInvoiceEntityRest.validate(errors, dto)
+        // The field rules of `super.validate` fire on an incomplete DTO too; only the period of performance
+        // is this test's business.
+        return errors.filter { it.fieldId?.contains("periodOfPerformance") == true }
     }
 
     /** The hook as `AbstractPagesRestUtils.saveOrUpdate` calls it: last step before the insert. */

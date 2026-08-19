@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   emptyKostZuweisungValues,
+  emptyPositionValues,
   nextKostZuweisungIndex,
   remainingNet,
   shareOfNetSum,
@@ -76,6 +77,35 @@ describe("emptyKostZuweisungValues", () => {
   it("stays empty where there is nothing to propose", () => {
     expect(emptyKostZuweisungValues(0, undefined, null).netto).toBeNull();
     expect(emptyKostZuweisungValues(0).netto).toBeNull();
+  });
+
+  it("falls back to the project's first cost unit only on the first row", () => {
+    const projectKost2 = { id: 42 };
+    // The first row of a position has no predecessor, so the project decides
+    // (`RechnungCostEditTablePanel.newKostZuweisung`).
+    expect(
+      emptyKostZuweisungValues(0, undefined, null, projectKost2).kost2
+    ).toEqual(projectKost2);
+    // From then on the row above wins: a split that was moved to another cost unit stays there instead of
+    // snapping back to the project's default on every added row.
+    const predecessor = assignment({ id: 1, index: 0, kost2: { id: 7 } });
+    expect(
+      emptyKostZuweisungValues(1, predecessor, null, projectKost2).kost2
+    ).toEqual({ id: 7 });
+  });
+});
+
+describe("emptyPositionValues", () => {
+  it("takes the VAT rate from the row above, and the configuration only without one", () => {
+    // Wicket presets the configured rate on the first position only
+    // (`AbstractRechnungEditForm.refreshPositions`); carrying the predecessor's over is kept on purpose.
+    expect(emptyPositionValues(1, undefined, 0.19).vat).toBe(0.19);
+    const predecessor = emptyPositionValues(1, undefined, 0.19);
+    predecessor.vat = 0.07;
+    expect(emptyPositionValues(2, predecessor, 0.19).vat).toBe(0.07);
+    // No configured rate is no error: the field starts empty, as it did before there was a default.
+    expect(emptyPositionValues(1, undefined, null).vat).toBeNull();
+    expect(emptyPositionValues(1).vat).toBeNull();
   });
 });
 

@@ -1,6 +1,7 @@
 /**
  * The calls of the outgoing invoice (`OutgoingInvoiceEntityRest`) that are neither a list, a read nor a
- * write of the entity: the two exports, and the live sums of an unsaved form.
+ * write of the entity: the two exports, the live sums of an unsaved form, and the three reads the form
+ * needs for its own defaults.
  *
  * The exports act on the filter the list is showing rather than on a selection, which is why they take
  * one: the backend runs the same query the list ran and exports its whole result set, not the page in
@@ -94,6 +95,85 @@ export function recalculateInvoice(
   return request<InvoiceSums>(
     "/rs/outgoingInvoice/recalculate",
     { method: "POST", body: JSON.stringify(postData) },
+    signal
+  );
+}
+
+/** One entry of the `sellerBankAccount` select — the value is the IBAN, which is what the column holds. */
+export interface InvoiceBankAccount {
+  value: string;
+  label: string;
+}
+
+/** What `OutgoingInvoiceEntityRest.getFormDefaults` answers (`FormDefaults` there). */
+export interface InvoiceFormDefaults {
+  /** `fibu.defaultVAT` as a factor (0.19 for 19 %), null where the installation configured none. */
+  defaultVat?: number | null;
+  bankAccounts: InvoiceBankAccount[];
+  /** Whether the seller address is complete enough for an e-invoice export. */
+  eInvoiceConfigured: boolean;
+  /** Variants of the Word invoice template; a single empty string means one unnamed variant. */
+  templateVariants: string[];
+}
+
+/**
+ * Everything the form needs before the user touches it, in one read: the default VAT rate, the seller's
+ * bank accounts, whether an e-invoice can be exported at all, and the template variants.
+ *
+ * All four are configuration rather than properties of an invoice, which is why none of them arrives with
+ * the entity. Practically immutable, so the caller caches them generously
+ * (see `use-invoice-form-defaults.ts`).
+ */
+export function fetchInvoiceFormDefaults(
+  signal?: AbortSignal
+): Promise<InvoiceFormDefaults> {
+  return request<InvoiceFormDefaults>(
+    "/rs/outgoingInvoice/formDefaults",
+    { method: "GET" },
+    signal
+  );
+}
+
+/** A cost unit as `Kost2` travels — `displayName` is what `KostFormatter` composes. */
+export interface Kost2Option {
+  id?: number | null;
+  displayName?: string | null;
+}
+
+/**
+ * The active cost units of a project, for the Kost2 preselection of a new cost assignment.
+ *
+ * Asked of the backend rather than derived here: which cost units belong to a project follows from its
+ * number range, area and number, and the invoice carries its project without any of the three.
+ */
+export function fetchActiveKost2(
+  projektId: number,
+  signal?: AbortSignal
+): Promise<Kost2Option[]> {
+  return request<Kost2Option[]>(
+    `/rs/outgoingInvoice/activeKost2?projektId=${projektId}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Whether a cost unit belongs to the project — or, for an invoice naming none, to the customer — of the
+ * invoice. False is what the form warns about, as Wicket outlines the field
+ * (`RechnungEditForm.onRenderCostRow`).
+ */
+export function fetchKost2Check(
+  kost2Id: number,
+  projektId: number | null | undefined,
+  kundeId: number | null | undefined,
+  signal?: AbortSignal
+): Promise<{ matchesInvoice: boolean }> {
+  const params = new URLSearchParams({ kost2Id: String(kost2Id) });
+  if (projektId != null) params.set("projektId", String(projektId));
+  if (kundeId != null) params.set("kundeId", String(kundeId));
+  return request<{ matchesInvoice: boolean }>(
+    `/rs/outgoingInvoice/kost2Check?${params.toString()}`,
+    { method: "GET" },
     signal
   );
 }
