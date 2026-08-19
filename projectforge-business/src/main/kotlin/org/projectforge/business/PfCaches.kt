@@ -426,6 +426,21 @@ class PfCaches {
             return initialize(vacation)
         }
 
+        /**
+         * Makes [instance] the given bean, for a test which has a Spring context: the bean assigns itself in its
+         * own `@PostConstruct`, but a test base class doing setup of its own may run before that and would
+         * otherwise leave the cacheless [internalSetupForTestCases] instance in place.
+         */
+        @JvmStatic
+        fun internalSetInstanceForTestCases(caches: PfCaches) {
+            instance = caches
+        }
+
+        /**
+         * Caches without any dependency injected, for a test running **without** a Spring context: they answer
+         * nothing, but a static read of [instance] doesn't fail with an uninitialized `lateinit` either. A test
+         * with a context must use [internalSetInstanceForTestCases] instead.
+         */
         @JvmStatic
         fun internalSetupForTestCases() {
             instance = PfCaches()

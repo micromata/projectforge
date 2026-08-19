@@ -122,6 +122,9 @@ abstract class AbstractTestBase protected constructor() {
     private lateinit var pluginAdminService: PluginAdminService
 
     @Autowired
+    private lateinit var caches: PfCaches
+
+    @Autowired
     private lateinit var repoService: RepoService
 
     @Autowired
@@ -167,7 +170,11 @@ abstract class AbstractTestBase protected constructor() {
                 }
             }
         }
-        PfCaches.internalSetupForTestCases()
+        // The autowired bean, not `internalSetupForTestCases`: that one builds caches without a
+        // `persistenceService`, so anything reading a cache statically through `PfCaches.instance` - and
+        // `Kost2DO.getEffectiveKostentraegerStatus` does - fails on an uninitialized `lateinit`. A test with a
+        // Spring context has the real thing; only a test running without one needs the empty stand-in.
+        PfCaches.internalSetInstanceForTestCases(caches)
     }
 
     protected var mCount: Int = 0
