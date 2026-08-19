@@ -492,8 +492,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      */
     @GetMapping("$INVOICE_PDF_PATH/{id}/info")
     fun getInvoicePdfInfo(@PathVariable("id") id: Long): InvoicePdfState {
-        checkEInvoiceAccess()
-        baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
+        checkEInvoiceReadAccess(id)
         return InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id))
     }
 
@@ -554,6 +553,100 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     class InvoicePdfInfo(val name: String?, val sizeHumanReadable: String?)
 
     /**
+     * What stands between this invoice and an e-invoice of it — Wicket's error line above its two export
+     * buttons (`RechnungEditForm.EInvoiceModalDialog`, which runs the same [EInvoiceExportService.validate]).
+     *
+     * Read before the export rather than only reported by it: both exports throw on the first problem, and a
+     * download that answers 500 says nothing about which field to correct. So the dialog asks this, lists what
+     * comes back and offers the exports only for an empty list — the same order Wicket's buttons follow.
+     *
+     * **Known debt, and the reason this is a list of strings.** `validate` builds untranslated English prose
+     * ("Invoice number is missing"), so that is what is shown. Turning it into keyed errors is a change to
+     * `EInvoiceExportService` that Wicket's copy of the dialog sees as well, and belongs in a commit of its
+     * own — see projectforge-next/MIGRATION.md.
+     *
+     * The stored invoice, as everything else on this path: the ZUGFeRD export reads the JCR by the invoice
+     * id, so there is no posted state it could validate instead.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/validate")
+    fun validateEInvoice(@PathVariable("id") id: Long): EInvoiceValidation {
+        val invoice = checkEInvoiceReadAccess(id)
+        return EInvoiceValidation(
+            configured = sellerConfig.isConfigured(),
+            errors = eInvoiceExportService.validate(invoice),
+        )
+    }
+
+    /**
+     * The invoice as XRechnung, i.e. the XML alone — Wicket's `fibu.rechnung.exportEInvoice` button.
+     *
+     * 400 with the validation errors where the invoice isn't exportable: the client checks first, so this is
+     * the case of a state that changed in between, and the errors are more useful than a bare status. The
+     * check is repeated here rather than trusted, because a download URL can be called on its own.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/xrechnung")
+    fun exportXRechnung(@PathVariable("id") id: Long): ResponseEntity<*> {
+        val invoice = checkEInvoiceReadAccess(id)
+        log.info { "Exporting invoice #$id as XRechnung." }
+        return exportEInvoice(invoice) {
+            RestUtils.downloadFile(
+                eInvoiceExportService.getExportFilename(invoice),
+                eInvoiceExportService.exportAsXRechnung(invoice),
+            )
+        }
+    }
+
+    /**
+     * The invoice as a ZUGFeRD PDF, i.e. a PDF carrying the same XML — Wicket's `fibu.rechnung.exportZUGFeRD`.
+     *
+     * The document it embeds into is the uploaded invoice PDF, and the Word template converted to PDF only
+     * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
+     * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
+     * this endpoint could not work on a posted state even if it wanted to.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
+    fun exportZugferd(@PathVariable("id") id: Long): ResponseEntity<*> {
+        val invoice = checkEInvoiceReadAccess(id)
+        log.info { "Exporting invoice #$id as a ZUGFeRD PDF." }
+        return exportEInvoice(invoice) {
+            RestUtils.downloadFile(
+                eInvoiceExportService.getZUGFeRDExportFilename(invoice),
+                eInvoiceExportService.exportAsZUGFeRD(invoice),
+            )
+        }
+    }
+
+    /**
+     * Whether an e-invoice of this invoice can be built, and what is missing if not.
+     *
+     * `configured` is the seller side of it, i.e. `projectforge.einvoice.seller.*`: it is an installation's
+     * setting rather than a field of this invoice, and nobody editing an invoice can fix it — so the client
+     * says so instead of listing it as one problem among the invoice's own.
+     */
+    class EInvoiceValidation(val configured: Boolean, val errors: List<String>)
+
+    /**
+     * Runs an export, and answers 400 with the validation errors where the invoice turns out not to be
+     * exportable.
+     *
+     * The sums have to be there first, for the reason [exportInvoiceWord] spells out: the XML states the net
+     * amount of every position, and those live in a `lateinit` [RechnungInfo] that the load doesn't fill.
+     *
+     * The check before the call rather than a `catch` around it: [EInvoiceExportService] answers a refusal by
+     * throwing `IllegalStateException` (it is Wicket's service, and Wicket checks beforehand), and an exception
+     * whose message has to be parsed is a worse answer than the list it was built from.
+     */
+    private fun exportEInvoice(invoice: RechnungDO, export: () -> ResponseEntity<*>): ResponseEntity<*> {
+        RechnungCalculator.calculate(invoice)
+        val errors = eInvoiceExportService.validate(invoice)
+        if (errors.isNotEmpty()) {
+            log.info { "Invoice #${invoice.id} is not exportable as an e-invoice: ${errors.joinToString("; ")}" }
+            return ResponseEntity.badRequest().body(errors.joinToString("\n"))
+        }
+        return export()
+    }
+
+    /**
      * The groups the e-invoice functions require, as `EInvoiceCheckerPageRest.checkAccess` requires them.
      *
      * On top of the select right of the category: reading an invoice and handling the document that leaves
@@ -574,10 +667,21 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * nobody owns.
      */
     private fun checkInvoicePdfWriteAccess(id: Long): RechnungDO {
-        checkEInvoiceAccess()
-        val invoice = baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
+        val invoice = checkEInvoiceReadAccess(id)
         baseDao.hasLoggedInUserUpdateAccess(invoice, invoice, throwException = true)
         return invoice
+    }
+
+    /**
+     * The invoice, if the user may see its e-invoice: the groups above plus [RechnungDao]'s own read check.
+     *
+     * An unknown id is an [AccessException] rather than a 404, unlike on the Word export: these endpoints
+     * answer *about* an invoice (its PDF, its validation state), and "there is none" and "you may not see it"
+     * are the same answer to that question — telling them apart would say whether the id exists.
+     */
+    private fun checkEInvoiceReadAccess(id: Long): RechnungDO {
+        checkEInvoiceAccess()
+        return baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
     }
 
     /**
@@ -1092,6 +1196,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
         /** Sub path of the three invoice PDF endpoints, as `lib/rs/invoice-pdf.ts` calls them. */
         internal const val INVOICE_PDF_PATH = "invoicePdf"
+
+        /** Sub path of the e-invoice validation and its two exports, as `lib/rs/invoice.ts` calls them. */
+        internal const val E_INVOICE_PATH = "eInvoice"
 
         /**
          * Size limit of the invoice PDF, the same [FileCheck] limit the e-invoice checker page applies.

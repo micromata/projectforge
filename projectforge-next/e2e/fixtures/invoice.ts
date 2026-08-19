@@ -203,11 +203,14 @@ export async function fetchActiveKost2(
  *
  * `templateVariants` is what the Word export offers one entry per — read here rather than assumed, because
  * how many there are is this installation's configuration (`projectforge.invoiceTemplate`) and decides
- * whether the export is a button or a menu.
+ * whether the export is a button or a menu. `eInvoiceConfigured` decides the same for the e-invoice entry
+ * (`projectforge.einvoice.seller.*`), which a test installation typically does not set.
  */
-export async function fetchFormDefaults(
-  page: Page
-): Promise<{ defaultVat?: number | null; templateVariants?: string[] }> {
+export async function fetchFormDefaults(page: Page): Promise<{
+  defaultVat?: number | null;
+  templateVariants?: string[];
+  eInvoiceConfigured?: boolean;
+}> {
   const response = await page.request.get(`/rs/${ENTITY}/formDefaults`, {
     headers: { "X-PF-Frontend": "next" },
   });
@@ -215,6 +218,7 @@ export async function fetchFormDefaults(
   return (await response.json()) as {
     defaultVat?: number | null;
     templateVariants?: string[];
+    eInvoiceConfigured?: boolean;
   };
 }
 

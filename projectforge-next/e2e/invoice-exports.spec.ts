@@ -46,12 +46,16 @@ test.describe("outgoing invoice Word export", () => {
 
       const download = page.waitForEvent("download");
       await exportButton(page, format).click();
-      if (variants.length > 1) {
-        // More than one template configured, so the button opens a menu and the entries are what
-        // downloads — named after the variant, which is a file name fragment of this installation.
-        await exportMenu(page)
-          .getByRole("menuitem", { name: variantLabel(variants[0], format) })
-          .click();
+      if (variants.length > 1 || (await hasMenu(page))) {
+        // The button turned out to be a menu trigger — either because more than one template is
+        // configured or because the e-invoice entry is offered beside the Word one. The entries are then
+        // what downloads: named after the variant where there are several, and after the export itself
+        // where there is one (see InvoiceExportMenu).
+        const name =
+          variants.length > 1
+            ? variantLabel(variants[0], format)
+            : label(format, "fibu.rechnung.exportInvoice");
+        await exportMenu(page).getByRole("menuitem", { name }).click();
       }
       // Named by `InvoiceService.getInvoiceFilename` through Content-Disposition, so the assertion is on
       // the extension rather than on a name this side made up.
@@ -81,11 +85,14 @@ test.describe("outgoing invoice Word export", () => {
       await waitForForm(page, format);
 
       await exportButton(page, format).click();
-      // Every variant the backend named, and nothing else: an entry too many would export a template that
-      // isn't there, and Wicket's menu is built from the same list. Scoped to the menu, since the
-      // navigation of the page carries `menuitem`s of its own.
+      // Every variant the backend named, and nothing else beside the e-invoice entry: an entry too many
+      // would export a template that isn't there, and Wicket's menu is built from the same list. Scoped to
+      // the menu, since the navigation of the page carries `menuitem`s of its own.
       const menu = exportMenu(page);
-      await expect(menu.getByRole("menuitem")).toHaveCount(variants.length);
+      const { eInvoiceConfigured } = await fetchFormDefaults(page);
+      await expect(menu.getByRole("menuitem")).toHaveCount(
+        variants.length + (eInvoiceConfigured === true ? 1 : 0)
+      );
       for (const variant of variants) {
         await expect(
           menu.getByRole("menuitem", { name: variantLabel(variant, format) })
@@ -112,6 +119,75 @@ test.describe("outgoing invoice Word export", () => {
   });
 });
 
+/**
+ * The e-invoice of one invoice — the dialog behind the second kind of entry in the same menu
+ * (see EInvoiceDialog).
+ *
+ * Every case branches on `eInvoiceConfigured`, which is `projectforge.einvoice.seller.*` of *this*
+ * installation: without a configured seller Wicket hides its menu and this one does the same, so there
+ * would be nothing to open. What is asserted is therefore the offer and the refusal, not a downloaded
+ * document — the two exports are covered by `OutgoingInvoiceEInvoiceTest`, which can configure a seller.
+ */
+test.describe("outgoing invoice e-invoice", () => {
+  test("offers the two exports, or names what the invoice is missing", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t } = format;
+    const { eInvoiceConfigured } = await fetchFormDefaults(page);
+    test.skip(
+      eInvoiceConfigured !== true,
+      "This installation configured no e-invoice seller, so no e-invoice can be built."
+    );
+    let id: number | null = null;
+    try {
+      id = await createInvoice(
+        page,
+        [{ number: 1, text: `${SUBJECT} 1`, menge: 1, einzelNetto: 100 }],
+        { subject: SUBJECT }
+      );
+      await goto(page, `/invoice/${id}`);
+      await waitForForm(page, format);
+
+      await exportButton(page, format).click();
+      await exportMenu(page)
+        .getByRole("menuitem", { name: t("fibu.konto.eInvoice") })
+        .click();
+
+      const dialog = page.getByRole("dialog");
+      // The state it validated is the *stored* invoice, which the dialog says: unlike Wicket, opening it
+      // does not save (see EInvoiceDialog).
+      await expect(
+        dialog.getByText(t("invoice.eInvoice.savedOnlyHint"))
+      ).toBeVisible();
+      const xrechnung = dialog.getByRole("button", {
+        name: t("fibu.rechnung.exportEInvoice"),
+      });
+      const zugferd = dialog.getByRole("button", {
+        name: t("fibu.rechnung.exportZUGFeRD"),
+      });
+      await expect(xrechnung).toBeVisible();
+      await expect(zugferd).toBeVisible();
+
+      // A planned invoice has no invoice number, so it is not exportable — whether it is *this* invoice's
+      // fault is the backend's answer, and the two buttons follow it either way rather than being asserted
+      // against a configuration this side guessed.
+      const errors = dialog.getByText(
+        t("fibu.rechnung.eInvoice.validationErrors")
+      );
+      if (await errors.isVisible()) {
+        await expect(xrechnung).toBeDisabled();
+        await expect(zugferd).toBeDisabled();
+      } else {
+        await expect(xrechnung).toBeEnabled();
+        await expect(zugferd).toBeEnabled();
+      }
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+});
+
 /** The variants of the Word template as the form itself reads them — the configuration, not a guess. */
 async function templateVariants(page: Page): Promise<string[]> {
   const { templateVariants } = await fetchFormDefaults(page);
@@ -128,6 +204,14 @@ async function waitForForm(page: Page, format: UserFormat) {
 /** The opened dropdown of the export — the page's navigation has `menuitem`s of its own. */
 function exportMenu(page: Page) {
   return page.getByRole("menu");
+}
+
+/** Whether the click opened a menu instead of downloading, i.e. whether there is more than one export. */
+async function hasMenu(page: Page): Promise<boolean> {
+  return await exportMenu(page)
+    .waitFor({ state: "visible", timeout: 2000 })
+    .then(() => true)
+    .catch(() => false);
 }
 
 function exportButton(page: Page, format: UserFormat) {

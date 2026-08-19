@@ -37,10 +37,10 @@ export const INVOICE_ROUTE = "/invoice";
  * to Wicket (`listMeta.legacyEditPage` — see useEditTargets). The flip is a commit of its own; until then
  * the form is reached by typing `/next/invoice/{id}`, which is how the address page was verified.
  *
- * Not part of it yet: the XRechnung/ZUGFeRD export and the invoice-PDF upload Wicket offers
- * (`fibu.rechnung.exportEInvoice`, `fibu.rechnung.invoicePdf`). The fields the export reads *are* here —
- * the address block of the `customer` section — so nothing has to be entered twice once it follows. The
- * Word export is (see InvoiceExportMenu on `headerTrailing`).
+ * Every document function Wicket has is here as well: the Word export and the e-invoice beside the heading
+ * (see InvoiceExportMenu on `headerTrailing`, and EInvoiceDialog), and the invoice PDF the ZUGFeRD export
+ * builds on as a field of the attachment section (InvoicePdfField). What Wicket collects in its e-invoice
+ * dialog — the address block, the bank account — are fields of the form here, in the `customer` section.
  *
  * The columns are the 18 of the deleted `RechnungPagesRest.createListLayout`, with the two ends of the
  * period of performance as the one column they read as (`created` and `lastUpdate` come on top of them
