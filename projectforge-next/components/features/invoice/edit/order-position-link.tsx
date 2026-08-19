@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { cn } from "@/lib/utils";
 import type { InvoicePositionValues } from "../invoice-schema";
 
@@ -25,7 +25,7 @@ export function OrderPositionLink({
   if (order?.auftragId == null) return null;
   const label = `${t("fibu.auftrag._")} ${order.auftragNummer ?? ""}.${order.number ?? ""}`;
   return (
-    <Link
+    <GuardedLink
       href={`/order/${order.auftragId}`}
       className={cn(
         "shrink-0 text-primary underline-offset-2 hover:underline",
@@ -34,6 +34,6 @@ export function OrderPositionLink({
       aria-label={`${t("show")}: ${label}`}
     >
       {label}
-    </Link>
+    </GuardedLink>
   );
 }

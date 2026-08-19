@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Invoice01Icon } from "@hugeicons/core-free-icons";
@@ -161,13 +161,16 @@ export function PositionRowHeader({
                 size={12}
                 className="text-muted-foreground"
               />
-              <Link
-                href={`/outgoingInvoice/edit/${invoice.id}`}
+              {/* `/invoice/{id}`, not `/outgoingInvoice/edit/{id}`: the generic route answers
+                  notFound() for a hand-built entity. Guarded, as in position-invoices.tsx: this
+                  link sits inside the order's own form and leads out of it. */}
+              <GuardedLink
+                href={`/invoice/${invoice.id}`}
                 className="text-primary underline-offset-2 hover:underline"
                 aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
               >
                 {invoice.nummer}
-              </Link>
+              </GuardedLink>
             </span>
           </HintTooltip>
         )),

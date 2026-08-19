@@ -10,6 +10,23 @@ import { rawRequest, RsError } from "./client";
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 
 /**
+ * The body of a file answer as a blob, for [saveBlob].
+ *
+ * Reads it as an `ArrayBuffer` rather than calling `res.blob()`, which is the point of this function:
+ * a blob taken from a POST response makes Chromium request the url a **second** time to back it — as a
+ * bodyless GET, which Spring routes to `/rs/{entity}/{id}` and answers with a stack trace ("For input
+ * string: exportAsExcel"). The file arrived either way; the second request only filled the server log.
+ *
+ * The content type is carried over, since it is what tells the browser what it is saving.
+ */
+export async function responseBlob(res: Response): Promise<Blob> {
+  const buffer = await res.arrayBuffer();
+  return new Blob([buffer], {
+    type: res.headers.get("Content-Type") ?? "application/octet-stream",
+  });
+}
+
+/**
  * @param filename What the file is saved as. The callers take it from the `Content-Disposition` header
  * where the backend sends one (see lib/dynamic/content-disposition.ts) and name it themselves where it
  * doesn't — never guessed from the url, which carries an id, not a name.
@@ -57,7 +74,7 @@ export async function downloadFile(
     );
   }
   saveBlob(
-    await res.blob(),
+    await responseBlob(res),
     parseContentDispositionFilename(res.headers.get("Content-Disposition"))
   );
 }

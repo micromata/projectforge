@@ -1380,6 +1380,7 @@
   "question": {
     "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
+    "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },
   "rating": "Bewertung",
@@ -1471,6 +1472,7 @@
   "selectAll": "Alle auswählen",
   "settings": "Einstellungen",
   "shortDescription": "Kurzbeschreibung",
+  "show": "Anzeigen",
   "statistics": "Statistik",
   "status": "Status",
   "task": {

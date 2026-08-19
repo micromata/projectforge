@@ -7,9 +7,11 @@ import { createBookWithHistory, type SeededBook } from "./fixtures/seed";
  * never writes.
  *
  * Nothing here is book-specific — `components/shared/history/` serves every `AbstractPagesRest`
- * entity, and the endpoint is `/rs/{entity}/history/{id}` for all of them. Books are merely the
- * vehicle: today they are the only hand-built page with a history route. When a second one arrives,
- * add it to `ENTITIES` rather than copying the spec.
+ * entity, the endpoint is `/rs/{entity}/history/{id}` for all of them, and the tab comes from the
+ * entity's own `@WithHistory` through the generated metadata, so all four hand-built entities have
+ * one. Books are merely the vehicle: they are the entity a history is cheapest to *produce* for (one
+ * insert plus one update, see below). An entity with a history of its own kind belongs in `ENTITIES`
+ * rather than in a copy of this spec.
  *
  * The history is the test's own, produced by `createBookWithHistory`: history exists only where
  * something was written, so no row of a database can be relied on to have one — and a row of *this*
@@ -19,7 +21,11 @@ const ENTITIES = [
   {
     name: "book",
     seed: createBookWithHistory,
-    historyPath: (book: SeededBook) => `/book/${book.id}/history`,
+    // A tab of the edit page, not a page of its own: leaving the form would unmount it and throw
+    // away what was being filled in (see EditPageShell).
+    historyPath: (book: SeededBook) => `/book/${book.id}?tab=history`,
+    /** The route the history used to have, which is still linked from bookmarks and mails. */
+    legacyPath: (book: SeededBook) => `/book/${book.id}/history`,
   },
 ];
 
@@ -80,6 +86,22 @@ test.describe("change history", () => {
       await expect(first).toHaveAttribute("aria-expanded", "true");
       await page.keyboard.press(" ");
       await expect(first).toHaveAttribute("aria-expanded", "false");
+    });
+
+    test(`${entity.name}: the old history url still leads to the history`, async ({
+      loggedInPage: page,
+    }) => {
+      // `/book/25/history` was a page of its own until the history became a tab. The url is in
+      // bookmarks and in mails, so it redirects (see EntityTabRedirect).
+      await goto(page, entity.legacyPath(seeded));
+      // A substring check, not a regexp: the path carries a `?`, which a regexp would read as a
+      // quantifier — and the base path in front of it is the config's business.
+      await expect
+        .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
+        .toContain(entity.historyPath(seeded));
+      await expect(
+        page.getByRole("listitem").first().getByRole("button")
+      ).toBeVisible();
     });
   }
 });

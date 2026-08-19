@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { resolveMenuUrl } from "@/lib/menu-url";
 
 /**
@@ -15,6 +15,10 @@ export const MENU_HOVER_CLASS =
  * Deliberately free of state and side effects, so it stays usable from a Server Component and costs
  * nothing per instance — it is rendered per table row in places like OrdersCell. Reporting an opened
  * menu entry is therefore the caller's job (useReportMenuUsage), not this component's.
+ *
+ * The internal case is a [GuardedLink]: every menu entry leads away from whatever is on screen, and an
+ * edit form full of entries is one of the things it leads away from. The external case needs no guard
+ * of its own — a full page load is what `beforeunload` catches (see useUnsavedChangesWarning).
  */
 export function MenuLink({
   url,
@@ -37,8 +41,8 @@ export function MenuLink({
     );
   }
   return (
-    <Link href={target.href} className={className} onClick={onClick}>
+    <GuardedLink href={target.href} className={className} onClick={onClick}>
       {children}
-    </Link>
+    </GuardedLink>
   );
 }

@@ -25,6 +25,7 @@ import {
   usePendingClone,
 } from "@/hooks/use-pending-clone";
 import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
+import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
@@ -35,6 +36,7 @@ import { EntityCloneButton } from "./entity-clone-button";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityEditHeader } from "./entity-edit-header";
+import { entityTabPanels } from "./entity-tab-panels";
 import { entityTabs } from "./entity-tabs";
 
 export interface EntityEditPageProps<
@@ -129,6 +131,11 @@ export function EntityEditPage<
     isDirty && !isSubmitting && access.write
   );
 
+  // Asks before a link or a reload throws the entries away. Not for the page's own ways out — cancel,
+  // save and clone are decisions the user just made, and asking again about a cancel would say the
+  // button hadn't been understood.
+  useUnsavedChangesWarning(isDirty && !isSubmitting);
+
   /**
    * Leaves the page without saving — and tells the backend so, which is what makes the list mark the
    * entry the user was looking at (`onCancelEdit`, same as after a save).
@@ -212,10 +219,8 @@ export function EntityEditPage<
     sections: edit.sections,
     t,
     id: data?.id ?? null,
-    route: page.route,
     history: page.metadata.historizable,
     extraTabs: edit.extraTabs,
-    onFormPage: true,
   });
 
   return (
@@ -240,6 +245,12 @@ export function EntityEditPage<
             />
           }
           tabs={tabs}
+          tabPanels={entityTabPanels({
+            entity: page.entity,
+            id: data?.id ?? null,
+            history: page.metadata.historizable,
+            extraTabs: edit.extraTabs,
+          })}
           banner={edit.editBanner && <edit.editBanner />}
           sections={edit.sections.map((section) => (
             <DeclaredSection
