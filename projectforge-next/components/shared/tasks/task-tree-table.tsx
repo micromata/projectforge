@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   DataTable,
   DataTableColumnPanel,
@@ -15,6 +20,7 @@ import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
+import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
 import { TaskTreeFilterBar } from "./task-tree-filter";
 import { useTaskTreeColumns } from "./use-task-tree-columns";
 
@@ -33,6 +39,13 @@ interface TaskTreeTableProps {
   onFilterChange: (filter: TaskTreeFilter) => void;
   onToggle: (task: TaskNode) => void;
   onSelect?: (task: TaskNode) => void;
+  /** The actions of the tree page above the filter row, see TaskTreeActionBar. */
+  actionBar?: ReactNode;
+  /**
+   * Offer "add a subtask" per row, and the handbook link beside the search field. Only the tree page
+   * does: a select popover is for picking a task, not for creating one.
+   */
+  pageActions?: boolean;
 }
 
 /**
@@ -51,6 +64,8 @@ export function TaskTreeTable({
   onFilterChange,
   onToggle,
   onSelect,
+  actionBar,
+  pageActions,
 }: TaskTreeTableProps) {
   const t = useTranslations();
   const columns = useTaskTreeColumns(grid, onToggle);
@@ -111,8 +126,13 @@ export function TaskTreeTable({
 
   return (
     <>
+      {actionBar}
       <div className="flex items-center gap-2">
-        <TaskTreeFilterBar filter={filter} onChange={onFilterChange} />
+        <TaskTreeFilterBar
+          filter={filter}
+          onChange={onFilterChange}
+          showSearchHelp={pageActions}
+        />
         <DataTableColumnPanel
           table={table}
           onReset={resetColumns}
@@ -140,8 +160,42 @@ export function TaskTreeTable({
             onSelect?.(row);
           }
         }}
+        // Not in Wicket, whose tree can only add below the root — where the new task then has to be
+        // moved by hand. The parent travels as a parameter of the preset, because only the backend can
+        // resolve what hangs on it (see newTaskHref).
+        rowActions={
+          pageActions ? (row) => <AddSubtaskAction task={row} /> : undefined
+        }
         className="flex-1"
       />
     </>
+  );
+}
+
+/**
+ * "Add a subtask below this one" — a link, so it opens in a new tab like any other and the row's own
+ * click (which selects the task) is unaffected.
+ *
+ * Never for the root: it is the tree's anchor and adding below it is what the page's own `+` does, so
+ * the row would offer the same thing twice.
+ */
+function AddSubtaskAction({ task }: { task: TaskNode }) {
+  const t = useTranslations();
+  if (task.root === true) return null;
+  const label = `${t("task.title.add")}: ${task.title ?? ""}`;
+
+  return (
+    <HintTooltip text={`${t("task.title.add")} (${t("task.parentTask")})`}>
+      <Button asChild variant="ghost" size="icon" aria-label={label}>
+        <Link
+          href={newTaskHref({
+            parentTaskId: task.id,
+            returnTo: TASK_TREE_ROUTE,
+          })}
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2.5} />
+        </Link>
+      </Button>
+    </HintTooltip>
   );
 }

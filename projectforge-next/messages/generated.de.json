@@ -1537,6 +1537,7 @@
       "list": "Strukturelemente"
     },
     "tree": {
+      "info": "Strukturelemente können auf- und zugeklappt werden, indem auf die Ordnersymbole oder Titel des gewünschten Strukturelements geklickt wird. Zur Auswahl eines Strukturelements kann jede andere Stelle innerhalb der Zeile angeklickt werden.",
       "rootNode": "Wurzelstrukturelement",
       "title": {
         "select": "Strukturelement auswählen"
@@ -1578,6 +1579,9 @@
   "tooltip": {
     "export": {
       "excel": "Export im Excelformat"
+    },
+    "lucene": {
+      "link": "Link zur Lucene-Abfrage-Syntax."
     },
     "shortcut": {
       "addEntry": {

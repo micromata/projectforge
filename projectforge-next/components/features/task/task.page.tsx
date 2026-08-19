@@ -1,3 +1,7 @@
+import {
+  TASK_ROUTE,
+  TASK_TREE_ROUTE,
+} from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FinanceSection } from "./edit/finance-section";
@@ -11,9 +15,6 @@ import {
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const TASK_LIST_QUERY_KEY = ["task"] as const;
-
-/** Route of the structure tree, the page a task is reached from today. */
-export const TASK_TREE_ROUTE = "/taskTree";
 
 /**
  * The task page as data (see lib/page-def/types.ts) — the form of one structure element.
@@ -38,7 +39,7 @@ export const TASK_PAGE = definePage<
 >({
   entity: "task",
   metadata: TASK_METADATA,
-  route: "/task",
+  route: TASK_ROUTE,
   queryKey: TASK_LIST_QUERY_KEY,
   categoryKey: "menu.taskTree",
   titleKey: "task.title.list",

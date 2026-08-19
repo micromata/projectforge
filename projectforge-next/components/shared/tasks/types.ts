@@ -32,5 +32,15 @@ export interface TaskTreePanelProps {
    * from the tree page's. Set by the select field; the tree page leaves it off.
    */
   selectMode?: boolean;
+  /**
+   * Render the tree as its own *page*: the action bar above it, "add a subtask" per row, the handbook
+   * link beside the search field, and the page's hint (`task.tree.info`) instead of the select
+   * panel's.
+   *
+   * Only `/next/taskTree` sets it. Everywhere else the tree is the body of a select field, where those
+   * actions would either leave the form the user is in or explain a click that means something else
+   * there (see TaskTreeActionBar).
+   */
+  pageMode?: boolean;
   className?: string;
 }

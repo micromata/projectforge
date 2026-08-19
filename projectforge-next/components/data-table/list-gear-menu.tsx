@@ -28,8 +28,13 @@ export interface ListGearMenuProps {
   /**
    * Clears the page's own filter state. The endpoint only drops what the server stores, so the
    * visible filter, search string, sorting and column layout have to be reset by the caller.
+   *
+   * Absent for a page whose filter is not the entity's stored `MagicFilter` — the structure tree keeps
+   * a `TaskFilter` of its own in the session (see ListFilterService), which `filter/reset` would not
+   * touch. Such a page resets its filter where that filter is, and this menu then offers only the
+   * re-index entries.
    */
-  onFilterReset: () => void;
+  onFilterReset?: () => void;
   /** Additional entries of a specific list page, appended below the standard ones. */
   children?: ReactNode;
   className?: string;
@@ -77,7 +82,7 @@ export function ListGearMenu({
 
   async function resetFilter() {
     if (!(await run(() => resetListFilter(entity)))) return;
-    onFilterReset();
+    onFilterReset?.();
     // The server dropped the stored filter and grid state with it, so the cached copies of both
     // would otherwise come back on the next mount.
     await queryClient.invalidateQueries({ queryKey: ["listMeta", entity] });
@@ -122,12 +127,14 @@ export function ListGearMenu({
             onSelect={() => void reindex.start(true)}
           />
         )}
-        <GearMenuItem
-          label={tMenu("resetFilter._")}
-          description={tMenu("resetFilter.info")}
-          disabled={running}
-          onSelect={() => void resetFilter()}
-        />
+        {onFilterReset && (
+          <GearMenuItem
+            label={tMenu("resetFilter._")}
+            description={tMenu("resetFilter.info")}
+            disabled={running}
+            onSelect={() => void resetFilter()}
+          />
+        )}
         {children && (
           <>
             <DropdownMenuSeparator />

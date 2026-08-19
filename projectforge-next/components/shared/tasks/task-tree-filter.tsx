@@ -2,7 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { FilterIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  FilterIcon,
+  HelpCircleIcon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -12,6 +16,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { LUCENE_QUERY_DOCS_URL } from "@/lib/docs-links";
 import { type TaskTreeFilter } from "@/lib/rs/task";
 
 /** The four flags, in the order the legacy panel lists them, with their i18n keys. */
@@ -25,6 +31,14 @@ const STATUS_FLAGS = [
 interface TaskTreeFilterBarProps {
   filter: TaskTreeFilter;
   onChange: (filter: TaskTreeFilter) => void;
+  /**
+   * Offer the handbook link beside the search field, as Wicket's tree form does (`TaskTreeForm`, the
+   * `IconType.HELP` in the search fieldset).
+   *
+   * Only the tree *page* does. Inside a select popover the row is narrow and the user is picking a
+   * task, not learning a query syntax — and a link would leave the form they came from.
+   */
+  showSearchHelp?: boolean;
 }
 
 /**
@@ -38,6 +52,7 @@ interface TaskTreeFilterBarProps {
 export function TaskTreeFilterBar({
   filter,
   onChange,
+  showSearchHelp,
 }: TaskTreeFilterBarProps) {
   const t = useTranslations();
   const active = STATUS_FLAGS.filter((flag) => filter[flag.name] === true);
@@ -61,6 +76,32 @@ export function TaskTreeFilterBar({
           className="h-8 pl-8 text-xs"
         />
       </div>
+      {/* The handbook link Wicket puts into the search fieldset. Its text is the bundle's own
+          (`tooltip.lucene.link`), which overstates what this field does: the tree filters with
+          `StringUtils.containsIgnoreCase` over seven columns (`TaskFilter.isVisibleBySearchString`),
+          not with a Lucene query. Kept as it is for parity — the chapter it points at explains the
+          full text search of the list pages, and correcting the wording is a change to the bundle
+          that Wicket shares. */}
+      {showSearchHelp && (
+        <HintTooltip text={t("tooltip.lucene.link")}>
+          <Button
+            asChild
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("tooltip.lucene.link")}
+            className="size-8 shrink-0 text-muted-foreground"
+          >
+            <a
+              href={LUCENE_QUERY_DOCS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <HugeiconsIcon icon={HelpCircleIcon} size={14} />
+            </a>
+          </Button>
+        </HintTooltip>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button

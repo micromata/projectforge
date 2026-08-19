@@ -1472,6 +1472,11 @@ Für einen `task`-Eintrag braucht es **kein** `legacyRoute`.
 Kleinigkeit dazu: der Hinweistext unten nutzt `task.selectPanel.info` (Text des
 Auswahl-Panels); die Baumseite hat mit `task.tree.info` einen eigenen.
 
+Diese Tabelle ist die Bestandsaufnahme und bleibt so stehen; abgearbeitet ist sie in
+Schritt 3 der Reihenfolge unten – bis auf **Favoriten** und **Aufgaben-Assistent** (bewusst
+ausgelassen) und die **Listenansicht** (Schritt 4). „Filter zurücksetzen" hängt _nicht_ an
+der `filter/reset`-Lücke, wie hier vermutet: der Baum hat seinen eigenen Filter, s. Schritt 3.
+
 ##### Lücke 3 – die Edit-Seite, handgebaut als `PageDef`
 
 Der Zeilenklick geht heute auf `listMeta.legacyEditPage` → `wa/taskEdit?id=…`.
@@ -1639,7 +1644,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    **Gleichstand mit Wicket ist geprüft** – der Maßstab, den die Verifikation unten für den
    Kost2-Block nennt, und zwar ohne eine Aufgabe der Produktionskopie zu ändern:
    `e2e/task-kost2-preview.spec.ts` vergleicht `kost2ListAsLines` des Baums mit der Antwort
-   von `POST /rs/task/kost2Preview` zur *gespeicherten* Liste derselben Aufgabe. Beide
+   von `POST /rs/task/kost2Preview` zur _gespeicherten_ Liste derselben Aufgabe. Beide
    Zahlen kommen aus `TaskTree.getKost2List` über `KostHelper.getFormattedNumberLines` –
    genau die drei Aufrufe, aus denen Wicket seinen Tooltip baut –, nur eben über den ganzen
    Baum statt über die eine Aufgabe, die jemand aufgeschlagen hätte. Stand heute: 128
@@ -1650,7 +1655,7 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
 
    `e2e/task-edit.spec.ts` deckt die drei Dinge ab, die es nur auf dieser Seite gibt: die
    beiden zugeklappten Sektionen (samt `#sectionId` beim Ankommen), `?returnTo=` in beide
-   Richtungen inkl. eines nicht deklarierten Ziels, und den Kost2-Block einer Aufgabe *ohne*
+   Richtungen inkl. eines nicht deklarierten Ziels, und den Kost2-Block einer Aufgabe _ohne_
    Projekt – der Zustand, den er überleben muss.
 
    Nicht lokal prüfbar bleiben die Read-only-Pfade der fünf Felder – das Testkonto ist Admin
@@ -1658,13 +1663,65 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    `protectTimesheetsUntilWriteAccess` sind dort immer true. Dafür stehen die Unit-Tests
    aus Schritt 1.
 
-3. Aktionsleiste des Baums: Reindex, Neu, Favoriten, Filter zurücksetzen,
+3. **Erledigt.** Aktionsleiste des Baums: Reindex, Neu, Filter zurücksetzen,
    Lucene-Hilfe, `task.tree.info`.
 
-   Dabei fällig: **`fetchNew` kennt keine Parameter.** `lib/rs/client.ts` ruft
-   `GET /rs/{entity}/newEntry` ohne Query, `TaskPagesRest.newBaseDO` liest aber
-   `parentTaskId` (s. die Falle in Schritt 1.4). „Unteraufgabe anlegen" braucht also
-   erst ein Parameter-Argument an `fetchNew`/`useEntityDetail`.
+   Vorweg erledigt und eigener Commit: **`fetchNew` kannte keine Parameter.**
+   `lib/rs/client.ts` rief `GET /rs/{entity}/newEntry` ohne Query, `TaskPagesRest.newBaseDO`
+   liest aber `parentTaskId` (s. die Falle in Schritt 1.4). `fetchNew`/`useEntityDetail`
+   nehmen jetzt ein Parameter-Objekt, und welche URL-Parameter überhaupt ans Backend
+   dürfen, deklariert die Seite: `EditDef.newEntryParams` (`task`:
+   `["parentTaskId"]`), gelesen von `hooks/use-new-entry-params.ts`. Eine Weißliste aus
+   demselben Grund wie bei `returnTargets` – dieselbe URL trägt auch `returnTo`, und das
+   ist Sache der Seite, nicht des Backends. Die Parameter gehören zum Query-Key, sonst
+   liefert der Cache den Datensatz ohne Voreinstellung.
+
+   Die Leiste selbst sitzt **im Panel** (`pageMode`), nicht im Seitenkopf: sie wirkt auf
+   Filter und Zeilen, also auf den Zustand des Panels
+   (`components/shared/tasks/task-tree-action-bar.tsx`). Inventar ist das Content-Menü von
+   `TaskTreePage` plus der Rücksetz-Knopf des Formulars. Der `+`-Knopf ist aus der
+   `ListToolbar` nach `components/shared/add-entry-button.tsx` herausgezogen, damit der Baum
+   denselben Knopf und dasselbe `N`-Kürzel bekommt statt einer zweiten Schreibweise. Dazu
+   pro Zeile eine „Unteraufgabe anlegen"-Aktion (`DataTable.rowActions`, bis dahin ohne
+   Aufrufer) – die hat Wicket **nicht**, dessen Baum kann nur unter der Wurzel anlegen; die
+   Wurzelzeile bietet sie nicht an, denn das tut der `+` der Leiste schon.
+
+   **Zwei Einträge fehlen bewusst** (entschieden: „beide erst mal auslassen"), weil next sie
+   nicht selbst bedienen kann: die **Favoriten** (`UserPrefListPage` für
+   `UserPrefArea.TASK_FAVORITE`, `TaskFavoritesRest` ist vollständig, aber es fehlt die
+   Verwaltungsseite) und der **Aufgaben-Assistent** (`TaskWizardPageRest` ist ein Torso,
+   s. Lücke 2). Beide bleiben über den Legacy-Link im Seitenkopf erreichbar. Wickets
+   **Listenansicht**-Knopf fehlt ebenfalls – das ist Schritt 4, dann wird er ein Link und
+   ein zweites `returnTarget`.
+
+   **„Filter zurücksetzen" ist nicht `filter/reset`.** Der Endpunkt
+   (`AbstractEntityRest.resetListFilter`) räumt den gespeicherten `MagicFilter` der Entität
+   samt Grid-State auf; der Baum filtert aber mit einem eigenen `TaskFilter` unter eigenem
+   Session-Key (`ListFilterService.getSearchFilter(…, filterKeySuffix(selectMode))`). Also
+   setzt der Baum seinen Filter clientseitig auf `DEFAULT_TASK_TREE_FILTER`
+   (`useTaskTree.resetFilter`), und das Backend übernimmt ihn beim nächsten
+   nicht-initialen Aufruf, weil `TaskServicesRest.getTree` dessen Parameter als neuen
+   Benutzerfilter liest. `ListGearMenu.onFilterReset` ist dafür optional geworden: eine
+   Seite ohne gespeicherten `MagicFilter` bekommt nur die Reindex-Einträge.
+
+   **Notiert, nicht geändert:** Wickets Hilfe-Icon am Suchfeld trägt `tooltip.lucene.link`
+   und verspricht damit mehr als das Feld kann – `TaskFilter.isVisibleBySearchString` ist ein
+   `StringUtils.containsIgnoreCase` über sieben Spalten (Titel, Referenz, Kurzbeschreibung,
+   Beschreibung, Anzeigename, Name/Kennung des Verantwortlichen, Workpackage-Code), keine
+   Lucene-Abfrage. Gleichstand ist gewollt (das verlinkte Kapitel erklärt die Volltextsuche
+   der Listenseiten), die Formulierung zu korrigieren wäre eine Änderung am Bundle, das
+   Wicket mitbenutzt – im Code vermerkt, `lib/docs-links.ts` spiegelt
+   `Constants.WEB_DOCS_*`.
+
+   Kleinigkeit aus Lücke 2 mit erledigt: der Hinweis unten liest auf der Seite jetzt
+   `task.tree.info` und nur im Auswahl-Panel `task.selectPanel.info`.
+
+   `e2e/task-tree-actions.spec.ts` deckt die Leiste ab: `+` → `/task/new?returnTo=%2FtaskTree`,
+   Zeilenaktion → `/task/new?parentTaskId=…` **und** das vom Backend voreingestellte
+   Elternteil im Formular (die URL allein würde nichts beweisen), keine Aktion an der
+   Wurzelzeile, das Zahnradmenü mit Reindex + Rücksetzen, das Rücksetzen über einen Reload
+   (also serverseitig angekommen), der Handbuch-Link, und das Auswahl-Panel _ohne_ all das.
+   Die gemeinsamen Baum-Handgriffe liegen jetzt in `e2e/fixtures/task-tree.ts`.
 
 4. Listenperspektive (`createListLayout` auf die zehn Wicket-Spalten bringen) und
    Aufgaben-Assistent (`TaskWizardPageRest` ausbauen).
@@ -1788,7 +1845,10 @@ FiBu-Gruppen) – dafür Unit-Tests.
   (`hasAccessForKost2AndTimesheetBookingStatus`), Klappzustand
   `.../task/TaskTree.kt` (`USER_PREFS_KEY_OPEN_TASKS`), Kost2-Anhang
   `.../task/TaskHelper.kt`; next `app/(authenticated)/taskTree/page.tsx`,
-  `components/shared/tasks/*`, `lib/rs/task.ts`, `e2e/task-tree.spec.ts`
+  `components/shared/tasks/*` (Baum, Aktionsleiste, Routen),
+  `components/features/task/*` (Edit-Seite), `lib/rs/task.ts`, `lib/docs-links.ts`,
+  `e2e/task-tree.spec.ts`, `e2e/task-tree-actions.spec.ts`, `e2e/task-edit.spec.ts`,
+  `e2e/task-kost2-preview.spec.ts`
 
 ## Stand & nächste Schritte
 

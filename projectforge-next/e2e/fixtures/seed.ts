@@ -289,7 +289,9 @@ let rootTaskId: number | undefined;
  * - otherwise the parent chain of any visible node leads there: the root is the one task whose
  *   `parentTask` is unset.
  */
-async function fetchRootTaskId(request: APIRequestContext): Promise<number> {
+export async function fetchRootTaskId(
+  request: APIRequestContext
+): Promise<number> {
   if (rootTaskId != null) return rootTaskId;
   const res = await request.get(
     "/rs/task/tree?table=true&showRootForAdmins=true&opened=true&notOpened=true&closed=true&deleted=false",

@@ -1537,6 +1537,7 @@
       "list": "Structure elements"
     },
     "tree": {
+      "info": "You may expand or collapse structure elements with structure sub elements by clicking the folder icons or the title of the element, you may select any element by clicking the row at any other position.",
       "rootNode": "Root node",
       "title": {
         "select": "Select structure element"
@@ -1578,6 +1579,9 @@
   "tooltip": {
     "export": {
       "excel": "Export as Excel file"
+    },
+    "lucene": {
+      "link": "Link to howto of lucene queries."
     },
     "shortcut": {
       "addEntry": {

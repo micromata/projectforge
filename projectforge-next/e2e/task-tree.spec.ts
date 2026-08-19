@@ -1,7 +1,6 @@
-import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat, type UserFormat } from "./fixtures/format";
-import { DEFAULT_PAGE_SIZE } from "../components/data-table/page-size-options";
+import { userFormat } from "./fixtures/format";
+import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
  * The structure tree page (`/next/taskTree`) against the live backend.
@@ -20,61 +19,9 @@ const PAGE = "/taskTree";
 /** The tree column, pinned left; the one whose click expands rather than selects. */
 const TREE_CELL = "tbody tr td:nth-child(1)";
 
-/**
- * Narrows the tree to the seeded task and answers its row together with the number of rows left.
- *
- * Necessary, not merely tidy: the tasks of every run stay in the database (see fixtures/seed.ts), so
- * the root's children outgrow a page of the table, and the newest of them — this run's — lands on the
- * last one. A search asks the backend for the matching subtrees, which brings the row onto page one.
- *
- * The count comes from here rather than from the caller, and only after the *filtered* answer has
- * arrived: the search is debounced, so for a while the table still shows the unfiltered page — a count
- * taken then is a count of the wrong list, and a later "more rows than before" can never reach it.
- * Keyed on the response rather than on "the row count stopped changing", because between the
- * keystrokes and the answer the table sits still at the old number for longer than any poll interval.
- */
-async function narrowToSeeded(page: Page, t: UserFormat["t"], title: string) {
-  // The last word of the title, not the whole one: the client builds the query with URLSearchParams,
-  // which writes a space as "+" rather than "%20" — matching the encoded title would never hit.
-  const term = title.split(" ").at(-1) ?? title;
-  const filtered = page.waitForResponse(
-    (response) =>
-      response.url().includes("/rs/task/tree") &&
-      response.url().includes(term) &&
-      response.status() === 200,
-    { timeout: 20_000 }
-  );
-  await page.getByLabel(t("search._")).fill(title);
-  const { nodes = [] } = (await (await filtered).json()) as {
-    nodes?: unknown[];
-  };
-  const rows = page.locator("tbody tr");
-  // The answer says how many rows the table will have, so waiting for that number is waiting for the
-  // rendering of *this* answer rather than for an arbitrary moment of quiet. Capped at a page, since
-  // a wider result would be paginated — the seeded subtree is far below one page.
-  await expect(rows).toHaveCount(Math.min(nodes.length, DEFAULT_PAGE_SIZE), {
-    timeout: 20_000,
-  });
-  const row = rows.filter({ hasText: title }).first();
-  await expect(row).toBeVisible();
-  return { row, count: await rows.count() };
-}
-
 test.describe("task tree", () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
-    // The filter is session-scoped, so a search string left behind by a manual session (or by the
-    // Wicket page, which shares it) would empty the tree under test. A non-initial call is what sets
-    // it — the same request the panel sends when the filter changes.
-    await page.request
-      .get(
-        "/rs/task/tree?table=true&searchString=&opened=true&notOpened=true&closed=false&deleted=false"
-      )
-      .catch(() => undefined);
-    // The column state outlives the browser context (it is in the account's prefs), so a hidden
-    // column from another run must not decide what this one sees.
-    await page.request
-      .get("/rs/task/tree/resetGridState/")
-      .catch(() => undefined);
+    await resetTreeState(page);
   });
 
   test("renders the backend's columns and the selection hint", async ({
@@ -97,8 +44,9 @@ test.describe("task tree", () => {
       ).toHaveCount(1);
     }
 
-    // The hint below the table is what makes the cell-level click discoverable at all.
-    await expect(page.getByText(t("task.selectPanel.info"))).toBeVisible();
+    // The hint below the table is what makes the cell-level click discoverable at all. On the page it
+    // is Wicket's own tree text; the select panel's variant is asserted in task-tree-actions.spec.ts.
+    await expect(page.getByText(t("task.tree.info"))).toBeVisible();
 
     // A row shows its title rather than an object or an empty cell. The seeded task's row, not the
     // first one: the root is appended only for admins and financial staff (`showRootForAdmins`), so on
