@@ -75,6 +75,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -426,6 +427,45 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * a `true` whose meaning has to be looked up.
      */
     class Kost2Check(val matchesInvoice: Boolean)
+
+    /**
+     * The invoice as the Word document of the configured template — Wicket's "Export invoice" menu
+     * (`RechnungEditPage.addExportMenu`, one entry per variant of [InvoiceService.getTemplateVariants]).
+     *
+     * **By id, i.e. the stored invoice — where Wicket exports the unsaved form state**
+     * (`setDefaultFormProcessing(false)` on its submit link). Two reasons, and the first is the decisive one:
+     * [InvoiceService] reads far more than the form posts. `getInvoiceFilename` walks
+     * `konto.bezeichnung` → `kunde.konto.bezeichnung` → `kunde.name` → `kundeText`, and the address block
+     * walks the same chain; a posted DTO carries account and customer as ids only, so a DTO based export
+     * would have to resolve all of it from the caches a second time or quietly produce thinner names and
+     * addresses. The second: a Word document leaves the house, and exporting a state that is in nobody's
+     * database is a source of error rather than a feature — Wicket's behaviour is an artefact of its submit
+     * model, not a decision. So the client offers the export only for a stored invoice, as Wicket omits its
+     * menu for a new one.
+     *
+     * The access check is [RechnungDao]'s own, through `find` — the category right alone would let anyone
+     * with the finance right export an invoice they may not read. An unknown id answers 404 rather than an
+     * empty document; that this doesn't throw instead is what `RechnungDao.find` had to be made null safe
+     * for.
+     *
+     * [RechnungCalculator.calculate] rather than [AbstractRechnungDO.ensuredInfo], and the same call Wicket
+     * makes before building its page (`AbstractRechnungEditForm`): the document reads the sums of every single
+     * position (`position.info.netSum`), and those are `lateinit` too. `ensuredInfo` would not fill them — the
+     * load already put an invoice level [RechnungInfo] from the cache on the object (`RechnungDao.afterLoad`),
+     * so it considers the work done while every position still throws.
+     */
+    @GetMapping("$EXPORT_WORD_PATH/{id}")
+    fun exportInvoiceWord(
+        @PathVariable("id") id: Long,
+        @RequestParam("variant", required = false) variant: String?,
+    ): ResponseEntity<*> {
+        log.info { "Exporting invoice #$id as Word document, variant='${variant ?: ""}'." }
+        val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
+        RechnungCalculator.calculate(invoice)
+        val document = invoiceService.getInvoiceWordDocument(invoice, variant)
+            ?: return ResponseEntity.notFound().build<Any>()
+        return RestUtils.downloadFile(invoiceService.getInvoiceFilename(invoice), document.toByteArray())
+    }
 
     /**
      * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on
@@ -933,6 +973,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
         /** Sub path of the cost assignment export, as `invoice-list-actions.tsx` calls it. */
         internal const val EXPORT_COST_ASSIGNMENTS_PATH = "exportCostAssignmentsAsExcel"
+
+        /** Sub path of the Word export, as `lib/rs/invoice.ts` calls it (the invoice id follows). */
+        internal const val EXPORT_WORD_PATH = "exportInvoiceWord"
 
         private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"
 

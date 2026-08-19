@@ -6,6 +6,7 @@ import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
+import { InvoiceExportMenu } from "./edit/invoice-export-menu";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { SellerBankAccountField } from "./edit/seller-bank-account-field";
@@ -36,9 +37,10 @@ export const INVOICE_ROUTE = "/invoice";
  * to Wicket (`listMeta.legacyEditPage` — see useEditTargets). The flip is a commit of its own; until then
  * the form is reached by typing `/next/invoice/{id}`, which is how the address page was verified.
  *
- * Deliberately not part of it: the XRechnung/ZUGFeRD export and the invoice-PDF upload Wicket offers
+ * Not part of it yet: the XRechnung/ZUGFeRD export and the invoice-PDF upload Wicket offers
  * (`fibu.rechnung.exportEInvoice`, `fibu.rechnung.invoicePdf`). The fields the export reads *are* here —
- * the address block of the `customer` section — so nothing has to be entered twice once it follows.
+ * the address block of the `customer` section — so nothing has to be entered twice once it follows. The
+ * Word export is (see InvoiceExportMenu on `headerTrailing`).
  *
  * The columns are the 18 of the deleted `RechnungPagesRest.createListLayout`, with the two ends of the
  * period of performance as the one column they read as (`created` and `lastUpdate` come on top of them
@@ -221,6 +223,9 @@ export const INVOICE_PAGE = definePage<
     // The recurring monthly invoice: the next one is the last one with a new date, so it is written by
     // cloning it (see OutgoingInvoiceEntityRest.prepareClone for what a clone keeps and what it drops).
     clone: true,
+    // The Word export, beside the heading: it acts on the stored invoice, and `headerTrailing` is the one
+    // slot of an edit page that is handed exactly that (see InvoiceExportMenu).
+    headerTrailing: (invoice) => <InvoiceExportMenu invoiceId={invoice?.id} />,
     sections: [
       {
         id: "head",

@@ -10,7 +10,7 @@
  */
 
 import { request } from "./client";
-import { downloadPost } from "./download";
+import { downloadFile, downloadPost } from "./download";
 import type { MagicFilter, PostData } from "./types";
 
 /**
@@ -40,6 +40,30 @@ export function downloadInvoiceCostAssignmentsExcel(
   return downloadPost(
     "/rs/outgoingInvoice/exportCostAssignmentsAsExcel",
     filter,
+    signal
+  );
+}
+
+/**
+ * The invoice as a Word document, from the template variant given (an empty string for the unnamed one).
+ *
+ * By id and not from the form: the document is built from the **stored** invoice, whose account and
+ * customer the backend can resolve for the address block and the file name — see
+ * `OutgoingInvoiceEntityRest.exportInvoiceWord` for why that differs from Wicket, which exports the unsaved
+ * form. So the caller offers it for a saved invoice only.
+ *
+ * A 404 means either no such invoice or no readable template; the caller reports both as an error, since
+ * an export the user asked for produced nothing.
+ */
+export function downloadInvoiceWord(
+  id: number,
+  variant: string,
+  signal?: AbortSignal
+): Promise<void> {
+  const query = variant ? `?variant=${encodeURIComponent(variant)}` : "";
+  return downloadFile(
+    `/rs/outgoingInvoice/exportInvoiceWord/${id}${query}`,
+    { method: "GET" },
     signal
   );
 }

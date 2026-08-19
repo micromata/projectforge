@@ -198,15 +198,24 @@ export async function fetchActiveKost2(
     .map((k) => ({ id: k.id, displayName: k.displayName }));
 }
 
-/** The default VAT and the other form defaults, as the form itself reads them. */
+/**
+ * The default VAT and the other form defaults, as the form itself reads them.
+ *
+ * `templateVariants` is what the Word export offers one entry per — read here rather than assumed, because
+ * how many there are is this installation's configuration (`projectforge.invoiceTemplate`) and decides
+ * whether the export is a button or a menu.
+ */
 export async function fetchFormDefaults(
   page: Page
-): Promise<{ defaultVat?: number | null }> {
+): Promise<{ defaultVat?: number | null; templateVariants?: string[] }> {
   const response = await page.request.get(`/rs/${ENTITY}/formDefaults`, {
     headers: { "X-PF-Frontend": "next" },
   });
   if (!response.ok()) return {};
-  return (await response.json()) as { defaultVat?: number | null };
+  return (await response.json()) as {
+    defaultVat?: number | null;
+    templateVariants?: string[];
+  };
 }
 
 /** The headers every state changing call needs — the CSRF token is read per call, not cached. */

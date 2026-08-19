@@ -763,7 +763,13 @@
         "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
       },
       "exportEInvoice": "Export XRechnung",
-      "exportInvoice": "Export invoice",
+      "exportInvoice": {
+        "_": "Export invoice",
+        "onlyStored": "Only a saved invoice can be exported; unsaved changes are not part of the document.",
+        "template": {
+          "default": "Default template"
+        }
+      },
       "exportZUGFeRD": "Export ZUGFeRD",
       "faelligkeit": {
         "_": "Due date",
