@@ -1,8 +1,9 @@
 "use client";
 
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
-import { BooleanField, RangeField, TextField } from "./filter-field-inputs";
+import { BooleanField, TextField } from "./filter-field-inputs";
 import { ListField } from "./filter-list-field";
+import { RangeField } from "./filter-range-field";
 import { FilterObjectField } from "./filter-object-field";
 import { TimestampRangeField } from "./filter-timestamp-field";
 
