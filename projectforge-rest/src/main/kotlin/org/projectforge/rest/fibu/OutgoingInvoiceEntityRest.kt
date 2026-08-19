@@ -29,6 +29,7 @@ import mu.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
+import org.projectforge.business.fibu.EInvoiceExportService
 import org.projectforge.business.fibu.EInvoiceSellerConfig
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
@@ -46,17 +47,21 @@ import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
+import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.FileCheck
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -74,6 +79,7 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -81,6 +87,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Date
@@ -137,6 +144,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     @Autowired
     private lateinit var sellerConfig: EInvoiceSellerConfig
+
+    @Autowired
+    private lateinit var eInvoiceExportService: EInvoiceExportService
 
     @PostConstruct
     private fun postConstruct() {
@@ -465,6 +475,109 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val document = invoiceService.getInvoiceWordDocument(invoice, variant)
             ?: return ResponseEntity.notFound().build<Any>()
         return RestUtils.downloadFile(invoiceService.getInvoiceFilename(invoice), document.toByteArray())
+    }
+
+    /**
+     * Which file is stored as *the* invoice PDF of this invoice, or that there is none.
+     *
+     * The invoice PDF is a JCR attachment like any other, marked as this one by its description
+     * ([EInvoiceExportService.INVOICE_PDF_MARKER]); the ZUGFeRD export takes it as the document to embed the
+     * XML into, and converts the Word template only where it is missing (`exportAsZUGFeRD`). So it is not a
+     * second attachment list — it is one file with a role, which is why it has endpoints of its own instead
+     * of a description the user could type.
+     *
+     * `sizeHumanReadable` travels formatted, as it comes from [Attachment]: it is the backend's own rendering
+     * in the user's locale, and formatting bytes a second time in the browser would be a second place to be
+     * wrong.
+     */
+    @GetMapping("$INVOICE_PDF_PATH/{id}/info")
+    fun getInvoicePdfInfo(@PathVariable("id") id: Long): InvoicePdfState {
+        checkEInvoiceAccess()
+        baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
+        return InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id))
+    }
+
+    /**
+     * Stores the given PDF as the invoice PDF, replacing the one that was there
+     * (`EInvoiceExportService.uploadInvoicePdf` deletes it first — there is exactly one per invoice).
+     *
+     * Checked by [FileCheck] rather than by the extension alone, which is all Wicket looks at
+     * (`RechnungEditForm.processInvoicePdfUpload`): the same check every other upload of the application
+     * makes, and it names a size limit as well. Its answer is a translated text, so a refusal is reported as
+     * 400 with that text rather than as a silently ignored upload — Wicket drops a non-PDF without a word.
+     *
+     * Answers the new state, so the client needs no second call for what it just wrote.
+     */
+    @PostMapping("$INVOICE_PDF_PATH/{id}")
+    fun uploadInvoicePdf(
+        @PathVariable("id") id: Long,
+        @RequestParam("file") file: MultipartFile,
+    ): ResponseEntity<*> {
+        val invoice = checkInvoicePdfWriteAccess(id)
+        val filename = file.originalFilename ?: "unknown"
+        log.info { "Uploading invoice PDF '$filename' (${file.size} bytes) for invoice #${invoice.id}." }
+        if (file.isEmpty) {
+            return ResponseEntity.badRequest().body(translate("file.upload.error.noFileSelected"))
+        }
+        FileCheck.checkFile(filename, file.size, "pdf", megaBytes = MAX_INVOICE_PDF_MEGA_BYTES)?.let { error ->
+            return ResponseEntity.badRequest().body(error)
+        }
+        eInvoiceExportService.uploadInvoicePdf(id, filename, file.inputStream.use { it.readBytes() })
+        return ResponseEntity.ok(InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id)))
+    }
+
+    /**
+     * Removes the invoice PDF, so the ZUGFeRD export converts the Word template again.
+     *
+     * Answers the new (empty) state for the same reason the upload answers the new one, and does nothing
+     * where there was none — the outcome the caller asked for is reached either way.
+     */
+    @DeleteMapping("$INVOICE_PDF_PATH/{id}")
+    fun deleteInvoicePdf(@PathVariable("id") id: Long): InvoicePdfState {
+        checkInvoicePdfWriteAccess(id)
+        log.info { "Deleting the invoice PDF of invoice #$id." }
+        eInvoiceExportService.deleteUploadedInvoicePdf(id)
+        return InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id))
+    }
+
+    /**
+     * The invoice PDF of an invoice, or `null` where none is stored.
+     *
+     * A wrapper and not a nullable body: an endpoint answering `null` sends an empty body, which is not JSON
+     * and cannot be told apart from a truncated answer. `{"pdf":null}` says "there is none".
+     */
+    class InvoicePdfState(pdf: Attachment?) {
+        val pdf: InvoicePdfInfo? = pdf?.let { InvoicePdfInfo(name = it.name, sizeHumanReadable = it.sizeHumanReadable) }
+    }
+
+    /** What the form shows of the stored invoice PDF: its name and its size, nothing else is acted on. */
+    class InvoicePdfInfo(val name: String?, val sizeHumanReadable: String?)
+
+    /**
+     * The groups the e-invoice functions require, as `EInvoiceCheckerPageRest.checkAccess` requires them.
+     *
+     * On top of the select right of the category: reading an invoice and handling the document that leaves
+     * the house for it are two different permissions, and the classic frontends only ever hid the menu entry
+     * — projectforge-next builds its own menu, so a hidden entry keeps nobody out.
+     */
+    private fun checkEInvoiceAccess() {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+    }
+
+    /**
+     * The invoice, if the user may change the file that represents it: the groups above, plus write access to
+     * this very invoice.
+     *
+     * The second check is [RechnungDao]'s own and is the one that matters — uploading a PDF changes what an
+     * e-invoice of this invoice looks like, so it is a write to the invoice even though no column of it moves.
+     * `find` is the read check; without it an unknown id would be answered by an upload into a JCR node
+     * nobody owns.
+     */
+    private fun checkInvoicePdfWriteAccess(id: Long): RechnungDO {
+        checkEInvoiceAccess()
+        val invoice = baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
+        baseDao.hasLoggedInUserUpdateAccess(invoice, invoice, throwException = true)
+        return invoice
     }
 
     /**
@@ -976,6 +1089,18 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
         /** Sub path of the Word export, as `lib/rs/invoice.ts` calls it (the invoice id follows). */
         internal const val EXPORT_WORD_PATH = "exportInvoiceWord"
+
+        /** Sub path of the three invoice PDF endpoints, as `lib/rs/invoice-pdf.ts` calls them. */
+        internal const val INVOICE_PDF_PATH = "invoicePdf"
+
+        /**
+         * Size limit of the invoice PDF, the same [FileCheck] limit the e-invoice checker page applies.
+         *
+         * Well below what the storage itself refuses (`EInvoiceExportService` checks 50 MB): a scanned or
+         * exported invoice of that size is a mistake, and saying so on the upload is more useful than
+         * discovering it in the JCR.
+         */
+        private const val MAX_INVOICE_PDF_MEGA_BYTES = 20L
 
         private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"
 
