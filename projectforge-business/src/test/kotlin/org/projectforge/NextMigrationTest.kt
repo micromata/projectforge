@@ -70,6 +70,24 @@ class NextMigrationTest {
     }
 
     /**
+     * The invoice is the case the two answers differ for, and both are relied upon: `RechnungEditForm`
+     * builds its attachment link from [NextMigration.nextEditPage] while a row click still has to lead to
+     * Wicket, whose form is the only one with the e-invoice export.
+     */
+    @Test
+    fun `nextEditPage names the next form of a list only page, standardEditPage the legacy one`() {
+        Assertions.assertEquals("next/invoice/:id", NextMigration.nextEditPage("outgoingInvoice"))
+        Assertions.assertEquals("wa/outgoingInvoiceEdit?id=:id", NextMigration.standardEditPage("outgoingInvoice"))
+        // For a fully migrated page the two agree - there is only one form.
+        Assertions.assertEquals(
+            NextMigration.standardEditPage("book"),
+            NextMigration.nextEditPage("book"),
+        )
+        // Not migrated at all, so there is no next form to name.
+        Assertions.assertNull(NextMigration.nextEditPage("address"))
+    }
+
+    /**
      * The working directory of a test run is the module, not the repository, and both are valid
      * (Gradle vs. IDE), so the project root is searched upwards instead of assumed.
      */
