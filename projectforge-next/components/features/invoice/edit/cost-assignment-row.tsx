@@ -16,6 +16,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { KOST_ZUWEISUNG_METADATA } from "@/lib/metadata/kost-zuweisung.generated";
 import { cn } from "@/lib/utils";
 import { CostAssignmentShare } from "./cost-assignment-share";
+import { Kost2Warning } from "./kost2-warning";
 
 export interface CostAssignmentRowProps {
   /**
@@ -30,6 +31,8 @@ export interface CostAssignmentRowProps {
   /** The row's own amount and the position's net sum, for the share it carries of it. */
   netto?: number | null;
   positionNetSum?: number | null;
+  /** The chosen cost 2 unit, checked against the invoice's project; see [Kost2Warning]. */
+  kost2Id?: number | null;
   onRemove?: () => void;
   onRestore?: () => void;
 }
@@ -48,6 +51,7 @@ export function CostAssignmentRow({
   deleted,
   netto,
   positionNetSum,
+  kost2Id,
   onRemove,
   onRestore,
 }: CostAssignmentRowProps) {
@@ -97,6 +101,8 @@ export function CostAssignmentRow({
           entity="cost2"
           className="min-w-0 flex-1 basis-40"
         />
+        {/* Beside the field it is about, as Wicket outlines that very field. */}
+        <Kost2Warning kost2Id={kost2Id} />
         <NumberField
           name={name("netto")}
           label={label("netto")}

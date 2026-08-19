@@ -551,7 +551,8 @@
     "kost": {
       "error": {
         "collision": "Collision with already existing cost.",
-        "invalidKost": "Invalid cost."
+        "invalidKost": "Invalid cost.",
+        "kost2NotOfProject": "This cost unit doesn't belong to the project or customer of the invoice."
       },
       "kostentraeger": "Cost unit ids",
       "status": {
@@ -1471,6 +1472,7 @@
   "selectAll": "Select all",
   "settings": "Settings",
   "shortDescription": "Short description",
+  "show": "Show",
   "statistics": "Statistics",
   "status": "Status",
   "task": {

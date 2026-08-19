@@ -381,6 +381,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
      * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
+     *
+     * **One deliberate difference.** For an invoice naming only a customer, Wicket compares the customer
+     * number against `Kost2DO.teilbereich` — digits 5-6, which are the *project* number — and leaves
+     * `bereich`, the digits a customer number actually occupies ([KundeDO.kost]), uncompared. So it warns
+     * about nearly every cost unit of a customer-only invoice, and stays quiet about cost units of other
+     * customers. Here the customer number is compared against `bereich`, which is the question the form is
+     * asking.
      */
     @GetMapping("kost2Check")
     fun checkKost2(
@@ -394,24 +401,22 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // customer, and its area narrows the answer further.
         val projekt = projektCache.getProjekt(projektId)
         val numberRange: Int
-        // -1 means "don't compare", which is what an invoice without a project leaves the area at.
+        // -1 means "don't compare": a customer names the digits 2-4 of a cost unit but not the 5-6.
         var area = -1
-        val number: Long
+        var number = -1
         if (projekt != null) {
             numberRange = projekt.nummernkreis
             area = projekt.bereich ?: -1
-            number = projekt.nummer.toLong()
+            number = projekt.nummer
         } else {
             val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
             numberRange = kunde.nummernkreis
-            number = kunde.nummer ?: return Kost2Check(matchesInvoice = true)
+            area = kunde.nummer?.toInt() ?: return Kost2Check(matchesInvoice = true)
         }
-        val differs = if (numberRange >= 0 && kost2.nummernkreis != numberRange) {
-            true
-        } else if (area >= 0 && kost2.bereich != area) {
-            true
-        } else {
-            number >= 0 && kost2.teilbereich.toLong() != number
+        val differs = when {
+            numberRange >= 0 && kost2.nummernkreis != numberRange -> true
+            area >= 0 && kost2.bereich != area -> true
+            else -> number >= 0 && kost2.teilbereich != number
         }
         return Kost2Check(matchesInvoice = !differs)
     }

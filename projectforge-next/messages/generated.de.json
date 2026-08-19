@@ -551,7 +551,8 @@
     "kost": {
       "error": {
         "collision": "Kollision mit bereits vorhandenem Kostenträger.",
-        "invalidKost": "Ungültiger Kostenträger."
+        "invalidKost": "Ungültiger Kostenträger.",
+        "kost2NotOfProject": "Dieser Kostenträger gehört nicht zum Projekt bzw. Kunden der Rechnung."
       },
       "kostentraeger": "Kostenträger",
       "status": {
@@ -1471,6 +1472,7 @@
   "selectAll": "Alle auswählen",
   "settings": "Einstellungen",
   "shortDescription": "Kurzbeschreibung",
+  "show": "Anzeigen",
   "statistics": "Statistik",
   "status": "Status",
   "task": {
