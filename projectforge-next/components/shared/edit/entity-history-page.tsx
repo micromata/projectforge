@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { EditPageTabs } from "@/components/shared/edit-page-tabs";
 import { HistorySection } from "@/components/shared/history/history-section";
+import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useEntityDetail, type EntityWithId } from "@/hooks/use-entity-detail";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import type { ListRow } from "@/hooks/use-entity-list-page";
@@ -28,6 +29,7 @@ export function EntityHistoryPage<
   const t = useTranslations();
   const { data } = useEntityDetail<Data>(page.entity, id);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
+  const collapse = useCollapseOnScroll();
 
   const tabs = entityTabs({
     sections: page.edit.sections,
@@ -51,7 +53,10 @@ export function EntityHistoryPage<
         />
       </div>
       <EditPageTabs tabs={tabs} activeId={HISTORY_TAB_ID} />
-      <div className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6 pt-4">
+      <div
+        className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6 pt-4"
+        onScroll={collapse.onScroll}
+      >
         <HistorySection entity={page.entity} entityId={id} />
       </div>
     </div>

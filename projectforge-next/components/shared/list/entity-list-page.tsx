@@ -274,6 +274,8 @@ function DeclaredList<
           table={list.table}
           columns={columns}
           data={list.data}
+          // The list's table is the page's scroll column, so it is what makes the logo row give way.
+          collapseLogoOnScroll
           isLoading={list.isLoading}
           isFetching={list.isFetching}
           rowClassName={(row) =>

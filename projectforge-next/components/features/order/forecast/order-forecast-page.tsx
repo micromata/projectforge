@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EditPageTabs } from "@/components/shared/edit-page-tabs";
 import { EntityEditHeader } from "@/components/shared/edit/entity-edit-header";
 import { entityTabs } from "@/components/shared/edit/entity-tabs";
+import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import {
@@ -33,6 +34,7 @@ export function OrderForecastPage({ id }: { id: number }) {
   const t = useTranslations();
   const { data: order } = useEntityDetail<OrderDetail>(ORDER_PAGE.entity, id);
   const legacyUrl = useLegacyEditUrl(ORDER_PAGE.entity, id);
+  const collapse = useCollapseOnScroll();
 
   const analysis = useQuery({
     queryKey: [ORDER_PAGE.entity, id, "forecastAnalysis"],
@@ -64,7 +66,10 @@ export function OrderForecastPage({ id }: { id: number }) {
         />
       </div>
       <EditPageTabs tabs={tabs} activeId={FORECAST_TAB_ID} />
-      <div className="flex-1 overflow-y-auto bg-muted/30 px-6 pt-4 pb-6">
+      <div
+        className="flex-1 overflow-y-auto bg-muted/30 px-6 pt-4 pb-6"
+        onScroll={collapse.onScroll}
+      >
         {/* The analysis is computed over the saved order, see above — so say so where it is read. */}
         <p className="mb-3 text-sm text-muted-foreground">
           {t("order.forecast.savedOnlyHint")}

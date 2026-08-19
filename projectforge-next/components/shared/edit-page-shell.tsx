@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
 import { EditPageTabs, type EditPageTab } from "./edit-page-tabs";
 
@@ -29,6 +30,7 @@ export function EditPageShell({
 }: EditPageShellProps) {
   const { scrollProps, sectionRef, activeIndex, scrollToSection } =
     useScrollSpy(sections.length);
+  const collapse = useCollapseOnScroll();
   useSectionFromHash(tabs, scrollToSection);
 
   return (
@@ -46,6 +48,13 @@ export function EditPageShell({
       {banner && <div className="shrink-0">{banner}</div>}
       <div
         {...scrollProps}
+        // Two listeners on the one column: the spy derives the active section, the collapse drives the
+        // logo row. React attaches `scroll` per element rather than delegating it, so a second handler
+        // has to be composed here - and the spread has to come first, or it would drop this one.
+        onScroll={(event) => {
+          scrollProps.onScroll();
+          collapse.onScroll(event);
+        }}
         className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
       >
         {sections.map((section, i) => (

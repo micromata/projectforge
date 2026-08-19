@@ -45,6 +45,10 @@
       "mailSent": "Email code has been sent"
     }
   },
+  "logo": {
+    "projectforge": "ProjectForge",
+    "customer": "Company logo"
+  },
   "order": {
     "legend": {
       "deleted": "Deleted / rejected / replaced",
