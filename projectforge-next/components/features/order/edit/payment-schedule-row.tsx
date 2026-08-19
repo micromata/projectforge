@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { CollapsibleSummary } from "@/components/shared/collapsible-summary";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
@@ -36,6 +37,9 @@ export interface PaymentScheduleRowProps {
  * `positionNumber` refers to a position's **number**, not its id (`PaymentScheduleDO`), which is why the
  * select is built from the form's positions rather than from an autocomplete: the numbers only exist
  * within this order, and a new position has none until it is saved.
+ *
+ * The header is a [CollapsibleSummary], as a position's is: due date and amount identify the instalment,
+ * everything else is shown only while the row is folded.
  */
 export function PaymentScheduleRow({
   schedule,
@@ -58,30 +62,33 @@ export function PaymentScheduleRow({
       <RepeatableRow
         highlighted={!!schedule.reached && !schedule.vollstaendigFakturiert}
         header={
-          <span className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-            <span className="shrink-0 text-muted-foreground">
-              {schedule.number}
-            </span>
-            <span className="shrink-0 tabular-nums">
-              {formatDate(schedule.scheduleDate, format)}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-muted-foreground">
-              {schedule.comment}
-            </span>
-            {schedule.positionNumber != null && (
-              <span className="hidden shrink-0 text-muted-foreground md:inline">
-                {t("label.position.short")} {schedule.positionNumber}
-              </span>
-            )}
-            {schedule.reached && (
-              <span className="shrink-0 text-green-600 dark:text-green-400">
-                {t("fibu.common.reached")}
-              </span>
-            )}
-            <span className="shrink-0 tabular-nums">
-              {formatCurrency(schedule.amount, format)}
-            </span>
-          </span>
+          <CollapsibleSummary
+            // What identifies an instalment: which one it is, when it is due, and for how much.
+            primary={
+              <>
+                <span className="shrink-0 text-muted-foreground">
+                  {schedule.number}
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  {formatDate(schedule.scheduleDate, format)}
+                </span>
+                {/* Right-hand end of the line, as the sum of a position is. */}
+                <span className="ml-auto shrink-0 tabular-nums">
+                  {formatCurrency(schedule.amount, format)}
+                </span>
+              </>
+            }
+            details={[
+              schedule.comment,
+              schedule.positionNumber != null &&
+                `${t("label.position.short")} ${schedule.positionNumber}`,
+              schedule.reached && (
+                <span className="text-green-600 dark:text-green-400">
+                  {t("fibu.common.reached")}
+                </span>
+              ),
+            ]}
+          />
         }
         defaultOpen={schedule.id == null}
         deleted={schedule.deleted}

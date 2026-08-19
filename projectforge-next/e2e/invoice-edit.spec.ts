@@ -445,6 +445,11 @@ async function createInvoice(
       // A free-text customer, because a real one cannot be created here (`KundeDO` has no generated
       // id, see fixtures/seed.ts) and naming one would put a customer of the database into the source.
       kundeText: `${MARKER} customer ${uniqueSuffix()}`,
+      // Mandatory as soon as a position inherits the period, which is the default — without it every
+      // case of this file failed in its seed with `PeriodOfPerformanceValidator`'s message rather than
+      // on what it was testing. Fixed dates, like `datum`.
+      periodOfPerformanceBegin: "2026-03-01",
+      periodOfPerformanceEnd: "2026-03-31",
       positionen: positions.map((pos) => ({ ...pos, vat: 0.19 })),
     },
   });
