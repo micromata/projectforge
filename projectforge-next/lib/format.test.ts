@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDateRange,
+  formatMonthYear,
   formatTimestampRange,
   type FormatContext,
 } from "./format";
@@ -29,6 +30,33 @@ describe("formatDateRange", () => {
   it("is empty for a period with neither end, so a caller can render nothing at all", () => {
     expect(formatDateRange(null, undefined, CTX)).toBe("");
     expect(formatDateRange("", "", CTX)).toBe("");
+  });
+});
+
+describe("formatMonthYear", () => {
+  it("names the month in the user's locale", () => {
+    expect(formatMonthYear("2026-08-01", CTX)).toBe("August 2026");
+    expect(formatMonthYear("2026-03-15", CTX)).toBe("März 2026");
+    expect(formatMonthYear("2026-12-31", { locale: "en-GB" })).toBe(
+      "December 2026"
+    );
+  });
+
+  it("stays in the month it was given, whatever the time zone", () => {
+    // The first of a month read in a zone behind the machine's must not fall back into the previous
+    // one — a date has no time, so no zone is applied to it.
+    expect(
+      formatMonthYear("2026-08-01", {
+        locale: "en-GB",
+        timeZone: "Pacific/Midway",
+      })
+    ).toBe("August 2026");
+  });
+
+  it("is empty for anything that is not a date", () => {
+    expect(formatMonthYear(null, CTX)).toBe("");
+    expect(formatMonthYear(undefined, CTX)).toBe("");
+    expect(formatMonthYear("tomorrow", CTX)).toBe("");
   });
 });
 

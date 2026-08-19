@@ -1,11 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DateInput } from "@/components/shared/date-input";
-import { RangeBounds } from "@/components/shared/range-bounds";
 import type { MagicFilterEntryValue } from "@/lib/rs/types";
 import { fromLikeTerm, toLikeTerm } from "./filter-value";
 
@@ -79,45 +76,5 @@ export function BooleanField({ value, onChange, label, id }: FilterInputProps) {
       />
       <span>{label}</span>
     </label>
-  );
-}
-
-export function RangeField({
-  value,
-  onChange,
-  label,
-  autoFocus,
-  onSubmit,
-}: FilterInputProps) {
-  const t = useTranslations("filter");
-
-  function next(part: "from" | "to", raw: string | null) {
-    const merged = { ...value, [part]: raw ?? undefined };
-    return merged.from || merged.to ? merged : undefined;
-  }
-
-  return (
-    <div className="space-y-1">
-      <p className="text-xs font-medium">{label}</p>
-      <RangeBounds breakpoint="@2xs">
-        <DateInput
-          autoFocus={autoFocus}
-          aria-label={`${label}: ${t("value")}`}
-          value={value?.from}
-          defaultMonth={value?.to}
-          onChange={(iso) => onChange(next("from", iso))}
-          // The date [DateInput] just committed, since `value` here is still the previous one.
-          onSubmit={(iso) => onSubmit?.(next("from", iso))}
-        />
-        <DateInput
-          aria-label={`${label}: ${t("valueTo")}`}
-          value={value?.to}
-          // Opens in the month of the range's start while the end is still empty.
-          defaultMonth={value?.from}
-          onChange={(iso) => onChange(next("to", iso))}
-          onSubmit={(iso) => onSubmit?.(next("to", iso))}
-        />
-      </RangeBounds>
-    </div>
   );
 }

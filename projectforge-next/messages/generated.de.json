@@ -171,6 +171,13 @@
       }
     },
     "month": "Monat",
+    "quickselect": {
+      "tooltip": {
+        "selectCurrentMonth": "Quickselect - aktueller Monat",
+        "selectNextMonth": "Quickselect - nachfolgender Monat",
+        "selectPreviousMonth": "Quickselect - vorangehender Monat"
+      }
+    },
     "shortday": {
       "friday": "Fr",
       "monday": "Mo",
