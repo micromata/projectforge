@@ -71,3 +71,8 @@ venv
 /projectforge-next/out
 /projectforge-next/next-env.d.ts
 /projectforge-next/tsconfig.tsbuildinfo
+
+# Playwright's output, when the e2e tests are started from the repository root rather than
+# from projectforge-next (whose own .gitignore covers the same directories).
+/test-results/
+/playwright-report/
