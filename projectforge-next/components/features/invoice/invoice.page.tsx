@@ -1,10 +1,25 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
-import { defineListPage } from "@/lib/page-def/define-page";
+import { definePage } from "@/lib/page-def/define-page";
+import { CostAssignmentCell } from "./cost-assignment-cell";
+import { AccountField } from "./edit/account-field";
+import { AttachmentSection } from "./edit/attachment-section";
+import { CustomerProjectFields } from "./edit/customer-project-fields";
+import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
+import { PaymentTermsFields } from "./edit/payment-terms-fields";
+import { PositionsSection } from "./edit/positions-section";
+import { SellerBankAccountField } from "./edit/seller-bank-account-field";
 import { InvoiceListActions } from "./invoice-list-actions";
+import {
+  invoiceSchema,
+  INVOICE_ARRAY_FIELDS,
+  INVOICE_FIELDS,
+  type InvoiceValues,
+} from "./invoice-schema";
 import { InvoiceStatisticsLine } from "./invoice-statistics-line";
 import type { InvoiceStatistics } from "./invoice-statistics";
-import type { InvoiceListRow } from "./types";
+import { emptyInvoiceValues, toFormValues } from "./invoice-values";
+import type { InvoiceDetail, InvoiceListRow } from "./types";
 
 /** REST category of an outgoing invoice — `OutgoingInvoiceEntityRest` is mapped to "outgoingInvoice". */
 export const INVOICE_ENTITY = "outgoingInvoice";
@@ -14,13 +29,16 @@ export const INVOICE_LIST_QUERY_KEY = ["outgoingInvoice"] as const;
 export const INVOICE_ROUTE = "/invoice";
 
 /**
- * The invoice list as data (see lib/page-def/types.ts) — the first page declared without a form.
+ * The invoice, list and form (see lib/page-def/types.ts).
  *
- * `defineListPage`, not `definePage`: the invoice *form* with its positions, its cost assignments and
- * its e-invoice export is still Wicket's, so a row click and the add button lead there
- * (`NextMigration.MIGRATED["outgoingInvoice"]` is `listOnly`, and the url comes from
- * `listMeta.legacyEditPage` — see useEditTargets). Everything a list is, this page is: the columns,
- * the filters, the favorites, the column state, the two exports, the statistics and the mass update.
+ * The list is what it was; the form is new and not yet reachable from it:
+ * `NextMigration.MIGRATED["outgoingInvoice"]` is still `listOnly`, so a row click and the add button lead
+ * to Wicket (`listMeta.legacyEditPage` — see useEditTargets). The flip is a commit of its own; until then
+ * the form is reached by typing `/next/invoice/{id}`, which is how the address page was verified.
+ *
+ * Deliberately not part of it: the XRechnung/ZUGFeRD export and the invoice-PDF upload Wicket offers
+ * (`fibu.rechnung.exportEInvoice`, `fibu.rechnung.invoicePdf`). The fields the export reads *are* here —
+ * the address block of the `customer` section — so nothing has to be entered twice once it follows.
  *
  * The columns are the 18 of the deleted `RechnungPagesRest.createListLayout`, with the two ends of the
  * period of performance as the one column they read as (`created` and `lastUpdate` come on top of them
@@ -28,9 +46,16 @@ export const INVOICE_ROUTE = "/invoice";
  * customer, the project and the account are entities of their own and have no `UIDataType`, while the
  * two sums and the cost unit lists are transient — computed by `RechnungInfo` and filled by
  * `Rechnung.copyFrom4ListRow`.
+ *
+ * One column is new: the cost assignment difference, which replaces Wicket's `showKostZuweisungStatus`
+ * checkbox. That switch appended the amount to the first cell of every row it didn't add up for; here it
+ * is a column that can be sorted and switched off, and the question itself ("show only those") is a
+ * filter of the backend (`OutgoingInvoiceEntityRest.COST_ASSIGNMENT_FILTER`).
  */
-export const INVOICE_PAGE = defineListPage<
+export const INVOICE_PAGE = definePage<
   InvoiceListRow,
+  InvoiceValues,
+  InvoiceDetail,
   typeof RECHNUNG_METADATA
 >({
   entity: INVOICE_ENTITY,
@@ -98,6 +123,23 @@ export const INVOICE_PAGE = defineListPage<
       dataType: "AMOUNT",
       size: 120,
     },
+    // What Wicket's "Kostzuweisungsstatus" switch marked the rows with, as a column: the part of the net
+    // sum no cost unit was assigned to yet. Off at first — it is read by whoever books the costs and is
+    // noise to everyone else — and empty for an installation without cost accounting, which sends none
+    // (see `Rechnung.copyFrom4ListRow`).
+    {
+      id: "kostZuweisungenFehlbetrag",
+      labelKey: "fibu.rechnung.kostZuweisungFehlbetrag",
+      accessor: (row) => row.kostZuweisungenFehlbetrag ?? null,
+      dataType: "AMOUNT",
+      size: 150,
+      hiddenByDefault: true,
+      // Its own cell, because the default amount renderer paints every sum alike and this one has to say
+      // that it isn't zero — the red the form's line and the position rows use for the same number.
+      cell: ({ getValue }) => (
+        <CostAssignmentCell value={getValue() as number | null} />
+      ),
+    },
     attachmentsColumn<InvoiceListRow>(),
     {
       // The account of the invoice itself ("11400 - Debitoren"), not the one inherited from the project.
@@ -164,5 +206,104 @@ export const INVOICE_PAGE = defineListPage<
         statistics={statistics as InvoiceStatistics | undefined}
       />
     ),
+  },
+  edit: {
+    schema: invoiceSchema,
+    fieldNames: INVOICE_FIELDS,
+    arrayFieldNames: INVOICE_ARRAY_FIELDS,
+    defaultValues: emptyInvoiceValues,
+    toFormValues,
+    // What the invoice is about, which is how it is referred to in a conversation; the number is in the
+    // banner, where it stays in view.
+    title: (invoice) => invoice.betreff ?? "",
+    newTitleKey: "fibu.rechnung.title.add",
+    savedMessageKey: "message.successfullChanged",
+    // The recurring monthly invoice: the next one is the last one with a new date, so it is written by
+    // cloning it (see OutgoingInvoiceEntityRest.prepareClone for what a clone keeps and what it drops).
+    clone: true,
+    sections: [
+      {
+        id: "head",
+        titleKey: "fibu.rechnung",
+        fields: [
+          // Number and date in one cell of the three columns: neither needs a third of the page, and the
+          // two together are what identifies the invoice on paper.
+          {
+            group: [
+              // Assigned by `RechnungDao.onInsertOrModify` on the transition out of GEPLANT, and absent
+              // from a credit note the customer announced — read-only, but shown, because it is what an
+              // invoice is called.
+              { name: "nummer", readOnly: true, maxDigits: 8 },
+              { name: "datum" },
+            ],
+          },
+          { name: "status", emphasized: true },
+          { name: "typ" },
+          { name: "betreff", span: 2 },
+          { custom: AccountField },
+          { custom: CustomerProjectFields, span: 3 },
+          // Two free texts of the invoice head, both `TextArea` in Wicket and both about what the
+          // customer needs to see on it.
+          { name: "customerref1", rows: 2, span: 2 },
+          { name: "attachment", rows: 2 },
+          {
+            // One label, two dates — the way the invoice states it. The positions may each have one of
+            // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`).
+            periodLabelKey: "fibu.periodOfPerformance._",
+            begin: "periodOfPerformanceBegin",
+            end: "periodOfPerformanceEnd",
+            startsRow: true,
+          },
+        ],
+      },
+      {
+        id: "customer",
+        // The address of the recipient as the e-invoice needs it — Wicket's `fibu.konto.eInvoice`
+        // fieldset, whose fields are named after the account's they are prefilled from.
+        titleKey: "fibu.konto.eInvoice",
+        fields: [
+          { name: "customerContactPerson" },
+          { name: "customerAddress", rows: 2 },
+          { name: "customerZipCode", startsRow: true },
+          { name: "customerCity" },
+          { name: "customerCountry" },
+          { name: "customerVatId", startsRow: true },
+          {
+            name: "customerLeitwegId",
+            hintKey: "fibu.konto.leitwegId.tooltip",
+          },
+          { name: "customerEInvoiceEmail" },
+          // A select over the configured bank accounts, as Wicket has it — custom because the options
+          // are application configuration, which no field metadata can carry.
+          { custom: SellerBankAccountField, startsRow: true },
+        ],
+      },
+      {
+        id: "payment",
+        titleKey: "fibu.rechnung.paymentTerms",
+        render: () => <PaymentTermsFields />,
+      },
+      {
+        id: "positions",
+        titleKey: "fibu.rechnung.positions",
+        render: ({ id }) => <PositionsSection id={id} />,
+      },
+      {
+        id: "notes",
+        titleKey: "comment",
+        fields: [
+          { name: "bemerkung", rows: 3, span: 3 },
+          { name: "besonderheiten", rows: 3, span: 3 },
+        ],
+      },
+      {
+        id: "attachments",
+        // The title OutgoingInvoiceEntityRest gives the attachment fieldset, reused rather than written
+        // again.
+        titleKey: "attachment.list",
+        render: ({ id }) => <AttachmentSection invoiceId={id} />,
+      },
+    ],
+    editBanner: InvoiceEditBanner,
   },
 });

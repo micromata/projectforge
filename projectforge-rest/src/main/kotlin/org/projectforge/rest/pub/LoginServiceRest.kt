@@ -93,13 +93,24 @@ class LoginServiceRest {
                 log.warn { "Rejecting redirect url '$url': $reason." }
                 null
             }
+            // Browsers strip tabs and newlines from inside a url before parsing it, so `ja<TAB>vascript:`
+            // navigates as `javascript:` while a plain scheme check sees neither. Drop every C0 control
+            // (NUL included) first, and hand the stripped form back so nothing later sees them either.
+            val cleaned = url.filter { it.code > 0x1f && it.code != 0x7f }.trim()
             // Backslashes: some browsers normalize \\host and /\host to //host, i. e. to a foreign host.
-            val normalized = url.replace('\\', '/')
+            val normalized = cleaned.replace('\\', '/')
             return when {
+                cleaned.isEmpty() -> reject("empty after removing control characters")
                 SCHEME_REGEX.containsMatchIn(normalized) -> reject("absolute url (scheme given)")
                 normalized.startsWith("//") -> reject("protocol relative url (foreign host)")
                 !normalized.startsWith("/") -> reject("not an absolute path of this application")
-                else -> url
+                // `/next/../..//evil.com` is `//evil.com` once the browser normalizes it: every segment
+                // looked like a path, the result is a foreign host. The query is data, so only the path
+                // is examined.
+                TRAVERSAL_REGEX.containsMatchIn(normalized.substringBefore('?').substringBefore('#')) ->
+                    reject("path traversal (leaves this application)")
+
+                else -> cleaned
             }
         }
 
@@ -107,5 +118,11 @@ class LoginServiceRest {
          * `http:`, `javascript:`, `data:`, … - anything that isn't a path of this application.
          */
         private val SCHEME_REGEX = Regex("^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+        /**
+         * A `..` path segment, which a browser resolves away before it navigates - so a url made only of
+         * path segments can still end up naming a foreign host.
+         */
+        private val TRAVERSAL_REGEX = Regex("(^|/)\\.\\.(/|$)")
     }
 }

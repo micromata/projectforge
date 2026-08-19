@@ -7,23 +7,17 @@ import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  ValueOptionList,
+  type ValueOption,
+} from "@/components/shared/value-option-list";
 import { cn } from "@/lib/utils";
 
-export interface ValueOption {
-  value: string;
-  label: string;
-}
+export type { ValueOption };
 
 export interface ValueComboboxProps {
   id?: string;
@@ -41,10 +35,12 @@ export interface ValueComboboxProps {
 
 /**
  * A fixed list of options as a one-line combobox: the picks sit in the trigger as removable
- * badges, the options live in a searchable popover.
+ * badges, the options live in a searchable popover ([ValueOptionList]).
  *
  * One line tall whatever the option count, which is what a form grid needs — a flat checkbox
- * list is as tall as its longest field and breaks the row rhythm around it.
+ * list is as tall as its longest field and breaks the row rhythm around it. Where there is no grid
+ * to keep and a popover of its own would land on top of another one, use [ValueOptionList]
+ * directly.
  *
  * [DynamicSelect] renders the same shape but cannot use this: it also has to offer a server
  * lookup and a value the user typed, and its state lives in the layout context.
@@ -61,19 +57,6 @@ export function ValueCombobox({
 }: ValueComboboxProps) {
   const t = useTranslations("select");
   const [open, setOpen] = useState(false);
-
-  function toggle(value: string) {
-    if (!multi) {
-      onChange(selected.includes(value) ? [] : [value]);
-      setOpen(false);
-      return;
-    }
-    onChange(
-      selected.includes(value)
-        ? selected.filter((it) => it !== value)
-        : [...selected, value]
-    );
-  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -123,23 +106,13 @@ export function ValueCombobox({
         align="start"
         className="w-(--radix-popover-trigger-width) min-w-56 p-0"
       >
-        <Command>
-          <CommandInput placeholder={t("search")} />
-          <CommandList>
-            <CommandEmpty>{t("noOptions")}</CommandEmpty>
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.label}
-                // [CommandItem] brings its own trailing tick, shown on this flag.
-                data-checked={selected.includes(option.value)}
-                onSelect={() => toggle(option.value)}
-              >
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
+        <ValueOptionList
+          options={options}
+          selected={selected}
+          multi={multi}
+          onChange={onChange}
+          onPicked={() => setOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   );

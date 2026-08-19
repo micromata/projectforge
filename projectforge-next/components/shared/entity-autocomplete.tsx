@@ -27,11 +27,16 @@ export interface EntityRef {
   displayName: string;
 }
 
-export interface EntityAutocompleteProps {
+export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
   /** The lookup url from the layout, with its literal `:search` placeholder. */
   url: string;
   value: EntityRef | null;
-  onChange: (value: EntityRef | null) => void;
+  /**
+   * Called with the picked entry **as the backend sent it**, not with a rebuilt `{id, displayName}`: a
+   * search of its own may answer more than a `DisplayObject` does, and the caller decides what of it to
+   * keep (see OrderPositionField, whose hits carry the order behind the position).
+   */
+  onChange: (value: T | null) => void;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
   /**
@@ -56,7 +61,7 @@ export interface EntityAutocompleteProps {
  * which does the same lookup but additionally handles multi-select, CREATABLE and writing through
  * DynamicLayoutProvider.
  */
-export function EntityAutocomplete({
+export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   url,
   value,
   onChange,
@@ -66,7 +71,7 @@ export function EntityAutocomplete({
   className,
   autoFocus,
   "aria-label": ariaLabel,
-}: EntityAutocompleteProps) {
+}: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -74,7 +79,7 @@ export function EntityAutocomplete({
   const { data: found, isFetching } = useQuery({
     queryKey: ["entity-autocomplete", url, search, params ?? null],
     queryFn: ({ signal }) =>
-      fetchAutoCompletion<EntityRef>(url, search, params, signal),
+      fetchAutoCompletion<T>(url, search, params, signal),
     // Below minChars the backend would answer with everything it has, which is neither useful nor
     // cheap — `user/autosearch` without a term lists every active user.
     enabled: open && search.trim().length >= minChars,
@@ -147,7 +152,7 @@ export function EntityAutocomplete({
                 key={entry.id}
                 value={String(entry.id)}
                 onSelect={() => {
-                  onChange({ id: entry.id, displayName: entry.displayName });
+                  onChange(entry);
                   setOpen(false);
                   setSearch("");
                 }}

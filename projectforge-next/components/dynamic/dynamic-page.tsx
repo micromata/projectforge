@@ -5,6 +5,7 @@ import { DynamicRenderer } from "./dynamic-renderer";
 import { DynamicActionGroup } from "./dynamic-action-group";
 import { DynamicDefaultAction } from "./dynamic-default-action";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import type { DynamicPageResponse } from "@/lib/rs/types";
 import type { ReactNode } from "react";
 
@@ -26,6 +27,8 @@ export function DynamicPage({
   queryKey,
   children,
 }: DynamicPageProps) {
+  const collapse = useCollapseOnScroll();
+
   return (
     <DynamicLayoutProvider
       response={response}
@@ -45,7 +48,10 @@ export function DynamicPage({
             <LegacyPageLink url={response.ui.legacyUrl} />
           </div>
         )}
-        <div className="flex-1 overflow-auto px-6 pb-6">
+        <div
+          className="flex-1 overflow-auto px-6 pb-6"
+          onScroll={collapse.onScroll}
+        >
           <div className="flex flex-col gap-4">
             <DynamicRenderer content={response.ui.layout} />
           </div>

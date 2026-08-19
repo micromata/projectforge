@@ -66,6 +66,17 @@ interface ColumnBase<Row> {
    * for text it clips (see useOverflowTooltip).
    */
   tooltip?: (row: Row) => string | undefined;
+  /**
+   * Offered but not shown until the user switches it on — for a column not every reader of the list
+   * needs, and no reader should have to do without: an invoice's cost assignment difference is checked
+   * by whoever books the costs and is noise to everyone else.
+   *
+   * The starting point only, like `pinned`: what the user chooses in the column panel is stored per
+   * user and entity and wins over this (the visibility is *merged*, see useTableState), and a reset
+   * returns here. The two audit columns every list appends carry it as well
+   * (`auditColumnsFor`), so "hidden at first" is one rule and not two.
+   */
+  hiddenByDefault?: boolean;
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
@@ -308,6 +319,15 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * the entity's own business: a section's `render` puts the buttons where they belong.
    */
   actions?: readonly string[];
+  /**
+   * Whether the edit page offers a clone — a new entry built from the one on screen.
+   *
+   * The counterpart of `cloneSupport` in the entity's REST class, which is where the *semantics* live
+   * (`prepareClone`, e.g. an invoice's number and payment dropped). Both are needed: that one decides
+   * what a clone is, this one puts the button on the page. So switching an entity on is two lines,
+   * plus a `prepareClone` override if dropping the ids doesn't suffice.
+   */
+  clone?: boolean;
   /**
    * Beside the heading of the edit page — a badge saying whether the book is lent out. Rendered on
    * the form and on the pages of its own alike, hence the entity rather than the form values.

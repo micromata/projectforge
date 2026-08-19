@@ -3,19 +3,15 @@
 import { useCallback } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
+import {
+  type ArrayRow,
+  readArrayAtPath,
+  removeRow,
+  restoreRow,
+  updateRow,
+} from "@/lib/field-array";
 
-/** The least a row of a nested collection has: its identity and whether it is deleted. */
-export interface ArrayRow {
-  /** null for a row that has not been saved yet — the backend assigns the id. */
-  id?: number | null;
-  /**
-   * Soft delete. A removed row is **kept** in the values with this set, never spliced out: the
-   * backend's `CollectionHandler` physically deletes (history and all) whatever is missing from the
-   * posted collection, so "deleted" has to be said explicitly. See `AuftragsPosition` in
-   * projectforge-rest for the whole story.
-   */
-  deleted?: boolean;
-}
+export type { ArrayRow };
 
 export interface FieldArray<Row extends ArrayRow> {
   /** Every row, deleted ones included — the list that is posted. */
@@ -52,16 +48,19 @@ export interface FieldArray<Row extends ArrayRow> {
  * a task — and describing that declaratively would be a second form framework. So a page renders its
  * rows as plain JSX and takes only the mechanics from here (see [RepeatableList]).
  *
- * @param name The form value holding the array, e.g. `positionen`.
+ * @param name Path of the form value holding the array. A plain name for a collection of the entity
+ *   (`positionen`), or a bracketed path for one nested inside a row of another — the invoice form's
+ *   `positionen[0].kostZuweisungen`, its second nesting level. Both are read through
+ *   [readArrayAtPath], and `form.setFieldValue` accepts either as it is (it is TanStack's own path
+ *   syntax).
  */
 export function useFieldArray<Row extends ArrayRow>(
   name: string
 ): FieldArray<Row> {
   const form = useEntityEditForm();
-  const rows = useStore(
-    form.store,
+  const rows = useStore(form.store, (state) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => (state.values?.[name] as Row[] | undefined) ?? []
+    readArrayAtPath<Row>((state as any).values, name)
   ) as Row[];
 
   const setRows = useCallback(
@@ -86,40 +85,18 @@ export function useFieldArray<Row extends ArrayRow>(
   );
 
   const remove = useCallback(
-    (index: number) => {
-      setRows((previous) => {
-        const row = previous[index];
-        if (!row) return previous;
-        if (row.id == null) {
-          return previous.filter((_, at) => at !== index);
-        }
-        return previous.map((entry, at) =>
-          at === index ? { ...entry, deleted: true } : entry
-        );
-      });
-    },
+    (index: number) => setRows((previous) => removeRow(previous, index)),
     [setRows]
   );
 
   const restore = useCallback(
-    (index: number) => {
-      setRows((previous) =>
-        previous.map((entry, at) =>
-          at === index ? { ...entry, deleted: false } : entry
-        )
-      );
-    },
+    (index: number) => setRows((previous) => restoreRow(previous, index)),
     [setRows]
   );
 
   const update = useCallback(
-    (index: number, changes: Partial<Row>) => {
-      setRows((previous) =>
-        previous.map((entry, at) =>
-          at === index ? { ...entry, ...changes } : entry
-        )
-      );
-    },
+    (index: number, changes: Partial<Row>) =>
+      setRows((previous) => updateRow(previous, index, changes)),
     [setRows]
   );
 

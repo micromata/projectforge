@@ -36,6 +36,8 @@ import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.fibu.kost.KundeCache;
+import org.projectforge.NextMigration;
+import org.projectforge.framework.persistence.DaoConst;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
@@ -243,7 +245,10 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           new PropertyModel<>(data, "periodOfPerformanceEnd"));
     }
     {
-      // Attachments (JCR file attachments with download links + edit link to React page)
+      // Attachments (JCR file attachments): the download links, plus a link to the next form, which is
+      // where they can be uploaded. This form cannot do that itself, and the React page it linked to
+      // until now is gone - it was `OutgoingInvoiceEntityRest.createEditLayout`, removed when the invoice
+      // list was migrated, so the link ran into a rest call parsing "edit" as the id.
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("attachments"));
       final StringBuilder attachmentsHtml = new StringBuilder();
       if (data.getId() != null) {
@@ -265,8 +270,10 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
                     "attachments"
                 )
             );
+            // Escaped, as the e-invoice section below does it: the panel renders this html unescaped
+            // (setEscapeModelStringsInLabel(false)) and the file name is whatever was uploaded.
             attachmentsHtml.append("<a href=\"").append(downloadUrl).append("\">")
-                .append(att.getName())
+                .append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(att.getName()))
                 .append(" (").append(att.getSizeHumanReadable()).append(")")
                 .append("</a><br/>");
           }
@@ -275,9 +282,18 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
           }
         }
       }
-      final String editLink = "<a href=\"/react/outgoingInvoice/edit/" + data.getId() + "\" target=\"_blank\">" + getString("edit") + "</a>";
+      // Only for a saved invoice: the JCR node hangs off the id, so there is nothing to attach to yet.
+      // Not null: outgoingInvoice is a migrated category (NextMigration.MIGRATED).
+      final String editPage = NextMigration.nextEditPage(DaoConst.OUTGOING_INVOICE);
+      final String uploadLink;
+      if (data.getId() != null && editPage != null) {
+        final String url = "/" + editPage.replace(NextMigration.ID_PLACEHOLDER, data.getId().toString());
+        uploadLink = "<a href=\"" + url + "\" target=\"_blank\">" + getString("attachment.upload.add") + "</a>";
+      } else {
+        uploadLink = getString("attachment.onlyAvailableAfterSave");
+      }
       final org.projectforge.web.wicket.flowlayout.DivTextPanel divTextPanel =
-          new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), attachmentsHtml.toString() + editLink);
+          new org.projectforge.web.wicket.flowlayout.DivTextPanel(fs.newChildId(), attachmentsHtml.toString() + uploadLink);
       divTextPanel.setEscapeModelStringsInLabel(false);
       fs.add(divTextPanel);
     }

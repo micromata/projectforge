@@ -50,7 +50,7 @@ export const RECHNUNGS_POSITION_METADATA = {
     },
     periodOfPerformanceType: {
       dataType: "STRING",
-      i18nKey: "fibu.periodOfPerformance.type",
+      i18nKey: "fibu.periodOfPerformance",
       required: false,
       enumValues: [
         {

@@ -81,6 +81,19 @@ export function FilterPillShell({
         <PopoverContent
           align="start"
           className={cn("w-72 space-y-2 p-3", contentClassName)}
+          // Radix would focus the first tabbable child on open, whatever the field asked for. Which
+          // field takes the cursor — if any — is the field's decision: it is the one that knows that
+          // focusing a [DateInput] opens a calendar over the rest of this popover ([RangeField] opts
+          // out). The fields carry `autoFocus` themselves, so overriding this loses nothing.
+          //
+          // The popover *itself* takes it instead of nothing at all: with the focus left outside, the
+          // trigger keeps it, and every re-render of the pill's draft then moves the focused element —
+          // which makes the buttons in here unclickable (Playwright: "element is not stable"), and by
+          // keyboard the popover would not be where Tab and Escape go.
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            (event.currentTarget as HTMLElement | null)?.focus();
+          }}
         >
           {children}
           <div className="flex justify-end gap-1">

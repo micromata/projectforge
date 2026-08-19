@@ -19,6 +19,12 @@ export interface EntityEditActionsProps {
    */
   saveOption?: ReactNode;
   /**
+   * Clone button, left of the spacer with save and cancel: it acts on this entry rather than being a
+   * choice about the save. Omitted for an entity that offers no clone, and while the entry doesn't
+   * exist yet (see [EntityCloneButton]).
+   */
+  cloneAction?: ReactNode;
+  /**
    * Delete button, rendered right-aligned. Omitted while the entry doesn't exist yet — deleting it
    * needs the saved entity (see [EntityDeleteButton]).
    */
@@ -50,6 +56,7 @@ export interface EntityEditActionsProps {
 export function EntityEditActions({
   onCancel,
   saveOption,
+  cloneAction,
   deleteAction,
   canSave,
   isSaving,
@@ -101,6 +108,7 @@ export function EntityEditActions({
           {saveOption}
         </>
       )}
+      {cloneAction}
       <div className="flex-1" />
       {lastSaved && (
         <span className="text-xs text-muted-foreground">

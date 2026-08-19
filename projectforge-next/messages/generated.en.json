@@ -172,6 +172,13 @@
       }
     },
     "month": "Month",
+    "quickselect": {
+      "tooltip": {
+        "selectCurrentMonth": "Quick select - current month",
+        "selectNextMonth": "Quick select - next month",
+        "selectPreviousMonth": "Quick select - previous month"
+      }
+    },
     "shortday": {
       "friday": "Fr",
       "monday": "Mo",
@@ -184,6 +191,7 @@
   },
   "cancel": "Cancel",
   "changes": "Changes",
+  "clone": "Clone",
   "collapse": "Collapse",
   "columns": {
     "_": "Columns",
@@ -468,7 +476,9 @@
       },
       "netto": "Net",
       "reached": "reached",
-      "reference": "Reference"
+      "reference": "Reference",
+      "vat": "VAT",
+      "vatAmount": "VAT amount"
     },
     "currencyConversion": {
       "conversionRate": "Conversion rate",
@@ -523,8 +533,12 @@
       "city": "City",
       "contactPerson": "Contact person",
       "country": "Country",
+      "eInvoice": "E-Invoice",
       "eInvoiceEmail": "E-invoice email",
-      "leitwegId": "Leitweg-ID",
+      "leitwegId": {
+        "_": "Leitweg-ID",
+        "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
+      },
       "nummer": "Account number",
       "sellerBankAccountName": "Default bank account",
       "status": {
@@ -803,9 +817,11 @@
         "short": "No"
       },
       "offen": "Open",
+      "paymentTerms": "Payment terms",
       "position": {
         "einzelNetto": "Unit net price"
       },
+      "positions": "Positions",
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
@@ -832,6 +848,7 @@
         "list": "List of invoices"
       },
       "tooltip": {
+        "addKostZuweisung": "Add cost id assignment",
         "addPosition": "Add invoice position"
       },
       "transferExport": {

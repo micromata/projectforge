@@ -154,6 +154,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
             field = employeeSalary
         }
 
+    @PropertyInfo(i18nKey = "comment")
     @FullTextField
     @get:Column(length = Constants.COMMENT_LENGTH)
     open var comment: String? = null

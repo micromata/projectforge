@@ -1,8 +1,9 @@
 "use client";
 
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
-import { BooleanField, RangeField, TextField } from "./filter-field-inputs";
+import { BooleanField, TextField } from "./filter-field-inputs";
 import { ListField } from "./filter-list-field";
+import { RangeField } from "./filter-range-field";
 import { FilterObjectField } from "./filter-object-field";
 import { TimestampRangeField } from "./filter-timestamp-field";
 
@@ -19,6 +20,11 @@ interface FilterFieldProps {
   autoFocus?: boolean;
   /** Enter in a single-line input; used by the pill popover to save and close. */
   onSubmit?: (value?: MagicFilterEntryValue | undefined) => void;
+  /**
+   * Render inside a popover of the caller's, so a field must not open one of its own — it would
+   * land on top of the popover's buttons. Only LIST has that problem (see [ListField]).
+   */
+  inline?: boolean;
 }
 
 /**
@@ -29,7 +35,12 @@ interface FilterFieldProps {
  * bounds, while a TIMESTAMP needs a time of day on each — sent without one, the backend parses it
  * to null and drops the bound (see [TimestampRangeField]).
  */
-export function FilterField({ element, label, ...rest }: FilterFieldProps) {
+export function FilterField({
+  element,
+  label,
+  inline,
+  ...rest
+}: FilterFieldProps) {
   const props = {
     ...rest,
     label: label ?? element.label ?? element.id,
@@ -38,7 +49,7 @@ export function FilterField({ element, label, ...rest }: FilterFieldProps) {
 
   switch (element.filterType) {
     case "LIST":
-      return <ListField element={element} {...props} />;
+      return <ListField element={element} inline={inline} {...props} />;
     case "BOOLEAN":
       return <BooleanField {...props} />;
     case "OBJECT":

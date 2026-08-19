@@ -2,19 +2,19 @@
 
 import { useTranslations } from "next-intl";
 import { DateTimeInput } from "@/components/shared/date-time-input";
+import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useFormatContext } from "@/hooks/use-format";
-import { DEFAULT_TO_TIME, nowIso } from "@/lib/user-zone";
+import { periodUnitsOf, type PeriodUnitId } from "@/lib/date-period";
+import {
+  anchorOfInstantBounds,
+  instantBoundsOfPeriod,
+  periodOfInstantBounds,
+} from "@/lib/date-period-instant";
+import { DEFAULT_TO_TIME } from "@/lib/user-zone";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import type { FilterInputProps } from "./filter-field-inputs";
-import { INTERVAL_PRESETS } from "./history-interval-presets";
+import { IntervalPresetsSelect } from "./filter-interval-presets-select";
 
 /**
  * A TIMESTAMP filter (org.projectforge.ui.filter.UIFilterTimestampElement): a range of instants,
@@ -25,21 +25,26 @@ import { INTERVAL_PRESETS } from "./history-interval-presets";
  * `parseLocalDateIfNoTimeOfDayGiven = false`, so a bare `2026-07-15` yields null and the bound is
  * silently dropped.
  *
- * The quick-select periods appear when the backend marks the field `UNTIL_NOW`, the selector that
- * means "last x minutes, hours, days" — for the history filter it does, and like Wicket they sit in
- * a dropdown rather than in a row of buttons.
+ * Two kinds of quick access, and they are not the same thing: the [PeriodStepper] pages whole
+ * calendar periods, while the rolling windows of [IntervalPresetsSelect] always end at now. The
+ * latter appear only when the backend marks the field `UNTIL_NOW`, which for the history filter it
+ * does.
  */
 export function TimestampRangeField({
   element,
   value,
   onChange,
   label,
-  autoFocus,
   onSubmit,
-}: FilterInputProps & { element: FilterElement }) {
+  /** As in [RangeField]; a whole month becomes 00:00 of its first day until 23:59 of its last. */
+  periodUnits = ["month"],
+}: FilterInputProps & {
+  element: FilterElement;
+  periodUnits?: PeriodUnitId[];
+}) {
   const t = useTranslations("filter");
-  const tSearch = useTranslations("search");
   const ctx = useFormatContext();
+  const units = periodUnitsOf(periodUnits);
   const showPresets = element.selectors?.includes("UNTIL_NOW") ?? false;
 
   function next(
@@ -56,7 +61,9 @@ export function TimestampRangeField({
       {/* A date plus a time per bound, so the two only fit next to each other in a wide column. */}
       <RangeBounds breakpoint="@xl">
         <DateTimeInput
-          autoFocus={autoFocus}
+          // As in [RangeField]: the first bound is a date field, and focusing one opens its calendar
+          // over the rest of the pill.
+          autoFocus={false}
           dateLabel={`${label}: ${t("dateFrom")}`}
           timeLabel={`${label}: ${t("timeFrom")}`}
           value={value?.from}
@@ -74,42 +81,21 @@ export function TimestampRangeField({
           onSubmit={(iso) => onSubmit?.(next("to", iso))}
         />
       </RangeBounds>
+      <PeriodStepper
+        units={units}
+        current={periodOfInstantBounds(value?.from, value?.to, units, ctx)}
+        // As in [RangeField]: the month named is the one the bounds on screen lie in.
+        anchor={anchorOfInstantBounds(units[0], value?.from, value?.to, ctx)}
+        onSelect={(unit, anchor) => {
+          const bounds = instantBoundsOfPeriod(unit, anchor, ctx);
+          if (bounds) onChange(bounds);
+        }}
+      />
       {showPresets && (
-        // A list, not a row of chips: thirteen periods as buttons is a wall of text above the two
-        // bounds they set, and only one of them can be in effect at a time anyway.
-        <Select
-          // No value of its own: a period is a shortcut for filling the two bounds, and once one of
-          // them is edited by hand no period is "selected" any more.
-          value=""
-          onValueChange={(id) => {
-            const preset = INTERVAL_PRESETS.find((entry) => entry.id === id);
-            if (!preset) return;
-            // "Now" is read once, so both bounds belong to the same instant.
-            const now = nowIso();
-            const from = preset.from(now, ctx);
-            if (from) onChange({ from, to: now });
-          }}
-        >
-          <SelectTrigger
-            // Named explicitly: with no value selected the trigger shows only the placeholder, which
-            // Radix marks as such rather than as the control's label.
-            aria-label={t("periodChoose")}
-            size="sm"
-            className="mt-0.5 w-full text-xs"
-          >
-            <SelectValue placeholder={t("periodChoose")} />
-          </SelectTrigger>
-          <SelectContent>
-            {INTERVAL_PRESETS.map((preset) => (
-              <SelectItem key={preset.id} value={preset.id} className="text-xs">
-                {tSearch(
-                  preset.key,
-                  preset.arg == null ? {} : { arg0: preset.arg }
-                )}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <IntervalPresetsSelect
+          onChange={onChange}
+          className="mt-0.5 w-full text-xs"
+        />
       )}
     </div>
   );

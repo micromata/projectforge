@@ -194,6 +194,40 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * [RechnungDao.find] overrides its base to initialize the lazy positions and cost assignments. It used
+     * to dereference both with `!!`, so an id nobody has answered with an NPE - a 500 where the REST layer
+     * would have answered a 404.
+     */
+    @Test
+    fun `an unknown id answers null instead of throwing`() {
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            Assertions.assertNull(rechnungDao.find(-1L, checkAccess = false))
+            null
+        }
+    }
+
+    @Test
+    fun `the positions and their cost assignments are readable outside the transaction`() {
+        lateinit var id: Serializable
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            val rechnung = RechnungDO()
+            rechnung.nummer = rechnungDao.getNextNumber(rechnung)
+            rechnung.datum = LocalDate.now()
+            rechnung.faelligkeit = LocalDate.now()
+            rechnung.projekt = initTestDB.addProjekt(null, 42, "lazy init")
+            rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
+            id = rechnungDao.insert(rechnung)
+            null
+        }
+        // What the override is for: no LazyInitializationException here.
+        val fromDb = rechnungDao.find(id)
+        Assertions.assertEquals(1, fromDb!!.positionen!!.size)
+        Assertions.assertNotNull(fromDb.positionen!![0].kostZuweisungen)
+    }
+
     private fun createPosition(
         menge: Int, einzelNetto: String, vat: String,
         text: String

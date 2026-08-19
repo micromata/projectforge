@@ -157,10 +157,10 @@ function DeclaredList<
     // set the table actually gets.
     const kept = visibleColumnsOf(page.columns, variables);
     const appended = auditColumnsFor(kept, page.metadata);
-    return {
-      columns: appended.length ? [...kept, ...appended] : kept,
-      defaultVisibility: defaultVisibilityOf(appended),
-    };
+    const columns = appended.length ? [...kept, ...appended] : kept;
+    // Over all of them, appended and declared alike: a page may hide a column of its own at first too
+    // (see ColumnBase.hiddenByDefault).
+    return { columns, defaultVisibility: defaultVisibilityOf(columns) };
   }, [page.columns, page.metadata, variables]);
   const declared = useDeclaredColumns<Row, M>(
     page.metadata,
@@ -292,6 +292,8 @@ function DeclaredList<
           table={list.table}
           columns={columns}
           data={list.data}
+          // The list's table is the page's scroll column, so it is what makes the logo row give way.
+          collapseLogoOnScroll
           isLoading={list.isLoading}
           isFetching={list.isFetching}
           rowClassName={(row) =>

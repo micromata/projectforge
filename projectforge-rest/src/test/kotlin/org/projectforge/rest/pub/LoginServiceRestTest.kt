@@ -58,6 +58,20 @@ class LoginServiceRestTest {
         assertRejected("javascript:alert(1)")
         assertRejected("data:text/html,<script>alert(1)</script>")
         assertRejected("mailto:foo@example.com")
+        // Schemes hidden behind control characters: a browser strips tab/newline/NUL from inside a url
+        // before parsing it, so each of these navigates as `javascript:`.
+        assertRejected("ja\tvascript:alert(1)")
+        assertRejected("java\nscript:alert(1)")
+        assertRejected("javasc\r\nript:alert(1)")
+        assertRejected("\u0000javascript:alert(1)")
+        // Same trick against the "//" check:
+        assertRejected("\t//evil.com")
+        assertRejected("\u0000//evil.com")
+        // Path traversal: `..` is resolved away by the browser, so these name a foreign host too.
+        assertRejected("/next/../..//evil.com")
+        assertRejected("/next/..//evil.com")
+        assertRejected("/next/..\\..//evil.com")
+        assertRejected("/..")
         // Not an absolute path of this application:
         assertRejected("next/book/42")
         // Nothing to redirect to:
@@ -70,6 +84,8 @@ class LoginServiceRestTest {
         assertAccepted("/next/book/42")
         assertAccepted("/react/calendar")
         assertAccepted("/next/book?filter=abc&sort=title")
+        // A `..` in a query value is data, not a path segment the browser resolves.
+        assertAccepted("/next/book?filter=../x")
     }
 
     private fun assertRejected(url: String?) {

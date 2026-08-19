@@ -85,7 +85,11 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung, DisplayNameCapab
     /**
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
+     *
+     * Shares the i18n key of [zahlungsZielInTagen]: it is the same kind of value, and which of the two a form
+     * shows follows from where it stands (next to [discountMaturity] here).
      */
+    @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
     @get:Transient
     open var discountZahlungsZielInTagen: Int? = null
 

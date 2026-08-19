@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { SectionDef } from "@/lib/page-def/types";
@@ -53,16 +54,19 @@ export function DeclaredSection<M extends EntityMetadata>({
     </div>
   );
 
+  // Through leafKeyOf, as the tab bar resolves the same key — see entityTabs.
+  const title = t(leafKeyOf(section.titleKey, t.has));
+
   if (!section.collapsed) {
     return (
       <SectionCard>
-        <SectionHeader title={t(section.titleKey)} />
+        <SectionHeader title={title} />
         {body}
       </SectionCard>
     );
   }
   return (
-    <CollapsedSection title={t(section.titleKey)} active={active}>
+    <CollapsedSection title={title} active={active}>
       {body}
     </CollapsedSection>
   );
