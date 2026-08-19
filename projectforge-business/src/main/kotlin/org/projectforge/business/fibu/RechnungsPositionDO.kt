@@ -71,7 +71,10 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var auftragsPosition: AuftragsPositionDO? = null
 
-    @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
+    // `fibu.periodOfPerformance`, as `AuftragsPositionDO` names the identical field: the bundle holds no
+    // text under `fibu.periodOfPerformance.type` — that key is only the parent of the enum's own values
+    // (`PeriodOfPerformanceType.i18nKey`), so a label asking for it gets a subtree and no wording at all.
+    @PropertyInfo(i18nKey = "fibu.periodOfPerformance")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "period_of_performance_type", length = 10)
     open var periodOfPerformanceType: PeriodOfPerformanceType? = PeriodOfPerformanceType.SEEABOVE

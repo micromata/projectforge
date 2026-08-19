@@ -29,16 +29,27 @@ import mu.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
+import org.projectforge.business.fibu.EInvoiceSellerConfig
+import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.PeriodOfPerformanceValidator
+import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungInfo
+import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsStatistik
 import org.projectforge.business.fibu.SearchFilterWithPeriodOfPerformance
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
+import org.projectforge.business.fibu.kost.KundeCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
@@ -46,23 +57,31 @@ import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.ValidationUtils
+import org.projectforge.rest.dto.Kost2
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Date
 
 private val log = KotlinLogging.logger {}
@@ -73,17 +92,24 @@ private val log = KotlinLogging.logger {}
  * `open` for the same reason [OrderEntityRest] is: Wicket asks for this bean through `WicketSupport`,
  * which proxies it (`RechnungEditForm` reads the attachment settings and the access checker from here).
  *
- * The edit page is still Wicket's - this class answers the list, its statistics, its two exports and the
- * multi selection the mass update page runs on ([RechnungMultiSelectedPageRest]). It carries no
- * `createEditLayout` any more, and with it the legacy React page of this entity is gone: it only ever
- * showed a read only header plus the attachment list.
+ * Answers the list, its statistics, its two exports, the multi selection the mass update page runs on
+ * ([RechnungMultiSelectedPageRest]) and the read/write path of the hand built edit page of
+ * `/next/invoice/[id]` — including its [recalculate]. It carries no `createEditLayout` any more, and with it
+ * the legacy React page of this entity is gone: it only ever showed a read only header plus the attachment
+ * list. Wicket's edit page is still reachable and writes through the same [RechnungDao].
  *
  * @author Kai Reinhard
  */
 @RestController
 @RequestMapping("${Rest.URL}/outgoingInvoice")
 open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSupport.
-    AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(RechnungDao::class.java, "fibu.rechnung.title") {
+    AbstractDTOEntityRest<RechnungDO, Rechnung, RechnungDao>(
+        RechnungDao::class.java,
+        "fibu.rechnung.title",
+        // The recurring invoice is what this exists for. CLONE, not AUTOSAVE: the copy is offered for
+        // editing and saved by the user, as `RechnungEditPage.cloneData` does it.
+        cloneSupport = CloneSupport.CLONE,
+    ) {
 
     @Autowired
     private lateinit var kontoCache: KontoCache
@@ -91,33 +117,381 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     @Autowired
     private lateinit var kostZuweisungExport: KostZuweisungExport
 
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    /**
+     * The two caches [getActiveKost2] and [checkKost2] resolve their arguments with, injected rather than taken
+     * from [PfCaches.instance]: that static is replaced by `PfCaches.internalSetupForTestCases`, which builds
+     * caches that never had their `persistenceService` injected, so every read through it fails in a test.
+     */
+    @Autowired
+    private lateinit var projektCache: ProjektCache
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
+    private lateinit var invoiceService: InvoiceService
+
+    @Autowired
+    private lateinit var sellerConfig: EInvoiceSellerConfig
+
     @PostConstruct
     private fun postConstruct() {
         enableJcr()
     }
 
+    /**
+     * Builds a fresh [RechnungDO] instead of mutating the persisted one, for the reason
+     * [OrderEntityRest.transformForDB] spells out: the persistence layer merges the posted object over the
+     * database row, and `RechnungRight.hasAccess(obj, oldObj)` compares the two.
+     *
+     * Because of that merge, every field the DTO doesn't carry ends up as null in the database — the five
+     * attachment columns are such fields (written by the attachment endpoints, not by this form), so they
+     * are copied back from the database row, as `RechnungEditPage.update` does. So is `uiStatusAsXml`,
+     * which belongs to the Wicket form alone.
+     *
+     * [RechnungDO.nummer] is deliberately *not* assigned here, unlike the order's: `RechnungDao` assigns it
+     * itself on the transition from [org.projectforge.business.fibu.RechnungStatus.GEPLANT] to any other
+     * status, and a `GUTSCHRIFTSANZEIGE_DURCH_KUNDEN` must have no number at all.
+     */
     override fun transformForDB(dto: Rechnung): RechnungDO {
         val rechnungDO = RechnungDO()
         dto.copyTo(rechnungDO)
+        if (rechnungDO.kunde != null) {
+            // A customer chosen from the list wins over the free text one, see RechnungEditPage.onSaveOrUpdate.
+            rechnungDO.kundeText = null
+        }
+        assignNumbersAndIndicesToNewRows(rechnungDO)
+        dto.id?.let { id ->
+            baseDao.find(id, checkAccess = false)?.let { dbObj ->
+                rechnungDO.attachmentsCounter = dbObj.attachmentsCounter
+                rechnungDO.attachmentsNames = dbObj.attachmentsNames
+                rechnungDO.attachmentsIds = dbObj.attachmentsIds
+                rechnungDO.attachmentsSize = dbObj.attachmentsSize
+                rechnungDO.attachmentsLastUserAction = dbObj.attachmentsLastUserAction
+                // Which position rows the Wicket form shows collapsed (`RechnungDao.writeUiStatusToXml`).
+                // Another field the DTO doesn't carry, and this form has no use for: the collapsed state of
+                // a row is the user's, not the invoice's, so projectforge-next keeps it in the browser
+                // instead. Copied back so a save from here doesn't clear what Wicket remembered.
+                rechnungDO.uiStatusAsXml = dbObj.uiStatusAsXml
+            }
+        }
         return rechnungDO
     }
 
     override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
         val rechnung = Rechnung()
-        rechnung.copyFrom(obj)
+        // Only the edit page needs the positions with their cost assignments, and only it can afford them:
+        // both collections are lazy, so mapping them is a query per invoice.
         if (editMode) {
-            rechnung.copyPositionenFrom(obj)
+            rechnung.copyFromWithCollections(obj)
         } else {
+            rechnung.copyFrom(obj)
             rechnung.project?.displayName = obj.projekt?.name
         }
-        val kost1Sorted = obj.info.sortedKost1
+        rechnung.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
+        rechnung.writeAccess = if (obj.id == null) {
+            baseDao.hasLoggedInUserInsertAccess(obj, false)
+        } else {
+            baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
+        }
+        // What hides the cost assignments of a position, as `AbstractRechnungEditForm` hides its whole
+        // cost table where no cost ids are configured.
+        rechnung.costConfigured = Configuration.instance.isCostConfigured
+        // ensuredInfo, not info: for a new invoice (see [newBaseDTO]) that lateinit would throw.
+        val info = obj.ensuredInfo
+        val kost1Sorted = info.sortedKost1
         rechnung.kost1List = RechnungInfo.numbersAsString(kost1Sorted)
         rechnung.kost1Info = RechnungInfo.detailsAsString(kost1Sorted)
-        val kost2Sorted = obj.info.sortedKost2
+        val kost2Sorted = info.sortedKost2
         rechnung.kost2List = RechnungInfo.numbersAsString(kost2Sorted)
         rechnung.kost2Info = RechnungInfo.detailsAsString(kost2Sorted)
         return rechnung
     }
+
+    /**
+     * Presets the date, the status and the type of a new invoice, as `RechnungEditPage.onPreEdit` does.
+     *
+     * The date is required: `RechnungDao.onInsertOrModify` refuses a null one, and every other date of the
+     * form (due date, discount maturity) is derived from it. The status and the type have no default in
+     * [RechnungDO] either, and Wicket gets away without a preset only because its two drop downs cannot be
+     * empty (`setNullValid(false)`) — which silently makes the first constant the answer. The first
+     * constant of the status is `GEPLANT` though, whose invoice gets no number, so `GESTELLT` is named here.
+     */
+    override fun newBaseDTO(request: HttpServletRequest?): Rechnung {
+        val rechnung = super.newBaseDTO(request)
+        rechnung.datum = LocalDate.now()
+        rechnung.status = RechnungStatus.GESTELLT
+        rechnung.typ = RechnungTyp.RECHNUNG
+        return rechnung
+    }
+
+    /**
+     * A new invoice built from this one, as `RechnungEditPage.cloneData` builds it — the recurring monthly
+     * invoice is what a clone is for.
+     *
+     * @see prepareInvoiceClone for what a clone is and isn't.
+     */
+    override fun prepareClone(dto: Rechnung): Rechnung {
+        return prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
+    }
+
+    /**
+     * Hands a new invoice its number, as `RechnungEditPage.onSaveOrUpdate` does it.
+     *
+     * It has to happen here and not in [transformForDB]: a number is spent once handed out, so it may only
+     * be taken when the invoice is actually about to be inserted — and this hook is the last step before
+     * `insertOrUpdate` (see `AbstractPagesRestUtils.saveOrUpdate`), while `transformForDB` also runs for
+     * every validation and every recalculation.
+     *
+     * [RechnungDao] assigns a number itself only on the transition of a *stored* invoice out of
+     * [RechnungStatus.GEPLANT]; for a new one it insists the number is already there and is the next free
+     * one (`validation.required.valueNotPresent`, then
+     * `fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend`). So without this, no invoice could be
+     * created through this form at all — neither a clone nor a plain new one.
+     *
+     * The two exceptions are Wicket's, and both are the same rule seen twice: a number says an invoice was
+     * issued. A [RechnungStatus.GEPLANT] one is not issued yet (it gets its number when it leaves that
+     * status), and a [RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN] is the customer's document rather than
+     * ours, so it must have none at all
+     * (`fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben`). A number the client sent is
+     * left alone: the field is read-only in the form, and overwriting it would hide rather than report a
+     * mismatch, which [RechnungDao] checks for.
+     */
+    override fun onBeforeSave(request: HttpServletRequest, obj: RechnungDO, postData: PostData<Rechnung>) {
+        if (obj.nummer == null &&
+            obj.typ != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN &&
+            obj.status != RechnungStatus.GEPLANT
+        ) {
+            obj.nummer = baseDao.getNextNumber(obj)
+        }
+    }
+
+    /**
+     * The rules the period of performance adds on top of the field rules, which are validated generically
+     * for the invoice and its nested rows alike ([ValidationUtils.validateFields]).
+     *
+     * The same rules the order has, applied through the same [PeriodOfPerformanceValidator] — they used to
+     * live in the Wicket form of both (`PeriodOfPerformanceHelper`), which is why neither [RechnungDao] nor
+     * this class enforced them before: a hand built form has no date panels to hang them on.
+     *
+     * Deleted positions are left out: such a position is only posted so the persistence layer doesn't remove
+     * it physically, and its dates are none of the user's business anymore.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Rechnung) {
+        super.validate(validationErrors, dto)
+        PeriodOfPerformanceValidator.validate(
+            periodOfPerformanceBegin = dto.periodOfPerformanceBegin,
+            periodOfPerformanceEnd = dto.periodOfPerformanceEnd,
+            positions = dto.positionen?.filter { !it.deleted }?.map { position ->
+                PeriodOfPerformanceValidator.Position(
+                    type = position.periodOfPerformanceType,
+                    begin = position.periodOfPerformanceBegin,
+                    end = position.periodOfPerformanceEnd,
+                )
+            },
+        ).forEach { error ->
+            val message =
+                error.labelKey?.let { translateMsg(error.messageKey, translate(it)) } ?: translate(error.messageKey)
+            validationErrors.add(ValidationError(message, fieldId = error.fieldId, messageId = error.messageKey))
+        }
+    }
+
+    /**
+     * Everything the hand built form has to know before the user touches it, in one read.
+     *
+     * All four values are configuration and none of them belongs to an invoice, so none travels on the DTO.
+     * Wicket asks its four sources one by one while it builds the page; a hand built form would need a
+     * request each, on every mount, for values that change about once per installation.
+     *
+     * Read only, so the select access of the category is what has to be checked here — nothing is written.
+     */
+    @GetMapping("formDefaults")
+    fun getFormDefaults(): FormDefaults {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        return FormDefaults(
+            defaultVat = Configuration.instance.getPercentValue(ConfigurationParam.FIBU_DEFAULT_VAT),
+            bankAccounts = sellerConfig.bankAccounts.map { BankAccount(value = it.iban, label = it.displayName) },
+            eInvoiceConfigured = sellerConfig.isConfigured(),
+            templateVariants = invoiceService.getTemplateVariants().toList(),
+        )
+    }
+
+    /**
+     * The values [getFormDefaults] answers.
+     */
+    class FormDefaults(
+        /**
+         * The VAT rate a new position starts with, `fibu.defaultVAT` (as a fraction, i.e. 0.19 for 19 %).
+         * Null where the installation configured none, in which case the field simply starts empty.
+         */
+        val defaultVat: BigDecimal?,
+        /** The seller's bank accounts, for the `sellerBankAccount` select of the e-invoice address block. */
+        val bankAccounts: List<BankAccount>,
+        /**
+         * Whether the seller address is complete enough for an e-invoice export — the condition under which
+         * Wicket offers its e-invoice menu at all (`RechnungEditPage.addEInvoiceMenu`).
+         */
+        val eInvoiceConfigured: Boolean,
+        /**
+         * The variants of the Word invoice template, one entry per export the form offers. A single empty
+         * string means the installation has no custom template, i.e. exactly one, unnamed variant.
+         */
+        val templateVariants: List<String>,
+    )
+
+    /**
+     * One entry of the `sellerBankAccount` select. The value is the IBAN and not an id, because that is what
+     * the column holds and what `EInvoiceSellerConfig.findBankAccount` looks an account up by — the accounts
+     * come from the application configuration and have no ids.
+     */
+    class BankAccount(val value: String, val label: String)
+
+    /**
+     * The cost units of a project, for the Kost2 preselection of a new cost assignment
+     * (`RechnungCostEditTablePanel.newKostZuweisung` takes the first one).
+     *
+     * Answered by the project rather than looked up in the browser: which cost units belong to a project
+     * follows from its number range, area and number ([ProjektDO.nummernkreis] and friends), and the invoice
+     * DTO carries its project the `copyFromMinimal` way, which omits all three.
+     *
+     * An empty list where the project has no area — [KostCache] cannot be asked without one, and a project
+     * in that state has no cost units to offer.
+     */
+    @GetMapping("activeKost2")
+    fun getActiveKost2(@RequestParam("projektId") projektId: Long?): List<Kost2> {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
+        val bereich = projekt.bereich ?: return emptyList()
+        return kostCache.getActiveKost2(projekt.nummernkreis, bereich, projekt.teilbereich)
+            .sorted()
+            .map { Kost2(it) }
+    }
+
+    /**
+     * Whether a cost unit belongs to the project (or, for an invoice naming none, to the customer) of the
+     * invoice — the question `RechnungEditForm.onRenderCostRow` answers by outlining the field in Wicket.
+     *
+     * Server side for the same reason [getActiveKost2] is: the comparison is over the number range, the area
+     * and the number of the project or the customer, and neither `Project` nor `Customer` carries those on
+     * the wire (`Customer` has no number range at all). Three integers the caches hold anyway against
+     * widening two DTOs other pages use — and the rule stays next to Wicket's copy of it.
+     *
+     * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
+     * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
+     */
+    @GetMapping("kost2Check")
+    fun checkKost2(
+        @RequestParam("kost2Id") kost2Id: Long?,
+        @RequestParam("projektId", required = false) projektId: Long?,
+        @RequestParam("kundeId", required = false) kundeId: Long?,
+    ): Kost2Check {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val kost2 = kostCache.getKost2(kost2Id) ?: return Kost2Check(matchesInvoice = true)
+        // The project wins over the customer, as the Wicket form reads them: a project already names its
+        // customer, and its area narrows the answer further.
+        val projekt = projektCache.getProjekt(projektId)
+        val numberRange: Int
+        // -1 means "don't compare", which is what an invoice without a project leaves the area at.
+        var area = -1
+        val number: Long
+        if (projekt != null) {
+            numberRange = projekt.nummernkreis
+            area = projekt.bereich ?: -1
+            number = projekt.nummer.toLong()
+        } else {
+            val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
+            numberRange = kunde.nummernkreis
+            number = kunde.nummer ?: return Kost2Check(matchesInvoice = true)
+        }
+        val differs = if (numberRange >= 0 && kost2.nummernkreis != numberRange) {
+            true
+        } else if (area >= 0 && kost2.bereich != area) {
+            true
+        } else {
+            number >= 0 && kost2.teilbereich.toLong() != number
+        }
+        return Kost2Check(matchesInvoice = !differs)
+    }
+
+    /**
+     * The answer of [checkKost2] — an object rather than a bare boolean so the client reads a name instead of
+     * a `true` whose meaning has to be looked up.
+     */
+    class Kost2Check(val matchesInvoice: Boolean)
+
+    /**
+     * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on
+     * the stored one.
+     *
+     * Needed because a hand built form has to show the same sums the list and the Wicket page show, and
+     * those are calculated server side by [RechnungCalculator] from the whole invoice — how a position is
+     * rounded before it enters a sum (`roundPositionsBeforeSum`, German law) is its rule, and a client
+     * re-implementing that would drift. The cache is no help either: it answers the stored positions of an
+     * invoice whose form the user has changed, and nothing at all for one without an id.
+     *
+     * Deleted positions may be posted untouched — [RechnungCalculator] skips them itself.
+     *
+     * Not a `saveOrUpdate` in disguise: nothing is written, so the read access has to be checked here.
+     */
+    @PostMapping("recalculate")
+    fun recalculate(@RequestBody postData: PostData<Rechnung>): InvoiceSums {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val invoice = RechnungDO()
+        postData.data.copyTo(invoice)
+        val info = Rechnung.calculateInvoiceInfo(invoice)
+        return InvoiceSums(
+            netSum = info.netSum,
+            vatAmount = info.vatAmount,
+            grossSum = info.grossSum,
+            grossSumWithDiscount = info.grossSumWithDiscount,
+            kostZuweisungenNetSum = info.kostZuweisungenNetSum,
+            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag,
+            bezahlt = info.isBezahlt,
+            ueberfaellig = info.isUeberfaellig,
+            positions = info.positions?.map { position ->
+                PositionSums(
+                    number = position.number,
+                    netSum = position.netSum,
+                    vatAmount = position.vatAmount,
+                    grossSum = position.grossSum,
+                    kostZuweisungNetSum = position.kostZuweisungNetSum,
+                    kostZuweisungNetFehlbetrag = position.kostZuweisungNetFehlbetrag,
+                )
+            },
+        )
+    }
+
+    /**
+     * The sums [recalculate] answers, one flat object — the invoice's own plus one entry per position.
+     */
+    class InvoiceSums(
+        val netSum: BigDecimal,
+        val vatAmount: BigDecimal,
+        val grossSum: BigDecimal,
+        val grossSumWithDiscount: BigDecimal,
+        val kostZuweisungenNetSum: BigDecimal,
+        /**
+         * How much of [netSum] is not assigned to a cost unit yet. A hint for the user only: `RechnungDao`
+         * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+         */
+        val kostZuweisungenFehlbetrag: BigDecimal,
+        val bezahlt: Boolean,
+        val ueberfaellig: Boolean,
+        val positions: List<PositionSums>?,
+    )
+
+    class PositionSums(
+        val number: Short,
+        val netSum: BigDecimal,
+        val vatAmount: BigDecimal,
+        val grossSum: BigDecimal,
+        val kostZuweisungNetSum: BigDecimal,
+        /** The per position counterpart of [InvoiceSums.kostZuweisungenFehlbetrag], which Wicket paints red. */
+        val kostZuweisungNetFehlbetrag: BigDecimal,
+    )
 
     /**
      * Opts the invoice list into the lean row of [Rechnung.copyFrom4ListRow]: only the columns
@@ -183,11 +557,16 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
-     * Adds the two filters the Wicket list has and no property of [RechnungDO] yields.
+     * Adds the three filters the Wicket list has and no property of [RechnungDO] yields.
      *
      * The payment state ([LIST_TYPE_FILTER]) is Wicket's radio group over `RechnungFilter.listType`, and
      * the period of performance is its second time period panel: the first is a predicate over
      * [RechnungInfo], the second over two date columns at once, so neither is a search field.
+     *
+     * The third ([COST_ASSIGNMENT_FILTER]) is what Wicket's `showKostZuweisungStatus` checkbox was for -
+     * there a pure display switch marking the rows whose cost assignments don't add up, here the question
+     * itself: show only those. Offered only where cost accounting is configured, as
+     * `AbstractRechnungListForm` shows the checkbox only there; without it every invoice would match.
      *
      * The status is opened by default, as in the order list: it is what an invoice list is narrowed by
      * first.
@@ -225,6 +604,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 label = translate("fibu.periodOfPerformance"),
             )
         )
+        if (Configuration.instance.isCostConfigured) {
+            elements.add(
+                UIFilterElement(
+                    COST_ASSIGNMENT_FILTER,
+                    UIFilterElement.FilterType.BOOLEAN,
+                    label = translate("fibu.rechnung.kostZuweisungFehlbetrag"),
+                )
+            )
+        }
     }
 
     override fun preProcessMagicFilter(
@@ -236,6 +624,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         listTypeEntry?.synthetic = true // No property of RechnungDO, so the database cannot answer it.
         listTypeEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.let { listType ->
             filters.add(PaymentStateFilter(listType))
+        }
+        val costAssignmentEntry = source.entries.find { it.field == COST_ASSIGNMENT_FILTER }
+        costAssignmentEntry?.synthetic = true // Computed by RechnungCalculator, so no column holds it.
+        if (costAssignmentEntry?.isTrueValue == true) {
+            filters.add(CostAssignmentFilter())
         }
         addPeriodOfPerformanceCriterion(target, source)
         return filters
@@ -403,7 +796,107 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
     }
 
+    /**
+     * The invoices whose cost assignments don't add up: the net sum assigned to cost units differs from the
+     * invoice's own net sum ([RechnungInfo.kostZuweisungenFehlbetrag]).
+     *
+     * A [CustomResultFilter] for the reason [PaymentStateFilter] is one - the difference is computed by
+     * [RechnungCalculator] from every position of the invoice and is no column any query could ask about.
+     *
+     * `isNotZero` rather than `!= BigDecimal.ZERO`: `BigDecimal.equals` compares the scale as well, so a
+     * `0.00` would count as a difference.
+     */
+    private class CostAssignmentFilter : CustomResultFilter<RechnungDO> {
+        override fun match(list: MutableList<RechnungDO>, element: RechnungDO): Boolean {
+            return NumberHelper.isNotZero(element.ensuredInfo.kostZuweisungenFehlbetrag)
+        }
+    }
+
     companion object {
+        /**
+         * Turns a copy of an invoice into a new one, the way `RechnungEditPage.cloneData` does it.
+         *
+         * A clone is not a duplicate: it is a fresh invoice with the same content. So everything the *first*
+         * invoice earned is dropped, and everything derived from a date is derived again from today:
+         *
+         * - No number. A number is spent once handed out, and `RechnungDao.onInsertOrModify` assigns the next
+         *   free one on the transition out of [RechnungStatus.GEPLANT].
+         * - Dated today, with the due date and the discount maturity re-derived from the agreed payment
+         *   targets in days — copying the old dates would produce an invoice overdue on the day it is written.
+         * - Nothing paid: no payment date, no paid amount, and [RechnungStatus.GESTELLT] as the status, which
+         *   is also what [newBaseDTO] presets.
+         * - Every position and every cost assignment loses its id, so the save writes new rows and
+         *   [assignNumbersAndIndicesToNewRows] numbers them from 1 (`RechnungsPositionDO.newClone` and
+         *   `KostZuweisungDO.newClone` drop nothing but the id either). Positions the user had marked as
+         *   deleted are left out entirely — they are on their way out of the *old* invoice and have no
+         *   meaning in a new one.
+         * - No attachments: the files live in JCR under the old invoice's id and are not copied, as Wicket
+         *   copies none.
+         *
+         * The read-only sums are left as they are: the form asks [recalculate] for them as soon as it is
+         * shown, and they are no part of what is saved.
+         *
+         * `internal` and in the companion object rather than a method: it needs nothing of the instance, and
+         * [today] as a parameter is what makes it testable without a Spring context (`RechnungDtoTest`).
+         *
+         * @param dto The copy, already stripped of id, deleted flag and timestamps by
+         * `AbstractEntityRest.prepareClone`.
+         */
+        internal fun prepareInvoiceClone(dto: Rechnung, today: LocalDate): Rechnung {
+            dto.nummer = null
+            dto.datum = today
+            dto.faelligkeit = today.plusDays((dto.zahlungsZielInTagen ?: 0).toLong())
+            dto.discountMaturity = today.plusDays((dto.discountZahlungsZielInTagen ?: 0).toLong())
+            dto.zahlBetrag = null
+            dto.bezahlDatum = null
+            dto.status = RechnungStatus.GESTELLT
+            dto.attachments = null
+            dto.attachmentsCounter = null
+            dto.attachmentsSize = null
+            dto.positionen = dto.positionen?.filter { !it.deleted }?.onEach { position ->
+                position.id = null
+                position.kostZuweisungen?.forEach { it.id = null }
+            }?.toMutableList()
+            return dto
+        }
+
+        /**
+         * Gives every posted row that has no id yet its number: the positions of the invoice, and the cost
+         * assignments of each position.
+         *
+         * Both are `@OrderColumn`s the client cannot assign, and both identify a row inside its collection:
+         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` with `@ListIndexBase(1)`, and
+         * `KostZuweisungDO.index` is the order column of a position's assignments (0-based, as
+         * `AbstractRechnungsPositionDO.addKostZuweisung` assigns it).
+         *
+         * The next free number is taken from the **stored** rows only: whatever number the client gave a new
+         * row is its guess and is about to be replaced, so counting those in would leave a gap for every new
+         * row. A stored row the client marked deleted still counts — it stays in the database, so its number
+         * is never reused, and a gap is the record of what was deleted.
+         *
+         * No renumbering map is needed, unlike the order's: nothing refers to an invoice position by number
+         * the way a payment schedule refers to an order position.
+         *
+         * `internal` and in the companion object rather than a private method: it needs nothing of the
+         * instance, and this is what the numbering of a whole posted invoice can be tested through without a
+         * Spring context (`RechnungDtoTest`).
+         */
+        internal fun assignNumbersAndIndicesToNewRows(invoice: RechnungDO) {
+            val positions = invoice.positionen ?: return
+            var nextNumber = (positions.filter { it.id != null }.maxOfOrNull { it.number } ?: 0).toInt()
+            positions.filter { it.id == null }.forEach { position ->
+                position.number = (++nextNumber).toShort()
+            }
+            positions.forEach { position ->
+                val assignments = position.kostZuweisungen ?: return@forEach
+                // -1, not 0: the index is 0-based, so the first assignment of a position has to become 0.
+                var nextIndex = (assignments.filter { it.id != null }.maxOfOrNull { it.index } ?: -1).toInt()
+                assignments.filter { it.id == null }.forEach { assignment ->
+                    assignment.index = (++nextIndex).toShort()
+                }
+            }
+        }
+
         /**
          * Id of the payment state filter - a pseudo field standing for `RechnungFilter.listType`, whose
          * values are the three constants below (`RechnungFilter.FILTER_*`).
@@ -418,6 +911,14 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * [PERIOD_OF_PERFORMANCE_FIELDS] - see [addPeriodOfPerformanceCriterion].
          */
         internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
+
+        /**
+         * Id of the cost assignment filter - a pseudo field standing for "the assignments of this invoice
+         * don't add up", see [CostAssignmentFilter]. Named after the question and not after the property it
+         * reads, since answering it yes is what the filter does; the property is on the DTO under its own
+         * name (`Rechnung.kostZuweisungenFehlbetrag`, the column of the list).
+         */
+        internal const val COST_ASSIGNMENT_FILTER = "kostZuweisungIncomplete"
 
         /** The two date properties the combined filter replaces in the filter field list. */
         private val PERIOD_OF_PERFORMANCE_FIELDS = setOf(
@@ -452,6 +953,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         private val COMPUTED_SORT_PROPERTIES = mapOf<String, (RechnungDO) -> Comparable<*>?>(
             Rechnung::netSum.name to { it.ensuredInfo.netSum },
             Rechnung::grossSumWithDiscount.name to { it.ensuredInfo.grossSumWithDiscount },
+            Rechnung::kostZuweisungenFehlbetrag.name to { it.ensuredInfo.kostZuweisungenFehlbetrag },
             Rechnung::statusAsString.name to { invoice -> invoice.status?.let { translate(it.i18nKey) } },
             CUSTOMER_SORT_PROPERTY to { invoice ->
                 PfCaches.instance.getKundeIfNotInitialized(invoice.kunde)?.displayName ?: invoice.kundeText

@@ -6,9 +6,10 @@
  * entry made, when was it last touched" answerable in *every* list rather than in the three that
  * happened to declare it.
  *
- * They start hidden. A list is read for its own subject, and two timestamp columns at the right edge
- * of every table would push it aside; what the user does with the column panel is then stored per user
- * and entity as usual (see useColumnStatePersistence), so switching one on is a decision that sticks.
+ * They start hidden (`hiddenByDefault`). A list is read for its own subject, and two timestamp columns
+ * at the right edge of every table would push it aside; what the user does with the column panel is
+ * then stored per user and entity as usual (see useColumnStatePersistence), so switching one on is a
+ * decision that sticks.
  *
  * A page that declares one of them itself keeps its own declaration — its width, its label and, above
  * all, its visibility: an order's `lastUpdate` is a column of the list, not an option of it.
@@ -37,18 +38,31 @@ export function auditColumnsFor<Row, M extends EntityMetadata>(
   const declared = new Set(columns.map((column) => columnIdOf(column)));
   return AUDIT_COLUMN_NAMES.filter(
     (name) => !declared.has(name) && metadata.fields[name]
-  ).map((name) => ({ name, size: AUDIT_COLUMN_SIZE }) as FieldColumn<Row, M>);
+  ).map(
+    (name) =>
+      ({
+        name,
+        size: AUDIT_COLUMN_SIZE,
+        hiddenByDefault: true,
+      }) as FieldColumn<Row, M>
+  );
 }
 
 /**
- * The visibility a list starts with: the appended audit columns off, everything else as declared.
+ * The visibility a list starts with: every column saying `hiddenByDefault` off, everything else as
+ * declared.
  *
- * Only the appended ones — a column the page declares is shown because it declared it (see the file
- * comment). The user's own visibility is merged over this (see useTableState), and a reset returns to
- * it rather than to "everything visible".
+ * That is the appended audit columns — they carry the flag (see [auditColumnsFor]) — and any column a
+ * page declares with it, for a value only some readers of that list are after. A column that says
+ * nothing is shown because it was declared, so it is not in here at all: the user's own visibility is
+ * merged over this (see useTableState), and a reset returns to it rather than to "everything visible".
  */
 export function defaultVisibilityOf<Row, M extends EntityMetadata>(
-  appended: FieldColumn<Row, M>[]
+  columns: ColumnDeclaration<Row, M>[]
 ): Record<string, boolean> {
-  return Object.fromEntries(appended.map((column) => [column.name, false]));
+  return Object.fromEntries(
+    columns
+      .filter((column) => column.hiddenByDefault)
+      .map((column) => [columnIdOf(column), false])
+  );
 }

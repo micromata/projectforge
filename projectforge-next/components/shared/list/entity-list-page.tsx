@@ -141,10 +141,12 @@ function DeclaredList<
   // rather than declared per page (see auditColumnsFor).
   const declarations = useMemo(() => {
     const appended = auditColumnsFor(page.columns, page.metadata);
-    return {
-      columns: appended.length ? [...page.columns, ...appended] : page.columns,
-      defaultVisibility: defaultVisibilityOf(appended),
-    };
+    const columns = appended.length
+      ? [...page.columns, ...appended]
+      : page.columns;
+    // Over all of them, appended and declared alike: a page may hide a column of its own at first too
+    // (see ColumnBase.hiddenByDefault).
+    return { columns, defaultVisibility: defaultVisibilityOf(columns) };
   }, [page.columns, page.metadata]);
   const declared = useDeclaredColumns<Row, M>(
     page.metadata,

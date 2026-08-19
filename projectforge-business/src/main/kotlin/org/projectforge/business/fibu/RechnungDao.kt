@@ -267,17 +267,16 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Fetches the cost assignments.
      *
+     * Touching them is the whole point: both collections are lazy, and a caller outside the transaction
+     * would get a `LazyInitializationException` instead. Null safe throughout, because an unknown id must
+     * answer null and let the caller report a 404 - not throw and turn into a 500.
+     *
      * @see org.projectforge.framework.persistence.api.BaseDao.find
      */
     @Throws(AccessException::class)
     override fun find(id: Serializable?, checkAccess: Boolean, attached: Boolean): RechnungDO? {
         val rechnung = super.find(id, checkAccess = checkAccess, attached = attached)
-        for (pos in rechnung!!.positionen!!) {
-            val list: List<KostZuweisungDO>? = pos.kostZuweisungen
-            if (list != null && list.size > 0) {
-                // Kostzuweisung is initialized
-            }
-        }
+        rechnung?.positionen?.forEach { it.kostZuweisungen?.size }
         return rechnung
     }
 

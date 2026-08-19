@@ -1,4 +1,5 @@
 import type { EditPageTab } from "@/components/shared/edit-page-tabs";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { ExtraTabDef, SectionDef } from "@/lib/page-def/types";
 
@@ -7,7 +8,8 @@ export const HISTORY_TAB_ID = "history";
 
 export interface EntityTabsOptions<M extends EntityMetadata> {
   sections: SectionDef<M>[];
-  t: (key: string) => string;
+  /** The translator, `has` included: a section's key may be one that needs [leafKeyOf]. */
+  t: ((key: string) => string) & { has: (key: string) => boolean };
   /**
    * id of the entry, null while it isn't saved yet: a page of its own (its history) has nothing to
    * link to then.
@@ -52,7 +54,10 @@ export function entityTabs<M extends EntityMetadata>({
   const formPage = id != null && !onFormPage ? `${route}/${id}` : undefined;
   const anchors = sections.map((section) => ({
     id: section.id,
-    label: t(section.tabTitleKey ?? section.titleKey),
+    // Through leafKeyOf like every other backend key a renderer hands to `t()`: a section named after
+    // its entity carries a key that is a text *and* a namespace (`fibu.rechnung`), and the bare one
+    // resolves to an object. The declaration must not have to know which of its keys collide.
+    label: t(leafKeyOf(section.tabTitleKey ?? section.titleKey, t.has)),
     // The section goes into the hash: seen from another page of the entity this is a navigation, and
     // without it the form would mount at its first section no matter which tab was clicked.
     href: formPage && `${formPage}#${section.id}`,
@@ -72,7 +77,7 @@ export function entityTabs<M extends EntityMetadata>({
       : []),
     ...(extraTabs ?? []).map((tab) => ({
       id: tab.id,
-      label: t(tab.labelKey),
+      label: t(leafKeyOf(tab.labelKey, t.has)),
       href: `${route}/${id}/${tab.id}`,
     })),
   ];

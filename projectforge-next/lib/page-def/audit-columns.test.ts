@@ -33,8 +33,8 @@ describe("auditColumnsFor", () => {
   it("appends both timestamps to a page declaring neither", () => {
     expect(auditColumnsFor(columns({ name: "description" }), METADATA)).toEqual(
       [
-        { name: "created", size: 130 },
-        { name: "lastUpdate", size: 130 },
+        { name: "created", size: 130, hiddenByDefault: true },
+        { name: "lastUpdate", size: 130, hiddenByDefault: true },
       ]
     );
   });
@@ -45,7 +45,7 @@ describe("auditColumnsFor", () => {
         columns({ name: "description" }, { name: "lastUpdate", size: 130 }),
         METADATA
       )
-    ).toEqual([{ name: "created", size: 130 }]);
+    ).toEqual([{ name: "created", size: 130, hiddenByDefault: true }]);
   });
 
   it("appends nothing where the page declares both", () => {
@@ -81,5 +81,31 @@ describe("defaultVisibilityOf", () => {
         )
       )
     ).toEqual({});
+  });
+
+  it("hides a declared column asking for it, and leaves the rest alone", () => {
+    expect(
+      defaultVisibilityOf(
+        columns(
+          { name: "description" },
+          {
+            id: "difference",
+            labelKey: "difference",
+            accessor: () => null,
+            hiddenByDefault: true,
+          }
+        )
+      )
+    ).toEqual({ difference: false });
+  });
+
+  it("covers the declared and the appended columns in one statement", () => {
+    const declared = columns(
+      { name: "description" },
+      { name: "lastUpdate", hiddenByDefault: true }
+    );
+    expect(
+      defaultVisibilityOf([...declared, ...auditColumnsFor(declared, METADATA)])
+    ).toEqual({ lastUpdate: false, created: false });
   });
 });

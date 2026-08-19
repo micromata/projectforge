@@ -108,6 +108,39 @@ export function postEntityAction<D extends object>(
   return write(`/rs/${entity}/${action}`, "POST", data, signal);
 }
 
+/**
+ * The prepared clone of an entity: the posted entry once more, but as a *new* one — no id anywhere,
+ * and whatever the entity considers unrepeatable stripped (an invoice's number, its payment, see
+ * `AbstractEntityRest.cloneData` and `OutgoingInvoiceEntityRest.prepareClone`).
+ *
+ * The one write-shaped call here that answers the entity instead of a `ResponseAction`, which is why
+ * it doesn't go through [write]: nothing is saved, so there is no id to read and nowhere to go.
+ *
+ * The posted entity is *not* validated server-side — the clone is taken from the form as it stands,
+ * errors and all, exactly as Wicket's `ignoreErrorOnClone` allows it.
+ *
+ * @throws RsError on 501 (the entity's REST class has no `cloneSupport`) and on 406 (no insert
+ *   access) — both mean a button was offered that shouldn't have been.
+ */
+export async function cloneEntity<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<D> {
+  const res = await rawRequest(
+    `/rs/${entity}/cloneData`,
+    { method: "POST", body: JSON.stringify({ data }) },
+    signal
+  );
+  if (!res.ok) {
+    throw new RsError(
+      res.status,
+      `${res.status} ${res.statusText}: clone of ${entity}`
+    );
+  }
+  return (await res.json()) as D;
+}
+
 async function write<D extends object>(
   path: string,
   method: "PUT" | "POST" | "DELETE",

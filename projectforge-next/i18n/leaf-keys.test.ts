@@ -1,8 +1,22 @@
+/// <reference types="vite/client" />
 import { describe, expect, it } from "vitest";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { invoiceStatisticsEntries } from "@/components/features/invoice/invoice-statistics";
 import { orderStatisticsEntries } from "@/components/features/order/order-statistics";
+import { BOOK_PAGE } from "@/components/features/book/book.page";
+import { COST1_PAGE } from "@/components/features/cost1/cost1.page";
+import { INVOICE_PAGE } from "@/components/features/invoice/invoice.page";
+import { ORDER_PAGE } from "@/components/features/order/order.page";
 import { LOCALES, MESSAGES } from "./config";
+
+/**
+ * Every generated entity metadata module, by file — glob rather than a list, so an entity added later is
+ * checked without anybody remembering to name it here.
+ */
+const ENTITY_MODULES: Record<
+  string,
+  Record<string, unknown>
+> = import.meta.glob("../lib/metadata/*.generated.ts", { eager: true });
 
 /**
  * The keys a renderer hands to `t()` without a metadata field behind them, against the real catalogs.
@@ -64,7 +78,38 @@ const KEYS = [
   "selectAll",
   "deselectAll",
   "cancel",
+  // The account of an invoice, whose key is a text *and* the parent of the whole address block.
+  "fibu.konto",
+  ...pageKeys(),
 ];
+
+/**
+ * Every key a page declaration names in plain text — its title, its menu parent, the heading of each
+ * section and of each tab beside the form.
+ *
+ * These are the ones no other check reaches: a field's label goes through `labelKeyFor` (covered by
+ * `lib/page-def/define-page.test.ts`), but a section title is written into the declaration and rendered
+ * by `DeclaredSection`/`entityTabs`, so nothing but the catalogue can say whether it is a text at all.
+ * A section named after its entity (`fibu.rechnung`, `fibu.auftrag`) is precisely the colliding case.
+ */
+function pageKeys(): string[] {
+  const pages = [BOOK_PAGE, COST1_PAGE, INVOICE_PAGE, ORDER_PAGE];
+  return pages.flatMap((page) => [
+    page.categoryKey,
+    page.titleKey,
+    ...("edit" in page && page.edit
+      ? [
+          page.edit.newTitleKey,
+          page.edit.savedMessageKey,
+          ...page.edit.sections.flatMap((section) => [
+            section.titleKey,
+            ...(section.tabTitleKey ? [section.tabTitleKey] : []),
+          ]),
+          ...(page.edit.extraTabs ?? []).map((tab) => tab.labelKey),
+        ]
+      : []),
+  ]);
+}
 
 function resolve(
   messages: Record<string, unknown>,
@@ -86,5 +131,42 @@ describe.each(LOCALES)("catalogue %s", (locale) => {
   it.each(KEYS)("resolves %s to a text", (key) => {
     const resolved = resolve(messages, leafKeyOf(key, hasMessage));
     expect(typeof resolved, `${key} in ${locale}`).toBe("string");
+  });
+
+  /**
+   * No field label may resolve to a *subtree*, over every generated entity at once.
+   *
+   * The narrower sibling of the checks above, and the one that catches what they cannot: an `i18nKey`
+   * pointing at a namespace that holds no text of its own. `RechnungsPositionDO.periodOfPerformanceType`
+   * named `fibu.periodOfPerformance.type`, which exists only as the parent of the enum's two values — so
+   * every position row threw `INSUFFICIENT_PATH`. Nothing else sees it: the key resolves in the bundle
+   * check on the Kotlin side, which counts a namespace of known keys as known, and `labelKeyFor` finds
+   * no `._` leaf to fall back to.
+   *
+   * A key that is **absent** is deliberately not failed here: the plugins keep resource bundles the
+   * generator does not read (`plugins.banking.*`, `plugins.todo.*`), and `ContractDO` declares a literal
+   * prefix as its key. next-intl renders those as the key itself — visible, but not a crash.
+   */
+  it("resolves every field label of every entity to a text, never a subtree", () => {
+    const subtrees = Object.entries(ENTITY_MODULES).flatMap(([file, module]) =>
+      Object.values(module).flatMap((exported) => {
+        const metadata = exported as {
+          fields?: Record<string, { i18nKey?: string }>;
+        };
+        return Object.entries(metadata.fields ?? {}).flatMap(
+          ([name, field]) => {
+            if (!field.i18nKey) return [];
+            const resolved = resolve(
+              messages,
+              leafKeyOf(field.i18nKey, hasMessage)
+            );
+            if (resolved === undefined || typeof resolved === "string")
+              return [];
+            return [`${file}: ${name} → ${field.i18nKey}`];
+          }
+        );
+      })
+    );
+    expect(subtrees).toEqual([]);
   });
 });
