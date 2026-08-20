@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { recalculateInvoice, type InvoicePositionSums } from "@/lib/rs/invoice";
@@ -81,6 +81,12 @@ export function useInvoiceSums(): InvoiceSumsState {
     queryFn: ({ signal }) => recalculateInvoice(JSON.parse(key), signal),
     // The answer is a pure function of what was sent, so it stays valid while the user edits elsewhere.
     staleTime: 60_000,
+    // The previous answer stands while the next one is computed: every keystroke is a new key, so
+    // without this the sums blank out on and off while a position is being typed — and the line showing
+    // them dims itself for exactly this moment (see [InvoiceSumsLine]), which only reads as "being
+    // recomputed" if the numbers are still there. A cost assignment's percentage entry needs it as more
+    // than polish: the net sum it takes its share of comes from here.
+    placeholderData: keepPreviousData,
   });
 
   const byNumber = new Map(

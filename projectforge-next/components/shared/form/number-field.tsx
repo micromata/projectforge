@@ -3,7 +3,11 @@
 import { useState, type CSSProperties } from "react";
 import { Input } from "@/components/ui/input";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatNumberInput, parseNumberInput } from "@/lib/number-parse";
+import {
+  formatNumberInput,
+  parseNumberInput,
+  parsePercentInput,
+} from "@/lib/number-parse";
 import { cn } from "@/lib/utils";
 import {
   FieldShell,
@@ -53,6 +57,25 @@ export interface NumberFieldProps extends BaseFieldProps {
    * `probabilityOfOccurrence`) — that needs nothing but a `%` suffix.
    */
   percent?: boolean;
+  /**
+   * Lets a **share** be typed instead of an amount: with an `amount` of 1.000, "50 %" stores 500.
+   *
+   * The other half of Wicket's `CurrencyConverter`, which accepts a percentage wherever it was given a
+   * total — today only the net amount of a cost assignment, against the net sum of its position
+   * (`RechnungCostEditTablePanel`). Splitting a position in halves or thirds is what that box is for, and
+   * a share is how such a split is thought about.
+   *
+   * An object rather than a plain number so that "takes a share" stays distinguishable from "the base is
+   * not known yet": the base of a cost assignment arrives with the recalculated sums, and reading "50 %"
+   * as 50 in the meantime would store an amount nobody entered. Without a base the entry is therefore
+   * held as unfinished (like a half-typed "1,") until one is there.
+   *
+   * A box that has no `shareOf` at all keeps reading a trailing "%" as decoration — "19 %" in a VAT
+   * field is 19, and there is nothing there a share could be of.
+   *
+   * Not to be confused with [percent], which is about the *unit* of this field's own value.
+   */
+  shareOf?: { amount: number | null | undefined };
   /**
    * Called with the value the field has just taken, for the case another field follows from it — an
    * invoice's payment target in days moves its due date (see `PaymentTermsFields`). The same hook
@@ -117,6 +140,7 @@ export function NumberField({
   maxDigits,
   align,
   percent,
+  shareOf,
   onChanged,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
@@ -162,6 +186,7 @@ export function NumberField({
               maxDigits={maxDigits}
               align={align}
               grouped={grouped}
+              shareOf={shareOf}
             />
           </FieldShell>
         );
@@ -187,6 +212,7 @@ function NumberBox({
   maxDigits,
   align,
   grouped,
+  shareOf,
 }: {
   id: string;
   value: number | null;
@@ -200,6 +226,8 @@ function NumberBox({
   align?: "left" | "right";
   /** Whether thousands are grouped while the box is at rest — see [groupsThousands]. */
   grouped?: boolean;
+  /** Whether a share may be typed, and what of — see [NumberFieldProps.shareOf]. */
+  shareOf?: { amount: number | null | undefined };
 }) {
   const ctx = useFormatContext();
   // A box being typed in drops its group separators, so an inserted one cannot move the caret; the
@@ -218,6 +246,41 @@ function NumberBox({
     setOwn({ text: write(value, !focused), shows: value });
   }
   const text = value === own.shows ? own.text : write(value, !focused);
+
+  /**
+   * What a typed text does to the value — an amount, the share of a base a trailing "%" asks for, or
+   * nothing yet. Not a pure "read the number" function on purpose: the three cases differ in what they
+   * do to the text as well, and the box's rule is that a text it cannot read is left as typed.
+   */
+  const take = (typed: string) => {
+    if (typed.trim() === "") {
+      // An emptied box becomes null, which is how the backend stores "no value".
+      setOwn({ text: typed, shows: null });
+      onChange(null);
+      return;
+    }
+    const share = shareOf ? parsePercentInput(typed, ctx) : null;
+    if (share !== null) {
+      const base = shareOf?.amount;
+      if (base == null) {
+        // A share of a base that isn't there yet is no more a number than a half-typed "1,": the text
+        // stands (`shows: value` keeps the render above from rewriting it) and the value is untouched,
+        // so a percentage never turns into the amount of bare digits nobody meant to enter.
+        setOwn({ text: typed, shows: value });
+        return;
+      }
+      // Rounded to the digits the box writes, so the amount that appears is the amount that is stored.
+      // Wicket rounds the same way, at the scale of the total it computes against.
+      const amount = round((base * share) / 100, fractionDigits ?? 2);
+      setOwn({ text: typed, shows: amount });
+      onChange(amount);
+      return;
+    }
+    // Not a number yet ("1,") keeps the text and the value it had, so nothing is lost while typing.
+    const parsed = parseNumberInput(typed, ctx);
+    setOwn({ text: typed, shows: parsed });
+    if (parsed !== null) onChange(parsed);
+  };
 
   return (
     <div
@@ -247,15 +310,7 @@ function NumberBox({
           align === "right" && "text-right",
           suffix && "pr-9"
         )}
-        onChange={(e) => {
-          const typed = e.target.value;
-          const parsed = parseNumberInput(typed, ctx);
-          // Not a number yet ("1,") keeps the text and the value it had, so nothing is lost while
-          // typing; an emptied box becomes null, which is how the backend stores "no value".
-          setOwn({ text: typed, shows: typed.trim() === "" ? null : parsed });
-          if (typed.trim() === "") onChange(null);
-          else if (parsed !== null) onChange(parsed);
-        }}
+        onChange={(e) => take(e.target.value)}
         onFocus={() => {
           setFocused(true);
           // Ungrouped from the first keystroke on, not from the first edit: "2.394,00" with the caret

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { FormatContext } from "./format";
-import { formatNumberInput, parseNumberInput } from "./number-parse";
+import {
+  formatNumberInput,
+  parseNumberInput,
+  parsePercentInput,
+} from "./number-parse";
 
 /** A German account, as the local test account is: "," decimal, "." group. */
 const DE: FormatContext = {
@@ -74,5 +78,30 @@ describe("parseNumberInput", () => {
 
   it("keeps a negative amount negative", () => {
     expect(parseNumberInput("-1.234,56", DE)).toBe(-1234.56);
+  });
+});
+
+describe("parsePercentInput", () => {
+  it("reads the percentage a trailing sign asks for, spaced or not", () => {
+    expect(parsePercentInput("50%", DE)).toBe(50);
+    expect(parsePercentInput(" 50 % ", DE)).toBe(50);
+    // In the user's own layout, like every other number typed into a box.
+    expect(parsePercentInput("33,33%", DE)).toBe(33.33);
+    expect(parsePercentInput("33.33%", EN)).toBe(33.33);
+  });
+
+  it("is null for a plain number, which is an amount and not a share", () => {
+    expect(parsePercentInput("50", DE)).toBeNull();
+    expect(parsePercentInput("", DE)).toBeNull();
+    // A sign without digits is not a percentage yet — nothing to take a share of.
+    expect(parsePercentInput("%", DE)).toBeNull();
+  });
+
+  it("takes only a trailing sign, so a pasted amount stays an amount", () => {
+    expect(parsePercentInput("%50", DE)).toBeNull();
+  });
+
+  it("keeps a negative share negative, as a correcting row is entered", () => {
+    expect(parsePercentInput("-10%", DE)).toBe(-10);
   });
 });

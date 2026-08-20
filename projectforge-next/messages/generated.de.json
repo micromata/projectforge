@@ -211,6 +211,11 @@
   "create": "Anlegen",
   "created": "angelegt",
   "createdBy": "angelegt von",
+  "currencyConverter": {
+    "percentage": {
+      "help": "Es können sowohl Beträge als auch Prozentzahlen (z. B. 10%) eingegeben werden."
+    }
+  },
   "datatable": {
     "no-records-found": "Keine Einträge gefunden."
   },

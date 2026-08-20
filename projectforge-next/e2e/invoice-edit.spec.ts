@@ -1,4 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { typeNumber } from "./fixtures/form";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import {
   formatCurrency,
@@ -166,7 +167,7 @@ test.describe("outgoing invoice edit", () => {
       await expect(fehlbetrag).toHaveCount(0);
       await expect(row).toContainText(percent(format, 1));
 
-      await netto.fill("1500");
+      await typeNumber(netto, "1500");
       await netto.blur();
       await expect(row).toContainText(percent(format, 0.75));
 
@@ -174,7 +175,7 @@ test.describe("outgoing invoice edit", () => {
       // current state, which is the whole point of the endpoint.
       await expect(fehlbetrag).toHaveText(currency(format, 500));
 
-      await netto.fill("2000");
+      await typeNumber(netto, "2000");
       await netto.blur();
       // Gone once everything adds up — a permanent "0,00 €" would read as a complaint (see
       // InvoiceSumsLine), so its absence *is* the assertion that the difference closed.
@@ -239,7 +240,7 @@ test.describe("outgoing invoice edit", () => {
       const netto = row.getByLabel(label(format, "fibu.common.netto"), {
         exact: true,
       });
-      await netto.fill("1500");
+      await typeNumber(netto, "1500");
       const comment = row.getByLabel(label(format, "comment"), { exact: true });
       await comment.fill(`${MARKER} split`);
       await comment.blur();
