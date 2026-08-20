@@ -16,6 +16,11 @@ import type { FormatContext } from "@/lib/format";
 import { dateOf, isoOf, todayIso } from "@/lib/date-parse";
 import { useDatePickerLocale } from "./use-date-picker-locale";
 
+/** How far the year dropdown reaches back — far enough for a date of birth. */
+const YEARS_BACK = 100;
+/** ...and ahead, for periods of performance and other planning far into the future. */
+const YEARS_AHEAD = 20;
+
 /**
  * The calendar half of [DateInput]: the button that opens it, the month grid, and the shortcuts
  * below it. Split off only because the two together outgrow the file size this project allows.
@@ -172,6 +177,18 @@ const MonthGrid = memo(function MonthGrid({
   weekStartsOn: FormatContext["weekStartsOn"];
 }) {
   const selected = useMemo(() => dateOf(value) ?? undefined, [value]);
+  // Without an explicit range the year dropdown stops at the end of the current year (react-day-picker
+  // defaults `endMonth` to `endOfYear(today)` as soon as a dropdown caption is used), so a period of
+  // performance reaching into the next year could be typed but not picked. The range always covers the
+  // date in the field as well, so no value is unreachable by browsing.
+  const [startMonth, endMonth] = useMemo(() => {
+    const thisYear = new Date().getFullYear();
+    const valueYear = selected?.getFullYear() ?? thisYear;
+    return [
+      new Date(Math.min(thisYear - YEARS_BACK, valueYear), 0, 1),
+      new Date(Math.max(thisYear + YEARS_AHEAD, valueYear), 11, 31),
+    ];
+  }, [selected]);
   return (
     <Calendar
       mode="single"
@@ -183,6 +200,8 @@ const MonthGrid = memo(function MonthGrid({
       locale={locale}
       weekStartsOn={weekStartsOn}
       captionLayout="dropdown"
+      startMonth={startMonth}
+      endMonth={endMonth}
       // Today only gets a grey background from the primitive, which is hard to tell from a hovered
       // day. A ring in the accent colour reads as "here you are" even when another day is selected;
       // on the selected day itself it sits inside its filled button.
