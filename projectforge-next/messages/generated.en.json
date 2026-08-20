@@ -776,6 +776,7 @@
         "short": "due"
       },
       "filter": {
+        "incomplete": "incomplete",
         "paymentStatus": "Payment status",
         "ueberfaellig": "delinquent",
         "unbezahlt": "not paid"
@@ -1387,6 +1388,7 @@
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
     "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
+    "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
     "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
   },
   "rating": "Rating",

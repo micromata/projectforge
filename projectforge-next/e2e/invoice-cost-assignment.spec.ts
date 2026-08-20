@@ -21,15 +21,21 @@ import type { FilterElement } from "../lib/rs/types";
 const ENTITY = "outgoingInvoice";
 const ROUTE = "/invoice";
 const TITLE_KEY = "fibu.rechnung.title.list";
-/** Label of the column and of the filter, and the column's id — see `Rechnung.kostZuweisungenFehlbetrag`. */
+/** Label and id of the difference column — see `Rechnung.kostZuweisungenFehlbetrag`. */
 const LABEL_KEY = "fibu.rechnung.kostZuweisungFehlbetrag";
 const COLUMN_ID = "kostZuweisungenFehlbetrag";
-/** Id of the synthetic filter — `OutgoingInvoiceEntityRest.COST_ASSIGNMENT_FILTER`. */
-const FILTER_ID = "kostZuweisungIncomplete";
+/**
+ * Id of the synthetic completeness filter — `INCOMPLETE_FILTER` of `IncompleteInvoiceFilter`. Its label
+ * is not spelled out as a key: it is not named anywhere in the next sources, so `NextI18nKeyScanner`
+ * doesn't export it and the catalogs this test reads don't know it. The backend translates it and sends
+ * it with the element, which is what the pill shows — so that is what the test compares against.
+ */
+const FILTER_ID = "incomplete";
 
 /**
  * The cost assignment status of the invoice list against the live backend — what Wicket's
- * `showKostZuweisungStatus` checkbox was, split into the column and the filter that replaced it.
+ * `showKostZuweisungStatus` checkbox was, split into the column and the completeness filter that grew
+ * out of it.
  *
  * Only a live run can settle either half. The column shows a value the lean row has to carry
  * (`Rechnung.copyFrom4ListRow`, which fills it only where cost accounting is configured), and the
@@ -91,36 +97,37 @@ test.describe("invoice cost assignment", () => {
     await expect(header).toHaveCount(0);
   });
 
-  test("offers the incomplete-assignments filter as a checkbox", async ({
+  test("offers the completeness filter as a permanent checkbox", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
-    const label = t(LABEL_KEY);
 
-    // The field is the backend's, so the test asks it first: an installation without cost accounting
-    // configured sends none, and there is nothing to look for in the UI then.
+    // The field is the backend's, so the test asks it first: an installation that neither keeps cost
+    // accounting nor expects an account sends none, and there is nothing to look for in the UI then.
     const elements = await filterElements(page, ENTITY);
     const element = elements.find((e) => e.id === FILTER_ID);
     test.skip(
       !element,
-      "Cost accounting is not configured, so the filter is not offered."
+      "Neither cost accounting nor a required account is configured, so the filter is not offered."
     );
     expect(element?.filterType).toBe("BOOLEAN");
-    expect(element?.label).toBe(label);
+    expect(element?.defaultFilter).toBe(true);
+    const label = element?.label ?? "";
+    expect(label).not.toBe("");
 
     await goto(page, ROUTE);
     await expect(page.getByRole("heading", { name: t(TITLE_KEY) })).toBeVisible(
       { timeout: 60_000 }
     );
 
-    // Reachable through the picker rather than as a pill: it carries no `defaultFilter`, since the
-    // status is checked on purpose and not on every opening of the list.
-    await page.getByRole("button", { name: t("filter.addField") }).click();
-    await page
-      .getByRole("button", { name: t("filter.allFilters"), exact: true })
-      .click();
-    const dialog = page.getByRole("dialog");
-    await expect(dialog.locator(`#filter-${FILTER_ID}`)).toBeVisible();
+    // A pill of its own rather than a field behind the picker: `defaultFilter` keeps it in the filter
+    // bar, since whether anything is still missing is a standing question of whoever books the invoices.
+    const pill = page.getByRole("button", {
+      name: t("filter.editEntry", { arg0: label }),
+    });
+    await expect(pill).toBeVisible();
+    await pill.click();
+    await expect(page.locator(`#filter-${FILTER_ID}`)).toBeVisible();
     // Not applied — the stored filter of the account stays untouched.
     await page.keyboard.press("Escape");
   });

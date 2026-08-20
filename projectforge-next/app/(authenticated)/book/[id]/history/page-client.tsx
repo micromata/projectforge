@@ -1,23 +1,15 @@
 "use client";
 
-import { notFound } from "next/navigation";
-import { useRouteParams } from "@/hooks/use-route-params";
-import { PageShell } from "@/components/shared/page-shell";
-import { EntityHistoryPage } from "@/components/shared/edit/entity-history-page";
-import { BOOK_PAGE } from "@/components/features/book/book.page";
+import { EntityTabRedirect } from "@/components/shared/edit/entity-tab-redirect";
+import { HISTORY_TAB_ID } from "@/components/shared/edit/entity-tabs";
 
-// Reads the id from the URL at runtime rather than from a server-provided route param, so any id
-// works under the static export (see page.tsx and use-route-params.ts).
+// The history used to be a page of its own; it is a tab of the edit page now (see EntityTabRedirect).
 export function BookHistoryPageClient() {
-  const raw = useRouteParams<{ id: string }>("/book/[id]/history")?.id;
-  if (raw === undefined) return null;
-  const id = Number(raw);
-  // A book that isn't saved yet ("new") has no history to show.
-  if (!Number.isFinite(id) || id <= 0) notFound();
-
   return (
-    <PageShell>
-      <EntityHistoryPage page={BOOK_PAGE} id={id} />
-    </PageShell>
+    <EntityTabRedirect
+      pattern="/book/[id]/history"
+      route="/book"
+      tab={HISTORY_TAB_ID}
+    />
   );
 }

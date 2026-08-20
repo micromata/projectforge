@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 
 export interface EntityEditHeaderProps {
@@ -29,7 +29,8 @@ export function EntityEditHeader({
 }: EntityEditHeaderProps) {
   return (
     <div className="flex h-11 items-center gap-2 overflow-hidden border-b border-border bg-background px-6">
-      <Link
+      {/* Guarded: this is the way out of a form that may hold unsaved changes. */}
+      <GuardedLink
         href={listRoute}
         className="flex shrink-0 items-center gap-1 text-sm font-medium text-foreground/70 hover:text-foreground"
       >
@@ -39,7 +40,7 @@ export function EntityEditHeader({
           className="text-muted-foreground"
         />
         <span>{listLabel}</span>
-      </Link>
+      </GuardedLink>
       <span className="shrink-0 text-base text-border">/</span>
       <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
         {title}

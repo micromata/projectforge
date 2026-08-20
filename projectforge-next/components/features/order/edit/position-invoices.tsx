@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { GuardedLink } from "@/components/shared/guarded-link";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { PositionInvoiceInfo } from "../types";
@@ -45,16 +45,18 @@ export function PositionInvoices({
         <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm">
           {invoices.map((invoice) => (
             <li key={invoice.id ?? invoice.nummer}>
-              {/* The invoice page is not migrated, so this is the server-laid-out one — which next
-                  serves itself through the generic route, rather than leaving for the legacy app. */}
-              <Link
-                href={`/outgoingInvoice/edit/${invoice.id}`}
+              {/* The invoice's own edit page, hand-built like this one — not the generic
+                  `/outgoingInvoice/edit/…` route, which answers `notFound()` for exactly the
+                  entities that are hand-built (see the generic route's page-client). Guarded, since
+                  this link leaves an order form that may hold unsaved changes. */}
+              <GuardedLink
+                href={`/invoice/${invoice.id}`}
                 className="text-primary underline-offset-2 hover:underline"
                 // The number alone doesn't say what the link opens, and there are several of them.
                 aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
               >
                 {invoice.nummer}
-              </Link>
+              </GuardedLink>
               <span className="ml-1 text-muted-foreground tabular-nums">
                 {formatDate(invoice.date, format)}
                 {invoice.netSum != null &&
