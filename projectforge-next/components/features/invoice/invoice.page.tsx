@@ -5,6 +5,7 @@ import { CostAssignmentCell } from "./cost-assignment-cell";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
+import { EInvoiceSection } from "./edit/e-invoice-section";
 import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
@@ -32,15 +33,16 @@ export const INVOICE_ROUTE = "/invoice";
 /**
  * The invoice, list and form (see lib/page-def/types.ts).
  *
- * The list is what it was; the form is new and not yet reachable from it:
- * `NextMigration.MIGRATED["outgoingInvoice"]` is still `listOnly`, so a row click and the add button lead
- * to Wicket (`listMeta.legacyEditPage` — see useEditTargets). The flip is a commit of its own; until then
- * the form is reached by typing `/next/invoice/{id}`, which is how the address page was verified.
+ * Released: `NextMigration.MIGRATED["outgoingInvoice"]` names `invoice/:id` and `invoice/new` and is no
+ * longer `listOnly`, so a row click, the add button and every server side redirect after a save stay in
+ * this app. Wicket's form remains reachable through the escape hatch of the page (LegacyPageLink), which
+ * is the only way there now.
  *
- * Every document function Wicket has is here as well: the Word export and the e-invoice beside the heading
- * (see InvoiceExportMenu on `headerTrailing`, and EInvoiceDialog), and the invoice PDF the ZUGFeRD export
- * builds on as a field of the attachment section (InvoicePdfField). What Wicket collects in its e-invoice
- * dialog — the address block, the bank account — are fields of the form here, in the `customer` section.
+ * Every document function Wicket has is here as well: the Word export beside the heading (InvoiceExportMenu
+ * on `headerTrailing`), and the whole e-invoice as a part of the form rather than a dialog — what Wicket
+ * collects in its `EInvoiceModalDialog` (the address block, the bank account, the invoice PDF, the checklist
+ * and the two exports) is the `customer` section here, fields plus footer (see EInvoiceSection). It sits at
+ * the end of the form, right above the attachments its ZUGFeRD export embeds.
  *
  * The columns are the 18 of the deleted `RechnungPagesRest.createListLayout`, with the two ends of the
  * period of performance as the one column they read as (`created` and `lastUpdate` come on top of them
@@ -223,6 +225,10 @@ export const INVOICE_PAGE = definePage<
     // The recurring monthly invoice: the next one is the last one with a new date, so it is written by
     // cloning it (see OutgoingInvoiceEntityRest.prepareClone for what a clone keeps and what it drops).
     clone: true,
+    // The one write the invoice offers besides the save: the first half of the e-invoice section's two
+    // buttons, which saves and then *stays* on the page, unlike the save — the export that follows it is
+    // built from what it wrote (see lib/rs/submit-meta.ts, EInvoiceActions).
+    actions: ["saveAndCheckEInvoice"],
     // The Word export, beside the heading: it acts on the stored invoice, and `headerTrailing` is the one
     // slot of an edit page that is handed exactly that (see InvoiceExportMenu).
     headerTrailing: (invoice) => <InvoiceExportMenu invoiceId={invoice?.id} />,
@@ -262,6 +268,26 @@ export const INVOICE_PAGE = definePage<
         ],
       },
       {
+        id: "payment",
+        titleKey: "fibu.rechnung.paymentTerms",
+        render: () => <PaymentTermsFields />,
+      },
+      {
+        id: "positions",
+        titleKey: "fibu.rechnung.positions",
+        render: ({ id }) => <PositionsSection id={id} />,
+      },
+      {
+        id: "notes",
+        titleKey: "comment",
+        fields: [
+          { name: "bemerkung", rows: 3, span: 3 },
+          { name: "besonderheiten", rows: 3, span: 3 },
+        ],
+      },
+      {
+        // Last but one, directly above the attachments: it is the end of the invoice, and its ZUGFeRD
+        // export is what embeds them — so the two sections read in the order they depend on each other.
         id: "customer",
         // The address of the recipient as the e-invoice needs it — Wicket's `fibu.konto.eInvoice`
         // fieldset, whose fields are named after the account's they are prefilled from.
@@ -282,24 +308,9 @@ export const INVOICE_PAGE = definePage<
           // are application configuration, which no field metadata can carry.
           { custom: SellerBankAccountField, startsRow: true },
         ],
-      },
-      {
-        id: "payment",
-        titleKey: "fibu.rechnung.paymentTerms",
-        render: () => <PaymentTermsFields />,
-      },
-      {
-        id: "positions",
-        titleKey: "fibu.rechnung.positions",
-        render: ({ id }) => <PositionsSection id={id} />,
-      },
-      {
-        id: "notes",
-        titleKey: "comment",
-        fields: [
-          { name: "bemerkung", rows: 3, span: 3 },
-          { name: "besonderheiten", rows: 3, span: 3 },
-        ],
+        // Below those very fields: the invoice PDF, what is still missing for an e-invoice, and the three
+        // buttons — the fields above are what the checklist is about (see EInvoiceSection).
+        footer: EInvoiceSection,
       },
       {
         id: "attachments",

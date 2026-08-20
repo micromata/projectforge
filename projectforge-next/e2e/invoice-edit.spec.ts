@@ -7,7 +7,7 @@ import {
 } from "../lib/format";
 import { formatNumberInput } from "../lib/number-parse";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
-import { MARKER } from "./fixtures/seed";
+import { MARKER, uniqueSuffix } from "./fixtures/seed";
 import {
   createInvoice as seedInvoice,
   fetchInvoice,
@@ -40,6 +40,49 @@ const SUBJECT = `${MARKER} invoice (delete me)`;
 test.describe.configure({ timeout: 120_000 });
 
 test.describe("outgoing invoice edit", () => {
+  test("is what the list leads to, by a row click and by add", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // Its own subject, unlike the other cases: this one has to find *its* row in a ledger of thousands,
+    // and the shared subject would match what an earlier run left behind as well.
+    const subject = `${SUBJECT} ${uniqueSuffix()}`;
+    let id: number | null = null;
+    try {
+      id = await seedInvoice(
+        page,
+        [{ number: 1, text: `${subject} 1`, menge: 1, einzelNetto: 100 }],
+        { subject }
+      );
+      // A criterion another run left behind decides which rows the list shows, and the row of a planned
+      // invoice has to be among them (see invoice-selection.spec.ts, which resets it for the same reason).
+      await page.request
+        .get(`/rs/${INVOICE_PAGE.entity}/filter/reset`, {
+          headers: { "X-PF-Frontend": "next" },
+        })
+        .catch(() => undefined);
+      await goto(page, "/invoice");
+
+      // What the release switch decides: without it the backend answered `wa/outgoingInvoiceEdit?id=:id`
+      // as the edit page and `useEditTargets` opened Wicket with a full page load. Both targets are one
+      // decision — a list that opens the legacy form has to add there too — so both are asserted, and on
+      // the `/next` prefix rather than on the route alone, since that is the half that used to be `/wa`.
+      await expect(
+        page.getByRole("link", { name: format.t("menu.addNewEntry") })
+      ).toHaveAttribute("href", "/next/invoice/new");
+
+      await page.getByPlaceholder(format.t("filter.searchList")).fill(subject);
+      await page.getByRole("cell", { name: subject, exact: true }).click();
+
+      await expect(page).toHaveURL(new RegExp(`/next/invoice/${id}$`));
+      await expect(
+        page.getByLabel(label(format, "fibu.rechnung.betreff"), { exact: true })
+      ).toHaveValue(subject, { timeout: 60_000 });
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
   test("shows the head, the positions and the sums the server computed", async ({
     loggedInPage: page,
   }) => {
@@ -370,10 +413,11 @@ function currency(format: UserFormat, value: unknown): string {
 }
 
 /**
- * An amount as it stands in an input box — ungrouped, unlike a rendered one (see formatNumberInput).
+ * An amount as it stands in an input box at rest: grouped like a rendered one, but without the currency
+ * beside it — that is the box's suffix, not part of its value (see formatNumberInput).
  */
 function amountInput(format: UserFormat, value: number): string {
-  return formatNumberInput(value, format.context, 2);
+  return formatNumberInput(value, format.context, 2, true);
 }
 
 /** A share as a row states it: whole percent in the user's layout (see CostAssignmentShare). */

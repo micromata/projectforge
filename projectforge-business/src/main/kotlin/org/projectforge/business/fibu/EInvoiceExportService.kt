@@ -46,6 +46,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.RepoService
 import org.springframework.stereotype.Service
@@ -243,44 +245,57 @@ class EInvoiceExportService(
         }
     }
 
+    /**
+     * What keeps this invoice from being exported, as sentences for the user.
+     *
+     * Translated here rather than answered as keys: every caller - Wicket's error line, the REST endpoint
+     * the next dialog reads - puts the list in front of a user unchanged, so a key would have to be
+     * resolved twice with the same bundle. The texts are the user's language
+     * ([org.projectforge.framework.i18n.translate] follows the logged-in user's locale), which they were
+     * not before: the list used to be English prose in every locale.
+     *
+     * @return One sentence per problem, empty if the invoice can be exported.
+     */
     fun validate(invoice: RechnungDO): List<String> {
         val errors = mutableListOf<String>()
 
         if (!sellerConfig.isConfigured()) {
-            errors.add("Seller configuration incomplete (projectforge.einvoice.seller.*)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.sellerNotConfigured"))
         }
         if (invoice.nummer == null) {
-            errors.add("Invoice number is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.numberMissing"))
         }
         if (invoice.datum == null) {
-            errors.add("Invoice date is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.dateMissing"))
         }
         if (invoice.positionen.isNullOrEmpty()) {
-            errors.add("Invoice has no positions")
+            errors.add(translate("fibu.rechnung.eInvoice.error.noPositions"))
         }
 
         if (sellerConfig.bankAccounts.isEmpty()) {
-            errors.add("No bank accounts configured (projectforge.einvoice.seller.bankAccounts)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotConfigured"))
         } else if (invoice.sellerBankAccount.isNullOrBlank()) {
-            errors.add("No bank account selected for this invoice")
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotSelected"))
         } else if (sellerConfig.findBankAccount(invoice.sellerBankAccount) == null) {
-            errors.add("Selected bank account '${invoice.sellerBankAccount}' not found in configuration")
+            errors.add(
+                translateMsg("fibu.rechnung.eInvoice.error.bankAccountNotFound", invoice.sellerBankAccount)
+            )
         }
 
         val kunde = invoice.kunde
         val customerName = kunde?.name ?: invoice.kundeText
         if (customerName.isNullOrBlank()) {
-            errors.add("Customer name is missing (no customer assigned and no customer text)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerNameMissing"))
         }
         val konto = kunde?.konto
         val street = invoice.customerAddress ?: konto?.street
         val zip = invoice.customerZipCode ?: konto?.zipCode
         val city = invoice.customerCity ?: konto?.city
         if (street.isNullOrBlank()) {
-            errors.add("Customer address/street is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressMissing"))
         } else if (zip.isNullOrBlank() || city.isNullOrBlank()) {
             if (!street.contains("\n") && !street.contains(",")) {
-                errors.add("Customer address incomplete (zip and city required)")
+                errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressIncomplete"))
             }
         }
         val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail

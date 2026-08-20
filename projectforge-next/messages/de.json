@@ -36,12 +36,6 @@
   "form": {
     "hint": "Hinweis"
   },
-  "invoice": {
-    "eInvoice": {
-      "savedOnlyHint": "Die E-Rechnung wird aus der gespeicherten Rechnung erzeugt; nicht gespeicherte Änderungen im Formular sind nicht enthalten.",
-      "notConfigured": "Der Rechnungssteller dieser Installation ist nicht vollständig konfiguriert (projectforge.einvoice.seller.*), daher kann keine E-Rechnung erzeugt werden. Das muss ein Administrator ergänzen."
-    }
-  },
   "login": {
     "submitting": "Anmelden…",
     "twoFactor": {

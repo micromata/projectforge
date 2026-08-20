@@ -267,12 +267,12 @@ const POSITION = { number: 1, menge: 1, einzelNetto: 1000 };
  * A VAT rate as it stands in its box, from the factor the backend holds: 0.19 → "19,00".
  *
  * Through the app's own two helpers rather than through a percent formatter: the field holds a factor
- * and shows a percentage (`NumberField.percent`), and the box then writes that percentage ungrouped and
- * padded to two digits like every other number input (see formatNumberInput) — with no "%" in the
- * value, since the suffix sits beside the box.
+ * and shows a percentage (`NumberField.percent`), and the box then writes that percentage padded to two
+ * digits like every other number input at rest (see formatNumberInput) — with no "%" in the value, since
+ * the suffix sits beside the box.
  */
 function percentInput(format: UserFormat, factor: number): string {
-  return formatNumberInput(factor * 100, format.context, 2);
+  return formatNumberInput(factor * 100, format.context, 2, true);
 }
 
 /**

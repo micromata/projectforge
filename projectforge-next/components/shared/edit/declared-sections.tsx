@@ -40,18 +40,24 @@ export function DeclaredSection<M extends EntityMetadata>({
   active?: boolean;
 }) {
   const t = useTranslations();
-  const body = section.render ? (
-    section.render({ id })
-  ) : (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
-      {section.fields?.map((field) => (
-        <DeclaredFormField
-          key={fieldKey(field)}
-          field={field}
-          metadata={metadata}
-        />
-      ))}
-    </div>
+  const body = (
+    <>
+      {section.render ? (
+        section.render({ id })
+      ) : (
+        <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
+          {section.fields?.map((field) => (
+            <DeclaredFormField
+              key={fieldKey(field)}
+              field={field}
+              metadata={metadata}
+            />
+          ))}
+        </div>
+      )}
+      {/* After the fields and in the same card, so it reads as part of the section — see SectionDef. */}
+      {section.footer ? <section.footer id={id} /> : null}
+    </>
   );
 
   // Through leafKeyOf, as the tab bar resolves the same key — see entityTabs.

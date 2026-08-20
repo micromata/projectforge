@@ -58,6 +58,22 @@ export interface NumberFieldProps extends BaseFieldProps {
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
 const FACTOR_DIGITS = 6;
 
+/**
+ * Whether a box groups its thousands at rest — an amount reads as "2.394,00", an order number must not
+ * read as "12.345".
+ *
+ * The same line the list side draws (see [DeclaredCell]: "only the digit grouping differs"): a value
+ * with decimals is a quantity and is grouped, a whole number is an identifier or a count and is not.
+ * `fractionDigits` decides where it is given, because it is what the box actually writes.
+ */
+function groupsThousands(
+  fractionDigits: number | undefined,
+  dataType: string | undefined
+): boolean {
+  if (fractionDigits != null) return fractionDigits > 0;
+  return dataType === "AMOUNT" || dataType === "DECIMAL";
+}
+
 /** Rounds away what binary floating point adds — 0.19 * 100 is 19.000000000000004. */
 function round(value: number, digits: number): number {
   return Number(value.toFixed(digits));
@@ -98,6 +114,7 @@ export function NumberField({
   const ids = useFieldIds();
   const { required, dataType } = useFieldMetadata(name);
   const digits = fractionDigits ?? (dataType === "AMOUNT" ? 2 : undefined);
+  const grouped = groupsThousands(digits, dataType);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -132,6 +149,7 @@ export function NumberField({
               suffix={suffix}
               maxDigits={maxDigits}
               align={align}
+              grouped={grouped}
             />
           </FieldShell>
         );
@@ -156,6 +174,7 @@ function NumberBox({
   suffix,
   maxDigits,
   align,
+  grouped,
 }: {
   id: string;
   value: number | null;
@@ -167,25 +186,26 @@ function NumberBox({
   suffix?: string;
   maxDigits?: number;
   align?: "left" | "right";
+  /** Whether thousands are grouped while the box is at rest — see [groupsThousands]. */
+  grouped?: boolean;
 }) {
   const ctx = useFormatContext();
+  // A box being typed in drops its group separators, so an inserted one cannot move the caret; the
+  // grouped form comes back on blur. See [formatNumberInput]'s `grouping`.
+  const [focused, setFocused] = useState(false);
+  const write = (n: number | null, withGrouping: boolean) =>
+    formatNumberInput(n, ctx, fractionDigits, grouped && withGrouping);
   // `shows` is the number the text stands for: while it equals the value the text is ours and is left
   // alone. Adjusted during render, not in an effect, because it follows a value the *form* set —
   // loading an entity (form.reset) or the recalculated sums coming back.
   const [own, setOwn] = useState(() => ({
-    text: formatNumberInput(value, ctx, fractionDigits),
+    text: write(value, true),
     shows: value,
   }));
   if (value !== own.shows) {
-    setOwn({
-      text: formatNumberInput(value, ctx, fractionDigits),
-      shows: value,
-    });
+    setOwn({ text: write(value, !focused), shows: value });
   }
-  const text =
-    value === own.shows
-      ? own.text
-      : formatNumberInput(value, ctx, fractionDigits);
+  const text = value === own.shows ? own.text : write(value, !focused);
 
   return (
     <div
@@ -224,13 +244,17 @@ function NumberBox({
           if (typed.trim() === "") onChange(null);
           else if (parsed !== null) onChange(parsed);
         }}
+        onFocus={() => {
+          setFocused(true);
+          // Ungrouped from the first keystroke on, not from the first edit: "2.394,00" with the caret
+          // in it would group and regroup as digits arrive.
+          setOwn({ text: write(value, false), shows: value });
+        }}
         onBlur={() => {
-          // The padding to `fractionDigits` becomes visible only now, so it can't fight what is
-          // being typed.
-          setOwn({
-            text: formatNumberInput(value, ctx, fractionDigits),
-            shows: value,
-          });
+          setFocused(false);
+          // The grouping and the padding to `fractionDigits` become visible only now, so neither can
+          // fight what is being typed.
+          setOwn({ text: write(value, true), shows: value });
           onBlur();
         }}
       />

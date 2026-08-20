@@ -96,7 +96,8 @@ object NextMigration {
      * Set together with [legacyApp] - a page whose legacy implementation is gone cannot keep its form
      * there. [editRoute] / [newEntryRoute] are not what a row click leads to, but they are still read:
      * [nextEditPage] answers them, for the legacy form that links to a part of the next form it lacks
-     * itself (the invoice does, for its attachments).
+     * itself. No page is in that state at the moment - the invoice was the last one and is fully
+     * migrated now - so this stays for the next list whose form follows a release later.
      * @param legacyApp The frontend this page was migrated from, i.e. the one its way back leads to,
      * or null once that page is gone: a page whose legacy implementation has been removed has no way
      * back, and [legacyListUrl] & co. answer null for it.
@@ -163,11 +164,11 @@ object NextMigration {
             legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "orderBookEdit",
         ),
-        // The list only (listOnly = true): the invoice form exists in next (/next/invoice/<id>), but the
-        // XRechnung/ZUGFeRD export and the invoice PDF upload are Wicket's alone, so a row click and the
-        // add button still lead to wa/outgoingInvoiceEdit - nobody is to lose those by clicking a row.
-        // `editRoute` is given nonetheless: the Wicket form links to the next form for the attachments,
-        // which are the one thing it cannot do itself (see RechnungEditForm and nextEditPage).
+        // Migrated from Wicket, form included: the three document functions that used to be Wicket's alone
+        // - the Word export, the XRechnung/ZUGFeRD export and the invoice PDF upload - are REST endpoints
+        // of OutgoingInvoiceEntityRest now and are on the next form, so nothing is lost by clicking a row
+        // (this is what dropped `listOnly`; wa/outgoingInvoiceEdit stays reachable through the escape
+        // hatch, see legacyEditPage).
         // The route is `invoice`, not the category: the entity is "Rechnung" to its users, and which side
         // of it the category names (outgoing vs. incoming) is what the menu says, not what the url has to
         // spell out. Wicket's mount points follow the convention (DaoConst.OUTGOING_INVOICE +
@@ -175,7 +176,7 @@ object NextMigration {
         "outgoingInvoice" to NextPage(
             route = "invoice",
             editRoute = "invoice/$ID_PLACEHOLDER",
-            listOnly = true,
+            newEntryRoute = "invoice/new",
             legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
@@ -281,7 +282,7 @@ object NextMigration {
     /**
      * @return The frontend url template of the edit page with [ID_PLACEHOLDER] for the id, e.g.
      * `next/book/:id` or `react/address/edit/:id`. For a [NextPage.listOnly] page the legacy edit page,
-     * e.g. `wa/outgoingInvoiceEdit?id=:id`: that is where its form is.
+     * e.g. `wa/<category>Edit?id=:id`: that is where its form is.
      */
     fun standardEditPage(category: String): String {
         val page = nextPage(category)
@@ -297,9 +298,9 @@ object NextMigration {
      * The edit page in projectforge-next, whether or not it is the one a row click leads to.
      *
      * Not [standardEditPage], which answers the legacy url for a [NextPage.listOnly] page: this one names
-     * the next form even then. For the legacy form that links into it for a part it lacks itself - the
-     * invoice's attachments, whose React page was removed with `createEditLayout` (see
-     * `RechnungEditForm`).
+     * the next form even then. For the legacy form that links into it for a part it lacks itself, as
+     * `RechnungEditForm` does for the invoice's attachments - that link stays useful now that the invoice
+     * is fully migrated, since Wicket's form is still reachable through the escape hatch.
      *
      * @return e.g. `next/invoice/:id` with [ID_PLACEHOLDER] for the id, or null if the category is not
      * migrated at all.
