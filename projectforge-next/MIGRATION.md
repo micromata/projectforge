@@ -1372,6 +1372,28 @@ mehr eigens angezeigt – „Verkäufer nicht konfiguriert" ist der erste Eintra
 `translate(key)` und nicht gegen englische Teilzeichenketten, die nur für ein
 englisches Konto gehalten hätten.
 
+#### Offen: Sprung zum Strukturelement zeigt noch auf Wicket
+
+Die Auftragsposition verlinkt ihr Strukturelement wieder auf dessen eigene Seite
+(`components/shared/tasks/task-edit-link.tsx`, neuer Tab, damit das Formular mit allen
+ungespeicherten Eingaben stehen bleibt). Das war eine Rückmeldung aus dem Betrieb: in der alten
+Version kam man von der Position zum Strukturelement und dort an die darauf gebuchten
+**Zeitberichte**.
+
+Das Ziel ist **fest verdrahtetes Wicket** (`wa/taskEdit?id=…`) und damit die einzige Stelle in
+next, die eine Legacy-URL selbst bildet. Grund: `listMeta.legacyEditPage` liefert für die
+Kategorie `task` `react/task/edit/:id` – `task` steht nicht in `NextMigration.MIGRATED`, also
+fällt `legacyApp` auf die React-App zurück –, und das React-Formular ist ein reines
+UILayout-Formular ohne die Aktion, um die es hier geht: „Zeitberichte anzeigen" ist ein
+Content-Menü-Eintrag von Wickets `TaskEditPage` (`task.menu.showTimesheets`).
+
+**Nach der Migration der Strukturelement-Seite ist das umzustellen:** Link von Wicket auf die
+next-Route, das heißt `wa/taskEdit?id=…` in `task-edit-link.tsx` ersetzen durch die URL, die das
+Backend dann nennt (`useLegacyEditUrl`/`nextEditPage` mit einem `task`-Eintrag in `MIGRATED`),
+und die Sonderbehandlung hier wieder auflösen. Dasselbe gilt für die schon vorhandene
+Strukturbaum-Seite (`app/(authenticated)/taskTree/page.tsx`), die ihren Zeilenklick heute über
+`listMeta.legacyEditPage` in die React-App schickt.
+
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 
 Die **Kalenderseite** (`/react/calendar`) ist der zweite Härtefall und

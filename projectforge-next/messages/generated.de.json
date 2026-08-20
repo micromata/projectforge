@@ -1530,7 +1530,10 @@
       "opened": "geöffnet",
       "treeClosed": "komplett geschlossen"
     },
-    "title": "Titel",
+    "title": {
+      "_": "Titel",
+      "edit": "Strukturelement bearbeiten"
+    },
     "tree": {
       "rootNode": "Wurzelstrukturelement",
       "title": {

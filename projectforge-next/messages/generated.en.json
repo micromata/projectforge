@@ -1530,7 +1530,10 @@
       "opened": "opened",
       "treeClosed": "completely closed"
     },
-    "title": "Title",
+    "title": {
+      "_": "Title",
+      "edit": "Edit structure element"
+    },
     "tree": {
       "rootNode": "Root node",
       "title": {
