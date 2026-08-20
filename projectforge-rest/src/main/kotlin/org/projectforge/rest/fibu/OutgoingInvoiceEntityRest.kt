@@ -30,6 +30,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
 import org.projectforge.business.fibu.EInvoiceSellerConfig
+import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.PeriodOfPerformanceValidator
@@ -57,7 +58,6 @@ import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -136,6 +136,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     @Autowired
     private lateinit var sellerConfig: EInvoiceSellerConfig
+
+    @Autowired
+    private lateinit var invoiceConfig: InvoiceConfiguration
 
     @PostConstruct
     private fun postConstruct() {
@@ -563,13 +566,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * the period of performance is its second time period panel: the first is a predicate over
      * [RechnungInfo], the second over two date columns at once, so neither is a search field.
      *
-     * The third ([COST_ASSIGNMENT_FILTER]) is what Wicket's `showKostZuweisungStatus` checkbox was for -
-     * there a pure display switch marking the rows whose cost assignments don't add up, here the question
-     * itself: show only those. Offered only where cost accounting is configured, as
-     * `AbstractRechnungListForm` shows the checkbox only there; without it every invoice would match.
+     * The third ([INCOMPLETE_FILTER]) grew out of Wicket's `showKostZuweisungStatus` checkbox - there a
+     * pure display switch marking the rows whose cost assignments don't add up, here the question itself:
+     * show only the invoices something is still missing from, the missing account included (see
+     * [IncompleteInvoiceFilter]). Offered only where this installation expects either, since it would
+     * otherwise match every invoice or none.
      *
      * The status is opened by default, as in the order list: it is what an invoice list is narrowed by
-     * first.
+     * first. The completeness filter as well, as it is a standing question of whoever keeps the books -
+     * and unlike the others it says nothing about the list while it is unchecked.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         val statusFilter = elements.find { it is UIFilterElement && it.id == RechnungDO::status.name }
@@ -604,12 +609,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 label = translate("fibu.periodOfPerformance"),
             )
         )
-        if (Configuration.instance.isCostConfigured) {
+        if (IncompleteInvoiceFilter.isOffered(Configuration.instance.isCostConfigured, invoiceConfig.accountRequired)) {
             elements.add(
                 UIFilterElement(
-                    COST_ASSIGNMENT_FILTER,
+                    INCOMPLETE_FILTER,
                     UIFilterElement.FilterType.BOOLEAN,
-                    label = translate("fibu.rechnung.kostZuweisungFehlbetrag"),
+                    label = translate("fibu.rechnung.filter.incomplete"),
+                    defaultFilter = true,
                 )
             )
         }
@@ -625,10 +631,20 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         listTypeEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.let { listType ->
             filters.add(PaymentStateFilter(listType))
         }
-        val costAssignmentEntry = source.entries.find { it.field == COST_ASSIGNMENT_FILTER }
-        costAssignmentEntry?.synthetic = true // Computed by RechnungCalculator, so no column holds it.
-        if (costAssignmentEntry?.isTrueValue == true) {
-            filters.add(CostAssignmentFilter())
+        val incompleteEntry = source.entries.find { it.field == INCOMPLETE_FILTER }
+        // Neither of the two reasons is a column: the difference is computed by RechnungCalculator, and the
+        // account may be inherited from project or customer.
+        incompleteEntry?.synthetic = true
+        if (incompleteEntry?.isTrueValue == true) {
+            filters.add(
+                IncompleteInvoiceFilter(
+                    costConfigured = Configuration.instance.isCostConfigured,
+                    accountRequired = invoiceConfig.accountRequired,
+                    // The account the export would use, not the invoice's own: an invoice without one is
+                    // booked to the account of its project or its customer, so it lacks nothing.
+                    accountOf = { kontoCache.getKonto(it) },
+                )
+            )
         }
         addPeriodOfPerformanceCriterion(target, source)
         return filters
@@ -796,22 +812,6 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
     }
 
-    /**
-     * The invoices whose cost assignments don't add up: the net sum assigned to cost units differs from the
-     * invoice's own net sum ([RechnungInfo.kostZuweisungenFehlbetrag]).
-     *
-     * A [CustomResultFilter] for the reason [PaymentStateFilter] is one - the difference is computed by
-     * [RechnungCalculator] from every position of the invoice and is no column any query could ask about.
-     *
-     * `isNotZero` rather than `!= BigDecimal.ZERO`: `BigDecimal.equals` compares the scale as well, so a
-     * `0.00` would count as a difference.
-     */
-    private class CostAssignmentFilter : CustomResultFilter<RechnungDO> {
-        override fun match(list: MutableList<RechnungDO>, element: RechnungDO): Boolean {
-            return NumberHelper.isNotZero(element.ensuredInfo.kostZuweisungenFehlbetrag)
-        }
-    }
-
     companion object {
         /**
          * Turns a copy of an invoice into a new one, the way `RechnungEditPage.cloneData` does it.
@@ -911,14 +911,6 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * [PERIOD_OF_PERFORMANCE_FIELDS] - see [addPeriodOfPerformanceCriterion].
          */
         internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
-
-        /**
-         * Id of the cost assignment filter - a pseudo field standing for "the assignments of this invoice
-         * don't add up", see [CostAssignmentFilter]. Named after the question and not after the property it
-         * reads, since answering it yes is what the filter does; the property is on the DTO under its own
-         * name (`Rechnung.kostZuweisungenFehlbetrag`, the column of the list).
-         */
-        internal const val COST_ASSIGNMENT_FILTER = "kostZuweisungIncomplete"
 
         /** The two date properties the combined filter replaces in the filter field list. */
         private val PERIOD_OF_PERFORMANCE_FIELDS = setOf(

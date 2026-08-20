@@ -769,6 +769,7 @@
         "short": "due"
       },
       "filter": {
+        "incomplete": "incomplete",
         "paymentStatus": "Payment status",
         "ueberfaellig": "delinquent",
         "unbezahlt": "not paid"

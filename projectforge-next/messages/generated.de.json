@@ -769,6 +769,7 @@
         "short": "Fällig"
       },
       "filter": {
+        "incomplete": "unvollständig",
         "paymentStatus": "Bezahlstatus",
         "ueberfaellig": "überfällig",
         "unbezahlt": "unbezahlt"
