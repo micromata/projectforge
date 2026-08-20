@@ -1224,6 +1224,22 @@ aufgefallen und beide für jede Liste gültig:
   Gelöst wurde es in der geteilten Schicht mit `lib/leaf-key.ts`, nicht dadurch, dass die
   Aufgabenseite den Schlüssel meidet – jede Seite, deren Titelschlüssel Kinder bekommt,
   wäre sonst die nächste.
+- **`NextMigration.nextRouteUrl(category, route, legacyUrl)`.** Eine **zweite Perspektive**
+  einer schon migrierten Entität, unter einer Route, die die Kategorie nicht hergibt: die
+  Aufgabe hat ihre Liste (`next/task`, die `NextPage.route`) und ihren Strukturbaum
+  (`next/taskTree`), und der Menüeintrag öffnet den Baum, während jeder Redirect der
+  Kategorie in die Liste geht. `NextPage` kann nur _eine_ Route ausdrücken, also nennt der
+  Aufrufer die zweite – und bleibt trotzdem an `MIGRATED` gekoppelt: solange die Entität
+  nicht migriert ist, ist die Antwort die übergebene Legacy-URL. Kein Fall für eine Seite
+  mit nur einer Perspektive; die nimmt weiter `listUrl`.
+- **`e2e/fixtures/list-table.ts` – `listRows` / `waitForRows` / `waitForRow`.** Was eine
+  Liste zeigt, während ihre erste Seite lädt, sind acht `<TableRow>` voller `Skeleton` – im
+  selben `tbody`. Ein Spec, der auf `tbody tr` wartet und dann eine Zelle liest, liest ein
+  leeres Kästchen **und besteht dabei**; dasselbe gilt für den Leer-Zustand. Die Zeilen des
+  Ergebnisses sind die mit `data-row-id` (setzt nur `DataTableRow`), und das ist das eine
+  Signal, das „diese Zellen tragen Werte aus der Datenbank" heißt. Alle Listen-Specs sind
+  darauf umgestellt; `waitForRow(text)` deckt zusätzlich den Fall ab, dass nach einer Suche
+  noch das vorige Ergebnis steht (`keepPreviousData`).
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -1479,18 +1495,25 @@ URL-basierte Spaltenzustands-Persistenz (`tree/setColumnStates`,
 `tree/resetGridState`). Gegen das laufende System geprüft: `e2e/task-tree.spec.ts`
 (4 Fälle).
 
-##### Lücke 1 – Routing/Menü (entschieden, umzuschalten in Schritt 5)
+##### Lücke 1 – Routing/Menü (in Schritt 5 erledigt)
 
-`MenuItemDefId.TASK_TREE` steht auf `"wa/taskTree"`, `task` fehlt in
-`NextMigration.MIGRATED`, `taskTree` fehlt in `lib/hand-built-categories.ts`
+Ausgangslage war: `MenuItemDefId.TASK_TREE` stand auf `"wa/taskTree"`, `task` fehlte in
+`NextMigration.MIGRATED`, `task` fehlte in `lib/hand-built-categories.ts`
 (`NextMigrationTest` liest die `.ts` per Regex und erzwingt den Gleichstand).
 
-**Die Entscheidung:** der Baum bleibt auf `/next/taskTree` (keine REST-Kategorie, eine
-eigene konkrete Route), und `task` wird als **normale Entität** eingetragen –
+**Die Entscheidung, so umgesetzt:** der Baum bleibt auf `/next/taskTree` (keine REST-Kategorie,
+eine eigene konkrete Route), und `task` ist als **normale Entität** eingetragen –
 `route = "task"` für die Listenperspektive wie bei jeder anderen Seite,
-`editRoute = "task/:id"`. Damit zeigt kein `PagesResolver`-Redirect für `task` auf den
-Baum, und der Konflikt „Baum kapert die Listen-URL" entsteht nicht. Der Menüeintrag
-`TASK_TREE` zeigt weiter auf den Baum, unabhängig von `MIGRATED`.
+`editRoute = "task/:id"`, `newEntryRoute = "task/new"`. Damit zeigt kein
+`PagesResolver`-Redirect für `task` auf den Baum, und der Konflikt „Baum kapert die
+Listen-URL" entsteht nicht – ein Redirect nach dem Speichern darf nicht im Baum landen.
+
+Der Menüeintrag `TASK_TREE` zeigt weiter auf den Baum, aber nicht hart verdrahtet: dafür
+gibt es neu `NextMigration.nextRouteUrl(category, route, legacyUrl)` – die **zweite
+Perspektive** einer schon migrierten Entität, unter einer Route, die die Kategorie nicht
+hergibt. Solange `task` nicht migriert ist, antwortet die Funktion mit der Legacy-URL, die
+Menü-URL bleibt also an `MIGRATED` gekoppelt (die Invariante, auf die die Klassen-Doku
+besteht) statt auf `next/taskTree` festgenagelt zu sein.
 
 Die frühere Notiz, `legacyRoute` müsse explizit auf `taskTree` gesetzt werden, ist
 damit hinfällig – und war auch so nicht richtig: Wicket mountet `taskList`/`taskEdit`,
@@ -1865,9 +1888,20 @@ Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
    Komponente hat. Also ein Schreib-Endpunkt plus ein Rechte-Feature, keine
    Formular-Migration. Bis dahin über den Legacy-Link erreichbar.
 
-5. Erst dann Menü + `NextMigration.MIGRATED["task"]` und
-   `lib/hand-built-categories.ts` umschalten (beides zusammen, `NextMigrationTest`
-   erzwingt es).
+5. **Erledigt: Menü + Umschaltung.** `NextMigration.MIGRATED["task"]` und
+   `lib/hand-built-categories.ts` sind zusammen umgeschaltet (`NextMigrationTest` erzwingt
+   es), `MenuItemDefId.TASK_TREE` geht über das neue `NextMigration.nextRouteUrl` auf
+   `next/taskTree` – die Einzelheiten in Lücke 1 oben. Die Wicket-Seite bleibt über die
+   Fluchtluke am Seitentitel erreichbar (`NextMigration.legacyListUrl`), was sie muss:
+   Favoriten und Aufgaben-Assistent sind die zwei Einträge, die next nicht hat.
+
+   Gegen das laufende System geprüft (nach `npm run build` +
+   `:projectforge-next:copyNextBuild`): der Menüeintrag antwortet mit `next/taskTree`,
+   `POST /rs/task/list` liefert die **schlanke** Zeile in 3,9 s statt der vollen DTOs in
+   32 s – 14 Felder pro Zeile, `description`/`kost2BlackWhiteList`/`parentTask` sind nicht
+   darunter –, und die drei berechneten Spalten sind gefüllt (`consumption` in 18010,
+   `kost2WildCard`/`kost2ListAsLines` in 10100, `orderList` in 3351 von 19717 Zeilen).
+   `listMeta.variables` antwortet mit allen drei Flags wahr, wie für dieses Konto erwartet.
 
 **Verifikation.** Aufgabe anlegen/verschieben/schließen, Gantt- und
 Kost2-Felder mit _und_ ohne FiBu-Recht (die Ablehnung muss als Fehler ankommen,

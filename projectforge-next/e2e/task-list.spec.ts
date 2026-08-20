@@ -1,6 +1,7 @@
 import type { APIRequestContext, Locator, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
+import { waitForRow, waitForRows } from "./fixtures/list-table";
 import { TASK_PAGE } from "../components/features/task/task.page";
 import { TASK_METADATA } from "../lib/metadata/task.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
@@ -51,9 +52,7 @@ test.describe("task list", () => {
     await expect(
       page.getByRole("heading", { name: label(format, TASK_PAGE.titleKey) })
     ).toBeVisible();
-    await expect(page.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(page);
 
     // Against the declaration and the generated metadata, never against literals: the label of a field
     // column is the `i18nKey` of that field in `TaskDO`, which the declaration deliberately does not
@@ -106,9 +105,7 @@ test.describe("task list", () => {
   }) => {
     const format = await userFormat(page);
     await goto(page, PAGE);
-    await expect(page.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(page);
 
     // The list goes through `MagicFilterProcessor`, i.e. it sorts by entity property — the three
     // computed values are none, and Wicket's list says the same by passing them no sort property. The
@@ -140,12 +137,11 @@ test.describe("task list", () => {
     // the term, so "ZZ e2e task …" would pull in every task an earlier run left as well — and the
     // seeded one need not then be on the page the list serves. The suffix leaves this run's pair.
     await page.getByPlaceholder(t("filter.searchList")).fill(seeded.suffix);
-    const row = page
-      .getByRole("cell", { name: seeded.title, exact: true })
-      .first();
-    await expect(row).toBeVisible({ timeout: 20_000 });
+    const row = await waitForRow(page, seeded.title);
 
-    await row.click();
+    // The title cell, not the row: a row's centre may be the orders column, whose entries are links of
+    // their own and would navigate elsewhere.
+    await row.getByRole("cell", { name: seeded.title, exact: true }).click();
 
     // `returnTo` is the list, so cancelling comes back here rather than to the tree — the two are
     // separate `returnTargets` of the same form (see EditDef.returnTargets).

@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { waitForRow, waitForRows } from "./fixtures/list-table";
 
 /**
  * The overflow tooltip of the data table against the live backend.
@@ -43,9 +44,9 @@ test.describe("data table overflow tooltip", () => {
         range.selectNodeContents(el);
         return range.getBoundingClientRect().width > available + 1;
       };
-      const row = Array.from(document.querySelectorAll("table tbody tr")).find(
-        (tr) => (tr as HTMLElement).innerText.includes(text)
-      );
+      const row = Array.from(
+        document.querySelectorAll("table tbody tr[data-row-id]")
+      ).find((tr) => (tr as HTMLElement).innerText.includes(text));
       if (!row) return { overflowing: [], fitting: [] };
       const cells = Array.from(row.querySelectorAll("td")) as HTMLElement[];
       const overflowing: { index: number; text: string }[] = [];
@@ -75,9 +76,7 @@ test.describe("data table overflow tooltip", () => {
     seededOrder,
   }) => {
     await goto(page, "/order");
-    await expect(page.locator("table tbody tr").first()).toBeVisible({
-      timeout: 30_000,
-    });
+    await waitForRows(page, 30_000);
     // Narrowed to the seeded order, so the measured row is its own: its title is the one value that is
     // certainly wider than its column. The run's suffix as the term — the rest of the title is the
     // same in every run.
@@ -85,12 +84,9 @@ test.describe("data table overflow tooltip", () => {
     await page
       .getByPlaceholder((await userFormat(page)).t("filter.searchList"))
       .fill(term);
-    const row = page
-      .locator("table tbody tr")
-      .filter({ hasText: term })
-      .first();
-    await expect(row).toBeVisible({ timeout: 30_000 });
-    // The skeleton rows are rows too, and their cells never overflow.
+    const row = await waitForRow(page, term, 30_000);
+    // And the fetch is over: a cell measured while the next page is still loading is measured in a
+    // table whose columns are still the previous answer's width.
     await expect(page.locator("[data-slot=skeleton]")).toHaveCount(0, {
       timeout: 60_000,
     });

@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
+import { listRows } from "./fixtures/list-table";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
 import { MULTI_SELECTION_PARAM } from "../lib/rs/multi-select";
 
@@ -294,7 +295,7 @@ async function tickFirstRows(page: Page, count: number): Promise<string[]> {
   });
   const numbers: string[] = [];
   for (let index = 0; index < count; index++) {
-    const row = listTable(page).locator("tbody tr").nth(index);
+    const row = listRows(listTable(page)).nth(index);
     // The second cell: the checkbox column leads every row inside the mode.
     numbers.push((await row.getByRole("cell").nth(1).innerText()).trim());
     await row.getByRole("checkbox").check();
@@ -304,8 +305,7 @@ async function tickFirstRows(page: Page, count: number): Promise<string[]> {
 }
 
 function tickedRow(page: Page, number: string): Locator {
-  return listTable(page)
-    .locator("tbody tr")
+  return listRows(listTable(page))
     .filter({ has: page.getByRole("cell", { name: number, exact: true }) })
     .getByRole("checkbox", { checked: true });
 }

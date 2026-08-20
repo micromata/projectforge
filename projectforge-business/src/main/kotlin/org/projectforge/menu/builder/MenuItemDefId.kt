@@ -106,7 +106,11 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
-    TASK_TREE("menu.taskTree", "wa/taskTree"), //
+    // Migrated to projectforge-next, but to the *tree* page rather than to the list of the category:
+    // the entity has two perspectives there, and this entry is the structure tree (next/taskTree) as
+    // it is in Wicket. Hence nextRouteUrl and not getListUrl, which would open next/task. The Wicket
+    // page stays reachable through the escape hatch, see NextMigration.legacyListUrl.
+    TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //

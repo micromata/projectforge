@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
+import { waitForRows } from "./fixtures/list-table";
 
 /**
  * The task edit page (`/next/task/:id`) against the live backend — the hand-built page of step 2 of
@@ -169,9 +170,7 @@ test.describe("task edit", () => {
       .click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(dialog);
     await page.keyboard.press("Escape");
   });
 
@@ -300,8 +299,7 @@ test.describe("task tree row click", () => {
   }) => {
     const format = await userFormat(page);
     await goto(page, TREE);
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const rows = await waitForRows(page);
 
     // The last word of the title: the client builds the query with URLSearchParams, which writes a
     // space as "+" rather than "%20" (see task-tree.spec.ts, which narrows the same way).

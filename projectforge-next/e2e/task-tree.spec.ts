@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { waitForRows } from "./fixtures/list-table";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
@@ -17,7 +18,7 @@ import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 const PAGE = "/taskTree";
 
 /** The tree column, pinned left; the one whose click expands rather than selects. */
-const TREE_CELL = "tbody tr td:nth-child(1)";
+const TREE_CELL = "tbody tr[data-row-id] td:nth-child(1)";
 
 test.describe("task tree", () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
@@ -65,8 +66,7 @@ test.describe("task tree", () => {
     const { t } = await userFormat(page);
     await goto(page, PAGE);
 
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const rows = await waitForRows(page);
 
     // The seeded task, not "the first collapsed node": it has a child, so it is certainly a folder,
     // and a database without one (a fresh one, or one whose folders the account has all open) offers
@@ -115,8 +115,7 @@ test.describe("task tree", () => {
     const { t } = await userFormat(page);
     await goto(page, PAGE);
 
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const rows = await waitForRows(page);
     const before = await rows.count();
 
     // The seeded task's own title, not a term of the database: every title of this instance is
@@ -141,8 +140,7 @@ test.describe("task tree", () => {
     const { t } = await userFormat(page);
     await goto(page, PAGE);
 
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    const rows = await waitForRows(page);
 
     // The seeded task: a folder (it has a child), and only for a folder do the two columns differ. Any
     // other row would be one of the database's own — and on a fresh database there is none.

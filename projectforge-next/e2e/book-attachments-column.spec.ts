@@ -1,6 +1,7 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { purgeTestAttachments } from "./fixtures/attachments";
+import { listRows } from "./fixtures/list-table";
 import { createBook, type SeededBook } from "./fixtures/seed";
 
 /**
@@ -63,9 +64,7 @@ test.describe("books list attachments", () => {
       // Inside the seeded book's own row, not the first one that has a summary: the filtered answer
       // may not have arrived yet, and until it does the rows on screen are still the unfiltered
       // list's — an attachment on any of them would satisfy `.first()`.
-      const row = page
-        .locator("table tbody tr")
-        .filter({ hasText: book.signature });
+      const row = listRows(page).filter({ hasText: book.signature });
       await expect(row).toHaveCount(1, { timeout: 30_000 });
       // The backend formats size and count together ("28bytes (1)") in the user's locale, so the
       // assertion pins the count and the unit rather than a hand-built string.

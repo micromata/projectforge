@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { listRows } from "./fixtures/list-table";
 import { AUFTRAG_METADATA } from "../lib/metadata/auftrag.generated";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import { columnIdOf } from "../lib/page-def/define-page";
@@ -47,7 +48,7 @@ test.describe("audit columns", () => {
     // And it holds a timestamp, not an empty cell: the lean row has to copy it (see the file comment).
     // Matched by shape through the app's own formatter — the account's locale decides the layout.
     const shape = timestampPattern(timestamp);
-    const cells = page.locator("tbody tr").first().locator("td");
+    const cells = listRows(page).first().locator("td");
     await expect(cells.filter({ hasText: shape }).first()).toBeVisible();
 
     // `created` is the generic half: appended although the declaration never names it, and hidden
@@ -76,7 +77,7 @@ test.describe("audit columns", () => {
     });
     await expect(header).toHaveCount(1);
     await expect(
-      page.locator("tbody tr").first().locator("td").filter({ hasText: shape })
+      listRows(page).first().locator("td").filter({ hasText: shape })
     ).not.toHaveCount(0);
 
     // The reset returns to the declared visibility rather than to "everything visible": the column the

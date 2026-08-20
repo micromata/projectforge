@@ -6,6 +6,7 @@ import {
 } from "@playwright/test";
 import { test, goto, waitForHydration } from "./fixtures/auth";
 import { locales, translate, userFormat } from "./fixtures/format";
+import { waitForRows } from "./fixtures/list-table";
 import { LOGO_ROW_HEIGHT } from "../hooks/use-collapse-on-scroll";
 
 /**
@@ -48,7 +49,7 @@ test.describe("logo row", () => {
     const column = tableColumn(page);
     // Room to scroll, and by more than the row's height: a column that overflows by less declines to
     // collapse on purpose (see nextCollapsed).
-    await expect(page.locator("tbody tr").first()).toBeVisible();
+    await waitForRows(page);
     await expect
       .poll(() => column.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(200);

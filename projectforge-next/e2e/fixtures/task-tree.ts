@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import type { UserFormat } from "./format";
+import { listRows } from "./list-table";
 import { DEFAULT_PAGE_SIZE } from "../../components/data-table/page-size-options";
 
 /**
@@ -63,7 +64,7 @@ export async function narrowToSeeded(
   const { nodes = [] } = (await (await filtered).json()) as {
     nodes?: unknown[];
   };
-  const rows = page.locator("tbody tr");
+  const rows = listRows(page);
   // The answer says how many rows the table will have, so waiting for that number is waiting for the
   // rendering of *this* answer rather than for an arbitrary moment of quiet. Capped at a page, since
   // a wider result would be paginated — the seeded subtree is far below one page.

@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
+import { waitForRows } from "./fixtures/list-table";
 import { fetchRootTaskId } from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 import { LUCENE_QUERY_DOCS_URL } from "../lib/docs-links";
@@ -48,9 +49,7 @@ test.describe("task tree actions", () => {
   }) => {
     const format = await userFormat(page);
     await goto(page, PAGE);
-    await expect(page.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(page);
 
     // The same button and the same shortcut every list page carries (see AddEntryButton), which is why
     // its accessible name is the generic one rather than "new task".
@@ -180,9 +179,7 @@ test.describe("task tree actions", () => {
     test.setTimeout(60_000);
     const format = await userFormat(page);
     await goto(page, PAGE);
-    await expect(page.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(page);
 
     // Away from the defaults first, in both halves of the filter: `closed` is off by default, and a
     // search string is what a reset has to clear as well (`TaskFilter.reset`).
@@ -254,9 +251,7 @@ test.describe("task tree actions", () => {
       .click();
 
     const dialog = page.getByRole("dialog");
-    await expect(dialog.locator("tbody tr").first()).toBeVisible({
-      timeout: 20_000,
-    });
+    await waitForRows(dialog);
     await expect(
       dialog.getByText(format.t("task.selectPanel.info"))
     ).toBeVisible();

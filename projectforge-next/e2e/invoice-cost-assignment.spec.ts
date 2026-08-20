@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { listRows } from "./fixtures/list-table";
 import { formatCurrency, type FormatContext } from "../lib/format";
 import type { FilterElement } from "../lib/rs/types";
 
@@ -73,7 +74,7 @@ test.describe("invoice cost assignment", () => {
     // And it arrives filled rather than empty — the value has to be on the lean row. Matched by the
     // shape the account's own formatter produces, never by a spelled-out "0,00 €".
     const column = await columnIndex(page, label);
-    const cell = page.locator("tbody tr").first().locator("td").nth(column);
+    const cell = listRows(page).first().locator("td").nth(column);
     await expect(cell).toHaveText(amountPattern(context));
 
     // Left as found: the reset returns to the declared visibility, which is this column hidden again.
