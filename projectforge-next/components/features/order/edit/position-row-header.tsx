@@ -69,8 +69,6 @@ export function PositionRowHeader({
   if (paymentType) enumBadges.push(paymentType.label);
   if (forecastType) enumBadges.push(forecastType.label);
   if (modeOfPayment) enumBadges.push(modeOfPayment.label);
-  if (position.vollstaendigFakturiert)
-    enumBadges.push(t("fibu.auftrag.vollstaendigFakturiert"));
 
   const textChips: string[] = [];
   if (position.personDays != null && position.personDays !== 0)
@@ -123,6 +121,13 @@ export function PositionRowHeader({
         </>
       }
       details={[
+        // Ahead of the enum badges and in teal, not as one grey badge among them: whether a position
+        // is settled is what the folded row is read for, the same state the payment schedule shows.
+        position.vollstaendigFakturiert && (
+          <span className="font-medium text-brand-teal">
+            {t("fibu.auftrag.vollstaendigFakturiert")}
+          </span>
+        ),
         ...enumBadges.map((label) => (
           <Badge key={label} variant="secondary" className="font-normal">
             {label}
