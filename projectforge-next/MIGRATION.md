@@ -1214,15 +1214,51 @@ Das **Auftragsbuch** ist der Referenz-Härtefall:
 **Verifikation.** Auftrag mit mehreren Positionen + Zahlungsplan
 anlegen/ändern, Summen/Forecast gegen Wicket vergleichen, History prüfen.
 
-#### Debitorenrechnungen (`outgoingInvoice`) – in Arbeit, Liste zuerst
+#### Debitorenrechnungen (`outgoingInvoice`) – vollständig migriert
 
-Die vierte Seite nach `book`, `cost1` und `order`, und die erste, die **nur als
-Liste** migriert wird: `RechnungDO` hat mit `RechnungsPosition` →
-`KostZuweisung` drei Schachtelungsebenen, mehr als die Auftragsposition, und das
-DTO ist dafür heute nicht vollständig. Die Liste ist davon unabhängig, also läuft
-sie voraus; die Edit-Seite bleibt bis dahin Wicket.
+Die vierte Seite nach `book`, `cost1` und `order`. Sie war die erste, die **nur als
+Liste** migriert wurde: `RechnungDO` hat mit `RechnungsPosition` →
+`KostZuweisung` drei Schachtelungsebenen, mehr als die Auftragsposition. Die Liste
+lief deshalb voraus, die Edit-Seite blieb zunächst Wicket – seit dem Release-Schalter
+in `NextMigration.MIGRATED["outgoingInvoice"]` (kein `listOnly` mehr, `editRoute =
+invoice/:id`, `newEntryRoute = invoice/new`) führen Zeilenklick, „Neu" und jeder
+serverseitige Redirect nach dem Speichern nach next. Wickets Formular bleibt allein
+über die Escape-Hatch-Verlinkung der Seite erreichbar.
 
-Zwei Dinge folgen daraus, beide bewusst generisch gebaut statt für die Rechnung:
+Was den Schalter möglich gemacht hat, sind die drei Dokumentfunktionen, die es vorher
+nur in Wicket gab und für die kein REST-Endpunkt existierte – alle drei sind jetzt
+Endpunkte von `OutgoingInvoiceEntityRest` und Teil des next-Formulars:
+
+- **Word-Export** (`GET exportInvoiceWord/{id}`, eine Menüvariante je
+  `InvoiceService.getTemplateVariants()`),
+- **E-Rechnung** (`GET eInvoice/{id}/validate|xrechnung|zugferd`, Dialog hinter dem
+  zweiten Menüeintrag, nur bei konfiguriertem Verkäufer wie Wickets
+  `addEInvoiceMenu()`),
+- **Rechnungs-PDF** (`GET/POST/DELETE invoicePdf/{id}`, eigenes Feld über der
+  Anhangsliste, aus der der Marker `__INVOICE_PDF__` herausgefiltert wird).
+
+Alle drei arbeiten auf dem **persistierten** Stand und sind ohne id deaktiviert.
+Wicket exportiert dagegen den ungespeicherten Formularstand
+(`setDefaultFormProcessing(false)`) bzw. speichert beim Öffnen seines
+E-Rechnungs-Dialogs. Das ist ein bewusster Unterschied: ein Dokument, das nach außen
+geht, soll dem entsprechen, was in der Datenbank steht, und ein verstecktes Schreiben
+beim Öffnen eines Dialogs ist genau das, was next sonst vermeidet. Der Dialog sagt
+das auch (`invoice.eInvoice.savedOnlyHint`).
+
+Dazu kamen für das Formular: serverseitige Leistungszeitraum-Validierung
+(`PeriodOfPerformanceValidator`, wie beim Auftrag), `formDefaults` (Default-MwSt,
+Bankkonten, `eInvoiceConfigured`, Template-Varianten) in einem GET je Mount,
+Kost2-Vorbelegung und -Warnung über `activeKost2`/`kost2Check` (Wickets Regel aus
+`onRenderCostRow`, aber mit Text statt nur gelbem Rahmen),
+`sellerBankAccount` als Select und der Auftragspositions-Picker über
+`order/positionAutosearch` samt Sprung zum Auftrag.
+
+Zwei Fehler wurden dabei behoben: `transformForDB` nullte Wickets
+`uiStatusAsXml`-Spalte bei jedem next-Save (derselbe Defekt bestand für den Auftrag),
+und `RechnungDao.find` warf für eine unbekannte id eine NPE statt 404 zu liefern.
+
+Zwei Dinge folgen aus der Liste-zuerst-Phase, beide bewusst generisch gebaut statt
+für die Rechnung:
 
 - **`PageDef.edit` ist optional.** Eine Deklaration ohne Form-Hälfte entsteht über
   `defineListPage` statt `definePage`; wohin Zeilenklick und „Neu" führen,
@@ -1237,9 +1273,33 @@ Zwei Dinge folgen daraus, beide bewusst generisch gebaut statt für die Rechnung
   der HTTP-Session (Schlüssel ist die _PagesRest_-Klasse, TTL 60 min) – das
   braucht Sticky Sessions.
 
-**Verifikation** steht noch aus und hängt an einem Recht: `FIBU_AUSGANGSRECHNUNGEN`
-muss das Testkonto haben (s. oben, Phase 2). Ohne das ist die Seite nicht gegen
-echte Daten geprüft, und das ist dann auch so zu sagen.
+**Verifikation.** Die e2e-Suite läuft gegen die lokale Instanz (`E2E_BASE_URL`), das
+Testkonto hat `FIBU_AUSGANGSRECHNUNGEN`. Abgedeckt sind Liste, Formular, Positionen,
+Kostzuweisungen inklusive Fehlbetrag und Kost2-Warnung, Anhänge, Rechnungs-PDF und
+beide Exportarten (`e2e/invoice-*.spec.ts`); backend-seitig die Suiten unter
+`org.projectforge.rest.fibu.*`. Jede Spezifikation legt ihre eigene `GEPLANT`-Rechnung
+an und markiert sie danach gelöscht – keine nennt eine Zeile der Datenbank, und keine
+verbraucht eine Rechnungsnummer.
+
+**Was bewusst offen bleibt:**
+
+- **Prozenteingabe im Netto-Feld einer Kostzuweisung.** Wicket akzeptiert dort „50 %"
+  und rechnet gegen die Positionssumme; next nimmt nur einen Betrag. Entscheidung des
+  Anwenders, nicht Teil des Releases.
+- **`AccessException` beim Speichern liefert HTTP 200 plus Toast** und wird von
+  `hooks/use-entity-edit-form.ts` als Erfolg gelesen – der Benutzer sieht die Meldung,
+  das Formular verhält sich aber als sei gespeichert worden. Das ist keine Eigenheit
+  der Rechnung, sondern der gemeinsame Save-Pfad, und gehört in eine eigene Änderung.
+- **Eine in next soft-gelöschte Position wird physisch verworfen**, wenn die Rechnung
+  danach in Wicket geöffnet und gespeichert wird
+  (`AbstractRechnungEditForm.removeIf(AbstractBaseDO::getDeleted)`). Risiko des
+  Parallelbetriebs; der reguläre Weg führt nicht mehr nach Wicket.
+- **Die 2FA-Kurzbefehle** (`ProjectForge2FAInitialization`, `My2FAShortCut.FINANCE*`)
+  nennen Wicket-URLs und `PagesRest`-Klassen; für einen Seitenaufruf unter
+  `/next/invoice/...` greift keins der Muster. Der schreibende REST-Zugriff ist über
+  `WRITE:outgoingInvoice` weiterhin geschützt. Das betrifft alle migrierten
+  FIBU-Seiten gleichermaßen (der Auftrag steht genauso da) und ist deshalb eine
+  übergreifende Aufgabe, nicht eine der Rechnung.
 
 **Bekannte Schuld: unübersetzte E-Rechnungs-Prüfung.**
 `EInvoiceExportService.validate` liefert englische Klartexte („Invoice number is

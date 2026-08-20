@@ -32,10 +32,10 @@ export const INVOICE_ROUTE = "/invoice";
 /**
  * The invoice, list and form (see lib/page-def/types.ts).
  *
- * The list is what it was; the form is new and not yet reachable from it:
- * `NextMigration.MIGRATED["outgoingInvoice"]` is still `listOnly`, so a row click and the add button lead
- * to Wicket (`listMeta.legacyEditPage` — see useEditTargets). The flip is a commit of its own; until then
- * the form is reached by typing `/next/invoice/{id}`, which is how the address page was verified.
+ * Released: `NextMigration.MIGRATED["outgoingInvoice"]` names `invoice/:id` and `invoice/new` and is no
+ * longer `listOnly`, so a row click, the add button and every server side redirect after a save stay in
+ * this app. Wicket's form remains reachable through the escape hatch of the page (LegacyPageLink), which
+ * is the only way there now.
  *
  * Every document function Wicket has is here as well: the Word export and the e-invoice beside the heading
  * (see InvoiceExportMenu on `headerTrailing`, and EInvoiceDialog), and the invoice PDF the ZUGFeRD export
