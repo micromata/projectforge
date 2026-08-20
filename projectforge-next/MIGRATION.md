@@ -1231,19 +1231,65 @@ Endpunkte von `OutgoingInvoiceEntityRest` und Teil des next-Formulars:
 
 - **Word-Export** (`GET exportInvoiceWord/{id}`, eine Menüvariante je
   `InvoiceService.getTemplateVariants()`),
-- **E-Rechnung** (`GET eInvoice/{id}/validate|xrechnung|zugferd`, Dialog hinter dem
-  zweiten Menüeintrag, nur bei konfiguriertem Verkäufer wie Wickets
-  `addEInvoiceMenu()`),
-- **Rechnungs-PDF** (`GET/POST/DELETE invoicePdf/{id}`, eigenes Feld über der
-  Anhangsliste, aus der der Marker `__INVOICE_PDF__` herausgefiltert wird).
+- **E-Rechnung** (`GET eInvoice/{id}/validate|xrechnung|zugferd` plus
+  `POST saveAndCheckEInvoice`, ein **Abschnitt des Formulars**, unabhängig davon, ob
+  der Verkäufer konfiguriert ist – anders als Wickets `addEInvoiceMenu()`),
+- **Rechnungs-PDF** (`GET/POST/DELETE invoicePdf/{id}`, eigenes Feld im
+  E-Rechnungs-Abschnitt; die Anhangsliste daneben filtert den Marker
+  `__INVOICE_PDF__` heraus).
 
-Alle drei arbeiten auf dem **persistierten** Stand und sind ohne id deaktiviert.
-Wicket exportiert dagegen den ungespeicherten Formularstand
-(`setDefaultFormProcessing(false)`) bzw. speichert beim Öffnen seines
-E-Rechnungs-Dialogs. Das ist ein bewusster Unterschied: ein Dokument, das nach außen
-geht, soll dem entsprechen, was in der Datenbank steht, und ein verstecktes Schreiben
-beim Öffnen eines Dialogs ist genau das, was next sonst vermeidet. Der Dialog sagt
-das auch (`invoice.eInvoice.savedOnlyHint`).
+Alle drei arbeiten auf dem **persistierten** Stand und sind ohne id deaktiviert – ein
+Dokument, das nach außen geht, soll dem entsprechen, was in der Datenbank steht. Wicket
+exportiert dagegen den ungespeicherten Formularstand
+(`setDefaultFormProcessing(false)`). Beim Word-Export bleibt es dabei: er lädt den
+gespeicherten Stand herunter. Die E-Rechnung dagegen speichert selbst, und zwar
+ausdrücklich – ihre Buttons heißen „Speichern und XRechnung" bzw. „Speichern und
+ZUGFeRD" (siehe unten). Ein Hinweis auf nicht gespeicherte Änderungen ist damit
+gegenstandslos und entfallen.
+
+**Die E-Rechnung ist kein Dialog, sondern ein Abschnitt.** Wickets
+`EInvoiceModalDialog` war zuerst 1:1 übernommen (`e-invoice-dialog.tsx`, hinter einem
+zweiten Eintrag des Export-Buttons) und ist wieder abgeschafft: Was eine E-Rechnung
+verhindert, sind Felder _dieses_ Formulars – Kundenadresse, Verkäufer-Bankkonto,
+Rechnungsnummer –, und die Prüfliste dazu in ein zweites, schmaleres
+Bearbeitungsfenster zu legen heißt, den Fehler dort anzuzeigen, wo er nicht behoben
+werden kann. Jetzt steht sie im Abschnitt „E-Rechnung" (`fibu.konto.eInvoice`) unter
+genau diesen Feldern (`e-invoice-section.tsx` = `SectionDef.footer`, dazu
+`e-invoice-checklist.tsx` und `e-invoice-actions.tsx`) – am Ende des Formulars, direkt
+über den Anhängen, die der ZUGFeRD-Export einbettet. Vier Folgen:
+
+- **Der Abschnitt blockiert nie.** Fehlende Adresse oder Bankverbindung verstecken ihn
+  nicht (Wicket verbirgt den Menüeintrag bei unkonfiguriertem Verkäufer); die
+  Prüfliste ist Hinweis, keine Sperre. Auch die Buttons sind nie deaktiviert: sie
+  speichern zuerst, und das Speichern ist der Weg aus genau dem heraus, was die
+  Prüfliste nennt. Verweigert wird erst der Export dahinter – wie ihn das Backend
+  verweigern würde. „Verkäufer nicht konfiguriert" ist eine Zeile der Liste wie jede
+  andere.
+- **`SectionDef.footer` ist die neue Primitive** (`lib/page-def/types.ts`,
+  gerendert von `declared-sections.tsx`): abschnittseigene UI _unter_ dem
+  deklarierten Feldergrid, in derselben Karte. Eine `ComponentType` und keine
+  `render`-Funktion, weil so ein Rumpf eigene Hooks hält. Ein reines `render` hätte
+  Grid und `DeclaredFormField`-Verdrahtung duplizieren müssen.
+- **Zwei Buttons statt drei, jeder mit dem Speichern davor**: „Speichern und
+  XRechnung" und „Speichern und ZUGFeRD"
+  (`fibu.rechnung.eInvoice.saveAndXRechnung|saveAndZugferd`, zwei neue Keys). Der
+  Zwischenschritt ist eine **deklarierte Action** (`edit.actions` →
+  `POST saveAndCheckEInvoice`) und **bleibt auf der Seite** – der Frontend-Pfad für
+  Actions ignoriert den `REDIRECT`-`ResponseAction` (`hooks/use-entity-edit-form.ts`),
+  während das reguläre Speichern zur Liste zurückführt. Genau das braucht ein
+  Abarbeiten der Prüfliste. Der Endpunkt validiert mit `validate(dbObj, postData)`,
+  damit die Leistungszeitraum-Regel des DTOs mitläuft, prüft den CSRF-Token wie das
+  geerbte `saveOrUpdate` – und exportiert selbst nichts: der Button lädt danach die
+  Prüfliste neu (`eInvoiceQueryKey`) und lädt nur herunter, wenn sie leer ist.
+  Wickets eigener „Speichern und E-Rechnung"-Button (`saveAndOpen`) hat damit keine
+  Entsprechung mehr; sein Zweck – speichern und dann exportieren – steckt in beiden
+  Buttons.
+- **`SubmitMeta.onWritten` ist dafür neu** (`lib/rs/submit-meta.ts`). Ein Button, der
+  nach dem Schreiben weiterarbeitet, muss eine Ablehnung von einem Erfolg
+  unterscheiden können – und `form.handleSubmit()` löst in beiden Fällen ohne
+  Rückgabewert auf, weil eine Ablehnung hier eine normale Antwort ist (HTTP 406, bei
+  einer `AccessException` ein Toast) und nichts wirft. Der Callback bekommt das
+  `EntityWriteResult`; ohne ihn verhält sich jeder Submit wie bisher.
 
 Dazu kamen für das Formular: serverseitige Leistungszeitraum-Validierung
 (`PeriodOfPerformanceValidator`, wie beim Auftrag), `formDefaults` (Default-MwSt,
@@ -1294,6 +1340,18 @@ verbraucht eine Rechnungsnummer.
   danach in Wicket geöffnet und gespeichert wird
   (`AbstractRechnungEditForm.removeIf(AbstractBaseDO::getDeleted)`). Risiko des
   Parallelbetriebs; der reguläre Weg führt nicht mehr nach Wicket.
+- **Die dritte Anhangsart fehlt – in beiden Frontends.** Der E-Rechnungs-Abschnitt
+  unterscheidet heute zwei Arten: das Hauptdokument (der Anhang mit der Beschreibung
+  `__INVOICE_PDF__`) und alles andere, das die ZUGFeRD-Datei einbettet
+  (`EInvoiceExportService.embedAttachments`/`embedAttachmentsInPdf` nehmen jeden
+  Anhang außer dem Marker). Nicht ausdrückbar ist ein Anhang, der an der Rechnung
+  hängt und **nicht** eingebettet werden soll. Das ist keine Lücke der Migration:
+  Wicket kennt sie genauso wenig – sein Dialog hat ein eigenes Upload-Feld für das
+  Hauptdokument (`RechnungEditForm.processInvoicePdfUpload`), schreibt es aber als
+  gewöhnlichen JCR-Anhang mit dem Marker, und die „E-Rechnungs-Anhänge" darunter sind
+  nur eine Nur-Lese-Liste der bestehenden Anhänge. Es braucht ein persistiertes Flag
+  je Anhang (neue `FileInfo`-Property, OakStorage, `AttachmentsService.changeFileInfo`)
+  und betrifft Wicket mit; deshalb eine eigene Änderung und nicht Teil dieser.
 - **Die 2FA-Kurzbefehle** (`ProjectForge2FAInitialization`, `My2FAShortCut.FINANCE*`)
   nennen Wicket-URLs und `PagesRest`-Klassen; für einen Seitenaufruf unter
   `/next/invoice/...` greift keins der Muster. Der schreibende REST-Zugriff ist über
@@ -1301,17 +1359,18 @@ verbraucht eine Rechnungsnummer.
   FIBU-Seiten gleichermaßen (der Auftrag steht genauso da) und ist deshalb eine
   übergreifende Aufgabe, nicht eine der Rechnung.
 
-**Bekannte Schuld: unübersetzte E-Rechnungs-Prüfung.**
-`EInvoiceExportService.validate` liefert englische Klartexte („Invoice number is
-missing", „Seller configuration incomplete (projectforge.einvoice.seller.\*)") statt
-i18n-Keys. `GET /rs/outgoingInvoice/eInvoice/{id}/validate` reicht sie durch und
-`EInvoiceDialog` rendert sie als Liste – in jeder Locale englisch. Das ist
-vorbestehend und nicht next-spezifisch: Wickets `EInvoiceModalDialog` zeigt dieselben
-Sätze in seiner Fehlerzeile. Der Umbau auf Keys ist eine Änderung an
-`EInvoiceExportService`, betrifft also beide Frontends, und gehört in einen eigenen
-Commit. Der einzige Teil, der in next schon übersetzt ist, ist der Fall „Verkäufer
-nicht konfiguriert": den trägt die Antwort als eigenes Flag (`configured`), weil ihn
-niemand beim Bearbeiten einer Rechnung beheben kann.
+**Nachgetragen: die E-Rechnungs-Prüfung ist übersetzt.**
+`EInvoiceExportService.validate` lieferte englische Klartexte („Invoice number is
+missing") statt i18n-Keys, in jeder Locale – vorbestehend und nicht next-spezifisch,
+Wickets Fehlerzeile zeigte dieselben Sätze. Der Dienst übersetzt sie jetzt selbst
+(zehn Keys `fibu.rechnung.eInvoice.error.*`), wovon beide Frontends profitieren. Die
+Antwort bleibt eine Liste von Sätzen und wird keine Liste von Keys: jeder Aufrufer
+legt sie einem Benutzer unverändert vor, ein Key müsste also zweimal mit demselben
+Bundle aufgelöst werden. Das Flag `configured` bleibt daneben stehen, wird aber nicht
+mehr eigens angezeigt – „Verkäufer nicht konfiguriert" ist der erste Eintrag der Liste
+(`…error.sellerNotConfigured`). Die Tests vergleichen entsprechend gegen
+`translate(key)` und nicht gegen englische Teilzeichenketten, die nur für ein
+englisches Konto gehalten hätten.
 
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 

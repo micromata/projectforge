@@ -24,14 +24,31 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.Constants
+import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.RepoService
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class EInvoiceExportServiceTest {
+
+    companion object {
+        /**
+         * [EInvoiceExportService.validate] answers translated sentences, and this test runs without Spring:
+         * without the bundle every key would resolve to itself, so the assertions below would compare keys
+         * against keys and pass for a service that translates nothing.
+         */
+        @JvmStatic
+        @BeforeAll
+        fun registerBundle() {
+            I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME)
+        }
+    }
 
     private val invoiceServiceMock: InvoiceService = Mockito.mock(InvoiceService::class.java)
     private val attachmentsServiceMock: AttachmentsService = Mockito.mock(AttachmentsService::class.java)
@@ -158,11 +175,14 @@ class EInvoiceExportServiceTest {
         }
 
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("number") }, "Should report missing invoice number")
-        assertTrue(errors.any { it.contains("date") }, "Should report missing date")
-        assertTrue(errors.any { it.contains("positions") }, "Should report missing positions")
-        assertTrue(errors.any { it.contains("customer") }, "Should report missing customer")
-        assertTrue(errors.any { it.contains("bank account") }, "Should report missing bank account")
+        // Compared to the translated texts and not to English substrings: the sentences are the user's
+        // language, so a substring of the English bundle would only ever hold for an English account.
+        assertTrue(errors.contains(eInvoiceError("numberMissing")), "Should report missing invoice number")
+        assertTrue(errors.contains(eInvoiceError("dateMissing")), "Should report missing date")
+        assertTrue(errors.contains(eInvoiceError("noPositions")), "Should report missing positions")
+        assertTrue(errors.contains(eInvoiceError("customerNameMissing")), "Should report missing customer")
+        // The accounts *are* configured here, the invoice just names none of them.
+        assertTrue(errors.contains(eInvoiceError("bankAccountNotSelected")), "Should report missing bank account")
     }
 
     @Test
@@ -184,7 +204,7 @@ class EInvoiceExportServiceTest {
         }
 
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("address") }, "Should report incomplete address")
+        assertTrue(errors.contains(eInvoiceError("customerAddressMissing")), "Should report incomplete address")
     }
 
     @Test
@@ -193,8 +213,11 @@ class EInvoiceExportServiceTest {
 
         val invoice = createTestInvoice().apply { sellerBankAccount = null }
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("Seller") }, "Should report unconfigured seller")
+        assertTrue(errors.contains(eInvoiceError("sellerNotConfigured")), "Should report unconfigured seller")
     }
+
+    /** The sentence [EInvoiceExportService.validate] answers for one of its error keys. */
+    private fun eInvoiceError(key: String): String = translate("fibu.rechnung.eInvoice.error.$key")
 
     @Test
     fun getExportFilename() {
