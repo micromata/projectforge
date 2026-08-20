@@ -551,7 +551,8 @@
     "kost": {
       "error": {
         "collision": "Kollision mit bereits vorhandenem Kostenträger.",
-        "invalidKost": "Ungültiger Kostenträger."
+        "invalidKost": "Ungültiger Kostenträger.",
+        "kost2NotOfProject": "Dieser Kostenträger gehört nicht zum Projekt bzw. Kunden der Rechnung."
       },
       "kostentraeger": "Kostenträger",
       "status": {
@@ -762,7 +763,13 @@
         "zahlbetragRequired": "Wenn das Bezahldatum gegeben ist muss auch der zugehörige Zahlbetrag eingegeben sein."
       },
       "exportEInvoice": "XRechnung exportieren",
-      "exportInvoice": "Rechnung exportieren",
+      "exportInvoice": {
+        "_": "Rechnung exportieren",
+        "onlyStored": "Es kann nur eine gespeicherte Rechnung exportiert werden; ungespeicherte Änderungen sind nicht Teil des Dokuments.",
+        "template": {
+          "default": "Standardvorlage"
+        }
+      },
       "exportZUGFeRD": "ZUGFeRD exportieren",
       "faelligkeit": {
         "_": "Fälligkeit",

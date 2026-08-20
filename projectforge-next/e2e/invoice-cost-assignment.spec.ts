@@ -1,7 +1,15 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat } from "./fixtures/format";
+import { label, userFormat, type UserFormat } from "./fixtures/format";
+import {
+  createInvoice,
+  fetchFormDefaults,
+  findProjectsWithKost2,
+  removeInvoice,
+} from "./fixtures/invoice";
+import { MARKER } from "./fixtures/seed";
 import { formatCurrency, type FormatContext } from "../lib/format";
+import { formatNumberInput } from "../lib/number-parse";
 import type { FilterElement } from "../lib/rs/types";
 
 /**
@@ -124,6 +132,158 @@ test.describe("invoice cost assignment", () => {
     await page.keyboard.press("Escape");
   });
 });
+
+/** In the subject of every invoice the form cases create, so a leftover is recognisable in the list. */
+const SUBJECT = `${MARKER} cost assignment (delete me)`;
+
+/**
+ * What a *new* cost assignment starts with, and what it says when it books outside the invoice's
+ * project — the two halves of `RechnungCostEditTablePanel.newKostZuweisung` and of
+ * `RechnungEditForm.onRenderCostRow`.
+ *
+ * Both need a project with cost units, which only the live database has (a cost unit's number is part
+ * of a chart of accounts and cannot be invented, see fixtures/invoice.ts). Where the account sees none,
+ * the cases skip rather than fail: the code they cover is then unreachable in this installation too.
+ *
+ * Nothing is saved. The invoice is created through the API and marked deleted afterwards, and the
+ * proposals under test are the form's, before any submit.
+ */
+test.describe("invoice cost assignment form", () => {
+  // Each case fills a form of dozens of fields against a live backend, and the first navigation to a
+  // route additionally waits for the dev server to compile it.
+  test.describe.configure({ timeout: 120_000 });
+
+  test("prefills the VAT of a new position from the configuration", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { defaultVat } = await fetchFormDefaults(page);
+    test.skip(
+      defaultVat == null,
+      "`fibu.defaultVAT` is not configured, so there is nothing to prefill."
+    );
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [{ ...POSITION, text: `${SUBJECT} 1` }], {
+        subject: SUBJECT,
+      });
+      await goto(page, `/invoice/${id}`);
+      await expect(
+        page.getByLabel(label(format, "fibu.rechnung.betreff"), { exact: true })
+      ).toHaveValue(SUBJECT, { timeout: 60_000 });
+
+      // The *added* position, not the stored one: the stored one carries the VAT it was posted with,
+      // and only a fresh row shows what the form proposes.
+      await page
+        .getByRole("button", {
+          name: format.t("fibu.rechnung.tooltip.addPosition"),
+        })
+        .click();
+      const rows = page.getByLabel(
+        label(format, "fibu.rechnung.mehrwertSteuerSatz"),
+        { exact: true }
+      );
+      // Entered as a percentage although the field holds a factor (see NumberField.percent) — so the
+      // expectation is the backend's factor turned into one, never a spelled-out "19".
+      await expect(rows.last()).toHaveValue(
+        percentInput(format, defaultVat as number)
+      );
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
+  test("proposes a cost unit of the invoice's project, and warns about a foreign one", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const projects = await findProjectsWithKost2(page);
+    test.skip(
+      projects === null,
+      "The account sees fewer than two projects with active cost units."
+    );
+    const { first, second } = projects!;
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [{ ...POSITION, text: `${SUBJECT} 1` }], {
+        subject: SUBJECT,
+        projectId: first.id,
+      });
+      await goto(page, `/invoice/${id}`);
+
+      // A stored position opens folded (see PositionRow), so it has to be unfolded before its cost
+      // assignments are reachable at all.
+      const row = page
+        .locator("section", {
+          has: page.getByText(format.t("fibu.rechnung.positions"), {
+            exact: true,
+          }),
+        })
+        .locator('[data-slot="collapsible"]')
+        .first();
+      await expect(row).toBeVisible({ timeout: 60_000 });
+      await row.locator('[data-slot="collapsible-trigger"]').click();
+      await row
+        .getByRole("button", {
+          name: format.t("fibu.rechnung.tooltip.addKostZuweisung"),
+        })
+        .click();
+
+      // Prefilled with the first active cost unit of the invoice's project — the expectation comes
+      // from the backend's own answer, so no cost unit number enters the source.
+      const kost2 = row.getByRole("combobox", {
+        name: label(format, "fibu.kost2"),
+      });
+      await expect(kost2).toHaveText(first.kost2[0].displayName);
+      // And nothing to complain about, since that is by definition a cost unit of the project.
+      const warning = row.getByRole("button", {
+        name: format.t("fibu.kost.error.kost2NotOfProject"),
+      });
+      await expect(warning).toHaveCount(0);
+
+      // Picked from another project: allowed (Wicket saves it too) but marked, and the mark is what
+      // this case is about. Searched by the cost unit's own name, which the backend just supplied.
+      await kost2.click();
+      const popover = page.locator('[data-slot="popover-content"]');
+      await popover
+        .getByPlaceholder(format.t("filter.search"))
+        .fill(searchTerm(second.kost2[0].displayName));
+      const suggestion = page.getByRole("listbox").getByRole("option").first();
+      await expect(suggestion).toBeVisible();
+      await suggestion.click();
+
+      await expect(warning).toHaveCount(1);
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+});
+
+/** One position of 1.000 € net — enough for a cost assignment to be proposed an amount. */
+const POSITION = { number: 1, menge: 1, einzelNetto: 1000 };
+
+/**
+ * A VAT rate as it stands in its box, from the factor the backend holds: 0.19 → "19,00".
+ *
+ * Through the app's own two helpers rather than through a percent formatter: the field holds a factor
+ * and shows a percentage (`NumberField.percent`), and the box then writes that percentage ungrouped and
+ * padded to two digits like every other number input (see formatNumberInput) — with no "%" in the
+ * value, since the suffix sits beside the box.
+ */
+function percentInput(format: UserFormat, factor: number): string {
+  return formatNumberInput(factor * 100, format.context, 2);
+}
+
+/**
+ * The part of a cost unit's name that is its number — the term the autocomplete is given.
+ *
+ * `KostFormatter` writes "4.400.99.00: <project> - <customer>" (FormatType.LONG), and the number alone
+ * is both selective, being unique, and free of the business content that follows it. `Kost2PagesRest`
+ * searches it as `rawNumberString`, so the dots do no harm.
+ */
+function searchTerm(displayName: string): string {
+  return displayName.split(":")[0].trim();
+}
 
 /** The index of a column in the table, so its cell can be read out of a row. */
 async function columnIndex(page: Page, label: string): Promise<number> {

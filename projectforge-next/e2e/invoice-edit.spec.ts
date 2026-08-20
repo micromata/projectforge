@@ -7,7 +7,13 @@ import {
 } from "../lib/format";
 import { formatNumberInput } from "../lib/number-parse";
 import { INVOICE_PAGE } from "../components/features/invoice/invoice.page";
-import { MARKER, uniqueSuffix } from "./fixtures/seed";
+import { MARKER } from "./fixtures/seed";
+import {
+  createInvoice as seedInvoice,
+  fetchInvoice,
+  removeInvoice,
+  type PostedPosition,
+} from "./fixtures/invoice";
 import type { Page } from "@playwright/test";
 
 /**
@@ -398,114 +404,7 @@ function positionRows(page: Page, format: UserFormat) {
     .locator('[data-slot="collapsible"]');
 }
 
-/** One position as these tests post it — the fields the form then shows and sums. */
-interface PostedPosition {
-  number: number;
-  text: string;
-  menge: number;
-  einzelNetto: number;
-}
-
-/** What the API answers for one invoice; only the parts these tests assert on. */
-interface StoredInvoice {
-  id: number;
-  betreff?: string;
-  netSum?: number;
-  grossSum?: number;
-  positionen?: {
-    number: number;
-    netSum?: number;
-    vatAmountSum?: number;
-    grossSum?: number;
-  }[];
-}
-
-/**
- * Creates a planned invoice with the given positions and answers with its id.
- *
- * Through the API rather than through the form: what these cases are about is the *editing* of an
- * invoice that exists, and building one through the UI first would make every one of them fail for the
- * reasons of the save path instead.
- *
- * 19 % VAT on every position, so the gross sums are not all equal to the net ones — the banner shows
- * both, and two identical columns would not tell them apart. `datum` is fixed rather than today's:
- * nothing here depends on when the run happens.
- */
-async function createInvoice(
-  page: Page,
-  positions: PostedPosition[]
-): Promise<number> {
-  const response = await put(page, `/rs/${INVOICE_PAGE.entity}/saveorupdate`, {
-    data: {
-      // GEPLANT, so no invoice number is handed out — see the file's KDoc.
-      status: "GEPLANT",
-      typ: "RECHNUNG",
-      datum: "2026-03-02",
-      betreff: SUBJECT,
-      // A free-text customer, because a real one cannot be created here (`KundeDO` has no generated
-      // id, see fixtures/seed.ts) and naming one would put a customer of the database into the source.
-      kundeText: `${MARKER} customer ${uniqueSuffix()}`,
-      // Mandatory as soon as a position inherits the period, which is the default — without it every
-      // case of this file failed in its seed with `PeriodOfPerformanceValidator`'s message rather than
-      // on what it was testing. Fixed dates, like `datum`.
-      periodOfPerformanceBegin: "2026-03-01",
-      periodOfPerformanceEnd: "2026-03-31",
-      positionen: positions.map((pos) => ({ ...pos, vat: 0.19 })),
-    },
-  });
-  const body = (await response.json()) as {
-    variables?: { id?: number };
-    validationErrors?: { message?: string }[];
-  };
-  if (!response.ok() || body.variables?.id == null) {
-    const reason =
-      body.validationErrors?.map((e) => e.message).join("; ") ??
-      `HTTP ${response.status()}`;
-    throw new Error(`Could not create the invoice for the test: ${reason}`);
-  }
-  return body.variables.id;
-}
-
-async function fetchInvoice(page: Page, id: number): Promise<StoredInvoice> {
-  const response = await page.request.get(
-    `/rs/${INVOICE_PAGE.entity}/${id}?editMode=true`,
-    { headers: { "X-PF-Frontend": "next" } }
-  );
-  if (!response.ok()) {
-    throw new Error(`Could not read invoice ${id}: HTTP ${response.status()}`);
-  }
-  return (await response.json()) as StoredInvoice;
-}
-
-/**
- * Marks an invoice as deleted, so a run leaves nothing behind that the list shows.
- *
- * Not `forceDelete`: `RechnungDO` is historizable, so the physical delete is refused — marking it is
- * as far as this goes, and `RechnungFilter` hides deleted invoices by default. The whole DTO is posted
- * back because that is what the endpoint takes (see lib/rs/entity.ts).
- */
-async function removeInvoice(page: Page, id: number | null) {
-  if (id == null) return;
-  const invoice = await fetchInvoice(page, id);
-  await page.request.delete(`/rs/${INVOICE_PAGE.entity}/markAsDeleted`, {
-    headers: await writeHeaders(page),
-    data: { data: invoice },
-  });
-}
-
-async function put(page: Page, url: string, data: unknown) {
-  return page.request.put(url, { headers: await writeHeaders(page), data });
-}
-
-/** The headers every state changing call needs — the CSRF token is read per call, not cached. */
-async function writeHeaders(page: Page): Promise<Record<string, string>> {
-  const status = await page.request.get("/rs/userStatus", {
-    headers: { "X-PF-Frontend": "next" },
-  });
-  const { csrfToken } = (await status.json()) as { csrfToken: string };
-  return {
-    "X-PF-Frontend": "next",
-    "X-PF-CSRF-Token": csrfToken,
-    "Content-Type": "application/json",
-  };
+/** The seed with this file's subject filled in, so no case repeats it. */
+function createInvoice(page: Page, positions: PostedPosition[]) {
+  return seedInvoice(page, positions, { subject: SUBJECT });
 }

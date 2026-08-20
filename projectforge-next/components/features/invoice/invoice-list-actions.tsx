@@ -3,11 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Download04Icon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { Spinner } from "@/components/shared/spinner";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { RsError } from "@/lib/rs/client";
 import {
@@ -15,6 +10,7 @@ import {
   downloadInvoiceExcel,
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
+import { InvoiceExportButton } from "./invoice-export-button";
 
 /**
  * The two exports of the invoice list, as Wicket's list page offers them in its content menu: one row per
@@ -49,13 +45,13 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
 
   return (
     <>
-      <ExportButton
+      <InvoiceExportButton
         tooltip={t("tooltip.export.excel")}
         label={t("exportAsXls")}
         isPending={excel.isPending}
         onClick={() => excel.mutate()}
       />
-      <ExportButton
+      <InvoiceExportButton
         tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
         // The label is the parent of that tooltip key, so it travels as the generator's leaf.
         label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
@@ -63,37 +59,5 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
         onClick={() => costAssignments.mutate()}
       />
     </>
-  );
-}
-
-function ExportButton({
-  tooltip,
-  label,
-  isPending,
-  onClick,
-}: {
-  tooltip: string;
-  label: string;
-  isPending: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <HintTooltip text={tooltip}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="gap-1.5"
-        onClick={onClick}
-        disabled={isPending}
-      >
-        {isPending ? (
-          <Spinner className="h-3.5 w-3.5 border-2" />
-        ) : (
-          <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-        )}
-        {label}
-      </Button>
-    </HintTooltip>
   );
 }

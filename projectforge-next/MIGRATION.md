@@ -1241,6 +1241,18 @@ Zwei Dinge folgen daraus, beide bewusst generisch gebaut statt für die Rechnung
 muss das Testkonto haben (s. oben, Phase 2). Ohne das ist die Seite nicht gegen
 echte Daten geprüft, und das ist dann auch so zu sagen.
 
+**Bekannte Schuld: unübersetzte E-Rechnungs-Prüfung.**
+`EInvoiceExportService.validate` liefert englische Klartexte („Invoice number is
+missing", „Seller configuration incomplete (projectforge.einvoice.seller.\*)") statt
+i18n-Keys. `GET /rs/outgoingInvoice/eInvoice/{id}/validate` reicht sie durch und
+`EInvoiceDialog` rendert sie als Liste – in jeder Locale englisch. Das ist
+vorbestehend und nicht next-spezifisch: Wickets `EInvoiceModalDialog` zeigt dieselben
+Sätze in seiner Fehlerzeile. Der Umbau auf Keys ist eine Änderung an
+`EInvoiceExportService`, betrifft also beide Frontends, und gehört in einen eigenen
+Commit. Der einzige Teil, der in next schon übersetzt ist, ist der Fall „Verkäufer
+nicht konfiguriert": den trägt die Antwort als eigenes Flag (`configured`), weil ihn
+niemand beim Bearbeiten einer Rechnung beheben kann.
+
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 
 Die **Kalenderseite** (`/react/calendar`) ist der zweite Härtefall und
