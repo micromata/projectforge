@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
@@ -82,6 +82,11 @@ export function useEntityEditForm<Values, Data>({
 }: UseEntityEditFormOptions<Values, Data>): EntityEditForm {
   const router = useRouter();
   const tCommon = useTranslations();
+  /**
+   * Set by a submit whose answer has to win over what is on screen — a further action, whose
+   * recomputed values are the whole point of pressing it (see below and the reset effect).
+   */
+  const forceReset = useRef(false);
 
   const form = useForm({
     defaultValues: data ? toFormValues(data) : defaultValues,
@@ -121,7 +126,9 @@ export function useEntityEditForm<Values, Data>({
         // A further action stays on the page: its result is what the user came for. The backend's
         // ResponseAction is a REDIRECT to the list here too (both run through saveOrUpdate), and is
         // ignored just as it is for a save. The values it computed arrive with the invalidated
-        // detail query, and the effect below resets the form onto them.
+        // detail query, and the effect below resets the form onto them — which is the one case in
+        // which that reset has to overrule a dirty form, hence the flag.
+        forceReset.current = true;
         toast.success(tCommon("message.successfullChanged"));
         if (extraMessage) showResponseMessage(extraMessage);
         return;
@@ -136,8 +143,19 @@ export function useEntityEditForm<Values, Data>({
     },
   });
 
+  // Takes the form onto the server's values — for the first load, and again whenever the entity is
+  // refetched (after a further action, whose result is the point of pressing it).
+  //
+  // Guarded by the dirty state, because this effect runs more often than the data changes: the form
+  // is hidden rather than unmounted while a side tab is open (see EditPageShell), and React re-runs
+  // every effect of a hidden tree on the way back to visible. Unguarded, coming back from the
+  // history tab would reset the form and throw away what the user had entered — the very bug the
+  // one-route model is here to fix. What the user typed wins; only `forceReset` above overrules it.
   useEffect(() => {
-    if (data) form.reset(toFormValues(data));
+    if (!data) return;
+    if (form.state.isDirty && !forceReset.current) return;
+    forceReset.current = false;
+    form.reset(toFormValues(data));
   }, [data, toFormValues, form]);
 
   const isDirty = useStore(form.store, (s) => s.isDirty);

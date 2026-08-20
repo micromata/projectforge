@@ -9,12 +9,6 @@ export interface EditReturn {
   route: string;
   /** Label of the breadcrumb link, already translated. */
   label: string;
-  /**
-   * The resolved target as a query string (`returnTo=…`), for the links leading to another page of the
-   * same entry — a detour through the history must not forget the caller. `undefined` where the page
-   * declares no targets, so a page that never had the parameter keeps its plain urls.
-   */
-  query?: string;
 }
 
 export interface UseEditReturnOptions {
@@ -31,6 +25,10 @@ export interface UseEditReturnOptions {
  * The caller says which by appending `?returnTo=`; this resolves it against the declared targets, so
  * only a route the page itself named can be reached. An unrecognized value falls back to the default
  * instead of being followed, which is why no url ever has to be sanitized here.
+ *
+ * The parameter needs no carrying along any more: the history and the analyses of an entry are tabs of
+ * the edit route rather than routes of their own (see EditPageShell), so a detour through one of them
+ * leaves the url — and with it the caller — where it was.
  *
  * `useSearchParams` reads nothing during the static export prerender, so a route using this must wrap
  * its client in `<Suspense>` — that is Next's requirement for a statically rendered page, and the
@@ -51,6 +49,5 @@ export function useEditReturn({
     // Through leafKeyOf: a target's key may be a namespace as well (`task.title.list` is both the
     // list's title and the parent of `task.title.list.select`), and the bare key would throw.
     label: t(leafKeyOf(target.labelKey, t.has)),
-    query: targets ? `returnTo=${encodeURIComponent(target.route)}` : undefined,
   };
 }

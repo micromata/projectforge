@@ -552,7 +552,8 @@
     "kost": {
       "error": {
         "collision": "Kollision mit bereits vorhandenem Kostenträger.",
-        "invalidKost": "Ungültiger Kostenträger."
+        "invalidKost": "Ungültiger Kostenträger.",
+        "kost2NotOfProject": "Dieser Kostenträger gehört nicht zum Projekt bzw. Kunden der Rechnung."
       },
       "kostentraeger": "Kostenträger",
       "status": {
@@ -778,13 +779,20 @@
         "zahlbetragRequired": "Wenn das Bezahldatum gegeben ist muss auch der zugehörige Zahlbetrag eingegeben sein."
       },
       "exportEInvoice": "XRechnung exportieren",
-      "exportInvoice": "Rechnung exportieren",
+      "exportInvoice": {
+        "_": "Rechnung exportieren",
+        "onlyStored": "Es kann nur eine gespeicherte Rechnung exportiert werden; ungespeicherte Änderungen sind nicht Teil des Dokuments.",
+        "template": {
+          "default": "Standardvorlage"
+        }
+      },
       "exportZUGFeRD": "ZUGFeRD exportieren",
       "faelligkeit": {
         "_": "Fälligkeit",
         "short": "Fällig"
       },
       "filter": {
+        "incomplete": "unvollständig",
         "paymentStatus": "Bezahlstatus",
         "ueberfaellig": "überfällig",
         "unbezahlt": "unbezahlt"
@@ -1401,6 +1409,7 @@
   "question": {
     "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
+    "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },
   "rating": "Bewertung",
@@ -1492,6 +1501,7 @@
   "selectAll": "Alle auswählen",
   "settings": "Einstellungen",
   "shortDescription": "Kurzbeschreibung",
+  "show": "Anzeigen",
   "statistics": "Statistik",
   "status": "Status",
   "task": {

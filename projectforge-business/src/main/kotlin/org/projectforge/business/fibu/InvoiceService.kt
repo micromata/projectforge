@@ -102,15 +102,23 @@ open class InvoiceService {
     open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
         log.info { "Creating invoice document for invoice number ${data.nummer}." }
         return try {
-            var invoiceTemplate: Resource? = null
             val isSkonto =
                 data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
-            if (!customInvoiceTemplateName.isNullOrEmpty()) {
-                val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
-                invoiceTemplate = configurationService.getOfficeTemplateFile(
-                    "$customInvoiceTemplateName$variantSuffix.docx",
-                    "InvoiceTemplate.docx"
-                )
+            // The packaged template where the installation configured none: it is the fallback
+            // `getOfficeTemplateFile` is called with anyway, and the only variant of an unconfigured
+            // installation is the unnamed one (see getTemplateVariants). Without it the export threw an NPE
+            // on the line below instead of producing the default document.
+            val templateName = customInvoiceTemplateName?.takeIf { it.isNotEmpty() } ?: DEFAULT_TEMPLATE_NAME
+            val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
+            val invoiceTemplate = configurationService.getOfficeTemplateFile(
+                "$templateName$variantSuffix.docx",
+                "$DEFAULT_TEMPLATE_NAME.docx"
+            )
+            if (invoiceTemplate == null || !invoiceTemplate.exists()) {
+                // No document rather than a broken one: the caller answers 404, as it does for an unknown
+                // invoice - both mean "there is nothing to download".
+                log.error { "Invoice template '$templateName$variantSuffix.docx' not found." }
+                return null
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).
@@ -151,7 +159,9 @@ open class InvoiceService {
                 variables.put("MwStSatz", "??????????")
             }
             variables.put("Gesamtbetrag", formatCurrencyAmount(data.info.grossSum))
-            WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name).use { document ->
+            // `filename` and not `file.name`: the packaged fallback is a classpath resource, and asking a
+            // resource inside a jar for its file throws.
+            WordDocument(invoiceTemplate.inputStream, invoiceTemplate.filename).use { document ->
                 generatePosTableRows(document.document, data)
                 document.process(variables)
                 document.asByteArrayOutputStream
@@ -313,5 +323,8 @@ open class InvoiceService {
 
     companion object {
         private const val FILENAME_MAXLENGTH = 100 // Higher values result in filename issues in Safari 13-
+
+        /** The template shipped in `resources/officeTemplates`, used where the installation configured none. */
+        private const val DEFAULT_TEMPLATE_NAME = "InvoiceTemplate"
     }
 }

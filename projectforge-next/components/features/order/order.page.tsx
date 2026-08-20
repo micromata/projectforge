@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AttachmentSection } from "./edit/attachment-section";
+import { OrderForecastPanel } from "./forecast/order-forecast-panel";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { OrderEditBanner } from "./edit/order-edit-banner";
 import { PaymentScheduleSection } from "./edit/payment-schedule-section";
@@ -23,7 +24,7 @@ import type { OrderDetail, OrderListRow } from "./types";
 export const ORDER_ENTITY = "order";
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const ORDER_LIST_QUERY_KEY = ["order"] as const;
-/** Id of the forecast tab, so its own page can mark itself as the open one. */
+/** Id of the forecast tab — what the URL carries as `?tab=forecast`. */
 export const FORECAST_TAB_ID = "forecast";
 
 /**
@@ -274,10 +275,16 @@ export const ORDER_PAGE = definePage<
     editBanner: OrderEditBanner,
     // Not a field of a section: it says what the save does, so it belongs where the save is pressed.
     saveOption: SendNotificationOption,
-    // The analysis is computed over the *saved* order, so it is a page of its own rather than a section
-    // of a form that may hold unsaved changes — see OrderForecastPage.
+    // The analysis is computed over the *saved* order, so it is a tab of its own rather than a section
+    // of a form that may hold unsaved changes — see OrderForecastPanel.
     // `._`: the key is a text of its own *and* the parent of `fibu.auftrag.forecast.analysis.*`, which
     // the generator can only export as a nested object plus a `_` leaf.
-    extraTabs: [{ id: FORECAST_TAB_ID, labelKey: "fibu.auftrag.forecast._" }],
+    extraTabs: [
+      {
+        id: FORECAST_TAB_ID,
+        labelKey: "fibu.auftrag.forecast._",
+        component: OrderForecastPanel,
+      },
+    ],
   },
 });

@@ -14,6 +14,7 @@ import {
   type MenuEntry,
 } from "@/lib/menu-search";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning";
 import {
   CommandEmpty,
   CommandGroup,
@@ -77,9 +78,13 @@ export function QuickAccessResults({
         .filter((entry): entry is MenuEntry => entry !== undefined);
 
   function go(url: string, menuKey?: string) {
+    const target = resolveMenuUrl(url);
+    // Asked before anything is remembered or closed: a router.push is not a link, so nothing else
+    // would stop it (see useUnsavedChangesWarning). The external case is a full page load, which
+    // `beforeunload` catches by itself.
+    if (target.kind === "internal" && !confirmLeaveUnsavedChanges()) return;
     remember(menuKey);
     onNavigate();
-    const target = resolveMenuUrl(url);
     if (target.kind === "internal") {
       router.push(target.href);
       return;

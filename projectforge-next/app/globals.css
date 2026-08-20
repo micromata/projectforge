@@ -24,6 +24,7 @@
   --color-status-available: var(--status-available);
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
+  --color-warning: var(--warning);
   --color-legacy: var(--legacy);
   --color-legacy-hover: var(--legacy-hover);
   --color-legacy-foreground: var(--legacy-foreground);
@@ -90,6 +91,13 @@
   --status-available: var(--brand-green);
   --status-available-bg: rgba(117, 190, 1, 0.1);
   --status-available-border: rgba(117, 190, 1, 0.3);
+
+  /*
+   * Something is questionable but allowed - a cost unit outside the invoice's project, say (see
+   * Kost2Warning). Brand yellow darkened, because plain `--brand-yellow` on white is 1.6:1 and
+   * unreadable at icon size; `--destructive` is the wrong answer since nothing here is refused.
+   */
+  --warning: var(--brand-yellow-dark);
 
   /*
    * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is
@@ -210,6 +218,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Brightened: the darkened yellow of the light theme is 2.4:1 against the dark card */
+  --warning: var(--brand-yellow);
 
   /* Change history: the tints need more opacity to stay visible on the dark card */
   --history-insert: var(--brand-green);

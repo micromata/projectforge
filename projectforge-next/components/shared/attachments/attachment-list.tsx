@@ -30,6 +30,20 @@ export interface AttachmentListProps {
    * box is the point — it says what the page is for and gives the drop a target one can aim at.
    */
   embedded?: boolean;
+  /**
+   * Hides the attachments carrying exactly this description.
+   *
+   * For a file the backend stores as an attachment but treats as a value of its own: the invoice PDF is
+   * marked by the description `__INVOICE_PDF__` (`EInvoiceExportService.INVOICE_PDF_MARKER`) and shown by a
+   * field of its own, so listing it here as well would offer two ways to delete one file — with the second
+   * one skipping the bookkeeping the first does.
+   *
+   * Client side because the marker is a backend convention that no endpoint filters by: `getAttachments`
+   * answers the whole node, and `AbstractEntityRest.getById` — where the list is read from — is not
+   * overridable. Which keeps this component free of any invoice knowledge: all it is told is "hide the
+   * attachments with this description".
+   */
+  excludeDescription?: string;
 }
 
 /**
@@ -50,6 +64,7 @@ export function AttachmentList({
   id,
   readOnly,
   embedded,
+  excludeDescription,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -96,7 +111,9 @@ export function AttachmentList({
     );
   }
 
-  const attachments = data ?? [];
+  const attachments = excludeDescription
+    ? (data ?? []).filter((a) => a.description !== excludeDescription)
+    : (data ?? []);
   // Embedded, the toolbar carries the add button, so it has to be there before the first file too.
   const showFiles = attachments.length > 0 || (embedded && !readOnly);
 

@@ -278,15 +278,20 @@ export interface SectionDef<M extends EntityMetadata> {
 }
 
 /**
- * A page of the entity beside the form and the history — an order's forecast analysis.
+ * A tab of the entity beside the form and the history — an order's forecast analysis.
  *
- * Declared rather than built: its route follows the same convention the history's does
- * (`${route}/${id}/${id of the tab}`), and its label is a message key like every other label here, so a
- * declaration stays a value and needs no translator (see entityTabs).
+ * Declared rather than built, the same way `sections` are: the tab strip and the panel both come out
+ * of this, its id is what the URL carries (`?tab=forecast`), and its label is a message key like
+ * every other label here, so a declaration stays a value and needs no translator (see entityTabs).
  */
 export interface ExtraTabDef {
   id: string;
   labelKey: string;
+  /**
+   * What the tab shows. Rendered only while the tab is open (see EditPageShell), so it may fetch on
+   * mount, and given the id of the stored entry — a tab beside the form only exists for one.
+   */
+  component: ComponentType<{ id: number }>;
 }
 
 export interface EditDef<Values, Data, M extends EntityMetadata> {
@@ -348,7 +353,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * Rendered inside the form so it can subscribe to live form values via `useEntityEditForm`.
    */
   editBanner?: ComponentType;
-  /** Further tabs leading to a page of their own. Appended after the history. */
+  /** Further tabs beside the form. Appended after the history. */
   extraTabs?: ExtraTabDef[];
   /**
    * Where cancel, a successful save, a delete and the breadcrumb lead — and, at the same time, the

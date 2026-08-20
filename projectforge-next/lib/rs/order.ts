@@ -8,7 +8,7 @@
  */
 
 import { rawRequest, request, RsError } from "./client";
-import { downloadPost, saveBlob } from "./download";
+import { downloadPost, responseBlob, saveBlob } from "./download";
 import type { MagicFilter, PostData } from "./types";
 
 /** Sums of one position, matched by its number — a new position has no id yet. */
@@ -133,7 +133,7 @@ export async function downloadOrderForecastJson(
   }
   // The endpoint sends no `Content-Disposition`, so the name is built here — from the order's id, which
   // is what identifies the export.
-  saveBlob(await res.blob(), `forecast-order-${id}.json`);
+  saveBlob(await responseBlob(res), `forecast-order-${id}.json`);
 }
 
 /**

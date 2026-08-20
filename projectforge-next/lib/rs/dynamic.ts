@@ -9,7 +9,7 @@
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import { rawRequest, RsError } from "./client";
-import { saveBlob } from "./download";
+import { responseBlob, saveBlob } from "./download";
 import type {
   DynamicPageResponse,
   PostData,
@@ -77,7 +77,7 @@ export async function callDynamicAction(
 
   if (contentType.includes("application/octet-stream")) {
     saveBlob(
-      await res.blob(),
+      await responseBlob(res),
       parseContentDispositionFilename(res.headers.get("Content-Disposition"))
     );
     return { kind: "download" };

@@ -44,6 +44,7 @@ projectforge-caldav/src/main/resources/milton.license.sig
 derby.log
 projectforge-repository/jackrabbit
 projectforge-jcr/test/out
+projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
 .DS_Store
 projectforge-application/src/main/kotlin/local

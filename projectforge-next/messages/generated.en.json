@@ -552,7 +552,8 @@
     "kost": {
       "error": {
         "collision": "Collision with already existing cost.",
-        "invalidKost": "Invalid cost."
+        "invalidKost": "Invalid cost.",
+        "kost2NotOfProject": "This cost unit doesn't belong to the project or customer of the invoice."
       },
       "kostentraeger": "Cost unit ids",
       "status": {
@@ -778,13 +779,20 @@
         "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
       },
       "exportEInvoice": "Export XRechnung",
-      "exportInvoice": "Export invoice",
+      "exportInvoice": {
+        "_": "Export invoice",
+        "onlyStored": "Only a saved invoice can be exported; unsaved changes are not part of the document.",
+        "template": {
+          "default": "Default template"
+        }
+      },
       "exportZUGFeRD": "Export ZUGFeRD",
       "faelligkeit": {
         "_": "Due date",
         "short": "due"
       },
       "filter": {
+        "incomplete": "incomplete",
         "paymentStatus": "Payment status",
         "ueberfaellig": "delinquent",
         "unbezahlt": "not paid"
@@ -1401,6 +1409,7 @@
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
     "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
+    "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
     "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
   },
   "rating": "Rating",
@@ -1492,6 +1501,7 @@
   "selectAll": "Select all",
   "settings": "Settings",
   "shortDescription": "Short description",
+  "show": "Show",
   "statistics": "Statistics",
   "status": "Status",
   "task": {

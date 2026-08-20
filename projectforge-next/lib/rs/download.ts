@@ -10,6 +10,23 @@ import { rawRequest, RsError } from "./client";
 import { parseContentDispositionFilename } from "@/lib/dynamic/content-disposition";
 
 /**
+ * The body of a file answer as a blob, for [saveBlob].
+ *
+ * Reads it as an `ArrayBuffer` rather than calling `res.blob()`, which is the point of this function:
+ * a blob taken from a POST response makes Chromium request the url a **second** time to back it — as a
+ * bodyless GET, which Spring routes to `/rs/{entity}/{id}` and answers with a stack trace ("For input
+ * string: exportAsExcel"). The file arrived either way; the second request only filled the server log.
+ *
+ * The content type is carried over, since it is what tells the browser what it is saving.
+ */
+export async function responseBlob(res: Response): Promise<Blob> {
+  const buffer = await res.arrayBuffer();
+  return new Blob([buffer], {
+    type: res.headers.get("Content-Type") ?? "application/octet-stream",
+  });
+}
+
+/**
  * @param filename What the file is saved as. The callers take it from the `Content-Disposition` header
  * where the backend sends one (see lib/dynamic/content-disposition.ts) and name it themselves where it
  * doesn't — never guessed from the url, which carries an id, not a name.
@@ -44,22 +61,40 @@ export async function downloadFile(
 ): Promise<void> {
   const res = await rawRequest(path, init ?? { method: "GET" }, signal);
   if (!res.ok) {
-    // A refusal explains itself in the body (`RestError`, e.g. the translated text of an
-    // AccessException), and every caller of this puts the message into a toast — where the status line
-    // would otherwise show the user a rest url.
-    const body = (await res
-      .clone()
-      .json()
-      .catch(() => null)) as { message?: string } | null;
+    // A refusal explains itself in the body, and every caller of this puts the message into a toast —
+    // where the status line would otherwise show the user a rest url. Two shapes of body, because the
+    // backend has two ways of refusing: a `RestError` object (the translated text of an AccessException),
+    // and a plain string where the endpoint answers `badRequest().body(text)` — the e-invoice exports do
+    // that with the list of what is missing on the invoice.
+    const text = await res.text().catch(() => "");
+    const message = parseErrorBody(text);
     throw new RsError(
       res.status,
-      body?.message ?? `${res.status} ${res.statusText}: ${path}`
+      message || `${res.status} ${res.statusText}: ${path}`
     );
   }
   saveBlob(
-    await res.blob(),
+    await responseBlob(res),
     parseContentDispositionFilename(res.headers.get("Content-Disposition"))
   );
+}
+
+/**
+ * The message of a refused download, whichever of the two shapes its body has.
+ *
+ * A JSON object's `message` (Spring's own error body and `RestError`), otherwise the body as it is — the
+ * text an endpoint wrote itself. An empty answer yields an empty string, and the caller falls back to the
+ * status.
+ */
+function parseErrorBody(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{")) return trimmed;
+  try {
+    const body = JSON.parse(trimmed) as { message?: string };
+    return body.message ?? trimmed;
+  } catch {
+    return trimmed;
+  }
 }
 
 /** [downloadFile] with a JSON body — an export acting on the filter the list is showing. */

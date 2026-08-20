@@ -175,6 +175,35 @@ class OutgoingInvoiceFormDefaultsTest : AbstractTestBase() {
     }
 
     @Test
+    fun `an invoice naming only a customer accepts every cost unit of that customer`() {
+        logon(TEST_FINANCE_USER)
+        val (kunde, mine, other) = persistenceService.runInTransaction { _ ->
+            val kunde = addCustomer(75L, "kost2 check customer ltd.")
+            Triple(
+                kunde,
+                // Two projects of the *same* customer: only the customer is compared, so both of its cost
+                // units belong to the invoice - it is the digits 2-4 that have to match, not the 5-6.
+                initTestDB.addProjekt(kunde, 65, "kost2 check customer first", 1L),
+                initTestDB.addProjekt(addCustomer(76L, "kost2 check other customer ltd."), 66, "other", 1L),
+            )
+        }
+        reloadCaches()
+        val myKost2 = outgoingInvoiceEntityRest.getActiveKost2(mine.id).single()
+        val otherKost2 = outgoingInvoiceEntityRest.getActiveKost2(other.id).single()
+
+        assertTrue(
+            outgoingInvoiceEntityRest.checkKost2(myKost2.id, projektId = null, kundeId = kunde.id).matchesInvoice,
+            "A cost unit of one of the customer's own projects.",
+        )
+        // Wicket answers the opposite for both of these, because it compares the customer number against
+        // the project digits; see checkKost2.
+        assertFalse(
+            outgoingInvoiceEntityRest.checkKost2(otherKost2.id, projektId = null, kundeId = kunde.id).matchesInvoice,
+            "A cost unit of another customer.",
+        )
+    }
+
+    @Test
     fun `an invoice naming neither project nor customer is never warned about`() {
         logon(TEST_FINANCE_USER)
         val projekt = persistenceService.runInTransaction { _ ->

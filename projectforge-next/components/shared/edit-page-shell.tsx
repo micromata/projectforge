@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { Activity, useEffect, useRef, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
-import { EditPageTabs, type EditPageTab } from "./edit-page-tabs";
+import { EditPageTabs, TAB_PARAM, type EditPageTab } from "./edit-page-tabs";
 
 export interface EditPageShellProps {
   header: ReactNode;
   /**
-   * The page's tabs. Anchor tabs (no `href`) come first and are positionally coupled to `sections`;
-   * tabs with an `href` lead to their own page and are appended after them.
+   * The page's tabs. Anchor tabs (no `tab`) come first and are positionally coupled to `sections`;
+   * the tabs that replace the form are appended after them.
    */
   tabs: EditPageTab[];
   /**
@@ -26,6 +27,12 @@ export interface EditPageShellProps {
    * scrolls through the sections (e.g. the order's number/status/sums strip).
    */
   banner?: ReactNode;
+  /**
+   * What a tab beside the form shows, by tab id (`history`, `forecast`). Only the open one is
+   * rendered, so its content is fetched when it is looked at and not before — building the history
+   * of a long-lived entity is expensive on the server.
+   */
+  tabPanels?: Record<string, ReactNode>;
 }
 
 export function EditPageShell({
@@ -34,53 +41,105 @@ export function EditPageShell({
   sections,
   actions,
   banner,
+  tabPanels,
 }: EditPageShellProps) {
   const { scrollProps, sectionRef, activeIndex, scrollToSection } =
     useScrollSpy(sections.length);
   const collapse = useCollapseOnScroll();
+  // Which tab beside the form is open, unset while the form is. In the URL rather than in state, so
+  // the tab is shareable and the browser's back button returns to the form — and a search parameter
+  // rather than a route of its own, because a route change would unmount the form and take
+  // everything the user had entered with it ("Search params do not trigger remounts").
+  const params = useSearchParams();
+  const requested = params.get(TAB_PARAM);
+  const activeTab = requested && tabPanels?.[requested] ? requested : null;
+  // A section tab clicked while a side tab is open is how a user comes back to the form, so it closes
+  // that tab first and scrolls once the form is on screen again — a hidden column cannot be scrolled,
+  // it has no layout.
+  const router = useRouter();
+  const pathname = usePathname();
+  // A ref, not state: nothing renders differently for it, it only says what the effect below still
+  // owes — and a render of its own is exactly what must not happen between closing the tab and
+  // scrolling.
+  const pendingSection = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (activeTab || pendingSection.current == null) return;
+    scrollToSection(pendingSection.current);
+    pendingSection.current = null;
+  }, [activeTab, scrollToSection]);
+
   useSectionFromHash(tabs, scrollToSection);
+
+  function selectSection(index: number): void {
+    if (!activeTab) {
+      scrollToSection(index);
+      return;
+    }
+    pendingSection.current = index;
+    const next = new URLSearchParams(params);
+    next.delete(TAB_PARAM);
+    const query = next.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  }
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <div className="shrink-0">{header}</div>
-      {/* A single tab is no choice: an entity with one section and no page of its own (a cost unit
-          has neither history nor attachments) would show a bar with one item that does nothing. */}
+      {/* A single tab is no choice: an entity with one section and no tab of its own (a cost unit has
+          neither history nor attachments) would show a bar with one item that does nothing. */}
       {tabs.length > 1 && (
         <EditPageTabs
           tabs={tabs}
           activeIndex={activeIndex}
-          onSelect={scrollToSection}
+          activeId={activeTab ?? undefined}
+          onSelect={selectSection}
         />
       )}
-      {banner && <div className="shrink-0">{banner}</div>}
-      <div
-        {...scrollProps}
-        // Two listeners on the one column: the spy derives the active section, the collapse drives the
-        // logo row. React attaches `scroll` per element rather than delegating it, so a second handler
-        // has to be composed here - and the spread has to come first, or it would drop this one.
-        onScroll={(event) => {
-          scrollProps.onScroll();
-          collapse.onScroll(event);
-        }}
-        className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
-      >
-        {sections.map((section, i) => (
-          <div
-            key={tabs[i]?.id ?? i}
-            ref={sectionRef(i)}
-            // `data-active` is what the section's card and heading read to highlight themselves —
-            // the later sections can never reach the top of the column, so the card is the only
-            // place that says unambiguously which one the tab bar means.
-            data-active={i === activeIndex}
-            className="group/section pt-4"
-          >
-            {typeof section === "function"
-              ? section(i === activeIndex)
-              : section}
-          </div>
-        ))}
-      </div>
-      {actions && <div className="shrink-0">{actions}</div>}
+      {/* Hidden, not unmounted: React keeps the tree alive with its state — form values, expanded
+          rows, scroll position — and the whole point of the tabs living in one route is that going
+          to the history and back doesn't throw away what was being filled in. Note that effects do
+          re-run on the way back to visible (see the reset guard in useEntityEditForm). */}
+      <Activity mode={activeTab ? "hidden" : "visible"} name="edit-form">
+        {banner && <div className="shrink-0">{banner}</div>}
+        <div
+          {...scrollProps}
+          // Two listeners on the one column: the spy derives the active section, the collapse drives
+          // the logo row. React attaches `scroll` per element rather than delegating it, so a second
+          // handler has to be composed here - and the spread has to come first, or it would drop this
+          // one.
+          onScroll={(event) => {
+            scrollProps.onScroll();
+            collapse.onScroll(event);
+          }}
+          className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
+        >
+          {sections.map((section, i) => (
+            <div
+              key={tabs[i]?.id ?? i}
+              ref={sectionRef(i)}
+              // `data-active` is what the section's card and heading read to highlight themselves —
+              // the later sections can never reach the top of the column, so the card is the only
+              // place that says unambiguously which one the tab bar means.
+              data-active={i === activeIndex}
+              className="group/section pt-4"
+            >
+              {typeof section === "function"
+                ? section(i === activeIndex)
+                : section}
+            </div>
+          ))}
+        </div>
+        {actions && <div className="shrink-0">{actions}</div>}
+      </Activity>
+      {activeTab && (
+        <div
+          className="flex-1 overflow-y-auto bg-muted/30 px-6 pt-4 pb-6"
+          onScroll={collapse.onScroll}
+        >
+          {tabPanels?.[activeTab]}
+        </div>
+      )}
     </div>
   );
 }
@@ -88,9 +147,9 @@ export function EditPageShell({
 /**
  * Opens the section the URL's hash names, once, on entering the page.
  *
- * The hash is what a section tab on another page of the entity (its history, its forecast) links back
- * to — those tabs are links, not anchors into a column that isn't there, so without this the form
- * would always start at its first section. See `entityTabs`.
+ * `/task/42#financeAdministration` is a link to a *part* of a form — the shape a mail or a bookmark
+ * takes when it is about one block of an entry rather than the entry. Without this the form would
+ * always open at its first section and such a link would appear to do nothing.
  */
 function useSectionFromHash(
   tabs: EditPageTab[],
@@ -99,7 +158,7 @@ function useSectionFromHash(
   // The anchor tabs are the sections in order. Joined to a string so the effect isn't rerun for every
   // fresh array a render produces.
   const anchorIds = tabs
-    .filter((tab) => !tab.href)
+    .filter((tab) => !tab.tab)
     .map((tab) => tab.id)
     .join(",");
   useEffect(() => {

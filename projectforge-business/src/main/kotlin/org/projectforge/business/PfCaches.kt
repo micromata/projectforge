@@ -427,12 +427,14 @@ class PfCaches {
         }
 
         /**
-         * For test cases that do have a Spring context: puts the wired bean back in place.
+         * Makes [instance] the given bean, for a test which has a Spring context: the bean assigns itself in
+         * its own `@PostConstruct`, but a test base class doing setup of its own may run before that and would
+         * otherwise leave the cacheless [internalSetupForTestCases] instance in place.
          *
-         * [internalSetupForTestCases] builds caches without any dependency injected, so anything reaching
-         * [instance] afterwards fails on an uninitialized `persistenceService`. Whether it does depends on
-         * the order the beans are created in, which is why this only shows up in some modules
-         * (`Kost2DO.effectiveKostentraegerStatus` is such a caller).
+         * That instance has no dependency injected, so anything reaching [instance] afterwards fails on an
+         * uninitialized `persistenceService`. Whether it does depends on the order the beans are created in,
+         * which is why this only shows up in some modules (`Kost2DO.effectiveKostentraegerStatus` is such a
+         * caller).
          */
         @JvmStatic
         fun internalSetInstanceForTestCases(caches: PfCaches) {
@@ -440,7 +442,9 @@ class PfCaches {
         }
 
         /**
-         * For test cases without a Spring context, see [internalSetInstanceForTestCases] for the ones with.
+         * Caches without any dependency injected, for a test running **without** a Spring context: they answer
+         * nothing, but a static read of [instance] doesn't fail with an uninitialized `lateinit` either. A test
+         * with a context must use [internalSetInstanceForTestCases] instead.
          */
         @JvmStatic
         fun internalSetupForTestCases() {

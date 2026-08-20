@@ -29,7 +29,9 @@ import mu.KotlinLogging
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
+import org.projectforge.business.fibu.EInvoiceExportService
 import org.projectforge.business.fibu.EInvoiceSellerConfig
+import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.PeriodOfPerformanceValidator
@@ -46,17 +48,21 @@ import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortPropertyComparator
+import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.FileCheck
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -74,12 +80,15 @@ import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Date
@@ -136,6 +145,12 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     @Autowired
     private lateinit var sellerConfig: EInvoiceSellerConfig
+
+    @Autowired
+    private lateinit var invoiceConfig: InvoiceConfiguration
+
+    @Autowired
+    private lateinit var eInvoiceExportService: EInvoiceExportService
 
     @PostConstruct
     private fun postConstruct() {
@@ -381,6 +396,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * `matchesInvoice` is true wherever Wicket wouldn't warn, which includes the two cases it leaves alone:
      * an invoice with neither project nor customer, and a cost unit that cannot be resolved.
+     *
+     * **One deliberate difference.** For an invoice naming only a customer, Wicket compares the customer
+     * number against `Kost2DO.teilbereich` — digits 5-6, which are the *project* number — and leaves
+     * `bereich`, the digits a customer number actually occupies ([KundeDO.kost]), uncompared. So it warns
+     * about nearly every cost unit of a customer-only invoice, and stays quiet about cost units of other
+     * customers. Here the customer number is compared against `bereich`, which is the question the form is
+     * asking.
      */
     @GetMapping("kost2Check")
     fun checkKost2(
@@ -394,24 +416,22 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // customer, and its area narrows the answer further.
         val projekt = projektCache.getProjekt(projektId)
         val numberRange: Int
-        // -1 means "don't compare", which is what an invoice without a project leaves the area at.
+        // -1 means "don't compare": a customer names the digits 2-4 of a cost unit but not the 5-6.
         var area = -1
-        val number: Long
+        var number = -1
         if (projekt != null) {
             numberRange = projekt.nummernkreis
             area = projekt.bereich ?: -1
-            number = projekt.nummer.toLong()
+            number = projekt.nummer
         } else {
             val kunde = kundeCache.getKunde(kundeId) ?: return Kost2Check(matchesInvoice = true)
             numberRange = kunde.nummernkreis
-            number = kunde.nummer ?: return Kost2Check(matchesInvoice = true)
+            area = kunde.nummer?.toInt() ?: return Kost2Check(matchesInvoice = true)
         }
-        val differs = if (numberRange >= 0 && kost2.nummernkreis != numberRange) {
-            true
-        } else if (area >= 0 && kost2.bereich != area) {
-            true
-        } else {
-            number >= 0 && kost2.teilbereich.toLong() != number
+        val differs = when {
+            numberRange >= 0 && kost2.nummernkreis != numberRange -> true
+            area >= 0 && kost2.bereich != area -> true
+            else -> number >= 0 && kost2.teilbereich != number
         }
         return Kost2Check(matchesInvoice = !differs)
     }
@@ -421,6 +441,252 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * a `true` whose meaning has to be looked up.
      */
     class Kost2Check(val matchesInvoice: Boolean)
+
+    /**
+     * The invoice as the Word document of the configured template — Wicket's "Export invoice" menu
+     * (`RechnungEditPage.addExportMenu`, one entry per variant of [InvoiceService.getTemplateVariants]).
+     *
+     * **By id, i.e. the stored invoice — where Wicket exports the unsaved form state**
+     * (`setDefaultFormProcessing(false)` on its submit link). Two reasons, and the first is the decisive one:
+     * [InvoiceService] reads far more than the form posts. `getInvoiceFilename` walks
+     * `konto.bezeichnung` → `kunde.konto.bezeichnung` → `kunde.name` → `kundeText`, and the address block
+     * walks the same chain; a posted DTO carries account and customer as ids only, so a DTO based export
+     * would have to resolve all of it from the caches a second time or quietly produce thinner names and
+     * addresses. The second: a Word document leaves the house, and exporting a state that is in nobody's
+     * database is a source of error rather than a feature — Wicket's behaviour is an artefact of its submit
+     * model, not a decision. So the client offers the export only for a stored invoice, as Wicket omits its
+     * menu for a new one.
+     *
+     * The access check is [RechnungDao]'s own, through `find` — the category right alone would let anyone
+     * with the finance right export an invoice they may not read. An unknown id answers 404 rather than an
+     * empty document; that this doesn't throw instead is what `RechnungDao.find` had to be made null safe
+     * for.
+     *
+     * [RechnungCalculator.calculate] rather than [AbstractRechnungDO.ensuredInfo], and the same call Wicket
+     * makes before building its page (`AbstractRechnungEditForm`): the document reads the sums of every single
+     * position (`position.info.netSum`), and those are `lateinit` too. `ensuredInfo` would not fill them — the
+     * load already put an invoice level [RechnungInfo] from the cache on the object (`RechnungDao.afterLoad`),
+     * so it considers the work done while every position still throws.
+     */
+    @GetMapping("$EXPORT_WORD_PATH/{id}")
+    fun exportInvoiceWord(
+        @PathVariable("id") id: Long,
+        @RequestParam("variant", required = false) variant: String?,
+    ): ResponseEntity<*> {
+        log.info { "Exporting invoice #$id as Word document, variant='${variant ?: ""}'." }
+        val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
+        RechnungCalculator.calculate(invoice)
+        val document = invoiceService.getInvoiceWordDocument(invoice, variant)
+            ?: return ResponseEntity.notFound().build<Any>()
+        return RestUtils.downloadFile(invoiceService.getInvoiceFilename(invoice), document.toByteArray())
+    }
+
+    /**
+     * Which file is stored as *the* invoice PDF of this invoice, or that there is none.
+     *
+     * The invoice PDF is a JCR attachment like any other, marked as this one by its description
+     * ([EInvoiceExportService.INVOICE_PDF_MARKER]); the ZUGFeRD export takes it as the document to embed the
+     * XML into, and converts the Word template only where it is missing (`exportAsZUGFeRD`). So it is not a
+     * second attachment list — it is one file with a role, which is why it has endpoints of its own instead
+     * of a description the user could type.
+     *
+     * `sizeHumanReadable` travels formatted, as it comes from [Attachment]: it is the backend's own rendering
+     * in the user's locale, and formatting bytes a second time in the browser would be a second place to be
+     * wrong.
+     */
+    @GetMapping("$INVOICE_PDF_PATH/{id}/info")
+    fun getInvoicePdfInfo(@PathVariable("id") id: Long): InvoicePdfState {
+        checkEInvoiceReadAccess(id)
+        return InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id))
+    }
+
+    /**
+     * Stores the given PDF as the invoice PDF, replacing the one that was there
+     * (`EInvoiceExportService.uploadInvoicePdf` deletes it first — there is exactly one per invoice).
+     *
+     * Checked by [FileCheck] rather than by the extension alone, which is all Wicket looks at
+     * (`RechnungEditForm.processInvoicePdfUpload`): the same check every other upload of the application
+     * makes, and it names a size limit as well. Its answer is a translated text, so a refusal is reported as
+     * 400 with that text rather than as a silently ignored upload — Wicket drops a non-PDF without a word.
+     *
+     * Answers the new state, so the client needs no second call for what it just wrote.
+     */
+    @PostMapping("$INVOICE_PDF_PATH/{id}")
+    fun uploadInvoicePdf(
+        @PathVariable("id") id: Long,
+        @RequestParam("file") file: MultipartFile,
+    ): ResponseEntity<*> {
+        val invoice = checkInvoicePdfWriteAccess(id)
+        val filename = file.originalFilename ?: "unknown"
+        log.info { "Uploading invoice PDF '$filename' (${file.size} bytes) for invoice #${invoice.id}." }
+        if (file.isEmpty) {
+            return ResponseEntity.badRequest().body(translate("file.upload.error.noFileSelected"))
+        }
+        FileCheck.checkFile(filename, file.size, "pdf", megaBytes = MAX_INVOICE_PDF_MEGA_BYTES)?.let { error ->
+            return ResponseEntity.badRequest().body(error)
+        }
+        eInvoiceExportService.uploadInvoicePdf(id, filename, file.inputStream.use { it.readBytes() })
+        return ResponseEntity.ok(InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id)))
+    }
+
+    /**
+     * Removes the invoice PDF, so the ZUGFeRD export converts the Word template again.
+     *
+     * Answers the new (empty) state for the same reason the upload answers the new one, and does nothing
+     * where there was none — the outcome the caller asked for is reached either way.
+     */
+    @DeleteMapping("$INVOICE_PDF_PATH/{id}")
+    fun deleteInvoicePdf(@PathVariable("id") id: Long): InvoicePdfState {
+        checkInvoicePdfWriteAccess(id)
+        log.info { "Deleting the invoice PDF of invoice #$id." }
+        eInvoiceExportService.deleteUploadedInvoicePdf(id)
+        return InvoicePdfState(eInvoiceExportService.getUploadedInvoicePdfInfo(id))
+    }
+
+    /**
+     * The invoice PDF of an invoice, or `null` where none is stored.
+     *
+     * A wrapper and not a nullable body: an endpoint answering `null` sends an empty body, which is not JSON
+     * and cannot be told apart from a truncated answer. `{"pdf":null}` says "there is none".
+     */
+    class InvoicePdfState(pdf: Attachment?) {
+        val pdf: InvoicePdfInfo? = pdf?.let { InvoicePdfInfo(name = it.name, sizeHumanReadable = it.sizeHumanReadable) }
+    }
+
+    /** What the form shows of the stored invoice PDF: its name and its size, nothing else is acted on. */
+    class InvoicePdfInfo(val name: String?, val sizeHumanReadable: String?)
+
+    /**
+     * What stands between this invoice and an e-invoice of it — Wicket's error line above its two export
+     * buttons (`RechnungEditForm.EInvoiceModalDialog`, which runs the same [EInvoiceExportService.validate]).
+     *
+     * Read before the export rather than only reported by it: both exports throw on the first problem, and a
+     * download that answers 500 says nothing about which field to correct. So the dialog asks this, lists what
+     * comes back and offers the exports only for an empty list — the same order Wicket's buttons follow.
+     *
+     * **Known debt, and the reason this is a list of strings.** `validate` builds untranslated English prose
+     * ("Invoice number is missing"), so that is what is shown. Turning it into keyed errors is a change to
+     * `EInvoiceExportService` that Wicket's copy of the dialog sees as well, and belongs in a commit of its
+     * own — see projectforge-next/MIGRATION.md.
+     *
+     * The stored invoice, as everything else on this path: the ZUGFeRD export reads the JCR by the invoice
+     * id, so there is no posted state it could validate instead.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/validate")
+    fun validateEInvoice(@PathVariable("id") id: Long): EInvoiceValidation {
+        val invoice = checkEInvoiceReadAccess(id)
+        return EInvoiceValidation(
+            configured = sellerConfig.isConfigured(),
+            errors = eInvoiceExportService.validate(invoice),
+        )
+    }
+
+    /**
+     * The invoice as XRechnung, i.e. the XML alone — Wicket's `fibu.rechnung.exportEInvoice` button.
+     *
+     * 400 with the validation errors where the invoice isn't exportable: the client checks first, so this is
+     * the case of a state that changed in between, and the errors are more useful than a bare status. The
+     * check is repeated here rather than trusted, because a download URL can be called on its own.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/xrechnung")
+    fun exportXRechnung(@PathVariable("id") id: Long): ResponseEntity<*> {
+        val invoice = checkEInvoiceReadAccess(id)
+        log.info { "Exporting invoice #$id as XRechnung." }
+        return exportEInvoice(invoice) {
+            RestUtils.downloadFile(
+                eInvoiceExportService.getExportFilename(invoice),
+                eInvoiceExportService.exportAsXRechnung(invoice),
+            )
+        }
+    }
+
+    /**
+     * The invoice as a ZUGFeRD PDF, i.e. a PDF carrying the same XML — Wicket's `fibu.rechnung.exportZUGFeRD`.
+     *
+     * The document it embeds into is the uploaded invoice PDF, and the Word template converted to PDF only
+     * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
+     * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
+     * this endpoint could not work on a posted state even if it wanted to.
+     */
+    @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
+    fun exportZugferd(@PathVariable("id") id: Long): ResponseEntity<*> {
+        val invoice = checkEInvoiceReadAccess(id)
+        log.info { "Exporting invoice #$id as a ZUGFeRD PDF." }
+        return exportEInvoice(invoice) {
+            RestUtils.downloadFile(
+                eInvoiceExportService.getZUGFeRDExportFilename(invoice),
+                eInvoiceExportService.exportAsZUGFeRD(invoice),
+            )
+        }
+    }
+
+    /**
+     * Whether an e-invoice of this invoice can be built, and what is missing if not.
+     *
+     * `configured` is the seller side of it, i.e. `projectforge.einvoice.seller.*`: it is an installation's
+     * setting rather than a field of this invoice, and nobody editing an invoice can fix it — so the client
+     * says so instead of listing it as one problem among the invoice's own.
+     */
+    class EInvoiceValidation(val configured: Boolean, val errors: List<String>)
+
+    /**
+     * Runs an export, and answers 400 with the validation errors where the invoice turns out not to be
+     * exportable.
+     *
+     * The sums have to be there first, for the reason [exportInvoiceWord] spells out: the XML states the net
+     * amount of every position, and those live in a `lateinit` [RechnungInfo] that the load doesn't fill.
+     *
+     * The check before the call rather than a `catch` around it: [EInvoiceExportService] answers a refusal by
+     * throwing `IllegalStateException` (it is Wicket's service, and Wicket checks beforehand), and an exception
+     * whose message has to be parsed is a worse answer than the list it was built from.
+     */
+    private fun exportEInvoice(invoice: RechnungDO, export: () -> ResponseEntity<*>): ResponseEntity<*> {
+        RechnungCalculator.calculate(invoice)
+        val errors = eInvoiceExportService.validate(invoice)
+        if (errors.isNotEmpty()) {
+            log.info { "Invoice #${invoice.id} is not exportable as an e-invoice: ${errors.joinToString("; ")}" }
+            return ResponseEntity.badRequest().body(errors.joinToString("\n"))
+        }
+        return export()
+    }
+
+    /**
+     * The groups the e-invoice functions require, as `EInvoiceCheckerPageRest.checkAccess` requires them.
+     *
+     * On top of the select right of the category: reading an invoice and handling the document that leaves
+     * the house for it are two different permissions, and the classic frontends only ever hid the menu entry
+     * — projectforge-next builds its own menu, so a hidden entry keeps nobody out.
+     */
+    private fun checkEInvoiceAccess() {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+    }
+
+    /**
+     * The invoice, if the user may change the file that represents it: the groups above, plus write access to
+     * this very invoice.
+     *
+     * The second check is [RechnungDao]'s own and is the one that matters — uploading a PDF changes what an
+     * e-invoice of this invoice looks like, so it is a write to the invoice even though no column of it moves.
+     * `find` is the read check; without it an unknown id would be answered by an upload into a JCR node
+     * nobody owns.
+     */
+    private fun checkInvoicePdfWriteAccess(id: Long): RechnungDO {
+        val invoice = checkEInvoiceReadAccess(id)
+        baseDao.hasLoggedInUserUpdateAccess(invoice, invoice, throwException = true)
+        return invoice
+    }
+
+    /**
+     * The invoice, if the user may see its e-invoice: the groups above plus [RechnungDao]'s own read check.
+     *
+     * An unknown id is an [AccessException] rather than a 404, unlike on the Word export: these endpoints
+     * answer *about* an invoice (its PDF, its validation state), and "there is none" and "you may not see it"
+     * are the same answer to that question — telling them apart would say whether the id exists.
+     */
+    private fun checkEInvoiceReadAccess(id: Long): RechnungDO {
+        checkEInvoiceAccess()
+        return baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
+    }
 
     /**
      * The sums of an invoice as they are right now in the form, i.e. computed on the posted state, not on
@@ -563,13 +829,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * the period of performance is its second time period panel: the first is a predicate over
      * [RechnungInfo], the second over two date columns at once, so neither is a search field.
      *
-     * The third ([COST_ASSIGNMENT_FILTER]) is what Wicket's `showKostZuweisungStatus` checkbox was for -
-     * there a pure display switch marking the rows whose cost assignments don't add up, here the question
-     * itself: show only those. Offered only where cost accounting is configured, as
-     * `AbstractRechnungListForm` shows the checkbox only there; without it every invoice would match.
+     * The third ([INCOMPLETE_FILTER]) grew out of Wicket's `showKostZuweisungStatus` checkbox - there a
+     * pure display switch marking the rows whose cost assignments don't add up, here the question itself:
+     * show only the invoices something is still missing from, the missing account included (see
+     * [IncompleteInvoiceFilter]). Offered only where this installation expects either, since it would
+     * otherwise match every invoice or none.
      *
      * The status is opened by default, as in the order list: it is what an invoice list is narrowed by
-     * first.
+     * first. The completeness filter as well, as it is a standing question of whoever keeps the books -
+     * and unlike the others it says nothing about the list while it is unchecked.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         val statusFilter = elements.find { it is UIFilterElement && it.id == RechnungDO::status.name }
@@ -604,12 +872,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 label = translate("fibu.periodOfPerformance"),
             )
         )
-        if (Configuration.instance.isCostConfigured) {
+        if (IncompleteInvoiceFilter.isOffered(Configuration.instance.isCostConfigured, invoiceConfig.accountRequired)) {
             elements.add(
                 UIFilterElement(
-                    COST_ASSIGNMENT_FILTER,
+                    INCOMPLETE_FILTER,
                     UIFilterElement.FilterType.BOOLEAN,
-                    label = translate("fibu.rechnung.kostZuweisungFehlbetrag"),
+                    label = translate("fibu.rechnung.filter.incomplete"),
+                    defaultFilter = true,
                 )
             )
         }
@@ -625,10 +894,20 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         listTypeEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.let { listType ->
             filters.add(PaymentStateFilter(listType))
         }
-        val costAssignmentEntry = source.entries.find { it.field == COST_ASSIGNMENT_FILTER }
-        costAssignmentEntry?.synthetic = true // Computed by RechnungCalculator, so no column holds it.
-        if (costAssignmentEntry?.isTrueValue == true) {
-            filters.add(CostAssignmentFilter())
+        val incompleteEntry = source.entries.find { it.field == INCOMPLETE_FILTER }
+        // Neither of the two reasons is a column: the difference is computed by RechnungCalculator, and the
+        // account may be inherited from project or customer.
+        incompleteEntry?.synthetic = true
+        if (incompleteEntry?.isTrueValue == true) {
+            filters.add(
+                IncompleteInvoiceFilter(
+                    costConfigured = Configuration.instance.isCostConfigured,
+                    accountRequired = invoiceConfig.accountRequired,
+                    // The account the export would use, not the invoice's own: an invoice without one is
+                    // booked to the account of its project or its customer, so it lacks nothing.
+                    accountOf = { kontoCache.getKonto(it) },
+                )
+            )
         }
         addPeriodOfPerformanceCriterion(target, source)
         return filters
@@ -796,22 +1075,6 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
     }
 
-    /**
-     * The invoices whose cost assignments don't add up: the net sum assigned to cost units differs from the
-     * invoice's own net sum ([RechnungInfo.kostZuweisungenFehlbetrag]).
-     *
-     * A [CustomResultFilter] for the reason [PaymentStateFilter] is one - the difference is computed by
-     * [RechnungCalculator] from every position of the invoice and is no column any query could ask about.
-     *
-     * `isNotZero` rather than `!= BigDecimal.ZERO`: `BigDecimal.equals` compares the scale as well, so a
-     * `0.00` would count as a difference.
-     */
-    private class CostAssignmentFilter : CustomResultFilter<RechnungDO> {
-        override fun match(list: MutableList<RechnungDO>, element: RechnungDO): Boolean {
-            return NumberHelper.isNotZero(element.ensuredInfo.kostZuweisungenFehlbetrag)
-        }
-    }
-
     companion object {
         /**
          * Turns a copy of an invoice into a new one, the way `RechnungEditPage.cloneData` does it.
@@ -912,14 +1175,6 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          */
         internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
 
-        /**
-         * Id of the cost assignment filter - a pseudo field standing for "the assignments of this invoice
-         * don't add up", see [CostAssignmentFilter]. Named after the question and not after the property it
-         * reads, since answering it yes is what the filter does; the property is on the DTO under its own
-         * name (`Rechnung.kostZuweisungenFehlbetrag`, the column of the list).
-         */
-        internal const val COST_ASSIGNMENT_FILTER = "kostZuweisungIncomplete"
-
         /** The two date properties the combined filter replaces in the filter field list. */
         private val PERIOD_OF_PERFORMANCE_FIELDS = setOf(
             RechnungDO::periodOfPerformanceBegin.name,
@@ -928,6 +1183,24 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
         /** Sub path of the cost assignment export, as `invoice-list-actions.tsx` calls it. */
         internal const val EXPORT_COST_ASSIGNMENTS_PATH = "exportCostAssignmentsAsExcel"
+
+        /** Sub path of the Word export, as `lib/rs/invoice.ts` calls it (the invoice id follows). */
+        internal const val EXPORT_WORD_PATH = "exportInvoiceWord"
+
+        /** Sub path of the three invoice PDF endpoints, as `lib/rs/invoice-pdf.ts` calls them. */
+        internal const val INVOICE_PDF_PATH = "invoicePdf"
+
+        /** Sub path of the e-invoice validation and its two exports, as `lib/rs/invoice.ts` calls them. */
+        internal const val E_INVOICE_PATH = "eInvoice"
+
+        /**
+         * Size limit of the invoice PDF, the same [FileCheck] limit the e-invoice checker page applies.
+         *
+         * Well below what the storage itself refuses (`EInvoiceExportService` checks 50 MB): a scanned or
+         * exported invoice of that size is a mistake, and saying so on the upload is more useful than
+         * discovering it in the JCR.
+         */
+        private const val MAX_INVOICE_PDF_MEGA_BYTES = 20L
 
         private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"
 
