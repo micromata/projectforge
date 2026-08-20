@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, useEffect, useRef, type ReactNode } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useScrollSpy } from "@/hooks/use-scroll-spy";
 import { EditPageTabs, TAB_PARAM, type EditPageTab } from "./edit-page-tabs";
@@ -49,8 +49,6 @@ export function EditPageShell({
   // A section tab clicked while a side tab is open is how a user comes back to the form, so it closes
   // that tab first and scrolls once the form is on screen again — a hidden column cannot be scrolled,
   // it has no layout.
-  const router = useRouter();
-  const pathname = usePathname();
   // A ref, not state: nothing renders differently for it, it only says what the effect below still
   // owes — and a render of its own is exactly what must not happen between closing the tab and
   // scrolling.
@@ -71,7 +69,20 @@ export function EditPageShell({
     const next = new URLSearchParams(params);
     next.delete(TAB_PARAM);
     const query = next.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
+    // The native History API, not `router.push`: this changes nothing but a search parameter, which is
+    // the case Next names it for ("pushState and replaceState calls integrate into the Next.js
+    // Router, allowing you to sync with usePathname and useSearchParams").
+    //
+    // And `router.push` does not merely cost more here, it does not arrive: on a deep link of the
+    // static export — `/next/task/42?tab=history`, which is where the old history url redirects to —
+    // the push fetches the route's RSC payload and then puts the old url back, so the form never
+    // reappears and the tab bar is stuck on the history. The route was prerendered under a
+    // placeholder id (see useRouteParams), so there is no entry for this url for the push to commit.
+    window.history.pushState(
+      null,
+      "",
+      query ? `?${query}` : window.location.pathname
+    );
   }
 
   return (

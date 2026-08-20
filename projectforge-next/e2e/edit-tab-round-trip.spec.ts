@@ -61,6 +61,37 @@ test.describe("edit page tab round trip", () => {
     ).toBeEnabled();
   });
 
+  test("comes back to the form from a tab the url arrived on", async ({
+    loggedInPage: page,
+    seededBook,
+  }) => {
+    // The case above starts on the form, so the tab it returns to was already rendered once. This one
+    // arrives *at the tab* — which is what a bookmark of the old history url does, since
+    // EntityTabRedirect turns it into exactly this address.
+    //
+    // It is the harder case and it was broken: closing the tab is a change of one search parameter,
+    // and `router.push` does not commit that on a deep link of the static export — the route was
+    // prerendered under a placeholder id, so the push fetched the payload and then put the url back.
+    // The form never reappeared and the tab strip was stuck (see EditPageShell, which uses the native
+    // History API for it now).
+    const { t } = await userFormat(page);
+    await goto(page, `/book/${seededBook.id}?tab=history`);
+    await expect(
+      page.getByRole("listitem").first().getByRole("button")
+    ).toBeVisible();
+
+    await page.getByRole("tab").first().click();
+    const title = page.getByRole("textbox", { name: /titel/i });
+    await expect(title).toBeVisible();
+    await expect(title).toHaveValue(seededBook.title);
+    // And the parameter is gone from the url, so a reload lands on the form as well.
+    await expect(page).not.toHaveURL(/tab=/);
+    // The strip agrees: the history is no longer the selected tab.
+    await expect(
+      page.getByRole("tab", { name: t("label.historyOfChanges") })
+    ).toHaveAttribute("aria-selected", "false");
+  });
+
   test("asks for the history only once its tab is opened", async ({
     loggedInPage: page,
     seededBook,
