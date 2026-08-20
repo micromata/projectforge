@@ -253,6 +253,40 @@ test.describe("task edit", () => {
     ).toHaveValue(changed, { timeout: 20_000 });
   });
 
+  test("the history is a tab of the form, and its old url still leads there", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
+    const format = await userFormat(page);
+    // The seeded task has a history because it was inserted — one attribute per property, written by
+    // `HistoryBaseDaoAdapter` as a side effect of the save. So no task of the database is needed, and
+    // none may be touched (see the note at the top).
+    await goto(page, `/task/${seededTask.id}/history`);
+
+    // The history used to be a route of its own; the url is in bookmarks and mails and redirects to
+    // the tab (see EntityTabRedirect). Substring rather than regexp: the path carries a `?`.
+    await expect
+      .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
+      .toContain(`/task/${seededTask.id}?tab=history`);
+    await expect(
+      page.getByRole("listitem").first().getByRole("button")
+    ).toBeVisible({ timeout: 20_000 });
+
+    // A section tab is the way back to the form, and it closes the panel rather than navigating —
+    // which is the reason the history stopped being a route: the form tree stays mounted, so a
+    // half-filled field survives the detour. The shared mechanism is asserted on the book (see
+    // edit-tab-round-trip.spec.ts); what is checked here is that the task's own tabs take part in
+    // it, since its two folded sections make its tab strip unlike any other page's.
+    await tab(page, format.t("task.title.heading")).click();
+    const changed = `${seededTask.title} unsaved`;
+    await titleBox(page, format).fill(changed);
+    await tab(page, format.t("label.historyOfChanges")).click();
+    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await tab(page, format.t("task.title.heading")).click();
+    // Not saved, and not lost either: the value is still in the input the user typed it into.
+    await expect(titleBox(page, format)).toHaveValue(changed);
+  });
+
   test("an out-of-range value is reported on its own field", async ({
     loggedInPage: page,
     seededTask,
