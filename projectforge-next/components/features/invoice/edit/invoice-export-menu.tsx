@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,24 +7,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { downloadInvoiceWord } from "@/lib/rs/invoice";
 import { InvoiceExportButton } from "../invoice-export-button";
 import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
-import { EInvoiceDialog } from "./e-invoice-dialog";
 
 /**
- * The exports of one invoice, as Wicket offers them in the content menu of its edit page
- * (`RechnungEditPage.addExportMenu`, `addEInvoiceMenu`): one entry per variant of the configured Word
- * template, plus the e-invoice where the installation configured a seller.
+ * The Word exports of one invoice, as Wicket offers them in the content menu of its edit page
+ * (`RechnungEditPage.addExportMenu`): one entry per variant of the configured template.
  *
- * The e-invoice entry opens [EInvoiceDialog] rather than downloading, because it is two exports (XRechnung
- * and ZUGFeRD) and neither is possible for every invoice. Its label is the plain "E-Invoice" and not
- * Wicket's `fibu.rechnung.eInvoice.saveAndOpen`: next does not save on the way, so a label promising a save
- * would be wrong about the one difference that matters here.
+ * Wicket's `addEInvoiceMenu` has no counterpart here on purpose. The e-invoice is not a download but a
+ * document with prerequisites, and those are fields of this form — so it lives in the form's own e-invoice
+ * section, together with the fields its checklist names (see EInvoiceSection). A menu entry beside the
+ * heading would have been the shortest way to the two exports and the longest way to what they need.
  *
  * Offered for a **stored** invoice only, which is Wicket's rule too (it omits the menu while `isNew()`) —
  * here it holds for a second reason: the document is built from the invoice in the database, not from the
@@ -46,7 +42,6 @@ export function InvoiceExportMenu({
   const t = useTranslations();
   const defaults = useInvoiceFormDefaults();
   const variants = defaults?.templateVariants ?? [];
-  const [eInvoiceOpen, setEInvoiceOpen] = useState(false);
 
   const download = useMutation({
     mutationFn: (variant: string) => downloadInvoiceWord(invoiceId!, variant),
@@ -64,13 +59,10 @@ export function InvoiceExportMenu({
   // that the document is the *stored* invoice is the part a user cannot guess.
   const tooltip =
     invoiceId == null ? t("fibu.rechnung.exportInvoice.onlyStored") : label;
-  // The e-invoice, under the same condition Wicket adds its own menu for (`addEInvoiceMenu`): a seller that
-  // is configured. Plus a stored invoice, since the export is of the stored state (see EInvoiceDialog).
-  const eInvoice = invoiceId != null && defaults?.eInvoiceConfigured === true;
 
-  // A single Word variant and no e-invoice, or nothing to export yet: a bare button either way — a menu
-  // whose entries cannot be reached is a menu that shouldn't be a menu.
-  if (invoiceId == null || (variants.length === 1 && !eInvoice)) {
+  // A single variant, or nothing to export yet: a bare button either way — a menu of one entry is a click
+  // for nothing.
+  if (invoiceId == null || variants.length === 1) {
     return (
       <InvoiceExportButton
         tooltip={tooltip}
@@ -83,47 +75,26 @@ export function InvoiceExportMenu({
   }
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          {/* No `onClick`: the trigger's own opens the menu, and the entries are what downloads. */}
-          <InvoiceExportButton
-            tooltip={tooltip}
-            label={label}
-            isPending={download.isPending}
-          />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {variants.map((variant) => (
-            <DropdownMenuItem
-              key={variant}
-              onSelect={() => download.mutate(variant)}
-            >
-              {/* The only Word entry beside the e-invoice ones says what it exports rather than which
-                  template it uses — "Default template" alone doesn't say that a document comes out. */}
-              {variants.length === 1 ? label : variantLabel(variant, t)}
-            </DropdownMenuItem>
-          ))}
-          {eInvoice && (
-            <>
-              <DropdownMenuSeparator />
-              {/* Wicket's own label, minus the "save and": next doesn't save on the way (see
-                  EInvoiceDialog) — but the two exports live behind one entry there as here. */}
-              <DropdownMenuItem onSelect={() => setEInvoiceOpen(true)}>
-                {t("fibu.konto.eInvoice")}
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {/* Beside the menu, not inside it: the menu closes when the entry is chosen. */}
-      {eInvoiceOpen && invoiceId != null && (
-        <EInvoiceDialog
-          invoiceId={invoiceId}
-          onClose={() => setEInvoiceOpen(false)}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        {/* No `onClick`: the trigger's own opens the menu, and the entries are what downloads. */}
+        <InvoiceExportButton
+          tooltip={tooltip}
+          label={label}
+          isPending={download.isPending}
         />
-      )}
-    </>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {variants.map((variant) => (
+          <DropdownMenuItem
+            key={variant}
+            onSelect={() => download.mutate(variant)}
+          >
+            {variantLabel(variant, t)}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

@@ -42,6 +42,8 @@ export function DeclaredSection<M extends EntityMetadata>({
           ))}
         </div>
       )}
+      {/* After the fields and in the same card, so it reads as part of the section — see SectionDef. */}
+      {section.footer ? <section.footer id={id} /> : null}
     </SectionCard>
   );
 }

@@ -11,8 +11,13 @@ export interface InvoiceExportButtonProps extends Omit<
   ComponentProps<typeof Button>,
   "children" | "disabled"
 > {
-  /** What the export does, or — for a disabled one — why it cannot be had (see [InvoiceExportMenu]). */
-  tooltip: string;
+  /**
+   * What the export does, or — for a disabled one — why it cannot be had (see [InvoiceExportMenu]).
+   *
+   * Optional, for a button whose label says everything there is to say: the e-invoice section's two
+   * ("Speichern und XRechnung", see [EInvoiceActions]).
+   */
+  tooltip?: string;
   label: string;
   /** Replaces the icon with a spinner: an export runs for seconds, so it has to say that it is running. */
   isPending: boolean;

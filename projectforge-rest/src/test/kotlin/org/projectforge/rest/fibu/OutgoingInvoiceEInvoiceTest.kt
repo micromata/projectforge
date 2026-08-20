@@ -40,22 +40,31 @@ import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.jcr.RepoService
+import org.projectforge.rest.core.SessionCsrfService
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Rechnung
+import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpSession
 import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * The e-invoice of one outgoing invoice — the three endpoints of [OutgoingInvoiceEntityRest] Wicket has as its
- * `EInvoiceModalDialog` (`RechnungEditForm`).
+ * The e-invoice of one outgoing invoice — the endpoints of [OutgoingInvoiceEntityRest] behind the form's
+ * e-invoice section, which Wicket has as its `EInvoiceModalDialog` (`RechnungEditForm`).
  *
  * The XML itself is `EInvoiceExportService`'s and Mustang's business. What belongs here is what the endpoints
  * decide: that the validation is *readable before* the export, so the form can name what is missing instead of
  * showing a failed download (Wicket's error line does the same); that an invoice which isn't ready is refused
- * with that very list rather than with the `IllegalStateException` the service throws; and that both of them
+ * with that very list rather than with the `IllegalStateException` the service throws; that the section can
+ * write the form it sits in, since everything else here works on the stored invoice; and that all of them
  * require the groups of `EInvoiceCheckerPageRest` — an e-invoice is the document that goes to the customer.
  *
  * A test installation configures no seller (`projectforge.einvoice.seller.*`), which is exactly the state
@@ -75,6 +84,9 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var repoService: RepoService
+
+    @Autowired
+    private lateinit var sessionCsrfService: SessionCsrfService
 
     @PostConstruct
     private fun postConstruct() {
@@ -111,7 +123,7 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         // setting rather than putting it among the invoice's own missing fields.
         assertFalse(validation.configured)
         assertTrue(
-            validation.errors.any { it.contains("Seller configuration") },
+            validation.errors.contains(eInvoiceError("sellerNotConfigured")),
             "`validate` names it as well, since Wicket's dialog has only the list: ${validation.errors}",
         )
     }
@@ -128,9 +140,9 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         // A planned invoice spends no invoice number, and this one selected no bank account and carries no
         // address — the three the form has to point at. Named individually rather than counted, since
         // `validate` is free to grow another rule.
-        assertTrue(validation.errors.any { it.contains("Invoice number") }, "${validation.errors}")
-        assertTrue(validation.errors.any { it.contains("bank account") }, "${validation.errors}")
-        assertTrue(validation.errors.any { it.contains("address") }, "${validation.errors}")
+        assertTrue(validation.errors.contains(eInvoiceError("numberMissing")), "${validation.errors}")
+        assertTrue(validation.errors.contains(eInvoiceError("bankAccountNotSelected")), "${validation.errors}")
+        assertTrue(validation.errors.contains(eInvoiceError("customerAddressMissing")), "${validation.errors}")
     }
 
     @Test
@@ -147,7 +159,7 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         ).forEach { response ->
             assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
             val body = response.body as String
-            assertTrue(body.contains("Invoice number"), "The answer is what `validate` said: $body")
+            assertTrue(body.contains(eInvoiceError("numberMissing")), "The answer is what `validate` said: $body")
         }
     }
 
@@ -172,14 +184,73 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
     }
 
     @Test
-    fun `a user outside the finance and orga groups reaches none of the three endpoints`() {
+    fun `saving for the check writes the form and answers what the checklist is asked about afterwards`() {
+        logon(TEST_FINANCE_USER)
+        val id = insertInvoice("E-invoice save", planned = false)
+        val dto = outgoingInvoiceEntityRest.transformFromDB(rechnungDao.find(id)!!, editMode = true)
+        // What the user came here to correct — an address the e-invoice needs and the invoice lacked.
+        dto.customerAddress = "Neue Kundenstraße 7"
+
+        val response = post(dto)
+
+        assertEquals(HttpStatus.OK, response.statusCode, "${response.body?.validationErrors}")
+        // The point of the endpoint: the *stored* invoice carries it now, because that is the one every other
+        // e-invoice endpoint works on.
+        assertEquals("Neue Kundenstraße 7", rechnungDao.find(id)!!.customerAddress)
+    }
+
+    @Test
+    fun `an invoice the save itself refuses comes back with the field errors, not with a saved invoice`() {
+        logon(TEST_FINANCE_USER)
+        val id = insertInvoice("E-invoice save refusal", planned = false)
+        val dto = outgoingInvoiceEntityRest.transformFromDB(rechnungDao.find(id)!!, editMode = true)
+        dto.betreff = "Not stored"
+        // A rule of `OutgoingInvoiceEntityRest.validate`, i.e. one only the DTO validation catches — the check
+        // this endpoint would skip if it ran `validate(dbObj)` alone.
+        dto.periodOfPerformanceBegin = LocalDate.of(2026, 8, 18)
+        dto.periodOfPerformanceEnd = LocalDate.of(2026, 8, 1)
+
+        val response = post(dto)
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.statusCode)
+        val errors = response.body?.validationErrors
+        assertNotNull(errors)
+        assertTrue(
+            errors!!.any { it.fieldId == "periodOfPerformanceEnd" },
+            "Anchored at the field, so the form can show it there: $errors",
+        )
+        assertEquals("E-invoice save refusal", rechnungDao.find(id)!!.betreff, "Nothing was written.")
+    }
+
+    @Test
+    fun `a user outside the finance and orga groups reaches none of the endpoints`() {
         logon(TEST_FINANCE_USER)
         val id = insertInvoice("E-invoice access", planned = true)
+        val dto = outgoingInvoiceEntityRest.transformFromDB(rechnungDao.find(id)!!, editMode = true)
 
         logon(TEST_USER)
         assertThrows<AccessException> { outgoingInvoiceEntityRest.validateEInvoice(id) }
         assertThrows<AccessException> { outgoingInvoiceEntityRest.exportXRechnung(id) }
         assertThrows<AccessException> { outgoingInvoiceEntityRest.exportZugferd(id) }
+        // The save is one of the e-invoice functions and guarded by the same groups, although it writes what
+        // the regular save writes: the button that triggers it lives in the e-invoice section.
+        assertThrows<AccessException> { post(dto) }
+    }
+
+    /**
+     * The invoice posted to [OutgoingInvoiceEntityRest.saveAndCheckEInvoice].
+     *
+     * The CSRF token comes from [SessionCsrfService.createServerData] rather than from a literal: it is the
+     * session's, and the endpoint validates it exactly as the regular save does.
+     */
+    private fun post(dto: Rechnung): ResponseEntity<ResponseAction> {
+        val request = MockHttpServletRequest().also { it.setSession(MockHttpSession()) }
+        val postData = PostData(
+            data = dto,
+            watchFieldsTriggered = null,
+            serverData = sessionCsrfService.createServerData(request),
+        )
+        return outgoingInvoiceEntityRest.saveAndCheckEInvoice(request, postData)
     }
 
     @Test
@@ -191,6 +262,14 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         assertThrows<AccessException> { outgoingInvoiceEntityRest.validateEInvoice(-1L) }
         assertThrows<AccessException> { outgoingInvoiceEntityRest.exportXRechnung(-1L) }
     }
+
+    /**
+     * The sentence `EInvoiceExportService.validate` answers for one of its error keys.
+     *
+     * Compared to the translated text and not to an English substring: the list travels to the user in the
+     * user's language, so an assertion on English prose would hold for an English account only.
+     */
+    private fun eInvoiceError(key: String): String = translate("fibu.rechnung.eInvoice.error.$key")
 
     /** A seller complete enough for [EInvoiceSellerConfig.isConfigured], with one bank account to select. */
     private fun configureSeller() {
@@ -222,6 +301,11 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         invoice.datum = LocalDate.of(2026, 3, 2)
         invoice.betreff = subject
         invoice.kundeText = "$subject customer"
+        // Required as soon as a position refers to it, which the position below does (it declares no period of
+        // its own) — see `PeriodOfPerformanceValidator`. Without it the invoice could be inserted but not
+        // posted back through `saveAndCheckEInvoice`.
+        invoice.periodOfPerformanceBegin = LocalDate.of(2026, 2, 1)
+        invoice.periodOfPerformanceEnd = LocalDate.of(2026, 2, 28)
         if (!planned) {
             invoice.nummer = rechnungDao.nextNumber
             invoice.sellerBankAccount = IBAN

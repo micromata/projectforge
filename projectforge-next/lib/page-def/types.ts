@@ -243,6 +243,14 @@ export interface SectionDef<M extends EntityMetadata> {
   fields?: FieldDeclaration<M>[];
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
+  /**
+   * Below the declared fields, inside the same card — a section's own UI *in addition to* its fields:
+   * the e-invoice checklist under the customer address the checklist is about.
+   *
+   * A component and not a function like [render], because such a body holds hooks of its own (a query
+   * for what the backend says about the stored entry, the form store for the submit).
+   */
+  footer?: ComponentType<{ id: number | null }>;
 }
 
 /**

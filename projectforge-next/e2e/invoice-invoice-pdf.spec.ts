@@ -55,7 +55,7 @@ test.describe("outgoing invoice PDF", () => {
     const { t } = format;
     const name = "pf-e2e-invoice.pdf";
     await goto(page, `/invoice/${id}`);
-    await waitForAttachmentSection(page, format);
+    await waitForEInvoiceSection(page, format);
 
     await page
       .getByLabel(`${t("file.upload.choose")}: ${pdfTitle(format)}`)
@@ -81,7 +81,7 @@ test.describe("outgoing invoice PDF", () => {
     const format = await userFormat(page);
     const { t } = format;
     await goto(page, `/invoice/${id}`);
-    await waitForAttachmentSection(page, format);
+    await waitForEInvoiceSection(page, format);
 
     await page
       .getByLabel(`${t("file.upload.choose")}: ${pdfTitle(format)}`)
@@ -99,13 +99,14 @@ test.describe("outgoing invoice PDF", () => {
 });
 
 /**
- * Waits until the form of *this* invoice is there, attachment section included.
+ * Waits until the form of *this* invoice is there, e-invoice section included — the section the PDF field
+ * belongs to, since the ZUGFeRD export is the only reason the file exists (see EInvoiceSection).
  *
  * The sections are cards of one scroll column rather than tabs of their own, so nothing has to be opened —
  * but the section reads the stored state, and asserting on an empty field before that arrived would pass for
  * the wrong reason.
  */
-async function waitForAttachmentSection(page: Page, format: UserFormat) {
+async function waitForEInvoiceSection(page: Page, format: UserFormat) {
   await expect(
     page.getByLabel(label(format, "fibu.rechnung.betreff"), { exact: true })
   ).toHaveValue(SUBJECT, { timeout: 60_000 });

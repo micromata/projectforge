@@ -747,7 +747,21 @@
       "discountPercent": "Discount percent",
       "eInvoice": {
         "createAndOpen": "Create and e-invoice",
+        "error": {
+          "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
+          "bankAccountNotFound": "The bank account of this invoice ({arg0}) is not among the configured ones. Please select one of them.",
+          "bankAccountNotSelected": "No bank account is selected for this invoice.",
+          "customerAddressIncomplete": "The address of the customer is incomplete: zip code and city are required.",
+          "customerAddressMissing": "The address of the customer is missing.",
+          "customerNameMissing": "The name of the customer is missing: neither a customer nor a customer text is given.",
+          "dateMissing": "The date of the invoice is missing.",
+          "noPositions": "The invoice has no positions.",
+          "numberMissing": "The invoice number is missing. It is assigned as soon as the invoice leaves the status \"planned\".",
+          "sellerNotConfigured": "The seller of this installation is not configured completely (projectforge.einvoice.seller.*). An administrator has to complete it."
+        },
         "saveAndOpen": "Save and e-invoice",
+        "saveAndXRechnung": "Save and XRechnung",
+        "saveAndZugferd": "Save and ZUGFeRD",
         "validationErrors": "E-invoice cannot be exported"
       },
       "error": {

@@ -36,12 +36,6 @@
   "form": {
     "hint": "Note"
   },
-  "invoice": {
-    "eInvoice": {
-      "savedOnlyHint": "The e-invoice is built from the saved invoice; unsaved changes in the form are not part of it.",
-      "notConfigured": "The seller of this installation is not configured completely (projectforge.einvoice.seller.*), so no e-invoice can be built. An administrator has to complete it."
-    }
-  },
   "login": {
     "submitting": "Signing in…",
     "twoFactor": {

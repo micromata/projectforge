@@ -161,17 +161,30 @@ export function fetchInvoiceFormDefaults(
 /** What `OutgoingInvoiceEntityRest.validateEInvoice` answers (`EInvoiceValidation` there). */
 export interface EInvoiceValidation {
   /**
-   * Whether `projectforge.einvoice.seller.*` is configured. False is nothing the user editing this invoice
-   * can fix, so the dialog says so instead of listing it among the invoice's own problems.
+   * Whether `projectforge.einvoice.seller.*` is configured. Nothing the user editing this invoice can fix,
+   * but it needs no separate treatment either: an unconfigured seller is the first entry of `errors` below
+   * (`fibu.rechnung.eInvoice.error.sellerNotConfigured`), and the checklist names it like any other problem.
    */
   configured: boolean;
   /**
    * What is missing on the invoice, empty where an e-invoice can be built.
    *
-   * Untranslated English prose, because that is what `EInvoiceExportService.validate` builds — a known debt
-   * of the migration (see MIGRATION.md), shared with Wicket's own dialog.
+   * Sentences, not keys, and already in the user's language: `EInvoiceExportService.validate` translates them
+   * because every caller — Wicket's error line as well as this endpoint — puts them in front of a user
+   * unchanged.
    */
   errors: string[];
+}
+
+/**
+ * Query key of the validation below — beside the fetch, like the other query keys of this app
+ * (`attachmentsQueryKey`, `historyQueryKey`), so a second reader of the same answer finds it here.
+ *
+ * Under `["outgoingInvoice", …]` on purpose: every write of the invoice invalidates that prefix
+ * (`listQueryKey`), which is what a save from anywhere else on the page has to reach.
+ */
+export function eInvoiceQueryKey(id: number | null) {
+  return ["outgoingInvoice", "eInvoice", id] as const;
 }
 
 /**

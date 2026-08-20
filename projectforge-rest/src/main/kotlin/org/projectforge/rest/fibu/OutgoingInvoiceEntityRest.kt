@@ -70,9 +70,11 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
+import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
+import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
@@ -561,13 +563,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * buttons (`RechnungEditForm.EInvoiceModalDialog`, which runs the same [EInvoiceExportService.validate]).
      *
      * Read before the export rather than only reported by it: both exports throw on the first problem, and a
-     * download that answers 500 says nothing about which field to correct. So the dialog asks this, lists what
-     * comes back and offers the exports only for an empty list — the same order Wicket's buttons follow.
+     * download that answers 500 says nothing about which field to correct. So the form's e-invoice section asks
+     * this, lists what comes back and offers the exports only for an empty list — the same order Wicket's
+     * buttons follow. A list, never a gate: the section stays usable while something is missing, because
+     * missing fields are what the user is there to fill in.
      *
-     * **Known debt, and the reason this is a list of strings.** `validate` builds untranslated English prose
-     * ("Invoice number is missing"), so that is what is shown. Turning it into keyed errors is a change to
-     * `EInvoiceExportService` that Wicket's copy of the dialog sees as well, and belongs in a commit of its
-     * own — see projectforge-next/MIGRATION.md.
+     * A list of sentences and not of keys, because [EInvoiceExportService.validate] translates them itself —
+     * every caller puts them in front of a user unchanged, so a key would only have to be resolved twice.
      *
      * The stored invoice, as everything else on this path: the ZUGFeRD export reads the JCR by the invoice
      * id, so there is no posted state it could validate instead.
@@ -579,6 +581,37 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             configured = sellerConfig.isConfigured(),
             errors = eInvoiceExportService.validate(invoice),
         )
+    }
+
+    /**
+     * Saves the posted invoice and lets the caller ask [validateEInvoice] again — Wicket's
+     * `fibu.rechnung.eInvoice.saveAndOpen`.
+     *
+     * Everything on the e-invoice path works on the *stored* invoice (the ZUGFeRD export reads the JCR by the
+     * invoice id, so it could not do otherwise), while the form on screen may have unsaved changes. This is the
+     * one button that closes that gap: it writes what the user sees, so the checklist below it and the two
+     * exports speak about the same invoice.
+     *
+     * A write of its own rather than the plain save, because of what it must *not* do: a save takes the user
+     * back to the list, and correcting an e-invoice means staying on the page. `POST /{entity}/{action}` is the
+     * shape projectforge-next has for exactly that (see lib/rs/submit-meta.ts, `BookServicesRest.lendOut`).
+     *
+     * Deliberately no export and no validation of its own: it saves, nothing more. What is still missing comes
+     * from [validateEInvoice], which the client asks afterwards — one endpoint, one job.
+     */
+    @PostMapping("saveAndCheckEInvoice")
+    fun saveAndCheckEInvoice(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<Rechnung>,
+    ): ResponseEntity<ResponseAction> {
+        // The groups of the e-invoice functions, since this is one of them. The write access to *this* invoice is
+        // `baseDao.insertOrUpdate`'s own check, as it is for the regular save.
+        checkEInvoiceAccess()
+        sessionCsrfService.validateCsrfToken(request, postData, "Save for the e-invoice check")?.let { return it }
+        val dbObj = transformForDB(postData.data)
+        // `validate(dbObj, postData)` and not `validate(dbObj)`: the invoice has rules of its own beyond the
+        // annotated fields (the period of performance, see `validate` above), and the regular save runs both.
+        return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
     }
 
     /**

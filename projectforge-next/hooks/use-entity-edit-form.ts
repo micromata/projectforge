@@ -95,6 +95,9 @@ export function useEntityEditForm<Values, Data>({
     onSubmitMeta: SAVE_META,
     onSubmit: async ({ value, meta }) => {
       const result = await save(value as Values, meta);
+      // Before every branch below, and for every outcome: a button that acts on the write has to hear
+      // about a refusal as well, and that is the case it must not act on (see SubmitMeta.onWritten).
+      meta.onWritten?.(result);
       if (result.kind === "rejected") {
         // The backend refused the write and said why (an AccessException, see lib/rs/entity.ts). Not a
         // field error and not the form's own doing, so it is shown as it came and the form stays put

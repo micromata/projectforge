@@ -747,7 +747,21 @@
       "discountPercent": "Skonto Prozent",
       "eInvoice": {
         "createAndOpen": "Anlegen und E-Rechnung",
+        "error": {
+          "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
+          "bankAccountNotFound": "Das Bankkonto dieser Rechnung ({arg0}) ist keines der konfigurierten. Bitte eines davon auswählen.",
+          "bankAccountNotSelected": "Für diese Rechnung ist kein Bankkonto ausgewählt.",
+          "customerAddressIncomplete": "Die Adresse des Kunden ist unvollständig: Postleitzahl und Ort sind erforderlich.",
+          "customerAddressMissing": "Die Adresse des Kunden fehlt.",
+          "customerNameMissing": "Der Name des Kunden fehlt: es ist weder ein Kunde noch ein Kundentext angegeben.",
+          "dateMissing": "Das Rechnungsdatum fehlt.",
+          "noPositions": "Die Rechnung hat keine Positionen.",
+          "numberMissing": "Die Rechnungsnummer fehlt. Sie wird vergeben, sobald die Rechnung den Status „geplant“ verlässt.",
+          "sellerNotConfigured": "Der Verkäufer dieser Installation ist nicht vollständig konfiguriert (projectforge.einvoice.seller.*). Ein Administrator muss das ergänzen."
+        },
         "saveAndOpen": "Speichern und E-Rechnung",
+        "saveAndXRechnung": "Speichern und XRechnung",
+        "saveAndZugferd": "Speichern und ZUGFeRD",
         "validationErrors": "E-Rechnung kann nicht exportiert werden"
       },
       "error": {
