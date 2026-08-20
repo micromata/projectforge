@@ -172,6 +172,23 @@ export function shiftDateByDays(
 }
 
 /**
+ * Whole days from one ISO date to the other, `null` if either is missing — the other direction of
+ * [shiftDateByDays], and what a payment target in days is: the distance between the invoice date and
+ * the due date (`AbstractRechnungDO.recalculate` computes it the same way on the backend).
+ *
+ * Rounded because the two local midnights are 23 or 25 hours apart across a DST switch.
+ */
+export function daysBetweenDates(
+  from: string | null | undefined,
+  to: string | null | undefined
+): number | null {
+  const start = dateOf(from);
+  const end = dateOf(to);
+  if (!start || !end) return null;
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000);
+}
+
+/**
  * The `Date` a calendar needs, built from the parts in the local zone (so it stands for that very
  * day, whereas `new Date("2026-08-09")` would be UTC midnight and can fall on the day before).
  */
