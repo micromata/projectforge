@@ -370,10 +370,11 @@ function currency(format: UserFormat, value: unknown): string {
 }
 
 /**
- * An amount as it stands in an input box — ungrouped, unlike a rendered one (see formatNumberInput).
+ * An amount as it stands in an input box at rest: grouped like a rendered one, but without the currency
+ * beside it — that is the box's suffix, not part of its value (see formatNumberInput).
  */
 function amountInput(format: UserFormat, value: number): string {
-  return formatNumberInput(value, format.context, 2);
+  return formatNumberInput(value, format.context, 2, true);
 }
 
 /** A share as a row states it: whole percent in the user's layout (see CostAssignmentShare). */

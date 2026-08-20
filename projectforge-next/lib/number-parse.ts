@@ -49,17 +49,19 @@ export function parseNumberInput(
   if (trimmed === "") return null;
   const { group, decimal } = layoutOf(ctx.locale);
   const other = decimal === "," ? "." : ",";
-  let normalized = trimmed.replaceAll(group, "");
+  let normalized: string;
   if (!trimmed.includes(decimal) && trimmed.includes(other)) {
     // The locale's decimal separator is nowhere to be seen, so the other one is what was meant. Only
     // the last occurrence: "1.234.5" was typed as a group separator plus a decimal point.
-    const at = normalized.lastIndexOf(other);
+    //
+    // Read off `trimmed`, not off a text the group separator was already stripped from: in German the
+    // group separator *is* the other one, so stripping it first would delete the very character this
+    // branch exists to interpret.
+    const at = trimmed.lastIndexOf(other);
     normalized =
-      normalized.slice(0, at).replaceAll(other, "") +
-      "." +
-      normalized.slice(at + 1);
+      trimmed.slice(0, at).replaceAll(other, "") + "." + trimmed.slice(at + 1);
   } else {
-    normalized = normalized.replaceAll(decimal, ".");
+    normalized = trimmed.replaceAll(group, "").replaceAll(decimal, ".");
   }
   // Everything else the locale writes (a currency symbol pasted along, spaces) is dropped; a text that
   // is not a number at all still ends up NaN below.
@@ -72,22 +74,25 @@ export function parseNumberInput(
 }
 
 /**
- * The text an input shows for a number: the locale's layout, without a group separator.
- *
- * Grouping is left out on purpose — it is what a reader wants in a table, not what someone editing a
- * value wants under the caret, and it would have to be re-parsed on every keystroke.
+ * The text an input shows for a number, in the locale's layout.
  *
  * @param fractionDigits Digits after the separator, e.g. 2 for an amount. Undefined keeps what the
  *   value has, which is what a quantity like person days wants.
+ * @param grouping Whether thousands are grouped ("2.394,00" rather than "2394,00"). Off by default,
+ *   because that is the form a value is *edited* in: a group separator inserted between keystrokes
+ *   moves the caret out from under the fingers typing. A box at rest asks for grouping — that is what a
+ *   reader wants, and what Wicket's `CurrencyConverter` writes — so [NumberField] turns it on there and
+ *   off again on focus.
  */
 export function formatNumberInput(
   value: number | null | undefined,
   ctx: FormatContext,
-  fractionDigits?: number
+  fractionDigits?: number,
+  grouping = false
 ): string {
   if (value == null || !Number.isFinite(value)) return "";
   return new Intl.NumberFormat(ctx.locale, {
-    useGrouping: false,
+    useGrouping: grouping,
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits ?? 6,
   }).format(value);
