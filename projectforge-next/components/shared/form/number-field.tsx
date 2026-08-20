@@ -53,6 +53,15 @@ export interface NumberFieldProps extends BaseFieldProps {
    * `probabilityOfOccurrence`) — that needs nothing but a `%` suffix.
    */
   percent?: boolean;
+  /**
+   * Called with the value the field has just taken, for the case another field follows from it — an
+   * invoice's payment target in days moves its due date (see `PaymentTermsFields`). The same hook
+   * [EntityAutocompleteField]'s `onPicked` is: what a *typed* value pulls along cannot be expressed
+   * by the field itself.
+   *
+   * Gets the stored value, i.e. the factor for a `percent` box, not the percentage shown.
+   */
+  onChanged?: (next: number | null) => void;
 }
 
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
@@ -108,6 +117,7 @@ export function NumberField({
   maxDigits,
   align,
   percent,
+  onChanged,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -139,9 +149,11 @@ export function NumberField({
                   ? toPercentage(field.state.value as number | null)
                   : (field.state.value as number | null)
               }
-              onChange={(next) =>
-                field.handleChange(percent ? toFactor(next) : next)
-              }
+              onChange={(next) => {
+                const value = percent ? toFactor(next) : next;
+                field.handleChange(value);
+                onChanged?.(value);
+              }}
               onBlur={field.handleBlur}
               fractionDigits={digits}
               invalid={invalid}

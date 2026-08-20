@@ -1,3 +1,4 @@
+import { daysBetweenDates } from "@/lib/date-parse";
 import type {
   InvoicePositionValues,
   InvoiceValues,
@@ -43,8 +44,17 @@ export function toFormValues(invoice: InvoiceDetail): InvoiceValues {
     periodOfPerformanceBegin: invoice.periodOfPerformanceBegin ?? null,
     periodOfPerformanceEnd: invoice.periodOfPerformanceEnd ?? null,
     faelligkeit: invoice.faelligkeit ?? null,
-    zahlungsZielInTagen: invoice.zahlungsZielInTagen ?? null,
-    discountZahlungsZielInTagen: invoice.discountZahlungsZielInTagen ?? null,
+    // Both day counts are derived from the dates when the invoice doesn't state them, because they are
+    // `@Transient` on `AbstractRechnungDO` and only `recalculate()` fills them — which the read path
+    // never calls, so a saved invoice always arrives without them. Without this an opened invoice showed
+    // no payment target at all, and cloning it (`prepareInvoiceClone` computes `today + days`) made the
+    // copy due on the day it was created.
+    zahlungsZielInTagen:
+      invoice.zahlungsZielInTagen ??
+      daysBetweenDates(invoice.datum, invoice.faelligkeit),
+    discountZahlungsZielInTagen:
+      invoice.discountZahlungsZielInTagen ??
+      daysBetweenDates(invoice.datum, invoice.discountMaturity),
     discountPercent: invoice.discountPercent ?? null,
     discountMaturity: invoice.discountMaturity ?? null,
     bezahlDatum: invoice.bezahlDatum ?? null,

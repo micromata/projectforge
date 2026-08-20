@@ -82,10 +82,20 @@ export function PaymentScheduleRow({
               schedule.comment,
               schedule.positionNumber != null &&
                 `${t("label.position.short")} ${schedule.positionNumber}`,
-              schedule.reached && (
-                <span className="text-green-600 dark:text-green-400">
-                  {t("fibu.common.reached")}
+              // Being invoiced is the end state of an instalment and replaces "reached" rather than
+              // standing next to it: what the folded row has to answer is whether anything is still
+              // to do here, and "reached" alone reads as "invoice is due". Teal, not green, so the
+              // two states are told apart at a glance — the highlight above says the same thing.
+              schedule.vollstaendigFakturiert ? (
+                <span className="font-medium text-brand-teal">
+                  {label("vollstaendigFakturiert")}
                 </span>
+              ) : (
+                schedule.reached && (
+                  <span className="text-green-600 dark:text-green-400">
+                    {t("fibu.common.reached")}
+                  </span>
+                )
               ),
             ]}
           />

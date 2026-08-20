@@ -1,28 +1,37 @@
 "use client";
 
+import { useEffect } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { InputField } from "@/components/shared/form/input-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
-import { SelectField } from "@/components/shared/form/select-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
+import { daysBetweenDates, shiftDateByDays } from "@/lib/date-parse";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { cn } from "@/lib/utils";
 import type { InvoiceValues } from "../invoice-schema";
 
-/** The payment targets Wicket offers (`ZAHLUNGSZIELE_IN_TAGEN`) — not a range but the usual terms. */
-const PAYMENT_TARGETS_IN_DAYS = [7, 14, 30, 60, 90];
+/** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
+const DERIVED_TARGETS = [
+  { date: "faelligkeit", days: "zahlungsZielInTagen" },
+  { date: "discountMaturity", days: "discountZahlungsZielInTagen" },
+] as const;
 
 /**
  * When the invoice is due, when a discount would still apply, and what was actually paid.
  *
- * Custom rather than declared because of one rule between fields: a payment target in days and a due
- * date say the same thing twice. `AuftragAndRechnungDaoHelper.onSaveOrModify` derives the date from the
- * days, so the days are offered only while the date is empty — as `AbstractRechnungEditForm` does, and
- * for the better reason that a user who has entered a date should not be shown a box that would silently
- * move it.
+ * Custom rather than declared because of one rule between fields: a payment target in days and the date
+ * it leads to say the same thing twice, so the two are kept on each other here — entering days moves the
+ * date, moving the date rewrites the days. Both are always shown, unlike `AbstractRechnungEditForm`,
+ * which hides the days behind a read-only text once a date is there: they are the number an invoice is
+ * actually agreed in ("30 days net"), the number a clone is rebuilt from
+ * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`), and hiding them left an opened invoice looking as
+ * if it had no payment term at all.
+ *
+ * The days are free to type rather than picked from Wicket's `ZAHLUNGSZIELE_IN_TAGEN` list: every term
+ * that list doesn't happen to contain is as valid as the five that are on it.
  */
 export function PaymentTermsFields({ className }: { className?: string }) {
   const t = useTranslations();
@@ -30,23 +39,52 @@ export function PaymentTermsFields({ className }: { className?: string }) {
   const format = useFormatContext();
   const form = useEntityEditForm();
 
-  // Only the two dates: everything else here re-renders on its own field's change.
-  const { faelligkeit, discountMaturity } = useStore(
+  // The invoice date and the two dates derived from it; everything else here re-renders on its own
+  // field's change.
+  const { datum, faelligkeit, discountMaturity } = useStore(
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
       const v = state.values as InvoiceValues;
       return {
+        datum: v.datum,
         faelligkeit: v.faelligkeit,
         discountMaturity: v.discountMaturity,
       };
     }
   );
 
-  const targetOptions = PAYMENT_TARGETS_IN_DAYS.map((days) => ({
-    value: String(days),
-    label: `${days} ${t("days")}`,
-  }));
+  // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the
+  // day counts follow, so what the boxes say stays one term and not two. Loading an invoice changes
+  // nothing: `toFormValues` derives the same numbers, and only a differing value is written.
+  useEffect(() => {
+    for (const { date, days } of DERIVED_TARGETS) {
+      const derived = daysBetweenDates(
+        datum,
+        form.getFieldValue(date) as string | null
+      );
+      if (derived != null && form.getFieldValue(days) !== derived) {
+        form.setFieldValue(days, derived);
+      }
+    }
+  }, [form, datum, faelligkeit, discountMaturity]);
+
+  /**
+   * The other direction: days typed into a box become the date the invoice is judged by — the backend
+   * only derives it itself while the date is empty (`AuftragAndRechnungDaoHelper.onSaveOrModify`), so a
+   * changed term would otherwise leave the old date standing.
+   *
+   * An emptied box leaves the date alone: deleting a number is how one is retyped, and dropping the due
+   * date of an issued invoice over a keystroke is not what anybody means by it.
+   */
+  const moveDate = (
+    date: (typeof DERIVED_TARGETS)[number]["date"],
+    days: number | null
+  ) => {
+    if (days == null) return;
+    const next = shiftDateByDays(datum, days);
+    if (next) form.setFieldValue(date, next);
+  };
 
   return (
     <div
@@ -56,15 +94,14 @@ export function PaymentTermsFields({ className }: { className?: string }) {
       )}
     >
       <InputField name="faelligkeit" label={label("faelligkeit")} type="date" />
-      {/* Gone as soon as a due date is there — it would derive a second one. */}
-      {!faelligkeit && (
-        <SelectField
-          name="zahlungsZielInTagen"
-          label={label("zahlungsZielInTagen")}
-          options={targetOptions}
-          valueType="number"
-        />
-      )}
+      <NumberField
+        name="zahlungsZielInTagen"
+        label={label("zahlungsZielInTagen")}
+        suffix={t("days")}
+        // A term is counted in days, and no term needs four digits.
+        maxDigits={3}
+        onChanged={(days) => moveDate("faelligkeit", days)}
+      />
       <InputField
         name="discountMaturity"
         label={label("discountMaturity")}
@@ -73,14 +110,13 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         // wherever the row above happened to end would read as part of the due date beside it.
         className="md:col-start-1"
       />
-      {!discountMaturity && (
-        <SelectField
-          name="discountZahlungsZielInTagen"
-          label={label("discountZahlungsZielInTagen")}
-          options={targetOptions}
-          valueType="number"
-        />
-      )}
+      <NumberField
+        name="discountZahlungsZielInTagen"
+        label={label("discountZahlungsZielInTagen")}
+        suffix={t("days")}
+        maxDigits={3}
+        onChanged={(days) => moveDate("discountMaturity", days)}
+      />
       <NumberField
         name="discountPercent"
         label={label("discountPercent")}

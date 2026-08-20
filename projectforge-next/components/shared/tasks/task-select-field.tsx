@@ -19,6 +19,7 @@ import {
 import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import type { BaseFieldProps } from "@/components/shared/form/field-shell";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
+import { TaskEditLink } from "./task-edit-link";
 import { TaskPath } from "./task-path";
 import { TaskSelectModal } from "./task-select-modal";
 
@@ -137,6 +138,8 @@ function TaskSelectFieldContent({
       >
         <HugeiconsIcon icon={Edit02Icon} size={14} />
       </Button>
+      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
+      <TaskEditLink taskId={taskId} />
     </div>
   );
 }
