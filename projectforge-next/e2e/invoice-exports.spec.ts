@@ -156,6 +156,12 @@ test.describe("outgoing invoice e-invoice", () => {
           name: t("fibu.rechnung.eInvoice.saveAndZugferd"),
         })
       ).toBeEnabled();
+      // And nothing to complain about yet, although this invoice cannot be exported at all: the checklist is
+      // the answer to one of the buttons above, not a verdict the page opens with — most invoices are never
+      // exported as an e-invoice (see EInvoiceSection).
+      await expect(
+        page.getByText(t("fibu.rechnung.eInvoice.validationErrors"))
+      ).toHaveCount(0);
     } finally {
       await removeInvoice(page, id);
     }
@@ -202,6 +208,17 @@ test.describe("outgoing invoice e-invoice", () => {
       await expect(
         page.getByText(t("fibu.rechnung.eInvoice.validationErrors")).first()
       ).toBeVisible();
+
+      // And gone again with the next change to the form: what it listed was about the invoice as it was
+      // saved, so it must not keep standing while the user is entering the answer to it (see
+      // EInvoiceSection). Scoped to the inline alert, because the toast of the refused export says the same
+      // sentence and lives until it times out.
+      const checklist = page
+        .locator('[data-tone="error"]')
+        .filter({ hasText: t("fibu.rechnung.eInvoice.validationErrors") });
+      await expect(checklist).toBeVisible();
+      await city.fill("Kassel-Wilhelmshöhe");
+      await expect(checklist).toHaveCount(0);
     } finally {
       await removeInvoice(page, id);
     }
