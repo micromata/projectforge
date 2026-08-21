@@ -375,7 +375,9 @@ open class RestAuthenticationUtils {
     RegisterUser4Thread.unregister()
     ConnectionSettings.set(null)
     val resultCode = (response as HttpServletResponse).status
-    if (resultCode != HttpStatus.OK.value() && resultCode != HttpStatus.MULTI_STATUS.value()) { // MULTI_STATUS (207) will be returned by CardDavService, because XML is returned.
+    // Any 2xx is a success: 204 is answered by fire-and-forget calls such as POST /rs/menu/recent, and
+    // MULTI_STATUS (207) by CardDavService, because XML is returned.
+    if (resultCode !in 200..299) {
       val user = authInfo.user!!
       val clientIpAddress = authInfo.clientIpAddress
       log.error("User: ${user.username} calls RestURL: ${(request as HttpServletRequest).requestURI} with ip: $clientIpAddress: Response status not OK: status=${response.status}.")
