@@ -9,7 +9,11 @@ import {
   downloadOrderForecastJson,
   fetchOrderForecastAnalysis,
 } from "@/lib/rs/order";
-import { ORDER_PAGE } from "../order.page";
+// The bare constant, not ORDER_PAGE: the declaration names this component as its forecast tab, so
+// reading a property off it here closes a cycle — and one whose type TypeScript then cannot infer
+// (TS7022/TS7023, "referenced directly or indirectly in its own initializer"). The entity is a string
+// and needs none of the declaration.
+import { ORDER_ENTITY } from "../order.page";
 
 /**
  * The forecast analysis of one order: what the backend expects to be invoiced per month.
@@ -28,7 +32,7 @@ export function OrderForecastPanel({ id }: { id: number }) {
   const t = useTranslations();
 
   const analysis = useQuery({
-    queryKey: [ORDER_PAGE.entity, id, "forecastAnalysis"],
+    queryKey: [ORDER_ENTITY, id, "forecastAnalysis"],
     queryFn: ({ signal }) => fetchOrderForecastAnalysis(id, signal),
   });
   // A download, not a query: it writes a file and has nothing to cache.
