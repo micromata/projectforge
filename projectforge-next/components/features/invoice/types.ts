@@ -116,7 +116,8 @@ export interface InvoiceDetail {
   id: number | null;
   /**
    * The invoice number. Assigned by `RechnungDao` on the transition out of GEPLANT, and a credit note
-   * announced by the customer never gets one — so the form only ever shows it.
+   * announced by the customer never gets one — but the form may clear it, which is how an invoice issued
+   * by mistake is taken back (see invoice.page.tsx).
    */
   nummer?: number | null;
   // `customer`/`project` as the DTO names them, not `kunde`/`projekt` as the entity does — the JSON

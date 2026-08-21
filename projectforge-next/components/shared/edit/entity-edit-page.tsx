@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { EditPageShell } from "@/components/shared/edit-page-shell";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import {
@@ -92,8 +92,12 @@ export function EntityEditPage<
   // write right of the entry on screen.
   const canInsert = useInsertAccess(page.entity);
   const [isCloning, setCloning] = useState(false);
-  // Adding an entry starts in the first field; editing one leaves the focus alone.
-  const formRef = useFocusFirstField<HTMLFormElement>(id == null);
+  // Adding an entry starts in the field the definition names, or in the first one; editing an existing
+  // entry leaves the focus alone.
+  const formRef = useFocusFirstField<HTMLFormElement>(
+    id == null,
+    edit.autoFocus
+  );
 
   const { form, isDirty, isSubmitting } = useEntityEditForm<Values, Data>({
     data,

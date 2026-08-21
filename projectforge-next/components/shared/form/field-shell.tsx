@@ -45,6 +45,7 @@ export interface FieldMetaState {
 }
 
 export function FieldShell({
+  name,
   label,
   required,
   readOnly,
@@ -56,6 +57,15 @@ export function FieldShell({
   ids,
   children,
 }: {
+  /**
+   * Name of the form value this field binds to, written out as `data-field` — how the field is found in
+   * the DOM without knowing which component rendered it. What a form's `autoFocus` names
+   * ([useFocusFirstField] looks the field up by it), and equally what an e2e test can address.
+   *
+   * Optional, because a shell may also wrap something that is not one form value (a cost assignment's
+   * share of a position, a task picker built of several).
+   */
+  name?: string;
   label: string;
   required?: boolean;
   /** Shown but not fillable — suppresses the asterisk, see below. */
@@ -71,6 +81,7 @@ export function FieldShell({
 }) {
   return (
     <Field
+      data-field={name}
       data-invalid={invalid || undefined}
       className={cn("gap-1.5", className)}
     >

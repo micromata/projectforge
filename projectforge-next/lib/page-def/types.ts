@@ -299,6 +299,16 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Heading while adding one, e.g. `books.edit.newTitle`. */
   newTitleKey: string;
   savedMessageKey: string;
+  /**
+   * The field a *new* entry opens in. Defaults to the first one of the form (see
+   * [useFocusFirstField]).
+   *
+   * Named where the first field is not what the user came to type: an invoice starts in its subject,
+   * because its number is assigned by the backend on the transition out of "planned" and is editable
+   * only so a wrong one can be taken back — a form opening in it would invite a number nobody meant to
+   * give. Wicket said the same thing on the same form (`RechnungEditForm`, `WicketUtils.setFocus`).
+   */
+  autoFocus?: FieldNameOf<M>;
   sections: SectionDef<M>[];
   /**
    * Names of the writes the entity offers besides save — `["lendOut", "returnBook"]` for a book.

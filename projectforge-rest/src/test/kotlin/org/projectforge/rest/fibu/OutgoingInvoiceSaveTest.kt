@@ -49,11 +49,13 @@ import java.time.LocalDate
  * The invoice number a *new* invoice gets on the save — `RechnungEditPage.onSaveOrUpdate` in Wicket,
  * [OutgoingInvoiceEntityRest.onBeforeSave] here.
  *
- * Worth a test of its own because the number is the one field of an invoice that cannot be repaired: it is
- * read-only in the form, it comes from a database sequence, and [RechnungDao] refuses a new invoice whose
- * number is absent *or* not the next free one. So the two ways to be wrong are opposites — no number at all
- * ("Wert 'fibu.rechnung.nummer' nicht gegeben"), and a number handed out to something that must not carry
- * one.
+ * Worth a test of its own because the number is the one field of an invoice nobody types on the way in: it
+ * comes from a database sequence, and [RechnungDao] refuses a new invoice whose number is absent *or* not the
+ * next free one. So the two ways to be wrong are opposites — no number at all ("Wert 'fibu.rechnung.nummer'
+ * nicht gegeben"), and a number handed out to something that must not carry one.
+ *
+ * On the way *back* the field is the user's, as it is in Wicket: an invoice issued by mistake is set to
+ * planned again and its number removed, and the hook must not fill it in behind the user's back.
  *
  * Not in `RechnungDtoTest`: that one is about the DTO round trip and its two nested collections, while
  * everything here is about the save path and needs the dao.
@@ -115,9 +117,29 @@ class OutgoingInvoiceSaveTest : AbstractTestBase() {
         onBeforeSave(invoice)
 
         // Overwriting it would hide a mismatch that RechnungDao reports
-        // (fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend) - and the field is read-only in the form,
-        // so a number that is there came from the backend in the first place.
+        // (fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend) rather than report it.
         assertEquals(4711, invoice.nummer)
+    }
+
+    @Test
+    fun `the number removed from a stored invoice stays removed`() {
+        logon(TEST_FINANCE_USER)
+        val invoice = newInvoice()
+        onBeforeSave(invoice)
+        val id = rechnungDao.insert(invoice)
+
+        // The form the user takes an invoice issued by mistake back with: the number cleared and the status
+        // planned again (the field is editable for exactly this, see invoice.page.tsx).
+        val stored = rechnungDao.find(id)!!
+        stored.nummer = null
+        stored.status = RechnungStatus.GEPLANT
+        onBeforeSave(stored)
+
+        // `getNextNumber` would hand back the number this invoice still carries in the database, so filling
+        // one in here would silently undo the removal. Only a new invoice gets one from the hook.
+        assertNull(stored.nummer)
+        rechnungDao.update(stored)
+        assertNull(rechnungDao.find(id)?.nummer)
     }
 
     @Test

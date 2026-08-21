@@ -3,7 +3,7 @@
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import {
   downloadXRechnung,

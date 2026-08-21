@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAttachmentMutations } from "@/hooks/use-attachments";
 import { useAttachmentSelection } from "@/hooks/use-attachment-selection";

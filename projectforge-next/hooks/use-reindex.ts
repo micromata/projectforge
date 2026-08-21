@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { showResponseMessage } from "@/lib/dynamic/response-toast";
 import { reindexFull, reindexNewest } from "@/lib/rs/list-actions";
 import { useJobStore } from "@/store/job-store";

@@ -101,9 +101,10 @@ export const invoiceSchema = z.object({
   // null while the invoice is new — Spring assigns the id.
   id: z.number().nullable(),
   /**
-   * Read-only, and the one field deliberately taken away from validation: `RechnungDao` assigns it on the
-   * transition out of GEPLANT, and a `GUTSCHRIFTSANZEIGE_DURCH_KUNDEN` must have none at all. Requiring
-   * it here would refuse to save any planned invoice.
+   * The one field deliberately taken away from validation: `RechnungDao` assigns it on the transition out
+   * of GEPLANT, and a `GUTSCHRIFTSANZEIGE_DURCH_KUNDEN` must have none at all. Requiring it here would
+   * refuse to save any planned invoice — and clearing it is how an invoice issued by mistake is taken
+   * back, which is why the field is editable (see invoice.page.tsx).
    */
   nummer: z.number().nullable(),
   datum: m.nullableString("datum"),

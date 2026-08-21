@@ -79,6 +79,7 @@ export function SelectField({
         const raw = value == null ? "" : String(value);
         return (
           <FieldShell
+            name={name}
             label={label}
             required={required}
             hint={hint}

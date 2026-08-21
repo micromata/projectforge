@@ -168,6 +168,7 @@ export function NumberField({
         const invalid = meta.isTouched && !meta.isValid;
         return (
           <FieldShell
+            name={name}
             label={label}
             required={required}
             readOnly={disabled}

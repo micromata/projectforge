@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import type { EntityWriteResult } from "@/lib/rs/entity";
 import type { EntityForm } from "@/components/shared/form/form-context";
 import { applyServerValidationErrors } from "@/lib/validation/server-errors";

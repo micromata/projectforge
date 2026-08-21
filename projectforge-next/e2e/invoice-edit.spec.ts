@@ -348,6 +348,25 @@ test.describe("outgoing invoice edit", () => {
     ).toHaveValue(dateInput(format, "2026-03-07"));
   });
 
+  test("starts a new invoice in its subject, never in its number", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // Nothing is saved: where the cursor lands is the form's own doing (see the page's `autoFocus`).
+    await goto(page, "/invoice/new");
+    const subject = page.getByLabel(label(format, "fibu.rechnung.betreff"), {
+      exact: true,
+    });
+    await expect(subject).toBeVisible({ timeout: 60_000 });
+    // The number is the first field of the form and is editable, so it is the one the focus would fall
+    // into — but it is the backend's to assign, and a form opening in it invites a number nobody meant
+    // to give. Wicket started the same form in the subject.
+    await expect(subject).toBeFocused();
+    await expect(
+      page.getByLabel(label(format, "fibu.rechnung.nummer"), { exact: true })
+    ).not.toBeFocused();
+  });
+
   test("marks a paid amount far from the gross sum, and saves it anyway", async ({
     loggedInPage: page,
   }) => {

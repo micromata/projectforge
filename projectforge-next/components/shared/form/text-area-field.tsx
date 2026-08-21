@@ -34,6 +34,7 @@ export function TextAreaField({
         const raw = field.state.value as string | null;
         return (
           <FieldShell
+            name={name}
             label={label}
             required={required}
             hint={hint}

@@ -50,10 +50,23 @@ fun translateIfKey(i18nKey: String?): String? {
   return translate(null, i18nKey)
 }
 
+/**
+ * The message of a [UserException] in the user's language, params and all.
+ *
+ * A [org.projectforge.common.i18n.MessageParam] of type
+ * [org.projectforge.common.i18n.MessageParamType.I18N_KEY] is a key itself and is translated before it goes
+ * into the message — it is usually the label of the field the message is about
+ * ("Wert 'Rechnungsnummer' nicht gegeben"). Without that step `MessageFormat` inserts the param's
+ * `toString()`, i.e. the raw key ("Wert 'fibu.rechnung.nummer' nicht gegeben"). Wicket does the same in
+ * `AbstractSecuredBasePage.translateParams`, which is why the key only ever showed up on the REST side.
+ */
 fun translateMsg(ex: UserException): String {
-  ex.msgParams?.let {
-    if (!it.isNullOrEmpty()) {
-      return I18nHelper.getLocalizedMessage(ex.i18nKey, *it)
+  ex.msgParams?.let { msgParams ->
+    if (msgParams.isNotEmpty()) {
+      val params = msgParams.map { param ->
+        if (param.isI18nKey()) translate(param.i18nKey) else param.value
+      }
+      return I18nHelper.getLocalizedMessage(ex.i18nKey, *params.toTypedArray())
     }
   }
   ex.params?.let {

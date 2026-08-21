@@ -274,11 +274,17 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * status), and a [RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN] is the customer's document rather than
      * ours, so it must have none at all
      * (`fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben`). A number the client sent is
-     * left alone: the field is read-only in the form, and overwriting it would hide rather than report a
-     * mismatch, which [RechnungDao] checks for.
+     * left alone: overwriting it would hide rather than report a mismatch, which [RechnungDao] checks for.
+     *
+     * Only a *new* invoice, though — that is the whole gap this fills, and for a stored one the number is the
+     * user's to correct (editable in the form, as in Wicket): [RechnungDao.getNextNumber] would hand back the very
+     * number that is stored, so filling in here would silently undo the removal of a number issued by mistake.
+     * A stored invoice that stays issued and has none is [RechnungDao]'s to refuse
+     * (`validation.required.valueNotPresent`), which says what happened instead of hiding it.
      */
     override fun onBeforeSave(request: HttpServletRequest, obj: RechnungDO, postData: PostData<Rechnung>) {
-        if (obj.nummer == null &&
+        if (obj.id == null &&
+            obj.nummer == null &&
             obj.typ != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN &&
             obj.status != RechnungStatus.GEPLANT
         ) {
