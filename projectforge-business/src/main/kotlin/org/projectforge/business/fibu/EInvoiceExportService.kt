@@ -268,7 +268,8 @@ class EInvoiceExportService(
         if (invoice.datum == null) {
             errors.add(translate("fibu.rechnung.eInvoice.error.dateMissing"))
         }
-        if (invoice.positionen.isNullOrEmpty()) {
+        // Excluding deleted positions: an invoice whose only position was deleted has nothing to state.
+        if (invoice.positionenExcludingDeleted.isEmpty()) {
             errors.add(translate("fibu.rechnung.eInvoice.error.noPositions"))
         }
 
@@ -355,8 +356,9 @@ class EInvoiceExportService(
             mustangInvoice.setPaymentTermDescription(paymentTerms)
         }
 
-        // Line items
-        invoice.positionen?.forEach { pos ->
+        // Line items, without the positions marked as deleted: they are no part of the invoice, and a line for
+        // one would state an amount that no sum of the invoice contains ([RechnungCalculator] skips them).
+        invoice.positionenExcludingDeleted.forEach { pos ->
             mustangInvoice.addItem(buildItem(pos, invoice))
         }
 

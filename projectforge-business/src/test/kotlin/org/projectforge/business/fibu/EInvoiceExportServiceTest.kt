@@ -267,4 +267,29 @@ class EInvoiceExportServiceTest {
         assertNotNull(xml)
         assertTrue(xml.isNotEmpty())
     }
+
+    /**
+     * A deleted position is no line of the e-invoice: it is not part of any sum of the invoice
+     * ([RechnungCalculator] skips it), so a line for it would state an amount the totals don't contain.
+     */
+    @Test
+    fun exportSkipsDeletedPositions() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val invoice = createTestInvoice()
+        invoice.positionen!![1].deleted = true
+
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        assertTrue(xmlString.contains("Softwareentwicklung"), "The remaining position is a line of the e-invoice")
+        assertFalse(xmlString.contains("Projektmanagement"), "The deleted position is not")
+    }
+
+    /** An invoice whose only position was deleted has nothing to state, and says so instead of exporting. */
+    @Test
+    fun validateAllPositionsDeleted() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val invoice = createTestInvoice()
+        invoice.positionen!!.forEach { it.deleted = true }
+
+        assertTrue(service.validate(invoice).contains(eInvoiceError("noPositions")), "Should report missing positions")
+    }
 }

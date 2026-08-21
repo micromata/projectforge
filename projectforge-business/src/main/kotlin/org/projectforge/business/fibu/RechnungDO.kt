@@ -187,6 +187,21 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         get() = positionen
 
     /**
+     * The positions the invoice actually consists of, i.e. without the ones marked as deleted.
+     *
+     * What any document or sum of the invoice has to iterate: a deleted position stays in [positionen] (it is
+     * only flagged, so it can be restored and so its history survives), but it is no part of the invoice any
+     * more. [RechnungCalculator] skips it and therefore never fills its `info` — reading `position.info.netSum`
+     * of a deleted position throws, which is how a single deleted position used to make the Word and e-invoice
+     * exports fail altogether.
+     *
+     * @return The undeleted positions, empty if there are none.
+     */
+    val positionenExcludingDeleted: List<RechnungsPositionDO>
+        @Transient
+        get() = positionen?.filter { !it.deleted } ?: emptyList()
+
+    /**
      *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT
      */
     override val isValid: Boolean
