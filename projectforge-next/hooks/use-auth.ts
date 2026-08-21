@@ -12,7 +12,13 @@ export function useAuth() {
     queryKey: ["userStatus"],
     queryFn: ({ signal }) => fetchUserStatus(signal),
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    // A system alert message an admin sets now (a downtime announced for 13:00) has to reach a tab
+    // that is already open, so this query refetches when the tab regains focus and when a page
+    // change finds it stale - the global default is refetchOnWindowFocus: false (see QueryProvider).
+    // Deliberately no refetchInterval: every call touches the HTTP session, so a timer would keep
+    // an idle tab logged in forever.
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   // The user's backend locale wins over cookie/browser detection.
