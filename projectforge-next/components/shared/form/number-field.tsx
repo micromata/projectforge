@@ -276,10 +276,17 @@ function NumberBox({
       onChange(amount);
       return;
     }
-    // Not a number yet ("1,") keeps the text and the value it had, so nothing is lost while typing.
+    // Not a number yet ("-", ",") keeps the text and the value it had, so nothing is lost while
+    // typing. `shows: value` rather than `shows: null` — the render above rewrites the text whenever
+    // the two disagree, which would put the deleted digit back under the caret: backspacing "-20" to
+    // "-" would read as "still -20" and reappear as "-20".
     const parsed = parseNumberInput(typed, ctx);
+    if (parsed === null) {
+      setOwn({ text: typed, shows: value });
+      return;
+    }
     setOwn({ text: typed, shows: parsed });
-    if (parsed !== null) onChange(parsed);
+    onChange(parsed);
   };
 
   return (
