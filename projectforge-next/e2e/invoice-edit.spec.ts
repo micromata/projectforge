@@ -348,6 +348,83 @@ test.describe("outgoing invoice edit", () => {
     ).toHaveValue(dateInput(format, "2026-03-07"));
   });
 
+  test("marks a paid amount far from the gross sum, and saves it anyway", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [
+        { number: 1, text: `${SUBJECT} 1`, menge: 1, einzelNetto: 1000 },
+      ]);
+      // The server's gross sum, not one multiplied here: the VAT rate is the seed's and the rounding is
+      // `RechnungCalculator`'s (see the case on the sums line above).
+      const { grossSum } = await fetchInvoice(page, id);
+      if (grossSum == null) {
+        throw new Error("The seeded invoice came back without a gross sum");
+      }
+      await goto(page, `/invoice/${id}`);
+
+      const paid = page.getByLabel(label(format, "fibu.rechnung.zahlBetrag"), {
+        exact: true,
+      });
+      await expect(paid).toBeVisible({ timeout: 60_000 });
+      const warning = page.locator('[data-tone="warning"]');
+
+      // The date belongs to the amount, and the backend insists on it:
+      // `AuftragAndRechnungDaoHelper.validateBezahlDatumAndZahlBetrag` refuses one without the other,
+      // which would make the save below fail for a reason that has nothing to do with the warning.
+      const paidDate = page.getByLabel(
+        label(format, "fibu.rechnung.bezahlDatum"),
+        { exact: true }
+      );
+      await paidDate.fill(dateInput(format, "2026-03-10"));
+      await paidDate.press("Enter");
+
+      // What the invoice asks for passes without a word.
+      await typeNumber(paid, formatNumberInput(grossSum, format.context, 2));
+      await paid.blur();
+      await expect(warning).toHaveCount(0);
+
+      // A digit too many — the keying error this exists for. The sums are debounced and fetched, so the
+      // message arrives a moment later; naming the gross sum is what makes it checkable.
+      await typeNumber(
+        paid,
+        formatNumberInput(grossSum * 10, format.context, 2)
+      );
+      await paid.blur();
+      await expect(warning).toHaveText(
+        format.t("fibu.rechnung.zahlBetrag.warning.deviation", {
+          arg0: currency(format, grossSum),
+        })
+      );
+
+      // And it is a hint, not a gate: the amount may well be right, so the save goes through and the
+      // form leaves for the list.
+      await page
+        .getByRole("button", { name: format.t("save"), exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/invoice$/);
+      expect((await fetchInvoice(page, id)).zahlBetrag).toBeCloseTo(
+        grossSum * 10,
+        2
+      );
+
+      // And it is there again when the invoice is opened later, without anybody typing into the field:
+      // an amount that was saved wrong stays wrong, so what the form says about it cannot depend on the
+      // box having been touched in this session.
+      await goto(page, `/invoice/${id}`);
+      await expect(warning).toHaveText(
+        format.t("fibu.rechnung.zahlBetrag.warning.deviation", {
+          arg0: currency(format, grossSum),
+        }),
+        { timeout: 60_000 }
+      );
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
   test("opens a clone as a new invoice, positions and unsaved edits included", async ({
     loggedInPage: page,
   }) => {

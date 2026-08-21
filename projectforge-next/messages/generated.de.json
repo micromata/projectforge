@@ -881,7 +881,10 @@
       },
       "zahlBetrag": {
         "_": "Zahlbetrag",
-        "short": "Bezahlt"
+        "short": "Bezahlt",
+        "warning": {
+          "deviation": "Der Zahlbetrag weicht um mehr als 10 % vom Bruttobetrag ({arg0}) ab. Bitte prüfen."
+        }
       },
       "zahlungsZiel": {
         "_": "Zahlungsziel",

@@ -881,7 +881,10 @@
       },
       "zahlBetrag": {
         "_": "Paid amount",
-        "short": "Paid"
+        "short": "Paid",
+        "warning": {
+          "deviation": "The paid amount differs by more than 10% from the gross amount ({arg0}). Please check."
+        }
       },
       "zahlungsZiel": {
         "_": "Payment target",

@@ -51,6 +51,7 @@ export function FieldShell({
   hint,
   invalid,
   errors,
+  warning,
   className,
   ids,
   children,
@@ -62,6 +63,8 @@ export function FieldShell({
   hint?: string;
   invalid: boolean;
   errors: string[];
+  /** Something off about an otherwise valid value — see the field prop passing it in. */
+  warning?: string;
   className?: string;
   ids: FieldIds;
   children: ReactNode;
@@ -93,6 +96,15 @@ export function FieldShell({
       {children}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
+      )}
+      {/* Below the error, and only while there is none: a rule the value breaks is the harder statement,
+          and two sentences under one box read as one confused one. Not a `FieldError` and not part of
+          `data-invalid` — the value is valid, and saying otherwise would mark a field the form is
+          perfectly willing to save. `data-tone` names the tone for a test, as [FormAlert] does. */}
+      {!invalid && warning && (
+        <p data-tone="warning" className="text-xs text-warning">
+          {warning}
+        </p>
       )}
     </Field>
   );

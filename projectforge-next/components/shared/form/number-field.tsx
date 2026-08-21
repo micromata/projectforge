@@ -85,6 +85,16 @@ export interface NumberFieldProps extends BaseFieldProps {
    * Gets the stored value, i.e. the factor for a `percent` box, not the percentage shown.
    */
   onChanged?: (next: number | null) => void;
+  /**
+   * Something worth saying about a value that is nonetheless allowed — an invoice's paid amount sitting
+   * far from its gross sum (see `PaymentTermsFields`).
+   *
+   * Deliberately not a schema rule: what this catches is a keying error, and a keying error is a
+   * suspicion, not a violation. A Zod message would refuse the save, and a deliberate part payment is
+   * not something to be refused. Shown under the box, in the warning tone, and gone as soon as the
+   * caller passes undefined.
+   */
+  warning?: string;
 }
 
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
@@ -142,6 +152,7 @@ export function NumberField({
   percent,
   shareOf,
   onChanged,
+  warning,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -163,6 +174,7 @@ export function NumberField({
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
+            warning={warning}
             className={className}
             ids={ids}
           >
