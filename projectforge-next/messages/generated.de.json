@@ -750,6 +750,7 @@
       "discount": "Skonto (Datum und %-Wert)",
       "discountMaturity": "Skonto Fälligkeit",
       "discountPercent": "Skonto Prozent",
+      "discountZahlungsZiel": "Skonto Zahlungsziel",
       "eInvoice": {
         "createAndOpen": "Anlegen und E-Rechnung",
         "error": {

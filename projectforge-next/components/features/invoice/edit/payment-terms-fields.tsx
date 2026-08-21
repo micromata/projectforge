@@ -24,20 +24,32 @@ const DERIVED_TARGETS = [
  *
  * Custom rather than declared because of one rule between fields: a payment target in days and the date
  * it leads to say the same thing twice, so the two are kept on each other here — entering days moves the
- * date, moving the date rewrites the days. Both are always shown, unlike `AbstractRechnungEditForm`,
- * which hides the days behind a read-only text once a date is there: they are the number an invoice is
- * actually agreed in ("30 days net"), the number a clone is rebuilt from
- * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`), and hiding them left an opened invoice looking as
- * if it had no payment term at all.
+ * date, moving the date rewrites the days.
+ *
+ * The days are typed only while the invoice is **new**, and read what the dates say from then on — the same
+ * split as `AbstractRechnungEditForm` (a dropdown while the date is empty, a read-only text after that), and
+ * for its reason: from the second the invoice has dates, those are what it is judged by, and the days are the
+ * formula they came out of. They stay on screen and stay part of what is saved, because they are the number
+ * an invoice is actually agreed in ("30 days net") and the number a clone is rebuilt from
+ * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`) — hiding them left an opened invoice looking as if it
+ * had no payment term at all.
  *
  * The days are free to type rather than picked from Wicket's `ZAHLUNGSZIELE_IN_TAGEN` list: every term
  * that list doesn't happen to contain is as valid as the five that are on it.
  */
-export function PaymentTermsFields({ className }: { className?: string }) {
+export function PaymentTermsFields({
+  id,
+  className,
+}: {
+  /** The stored invoice, or null while adding one — which is when the days are a formula, see above. */
+  id: number | null;
+  className?: string;
+}) {
   const t = useTranslations();
   const label = useFieldLabels(RECHNUNG_METADATA);
   const format = useFormatContext();
   const form = useEntityEditForm();
+  const isNew = id == null;
 
   // The invoice date and the two dates derived from it; everything else here re-renders on its own
   // field's change.
@@ -100,6 +112,7 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         suffix={t("days")}
         // A term is counted in days, and no term needs four digits.
         maxDigits={3}
+        disabled={!isNew}
         onChanged={(days) => moveDate("faelligkeit", days)}
       />
       <InputField
@@ -115,6 +128,7 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         label={label("discountZahlungsZielInTagen")}
         suffix={t("days")}
         maxDigits={3}
+        disabled={!isNew}
         onChanged={(days) => moveDate("discountMaturity", days)}
       />
       <NumberField

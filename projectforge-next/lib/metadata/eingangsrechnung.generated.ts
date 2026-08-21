@@ -72,7 +72,7 @@ export const EINGANGSRECHNUNG_METADATA = {
     },
     discountZahlungsZielInTagen: {
       dataType: "INT",
-      i18nKey: "fibu.rechnung.zahlungsZiel",
+      i18nKey: "fibu.rechnung.discountZahlungsZiel",
       required: false,
     },
     faelligkeit: {

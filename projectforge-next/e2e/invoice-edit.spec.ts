@@ -258,7 +258,7 @@ test.describe("outgoing invoice edit", () => {
     }
   });
 
-  test("keeps a payment target in days and the date it leads to on each other", async ({
+  test("reads the payment target of a stored invoice off its dates, and lets nobody type it", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -279,48 +279,73 @@ test.describe("outgoing invoice edit", () => {
       await expect(due).toHaveValue(dateInput(format, "2026-04-01"), {
         timeout: 60_000,
       });
-      // Both day counts carry the same label „Zahlungsziel" (`RECHNUNG_METADATA`), so they are told
-      // apart by their order: the due date's comes first, the discount's follows its own date.
-      const targets = page.getByLabel(
-        label(format, "fibu.rechnung.zahlungsZiel"),
-        { exact: true }
-      );
-      await expect(targets).toHaveCount(2);
-      const term = targets.first();
+
+      // One box per label, the discount's day count carrying its own („Skonto Zahlungsziel",
+      // `AbstractRechnungDO.discountZahlungsZielInTagen`): the two used to share the key of the due date's,
+      // which put the same label twice into one grid.
+      const term = paymentTerm(page, format);
+      const discountTerm = discountPaymentTerm(page, format);
+      await expect(term).toHaveCount(1);
+      await expect(discountTerm).toHaveCount(1);
 
       // Derived from the two dates, although the payload carries no day count at all — that it stayed
       // empty here was the defect behind `toFormValues` deriving it (see PaymentTermsFields).
       await expect(term).toHaveValue(dayCount(format, 30));
-
-      // And the other direction: a term typed in days moves the date the invoice is judged by, because
-      // the backend derives it only while it is empty (`AuftragAndRechnungDaoHelper.onSaveOrModify`).
-      await typeNumber(term, "10");
-      await expect(due).toHaveValue(dateInput(format, "2026-03-12"));
-
-      // The date rewrites the days, so what the two boxes say stays one term. Committed with Enter,
-      // which also closes the calendar the field opens on focus (see DateInput).
-      await due.fill(dateInput(format, "2026-03-04"));
-      await due.press("Enter");
-      await expect(term).toHaveValue(dayCount(format, 2));
-
-      // An emptied box leaves the date standing: deleting the number is how one is retyped, and the
-      // due date of an invoice must not fall over a keystroke.
-      await typeNumber(term, "");
-      await term.blur();
-      await expect(due).toHaveValue(dateInput(format, "2026-03-04"));
-
-      // The discount's pair is wired the same way, and starts empty because no discount date is stored.
-      const discountTerm = targets.nth(1);
-      await expect(discountTerm).toHaveValue("");
-      await typeNumber(discountTerm, "5");
-      await expect(
-        page.getByLabel(label(format, "fibu.rechnung.discountMaturity"), {
-          exact: true,
-        })
-      ).toHaveValue(dateInput(format, "2026-03-07"));
+      // And nothing to type into: the dates are what a stored invoice is judged by, the days the formula
+      // they came out of. Wicket shows a read-only text here for the same reason.
+      await expect(term).toBeDisabled();
+      await expect(discountTerm).toBeDisabled();
     } finally {
       await removeInvoice(page, id);
     }
+  });
+
+  test("keeps the payment target of a new invoice and the date it leads to on each other", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // Nothing is saved here, so nothing has to be removed: the two directions are the form's own doing.
+    await goto(page, "/invoice/new");
+    const date = page.getByLabel(label(format, "fibu.rechnung.datum"), {
+      exact: true,
+    });
+    await expect(date).toBeVisible({ timeout: 60_000 });
+    // The day counts are counted from this one, so it comes first — a new invoice starts without it.
+    await date.fill(dateInput(format, "2026-03-02"));
+    await date.press("Enter");
+
+    const due = page.getByLabel(label(format, "fibu.rechnung.faelligkeit"), {
+      exact: true,
+    });
+    const term = paymentTerm(page, format);
+
+    // A term typed in days moves the date the invoice will be judged by. The backend derives it only
+    // while it is empty (`AuftragAndRechnungDaoHelper.onSaveOrModify`), so a term changed later would
+    // otherwise leave the old date standing.
+    await typeNumber(term, "10");
+    await expect(due).toHaveValue(dateInput(format, "2026-03-12"));
+
+    // The date rewrites the days, so what the two boxes say stays one term. Committed with Enter,
+    // which also closes the calendar the field opens on focus (see DateInput).
+    await due.fill(dateInput(format, "2026-03-04"));
+    await due.press("Enter");
+    await expect(term).toHaveValue(dayCount(format, 2));
+
+    // An emptied box leaves the date standing: deleting the number is how one is retyped, and the
+    // due date of an invoice must not fall over a keystroke.
+    await typeNumber(term, "");
+    await term.blur();
+    await expect(due).toHaveValue(dateInput(format, "2026-03-04"));
+
+    // The discount's pair is wired the same way, and starts empty because no discount date is set.
+    const discountTerm = discountPaymentTerm(page, format);
+    await expect(discountTerm).toHaveValue("");
+    await typeNumber(discountTerm, "5");
+    await expect(
+      page.getByLabel(label(format, "fibu.rechnung.discountMaturity"), {
+        exact: true,
+      })
+    ).toHaveValue(dateInput(format, "2026-03-07"));
   });
 
   test("opens a clone as a new invoice, positions and unsaved edits included", async ({
@@ -496,4 +521,18 @@ function dateInput(format: UserFormat, iso: string): string {
 /** A day count as its box writes it: a whole number, ungrouped (see formatNumberInput). */
 function dayCount(format: UserFormat, days: number): string {
   return formatNumberInput(days, format.context);
+}
+
+/** Days from the invoice date to the due date (see PaymentTermsFields). */
+function paymentTerm(page: Page, format: UserFormat) {
+  return page.getByLabel(label(format, "fibu.rechnung.zahlungsZiel"), {
+    exact: true,
+  });
+}
+
+/** Days from the invoice date to the discount date — its own label, unlike [paymentTerm]'s. */
+function discountPaymentTerm(page: Page, format: UserFormat) {
+  return page.getByLabel(label(format, "fibu.rechnung.discountZahlungsZiel"), {
+    exact: true,
+  });
 }

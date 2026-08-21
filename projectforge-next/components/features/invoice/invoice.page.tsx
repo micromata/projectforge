@@ -270,7 +270,7 @@ export const INVOICE_PAGE = definePage<
       {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
-        render: () => <PaymentTermsFields />,
+        render: ({ id }) => <PaymentTermsFields id={id} />,
       },
       {
         id: "positions",

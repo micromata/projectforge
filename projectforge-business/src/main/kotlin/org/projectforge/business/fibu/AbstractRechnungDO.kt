@@ -86,10 +86,12 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung, DisplayNameCapab
      * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
      * werden.
      *
-     * Shares the i18n key of [zahlungsZielInTagen]: it is the same kind of value, and which of the two a form
-     * shows follows from where it stands (next to [discountMaturity] here).
+     * Its own i18n key rather than the one of [zahlungsZielInTagen], although it is the same kind of value: a
+     * form showing both ends up with the same label twice, and "which of the two is meant" then rests on the
+     * field beside it — which the reader has to work out (see PaymentTermsFields, where the two stand in one
+     * grid). Wicket doesn't show this label at all, its discount fields sitting in a fieldset of their own.
      */
-    @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
+    @PropertyInfo(i18nKey = "fibu.rechnung.discountZahlungsZiel")
     @get:Transient
     open var discountZahlungsZielInTagen: Int? = null
 

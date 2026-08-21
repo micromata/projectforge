@@ -136,14 +136,19 @@ export const invoiceSchema = z.object({
   periodOfPerformanceEnd: m.nullableString("periodOfPerformanceEnd"),
   faelligkeit: m.nullableString("faelligkeit"),
   /**
-   * Days from `datum` to the due date. A transient property of the entity, not a column: the backend
-   * derives `faelligkeit` from it (`AuftragAndRechnungDaoHelper.onSaveOrModify`), which is why the form
-   * offers it only while `faelligkeit` is empty — as `AbstractRechnungEditForm` does.
+   * Days from `datum` to the due date and to the discount date. Transient properties of the entity, not
+   * columns: the backend derives the dates from them while those are empty
+   * (`AuftragAndRechnungDaoHelper.onSaveOrModify`) and a clone is rebuilt from them
+   * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`), which is why the form only lets them be typed for a
+   * new invoice and shows what the dates say afterwards (see PaymentTermsFields).
+   *
+   * Deliberately **unbounded**, although a term of negative days is nothing anybody agrees on: for a stored
+   * invoice these are read *off the dates*, and a discount date before the invoice date is in the data (an
+   * invoice written after the fact). A `min: 0` then reported an error at a box the user cannot even edit,
+   * and blocked every save and every e-invoice export of that invoice. The entity has no such rule either.
    */
-  zahlungsZielInTagen: m.intField("zahlungsZielInTagen", { min: 0 }),
-  discountZahlungsZielInTagen: m.intField("discountZahlungsZielInTagen", {
-    min: 0,
-  }),
+  zahlungsZielInTagen: m.intField("zahlungsZielInTagen"),
+  discountZahlungsZielInTagen: m.intField("discountZahlungsZielInTagen"),
   discountPercent: m.decimalField("discountPercent"),
   discountMaturity: m.nullableString("discountMaturity"),
   bezahlDatum: m.nullableString("bezahlDatum"),
