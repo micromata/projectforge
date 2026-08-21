@@ -46,6 +46,11 @@ export interface InvoiceOptions {
   subject: string;
   /** The project the invoice is written for, by id — see [findProjectsWithKost2]. */
   projectId?: number;
+  /**
+   * Due date as `yyyy-MM-dd`, for the case that reads the payment target *derived* from it. Left out
+   * otherwise: `zahlungsZielInTagen` is `@Transient`, so an invoice stores the date and nothing else.
+   */
+  faelligkeit?: string;
 }
 
 /**
@@ -72,6 +77,9 @@ export async function createInvoice(
         status: "GEPLANT",
         typ: "RECHNUNG",
         datum: "2026-03-02",
+        ...(options.faelligkeit == null
+          ? {}
+          : { faelligkeit: options.faelligkeit }),
         betreff: options.subject,
         // Required, not decoration: a position of type SEEABOVE - the default - refers to the invoice's
         // period, which makes the invoice's begin date mandatory (`PeriodOfPerformanceValidator`, and
