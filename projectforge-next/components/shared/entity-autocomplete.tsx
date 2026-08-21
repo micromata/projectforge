@@ -86,7 +86,12 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
         if (!next) setSearch("");
       }}
     >
-      <div className={cn("flex items-center gap-1", className)}>
+      {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
+          minimum size is its content, so the trigger would hold the width of the *whole* entity name
+          however narrow its field is and push the reset button out of it — onto the field beside it,
+          since a row of fields (a cost assignment) has nothing between the columns. The name is
+          `truncate`d, but only within a box that was allowed to become narrower than it. */}
+      <div className={cn("flex min-w-0 items-center gap-1", className)}>
         <PopoverTrigger asChild>
           <Button
             id={id}
@@ -96,7 +101,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-expanded={open}
             aria-label={ariaLabel}
             autoFocus={autoFocus}
-            className="h-8 flex-1 justify-between px-2 text-xs font-normal"
+            className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
               {value?.displayName ?? t("filter.chooseEntity")}
@@ -114,7 +119,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
               onChange(null);
             }}
             aria-label={`${t("reset")}: ${ariaLabel ?? value.displayName}`}
-            className="cursor-pointer text-muted-foreground hover:text-foreground"
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
