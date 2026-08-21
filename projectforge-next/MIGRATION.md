@@ -1512,6 +1512,17 @@ für die Rechnung:
   der HTTP-Session (Schlüssel ist die _PagesRest_-Klasse, TTL 60 min) – das
   braucht Sticky Sessions.
 
+**Prozenteingabe im Netto-Feld einer Kostzuweisung** kam nachgeliefert: „50 %" teilt die
+Position, wie Wickets `CurrencyConverter` mit der Positionssumme als Total es tut. Sie
+sitzt in `NumberField` (`shareOf`), nicht in der Rechnung – der Konverter ist auch in
+Wicket allgemein, heute aber nur an dieser einen Stelle mit einem Total versehen
+(`RechnungCostEditTablePanel`). Zwei Dinge waren dabei zu klären: `parseNumberInput`
+verschluckte ein „%" bisher stillschweigend und las „50 %" als 50, deshalb ist der Fall
+mit `parsePercentInput` jetzt ausdrücklich; und die Basis kommt aus der debounced
+Serverantwort (`useInvoiceSums`), die zwischen zwei Tastendrücken kurz leer wäre – daher
+`keepPreviousData` dort und ein `shareOf`, das eine fehlende Basis von „nimmt keinen
+Anteil" unterscheidet: ohne Basis bleibt die Eingabe stehen, statt zu 50 € zu werden.
+
 **Verifikation.** Die e2e-Suite läuft gegen die lokale Instanz (`E2E_BASE_URL`), das
 Testkonto hat `FIBU_AUSGANGSRECHNUNGEN`. Abgedeckt sind Liste, Formular, Positionen,
 Kostzuweisungen inklusive Fehlbetrag und Kost2-Warnung, Anhänge, Rechnungs-PDF und
@@ -1522,9 +1533,6 @@ verbraucht eine Rechnungsnummer.
 
 **Was bewusst offen bleibt:**
 
-- **Prozenteingabe im Netto-Feld einer Kostzuweisung.** Wicket akzeptiert dort „50 %"
-  und rechnet gegen die Positionssumme; next nimmt nur einen Betrag. Entscheidung des
-  Anwenders, nicht Teil des Releases.
 - **`AccessException` beim Speichern liefert HTTP 200 plus Toast** und wird von
   `hooks/use-entity-edit-form.ts` als Erfolg gelesen – der Benutzer sieht die Meldung,
   das Formular verhält sich aber als sei gespeichert worden. Das ist keine Eigenheit

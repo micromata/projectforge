@@ -212,6 +212,11 @@
   "create": "Create",
   "created": "created",
   "createdBy": "created by",
+  "currencyConverter": {
+    "percentage": {
+      "help": "You can enter amounts as well as percent values (e.g. 10%)."
+    }
+  },
   "datatable": {
     "no-records-found": "No records were found."
   },

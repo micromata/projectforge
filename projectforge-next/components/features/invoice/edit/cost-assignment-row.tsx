@@ -111,6 +111,10 @@ export function CostAssignmentRow({
           fractionDigits={2}
           suffix={format.currency}
           align="right"
+          // "50 %" splits the position in half, as it does in Wicket's cost table — the base is the
+          // position's net sum, the very number this row's share is measured against below.
+          shareOf={{ amount: positionNetSum }}
+          hint={t("currencyConverter.percentage.help")}
           className="min-w-0 flex-1 basis-32"
         />
         {/* Behind the amount, as in Wicket's table: kost 1, kost 2, amount, then the share it is. */}

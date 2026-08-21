@@ -16,7 +16,9 @@ import { LOCALES, MESSAGES } from "./config";
 const ENTITY_MODULES: Record<
   string,
   Record<string, unknown>
-> = import.meta.glob("../lib/metadata/*.generated.ts", { eager: true });
+> = import.meta.glob("../lib/metadata/*.generated.ts", {
+  eager: true,
+}) as Record<string, Record<string, unknown>>;
 
 /**
  * The keys a renderer hands to `t()` without a metadata field behind them, against the real catalogs.

@@ -74,6 +74,22 @@ export function parseNumberInput(
 }
 
 /**
+ * The percentage a text asks for, or null when it asks for none — "50 %" is 50, "50" is null.
+ *
+ * Only a **trailing** percent sign counts, as in Wicket's `CurrencyConverter`: it is the one place a
+ * number can be qualified without becoming ambiguous, and it is what a user has typed there for years.
+ * What the percentage is *of* is not this function's business — see [NumberFieldProps.shareOf].
+ */
+export function parsePercentInput(
+  text: string,
+  ctx: FormatContext
+): number | null {
+  const trimmed = text.trim();
+  if (!trimmed.endsWith("%")) return null;
+  return parseNumberInput(trimmed.slice(0, -1), ctx);
+}
+
+/**
  * The text an input shows for a number, in the locale's layout.
  *
  * @param fractionDigits Digits after the separator, e.g. 2 for an amount. Undefined keeps what the

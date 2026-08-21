@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
+import { typeNumber } from "./fixtures/form";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import {
   createInvoice,
@@ -9,7 +10,11 @@ import {
 } from "./fixtures/invoice";
 import { listRows } from "./fixtures/list-table";
 import { MARKER } from "./fixtures/seed";
-import { formatCurrency, type FormatContext } from "../lib/format";
+import {
+  formatCurrency,
+  formatPercentageDecimal,
+  type FormatContext,
+} from "../lib/format";
 import { formatNumberInput } from "../lib/number-parse";
 import type { FilterElement } from "../lib/rs/types";
 
@@ -194,6 +199,57 @@ test.describe("invoice cost assignment form", () => {
     }
   });
 
+  test("takes a percentage in the net amount and books that share of the position", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    let id: number | null = null;
+    try {
+      id = await createInvoice(page, [{ ...POSITION, text: `${SUBJECT} 1` }], {
+        subject: SUBJECT,
+      });
+      await goto(page, `/invoice/${id}`);
+      const row = await openStoredPosition(page, format);
+      // The net sum first: a share is a share *of* it, and it is the server's answer (see
+      // useInvoiceSums), debounced. A user reads it before splitting the position; a test that types
+      // faster than the first answer arrives would be measuring the debounce.
+      await expect(
+        row.locator("dd").filter({
+          hasText: formatCurrency(POSITION.einzelNetto, format.context),
+        })
+      ).toBeVisible();
+      await row
+        .getByRole("button", {
+          name: format.t("fibu.rechnung.tooltip.addKostZuweisung"),
+        })
+        .click();
+
+      // The share entered instead of the amount — Wicket's `CurrencyConverter` with the position's net
+      // sum as its total, and the reason this case exists at all (it was the one thing the migrated
+      // form could not do).
+      const netto = row.getByLabel(label(format, "fibu.common.netto"), {
+        exact: true,
+      });
+      // Typed over the proposed amount rather than `fill`ed — see [typeNumber], which is why.
+      await typeNumber(netto, "50%");
+      // On blur the box writes the amount it stands for, as the converter does after Wicket's ajax:
+      // half of the 1.000 € the position is worth, in the account's own layout.
+      await netto.blur();
+      await expect(netto).toHaveValue(
+        formatNumberInput(POSITION.einzelNetto / 2, format.context, 2, true)
+      );
+
+      // And the share beside it says the same thing, which is what was typed.
+      await expect(
+        row.getByText(formatPercentageDecimal(0.5, format.context, 0), {
+          exact: true,
+        })
+      ).toBeVisible();
+    } finally {
+      await removeInvoice(page, id);
+    }
+  });
+
   test("proposes a cost unit of the invoice's project, and warns about a foreign one", async ({
     loggedInPage: page,
   }) => {
@@ -212,18 +268,7 @@ test.describe("invoice cost assignment form", () => {
       });
       await goto(page, `/invoice/${id}`);
 
-      // A stored position opens folded (see PositionRow), so it has to be unfolded before its cost
-      // assignments are reachable at all.
-      const row = page
-        .locator("section", {
-          has: page.getByText(format.t("fibu.rechnung.positions"), {
-            exact: true,
-          }),
-        })
-        .locator('[data-slot="collapsible"]')
-        .first();
-      await expect(row).toBeVisible({ timeout: 60_000 });
-      await row.locator('[data-slot="collapsible-trigger"]').click();
+      const row = await openStoredPosition(page, format);
       await row
         .getByRole("button", {
           name: format.t("fibu.rechnung.tooltip.addKostZuweisung"),
@@ -262,6 +307,22 @@ test.describe("invoice cost assignment form", () => {
 
 /** One position of 1.000 € net — enough for a cost assignment to be proposed an amount. */
 const POSITION = { number: 1, menge: 1, einzelNetto: 1000 };
+
+/**
+ * The invoice's first position, unfolded: a stored one opens folded (see `PositionRow`), so its cost
+ * assignments are not reachable before it is opened.
+ */
+async function openStoredPosition(page: Page, format: UserFormat) {
+  const row = page
+    .locator("section", {
+      has: page.getByText(format.t("fibu.rechnung.positions"), { exact: true }),
+    })
+    .locator('[data-slot="collapsible"]')
+    .first();
+  await expect(row).toBeVisible({ timeout: 60_000 });
+  await row.locator('[data-slot="collapsible-trigger"]').click();
+  return row;
+}
 
 /**
  * A VAT rate as it stands in its box, from the factor the backend holds: 0.19 → "19,00".
