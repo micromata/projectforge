@@ -57,7 +57,10 @@ class TaskServicesRestTest : AbstractTestBase() {
 
     @Test
     fun `the preview resolves an unsaved black white list`() {
-        persistenceService.runInTransaction { _ ->
+        // Only the writes are in the transaction: the preview reads through KostCache/ProjektCache, and
+        // ProjektCache.refresh loads on a second connection (runIsolatedReadOnly). Against an uncommitted
+        // writer on the same tables that deadlocks, so the assertions run after the commit.
+        val (task, kost2a, orphan) = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             val task = initTestDB.addTask("kost2Preview", "root")
             val projekt = ProjektDO()
@@ -69,56 +72,58 @@ class TaskServicesRestTest : AbstractTestBase() {
             // 4.234.07.01 and 4.234.07.02 of that project.
             val kost2a = insertKost2(projektDao.find(projektId)!!, 1)
             insertKost2(projektDao.find(projektId)!!, 2)
-            kostCache.setExpired()
-
-            // No list at all: every active cost unit of the project.
-            preview(task.id).let {
-                assertEquals("4.234.07", it.projektKost)
-                assertEquals("4.234.07.0*", it.kost2WildCard)
-                assertEquals(2, lines(it.kost2ListAsLines).size)
-            }
-            // A white list picks, a black list drops - the suffix match of TaskTree.getKost2List.
-            preview(task.id, kost2BlackWhiteList = "01").let {
-                assertEquals("4.234.07.01", it.kost2WildCard)
-                assertEquals(1, lines(it.kost2ListAsLines).size)
-            }
-            preview(task.id, kost2BlackWhiteList = "01", kost2IsBlackList = true).let {
-                assertEquals("4.234.07.02", it.kost2WildCard)
-            }
-            // "*" as a black list drops everything, so there is nothing left to resolve.
-            preview(task.id, kost2BlackWhiteList = "*", kost2IsBlackList = true).let {
-                assertNull(it.kost2WildCard)
-                assertNull(it.kost2ListAsLines)
-            }
-            // The list is answered normalized and sorted, as TaskHelper does it on save.
-            assertEquals(
-                ".89,02,4.234.07.01",
-                preview(task.id, kost2BlackWhiteList = "4.234.07.01, 02;  .89, 02").kost2BlackWhiteList,
-            )
-
-            // A picked cost unit is abbreviated to its two Kost2Art digits, because its number starts with
-            // the project's kost - TaskHelper.addKost2.
-            assertEquals("01", preview(task.id, addKost2Id = kost2a.id).kost2BlackWhiteList)
-            // The other branch: no id, but a parent. Then the whole number is appended, even though the
-            // project resolves to the same one. A TypeScript copy would not have guessed this.
-            assertEquals(
-                "4.234.07.01",
-                preview(id = null, parentTaskId = task.id, addKost2Id = kost2a.id).kost2BlackWhiteList,
-            )
-            // Still the parent's project, so the block shows the same units.
-            assertEquals("4.234.07", preview(id = null, parentTaskId = task.id).projektKost)
-
-            // A task without any project: nothing to resolve, and a white list of numbers is taken as it is.
+            // A task without any project, for the last two assertions.
             val orphan = initTestDB.addTask("kost2PreviewOrphan", "root")
-            preview(orphan.id).let {
-                assertNull(it.projektKost)
-                assertNull(it.kost2WildCard)
-            }
-            preview(orphan.id, kost2BlackWhiteList = "4.234.07.01").let {
-                assertNull(it.projektKost)
-                assertEquals("4.234.07.01", it.kost2WildCard)
-            }
-            null
+            Triple(task, kost2a, orphan)
+        }
+        kostCache.setExpired()
+        logon(TEST_FINANCE_USER)
+
+        // No list at all: every active cost unit of the project.
+        preview(task.id).let {
+            assertEquals("4.234.07", it.projektKost)
+            assertEquals("4.234.07.0*", it.kost2WildCard)
+            assertEquals(2, lines(it.kost2ListAsLines).size)
+        }
+        // A white list picks, a black list drops - the suffix match of TaskTree.getKost2List.
+        preview(task.id, kost2BlackWhiteList = "01").let {
+            assertEquals("4.234.07.01", it.kost2WildCard)
+            assertEquals(1, lines(it.kost2ListAsLines).size)
+        }
+        preview(task.id, kost2BlackWhiteList = "01", kost2IsBlackList = true).let {
+            assertEquals("4.234.07.02", it.kost2WildCard)
+        }
+        // "*" as a black list drops everything, so there is nothing left to resolve.
+        preview(task.id, kost2BlackWhiteList = "*", kost2IsBlackList = true).let {
+            assertNull(it.kost2WildCard)
+            assertNull(it.kost2ListAsLines)
+        }
+        // The list is answered normalized and sorted, as TaskHelper does it on save.
+        assertEquals(
+            ".89,02,4.234.07.01",
+            preview(task.id, kost2BlackWhiteList = "4.234.07.01, 02;  .89, 02").kost2BlackWhiteList,
+        )
+
+        // A picked cost unit is abbreviated to its two Kost2Art digits, because its number starts with
+        // the project's kost - TaskHelper.addKost2.
+        assertEquals("01", preview(task.id, addKost2Id = kost2a.id).kost2BlackWhiteList)
+        // The other branch: no id, but a parent. Then the whole number is appended, even though the
+        // project resolves to the same one. A TypeScript copy would not have guessed this.
+        assertEquals(
+            "4.234.07.01",
+            preview(id = null, parentTaskId = task.id, addKost2Id = kost2a.id).kost2BlackWhiteList,
+        )
+        // Still the parent's project, so the block shows the same units.
+        assertEquals("4.234.07", preview(id = null, parentTaskId = task.id).projektKost)
+
+        // A task without any project: nothing to resolve, and a white list of numbers is taken as it is.
+        preview(orphan.id).let {
+            assertNull(it.projektKost)
+            assertNull(it.kost2WildCard)
+        }
+        preview(orphan.id, kost2BlackWhiteList = "4.234.07.01").let {
+            assertNull(it.projektKost)
+            assertEquals("4.234.07.01", it.kost2WildCard)
         }
     }
 
@@ -128,7 +133,7 @@ class TaskServicesRestTest : AbstractTestBase() {
      */
     @Test
     fun `the task info carries the resolved project`() {
-        persistenceService.runInTransaction { _ ->
+        val (task, child) = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             val task = initTestDB.addTask("kost2PreviewInfo", "root")
             val child = initTestDB.addTask("kost2PreviewInfoChild", "kost2PreviewInfo")
@@ -138,16 +143,17 @@ class TaskServicesRestTest : AbstractTestBase() {
             projekt.nummer = 8
             projekt.task = task
             projektDao.insert(projekt)
-
-            TaskServicesRest.createTask(task.id).let {
-                assertEquals("4.235.08", it!!.projekt?.kost)
-                assertEquals("kost2PreviewInfo", it.projekt?.name)
-            }
-            // The child has no project of its own, so it reports its ancestor's - that is where its cost
-            // units come from (TaskTree.getProjekt walks up).
-            assertEquals("4.235.08", TaskServicesRest.createTask(child.id)!!.projekt?.kost)
-            null
+            task to child
         }
+        logon(TEST_FINANCE_USER)
+
+        TaskServicesRest.createTask(task.id).let {
+            assertEquals("4.235.08", it!!.projekt?.kost)
+            assertEquals("kost2PreviewInfo", it.projekt?.name)
+        }
+        // The child has no project of its own, so it reports its ancestor's - that is where its cost
+        // units come from (TaskTree.getProjekt walks up).
+        assertEquals("4.235.08", TaskServicesRest.createTask(child.id)!!.projekt?.kost)
     }
 
     private fun insertKost2(projekt: ProjektDO, kost2Art: Long): Kost2DO {

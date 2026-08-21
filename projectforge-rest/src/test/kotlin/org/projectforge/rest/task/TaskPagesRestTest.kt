@@ -64,7 +64,9 @@ class TaskPagesRestTest : AbstractTestBase() {
 
     @Test
     fun `the flags mirror what the DAO would accept`() {
-        persistenceService.runInTransaction { _ ->
+        // The writes only: the flags resolve the project through ProjektCache, which refreshes on a second
+        // connection and would deadlock against the still uncommitted writer.
+        val task = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             val task = initTestDB.addTask("taskPagesRestAccess", "root")
             val projectManagers = initTestDB.addGroup(
@@ -80,43 +82,43 @@ class TaskPagesRestTest : AbstractTestBase() {
             projekt.projektManagerGroup = projectManagers
             projekt.task = task
             projektDao.insert(projekt)
+            task
+        }
 
-            // The finance user may change everything.
-            logon(TEST_FINANCE_USER)
-            transformFromDB(task).let {
-                assertTrue(it.kost2AndBookingStatusWriteAccess)
-                assertTrue(it.protectTimesheetsUntilWriteAccess)
-            }
+        // The finance user may change everything.
+        logon(TEST_FINANCE_USER)
+        transformFromDB(task).let {
+            assertTrue(it.kost2AndBookingStatusWriteAccess)
+            assertTrue(it.protectTimesheetsUntilWriteAccess)
+        }
 
-            // The project assistant of this project may change the kost2 fields, but not the protection.
-            logon(TEST_PROJECT_ASSISTANT_USER)
-            transformFromDB(task).let {
-                assertTrue(it.kost2AndBookingStatusWriteAccess)
-                assertFalse(it.protectTimesheetsUntilWriteAccess)
-            }
+        // The project assistant of this project may change the kost2 fields, but not the protection.
+        logon(TEST_PROJECT_ASSISTANT_USER)
+        transformFromDB(task).let {
+            assertTrue(it.kost2AndBookingStatusWriteAccess)
+            assertFalse(it.protectTimesheetsUntilWriteAccess)
+        }
 
-            // A plain user is neither.
-            logon(TEST_USER)
-            transformFromDB(task).let {
-                assertFalse(it.kost2AndBookingStatusWriteAccess)
-                assertFalse(it.protectTimesheetsUntilWriteAccess)
-            }
+        // A plain user is neither.
+        logon(TEST_USER)
+        transformFromDB(task).let {
+            assertFalse(it.kost2AndBookingStatusWriteAccess)
+            assertFalse(it.protectTimesheetsUntilWriteAccess)
+        }
 
-            // A new task below the same parent: the rights are the parent's, so the assistant must see the
-            // kost2 fields open. hasAccessForKost2AndTimesheetBookingStatus resolves them through
-            // parentTaskId, which newBaseDO fills from the request.
-            logon(TEST_PROJECT_ASSISTANT_USER)
-            val newTask = TaskDO()
-            taskDao.setParentTask(newTask, task.id!!)
-            transformFromDB(newTask).let {
-                assertTrue(it.kost2AndBookingStatusWriteAccess, "The rights of a new task are the parent's.")
-                assertFalse(it.protectTimesheetsUntilWriteAccess)
-            }
-            // Without the parent nothing can be resolved, so the fields stay closed.
-            transformFromDB(TaskDO()).let {
-                assertFalse(it.kost2AndBookingStatusWriteAccess)
-            }
-            null
+        // A new task below the same parent: the rights are the parent's, so the assistant must see the
+        // kost2 fields open. hasAccessForKost2AndTimesheetBookingStatus resolves them through
+        // parentTaskId, which newBaseDO fills from the request.
+        logon(TEST_PROJECT_ASSISTANT_USER)
+        val newTask = TaskDO()
+        taskDao.setParentTask(newTask, task.id!!)
+        transformFromDB(newTask).let {
+            assertTrue(it.kost2AndBookingStatusWriteAccess, "The rights of a new task are the parent's.")
+            assertFalse(it.protectTimesheetsUntilWriteAccess)
+        }
+        // Without the parent nothing can be resolved, so the fields stay closed.
+        transformFromDB(TaskDO()).let {
+            assertFalse(it.kost2AndBookingStatusWriteAccess)
         }
     }
 
@@ -126,14 +128,15 @@ class TaskPagesRestTest : AbstractTestBase() {
      */
     @Test
     fun `a list row carries no flags`() {
-        persistenceService.runInTransaction { _ ->
+        val task = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            val task = initTestDB.addTask("taskPagesRestListRow", "root")
-            val dto = taskPagesRest.transformFromDB(task, editMode = false)
-            assertFalse(dto.kost2AndBookingStatusWriteAccess)
-            assertFalse(dto.protectTimesheetsUntilWriteAccess)
-            null
+            initTestDB.addTask("taskPagesRestListRow", "root")
         }
+        logon(TEST_FINANCE_USER)
+
+        val dto = taskPagesRest.transformFromDB(task, editMode = false)
+        assertFalse(dto.kost2AndBookingStatusWriteAccess)
+        assertFalse(dto.protectTimesheetsUntilWriteAccess)
     }
 
     /**
@@ -145,7 +148,7 @@ class TaskPagesRestTest : AbstractTestBase() {
      */
     @Test
     fun `the list row carries the columns of the list and nothing else`() {
-        persistenceService.runInTransaction { _ ->
+        val (parent, task) = persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             val parent = initTestDB.addTask("taskListRowParent", "root")
             val task = initTestDB.addTask("taskListRow", "taskListRowParent", "A short description")
@@ -158,32 +161,33 @@ class TaskPagesRestTest : AbstractTestBase() {
             task.kost2BlackWhiteList = "5.123.45.11"
             task.responsibleUser = getUser(TEST_FINANCE_USER)
             taskDao.update(task, checkAccess = false)
-
-            val row = Task()
-            row.copyFrom4ListRow(taskDao.find(task.id, checkAccess = false)!!)
-
-            assertEquals(task.id, row.id)
-            assertEquals("taskListRow", row.title)
-            assertEquals("A short description", row.shortDescription)
-            assertEquals("the reference", row.reference)
-            assertEquals(Priority.HIGH, row.priority)
-            assertEquals(TaskStatus.N, row.status)
-            assertEquals(getUser(TEST_FINANCE_USER).displayName, row.responsibleUser?.displayName)
-            // The two columns every next list offers, hidden until the user switches them on.
-            assertNotNull(row.created, "The created column is offered by every list.")
-            assertNotNull(row.lastUpdate, "The lastUpdate column is offered by every list.")
-            // Computed from the task tree, which holds the task: a row without it would show three empty
-            // columns for a task the list does show.
-            assertNotNull(row.consumption, "The consumption bar is one of the ten columns.")
-
-            assertNull(row.description, "Not a column of the list — it would be sent per row for nothing.")
-            assertNull(row.kost2BlackWhiteList, "Not a column of the list.")
-            assertNull(row.parentTask, "No column reads the parent; the path is the tree perspective's.")
-            assertFalse(row.kost2AndBookingStatusWriteAccess, "The access flags are the edit page's.")
-            assertFalse(row.protectTimesheetsUntilWriteAccess)
-            assertNotNull(parent.id) // The parent exists, so `parentTask` being null is the override's doing.
-            null
+            parent to task
         }
+        logon(TEST_FINANCE_USER)
+
+        val row = Task()
+        row.copyFrom4ListRow(taskDao.find(task.id, checkAccess = false)!!)
+
+        assertEquals(task.id, row.id)
+        assertEquals("taskListRow", row.title)
+        assertEquals("A short description", row.shortDescription)
+        assertEquals("the reference", row.reference)
+        assertEquals(Priority.HIGH, row.priority)
+        assertEquals(TaskStatus.N, row.status)
+        assertEquals(getUser(TEST_FINANCE_USER).displayName, row.responsibleUser?.displayName)
+        // The two columns every next list offers, hidden until the user switches them on.
+        assertNotNull(row.created, "The created column is offered by every list.")
+        assertNotNull(row.lastUpdate, "The lastUpdate column is offered by every list.")
+        // Computed from the task tree, which holds the task: a row without it would show three empty
+        // columns for a task the list does show.
+        assertNotNull(row.consumption, "The consumption bar is one of the ten columns.")
+
+        assertNull(row.description, "Not a column of the list — it would be sent per row for nothing.")
+        assertNull(row.kost2BlackWhiteList, "Not a column of the list.")
+        assertNull(row.parentTask, "No column reads the parent; the path is the tree perspective's.")
+        assertFalse(row.kost2AndBookingStatusWriteAccess, "The access flags are the edit page's.")
+        assertFalse(row.protectTimesheetsUntilWriteAccess)
+        assertNotNull(parent.id) // The parent exists, so `parentTask` being null is the override's doing.
     }
 
     /**
