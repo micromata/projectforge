@@ -287,6 +287,9 @@ function DeclaredList<
           // marks it and brings it into view (see useHighlightedRow).
           highlightRowId={list.highlightRowId}
           highlightScope={page.entity}
+          // Leaving the list to look at an entry and coming back returns to the page and the offset it
+          // was left with (see useRememberScroll).
+          viewScope={page.entity}
           onRowClick={(row) => targets.openEntry(row.id)}
           // The mode decides what a click means: outside it every click opens the entry, inside it
           // every click selects (`selection` is undefined outside, so nothing of it is wired up).

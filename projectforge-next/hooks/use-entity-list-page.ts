@@ -9,6 +9,8 @@ import {
   useListFilters,
   useMagicFilterQuery,
   useRememberFilter,
+  useRememberPageIndex,
+  recallPageIndex,
   useTableState,
   type ColumnState,
   type FilterValues,
@@ -111,6 +113,9 @@ export function useEntityListPage<Row extends ListRow>({
     queryKey,
     // Stored per entity along with the column state, so the size the user picked survives a reload.
     initialPageSize: storedState.paginationPageSize ?? DEFAULT_PAGE_SIZE,
+    // The page the list was left on, so opening an entry and coming back does not start over at the
+    // first one. Only for as long as the document lives, unlike the page size (see recallPageIndex).
+    initialPageIndex: recallPageIndex(entity),
     // Sorting drives the backend query, so it lives with the query, not in the column state — the
     // stored order seeds it here.
     initialSorting: storedState.sorting,
@@ -197,6 +202,15 @@ export function useEntityListPage<Row extends ListRow>({
   // cached listMeta would otherwise still hold the old one. The filter already carries the
   // favorite's id and name.
   useRememberFilter(entity, query.filter);
+
+  // The other half of the page memory: records where the user is, and clamps a remembered page the
+  // result set no longer has.
+  useRememberPageIndex(
+    entity,
+    table,
+    query.pagination.pageIndex,
+    !query.isFetching
+  );
 
   useColumnStatePersistence(entity, {
     sorting: query.sorting,

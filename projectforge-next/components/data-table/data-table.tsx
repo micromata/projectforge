@@ -18,6 +18,11 @@ import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
 import { useHighlightedRow } from "./use-highlighted-row";
+import {
+  recallMarkedRowId,
+  rememberMarkedRow,
+  useRememberScroll,
+} from "./use-list-view-memory";
 import { useOverflowTooltip } from "./use-overflow-tooltip";
 import type { RowSelection } from "./use-row-selection";
 
@@ -61,6 +66,16 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * mounts (see useHighlightedRow).
    */
   highlightScope?: string;
+  /**
+   * What the page, the scroll offset and the opened entry are remembered per, e.g. the entity name —
+   * so leaving the list and coming back returns to where the user was, with the entry they looked at
+   * marked (see useRememberScroll, recallPageIndex and recallMarkedRowId).
+   *
+   * Left out for a table that should always open at the top: a bounded one inside a form
+   * (SelectedEntriesTable) or inside a dialog (the task picker), where there is no leaving and coming
+   * back. Its own prop rather than a second meaning of [highlightScope], which counts ids.
+   */
+  viewScope?: string;
 
   /**
    * Rows can be picked for a mass update: a click selects instead of opening, the arrow keys move
@@ -98,6 +113,7 @@ export function DataTable<TData>({
   rowClassName,
   highlightRowId,
   highlightScope,
+  viewScope,
   selection,
   pageSizeOptions,
   emptyState,
@@ -132,7 +148,9 @@ export function DataTable<TData>({
     bodyRef.current?.focus({ preventScroll: true });
     focusFirstRow();
   }, [focusFirstRow]);
-  useHighlightedRow({
+  // Both work on the same container and the same settled rows, and the highlight has the last word —
+  // hence the flag between them rather than two hooks scrolling independently.
+  const highlightPending = useHighlightedRow({
     table,
     highlightRowId,
     containerRef: scrollRef,
@@ -142,6 +160,19 @@ export function DataTable<TData>({
     ready: !showSkeleton && !isFetching,
     scope: highlightScope,
   });
+  const rememberScroll = useRememberScroll({
+    containerRef: scrollRef,
+    scope: viewScope,
+    ready: !showSkeleton && !isFetching,
+    highlightPending,
+  });
+  // The row to mark: the entry the user opened from here — browser-back then says which one that was,
+  // the way returning from a save or a cancel does. The backend's id wins while its jump is still to
+  // come, because that jump *is* a save or a cancel just gone by (see useRememberScroll, which forgets
+  // the opened entry for the same reason).
+  const markedRowId =
+    (highlightPending ? undefined : recallMarkedRowId(viewScope)) ??
+    (highlightRowId != null ? String(highlightRowId) : undefined);
 
   return (
     <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
@@ -155,11 +186,13 @@ export function DataTable<TData>({
           className="relative flex-1 overflow-auto bg-background"
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
-          // Two listeners on the one column: the tooltip clears itself, the collapse drives the logo
-          // row. The spread has to come first, or it would drop this composed handler.
+          // Three listeners on the one column: the tooltip clears itself, the collapse drives the logo
+          // row, and the offset is recorded for the next visit. The spread has to come first, or it
+          // would drop this composed handler.
           onScroll={(event) => {
             overflowTooltip.handlers.onScroll();
             collapseLogo.onScroll(event);
+            rememberScroll();
           }}
         >
           {/* table-fixed makes the colgroup widths authoritative — without it the
@@ -276,7 +309,15 @@ export function DataTable<TData>({
                   <DataTableRow
                     key={row.id}
                     row={row}
-                    onRowClick={onRowClick}
+                    onRowClick={
+                      onRowClick &&
+                      ((original: TData) => {
+                        // Noted here rather than in the caller's handler: the id is the table's own,
+                        // so every list that remembers its view marks the opened entry for free.
+                        rememberMarkedRow(viewScope, row.id);
+                        onRowClick(original);
+                      })
+                    }
                     onCellClick={onCellClick}
                     onSelectClick={selection?.onRowClick}
                     rowActions={rowActions}
@@ -284,9 +325,7 @@ export function DataTable<TData>({
                     // `row-highlighted` in globals.css, which is why it is no background.
                     className={cn(
                       rowClassName?.(row.original),
-                      highlightRowId != null &&
-                        row.id === String(highlightRowId) &&
-                        "row-highlighted",
+                      row.id === markedRowId && "row-highlighted",
                       selection && row.getIsSelected() && "row-selected",
                       selection?.focusedRowId === row.id && "row-focused"
                     )}

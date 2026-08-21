@@ -33,6 +33,11 @@ export { selectionColumn, SELECTION_COLUMN_ID } from "./selection-column";
 export { useMagicFilterQuery } from "./use-magic-filter-query";
 export { useGridStateReset } from "./use-grid-state-reset";
 export { useHighlightedRow } from "./use-highlighted-row";
+export {
+  recallPageIndex,
+  useRememberPageIndex,
+  useRememberScroll,
+} from "./use-list-view-memory";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";
 export {
