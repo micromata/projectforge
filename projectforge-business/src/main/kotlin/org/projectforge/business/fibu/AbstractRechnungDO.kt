@@ -135,6 +135,21 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung, DisplayNameCapab
     abstract val abstractPositionen: List<AbstractRechnungsPositionDO>?
 
     /**
+     * The positions the invoice actually consists of, i.e. without the ones marked as deleted — what anything
+     * summing or listing an invoice has to iterate, regardless of whether it is an outgoing or an incoming one.
+     *
+     * A deleted position stays in the collection (it is only flagged, so it can be restored and so its history
+     * survives), but it is no part of the invoice any more: [RechnungCalculator] skips it and therefore never
+     * fills its `info`, whose sums are a `lateinit` that throws for anybody reading them.
+     *
+     * @return The undeleted positions, empty if there are none.
+     * @see RechnungDO.positionenExcludingDeleted for the same list typed as outgoing invoice positions.
+     */
+    val abstractPositionenExcludingDeleted: List<AbstractRechnungsPositionDO>
+        @Transient
+        get() = abstractPositionen?.filter { !it.deleted } ?: emptyList()
+
+    /**
      * True, if invoice is issued and not canceled, deleted or only planned.
      */
     @get:Transient
