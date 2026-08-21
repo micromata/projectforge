@@ -97,6 +97,23 @@ class Rechnung(
     var kost2Info: String? = null
 
     /**
+     * The orders the positions of this invoice bill, each order once and without its positions — the
+     * "Aufträge" column of the next list, where every entry is a link to the order.
+     *
+     * Only on the list row (see [copyFrom4ListRow]); the edit form carries the reference per position
+     * ([RechnungsPosition.auftragsPosition]), which names the position as well. Costs no query: the
+     * positions come from the cached [RechnungInfo] and the order numbers from [AuftragsCache], which is
+     * the same route Wicket's `OrderPositionsPanel` column takes.
+     */
+    var orders: List<OrderRef>? = null
+
+    /** An order as a link to it needs it: the id to navigate to and the number to show. */
+    class OrderRef(
+        var id: Long? = null,
+        var nummer: Int? = null,
+    )
+
+    /**
      * The net sum of all cost assignments of all positions, and how much of [netSum] is not assigned to a
      * cost unit yet ([RechnungInfo.kostZuweisungenFehlbetrag]). Read-only, and a hint only: `RechnungDao`
      * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
@@ -212,6 +229,15 @@ class Rechnung(
             kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag
         }
         src.status?.let { statusAsString = translate(it.i18nKey) }
+        // The orders behind the positions, each one once and by number - what the Wicket list shows as
+        // "Aufträge", without the positions. Null rather than an empty list for an invoice billing none,
+        // so `JsonInclude.NON_NULL` keeps the column off the wire for it.
+        orders = info.positions?.mapNotNull { posInfo ->
+            AuftragsCache.instance.getOrderPositionInfo(posInfo.auftragsPositionId)
+        }?.distinctBy { it.auftragId }
+            ?.sortedBy { it.auftragNummer }
+            ?.map { OrderRef(id = it.auftragId, nummer = it.auftragNummer) }
+            ?.ifEmpty { null }
         val kost1Sorted = info.sortedKost1
         kost1List = RechnungInfo.numbersAsString(kost1Sorted)
         kost1Info = RechnungInfo.detailsAsString(kost1Sorted)

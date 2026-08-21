@@ -77,6 +77,15 @@ interface ColumnBase<Row> {
    * (`auditColumnsFor`), so "hidden at first" is one rule and not two.
    */
   hiddenByDefault?: boolean;
+  /**
+   * Opts out of sorting, for a column no single property of the entity backs — an invoice's orders are
+   * collected from its positions, and there is nothing the backend could order the rows by.
+   *
+   * Only `false`: sorting is the default, and the sort property of a column is its id (see
+   * [ComputedColumn.id]). A column that keeps the default but names an id the backend doesn't know
+   * would fail on the first click on its header, so saying so here is the only way out.
+   */
+  sortable?: false;
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
@@ -123,7 +132,7 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<
   ColumnBase<never>,
-  "cell" | "filterKind" | "align" | "labelKey" | "tooltip"
+  "cell" | "filterKind" | "align" | "labelKey" | "tooltip" | "sortable"
 > {
   /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
   periodLabelKey: string;

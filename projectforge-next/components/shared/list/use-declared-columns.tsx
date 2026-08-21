@@ -77,6 +77,9 @@ export function useDeclaredColumns<
           ? { accessorKey: name }
           : { id: name, accessorFn: declaration.accessor }),
         meta: { label, align, filterKind: filterKind ?? undefined },
+        // Left to the table's default (sortable) unless the declaration opts out — see
+        // ColumnBase.sortable.
+        ...(declaration.sortable === false ? { enableSorting: false } : {}),
         size: declaration.size,
         minSize: declaration.minSize,
         header: ({ column, table }) => (
