@@ -1119,6 +1119,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          *   free one on the transition out of [RechnungStatus.GEPLANT].
          * - Dated today, with the due date and the discount maturity re-derived from the agreed payment
          *   targets in days — copying the old dates would produce an invoice overdue on the day it is written.
+         *   A target that isn't stated stays unstated: no discount term means no maturity.
          * - Nothing paid: no payment date, no paid amount, and [RechnungStatus.GESTELLT] as the status, which
          *   is also what [newBaseDTO] presets.
          * - Every position and every cost assignment loses its id, so the save writes new rows and
@@ -1142,7 +1143,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             dto.nummer = null
             dto.datum = today
             dto.faelligkeit = today.plusDays((dto.zahlungsZielInTagen ?: 0).toLong())
-            dto.discountMaturity = today.plusDays((dto.discountZahlungsZielInTagen ?: 0).toLong())
+            // Only where a discount was agreed at all: a `null` term is no term, and `today.plusDays(0)`
+            // would turn it into a discount maturing on the day the clone is written.
+            dto.discountMaturity = dto.discountZahlungsZielInTagen?.let { today.plusDays(it.toLong()) }
             dto.zahlBetrag = null
             dto.bezahlDatum = null
             dto.status = RechnungStatus.GESTELLT

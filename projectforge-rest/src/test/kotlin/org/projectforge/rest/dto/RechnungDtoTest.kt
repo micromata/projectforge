@@ -254,6 +254,25 @@ class RechnungDtoTest : AbstractTestBase() {
     }
 
     @Test
+    fun `a clone of an invoice without a discount keeps the discount empty`() {
+        val invoice = createInvoice()
+        invoice.zahlungsZielInTagen = 30
+        // No discount was ever agreed, so there is no term to derive one from.
+        invoice.discountZahlungsZielInTagen = null
+        invoice.discountMaturity = null
+        val dto = Rechnung()
+        dto.copyFromWithCollections(invoice)
+        dto.id = null
+
+        OutgoingInvoiceEntityRest.prepareInvoiceClone(dto, TODAY)
+
+        // Not TODAY: a maturity of today would read as a discount expiring the day the clone is written,
+        // and the form would show 0 days where the user left the box empty.
+        assertNull(dto.discountMaturity)
+        assertNull(dto.discountZahlungsZielInTagen)
+    }
+
+    @Test
     fun `a clone carries every live position and cost assignment, none of them with an id`() {
         val dto = clonedInvoice()
 
