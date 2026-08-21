@@ -31,7 +31,9 @@ tasks {
     named<com.github.gradle.node.npm.task.NpmTask>("npmInstall") {
         group = "build"
         description = "Installs npm dependencies"
-        args.set(listOf("install"))
+        // No args: this task already runs `npm install` (NpmInstallTask sets npmCommand itself and
+        // NpmTask appends args). An args entry of "install" made it `npm install install`, which
+        // installs the npm package named "install" and saves it to package.json on every build.
         val nodeModulesDir = layout.projectDirectory.dir("node_modules")
         onlyIf {
             !nodeModulesDir.asFile.exists()
