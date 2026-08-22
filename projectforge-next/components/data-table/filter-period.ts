@@ -1,0 +1,107 @@
+import { periodKindOf, type Period, type PeriodKind } from "@/lib/date-period";
+import { boundsOfPeriod, periodOfBounds } from "@/lib/date-period-bounds";
+import {
+  instantBoundsOfPeriod,
+  periodOfInstantBounds,
+} from "@/lib/date-period-instant";
+import type { FormatContext } from "@/lib/format";
+import type { MagicFilterEntryValue } from "@/lib/rs/types";
+import { zonedPartsOf } from "@/lib/user-zone";
+import type { FilterValues } from "./filter-value";
+
+/**
+ * The period a filter value is in, and bringing a stored one up to today.
+ *
+ * Most arts can be read straight off the two bounds (`periodOfBounds`), but one cannot: "Jahr bis heute"
+ * ends on a day that is a different one tomorrow, so a range that happens to end today is no evidence it
+ * was meant. That art therefore travels *with the filter entry* (`MagicFilterEntry.Value.periodKind`, a
+ * plain string on the wire) and is read back from there.
+ *
+ * Which also settles what "bis heute" means on the next visit: it is refreshed when the stored filter
+ * seeds the list (see [useListFilters]), so a filter left as 01.11.2025–22.08.2026 shows
+ * 01.11.2025–23.08.2026 tomorrow instead of the frozen bounds every other quick access leaves behind.
+ */
+
+/** The art the value remembers, or null — for a range the bounds alone cannot tell. */
+function storedPeriod(
+  value: MagicFilterEntryValue | undefined,
+  anchor: string | undefined,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): Period | null {
+  const kind = periodKindOf(value?.periodKind);
+  // Only what this field actually offers: a filter stored while another set of arts was on the field
+  // must not resurrect one the user can neither see nor unset.
+  if (!kind || !anchor || !kinds.includes(kind)) return null;
+  try {
+    return { kind, anchor: kind.beginOf(anchor, ctx) };
+  } catch {
+    return null;
+  }
+}
+
+/** The period of a DATE filter value: the art it remembers, else the one its two dates are. */
+export function periodOfDateValue(
+  value: MagicFilterEntryValue | undefined,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): Period | null {
+  return (
+    storedPeriod(value, value?.from, kinds, ctx) ??
+    periodOfBounds(value?.from, value?.to, kinds, ctx)
+  );
+}
+
+/** The same for a TIMESTAMP filter value, whose bounds are instants in the user's zone. */
+export function periodOfInstantValue(
+  value: MagicFilterEntryValue | undefined,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): Period | null {
+  return (
+    storedPeriod(value, zonedPartsOf(value?.from, ctx)?.date, kinds, ctx) ??
+    periodOfInstantBounds(value?.from, value?.to, kinds, ctx)
+  );
+}
+
+/**
+ * Every stored value whose art moves with the calendar, recomputed for today.
+ *
+ * Whether the bounds are dates or instants is read off the value itself rather than off the field's
+ * metadata: the two are unmistakable (`2026-08-22` against `2026-08-22T08:12:34.000Z`), and this runs
+ * while the list is being set up, before the elements are known.
+ */
+export function refreshedPeriodValues(
+  values: FilterValues,
+  ctx: FormatContext
+): FilterValues {
+  const refreshed: FilterValues = {};
+  for (const [field, value] of Object.entries(values)) {
+    const kind = periodKindOf(value.periodKind);
+    refreshed[field] =
+      kind?.dependsOnToday && value.from
+        ? { ...value, ...boundsOf(value.from, kind, ctx) }
+        : value;
+  }
+  return refreshed;
+}
+
+function boundsOf(
+  from: string,
+  kind: PeriodKind,
+  ctx: FormatContext
+): { from: string; to: string } | undefined {
+  try {
+    return from.includes("T")
+      ? (instantBoundsOfPeriod(
+          kind,
+          zonedPartsOf(from, ctx)?.date ?? "",
+          ctx
+        ) ?? undefined)
+      : boundsOfPeriod(kind, from, ctx);
+  } catch {
+    // A bound the backend stored in a shape this cannot read: the value stays as it came, which is the
+    // period the user last saw.
+    return undefined;
+  }
+}

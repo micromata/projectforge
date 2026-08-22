@@ -5,14 +5,10 @@ import { DateInput } from "@/components/shared/date-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
-import {
-  anchorOfBounds,
-  boundsOfPeriod,
-  periodOfBounds,
-  periodUnitsOf,
-  type PeriodUnitId,
-} from "@/lib/date-period";
+import { anchorOfBounds, boundsOfPeriod } from "@/lib/date-period-bounds";
 import type { FilterInputProps } from "./filter-field-inputs";
+import { periodOfDateValue } from "./filter-period";
+import { useFilterPeriodKinds } from "./filter-period-kinds";
 
 /**
  * A DATE filter (org.projectforge.ui.filter.UIFilterElement with FilterType.DATE): two `yyyy-MM-dd`
@@ -26,18 +22,21 @@ export function RangeField({
   onChange,
   label,
   onSubmit,
-  /**
-   * Granularities the period stepper offers; `[]` leaves it out. A date filter is asked "which
-   * month?" often enough that the month is the default — see [PeriodStepper].
-   */
-  periodUnits = ["month"],
-}: FilterInputProps & { periodUnits?: PeriodUnitId[] }) {
+}: FilterInputProps) {
   const t = useTranslations("filter");
   const ctx = useFormatContext();
-  const units = periodUnitsOf(periodUnits);
+  // The arts of this list, not of this field: which of them make sense is a property of the page's dates
+  // (see [FilterPeriodKindsProvider]).
+  const kinds = useFilterPeriodKinds();
 
   function next(part: "from" | "to", raw: string | null) {
-    const merged = { ...value, [part]: raw ?? undefined };
+    // The art falls away with a bound typed by hand, exactly as a term does on a form: the two dates are
+    // the user's again, and "bis heute" must not drag the other end along tomorrow.
+    const merged = {
+      ...value,
+      periodKind: undefined,
+      [part]: raw ?? undefined,
+    };
     return merged.from || merged.to ? merged : undefined;
   }
 
@@ -67,13 +66,20 @@ export function RangeField({
         />
       </RangeBounds>
       <PeriodStepper
-        units={units}
-        current={periodOfBounds(value?.from, value?.to, units, ctx)}
+        kinds={kinds}
+        current={periodOfDateValue(value, kinds, ctx)}
         // Follows the dates on screen: a start date typed by hand decides which month the arrows page
         // from, so one click cannot jump somewhere the user never named.
-        anchor={anchorOfBounds(units[0], value?.from, value?.to, ctx)}
-        // No `onSubmit`: paging must not close the pill it sits in (see [PeriodStepper]).
-        onSelect={(unit, anchor) => onChange(boundsOfPeriod(unit, anchor, ctx))}
+        anchor={anchorOfBounds(kinds[0], value?.from, value?.to, ctx)}
+        // No `onSubmit`: paging must not close the pill it sits in (see [PeriodStepper]). The art travels
+        // with the value, because one of them cannot be read back off the two dates (see
+        // [periodOfDateValue]).
+        onSelect={(kind, anchor) =>
+          onChange({
+            ...boundsOfPeriod(kind, anchor, ctx),
+            periodKind: kind.id,
+          })
+        }
       />
     </div>
   );

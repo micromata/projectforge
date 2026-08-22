@@ -5,15 +5,15 @@ import { DateTimeInput } from "@/components/shared/date-time-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
-import { periodUnitsOf, type PeriodUnitId } from "@/lib/date-period";
 import {
   anchorOfInstantBounds,
   instantBoundsOfPeriod,
-  periodOfInstantBounds,
 } from "@/lib/date-period-instant";
 import { DEFAULT_TO_TIME } from "@/lib/user-zone";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import type { FilterInputProps } from "./filter-field-inputs";
+import { periodOfInstantValue } from "./filter-period";
+import { useFilterPeriodKinds } from "./filter-period-kinds";
 import { IntervalPresetsSelect } from "./filter-interval-presets-select";
 
 /**
@@ -36,22 +36,24 @@ export function TimestampRangeField({
   onChange,
   label,
   onSubmit,
-  /** As in [RangeField]; a whole month becomes 00:00 of its first day until 23:59 of its last. */
-  periodUnits = ["month"],
-}: FilterInputProps & {
-  element: FilterElement;
-  periodUnits?: PeriodUnitId[];
-}) {
+}: FilterInputProps & { element: FilterElement }) {
   const t = useTranslations("filter");
   const ctx = useFormatContext();
-  const units = periodUnitsOf(periodUnits);
+  // As in [RangeField], the arts of this list; a whole month becomes 00:00 of its first day until 23:59
+  // of its last.
+  const kinds = useFilterPeriodKinds();
   const showPresets = element.selectors?.includes("UNTIL_NOW") ?? false;
 
   function next(
     part: "from" | "to",
     iso: string | null
   ): MagicFilterEntryValue | undefined {
-    const merged = { ...value, [part]: iso ?? undefined };
+    // As in [RangeField]: an edited bound dissolves the art.
+    const merged = {
+      ...value,
+      periodKind: undefined,
+      [part]: iso ?? undefined,
+    };
     return merged.from || merged.to ? merged : undefined;
   }
 
@@ -82,13 +84,13 @@ export function TimestampRangeField({
         />
       </RangeBounds>
       <PeriodStepper
-        units={units}
-        current={periodOfInstantBounds(value?.from, value?.to, units, ctx)}
+        kinds={kinds}
+        current={periodOfInstantValue(value, kinds, ctx)}
         // As in [RangeField]: the month named is the one the bounds on screen lie in.
-        anchor={anchorOfInstantBounds(units[0], value?.from, value?.to, ctx)}
-        onSelect={(unit, anchor) => {
-          const bounds = instantBoundsOfPeriod(unit, anchor, ctx);
-          if (bounds) onChange(bounds);
+        anchor={anchorOfInstantBounds(kinds[0], value?.from, value?.to, ctx)}
+        onSelect={(kind, anchor) => {
+          const bounds = instantBoundsOfPeriod(kind, anchor, ctx);
+          if (bounds) onChange({ ...bounds, periodKind: kind.id });
         }}
       />
       {showPresets && (

@@ -1,10 +1,9 @@
+import type { Period, PeriodKind } from "./date-period";
 import {
   anchorOfBounds,
   boundsOfPeriod,
   periodOfBounds,
-  type Period,
-  type PeriodUnit,
-} from "./date-period";
+} from "./date-period-bounds";
 import type { FormatContext } from "./format";
 import {
   DEFAULT_FROM_TIME,
@@ -32,11 +31,11 @@ import {
 
 /** A whole period as the two instants bounding it, in the user's zone. */
 export function instantBoundsOfPeriod(
-  unit: PeriodUnit,
+  kind: PeriodKind,
   anchor: string,
   ctx: FormatContext
 ): { from: string; to: string } | null {
-  const bounds = boundsOfPeriod(unit, anchor, ctx);
+  const bounds = boundsOfPeriod(kind, anchor, ctx);
   const from = zonedIsoOf(bounds.from, DEFAULT_FROM_TIME, ctx);
   const to = zonedIsoOf(bounds.to, DEFAULT_TO_TIME, ctx);
   return from && to ? { from, to } : null;
@@ -52,7 +51,7 @@ export function instantBoundsOfPeriod(
 export function periodOfInstantBounds(
   from: string | null | undefined,
   to: string | null | undefined,
-  units: readonly PeriodUnit[],
+  kinds: readonly PeriodKind[],
   ctx: FormatContext
 ): Period | null {
   const begin = zonedPartsOf(from, ctx);
@@ -60,7 +59,7 @@ export function periodOfInstantBounds(
   if (begin?.time !== DEFAULT_FROM_TIME || end?.time !== DEFAULT_TO_TIME) {
     return null;
   }
-  return periodOfBounds(begin.date, end.date, units, ctx);
+  return periodOfBounds(begin.date, end.date, kinds, ctx);
 }
 
 /**
@@ -70,13 +69,13 @@ export function periodOfInstantBounds(
  * would name the month before the one the input shows for the first hours of every month.
  */
 export function anchorOfInstantBounds(
-  unit: PeriodUnit | undefined,
+  kind: PeriodKind | undefined,
   from: string | null | undefined,
   to: string | null | undefined,
   ctx: FormatContext
 ): string | null {
   return anchorOfBounds(
-    unit,
+    kind,
     zonedPartsOf(from, ctx)?.date,
     zonedPartsOf(to, ctx)?.date,
     ctx

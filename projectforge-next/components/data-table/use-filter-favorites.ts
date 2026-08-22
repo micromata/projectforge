@@ -78,11 +78,8 @@ export function useFilterFavorites({
 
   const currentId = current?.id;
 
-  // What the favorite has stored, to tell "modified" from "up to date". Only known
-  // for a favorite that was applied or written in this session: listMeta carries
-  // the favorites' names, not their values (Favorites.idTitleList). Unknown means
-  // modified, so saving stays reachable — the legacy frontend goes further and
-  // hardcodes it (SearchFilter.jsx passes isModified unconditionally).
+  // What the favorite has stored, to tell "modified" from "up to date" — set whenever
+  // one is applied or written in this session.
   const [savedPrint, setSavedPrint] = useState<
     { id: number; print: string } | undefined
   >();
@@ -160,14 +157,22 @@ export function useFilterFavorites({
   const favorites = layout.data?.filterFavorites ?? [];
   const nameOf = (id: number) => favorites.find((f) => f.id === id)?.name ?? "";
 
+  // For a page that was just loaded there is nothing in this session to compare against, so the values
+  // come from the backend along with the restored filter (`listMeta.filterFavorite`) — otherwise every
+  // reload would claim there is something to save. Unknown still counts as modified, so saving stays
+  // reachable; the legacy frontend stops there and hardcodes it (SearchFilter.jsx).
+  const stored = layout.data?.filterFavorite;
+  const baseline =
+    savedPrint && savedPrint.id === currentId
+      ? savedPrint.print
+      : stored && stored.id === currentId
+        ? filterFingerprint(stored)
+        : undefined;
+
   return {
     favorites,
     currentId,
-    isModified: !(
-      savedPrint &&
-      savedPrint.id === currentId &&
-      savedPrint.print === filterFingerprint(filter)
-    ),
+    isModified: baseline !== filterFingerprint(filter),
     isBusy:
       selectMutation.isPending ||
       createMutation.isPending ||

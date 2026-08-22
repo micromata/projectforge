@@ -110,25 +110,6 @@ export function formatDate(value: unknown, ctx: FormatContext): string {
 }
 
 /**
- * The month a date lies in, named, e.g. `August 2026` — the label of a whole-month period.
- *
- * Takes the ISO date `lib/date-period.ts` speaks and reads it as the plain calendar date it is: no
- * `ctx.timeZone`, which could only move it by a day and with it into the wrong month. Empty for
- * anything that is not a date.
- */
-export function formatMonthYear(
-  iso: string | null | undefined,
-  ctx: FormatContext
-): string {
-  const match = /^(\d{4})-(\d{2})/.exec(iso ?? "");
-  if (!match) return "";
-  return new Intl.DateTimeFormat(ctx.locale, {
-    month: "long",
-    year: "numeric",
-  }).format(new Date(+match[1], +match[2] - 1, 1));
-}
-
-/**
  * Both ends of a period as the one value it is, e.g. `01.01.2026 – 31.12.2026`.
  *
  * A half-open period reads with an ellipsis for its open end ("01.01.2026 – …"), so it is visibly a

@@ -279,9 +279,13 @@ constructor(
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
         removeUnknownFilterEntries(filter, elements.filterIsInstance<UIFilterElement>().map { it.id }.toSet())
+        val favorites = getFilterFavorites()
         return ListMetaData(
             filter = filter,
-            filterFavorites = getFilterFavorites().idTitleList,
+            filterFavorites = favorites.idTitleList,
+            // The stored values of the favorite this filter came from, so a client that was just loaded
+            // knows whether there is anything to save (see ListMetaData.filterFavorite).
+            filterFavorite = favorites.get(filter.id),
             filterElements = elements,
             standardEditPage = getStandardEditPage(),
             legacyListPage = NextMigration.legacyListUrl(category),

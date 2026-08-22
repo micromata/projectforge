@@ -23,6 +23,17 @@ export interface MagicFilterEntryValue {
   // renames them on the wire, so these are the names the backend accepts.
   from?: string;
   to?: string;
+  /**
+   * The art the two bounds were given as, `PeriodKindId` (see lib/date-period.ts). The backend stores and
+   * returns it untouched — its search is always built from `from`/`to` — but a period meaning "bis heute"
+   * cannot be recognised from its dates and has to be recomputed when the filter comes back (see
+   * [periodOfDateValue]).
+   *
+   * A real field on `MagicFilterEntry.Value`, not something smuggled along: Jackson is configured to drop
+   * unknown properties silently (`JacksonConfiguration`), so an invented one would simply be lost on the
+   * way through the stored filter.
+   */
+  periodKind?: string;
 }
 
 export interface MagicFilterEntry {
@@ -421,6 +432,12 @@ export interface ListMetaData {
   /** The filter the user left this page with, restored from their user prefs. */
   filter?: MagicFilter;
   filterFavorites?: FavoriteIdTitle[];
+  /**
+   * The saved filter `filter` is based on, with its values — absent while the current filter comes from
+   * no favorite. It is what tells an edited filter from an unchanged one after a reload, when nothing in
+   * this session has applied or written a favorite (see [useFilterFavorites]).
+   */
+  filterFavorite?: MagicFilter;
   /**
    * The filter fields of this entity, derived by the backend from the DAO's search fields — which is
    * why they can't be declared in the frontend.

@@ -76,7 +76,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
         begin={bound(field.begin)}
         end={bound(field.end)}
         hint={field.hintKey ? translate(field.hintKey) : undefined}
-        durations={field.durations}
+        periodKinds={field.periodKinds}
         paging={field.paging}
         className={className}
       />

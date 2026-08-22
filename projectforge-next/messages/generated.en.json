@@ -174,9 +174,15 @@
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
+        "selectCurrentYearToDate": "Quick select - year to date",
         "selectNextMonth": "Quick select - next month",
-        "selectPreviousMonth": "Quick select - previous month"
+        "selectNextYearToDate": "Quick select - next year to date",
+        "selectPreviousMonth": "Quick select - previous month",
+        "selectPreviousYearToDate": "Quick select - previous year to date"
       }
+    },
+    "short": {
+      "yearToDate": "Y→"
     },
     "shortday": {
       "friday": "Fr",
@@ -187,7 +193,8 @@
     },
     "today": "Today",
     "week": "Week",
-    "year": "Year"
+    "year": "Year",
+    "yearToDate": "Year to date"
   },
   "cancel": "Cancel",
   "changes": "Changes",

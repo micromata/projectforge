@@ -1,3 +1,4 @@
+import { todayIso } from "./date-parse";
 import type { FormatContext } from "./format";
 
 /**
@@ -142,6 +143,17 @@ export function zonedIsoOf(
 /** Now, in the wire format. */
 export function nowIso(): string {
   return new Date().toISOString();
+}
+
+/**
+ * Today as the *user* reads it, `yyyy-MM-dd`.
+ *
+ * Read from `ctx.timeZone`, because near midnight an account set to another zone than the machine is on
+ * a different day — and then "der aktuelle Monat" or a period "bis heute" would be the wrong one. Falls
+ * back to the browser's day only where userData carries no zone.
+ */
+export function todayOf(ctx: FormatContext): string {
+  return zonedPartsOf(nowIso(), ctx)?.date ?? todayIso();
 }
 
 /** Shifts an instant by whole minutes, for the quick-select periods. */

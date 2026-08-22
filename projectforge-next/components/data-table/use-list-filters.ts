@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useListMeta } from "@/hooks/use-list-meta";
+import { useFormatContext } from "@/hooks/use-format";
 import { filterElementsOf } from "@/lib/rs/filter-elements";
 import type {
   FilterElement,
@@ -13,6 +14,7 @@ import {
   filterValuesFromEntries,
   type FilterValues,
 } from "./filter-value";
+import { refreshedPeriodValues } from "./filter-period";
 
 export interface UseListFiltersOptions {
   /**
@@ -63,8 +65,13 @@ export function useListFilters(
   entity: string,
   { restoredFilter }: UseListFiltersOptions = {}
 ): UseListFiltersResult {
+  const ctx = useFormatContext();
+  // Once, on the first render, and then the values are the user's: a period given as "bis heute" is
+  // recomputed for the day the list is opened on, so a filter left as 01.11.2025–22.08.2026 asks about
+  // 01.11.2025–23.08.2026 tomorrow (see [refreshedPeriodValues]). Every other bound is restored as it was
+  // stored.
   const [values, setValues] = useState<FilterValues>(() =>
-    filterValuesFromEntries(restoredFilter?.entries)
+    refreshedPeriodValues(filterValuesFromEntries(restoredFilter?.entries), ctx)
   );
   // Lives here, not in useFilterFavorites: the id has to travel with the filter
   // the query builds, and that query is set up before the favorites hook.

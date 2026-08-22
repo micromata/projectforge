@@ -1,196 +1,111 @@
-import { formatMonthYear, type FormatContext } from "./format";
-import { todayIso } from "./date-parse";
-import { nowIso, zonedPartsOf } from "./user-zone";
+import type { FormatContext } from "./format";
+import { PERIOD_KINDS, TERM_KINDS } from "./date-period-kinds";
 
 /**
- * Calendar-aligned periods: the whole month a date lies in, the one before it, the one after.
+ * What a date period is: a begin plus *either* an end date *or* an art — one of [PERIOD_KINDS].
  *
- * This is what Wicket's `QuickSelectPanel` offers next to a date period — one click sets *both* ends
- * of the period at once, and the arrows page it. Not to be confused with
- * `components/data-table/history-interval-presets.ts`: those are rolling windows that always end at
- * "now" ("die letzten 30 Tage"), while a period here begins and ends on a calendar boundary.
+ * Give both dates and the period is exactly those two days. Give a begin and a kind and the end
+ * follows from it, and the arrows beside the boxes page the whole period in that kind's steps. Every
+ * case a period is entered in on any surface of the app is one of the two, which is why this is one
+ * model and not the two it used to be (a calendar section for the filters, a term for a
+ * Leistungszeitraum).
  *
- * A period lives as two `yyyy-MM-dd` strings, like everything in ./date-parse.ts — that is how a
- * `LocalDate` travels over the wire, and no `Date` is ever a value here. What a time zone does to
- * this belongs in ./date-period-instant.ts; the arithmetic below is deliberately zone-free.
+ * A period lives as `yyyy-MM-dd` strings, like everything since ./date-parse.ts — that is how a
+ * `LocalDate` travels over the wire, and no `Date` is ever a value here. The arithmetic is in
+ * ./date-period-math.ts and zone-free on purpose; what a time zone does to a period belongs in
+ * ./date-period-instant.ts, and the queries over a period in ./date-period-bounds.ts.
  *
- * Only the month is offered today. Week, quarter and year are the units Wicket had or would plausibly
- * want next, and adding one means adding a [PeriodUnit] to [PERIOD_UNITS] — the components take the
- * list, never a unit by name. Two things to know before doing so:
- *
- * - **week** needs `ctx.weekStartsOn` (the user's setting, not the locale's), and its *number* ("KW
- *   34") follows `WeekFields(firstDayOfWeek, minimalDaysInFirstWeek)` in the backend (see
- *   `PFDay.getWeekOfYear`). `minimalDaysInFirstWeek` is not in userData, so a hand-rolled week number
- *   would be a second, subtly different definition — use date-fns `getWeek` there.
- * - **quarter** cannot be requested by the backend at all: `UIFilterTimestampElement.QuickSelector`
- *   has YEAR, MONTH, WEEK and DAY, but no QUARTER.
+ * Not to be confused with `components/data-table/history-interval-presets.ts`: those are rolling
+ * windows that always end at "now" and set absolute bounds once. A `yearToDate` period keeps its kind
+ * and is therefore still up to today the next time the list is opened.
  */
 
-export type PeriodUnitId = "week" | "month" | "quarter" | "year";
+export type PeriodKindId =
+  | "month"
+  | "yearToDate"
+  | "termWeek"
+  | "termMonth"
+  | "termThreeMonths"
+  | "termYear";
 
 /**
- * One granularity a period can be paged in.
+ * One art a period can be given as — how its end follows from its begin, and what the arrows step by.
  *
- * Every unit carries its own texts as keys rather than letting a component build them
- * (`` t(`…select${unit}`) ``): a key assembled at runtime is invisible to `NextI18nKeyScanner`, so it
- * would never reach `messages/generated.*.json` and the button would show the raw key. Spelled out as
- * a `…Key` property it is found, and a typo is reported by the generator.
+ * Every kind carries its texts as spelled-out `…Key` properties rather than letting a component build
+ * them (`` t(`…select${id}`) ``): a key assembled at runtime is invisible to `NextI18nKeyScanner`, so
+ * it would never reach `messages/generated.*.json` and the button would show the raw key. Spelled out
+ * it is found, and a typo is reported by the generator.
  */
-export interface PeriodUnit {
-  id: PeriodUnitId;
-  /** Name of the unit itself, for a picker that offers more than one. */
+export interface PeriodKind {
+  id: PeriodKindId;
+  /** Name of the kind itself, for the picker that offers them. */
   labelKey: string;
+  /**
+   * The same name in one or two characters ("3M", "J→"), for the trigger that has to fit beside two
+   * date boxes. The list of choices shows [labelKey], so the short form never stands alone.
+   */
+  shortLabelKey: string;
+  /**
+   * Fills the `{arg0}` of a counted name ("3 Monate"); absent where the key names the unit alone. The
+   * same count for both texts — they say the same thing.
+   */
+  labelArg?: number;
   tooltipPreviousKey: string;
-  tooltipCurrentKey: string;
   tooltipNextKey: string;
-  /** First day of the period `iso` falls in. */
+  /**
+   * Names the current period of this art, which is what picking the art again in the stepper sets.
+   * Absent where there is no such thing: "die aktuelle Woche" is nothing one does to an agreed period
+   * of performance, and then picking it again does nothing.
+   */
+  tooltipCurrentKey?: string;
+  /** First day of the period `iso` belongs to — the anchor, snapped where the kind snaps. */
   beginOf(iso: string, ctx: FormatContext): string;
-  /** Last day of it. */
+  /** Last day of it, given its anchor. */
   endOf(iso: string, ctx: FormatContext): string;
-  /** The period `steps` units away, as its first day. */
+  /** The anchor of the period `steps` steps away. */
   shift(iso: string, steps: number, ctx: FormatContext): string;
-  /** How the period is named to the user, e.g. "August 2026". */
-  label(iso: string, ctx: FormatContext): string;
+  /**
+   * The anchor to start from with both boxes still empty. Absent where `beginOf(today)` is the answer,
+   * which it is for every kind that snaps.
+   */
+  currentAnchor?(ctx: FormatContext): string;
+  /**
+   * Set where the end moves with the calendar (`yearToDate`). Such a kind is never *derived* from a
+   * pair of dates — it is remembered instead, so a hand-typed range that happens to end today cannot
+   * start paging by years. See `periodOfBounds`.
+   */
+  dependsOnToday?: boolean;
 }
 
-/** The parts of an ISO date, as numbers. */
-function partsOf(iso: string): { year: number; month: number; day: number } {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
-  if (!match) throw new Error(`Not an ISO date: ${iso}`);
-  return { year: +match[1], month: +match[2], day: +match[3] };
-}
-
-function isoOfParts(year: number, month: number, day: number): string {
-  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-/**
- * The first of the month `steps` months from the one `iso` lies in.
- *
- * Counts in whole months and only then picks a day, rather than `date.setMonth(+1)`: the latter turns
- * the 31st of January into the 3rd of March, so paging a period that happens to start on a long
- * month's last day would skip a month.
- */
-function shiftMonths(iso: string, steps: number): string {
-  const { year, month } = partsOf(iso);
-  const total = year * 12 + (month - 1) + steps;
-  return isoOfParts(Math.floor(total / 12), (total % 12) + 1, 1);
-}
-
-/**
- * Last day of the month `iso` lies in.
- *
- * Its length comes from day 0 of the *following* month, which is the last of this one — that is what
- * knows about the short months and about February in a leap year.
- */
-function endOfMonth(iso: string): string {
-  const { year, month } = partsOf(iso);
-  return isoOfParts(year, month, new Date(year, month, 0).getDate());
-}
-
-const MONTH: PeriodUnit = {
-  id: "month",
-  labelKey: "calendar.month",
-  tooltipPreviousKey: "calendar.quickselect.tooltip.selectPreviousMonth",
-  tooltipCurrentKey: "calendar.quickselect.tooltip.selectCurrentMonth",
-  tooltipNextKey: "calendar.quickselect.tooltip.selectNextMonth",
-  beginOf: (iso) => shiftMonths(iso, 0),
-  endOf: (iso) => endOfMonth(iso),
-  shift: (iso, steps) => shiftMonths(iso, steps),
-  label: (iso, ctx) => formatMonthYear(iso, ctx),
-};
-
-/** Every unit there is, coarsest last — the order a picker would offer them in. */
-export const PERIOD_UNITS: readonly PeriodUnit[] = [MONTH];
-
-/** The units named, in the order [PERIOD_UNITS] has them; unknown ids are dropped. */
-export function periodUnitsOf(
-  ids: readonly PeriodUnitId[] | undefined
-): PeriodUnit[] {
-  if (!ids?.length) return [];
-  return PERIOD_UNITS.filter((unit) => ids.includes(unit.id));
-}
-
-/** A whole period as the two dates it spans. */
-export function boundsOfPeriod(
-  unit: PeriodUnit,
-  anchor: string,
-  ctx: FormatContext
-): { from: string; to: string } {
-  return { from: unit.beginOf(anchor, ctx), to: unit.endOf(anchor, ctx) };
-}
-
-/** A period in effect: which unit it is paged in, and the day its current one begins on. */
+/** A period in effect: the art it is given as, and the day it begins on. */
 export interface Period {
-  unit: PeriodUnit;
+  kind: PeriodKind;
   anchor: string;
 }
 
-/**
- * Which whole period the two bounds are, or null when they are not one.
- *
- * Both ends are needed — a half-open range is not a period, however it is written. The units are
- * checked in the given order, but the answer cannot depend on it: no whole month is also a whole
- * week, quarter or year, so at most one unit can ever match.
- */
-export function periodOfBounds(
-  from: string | null | undefined,
-  to: string | null | undefined,
-  units: readonly PeriodUnit[],
-  ctx: FormatContext
-): Period | null {
-  if (!from || !to) return null;
-  for (const unit of units) {
-    let bounds;
-    try {
-      bounds = boundsOfPeriod(unit, from, ctx);
-    } catch {
-      // Not an ISO date, so not a period either — a value typed into a filter can be anything.
-      return null;
-    }
-    if (bounds.from === from && bounds.to === to) {
-      return { unit, anchor: bounds.from };
-    }
-  }
-  return null;
-}
+export { PERIOD_KINDS };
+
+/** The ids of the term kinds, for a field that offers all of them — a period of performance. */
+export const TERM_KIND_IDS: readonly PeriodKindId[] = TERM_KINDS.map(
+  (kind) => kind.id
+);
 
 /**
- * The period the arrows should page from, given bounds that are not a whole period — as its first
- * day, or null when neither bound is a date.
+ * The kinds named, in the order [PERIOD_KINDS] has them; an unknown id is dropped.
  *
- * The lower bound decides, and only in its absence the upper one: a range being filled in reads from
- * left to right, so the month the user just entered is the one the panel has to name. Paging from
- * "today" while a start date says otherwise would jump the range somewhere unrelated with one click.
+ * The order of the *offered* list is what decides an ambiguous read-back (see `periodOfBounds`), so a
+ * caller lists what makes sense on its surface and gets them in one canonical order.
  */
-export function anchorOfBounds(
-  // Undefined where quick access is switched off (`units[0]` of an empty list), which is a call the
-  // caller shouldn't have to guard — the stepper renders nothing there anyway.
-  unit: PeriodUnit | undefined,
-  from: string | null | undefined,
-  to: string | null | undefined,
-  ctx: FormatContext
-): string | null {
-  if (!unit) return null;
-  for (const bound of [from, to]) {
-    if (!bound) continue;
-    try {
-      return unit.beginOf(bound, ctx);
-    } catch {
-      // Not a date but something half-typed into a filter; the other bound may still be one.
-    }
-  }
-  return null;
+export function periodKindsOf(
+  ids: readonly PeriodKindId[] | undefined
+): PeriodKind[] {
+  if (!ids?.length) return [];
+  return PERIOD_KINDS.filter((kind) => ids.includes(kind.id));
 }
 
-/**
- * First day of the period today falls in.
- *
- * "Today" is the user's, read from `ctx.timeZone` — near midnight an account set to another zone than
- * the machine is on a different day, and then "aktueller Monat" could be the wrong one. Falls back to
- * the browser's day only when userData carries no zone.
- */
-export function currentAnchorOf(unit: PeriodUnit, ctx: FormatContext): string {
-  const today = zonedPartsOf(nowIso(), ctx)?.date ?? todayIso();
-  return unit.beginOf(today, ctx);
+/** The one kind with that id, or null — for a selection held as an id, as a stored filter holds it. */
+export function periodKindOf(
+  id: PeriodKindId | string | null | undefined
+): PeriodKind | null {
+  return PERIOD_KINDS.find((kind) => kind.id === id) ?? null;
 }
