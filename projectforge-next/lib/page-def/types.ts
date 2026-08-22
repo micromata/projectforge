@@ -27,6 +27,7 @@ import type { ComponentType, ReactNode } from "react";
 import type { CellContext } from "@tanstack/react-table";
 import type { ZodType } from "zod";
 import type { FilterKind } from "@/components/data-table";
+import type { DurationId } from "@/lib/date-duration";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
@@ -205,6 +206,16 @@ export interface DatePeriodDeclaration<
   begin: FieldNameOf<M>;
   end: FieldNameOf<M>;
   hintKey?: string;
+  /**
+   * Lengths offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end
+   * follows it (see DatePeriodField). Opt-in: for most periods the two ends are unrelated dates.
+   */
+  durations?: readonly DurationId[];
+  /**
+   * Whether the paging arrows move the whole period on by its own length. Opt-in and independent of
+   * [durations] — only where paging a period is something a user does.
+   */
+  paging?: boolean;
 }
 
 /** A field the declaration cannot describe: a cost number, a keyword picker. */

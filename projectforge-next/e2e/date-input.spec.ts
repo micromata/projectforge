@@ -66,13 +66,24 @@ test.describe("date input", () => {
     await field.blur();
 
     // The button inside the field, named after the field it belongs to — the name has to carry that,
-    // otherwise the list's own "reset filter" would answer to it too.
-    await page
-      .getByRole("button", {
-        name: `${format.t("reset")}: ${fromFieldName(format)}`,
-      })
-      .click();
+    // otherwise the list's own "reset filter" would answer to it too. It shares its place with the
+    // calendar button and shows only while the field has the focus, so without it there is nothing to
+    // see: one slot per date box is what keeps a box as narrow as the date it holds.
+    const clear = page.getByRole("button", {
+      name: `${format.t("reset")}: ${fromFieldName(format)}`,
+    });
+    await expect(clear).toBeHidden();
+    await expect(
+      page
+        .getByRole("button", { name: format.t("calendar.chooseDate") })
+        .first()
+    ).toBeVisible();
+
+    await field.focus();
+    await clear.click();
     await expect(field).toHaveValue("");
+    // Back to the calendar button as soon as there is nothing left to clear, focus or not.
+    await expect(clear).toBeHidden();
 
     // …and so does the calendar's, which is the way out when the field is not focused.
     await field.fill(format.date("2024-03-07"));
