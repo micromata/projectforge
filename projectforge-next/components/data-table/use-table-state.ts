@@ -24,7 +24,8 @@ export interface ColumnState {
   columnFilters?: ColumnFiltersState;
   /**
    * Rows per page. Part of the stored state, but not of this hook's: paging belongs to the query (see
-   * useMagicFilterQuery), so the page seeds its own pagination from it.
+   * useMagicFilterQuery), so the page seeds its own pagination from it. The page *index* is not stored
+   * at all — it is remembered for as long as the document lives, see recallPageIndex.
    */
   paginationPageSize?: number;
 }

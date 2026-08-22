@@ -27,6 +27,28 @@ const eslintConfig = defineConfig([
     files: ["e2e/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
+  {
+    // Every toast goes through lib/toast.ts, which is where the app's defaults live (how long an error
+    // stays, and that it can be closed). Imported from "sonner" directly, a call site silently opts out
+    // of them — hence the rule rather than a note in the module. `Toaster` is the component and has no
+    // defaults to miss, so app/layout.tsx keeps importing it from sonner.
+    files: ["components/**", "lib/**", "hooks/**", "store/**", "app/**"],
+    ignores: ["lib/toast.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "sonner",
+              importNames: ["toast"],
+              message: 'Import { toast } from "@/lib/toast" instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

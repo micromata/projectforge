@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckListIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";

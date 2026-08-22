@@ -13,6 +13,7 @@ import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
+import { DURATION_IDS } from "@/lib/date-duration";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { PositionInvoices } from "./position-invoices";
 import { PositionRowHeader } from "./position-row-header";
@@ -160,6 +161,8 @@ export function PositionRow({
                 name: name("periodOfPerformanceEnd"),
                 label: label("periodOfPerformanceEnd"),
               }}
+              durations={DURATION_IDS}
+              paging
             />
             <SelectField
               name={name("modeOfPaymentType")}

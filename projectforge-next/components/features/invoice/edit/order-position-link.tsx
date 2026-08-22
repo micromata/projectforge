@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { GuardedLink } from "@/components/shared/guarded-link";
+import { OrderLink } from "@/components/shared/orders/order-link";
 import { cn } from "@/lib/utils";
 import type { InvoicePositionValues } from "../invoice-schema";
 
@@ -13,6 +13,9 @@ import type { InvoicePositionValues } from "../invoice-schema";
  * picker of an unfolded one (see OrderPositionField). Renders nothing without an order id: a reference
  * from an order the user may not read arrives without one, and so does a position just picked in a form
  * whose hit carried none.
+ *
+ * Which position is billed is what it says, and the order is where it leads — the position has no page
+ * of its own. Opens in the order's own tab, so the form it sits in survives the click (see [OrderLink]).
  */
 export function OrderPositionLink({
   order,
@@ -25,15 +28,12 @@ export function OrderPositionLink({
   if (order?.auftragId == null) return null;
   const label = `${t("fibu.auftrag._")} ${order.auftragNummer ?? ""}.${order.number ?? ""}`;
   return (
-    <GuardedLink
-      href={`/order/${order.auftragId}`}
-      className={cn(
-        "shrink-0 text-primary underline-offset-2 hover:underline",
-        className
-      )}
-      aria-label={`${t("show")}: ${label}`}
+    <OrderLink
+      orderId={order.auftragId}
+      className={cn("shrink-0", className)}
+      ariaLabel={`${t("show")}: ${label}`}
     >
       {label}
-    </GuardedLink>
+    </OrderLink>
   );
 }

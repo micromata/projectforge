@@ -122,17 +122,17 @@ export function DateInput({
     <div
       className={cn(
         // A date is ten characters wide and never more, so the field stops growing once it fits one
-        // plus its two buttons instead of stretching over the whole column it sits in. It still
-        // shrinks below that where the space is narrower — a filter popover, the two halves of a
-        // DatePeriodField.
-        "flex w-full max-w-32 items-center",
+        // plus the single button at its right edge instead of stretching over the whole column it sits
+        // in. It still shrinks below that where the space is narrower — a filter popover, the two
+        // halves of a DatePeriodField, where two of these plus the quick access share one column.
+        "flex w-full max-w-28 items-center",
         className
       )}
     >
-      {/* The buttons sit *inside* the box, as they do in the search inputs of this app: a date is a
+      {/* The button sits *inside* the box, as it does in the search inputs of this app: a date is a
           short value, and an icon parked beside its field made the whole thing wider than the ten
-          characters it holds. */}
-      <div className="relative min-w-0 flex-1">
+          characters it holds. `group`, because the two buttons take turns by focus (see below). */}
+      <div className="group relative min-w-0 flex-1">
         <Input
           ref={inputRef}
           id={id}
@@ -150,9 +150,10 @@ export function DateInput({
           type="text"
           placeholder={ctx.datePattern}
           value={text}
-          // Room for the calendar button, plus the clear button in front of it while there is
-          // something to clear.
-          className={cn("px-2.5", text !== "" ? "pr-11" : "pr-7")}
+          // Room for one button, never two: the clear button shares the calendar's place rather than
+          // taking a second one (see below). `tabular-nums` so a typed date is never wider than the
+          // one this field is measured for.
+          className="px-2.5 pr-7 tabular-nums"
           onFocus={() => {
             if (!refocusing.current) setPickerOpen(true);
             refocusing.current = false;
@@ -191,7 +192,14 @@ export function DateInput({
         {text !== "" && !disabled && (
           // Inside the field, as the search inputs of this app clear themselves — a date is cleared
           // often enough (an optional deadline, a filter range) that selecting the text and deleting
-          // it is a chore. Also reachable from the calendar popover and via Escape.
+          // it is a chore.
+          //
+          // In the calendar button's place, not beside it, and only while the field has the focus: two
+          // slots made every date box in the app 16px wider than the date it holds, which is what
+          // pushed the quick access of a period onto a second line. Focusing this field opens the
+          // calendar anyway, so while the focus is here that button has nothing left to do — it is the
+          // affordance of the *unfocused* box. Without the focus the way to clear is the reset button
+          // in the calendar itself (see DateInputCalendar).
           <button
             type="button"
             // On pointer *down*, because the button unmounts as soon as the field is empty: by
@@ -203,12 +211,15 @@ export function DateInput({
               clear();
             }}
             aria-label={`${t("reset")}: ${ariaLabel ?? t("date._")}`}
-            className="absolute inset-y-0 right-6 flex cursor-pointer items-center text-muted-foreground hover:text-foreground"
+            className="absolute inset-y-0.5 right-0.5 hidden w-5 cursor-pointer items-center justify-center text-muted-foreground group-focus-within:flex hover:text-foreground"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+            <HugeiconsIcon icon={Cancel01Icon} size={14} />
           </button>
         )}
         <DateInputCalendar
+          // Out of the way while the clear button stands in its place — invisible rather than unmounted,
+          // so the popover it anchors keeps its position and the focus does not fall to the document.
+          hiddenWhileFocused={text !== "" && !disabled}
           value={value}
           defaultMonth={defaultMonth}
           onChange={onChange}

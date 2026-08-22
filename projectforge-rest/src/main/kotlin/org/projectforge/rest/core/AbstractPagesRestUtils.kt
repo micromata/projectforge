@@ -27,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -224,12 +223,9 @@ private fun handleException(msg: String, ex: Exception): ResponseEntity<Response
     if (ex is UserException) {
         val msgParams = ex.msgParams ?: ex.params
         log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
-        val msg = if (msgParams != null) {
-            translateMsg(ex.i18nKey, *msgParams)
-        } else {
-            translate(ex.i18nKey)
-        }
-        val error = ValidationError(msg, messageId = ex.i18nKey)
+        // Through translateMsg(ex), not with the params as they are: a MessageParam may be an i18n key itself
+        // and has to be translated before it goes into the message, or the user reads the key.
+        val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
         if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)

@@ -45,16 +45,27 @@ export interface FieldMetaState {
 }
 
 export function FieldShell({
+  name,
   label,
   required,
   readOnly,
   hint,
   invalid,
   errors,
+  warning,
   className,
   ids,
   children,
 }: {
+  /**
+   * Name of the form value this field binds to, written out as `data-field` — how the field is found in
+   * the DOM without knowing which component rendered it. What a form's `autoFocus` names
+   * ([useFocusFirstField] looks the field up by it), and equally what an e2e test can address.
+   *
+   * Optional, because a shell may also wrap something that is not one form value (a cost assignment's
+   * share of a position, a task picker built of several).
+   */
+  name?: string;
   label: string;
   required?: boolean;
   /** Shown but not fillable — suppresses the asterisk, see below. */
@@ -62,12 +73,15 @@ export function FieldShell({
   hint?: string;
   invalid: boolean;
   errors: string[];
+  /** Something off about an otherwise valid value — see the field prop passing it in. */
+  warning?: string;
   className?: string;
   ids: FieldIds;
   children: ReactNode;
 }) {
   return (
     <Field
+      data-field={name}
       data-invalid={invalid || undefined}
       className={cn("gap-1.5", className)}
     >
@@ -93,6 +107,15 @@ export function FieldShell({
       {children}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
+      )}
+      {/* Below the error, and only while there is none: a rule the value breaks is the harder statement,
+          and two sentences under one box read as one confused one. Not a `FieldError` and not part of
+          `data-invalid` — the value is valid, and saying otherwise would mark a field the form is
+          perfectly willing to save. `data-tone` names the tone for a test, as [FormAlert] does. */}
+      {!invalid && warning && (
+        <p data-tone="warning" className="text-xs text-warning">
+          {warning}
+        </p>
       )}
     </Field>
   );

@@ -27,6 +27,7 @@ import type { ComponentType, ReactNode } from "react";
 import type { CellContext } from "@tanstack/react-table";
 import type { ZodType } from "zod";
 import type { FilterKind } from "@/components/data-table";
+import type { DurationId } from "@/lib/date-duration";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ReturnTarget } from "@/hooks/use-edit-return";
@@ -78,6 +79,15 @@ interface ColumnBase<Row> {
    * (`auditColumnsFor`), so "hidden at first" is one rule and not two.
    */
   hiddenByDefault?: boolean;
+  /**
+   * Opts out of sorting, for a column no single property of the entity backs — an invoice's orders are
+   * collected from its positions, and there is nothing the backend could order the rows by.
+   *
+   * Only `false`: sorting is the default, and the sort property of a column is its id (see
+   * [ComputedColumn.id]). A column that keeps the default but names an id the backend doesn't know
+   * would fail on the first click on its header, so saying so here is the only way out.
+   */
+  sortable?: false;
   /** Overrides the label derived from the field's `i18nKey`. */
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
@@ -147,7 +157,7 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<
   ColumnBase<never>,
-  "cell" | "filterKind" | "align" | "labelKey" | "tooltip"
+  "cell" | "filterKind" | "align" | "labelKey" | "tooltip" | "sortable"
 > {
   /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
   periodLabelKey: string;
@@ -220,6 +230,16 @@ export interface DatePeriodDeclaration<
   begin: FieldNameOf<M>;
   end: FieldNameOf<M>;
   hintKey?: string;
+  /**
+   * Lengths offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end
+   * follows it (see DatePeriodField). Opt-in: for most periods the two ends are unrelated dates.
+   */
+  durations?: readonly DurationId[];
+  /**
+   * Whether the paging arrows move the whole period on by its own length. Opt-in and independent of
+   * [durations] — only where paging a period is something a user does.
+   */
+  paging?: boolean;
 }
 
 /** A field the declaration cannot describe: a cost number, a keyword picker. */
@@ -323,6 +343,16 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Heading while adding one, e.g. `books.edit.newTitle`. */
   newTitleKey: string;
   savedMessageKey: string;
+  /**
+   * The field a *new* entry opens in. Defaults to the first one of the form (see
+   * [useFocusFirstField]).
+   *
+   * Named where the first field is not what the user came to type: an invoice starts in its subject,
+   * because its number is assigned by the backend on the transition out of "planned" and is editable
+   * only so a wrong one can be taken back — a form opening in it would invite a number nobody meant to
+   * give. Wicket said the same thing on the same form (`RechnungEditForm`, `WicketUtils.setFocus`).
+   */
+  autoFocus?: FieldNameOf<M>;
   sections: SectionDef<M>[];
   /**
    * Names of the writes the entity offers besides save — `["lendOut", "returnBook"]` for a book.

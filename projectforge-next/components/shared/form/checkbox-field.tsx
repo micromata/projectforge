@@ -46,6 +46,7 @@ export function CheckboxField({
         const errors = fieldErrors(meta, label);
         return (
           <Field
+            data-field={name}
             data-invalid={invalid || undefined}
             className={cn("gap-1.5", className)}
           >

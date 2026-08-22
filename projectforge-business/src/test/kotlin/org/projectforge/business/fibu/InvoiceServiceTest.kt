@@ -128,6 +128,46 @@ class InvoiceServiceTest : AbstractTestBase() {
     )
   }
 
+  /**
+   * A deleted position doesn't appear in the document, so its VAT must not decide the rate the document prints.
+   */
+  @Test
+  fun extractSharedVatIgnoresDeletedPositionsTest() {
+    val invoice = createInvoice(BigDecimal.TEN, null)
+    invoice.positionen!![1].deleted = true
+    Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(invoice))
+  }
+
+  /**
+   * The document of an invoice with a deleted position: it used to throw instead, because
+   * [RechnungCalculator] skips a deleted position and so never fills the `info` whose net sum the position
+   * row reads.
+   */
+  @Test
+  fun invoiceWordDocumentWithDeletedPositionTest() {
+    val invoice = RechnungDO()
+    invoice.nummer = 12345
+    invoice.datum = LocalDate.of(2024, Month.JUNE, 15)
+    invoice.typ = RechnungTyp.RECHNUNG
+    invoice.addPosition(RechnungsPositionDO().also { pos ->
+      pos.text = "Softwareentwicklung"
+      pos.menge = BigDecimal.TEN
+      pos.einzelNetto = BigDecimal("150.00")
+      pos.vat = BigDecimal("0.19")
+    })
+    invoice.addPosition(RechnungsPositionDO().also { pos ->
+      pos.text = "Gelöschte Position"
+      pos.menge = BigDecimal.ONE
+      pos.einzelNetto = BigDecimal("100.00")
+      pos.vat = BigDecimal("0.19")
+      pos.deleted = true
+    })
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val document = invoiceService.getInvoiceWordDocument(invoice, null)
+    Assertions.assertNotNull(document, "The document is created, deleted position or not.")
+    Assertions.assertTrue(document!!.size() > 0)
+  }
+
   private fun createInvoice(vararg vats: BigDecimal?): RechnungDO {
     val invoice = RechnungDO()
     vats.forEach { vat ->

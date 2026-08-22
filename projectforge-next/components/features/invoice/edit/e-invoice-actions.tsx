@@ -3,7 +3,7 @@
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import {
   downloadXRechnung,
@@ -27,7 +27,8 @@ import { InvoiceExportButton } from "../invoice-export-button";
  * Never disabled by the checklist: saving is what may fix what the checklist names. Each step is a gate
  * instead — a refused save leaves its errors at the fields, and an invoice the export refuses leaves them in
  * the checklist above (see `OutgoingInvoiceEntityRest.saveAndCheckEInvoice` and lib/rs/submit-meta.ts, the
- * page stays put for a declared action).
+ * page stays put for a declared action). Pressing one of these is also what brings that checklist out in the
+ * first place: `revalidate` is the only thing that asks for it (see EInvoiceSection).
  */
 export function EInvoiceActions({
   invoiceId,

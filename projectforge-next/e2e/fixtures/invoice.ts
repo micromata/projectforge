@@ -32,6 +32,8 @@ export interface StoredInvoice {
   betreff?: string;
   netSum?: number;
   grossSum?: number;
+  /** What was paid, for the case that holds it against the gross sum (see PaymentTermsFields). */
+  zahlBetrag?: number;
   positionen?: {
     number: number;
     netSum?: number;

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import type { TableStateResult } from "./use-table-state";
 import { callDynamicAction } from "@/lib/rs/dynamic";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";

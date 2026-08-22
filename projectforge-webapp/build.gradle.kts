@@ -53,6 +53,10 @@ tasks {
         inputs.files(fileTree("src"))
         inputs.file("index.html")
         inputs.file("vite.config.ts")
+        // Vite copies public/ verbatim into dist/ (favicon.ico, favicon.png, apple-touch-icon.png,
+        // manifest.json, ...). Without it declared, editing an icon left the task UP-TO-DATE and the
+        // old dist/ in place, so the change never reached static/.
+        inputs.dir("public")
         outputs.dir("dist")
     }
 

@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CloudUploadIcon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";

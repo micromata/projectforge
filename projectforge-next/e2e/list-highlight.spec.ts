@@ -16,10 +16,11 @@ import type { ResultSet } from "../lib/rs/types";
  * than faking a state, and asserts that the id the *response* names is the one that was edited —
  * that the pref travels is half the feature.
  *
- * The second case is why this is worth an e2e test at all: paging happens on the client over the
- * whole result set and the page index is remembered nowhere, so the list opens on page one and the
- * entry is usually not on it. A spec asserting only "the row is visible" would pass on a database
- * where it happened to be.
+ * The second case is why this is worth an e2e test at all: paging happens on the client over the whole
+ * result set, so the entry is usually not on the page the list opens on — here always page one, since
+ * the edit page is reached directly and no visit to the list has left a page behind (see
+ * recallPageIndex). A spec asserting only "the row is visible" would pass on a database where it
+ * happened to be.
  *
  * The book is the test's own (see fixtures/seed.ts) — the local database is a copy of production, so
  * no spec may name a row of it. Written to the database: one book, and one edit of its comment per

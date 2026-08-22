@@ -59,6 +59,17 @@ export type OrderPositionRef = {
   number?: number | null;
 };
 
+/**
+ * An order of a list row, as a link to it needs it — `Rechnung.OrderRef`.
+ *
+ * The invoice's positions each bill an order position ([OrderPositionRef]); this is the order behind
+ * them, once per order and without its positions, which is what the list's column shows.
+ */
+export interface OrderRef {
+  id?: number;
+  nummer?: number;
+}
+
 /** One cost assignment of a position — `KostZuweisung`, the third nesting level. */
 export interface KostZuweisungDto {
   id?: number | null;
@@ -105,7 +116,8 @@ export interface InvoiceDetail {
   id: number | null;
   /**
    * The invoice number. Assigned by `RechnungDao` on the transition out of GEPLANT, and a credit note
-   * announced by the customer never gets one — so the form only ever shows it.
+   * announced by the customer never gets one — but the form may clear it, which is how an invoice issued
+   * by mistake is taken back (see invoice.page.tsx).
    */
   nummer?: number | null;
   // `customer`/`project` as the DTO names them, not `kunde`/`projekt` as the entity does — the JSON
@@ -195,6 +207,11 @@ export interface InvoiceListRow extends ListRow, RowWithAttachments {
    * so the column is empty rather than a row of "0,00 €" (see `Rechnung.copyFrom4ListRow`).
    */
   kostZuweisungenFehlbetrag?: number;
+  /**
+   * The orders the positions of this invoice bill, each one once and by number. Absent for an invoice
+   * billing none (`JsonInclude.NON_NULL`, see `Rechnung.copyFrom4ListRow`).
+   */
+  orders?: OrderRef[];
   /** The cost 1 units the invoice is assigned to, as numbers ("5.100.01, 5.100.02"). */
   kost1List?: string;
   /** The same with names and amounts, for the cell's tooltip. */

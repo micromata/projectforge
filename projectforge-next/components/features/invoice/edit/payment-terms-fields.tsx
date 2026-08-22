@@ -9,9 +9,12 @@ import { NumberField } from "@/components/shared/form/number-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { daysBetweenDates, shiftDateByDays } from "@/lib/date-parse";
+import { formatCurrency } from "@/lib/format";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { cn } from "@/lib/utils";
 import type { InvoiceValues } from "../invoice-schema";
+import { deviatingGrossSum } from "../payment-amount-deviation";
+import { useInvoiceSums } from "../use-invoice-sums";
 
 /** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
 const DERIVED_TARGETS = [
@@ -24,24 +27,36 @@ const DERIVED_TARGETS = [
  *
  * Custom rather than declared because of one rule between fields: a payment target in days and the date
  * it leads to say the same thing twice, so the two are kept on each other here — entering days moves the
- * date, moving the date rewrites the days. Both are always shown, unlike `AbstractRechnungEditForm`,
- * which hides the days behind a read-only text once a date is there: they are the number an invoice is
- * actually agreed in ("30 days net"), the number a clone is rebuilt from
- * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`), and hiding them left an opened invoice looking as
- * if it had no payment term at all.
+ * date, moving the date rewrites the days.
+ *
+ * The days are typed only while the invoice is **new**, and read what the dates say from then on — the same
+ * split as `AbstractRechnungEditForm` (a dropdown while the date is empty, a read-only text after that), and
+ * for its reason: from the second the invoice has dates, those are what it is judged by, and the days are the
+ * formula they came out of. They stay on screen and stay part of what is saved, because they are the number
+ * an invoice is actually agreed in ("30 days net") and the number a clone is rebuilt from
+ * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`) — hiding them left an opened invoice looking as if it
+ * had no payment term at all.
  *
  * The days are free to type rather than picked from Wicket's `ZAHLUNGSZIELE_IN_TAGEN` list: every term
  * that list doesn't happen to contain is as valid as the five that are on it.
  */
-export function PaymentTermsFields({ className }: { className?: string }) {
+export function PaymentTermsFields({
+  id,
+  className,
+}: {
+  /** The stored invoice, or null while adding one — which is when the days are a formula, see above. */
+  id: number | null;
+  className?: string;
+}) {
   const t = useTranslations();
   const label = useFieldLabels(RECHNUNG_METADATA);
   const format = useFormatContext();
   const form = useEntityEditForm();
+  const isNew = id == null;
 
-  // The invoice date and the two dates derived from it; everything else here re-renders on its own
-  // field's change.
-  const { datum, faelligkeit, discountMaturity } = useStore(
+  // The invoice date and the two dates derived from it, plus the paid amount the warning below is
+  // about; everything else here re-renders on its own field's change.
+  const { datum, faelligkeit, discountMaturity, zahlBetrag } = useStore(
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
@@ -50,9 +65,21 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         datum: v.datum,
         faelligkeit: v.faelligkeit,
         discountMaturity: v.discountMaturity,
+        zahlBetrag: v.zahlBetrag,
       };
     }
   );
+
+  /**
+   * The gross sum a typed paid amount misses by more than a tenth, which several invoices were saved
+   * with before this said so — a digit too many is easy to type and invisible to read back.
+   *
+   * The sums are the server's and the same ones the banner shows (one query, one cache entry), so they
+   * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip. That is the right
+   * moment: a warning about a half-typed number would be about a number nobody entered.
+   */
+  const { sums } = useInvoiceSums();
+  const deviatesFrom = deviatingGrossSum(zahlBetrag, sums);
 
   // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the
   // day counts follow, so what the boxes say stays one term and not two. Loading an invoice changes
@@ -100,6 +127,7 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         suffix={t("days")}
         // A term is counted in days, and no term needs four digits.
         maxDigits={3}
+        disabled={!isNew}
         onChanged={(days) => moveDate("faelligkeit", days)}
       />
       <InputField
@@ -115,6 +143,7 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         label={label("discountZahlungsZielInTagen")}
         suffix={t("days")}
         maxDigits={3}
+        disabled={!isNew}
         onChanged={(days) => moveDate("discountMaturity", days)}
       />
       <NumberField
@@ -139,6 +168,14 @@ export function PaymentTermsFields({ className }: { className?: string }) {
         // DECIMAL, not AMOUNT — `AbstractRechnungDO.zahlBetrag` is a plain `BigDecimal`.
         fractionDigits={2}
         suffix={format.currency}
+        // A hint, not a rule: the invoice saves either way, because a part payment is as real as a typo.
+        warning={
+          deviatesFrom == null
+            ? undefined
+            : t("fibu.rechnung.zahlBetrag.warning.deviation", {
+                arg0: formatCurrency(deviatesFrom, format),
+              })
+        }
       />
     </div>
   );

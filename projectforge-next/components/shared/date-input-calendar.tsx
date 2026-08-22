@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useFormatContext } from "@/hooks/use-format";
+import { cn } from "@/lib/utils";
 import type { FormatContext } from "@/lib/format";
 import { dateOf, isoOf, todayIso } from "@/lib/date-parse";
 import { useDatePickerLocale } from "./use-date-picker-locale";
@@ -39,6 +40,7 @@ export function DateInputCalendar({
   onOpenChange,
   onPicked,
   fieldRef,
+  hiddenWhileFocused,
 }: {
   value: string | null | undefined;
   /** Where an empty field opens the calendar, as `yyyy-MM-dd`; see [DateInput]. */
@@ -51,6 +53,12 @@ export function DateInputCalendar({
   onPicked: () => void;
   /** The text field this belongs to; clicks and keys in it must not count as "outside". */
   fieldRef?: React.RefObject<HTMLInputElement | null>;
+  /**
+   * Whether the clear button takes this button's place while the field has the focus — see [DateInput],
+   * which owns that rule. `visibility`, not unmounting: the hidden button is out of the tab order and
+   * out of the accessibility tree, but keeps the box this popover is positioned against.
+   */
+  hiddenWhileFocused?: boolean;
 }) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -94,7 +102,10 @@ export function DateInputCalendar({
           disabled={disabled}
           // Inside the text field, at its right edge — the field reserves the padding for it (see
           // DateInput). Not `size-7`: a button that tall would sit on the box's border.
-          className="absolute inset-y-0.5 right-0.5 size-auto w-5 text-muted-foreground"
+          className={cn(
+            "absolute inset-y-0.5 right-0.5 size-auto w-5 text-muted-foreground",
+            hiddenWhileFocused && "group-focus-within:invisible"
+          )}
           aria-label={t("calendar.chooseDate")}
         >
           <HugeiconsIcon icon={Calendar01Icon} size={14} />
@@ -103,6 +114,13 @@ export function DateInputCalendar({
       <PopoverContent
         align="start"
         className="w-auto p-0"
+        // Named here rather than by its trigger, which is hidden while the field has the focus and the
+        // clear button stands in its place (see [hiddenWhileFocused]).
+        aria-label={t("calendar.chooseDate")}
+        // The field keeps the focus it never gave up: Radix would hand it back to the trigger, and that
+        // is the button which may be invisible at exactly this moment. [DateInput] refocuses the field
+        // itself after a pick (`onPicked`).
+        onCloseAutoFocus={(event) => event.preventDefault()}
         // The caret stays in the text field: this opens on focus, and pulling focus into the calendar
         // would make typing impossible.
         onOpenAutoFocus={(event) => event.preventDefault()}

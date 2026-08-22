@@ -12,6 +12,10 @@ import { Spinner } from "@/components/shared/spinner";
  * while one of them is empty would take away the place where it gets filled in. Only the two exports are
  * refused (see EInvoiceActions), because the backend refuses them too.
  *
+ * When it is shown at all is the section's decision, not this component's: from a refused export attempt
+ * until the form changes again (see EInvoiceSection). Rendering it whenever there were errors would put it
+ * in front of every user who never wanted an e-invoice.
+ *
  * The sentences arrive translated (`EInvoiceExportService.validate`) and are rendered as they come; an
  * unconfigured seller is one of them rather than a case of its own, so this needs no `configured` flag.
  */

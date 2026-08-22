@@ -18,6 +18,7 @@ import {
   INVOICE_FIELDS,
   type InvoiceValues,
 } from "./invoice-schema";
+import { OrdersCell, orderNumbers } from "./orders-cell";
 import { InvoiceStatisticsLine } from "./invoice-statistics-line";
 import type { InvoiceStatistics } from "./invoice-statistics";
 import { emptyInvoiceValues, toFormValues } from "./invoice-values";
@@ -51,10 +52,12 @@ export const INVOICE_ROUTE = "/invoice";
  * two sums and the cost unit lists are transient — computed by `RechnungInfo` and filled by
  * `Rechnung.copyFrom4ListRow`.
  *
- * One column is new: the cost assignment difference, which replaces Wicket's `showKostZuweisungStatus`
- * checkbox. That switch appended the amount to the first cell of every row it didn't add up for; here it
- * is a column that can be sorted and switched off, and the question itself ("show only those") is a
- * filter of the backend (`OutgoingInvoiceEntityRest.COST_ASSIGNMENT_FILTER`).
+ * Two columns are not among them. The cost assignment difference replaces Wicket's
+ * `showKostZuweisungStatus` checkbox: that switch appended the amount to the first cell of every row it
+ * didn't add up for; here it is a column that can be sorted and switched off, and the question itself
+ * ("show only those") is a filter of the backend (`OutgoingInvoiceEntityRest.COST_ASSIGNMENT_FILTER`).
+ * The orders the invoice bills are Wicket's own column (`fibu.auftrag.auftraege`) which the React list
+ * never had — links into the order, one tab per order (see OrdersCell).
  */
 export const INVOICE_PAGE = definePage<
   InvoiceListRow,
@@ -144,6 +147,19 @@ export const INVOICE_PAGE = definePage<
         <CostAssignmentCell value={getValue() as number | null} />
       ),
     },
+    // The orders the invoice bills, each a link into that order's own tab — where Wicket's list has them
+    // too, right behind the sums. Neither sortable nor filterable: the value is collected from the
+    // positions of the invoice and no property of the entity backs it (see OrdersCell).
+    {
+      id: "orders",
+      labelKey: "fibu.auftrag.auftraege",
+      accessor: (row) => orderNumbers(row.orders),
+      size: 110,
+      sortable: false,
+      filterKind: null,
+      cell: ({ row }) => <OrdersCell orders={row.original.orders} />,
+      tooltip: (row) => orderNumbers(row.orders) || undefined,
+    },
     attachmentsColumn<InvoiceListRow>(),
     {
       // The account of the invoice itself ("11400 - Debitoren"), not the one inherited from the project.
@@ -222,6 +238,9 @@ export const INVOICE_PAGE = definePage<
     title: (invoice) => invoice.betreff ?? "",
     newTitleKey: "fibu.rechnung.title.add",
     savedMessageKey: "message.successfullChanged",
+    // What a new invoice is written by saying — and never the number, which is the first field of the
+    // form but is the backend's to assign (see the `nummer` declaration below).
+    autoFocus: "betreff",
     // The recurring monthly invoice: the next one is the last one with a new date, so it is written by
     // cloning it (see OutgoingInvoiceEntityRest.prepareClone for what a clone keeps and what it drops).
     clone: true,
@@ -242,9 +261,17 @@ export const INVOICE_PAGE = definePage<
           {
             group: [
               // Assigned by `RechnungDao.onInsertOrModify` on the transition out of GEPLANT, and absent
-              // from a credit note the customer announced — read-only, but shown, because it is what an
-              // invoice is called.
-              { name: "nummer", readOnly: true, maxDigits: 8 },
+              // from a credit note the customer announced — but editable, as in Wicket: an invoice
+              // issued by mistake is set back to planned, and then its number has to go as well, or it
+              // still names an invoice that no longer claims to be issued. Leaving it empty on a new
+              // invoice is the normal case and what the hint says; a number that isn't the next free one
+              // is `RechnungDao`'s to refuse (`rechnungsNummerIstNichtFortlaufend`,
+              // `rechnungsNummerBereitsVergeben`).
+              {
+                name: "nummer",
+                maxDigits: 8,
+                hintKey: "fibu.tooltip.nummerWirdAutomatischVergeben",
+              },
               { name: "datum" },
             ],
           },
@@ -270,7 +297,7 @@ export const INVOICE_PAGE = definePage<
       {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
-        render: () => <PaymentTermsFields />,
+        render: ({ id }) => <PaymentTermsFields id={id} />,
       },
       {
         id: "positions",

@@ -187,6 +187,7 @@
       "wednesday": "We"
     },
     "today": "Today",
+    "week": "Week",
     "year": "Year"
   },
   "cancel": "Cancel",
@@ -242,6 +243,18 @@
     "expired": "Download expired. Please retry for a new download."
   },
   "dueDate": "Due date",
+  "duration": {
+    "choose": "Choose duration",
+    "months": "{arg0} months",
+    "next": "Next period",
+    "previous": "Previous period",
+    "short": {
+      "month": "M",
+      "months": "{arg0}M",
+      "week": "W",
+      "year": "Y"
+    }
+  },
   "edit": "Edit",
   "email": "E-mail",
   "error": {
@@ -766,6 +779,7 @@
       "discount": "Discount (Date and %-value)",
       "discountMaturity": "Discount maturity",
       "discountPercent": "Discount percent",
+      "discountZahlungsZiel": "Discount payment target",
       "eInvoice": {
         "createAndOpen": "Create and e-invoice",
         "error": {
@@ -896,7 +910,10 @@
       },
       "zahlBetrag": {
         "_": "Paid amount",
-        "short": "Paid"
+        "short": "Paid",
+        "warning": {
+          "deviation": "The paid amount differs by more than 10% from the gross amount ({arg0}). Please check."
+        }
       },
       "zahlungsZiel": {
         "_": "Payment target",

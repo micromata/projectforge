@@ -132,7 +132,7 @@ open class InvoiceService {
             variables.put("Typ", type)
             variables.put("Kundenreferenz", data.customerref1)
             variables.put(
-                "Auftragsnummer", data.positionen!!.stream()
+                "Auftragsnummer", data.positionenExcludingDeleted.stream()
                 .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
                 .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
                 .distinct()
@@ -177,7 +177,9 @@ open class InvoiceService {
      */
     internal fun extractSharedVat(data: RechnungDO): BigDecimal? {
         var sharedVat: BigDecimal? = null // Will only be set, if vat of all positions are equal.
-        data.positionen?.let {
+        // Excluding deleted positions: they don't appear in the document, so their VAT must not decide the
+        // rate it prints (a deleted position without VAT used to turn the rate into '??????????').
+        data.positionenExcludingDeleted.let {
             for (pos in it) {
                 if (pos.vat == null) {
                     // At least one position has no VAT amount! Can't determine VAT.
@@ -265,7 +267,9 @@ open class InvoiceService {
             return null
         }
         var rowCounter = 2
-        for (position in invoice.positionen!!) {
+        // Excluding deleted positions: a deleted position is no line of the invoice, and its `info` (read for
+        // the amount of the row) is never filled by [RechnungCalculator] - it threw instead of printing a row.
+        for (position in invoice.positionenExcludingDeleted) {
             createInvoicePositionRow(posTbl, rowCounter++, invoice, position)
         }
         posTbl!!.removeRow(1)

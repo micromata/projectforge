@@ -187,6 +187,7 @@
       "wednesday": "Mi"
     },
     "today": "Heute",
+    "week": "Woche",
     "year": "Jahr"
   },
   "cancel": "Abbrechen",
@@ -242,6 +243,18 @@
     "expired": "Downloaddatei nicht mehr verfügbar. Bitte Aktion wiederholen."
   },
   "dueDate": "Fälligkeit",
+  "duration": {
+    "choose": "Dauer wählen",
+    "months": "{arg0} Monate",
+    "next": "Nächster Zeitraum",
+    "previous": "Vorheriger Zeitraum",
+    "short": {
+      "month": "M",
+      "months": "{arg0}M",
+      "week": "W",
+      "year": "J"
+    }
+  },
   "edit": "Bearbeiten",
   "email": "E-Mail",
   "error": {
@@ -766,6 +779,7 @@
       "discount": "Skonto (Datum und %-Wert)",
       "discountMaturity": "Skonto Fälligkeit",
       "discountPercent": "Skonto Prozent",
+      "discountZahlungsZiel": "Skonto Zahlungsziel",
       "eInvoice": {
         "createAndOpen": "Anlegen und E-Rechnung",
         "error": {
@@ -896,7 +910,10 @@
       },
       "zahlBetrag": {
         "_": "Zahlbetrag",
-        "short": "Bezahlt"
+        "short": "Bezahlt",
+        "warning": {
+          "deviation": "Der Zahlbetrag weicht um mehr als 10 % vom Bruttobetrag ({arg0}) ab. Bitte prüfen."
+        }
       },
       "zahlungsZiel": {
         "_": "Zahlungsziel",

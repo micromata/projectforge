@@ -18,6 +18,11 @@ interface UseMagicFilterQueryOptions {
   /** React Query key prefix. */
   queryKey: readonly unknown[];
   initialPageSize?: number;
+  /**
+   * The page the list opens on — the page it was left on, as long as this session remembers it (see
+   * recallPageIndex). Nothing else seeds it: a fresh list starts on the first page.
+   */
+  initialPageIndex?: number;
   initialGlobalFilter?: string;
   initialSorting?: SortingState;
   /**
@@ -85,6 +90,7 @@ export function useMagicFilterQuery<O>({
   entity,
   queryKey,
   initialPageSize = DEFAULT_PAGE_SIZE,
+  initialPageIndex = 0,
   initialGlobalFilter = "",
   initialSorting = [],
   filterEntries,
@@ -95,7 +101,7 @@ export function useMagicFilterQuery<O>({
 }: UseMagicFilterQueryOptions): UseMagicFilterQueryResult<O> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
+    pageIndex: initialPageIndex,
     pageSize: initialPageSize,
   });
   const [globalFilter, setGlobalFilterState] = useState(initialGlobalFilter);

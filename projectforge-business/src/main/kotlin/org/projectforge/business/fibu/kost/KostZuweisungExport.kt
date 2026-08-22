@@ -106,7 +106,7 @@ class KostZuweisungExport {
         val kostZuweisungenMap = rechnungService.selectKostzuweisungen(list).groupBy { it.rechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
         list.filter { it.isValid }.forEach { rechnung ->
-            rechnung.abstractPositionen?.forEach { position ->
+            rechnung.abstractPositionenExcludingDeleted.forEach { position ->
                 val zuweisungen = kostZuweisungenMap[position.id]
                 zuweisungen?.filter { !it.netto.isZeroOrNull() }?.forEach { kostZuweisungen.add(it) }
             }
@@ -122,8 +122,10 @@ class KostZuweisungExport {
         val kostZuweisungenMap =
             rechnungService.selectKostzuweisungen(list).groupBy { it.eingangsrechnungsPosition?.id }
         val kostZuweisungen = mutableListOf<KostZuweisungDO>()
-        list.forEach { rechnung ->
-            rechnung.abstractPositionen?.forEach { position ->
+        // The deleted invoices are left out, as they are for the debitors above: [RechnungCalculator] builds no
+        // sums for one, so [export] would have none to write for its positions.
+        list.filter { it.isValid }.forEach { rechnung ->
+            rechnung.abstractPositionenExcludingDeleted.forEach { position ->
                 val zuweisungen = kostZuweisungenMap[position.id]
                 if (zuweisungen.isNullOrEmpty() || zuweisungen.all { it.netto.isZeroOrNull() }) {
                     kostZuweisungen.add(KostZuweisungDO().also { // Empty kostzuweisung:

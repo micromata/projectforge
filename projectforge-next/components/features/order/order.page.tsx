@@ -1,4 +1,5 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
+import { DURATION_IDS } from "@/lib/date-duration";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AttachmentSection } from "./edit/attachment-section";
@@ -236,10 +237,14 @@ export const ORDER_PAGE = definePage<
           { name: "entscheidungsDatum" },
           { name: "beauftragungsDatum" },
           {
-            // One label, two dates — the way it reads on the paper the order came from.
+            // One label, two dates — the way it reads on the paper the order came from. And the way it
+            // is usually agreed on: a term from a start date, so the end can be picked instead of
+            // counted out, and moved on as a whole when the order is renewed.
             periodLabelKey: "fibu.periodOfPerformance._",
             begin: "periodOfPerformanceBegin",
             end: "periodOfPerformanceEnd",
+            durations: DURATION_IDS,
+            paging: true,
             startsRow: true,
           },
           { name: "bindungsFrist" },

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { RsError } from "@/lib/rs/client";
 import {

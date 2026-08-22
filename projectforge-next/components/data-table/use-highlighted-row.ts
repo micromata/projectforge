@@ -42,14 +42,19 @@ interface UseHighlightedRowOptions<TData> {
 /**
  * Brings the row the user edited last into view, once.
  *
- * Two steps, because paging happens on the client over the whole result set and the page index is
- * not remembered anywhere: the row is usually not on the page the list opens on. So the table is
- * paged to it first, and the scroll happens on the pass after that — the row has to exist in the
- * document before it can be measured.
+ * Two steps, because paging happens on the client over the whole result set: the row is usually not on
+ * the page the list opens on — not even where that page is the one the list was left on (see
+ * recallPageIndex), since the entry may have been created or renamed into a different place. So the
+ * table is paged to it first, and the scroll happens on the pass after that — the row has to exist in
+ * the document before it can be measured.
  *
  * Marking the row is not this hook's job; DataTable adds the class (see `row-highlighted` in
  * globals.css), which is why the highlight stays for as long as the backend reports the id while
- * the scrolling here happens exactly once.
+ * the scrolling here happens exactly once — and why the same marker can come from the entry the user
+ * merely opened, which the backend knows nothing about (see recallMarkedRowId).
+ *
+ * @returns whether that jump is still to come — what tells the remembered offset to stand down, since
+ *   a user returning from an edit is looking for their entry (see useRememberScroll).
  */
 export function useHighlightedRow<TData>({
   table,
@@ -57,7 +62,7 @@ export function useHighlightedRow<TData>({
   containerRef,
   ready,
   scope,
-}: UseHighlightedRowOptions<TData>) {
+}: UseHighlightedRowOptions<TData>): boolean {
   // Reading the row model in the dependency array is what makes this run again after the page jump
   // below, and after a refetch replaced the rows.
   const rows = table.getRowModel().rows;
@@ -104,4 +109,12 @@ export function useHighlightedRow<TData>({
     if (key) scrolledTo.add(key);
     else done.current = highlightRowId;
   }, [table, highlightRowId, containerRef, ready, scope, rows]);
+
+  // Read during render, so it says what this pass knows — the effect marks the row as done without a
+  // re-render, and the caller reads this once, on the pass where the rows have settled. Only the
+  // scoped bookkeeping: the `done` ref above is not a render-time value, and a table without a scope
+  // is one that scrolls on every mount anyway, so it has no remembered offset to stand down for.
+  const scopeKey =
+    scope && highlightRowId != null ? `${scope}:${highlightRowId}` : undefined;
+  return scopeKey != null && !scrolledTo.has(scopeKey);
 }

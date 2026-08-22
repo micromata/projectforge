@@ -68,6 +68,7 @@ export function EntityAutocompleteField({
         const invalid = meta.isTouched && !meta.isValid;
         return (
           <FieldShell
+            name={name}
             label={label}
             required={required}
             hint={hint}
