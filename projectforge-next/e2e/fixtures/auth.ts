@@ -10,10 +10,12 @@ import { BASE_PATH } from "../../lib/config";
 import {
   createBook,
   createCost1,
+  createGroup,
   createOrder,
   createTask,
   type SeededBook,
   type SeededCost1,
+  type SeededGroup,
   type SeededOrder,
   type SeededTask,
 } from "./seed";
@@ -42,6 +44,8 @@ export const test = base.extend<
     seededTask: SeededTask;
     /** An order of the tests' own, whose title is wider than any column shows. */
     seededOrder: SeededOrder;
+    /** A local group of the tests' own, for the specs that grant rights to one. */
+    seededGroup: SeededGroup;
   }
 >({
   loggedInPage: async ({ page }, use) => {
@@ -103,6 +107,13 @@ export const test = base.extend<
   seededOrder: [
     async ({ seedRequest }, use) => {
       await use(await createOrder(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededGroup: [
+    async ({ seedRequest }, use) => {
+      await use(await createGroup(seedRequest));
     },
     { scope: "worker" },
   ],

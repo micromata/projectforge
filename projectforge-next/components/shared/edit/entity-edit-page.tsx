@@ -113,6 +113,9 @@ export function EntityEditPage<
     fieldNames: edit.fieldNames,
     arrayFieldNames: edit.arrayFieldNames,
     listRoute: back.route,
+    // The caller may want the new entry's id in the url it gets back (the wizard does, see
+    // WizardTaskStep); for every other one this is `back.route` itself.
+    savedRoute: back.savedRoute,
     savedMessage: t(edit.savedMessageKey),
     // The form's values are the DTO the backend expects — the type only differs in what it makes
     // optional (see the entity's schema file).

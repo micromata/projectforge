@@ -5,17 +5,36 @@ import { useTranslations } from "next-intl";
 import { leafKeyOf } from "@/lib/leaf-key";
 
 export interface EditReturn {
-  /** Where cancel, save, delete and the breadcrumb lead. */
+  /** Where cancel, delete and the breadcrumb lead. */
   route: string;
   /** Label of the breadcrumb link, already translated. */
   label: string;
+  /**
+   * Where a *successful save* leads: [route], with the id of the written entry appended for a caller
+   * that asked for it (see [ReturnTarget.savedIdParam]).
+   */
+  savedRoute: (id: number | null) => string;
+}
+
+/**
+ * One page a `?returnTo=` may name.
+ *
+ * @param savedIdParam Name of a query parameter the id of the saved entry is appended as, for a
+ * caller that sent the user here to *create* something and goes on with it — the structure wizard,
+ * whose element step does exactly that (see WizardTaskStep). Left out by a caller that only wants
+ * the user back, which is every other one: the id would be noise in its url.
+ */
+export interface ReturnTarget {
+  route: string;
+  labelKey: string;
+  savedIdParam?: string;
 }
 
 export interface UseEditReturnOptions {
   /** The routes a `?returnTo=` may name, first one being the default (see EditDef.returnTargets). */
-  targets?: { route: string; labelKey: string }[];
+  targets?: ReturnTarget[];
   /** Where to go when the page declares no targets: the entity's own list. */
-  fallback: { route: string; labelKey: string };
+  fallback: ReturnTarget;
 }
 
 /**
@@ -44,10 +63,15 @@ export function useEditReturn({
     targets?.find((entry) => entry.route === requested) ??
     targets?.[0] ??
     fallback;
+  const savedIdParam = target.savedIdParam;
   return {
     route: target.route,
     // Through leafKeyOf: a target's key may be a namespace as well (`task.title.list` is both the
     // list's title and the parent of `task.title.list.select`), and the bare key would throw.
     label: t(leafKeyOf(target.labelKey, t.has)),
+    savedRoute: (id) =>
+      savedIdParam && id != null
+        ? `${target.route}?${savedIdParam}=${id}`
+        : target.route,
   };
 }

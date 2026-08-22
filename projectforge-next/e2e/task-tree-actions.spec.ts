@@ -11,9 +11,9 @@ import { LUCENE_QUERY_DOCS_URL } from "../lib/docs-links";
  *
  * The inventory under test is Wicket's `TaskTreePage` content menu plus the reset button of its form:
  * add a task, add a *subtask* per row, re-index, reset the filter, and the handbook link beside the
- * search field. Two entries of that menu are deliberately absent and therefore not asserted here — the
- * favourites (`UserPrefArea.TASK_FAVORITE`) and the task wizard, both still Wicket-only and reachable
- * through the legacy link in the header.
+ * search field. One entry of that menu is deliberately absent and therefore not asserted here — the
+ * favourites (`UserPrefArea.TASK_FAVORITE`), still Wicket-only and reachable through the legacy link in
+ * the header. The wizard's entry has its own spec (`e2e/task-wizard.spec.ts`).
  *
  * What each case is really about is a difference from every list page: the tree's filter is a
  * `TaskFilter` in the session and not the entity's stored `MagicFilter`, so "reset" happens in the

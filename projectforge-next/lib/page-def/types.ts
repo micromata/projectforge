@@ -29,6 +29,7 @@ import type { ZodType } from "zod";
 import type { FilterKind } from "@/components/data-table";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
+import type { ReturnTarget } from "@/hooks/use-edit-return";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { MagicFilter } from "@/lib/rs/types";
 
@@ -373,7 +374,7 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * answers that are allowed. A whitelist rather than a sanitizer: an unknown value is ignored, so
    * there is no redirect to reason about.
    */
-  returnTargets?: { route: string; labelKey: string }[];
+  returnTargets?: ReturnTarget[];
   /**
    * Query parameters of the *add* url that are handed on to the preset (`{entity}/newEntry`).
    *

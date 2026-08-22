@@ -50,6 +50,13 @@ export interface UseEntityEditFormOptions<Values, Data> {
   arrayFieldNames?: readonly string[];
   /** Where cancel and a successful save go, e.g. `/book`. */
   listRoute: string;
+  /**
+   * Where a successful save goes when the id of the written entry belongs into that url — the caller
+   * that sent the user here to *create* something and goes on with it (see EditReturn.savedRoute).
+   *
+   * Left out by everybody else, and then [listRoute] is the way back, as it always was.
+   */
+  savedRoute?: (id: number | null) => string;
   /** Toast text of a successful save, e.g. `t("saved")`. */
   savedMessage: string;
   save: MutateFn<Values>;
@@ -77,6 +84,7 @@ export function useEntityEditForm<Values, Data>({
   fieldNames,
   arrayFieldNames,
   listRoute,
+  savedRoute,
   savedMessage,
   save,
 }: UseEntityEditFormOptions<Values, Data>): EntityEditForm {
@@ -142,7 +150,9 @@ export function useEntityEditForm<Values, Data>({
       // and what deleting does. The form is reset first so leaving it doesn't look like unsaved
       // changes; the list refetches on its own, the caches having been invalidated.
       form.reset(value);
-      router.push(listRoute);
+      // The id of what was just written, for a caller that asked to be told (`savedRoute`): an insert
+      // is the case that needs it, and the id only exists after this save.
+      router.push(savedRoute ? savedRoute(result.id) : listRoute);
     },
   });
 

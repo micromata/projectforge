@@ -1697,8 +1697,9 @@ Kleinigkeit dazu: der Hinweistext unten nutzt `task.selectPanel.info` (Text des
 Auswahl-Panels); die Baumseite hat mit `task.tree.info` einen eigenen.
 
 Diese Tabelle ist die Bestandsaufnahme und bleibt so stehen; abgearbeitet ist sie in
-Schritt 3 der Reihenfolge unten – bis auf **Favoriten** und **Aufgaben-Assistent** (bewusst
-ausgelassen). „Filter zurücksetzen" hängt _nicht_ an
+Schritt 3 der Reihenfolge unten – bis auf **Favoriten** (bewusst ausgelassen). Der
+**Aufgaben-Assistent** ist in Schritt 4b nachgezogen (`/next/taskWizard`).
+„Filter zurücksetzen" hängt _nicht_ an
 der `filter/reset`-Lücke, wie hier vermutet: der Baum hat seinen eigenen Filter, s. Schritt 3.
 
 Die **Listenansicht** ist in Schritt 4a erledigt – und die Vermutung „erst das Listen-Layout
@@ -1915,11 +1916,13 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    Aufrufer) – die hat Wicket **nicht**, dessen Baum kann nur unter der Wurzel anlegen; die
    Wurzelzeile bietet sie nicht an, denn das tut der `+` der Leiste schon.
 
-   **Zwei Einträge fehlen bewusst** (entschieden: „beide erst mal auslassen"), weil next sie
-   nicht selbst bedienen kann: die **Favoriten** (`UserPrefListPage` für
-   `UserPrefArea.TASK_FAVORITE`, `TaskFavoritesRest` ist vollständig, aber es fehlt die
-   Verwaltungsseite) und der **Aufgaben-Assistent** (`TaskWizardPageRest` ist ein Torso,
-   s. Lücke 2). Beide bleiben über den Legacy-Link im Seitenkopf erreichbar. Wickets
+   **Zwei Einträge fehlten in diesem Schritt bewusst** (entschieden: „beide erst mal
+   auslassen"), weil next sie nicht selbst bedienen konnte: die **Favoriten**
+   (`UserPrefListPage` für `UserPrefArea.TASK_FAVORITE`, `TaskFavoritesRest` ist vollständig,
+   aber es fehlt die Verwaltungsseite) und der **Aufgaben-Assistent** (`TaskWizardPageRest`
+   war ein Torso, s. Lücke 2). Der Assistent ist in Schritt 4b nachgezogen und steht wieder
+   im Zahnrad-Menü; die Favoriten bleiben über den Legacy-Link im Seitenkopf erreichbar.
+   Wickets
    **Listenansicht**-Knopf fehlte in diesem Schritt noch – er ist in Schritt 4a ein Link
    und ein zweites `returnTarget` geworden.
 
@@ -2041,23 +2044,85 @@ Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
    `validateFields`, der Override-Test nur noch für die eine Regel, die Wicket exklusiv
    hatte.
 
-   **b) Offen: Aufgaben-Assistent.** `TaskWizardPageRest` ist schlimmer als ein Torso – es
-   hat nur `getForm`, und den `execute`-Endpunkt, auf den der eigene Fertig-Knopf postet,
-   **gibt es nicht**. Die eigentliche Arbeit ist `TaskWizardPage.create`: den Baum
-   hochlaufen und `GroupTaskAccessDO`-Zeilen schreiben (Leiter/Mitarbeiter/Extern
-   rekursiv, Gast an jedem Vorfahren), für drei Gruppen-Picker, für die next keine
-   Komponente hat. Also ein Schreib-Endpunkt plus ein Rechte-Feature, keine
-   Formular-Migration. Bis dahin über den Legacy-Link erreichbar.
+   **b) Erledigt: Aufgaben-Assistent** (`/next/taskWizard`). `TaskWizardPageRest` war
+   schlimmer als ein Torso – es hatte nur `getForm`, und den `execute`-Endpunkt, auf den der
+   eigene Fertig-Knopf postete, **gab es nicht**; nichts rief `/rs/taskWizard/dynamic` auf,
+   also ist die Klasse gelöscht statt umgebaut. Die eigentliche Arbeit stand in
+   `TaskWizardPage.create` und steht jetzt in
+   `projectforge-business/.../task/TaskWizardService.kt`: den Baum hochlaufen und
+   `GroupTaskAccessDO`-Zeilen schreiben (Leiter/Mitarbeiter/Extern rekursiv auf dem gewählten
+   Element, Gast ohne Rekursion an jedem Vorfahren, an der Wurzel nichts). Als Service in
+   `projectforge-business`, weil die Regel damit prüfbar ist –
+   `TaskWizardServiceTest` deckt die fünf Fälle ab (Vorfahren, Wurzel, zweiter Lauf,
+   gelöschter Eintrag, keine Gruppe). Darüber ein dünnes `TaskWizardRest`
+   (nur `POST execute`; das frühere `GET info` lieferte allein die Legacy-URL des
+   „Gruppe anlegen"-Links und ist mit ihm gelöscht), über
+   `accessChecker.checkIsLoggedInUserMemberOfAdminGroup()` – Wicket zeigte den Eintrag nur
+   Admins, prüfte es aber serverseitig nie.
 
-5. **Erledigt: Menü + Umschaltung.** `NextMigration.MIGRATED["task"]` und
-   `lib/hand-built-categories.ts` sind zusammen umgeschaltet (`NextMigrationTest` erzwingt
-   es), `MenuItemDefId.TASK_TREE` geht über das neue `NextMigration.nextRouteUrl` auf
-   `next/taskTree` – die Einzelheiten in Lücke 1 oben. Die Wicket-Seite bleibt über die
-   Fluchtluke am Seitentitel erreichbar (`NextMigration.legacyListUrl`), was sie muss:
-   Favoriten und Aufgaben-Assistent sind die zwei Einträge, die next nicht hat.
+   Kein `UILayout`: die Seite ist handgebaut
+   (`components/features/task/wizard/`, Zustand als schlichtes `useState` wie beim Login und
+   beim Passwort-Reset, s. Formular-Regeln in `projectforge-next/CLAUDE.md`). Ein neues
+   Primitiv war nicht nötig – die drei Gruppen-Picker sind `EntityAutocomplete` auf
+   `group/autosearch`, der Aufgaben-Picker ist der aus `TaskSelectField` herausgezogene
+   `TaskSelectControl` samt `TaskSelectModal`. Alle Texte lagen als `task.wizard.*` schon im
+   Bundle.
+
+   **Zwei bewusste Abweichungen von Wicket.** (1) Der Hinweis
+   `task.wizard.action.taskAndgroupsGiven` erscheint erst, wenn Element **und** mindestens
+   eine Gruppe gesetzt sind; Wickets `actionRequired()` prüft nur das Element und
+   widerspricht damit seinem eigenen `noactionRequired`-Text. (2) Der Gruppenname ist
+   **wirklich vorbelegt** (`<Titel>`, `<Titel>-pm`, `<Titel>-external`), nicht bloß zum
+   Abschreiben angezeigt – Wicket gab `GroupEditPage.PARAM_GROUP_NAME` mit, das
+   React-Formular liest keinen solchen Parameter.
+
+   **Beide „anlegen"-Wege kehren zum Assistenten zurück** – gemeldet war, dass eine im
+   Assistenten angelegte Gruppe hinterher nicht ausgewählt ist (der Link ging in einen neuen
+   Tab der Legacy-Seite):
+   - **Gruppe:** im Dialog auf der Seite selbst, nicht auf der Gruppenseite. Der Dialog
+     (`components/dynamic/dynamic-form-dialog.tsx`) rendert das `UILayout` des Servers
+     (`GET /rs/group/edit`) samt seinen Knöpfen; nichts darin weiß, was eine Gruppe ist. Was
+     das möglich macht: `AbstractEntityRest.onAfterEdit` antwortet auf ein Speichern mit
+     `variables.id`, und ein `REDIRECT` hat im Dialog keine Bedeutung – der neue
+     `onDone`-Haken von `DynamicLayoutProvider` fängt ihn ab und meldet stattdessen „diese
+     Bearbeitung ist vorbei" (mit `id` = gespeichert, ohne = abgebrochen). Die Gruppenseite
+     bleibt damit unverändert Legacy; nichts an `NextMigration` ändert sich.
+   - **Strukturelement:** weiter auf der eigenen Seite – das Formular ist handgebaut, also
+     kein `UILayout` und kein Dialog –, aber der Rückweg trägt jetzt die ID mit
+     (`/taskWizard?savedId=…`, s. `EditReturn.savedRoute` und `savedIdParam` am dritten
+     `returnTarget` des Formulars), und die bereits gewählten Gruppen überleben den Umweg in
+     einem Modul-Wert (`wizard-handover.ts`, dasselbe Muster und dieselbe Begründung wie
+     `use-pending-clone.ts`: die URL trägt die Tatsache, das Modul die Nutzlast).
+
+   **Dafür nötig, und darüber hinaus nützlich:** `DynamicInputResolver` rendert
+   `INPUT`-Elemente mit `dataType` `USER`/`GROUP`/`EMPLOYEE`/`COST1`/`COST2`/`KONTO` jetzt
+   über `dynamic-entity-input.tsx` (auf `EntityAutocomplete`, Endpunkt aus dem Typ:
+   `user/autosearch` …) statt als `DynamicFallback` – wie Legacy es mit seinem `ObjectSelect`
+   tut. Im Gruppenformular war das der `groupOwner`, der einzige Teil, der nicht ankam; das
+   LDAP-Fieldset samt seinem eigenen „Anlegen" (GID-Nummer) rendert der Dialog schon vorher.
+   Offen bleiben `TASK`, `LOCALE`, `TIMEZONE`, `PICTURE` und `CUSTOMIZED`.
+
+   **TODO für die Migration von `group`:** `DynamicFormDialog` kann nur Kategorien anzeigen,
+   deren Formular ein `UILayout` **ist**; steht `group` erst in `HAND_BUILT_CATEGORIES`, zeigt
+   der Dialog eine Fehlermeldung statt eines Formulars (bewusst, statt eines leeren Rahmens).
+   Dann braucht der Assistent einen handgebauten Gruppendialog um `EntityEditPage` herum –
+   der Rückweg dafür steht schon: `useEntityEditForm` nimmt ein `savedRoute` und kennt die ID
+   des geschriebenen Eintrags (`EntityWriteResult.id`).
+
+5. **Erledigt: Umschaltung. Der Menüschalter bleibt vorerst draußen.**
+   `NextMigration.MIGRATED["task"]` und `lib/hand-built-categories.ts` sind zusammen
+   umgeschaltet (`NextMigrationTest` erzwingt es), also gehen Redirects und Editier-URLs der
+   Kategorie `task` nach next. `MenuItemDefId.TASK_TREE` zeigt dagegen **weiter auf
+   `wa/taskTree`**: solange die next-Seite noch Lücken hat (die Aufgaben-Favoriten), soll ein
+   Merge nach `develop` den Menüeintrag nicht umlegen. Umlegen ist ein Aufruf –
+   `NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")`, der Baum und nicht die
+   Liste der Kategorie, Einzelheiten in Lücke 1 oben. Die next-Seite ist bis dahin über
+   `/next/taskTree` direkt erreichbar; die Wicket-Seite bliebe nach dem Umlegen über die
+   Fluchtluke am Seitentitel erreichbar (`NextMigration.legacyListUrl`).
 
    Gegen das laufende System geprüft (nach `npm run build` +
-   `:projectforge-next:copyNextBuild`): der Menüeintrag antwortet mit `next/taskTree`,
+   `:projectforge-next:copyNextBuild`, mit damals umgelegtem Menüeintrag): der Menüeintrag
+   antwortete mit `next/taskTree`,
    `POST /rs/task/list` liefert die **schlanke** Zeile in 3,9 s statt der vollen DTOs in
    32 s – 14 Felder pro Zeile, `description`/`kost2BlackWhiteList`/`parentTask` sind nicht
    darunter –, und die drei berechneten Spalten sind gefüllt (`consumption` in 18010,
@@ -2167,15 +2232,17 @@ FiBu-Gruppen) – dafür Unit-Tests.
   `TaskEditPage.java`, `TaskEditForm.java`, `TaskListForm.java`,
   `web/admin/TaskWizardForm.java`); Backend
   `projectforge-rest/.../rest/task/TaskServicesRest.kt` (Baum + Spalten),
-  `TaskPagesRest.kt`, `TaskFavoritesRest.kt`, `TaskWizardPageRest.kt` (Torso),
+  `TaskPagesRest.kt`, `TaskFavoritesRest.kt`, `TaskWizardRest.kt` (+
+  `projectforge-business/.../task/TaskWizardService.kt`, ersetzt den Torso
+  `TaskWizardPageRest.kt`),
   `rest/dto/Task.kt`, Rechte `projectforge-business/.../task/TaskDao.kt`
   (`hasAccessForKost2AndTimesheetBookingStatus`), Klappzustand
   `.../task/TaskTree.kt` (`USER_PREFS_KEY_OPEN_TASKS`), Kost2-Anhang
   `.../task/TaskHelper.kt`; next `app/(authenticated)/taskTree/page.tsx`,
   `components/shared/tasks/*` (Baum, Aktionsleiste, Routen),
-  `components/features/task/*` (Edit-Seite), `lib/rs/task.ts`, `lib/docs-links.ts`,
-  `e2e/task-tree.spec.ts`, `e2e/task-tree-actions.spec.ts`, `e2e/task-edit.spec.ts`,
-  `e2e/task-kost2-preview.spec.ts`
+  `components/features/task/*` (Edit-Seite, `wizard/` Assistent), `lib/rs/task.ts`,
+  `lib/docs-links.ts`, `e2e/task-tree.spec.ts`, `e2e/task-tree-actions.spec.ts`,
+  `e2e/task-edit.spec.ts`, `e2e/task-kost2-preview.spec.ts`, `e2e/task-wizard.spec.ts`
 
 ## Stand & nächste Schritte
 
@@ -2244,10 +2311,11 @@ FiBu-Gruppen) – dafür Unit-Tests.
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
 3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
    möglich). Beim **Aufgabenbaum** stehen Baumseite, Aktionsleiste, die handgebaute
-   Edit-Seite und die Listenperspektive (Schritte 1–4a des eigenen Abschnitts); offen
-   sind nur noch der Aufgaben-Assistent (4b) und das Umschalten von Menü und
+   Edit-Seite, die Listenperspektive und der Aufgaben-Assistent (Schritte 1–4b des
+   eigenen Abschnitts); offen ist nur noch das Umschalten von Menü und
    `NextMigration.MIGRATED["task"]` (5). Routing steht wie entschieden: Baum
-   `/next/taskTree`, Liste `/next/task`, Edit `/next/task/:id`.
+   `/next/taskTree`, Liste `/next/task`, Edit `/next/task/:id`, Assistent
+   `/next/taskWizard`.
 4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,

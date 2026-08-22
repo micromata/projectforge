@@ -13,6 +13,24 @@ export const TASK_TREE_ROUTE = "/taskTree";
 export const TASK_ROUTE = "/task";
 
 /**
+ * Route of the structure wizard, the page that grants a set of groups their rights on one element.
+ *
+ * Here and not beside the feature, because both the tree's action bar (shared chrome) and the task
+ * form's `returnTargets` name it — the wizard sends the user to the form to add an element and expects
+ * them back.
+ */
+export const TASK_WIZARD_ROUTE = "/taskWizard";
+
+/**
+ * The parameter the wizard gets the id of a newly created element back in — set by the form it sent the
+ * user to (`EditDef.returnTargets`, see useEditReturn) and read by the wizard itself.
+ *
+ * Beside the routes for the same reason they are here: the form's declaration and the wizard both need
+ * it, and neither may import the other.
+ */
+export const WIZARD_SAVED_ID_PARAM = "savedId";
+
+/**
  * The url of a task's edit page, with the page to return to from it.
  *
  * `returnTo` is a whitelist the declaration owns (`EditDef.returnTargets`), so a value it doesn't name

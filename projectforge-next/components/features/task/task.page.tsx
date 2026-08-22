@@ -1,6 +1,8 @@
 import {
   TASK_ROUTE,
   TASK_TREE_ROUTE,
+  TASK_WIZARD_ROUTE,
+  WIZARD_SAVED_ID_PARAM,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -141,6 +143,13 @@ export const TASK_PAGE = definePage<
     returnTargets: [
       { route: TASK_TREE_ROUTE, labelKey: "menu.taskTree" },
       { route: TASK_ROUTE, labelKey: "task.title.list" },
+      // The wizard's "create structure element" link, which expects the user back with the new element
+      // — hence the id in the url it returns to (see WizardTaskStep).
+      {
+        route: TASK_WIZARD_ROUTE,
+        labelKey: "task.wizard.pageTitle",
+        savedIdParam: WIZARD_SAVED_ID_PARAM,
+      },
     ],
     // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend
     // can resolve what hangs on it — the project of the cost unit block, and the rights of the two

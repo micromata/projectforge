@@ -280,3 +280,30 @@ export function postKost2Preview(
     signal
   );
 }
+
+/** `TaskWizardRest.ExecuteRequest`. All three groups are optional; the task is not. */
+export interface TaskWizardRequest {
+  taskId: number;
+  managerGroupId?: number | null;
+  teamGroupId?: number | null;
+  externalGroupId?: number | null;
+}
+
+/** `TaskWizardRest.ExecuteResponse`. */
+export interface TaskWizardResult {
+  taskTitle?: string | null;
+  /** Access entries written over all groups, the ancestors' included. */
+  accessEntries: number;
+}
+
+/** Grants the chosen groups their rights on the structure element and read access on its ancestors. */
+export function executeTaskWizard(
+  body: TaskWizardRequest,
+  signal?: AbortSignal
+): Promise<TaskWizardResult> {
+  return request<TaskWizardResult>(
+    "/rs/taskWizard/execute",
+    { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
+}

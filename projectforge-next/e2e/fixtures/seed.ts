@@ -366,6 +366,38 @@ export async function createTask(
   return { id, title, suffix, child: { id: childId, title: childTitle } };
 }
 
+/** A group of the tests' own, for the specs that hand rights to one. */
+export interface SeededGroup {
+  id: number;
+  name: string;
+  /** The run's own suffix, the one word of the name that hits this run only. */
+  suffix: string;
+}
+
+/**
+ * Creates a group.
+ *
+ * `localGroup: true`, so the group is never written to an LDAP the installation may be attached to
+ * (`GroupDO.localGroup`) — a test group has no business leaving the database it was made in. No members:
+ * the specs that need one grant it rights, they do not log in as it.
+ *
+ * Created rather than looked up, although the database has hundreds: a spec that grants rights to a
+ * group of a production copy changes what real people may see, and it would have to name that group in
+ * the source (see the confidentiality note above).
+ */
+export async function createGroup(
+  request: APIRequestContext,
+  suffix = uniqueSuffix()
+): Promise<SeededGroup> {
+  const name = `${MARKER} group ${suffix}`;
+  const id = await insert(request, "group", {
+    name,
+    localGroup: true,
+    assignedUsers: [],
+  });
+  return { id, name, suffix };
+}
+
 /**
  * A project of the database that has a customer, for the order form's autocomplete.
  *
