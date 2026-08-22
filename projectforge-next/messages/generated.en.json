@@ -1063,8 +1063,39 @@
   "group": {
     "_": "Group",
     "assignedUsers": "Assigned users",
-    "localGroup": "Local group",
-    "owner": "Group owner"
+    "error": {
+      "groupnameAlreadyExists": "Group name already exists."
+    },
+    "groups": "Groups",
+    "ldapValues": "LDAP",
+    "list": {
+      "select": {
+        "title": "Select group"
+      }
+    },
+    "localGroup": {
+      "_": "Local group",
+      "not": "Common group",
+      "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "nestedGroups": "Nested groups",
+    "nestedGroupsAllowed": {
+      "_": "Nested groups allowed?",
+      "tooltip": "This is a security feature, e.g. for administrator or controlling group no nested groups should be allowed."
+    },
+    "owner": "Group owner",
+    "pleaseSelectGroup": "Please select group",
+    "systemGroups": "System groups",
+    "title": {
+      "add": "Add new group",
+      "edit": "Edit group",
+      "heading": "Groups",
+      "list": {
+        "_": "List of groups",
+        "select": "Select group"
+      }
+    },
+    "unassignedUsers": "Unassigned users"
   },
   "history": {
     "entry": "History entry",

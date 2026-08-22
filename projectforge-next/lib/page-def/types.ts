@@ -81,7 +81,9 @@ interface ColumnBase<Row> {
   hiddenByDefault?: boolean;
   /**
    * Opts out of sorting, for a column no single property of the entity backs — an invoice's orders are
-   * collected from its positions, and there is nothing the backend could order the rows by.
+   * collected from its positions, a task's consumption is computed per row, and there is nothing the
+   * backend could order the rows by (it sorts by entity property, see `MagicFilterProcessor`). Wicket's
+   * list says the same by passing no sort property for exactly these columns.
    *
    * Only `false`: sorting is the default, and the sort property of a column is its id (see
    * [ComputedColumn.id]). A column that keeps the default but names an id the backend doesn't know
@@ -106,15 +108,6 @@ interface ColumnBase<Row> {
    * because group membership and the installation's configuration are not the client's to know.
    */
   visible?: (ctx: { variables?: Record<string, unknown> }) => boolean;
-  /**
-   * No sorting on this column.
-   *
-   * For a value the backend cannot order by: the list sorts by entity property
-   * (`MagicFilterProcessor`), so a column showing something computed per row — a task's consumption,
-   * its cost units, its orders — has nothing to sort by. Wicket's list says the same by passing no
-   * sort property for exactly these columns.
-   */
-  sortable?: false;
 }
 
 /** A column showing one property of the entity, labelled from its metadata. */

@@ -1063,8 +1063,39 @@
   "group": {
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",
-    "localGroup": "Lokale Gruppe",
-    "owner": "Gruppenbesitzer"
+    "error": {
+      "groupnameAlreadyExists": "Gruppenname ist bereits vergeben."
+    },
+    "groups": "Gruppen",
+    "ldapValues": "LDAP",
+    "list": {
+      "select": {
+        "title": "Gruppe wählen"
+      }
+    },
+    "localGroup": {
+      "_": "Lokale Gruppe",
+      "not": "Allgemeine Gruppe",
+      "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
+    },
+    "nestedGroups": "Eingebettete Gruppen",
+    "nestedGroupsAllowed": {
+      "_": "Eingebettete Gruppen erlaubt?",
+      "tooltip": "Zur Sicherheit sollten für die Gruppen Administrator:innen, Controlling etc. keine eingebetteten Gruppen erlaubt sein, um versehentlichen unbefugten Zugriff zu verhindern."
+    },
+    "owner": "Gruppenbesitzer",
+    "pleaseSelectGroup": "Bitte Gruppe wählen",
+    "systemGroups": "Systemgruppen",
+    "title": {
+      "add": "Neue Gruppe",
+      "edit": "Gruppe bearbeiten",
+      "heading": "Benutzergruppen",
+      "list": {
+        "_": "Gruppenliste",
+        "select": "Gruppen wählen"
+      }
+    },
+    "unassignedUsers": "Nicht assoziierte Benutzer:innen"
   },
   "history": {
     "entry": "Änderungseintrag",

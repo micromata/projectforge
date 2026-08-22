@@ -143,7 +143,7 @@ test.describe("task wizard", () => {
     await name.fill(created);
     // Local, so no group of a test run reaches an LDAP the installation may be attached to — the same
     // reason `createGroup` sets it.
-    await dialog.getByLabel(format.t("group.localGroup")).check();
+    await dialog.getByLabel(format.t("group.localGroup._")).check();
     // The backend's own button, since the dialog renders the backend's own form. The last of the two
     // that say „Anlegen": the LDAP fieldset has one of its own, which generates a GID number.
     await dialog

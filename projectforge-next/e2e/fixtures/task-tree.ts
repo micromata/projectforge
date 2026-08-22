@@ -21,18 +21,27 @@ import { DEFAULT_PAGE_SIZE } from "../../components/data-table/page-size-options
  * The column state lives in the account's prefs and outlives the browser context, so a column hidden
  * by another run must not decide what this one sees.
  *
+ * Both modes, and that is the point of the loop: the backend keeps a filter and a grid state *per
+ * mode* — the tree page under one key, the select popover of a task field under another
+ * (`TaskServicesRest.filterKeySuffix` / `gridCategory`). Resetting only the page's left the popover
+ * filtered by whatever the last case searched for, and since the popover then opens with that string
+ * already in its field, typing the same one produces no request at all — which is what
+ * [narrowToSeeded] waits for.
+ *
  * Failures are swallowed: this is setup, and a spec that then finds no rows fails with a message about
  * the tree rather than about a preference call.
  */
 export async function resetTreeState(page: Page): Promise<void> {
-  await page.request
-    .get(
-      "/rs/task/tree?table=true&searchString=&opened=true&notOpened=true&closed=false&deleted=false"
-    )
-    .catch(() => undefined);
-  await page.request
-    .get("/rs/task/tree/resetGridState/")
-    .catch(() => undefined);
+  for (const select of ["", "&select=true"]) {
+    await page.request
+      .get(
+        `/rs/task/tree?table=true${select}&searchString=&opened=true&notOpened=true&closed=false&deleted=false`
+      )
+      .catch(() => undefined);
+    await page.request
+      .get(`/rs/task/tree/resetGridState/?select=${select ? "true" : "false"}`)
+      .catch(() => undefined);
+  }
 }
 
 /**
@@ -53,6 +62,14 @@ export async function narrowToSeeded(
   t: UserFormat["t"],
   title: string
 ) {
+  const search = page.getByLabel(t("search._"));
+  // Cleared first where it already holds the title: filling a field with the value it has is no change,
+  // the query key stays the same and no request goes out — the wait below would then time out although
+  // the tree is showing exactly what was asked for. `resetTreeState` keeps that out of the session, and
+  // this keeps it out of a case that searches twice.
+  if ((await search.inputValue()) === title) {
+    await search.fill("");
+  }
   const filtered = page.waitForResponse(
     (response) =>
       response.url().includes("/rs/task/tree") &&
@@ -60,7 +77,7 @@ export async function narrowToSeeded(
       response.status() === 200,
     { timeout: 20_000 }
   );
-  await page.getByLabel(t("search._")).fill(title);
+  await search.fill(title);
   const { nodes = [] } = (await (await filtered).json()) as {
     nodes?: unknown[];
   };

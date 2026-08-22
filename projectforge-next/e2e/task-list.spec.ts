@@ -120,7 +120,9 @@ test.describe("task list", () => {
     for (const column of TASK_PAGE.columns) {
       if ((column.visible?.({ variables }) ?? true) === false) continue;
       const header = headerCell(page, columnLabel(format, column));
-      const sortable = column.sortable !== false;
+      // A period column cannot opt out at all (PeriodColumn omits `sortable`), so it is one of the
+      // sorting ones — hence the `in` rather than a plain read of the union.
+      const sortable = !("sortable" in column) || column.sortable !== false;
       await expect(
         header.locator(sortIndicator(format)),
         `column ${columnIdOf(column)} must ${sortable ? "sort" : "not sort"}`
