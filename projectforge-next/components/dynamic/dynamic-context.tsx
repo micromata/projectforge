@@ -15,10 +15,7 @@ import type {
   DynamicUIResponse,
   ValidationError,
 } from "@/lib/rs/types";
-import {
-  useDynamicActions,
-  type DynamicDoneHandler,
-} from "./use-dynamic-actions";
+import { useDynamicActions } from "./use-dynamic-actions";
 import { useDynamicLayoutState } from "./use-dynamic-layout";
 
 export interface DynamicLayoutContextValue {
@@ -52,12 +49,6 @@ interface ProviderProps {
   category: string;
   /** Query key of the page's layout query, invalidated by a RELOAD action. */
   queryKey: readonly unknown[];
-  /**
-   * Given when this layout is not a page of its own but part of one (a dialog, see
-   * DynamicFormDialog): every action that would leave the page reports back here instead of
-   * navigating — see [DynamicDoneHandler].
-   */
-  onDone?: DynamicDoneHandler;
   children: ReactNode;
 }
 
@@ -65,7 +56,6 @@ export function DynamicLayoutProvider({
   response,
   category,
   queryKey,
-  onDone,
   children,
 }: ProviderProps) {
   // The two hooks are mutually dependent: a data change may trigger a watchFields call, whose
@@ -80,8 +70,7 @@ export function DynamicLayoutProvider({
   const { callAction, triggerWatchFields } = useDynamicActions(
     store,
     category,
-    queryKey,
-    onDone
+    queryKey
   );
   useEffect(() => {
     triggerRef.current = triggerWatchFields;

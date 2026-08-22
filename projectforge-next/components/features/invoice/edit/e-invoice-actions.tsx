@@ -11,7 +11,7 @@ import {
   type EInvoiceValidation,
 } from "@/lib/rs/invoice";
 import type { SubmitMeta } from "@/lib/rs/submit-meta";
-import { InvoiceExportButton } from "../invoice-export-button";
+import { ExportButton } from "@/components/shared/export-button";
 
 /**
  * The two buttons of the e-invoice section: save the form, then build the e-invoice from what was saved —
@@ -84,7 +84,7 @@ export function EInvoiceActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {EXPORTS.map(({ kind, labelKey }) => (
-        <InvoiceExportButton
+        <ExportButton
           key={kind}
           label={t(labelKey)}
           // No tooltip: the label names both halves of what the button does, and a note about the saved

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  SmileIcon,
+  WinkIcon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { fetchAutoCompletion } from "@/lib/rs/dynamic";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +53,18 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    */
   params?: Record<string, unknown>;
   id?: string;
+  /**
+   * An entry the control offers with one click, beside the search — the logged-in user for a field that
+   * asks for a person (see [useCurrentUserRef]). Hidden while it is already the value: there is nothing
+   * to pick then. The legacy counterpart is the „select me" smiley of UserSelect.jsx.
+   */
+  selectMe?: T | null;
+  /**
+   * Whether picking an entry leaves the search open, with the cursor in its term. For a caller that
+   * collects several entries (see [EntityMultiAutocompleteField]) one pick is not the end of the
+   * interaction, and closing the popover would cost a click per member.
+   */
+  keepOpenOnSelect?: boolean;
   /** Accessible name of the trigger, when no `<label htmlFor>` names it. */
   "aria-label"?: string;
   className?: string;
@@ -70,11 +88,15 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   id,
   className,
   autoFocus,
+  keepOpenOnSelect,
+  selectMe,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [winking, setWinking] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const { data: found, isFetching } = useQuery({
     queryKey: ["entity-autocomplete", url, search, params ?? null],
@@ -132,6 +154,28 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
         )}
+        {selectMe && selectMe.id !== value?.id && (
+          <button
+            type="button"
+            // As the reset button beside it: the button disappears the moment it is used, so a click
+            // would end on a popover that no longer has anything under the pointer.
+            onPointerDown={(e) => {
+              e.preventDefault();
+              onChange(selectMe);
+            }}
+            onPointerEnter={() => setWinking(true)}
+            onPointerLeave={() => setWinking(false)}
+            onFocus={() => setWinking(true)}
+            onBlur={() => setWinking(false)}
+            // The tooltip of the legacy smiley is a joke („You are great!"), which names nothing — the
+            // accessible name says what the button does, the joke stays as the title.
+            aria-label={`${t(leafKeyOf("select", t.has))}: ${selectMe.displayName}`}
+            title={t("tooltip.selectMe")}
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={winking ? WinkIcon : SmileIcon} size={16} />
+          </button>
+        )}
       </div>
       <PopoverContent
         align="start"
@@ -140,6 +184,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
         {/* The backend does the filtering; cmdk must not filter the results again. */}
         <Command shouldFilter={false}>
           <CommandInput
+            ref={searchRef}
             value={search}
             onValueChange={setSearch}
             placeholder={t("filter.search")}
@@ -158,8 +203,15 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
                 value={String(entry.id)}
                 onSelect={() => {
                   onChange(entry);
-                  setOpen(false);
+                  // The term goes either way: what was searched for has been found.
                   setSearch("");
+                  if (!keepOpenOnSelect) {
+                    setOpen(false);
+                    return;
+                  }
+                  // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the
+                  // item that was clicked, so the next term would go nowhere.
+                  searchRef.current?.focus();
                 }}
               >
                 {entry.displayName}

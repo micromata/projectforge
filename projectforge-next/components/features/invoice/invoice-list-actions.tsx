@@ -10,7 +10,7 @@ import {
   downloadInvoiceExcel,
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
-import { InvoiceExportButton } from "./invoice-export-button";
+import { ExportButton } from "@/components/shared/export-button";
 
 /**
  * The two exports of the invoice list, as Wicket's list page offers them in its content menu: one row per
@@ -45,13 +45,13 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
 
   return (
     <>
-      <InvoiceExportButton
+      <ExportButton
         tooltip={t("tooltip.export.excel")}
         label={t("exportAsXls")}
         isPending={excel.isPending}
         onClick={() => excel.mutate()}
       />
-      <InvoiceExportButton
+      <ExportButton
         tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
         // The label is the parent of that tooltip key, so it travels as the generator's leaf.
         label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}

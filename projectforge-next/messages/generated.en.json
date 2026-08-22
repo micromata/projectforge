@@ -33,6 +33,7 @@
     },
     "country": "Country",
     "division": "Division",
+    "emails": "e-mails",
     "fingerprint": "Finger print",
     "form": {
       "_": "Form",
@@ -1173,7 +1174,16 @@
     "sendEMailNotification": "Send an e-mail notification?"
   },
   "lastUpdate": "last modification",
-  "ldap": "LDAP",
+  "ldap": {
+    "_": "LDAP",
+    "gidNumber": {
+      "_": "GID number",
+      "createDefault": {
+        "tooltip": "Creates a new GID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest GID number used by ProjectForge and increase it by one to get the next free GID number. ProjectForge starts with GID 1,000 for avoiding collisions with existing GID's of the operating systems (e.g. system groups)."
+    }
+  },
   "legalAffaires": {
     "contract": {
       "coContractorA": "co-contractor A",
@@ -1269,6 +1279,7 @@
   },
   "menu": {
     "addNewEntry": "New entry",
+    "administration": "Administration",
     "common": "Common",
     "favorites": {
       "more": "More favorites"
@@ -1757,6 +1768,7 @@
     "lucene": {
       "link": "Link to howto of lucene queries."
     },
+    "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
         "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",

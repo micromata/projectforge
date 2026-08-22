@@ -11,10 +11,14 @@
 
 import { request } from "./client";
 import { downloadFile, downloadPost } from "./download";
+import { downloadListExcel } from "./list-export";
 import type { MagicFilter, PostData } from "./types";
 
 /**
  * The filtered invoices as the Excel file Wicket's "Excel export" produces — one row per invoice.
+ *
+ * The generic list export of this category, so it goes through [downloadListExcel]: every list whose
+ * `*PagesRest` implements `exportAsExcel` answers the same way, and this is the invoice's name for it.
  *
  * A 404 means the filter matched nothing; the caller says so rather than reporting an error (see
  * InvoiceListActions).
@@ -23,7 +27,7 @@ export function downloadInvoiceExcel(
   filter: MagicFilter,
   signal?: AbortSignal
 ): Promise<void> {
-  return downloadPost("/rs/outgoingInvoice/exportAsExcel", filter, signal);
+  return downloadListExcel("outgoingInvoice", filter, signal);
 }
 
 /**

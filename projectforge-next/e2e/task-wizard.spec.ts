@@ -143,12 +143,14 @@ test.describe("task wizard", () => {
     await name.fill(created);
     // Local, so no group of a test run reaches an LDAP the installation may be attached to — the same
     // reason `createGroup` sets it.
-    await dialog.getByLabel(format.t("group.localGroup._")).check();
-    // The backend's own button, since the dialog renders the backend's own form. The last of the two
-    // that say „Anlegen": the LDAP fieldset has one of its own, which generates a GID number.
+    // By role: the field's hint button repeats the label in its `aria-label` („Hinweis: …").
     await dialog
-      .getByRole("button", { name: format.t("create"), exact: true })
-      .last()
+      .getByRole("checkbox", { name: format.t("group.localGroup._") })
+      .check();
+    // The group page's own save button: the dialog renders GROUP_PAGE's declared form now, not a
+    // layout the backend laid out (see EntityEditDialog).
+    await dialog
+      .getByRole("button", { name: format.t("save"), exact: true })
       .click();
     await expect(dialog).toBeHidden({ timeout: 20_000 });
 

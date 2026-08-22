@@ -41,6 +41,16 @@ class Group(
     var emails: String? = null,
     /** LDAP value, if in use: */
     var gidNumber: Int? = null,
+    /**
+     * Whether posix accounts of an external user management system are in use, i.e. whether [gidNumber] is
+     * a field of this group at all. Read-only flag for the frontend: [GroupDO] has no such property, so
+     * [copyTo] ignores it. Set by `GroupPagesRest.transformFromDB`, which owns the condition (it depends on
+     * the LDAP configuration and on the logged-in user being an administrator).
+     *
+     * The server side layout of the legacy frontends decides the same thing by omitting the LDAP fieldset;
+     * a hand built form (projectforge-next) has to be told.
+     */
+    var ldapPosixConfigured: Boolean = false,
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
 
     /**

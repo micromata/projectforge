@@ -17,27 +17,11 @@ import {
   postWatchFields,
   type DynamicMethod,
 } from "@/lib/rs/dynamic";
-import type { DataObject } from "@/lib/dynamic/path";
 import type { ActionDef } from "@/lib/rs/types";
 import type { DynamicLayoutStore } from "./use-dynamic-layout";
 
 /** A server that keeps answering with another request would loop forever otherwise. */
 const MAX_ACTION_DEPTH = 5;
-
-/**
- * Told that this layout is finished with — for an owner that renders it somewhere the backend's
- * redirect cannot be followed (a dialog, see DynamicFormDialog).
- *
- * @param variables The answer's variables. A save carries the id of the written entry there
- * (`AbstractEntityRest.onAfterEdit`); a cancel carries none, which is how the owner tells the two
- * apart.
- * @param data The form's values at that moment, so the owner needs no second request to name what
- * was saved.
- */
-export type DynamicDoneHandler = (
-  variables: DataObject,
-  data: DataObject
-) => void;
 
 export interface DynamicActions {
   callAction: (action: ActionDef) => Promise<void>;
@@ -51,25 +35,15 @@ export interface DynamicActions {
  * this hook is what makes save/cancel/delete/clone work without the frontend knowing a single
  * endpoint. Mirrors `callAction` in projectforge-webapp/src/actions/form.js, the reference for the
  * semantics of each target type.
- *
- * @param onDone Given by an owner that renders the layout instead of a page. Every action that would
- * leave the page then reports back to it rather than navigating — see [DynamicDoneHandler].
  */
 export function useDynamicActions(
   store: DynamicLayoutStore,
   category: string,
-  queryKey: readonly unknown[],
-  onDone?: DynamicDoneHandler
+  queryKey: readonly unknown[]
 ): DynamicActions {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { readState, setIsFetching, setValidationErrors, applyUpdate } = store;
-  // Through a ref, so an owner that rebuilds the handler per render does not rebuild every callback
-  // below with it — the interpreter is handed to the buttons and lives across a whole edit.
-  const doneRef = useRef(onDone);
-  useEffect(() => {
-    doneRef.current = onDone;
-  }, [onDone]);
 
   const navigate = useCallback(
     (url: string | undefined) => {
@@ -130,17 +104,6 @@ export function useDynamicActions(
     [readState, setIsFetching, setValidationErrors]
   );
 
-  /** Everything an owned layout ends with: the edit is over, and the owner decides what follows. */
-  const reportDone = useCallback(
-    (action: NormalizedAction): boolean => {
-      const done = doneRef.current;
-      if (!done) return false;
-      done(action.variables ?? {}, readState().data);
-      return true;
-    },
-    [readState]
-  );
-
   const interpret = useCallback(
     async (action: NormalizedAction, depth: number): Promise<void> => {
       if (action.message) showResponseMessage(action.message);
@@ -148,10 +111,6 @@ export function useDynamicActions(
       switch (action.targetType) {
         case "REDIRECT":
         case "MODAL":
-          // A layout the caller owns has no page to leave: the backend answers a save as well as a
-          // cancel with a redirect to the list, and for such an owner that means "this edit is
-          // over" — which is all a dialog needs to know (see DynamicDoneHandler).
-          if (reportDone(action)) break;
           // MODAL has no equivalent in the App Router yet (the legacy app stacked it onto the
           // router's location state), so the page is opened instead of overlaid.
           navigate(action.url);
@@ -163,8 +122,6 @@ export function useDynamicActions(
           window.scrollTo(0, 0);
           break;
         case "CLOSE_MODAL":
-          // For an owned layout this is literally what it says, and the owner closes it.
-          if (reportDone(action)) break;
           // Without a modal stack, going back to the previous page is the closest equivalent.
           router.back();
           break;
@@ -203,7 +160,6 @@ export function useDynamicActions(
       navigate,
       queryClient,
       queryKey,
-      reportDone,
       router,
       sendRequest,
       setValidationErrors,

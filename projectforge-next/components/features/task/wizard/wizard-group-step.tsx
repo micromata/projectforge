@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { DynamicFormDialog } from "@/components/dynamic/dynamic-form-dialog";
+import { GROUP_PAGE } from "@/components/features/group/group.page";
+import { EntityEditDialog } from "@/components/shared/edit/entity-edit-dialog";
 import {
   EntityAutocomplete,
   type EntityRef,
@@ -13,9 +14,6 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Label } from "@/components/ui/label";
 import type { WizardGroupStep } from "./types";
 import { WizardStepCard } from "./wizard-step-card";
-
-/** REST category of the group page, whose form the dialog renders. */
-const GROUP_CATEGORY = "group";
 
 interface WizardGroupStepProps {
   step: WizardGroupStep;
@@ -69,7 +67,10 @@ export function WizardGroupStepCard({
         />
       </div>
       {/* In a dialog on this page, not on the group's own page: whatever is created has to end up in
-          the step below, and leaving the wizard would throw away the choices already made. */}
+          the step below, and leaving the wizard would throw away the choices already made. The
+          group's own page definition is what the dialog renders — the one place this feature reaches
+          into another one, because "create a group here" *is* a reference to the group page, and
+          rebuilding its form would be a second form to keep in step with GroupPagesRest. */}
       <HintTooltip text={t("task.wizard.button.createGroup.tooltip")}>
         <button
           type="button"
@@ -80,15 +81,18 @@ export function WizardGroupStepCard({
           {t("task.wizard.button.createGroup._")}
         </button>
       </HintTooltip>
-      <DynamicFormDialog
-        category={GROUP_CATEGORY}
+      <EntityEditDialog
+        page={GROUP_PAGE}
         open={creating}
         onOpenChange={setCreating}
         // Wicket's suggestion, and now an actual prefill rather than a name to copy by hand.
         prefill={suggestedName ? { name: suggestedName } : undefined}
-        // The new group is what this step goes on with — the point of creating it here.
-        onSaved={(id, data) =>
-          onChange({ id, displayName: String(data.name ?? "") })
+        // The new group is what this step goes on with — the point of creating it here. A group
+        // without an id cannot happen (a save answers with one), and nothing is picked if it does.
+        onSaved={(id, values) =>
+          id == null
+            ? undefined
+            : onChange({ id, displayName: values.name ?? "" })
         }
       />
     </WizardStepCard>

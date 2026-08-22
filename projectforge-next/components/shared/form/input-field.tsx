@@ -17,6 +17,11 @@ export interface InputFieldProps extends BaseFieldProps {
   placeholder?: string;
   /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a value the DTO computes — a
+   * group's `emails` — is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
 }
 
 export function InputField({
@@ -27,11 +32,12 @@ export function InputField({
   type = "text",
   placeholder,
   disabled,
+  metadataLess,
 }: InputFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, maxLength } = useFieldMetadata(name);
+  const { required, maxLength } = useFieldMetadata(name, metadataLess);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

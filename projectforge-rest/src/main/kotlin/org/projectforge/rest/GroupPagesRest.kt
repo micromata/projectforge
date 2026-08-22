@@ -99,12 +99,22 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 it.lastname = user.lastname
             }
         }
+        group.ldapPosixConfigured = useLdapStuff
         if (useLdapStuff) {
             groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
                 group.gidNumber = ldapGroupValues.gidNumber
             }
         }
         return group
+    }
+
+    /**
+     * Tells the list page whether the LDAP columns are worth showing, the same condition the edit page gets
+     * as [Group.ldapPosixConfigured]. A hand built list (projectforge-next) shows or hides its `ldapValues`
+     * column by it; the server side layout below decides it by simply not adding the column.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf("ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff))
     }
 
     override fun transformForDB(dto: Group): GroupDO {

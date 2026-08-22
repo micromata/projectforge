@@ -2079,14 +2079,13 @@ Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
    **Beide „anlegen"-Wege kehren zum Assistenten zurück** – gemeldet war, dass eine im
    Assistenten angelegte Gruppe hinterher nicht ausgewählt ist (der Link ging in einen neuen
    Tab der Legacy-Seite):
-   - **Gruppe:** im Dialog auf der Seite selbst, nicht auf der Gruppenseite. Der Dialog
-     (`components/dynamic/dynamic-form-dialog.tsx`) rendert das `UILayout` des Servers
-     (`GET /rs/group/edit`) samt seinen Knöpfen; nichts darin weiß, was eine Gruppe ist. Was
-     das möglich macht: `AbstractEntityRest.onAfterEdit` antwortet auf ein Speichern mit
-     `variables.id`, und ein `REDIRECT` hat im Dialog keine Bedeutung – der neue
-     `onDone`-Haken von `DynamicLayoutProvider` fängt ihn ab und meldet stattdessen „diese
-     Bearbeitung ist vorbei" (mit `id` = gespeichert, ohne = abgebrochen). Die Gruppenseite
-     bleibt damit unverändert Legacy; nichts an `NextMigration` ändert sich.
+   - **Gruppe:** im Dialog auf der Seite selbst, nicht auf der Gruppenseite –
+     `components/shared/edit/entity-edit-dialog.tsx` mit `page={GROUP_PAGE}`,
+     `prefill={{ name: suggestGroupName(…), localGroup: true }}` und einem `onSaved`, das die
+     neue Gruppe zum Wert des Schritts macht. Es ist also das handgebaute Gruppenformular
+     selbst, nicht mehr das `UILayout` des Servers (s. den eigenen Abschnitt „Gruppen"):
+     zwischenzeitlich stand hier ein `DynamicFormDialog` um `GET /rs/group/edit`, weil die
+     Gruppenseite noch Legacy war – der ist mit der Migration von `group` gelöscht.
    - **Strukturelement:** weiter auf der eigenen Seite – das Formular ist handgebaut, also
      kein `UILayout` und kein Dialog –, aber der Rückweg trägt jetzt die ID mit
      (`/taskWizard?savedId=…`, s. `EditReturn.savedRoute` und `savedIdParam` am dritten
@@ -2098,16 +2097,10 @@ Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
    `INPUT`-Elemente mit `dataType` `USER`/`GROUP`/`EMPLOYEE`/`COST1`/`COST2`/`KONTO` jetzt
    über `dynamic-entity-input.tsx` (auf `EntityAutocomplete`, Endpunkt aus dem Typ:
    `user/autosearch` …) statt als `DynamicFallback` – wie Legacy es mit seinem `ObjectSelect`
-   tut. Im Gruppenformular war das der `groupOwner`, der einzige Teil, der nicht ankam; das
-   LDAP-Fieldset samt seinem eigenen „Anlegen" (GID-Nummer) rendert der Dialog schon vorher.
-   Offen bleiben `TASK`, `LOCALE`, `TIMEZONE`, `PICTURE` und `CUSTOMIZED`.
-
-   **TODO für die Migration von `group`:** `DynamicFormDialog` kann nur Kategorien anzeigen,
-   deren Formular ein `UILayout` **ist**; steht `group` erst in `HAND_BUILT_CATEGORIES`, zeigt
-   der Dialog eine Fehlermeldung statt eines Formulars (bewusst, statt eines leeren Rahmens).
-   Dann braucht der Assistent einen handgebauten Gruppendialog um `EntityEditPage` herum –
-   der Rückweg dafür steht schon: `useEntityEditForm` nimmt ein `savedRoute` und kennt die ID
-   des geschriebenen Eintrags (`EntityWriteResult.id`).
+   tut. Aufgefallen ist die Lücke am `groupOwner` des damals noch server-gelayouteten
+   Gruppenformulars; die Elementtypen bleiben für die ~36 UILayout-Kategorien nötig, auch
+   wenn dieser eine Aufrufer inzwischen handgebaut ist. Offen bleiben `TASK`, `LOCALE`,
+   `TIMEZONE`, `PICTURE` und `CUSTOMIZED`.
 
 5. **Erledigt: Umschaltung. Der Menüschalter bleibt vorerst draußen.**
    `NextMigration.MIGRATED["task"]` und `lib/hand-built-categories.ts` sind zusammen
@@ -2138,6 +2131,82 @@ Vergleich gegen `kost2ListAsLines` des Baums führt statt gegen abgeschriebene
 Tooltip-Zeilen (dieselben drei Aufrufe, und keine Änderung an einer Aufgabe nötig). Die
 *Ablehnungs*pfade sind lokal nicht prüfbar (das Testkonto ist Admin und in den
 FiBu-Gruppen) – dafür Unit-Tests.
+
+#### Gruppen (`group`, vierter handgebauter Fall) – vollständig migriert
+
+Die letzte Seite, die der Aufgaben-Assistent noch nicht in next hatte. Liste **und**
+Formular stehen jetzt als Deklaration in `components/features/group/`
+(`group.page.ts`, `types.ts`, `group-schema.ts`, `group-values.ts`), Routen wie bei
+`cost1` (`app/(authenticated)/group/`, `group/[id]`, `group/[id]/history`),
+umgeschaltet in `NextMigration.MIGRATED["group"]` + `lib/hand-built-categories.ts`
+(`NextMigrationTest` erzwingt die Gleichheit) und im Menü
+(`MenuItemDefId.GROUP_LIST` → `next/group`). Der Weg zurück führt in die React-App
+(`react/group`), von dort kam die Seite.
+
+**Handgebaut und nicht bloß ein Flip**, obwohl `GroupPagesRest` ein `UILayout`
+liefert: die generische Listen-Route rendert allein den Grid-Knoten – ohne
+Filterzeile, gespeicherte Filter, Zahnradmenü und Excel-Export wäre der Schalter
+gegenüber der React-Liste ein Rückschritt.
+
+- **Zwei Flags aus dem Backend, kein neues Recht.** `Group.ldapPosixConfigured` ist
+  ein reines Anzeige-Flag (`GroupDO` hat keine solche Property, `copyTo` übergeht es
+  also beim Speichern) und trägt die private Bedingung, über die
+  `GroupPagesRest.createEditLayout` heute das LDAP-Fieldset einhängt. Dasselbe Flag
+  gibt `addVariablesForListPage` als Listenvariable mit, damit sich die Spalte
+  `ldapValues` über `ColumnBase.visible` ein- und ausblendet. Ob posix-Konten
+  konfiguriert sind, kann der Client nicht sehen – deshalb reist es mit der Antwort
+  und nicht als Annahme im Frontend.
+- **Drei DTO-eigene Felder**, die `GROUP_METADATA` nicht kennt und die daher
+  `{ custom: … }`-Felder sind: `assignedUsers` (Collection),
+  `gidNumber`/`ldapPosixConfigured` (nur im DTO) und das errechnete Nur-Lese-Feld
+  `emails`. `DeclaredField.name` ist auf `keyof M["fields"]` typisiert – die Grenze
+  ist gewollt und zeigt genau die Felder an, die kein Metadatum hinter sich haben.
+- **`assignedUsers` als generische Mehrfachauswahl**:
+  `components/shared/form/entity-multi-autocomplete-field.tsx` (auf
+  `EntityAutocomplete`, Chips wie in `tag-input.tsx`), nicht gruppenspezifisch –
+  `user`, `group` und `employee` unterscheiden sich nur in der `entity`-Prop, und der
+  nächste Fall (Benutzerseite: zugewiesene Gruppen) kommt.
+- **Excel-Export generisch**: `lib/rs/list-export.ts`
+  (`downloadListExcel(entity, filter)` → `RestPaths.REST_EXCEL_SUB_PATH`, derselbe
+  Endpunkt, den die React-Liste ruft); `lib/rs/invoice.ts` ist darauf umgestellt,
+  damit es nur einen Weg gibt. Der Button im `listActions`-Slot zeigt sich nur
+  Admins – wie das Backend selbst prüft.
+- **Ein Speichern schreibt die ganze DTO.** Ein handgebautes Formular postet seine
+  Werte _als_ DTO, und `BaseDTO.copy` kopiert Feld für Feld: ein nicht mitgeführtes
+  Feld wird geleert. `ldapValues` (von der LDAP-Synchronisation geschrieben, im
+  Formular nirgends sichtbar) und `created` stehen deshalb unsichtbar im
+  `groupSchema`. `e2e/group.spec.ts` prüft nach dem Speichern genau das zurück.
+
+**Der Assistent legt seine Gruppe mit diesem Formular an.** Neu ist
+`components/shared/edit/entity-edit-dialog.tsx` – Geschwister von
+`entity-edit-page.tsx`, ohne Routing, Reiter, Escape-Hatch, Löschen und Klonen:
+`Dialog` + Titel aus `edit.newTitleKey`, `EntityEditFormProvider`, die deklarierten
+Abschnitte, Abbrechen/Speichern. Möglich macht das die neue Option
+`useEntityEditForm({ onSaved })`: sie tritt an die Stelle des
+`router.push(listRoute)`, denn ein Formular in einem Dialog hat keine Seite, zu der
+es navigieren könnte – genau die Rolle, die `onDone` im dynamischen Zweig hatte.
+
+**`components/dynamic/dynamic-form-dialog.tsx` ist damit gelöscht**, samt der
+`onDone`-Verdrahtung in `use-dynamic-actions.ts`/`dynamic-context.tsx`: `group` war
+sein einziger Aufrufer, und ein Dialog kann nur Kategorien zeigen, deren Formular
+ein `UILayout` **ist** – für eine handgebaute Kategorie hätte er eine Fehlermeldung
+angezeigt. Kommt der erste echte Fall (ein Dialog um ein server-gelayoutetes
+Formular, als Vorlage für die ~36 UILayout-Kategorien), ist er aus der Historie zu
+holen; die Begründung stand im Kopf der Datei.
+
+**Bewusst nicht mitgekommen:** verschachtelte Gruppen (`group.nestedGroups`) – die
+React-Seite hat sie nicht, und `GroupPagesRest.transformForDB` hat
+`setNestedGroups` auskommentiert. Mehrfachauswahl/Massenupdate der Liste fehlt, weil
+`group` keine `AbstractMultiSelectedPage` hat. Und Nicht-Admins sehen weiter nur
+`name` (`Group.copyFromMinimal`), in der Liste also leere Spalten – unverändert
+gegenüber der React-Seite.
+
+**Verifikation.** `e2e/group.spec.ts` gegen das laufende System (deklarierte Spalten
+gegen die Labels von `GroupDO`, Suche + Zeilenklick, Vorbelegung gegen die
+REST-Antwort, ein Speichern samt Rücklesen und Zurücksetzen, der Status-Filter mit
+seinem `LOCAL_GROUP`-Rumpf) und `e2e/task-wizard.spec.ts` für den Dialog. Die
+LDAP-Spalte und das `gidNumber`-Feld sind e2e nicht prüfbar: ob posix-Konten
+konfiguriert sind, entscheidet die Installation.
 
 ### Phase 4 – Ablösung & Aufräumen
 
@@ -2290,6 +2359,13 @@ FiBu-Gruppen) – dafür Unit-Tests.
   read-only, Hinweis = die Meldung des Backends); Ablehnungen aus eigenen Endpunkten
   als `kind: "rejected"` statt als Erfolg. Grenze: `page-def` kennt kein
   `readOnlyWhen`.
+- **Gruppen (`group`) vollständig** – Liste und Formular handgebaut als vierter
+  solcher Fall, mit LDAP-Feld (`gidNumber` + „Anlegen"), Excel-Export der Liste
+  (generisch in `lib/rs/list-export.ts`), generischer Mehrfach-Entity-Auswahl und
+  dem neuen `EntityEditDialog`, mit dem der Aufgaben-Assistent seine Gruppe anlegt.
+  Menü und `NextMigration.MIGRATED["group"]` sind umgeschaltet;
+  `components/dynamic/dynamic-form-dialog.tsx` ist damit gelöscht. Gegen das
+  laufende System geprüft (`e2e/group.spec.ts`, `e2e/task-wizard.spec.ts`).
 - **Datumseingabe international** – eine geteilte Komponente
   (`components/shared/date-input.tsx`) statt vier `<input type="date">`: Layout,
   Platzhaltermaske und erster Wochentag aus `userData`, Wert immer ISO

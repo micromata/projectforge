@@ -57,6 +57,16 @@ export interface UseEntityEditFormOptions<Values, Data> {
    * Left out by everybody else, and then [listRoute] is the way back, as it always was.
    */
   savedRoute?: (id: number | null) => string;
+  /**
+   * Takes the place of leaving for [listRoute] after a successful save — for a form that has no page
+   * to leave: the one in a dialog ([EntityEditDialog]), whose caller closes it and goes on with what
+   * was written.
+   *
+   * Gets the id the backend assigned (null if it named none) and the values that were saved, since
+   * the answer of a write carries no entity (see lib/rs/entity.ts) and a caller usually wants a name
+   * as well as an id.
+   */
+  onSaved?: (id: number | null, values: Values) => void;
   /** Toast text of a successful save, e.g. `t("saved")`. */
   savedMessage: string;
   save: MutateFn<Values>;
@@ -85,6 +95,7 @@ export function useEntityEditForm<Values, Data>({
   arrayFieldNames,
   listRoute,
   savedRoute,
+  onSaved,
   savedMessage,
   save,
 }: UseEntityEditFormOptions<Values, Data>): EntityEditForm {
@@ -150,6 +161,12 @@ export function useEntityEditForm<Values, Data>({
       // and what deleting does. The form is reset first so leaving it doesn't look like unsaved
       // changes; the list refetches on its own, the caches having been invalidated.
       form.reset(value);
+      if (onSaved) {
+        // A form without a page of its own: its caller decides what "afterwards" means, and there is
+        // nothing to navigate to (see the option).
+        onSaved(result.id, value as Values);
+        return;
+      }
       // The id of what was just written, for a caller that asked to be told (`savedRoute`): an insert
       // is the case that needs it, and the id only exists after this save.
       router.push(savedRoute ? savedRoute(result.id) : listRoute);

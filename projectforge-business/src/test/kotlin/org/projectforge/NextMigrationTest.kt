@@ -90,6 +90,21 @@ class NextMigrationTest {
     }
 
     /**
+     * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
+     * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
+     * React app, which is where the escape hatch leads.
+     */
+    @Test
+    fun `the group page is next's, and its way back leads to the React app`() {
+        Assertions.assertEquals("next/group", NextMigration.listUrl("group"))
+        Assertions.assertEquals("next/group/:id", NextMigration.nextEditPage("group"))
+        Assertions.assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
+        Assertions.assertEquals("next/group/new", NextMigration.newEntryUrl("group"))
+        Assertions.assertEquals("react/group", NextMigration.legacyListUrl("group"))
+        Assertions.assertEquals("react/group/edit/:id", NextMigration.legacyEditPage("group"))
+    }
+
+    /**
      * The working directory of a test run is the module, not the repository, and both are valid
      * (Gradle vs. IDE), so the project root is searched upwards instead of assumed.
      */

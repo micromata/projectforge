@@ -33,6 +33,7 @@
     },
     "country": "Land",
     "division": "Bereich",
+    "emails": "E-Mails",
     "fingerprint": "Fingerprint",
     "form": {
       "_": "Anrede",
@@ -1173,7 +1174,16 @@
     "sendEMailNotification": "E-Mail-Benachrichtigung versenden?"
   },
   "lastUpdate": "letzte Änderung",
-  "ldap": "LDAP",
+  "ldap": {
+    "_": "LDAP",
+    "gidNumber": {
+      "_": "GID number",
+      "createDefault": {
+        "tooltip": "Erzeugt eine neue GID (die nächste freie >= 1.000). Achtung: ProjectForge löscht keine Posix/Samba-Accounts im LDAP, die einmal angelegt worden sind!"
+      },
+      "tooltip": "ProjectForges versucht die größte bereits durch ProjectForge vergebene GID-Nummer zu finden und schlägt die nächst höhere Nummer als nächste freie GID-Nummer vor. Dabei startet ProjectForge mit 1.000, um nicht mit GIDs der Betriebssysteme zu kollidieren (z. B. mit Systemgruppen)."
+    }
+  },
   "legalAffaires": {
     "contract": {
       "coContractorA": "Vertragspartner:in A",
@@ -1269,6 +1279,7 @@
   },
   "menu": {
     "addNewEntry": "Neuer Eintrag",
+    "administration": "Administration",
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
@@ -1757,6 +1768,7 @@
     "lucene": {
       "link": "Link zur Lucene-Abfrage-Syntax."
     },
+    "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
         "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",

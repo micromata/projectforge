@@ -151,6 +151,15 @@ object NextMigration {
             newEntryRoute = "cost1/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
+        // way back leads. Hand built rather than generic because the React list has a filter of its own
+        // (the group type) and an Excel export, neither of which the generic UILayout route renders.
+        "group" to NextPage(
+            route = "group",
+            editRoute = "group/$ID_PLACEHOLDER",
+            newEntryRoute = "group/new",
+            legacyApp = LegacyApp.REACT,
+        ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
         // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back

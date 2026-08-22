@@ -95,6 +95,11 @@ export interface NumberFieldProps extends BaseFieldProps {
    * caller passes undefined.
    */
   warning?: string;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a DTO-only value like a group's
+   * `gidNumber` is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
 }
 
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
@@ -153,11 +158,12 @@ export function NumberField({
   shareOf,
   onChanged,
   warning,
+  metadataLess,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, dataType } = useFieldMetadata(name);
+  const { required, dataType } = useFieldMetadata(name, metadataLess);
   const digits = fractionDigits ?? (dataType === "AMOUNT" ? 2 : undefined);
   const grouped = groupsThousands(digits, dataType);
   return (
