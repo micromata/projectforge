@@ -21,6 +21,14 @@ export interface EditPageShellProps {
    * down is the alternative to every section reading the scroll position itself.
    */
   sections: (ReactNode | ((active: boolean) => ReactNode))[];
+  /**
+   * Below the last card and inside the same scrolled column — what belongs to the save rather than to
+   * the entity: the change comment of a historizable entry (see HistoryUserCommentField).
+   *
+   * No tab of its own and no section: it is not part of the form the tabs navigate, which is exactly
+   * why the server laid out pages keep it in `layoutBelowActions` instead of in a fieldset.
+   */
+  belowSections?: ReactNode;
   actions?: ReactNode;
   /**
    * Sticky bar between the tab strip and the scrollable content — stays visible while the user
@@ -39,6 +47,7 @@ export function EditPageShell({
   header,
   tabs,
   sections,
+  belowSections,
   actions,
   banner,
   tabPanels,
@@ -140,6 +149,7 @@ export function EditPageShell({
                 : section}
             </div>
           ))}
+          {belowSections && <div className="pt-4">{belowSections}</div>}
         </div>
         {actions && <div className="shrink-0">{actions}</div>}
       </Activity>

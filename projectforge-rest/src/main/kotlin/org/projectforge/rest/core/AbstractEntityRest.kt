@@ -266,16 +266,25 @@ constructor(
     protected fun getListMeta(request: HttpServletRequest, filter: MagicFilter): ListMetaData {
         val userAccess = UILayout.UserAccess()
         checkUserAccess(null, userAccess)
-        // Assume that the user has general update access (change this, see GroupPagesRest).
-        // So this flag is unchecked, and the ones checkUserAccess did fill are read with
-        // throwException = false: userAccess describes what the UI should offer, it does not authorize
-        // anything. The DAO decides that when the call arrives (see ListMetaData.userAccess).
+        // Assumed rather than checked, because it is not a question about the *list*: whether an entry
+        // may be written is asked per entry and travels on its DTO (EntityAccessSupport, filled in
+        // getById from the same DAO the write goes through - see Group for an entity every user may read
+        // but only an administrator may change).
+        // The flags checkUserAccess did fill are read with throwException = false for the same reason:
+        // userAccess describes what the UI should offer, it does not authorize anything. The DAO decides
+        // that when the call arrives (see ListMetaData.userAccess).
         //
         // The exception is `read`: a user without select access has no list to be shown at all, so
         // projectforge-next keeps the page from rendering rather than offering an empty one. Still not
         // the authorization - `list` is refused by the DAO either way, and answers 403 for a next client
         // (see GlobalDefaultExceptionHandler).
         userAccess.update = true
+        // Whether a write may carry a comment for the history entry it produces, which is a property of
+        // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
+        // userAccess, from where the server laid out edit page adds its comment field
+        // (LayoutUtils.processEditPage). A hand built form has no layout to read it from, so it takes it
+        // from here (see useHistoryCommentSupport).
+        userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
         removeUnknownFilterEntries(filter, elements.filterIsInstance<UIFilterElement>().map { it.id }.toSet())

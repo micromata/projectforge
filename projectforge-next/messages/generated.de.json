@@ -1189,7 +1189,8 @@
         "tooltip": "Erzeugt eine neue GID (die nächste freie >= 1.000). Achtung: ProjectForge löscht keine Posix/Samba-Accounts im LDAP, die einmal angelegt worden sind!"
       },
       "tooltip": "ProjectForges versucht die größte bereits durch ProjectForge vergebene GID-Nummer zu finden und schlägt die nächst höhere Nummer als nächste freie GID-Nummer vor. Dabei startet ProjectForge mit 1.000, um nicht mit GIDs der Betriebssysteme zu kollidieren (z. B. mit Systemgruppen)."
-    }
+    },
+    "posixAccount": "Posix account"
   },
   "legalAffaires": {
     "contract": {

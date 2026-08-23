@@ -26,7 +26,6 @@ package org.projectforge.rest.dto
 import org.projectforge.business.PfCaches
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.user.entities.GroupDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class Group(
     id: Long? = null,
@@ -51,7 +50,19 @@ class Group(
      * a hand built form (projectforge-next) has to be told.
      */
     var ldapPosixConfigured: Boolean = false,
-) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName) {
+) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName), EntityAccessSupport {
+
+    /**
+     * Whether the group may be edited and deleted at all: `GroupDao` grants both to the administrators
+     * only, while every user may *read* a group (for checking who is a member of what).
+     *
+     * So this is the entity where the two differ most, and the hand built next page needs the answer:
+     * the server side layout of the legacy frontends gets it as `UILayout.UserAccess`
+     * (`GroupPagesRest.createListLayout` sets it), a form without a layout takes it from here — filled
+     * by [org.projectforge.rest.core.AbstractEntityRest.getById] from the same DAO calls.
+     */
+    override var writeAccess: Boolean? = null
+    override var deleteAccess: Boolean? = null
 
     /**
      * Populates the `emails` field with a concatenated list of sorted email addresses of the users
@@ -105,14 +116,11 @@ class Group(
 
     override fun copyTo(dest: GroupDO) {
         super.copyTo(dest)
-        val newAssignedUsers = mutableSetOf<PFUserDO>()
-        assignedUsers?.forEach { u ->
-            userGroupCache.getUser(u.id)?.let { userDO ->
-                newAssignedUsers.add(userDO)
-            }
-        }
-        if (newAssignedUsers.isNotEmpty()) {
-            dest.assignedUsers = newAssignedUsers
+        // null and empty are two different statements here: a DTO built for a reference carries no members
+        // at all (see [toGroupList]) and must leave the stored ones alone, while an empty list is the user
+        // having removed the last member - which has to arrive, or a group could never be emptied.
+        assignedUsers?.let { users ->
+            dest.assignedUsers = users.mapNotNull { userGroupCache.getUser(it.id) }.toMutableSet()
         }
     }
 

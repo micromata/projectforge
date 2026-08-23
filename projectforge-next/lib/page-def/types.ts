@@ -45,6 +45,16 @@ interface ColumnBase<Row> {
   className?: string;
   /** Overrides the alignment derived from the data type (numbers right, everything else left). */
   align?: "left" | "right";
+  /**
+   * Shows the whole value over several lines instead of clipping it to one, letting the row grow —
+   * the `wrapText` (and with it `autoHeight`) of the legacy grid's column.
+   *
+   * For a value that is a sentence or a list and not a name: a group's description and its members are
+   * the two the legacy list wraps. Costly for the reader elsewhere, since one wrapped column makes
+   * every row as tall as its longest cell, so the default stays "one line plus a tooltip on hover"
+   * (see useOverflowTooltip).
+   */
+  wrap?: boolean;
   /** Overrides the filter kind derived from the data type; `null` offers no filter at all. */
   filterKind?: FilterKind | null;
   /** Renders the cell itself, instead of the default for the field's data type. */
@@ -286,6 +296,21 @@ export interface SectionDef<M extends EntityMetadata> {
    * a folded card discoverable, which the legacy page's stack of panels did not.
    */
   collapsed?: boolean;
+  /**
+   * Whether the form has this section at all — for one whose subject may not exist in this
+   * installation or may not be administered by this user: a group's LDAP card only where posix
+   * accounts are configured (`GroupPagesRest.useLdapStuff`).
+   *
+   * The counterpart of [ColumnBase.visible] on the edit page, and the same rule: the answer is the
+   * backend's and comes as it is — a flag on the loaded entity, which is also the preset of a new one
+   * (`Group.ldapPosixConfigured`). A dropped section has no card and no tab; nothing is derived here,
+   * because the installation's configuration and the user's groups are not the client's to know.
+   *
+   * `data` is the entity as the backend answered it, undefined while it loads. Untyped, because a
+   * section knows the form it is part of but this declaration is shared by every entity — read the
+   * flag and compare it, don't reach further.
+   */
+  visible?: (ctx: { data: Record<string, unknown> | undefined }) => boolean;
   fields?: FieldDeclaration<M>[];
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;

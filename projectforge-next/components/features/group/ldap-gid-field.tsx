@@ -18,16 +18,15 @@ import type { GroupValues } from "./group-schema";
  *
  * Whether that is the case is the backend's decision and travels with the entity
  * (`Group.ldapPosixConfigured`): it depends on the LDAP configuration and on the user being an
- * administrator, neither of which the client can see. So this renders nothing until the loaded group
- * says otherwise, which is also why it is a custom field rather than a plain declaration.
+ * administrator, neither of which the client can see. That flag is what the card's `visible` reads,
+ * so this is only rendered where the gid belongs (see GROUP_PAGE).
+ *
+ * A custom field rather than a plain declaration because of the button beside the box: GroupDO has no
+ * gid property, and the next free number is the server's to propose.
  */
 export function LdapGidField({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
-  const configured = useStore(
-    form.store,
-    (s: unknown) => (s as FormState).values.ldapPosixConfigured
-  );
   const gidNumber = useStore(
     form.store,
     (s: unknown) => (s as FormState).values.gidNumber
@@ -47,8 +46,6 @@ export function LdapGidField({ className }: { className?: string }) {
       toast.error(error instanceof Error ? error.message : String(error)),
   });
 
-  if (!configured) return null;
-
   return (
     <div className={cn("flex min-w-0 flex-wrap items-end gap-3", className)}>
       <NumberField
@@ -56,6 +53,8 @@ export function LdapGidField({ className }: { className?: string }) {
         // `ldap.gidNumber` is a label *and* the parent of its two tooltips — see leafKeyOf.
         label={t(leafKeyOf("ldap.gidNumber", t.has))}
         hint={t("ldap.gidNumber.tooltip")}
+        // What the gid belongs to, as the legacy form writes it under the box (`additionalLabel`).
+        additionalLabel={t("ldap.posixAccount")}
         // No metadata: GroupDO has no such property, the gid lives in the DTO alone (see types.ts).
         metadataLess
         maxDigits={7}
@@ -80,5 +79,5 @@ export function LdapGidField({ className }: { className?: string }) {
 
 /** The slice of the form store read here; the context is deliberately untyped (form-context). */
 interface FormState {
-  values: Pick<GroupValues, "gidNumber" | "ldapPosixConfigured">;
+  values: Pick<GroupValues, "gidNumber">;
 }

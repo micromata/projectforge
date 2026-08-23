@@ -100,6 +100,11 @@ export interface NumberFieldProps extends BaseFieldProps {
    * `gidNumber` is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
    */
   metadataLess?: boolean;
+  /**
+   * What the number *is*, written under the box — "Posix account" below a group's GID number, as the
+   * server laid out form says it (`UIInput.additionalLabel`). See [FieldShell].
+   */
+  additionalLabel?: string;
 }
 
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
@@ -159,6 +164,7 @@ export function NumberField({
   onChanged,
   warning,
   metadataLess,
+  additionalLabel,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -179,6 +185,7 @@ export function NumberField({
             required={required}
             readOnly={disabled}
             hint={hint}
+            additionalLabel={additionalLabel}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             warning={warning}

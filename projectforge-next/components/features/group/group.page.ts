@@ -37,8 +37,10 @@ export const GROUP_PAGE = definePage<
   titleKey: "group.title.list",
   columns: [
     { name: "name", size: 220, pinned: "left" },
-    { name: "organization", size: 200 },
-    { name: "description", size: 320 },
+    // Wrapped, the three of them, as the legacy list wraps them (`wrapText`): an organization, a
+    // description and a list of members are longer than a column and worth reading whole.
+    { name: "organization", size: 200, wrap: true },
+    { name: "description", size: 320, wrap: true },
     {
       // The members, joined as the legacy list shows them (`SHOW_LIST_OF_DISPLAYNAMES`). No sorting:
       // the backend orders by entity property, and a collection is none.
@@ -48,6 +50,7 @@ export const GROUP_PAGE = definePage<
         row.assignedUsers?.map((user) => user.displayName).join(", "),
       size: 320,
       sortable: false,
+      wrap: true,
     },
     {
       // What the LDAP sync wrote — only worth a column where posix accounts are in use and only for an
@@ -82,9 +85,17 @@ export const GROUP_PAGE = definePage<
           { name: "groupOwner" },
           { custom: AssignedUsersField, span: 3 },
           { name: "description", span: 3, rows: 4 },
-          { custom: LdapGidField, span: 3 },
           { custom: MemberEmailsField, span: 3 },
         ],
+      },
+      {
+        // Its own card, as the legacy layout gives it its own fieldset (`UIFieldset(title = "ldap")`),
+        // and only where the backend says posix accounts are in use — see LdapGidField.
+        // `ldap._`, because `ldap` is a label and the parent of `ldap.gidNumber` too (see leafKeyOf).
+        id: "ldap",
+        titleKey: "ldap._",
+        visible: ({ data }) => data?.ldapPosixConfigured === true,
+        fields: [{ custom: LdapGidField, span: 3 }],
       },
     ],
   },
