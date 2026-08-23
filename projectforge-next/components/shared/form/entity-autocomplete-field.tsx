@@ -36,6 +36,8 @@ export interface EntityAutocompleteFieldProps extends BaseFieldProps {
    * they are annotated. Says so instead of letting the dev warning cry drift (see [useFieldMetadata]).
    */
   metadataLess?: boolean;
+  /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
+  disabled?: boolean;
 }
 
 /**
@@ -56,6 +58,7 @@ export function EntityAutocompleteField({
   params,
   onPicked,
   metadataLess,
+  disabled,
 }: EntityAutocompleteFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -76,6 +79,7 @@ export function EntityAutocompleteField({
             name={name}
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -91,6 +95,7 @@ export function EntityAutocompleteField({
               minChars={minChars}
               params={params}
               selectMe={selectMe}
+              disabled={disabled}
               onChange={(value) => {
                 field.handleChange(value);
                 // Blurring by hand: the picker is a popover, so nothing else ever marks the field

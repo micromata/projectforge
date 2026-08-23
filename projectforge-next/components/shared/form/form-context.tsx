@@ -27,6 +27,15 @@ interface EntityEditFormContext {
    * nested collection. Set by [NestedFieldMetadata], absent on the form itself.
    */
   namePrefix?: string;
+  /**
+   * Whether the whole form is shown and not edited — an entry marked as deleted, which offers nothing
+   * but its restore (see EntityEditPage).
+   *
+   * The fieldset around the sections is what actually blocks the input; this is what makes the fields
+   * *look* it. Native disabling is inherited by every control inside, but it is invisible to React, so a
+   * field could neither drop its clear button nor mark its label read-only without being told.
+   */
+  readOnly?: boolean;
 }
 
 const Ctx = createContext<EntityEditFormContext | null>(null);
@@ -57,10 +66,10 @@ export function NestedFieldMetadata({
   namePrefix: string;
   children: ReactNode;
 }) {
-  const { form } = useFormContext();
+  const { form, readOnly } = useFormContext();
   const value = useMemo(
-    () => ({ form, metadata, namePrefix }),
-    [form, metadata, namePrefix]
+    () => ({ form, metadata, namePrefix, readOnly }),
+    [form, metadata, namePrefix, readOnly]
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -77,6 +86,14 @@ function useFormContext(): EntityEditFormContext {
 
 export function useEntityEditForm(): EntityForm {
   return useFormContext().form;
+}
+
+/**
+ * Whether every field of this form is read-only, whatever its own declaration says — see
+ * [EntityEditFormContext.readOnly].
+ */
+export function useFormReadOnly(): boolean {
+  return useFormContext().readOnly === true;
 }
 
 /**

@@ -13,6 +13,29 @@ export interface FilterFieldGroup {
   elements: FilterElement[];
 }
 
+/**
+ * The flag every list can be filtered by, whatever the entity is (`LayoutListFilterUtils` adds it to
+ * every one of them).
+ */
+export const DELETED_FILTER_ID = "deleted";
+
+/**
+ * The same fields with `deleted` moved to the front.
+ *
+ * The backend hands its filter fields over sorted by label, which buries this one under G („gelöscht")
+ * or D — somewhere in the middle of the entity's own properties. It belongs at the top: „is this entry
+ * deleted" is asked of every list and far more often than any single field of one entity, and it is the
+ * only way to see an entry that the default filter hides.
+ */
+export function hoistDeletedFilter(elements: FilterElement[]): FilterElement[] {
+  const index = elements.findIndex(
+    (element) => element.id === DELETED_FILTER_ID
+  );
+  if (index <= 0) return elements;
+  const hoisted = elements[index];
+  return [hoisted, ...elements.filter((_, i) => i !== index)];
+}
+
 /** The parents of a field, from the backend or — for an older one — off its label. */
 export function groupLabelOf(element: FilterElement): string | null {
   if (element.group) return element.group;
@@ -109,7 +132,8 @@ export function buildFilterGroups(
   };
 
   add(ACTIVE_GROUP_ID, null, active);
-  add(PLAIN_GROUP_ID, null, plain);
+  // Leading the entity's own fields, i.e. directly under the filters in play — see hoistDeletedFilter.
+  add(PLAIN_GROUP_ID, null, hoistDeletedFilter(plain));
   for (const [group, members] of named) {
     add(`group:${group}`, group, members);
   }

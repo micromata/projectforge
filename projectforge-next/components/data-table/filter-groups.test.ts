@@ -9,6 +9,7 @@ import {
   fieldLabelInGroup,
   filterGroupsBySearch,
   groupLabelOf,
+  hoistDeletedFilter,
   isTechnicalField,
 } from "./filter-groups";
 
@@ -92,6 +93,7 @@ describe("buildFilterGroups", () => {
     element("attachmentsIds", { technical: true }),
     nested("contactPerson.firstname", "Ansprechpartner:in", "Vorname"),
     nested("contactPerson.name", "Ansprechpartner:in", "Name"),
+    element("bemerkung", { label: "Bemerkung" }),
     element("deleted", { label: "Gelöscht", filterType: "BOOLEAN" }),
     nested("kunde.name", "Kunde", "Name"),
     element("status", { label: "Status", filterType: "LIST" }),
@@ -108,7 +110,13 @@ describe("buildFilterGroups", () => {
       TECHNICAL_GROUP_ID,
     ]);
     expect(groups[0].elements.map((e) => e.id)).toEqual(["titel"]);
-    expect(groups[1].elements.map((e) => e.id)).toEqual(["deleted", "status"]);
+    // `deleted` ahead of the others though the backend sent it behind „Bemerkung" — see
+    // hoistDeletedFilter.
+    expect(groups[1].elements.map((e) => e.id)).toEqual([
+      "deleted",
+      "bemerkung",
+      "status",
+    ]);
     expect(groups[4].elements.map((e) => e.id)).toEqual(["attachmentsIds"]);
   });
 
@@ -200,5 +208,23 @@ describe("controlRankOf", () => {
       ["BOOLEAN", "STRING", "OBJECT", "LIST", "DATE", "TIMESTAMP"] as const
     ).map((filterType) => controlRankOf(element("x", { filterType })));
     expect(ranks).toEqual([0, 1, 1, 1, 2, 3]);
+  });
+});
+
+describe("hoistDeletedFilter", () => {
+  it("moves the deleted flag ahead of the entity's own fields", () => {
+    const hoisted = hoistDeletedFilter([
+      element("author", { label: "Autor" }),
+      element("deleted", { label: "gelöscht", filterType: "BOOLEAN" }),
+      element("title", { label: "Titel" }),
+    ]);
+    expect(hoisted.map((e) => e.id)).toEqual(["deleted", "author", "title"]);
+  });
+
+  it("leaves a list without it, and one already led by it, as it is", () => {
+    const without = [element("author"), element("title")];
+    expect(hoistDeletedFilter(without)).toBe(without);
+    const leading = [element("deleted"), element("author")];
+    expect(hoistDeletedFilter(leading)).toBe(leading);
   });
 });

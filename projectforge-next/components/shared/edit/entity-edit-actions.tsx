@@ -30,6 +30,11 @@ export interface EntityEditActionsProps {
    */
   deleteAction?: ReactNode;
   /**
+   * Restore button, in the place of [deleteAction] — an entry is either deleted or it is not, so the
+   * two are never here together (see EntityUndeleteButton).
+   */
+  undeleteAction?: ReactNode;
+  /**
    * Whether this user may save at all (`writeAccess` of the entity). False leaves the save button and
    * its option out; the read-only form stays readable and cancel stays the way out.
    */
@@ -58,6 +63,7 @@ export function EntityEditActions({
   saveOption,
   cloneAction,
   deleteAction,
+  undeleteAction,
   canSave,
   isSaving,
   isDirty,
@@ -118,6 +124,7 @@ export function EntityEditActions({
         </span>
       )}
       {deleteAction}
+      {undeleteAction}
     </div>
   );
 }

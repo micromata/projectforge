@@ -1,10 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export interface EntityEditHeaderProps {
   /** Where the breadcrumb leads, e.g. `/cost1`. */
@@ -19,6 +22,12 @@ export interface EntityEditHeaderProps {
   trailing?: ReactNode;
   /** What else can be done with this entry, as one menu — see EntityCrossLinks. */
   crossLinks?: ReactNode;
+  /**
+   * Whether the entry is marked as deleted — struck through and named as such, the way the list marks
+   * its row (see deletedRowClass). The whole statement is EntityDeletedBanner's; this is the part that
+   * stays visible while the user scrolls.
+   */
+  deleted?: boolean;
 }
 
 /** The top row of every edit page: the way back to the list, what is being edited, and where it was. */
@@ -29,7 +38,9 @@ export function EntityEditHeader({
   legacyUrl,
   trailing,
   crossLinks,
+  deleted,
 }: EntityEditHeaderProps) {
+  const t = useTranslations();
   return (
     <div className="flex h-11 items-center gap-2 overflow-hidden border-b border-border bg-background px-6">
       {/* Guarded: this is the way out of a form that may hold unsaved changes. */}
@@ -45,9 +56,20 @@ export function EntityEditHeader({
         <span>{listLabel}</span>
       </GuardedLink>
       <span className="shrink-0 text-base text-border">/</span>
-      <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+      <span
+        className={cn(
+          "min-w-0 truncate text-sm text-muted-foreground",
+          deleted && "line-through"
+        )}
+      >
         {title}
       </span>
+      {deleted && (
+        <Badge variant="destructive" className="shrink-0 text-[10px]">
+          {t("deleted")}
+        </Badge>
+      )}
+      <span className="flex-1" />
       {trailing}
       {crossLinks}
       {/* Right, not left: the left of this row is the breadcrumb back to the list, and putting a
