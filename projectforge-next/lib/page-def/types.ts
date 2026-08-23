@@ -27,7 +27,7 @@ import type { ComponentType, ReactNode } from "react";
 import type { CellContext } from "@tanstack/react-table";
 import type { ZodType } from "zod";
 import type { FilterKind } from "@/components/data-table";
-import type { DurationId } from "@/lib/date-duration";
+import type { PeriodKindId } from "@/lib/date-period";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ReturnTarget } from "@/hooks/use-edit-return";
@@ -224,13 +224,13 @@ export interface DatePeriodDeclaration<
   end: FieldNameOf<M>;
   hintKey?: string;
   /**
-   * Lengths offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end
-   * follows it (see DatePeriodField). Opt-in: for most periods the two ends are unrelated dates.
+   * Arts offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end follows
+   * it (see DatePeriodField). Opt-in: for most periods the two ends are unrelated dates.
    */
-  durations?: readonly DurationId[];
+  periodKinds?: readonly PeriodKindId[];
   /**
    * Whether the paging arrows move the whole period on by its own length. Opt-in and independent of
-   * [durations] — only where paging a period is something a user does.
+   * [periodKinds] — only where paging a period is something a user does.
    */
   paging?: boolean;
 }
@@ -459,6 +459,15 @@ export interface PageDef<
   categoryKey: string;
   titleKey: string;
   columns: ColumnDeclaration<Row, M>[];
+  /**
+   * The arts the period filters of this list offer beside their two dates, e.g.
+   * `["termMonth", "termThreeMonths", "termYear"]` for the order book.
+   *
+   * Absent means `Monat` and `Jahr bis heute`, which is what a list of past records is asked about. A
+   * page says it because its dates decide: only the page knows whether its ranges are calendar sections
+   * or terms running from a begin (see [FilterPeriodKindsProvider]).
+   */
+  filterPeriodKinds?: readonly PeriodKindId[];
   /**
    * Colour legend shown below the table. `row-deleted` (struck-through, deleted entries) is
    * always added as the first entry; set `legend` only for additional, entity-specific colours.

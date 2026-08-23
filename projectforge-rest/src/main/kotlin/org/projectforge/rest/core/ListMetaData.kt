@@ -46,6 +46,16 @@ class ListMetaData(
     /** The user's saved filters of this entity, the same ones the legacy list page offers. */
     val filterFavorites: List<Favorites.FavoriteIdTitle>,
     /**
+     * The saved filter [filter] is based on, as it is stored — null while the current filter comes from
+     * no favorite (or names one that is gone).
+     *
+     * The values, not just the name: without them a client that was reloaded cannot tell an edited filter
+     * from an unchanged one and has to offer "save" unconditionally, which is what the legacy frontend
+     * does (`SearchFilter.jsx`). The comparison itself is the client's, because it is the client that
+     * normalises the entries it sends ([MagicFilter.isModified] compares entry objects by identity).
+     */
+    val filterFavorite: MagicFilter?,
+    /**
      * The filter fields of this entity, derived from the DAO's search fields (see
      * `LayoutListFilterUtils.createNamedSearchFilterContainer`).
      *

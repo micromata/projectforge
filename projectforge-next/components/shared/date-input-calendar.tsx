@@ -218,6 +218,10 @@ const MonthGrid = memo(function MonthGrid({
       locale={locale}
       weekStartsOn={weekStartsOn}
       captionLayout="dropdown"
+      // Always six week rows, even when a month fits in four or five. The row count would
+      // otherwise change the popover's height from month to month, Radix would reposition it,
+      // and the paging arrows would jump away from under the cursor mid-step.
+      fixedWeeks
       startMonth={startMonth}
       endMonth={endMonth}
       // Today only gets a grey background from the primitive, which is hard to tell from a hovered

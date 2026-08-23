@@ -1,12 +1,12 @@
 "use client";
 
 import { FieldError } from "@/components/ui/field";
-import type { DurationId } from "@/lib/date-duration";
+import { PeriodStepper } from "@/components/shared/period-stepper";
+import type { PeriodKindId } from "@/lib/date-period";
 import { cn } from "@/lib/utils";
 import { DatePeriodBoundsRow } from "./date-period-bounds-row";
-import { DatePeriodDurationStepper } from "./date-period-duration-stepper";
 import { FieldHint } from "./field-hint";
-import { useDatePeriodDuration } from "./use-date-period-duration";
+import { useDatePeriodKind } from "./use-date-period-kind";
 import {
   useDatePeriodGroup,
   type DatePeriodBound,
@@ -21,13 +21,15 @@ export interface DatePeriodFieldProps {
   end: DatePeriodBound;
   hint?: string;
   /**
-   * Lengths offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end
-   * follows it. Absent or empty means two plain dates: for most periods the two ends are unrelated.
+   * Arts offered beside the two boxes ("1 Monat"), so only the begin has to be entered — the end follows
+   * it. Absent or empty means two plain dates: for most periods the two ends are unrelated. A form offers
+   * the terms (`TERM_KIND_IDS`), never `yearToDate`: an agreed period of performance ends on a date, not
+   * "today".
    */
-  durations?: readonly DurationId[];
+  periodKinds?: readonly PeriodKindId[];
   /**
    * Whether to offer the paging arrows, which move the whole period on by its own length. Independent of
-   * [durations]: a period entered by hand pages by the days it spans.
+   * [periodKinds]: a period entered by hand pages by the days it spans.
    */
   paging?: boolean;
   className?: string;
@@ -49,37 +51,31 @@ export interface DatePeriodFieldProps {
  * `PeriodOfPerformanceValidator`, and it stays there. The asterisk follows the metadata, the rest
  * arrives as an HTTP 406 on the field it names.
  *
- * Where `durations` are offered the period can also be given as a term: pick "3 Monate" and the end is
+ * Where `periodKinds` are offered the period can also be given as a term: pick "3 Monate" and the end is
  * filled in from the begin, and from then on moving the begin moves the end with it. Which term is in
  * effect is read off the two dates rather than stored (there is no such property on the entity), so
- * editing the end by hand simply dissolves it — see [useDatePeriodDuration]. Where `paging` is on, the
- * arrows beside them move the whole period on by that term, or by its day count where it is none.
+ * editing the end by hand simply dissolves it — see [useDatePeriodKind]. Where `paging` is on, the arrows
+ * beside them move the whole period on by that term, or by its day count where it is none.
  */
 export function DatePeriodField({
   label,
   begin,
   end,
   hint,
-  durations: durationIds,
+  periodKinds,
   paging = false,
   className,
   disabled,
 }: DatePeriodFieldProps) {
   const { bounds, values, invalid, errors } = useDatePeriodGroup(begin, end);
-  const {
-    durations,
-    duration,
-    onBeginChanged,
-    onDurationSelected,
-    canStep,
-    onStep,
-  } = useDatePeriodDuration({
-    beginName: begin.name,
-    endName: end.name,
-    begin: values[0],
-    end: values[1],
-    ids: durationIds,
-  });
+  const { kinds, kind, onBeginChanged, onKindSelected, canStep, onStep } =
+    useDatePeriodKind({
+      beginName: begin.name,
+      endName: end.name,
+      begin: values[0],
+      end: values[1],
+      ids: periodKinds,
+    });
 
   return (
     <fieldset
@@ -107,10 +103,15 @@ export function DatePeriodField({
           disabled={disabled}
           onBeginChanged={onBeginChanged}
         />
-        <DatePeriodDurationStepper
-          durations={durations}
-          value={duration}
-          onSelect={onDurationSelected}
+        <PeriodStepper
+          kinds={kinds}
+          // The begin as it stands is the anchor here — a term is measured off the date in the box, never
+          // off a snapped one. No name between the arrows: the two dates say what the term is.
+          current={kind && values[0] ? { kind, anchor: values[0] } : null}
+          // And it is the anchor for the first pick as well, while no art is in effect yet: "3 Monate"
+          // beside a begin of 15.03. means that term, not one beginning today.
+          anchor={values[0]}
+          onSelect={onKindSelected}
           paging={paging}
           canStep={canStep}
           onStep={onStep}

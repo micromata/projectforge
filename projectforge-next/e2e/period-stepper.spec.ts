@@ -1,19 +1,40 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat, type UserFormat } from "./fixtures/format";
-import {
-  boundsOfPeriod,
-  currentAnchorOf,
-  periodUnitsOf,
-} from "../lib/date-period";
+import { userFormat } from "./fixtures/format";
+import { kindName, pickKind, picker } from "./fixtures/period-kind";
+import { periodKindsOf } from "../lib/date-period";
+import { boundsOfPeriod, currentAnchorOf } from "../lib/date-period-bounds";
 import { zonedPartsOf } from "../lib/user-zone";
 import type { FilterElement } from "../lib/rs/types";
+import {
+  bound,
+  filterField,
+  listRequest,
+  openPill,
+  resetFilter,
+  saveButton,
+} from "./fixtures/filter-pill";
 
-/** The message lookup of [userFormat], the only source of expected texts. */
-type Translate = UserFormat["t"];
+/** The books list is where both filter kinds live; its DATE field is `lendOutDate`. */
+const ENTITY = "book";
 
-/** The one granularity the filters offer today; both fields default to it. */
-const MONTH = periodUnitsOf(["month"])[0];
+/** The books list's DATE filter field — the one the stepper is checked on. */
+function dateField(page: Page): Promise<FilterElement> {
+  return filterField(
+    page,
+    ENTITY,
+    "DATE",
+    "Does BookDao still index lendOutDate?"
+  );
+}
+
+/** A STRING filter field of the list — a pill that does still start in its input. */
+function textField(page: Page): Promise<FilterElement> {
+  return filterField(page, ENTITY, "STRING", "");
+}
+
+/** The calendar section a list filter starts in — the art both fields fall back to. */
+const MONTH = periodKindsOf(["month"])[0];
 
 /**
  * Quick access to a whole period next to a date range, against the live backend — Wicket's
@@ -34,15 +55,11 @@ const MONTH = periodUnitsOf(["month"])[0];
  */
 test.describe("period stepper", () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
-    await page.request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
-      .catch(() => undefined);
+    await resetFilter(page, ENTITY);
   });
 
-  test.afterAll(async ({ request }) => {
-    await request
-      .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
-      .catch(() => undefined);
+  test.afterEach(async ({ loggedInPage: page }) => {
+    await resetFilter(page, ENTITY);
   });
 
   test("pages a DATE filter back by a whole month", async ({
@@ -68,10 +85,10 @@ test.describe("period stepper", () => {
     await expect(bound(page, format, field, "valueTo")).toHaveValue(
       format.date(bounds.to)
     );
-    // And the label now names a period in effect rather than hinting at the current one.
-    await expect(
-      page.getByRole("button", { name: t(MONTH.tooltipCurrentKey) })
-    ).toHaveText(MONTH.label(previous, context));
+    // And the art the arrows page in stands in the trigger between them.
+    await expect(picker(page, format)).toHaveText(
+      kindName(format, MONTH, true)
+    );
   });
 
   test("sends the month as two dates, and only once saved", async ({
@@ -95,7 +112,7 @@ test.describe("period stepper", () => {
     await expect(saveButton(page, t)).toBeVisible();
     expect(fetched).toBe(false);
 
-    const request = listRequest(page);
+    const request = listRequest(page, ENTITY);
     await saveButton(page, t).click();
 
     const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
@@ -118,7 +135,7 @@ test.describe("period stepper", () => {
     await page
       .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
       .click();
-    const request = listRequest(page);
+    const request = listRequest(page, ENTITY);
     await saveButton(page, t).click();
 
     const entry = (await request).entries.find(
@@ -142,7 +159,7 @@ test.describe("period stepper", () => {
     });
   });
 
-  test("jumps to the current month and opens no unit menu", async ({
+  test("jumps to the current month when its art is picked again", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -158,21 +175,23 @@ test.describe("period stepper", () => {
     await back.click();
     await back.click();
 
-    const label = page.getByRole("button", {
-      name: t(MONTH.tooltipCurrentKey),
-    });
-    await label.click();
-    // One granularity is offered, so the label is a plain button and nothing opens.
-    await expect(page.getByRole("menu")).toHaveCount(0);
+    // The art that is already in effect, picked again — where the button naming the period used to be.
+    await pickKind(page, format, MONTH);
 
-    const current = currentAnchorOf(MONTH, context);
-    await expect(label).toHaveText(MONTH.label(current, context));
+    const bounds = boundsOfPeriod(
+      MONTH,
+      currentAnchorOf(MONTH, context),
+      context
+    );
     await expect(bound(page, format, field, "value")).toHaveValue(
-      format.date(boundsOfPeriod(MONTH, current, context).from)
+      format.date(bounds.from)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(bounds.to)
     );
   });
 
-  test("names the month of a date typed by hand", async ({
+  test("pages from the month of a date typed by hand", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -181,27 +200,26 @@ test.describe("period stepper", () => {
     await goto(page, "/book");
     await openPill(page, t, field.label!);
 
-    const label = page.getByRole("button", {
-      name: t(MONTH.tooltipCurrentKey),
-    });
     // A month other than the current one, so following the input is distinguishable from ignoring it.
     const typed = MONTH.shift(currentAnchorOf(MONTH, context), -4, context);
-    const day = MONTH.endOf(typed, context);
-    await bound(page, format, field, "value").fill(format.date(day));
-    await expect(label).toHaveText(MONTH.label(typed, context));
+    await bound(page, format, field, "value").fill(
+      format.date(MONTH.endOf(typed, context))
+    );
 
-    // And one step back is the month before *that*, not the one before today's.
+    // One step back is the month before *that*, not the one before today's.
     await page
       .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
       .click();
     const previous = MONTH.shift(typed, -1, context);
-    await expect(label).toHaveText(MONTH.label(previous, context));
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(previous)
+    );
     await expect(bound(page, format, field, "valueTo")).toHaveValue(
       format.date(MONTH.endOf(previous, context))
     );
   });
 
-  test("names the month of an end date given on its own", async ({
+  test("pages from an end date given on its own", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -210,14 +228,22 @@ test.describe("period stepper", () => {
     await goto(page, "/book");
     await openPill(page, t, field.label!);
 
-    // Only the upper bound: with no start date to go by, that is what the label has to follow.
+    // Only the upper bound: with no start date to go by, that is the month the arrows have to page from.
     const typed = MONTH.shift(currentAnchorOf(MONTH, context), -4, context);
     await bound(page, format, field, "valueTo").fill(
       format.date(MONTH.beginOf(typed, context))
     );
-    await expect(
-      page.getByRole("button", { name: t(MONTH.tooltipCurrentKey) })
-    ).toHaveText(MONTH.label(typed, context));
+    await page
+      .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
+      .click();
+
+    const previous = MONTH.shift(typed, -1, context);
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(previous)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(MONTH.endOf(previous, context))
+    );
   });
 
   test("opens without a calendar over the pill", async ({
@@ -255,80 +281,3 @@ test.describe("period stepper", () => {
     ).toBeFocused();
   });
 });
-
-/**
- * The filter fields the list offers, read from `listMeta` rather than named here — which fields a list
- * has follows from its DAO, and the labels are the backend's.
- */
-async function filterElements(page: Page): Promise<FilterElement[]> {
-  const response = await page.request.get("/rs/book/listMeta", {
-    headers: { "X-PF-Frontend": "next" },
-  });
-  const meta = (await response.json()) as { filterElements?: FilterElement[] };
-  return meta.filterElements ?? [];
-}
-
-/** The books list's first DATE filter field — the one the stepper is checked on. */
-async function dateField(page: Page): Promise<FilterElement> {
-  const field = (await filterElements(page)).find(
-    (element) =>
-      element.filterType === "DATE" && element.label && !element.group
-  );
-  if (!field) {
-    throw new Error(
-      "No DATE filter field on the books list. Does BookDao still index lendOutDate?"
-    );
-  }
-  return field;
-}
-
-/** A STRING filter field of the list — a pill that does still start in its input. */
-async function textField(page: Page): Promise<FilterElement> {
-  const field = (await filterElements(page)).find(
-    (element) =>
-      element.filterType === "STRING" &&
-      element.label &&
-      !element.group &&
-      !element.technical
-  );
-  if (!field) throw new Error("No plain text filter field on the books list.");
-  return field;
-}
-
-/** One end of the range, labelled as [RangeField] labels it. */
-function bound(
-  page: Page,
-  format: UserFormat,
-  field: FilterElement,
-  part: "value" | "valueTo"
-) {
-  return page.getByRole("textbox", {
-    name: `${field.label}: ${format.t(`filter.${part}`)}`,
-  });
-}
-
-function saveButton(page: Page, t: Translate) {
-  return page.getByRole("button", { name: t("save"), exact: true });
-}
-
-/** Adds a filter pill from the "+" chip and waits for its popover. */
-async function openPill(page: Page, t: Translate, name: string): Promise<void> {
-  await page.getByRole("button", { name: t("filter.addField") }).click();
-  await page.getByRole("option", { name, exact: true }).click();
-  await expect(saveButton(page, t)).toBeVisible();
-}
-
-interface ListRequestBody {
-  entries: { field: string; value: { from?: string; to?: string } }[];
-}
-
-/** The body of the next list request the page sends — where the filter actually shows up. */
-async function listRequest(page: Page): Promise<ListRequestBody> {
-  const request = await page.waitForRequest(
-    (candidate) =>
-      candidate.url().includes("/rs/book/list") &&
-      candidate.method() === "POST",
-    { timeout: 15_000 }
-  );
-  return JSON.parse(request.postData() ?? "{}") as ListRequestBody;
-}

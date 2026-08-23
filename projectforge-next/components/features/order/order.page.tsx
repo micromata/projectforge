@@ -1,5 +1,5 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
-import { DURATION_IDS } from "@/lib/date-duration";
+import { TERM_KIND_IDS } from "@/lib/date-period";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AttachmentSection } from "./edit/attachment-section";
@@ -175,6 +175,10 @@ export const ORDER_PAGE = definePage<
   // 2. toBeInvoiced → row-red  (highest business priority: something must be invoiced)
   // 3. BEAUFTRAGT or LOI → row-green  (active order)
   // 4. ESKALATION → row-red
+  // The dates of an order are agreed terms, not calendar sections: a period of performance is asked
+  // about as "the month/quarter/year from here", and "Jahr bis heute" only confuses in a book of
+  // commitments that run into the future.
+  filterPeriodKinds: ["termMonth", "termThreeMonths", "termYear"],
   deletedLabelKey: "order.legend.deleted",
   legend: [
     { className: "row-red", labelKey: "order.legend.toBeInvoiced" },
@@ -243,7 +247,7 @@ export const ORDER_PAGE = definePage<
             periodLabelKey: "fibu.periodOfPerformance._",
             begin: "periodOfPerformanceBegin",
             end: "periodOfPerformanceEnd",
-            durations: DURATION_IDS,
+            periodKinds: TERM_KIND_IDS,
             paging: true,
             startsRow: true,
           },

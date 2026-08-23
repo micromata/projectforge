@@ -88,6 +88,33 @@ Dev-Server sie anbietet:
 - **CI-Gate:** Der Gradle-Build baut immer den Static Export – so werden Dev-only-
   Abhängigkeiten beim Build sichtbar, nicht erst in Prod.
 
+### Bei jeder Seitenmigration mitzuziehen: die 2FA-Kurzbefehle
+
+Wicket und die React-App sichert der zweite Faktor über die **URL der Seite** ab
+(`/wa/orderBookEdit` im Kurzbefehl `FINANCE_WRITE`, geprüft von `WicketUserFilter`). Eine
+Next-Seite lässt sich so nicht absichern, und das ist keine Lücke, sondern eine Folge des
+Static Export: die Seite ist eine statische Datei, die ein ResourceHandler ausliefert
+(`WebApplicationConfig`) – kein Filter sieht ihre URL, und eine Navigation innerhalb der App
+erreicht den Server ohnehin nicht. Was bleibt, ist der REST-Aufruf, den die Seite macht.
+
+Zu **jeder** migrierten Seite gehört deshalb ein Eintrag in `ProjectForge2FAInitialization`,
+und zwar dort, wo die Legacy-URL der Seite stand:
+
+- **lesend:** die `*Rest`-Klasse der Kategorie über `registerShortCutClasses`
+  (→ `/rs/<kategorie>` und alles darunter),
+- **schreibend:** `WRITE:<kategorie>` im passenden `*_WRITE`-Kurzbefehl
+  (→ `/rs/<kategorie>/saveorupdate`, `markAsDeleted`, `edit`, …). Die Kategorie ist der
+  REST-Pfad, nicht der Identifier des Daos: `order`, nicht `auftrag`.
+
+Beides ist nötig, weil ein Kurzbefehl für sich konfiguriert werden kann: eine Installation
+mit `FINANCE_WRITE`, aber ohne `FINANCE` sieht von der Seite nur die `WRITE:`-Einträge.
+
+Das zu vergessen fällt nicht auf – die Seite funktioniert dann einfach ohne zweiten Faktor.
+`NextMigration2FATest` (projectforge-rest) prüft deshalb für jede Kategorie aus
+`NextMigration`: verlangt die Legacy-URL einen zweiten Faktor, muss die REST-URL es auch.
+Der Test schlägt fehl, sobald eine Seite nach `MIGRATED` wandert, ohne dass ihr 2FA-Teil
+mitgezogen wurde.
+
 ## Phasen
 
 ### Phase 0 – Parallelbetrieb herstellen ✅ erledigt
@@ -1553,12 +1580,19 @@ verbraucht eine Rechnungsnummer.
   nur eine Nur-Lese-Liste der bestehenden Anhänge. Es braucht ein persistiertes Flag
   je Anhang (neue `FileInfo`-Property, OakStorage, `AttachmentsService.changeFileInfo`)
   und betrifft Wicket mit; deshalb eine eigene Änderung und nicht Teil dieser.
-- **Die 2FA-Kurzbefehle** (`ProjectForge2FAInitialization`, `My2FAShortCut.FINANCE*`)
-  nennen Wicket-URLs und `PagesRest`-Klassen; für einen Seitenaufruf unter
-  `/next/invoice/...` greift keins der Muster. Der schreibende REST-Zugriff ist über
-  `WRITE:outgoingInvoice` weiterhin geschützt. Das betrifft alle migrierten
-  FIBU-Seiten gleichermaßen (der Auftrag steht genauso da) und ist deshalb eine
-  übergreifende Aufgabe, nicht eine der Rechnung.
+
+**Nachgetragen: der 2FA-Teil ist mitgezogen.** Für einen Seitenaufruf unter
+`/next/invoice/...` greift keins der Muster in `ProjectForge2FAInitialization` – und kann
+keins greifen: die Seite ist eine statische Datei des Exports, kein Filter sieht ihre URL
+(siehe [Bei jeder Seitenmigration mitzuziehen](#bei-jeder-seitenmigration-mitzuziehen-die-2fa-kurzbefehle)).
+Abzusichern sind also die REST-Aufrufe, und da fehlte nicht die Rechnung, sondern der
+Auftrag und der Kostenträger: lesend deckt `FINANCE` alle drei über ihre `*Rest`-Klassen
+ab, schreibend nannte `FINANCE_WRITE` nur `WRITE:outgoingInvoice` (samt
+`incomingInvoice`, `project`). `/rs/order/saveorupdate` und `/rs/cost1/saveorupdate`
+hingen allein an `FINANCE` – eine Installation mit `FINANCE_WRITE`, aber ohne `FINANCE`
+fragte vor Wickets Formular nach einem zweiten Faktor, vor dem migrierten nicht mehr.
+`WRITE:order;WRITE:cost1` steht jetzt dort, und `NextMigration2FATest` hält die Regel
+fest, damit es der nächsten Seite nicht wieder passiert.
 
 **Nachgetragen: die E-Rechnungs-Prüfung ist übersetzt.**
 `EInvoiceExportService.validate` lieferte englische Klartexte („Invoice number is

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERIOD_UNITS, type PeriodUnit } from "./date-period";
+import { periodKindOf, type PeriodKind } from "./date-period";
 import {
   anchorOfInstantBounds,
   instantBoundsOfPeriod,
@@ -7,8 +7,8 @@ import {
 } from "./date-period-instant";
 import type { FormatContext } from "./format";
 
-const month = PERIOD_UNITS.find((unit) => unit.id === "month") as PeriodUnit;
-const units = [month];
+const month = periodKindOf("month") as PeriodKind;
+const kinds = [month];
 
 /** The zones lib/user-zone.test.ts uses: a DST one, an offset with minutes, and the south. */
 const berlin: FormatContext = { locale: "de-DE", timeZone: "Europe/Berlin" };
@@ -64,10 +64,10 @@ describe("instantBoundsOfPeriod", () => {
     });
     expect(bounds).not.toBeNull();
     expect(
-      periodOfInstantBounds(bounds!.from, bounds!.to, units, {
+      periodOfInstantBounds(bounds!.from, bounds!.to, kinds, {
         locale: "de-DE",
       })
-    ).toEqual({ unit: month, anchor: "2026-08-01" });
+    ).toEqual({ kind: month, anchor: "2026-08-01" });
   });
 });
 
@@ -78,9 +78,9 @@ describe("periodOfInstantBounds", () => {
         const bounds = instantBoundsOfPeriod(month, anchor, ctx);
         expect(bounds, `${ctx.timeZone} ${anchor}`).not.toBeNull();
         expect(
-          periodOfInstantBounds(bounds!.from, bounds!.to, units, ctx),
+          periodOfInstantBounds(bounds!.from, bounds!.to, kinds, ctx),
           `${ctx.timeZone} ${anchor}`
-        ).toEqual({ unit: month, anchor });
+        ).toEqual({ kind: month, anchor });
       }
     }
   });
@@ -91,7 +91,7 @@ describe("periodOfInstantBounds", () => {
       periodOfInstantBounds(
         "2026-07-31T22:00:00.000Z",
         "2026-08-31T20:59:00.000Z",
-        units,
+        kinds,
         berlin
       )
     ).toBeNull();
@@ -101,7 +101,7 @@ describe("periodOfInstantBounds", () => {
       periodOfInstantBounds(
         "2026-07-31T22:00:00.000Z",
         "2026-08-31T22:00:00.000Z",
-        units,
+        kinds,
         berlin
       )
     ).toBeNull();
@@ -112,7 +112,7 @@ describe("periodOfInstantBounds", () => {
       periodOfInstantBounds(
         "2026-08-01T06:00:00.000Z",
         "2026-08-31T21:59:00.000Z",
-        units,
+        kinds,
         berlin
       )
     ).toBeNull();
@@ -123,23 +123,23 @@ describe("periodOfInstantBounds", () => {
     // instants are 01.08. 03:45 and 01.09. 03:44.
     const bounds = instantBoundsOfPeriod(month, "2026-08-01", berlin)!;
     expect(
-      periodOfInstantBounds(bounds.from, bounds.to, units, berlin)
+      periodOfInstantBounds(bounds.from, bounds.to, kinds, berlin)
     ).not.toBeNull();
     expect(
-      periodOfInstantBounds(bounds.from, bounds.to, units, kathmandu)
+      periodOfInstantBounds(bounds.from, bounds.to, kinds, kathmandu)
     ).toBeNull();
   });
 
   it("does not recognise a half-open or empty range", () => {
     const bounds = instantBoundsOfPeriod(month, "2026-08-01", berlin)!;
-    expect(periodOfInstantBounds(bounds.from, null, units, berlin)).toBeNull();
+    expect(periodOfInstantBounds(bounds.from, null, kinds, berlin)).toBeNull();
     expect(
-      periodOfInstantBounds(undefined, bounds.to, units, berlin)
+      periodOfInstantBounds(undefined, bounds.to, kinds, berlin)
     ).toBeNull();
-    expect(periodOfInstantBounds(null, undefined, units, berlin)).toBeNull();
+    expect(periodOfInstantBounds(null, undefined, kinds, berlin)).toBeNull();
   });
 
-  it("recognises nothing when no unit is offered", () => {
+  it("recognises nothing when no kind is offered", () => {
     const bounds = instantBoundsOfPeriod(month, "2026-08-01", berlin)!;
     expect(
       periodOfInstantBounds(bounds.from, bounds.to, [], berlin)

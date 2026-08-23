@@ -69,6 +69,15 @@ class MagicFilterEntry(
              * Sent by client for history search: changed by user (displayName and id).
              */
             var id: Long? = null,
+
+            /**
+             * The kind of period the two bounds were given as, sent and used by the client only (e. g.
+             * "month" or "yearToDate"). Stored and returned unchanged: the search itself is always built
+             * from [fromValue]/[toValue] (see MagicFilterProcessor), but a period meaning "up to today"
+             * has to be recomputed by the client when the filter is restored, and its two dates alone
+             * don't say that it is one.
+             */
+            var periodKind: String? = null,
     )
 
     var value: Value
