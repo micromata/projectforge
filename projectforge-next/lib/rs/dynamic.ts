@@ -12,6 +12,7 @@ import { rawRequest, RsError } from "./client";
 import { responseBlob, saveBlob } from "./download";
 import type {
   DynamicPageResponse,
+  MagicFilter,
   PostData,
   ResponseAction,
   ServerData,
@@ -36,18 +37,21 @@ export type ActionResult =
  *
  * GET is sent without a body, mirroring the legacy `callAction`: the backend's GET endpoints take
  * their arguments from the query string, and Spring rejects a body on some of them.
+ *
+ * The body is a `PostData` for every action of a form, and the bare `MagicFilter` for the one action
+ * of a list page that takes a filter instead (`{entity}/list`, see useDynamicActions).
  */
 export async function callDynamicAction(
   method: DynamicMethod,
   url: string,
-  postData: PostData,
+  body: PostData | MagicFilter,
   signal?: AbortSignal
 ): Promise<ActionResult> {
   const res = await rawRequest(
     resolveRestUrl(url),
     {
       method,
-      body: method === "GET" ? undefined : JSON.stringify(postData),
+      body: method === "GET" ? undefined : JSON.stringify(body),
     },
     signal
   );

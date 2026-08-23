@@ -17,11 +17,19 @@ import {
   postWatchFields,
   type DynamicMethod,
 } from "@/lib/rs/dynamic";
-import type { ActionDef } from "@/lib/rs/types";
+import type { DataObject } from "@/lib/dynamic/path";
+import type { ActionDef, MagicFilter } from "@/lib/rs/types";
 import type { DynamicLayoutStore } from "./use-dynamic-layout";
 
 /** A server that keeps answering with another request would loop forever otherwise. */
 const MAX_ACTION_DEPTH = 5;
+
+/** Sub paths of the two list actions every list layout carries (RestPaths.LIST / FILTER_RESET). */
+const LIST_PATH = "list";
+const FILTER_RESET_PATH = "filterReset";
+
+/** What a list page whose response carried no filter searches with — everything, unsorted. */
+const EMPTY_FILTER: MagicFilter = { entries: [], sortProperties: [] };
 
 export interface DynamicActions {
   callAction: (action: ActionDef) => Promise<void>;
@@ -77,14 +85,25 @@ export function useDynamicActions(
       depth: number,
       triggered?: string[]
     ): Promise<void> => {
-      const { data, serverData } = readState();
+      const { data, serverData, filter } = readState();
+      // The search button of a list page. Its request is the one that is not about a form: the
+      // endpoint takes the bare `MagicFilter` (AbstractPagesRest.getList), and the `PostData` wrapper
+      // every other action sends made Spring reject it with `Unrecognized field "data"`. The legacy
+      // app posts the filter here as well (see actions/list/index.js).
+      const isListRequest = url === `${category}/${LIST_PATH}`;
+      // The reset button beside it. It answers with the filter it fell back to, which is not a
+      // `ResponseAction` either — but the backend has stored that filter in the user's prefs, so
+      // refetching the page shows the reset list without this hook having to seed a filter itself.
+      const isFilterReset = url === `${category}/${FILTER_RESET_PATH}`;
       setIsFetching(true);
       setValidationErrors([]);
       try {
         const result = await callDynamicAction(
           method,
           url,
-          buildPostData(data, serverData, triggered)
+          isListRequest
+            ? (filter ?? EMPTY_FILTER)
+            : buildPostData(data, serverData, triggered)
         );
         if (result.kind === "validationErrors") {
           setValidationErrors(result.validationErrors);
@@ -92,6 +111,16 @@ export function useDynamicActions(
           return;
         }
         if (result.kind === "download") return;
+        // …and its answer is not an action either, but the `ResultSet` itself — which is what the
+        // page renders its rows from (`data.resultSet`, see DynamicGrid), so it replaces the data.
+        if (isListRequest) {
+          applyUpdate({ data: result.response as unknown as DataObject });
+          return;
+        }
+        if (isFilterReset) {
+          await queryClient.invalidateQueries({ queryKey });
+          return;
+        }
         // The answer is itself an action, so keep interpreting: that is what turns a save into a
         // redirect and a delete into a list reload.
         await interpretRef.current(normalizeAction(result.response), depth + 1);
@@ -101,7 +130,15 @@ export function useDynamicActions(
         setIsFetching(false);
       }
     },
-    [readState, setIsFetching, setValidationErrors]
+    [
+      applyUpdate,
+      category,
+      queryClient,
+      queryKey,
+      readState,
+      setIsFetching,
+      setValidationErrors,
+    ]
   );
 
   const interpret = useCallback(
