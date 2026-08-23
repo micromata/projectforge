@@ -4,19 +4,26 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "@/lib/toast";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Tick02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/shared/form-alert";
 import { SectionCard } from "@/components/shared/section-card";
+import { Spinner } from "@/components/shared/spinner";
 import {
   TASK_TREE_ROUTE,
   WIZARD_SAVED_ID_PARAM,
 } from "@/components/shared/tasks/task-routes";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
-import { executeTaskWizard, fetchTaskInfo } from "@/lib/rs/task";
+import {
+  executeTaskWizard,
+  fetchTaskInfo,
+  type TaskWizardResult,
+} from "@/lib/rs/task";
 import { GROUP_STEPS, type WizardGroupKey, type WizardGroups } from "./types";
 import { stashWizardGroups, takeWizardGroups } from "./wizard-handover";
 import { WizardGroupStepCard } from "./wizard-group-step";
+import { WizardResult } from "./wizard-result";
 import { WizardTaskStep } from "./wizard-task-step";
 
 /**
@@ -27,6 +34,10 @@ import { WizardTaskStep } from "./wizard-task-step";
  * entity (see the login and the password reset): there are four values, no field metadata to read and
  * no client side validation beyond "an element is picked" — the rules are the backend's
  * (`TaskWizardService`).
+ *
+ * Afterwards the steps give way to what was granted (see WizardResult) instead of a toast and a jump
+ * back to the tree: which rights were new, which were raised and which were already there is the
+ * answer to what the wizard was started for, and a toast cannot hold it.
  */
 export function TaskWizard() {
   const t = useTranslations();
@@ -43,6 +54,9 @@ export function TaskWizard() {
     returning ? takeWizardGroups() : {}
   );
   const [error, setError] = useState<string | null>(null);
+  // What the wizard granted, once it has: with it the steps give way to the report of the rights (see
+  // WizardResult), because "it worked" is not what the user came here to learn.
+  const [result, setResult] = useState<TaskWizardResult | null>(null);
 
   // For the suggested group names only — the picked element's own step shows its whole path anyway.
   const { data: task } = useQuery({
@@ -62,18 +76,28 @@ export function TaskWizard() {
           GROUP_STEPS.map((step) => [step.field, groups[step.key]?.id ?? null])
         ),
       }),
-    onSuccess: () => {
-      toast.success(t("message.successfullChanged"));
-      // Back to where the wizard was started from: the rights are set, and what they were set on is a
-      // node of that tree.
-      router.push(TASK_TREE_ROUTE);
-    },
+    onSuccess: (granted) => setResult(granted),
     onError: (err: unknown) =>
       setError(err instanceof Error ? err.message : String(err)),
   });
 
   const setGroup = (key: WizardGroupKey, group: EntityRef | null) =>
     setGroups((previous) => ({ ...previous, [key]: group }));
+
+  if (result) {
+    return (
+      <div className="flex max-w-3xl flex-col gap-4">
+        <WizardResult
+          result={result}
+          onAgain={() => {
+            setResult(null);
+            setTaskId(null);
+            setGroups({});
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex max-w-3xl flex-col gap-4">
@@ -118,7 +142,17 @@ export function TaskWizard() {
             type="button"
             disabled={taskId == null || execute.isPending}
             onClick={() => execute.mutate()}
+            className="gap-1.5"
+            aria-busy={execute.isPending}
           >
+            {/* In place of the icon, not next to it, so the label doesn't move (see EntityEditActions).
+                The grant itself is a handful of rows and thus quick, but it writes them one by one over
+                the whole path up to the root. */}
+            {execute.isPending ? (
+              <Spinner className="h-3.5 w-3.5 border-2" />
+            ) : (
+              <HugeiconsIcon icon={Tick02Icon} size={14} />
+            )}
             {t("task.wizard.finish")}
           </Button>
         </div>

@@ -58,14 +58,38 @@ class TaskWizardRest {
     )
 
     /**
+     * One access entry the wizard looked at, so the client can report it: the texts are raw (the client
+     * has no way to know a group's name), the enums are names the client maps onto its own labels
+     * (`task.wizard.result.*`).
+     *
+     * @param groupType One of [TaskWizardService.GroupType]: MANAGER, TEAM or EXTERNAL.
+     * @param pickedElement True for the element the user picked, false for one of its ancestors, which
+     * only got read access.
+     * @param status One of [TaskWizardService.AccessStatus]: CREATED, UPDATED or UNCHANGED.
+     */
+    class AccessEntry(
+        val groupName: String?,
+        val groupType: String,
+        val taskId: Long,
+        val taskTitle: String?,
+        val pickedElement: Boolean,
+        val status: String,
+    )
+
+    /**
      * @param taskTitle Title of the element, for the message the client shows.
-     * @param accessEntries Number of access entries written over all groups, ancestors included. Zero
-     * means no group was given, the case the wizard announces as
-     * `task.wizard.action.noactionRequired`.
+     * @param accessEntries Number of access entries the wizard touched over all groups, ancestors and
+     * the ones that were already right included. Zero means no group was given, the case the wizard
+     * announces as `task.wizard.action.noactionRequired`.
+     * @param entries The single entries behind those numbers, the picked element's first per group.
      */
     class ExecuteResponse(
         val taskTitle: String?,
         val accessEntries: Int,
+        val created: Int,
+        val updated: Int,
+        val unchanged: Int,
+        val entries: List<AccessEntry>,
     )
 
     @Autowired
@@ -88,6 +112,19 @@ class TaskWizardRest {
             ExecuteResponse(
                 taskTitle = result.taskTitle,
                 accessEntries = result.granted.sumOf { it.accessEntries },
+                created = result.count(TaskWizardService.AccessStatus.CREATED),
+                updated = result.count(TaskWizardService.AccessStatus.UPDATED),
+                unchanged = result.count(TaskWizardService.AccessStatus.UNCHANGED),
+                entries = result.entries.map { entry ->
+                    AccessEntry(
+                        groupName = entry.groupName,
+                        groupType = entry.groupType.name,
+                        taskId = entry.taskId,
+                        taskTitle = entry.taskTitle,
+                        pickedElement = entry.pickedElement,
+                        status = entry.status.name,
+                    )
+                },
             ),
             HttpStatus.OK,
         )

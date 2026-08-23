@@ -12,7 +12,8 @@ import { TaskWizard } from "@/components/features/task/wizard/task-wizard";
  * REST category, and the directory here shadows the `[category]` catch-all.
  *
  * No `LegacyPageLink` in the header: Wicket's wizard is not a bookmarkable page but one pushed from
- * `TaskTreePage`, so there is no legacy url to offer. The way to it is that page's content menu.
+ * `TaskTreePage`, so there is no legacy url to offer. The way here is that page's own toolbar button
+ * (see task-tree-action-bar.tsx).
  *
  * Admins only. Enforced by the endpoints behind it (`TaskWizardRest`) — this page and the entry that
  * leads here merely don't offer what would answer 403.

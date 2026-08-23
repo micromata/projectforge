@@ -1185,12 +1185,47 @@
     "_": "LDAP",
     "gidNumber": {
       "_": "GID number",
+      "alreadyInUse": "GID number is already assigned to another group. The next free GID number is {arg0}.",
       "createDefault": {
         "tooltip": "Creates a new GID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
       },
       "tooltip": "ProjectForges tries to find the highest GID number used by ProjectForge and increase it by one to get the next free GID number. ProjectForge starts with GID 1,000 for avoiding collisions with existing GID's of the operating systems (e.g. system groups)."
     },
-    "posixAccount": "Posix account"
+    "homeDirectory": "Home directory",
+    "loginShell": "Login shell",
+    "posixAccount": "Posix account",
+    "sambaAccount": "Samba account",
+    "sambaNTPassword": {
+      "_": "Samba password",
+      "subtitle": "NT hashed password",
+      "tooltip": "The Samba password is set every time the user changes his password. If not set, the user has to log in again the next time he uses ProjectForge before any stay-logged-in mechanism works again."
+    },
+    "sambaPrimaryGroupSID": {
+      "_": "Primary group SID.",
+      "tooltip": "The Samba primary group SID is optional."
+    },
+    "sambaSID": {
+      "_": "Samba SID",
+      "alreadyInUse": "Samba SID is already assigned to another user. The next free Samba SID suffix number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new sambaSID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "The Samba SID is a generated value out of the configure samba sid prefix in projectforge.properties and the UID number."
+    },
+    "uidNumber": {
+      "_": "UID number",
+      "alreadyInUse": "UID number is already assigned to another user. The next free UID number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new UID (next free >= 1,000), sets default GID (configured in projectforge.properties), home directory and configured default login shell. PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest UID number used by ProjectForge and increase it by one to get the next free UID number. ProjectForge starts with UID 1,000 for avoiding collisions with existing UID's of the operating systems (e.g. system users)."
+    },
+    "user": {
+      "gidNumber": {
+        "tooltip": "The default value is configurable in projectforge.properties: projectforge.ldap.posixAccountsDefaultGidNumber"
+      }
+    },
+    "wlanSambaPassword": "WLAN/Samba Password"
   },
   "legalAffaires": {
     "contract": {
@@ -1728,6 +1763,21 @@
         "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
       },
       "pageTitle": "Structure wizard",
+      "result": {
+        "again": "Configure another element",
+        "ancestors": "Read access on {arg0} ancestor element(s)",
+        "created": "new",
+        "role": {
+          "external": "External staff",
+          "manager": "Managing users",
+          "team": "Team"
+        },
+        "summary": "Access rights for {arg0}: {arg1} new, {arg2} changed, {arg3} already correct.",
+        "title": "What the wizard did",
+        "toTree": "To the structure tree",
+        "unchanged": "unchanged",
+        "updated": "changed"
+      },
       "task": {
         "intro": "For this structure element the rights for the given groups will be configured: For all ancestor elements a minimal read access will be configured for the groups, but all other elements in the upper hierarchy will not be accessible without further grants."
       },

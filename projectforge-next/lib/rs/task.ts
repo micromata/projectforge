@@ -289,11 +289,33 @@ export interface TaskWizardRequest {
   externalGroupId?: number | null;
 }
 
+/** What became of one access entry, `TaskWizardService.AccessStatus`. */
+export type TaskWizardAccessStatus = "CREATED" | "UPDATED" | "UNCHANGED";
+
+/** The role a group was granted, `TaskWizardService.GroupType`. */
+export type TaskWizardGroupType = "MANAGER" | "TEAM" | "EXTERNAL";
+
+/** `TaskWizardRest.AccessEntry`: one access entry the wizard looked at. */
+export interface TaskWizardAccessEntry {
+  groupName?: string | null;
+  groupType: TaskWizardGroupType;
+  taskId: number;
+  taskTitle?: string | null;
+  /** True for the element the user picked, false for an ancestor that only got read access. */
+  pickedElement: boolean;
+  status: TaskWizardAccessStatus;
+}
+
 /** `TaskWizardRest.ExecuteResponse`. */
 export interface TaskWizardResult {
   taskTitle?: string | null;
-  /** Access entries written over all groups, the ancestors' included. */
+  /** Access entries the wizard touched over all groups, the ancestors' and the unchanged included. */
   accessEntries: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  /** The single entries behind those numbers, the picked element's first per group. */
+  entries: TaskWizardAccessEntry[];
 }
 
 /** Grants the chosen groups their rights on the structure element and read access on its ancestors. */

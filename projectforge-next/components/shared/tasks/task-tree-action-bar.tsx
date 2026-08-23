@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { MagicWand01Icon } from "@hugeicons/core-free-icons";
 import { ListGearMenu } from "@/components/data-table";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { TaskPerspectiveLink } from "./task-perspective-link";
@@ -24,7 +27,9 @@ export interface TaskTreeActionBarProps {
  * legacy link in the page's header (see projectforge-next/MIGRATION.md, step 3).
  *
  * The structure wizard is here, for admins as in Wicket (`TaskTreePage.init`) — its endpoints check
- * that as well, so this only hides an entry that would answer 403.
+ * that as well, so this only hides a button that would answer 403. A button of its own rather than an
+ * entry of the gear menu, where it used to sit: it sets up the rights of a whole project in one go,
+ * which is not maintenance and not something to go looking for.
  *
  * Wicket's "list view" button *is* here, as the link to the other perspective on the same tasks (see
  * TaskPerspectiveLink); the list has the mirror of it in its toolbar.
@@ -40,19 +45,17 @@ export function TaskTreeActionBar({ onFilterReset }: TaskTreeActionBarProps) {
   return (
     <div className="flex items-center justify-end gap-3">
       <TaskPerspectiveLink to="list" />
-      <ListGearMenu entity="task" onFilterReset={onFilterReset}>
-        {isAdmin && (
-          <DropdownMenuItem asChild className="flex-col items-start gap-0.5">
+      {isAdmin && (
+        <HintTooltip text={t("task.wizard.intro")}>
+          <Button asChild variant="outline" size="sm" className="gap-1.5">
             <Link href={TASK_WIZARD_ROUTE}>
-              <span>{t("task.wizard.pageTitle")}</span>
-              {/* `whitespace-normal`: the menu primitive keeps its items on one line. */}
-              <span className="text-[11px] whitespace-normal text-muted-foreground">
-                {t("task.wizard.intro")}
-              </span>
+              <HugeiconsIcon icon={MagicWand01Icon} size={14} />
+              {t("task.wizard.pageTitle")}
             </Link>
-          </DropdownMenuItem>
-        )}
-      </ListGearMenu>
+          </Button>
+        </HintTooltip>
+      )}
+      <ListGearMenu entity="task" onFilterReset={onFilterReset} />
       {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
           flex-start (see ListToolbar, where the same separator stands). */}
       <Separator orientation="vertical" className="!h-5 !self-center" />

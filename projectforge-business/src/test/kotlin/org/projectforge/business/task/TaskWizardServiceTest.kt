@@ -68,6 +68,16 @@ class TaskWizardServiceTest : AbstractTestBase() {
         // The element itself plus its one ancestor below the root — the root is not counted because it
         // gets no entry.
         Assertions.assertEquals(2, result.granted[0].accessEntries)
+        // The picked element first, then upwards: what the report of the wizard is built on.
+        result.granted[0].entries.let { entries ->
+            Assertions.assertEquals(listOf(child.id, parent.id), entries.map { it.taskId })
+            Assertions.assertEquals(listOf(child.title, parent.title), entries.map { it.taskTitle })
+            Assertions.assertEquals(listOf(true, false), entries.map { it.pickedElement })
+            Assertions.assertTrue(entries.all { it.groupName == group.name })
+        }
+        Assertions.assertEquals(2, result.count(TaskWizardService.AccessStatus.CREATED))
+        Assertions.assertEquals(0, result.count(TaskWizardService.AccessStatus.UPDATED))
+        Assertions.assertEquals(0, result.count(TaskWizardService.AccessStatus.UNCHANGED))
 
         entry(child, group).let { access ->
             Assertions.assertTrue(access.recursive, "The role holds for the whole subtree.")
@@ -122,6 +132,7 @@ class TaskWizardServiceTest : AbstractTestBase() {
         val result = taskWizardService.grantAccess(taskId = root.id!!, managerGroupId = group.id)
 
         Assertions.assertEquals(0, result.granted[0].accessEntries)
+        Assertions.assertTrue(result.granted[0].entries.isEmpty())
         Assertions.assertNull(accessDao.getEntry(root, group))
     }
 
@@ -129,7 +140,7 @@ class TaskWizardServiceTest : AbstractTestBase() {
     fun `a second run updates the entries instead of adding more`() {
         logon(ADMIN_USER)
         val group = createGroup("twice")
-        val (_, child) = createSubtree("twice")
+        val (parent, child) = createSubtree("twice")
 
         taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
         // The team first, then the managing role on the same element: the wizard is a shortcut into the
@@ -146,6 +157,64 @@ class TaskWizardServiceTest : AbstractTestBase() {
             entry(child, group), AccessType.TIMESHEETS,
             select = true, insert = true, update = true, delete = true,
         )
+        Assertions.assertEquals(TaskWizardService.AccessStatus.UPDATED, statusOf(result, child))
+        Assertions.assertEquals(
+            TaskWizardService.AccessStatus.UNCHANGED, statusOf(result, parent),
+            "An ancestor gets read access whatever the role, so the second run leaves it as it is.",
+        )
+    }
+
+    @Test
+    fun `a second identical run reports everything as unchanged`() {
+        logon(ADMIN_USER)
+        val group = createGroup("again")
+        val (parent, child) = createSubtree("again")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        val lastUpdate = entry(child, group).lastUpdate
+
+        val result = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(2, result.count(TaskWizardService.AccessStatus.UNCHANGED))
+        Assertions.assertEquals(0, result.count(TaskWizardService.AccessStatus.CREATED))
+        Assertions.assertEquals(0, result.count(TaskWizardService.AccessStatus.UPDATED))
+        Assertions.assertEquals(
+            TaskWizardService.AccessStatus.UNCHANGED, statusOf(result, parent),
+        )
+        Assertions.assertEquals(
+            lastUpdate, entry(child, group).lastUpdate,
+            "Nothing was written, so nothing was touched either — that is what unchanged means.",
+        )
+    }
+
+    @Test
+    fun `a right that was changed by hand is reported as changed`() {
+        logon(ADMIN_USER)
+        val group = createGroup("byhand")
+        val (parent, child) = createSubtree("byhand")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        accessDao.update(entry(child, group).also { access ->
+            access.ensureAndGetTimesheetsEntry().setAccess(false, false, false, false)
+        })
+
+        val result = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(TaskWizardService.AccessStatus.UPDATED, statusOf(result, child))
+        Assertions.assertEquals(TaskWizardService.AccessStatus.UNCHANGED, statusOf(result, parent))
+    }
+
+    @Test
+    fun `an entry that lost its recursion is reported as changed`() {
+        logon(ADMIN_USER)
+        val group = createGroup("recursive")
+        val (_, child) = createSubtree("recursive")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        // Not a permission but a plain field of the entry: the one and the other have to be seen.
+        accessDao.update(entry(child, group).also { it.recursive = false })
+
+        val result = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(TaskWizardService.AccessStatus.UPDATED, statusOf(result, child))
+        Assertions.assertTrue(entry(child, group).recursive)
     }
 
     @Test
@@ -157,9 +226,13 @@ class TaskWizardServiceTest : AbstractTestBase() {
         accessDao.markAsDeleted(entry(child, group))
         Assertions.assertTrue(entry(child, group).deleted)
 
-        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        val result = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
 
         Assertions.assertFalse(entry(child, group).deleted, "The wizard has to revive its own entry.")
+        Assertions.assertEquals(
+            TaskWizardService.AccessStatus.UPDATED, statusOf(result, child),
+            "The rights were already right, but the entry was gone — that is a change, not a no-op.",
+        )
     }
 
     @Test
@@ -170,6 +243,8 @@ class TaskWizardServiceTest : AbstractTestBase() {
         val result = taskWizardService.grantAccess(taskId = child.id!!)
 
         Assertions.assertTrue(result.granted.isEmpty())
+        Assertions.assertTrue(result.entries.isEmpty())
+        Assertions.assertEquals(0, result.count(TaskWizardService.AccessStatus.CREATED))
         Assertions.assertEquals(child.title, result.taskTitle)
         Assertions.assertTrue(
             accessDao.selectAll(checkAccess = false).none { it.task?.id == child.id || it.task?.id == parent.id },
@@ -202,6 +277,15 @@ class TaskWizardServiceTest : AbstractTestBase() {
         group.name = "$PREFIX-$name"
         groupDao.insert(group)
         return group
+    }
+
+    /** What the wizard reported for one element of the path it walked. */
+    private fun statusOf(
+        result: TaskWizardService.Result,
+        task: TaskDO,
+    ): TaskWizardService.AccessStatus {
+        return result.entries.firstOrNull { it.taskId == task.id }?.status
+            ?: Assertions.fail("No entry reported for task '${task.title}'.")
     }
 
     private fun entry(task: TaskDO, group: GroupDO): GroupTaskAccessDO {

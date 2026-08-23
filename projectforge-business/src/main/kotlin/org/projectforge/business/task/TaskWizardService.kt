@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.GroupDao
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -68,18 +69,55 @@ class TaskWizardService {
     }
 
     /**
-     * What [grantAccess] did, per group that was given one.
+     * What became of one [GroupTaskAccessDO] row, so the caller can tell the user what the wizard
+     * actually did instead of only how much of it.
+     */
+    enum class AccessStatus {
+        /** There was no entry for this group and element, so one was written. */
+        CREATED,
+
+        /** The entry was there but said something else - or was deleted and is now back. */
+        UPDATED,
+
+        /** The entry already said exactly what the wizard would have written, so nothing was written. */
+        UNCHANGED,
+    }
+
+    /**
+     * One [GroupTaskAccessDO] row the wizard looked at - the picked element or one of its ancestors.
+     *
+     * @param pickedElement True for the element the user picked, which gets the role's template
+     * recursively; false for an ancestor, which only gets read access on the tasks (see [createAccessRights]).
+     */
+    class AccessEntryResult(
+        val groupType: GroupType,
+        val groupName: String?,
+        val taskId: Long,
+        val taskTitle: String?,
+        val pickedElement: Boolean,
+        val status: AccessStatus,
+    )
+
+    /**
+     * What [grantAccess] did, per group that was given a role.
      *
      * @param groupType The role the group was granted.
      * @param groupName Name of the group, for the message the caller reports.
-     * @param accessEntries How many [GroupTaskAccessDO] rows were written - one for the element plus
-     * one per ancestor below the root, minus the ones that were already right.
+     * @param entries One per row that was looked at - the element first, then its ancestors upwards.
      */
     class GrantedAccess(
         val groupType: GroupType,
         val groupName: String?,
-        val accessEntries: Int,
-    )
+        val entries: List<AccessEntryResult>,
+    ) {
+        /**
+         * How many [GroupTaskAccessDO] rows the wizard touched - one for the element plus one per
+         * ancestor below the root, the ones that were already right included (they carry
+         * [AccessStatus.UNCHANGED]).
+         */
+        val accessEntries: Int
+            get() = entries.size
+    }
 
     /**
      * @param taskTitle Title of the element the rights were granted on.
@@ -89,7 +127,13 @@ class TaskWizardService {
     class Result(
         val taskTitle: String?,
         val granted: List<GrantedAccess>,
-    )
+    ) {
+        /** All rows over all groups, in the order they were written. */
+        val entries: List<AccessEntryResult>
+            get() = granted.flatMap { it.entries }
+
+        fun count(status: AccessStatus): Int = entries.count { it.status == status }
+    }
 
     /**
      * Grants each given group its rights on the structure element and read access on the element's
@@ -116,8 +160,7 @@ class TaskWizardService {
             GroupType.EXTERNAL to externalGroupId,
         ).mapNotNull { (groupType, groupId) ->
             val group = groupId?.let { groupDao.find(it) } ?: return@mapNotNull null
-            val entries = createAccessRights(taskNode, group, groupType, isLeaf = true)
-            GrantedAccess(groupType, group.name, entries)
+            GrantedAccess(groupType, group.name, createAccessRights(taskNode, group, groupType, isLeaf = true))
         }
         if (granted.isEmpty()) {
             log.info { "Structure wizard: no group given for task #$taskId, so no access rights to create." }
@@ -131,26 +174,30 @@ class TaskWizardService {
      * @param isLeaf True for the element the user picked, false for its ancestors: those get the guest
      * template and no recursion, so the group sees the path down to the element without gaining
      * anything on its siblings.
-     * @return The number of entries written, including the ancestors'.
+     * @return One entry per row that was looked at - this element's first, then the ancestors' upwards.
      */
     private fun createAccessRights(
         taskNode: TaskNode?,
         group: GroupDO,
         groupType: GroupType,
         isLeaf: Boolean,
-    ): Int {
-        val task = taskNode?.task ?: return 0
-        val taskNodeId = taskNode.id ?: return 0
-        val groupId = group.id ?: return 0
+    ): List<AccessEntryResult> {
+        val task = taskNode?.task ?: return emptyList()
+        val taskNodeId = taskNode.id ?: return emptyList()
+        val groupId = group.id ?: return emptyList()
         if (taskTree.isRootNode(taskNode)) {
-            return 0
+            return emptyList()
         }
         var access = accessDao.getEntry(task, group)
+        val isNew = access == null
+        val wasDeleted = access?.deleted == true
         if (access == null) {
             access = GroupTaskAccessDO()
             accessDao.setTask(access, taskNodeId)
             accessDao.setGroup(access, groupId)
-        } else if (access.deleted) {
+        } else if (wasDeleted) {
+            // Before the template is applied, not after: undelete writes the whole object to the row,
+            // so it would persist the new rights and leave the update below nothing to report.
             accessDao.undelete(access)
         }
         if (!isLeaf) {
@@ -164,8 +211,30 @@ class TaskWizardService {
             }
             access.recursive = true
         }
-        accessDao.insertOrUpdate(access)
+        val status = when {
+            isNew -> {
+                accessDao.insert(access)
+                AccessStatus.CREATED
+            }
+            // The row did change - it was deleted - whatever the update answers.
+            wasDeleted -> {
+                accessDao.update(access)
+                AccessStatus.UPDATED
+            }
+            // NONE means the entry already said what the template says, and nothing was written at all
+            // (not even lastUpdate, see BaseDOPersistenceService.privateUpdate).
+            accessDao.update(access) == EntityCopyStatus.NONE -> AccessStatus.UNCHANGED
+            else -> AccessStatus.UPDATED
+        }
+        val entry = AccessEntryResult(
+            groupType = groupType,
+            groupName = group.name,
+            taskId = taskNodeId,
+            taskTitle = task.title,
+            pickedElement = isLeaf,
+            status = status,
+        )
         // Minimal access rights for the parent element up to the root.
-        return 1 + createAccessRights(taskNode.parent, group, groupType, isLeaf = false)
+        return listOf(entry) + createAccessRights(taskNode.parent, group, groupType, isLeaf = false)
     }
 }

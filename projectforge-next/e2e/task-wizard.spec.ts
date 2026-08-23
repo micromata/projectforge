@@ -1,7 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { waitForRows } from "./fixtures/list-table";
+import { listRows, waitForRows } from "./fixtures/list-table";
 import { MARKER, uniqueSuffix } from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
@@ -11,8 +11,9 @@ import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
  * What it does is Wicket's `TaskWizardPage.create`, now `TaskWizardService`: the picked element gets
  * the group's role recursively, every ancestor below the root read access on the tasks alone. The rules
  * themselves are covered by `TaskWizardServiceTest` in projectforge-business; the cases here are about
- * the way through the page — that the admin entry leads to it, that Finish stays shut without an
- * element, and that a full run actually writes the entry the announcement promises.
+ * the way through the page — that the admin button leads to it, that Finish stays shut without an
+ * element, and that a full run actually writes the entry the announcement promises and then reports
+ * what it wrote.
  *
  * The one writing case grants a *local* group of the tests' own (see createGroup) rights on the seeded
  * task, and marks the entry deleted again afterwards. The seeded task hangs below the root, so no
@@ -51,19 +52,17 @@ test.describe("task wizard", () => {
     await resetTreeState(page);
   });
 
-  test("the gear menu of the tree leads to the wizard", async ({
+  test("the tree's own button leads to the wizard", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
     await goto(page, "/taskTree");
     await waitForRows(page);
 
-    // Admins only, as in Wicket (`TaskTreePage.init`) — the test account is one, so the entry is there.
+    // Admins only, as in Wicket (`TaskTreePage.init`) — the test account is one, so the button is
+    // there. A button of the toolbar, no longer an entry of the gear menu.
     await page
-      .getByRole("button", { name: format.t("settings"), exact: true })
-      .click();
-    await page
-      .getByRole("menuitem", { name: format.t("task.wizard.pageTitle") })
+      .getByRole("link", { name: format.t("task.wizard.pageTitle") })
       .click();
 
     await expect(page).toHaveURL(/\/taskWizard$/, { timeout: 20_000 });
@@ -168,24 +167,11 @@ test.describe("task wizard", () => {
     seededTask,
     seededGroup,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(150_000);
     const format = await userFormat(page);
     await goto(page, PAGE);
     await pickSeededTask(page, format, seededTask.title);
-
-    // The team, whose step is the second one — `employee()` recursively on the element. Its picker is
-    // named by role as well as by „Group", since all three carry the same visible label.
-    await page
-      .getByRole("combobox", {
-        name: `${format.t("group._")}: ${format.t("task.wizard.team._")}`,
-      })
-      .click();
-    await page
-      .getByPlaceholder(format.t("filter.search"))
-      .fill(seededGroup.name);
-    await page
-      .getByRole("option", { name: seededGroup.name })
-      .click({ timeout: 20_000 });
+    await pickSeededGroup(page, format, seededGroup.name);
 
     await expect(
       page.getByText(format.t("task.wizard.action.taskAndgroupsGiven"))
@@ -194,8 +180,43 @@ test.describe("task wizard", () => {
       .getByRole("button", { name: format.t("task.wizard.finish") })
       .click();
 
-    // Back to the tree the wizard was started from, with the rights set.
-    await expect(page).toHaveURL(/\/taskTree$/, { timeout: 20_000 });
+    // The steps give way to what was granted, on the wizard's own page — no jump back to the tree.
+    await expect(
+      page.getByRole("heading", { name: format.t("task.wizard.result.title") })
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByText(
+        format.t("task.wizard.result.summary", {
+          arg0: seededTask.title,
+          arg1: 1,
+          arg2: 0,
+          arg3: 0,
+        })
+      )
+    ).toBeVisible();
+    // One right, granted for the first time: the team's on the picked element. No ancestor line —
+    // the seeded task hangs below the root, and the root never gets an entry.
+    await expect(
+      page.getByRole("listitem").filter({
+        hasText: format.t("task.wizard.result.role.team"),
+      })
+    ).toContainText(format.t("task.wizard.result.created"));
+    await expect(page.getByRole("listitem")).toHaveCount(1);
+
+    // The same run again, this time from the result page: the right is already there and has to be
+    // reported as such — the point of the report (see TaskWizardService.AccessStatus).
+    await page
+      .getByRole("button", { name: format.t("task.wizard.result.again") })
+      .click();
+    await pickSeededTask(page, format, seededTask.title, { cached: true });
+    await pickSeededGroup(page, format, seededGroup.name);
+    await page
+      .getByRole("button", { name: format.t("task.wizard.finish") })
+      .click();
+    await expect(page.getByRole("listitem").first()).toContainText(
+      format.t("task.wizard.result.unchanged"),
+      { timeout: 20_000 }
+    );
 
     const entries = await accessEntriesOf(page.request, seededGroup.id);
     const onTask = entries.filter((row) => row.task?.id === seededTask.id);
@@ -216,23 +237,56 @@ test.describe("task wizard", () => {
   });
 });
 
-/** Opens the tree of step 1 and picks the seeded task in it. */
+/**
+ * Opens the tree of step 1 and picks the seeded task in it.
+ *
+ * `cached` is for a second pick within the same page: the popover then asks for the subtree the first
+ * one already fetched, React Query answers that from its cache and no request goes out — so the row
+ * itself is what to wait for, not the response [narrowToSeeded] keys on.
+ */
 async function pickSeededTask(
   page: Parameters<typeof narrowToSeeded>[0],
   format: Awaited<ReturnType<typeof userFormat>>,
-  title: string
+  title: string,
+  { cached = false }: { cached?: boolean } = {}
 ) {
   await page
     .getByRole("button", {
       name: `${format.t("task.tree.title.select")} ${format.t("task._")}`,
     })
     .click();
-  const { row } = await narrowToSeeded(page, format.t, title);
-  await row.click();
+  if (cached) {
+    const search = page.getByLabel(format.t("search._"));
+    if ((await search.inputValue()) !== title) {
+      await search.fill(title);
+    }
+    await listRows(page).filter({ hasText: title }).first().click();
+  } else {
+    const { row } = await narrowToSeeded(page, format.t, title);
+    await row.click();
+  }
   // The path of the picked element replaces "please select a task".
   await expect(page.getByText(title, { exact: false }).first()).toBeVisible({
     timeout: 20_000,
   });
+}
+
+/**
+ * Picks the seeded group as the team, the second step — `employee()` recursively on the element. Named
+ * by role as well as by „Group", since all three steps carry the same visible label.
+ */
+async function pickSeededGroup(
+  page: Parameters<typeof narrowToSeeded>[0],
+  format: Awaited<ReturnType<typeof userFormat>>,
+  name: string
+) {
+  await page
+    .getByRole("combobox", {
+      name: `${format.t("group._")}: ${format.t("task.wizard.team._")}`,
+    })
+    .click();
+  await page.getByPlaceholder(format.t("filter.search")).fill(name);
+  await page.getByRole("option", { name }).click({ timeout: 20_000 });
 }
 
 /** Marks one access entry as deleted, so the spec grants nothing that outlives it. */
