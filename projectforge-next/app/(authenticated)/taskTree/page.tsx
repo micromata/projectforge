@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import {
   taskHref,
+  SAVED_ID_PARAM,
   TASK_TREE_ROUTE,
 } from "@/components/shared/tasks/task-routes";
 import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
@@ -27,7 +29,6 @@ import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
  */
 export default function TaskTreePage() {
   const t = useTranslations();
-  const router = useRouter();
 
   return (
     <PageShell>
@@ -39,19 +40,41 @@ export default function TaskTreePage() {
         <LegacyPageLink url="wa/taskTree" />
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-        <TaskTreePanel
-          pageMode
-          showRootForAdmins
-          // Picking means "edit this task" here, and the root is a task with a page of its own. Every
-          // other caller selects a task *for* something else, where the root is not a valid value.
-          rootSelectable
-          // `returnTo`, so cancel, save and the breadcrumb of the edit page lead back here rather than
-          // to the task list — the tree is where the user came from (see useEditReturn).
-          onSelect={(task) =>
-            router.push(taskHref(task.id, { returnTo: TASK_TREE_ROUTE }))
-          }
-        />
+        {/* The tree reads `?savedId=`, and `useSearchParams` needs this boundary under
+            `output: "export"` — the first, empty read is the tree without a marked row. */}
+        <Suspense>
+          <TaskTreeBody />
+        </Suspense>
       </div>
     </PageShell>
+  );
+}
+
+/**
+ * The tree itself, split off for the `<Suspense>` above.
+ *
+ * A save on the task form returns here with the id of the written element (`?savedId=`, see
+ * `EditDef.returnTargets` and useEditReturn), and that element is the row to mark — the server opens its
+ * ancestors for it, so it is on screen even if its part of the tree was folded. Wicket does the same
+ * with `PARAMETER_HIGHLIGHTED_ROW`.
+ */
+function TaskTreeBody() {
+  const router = useRouter();
+  const savedId = Number(useSearchParams().get(SAVED_ID_PARAM));
+
+  return (
+    <TaskTreePanel
+      pageMode
+      showRootForAdmins
+      // Picking means "edit this task" here, and the root is a task with a page of its own. Every
+      // other caller selects a task *for* something else, where the root is not a valid value.
+      rootSelectable
+      highlightTaskId={savedId > 0 ? savedId : null}
+      // `returnTo`, so cancel, save and the breadcrumb of the edit page lead back here rather than
+      // to the task list — the tree is where the user came from (see useEditReturn).
+      onSelect={(task) =>
+        router.push(taskHref(task.id, { returnTo: TASK_TREE_ROUTE }))
+      }
+    />
   );
 }

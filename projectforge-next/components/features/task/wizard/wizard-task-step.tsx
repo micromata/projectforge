@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -12,6 +13,7 @@ import {
   newTaskHref,
   TASK_WIZARD_ROUTE,
 } from "@/components/shared/tasks/task-routes";
+import { fetchRootTask } from "@/lib/rs/task";
 import { WizardStepCard } from "./wizard-step-card";
 
 interface WizardTaskStepProps {
@@ -35,6 +37,15 @@ export function WizardTaskStep({
 }: WizardTaskStepProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  // The parent of the element the link adds: the root, as Wicket presets it (`TaskWizardForm` passes
+  // `TaskEditPage.PARAM_PARENT_TASK_ID`) — a task without a parent is refused, and which task is the
+  // root only the server knows. Unanswered, the link still works and the form asks for the parent, which
+  // is what it did before.
+  const { data: root } = useQuery({
+    queryKey: ["taskRoot"],
+    queryFn: ({ signal }) => fetchRootTask(signal),
+    staleTime: Infinity,
+  });
 
   return (
     <WizardStepCard
@@ -61,7 +72,10 @@ export function WizardTaskStep({
       <HintTooltip text={t("task.wizard.button.createTask.tooltip")}>
         <Link
           onClick={onLeave}
-          href={newTaskHref({ returnTo: TASK_WIZARD_ROUTE })}
+          href={newTaskHref({
+            parentTaskId: root?.id,
+            returnTo: TASK_WIZARD_ROUTE,
+          })}
           className="flex w-fit items-center gap-1 text-xs text-primary hover:underline"
         >
           <HugeiconsIcon icon={PlusSignIcon} size={12} />

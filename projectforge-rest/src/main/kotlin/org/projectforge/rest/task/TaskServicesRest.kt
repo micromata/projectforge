@@ -687,6 +687,24 @@ class TaskServicesRest {
     }
 
     /**
+     * The root of the structure tree, as `{id, displayName}`.
+     *
+     * Every task needs a parent — `TaskDao.checkConstraintVioloation` refuses one without it — and a caller
+     * that wants to add a top level element has to name the root, which only the server knows. Wicket's
+     * structure wizard does exactly that for its "create structure element" link
+     * (`TaskWizardForm`, `TaskTree.getRootTaskNode`); the client here needs the id to build the same url.
+     *
+     * Nothing to protect: the root's id is in every tree answer an admin sees, and its name is the
+     * installation's own (`task.path.rootTask`). Whether a user may add below it is the DAO's decision, not
+     * this endpoint's.
+     */
+    @GetMapping("tree/root")
+    fun getRoot(): AbstractEntityRest.DisplayObject {
+        val rootId = TaskTree.instance.rootTaskNode.id
+        return AbstractEntityRest.DisplayObject(rootId, formatPath(rootId))
+    }
+
+    /**
      * What the kost2 block of the task form would resolve to for a black/white list the user has typed but
      * not saved — and, with [Kost2PreviewRequest.addKost2Id], the list with a picked cost unit appended.
      *

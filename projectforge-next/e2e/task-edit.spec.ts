@@ -1,7 +1,9 @@
 import type { Page } from "@playwright/test";
-import { test, expect, goto } from "./fixtures/auth";
+import { test, expect, goto, login } from "./fixtures/auth";
+import { hasRole } from "./fixtures/credentials";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { waitForRows } from "./fixtures/list-table";
+import { resetTreeState } from "./fixtures/task-tree";
 
 /**
  * The task edit page (`/next/task/:id`) against the live backend — the hand-built page of step 2 of
@@ -267,12 +269,71 @@ test.describe("task edit", () => {
     );
   });
 
-  test("saves a change and returns to the tree", async ({
+  test("a new subtask is judged by the rights on its parent", async ({
+    page,
+    seededTask,
+  }) => {
+    // The admin account, because it is the one that reaches the interesting half: it may open the form
+    // (PF_Admin) and has no finance rights, so the four fields of the finance section are refused to it.
+    // With the default account everything is writable and the case could not fail.
+    test.skip(
+      !hasRole("admin-user"),
+      "this instance has no admin-user account (see fixtures/credentials.ts)"
+    );
+    test.setTimeout(90_000);
+    await login(page, "/next/", "admin-user");
+    const format = await userFormat(page);
+
+    // A task that has no id yet still has a parent, and Wicket asks the rights question on that parent
+    // (`TaskEditForm.onBeforeRender`). Before the preset answered it, this form guessed "writable": the
+    // fields looked editable and only the save was refused.
+    await goto(page, `/task/new?parentTaskId=${seededTask.id}`);
+    await expect(titleBox(page, format)).toBeVisible({ timeout: 30_000 });
+    await tab(page, format.t("financeAdministration")).click();
+    const finance = collapsedSection(page, "finance");
+    await expect(finance).toHaveAttribute("data-state", "open");
+
+    await expect(
+      finance.getByRole("combobox", {
+        name: label(format, "task.timesheetBooking"),
+      })
+    ).toBeDisabled();
+    await expect(
+      finance.getByRole("textbox", {
+        name: label(format, "task.protectTimesheetsUntil"),
+      })
+    ).toBeDisabled();
+    await expect(
+      finance.getByRole("checkbox", {
+        name: label(format, "task.protectionOfPrivacy"),
+      })
+    ).toBeDisabled();
+
+    // Disabled *and* explained, with the backend's own refusal message — the divergence from Wicket,
+    // which simply leaves the field uneditable (see FinanceSection).
+    await finance
+      .getByRole("button", {
+        name: `${format.t("form.hint")}: ${label(format, "task.timesheetBooking")}`,
+      })
+      .hover();
+    // By role: Radix keeps a second, hidden copy of the text for screen readers, so the sentence is in
+    // the document twice and only one of the two is the tooltip.
+    await expect(page.getByRole("tooltip")).toContainText(
+      format.t("task.error.timesheetBookingStatus2Readonly"),
+      { timeout: 20_000 }
+    );
+  });
+
+  test("saves a change and returns to the tree, which marks the element", async ({
     loggedInPage: page,
     seededTask,
   }) => {
+    test.setTimeout(90_000);
     const format = await userFormat(page);
     const changed = `edited ${new Date().toISOString()}`;
+    // The tree's filter is session-scoped and shared with the Wicket page: a search string another
+    // case left in it would empty the tree the assertion below looks for its row in.
+    await resetTreeState(page);
     await goto(
       page,
       `/task/${seededTask.id}?returnTo=${encodeURIComponent(TREE)}`
@@ -286,8 +347,19 @@ test.describe("task edit", () => {
     await page.getByRole("button", { name: format.t("save") }).click();
 
     // A save leaves for the caller, which is the whole point of `returnTargets` — the task list has
-    // no page yet, so landing there would be a 404 of the static export.
-    await expect(page).toHaveURL(new RegExp(`${TREE}$`), { timeout: 20_000 });
+    // no page yet, so landing there would be a 404 of the static export. And it names what was saved
+    // (`?savedId=`, see SAVED_ID_PARAM), which is the only thing the tree could mark a row by: its
+    // rows are the visible nodes of a tree, not a result set with a stored highlight.
+    await expect(page).toHaveURL(
+      new RegExp(`${TREE}\\?savedId=${seededTask.id}$`),
+      { timeout: 20_000 }
+    );
+
+    // Marked, and reachable: the server opens the ancestors of the highlighted task, so the row is
+    // among the visible nodes although nothing was searched for — Wicket's `PARAMETER_HIGHLIGHTED_ROW`.
+    const row = page.locator(`tbody tr[data-row-id="${seededTask.id}"]`);
+    await expect(row).toHaveClass(/row-highlighted/, { timeout: 30_000 });
+    await expect(row).toBeInViewport({ timeout: 30_000 });
 
     // And it was really written, not merely accepted.
     await goto(page, `/task/${seededTask.id}`);

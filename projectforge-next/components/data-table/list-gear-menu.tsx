@@ -29,12 +29,21 @@ export interface ListGearMenuProps {
    * Clears the page's own filter state. The endpoint only drops what the server stores, so the
    * visible filter, search string, sorting and column layout have to be reset by the caller.
    *
-   * Absent for a page whose filter is not the entity's stored `MagicFilter` — the structure tree keeps
-   * a `TaskFilter` of its own in the session (see ListFilterService), which `filter/reset` would not
-   * touch. Such a page resets its filter where that filter is, and this menu then offers only the
-   * re-index entries.
+   * Absent for a page that has no filter to reset — the menu then offers only the re-index entries.
    */
   onFilterReset?: () => void;
+  /**
+   * Where the filter this menu resets actually lives.
+   *
+   * `"stored"` (the default) is the entity's `MagicFilter` on the server: the endpoint drops it together
+   * with the grid state, and [onFilterReset] puts the visible state back.
+   *
+   * `"own"` is for a page that keeps its filter somewhere else — the structure tree holds a `TaskFilter`
+   * of its own in the session (see `ListFilterService`). Calling the endpoint there would reset the
+   * *list* perspective's saved filter and column layout as a side effect and not touch the tree's filter
+   * at all, so only [onFilterReset] runs.
+   */
+  filterScope?: "stored" | "own";
   /** Additional entries of a specific list page, appended below the standard ones. */
   children?: ReactNode;
   className?: string;
@@ -51,6 +60,7 @@ export interface ListGearMenuProps {
 export function ListGearMenu({
   entity,
   onFilterReset,
+  filterScope = "stored",
   children,
   className,
 }: ListGearMenuProps) {
@@ -81,6 +91,10 @@ export function ListGearMenu({
   }
 
   async function resetFilter() {
+    if (filterScope === "own") {
+      onFilterReset?.();
+      return;
+    }
     if (!(await run(() => resetListFilter(entity)))) return;
     onFilterReset?.();
     // The server dropped the stored filter and grid state with it, so the cached copies of both

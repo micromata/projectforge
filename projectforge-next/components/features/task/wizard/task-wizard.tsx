@@ -12,7 +12,7 @@ import { SectionCard } from "@/components/shared/section-card";
 import { Spinner } from "@/components/shared/spinner";
 import {
   TASK_TREE_ROUTE,
-  WIZARD_SAVED_ID_PARAM,
+  SAVED_ID_PARAM,
 } from "@/components/shared/tasks/task-routes";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import {
@@ -45,7 +45,7 @@ export function TaskWizard() {
   // What a return from the task form brings back: the element that was just created — its id is in the
   // url (`?savedId=`, see useEditReturn) — and the groups that were picked before that detour, which no
   // url could carry (see wizard-handover.ts). Without the parameter this is a wizard opened fresh.
-  const savedId = Number(useSearchParams().get(WIZARD_SAVED_ID_PARAM));
+  const savedId = Number(useSearchParams().get(SAVED_ID_PARAM));
   const returning = savedId > 0;
   const [taskId, setTaskId] = useState<number | null>(
     returning ? savedId : null

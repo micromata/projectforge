@@ -2,7 +2,7 @@ import type { APIRequestContext } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { listRows, waitForRows } from "./fixtures/list-table";
-import { MARKER, uniqueSuffix } from "./fixtures/seed";
+import { fetchRootTaskId, MARKER, uniqueSuffix } from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
@@ -104,6 +104,36 @@ test.describe("task wizard", () => {
         })
       ).toBeVisible();
     }
+  });
+
+  test("the create link presets the root as the parent of the new element", async ({
+    loggedInPage: page,
+    seedRequest,
+  }) => {
+    test.setTimeout(60_000);
+    const format = await userFormat(page);
+    const rootId = await fetchRootTaskId(seedRequest);
+    await goto(page, PAGE);
+
+    // Wicket's own preset (`TaskWizardForm` passes `TaskEditPage.PARAM_PARENT_TASK_ID`): a task without
+    // a parent is refused, so the link that adds a *top level* element has to name the root — which only
+    // the server knows (`GET task/tree/root`).
+    const link = page.getByRole("link", {
+      name: format.t("task.wizard.button.createTask._"),
+    });
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`/task/new\\?parentTaskId=${rootId}&returnTo=`),
+      { timeout: 20_000 }
+    );
+
+    // And the form does something with it: the parent field arrives filled, so its placeholder is gone.
+    // The root's title is the installation's own and must not be spelled out here (see fixtures/seed.ts).
+    await link.click();
+    await expect(page).toHaveURL(/\/task\/new\?/, { timeout: 20_000 });
+    await expect(
+      page.getByRole("button", { name: format.t("task.path.pleaseSelectTask") })
+    ).toHaveCount(0, { timeout: 30_000 });
   });
 
   test("an element without a group announces that there is nothing to do", async ({

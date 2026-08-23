@@ -235,6 +235,30 @@ export function fetchTaskInfo(
   return request<TaskNode>(`/rs/task/info/${id}`, { method: "GET" }, signal);
 }
 
+/**
+ * The root of the structure tree, `{id, displayName}` — the parent every top level element hangs below.
+ *
+ * Asked for rather than assumed: a task without a parent is refused
+ * (`TaskDao.checkConstraintVioloation`), and which task is the root is the server's knowledge. The
+ * caller is the wizard's "create structure element" link, which presets it as the parent exactly as
+ * Wicket does (see TaskServicesRest.getRoot).
+ */
+export function fetchRootTask(
+  signal?: AbortSignal
+): Promise<TaskDisplayObject> {
+  return request<TaskDisplayObject>(
+    `/rs/task/tree/root`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** A task as `AbstractEntityRest.DisplayObject` — id plus the label the backend built for it. */
+export interface TaskDisplayObject {
+  id: number;
+  displayName?: string;
+}
+
 /** What the client asks a preview for, `TaskServicesRest.Kost2PreviewRequest`. */
 export interface Kost2PreviewRequest {
   /** Id of the task being edited, null while it is being added. */

@@ -2,7 +2,7 @@ import {
   TASK_ROUTE,
   TASK_TREE_ROUTE,
   TASK_WIZARD_ROUTE,
-  WIZARD_SAVED_ID_PARAM,
+  SAVED_ID_PARAM,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -141,14 +141,21 @@ export const TASK_PAGE = definePage<
     // The tree first, so it stays where an add-url without `returnTo` leads — a task is reached from
     // the tree by default, and the list always sends one.
     returnTargets: [
-      { route: TASK_TREE_ROUTE, labelKey: "menu.taskTree" },
+      // With the id of what was saved, so the tree marks that row and opens its ancestors on arrival —
+      // Wicket's `PARAMETER_HIGHLIGHTED_ROW`, without which a newly added element is somewhere in a tree
+      // of thousands (see the tree page).
+      {
+        route: TASK_TREE_ROUTE,
+        labelKey: "menu.taskTree",
+        savedIdParam: SAVED_ID_PARAM,
+      },
       { route: TASK_ROUTE, labelKey: "task.title.list" },
       // The wizard's "create structure element" link, which expects the user back with the new element
       // — hence the id in the url it returns to (see WizardTaskStep).
       {
         route: TASK_WIZARD_ROUTE,
         labelKey: "task.wizard.pageTitle",
-        savedIdParam: WIZARD_SAVED_ID_PARAM,
+        savedIdParam: SAVED_ID_PARAM,
       },
     ],
     // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend

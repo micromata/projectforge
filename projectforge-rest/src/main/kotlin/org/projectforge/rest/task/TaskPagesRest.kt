@@ -89,6 +89,19 @@ class TaskPagesRest
     }
 
     /**
+     * The preset of a new task, with the two field wise access flags filled — [transformFromDB] fills them
+     * for the edit mode only, and a preset is asked for by nothing but the edit page.
+     *
+     * Without this the form of a new task would have to guess, and it guessed "writable": the fields of the
+     * finance section looked editable to everybody, and the save was refused afterwards. The decision is the
+     * parent's, which [newBaseDO] has put on the new task by then, exactly as Wicket asks it
+     * (`TaskEditForm.onBeforeRender` passes the parent when the task itself has no id yet).
+     */
+    override fun newBaseDTO(request: HttpServletRequest?): Task {
+        return transformFromDB(newBaseDO(request), editMode = true)
+    }
+
+    /**
      * Opts the list into the lean row: `Task.copyFrom4ListRow` fills the ten columns of the hand built next
      * page (`task.page.tsx`) instead of the whole edit DTO. See [org.projectforge.rest.dto.BaseDTO].
      */

@@ -35,8 +35,9 @@ export interface TaskTreeActionBarProps {
  * TaskPerspectiveLink); the list has the mirror of it in its toolbar.
  *
  * The re-index entries come from the shared gear menu, so they behave as they do on every list; the
- * filter reset is passed in, because the tree's filter is a `TaskFilter` in the session and not the
- * entity's stored `MagicFilter` (see ListGearMenu.onFilterReset).
+ * filter reset is passed in and declared as the page's `"own"`, because the tree's filter is a
+ * `TaskFilter` in the session and not the entity's stored `MagicFilter` — asking the endpoint would
+ * clear the *list* perspective's filter and column layout instead (see ListGearMenu.filterScope).
  */
 export function TaskTreeActionBar({ onFilterReset }: TaskTreeActionBarProps) {
   const t = useTranslations();
@@ -55,12 +56,17 @@ export function TaskTreeActionBar({ onFilterReset }: TaskTreeActionBarProps) {
           </Button>
         </HintTooltip>
       )}
-      <ListGearMenu entity="task" onFilterReset={onFilterReset} />
+      <ListGearMenu
+        entity="task"
+        onFilterReset={onFilterReset}
+        filterScope="own"
+      />
       {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
           flex-start (see ListToolbar, where the same separator stands). */}
       <Separator orientation="vertical" className="!h-5 !self-center" />
-      {/* No parent: a task added from here hangs below the root, which is what Wicket's `+` does. The
-          per-row action adds below a specific task instead (see TaskTreeTable). */}
+      {/* No parent: the form asks for one, which is what Wicket's `+` does too — its page passes no
+          `PARAM_PARENT_TASK_ID` either. The per-row action adds below a specific task instead (see
+          TaskTreeTable). */}
       <AddEntryButton href={newTaskHref({ returnTo: TASK_TREE_ROUTE })} />
     </div>
   );

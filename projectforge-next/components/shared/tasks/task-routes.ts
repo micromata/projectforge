@@ -22,13 +22,14 @@ export const TASK_ROUTE = "/task";
 export const TASK_WIZARD_ROUTE = "/taskWizard";
 
 /**
- * The parameter the wizard gets the id of a newly created element back in — set by the form it sent the
- * user to (`EditDef.returnTargets`, see useEditReturn) and read by the wizard itself.
+ * The parameter a caller of the task form gets the id of the saved element back in — set by the form
+ * (`EditDef.returnTargets`, see useEditReturn) and read by the page that returns.
  *
- * Beside the routes for the same reason they are here: the form's declaration and the wizard both need
- * it, and neither may import the other.
+ * Two callers ask for it: the wizard goes on with the element that was just created, and the tree
+ * marks it (Wicket's `PARAMETER_HIGHLIGHTED_ROW`). Beside the routes for the same reason they are
+ * here — the form's declaration and both pages need it, and none of them may import the other.
  */
-export const WIZARD_SAVED_ID_PARAM = "savedId";
+export const SAVED_ID_PARAM = "savedId";
 
 /**
  * The url of a task's edit page, with the page to return to from it.
@@ -44,9 +45,10 @@ export function taskHref(id: number, options?: { returnTo?: string }): string {
  * The url that adds a task.
  *
  * `parentTaskId` is not a value of the form but a parameter of the *preset*: the backend resolves the
- * parent (and with it the project the cost unit block needs) and answers `{entity}/newEntry` with a
- * filled task — see `TaskPagesRest.newBaseDO` and useNewEntryParams. Left out, the new task hangs below
- * the root, which is what the tree's own "add" button means.
+ * parent (and with it the project the cost unit block needs, and the rights the finance section is
+ * gated on) and answers `{entity}/newEntry` with a filled task — see `TaskPagesRest.newBaseDO`,
+ * `newBaseDTO` and useNewEntryParams. Left out, the form opens with its required parent field empty and
+ * the user picks one, which is what the tree's own "add" button does, as Wicket's does.
  */
 export function newTaskHref(options?: {
   parentTaskId?: number;

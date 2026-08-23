@@ -134,31 +134,53 @@ bot nur den Dialog und den Pfad.
   bis die Zeitberichte migriert sind – dann ist es ein Parameter am Endpunkt und ein
   `params`-Eintrag am Popover.
 
-### 4. Kleinigkeiten, je ein Handgriff
+### 4. Kleinigkeiten, je ein Handgriff – erledigt
 
-- **Keine markierte Zeile nach dem Speichern.** Die Kette steht (`highlightTaskId` durch
-  `TaskTreePanel` → `TaskTreeTable`, der Server öffnet die Vorfahren), aber
-  `app/(authenticated)/taskTree/page.tsx` übergibt nichts. Wicket markiert das gerade
-  gespeicherte Element (`PARAMETER_HIGHLIGHTED_ROW`, `TaskTreeBuilder`). Fehlt nur die
-  Weitergabe der `savedId` des Rückwegs (`EditReturn.savedIdParam`, im Assistenten schon
-  benutzt).
-- **Der Assistent belegt sein „Strukturelement anlegen" nicht vor.** `TaskWizardForm`
-  setzt die Wurzel als Elternelement, `wizard-task-step.tsx` schickt keinen
-  `parentTaskId` mit – obwohl `EditDef.newEntryParams` für `task` genau das schon erlaubt.
-- **Die Finanzfelder einer neuen Unteraufgabe sehen editierbar aus.** Wicket fragt die
-  Rechte am **Eltern**-Knoten (`TaskEditForm`), next behandelt `id == null` als schreibbar
-  (`edit/finance-section.tsx`) und verlässt sich auf die Ablehnung der DAO. Das Backend
-  antwortet dafür schon richtig – `newBaseDO` übernimmt `parentTaskId` und
-  `transformFromDB` füllt die beiden Flags nur im `editMode` (s. Schritt 1.4 unten); es
-  fehlt, sie in der Neuanlage überhaupt zu lesen.
-- **„Filter zurücksetzen" im Baum trifft auch die Liste.** `ListGearMenu.resetFilter` ruft
-  _immer zuerst_ `resetListFilter(entity)` und danach das übergebene `onFilterReset` – der
-  Rücksetz-Knopf des Baums löscht also zusätzlich den gespeicherten `MagicFilter` **und**
-  den Spaltenzustand der Listenperspektive. Entweder der Baum bekommt einen Menü-Eintrag,
-  der nur seinen eigenen Filter zurücksetzt (der Endpunkt ist für ihn ohnehin wirkungslos),
-  oder die Doppelwirkung wird hier ausdrücklich als gewollt vermerkt. Die Notiz in
-  Schritt 3 unten („`ListGearMenu.onFilterReset` ist dafür optional geworden") beschreibt
-  nur die halbe Wahrheit.
+Vier Punkte, jeder für sich klein, aber zwei davon brauchten eine Antwort des Servers:
+welches Strukturelement die Wurzel ist und welche Rechte an einem noch nicht gespeicherten
+Element gelten, weiß nur das Backend.
+
+- **Keine markierte Zeile nach dem Speichern.** Die Kette stand schon (`highlightTaskId`
+  durch `TaskTreePanel` → `TaskTreeTable`, der Server öffnet die Vorfahren des markierten
+  Knotens), es fehlte die Weitergabe: `task.page.tsx` gibt sein erstes Rückkehrziel jetzt
+  ein `savedIdParam` mit, `app/(authenticated)/taskTree/page.tsx` liest es aus der URL und
+  übergibt es dem Panel. Der Parameter heißt für alle Aufrufer gleich (`SAVED_ID_PARAM` in
+  `task-routes.ts`, vorher `WIZARD_SAVED_ID_PARAM`) – der Assistent macht mit demselben
+  Wert weiter, der Baum markiert damit. Die Seite braucht dafür eine `<Suspense>`-Grenze um
+  ihren Rumpf, wie jede Seite des statischen Exports, die `useSearchParams` liest.
+- **Der Assistent belegt sein „Strukturelement anlegen" nicht vor.** Wicket setzt dort die
+  Wurzel als Elternelement (`TaskWizardForm` → `PARAM_PARENT_TASK_ID`). Dafür gibt es
+  jetzt `GET /rs/task/tree/root` (`TaskServicesRest.getRoot`, Antwort ein
+  `DisplayObject` – Id plus der Pfad, den `formatPath` baut); `wizard-task-step.tsx` fragt
+  ihn per `useQuery` und hängt den `parentTaskId` an den Link. Bewusst ein Endpunkt und
+  kein Zauberwort in der URL (`parentTaskId=root`) und kein Baumlauf im Client: die Id ist
+  „1 nur nach Konvention", und `hibernate_sequence` vergibt in Schritten von 50. Bezahlt
+  hat sich das gleich zweimal – `e2e/fixtures/seed.ts` kommt damit ohne seinen
+  Baum-Abruf und den auf 50 Schritte begrenzten Lauf über die Elternkette aus.
+- **Die Finanzfelder einer neuen Unteraufgabe sahen editierbar aus.** `TaskPagesRest`
+  überschreibt jetzt `newBaseDTO` und ruft `transformFromDB(newBaseDO(request), editMode = true)`
+  – die Vorbelegung ist das Einzige, was ein Formular anfragt, also sind die feldweisen
+  Flags genau dort auszufüllen. `edit/finance-section.tsx` liest sie unbedingt, nicht mehr
+  nur bei vorhandener Id, und sperrt, solange die Antwort aussteht: ein Feld wird durch ein
+  Recht freigegeben, nicht durch eine offene Anfrage. Entschieden wird damit am
+  **Eltern**-Knoten, den `newBaseDO` bis dahin gesetzt hat – dieselbe Frage, die Wicket in
+  `TaskEditForm.onBeforeRender` stellt.
+- **„Filter zurücksetzen" im Baum traf auch die Liste.** `ListGearMenu` hat jetzt ein
+  `filterScope`: `"stored"` (Voreinstellung) ruft wie bisher `resetListFilter(entity)`,
+  `"own"` überlässt das Zurücksetzen allein dem `onFilterReset` des Aufrufers. Die
+  Baumseite deklariert `"own"`, weil ihr Filter ein `TaskFilter` in der Session ist – der
+  Endpunkt hätte den gespeicherten `MagicFilter` **und** den Spaltenzustand der
+  \_Listen_perspektive gelöscht und den Filter des Baums gar nicht angefasst. Nicht als
+  gewollte Doppelwirkung vermerkt, sondern beseitigt; die Notiz in Schritt 3 unten
+  („`ListGearMenu.onFilterReset` ist dafür optional geworden") ist damit vollständig.
+- Zusicherungen: `e2e/task-edit.spec.ts` prüft, dass ein Speichern auf
+  `/taskTree?savedId=<id>` zurückkommt und die Zeile dort `row-highlighted` trägt und im
+  Blickfeld liegt, und – als `admin-user`, dem Konto mit Admin-Gruppe ohne Finanzrechte –
+  dass die drei Felder der Finanzverwaltung an einer **neuen** Unteraufgabe gesperrt sind
+  und die Ablehnung des Backends als Hinweis nennen. `e2e/task-wizard.spec.ts` prüft die
+  Wurzel-Id im `href` des Links und dass das geöffnete Formular sein Elternfeld gefüllt
+  bekommt. `e2e/task-tree-actions.spec.ts` prüft, dass beim Zurücksetzen im Baum **kein**
+  Aufruf an `task/filter/reset` geht und die eigenen Filterwerte trotzdem stehen.
 
 ### 5. Querschnittlich, hier aufgefallen
 

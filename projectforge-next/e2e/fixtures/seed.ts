@@ -283,48 +283,26 @@ let rootTaskId: number | undefined;
  * out ids in steps of 50, so on a database set up differently pk 1 may be an ordinary task — under
  * which these tests would then silently hang their tasks.
  *
- * Two ways to it, because the first one is not open to every account:
- * - `showRootForAdmins` appends the root to the tree, flagged `root: true`, but only for admins and
- *   financial staff (`TaskServicesRest.getTree`).
- * - otherwise the parent chain of any visible node leads there: the root is the one task whose
- *   `parentTask` is unset.
+ * `TaskServicesRest.getRoot` answers it for every account, which is also where the app itself asks (the
+ * wizard's "create structure element" link presets the root as the parent). Before that endpoint existed
+ * this walked the tree: `showRootForAdmins` appends the root flagged `root: true`, but only for admins
+ * and financial staff, so a plain account had to follow the parent chain of any visible node up to the
+ * one task without a parent.
  */
 export async function fetchRootTaskId(
   request: APIRequestContext
 ): Promise<number> {
   if (rootTaskId != null) return rootTaskId;
-  const res = await request.get(
-    "/rs/task/tree?table=true&showRootForAdmins=true&opened=true&notOpened=true&closed=true&deleted=false",
-    { headers: { "X-PF-Frontend": "next" } }
-  );
+  const res = await request.get("/rs/task/tree/root", {
+    headers: { "X-PF-Frontend": "next" },
+  });
   if (!res.ok()) {
-    throw new Error(`Could not read the task tree: HTTP ${res.status()}`);
-  }
-  const { nodes = [] } = (await res.json()) as {
-    nodes?: { id: number; root?: boolean }[];
-  };
-  const flagged = nodes.find((node) => node.root === true);
-  if (flagged) return (rootTaskId = flagged.id);
-  if (nodes.length === 0) {
     throw new Error(
-      "The task tree is empty and the account may not see its root — cannot create a task."
+      `Could not read the task tree's root: HTTP ${res.status()}`
     );
   }
-  // Upwards from the first node. Bounded, so a contract change cannot turn this into an endless
-  // walk; a task tree deeper than 50 would be a problem of its own.
-  let id = nodes[0].id;
-  for (let step = 0; step < 50; step++) {
-    const task = await fetchEntity<{ parentTask?: { id?: number } }>(
-      request,
-      "task",
-      id
-    );
-    if (task.parentTask?.id == null) return (rootTaskId = id);
-    id = task.parentTask.id;
-  }
-  throw new Error(
-    "Followed 50 parent tasks without reaching the root — see TaskServicesRest.getTree."
-  );
+  const { id } = (await res.json()) as { id: number };
+  return (rootTaskId = id);
 }
 
 /** A task of the tests' own and one child, so the tree has a node that can be expanded. */

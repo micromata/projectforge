@@ -58,8 +58,9 @@ test.describe("task tree actions", () => {
       .first()
       .click();
 
-    // No parent: a task added from the bar hangs below the root, as Wicket's `+` does. `returnTo` is
-    // what brings a cancel or a save back to the tree instead of to the task list, which has no page.
+    // No parent: the form asks for one, as Wicket's `+` does — its page passes no
+    // `PARAM_PARENT_TASK_ID` either, and a task without a parent is refused. `returnTo` is what brings a
+    // cancel or a save back to the tree instead of to the task list, which has no page.
     await expect(page).toHaveURL(/\/task\/new\?returnTo=%2FtaskTree/, {
       timeout: 20_000,
     });
@@ -199,13 +200,23 @@ test.describe("task tree actions", () => {
       ])
     ).toBeVisible();
 
+    // Every call to the endpoint that would reset the *list* perspective, collected over the reset: it
+    // stores an empty `MagicFilter` and drops the category's grid state (`AbstractEntityRest`), neither
+    // of which has anything to do with this page's filter — so on the tree it must not be called at all
+    // (see ListGearMenu.filterScope, `"own"`).
+    const listResets: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/rs/task/filter/reset")) {
+        listResets.push(request.url());
+      }
+    });
+
     await gear(page, format).click();
     await page
       .getByRole("menuitem", { name: format.t("menu.resetFilter._") })
       .click();
 
-    // The client resets its own filter: `GET task/filter/reset` drops the entity's `MagicFilter`, which
-    // is not what this page filters with (see ListGearMenu.onFilterReset).
+    // The client resets the tree's own filter instead, which is a `TaskFilter` in the session.
     await expect(search).toHaveValue("", { timeout: 20_000 });
     await expect(
       statusPill(page, format, ["task.status.opened", "task.status.notOpened"])
@@ -219,6 +230,11 @@ test.describe("task tree actions", () => {
     ).toHaveValue("", {
       timeout: 20_000,
     });
+
+    expect(
+      listResets,
+      "resetting the tree's filter must not reset the task list's stored filter and columns"
+    ).toEqual([]);
   });
 
   test("the search field links to the handbook", async ({

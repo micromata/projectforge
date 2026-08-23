@@ -28,8 +28,8 @@ const m = fromMetadata(TASK_METADATA);
  * message as its explanation, instead of being silently uneditable. The authority remains the DAO —
  * only it knows whether a value actually changed, and it refuses with exactly these messages.
  *
- * @param id null while the task is being added — then there is nothing to look up and the parent
- *   decides the rights, which the backend already answered with the new entry.
+ * @param id null while the task is being added. The rights are then the *parent's* — Wicket asks the same
+ *   question with the parent node — and the preset answers them, so nothing here has to assume.
  */
 export function FinanceSection({ id }: { id: number | null }) {
   const t = useTranslations();
@@ -42,11 +42,12 @@ export function FinanceSection({ id }: { id: number | null }) {
     id,
     useNewEntryParams(TASK_NEW_ENTRY_PARAMS)
   ).data;
-  // A new task is editable by definition — the flags only come with a loaded one.
-  const kost2Access =
-    id == null || task?.kost2AndBookingStatusWriteAccess === true;
-  const protectAccess =
-    id == null || task?.protectTimesheetsUntilWriteAccess === true;
+  // Read for a new task as well, where they are the rights on the parent it is added below (see
+  // TaskPagesRest.newBaseDTO): a subtask of a task somebody else's project owns is not writable here
+  // just because it has no id yet. Locked until the answer is in — the fields are enabled by a right,
+  // not by a pending request.
+  const kost2Access = task?.kost2AndBookingStatusWriteAccess === true;
+  const protectAccess = task?.protectTimesheetsUntilWriteAccess === true;
 
   return (
     <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
