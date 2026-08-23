@@ -181,7 +181,7 @@ handgebauten Seiten benennen ihre Route deshalb absichtlich wie die Kategorie
 eine nicht existierende Route, liefert Spring stillschweigend die SPA-Shell und
 die Seite bleibt leer.
 
-### Phase 1.5 – `book` produktionsreif machen 🔶 in Arbeit
+### Phase 1.5 – `book` produktionsreif machen ✅ erledigt
 
 `book` ist die Referenz-Implementierung: Was hier nicht funktioniert, fehlt
 später jeder migrierten Seite. Daher **vor** weiteren Seiten abschließen.
@@ -526,23 +526,49 @@ mehr im Projekt** – das ist die Prüfung.
   (`dynamic-input-resolver.tsx`) bleiben native Inputs. Keine heutige Seite gibt
   Uhrzeiten ein; sobald eine es tut, gehört die Zeit in dieselbe Komponente.
 
-**Offen:**
+**Erledigt: die letzten drei Filterfeld-Lücken.**
 
-1. **OBJECT- und TIMESTAMP-Felder vervollständigen.** OBJECT (z.B. „geändert
-   durch“) nutzt derzeit ein einfaches Textfeld – für die Entitätssuche fehlt eine
-   Autocomplete-Komponente gegen `autoCompletion.url`. Bei TIMESTAMP fehlt die
-   Schnellauswahl (`selectors`: Jahr/Monat/Woche/Tag/bis-jetzt).
-2. **`filter/reset` anbinden.** Die gemerkten Filter lassen sich derzeit nur Pille
-   für Pille bzw. über „Zurücksetzen“ im Alle-Filter-Dialog leeren; das leert den
-   Client-State, ruft aber nicht den Endpunkt, der auch den gespeicherten Filter
-   im Backend zurücksetzt (`RestPaths.FILTER_RESET`, ebenfalls ein
-   zustandsänderndes `@GetMapping`). Beim Zurücksetzen müsste auch der
-   Favoriten-Bezug fallen.
-3. Nicht browserseitig verifiziert: englischer Locale-Pfad, vollständiger
-   Login-Flow mit echten Daten, das visuelle Ergebnis der Tabelle
-   (Spaltenbreiten, Resize, Popovers), der Favoriten-Durchlauf
-   (anwenden/anlegen/umbenennen/überschreiben/löschen) sowie Speichern, Anlegen
-   und Löschen eines Buchs gegen das echte Backend.
+- **OBJECT** (z.B. „geändert durch“) ist eine Entitätssuche gegen
+  `element.autoCompletion.url` (`filter-object-field.tsx` über die geteilte
+  `EntityAutocomplete`). Gespeichert wird `{ id, displayName }` – die Id, weil
+  `MagicFilterProcessor` sie liest (`value.id ?: value.value?.toLongOrNull()`), der
+  Name, damit Pille und wiederhergestellter Favorit die Entität ohne zweiten Lookup
+  benennen können. Ein Element ohne `url` fällt auf das Textfeld zurück (nicht
+  erwartet, aber besser als ein unbenutzbares Feld).
+- **TIMESTAMP** hat die Schnellauswahl – und zwar **zwei** Arten, die nicht dasselbe
+  sind (`filter-timestamp-field.tsx`): der `PeriodStepper` blättert ganze
+  Kalenderperioden (Jahr/Monat/Woche/Tag), die rollenden Fenster von
+  `IntervalPresetsSelect` enden immer „jetzt“ und erscheinen nur, wenn das Backend
+  das Feld mit `UNTIL_NOW` markiert. Beide Bounds tragen eine Uhrzeit, weil
+  `PFDateTimeUtils.parseAndCreateDateTime` ein reines `2026-07-15` an einem
+  Timestamp-Feld zu `null` parst und die Grenze stillschweigend fallen ließe.
+- **`filter/reset` ist angebunden** (`lib/rs/list-actions.ts`, aufgerufen aus
+  `list-gear-menu.tsx`). Die lokale Hälfte in `useEntityListPage.resetFilter` leert
+  die Werte, **lässt den Favoriten-Bezug fallen** und verwirft den Grid-State mit –
+  der Endpunkt tut serverseitig genau das. Denselben Bezug löst `applyValues`, sobald
+  die Filterzeile leer geworden ist: ein leerer Filter _ist_ dieser Favorit nicht
+  mehr, ihn als „geändert“ zu führen und das Anbieten, die Leere hineinzuspeichern,
+  wäre falsch.
+
+**Browserseitig verifiziert.** Die e2e-Suite läuft gegen die laufende Instanz und
+deckt inzwischen ab: Speichern und Löschen über den gemeinsamen Save-Pfad
+(`cost1-edit`, `book-attachments`, `book-lend-out`, `order`, `invoice-*`), das
+Tabellenverhalten (`list-sort-persistence`, `data-table-overflow-tooltip`,
+`pagination-arrows`, `table-loading`, `book-list-gear`), die Filterzeile
+(`filter-all-dialog`, `period-stepper`, `period-year-to-date`, `entity-lookup`,
+`history-filter`), den Änderungsmarker gespeicherter Filter
+(`filter-favorite-modified`), die Historie (`history`) und den Login (`login`).
+
+**Zwei Reste, bewusst klein gehalten:**
+
+1. **Favoriten umbenennen und löschen** hat kein Spec – nur Anwenden, Speichern und
+   der Änderungsmarker sind abgedeckt. Die Endpunkte sind zustandsändernde
+   `@GetMapping`s (s.o.), der Client-Pfad steht.
+2. **Englischer Locale-Pfad** ist strukturell gelöst, aber nie gelaufen: die
+   Fixtures leiten Texte und Formate aus `userStatus` ab (`e2e/fixtures/format.ts`),
+   es gibt lokal aber nur das eine deutsche Testkonto. Ein zweites mit `locale=en`
+   würde die Regel erst beweisen – s. „Mehrere Testkonten statt einem“ unter
+   [Stand & nächste Schritte](#stand--nächste-schritte).
 
 Erledigt seit der letzten Fassung: **das geteilte Edit-Gerüst.** Was `book`-Edit
 zuerst allein hielt – Submit-Ablauf, 406-Mapping, „gespeichert“-Toast, URL-Wechsel
@@ -688,16 +714,40 @@ mehr zählt (`BirthdayButlerPageRest` als Vorbild).
   `DELETE`/`FORCE_DELETE` ausdrücklich als nicht angebunden), betrifft also nur die
   Alt-Clients.
 
-**Offen, kein Access-Thema, aber hier entdeckt:** eine `AccessException` kommt als
-**HTTP 200 mit Toast** zurück, weil `UserException.displayUserMessage` default `true`
-ist (`GlobalDefaultExceptionHandler`). `lib/rs/entity.ts` liest das als
-`kind: "ok"`, und `use-entity-edit-form.ts` meldet dann Erfolg und leitet zur Liste
-weiter. Geschrieben wird nichts – die DAO hat abgelehnt –, aber die Rückmeldung ist
-falsch. Noch nicht gefixt.
+**Hier entdeckt, inzwischen behoben: eine abgelehnte Aktion sah wie eine geglückte
+aus.** Eine `AccessException` ist eine `UserException`, und
+`UserException.displayUserMessage` ist default `true` – also antwortete
+`GlobalDefaultExceptionHandler` mit **HTTP 200 und nichts als einem Toast** (die Form,
+die die UILayout-Seiten lesen). `lib/rs/entity.ts` las das als `kind: "ok"` und
+`use-entity-edit-form.ts` meldete Erfolg und leitete zur Liste weiter. Geschrieben
+wurde nichts – die DAO hat abgelehnt –, aber die Rückmeldung war falsch. Jetzt an drei
+Stellen gedeckt, jede für einen anderen Weg der Ausnahme:
+
+- **Die vier CRUD-Endpunkte** fangen ohnehin alles um den DAO-Aufruf:
+  `AbstractPagesRestUtils.handleException` macht aus einer `UserException` – die
+  `AccessException` eingeschlossen – **HTTP 406** mit einem `validationErrors`-Eintrag
+  (ohne `fieldId`, weil `AccessException` kein `causedByField` setzt). Das ist der
+  reguläre Ablehnungszweig, den das Frontend schon las.
+- **Eigene Endpunkte** (`postEntityAction`, z.B. `book/lendOut`) haben diesen Catch
+  nicht. Für sie erkennt `write()` in `lib/rs/entity.ts` die Toast-Antwort und gibt
+  `kind: "rejected"` mit der bereits übersetzten Meldung zurück; `use-entity-edit-form.ts`
+  zeigt sie und **lässt das Formular mit den Werten des Nutzers stehen**. Unterschieden
+  wird sie von einem Erfolg mit Zusatzwarnung (die Benachrichtigungsmail des Auftrags,
+  die nicht rausgeht) am `targetType`: eine Ablehnung ist ein `TOAST` und sonst nichts,
+  ein Erfolg trägt seine Meldung am `REDIRECT` mit.
+- **Lesende Aufrufe** – eine abgelehnte Liste war von einem leeren Ergebnis nicht zu
+  unterscheiden und ergab eine vollständig gerenderte Seite mit leerer Tabelle.
+  `GlobalDefaultExceptionHandler` antwortet next-Clients auf eine `AccessException`
+  jetzt mit **403** und einem `RestError` (`useReadAccessGuard`). Nur für next, weil
+  die alte React-App auf die 200 angewiesen ist: sie verwirft jede
+  Nicht-ok-Antwort von `{entity}/list` und zeigte den Fehler nirgends. `isNextClient`
+  ist dabei ausdrücklich keine Vertrauensgrenze – abgelehnt wird so oder so, es wählt
+  nur die Form der Antwort.
 
 **Nicht verifiziert:** die Ablehnung des E-Rechnungs-Prüfers. Das lokale Testkonto
 ist Admin und in den FiBu-Gruppen, damit ist nur der Erfolgsfall prüfbar; für den
-403-Fall braucht es einen Benutzer ohne FIBU/ORGA-Mitgliedschaft.
+403-Fall braucht es einen Benutzer ohne FIBU/ORGA-Mitgliedschaft – s. „Mehrere
+Testkonten statt einem“ unter [Stand & nächste Schritte](#stand--nächste-schritte).
 
 #### Erledigt: Speichern und Löschen (`book`-Edit konnte nie speichern)
 
@@ -1367,10 +1417,6 @@ verbraucht eine Rechnungsnummer.
 
 **Was bewusst offen bleibt:**
 
-- **`AccessException` beim Speichern liefert HTTP 200 plus Toast** und wird von
-  `hooks/use-entity-edit-form.ts` als Erfolg gelesen – der Benutzer sieht die Meldung,
-  das Formular verhält sich aber als sei gespeichert worden. Das ist keine Eigenheit
-  der Rechnung, sondern der gemeinsame Save-Pfad, und gehört in eine eigene Änderung.
 - **Eine in next soft-gelöschte Position wird physisch verworfen**, wenn die Rechnung
   danach in Wicket geöffnet und gespeichert wird
   (`AbstractRechnungEditForm.removeIf(AbstractBaseDO::getDeleted)`). Risiko des
@@ -1543,11 +1589,13 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
 
 - **Phase 0** – Parallelbetrieb, Static-Export-Packaging, client-seitige i18n.
 - **Phase 1** – Menü-Schalter pro Seite; `BOOK_LIST` zeigt auf `next/book`.
-- **Phase 1.5, größter Teil** – `MagicFilter`-Kontrakt (Listen laden wieder),
+- **Phase 1.5 vollständig** – `MagicFilter`-Kontrakt (Listen laden wieder),
   Tabellen-Funktionen portiert (Resizing, Spalten ein-/ausblenden, Pinning,
   Reorder, Spalten-Filter), Spaltenzustand-Persistenz, Listen-Filter als
-  Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten) und gemerkter
-  Filtereinstellung, i18n-Generierung aus `I18nResources`.
+  Pillen-Zeile inkl. gespeicherter Filter (Backend-Favoriten), gemerkter
+  Filtereinstellung, OBJECT-Entitätssuche, TIMESTAMP-Schnellauswahl und
+  `filter/reset`, i18n-Generierung aus `I18nResources`, Validierungsregeln und
+  Enum-Wertelisten aus den Backend-Metadaten, Ausleih-/Rückgabe-Aktion.
 - **Auth-Flow** – Login, 2FA inkl. WebAuthn, Passwort-vergessen/-Reset und
   In-Session-2FA-Dialog laufen in next. `/next/login` ist der einzige Login
   aller drei Frontends, die UILayout-Pendants sind gelöscht
@@ -1558,12 +1606,13 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
 - **Schreiben in `book`-Edit** – `saveorupdate`/`markAsDeleted` über
   `lib/rs/entity.ts` (PostData + ResponseAction, 406 als reguläre Antwort),
   406-`validationErrors` auf die Formularfelder gemappt, Anlegen inkl.
-  URL-Wechsel auf die neue id, Löschen mit Bestätigung. Noch nicht im Browser
-  gegen das echte Backend verifiziert.
+  URL-Wechsel auf die neue id, Löschen mit Bestätigung. Gegen das laufende System
+  geprüft (`e2e/book-edit.spec.ts`, `cost1-edit.spec.ts`).
 - **Änderungshistorie** – eigene Route `/book/{id}/history` mit echtem
   Link-Reiter statt Section im Scroll-Bereich (lädt damit erst beim Öffnen),
   generische UI in `components/shared/history/`, Kommentarfunktion über das
-  Backend-Flag `supportsUserComments` gesteuert. Browser-Prüfung steht aus.
+  Backend-Flag `supportsUserComments` gesteuert. Gegen das laufende System
+  geprüft (`e2e/history.spec.ts`, `history-filter.spec.ts`).
 - **Dynamische Listen auf der echten `DataTable`** – `UIAgGridColumnDef → ColumnDef`-
   Adapter (`lib/dynamic/grid/`), Zell-Formatter-Registry
   (`components/data-table/cells/`), deklarativer Ersatz für `getRowClass`/
@@ -1582,21 +1631,47 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
 
 **Als nächstes:**
 
-1. **Phase 1.5 abschließen:** OBJECT-Autocomplete und TIMESTAMP-Schnellauswahl,
-   `filter/reset` samt `isFilterModified`, die Ausleih-/Rückgabe-Aktion des Buchs
-   (s. eigener Abschnitt – die Felder stehen, die beiden `BookServicesRest`-
-   Endpunkte fehlen), und `book`-Edit als saubere
-   Vorlage: Validierungsregeln und Enum-Wertelisten aus den Backend-Metadaten
-   ableiten statt sie zu wiederholen (s. eigener Abschnitt). Vorher das visuelle
-   Ergebnis der Tabelle, den Favoriten-Durchlauf sowie Speichern/Anlegen/Löschen
-   im Browser prüfen – das steht noch aus.
-2. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
+1. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
    Masse). Listen rendern inzwischen mit der echten `DataTable`; als nächstes
    fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
-3. **Phase 3** – Auftragsbuch als handgebauter Härtefall (parallel zu Phase 2
-   möglich).
-4. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
+2. **Phase 3** – die **Kalenderseite** als nächster handgebauter Härtefall und
+   Standard-Startseite nach dem Login; der Detailplan liegt vor
+   (`MIGRATION-calendar.md`), umgesetzt ist nichts. Sie zieht zwei Phase-2-Stücke
+   mit, die auch anderen Seiten nützen: die 2-Segment-Route `[category]/[type]` und
+   die Weitergabe des Query-Strings in `fetchDynamic`, dazu `COLOR_CHOOSER` in der
+   `UICustomized`-Registry. (Auftragsbuch und Debitorenrechnungen sind fertig, s.
+   Phase 3.)
+3. **Mehrere Testkonten statt einem.** `~/ProjectForge/testAccount.txt` hält heute
+   genau ein Konto, und das ist Admin **und** in den FiBu-Gruppen **und** deutsch.
+   Damit ist von jeder rechteabhängigen Regel nur der Erfolgsfall prüfbar – die
+   Ablehnung, also die Hälfte, auf die es ankommt, ist unerreichbar. Gebraucht werden
+   drei:
+
+   - **`full-access-user`** – Admin plus alle FiBu-/ORGA-Gruppen, das heutige Konto.
+   - **`finance-user`** – die FiBu-Rechte, aber nicht Admin (trennt
+     `FINANCE`/`FINANCE_WRITE` von der Admin-Gruppe, s. die 2FA-Kurzbefehle).
+   - **`normalo-user`** – ein angemeldeter Benutzer ohne besondere Rechte, und
+     **`locale=en`**, damit derselbe Benutzer den englischen Durchlauf trägt.
+
+   Was damit erst prüfbar wird, steht heute an vier Stellen als „nicht verifiziert":
+   die 403-Ablehnung des E-Rechnungs-Prüfers (`EInvoiceCheckerPageRest`, s. das
+   Access-Audit), der Lese-Guard einer abgelehnten Liste (`useReadAccessGuard` – der
+   Fall, für den die 403-Antwort überhaupt gebaut wurde), der `rejected`-Pfad des
+   Schreibens (eine `AccessException` auslösen zu können setzt ein Konto ohne das
+   Recht voraus) und der englische Locale-Pfad (s. Phase 1.5). Dazu die Gegenprobe zu
+   `book-list-gear.spec.ts`, das den vollen Reindex heute nur als Admin sieht.
+
+   Mitzuziehen sind `e2e/fixtures/` (Login pro Rolle statt eines globalen Kontos, die
+   Datei mit mehreren Zeilen) und der Absatz „Testing against the running system" in
+   `projectforge-next/CLAUDE.md`, der das eine Konto nennt. Ein Spec, das eine Rolle
+   verlangt, die die Installation nicht hat, soll sich überspringen und nicht
+   fehlschlagen – die Konten sind lokal und nicht Teil des Repos.
+
+4. **Ein Spec für Favoriten umbenennen/löschen** und die Umstellung von
+   `task-edit-link.tsx` auf die next-Route, sobald die Strukturelement-Seite
+   migriert ist (s. eigener Abschnitt).
+5. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
    Passwort-vergessen), der Wicket-Umweg (ohne Session `302` auf
@@ -1610,5 +1685,9 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    In-Session-2FA-Dialog der alten React-App (z. B. `/react/myAccount`), der
    weiterhin über `My2FAPageRest` läuft.
 
-**Reihenfolge-Grundsatz:** `book` bleibt die Vorlage – was dort fehlt, fehlt
-jeder migrierten Seite. Deshalb erst `book` fertig, dann in die Breite.
+**Reihenfolge-Grundsatz:** `book` war die Vorlage – was dort fehlte, fehlte jeder
+migrierten Seite; deshalb ging es zuerst fertig und erst dann in die Breite. Die
+Rolle ist inzwischen auf die geteilten Bausteine übergegangen (`PageDef`,
+`components/shared/edit/`, `components/data-table/`, `lib/rs/`): eine Fähigkeit, die
+eine neue Seite braucht, gehört dorthin und nicht in ihr Feature-Verzeichnis – so
+bekommen die schon migrierten Seiten sie mit.
