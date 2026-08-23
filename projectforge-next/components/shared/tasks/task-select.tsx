@@ -64,7 +64,11 @@ export function TaskSelect({
     >
       <div className="flex min-w-0 items-center gap-2">
         <div className="min-w-0 flex-1">
-          <TaskPath task={(value != null && task) || null} onSelect={select} />
+          <TaskPath
+            task={(value != null && task) || null}
+            onSelect={select}
+            onOpen={() => setOpen(true)}
+          />
         </div>
         {/* Not CollapsibleTrigger: the panel is also closed by picking a task, so the open state is
             held here anyway and the trigger would only duplicate it. */}

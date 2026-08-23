@@ -14,6 +14,11 @@ interface TaskPathProps {
    * Strukturoberelement ersetzen". `null` means the home button: clear the selection.
    */
   onSelect: (task: TaskNode | null) => void;
+  /**
+   * Opens the tree, as the field's own button does. Given one, „please select" is a click target
+   * itself — it is the widest thing on the row and the first place a pointer goes.
+   */
+  onOpen?: () => void;
   /** The path may be read but not changed — the shortcuts stop being buttons. */
   disabled?: boolean;
 }
@@ -24,7 +29,7 @@ interface TaskPathProps {
  * The ancestors are buttons, since selecting one is how the timesheet moves a booking up the tree
  * without opening the whole panel. The last segment is the current selection and does nothing.
  */
-export function TaskPath({ task, onSelect, disabled }: TaskPathProps) {
+export function TaskPath({ task, onSelect, onOpen, disabled }: TaskPathProps) {
   const t = useTranslations();
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
   const ancestors = task?.path ?? [];
@@ -66,11 +71,20 @@ export function TaskPath({ task, onSelect, disabled }: TaskPathProps) {
           <span className="truncate font-medium">{task.title}</span>
         </span>
       )}
-      {!task && (
-        <span className="text-muted-foreground">
-          {t("task.path.pleaseSelectTask")}
-        </span>
-      )}
+      {!task &&
+        (onOpen && !disabled ? (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="cursor-pointer text-muted-foreground hover:text-foreground hover:underline"
+          >
+            {t("task.path.pleaseSelectTask")}
+          </button>
+        ) : (
+          <span className="text-muted-foreground">
+            {t("task.path.pleaseSelectTask")}
+          </span>
+        ))}
     </nav>
   );
 }

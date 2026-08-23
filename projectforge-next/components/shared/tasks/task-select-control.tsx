@@ -52,6 +52,7 @@ export function TaskSelectControl({
         <TaskPath
           task={(taskId != null && task) || null}
           onSelect={(node) => onSelect(node)}
+          onOpen={onOpen}
           disabled={disabled}
         />
       </div>

@@ -84,6 +84,18 @@ test.describe("task wizard", () => {
     await expect(
       page.getByText(format.t("task.wizard.action.noactionRequired"))
     ).toBeVisible();
+    // „Please select structure element" opens the tree itself, not only the pencil beside it: it is the
+    // widest thing on the row and the first place a pointer goes (see TaskPath).
+    await page
+      .getByRole("button", { name: format.t("task.path.pleaseSelectTask") })
+      .click();
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByRole("heading", { name: format.t("task.tree.title.select") })
+    ).toBeVisible({ timeout: 20_000 });
+    await page.keyboard.press("Escape");
+
     // All four steps are on the page at once; it is a form, not a sequence of screens.
     for (const key of ["team", "managerGroup", "externalGroup"]) {
       await expect(
