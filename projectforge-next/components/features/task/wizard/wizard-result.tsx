@@ -9,20 +9,8 @@ import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/shared/form-alert";
 import { SectionCard } from "@/components/shared/section-card";
 import { TASK_TREE_ROUTE } from "@/components/shared/tasks/task-routes";
-import type {
-  TaskWizardAccessStatus,
-  TaskWizardResult as TaskWizardResultData,
-} from "@/lib/rs/task";
-import { STATUS_KEYS, groupEntries } from "./result-model";
-
-const STATUS_VARIANTS: Record<
-  TaskWizardAccessStatus,
-  "default" | "secondary" | "outline"
-> = {
-  CREATED: "default",
-  UPDATED: "secondary",
-  UNCHANGED: "outline",
-};
+import type { TaskWizardResult as TaskWizardResultData } from "@/lib/rs/task";
+import { STATUS_KEYS, STATUS_VARIANTS, groupEntries } from "./result-model";
 
 export interface WizardResultProps {
   result: TaskWizardResultData;

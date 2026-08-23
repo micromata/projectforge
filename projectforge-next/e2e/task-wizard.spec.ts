@@ -204,6 +204,61 @@ test.describe("task wizard", () => {
     ).toHaveText(new RegExp(escape(created)));
   });
 
+  test("the preview shows the rights it would set, and sets none of them", async ({
+    loggedInPage: page,
+    seededTask,
+    seededGroup,
+  }) => {
+    test.setTimeout(120_000);
+    const format = await userFormat(page);
+    await goto(page, PAGE);
+    await pickSeededTask(page, format, seededTask.title);
+
+    // Without a group there is nothing to grant, so there is no table either — the same reason the
+    // action card announces `noactionRequired` (see task-wizard.tsx).
+    const title = page.getByRole("heading", {
+      name: format.t("task.wizard.preview.title"),
+    });
+    await expect(title).toHaveCount(0);
+
+    await pickSeededGroup(page, format, seededGroup.name);
+    await expect(title).toBeVisible({ timeout: 20_000 });
+
+    // One row, the picked element: its parent is the root, which never gets an entry.
+    const row = page.getByRole("row").filter({ hasText: seededTask.title });
+    await expect(row).toHaveCount(1);
+    await expect(row).toContainText(format.t("task.wizard.preview.picked"));
+    await expect(row).toContainText(format.t("task.wizard.preview.recursive"));
+    // The four access types of the Wicket panel, and what the entry would be: a new one.
+    for (const key of [
+      "accessManagement",
+      "tasks",
+      "timesheets",
+      "ownTimesheets",
+    ]) {
+      await expect(row).toContainText(format.t(`access.type.${key}`));
+    }
+    await expect(row).toContainText(format.t("task.wizard.result.created"));
+    // The rights themselves are icons, so their accessible names are the assertion: the team may add
+    // structure elements, and may not delete the time sheets of others (`employee()`).
+    const permission = (type: string, operation: string, granted: boolean) =>
+      row.getByRole("img", {
+        name: `${format.t(`access.type.${type}`)}, ${format.t(
+          `access.type.${operation}`
+        )}: ${format.t(
+          granted ? "access.permission.granted" : "access.permission.denied"
+        )}`,
+      });
+    await expect(permission("tasks", "insert", true)).toBeVisible();
+    await expect(permission("timesheets", "delete", false)).toBeVisible();
+
+    // And none of it is written: the preview is a question (TaskWizardService.previewAccess).
+    expect(
+      await accessEntriesOf(page.request, seededGroup.id),
+      "The preview granted rights although nothing was finished."
+    ).toEqual([]);
+  });
+
   test("an element plus a group grants that group its rights", async ({
     loggedInPage: page,
     seededTask,

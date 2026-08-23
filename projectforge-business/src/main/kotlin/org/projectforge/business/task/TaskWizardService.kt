@@ -26,6 +26,7 @@ package org.projectforge.business.task
 import mu.KotlinLogging
 import org.projectforge.business.user.GroupDao
 import org.projectforge.framework.access.AccessDao
+import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -84,10 +85,32 @@ class TaskWizardService {
     }
 
     /**
+     * The four permissions of one access type of a row, as the access management shows them.
+     */
+    class AccessRightResult(
+        val accessType: AccessType,
+        val select: Boolean,
+        val insert: Boolean,
+        val update: Boolean,
+        val delete: Boolean,
+    ) {
+        /** Whether both say the same about the same access type. */
+        fun sameAs(other: AccessRightResult): Boolean {
+            return accessType == other.accessType && select == other.select && insert == other.insert &&
+                    update == other.update && delete == other.delete
+        }
+    }
+
+    /**
      * One [GroupTaskAccessDO] row the wizard looked at - the picked element or one of its ancestors.
      *
      * @param pickedElement True for the element the user picked, which gets the role's template
      * recursively; false for an ancestor, which only gets read access on the tasks (see [createAccessRights]).
+     * @param recursive Whether the rights hold for the sub elements as well, which is the case on the
+     * picked element only.
+     * @param rights The permissions of the row as the template leaves them, in the order the access
+     * management lists them ([GroupTaskAccessDO.orderedEntries]) - the answer to "which rights", which a
+     * template's name alone does not give.
      */
     class AccessEntryResult(
         val groupType: GroupType,
@@ -96,6 +119,8 @@ class TaskWizardService {
         val taskTitle: String?,
         val pickedElement: Boolean,
         val status: AccessStatus,
+        val recursive: Boolean,
+        val rights: List<AccessRightResult>,
     )
 
     /**
@@ -151,6 +176,31 @@ class TaskWizardService {
         managerGroupId: Long? = null,
         teamGroupId: Long? = null,
         externalGroupId: Long? = null,
+    ): Result = process(taskId, managerGroupId, teamGroupId, externalGroupId, dryRun = false)
+
+    /**
+     * What [grantAccess] with the same arguments would do, without doing any of it: the same walk over
+     * the same rows, but nothing is written and the status is the one the write would have reported.
+     *
+     * Serves the wizard's preview table, which is shown while the user is still picking, so it has to
+     * answer the same question the report answers afterwards - which rights are new, which change one
+     * that says something else, and which are already there.
+     *
+     * @throws IllegalArgumentException if [taskId] names no element.
+     */
+    fun previewAccess(
+        taskId: Long,
+        managerGroupId: Long? = null,
+        teamGroupId: Long? = null,
+        externalGroupId: Long? = null,
+    ): Result = process(taskId, managerGroupId, teamGroupId, externalGroupId, dryRun = true)
+
+    private fun process(
+        taskId: Long,
+        managerGroupId: Long?,
+        teamGroupId: Long?,
+        externalGroupId: Long?,
+        dryRun: Boolean,
     ): Result {
         val taskNode = taskTree.getTaskNodeById(taskId)
         requireNotNull(taskNode) { "Structure element with id $taskId not found." }
@@ -160,16 +210,25 @@ class TaskWizardService {
             GroupType.EXTERNAL to externalGroupId,
         ).mapNotNull { (groupType, groupId) ->
             val group = groupId?.let { groupDao.find(it) } ?: return@mapNotNull null
-            GrantedAccess(groupType, group.name, createAccessRights(taskNode, group, groupType, isLeaf = true))
+            GrantedAccess(
+                groupType,
+                group.name,
+                createAccessRights(taskNode, group, groupType, isLeaf = true, dryRun = dryRun),
+            )
         }
-        if (granted.isEmpty()) {
+        if (granted.isEmpty() && !dryRun) {
             log.info { "Structure wizard: no group given for task #$taskId, so no access rights to create." }
         }
         return Result(taskNode.task?.title, granted)
     }
 
     /**
-     * Writes the access entry of one group on one element and then walks up to the root.
+     * Writes the access entry of one group on one element and then walks up to the root - or, with
+     * [dryRun], only says what that would come to.
+     *
+     * One function for both, so the preview and the write cannot drift apart: they take the same rows in
+     * the same order and apply the same template ([applyTemplate]), and only the last step - write or
+     * compare - differs.
      *
      * @param isLeaf True for the element the user picked, false for its ancestors: those get the guest
      * template and no recursion, so the group sees the path down to the element without gaining
@@ -181,6 +240,7 @@ class TaskWizardService {
         group: GroupDO,
         groupType: GroupType,
         isLeaf: Boolean,
+        dryRun: Boolean,
     ): List<AccessEntryResult> {
         val task = taskNode?.task ?: return emptyList()
         val taskNodeId = taskNode.id ?: return emptyList()
@@ -188,31 +248,55 @@ class TaskWizardService {
         if (taskTree.isRootNode(taskNode)) {
             return emptyList()
         }
-        var access = accessDao.getEntry(task, group)
-        val isNew = access == null
-        val wasDeleted = access?.deleted == true
-        if (access == null) {
-            access = GroupTaskAccessDO()
-            accessDao.setTask(access, taskNodeId)
-            accessDao.setGroup(access, groupId)
-        } else if (wasDeleted) {
+        val existing = accessDao.getEntry(task, group)
+        val status = if (dryRun) {
+            previewStatus(existing, groupType, isLeaf)
+        } else {
+            writeAccessRight(existing, taskNodeId, groupId, groupType, isLeaf)
+        }
+        // The rights of the row afterwards, read off the template alone: it sets all four access types, so
+        // what the row says afterwards does not depend on what it said before - and this way the write and
+        // the preview report the same rights without either of them touching the loaded row.
+        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        val entry = AccessEntryResult(
+            groupType = groupType,
+            groupName = group.name,
+            taskId = taskNodeId,
+            taskTitle = task.title,
+            pickedElement = isLeaf,
+            status = status,
+            recursive = template.recursive,
+            rights = rightsOf(template),
+        )
+        // Minimal access rights for the parent element up to the root.
+        return listOf(entry) + createAccessRights(taskNode.parent, group, groupType, isLeaf = false, dryRun = dryRun)
+    }
+
+    /**
+     * Writes the one row and says what became of it.
+     *
+     * @param existing The row of this group on this element, or null if there is none yet.
+     */
+    private fun writeAccessRight(
+        existing: GroupTaskAccessDO?,
+        taskNodeId: Long,
+        groupId: Long,
+        groupType: GroupType,
+        isLeaf: Boolean,
+    ): AccessStatus {
+        val wasDeleted = existing?.deleted == true
+        val access = existing ?: GroupTaskAccessDO().also {
+            accessDao.setTask(it, taskNodeId)
+            accessDao.setGroup(it, groupId)
+        }
+        if (wasDeleted) {
             // Before the template is applied, not after: undelete writes the whole object to the row,
             // so it would persist the new rights and leave the update below nothing to report.
             accessDao.undelete(access)
         }
-        if (!isLeaf) {
-            access.guest()
-            access.recursive = false
-        } else {
-            when (groupType) {
-                GroupType.MANAGER -> access.leader()
-                GroupType.EXTERNAL -> access.external()
-                GroupType.TEAM -> access.employee()
-            }
-            access.recursive = true
-        }
-        val status = when {
-            isNew -> {
+        applyTemplate(access, groupType, isLeaf)
+        return when {
+            existing == null -> {
                 accessDao.insert(access)
                 AccessStatus.CREATED
             }
@@ -226,15 +310,74 @@ class TaskWizardService {
             accessDao.update(access) == EntityCopyStatus.NONE -> AccessStatus.UNCHANGED
             else -> AccessStatus.UPDATED
         }
-        val entry = AccessEntryResult(
-            groupType = groupType,
-            groupName = group.name,
-            taskId = taskNodeId,
-            taskTitle = task.title,
-            pickedElement = isLeaf,
-            status = status,
-        )
-        // Minimal access rights for the parent element up to the root.
-        return listOf(entry) + createAccessRights(taskNode.parent, group, groupType, isLeaf = false)
+    }
+
+    /**
+     * What [writeAccessRight] would answer for the same row, without touching it.
+     *
+     * Compares what the row says today with what the template says, field by field, rather than by
+     * copying the row and letting `copyValuesFrom` answer: two copies of one row share their
+     * [org.projectforge.framework.access.AccessEntryDO] instances, so applying the template to the one
+     * changes the other with it and every comparison would come out as "unchanged".
+     *
+     * The fields are the ones [applyTemplate] sets - the four access types and the recursion. Task and
+     * group are what the row was looked up by, and a deleted row is dealt with above, so there is
+     * nothing else an update could find to write.
+     */
+    private fun previewStatus(
+        existing: GroupTaskAccessDO?,
+        groupType: GroupType,
+        isLeaf: Boolean,
+    ): AccessStatus {
+        if (existing == null) {
+            return AccessStatus.CREATED
+        }
+        if (existing.deleted) {
+            // An undelete writes the row whatever the rights say, exactly as in writeAccessRight.
+            return AccessStatus.UPDATED
+        }
+        val template = GroupTaskAccessDO().also { applyTemplate(it, groupType, isLeaf) }
+        if (existing.recursive != template.recursive) {
+            return AccessStatus.UPDATED
+        }
+        val current = rightsOf(existing).associateBy { it.accessType }
+        val unchanged = rightsOf(template).all { wanted ->
+            current[wanted.accessType]?.let { it.sameAs(wanted) } == true
+        }
+        return if (unchanged) AccessStatus.UNCHANGED else AccessStatus.UPDATED
+    }
+
+    /**
+     * The four permissions per access type of a row, in the order the access management lists them.
+     */
+    private fun rightsOf(access: GroupTaskAccessDO): List<AccessRightResult> {
+        return access.orderedEntries.mapNotNull { entry ->
+            val accessType = entry.accessType ?: return@mapNotNull null
+            AccessRightResult(
+                accessType = accessType,
+                select = entry.accessSelect,
+                insert = entry.accessInsert,
+                update = entry.accessUpdate,
+                delete = entry.accessDelete,
+            )
+        }
+    }
+
+    /**
+     * The rules themselves, in one place: the role's template recursively on the picked element, read
+     * access on the tasks alone on every ancestor.
+     */
+    private fun applyTemplate(access: GroupTaskAccessDO, groupType: GroupType, isLeaf: Boolean) {
+        if (!isLeaf) {
+            access.guest()
+            access.recursive = false
+            return
+        }
+        when (groupType) {
+            GroupType.MANAGER -> access.leader()
+            GroupType.EXTERNAL -> access.external()
+            GroupType.TEAM -> access.employee()
+        }
+        access.recursive = true
     }
 }

@@ -11,11 +11,21 @@ export const STATUS_KEYS: Record<TaskWizardAccessStatus, string> = {
   UNCHANGED: "task.wizard.result.unchanged",
 };
 
+/** The badge of a status: the more notable it is, the stronger it reads. */
+export const STATUS_VARIANTS: Record<
+  TaskWizardAccessStatus,
+  "default" | "secondary" | "outline"
+> = {
+  CREATED: "default",
+  UPDATED: "secondary",
+  UNCHANGED: "outline",
+};
+
 /**
  * The role a group was granted. Not `task.wizard.<key>`, which the steps use: those texts are the
  * form labels of the steps and read „Managing users (optional)".
  */
-const ROLE_KEYS: Record<TaskWizardGroupType, string> = {
+export const ROLE_KEYS: Record<TaskWizardGroupType, string> = {
   MANAGER: "task.wizard.result.role.manager",
   TEAM: "task.wizard.result.role.team",
   EXTERNAL: "task.wizard.result.role.external",

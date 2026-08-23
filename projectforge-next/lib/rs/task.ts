@@ -319,6 +319,22 @@ export type TaskWizardAccessStatus = "CREATED" | "UPDATED" | "UNCHANGED";
 /** The role a group was granted, `TaskWizardService.GroupType`. */
 export type TaskWizardGroupType = "MANAGER" | "TEAM" | "EXTERNAL";
 
+/** The access types of a `GroupTaskAccessDO`, in the order the access management lists them. */
+export type AccessTypeName =
+  | "TASK_ACCESS_MANAGEMENT"
+  | "TASKS"
+  | "TIMESHEETS"
+  | "OWN_TIMESHEETS";
+
+/** `TaskWizardRest.AccessRight`: the four permissions of one access type of an access entry. */
+export interface AccessRight {
+  accessType: AccessTypeName;
+  select: boolean;
+  insert: boolean;
+  update: boolean;
+  delete: boolean;
+}
+
 /** `TaskWizardRest.AccessEntry`: one access entry the wizard looked at. */
 export interface TaskWizardAccessEntry {
   groupName?: string | null;
@@ -328,6 +344,10 @@ export interface TaskWizardAccessEntry {
   /** True for the element the user picked, false for an ancestor that only got read access. */
   pickedElement: boolean;
   status: TaskWizardAccessStatus;
+  /** Whether the rights hold for the sub elements as well — only on the picked element. */
+  recursive: boolean;
+  /** Which rights the entry would carry, for the matrix the preview shows. */
+  rights: AccessRight[];
 }
 
 /** `TaskWizardRest.ExecuteResponse`. */
@@ -338,7 +358,11 @@ export interface TaskWizardResult {
   created: number;
   updated: number;
   unchanged: number;
-  /** The single entries behind those numbers, the picked element's first per group. */
+  /**
+   * The single entries behind those numbers, the picked element's first per group and then its
+   * ancestors upwards — that order is the hierarchy, since the rows of a group are the one path from
+   * the picked element to the root (see previewRows, which indents them by it).
+   */
   entries: TaskWizardAccessEntry[];
 }
 
@@ -349,6 +373,24 @@ export function executeTaskWizard(
 ): Promise<TaskWizardResult> {
   return request<TaskWizardResult>(
     "/rs/taskWizard/execute",
+    { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
+}
+
+/**
+ * What [executeTaskWizard] with the same body would do, without doing any of it — the wizard's preview
+ * table, asked for again with every pick.
+ *
+ * The same shape as the execution's answer, because it is the same walk over the same rows
+ * (`TaskWizardService.previewAccess`): the statuses are the ones the write would report.
+ */
+export function previewTaskWizard(
+  body: TaskWizardRequest,
+  signal?: AbortSignal
+): Promise<TaskWizardResult> {
+  return request<TaskWizardResult>(
+    "/rs/taskWizard/preview",
     { method: "POST", body: JSON.stringify(body) },
     signal
   );

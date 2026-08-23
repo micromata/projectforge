@@ -89,6 +89,14 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
 
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
+  /**
+   * Whether the pagination bar is shown at all.
+   *
+   * Off for a table that is a fixed, small set of rows the user cannot page through - the wizard's
+   * preview of the rights it would set, which is as long as the path it walks. "1-4 of 4" and a page
+   * size select would be chrome around four rows.
+   */
+  showPagination?: boolean;
 
   emptyState?: React.ReactNode;
   /** Rendered between the scrollable table area and the pagination bar (e.g. a colour legend). */
@@ -116,6 +124,7 @@ export function DataTable<TData>({
   viewScope,
   selection,
   pageSizeOptions,
+  showPagination = true,
   emptyState,
   footer,
   className,
@@ -341,7 +350,9 @@ export function DataTable<TData>({
         </div>
       </div>
       {footer}
-      <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+      {showPagination && (
+        <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+      )}
     </div>
   );
 }

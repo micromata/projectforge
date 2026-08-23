@@ -4,12 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Tick02Icon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/shared/form-alert";
-import { SectionCard } from "@/components/shared/section-card";
-import { Spinner } from "@/components/shared/spinner";
 import {
   TASK_TREE_ROUTE,
   SAVED_ID_PARAM,
@@ -18,11 +13,15 @@ import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import {
   executeTaskWizard,
   fetchTaskInfo,
+  previewTaskWizard,
+  type TaskWizardRequest,
   type TaskWizardResult,
 } from "@/lib/rs/task";
 import { GROUP_STEPS, type WizardGroupKey, type WizardGroups } from "./types";
 import { stashWizardGroups, takeWizardGroups } from "./wizard-handover";
+import { WizardActionStep } from "./wizard-action-step";
 import { WizardGroupStepCard } from "./wizard-group-step";
+import { WizardPreview } from "./wizard-preview";
 import { WizardResult } from "./wizard-result";
 import { WizardTaskStep } from "./wizard-task-step";
 
@@ -68,14 +67,24 @@ export function TaskWizard() {
 
   const anyGroup = GROUP_STEPS.some((step) => groups[step.key]);
 
+  const request: TaskWizardRequest = {
+    taskId: taskId!,
+    ...Object.fromEntries(
+      GROUP_STEPS.map((step) => [step.field, groups[step.key]?.id ?? null])
+    ),
+  };
+
+  // What the same request would do, asked again with every pick — the table below the steps. Only with a
+  // group, because without one there is nothing to grant and nothing to show (see the action card).
+  const preview = useQuery({
+    queryKey: ["taskWizardPreview", request],
+    queryFn: ({ signal }) => previewTaskWizard(request, signal),
+    enabled: taskId != null && anyGroup,
+    staleTime: Infinity,
+  });
+
   const execute = useMutation({
-    mutationFn: () =>
-      executeTaskWizard({
-        taskId: taskId!,
-        ...Object.fromEntries(
-          GROUP_STEPS.map((step) => [step.field, groups[step.key]?.id ?? null])
-        ),
-      }),
+    mutationFn: () => executeTaskWizard(request),
     onSuccess: (granted) => setResult(granted),
     onError: (err: unknown) =>
       setError(err instanceof Error ? err.message : String(err)),
@@ -100,63 +109,50 @@ export function TaskWizard() {
   }
 
   return (
-    <div className="flex max-w-3xl flex-col gap-4">
-      {error && <FormAlert tone="error">{error}</FormAlert>}
-      <p className="text-sm text-muted-foreground">{t("task.wizard.intro")}</p>
-      <WizardTaskStep
-        taskId={taskId}
-        onChange={(id) => {
-          setTaskId(id);
-          setError(null);
-        }}
-        onLeave={() => stashWizardGroups(groups)}
-      />
-      {GROUP_STEPS.map((step, index) => (
-        <WizardGroupStepCard
-          key={step.key}
-          step={step}
-          number={index + 2}
-          value={groups[step.key] ?? null}
-          onChange={(group) => setGroup(step.key, group)}
-          taskTitle={task?.title}
+    <div className="flex flex-col gap-4">
+      <div className="flex max-w-3xl flex-col gap-4">
+        {error && <FormAlert tone="error">{error}</FormAlert>}
+        <p className="text-sm text-muted-foreground">
+          {t("task.wizard.intro")}
+        </p>
+        <WizardTaskStep
+          taskId={taskId}
+          onChange={(id) => {
+            setTaskId(id);
+            setError(null);
+          }}
+          onLeave={() => stashWizardGroups(groups)}
         />
-      ))}
-      <SectionCard className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold">{t("task.wizard.action._")}</h2>
-        {/* Unlike Wicket, which announces the rights as soon as an element is picked although its own
-            `noactionRequired` text says the opposite: without a group there is nothing to grant. */}
-        <FormAlert tone={taskId != null && anyGroup ? "info" : "success"}>
-          {taskId != null && anyGroup
-            ? t("task.wizard.action.taskAndgroupsGiven")
-            : t("task.wizard.action.noactionRequired")}
-        </FormAlert>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(TASK_TREE_ROUTE)}
-          >
-            {t("cancel")}
-          </Button>
-          <Button
-            type="button"
-            disabled={taskId == null || execute.isPending}
-            onClick={() => execute.mutate()}
-            className="gap-1.5"
-            aria-busy={execute.isPending}
-          >
-            {/* In place of the icon, not next to it, so the label doesn't move (see EntityEditActions).
-                The grant itself is a handful of rows and thus quick, but it writes them one by one over
-                the whole path up to the root. */}
-            {execute.isPending ? (
-              <Spinner className="h-3.5 w-3.5 border-2" />
-            ) : (
-              <HugeiconsIcon icon={Tick02Icon} size={14} />
-            )}
-            {t("task.wizard.finish")}
-          </Button>
+        {GROUP_STEPS.map((step, index) => (
+          <WizardGroupStepCard
+            key={step.key}
+            step={step}
+            number={index + 2}
+            value={groups[step.key] ?? null}
+            onChange={(group) => setGroup(step.key, group)}
+            taskTitle={task?.title}
+          />
+        ))}
+      </div>
+      {/* Above the buttons, so what the wizard would do is read before it is set off - and wider than
+          the steps, because the table holds a column per group while the steps read best narrow. */}
+      {preview.data && (
+        <div className="flex max-w-5xl flex-col">
+          <WizardPreview
+            preview={preview.data}
+            isFetching={preview.isFetching}
+          />
         </div>
-      </SectionCard>
+      )}
+      <div className="flex max-w-3xl flex-col">
+        <WizardActionStep
+          hasAction={taskId != null && anyGroup}
+          canFinish={taskId != null}
+          isPending={execute.isPending}
+          onCancel={() => router.push(TASK_TREE_ROUTE)}
+          onFinish={() => execute.mutate()}
+        />
+      </div>
     </div>
   );
 }

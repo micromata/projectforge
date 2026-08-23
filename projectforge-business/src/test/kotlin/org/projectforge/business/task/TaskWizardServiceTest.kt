@@ -252,6 +252,95 @@ class TaskWizardServiceTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the preview says what the grant then does, and writes nothing itself`() {
+        logon(ADMIN_USER)
+        val group = createGroup("preview")
+        val (parent, child) = createSubtree("preview")
+
+        val preview = taskWizardService.previewAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(listOf(child.id, parent.id), preview.entries.map { it.taskId })
+        Assertions.assertEquals(2, preview.count(TaskWizardService.AccessStatus.CREATED))
+        Assertions.assertTrue(
+            entriesOf(group).isEmpty(),
+            "A preview is a question, so not a single row may exist afterwards.",
+        )
+        // The rights it announces are the ones the write sets: the employee template on the picked
+        // element, the guest template on the ancestor - said here as the frontend reads it, per row.
+        rights(preview, child, AccessType.TASKS).let { right ->
+            Assertions.assertTrue(right.select && right.insert && right.update && right.delete)
+        }
+        rights(preview, child, AccessType.TIMESHEETS).let { right ->
+            Assertions.assertTrue(right.select)
+            Assertions.assertFalse(right.insert || right.update || right.delete)
+        }
+        rights(preview, parent, AccessType.TASKS).let { right ->
+            Assertions.assertTrue(right.select)
+            Assertions.assertFalse(right.insert || right.update || right.delete)
+        }
+        Assertions.assertEquals(
+            listOf(true, false), preview.entries.map { it.recursive },
+            "Only the picked element's rights reach its sub elements.",
+        )
+
+        val granted = taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(
+            preview.entries.map { it.taskId to it.status },
+            granted.entries.map { it.taskId to it.status },
+            "The preview promised what the grant reports - that is the whole point of the dry run.",
+        )
+        Assertions.assertEquals(
+            preview.entries.map { it.taskId to rightsOf(it) },
+            granted.entries.map { it.taskId to rightsOf(it) },
+        )
+    }
+
+    @Test
+    fun `a preview of what is already there reports everything as unchanged`() {
+        logon(ADMIN_USER)
+        val group = createGroup("previewAgain")
+        val (parent, child) = createSubtree("previewAgain")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        val lastUpdate = entry(child, group).lastUpdate
+
+        val preview = taskWizardService.previewAccess(taskId = child.id!!, teamGroupId = group.id)
+
+        Assertions.assertEquals(2, preview.count(TaskWizardService.AccessStatus.UNCHANGED))
+        Assertions.assertEquals(
+            TaskWizardService.AccessStatus.UNCHANGED, statusOf(preview, parent),
+        )
+        Assertions.assertEquals(
+            lastUpdate, entry(child, group).lastUpdate,
+            "Comparing must not touch the row it compares against.",
+        )
+    }
+
+    @Test
+    fun `a preview sees a right that was changed by hand and a deleted entry`() {
+        logon(ADMIN_USER)
+        val group = createGroup("previewChanged")
+        val (parent, child) = createSubtree("previewChanged")
+        taskWizardService.grantAccess(taskId = child.id!!, teamGroupId = group.id)
+        accessDao.update(entry(child, group).also { access ->
+            access.ensureAndGetTimesheetsEntry().setAccess(false, false, false, false)
+        })
+
+        taskWizardService.previewAccess(taskId = child.id!!, teamGroupId = group.id).let { preview ->
+            Assertions.assertEquals(TaskWizardService.AccessStatus.UPDATED, statusOf(preview, child))
+            Assertions.assertEquals(TaskWizardService.AccessStatus.UNCHANGED, statusOf(preview, parent))
+        }
+
+        // A deleted entry is revived by the grant, so the preview has to call that a change as well.
+        accessDao.markAsDeleted(entry(parent, group))
+
+        taskWizardService.previewAccess(taskId = child.id!!, teamGroupId = group.id).let { preview ->
+            Assertions.assertEquals(TaskWizardService.AccessStatus.UPDATED, statusOf(preview, parent))
+            Assertions.assertTrue(entry(parent, group).deleted, "Still only a question.")
+        }
+    }
+
+    @Test
     fun `an unknown element is refused`() {
         logon(ADMIN_USER)
         Assertions.assertThrows(IllegalArgumentException::class.java) {
@@ -286,6 +375,21 @@ class TaskWizardServiceTest : AbstractTestBase() {
     ): TaskWizardService.AccessStatus {
         return result.entries.firstOrNull { it.taskId == task.id }?.status
             ?: Assertions.fail("No entry reported for task '${task.title}'.")
+    }
+
+    /** The permissions the wizard reported for one access type of one element of the path. */
+    private fun rights(
+        result: TaskWizardService.Result,
+        task: TaskDO,
+        type: AccessType,
+    ): TaskWizardService.AccessRightResult {
+        return result.entries.firstOrNull { it.taskId == task.id }?.rights?.firstOrNull { it.accessType == type }
+            ?: Assertions.fail("No $type right reported for task '${task.title}'.")
+    }
+
+    /** The reported rights as something two results can be compared by - [TaskWizardService.AccessRightResult] is no data class. */
+    private fun rightsOf(entry: TaskWizardService.AccessEntryResult): List<String> {
+        return entry.rights.map { "${it.accessType}:${it.select}${it.insert}${it.update}${it.delete}" }
     }
 
     private fun entry(task: TaskDO, group: GroupDO): GroupTaskAccessDO {

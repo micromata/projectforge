@@ -4,8 +4,24 @@
     "exception": {
       "noAccess": "No access."
     },
+    "permission": {
+      "denied": "not granted",
+      "granted": "granted"
+    },
     "rights": "Rights",
-    "type": "Access type"
+    "type": {
+      "_": "Access type",
+      "accessManagement": "Access management",
+      "delete": "Delete",
+      "group": "Group",
+      "insert": "Insert",
+      "ownTimesheets": "Own time sheets",
+      "select": "Select",
+      "tasks": "Structure elements",
+      "timesheets": "Time sheets",
+      "undelete": "Undelete",
+      "update": "Update"
+    }
   },
   "add": "Add",
   "address": {
@@ -1767,6 +1783,13 @@
         "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
       },
       "pageTitle": "Structure wizard",
+      "preview": {
+        "element": "Structure element",
+        "intro": "Every element of the path with the right each group would get on it. Nothing is written before you click finish.",
+        "picked": "picked",
+        "recursive": "incl. sub elements",
+        "title": "What the wizard would do"
+      },
       "result": {
         "again": "Configure another element",
         "ancestors": "Read access on {arg0} ancestor element(s)",
@@ -1850,6 +1873,7 @@
     }
   },
   "undelete": "Undelete",
+  "update": "Update",
   "uptodate": "up-to-date",
   "user": {
     "_": "User",

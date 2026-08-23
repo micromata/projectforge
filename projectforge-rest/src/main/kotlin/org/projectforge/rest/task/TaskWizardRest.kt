@@ -58,6 +58,21 @@ class TaskWizardRest {
     )
 
     /**
+     * The four permissions of one access type of a row, so the client can show which rights are set the
+     * way the access management shows them.
+     *
+     * @param accessType Name of an `AccessType`: TASK_ACCESS_MANAGEMENT, TASKS, TIMESHEETS or
+     * OWN_TIMESHEETS, which the client maps onto `access.type.*`.
+     */
+    class AccessRight(
+        val accessType: String,
+        val select: Boolean,
+        val insert: Boolean,
+        val update: Boolean,
+        val delete: Boolean,
+    )
+
+    /**
      * One access entry the wizard looked at, so the client can report it: the texts are raw (the client
      * has no way to know a group's name), the enums are names the client maps onto its own labels
      * (`task.wizard.result.*`).
@@ -66,6 +81,8 @@ class TaskWizardRest {
      * @param pickedElement True for the element the user picked, false for one of its ancestors, which
      * only got read access.
      * @param status One of [TaskWizardService.AccessStatus]: CREATED, UPDATED or UNCHANGED.
+     * @param recursive Whether the rights hold for the sub elements as well - only on the picked element.
+     * @param rights The permissions of the row, in the order the access management lists them.
      */
     class AccessEntry(
         val groupName: String?,
@@ -74,6 +91,8 @@ class TaskWizardRest {
         val taskTitle: String?,
         val pickedElement: Boolean,
         val status: String,
+        val recursive: Boolean,
+        val rights: List<AccessRight>,
     )
 
     /**
@@ -81,7 +100,9 @@ class TaskWizardRest {
      * @param accessEntries Number of access entries the wizard touched over all groups, ancestors and
      * the ones that were already right included. Zero means no group was given, the case the wizard
      * announces as `task.wizard.action.noactionRequired`.
-     * @param entries The single entries behind those numbers, the picked element's first per group.
+     * @param entries The single entries behind those numbers, the picked element's first per group and
+     * then its ancestors upwards. That order is the hierarchy: the rows of a group are the one path from
+     * the picked element to the root, so the client can indent them without being told a depth.
      */
     class ExecuteResponse(
         val taskTitle: String?,
@@ -102,12 +123,38 @@ class TaskWizardRest {
     fun execute(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val taskId = request.taskId ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        val result = taskWizardService.grantAccess(
-            taskId = taskId,
-            managerGroupId = request.managerGroupId,
-            teamGroupId = request.teamGroupId,
-            externalGroupId = request.externalGroupId,
+        return response(
+            taskWizardService.grantAccess(
+                taskId = taskId,
+                managerGroupId = request.managerGroupId,
+                teamGroupId = request.teamGroupId,
+                externalGroupId = request.externalGroupId,
+            )
         )
+    }
+
+    /**
+     * What [execute] with the same body would do, without doing any of it - the wizard's preview table,
+     * which is shown while the element and the groups are still being picked.
+     *
+     * A POST although nothing is written: the body is the same as [execute]'s, and asking the same
+     * question in two forms would be two contracts to keep in step.
+     */
+    @PostMapping("preview")
+    fun preview(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
+        accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        val taskId = request.taskId ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
+        return response(
+            taskWizardService.previewAccess(
+                taskId = taskId,
+                managerGroupId = request.managerGroupId,
+                teamGroupId = request.teamGroupId,
+                externalGroupId = request.externalGroupId,
+            )
+        )
+    }
+
+    private fun response(result: TaskWizardService.Result): ResponseEntity<ExecuteResponse> {
         return ResponseEntity(
             ExecuteResponse(
                 taskTitle = result.taskTitle,
@@ -123,6 +170,16 @@ class TaskWizardRest {
                         taskTitle = entry.taskTitle,
                         pickedElement = entry.pickedElement,
                         status = entry.status.name,
+                        recursive = entry.recursive,
+                        rights = entry.rights.map { right ->
+                            AccessRight(
+                                accessType = right.accessType.name,
+                                select = right.select,
+                                insert = right.insert,
+                                update = right.update,
+                                delete = right.delete,
+                            )
+                        },
                     )
                 },
             ),
