@@ -39,7 +39,7 @@ export function DynamicGrid({ node }: DynamicComponentProps) {
 }
 
 function Grid({ grid }: { grid: AgGridNode }) {
-  const { data, variables, callAction } = useDynamicLayout();
+  const { data, variables, callAction, isFetching } = useDynamicLayout();
   const columns = useDynamicGridColumns(grid);
   const pathname = usePathname();
 
@@ -132,6 +132,12 @@ function Grid({ grid }: { grid: AgGridNode }) {
         columns={columns}
         data={rows}
         rowClassName={rowClassName}
+        // A server-laid-out page fetches through its actions, not through a query of the table's own:
+        // pressing "search" or a filter posts and the answer replaces these rows (see
+        // useDynamicActions, which sets the flag around every call). Without this the tables of every
+        // dynamic list page waited without saying so, while the hand-built lists showed a spinner —
+        // the same wait looking like two different things depending on the page.
+        isFetching={isFetching}
         highlightRowId={highlightRowId}
         highlightScope={pathname}
         pageSizeOptions={grid.paginationPageSizeSelector ?? PAGE_SIZE_OPTIONS}

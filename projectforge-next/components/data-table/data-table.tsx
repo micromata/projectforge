@@ -180,7 +180,10 @@ export function DataTable<TData>({
           would be the whole scrolled content, so the spinner would sit at the top of the rows and
           scroll out of sight instead of staying where the user is looking. */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        {isFetching && !showSkeleton && <TableLoadingOverlay />}
+        {/* Also over the skeleton, which is where the wait is longest: a first load of the order book
+            takes seconds, and eight rows of grey bars say "there is a table here", not "it is being
+            fetched" — least of all that it is still being fetched after the second one. */}
+        {isFetching && <TableLoadingOverlay />}
         <div
           ref={scrollRef}
           className="relative flex-1 overflow-auto bg-background"

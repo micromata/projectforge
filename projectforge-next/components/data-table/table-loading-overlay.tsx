@@ -17,7 +17,12 @@ import { Spinner } from "@/components/shared/spinner";
 export function TableLoadingOverlay() {
   const t = useTranslations();
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex animate-in items-center justify-center bg-background/50 fade-in fill-mode-both delay-300 duration-200">
+    <div
+      // Named for what it is, so a screen reader hears the wait the sighted user sees — the rows
+      // themselves cannot say it, since they are still the previous answer.
+      role="status"
+      className="pointer-events-none absolute inset-0 z-30 flex animate-in items-center justify-center bg-background/50 fade-in fill-mode-both delay-300 duration-200"
+    >
       <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 shadow-sm">
         <Spinner className="h-4 w-4 border-2" />
         <span className="text-xs text-muted-foreground">{t("loading")}</span>
