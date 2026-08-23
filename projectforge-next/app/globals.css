@@ -461,3 +461,20 @@ span.row-grey {
     var(--number-box-digits) * 1ch + 1.75rem + var(--number-box-suffix, 0rem)
   );
 }
+
+/*
+ * One slot of the pagination strip — a page number or the gap between two of them.
+ *
+ * As wide as the widest page number the list has, whatever this slot holds: `--pagination-digits` is
+ * the digit count of the last page (set once on the strip), and `ch` is the width of a digit in the
+ * font it is typed in. Plus the button's own horizontal padding.
+ *
+ * Why at all: the arrows sit left and right of the strip, and paging means clicking the same arrow
+ * again. A strip that widens when the numbers grow a digit moves them out from under the mouse — the
+ * same reason the count of slots is constant (see page-slots.ts). `tabular-nums` for the step from
+ * "11" to "18", which even at an equal digit count is not an equal width in a proportional font.
+ */
+.pagination-slot {
+  min-width: calc(var(--pagination-digits, 2) * 1ch + 1rem);
+  font-variant-numeric: tabular-nums;
+}

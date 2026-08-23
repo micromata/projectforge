@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
 import { useFormatContext } from "@/hooks/use-format";
 import { PAGE_SIZE_OPTIONS } from "./page-size-options";
+import { PAGE_GAP, pageSlots } from "./page-slots";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
@@ -41,9 +42,24 @@ export function DataTablePagination<TData>({
     : [...pageSizeOptions, pageSize].sort((a, b) => a - b);
 
   return (
-    <div className="flex items-center justify-between border-t px-4 py-2">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-1">
+    // Three columns rather than `justify-between`: the two outer ones are equally wide whatever they
+    // hold, so the strip in the middle stays where it is when the range label grows a digit ("51-100"
+    // after "1-50"). With `min-w-0` and a truncated label, because a label wider than its share would
+    // push the middle aside again.
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center border-t px-4 py-2">
+      <span className="min-w-0 truncate text-xs font-medium text-muted-foreground tabular-nums">
+        {label}
+      </span>
+      <div
+        className="flex items-center justify-center gap-1"
+        // Every slot is as wide as the widest page number of *this* list, so a step from 9 to 10 does
+        // not widen the strip either (see `.pagination-slot` in globals.css).
+        style={
+          {
+            "--pagination-digits": String(pageCount).length,
+          } as React.CSSProperties
+        }
+      >
         <Button
           type="button"
           variant="outline"
@@ -55,27 +71,30 @@ export function DataTablePagination<TData>({
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={13} />
         </Button>
-        {pageNumbers(pageIndex, pageCount).map((p, i) =>
-          p === "…" ? (
+        {pageSlots(pageIndex, pageCount).map((slot, i) =>
+          slot === PAGE_GAP ? (
+            // As wide as a page button and in its place, so the strip's length does not depend on how
+            // many of its slots are pages (see pageSlots).
             <span
-              key={`ellipsis-${i}`}
-              className="px-1 text-xs text-muted-foreground"
+              key={`gap-${i}`}
+              aria-hidden
+              className="pagination-slot h-7 text-center text-xs leading-7 text-muted-foreground"
             >
-              …
+              {PAGE_GAP}
             </span>
           ) : (
             <button
-              key={p}
+              key={slot}
               type="button"
-              onClick={() => table.setPageIndex(p - 1)}
+              onClick={() => table.setPageIndex(slot - 1)}
               className={cn(
-                "h-7 min-w-7 rounded-sm border px-2 text-xs font-medium",
-                p - 1 === pageIndex
+                "pagination-slot h-7 rounded-sm border px-2 text-xs font-medium",
+                slot - 1 === pageIndex
                   ? "border-primary bg-primary text-primary-foreground"
                   : "bg-background text-muted-foreground hover:bg-muted"
               )}
             >
-              {p}
+              {slot}
             </button>
           )
         )}
@@ -91,8 +110,8 @@ export function DataTablePagination<TData>({
           <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
         </Button>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">
+      <div className="flex min-w-0 items-center justify-end gap-2">
+        <span className="truncate text-xs text-muted-foreground">
           {t("rowsPerPage")}
         </span>
         <select
@@ -109,25 +128,4 @@ export function DataTablePagination<TData>({
       </div>
     </div>
   );
-}
-
-function pageNumbers(pageIndex: number, pageCount: number): (number | "…")[] {
-  if (pageCount <= 1) return [1];
-  const current = pageIndex + 1;
-  const out: (number | "…")[] = [];
-  const push = (n: number | "…") => {
-    if (out[out.length - 1] !== n) out.push(n);
-  };
-  push(1);
-  if (current - 1 > 2) push("…");
-  for (
-    let p = Math.max(2, current - 1);
-    p <= Math.min(pageCount - 1, current + 1);
-    p++
-  ) {
-    push(p);
-  }
-  if (current + 1 < pageCount - 1) push("…");
-  if (pageCount > 1) push(pageCount);
-  return out;
 }
