@@ -30,7 +30,7 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * keep (see OrderPositionField, whose hits carry the order behind the position).
    */
   onChange: (value: T | null) => void;
-  /** Characters before the lookup fires; the backend defaults it to 2. */
+  /** Characters before a *typed* term is looked up; the backend defaults it to 2. */
   minChars?: number;
   /** Further request parameters of that search, see [EntitySearchList]. */
   params?: Record<string, unknown>;

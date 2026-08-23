@@ -5,7 +5,7 @@ import {
   type APIRequestContext,
   type Page,
 } from "@playwright/test";
-import { readCredentials } from "./credentials";
+import { DEFAULT_ROLE, readCredentials, type Role } from "./credentials";
 import { BASE_PATH } from "../../lib/config";
 import {
   createBook,
@@ -74,7 +74,8 @@ export const test = base.extend<
       if (!res.ok()) {
         throw new Error(
           `Could not log in to create the test data (HTTP ${res.status()}). Is ProjectForge on ` +
-            `:8080 and are the credentials in ~/ProjectForge/testAccount.txt current?`
+            `:8080, and in development mode — the mode in which it keeps ` +
+            `$PROJECTFORGE_HOME/testAccounts.txt current?`
         );
       }
       await use(context);
@@ -129,9 +130,15 @@ export { expect };
  *   page: without it the server sends the user to `/react/calendar` (the default of
  *   `LoginServiceRest.getRedirectUrl`), which the Next dev server on :3000 cannot serve - the test
  *   would then start on its 404 page.
+ * @param role Which account to log in as; the default has every right, so a spec only names one to
+ *   reach a *refusal* (see credentials.ts, and check `hasRole` before asking for it).
  */
-export async function login(page: Page, returnUrl = "/next/"): Promise<void> {
-  const { username, password } = readCredentials();
+export async function login(
+  page: Page,
+  returnUrl = "/next/",
+  role: Role = DEFAULT_ROLE
+): Promise<void> {
+  const { username, password } = readCredentials(role);
   const path = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
   // Reloaded rather than awaited longer: the dev server occasionally serves a truncated chunk
   // (ERR_CONTENT_LENGTH_MISMATCH), and a page whose script never arrived will not hydrate however

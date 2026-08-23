@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import {
   Command,
@@ -10,7 +9,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { fetchAutoCompletion } from "@/lib/rs/dynamic";
+import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
+import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
 import type { EntityRef } from "./entity-autocomplete";
 
 export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
@@ -23,7 +23,7 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
    * Part of the query key, so a changed value asks again instead of serving the previous answer.
    */
   params?: Record<string, unknown>;
-  /** Characters before the lookup fires; the backend defaults it to 2. */
+  /** Characters before a *typed* term is looked up; the backend defaults it to 2. */
   minChars?: number;
   /**
    * Whether the popover holding this list is open. While it is not, the lookup must not run: the term
@@ -44,7 +44,9 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
  * by the single-value [EntityAutocomplete] and the collecting [EntityMultiAutocomplete].
  *
  * It owns the term and the query alone: what a pick *means* is the caller's business, and the term is of
- * no interest once the entry is found.
+ * no interest once the entry is found. Which entries there are to offer — the first page as soon as the
+ * popover opens, a longer one while the user scrolls — is [useEntityLookup]'s, shared in turn with the
+ * picker of a server-laid-out form (DynamicSelect), so both behave the same.
  */
 export function EntitySearchList<T extends EntityRef = EntityRef>({
   url,
@@ -58,13 +60,12 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { data: found, isFetching } = useQuery({
-    queryKey: ["entity-autocomplete", url, search, params ?? null],
-    queryFn: ({ signal }) =>
-      fetchAutoCompletion<T>(url, search, params, signal),
-    // Below minChars the backend would answer with everything it has, which is neither useful nor
-    // cheap — `user/autosearch` without a term lists every active user.
-    enabled: active && search.trim().length >= minChars,
+  const { entries, isFetching, isLoadingMore, loadMore } = useEntityLookup<T>({
+    url,
+    search,
+    params,
+    open: active,
+    minChars,
   });
 
   return (
@@ -76,15 +77,23 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
         onValueChange={setSearch}
         placeholder={t("filter.search")}
       />
-      <CommandList>
+      {/* cmdk's list is its own scroll container, so the next page is asked for from here. The
+          arrow keys scroll it too, which pages for the keyboard as well. */}
+      <CommandList
+        onScroll={(event) => {
+          if (isNearBottom(event.currentTarget)) loadMore();
+        }}
+      >
         <CommandEmpty>
-          {search.trim().length < minChars
+          {/* Nothing typed yet and still empty means the lookup is either running or has nothing to
+              offer — the hint to type only fits a term that is too short to be looked up. */}
+          {search.trim().length > 0 && search.trim().length < minChars
             ? t("filter.search")
             : isFetching
               ? t("loading")
               : t("nothingFound")}
         </CommandEmpty>
-        {(found ?? []).map((entry) => (
+        {entries.map((entry) => (
           <CommandItem
             key={entry.id}
             value={String(entry.id)}
@@ -100,6 +109,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
             {entry.displayName}
           </CommandItem>
         ))}
+        {isLoadingMore && <LookupLoadingRow />}
       </CommandList>
     </Command>
   );

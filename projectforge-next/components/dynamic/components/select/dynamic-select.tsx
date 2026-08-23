@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -19,6 +18,7 @@ import {
   toOption,
   type SelectOption,
 } from "./select-values";
+import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,8 +33,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
 import { getByPath, type DataObject } from "@/lib/dynamic/path";
-import { fetchAutoCompletion } from "@/lib/rs/dynamic";
 import { cn } from "@/lib/utils";
 
 /**
@@ -65,14 +65,21 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
     )
   );
 
-  const { data: fetched } = useQuery({
-    queryKey: ["select", lookupUrl, search, params],
-    queryFn: ({ signal }) =>
-      fetchAutoCompletion<DataObject>(lookupUrl!, search, params, signal),
-    enabled: open && lookupUrl != null && search.length >= minChars,
+  // Opening offers the first entries without a term; scrolling the list asks for more (see
+  // useEntityLookup).
+  const {
+    entries: fetched,
+    isLoadingMore,
+    loadMore,
+  } = useEntityLookup<DataObject>({
+    url: lookupUrl,
+    search,
+    params,
+    open,
+    minChars,
   });
 
-  const remote = (fetched ?? [])
+  const remote = fetched
     .map((entry) => toOption(entry, spec.valueProperty, spec.labelProperty))
     .filter((option): option is SelectOption => option != null);
   // The offered values come from the layout; a lookup adds to them rather than replacing them,
@@ -152,7 +159,13 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
                 onValueChange={setSearch}
                 placeholder={t("search")}
               />
-              <CommandList>
+              {/* cmdk's list is its own scroll container, so a lookup's next page is asked for from
+                  here; the arrow keys scroll it too, which pages for the keyboard as well. */}
+              <CommandList
+                onScroll={(event) => {
+                  if (isNearBottom(event.currentTarget)) loadMore();
+                }}
+              >
                 <CommandEmpty>{t("noOptions")}</CommandEmpty>
                 {creatable &&
                   search.length > 0 &&
@@ -179,6 +192,7 @@ export function DynamicSelect({ node }: DynamicComponentProps) {
                     {option.label}
                   </CommandItem>
                 ))}
+                {isLoadingMore && <LookupLoadingRow />}
               </CommandList>
             </Command>
           </PopoverContent>

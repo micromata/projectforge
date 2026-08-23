@@ -117,16 +117,37 @@ written out by hand.
 
 ## Testing against the running system
 
-The credentials of a local test account are in `~/ProjectForge/testAccount.txt` (`username/password`), so
-automated tests can run against the live system instead of mock data. Log in via
+The credentials of the local test accounts are in `$PROJECTFORGE_HOME/testAccounts.txt`, one line per
+role (`role=username/password`, read by `e2e/fixtures/credentials.ts`), so automated tests can run
+against the live system instead of mock data. **The instance writes that file itself**: started with
+`projectforge.development.mode=true`, `E2ETestAccountsService` creates whichever of these accounts it
+doesn't find, with a random password per instance, and repairs a missing group or right on every
+start. Nothing to set up by hand.
+
+| Role               | User              | Has                                             |
+| ------------------ | ----------------- | ----------------------------------------------- |
+| `full-access-user` | `e2e-full-access` | every group, every right — the default          |
+| `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, the FIBU\_\* rights |
+| `admin-user`       | `e2e-admin`       | PF_Admin, and **no** finance rights             |
+| `normalo-user`     | `e2e-normalo`     | nothing, `locale=en`                            |
+
+A password that no longer works is not something to chase: delete its line (or the whole file) and
+restart, and a new one is generated. To use an account of your own for a role instead, name it in that
+role's line — a line naming another user is left untouched. Log in via
 `POST /rsPublic/nextLogin` (`{"username":…,"password":…}`) and keep the session cookie; `GET /rs/userStatus`
 then yields the `csrfToken` that every state changing call needs as `X-PF-CSRF-Token` (see `lib/rs/client.ts`).
 Being able to see a real response beats reasoning about the contract: it settles at once whether a field is
 missing, null, or merely displayed wrong — `JsonInclude.Include.NON_NULL` means Spring omits empty fields
 entirely.
 
-The account is local and its data is expendable, but it is a real database: prefer reads, and don't leave
+The accounts are local and their data is expendable, but it is a real database: prefer reads, and don't leave
 test entities behind.
+
+**Which role to ask for.** `readCredentials()` without an argument gives `full-access-user`, which is what a
+spec about a feature wants. A spec about a _rights_ rule must take the role that makes the interesting half
+reachable — `normalo-user` for a plain refusal, `admin-user` for one that survives the menu but not the
+entity, `finance-user` for the finance rights without the admin group. Not every instance has every account
+(an older one, a role pointed elsewhere by hand): check `hasRole(role)` and skip rather than fail.
 
 ## Communication
 
