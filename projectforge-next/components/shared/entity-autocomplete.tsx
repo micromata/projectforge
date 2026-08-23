@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -18,7 +17,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { fetchAutoCompletion } from "@/lib/rs/dynamic";
+import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
+import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
 import { cn } from "@/lib/utils";
 
 /** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
@@ -68,14 +68,14 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: found, isFetching } = useQuery({
-    queryKey: ["entity-autocomplete", url, search],
-    queryFn: ({ signal }) =>
-      fetchAutoCompletion<T>(url, search, undefined, signal),
-    // Below minChars the backend would answer with everything it has, which is neither useful nor
-    // cheap — `user/autosearch` without a term lists every active user.
-    enabled: open && search.trim().length >= minChars,
-  });
+  // Opening shows the first entries without a term; typing narrows them, and scrolling the list asks
+  // for more (see useEntityLookup).
+  const {
+    entries: found,
+    isFetching,
+    isLoadingMore,
+    loadMore,
+  } = useEntityLookup<T>({ url, search, open, minChars });
 
   return (
     <Popover
@@ -136,15 +136,23 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             onValueChange={setSearch}
             placeholder={t("filter.search")}
           />
-          <CommandList>
+          {/* cmdk's list is its own scroll container, so the next page is asked for from here. The
+              arrow keys scroll it too, which pages for the keyboard as well. */}
+          <CommandList
+            onScroll={(event) => {
+              if (isNearBottom(event.currentTarget)) loadMore();
+            }}
+          >
             <CommandEmpty>
-              {search.trim().length < minChars
+              {/* Nothing typed yet and still empty means the lookup is either running or has nothing
+                  to offer — the hint to type only fits a term that is too short to be looked up. */}
+              {search.trim().length > 0 && search.trim().length < minChars
                 ? t("filter.search")
                 : isFetching
                   ? t("loading")
                   : t("nothingFound")}
             </CommandEmpty>
-            {(found ?? []).map((entry) => (
+            {found.map((entry) => (
               <CommandItem
                 key={entry.id}
                 value={String(entry.id)}
@@ -157,6 +165,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
                 {entry.displayName}
               </CommandItem>
             ))}
+            {isLoadingMore && <LookupLoadingRow />}
           </CommandList>
         </Command>
       </PopoverContent>
