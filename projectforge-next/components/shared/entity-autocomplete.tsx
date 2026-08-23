@@ -1,31 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  Cancel01Icon,
-  SmileIcon,
-  WinkIcon,
-} from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { leafKeyOf } from "@/lib/leaf-key";
-import { fetchAutoCompletion } from "@/lib/rs/dynamic";
 import { cn } from "@/lib/utils";
+import { EntitySearchList } from "./entity-search-list";
+import { SelectMeButton } from "./select-me-button";
 
 /** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
 export interface EntityRef {
@@ -45,26 +32,15 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
   onChange: (value: T | null) => void;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
-  /**
-   * Further request parameters the endpoint reads besides the search term — `{projektId}` narrows
-   * `cost2/autosearch` to the cost units of one project (`Kost2PagesRest.queryAutocompleteObjects`).
-   *
-   * Part of the query key, so a changed value asks again instead of serving the previous answer.
-   */
+  /** Further request parameters of that search, see [EntitySearchList]. */
   params?: Record<string, unknown>;
   id?: string;
   /**
    * An entry the control offers with one click, beside the search — the logged-in user for a field that
    * asks for a person (see [useCurrentUserRef]). Hidden while it is already the value: there is nothing
-   * to pick then. The legacy counterpart is the „select me" smiley of UserSelect.jsx.
+   * to pick then.
    */
   selectMe?: T | null;
-  /**
-   * Whether picking an entry leaves the search open, with the cursor in its term. For a caller that
-   * collects several entries (see [EntityMultiAutocompleteField]) one pick is not the end of the
-   * interaction, and closing the popover would cost a click per member.
-   */
-  keepOpenOnSelect?: boolean;
   /** Accessible name of the trigger, when no `<label htmlFor>` names it. */
   "aria-label"?: string;
   className?: string;
@@ -75,47 +51,27 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
  * Picks one entity by searching the backend for it — a user, a project, a customer.
  *
  * Context-free on purpose: it takes a url and a value, so both the filter row and any hand-built
- * form can use it. The form fields of a server-laid-out page are served by DynamicSelect instead,
- * which does the same lookup but additionally handles multi-select, CREATABLE and writing through
- * DynamicLayoutProvider.
+ * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business; the form fields of
+ * a server-laid-out page are served by DynamicSelect instead, which does the same lookup but
+ * additionally handles multi-select, CREATABLE and writing through DynamicLayoutProvider.
  */
 export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   url,
   value,
   onChange,
-  minChars = 2,
+  minChars,
   params,
   id,
   className,
   autoFocus,
-  keepOpenOnSelect,
   selectMe,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [winking, setWinking] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  const { data: found, isFetching } = useQuery({
-    queryKey: ["entity-autocomplete", url, search, params ?? null],
-    queryFn: ({ signal }) =>
-      fetchAutoCompletion<T>(url, search, params, signal),
-    // Below minChars the backend would answer with everything it has, which is neither useful nor
-    // cheap — `user/autosearch` without a term lists every active user.
-    enabled: open && search.trim().length >= minChars,
-  });
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        // Closing discards the term but never the value: Escape means "never mind", not "clear".
-        if (!next) setSearch("");
-      }}
-    >
+    <Popover open={open} onOpenChange={setOpen}>
       {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
           minimum size is its content, so the trigger would hold the width of the *whole* entity name
           however narrow its field is and push the reset button out of it — onto the field beside it,
@@ -155,70 +111,23 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           </button>
         )}
         {selectMe && selectMe.id !== value?.id && (
-          <button
-            type="button"
-            // As the reset button beside it: the button disappears the moment it is used, so a click
-            // would end on a popover that no longer has anything under the pointer.
-            onPointerDown={(e) => {
-              e.preventDefault();
-              onChange(selectMe);
-            }}
-            onPointerEnter={() => setWinking(true)}
-            onPointerLeave={() => setWinking(false)}
-            onFocus={() => setWinking(true)}
-            onBlur={() => setWinking(false)}
-            // The tooltip of the legacy smiley is a joke („You are great!"), which names nothing — the
-            // accessible name says what the button does, the joke stays as the title.
-            aria-label={`${t(leafKeyOf("select", t.has))}: ${selectMe.displayName}`}
-            title={t("tooltip.selectMe")}
-            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
-          >
-            <HugeiconsIcon icon={winking ? WinkIcon : SmileIcon} size={16} />
-          </button>
+          <SelectMeButton me={selectMe} onPick={() => onChange(selectMe)} />
         )}
       </div>
       <PopoverContent
         align="start"
         className="w-(--radix-popover-trigger-width) min-w-56 p-0"
       >
-        {/* The backend does the filtering; cmdk must not filter the results again. */}
-        <Command shouldFilter={false}>
-          <CommandInput
-            ref={searchRef}
-            value={search}
-            onValueChange={setSearch}
-            placeholder={t("filter.search")}
-          />
-          <CommandList>
-            <CommandEmpty>
-              {search.trim().length < minChars
-                ? t("filter.search")
-                : isFetching
-                  ? t("loading")
-                  : t("nothingFound")}
-            </CommandEmpty>
-            {(found ?? []).map((entry) => (
-              <CommandItem
-                key={entry.id}
-                value={String(entry.id)}
-                onSelect={() => {
-                  onChange(entry);
-                  // The term goes either way: what was searched for has been found.
-                  setSearch("");
-                  if (!keepOpenOnSelect) {
-                    setOpen(false);
-                    return;
-                  }
-                  // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the
-                  // item that was clicked, so the next term would go nowhere.
-                  searchRef.current?.focus();
-                }}
-              >
-                {entry.displayName}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
+        <EntitySearchList<T>
+          url={url}
+          params={params}
+          minChars={minChars}
+          active={open}
+          onPick={(entry) => {
+            onChange(entry);
+            setOpen(false);
+          }}
+        />
       </PopoverContent>
     </Popover>
   );

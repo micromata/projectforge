@@ -1,13 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import {
-  EntityAutocomplete,
-  type EntityRef,
-} from "@/components/shared/entity-autocomplete";
-import { cn } from "@/lib/utils";
+import type { EntityRef } from "@/components/shared/entity-autocomplete";
+import { EntityMultiAutocomplete } from "@/components/shared/entity-multi-autocomplete";
 import {
   FieldShell,
   useFieldIds,
@@ -25,7 +20,7 @@ export interface EntityMultiAutocompleteFieldProps extends BaseFieldProps {
   entity: string;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
-  /** Further request parameters of that search, see [EntityAutocomplete]. */
+  /** Further request parameters of that search, see [EntitySearchList]. */
   params?: Record<string, unknown>;
   /**
    * The entity has no metadata for this field, and cannot have any: a collection is no
@@ -40,10 +35,7 @@ export interface EntityMultiAutocompleteFieldProps extends BaseFieldProps {
  * references themselves (`[{id, displayName}, …]`, what the DTO carries and what `copyTo` resolves back
  * by id).
  *
- * The picker is the shared [EntityAutocomplete] with no value of its own: picking means adding, so its
- * button always reads "choose", and what has been chosen stands below it as chips. That is the shape of
- * the legacy multi select too (`UISelect` with `multi = true`), minus its two-list transfer panel — a
- * search plus a list of what is picked says the same thing in one control.
+ * The picker is [EntityMultiAutocomplete]; this adds the label, the errors and the binding.
  */
 export function EntityMultiAutocompleteField({
   name,
@@ -66,13 +58,6 @@ export function EntityMultiAutocompleteField({
       {(field: any) => {
         const meta = field.state.meta as FieldMetaState;
         const invalid = meta.isTouched && !meta.isValid;
-        const picked = (field.state.value as EntityRef[] | null) ?? [];
-        const change = (next: EntityRef[]) => {
-          field.handleChange(next);
-          // Blurring by hand: the picker is a popover, so nothing else ever marks the field touched
-          // and its error would stay hidden (as in [EntityAutocompleteField]).
-          field.handleBlur();
-        };
         return (
           <FieldShell
             name={name}
@@ -84,55 +69,22 @@ export function EntityMultiAutocompleteField({
             className={className}
             ids={ids}
           >
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <EntityAutocomplete
-                id={ids.controlId}
-                // The trigger is a button, which a <label htmlFor> cannot name — same as SelectField.
-                aria-label={label}
-                url={`${entity}/autosearch?search=:search`}
-                // Always empty: this control adds, it doesn't hold. Its own reset button therefore
-                // never appears, and the chips below carry the removing.
-                value={null}
-                // Adding members is a series, not a single act: the search stays open with the cursor
-                // in its term, so the next name is typed and not clicked open again.
-                keepOpenOnSelect
-                minChars={minChars}
-                params={params}
-                onChange={(value) => {
-                  if (!value) return;
-                  // Silently ignored rather than reported: the same entry twice is no error, the
-                  // search simply answers what is already there.
-                  if (picked.some((entry) => entry.id === value.id)) return;
-                  change([...picked, value]);
-                }}
-                className="max-w-md"
-              />
-              {picked.length > 0 && (
-                <ul className="flex flex-wrap items-center gap-1.5">
-                  {picked.map((entry) => (
-                    <li
-                      key={entry.id}
-                      className={cn(
-                        "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-semibold",
-                        "border-primary/25 bg-primary/10 text-primary"
-                      )}
-                    >
-                      {entry.displayName}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          change(picked.filter((e) => e.id !== entry.id))
-                        }
-                        aria-label={`${t("delete")}: ${entry.displayName}`}
-                        className="cursor-pointer opacity-60 hover:opacity-100"
-                      >
-                        <HugeiconsIcon icon={Cancel01Icon} size={12} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <EntityMultiAutocomplete
+              id={ids.controlId}
+              // The trigger is a button, which a <label htmlFor> cannot name — same as SelectField.
+              aria-label={label}
+              url={`${entity}/autosearch?search=:search`}
+              value={(field.state.value as EntityRef[] | null) ?? []}
+              onChange={(next) => {
+                field.handleChange(next);
+                // Blurring by hand: the picker is a popover, so nothing else ever marks the field
+                // touched and its error would stay hidden (as in [EntityAutocompleteField]).
+                field.handleBlur();
+              }}
+              removeLabel={(entry) => `${t("delete")}: ${entry.displayName}`}
+              minChars={minChars}
+              params={params}
+            />
           </FieldShell>
         );
       }}
