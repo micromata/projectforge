@@ -36,6 +36,7 @@ import { entityAccess } from "@/lib/rs/entity-access";
 import { cloneEntity } from "@/lib/rs/entity";
 import { DeclaredSection } from "./declared-sections";
 import { EntityCloneButton } from "./entity-clone-button";
+import { EntityCrossLinks } from "./entity-cross-links";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityEditHeader } from "./entity-edit-header";
@@ -279,6 +280,12 @@ export function EntityEditPage<
               listLabel={back.label}
               title={headerTitle}
               trailing={edit.headerTrailing?.(data)}
+              // Only for a stored entry: every cross link names it in its url (see CrossLinkDef).
+              crossLinks={
+                edit.crossLinks && id != null ? (
+                  <EntityCrossLinks links={edit.crossLinks} data={data} />
+                ) : undefined
+              }
               legacyUrl={legacyUrl}
             />
           }

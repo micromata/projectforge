@@ -341,6 +341,24 @@ export interface ExtraTabDef {
   component: ComponentType<{ id: number }>;
 }
 
+/**
+ * A cross reference beside the heading of a **stored** entry — the entries Wicket puts into the top
+ * menu of a form (`TaskEditPage.addTopMenuPanel`: add a child element, book a time sheet against this
+ * task, show its time sheets, its Gantt chart, its access rights).
+ *
+ * Declared as a value like everything else here: a url and a message key, so a page stays a
+ * declaration and the renderer decides how the group looks (see EntityCrossLinks).
+ */
+export interface CrossLinkDef<Data> {
+  labelKey: string;
+  /**
+   * Where it leads, given the stored entry. Either a route of this app (`/task/new?parentTaskId=42`)
+   * or a url of another frontend (`wa/timesheetList?taskId=42`) — which is which is decided by
+   * `resolveMenuUrl`, the same way a menu entry is. Null hides the entry for this entry.
+   */
+  href: (data: Data) => string | null;
+}
+
 export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Zod schema of the form, built from the metadata (lib/validation/from-metadata.ts). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -412,6 +430,13 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   editBanner?: ComponentType;
   /** Further tabs beside the form. Appended after the history. */
   extraTabs?: ExtraTabDef[];
+  /**
+   * What else can be done with the entry on screen, beside the heading — see [CrossLinkDef].
+   *
+   * Only for a stored entry, as in Wicket: every one of them names this entry in its url, and a new one
+   * has no name to give yet.
+   */
+  crossLinks?: readonly CrossLinkDef<Data>[];
   /**
    * Where cancel, a successful save, a delete and the breadcrumb lead — and, at the same time, the
    * whitelist of callers a `?returnTo=` may name. The first entry is the default; absent means the

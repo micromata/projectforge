@@ -287,6 +287,49 @@ test.describe("task edit", () => {
     await expect(titleBox(page, format)).toHaveValue(changed);
   });
 
+  test("the five cross links of the Wicket form are in the header menu", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, `/task/${seededTask.id}`);
+    await expect(titleBox(page, format)).toHaveValue(seededTask.title);
+
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: format.t("more") })
+      .click();
+    const menu = page.getByRole("menu");
+    // The entries and their order are `TaskEditPage.addTopMenuPanel`'s; every url names this task,
+    // which is what makes them cross links and not menu items (see CrossLinkDef).
+    for (const [key, href] of [
+      ["task.menu.addSubTask", `/task/new?parentTaskId=${seededTask.id}`],
+      ["task.menu.addTimesheet", `/wa/timesheetEdit?taskId=${seededTask.id}`],
+      ["task.menu.showTimesheets", `/wa/timesheetList?taskId=${seededTask.id}`],
+      ["gantt.title.add", `/wa/ganttEdit?task=${seededTask.id}`],
+      ["task.menu.showAccessRights", `/wa/accessList?taskId=${seededTask.id}`],
+    ] as const) {
+      await expect(
+        menu.getByRole("menuitem", { name: format.t(key) })
+        // Ends with, not equals: this app's own routes carry the base path in front of them.
+      ).toHaveAttribute("href", new RegExp(`${escapeRegExp(href)}$`));
+    }
+    await page.keyboard.press("Escape");
+  });
+
+  test("a task not saved yet offers no cross links", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // Every target needs the entry's id, so before the first save there is nothing to link to —
+    // Wicket builds the same menu only for `isNew() == false`.
+    await goto(page, "/task/new");
+    await expect(titleBox(page, format)).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("main").getByRole("button", { name: format.t("more") })
+    ).toHaveCount(0);
+  });
+
   test("an out-of-range value is reported on its own field", async ({
     loggedInPage: page,
     seededTask,
@@ -318,6 +361,11 @@ test.describe("task edit", () => {
     await expect(page).toHaveURL(new RegExp(`/task/${seededTask.id}`));
   });
 });
+
+/** Escapes what a url contains that a regular expression would read as syntax (`?`, `.`). */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /**
  * The tree's row click opens the next page and tells it where the user came from.

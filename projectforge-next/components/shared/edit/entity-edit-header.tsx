@@ -17,6 +17,8 @@ export interface EntityEditHeaderProps {
   legacyUrl?: string;
   /** Anything the entity wants beside its title — a book's loan badge. */
   trailing?: ReactNode;
+  /** What else can be done with this entry, as one menu — see EntityCrossLinks. */
+  crossLinks?: ReactNode;
 }
 
 /** The top row of every edit page: the way back to the list, what is being edited, and where it was. */
@@ -26,6 +28,7 @@ export function EntityEditHeader({
   title,
   legacyUrl,
   trailing,
+  crossLinks,
 }: EntityEditHeaderProps) {
   return (
     <div className="flex h-11 items-center gap-2 overflow-hidden border-b border-border bg-background px-6">
@@ -46,6 +49,7 @@ export function EntityEditHeader({
         {title}
       </span>
       {trailing}
+      {crossLinks}
       {/* Right, not left: the left of this row is the breadcrumb back to the list, and putting a
           second link beside it would read as part of that path. */}
       <LegacyPageLink url={legacyUrl} />

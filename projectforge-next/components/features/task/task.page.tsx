@@ -155,6 +155,33 @@ export const TASK_PAGE = definePage<
     // can resolve what hangs on it — the project of the cost unit block, and the rights of the two
     // access-gated groups (see TaskPagesRest.newBaseDO and useNewEntryParams).
     newEntryParams: TASK_NEW_ENTRY_PARAMS,
+    // The top menu of the Wicket form (`TaskEditPage.addTopMenuPanel`), in its order and with its
+    // wording. Only the first target lives in this app; the other four are Wicket pages, and they
+    // turn into routes of this app with nothing but a changed href once they are migrated.
+    crossLinks: [
+      {
+        labelKey: "task.menu.addSubTask",
+        href: (task) => `${TASK_ROUTE}/new?parentTaskId=${task.id}`,
+      },
+      {
+        labelKey: "task.menu.addTimesheet",
+        href: (task) => `wa/timesheetEdit?taskId=${task.id}`,
+      },
+      {
+        labelKey: "task.menu.showTimesheets",
+        href: (task) => `wa/timesheetList?taskId=${task.id}`,
+      },
+      {
+        // `gantt` is the basename the Gantt pages are mounted under, so the edit page is `ganttEdit`
+        // (see WebRegistry.addMountPages) — and its parameter is `task`, not `taskId`.
+        labelKey: "gantt.title.add",
+        href: (task) => `wa/ganttEdit?task=${task.id}`,
+      },
+      {
+        labelKey: "task.menu.showAccessRights",
+        href: (task) => `wa/accessList?taskId=${task.id}`,
+      },
+    ],
     sections: [
       {
         id: "general",
