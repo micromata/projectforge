@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 
-export interface InvoiceExportButtonProps extends Omit<
+export interface ExportButtonProps extends Omit<
   ComponentProps<typeof Button>,
   "children" | "disabled"
 > {
@@ -25,8 +25,8 @@ export interface InvoiceExportButtonProps extends Omit<
 }
 
 /**
- * A button that fetches a file — the shape every export of this feature has: the two of the list toolbar
- * and the Word export of the edit page.
+ * A button that fetches a file — the shape every export has: the Excel export of a list toolbar (see
+ * PageDef.listActions), the invoice's exports and the Word export of its edit page.
  *
  * Shared rather than repeated because the *state* is the interesting part: a download is a mutation with a
  * pending phase and no visible result on the page, so the spinner in place of the download icon is the only
@@ -36,13 +36,13 @@ export interface InvoiceExportButtonProps extends Omit<
  * well ([InvoiceExportMenu]): `DropdownMenuTrigger asChild` clones its child with the handlers and the
  * `aria-*` state that open it, and a component that named its props one by one would swallow them.
  */
-export function InvoiceExportButton({
+export function ExportButton({
   tooltip,
   label,
   isPending,
   disabled,
   ...props
-}: InvoiceExportButtonProps) {
+}: ExportButtonProps) {
   const button = (
     <Button
       type="button"

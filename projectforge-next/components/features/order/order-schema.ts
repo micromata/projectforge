@@ -109,11 +109,8 @@ export const orderSchema = z.object({
   beauftragungsBeschreibung: m.nullableString("beauftragungsBeschreibung"),
   periodOfPerformanceBegin: m.nullableString("periodOfPerformanceBegin"),
   periodOfPerformanceEnd: m.nullableString("periodOfPerformanceEnd"),
-  // A percentage. The bound is the field's own meaning, not a column length, hence declared here.
-  probabilityOfOccurrence: m.intField("probabilityOfOccurrence", {
-    min: 0,
-    max: 100,
-  }),
+  // A percentage; the 0-100 comes from `AuftragDO`'s own `@PropertyInfo(min/max)`.
+  probabilityOfOccurrence: m.intField("probabilityOfOccurrence"),
   forecastType: m.enumField("forecastType"),
   bemerkung: m.nullableString("bemerkung"),
   statusBeschreibung: m.nullableString("statusBeschreibung"),

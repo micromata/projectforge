@@ -7,6 +7,7 @@
     "rights": "Rights",
     "type": "Access type"
   },
+  "add": "Add",
   "address": {
     "addressStatus": {
       "_": "Address status",
@@ -32,6 +33,7 @@
     },
     "country": "Country",
     "division": "Division",
+    "emails": "e-mails",
     "fingerprint": "Finger print",
     "form": {
       "_": "Form",
@@ -614,6 +616,21 @@
     "kost2": {
       "_": "Cost 2",
       "art": "Type",
+      "error": {
+        "projektNeededForNummernkreis": "The project is required for number range 4 and 5."
+      },
+      "id": "Cost 2 id",
+      "kost2s": "cost 2 ids",
+      "number": "Cost2 number",
+      "title": {
+        "add": "New cost 2",
+        "edit": "Edit cost 2",
+        "heading": "Cost 2",
+        "list": {
+          "_": "List of cost 2 ids",
+          "select": "Choose cost 2"
+        }
+      },
       "workFraction": "Work time fraction"
     },
     "kost2art": {
@@ -1015,24 +1032,32 @@
       }
     }
   },
+  "financeAdministration": "Finance administration",
   "firstName": "First name",
   "gantt": {
     "duration": "Duration",
     "endDate": "End date",
     "name": "Name",
     "objectType": {
+      "_": "Gantt type",
       "activity": "Activity (Standard)",
       "milestone": "Milestone",
       "summary": "Summary"
     },
     "owner": "Owner",
+    "predecessor": "Predecessor",
+    "predecessorOffset": "Offset",
     "relationType": {
+      "_": "Relation type",
       "finish_finish": "finish-finish",
       "finish_start": "finish-start (default)",
       "start_finish": "start-finish",
       "start_start": "start-start"
     },
-    "startDate": "Start date"
+    "startDate": "Start date",
+    "title": {
+      "add": "Create Gantt diagram"
+    }
   },
   "gender": {
     "_": "Gender",
@@ -1049,8 +1074,39 @@
   "group": {
     "_": "Group",
     "assignedUsers": "Assigned users",
-    "localGroup": "Local group",
-    "owner": "Group owner"
+    "error": {
+      "groupnameAlreadyExists": "Group name already exists."
+    },
+    "groups": "Groups",
+    "ldapValues": "LDAP",
+    "list": {
+      "select": {
+        "title": "Select group"
+      }
+    },
+    "localGroup": {
+      "_": "Local group",
+      "not": "Common group",
+      "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "nestedGroups": "Nested groups",
+    "nestedGroupsAllowed": {
+      "_": "Nested groups allowed?",
+      "tooltip": "This is a security feature, e.g. for administrator or controlling group no nested groups should be allowed."
+    },
+    "owner": "Group owner",
+    "pleaseSelectGroup": "Please select group",
+    "systemGroups": "System groups",
+    "title": {
+      "add": "Add new group",
+      "edit": "Edit group",
+      "heading": "Groups",
+      "list": {
+        "_": "List of groups",
+        "select": "Select group"
+      }
+    },
+    "unassignedUsers": "Unassigned users"
   },
   "history": {
     "entry": "History entry",
@@ -1128,7 +1184,52 @@
     "sendEMailNotification": "Send an e-mail notification?"
   },
   "lastUpdate": "last modification",
-  "ldap": "LDAP",
+  "ldap": {
+    "_": "LDAP",
+    "gidNumber": {
+      "_": "GID number",
+      "alreadyInUse": "GID number is already assigned to another group. The next free GID number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new GID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest GID number used by ProjectForge and increase it by one to get the next free GID number. ProjectForge starts with GID 1,000 for avoiding collisions with existing GID's of the operating systems (e.g. system groups)."
+    },
+    "homeDirectory": "Home directory",
+    "loginShell": "Login shell",
+    "posixAccount": "Posix account",
+    "sambaAccount": "Samba account",
+    "sambaNTPassword": {
+      "_": "Samba password",
+      "subtitle": "NT hashed password",
+      "tooltip": "The Samba password is set every time the user changes his password. If not set, the user has to log in again the next time he uses ProjectForge before any stay-logged-in mechanism works again."
+    },
+    "sambaPrimaryGroupSID": {
+      "_": "Primary group SID.",
+      "tooltip": "The Samba primary group SID is optional."
+    },
+    "sambaSID": {
+      "_": "Samba SID",
+      "alreadyInUse": "Samba SID is already assigned to another user. The next free Samba SID suffix number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new sambaSID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "The Samba SID is a generated value out of the configure samba sid prefix in projectforge.properties and the UID number."
+    },
+    "uidNumber": {
+      "_": "UID number",
+      "alreadyInUse": "UID number is already assigned to another user. The next free UID number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new UID (next free >= 1,000), sets default GID (configured in projectforge.properties), home directory and configured default login shell. PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest UID number used by ProjectForge and increase it by one to get the next free UID number. ProjectForge starts with UID 1,000 for avoiding collisions with existing UID's of the operating systems (e.g. system users)."
+    },
+    "user": {
+      "gidNumber": {
+        "tooltip": "The default value is configurable in projectforge.properties: projectforge.ldap.posixAccountsDefaultGidNumber"
+      }
+    },
+    "wlanSambaPassword": "WLAN/Samba Password"
+  },
   "legalAffaires": {
     "contract": {
       "coContractorA": "co-contractor A",
@@ -1224,6 +1325,7 @@
   },
   "menu": {
     "addNewEntry": "New entry",
+    "administration": "Administration",
     "common": "Common",
     "favorites": {
       "more": "More favorites"
@@ -1291,6 +1393,7 @@
   "modified": "modified",
   "modifiedBy": "modified by",
   "modifiedHistoryValue": "history value of modification",
+  "more": "More",
   "multiselection": {
     "aggrid": {
       "selection": {
@@ -1530,16 +1633,68 @@
     "_": "Structure element",
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
+    "deleted": "deleted",
+    "edit": {
+      "maxHoursIngoredDueToAssignedOrders": "This value may be ignored - There are order positions with given person days assigned to this node or any subnode. A zero value suppresses displaying a maximum value in the consumption bar."
+    },
+    "error": {
+      "couldNotDeleteRootTask": "Root structure element can't be deleted!",
+      "cyclicReference": "Cyclic structure element path detected because parent structure element is the element itself or a descendant element.",
+      "duplicateChildTasks": "Duplicate structure element titles for sister elements detected.",
+      "kost2Readonly": "Kost2 is read-only for non accounting staff members.",
+      "parentTaskNotFound": "Parent structure element is required but not found.",
+      "parentTaskNotGiven": "Parent structure element is required but not given.",
+      "protectTimesheetsUntilReadonly": "The time sheet protection is read-only for non accounting staff members.",
+      "protectionOfPrivacyReadonly": "The flag privacy of protection is read-only for non accounting staff members.",
+      "timesheetBookingStatus2Readonly": "The status of time sheet booking is read-only for non accounting staff members and non project managers."
+    },
+    "favorite": {
+      "new": {
+        "_": "New favorite of structure element",
+        "tooltip": "You may save the chosen structure element as favorite here."
+      }
+    },
+    "favorites": {
+      "tooltip": "Organize here your structure elements as favorites."
+    },
+    "gantt": {
+      "settings": "Gantt settings"
+    },
+    "kost2list": {
+      "blackList": "Black list",
+      "type": "Type of Kost2 list",
+      "whiteList": "White list"
+    },
+    "maxDuration": "Maximum duration",
     "maxHours": "Maximum hours",
+    "menu": {
+      "addSubTask": "Add new child structure element",
+      "addTimesheet": "Add time sheet",
+      "showAccessRights": "Access rights",
+      "showTimesheets": "Show time sheets"
+    },
+    "onlyBillable": "only billable elements",
     "parentTask": "Parent structure element",
     "path": {
-      "pleaseSelectTask": "Please select structure element"
+      "_": "Structure element path",
+      "pleaseSelectTask": "Please select structure element",
+      "rootTask": "Top level"
     },
     "progress": "Progress",
-    "protectTimesheetsUntil": "Protect time sheets until",
-    "protectionOfPrivacy": "Protection of privacy",
+    "protectTimesheetsUntil": {
+      "_": "Protect time sheets until",
+      "short": "Protect until"
+    },
+    "protectionOfPrivacy": {
+      "_": "Protection of privacy",
+      "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
+    },
+    "recursive": "incl. all structure sub elements",
     "reference": "Reference",
     "selectPanel": {
+      "displayTask": {
+        "tooltip": "Display structure element."
+      },
       "info": "You may select folders by clicking in other columns of the row than the first.",
       "noTasksFound": "No structure elements found.",
       "selectAncestorTask": {
@@ -1547,10 +1702,12 @@
       }
     },
     "status": {
+      "_": "Status of structure element",
       "closed": "closed",
       "notOpened": "not opened",
       "opened": "opened"
     },
+    "tasks": "Structure elements",
     "timesheetBooking": {
       "_": "Time sheet booking",
       "inherit": "inherit",
@@ -1561,14 +1718,79 @@
     },
     "title": {
       "_": "Title",
-      "edit": "Edit structure element"
-    },
-    "tree": {
-      "rootNode": "Root node",
-      "title": {
+      "add": "Add new structure element",
+      "edit": "Edit structure element",
+      "heading": "Structure elements",
+      "list": {
+        "_": "Structure elements",
         "select": "Select structure element"
       }
-    }
+    },
+    "tree": {
+      "close": "Close structure element",
+      "explore": "Close/open all structure sub elements",
+      "info": "You may expand or collapse structure elements with structure sub elements by clicking the folder icons or the title of the element, you may select any element by clicking the row at any other position.",
+      "open": "Open structure element",
+      "perspective": "structure tree",
+      "rootNode": "Root node",
+      "title": {
+        "_": "structure tree",
+        "select": "Select structure element"
+      }
+    },
+    "wizard": {
+      "action": {
+        "_": "Action",
+        "noactionRequired": "Nothing will be further done because you haven't defined any group, therefore no access rights will be created.",
+        "taskAndgroupsGiven": "The required access rights of the group(s) defined above will be set if you click on the create button. You can change these access rights via the menu item access management whenever needed."
+      },
+      "button": {
+        "createGroup": {
+          "_": "create group",
+          "tooltip": "You can choose an existing group or create a new group by using this button."
+        },
+        "createTask": {
+          "_": "create structure element",
+          "tooltip": "You can choose an existing structure element or create a new element by using this button."
+        }
+      },
+      "externalGroup": {
+        "_": "External stuff (optional)",
+        "groupNameSuffix": "external",
+        "intro": "The external users have guest rights, so they can only see their own time reports."
+      },
+      "finish": "Finish",
+      "intro": "Use this wizard to add a new structure element which represents e.g. a project with assigned groups and users. The assigned users will have access rights to this structure element (e.g. for booking time sheet etc.).",
+      "managerGroup": {
+        "_": "Managing users (optional)",
+        "groupNameSuffix": "pm",
+        "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
+      },
+      "pageTitle": "Structure wizard",
+      "result": {
+        "again": "Configure another element",
+        "ancestors": "Read access on {arg0} ancestor element(s)",
+        "created": "new",
+        "role": {
+          "external": "External staff",
+          "manager": "Managing users",
+          "team": "Team"
+        },
+        "summary": "Access rights for {arg0}: {arg1} new, {arg2} changed, {arg3} already correct.",
+        "title": "What the wizard did",
+        "toTree": "To the structure tree",
+        "unchanged": "unchanged",
+        "updated": "changed"
+      },
+      "task": {
+        "intro": "For this structure element the rights for the given groups will be configured: For all ancestor elements a minimal read access will be configured for the groups, but all other elements in the upper hierarchy will not be accessible without further grants."
+      },
+      "team": {
+        "_": "Team users (optional)",
+        "intro": "The team members are able to create and modify structure sub elements and to book their time sheets."
+      }
+    },
+    "workpackageCode": "Work package code"
   },
   "text": "Text",
   "timeNotation": {
@@ -1597,6 +1819,9 @@
     "startTime": "Start time",
     "stopTime": "Stop time",
     "tag": "Tag",
+    "title": {
+      "list": "List of time sheets"
+    },
     "user": "Employee"
   },
   "timezone": "Time zone",
@@ -1605,6 +1830,10 @@
     "export": {
       "excel": "Export as Excel file"
     },
+    "lucene": {
+      "link": "Link to howto of lucene queries."
+    },
+    "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
         "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",

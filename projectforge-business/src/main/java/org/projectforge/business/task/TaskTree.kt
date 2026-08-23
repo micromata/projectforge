@@ -234,9 +234,27 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         return resultList
     }
 
+    /**
+     * Appends every node below [node], not only its children: a descendant of a descendant is one as well,
+     * as [TaskNode.getDescendantIds] has it.
+     *
+     * The already-collected list guards the recursion, in the same paranoid way that method does: a cyclic
+     * parent reference would otherwise not end.
+     */
     private fun addDescendants(resultList: MutableList<TaskNode>, node: TaskNode) {
+        addDescendants(resultList, node, resultList.mapTo(mutableSetOf()) { it.id })
+    }
+
+    private fun addDescendants(
+        resultList: MutableList<TaskNode>,
+        node: TaskNode,
+        visited: MutableSet<Long?>,
+    ) {
         for (child in node.getChildren()) {
-            resultList.add(child)
+            if (visited.add(child.id)) {
+                resultList.add(child)
+                addDescendants(resultList, child, visited)
+            }
         }
     }
 

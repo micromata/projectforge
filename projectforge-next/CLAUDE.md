@@ -124,12 +124,12 @@ against the live system instead of mock data. **The instance writes that file it
 doesn't find, with a random password per instance, and repairs a missing group or right on every
 start. Nothing to set up by hand.
 
-| Role               | User              | Has                                                    |
-| ------------------ | ----------------- | ------------------------------------------------------ |
-| `full-access-user` | `e2e-full-access` | every group, every right — the default                 |
-| `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, the FIBU\_\* rights         |
-| `admin-user`       | `e2e-admin`       | PF_Admin, and **no** finance rights                    |
-| `normalo-user`     | `e2e-normalo`     | nothing, `locale=en`                                   |
+| Role               | User              | Has                                             |
+| ------------------ | ----------------- | ----------------------------------------------- |
+| `full-access-user` | `e2e-full-access` | every group, every right — the default          |
+| `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, the FIBU\_\* rights |
+| `admin-user`       | `e2e-admin`       | PF_Admin, and **no** finance rights             |
+| `normalo-user`     | `e2e-normalo`     | nothing, `locale=en`                            |
 
 A password that no longer works is not something to chase: delete its line (or the whole file) and
 restart, and a new one is generated. To use an account of your own for a role instead, name it in that
@@ -144,7 +144,7 @@ The accounts are local and their data is expendable, but it is a real database: 
 test entities behind.
 
 **Which role to ask for.** `readCredentials()` without an argument gives `full-access-user`, which is what a
-spec about a feature wants. A spec about a *rights* rule must take the role that makes the interesting half
+spec about a feature wants. A spec about a _rights_ rule must take the role that makes the interesting half
 reachable — `normalo-user` for a plain refusal, `admin-user` for one that survives the menu but not the
 entity, `finance-user` for the finance rights without the admin group. Not every instance has every account
 (an older one, a role pointed elsewhere by hand): check `hasRole(role)` and skip rather than fail.

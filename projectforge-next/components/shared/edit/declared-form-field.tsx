@@ -9,6 +9,7 @@ import { InputField } from "@/components/shared/form/input-field";
 import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
+import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
 import { useFormatContext } from "@/hooks/use-format";
 import { cn } from "@/lib/utils";
 import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
@@ -127,6 +128,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
     return (
       <SelectField
         {...common}
+        disabled={field.readOnly}
         emphasized={field.emphasized}
         options={meta.enumValues.map((v) => ({
           value: v.value,
@@ -136,10 +138,12 @@ export function DeclaredFormField<M extends EntityMetadata>({
     );
   }
   if (field.rows) {
-    return <TextAreaField {...common} rows={field.rows} />;
+    return (
+      <TextAreaField {...common} rows={field.rows} disabled={field.readOnly} />
+    );
   }
   if (meta.dataType === "BOOLEAN") {
-    return <CheckboxField {...common} />;
+    return <CheckboxField {...common} disabled={field.readOnly} />;
   }
   if (
     meta.dataType === "AMOUNT" ||
@@ -161,12 +165,22 @@ export function DeclaredFormField<M extends EntityMetadata>({
       />
     );
   }
+  if (meta.dataType === "TASK") {
+    // The tree, not an autocomplete: a task is picked by where it sits, and its title alone is
+    // ambiguous — several projects have a „Wartung". The same picker every other reference to a task
+    // uses (a timesheet, an order position).
+    return <TaskSelectField {...common} disabled={field.readOnly} />;
+  }
   const searchEntity = SEARCH_ENTITY[meta.dataType];
   if (searchEntity) {
     return <EntityAutocompleteField {...common} entity={searchEntity} />;
   }
   return (
-    <InputField {...common} type={meta.dataType === "DATE" ? "date" : "text"} />
+    <InputField
+      {...common}
+      type={meta.dataType === "DATE" ? "date" : "text"}
+      disabled={field.readOnly}
+    />
   );
 }
 
@@ -176,10 +190,11 @@ export function DeclaredFormField<M extends EntityMetadata>({
  *
  * Only the types that have such an endpoint; a data type missing here falls through to a text input,
  * which is visible enough to be fixed rather than silently rendering nothing.
+ *
+ * `TASK` is deliberately absent: a task is picked from the tree, above.
  */
 const SEARCH_ENTITY: Partial<Record<FieldMetadata["dataType"], string>> = {
   USER: "user",
-  TASK: "task",
   GROUP: "group",
   EMPLOYEE: "employee",
   COST1: "cost1",

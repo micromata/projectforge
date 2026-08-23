@@ -726,7 +726,8 @@ Stellen gedeckt, jede für einen anderen Weg der Ausnahme:
 - **Die vier CRUD-Endpunkte** fangen ohnehin alles um den DAO-Aufruf:
   `AbstractPagesRestUtils.handleException` macht aus einer `UserException` – die
   `AccessException` eingeschlossen – **HTTP 406** mit einem `validationErrors`-Eintrag
-  (ohne `fieldId`, weil `AccessException` kein `causedByField` setzt). Das ist der
+  (mit `fieldId`, wo die DAO ein `causedByField` an der Exception setzt – `TaskDao` tut
+  das seit der Migration der Strukturelement-Seite, sonst niemand). Das ist der
   reguläre Ablehnungszweig, den das Frontend schon las.
 - **Eigene Endpunkte** (`postEntityAction`, z.B. `book/lendOut`) haben diesen Catch
   nicht. Für sie erkennt `write()` in `lib/rs/entity.ts` die Toast-Antwort und gibt
@@ -814,6 +815,80 @@ Zwei Details:
 - Lösch-Bestätigung: `components/shared/confirm-dialog.tsx` (shadcn
   `alert-dialog`), Texte aus dem Backend-Bundle
   (`question.markAsDeletedQuestion`, `markAsDeleted`).
+
+#### Erledigt: Zugriffsrechte im Formular (Speichern/Löschen und einzelne Felder)
+
+**Warum das eine eigene Schranke ist.** Wicket blendet Buttons aus, die der Benutzer
+nicht drücken darf (`AbstractEditForm.updateButtonVisibility`), die UILayout-Seiten
+bekommen `userAccess` mitgeliefert. next baut sein Formular selbst – ohne Gegenstück
+zeigt es jedem den Speichern-Button und lernt erst nach dem Abschicken, dass die DAO
+ablehnt. Autorisierung bleibt Sache der DAO; hier geht es darum, dem Benutzer nichts
+anzubieten, was er nicht darf.
+
+**Die generische Schranke: zwei Flags am DTO.** `writeAccess`/`deleteAccess`, deklariert
+im Interface `rest/dto/EntityAccessSupport.kt` und **an einer Stelle für alle Entitäten**
+gefüllt: `AbstractEntityRest.getById` setzt sie, wenn das DTO das Interface implementiert
+und `editMode` gilt – aus genau denselben DAO-Aufrufen, die `checkUserAccess` für die
+`UILayout.UserAccess` der layoutgetriebenen Seiten macht (`hasLoggedInUserUpdateAccess`,
+`hasLoggedInUserDeleteAccess`, beide mit `throwException = false`). Ein eigener Block im
+`transformFromDB` einer Rest-Klasse würde die DAO nur ein zweites Mal fragen; `Auftrag`
+und `Task` implementieren deshalb nur noch das Interface. `null` heißt „nicht gefragt" –
+was eine Listenzeile bekommt, denn kein Listeneintrag hat einen Speichern-Button.
+
+Gelesen wird das an genau einer Stelle, `lib/rs/entity-access.ts`:
+
+- **Fehlendes Flag heißt erlaubt** (`flags.writeAccess !== false`). Anders herum
+  müsste jede nicht umgestellte Entität ihr Formular sofort verlieren – ein
+  Doku-Versäumnis würde als Rechteproblem erscheinen.
+- **`data: unknown` als Parametertyp** ist Absicht: mit einem Interface aus zwei
+  optionalen Feldern schlägt TypeScripts Weak-Type-Erkennung bei jedem konkreten DTO
+  zu, das die Flags (noch) nicht hat.
+- **`isNew` wird separat übergeben**, weil Einfüge-Recht keine Eigenschaft des
+  Datensatzes ist, sondern der _Liste_ (`userAccess.insert`). Ein neues Objekt hat
+  daher `write = true`, `delete = false`.
+
+Verbraucher: `entity-edit-page.tsx` (Löschen-Button nur bei `access.delete`, `canSave`
+an die Aktionsleiste) und `entity-edit-actions.tsx`. Zwei Details:
+
+- Der Speichern-Button und die `saveOption`-Auswahl werden **ganz weggelassen**, nicht
+  ausgegraut. Ein grauer Button liest sich als „noch nicht", und es gibt nichts, was
+  dieser Benutzer tun könnte, um ihn zu aktivieren.
+- Die Return-/CTRL-Return-Abkürzung ist mitgeprüft. Sonst speichert die Tastatur, was
+  die Maus nicht anbietet.
+
+**Feldweise Rechte: `vollstaendigFakturiertWriteAccess`.** Das Flag „vollständig
+fakturiert" (Auftragsposition _und_ Zahlungsplan) darf nur ändern, wer
+`RechnungDao.USER_RIGHT_ID` mit `READWRITE` hat **und** in der FiBu-Gruppe ist –
+dieselbe Bedingung, die `AuftragRight` beim Speichern prüft. Das Muster für solche
+Felder, zweifach bewusst anders als Wicket:
+
+- Das Feld wird **immer gerendert**, ohne das Recht read-only. Wicket blendet es
+  komplett aus; dann sieht der Benutzer den Zustand des Datensatzes nicht.
+- Der Hinweis am read-only-Feld ist **die Meldung, mit der das Backend die Änderung
+  ablehnen würde** (`fibu.auftrag.error.vollstaendigFakturiertProtection`) – eine
+  Quelle für Regel und Erklärung. Wicket bietet umgekehrt ein editierbares
+  Kästchen an, dessen Speichern die DAO anschließend verweigert.
+
+Arbeitsteilung: **die Flags stoppen den ehrlichen Client, die DAO den unehrlichen.**
+Kein Vorab-Check im `validate()` – nur `checkUpdateAccess` weiß, ob sich der Wert
+gegenüber `dbObj` überhaupt _geändert_ hat.
+
+**`kind: "rejected"` in `lib/rs/entity.ts`.** Eine Ablehnung aus einem eigenen
+Endpunkt (hinter `postEntityAction`) kommt als HTTP 200 mit nichts als einem
+Danger-Toast. Unterschieden von einem geglückten Speichern _mit_ Warnung wird sie am
+`targetType`: eine Ablehnung ist `TOAST` und nur das, ein Speichern antwortet mit
+`REDIRECT`. `use-entity-edit-form.ts` zeigt den Toast und bleibt auf der Seite.
+
+**Backend-Fund nebenbei:** `AuftragRight.hasAccess` schützte das Flag der
+_Positionen_, nicht das der _Zahlungspläne_ – dasselbe Feld, dieselbe Regel, eine
+Lücke. Jetzt beide, mit Test in `AuftragDaoTest`.
+
+**Die Grenzen, damit keine spätere Seite mehr annimmt als da ist:** `page-def` hat
+**kein** `readOnlyWhen`; `readOnly` in `DeclaredField` ist ein statisches Flag und
+wird nur von `NumberField` beachtet (`declared-form-field.tsx:153`) –
+Select/Input/TextArea/Checkbox ignorieren es. Genau deshalb sind die Checkboxen des
+Auftragsformulars in `position-row.tsx`/`payment-schedule-row.tsx` handgerendert. Wer
+feldweise Rechte deklarativ braucht, muss das erst im `page-def` nachziehen.
 
 #### Erledigt: Änderungshistorie als eigene Route (echter Tab-Reiter)
 
@@ -1124,6 +1199,118 @@ Ausgelassen werden außerdem Collections und Fremd-DO-Referenzen; deren Felder s
 in der Datei der jeweiligen Entität, eine geschachtelte Form muss sie dort holen.
 Nicht verifiziert: ein zu langer Wert über eine UILayout-Seite (`/react/address`) –
 das braucht einen Neustart der laufenden Instanz auf dem neuen Build.
+
+**Nachtrag (Aufgabenbaum, Schritt 2 in [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)):
+Zahlenbereiche gehören derselben Quelle.**
+`@Column` kann sie nicht ausdrücken – `length` ist bei Zahlen eine Ziffernanzahl,
+`precision`/`scale` eine Speichergröße, keines davon „0 bis 100 Prozent". Wicket sagte
+es deshalb pro Formularfeld (`MinMaxNumberField`), und `TaskPagesRest.validate` hatte
+die drei Bereiche des `TaskDO` als handgeschriebene Prüfung. Jetzt:
+
+- **`@PropertyInfo(min = "…", max = "…")`** (Strings, weil eine Annotation nur
+  Compile-Zeit-Konstanten hält) an der Property – `TaskDO.progress` 0–100,
+  `maxHours` 0–9999, `duration` 0–10000, `AuftragDO.probabilityOfOccurrence` 0–100.
+- `ElementsRegistry.getElementInfo` parst sie nach `ElementInfo.min/max`
+  (`BigDecimal`); ein unlesbares Literal wirft, statt eine Regel still fallen zu lassen.
+- **`ValidationUtils.validateFields` erzwingt sie für jede Entität** – mit der
+  Meldung, die Wickets `MinMaxNumberField` benutzt
+  (`validation.error.range.integerOutOfRange`), damit beide Frontends zum selben Wert
+  dasselbe sagen. Die Kopie in `TaskPagesRest.validate` ist entfallen; dort steht nur
+  noch die Kreuzregel `duration` ⇔ `endDate`.
+- `GenerateNextFieldMetadataMain` emittiert `min`/`max` (als `toPlainString`, sonst
+  käme 10000 als `1E+4` an), `lib/metadata/types.ts` hält sie im Kontrakt und
+  `from-metadata.ts` baut daraus die Zod-Refinements. `order-schema.ts` und
+  `task-schema.ts` deklarieren also **keinen** Bereich mehr selbst; der
+  `overrides`-Parameter bleibt nur für die Kostennummern-Segmente, die der
+  `SegmentedNumberField` ohnehin pro Segment braucht, und die Metadaten gewinnen.
+
+#### Erledigt: das Edit-Gerüst für Seiten mit mehreren Aufrufern (Aufgabenbaum, Schritt 2)
+
+<!-- Die Schritte des Aufgabenbaums stehen in MIGRATION-TaskTree.md. -->
+
+Drei Ergänzungen am geteilten Gerüst, alle drei aus dem Aufgabenformular entstanden und
+für jede weitere Seite gültig:
+
+- **`SectionDef.collapsed`.** Eine Sektion startet zugeklappt (dieselbe `Collapsible`
+  wie `RepeatableRow`, Kopfzeile = Trigger). `EditPageShell.sections` nimmt jetzt
+  `ReactNode | ((active: boolean) => ReactNode)`, damit eine geklappte Sektion erfährt,
+  dass ihr Anker-Tab angeklickt wurde – dann öffnet sie sich, schließt aber beim
+  Wegscrollen nie wieder. Das Öffnen passiert beim Rendern (abgeleiteter State), nicht
+  im Effekt: React verlangt es so, und die Karte flackert dadurch nicht.
+- **`readOnly` jenseits von `NumberField`.** `InputField`, `SelectField` und
+  `TextAreaField` haben jetzt `disabled` und geben `readOnly` an `FieldShell` weiter
+  (kein Pflicht-Stern an einem Feld, das dieser Nutzer nicht füllen darf).
+  `SelectField.numeric` wurde zu **`valueType: "string" | "number" | "boolean"`** –
+  Radix kennt nur String-Optionen, und `TaskDO.kost2IsBlackList` ist ein `Boolean`.
+- **`EditDef.returnTargets` + `?returnTo=`.** Eine Edit-Seite kehrt zum _Aufrufer_
+  zurück, nicht zu einer festen Liste: eine Aufgabe wird aus dem Baum geöffnet und
+  (seit Schritt 4a des Aufgabenbaums) aus ihrer eigenen Liste. `hooks/use-edit-return.ts` löst den
+  Parameter gegen die deklarierten Ziele auf – eine **Whitelist**, kein Saubermachen
+  von URLs, ein unbekannter Wert fällt auf das erste Ziel zurück. Der Parameter wandert
+  über `entityTabs` mit, damit der Umweg über die History den Aufrufer nicht vergisst.
+  Seiten ohne `returnTargets` (`book`, `cost1`, `order`) verhalten sich unverändert.
+  Wer `useSearchParams` nutzt, braucht im Static Export eine `<Suspense>`-Grenze – das
+  ist der Grund, warum `app/(authenticated)/task/[id]/page-client.tsx` eine hat.
+- Außerdem: `dataType: "TASK"` wird in `DeclaredFormField` auf `TaskSelectField`
+  (Modal-Baum) verteilt statt auf die Entitäts-Autocomplete, und
+  `EntityAutocomplete`/`EntityAutocompleteField` nehmen `params` (im Query-Key
+  enthalten, sonst bediente ein Projektwechsel den Cache des alten Projekts).
+
+#### Erledigt: zwei Vokabeln für Spalten (Aufgabenbaum, Schritt 4a in [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md))
+
+Beide am `ColumnBase` und für jede Liste gültig, entstanden an der Aufgabenliste:
+
+- **`visible?: (ctx) => boolean`.** Die Seite _hat_ die Spalte nicht – für eine, deren
+  Gegenstand in dieser Installation nicht existiert oder die dieser Nutzer nicht sehen
+  darf (Kostenträger konfiguriert, Auftragspositionen gebucht, FiBu-Gruppe). Das ist
+  **nicht** dieselbe Sache wie eine ausgeblendete Spalte: die ist die Wahl des Nutzers und
+  im Spaltenpanel umkehrbar. Gefiltert wird in `entity-list-page.tsx`, bevor die
+  Audit-Spalten angehängt werden, also erreicht so eine Spalte TanStack nie und kann auch
+  im Panel nicht auftauchen. Der Kontext ist `listMeta.variables`, das die Seite ohnehin
+  lädt – die Antwort auf so eine Frage ist die des Backends
+  (`AbstractEntityRest.addVariablesForListPage`), nicht eine im Client abgeleitete.
+- **`sortable: false`.** Ein berechneter Wert, nach dem das Backend nicht ordnen kann;
+  wird zu `enableSorting: false` an der Spaltendefinition, den Rest kann
+  `DataTableColumnHeader` schon.
+
+Dazu, backendseitig, `BaseDTO.copyFrom4ListRow` als das Mittel, eine Liste mit einer
+eigenen, schlanken Zeile zu bedienen: `Task` ist das erste Beispiel dafür, dass eine solche
+Zeile auch _berechnete_ Werte tragen darf, die am DO gar nicht stehen.
+
+Zwei weitere Korrekturen an der gemeinsamen Schicht, beide an der Aufgabenliste
+aufgefallen und beide für jede Liste gültig:
+
+- **Die Liste nennt sich selbst als Aufrufer.** `useEditTargets` hängt an die URL, die ein
+  Zeilenklick und der „Neuer Eintrag“-Knopf öffnen, ein `?returnTo=<eigene Route>` – aber
+  nur, wenn die Edit-Seite diese Route unter ihren `returnTargets` führt. Ohne das kehrte
+  eine aus der _Liste_ geöffnete Aufgabe beim Abbrechen in den **Baum** zurück, weil der
+  dort das erste und damit das Standardziel ist. Seiten ohne `returnTargets` (`book`,
+  `cost1`, `order`) bekommen weiterhin keinen Parameter: ihr Standard ist die eigene Liste
+  und sagt schon dasselbe.
+- **`leafKeyOf` an drei geteilten Stellen.** Ein Backend-Schlüssel, der Text _und_
+  Namensraum ist, liegt im Katalog als `<key>._`; die bloße Form lässt next-intl mit
+  `INSUFFICIENT_PATH` scheitern. `task.title.list` ist genau so einer geworden
+  (`…list.select` kam dazu), und das traf `entity-list-page.tsx` (Titel der Liste),
+  `use-edit-return.ts` (Beschriftung des Rückwegs) und `task-perspective-link.tsx`.
+  Gelöst wurde es in der geteilten Schicht mit `lib/leaf-key.ts`, nicht dadurch, dass die
+  Aufgabenseite den Schlüssel meidet – jede Seite, deren Titelschlüssel Kinder bekommt,
+  wäre sonst die nächste.
+- **`NextMigration.nextRouteUrl(category, route, legacyUrl)`.** Eine **zweite Perspektive**
+  einer schon migrierten Entität, unter einer Route, die die Kategorie nicht hergibt: die
+  Aufgabe hat ihre Liste (`next/task`, die `NextPage.route`) und ihren Strukturbaum
+  (`next/taskTree`), und der Menüeintrag öffnet den Baum, während jeder Redirect der
+  Kategorie in die Liste geht. `NextPage` kann nur _eine_ Route ausdrücken, also nennt der
+  Aufrufer die zweite – und bleibt trotzdem an `MIGRATED` gekoppelt: solange die Entität
+  nicht migriert ist, ist die Antwort die übergebene Legacy-URL. Kein Fall für eine Seite
+  mit nur einer Perspektive; die nimmt weiter `listUrl`.
+- **`e2e/fixtures/list-table.ts` – `listRows` / `waitForRows` / `waitForRow`.** Was eine
+  Liste zeigt, während ihre erste Seite lädt, sind acht `<TableRow>` voller `Skeleton` – im
+  selben `tbody`. Ein Spec, der auf `tbody tr` wartet und dann eine Zelle liest, liest ein
+  leeres Kästchen **und besteht dabei**; dasselbe gilt für den Leer-Zustand. Die Zeilen des
+  Ergebnisses sind die mit `data-row-id` (setzt nur `DataTableRow`), und das ist das eine
+  Signal, das „diese Zellen tragen Werte aus der Datenbank" heißt. Alle Listen-Specs sind
+  darauf umgestellt; `waitForRow(text)` deckt zusätzlich den Fall ab, dass nach einer Suche
+  noch das vorige Ergebnis steht (`keepPreviousData`).
 
 ### Phase 2 – Dynamic-Renderer in Next vervollständigen (Bulk-Migration)
 
@@ -1482,6 +1669,30 @@ und die Sonderbehandlung hier wieder auflösen. Dasselbe gilt für die schon vor
 Strukturbaum-Seite (`app/(authenticated)/taskTree/page.tsx`), die ihren Zeilenklick heute über
 `listMeta.legacyEditPage` in die React-App schickt.
 
+#### Offen: Die Consumption-Bar zeigt noch auf Wicket
+
+Die Consumption-Bar ist im Wicket-Baum ein **Link** (`ConsumptionBarPanel`): ein Klick zeigt die
+Zeitberichte, die die Zahl ausmachen, auf das Strukturelement gefiltert. Ohne ihn ist der Balken
+nur ein Bild, und der Weg von „186 %" zu den Buchungen dahinter fehlt – deshalb ist er in
+`components/data-table/cells/consumption-cell.tsx` nachgezogen, für die Baumseite **und** die
+Listenperspektive (in Wicket verlinken beide). Im Auswahl-Panel nicht: dort wird ein
+Strukturelement für ein Formular gepickt, ein Link würde es verlassen – das ist Wickets
+`linkEnabled`, in next `CellRenderProps.linkEnabled`, gesetzt von `TaskTreePanel` (`!selectMode`).
+
+Das Ziel ist **fest verdrahtetes Wicket**
+(`wa/timesheetList?taskId=…&clear=true&storeFilter=false` – die drei Parameter, die
+`ConsumptionBarPanel` setzt: das Strukturelement, ein für diesen Sprung geleerter Filter, der
+hinterher nicht als der gemerkte des Kontos zurückbleibt). Wicket ist die **Vorlage**; die
+React-Liste ist nie fertig gebaut worden, auch wenn `TimesheetPagesRest.getInitialList` einen
+`taskId`-Parameter kennt und daraus einen `MagicFilterEntry("task", …)` baut. Damit ist das
+neben `task-edit-link.tsx` die zweite Stelle in next, die eine Legacy-URL selbst bildet – aus
+demselben Grund und mit demselben Verfallsdatum.
+
+**Nach der Migration der Zeitberichte nach next ist dieser Link umzustellen:**
+`wa/timesheetList?…` in `consumption-cell.tsx` durch die next-Route der Zeitberichte ersetzen
+(samt Filter auf das Strukturelement) und die hart gebildete Legacy-URL damit auflösen –
+dieselbe Aufgabe wie beim Sprung zum Strukturelement einen Abschnitt weiter oben.
+
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 
 Die **Kalenderseite** (`/react/calendar`) ist der zweite Härtefall und
@@ -1502,6 +1713,117 @@ für jede Neuanlage `/timesheet/edit?startDate=…` ohne id – dafür gibt es h
 keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
 `UICustomized`-Registry mit `COLOR_CHOOSER`, weil das Kalender-Menü auf
 `calendarSettings` verlinkt.
+
+#### Aufgabenbaum (dritter handgebauter Fall) – eigener Detailplan
+
+Der **Aufgabenbaum** liegt produktiv unter `wa/taskTree` (Wicket, nicht React) und war der
+dritte Fall, der handgebaut werden musste: die Baumdarstellung selbst kennt `UILayout`
+nicht (`TaskPagesRest.createListLayout` besteht aus einer einzigen Spalte `title`), die
+Spalten kommen aus einem eigenen Endpunkt `TaskServicesRest`.
+
+Umgesetzt sind Baumseite samt Aktionsleiste, die handgebaute Edit-Seite, die
+Listenperspektive und der Aufgaben-Assistent; die Kategorie `task` ist umgeschaltet, der
+Menüeintrag `TASK_TREE` zeigt vorerst weiter auf Wicket. Der Grundsatz dabei war: **erst
+alles aus Wicket nachbauen – Baum _und_ Edit-Seite –, dann umschalten**, denn ein
+Teilumstieg, dessen Zeilenklick nach `wa/taskEdit` zurückführt, hätte Funktionalität
+verloren statt gewonnen.
+
+Bestandsaufnahme, die fünf Umsetzungsschritte mit ihren Begründungen und **was gegen die
+Wicket-Vorlage noch offen ist**: **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)**. Zwei
+dort aufgefallene Lücken sind nicht baumspezifisch, sondern betreffen jede handgebaute
+Seite – der fehlende Undelete-Weg und der ungeprüfte Zugriff bei „+" und Zeilenklick.
+
+#### Gruppen (`group`, vierter handgebauter Fall) – vollständig migriert
+
+Die letzte Seite, die der Aufgaben-Assistent noch nicht in next hatte. Liste **und**
+Formular stehen jetzt als Deklaration in `components/features/group/`
+(`group.page.ts`, `types.ts`, `group-schema.ts`, `group-values.ts`), Routen wie bei
+`cost1` (`app/(authenticated)/group/`, `group/[id]`, `group/[id]/history`),
+umgeschaltet in `NextMigration.MIGRATED["group"]` + `lib/hand-built-categories.ts`
+(`NextMigrationTest` erzwingt die Gleichheit) und im Menü
+(`MenuItemDefId.GROUP_LIST` → `next/group`). Der Weg zurück führt in die React-App
+(`react/group`), von dort kam die Seite.
+
+**Handgebaut und nicht bloß ein Flip**, obwohl `GroupPagesRest` ein `UILayout`
+liefert: die generische Listen-Route rendert allein den Grid-Knoten – ohne
+Filterzeile, gespeicherte Filter, Zahnradmenü und Excel-Export wäre der Schalter
+gegenüber der React-Liste ein Rückschritt.
+
+- **Zwei Flags aus dem Backend, kein neues Recht.** `Group.ldapPosixConfigured` ist
+  ein reines Anzeige-Flag (`GroupDO` hat keine solche Property, `copyTo` übergeht es
+  also beim Speichern) und trägt die private Bedingung, über die
+  `GroupPagesRest.createEditLayout` heute das LDAP-Fieldset einhängt. Dasselbe Flag
+  gibt `addVariablesForListPage` als Listenvariable mit, damit sich die Spalte
+  `ldapValues` über `ColumnBase.visible` ein- und ausblendet. Ob posix-Konten
+  konfiguriert sind, kann der Client nicht sehen – deshalb reist es mit der Antwort
+  und nicht als Annahme im Frontend.
+- **Drei DTO-eigene Felder**, die `GROUP_METADATA` nicht kennt und die daher
+  `{ custom: … }`-Felder sind: `assignedUsers` (Collection),
+  `gidNumber`/`ldapPosixConfigured` (nur im DTO) und das errechnete Nur-Lese-Feld
+  `emails`. `DeclaredField.name` ist auf `keyof M["fields"]` typisiert – die Grenze
+  ist gewollt und zeigt genau die Felder an, die kein Metadatum hinter sich haben.
+- **`assignedUsers` als generische Mehrfachauswahl**:
+  `components/shared/form/entity-multi-autocomplete-field.tsx` (auf
+  `EntityAutocomplete`, Chips wie in `tag-input.tsx`), nicht gruppenspezifisch –
+  `user`, `group` und `employee` unterscheiden sich nur in der `entity`-Prop, und der
+  nächste Fall (Benutzerseite: zugewiesene Gruppen) kommt.
+- **Excel-Export generisch**: `lib/rs/list-export.ts`
+  (`downloadListExcel(entity, filter)` → `RestPaths.REST_EXCEL_SUB_PATH`, derselbe
+  Endpunkt, den die React-Liste ruft); `lib/rs/invoice.ts` ist darauf umgestellt,
+  damit es nur einen Weg gibt. Der Button im `listActions`-Slot zeigt sich nur
+  Admins – wie das Backend selbst prüft.
+- **Ein Speichern schreibt die ganze DTO.** Ein handgebautes Formular postet seine
+  Werte _als_ DTO, und `BaseDTO.copy` kopiert Feld für Feld: ein nicht mitgeführtes
+  Feld wird geleert. `ldapValues` (von der LDAP-Synchronisation geschrieben, im
+  Formular nirgends sichtbar) und `created` stehen deshalb unsichtbar im
+  `groupSchema`. `e2e/group.spec.ts` prüft nach dem Speichern genau das zurück.
+
+**Der Assistent legt seine Gruppe mit diesem Formular an.** Neu ist
+`components/shared/edit/entity-edit-dialog.tsx` – Geschwister von
+`entity-edit-page.tsx`, ohne Routing, Reiter, Escape-Hatch, Löschen und Klonen:
+`Dialog` + Titel aus `edit.newTitleKey`, `EntityEditFormProvider`, die deklarierten
+Abschnitte, Abbrechen/Speichern. Möglich macht das die neue Option
+`useEntityEditForm({ onSaved })`: sie tritt an die Stelle des
+`router.push(listRoute)`, denn ein Formular in einem Dialog hat keine Seite, zu der
+es navigieren könnte – genau die Rolle, die `onDone` im dynamischen Zweig hatte.
+
+**`components/dynamic/dynamic-form-dialog.tsx` ist damit gelöscht**, samt der
+`onDone`-Verdrahtung in `use-dynamic-actions.ts`/`dynamic-context.tsx`: `group` war
+sein einziger Aufrufer, und ein Dialog kann nur Kategorien zeigen, deren Formular
+ein `UILayout` **ist** – für eine handgebaute Kategorie hätte er eine Fehlermeldung
+angezeigt. Kommt der erste echte Fall (ein Dialog um ein server-gelayoutetes
+Formular, als Vorlage für die ~36 UILayout-Kategorien), ist er aus der Historie zu
+holen; die Begründung stand im Kopf der Datei.
+
+**Bewusst nicht mitgekommen:** verschachtelte Gruppen (`group.nestedGroups`) – die
+React-Seite hat sie nicht, und `GroupPagesRest.transformForDB` hat
+`setNestedGroups` auskommentiert. Mehrfachauswahl/Massenupdate der Liste fehlt, weil
+`group` keine `AbstractMultiSelectedPage` hat. Und Nicht-Admins sehen weiter nur
+`name` (`Group.copyFromMinimal`), in der Liste also leere Spalten – unverändert
+gegenüber der React-Seite.
+
+**Verifikation.** `e2e/group.spec.ts` gegen das laufende System (deklarierte Spalten
+gegen die Labels von `GroupDO`, Suche + Zeilenklick, Vorbelegung gegen die
+REST-Antwort, ein Speichern samt Rücklesen und Zurücksetzen, der Status-Filter mit
+seinem `LOCAL_GROUP`-Rumpf) und `e2e/task-wizard.spec.ts` für den Dialog. Die
+LDAP-Spalte und das `gidNumber`-Feld sind e2e nicht prüfbar: ob posix-Konten
+konfiguriert sind, entscheidet die Installation.
+
+**Nachtrag: das E-Mail-Feld war leer.** `Group.populateEmails()` sammelt die Adressen
+der Mitglieder aus dem `UserGroupCache` und wurde nur dort gerufen, wo der Server das
+Layout baut (`GroupPagesRest.createEditLayout`) – ein handgebautes Formular fragt
+danach nie, es liest die Entität über `GET {id}`. Der Aufruf steht jetzt in
+`transformFromDB`, und zwar nur für `editMode`: keine Listenspalte zeigt die Adressen,
+und pro Zeile wäre es ein Cache-Zugriff je zugewiesenem Nutzer. `e2e/group.spec.ts`
+sichert beides zu – das Formular zeigt, was die Antwort trägt, und bei einer Gruppe mit
+Mitgliedern steht etwas drin (die Gruppe wird zur Laufzeit gesucht, die geseedete hat
+keine Mitglieder).
+
+**Weiter offen, beides generisch und nicht gruppenspezifisch:** die
+Legacy-Fluchtluke zeigt über `ui.legacyUrl` auf die React-Seite, Wickets `wa/groupList`
+(`classicsLinkListUrl`) ist aus next nicht mehr erreichbar; und das Suchfeld ist ein
+reines Textfeld, während Legacy aus ihm über `quickSelectUrl` direkt in den Treffer
+springt (`SearchFilter.jsx`).
 
 ### Phase 4 – Ablösung & Aufräumen
 
@@ -1549,6 +1871,15 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
   (`saveorupdate`/`markAsDeleted`/`undelete`), Backend
   `projectforge-rest/.../rest/core/AbstractPagesRest.kt` +
   `AbstractPagesRestUtils.kt`, `framework/persistence/api/RestPaths.java`
+- **Zugriffsrechte im Formular:** `projectforge-next/lib/rs/entity-access.ts`,
+  `components/shared/edit/entity-edit-page.tsx` + `entity-edit-actions.tsx`,
+  feldweise `components/features/order/edit/position-row.tsx` +
+  `payment-schedule-row.tsx`; Backend `projectforge-rest/.../rest/dto/Auftrag.kt`
+  (`vollstaendigFakturiertWriteAccess`; die generischen `writeAccess`/`deleteAccess`
+  in `rest/dto/EntityAccessSupport.kt`, gefüllt in `rest/core/AbstractEntityRest.getById`) +
+  `rest/fibu/OrderEntityRest.kt` (`transformFromDB`),
+  `projectforge-business/.../fibu/AuftragRight.kt`; Wicket-Vorbild
+  `AbstractEditForm.updateButtonVisibility`
 - **Änderungshistorie:** Backend `projectforge-rest/.../rest/core/AbstractPagesRest.kt`
   (`HistoryInfo`, `history/{id}`), `HistoryEntryUserCommentModalRest.kt`,
   `projectforge-business/.../framework/persistence/history/HistoryService.kt`
@@ -1582,6 +1913,22 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
   `rest/dto/datatable/DataTableStateRequest.kt`
 - **Auftragsbuch:** `projectforge-wicket/.../web/fibu/AuftragEditForm.kt`,
   `projectforge-rest/.../fibu/OrderEntityRest.kt`, `rest/dto/Auftrag.kt`
+- **Aufgabenbaum:** Wicket `projectforge-wicket/.../web/task/`
+  (`TaskTreePage.java`, `TaskTreeForm.java`, `TaskTreeBuilder.java`,
+  `TaskEditPage.java`, `TaskEditForm.java`, `TaskListForm.java`,
+  `web/admin/TaskWizardForm.java`); Backend
+  `projectforge-rest/.../rest/task/TaskServicesRest.kt` (Baum + Spalten),
+  `TaskPagesRest.kt`, `TaskFavoritesRest.kt`, `TaskWizardRest.kt` (+
+  `projectforge-business/.../task/TaskWizardService.kt`, ersetzt den Torso
+  `TaskWizardPageRest.kt`),
+  `rest/dto/Task.kt`, Rechte `projectforge-business/.../task/TaskDao.kt`
+  (`hasAccessForKost2AndTimesheetBookingStatus`), Klappzustand
+  `.../task/TaskTree.kt` (`USER_PREFS_KEY_OPEN_TASKS`), Kost2-Anhang
+  `.../task/TaskHelper.kt`; next `app/(authenticated)/taskTree/page.tsx`,
+  `components/shared/tasks/*` (Baum, Aktionsleiste, Routen),
+  `components/features/task/*` (Edit-Seite, `wizard/` Assistent), `lib/rs/task.ts`,
+  `lib/docs-links.ts`, `e2e/task-tree.spec.ts`, `e2e/task-tree-actions.spec.ts`,
+  `e2e/task-edit.spec.ts`, `e2e/task-kost2-preview.spec.ts`, `e2e/task-wizard.spec.ts`
 
 ## Stand & nächste Schritte
 
@@ -1624,6 +1971,21 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
   entscheidenden Detail, dass eine Ablehnung als HTTP 200 mit `TOAST` kommt und
   jede Schreibantwort schon die ganze neue Liste enthält. Gegen das laufende
   System geprüft (`e2e/book-attachments.spec.ts`).
+- **Zugriffsrechte im Formular** – `writeAccess`/`deleteAccess` am DTO
+  (`EntityAccessSupport`, für alle Entitäten in `AbstractEntityRest.getById` gefüllt),
+  gelesen in `lib/rs/entity-access.ts` (fehlendes Flag = erlaubt), Speichern-Button und
+  Löschen-Button werden ohne Recht weggelassen statt ausgegraut, Tastatur-Abkürzung
+  mitgeprüft; feldweise Rechte am Beispiel „vollständig fakturiert" (immer sichtbar,
+  read-only, Hinweis = die Meldung des Backends); Ablehnungen aus eigenen Endpunkten
+  als `kind: "rejected"` statt als Erfolg. Grenze: `page-def` kennt kein
+  `readOnlyWhen`.
+- **Gruppen (`group`) vollständig** – Liste und Formular handgebaut als vierter
+  solcher Fall, mit LDAP-Feld (`gidNumber` + „Anlegen"), Excel-Export der Liste
+  (generisch in `lib/rs/list-export.ts`), generischer Mehrfach-Entity-Auswahl und
+  dem neuen `EntityEditDialog`, mit dem der Aufgaben-Assistent seine Gruppe anlegt.
+  Menü und `NextMigration.MIGRATED["group"]` sind umgeschaltet;
+  `components/dynamic/dynamic-form-dialog.tsx` ist damit gelöscht. Gegen das
+  laufende System geprüft (`e2e/group.spec.ts`, `e2e/task-wizard.spec.ts`).
 - **Datumseingabe international** – eine geteilte Komponente
   (`components/shared/date-input.tsx`) statt vier `<input type="date">`: Layout,
   Platzhaltermaske und erster Wochentag aus `userData`, Wert immer ISO
@@ -1635,14 +1997,22 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    Masse). Listen rendern inzwischen mit der echten `DataTable`; als nächstes
    fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
    danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
-2. **Phase 3** – die **Kalenderseite** als nächster handgebauter Härtefall und
+2. **Phase 3 – Strukturelemente**: Baum, Listenperspektive, handgebaute Edit-Seite und
+   Assistent stehen, `NextMigration.MIGRATED["task"]` ist umgeschaltet; der Menüeintrag
+   `TASK_TREE` zeigt bis auf Weiteres noch auf `wa/taskTree`. Was gegen die Wicket-Vorlage
+   noch fehlt, steht mit Reihenfolge in
+   **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)** („Was noch offen ist"): der
+   Status-Default der Liste, die fünf Querverweise im Kopf des Formulars, die Tippsuche im
+   Auswahlfeld – und querschnittlich der fehlende Undelete-Weg sowie „+"/Zeilenklick ohne
+   Rechteprüfung.
+3. **Phase 3** – die **Kalenderseite** als nächster handgebauter Härtefall und
    Standard-Startseite nach dem Login; der Detailplan liegt vor
    (`MIGRATION-calendar.md`), umgesetzt ist nichts. Sie zieht zwei Phase-2-Stücke
    mit, die auch anderen Seiten nützen: die 2-Segment-Route `[category]/[type]` und
    die Weitergabe des Query-Strings in `fetchDynamic`, dazu `COLOR_CHOOSER` in der
    `UICustomized`-Registry. (Auftragsbuch und Debitorenrechnungen sind fertig, s.
    Phase 3.)
-3. **Mehrere Testkonten statt einem.** Solange die Konten-Datei ein einziges Konto
+4. **Mehrere Testkonten statt einem.** Solange die Konten-Datei ein einziges Konto
    hielt – Admin **und** in den FiBu-Gruppen **und** deutsch –, war von jeder
    rechteabhängigen Regel nur der Erfolgsfall prüfbar; die Ablehnung, also die Hälfte,
    auf die es ankommt, war unerreichbar. Die Datei trägt jetzt **eine Zeile je Rolle**
@@ -1661,12 +2031,12 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    unangetastet (eigenes Konto für eine Rolle). Auf einer Produktivinstanz passiert
    nichts, dort ist `projectforge.development.mode` aus. **Erledigt.**
 
-   | Rolle              | Benutzer          | Hat                                             |
-   | ------------------ | ----------------- | ----------------------------------------------- |
-   | `full-access-user` | `e2e-full-access` | alle Gruppen, alle Rechte; die Vorgabe          |
-   | `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, die FiBu-Rechte     |
-   | `admin-user`       | `e2e-admin`       | PF_Admin, **keine** FiBu-Rechte                 |
-   | `normalo-user`     | `e2e-normalo`     | nichts, `locale=en`                             |
+   | Rolle              | Benutzer          | Hat                                         |
+   | ------------------ | ----------------- | ------------------------------------------- |
+   | `full-access-user` | `e2e-full-access` | alle Gruppen, alle Rechte; die Vorgabe      |
+   | `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, die FiBu-Rechte |
+   | `admin-user`       | `e2e-admin`       | PF_Admin, **keine** FiBu-Rechte             |
+   | `normalo-user`     | `e2e-normalo`     | nichts, `locale=en`                         |
 
    `e2e-admin` ist der Gegenfall, der vorher fehlte: Admin, aber auf Rechnungen und
    Auftragsbuch abgewiesen. `e2e-normalo` trägt das englische Gebietsschema, damit
@@ -1687,10 +2057,10 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    Saat-Entitäten sollen weiter mit allen Rechten entstehen, geprüft wird nur der Zugriff
    darauf.
 
-4. **Ein Spec für Favoriten umbenennen/löschen** und die Umstellung von
+5. **Ein Spec für Favoriten umbenennen/löschen** und die Umstellung von
    `task-edit-link.tsx` auf die next-Route, sobald die Strukturelement-Seite
    migriert ist (s. eigener Abschnitt).
-5. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
+6. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
    Passwort-vergessen), der Wicket-Umweg (ohne Session `302` auf

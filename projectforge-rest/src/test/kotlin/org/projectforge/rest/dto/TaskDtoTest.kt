@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.business.test.AbstractTestBase
+import java.time.LocalDate
 
 class TaskDtoTest: AbstractTestBase() {
 
@@ -88,6 +89,34 @@ class TaskDtoTest: AbstractTestBase() {
         dest.copyFrom(subTask)
         checkMinimalTask(dest.parentTask, 2, "t1")
         checkMinimalTask(dest.parentTask?.parentTask, 1, "root")
+    }
+
+    /**
+     * The three date fields were declared as [java.util.Date] while [TaskDO] uses [LocalDate]. BaseDTO.copy
+     * copies a field only if the types match, so all three silently ended up in the
+     * log.debug("Unsupported field to copy") branch and were transferred in neither direction.
+     */
+    @Suppress("DEPRECATION")
+    @Test
+    fun dateRoundTripTest() {
+        val src = TaskDO()
+        src.id = 4
+        src.title = "dates"
+        src.startDate = LocalDate.of(2026, 1, 2)
+        src.endDate = LocalDate.of(2026, 3, 4)
+        src.protectTimesheetsUntil = LocalDate.of(2025, 12, 31)
+
+        val dto = Task()
+        dto.copyFrom(src)
+        assertEquals(LocalDate.of(2026, 1, 2), dto.startDate)
+        assertEquals(LocalDate.of(2026, 3, 4), dto.endDate)
+        assertEquals(LocalDate.of(2025, 12, 31), dto.protectTimesheetsUntil)
+
+        val dest = TaskDO()
+        dto.copyTo(dest)
+        assertEquals(src.startDate, dest.startDate)
+        assertEquals(src.endDate, dest.endDate)
+        assertEquals(src.protectTimesheetsUntil, dest.protectTimesheetsUntil)
     }
 
     private fun checkMinimalTask(task: Task?, id: Long, title: String) {

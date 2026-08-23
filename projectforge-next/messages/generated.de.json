@@ -7,6 +7,7 @@
     "rights": "Rechte",
     "type": "Zugriffstyp"
   },
+  "add": "Hinzufügen",
   "address": {
     "addressStatus": {
       "_": "Adressstatus",
@@ -32,6 +33,7 @@
     },
     "country": "Land",
     "division": "Bereich",
+    "emails": "E-Mails",
     "fingerprint": "Fingerprint",
     "form": {
       "_": "Anrede",
@@ -614,6 +616,21 @@
     "kost2": {
       "_": "Kost2",
       "art": "Art",
+      "error": {
+        "projektNeededForNummernkreis": "Das Projekt muss für die Nummernkreise 4 und 5 zwingend angegeben sein."
+      },
+      "id": "Kost2-ID",
+      "kost2s": "Kost2s",
+      "number": "Kost2-Nummer",
+      "title": {
+        "add": "Neue Kost2",
+        "edit": "Kost2 bearbeiten",
+        "heading": "Kost2",
+        "list": {
+          "_": "Liste der Kost2s",
+          "select": "Kost2 wählen"
+        }
+      },
       "workFraction": "Arbeitszeitanteil"
     },
     "kost2art": {
@@ -1015,24 +1032,32 @@
       }
     }
   },
+  "financeAdministration": "Finanzbuchhaltung",
   "firstName": "Vorname",
   "gantt": {
     "duration": "Dauer",
     "endDate": "Endedatum",
     "name": "Name",
     "objectType": {
+      "_": "Gantt-Objekttyp",
       "activity": "Aktivität (Standard)",
       "milestone": "Meilenstein",
       "summary": "Zusammenfassung"
     },
     "owner": "Eigner",
+    "predecessor": "Vorgänger",
+    "predecessorOffset": "Offset",
     "relationType": {
+      "_": "Beziehung",
       "finish_finish": "Ende-Ende",
       "finish_start": "Ende-Beginn (Standard)",
       "start_finish": "Beginn-Ende",
       "start_start": "Beginn-Beginn"
     },
-    "startDate": "Beginndatum"
+    "startDate": "Beginndatum",
+    "title": {
+      "add": "Ganttdiagramm erstellen"
+    }
   },
   "gender": {
     "_": "Geschlecht",
@@ -1049,8 +1074,39 @@
   "group": {
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",
-    "localGroup": "Lokale Gruppe",
-    "owner": "Gruppenbesitzer"
+    "error": {
+      "groupnameAlreadyExists": "Gruppenname ist bereits vergeben."
+    },
+    "groups": "Gruppen",
+    "ldapValues": "LDAP",
+    "list": {
+      "select": {
+        "title": "Gruppe wählen"
+      }
+    },
+    "localGroup": {
+      "_": "Lokale Gruppe",
+      "not": "Allgemeine Gruppe",
+      "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
+    },
+    "nestedGroups": "Eingebettete Gruppen",
+    "nestedGroupsAllowed": {
+      "_": "Eingebettete Gruppen erlaubt?",
+      "tooltip": "Zur Sicherheit sollten für die Gruppen Administrator:innen, Controlling etc. keine eingebetteten Gruppen erlaubt sein, um versehentlichen unbefugten Zugriff zu verhindern."
+    },
+    "owner": "Gruppenbesitzer",
+    "pleaseSelectGroup": "Bitte Gruppe wählen",
+    "systemGroups": "Systemgruppen",
+    "title": {
+      "add": "Neue Gruppe",
+      "edit": "Gruppe bearbeiten",
+      "heading": "Benutzergruppen",
+      "list": {
+        "_": "Gruppenliste",
+        "select": "Gruppen wählen"
+      }
+    },
+    "unassignedUsers": "Nicht assoziierte Benutzer:innen"
   },
   "history": {
     "entry": "Änderungseintrag",
@@ -1128,7 +1184,52 @@
     "sendEMailNotification": "E-Mail-Benachrichtigung versenden?"
   },
   "lastUpdate": "letzte Änderung",
-  "ldap": "LDAP",
+  "ldap": {
+    "_": "LDAP",
+    "gidNumber": {
+      "_": "GID number",
+      "alreadyInUse": "Die GID-Nummer ist bereits an eine andere Gruppe vergeben. Die nächste freie GID-Nummer lautet: {arg0}.",
+      "createDefault": {
+        "tooltip": "Erzeugt eine neue GID (die nächste freie >= 1.000). Achtung: ProjectForge löscht keine Posix/Samba-Accounts im LDAP, die einmal angelegt worden sind!"
+      },
+      "tooltip": "ProjectForges versucht die größte bereits durch ProjectForge vergebene GID-Nummer zu finden und schlägt die nächst höhere Nummer als nächste freie GID-Nummer vor. Dabei startet ProjectForge mit 1.000, um nicht mit GIDs der Betriebssysteme zu kollidieren (z. B. mit Systemgruppen)."
+    },
+    "homeDirectory": "Home directory",
+    "loginShell": "Login shell",
+    "posixAccount": "Posix account",
+    "sambaAccount": "Samba account",
+    "sambaNTPassword": {
+      "_": "Samba-Passwort",
+      "subtitle": "NT hashed Passwort",
+      "tooltip": "Das Samba-Passwort wird immer dann im LDAP gesetzt, wenn der Benutzer sein Password ändert. Falls es im LDAP nicht gesetzt wird, muss sich der Benutzer mindestens das nächste Mal an ProjectForge anmelden bevor ein etwaiger Angemeldet-Bleiben-Mechanismum greift."
+    },
+    "sambaPrimaryGroupSID": {
+      "_": "Primary group SID.",
+      "tooltip": "Die Samba primary group SID ist optional."
+    },
+    "sambaSID": {
+      "_": "Samba SID",
+      "alreadyInUse": "Die Samba-SID ist bereits an einen anderen Benutzer vergeben. Die nächste frei Samba-SID-Endziffer lautet: {arg0}.",
+      "createDefault": {
+        "tooltip": "Erzeugt eine neue Samba SID (die nächste freie >= 1.000). Achtung: ProjectForge löscht keine Posix/Samba-Accounts im LDAP, die einmal angelegt worden sind!"
+      },
+      "tooltip": "Die Samba-SID ist ein Wert, der aus dem in projectforge.properties konfiguriertem Samba-SID-Prefix und der UID number gebildet wird."
+    },
+    "uidNumber": {
+      "_": "UID number",
+      "alreadyInUse": "Die UID-Nummer ist bereits an eine:n andere:n Benutzer:in vergeben. Die nächste freie UID-Nummer lautet: {arg0}.",
+      "createDefault": {
+        "tooltip": "Erzeugt eine neue UID (die nächste freie >= 1.000), setzt die Standard-GID (konfiguriert in projectforge.properties), das Homedirectory und die konfigurierte Standard-Login-Shell. Achtung: ProjectForge löscht keine Posix/Samba-Accounts im LDAP, die einmal angelegt worden sind!"
+      },
+      "tooltip": "ProjectForge versucht die größte bereits durch ProjectForge vergebene UID-Nummer zu finden und schlägt die nächst höhere Nummer als nächste freie UID-Nummer vor. Dabei startet ProjectForge mit 1.000, um nicht mit UIDs der Betriebssysteme zu kollidieren (z. B. mit Systembenutzern)."
+    },
+    "user": {
+      "gidNumber": {
+        "tooltip": "Der Standardwert kann in projectforge.properties konfiguriert werden: projectforge.ldap.posixAccountsDefaultGidNumber"
+      }
+    },
+    "wlanSambaPassword": "WLAN/Samba Passwort"
+  },
   "legalAffaires": {
     "contract": {
       "coContractorA": "Vertragspartner:in A",
@@ -1224,6 +1325,7 @@
   },
   "menu": {
     "addNewEntry": "Neuer Eintrag",
+    "administration": "Administration",
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
@@ -1291,6 +1393,7 @@
   "modified": "geändert",
   "modifiedBy": "geändert durch",
   "modifiedHistoryValue": "Wert in der Änderungshistorie",
+  "more": "Mehr",
   "multiselection": {
     "aggrid": {
       "selection": {
@@ -1530,16 +1633,68 @@
     "_": "Strukturelement",
     "assignedUser": "Verantwortliche:r",
     "consumption": "Verbrauch",
+    "deleted": "gelöscht",
+    "edit": {
+      "maxHoursIngoredDueToAssignedOrders": "Diese Angabe wird ggf. ignoriert. - Zu diesem Strukturelement oder einem Strukturunterelement wurden Aufträge zugeordnet. Die Angabe einer Null verhindert jedoch die Anzeige des Maximalwerts in den Verbrauchsbalken."
+    },
+    "error": {
+      "couldNotDeleteRootTask": "Das Wurzelstrukturelement kann nicht gelöscht werden!",
+      "cyclicReference": "Zyklische Strukturhierarchie entdeckt, weil ein Strukturelement sich selbst oder ein Strukturunterelement als übergeordnetes Strukturelement besitzt.",
+      "duplicateChildTasks": "Strukturelemente müssen als Unterelemente unterschiedliche Titel haben.",
+      "kost2Readonly": "Eine Kost2-Zuordnung kann nur durch die Buchhaltung vorgenommen werden.",
+      "parentTaskNotFound": "Übergeordnetes Strukturelement wird benötigt, konnte aber nicht gefunden werden.",
+      "parentTaskNotGiven": "Übergeordnetes Strukturelement muss angegeben sein.",
+      "protectTimesheetsUntilReadonly": "Der Zeitberichtsschutz kann nur durch die Buchhaltung manipuliert werden.",
+      "protectionOfPrivacyReadonly": "Die Datenschutzoption kann nur durch die Buchhaltung geändert werden.",
+      "timesheetBookingStatus2Readonly": "Der Status für Zeitberichtsbuchungen kann nur durch die Buchhaltung oder Projektmanager manipuliert werden."
+    },
+    "favorite": {
+      "new": {
+        "_": "Neuer Strukturelementfavorit",
+        "tooltip": "Das aktuell ausgewählte Strukturelement kann hier unter einem Namen als Favorit gespeichert werden."
+      }
+    },
+    "favorites": {
+      "tooltip": "Verwaltung von Strukturelementen als Favoriten"
+    },
+    "gantt": {
+      "settings": "Ganttwerte"
+    },
+    "kost2list": {
+      "blackList": "Negativliste",
+      "type": "Art der Kost2-Liste",
+      "whiteList": "Positivliste"
+    },
+    "maxDuration": "Maximaldauer",
     "maxHours": "Maximalstunden",
+    "menu": {
+      "addSubTask": "Neues Strukturunterelement",
+      "addTimesheet": "Neuer Zeitbericht",
+      "showAccessRights": "Zugriffsrechte",
+      "showTimesheets": "Zeitberichte anzeigen"
+    },
+    "onlyBillable": "nur fakturierbare Elemente",
     "parentTask": "Übergeordnetes Strukturelement",
     "path": {
-      "pleaseSelectTask": "Bitte Strukturelement wählen"
+      "_": "Strukturhierarchie",
+      "pleaseSelectTask": "Bitte Strukturelement wählen",
+      "rootTask": "Toplevel"
     },
     "progress": "Fortschritt",
-    "protectTimesheetsUntil": "Zeitberichtsschutz bis",
-    "protectionOfPrivacy": "Datenschutz",
+    "protectTimesheetsUntil": {
+      "_": "Zeitberichtsschutz bis",
+      "short": "Schutz bis"
+    },
+    "protectionOfPrivacy": {
+      "_": "Datenschutz",
+      "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Tasks zugegriffen werden."
+    },
+    "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
+      "displayTask": {
+        "tooltip": "Strukturelement anzeigen."
+      },
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).",
       "noTasksFound": "Keine Strukturelemente gefunden.",
       "selectAncestorTask": {
@@ -1547,10 +1702,12 @@
       }
     },
     "status": {
+      "_": "Status des Strukturelements",
       "closed": "geschlossen",
       "notOpened": "nicht begonnen",
       "opened": "begonnen"
     },
+    "tasks": "Strukturelemente",
     "timesheetBooking": {
       "_": "Zeitbuchungen",
       "inherit": "vererbt",
@@ -1561,14 +1718,79 @@
     },
     "title": {
       "_": "Titel",
-      "edit": "Strukturelement bearbeiten"
-    },
-    "tree": {
-      "rootNode": "Wurzelstrukturelement",
-      "title": {
+      "add": "Neues Strukturelement",
+      "edit": "Strukturelement bearbeiten",
+      "heading": "Strukturelemente",
+      "list": {
+        "_": "Strukturelemente",
         "select": "Strukturelement auswählen"
       }
-    }
+    },
+    "tree": {
+      "close": "Strukturelement zuklappen",
+      "explore": "Alle Strukturelemente auf-/zuklappen",
+      "info": "Strukturelemente können auf- und zugeklappt werden, indem auf die Ordnersymbole oder Titel des gewünschten Strukturelements geklickt wird. Zur Auswahl eines Strukturelements kann jede andere Stelle innerhalb der Zeile angeklickt werden.",
+      "open": "Strukturelement aufklappen",
+      "perspective": "Baumansicht",
+      "rootNode": "Wurzelstrukturelement",
+      "title": {
+        "_": "Strukturbaum",
+        "select": "Strukturelement auswählen"
+      }
+    },
+    "wizard": {
+      "action": {
+        "_": "Aktion",
+        "noactionRequired": "Keine Aktion notwendig, da keine Gruppen ausgewählt wurden. Demnach müssen keine Zugriffsrechte angelegt werden.",
+        "taskAndgroupsGiven": "Die notwendigen Zugriffsrechte für die oben angegebene(n) Gruppe(n) werden angelegt, nachdem der Anlegen-Button gedrückt wird. Diese können Sie jederzeit unter dem Menüpunkt Zugriffsverwaltung einsehen und ändern."
+      },
+      "button": {
+        "createGroup": {
+          "_": "Gruppe anlegen",
+          "tooltip": "Sie können eine existierende Benutzergruppe wählen oder eine neue durch Anklicken dieses Buttons anlegen."
+        },
+        "createTask": {
+          "_": "Strukturelement anlegen",
+          "tooltip": "Sie können ein existierendes Strukturelement wählen oder ein neues durch Anklicken dieses Buttons anlegen."
+        }
+      },
+      "externalGroup": {
+        "_": "Externe (optional)",
+        "groupNameSuffix": "extern",
+        "intro": "Die externen Benutzer:innen haben Gastrechte, so dürfen sie beispielsweise nur die eigenen Zeitberichte sehen."
+      },
+      "finish": "Fertig stellen",
+      "intro": "Benutzen Sie diesen Assistenten, um ein neues Strukturelement anzulegen. Dieses Strukturelement kann ein Projekt o. ä. repräsentieren auf welche Nutzer und Gruppen Zugriff haben sollen (z. B. für Zeitberichtserfassungen).",
+      "managerGroup": {
+        "_": "Teammanager:in (optional)",
+        "groupNameSuffix": "pm",
+        "intro": "Die Teammanager:innen haben mehr Rechte, so dürfen sie beispielsweise die Zeitberichte anderer Nutzer ändern. Wenn sie die Rolle Projektmanagement (Gruppe PF_MANAGER) haben, dürfen sie auch Personal-Planungen vornehmen."
+      },
+      "pageTitle": "Strukturassistent",
+      "result": {
+        "again": "Weiteres Element einrichten",
+        "ancestors": "Leserecht auf {arg0} übergeordnete(s) Element(e)",
+        "created": "neu",
+        "role": {
+          "external": "Externe",
+          "manager": "Teammanager:in",
+          "team": "Team"
+        },
+        "summary": "Zugriffsrechte für {arg0}: {arg1} neu, {arg2} geändert, {arg3} waren schon korrekt.",
+        "title": "Was der Assistent eingerichtet hat",
+        "toTree": "Zum Strukturbaum",
+        "unchanged": "unverändert",
+        "updated": "geändert"
+      },
+      "task": {
+        "intro": "Für dieses Strukturelement sollen die Rechte automatisch für die unten angegebenen Gruppen eingerichtet werden. Dabei wird für alle Oberelemente ein minimales Leserecht, so dass aus der Baumansicht dieses Element für die Gruppen eingesehen werden kann. Andere Elemente aus höheren Ebenen bleiben unsichtbar."
+      },
+      "team": {
+        "_": "Team (optional)",
+        "intro": "Die Teammitglieder haben das Recht, Strukturunterelemente anzulegen oder zu ändern, sowie eigene Zeitberichte zu erfassen."
+      }
+    },
+    "workpackageCode": "Arbeitspaket-Code"
   },
   "text": "Text",
   "timeNotation": {
@@ -1597,6 +1819,9 @@
     "startTime": "Beginn",
     "stopTime": "Ende",
     "tag": "Etikett",
+    "title": {
+      "list": "Zeitberichte"
+    },
     "user": "Mitarbeiter:in"
   },
   "timezone": "Zeitzone",
@@ -1605,6 +1830,10 @@
     "export": {
       "excel": "Export im Excelformat"
     },
+    "lucene": {
+      "link": "Link zur Lucene-Abfrage-Syntax."
+    },
+    "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
         "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",

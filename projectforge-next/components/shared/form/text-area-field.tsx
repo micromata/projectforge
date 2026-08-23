@@ -12,6 +12,8 @@ import { useFieldErrors } from "./use-field-errors";
 
 export interface TextAreaFieldProps extends BaseFieldProps {
   rows?: number;
+  /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
+  disabled?: boolean;
 }
 
 export function TextAreaField({
@@ -20,6 +22,7 @@ export function TextAreaField({
   hint,
   className,
   rows = 4,
+  disabled,
 }: TextAreaFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -37,6 +40,7 @@ export function TextAreaField({
             name={name}
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
@@ -46,6 +50,7 @@ export function TextAreaField({
             <Textarea
               id={ids.controlId}
               rows={rows}
+              disabled={disabled}
               // Same as InputField: the column's length.
               maxLength={maxLength}
               value={raw ?? ""}

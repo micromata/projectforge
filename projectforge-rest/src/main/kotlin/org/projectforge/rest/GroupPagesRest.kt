@@ -99,12 +99,29 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 it.lastname = user.lastname
             }
         }
+        group.ldapPosixConfigured = useLdapStuff
         if (useLdapStuff) {
             groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
                 group.gidNumber = ldapGroupValues.gidNumber
             }
         }
+        if (editMode) {
+            // The read-only mail addresses of the members, which no GroupDO property holds: a hand built form
+            // (projectforge-next) reads the entity through GET {id} and never sees the server side layout, where
+            // this used to be filled. Edit mode only - no list column shows them, and it costs a cache lookup
+            // per assigned user of every row.
+            group.populateEmails()
+        }
         return group
+    }
+
+    /**
+     * Tells the list page whether the LDAP columns are worth showing, the same condition the edit page gets
+     * as [Group.ldapPosixConfigured]. A hand built list (projectforge-next) shows or hides its `ldapValues`
+     * column by it; the server side layout below decides it by simply not adding the column.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf("ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff))
     }
 
     override fun transformForDB(dto: Group): GroupDO {
@@ -265,7 +282,8 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
             }
         }
-        dto.populateEmails()
+        // No populateEmails() here: the dto arrives from getById(editMode = true), i.e. already filled by
+        // transformFromDB - and a new entry has no members to collect addresses from.
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }

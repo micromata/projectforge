@@ -101,6 +101,28 @@ export function defaultPinningOf<Row, M extends EntityMetadata>(
 }
 
 /**
+ * The columns the page has for this user, i.e. those whose `visible` predicate holds — see
+ * `ColumnBase.visible` for why the answer is the backend's and comes as `variables`.
+ *
+ * Applied before the audit columns are appended and before [defaultPinningOf] runs, so a dropped
+ * column is gone from every derivation alike. A declaration without the predicate is kept, which is
+ * every column of every page but the task list's three conditional ones.
+ */
+export function visibleColumnsOf<Row, M extends EntityMetadata>(
+  columns: ColumnDeclaration<Row, M>[],
+  variables: Record<string, unknown> | undefined
+): ColumnDeclaration<Row, M>[] {
+  const kept = columns.filter(
+    (declaration) =>
+      !("visible" in declaration) ||
+      (declaration.visible?.({ variables }) ?? true)
+  );
+  // The same array where nothing was dropped: the columns feed a memo whose identity decides whether
+  // TanStack rebuilds every column instance (see useDeclaredColumns).
+  return kept.length === columns.length ? columns : kept;
+}
+
+/**
  * Which filter the column header offers, derived from the field's data type.
  *
  * `null` means none: a boolean is already a two-value column that the pill filters cover, and a

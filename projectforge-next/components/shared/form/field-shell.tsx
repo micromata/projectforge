@@ -50,6 +50,7 @@ export function FieldShell({
   required,
   readOnly,
   hint,
+  additionalLabel,
   invalid,
   errors,
   warning,
@@ -71,6 +72,14 @@ export function FieldShell({
   /** Shown but not fillable — suppresses the asterisk, see below. */
   readOnly?: boolean;
   hint?: string;
+  /**
+   * What the value *is*, under the box — "Posix account" below a group's GID number
+   * (`UIInput.additionalLabel` of the server laid out form, see LdapGidField).
+   *
+   * Not a second label and not a [hint]: it names the context the value only makes sense in, which a
+   * reader has to see without hovering anything, while the explanation of the field stays behind the ⓘ.
+   */
+  additionalLabel?: string;
   invalid: boolean;
   errors: string[];
   /** Something off about an otherwise valid value — see the field prop passing it in. */
@@ -105,6 +114,13 @@ export function FieldShell({
         {hint && <FieldHint hint={hint} label={label} />}
       </div>
       {children}
+      {/* Under the box, as the legacy form shows it, and above the error: it belongs to the value, not
+          to what is wrong with it. */}
+      {additionalLabel && (
+        <p className="text-xs italic text-muted-foreground">
+          {additionalLabel}
+        </p>
+      )}
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>
       )}

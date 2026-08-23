@@ -266,16 +266,25 @@ constructor(
     protected fun getListMeta(request: HttpServletRequest, filter: MagicFilter): ListMetaData {
         val userAccess = UILayout.UserAccess()
         checkUserAccess(null, userAccess)
-        // Assume that the user has general update access (change this, see GroupPagesRest).
-        // So this flag is unchecked, and the ones checkUserAccess did fill are read with
-        // throwException = false: userAccess describes what the UI should offer, it does not authorize
-        // anything. The DAO decides that when the call arrives (see ListMetaData.userAccess).
+        // Assumed rather than checked, because it is not a question about the *list*: whether an entry
+        // may be written is asked per entry and travels on its DTO (EntityAccessSupport, filled in
+        // getById from the same DAO the write goes through - see Group for an entity every user may read
+        // but only an administrator may change).
+        // The flags checkUserAccess did fill are read with throwException = false for the same reason:
+        // userAccess describes what the UI should offer, it does not authorize anything. The DAO decides
+        // that when the call arrives (see ListMetaData.userAccess).
         //
         // The exception is `read`: a user without select access has no list to be shown at all, so
         // projectforge-next keeps the page from rendering rather than offering an empty one. Still not
         // the authorization - `list` is refused by the DAO either way, and answers 403 for a next client
         // (see GlobalDefaultExceptionHandler).
         userAccess.update = true
+        // Whether a write may carry a comment for the history entry it produces, which is a property of
+        // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
+        // userAccess, from where the server laid out edit page adds its comment field
+        // (LayoutUtils.processEditPage). A hand built form has no layout to read it from, so it takes it
+        // from here (see useHistoryCommentSupport).
+        userAccess.editHistoryComments = baseDao.supportsHistoryUserComments
         val searchFilterContainer = LayoutListFilterUtils.createNamedSearchFilterContainer(this, lc)
         val elements = searchFilterContainer.content.filterIsInstance<UILabelledElement>()
         removeUnknownFilterEntries(filter, elements.filterIsInstance<UIFilterElement>().map { it.id }.toSet())
@@ -340,10 +349,25 @@ constructor(
     open fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
     }
 
+    /**
+     * The filter a user who has none starts with, and the one a reset returns to.
+     *
+     * Empty for most pages, but not for every: Wicket's task list hides closed tasks until they are asked
+     * for ([org.projectforge.business.task.TaskFilter] defaults `closed` to false), and a preset entry is
+     * the only way to say so *and* show it - the client renders the filter row from the stored filter, so a
+     * restriction applied silently while querying would filter the list without appearing anywhere in it.
+     *
+     * Only preset entries whose field is offered as a filter element (see [addMagicFilterElements]):
+     * [removeUnknownFilterEntries] drops the rest.
+     */
+    open fun newMagicFilter(): MagicFilter {
+        return MagicFilter()
+    }
+
     fun getCurrentFilter(): MagicFilter {
         var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
-            currentFilter = MagicFilter()
+            currentFilter = newMagicFilter()
             saveCurrentFilter(currentFilter)
         } else {
             currentFilter.init()
@@ -497,10 +521,10 @@ constructor(
      */
     @GetMapping("filter/reset")
     fun resetListFilter(): ResponseAction {
-        saveCurrentFilter(MagicFilter())
+        saveCurrentFilter(newMagicFilter())
         agGridSupport.resetGridState(category)
         return ResponseAction(targetType = TargetType.RELOAD)
-            .addVariable("filter", MagicFilter())
+            .addVariable("filter", newMagicFilter())
     }
 
     /**
@@ -510,6 +534,10 @@ constructor(
     fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
+        // The defaults of this page again ([newMagicFilter]): reset only clears, so a page that hides
+        // something until it is asked for (task: closed tasks) would come back showing it. The instance
+        // itself is kept, because it may be a named favorite.
+        filter.entries.addAll(newMagicFilter().entries)
         return filter
     }
 
@@ -723,6 +751,14 @@ constructor(
         val item = baseDao.find(id) ?: return null
         checkUserAccess(item, userAccess)
         val result = transformFromDB(item, editMode)
+        if (editMode && result is EntityAccessSupport) {
+            // What the hand built next form may offer, asked here and not per rest class: the DAO calls
+            // are the same ones checkUserAccess makes for the layout driven frontends, so a second set
+            // in a transformFromDB override would only ask the DAO twice. Edit mode only - a list row
+            // has no save button, and every row would cost these two calls.
+            result.writeAccess = userAccess?.update ?: baseDao.hasLoggedInUserUpdateAccess(item, item, false)
+            result.deleteAccess = userAccess?.delete ?: baseDao.hasLoggedInUserDeleteAccess(item, item, false)
+        }
         jcrPath?.let {
             if (result is AttachmentsSupport) {
                 result.attachments = attachmentsService.getAttachments(it, id, attachmentsAccessChecker)

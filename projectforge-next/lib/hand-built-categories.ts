@@ -15,8 +15,10 @@
 export const HAND_BUILT_CATEGORIES = [
   "book",
   "cost1",
+  "group",
   "order",
   "outgoingInvoice",
+  "task",
 ];
 
 export function isHandBuilt(category: string | undefined): boolean {

@@ -30,6 +30,7 @@ import type { FilterKind } from "@/components/data-table";
 import type { PeriodKindId } from "@/lib/date-period";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
+import type { ReturnTarget } from "@/hooks/use-edit-return";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { MagicFilter } from "@/lib/rs/types";
 
@@ -44,6 +45,16 @@ interface ColumnBase<Row> {
   className?: string;
   /** Overrides the alignment derived from the data type (numbers right, everything else left). */
   align?: "left" | "right";
+  /**
+   * Shows the whole value over several lines instead of clipping it to one, letting the row grow —
+   * the `wrapText` (and with it `autoHeight`) of the legacy grid's column.
+   *
+   * For a value that is a sentence or a list and not a name: a group's description and its members are
+   * the two the legacy list wraps. Costly for the reader elsewhere, since one wrapped column makes
+   * every row as tall as its longest cell, so the default stays "one line plus a tooltip on hover"
+   * (see useOverflowTooltip).
+   */
+  wrap?: boolean;
   /** Overrides the filter kind derived from the data type; `null` offers no filter at all. */
   filterKind?: FilterKind | null;
   /** Renders the cell itself, instead of the default for the field's data type. */
@@ -80,7 +91,9 @@ interface ColumnBase<Row> {
   hiddenByDefault?: boolean;
   /**
    * Opts out of sorting, for a column no single property of the entity backs — an invoice's orders are
-   * collected from its positions, and there is nothing the backend could order the rows by.
+   * collected from its positions, a task's consumption is computed per row, and there is nothing the
+   * backend could order the rows by (it sorts by entity property, see `MagicFilterProcessor`). Wicket's
+   * list says the same by passing no sort property for exactly these columns.
    *
    * Only `false`: sorting is the default, and the sort property of a column is its id (see
    * [ComputedColumn.id]). A column that keeps the default but names an id the backend doesn't know
@@ -91,6 +104,20 @@ interface ColumnBase<Row> {
   labelKey?: string;
   /** Shorter label for the header, where the full one would not fit ("Anh." vs "Anhänge"). */
   headerLabelKey?: string;
+  /**
+   * Whether the page has this column at all — for one whose subject may not exist in this installation
+   * or may not be seen by this user: the task list shows its cost units only where cost units are
+   * configured, and its orders only to project staff and above.
+   *
+   * Not the same as a *hidden* column: that is the user's own choice, reversible in the column panel.
+   * A column dropped here never reaches the table, so it is not in the panel either — the page simply
+   * does not have it.
+   *
+   * The answer is the backend's, and it comes as it is: `variables` are `ListMetaData.variables` of
+   * this entity (`AbstractEntityRest.addVariablesForListPage`). Nothing is derived in the client,
+   * because group membership and the installation's configuration are not the client's to know.
+   */
+  visible?: (ctx: { variables?: Record<string, unknown> }) => boolean;
 }
 
 /** A column showing one property of the entity, labelled from its metadata. */
@@ -260,6 +287,30 @@ export interface SectionDef<M extends EntityMetadata> {
    * "Allgemeine Informationen"). Defaults to `titleKey`.
    */
   tabTitleKey?: string;
+  /**
+   * Starts folded: the card shows nothing but its heading until the user opens it or clicks its tab
+   * above (see DeclaredSection).
+   *
+   * For the settings a form has but hardly anyone fills in — a task's Gantt fields, its cost unit
+   * administration. Wicket says the same with a closed `ToggleContainerPanel`; here the tab bar makes
+   * a folded card discoverable, which the legacy page's stack of panels did not.
+   */
+  collapsed?: boolean;
+  /**
+   * Whether the form has this section at all — for one whose subject may not exist in this
+   * installation or may not be administered by this user: a group's LDAP card only where posix
+   * accounts are configured (`GroupPagesRest.useLdapStuff`).
+   *
+   * The counterpart of [ColumnBase.visible] on the edit page, and the same rule: the answer is the
+   * backend's and comes as it is — a flag on the loaded entity, which is also the preset of a new one
+   * (`Group.ldapPosixConfigured`). A dropped section has no card and no tab; nothing is derived here,
+   * because the installation's configuration and the user's groups are not the client's to know.
+   *
+   * `data` is the entity as the backend answered it, undefined while it loads. Untyped, because a
+   * section knows the form it is part of but this declaration is shared by every entity — read the
+   * flag and compare it, don't reach further.
+   */
+  visible?: (ctx: { data: Record<string, unknown> | undefined }) => boolean;
   fields?: FieldDeclaration<M>[];
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
@@ -288,6 +339,24 @@ export interface ExtraTabDef {
    * mount, and given the id of the stored entry — a tab beside the form only exists for one.
    */
   component: ComponentType<{ id: number }>;
+}
+
+/**
+ * A cross reference beside the heading of a **stored** entry — the entries Wicket puts into the top
+ * menu of a form (`TaskEditPage.addTopMenuPanel`: add a child element, book a time sheet against this
+ * task, show its time sheets, its Gantt chart, its access rights).
+ *
+ * Declared as a value like everything else here: a url and a message key, so a page stays a
+ * declaration and the renderer decides how the group looks (see EntityCrossLinks).
+ */
+export interface CrossLinkDef<Data> {
+  labelKey: string;
+  /**
+   * Where it leads, given the stored entry. Either a route of this app (`/task/new?parentTaskId=42`)
+   * or a url of another frontend (`wa/timesheetList?taskId=42`) — which is which is decided by
+   * `resolveMenuUrl`, the same way a menu entry is. Null hides the entry for this entry.
+   */
+  href: (data: Data) => string | null;
 }
 
 export interface EditDef<Values, Data, M extends EntityMetadata> {
@@ -361,6 +430,34 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   editBanner?: ComponentType;
   /** Further tabs beside the form. Appended after the history. */
   extraTabs?: ExtraTabDef[];
+  /**
+   * What else can be done with the entry on screen, beside the heading — see [CrossLinkDef].
+   *
+   * Only for a stored entry, as in Wicket: every one of them names this entry in its url, and a new one
+   * has no name to give yet.
+   */
+  crossLinks?: readonly CrossLinkDef<Data>[];
+  /**
+   * Where cancel, a successful save, a delete and the breadcrumb lead — and, at the same time, the
+   * whitelist of callers a `?returnTo=` may name. The first entry is the default; absent means the
+   * entity's own list (`PageDef.route` under `PageDef.titleKey`), which is what every page did before.
+   *
+   * A task is reached from two places: the tree and, later, its own list. Neither is "the" way back —
+   * the way back is where the user came from, so the caller says so in the url and this is the set of
+   * answers that are allowed. A whitelist rather than a sanitizer: an unknown value is ignored, so
+   * there is no redirect to reason about.
+   */
+  returnTargets?: ReturnTarget[];
+  /**
+   * Query parameters of the *add* url that are handed on to the preset (`{entity}/newEntry`).
+   *
+   * `newBaseDO` is given the request, so an entity may preset a field from a parameter: the tree's
+   * "add subtask" opens `/task/new?parentTaskId=42`, and `TaskPagesRest` puts that task in as the
+   * parent. Declared by name rather than forwarded wholesale, for the same reason [returnTargets] is a
+   * whitelist — everything else in the url (`returnTo`) is the page's own business and has nothing to
+   * do with the entity.
+   */
+  newEntryParams?: readonly string[];
 }
 
 /**

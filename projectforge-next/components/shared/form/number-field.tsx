@@ -49,7 +49,7 @@ export interface NumberFieldProps extends BaseFieldProps {
    *
    * An invoice position's VAT rate is stored that way (`RechnungsPositionDO.vat`) while nobody enters a
    * VAT rate as 0.19 — Wicket wraps the same field in a `BigDecimalPercentConverter` for exactly this
-   * reason. Here rather than in the calling feature, for the reason [SelectField]'s `numeric` is here:
+   * reason. Here rather than in the calling feature, for the reason [SelectField]'s `valueType` is here:
    * the point of these components is that a field binds to what the entity declares, so a conversion
    * done at the call site would have to be repeated by every caller and undone on every read.
    *
@@ -95,6 +95,16 @@ export interface NumberFieldProps extends BaseFieldProps {
    * caller passes undefined.
    */
   warning?: string;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a DTO-only value like a group's
+   * `gidNumber` is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
+  /**
+   * What the number *is*, written under the box — "Posix account" below a group's GID number, as the
+   * server laid out form says it (`UIInput.additionalLabel`). See [FieldShell].
+   */
+  additionalLabel?: string;
 }
 
 /** Digits the factor behind a percentage is rounded to: 19 % is 0.19, 19,25 % is 0.1925. */
@@ -153,11 +163,13 @@ export function NumberField({
   shareOf,
   onChanged,
   warning,
+  metadataLess,
+  additionalLabel,
 }: NumberFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, dataType } = useFieldMetadata(name);
+  const { required, dataType } = useFieldMetadata(name, metadataLess);
   const digits = fractionDigits ?? (dataType === "AMOUNT" ? 2 : undefined);
   const grouped = groupsThousands(digits, dataType);
   return (
@@ -173,6 +185,7 @@ export function NumberField({
             required={required}
             readOnly={disabled}
             hint={hint}
+            additionalLabel={additionalLabel}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             warning={warning}

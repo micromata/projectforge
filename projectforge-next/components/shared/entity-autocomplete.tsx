@@ -6,20 +6,13 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
-import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
 import { cn } from "@/lib/utils";
+import { EntitySearchList } from "./entity-search-list";
+import { SelectMeButton } from "./select-me-button";
 
 /** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
 export interface EntityRef {
@@ -37,9 +30,17 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * keep (see OrderPositionField, whose hits carry the order behind the position).
    */
   onChange: (value: T | null) => void;
-  /** Characters before the lookup fires; the backend defaults it to 2. */
+  /** Characters before a *typed* term is looked up; the backend defaults it to 2. */
   minChars?: number;
+  /** Further request parameters of that search, see [EntitySearchList]. */
+  params?: Record<string, unknown>;
   id?: string;
+  /**
+   * An entry the control offers with one click, beside the search — the logged-in user for a field that
+   * asks for a person (see [useCurrentUserRef]). Hidden while it is already the value: there is nothing
+   * to pick then.
+   */
+  selectMe?: T | null;
   /** Accessible name of the trigger, when no `<label htmlFor>` names it. */
   "aria-label"?: string;
   className?: string;
@@ -50,42 +51,27 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
  * Picks one entity by searching the backend for it — a user, a project, a customer.
  *
  * Context-free on purpose: it takes a url and a value, so both the filter row and any hand-built
- * form can use it. The form fields of a server-laid-out page are served by DynamicSelect instead,
- * which does the same lookup but additionally handles multi-select, CREATABLE and writing through
- * DynamicLayoutProvider.
+ * form can use it. Several entities at once are [EntityMultiAutocomplete]'s business; the form fields of
+ * a server-laid-out page are served by DynamicSelect instead, which does the same lookup but
+ * additionally handles multi-select, CREATABLE and writing through DynamicLayoutProvider.
  */
 export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   url,
   value,
   onChange,
-  minChars = 2,
+  minChars,
+  params,
   id,
   className,
   autoFocus,
+  selectMe,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  // Opening shows the first entries without a term; typing narrows them, and scrolling the list asks
-  // for more (see useEntityLookup).
-  const {
-    entries: found,
-    isFetching,
-    isLoadingMore,
-    loadMore,
-  } = useEntityLookup<T>({ url, search, open, minChars });
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        // Closing discards the term but never the value: Escape means "never mind", not "clear".
-        if (!next) setSearch("");
-      }}
-    >
+    <Popover open={open} onOpenChange={setOpen}>
       {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
           minimum size is its content, so the trigger would hold the width of the *whole* entity name
           however narrow its field is and push the reset button out of it — onto the field beside it,
@@ -124,50 +110,24 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
         )}
+        {selectMe && selectMe.id !== value?.id && (
+          <SelectMeButton me={selectMe} onPick={() => onChange(selectMe)} />
+        )}
       </div>
       <PopoverContent
         align="start"
         className="w-(--radix-popover-trigger-width) min-w-56 p-0"
       >
-        {/* The backend does the filtering; cmdk must not filter the results again. */}
-        <Command shouldFilter={false}>
-          <CommandInput
-            value={search}
-            onValueChange={setSearch}
-            placeholder={t("filter.search")}
-          />
-          {/* cmdk's list is its own scroll container, so the next page is asked for from here. The
-              arrow keys scroll it too, which pages for the keyboard as well. */}
-          <CommandList
-            onScroll={(event) => {
-              if (isNearBottom(event.currentTarget)) loadMore();
-            }}
-          >
-            <CommandEmpty>
-              {/* Nothing typed yet and still empty means the lookup is either running or has nothing
-                  to offer — the hint to type only fits a term that is too short to be looked up. */}
-              {search.trim().length > 0 && search.trim().length < minChars
-                ? t("filter.search")
-                : isFetching
-                  ? t("loading")
-                  : t("nothingFound")}
-            </CommandEmpty>
-            {found.map((entry) => (
-              <CommandItem
-                key={entry.id}
-                value={String(entry.id)}
-                onSelect={() => {
-                  onChange(entry);
-                  setOpen(false);
-                  setSearch("");
-                }}
-              >
-                {entry.displayName}
-              </CommandItem>
-            ))}
-            {isLoadingMore && <LookupLoadingRow />}
-          </CommandList>
-        </Command>
+        <EntitySearchList<T>
+          url={url}
+          params={params}
+          minChars={minChars}
+          active={open}
+          onPick={(entry) => {
+            onChange(entry);
+            setOpen(false);
+          }}
+        />
       </PopoverContent>
     </Popover>
   );

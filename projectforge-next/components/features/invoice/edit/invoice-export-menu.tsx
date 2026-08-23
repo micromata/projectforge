@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { downloadInvoiceWord } from "@/lib/rs/invoice";
-import { InvoiceExportButton } from "../invoice-export-button";
+import { ExportButton } from "@/components/shared/export-button";
 import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
 
 /**
@@ -64,7 +64,7 @@ export function InvoiceExportMenu({
   // for nothing.
   if (invoiceId == null || variants.length === 1) {
     return (
-      <InvoiceExportButton
+      <ExportButton
         tooltip={tooltip}
         label={label}
         isPending={download.isPending}
@@ -78,7 +78,7 @@ export function InvoiceExportMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {/* No `onClick`: the trigger's own opens the menu, and the entries are what downloads. */}
-        <InvoiceExportButton
+        <ExportButton
           tooltip={tooltip}
           label={label}
           isPending={download.isPending}

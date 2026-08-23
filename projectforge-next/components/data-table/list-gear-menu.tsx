@@ -28,8 +28,22 @@ export interface ListGearMenuProps {
   /**
    * Clears the page's own filter state. The endpoint only drops what the server stores, so the
    * visible filter, search string, sorting and column layout have to be reset by the caller.
+   *
+   * Absent for a page that has no filter to reset — the menu then offers only the re-index entries.
    */
-  onFilterReset: () => void;
+  onFilterReset?: () => void;
+  /**
+   * Where the filter this menu resets actually lives.
+   *
+   * `"stored"` (the default) is the entity's `MagicFilter` on the server: the endpoint drops it together
+   * with the grid state, and [onFilterReset] puts the visible state back.
+   *
+   * `"own"` is for a page that keeps its filter somewhere else — the structure tree holds a `TaskFilter`
+   * of its own in the session (see `ListFilterService`). Calling the endpoint there would reset the
+   * *list* perspective's saved filter and column layout as a side effect and not touch the tree's filter
+   * at all, so only [onFilterReset] runs.
+   */
+  filterScope?: "stored" | "own";
   /** Additional entries of a specific list page, appended below the standard ones. */
   children?: ReactNode;
   className?: string;
@@ -46,6 +60,7 @@ export interface ListGearMenuProps {
 export function ListGearMenu({
   entity,
   onFilterReset,
+  filterScope = "stored",
   children,
   className,
 }: ListGearMenuProps) {
@@ -76,8 +91,12 @@ export function ListGearMenu({
   }
 
   async function resetFilter() {
+    if (filterScope === "own") {
+      onFilterReset?.();
+      return;
+    }
     if (!(await run(() => resetListFilter(entity)))) return;
-    onFilterReset();
+    onFilterReset?.();
     // The server dropped the stored filter and grid state with it, so the cached copies of both
     // would otherwise come back on the next mount.
     await queryClient.invalidateQueries({ queryKey: ["listMeta", entity] });
@@ -122,12 +141,14 @@ export function ListGearMenu({
             onSelect={() => void reindex.start(true)}
           />
         )}
-        <GearMenuItem
-          label={tMenu("resetFilter._")}
-          description={tMenu("resetFilter.info")}
-          disabled={running}
-          onSelect={() => void resetFilter()}
-        />
+        {onFilterReset && (
+          <GearMenuItem
+            label={tMenu("resetFilter._")}
+            description={tMenu("resetFilter.info")}
+            disabled={running}
+            onSelect={() => void resetFilter()}
+          />
+        )}
         {children && (
           <>
             <DropdownMenuSeparator />

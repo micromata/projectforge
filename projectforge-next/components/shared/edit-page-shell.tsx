@@ -13,7 +13,22 @@ export interface EditPageShellProps {
    * the tabs that replace the form are appended after them.
    */
   tabs: EditPageTab[];
-  sections: ReactNode[];
+  /**
+   * The cards of the column, in the order of the anchor tabs.
+   *
+   * A function is called with whether its section is the active one — what a folded section needs to
+   * unfold when its tab is clicked (see DeclaredSection). The active index lives here, so passing it
+   * down is the alternative to every section reading the scroll position itself.
+   */
+  sections: (ReactNode | ((active: boolean) => ReactNode))[];
+  /**
+   * Below the last card and inside the same scrolled column — what belongs to the save rather than to
+   * the entity: the change comment of a historizable entry (see HistoryUserCommentField).
+   *
+   * No tab of its own and no section: it is not part of the form the tabs navigate, which is exactly
+   * why the server laid out pages keep it in `layoutBelowActions` instead of in a fieldset.
+   */
+  belowSections?: ReactNode;
   actions?: ReactNode;
   /**
    * Sticky bar between the tab strip and the scrollable content — stays visible while the user
@@ -32,6 +47,7 @@ export function EditPageShell({
   header,
   tabs,
   sections,
+  belowSections,
   actions,
   banner,
   tabPanels,
@@ -59,6 +75,8 @@ export function EditPageShell({
     scrollToSection(pendingSection.current);
     pendingSection.current = null;
   }, [activeTab, scrollToSection]);
+
+  useSectionFromHash(tabs, scrollToSection);
 
   function selectSection(index: number): void {
     if (!activeTab) {
@@ -126,9 +144,12 @@ export function EditPageShell({
               data-active={i === activeIndex}
               className="group/section pt-4"
             >
-              {section}
+              {typeof section === "function"
+                ? section(i === activeIndex)
+                : section}
             </div>
           ))}
+          {belowSections && <div className="pt-4">{belowSections}</div>}
         </div>
         {actions && <div className="shrink-0">{actions}</div>}
       </Activity>
@@ -142,4 +163,29 @@ export function EditPageShell({
       )}
     </div>
   );
+}
+
+/**
+ * Opens the section the URL's hash names, once, on entering the page.
+ *
+ * `/task/42#financeAdministration` is a link to a *part* of a form — the shape a mail or a bookmark
+ * takes when it is about one block of an entry rather than the entry. Without this the form would
+ * always open at its first section and such a link would appear to do nothing.
+ */
+function useSectionFromHash(
+  tabs: EditPageTab[],
+  scrollToSection: (index: number) => void
+) {
+  // The anchor tabs are the sections in order. Joined to a string so the effect isn't rerun for every
+  // fresh array a render produces.
+  const anchorIds = tabs
+    .filter((tab) => !tab.tab)
+    .map((tab) => tab.id)
+    .join(",");
+  useEffect(() => {
+    const index = anchorIds.split(",").indexOf(window.location.hash.slice(1));
+    // Not `>= 0`: the first section is where the page opens anyway, and scrolling to it would undo a
+    // scroll restored by the browser on a reload.
+    if (index > 0) scrollToSection(index);
+  }, [anchorIds, scrollToSection]);
 }

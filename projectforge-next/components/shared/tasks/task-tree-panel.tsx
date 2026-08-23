@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Spinner } from "@/components/shared/spinner";
 import { isSelectableTask, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
+import { TaskTreeActionBar } from "./task-tree-action-bar";
 import { TaskTreeTable } from "./task-tree-table";
 import type { TaskTreePanelProps } from "./types";
 import { useTaskTree } from "./use-task-tree";
@@ -26,11 +27,20 @@ export function TaskTreePanel({
   showRootForAdmins,
   rootSelectable,
   selectMode,
+  pageMode,
   className,
 }: TaskTreePanelProps) {
   const t = useTranslations();
-  const { nodes, grid, filter, setFilter, isLoading, isFetching, toggleNode } =
-    useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
+  const {
+    nodes,
+    grid,
+    filter,
+    setFilter,
+    resetFilter,
+    isLoading,
+    isFetching,
+    toggleNode,
+  } = useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
 
   const toggle = useCallback(
     (task: TaskNode) => {
@@ -65,14 +75,26 @@ export function TaskTreePanel({
           onFilterChange={setFilter}
           onToggle={toggle}
           onSelect={select}
+          pageActions={pageMode}
+          // A select popover picks a task for a form — following the consumption bar to the time
+          // sheets would leave it (see TaskTreeTableProps.linkEnabled).
+          linkEnabled={!selectMode}
+          actionBar={
+            pageMode && <TaskTreeActionBar onFilterReset={resetFilter} />
+          }
         />
       ) : (
         <div className="flex flex-1 items-center justify-center">
           <Spinner />
         </div>
       )}
+      {/* Two hints for two meanings of a click: on the page a row opens the task's own form, in a
+          select field it picks the task for something else. `task.tree.info` is the text Wicket puts
+          below its tree page (TaskTreePage's "info" label). */}
       <Alert>
-        <AlertDescription>{t("task.selectPanel.info")}</AlertDescription>
+        <AlertDescription>
+          {t(pageMode ? "task.tree.info" : "task.selectPanel.info")}
+        </AlertDescription>
       </Alert>
     </div>
   );

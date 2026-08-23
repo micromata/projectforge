@@ -102,51 +102,77 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
   }
 
   /**
-   * Whole-number field, bounded by the range the caller passes.
+   * The bounds of a numeric field: `@PropertyInfo(min = …, max = …)` of the entity, which the backend
+   * enforces itself (`ValidationUtils.validateFields`) — declared on the property, so the form only
+   * spares the user a round trip instead of stating a second rule.
    *
-   * The bounds are the one rule that does *not* come from the metadata: the generator drops
-   * `@Column(length = 3)` for non-strings, and a column length is a digit count anyway, not a
-   * `max = 999`. So a caller declares the range once next to the field (see
-   * `cost-number-segments.ts`) and the authority stays the backend's own check — a value the entity
-   * rejects still comes back as an HTTP 406 (`Kost1Dao.verifyKost`).
+   * `overrides` is for the ranges not (yet) on the entity: a cost number's segments, which the
+   * `SegmentedNumberField` needs per segment anyway (see `cost-number-segments.ts`). What the entity
+   * declares wins, so a range moved into the annotation cannot be silently contradicted here.
+   */
+  function bounds(
+    name: FieldName<M>,
+    overrides: { min?: number; max?: number }
+  ): { min?: number; max?: number } {
+    const meta = field(name);
+    return {
+      min: meta.min ?? overrides.min,
+      max: meta.max ?? overrides.max,
+    };
+  }
+
+  function withBounds<T extends z.ZodType<number | null, number | null>>(
+    schema: T,
+    { min, max }: { min?: number; max?: number }
+  ): z.ZodType<number | null, number | null> {
+    let result: z.ZodType<number | null, number | null> = schema;
+    if (min !== undefined) {
+      result = result.refine((v) => v == null || v >= min, minMarker(min));
+    }
+    if (max !== undefined) {
+      result = result.refine((v) => v == null || v <= max, maxMarker(max));
+    }
+    return result;
+  }
+
+  /**
+   * Whole-number field, bounded by what the entity declares (see [bounds]).
    *
    * `nullable`, and mandatory means "not null" rather than "not zero": an emptied box must be
    * reportable as missing instead of silently saving a 0, which would be a different, valid number.
    */
   function intField(
     name: FieldName<M>,
-    { min, max }: { min?: number; max?: number } = {}
+    overrides: { min?: number; max?: number } = {}
   ) {
-    let schema = z
+    let schema: z.ZodType<number | null, number | null> = z
       .number()
       .nullable()
       .refine((v) => v == null || Number.isInteger(v), INTEGER);
     if (field(name).required) {
       schema = schema.refine((v): boolean => v != null, REQUIRED);
     }
-    if (min !== undefined) {
-      schema = schema.refine((v) => v == null || v >= min, minMarker(min));
-    }
-    if (max !== undefined) {
-      schema = schema.refine((v) => v == null || v <= max, maxMarker(max));
-    }
-    return schema;
+    return withBounds(schema, bounds(name, overrides));
   }
 
   /**
    * Decimal field — an amount, a quantity of person days: a `BigDecimal` of the entity, which travels
-   * as a JSON number and is held as one.
+   * as a JSON number and is held as one. Bounded by what the entity declares, as [intField].
    *
-   * No bounds and no digit count: `@Column(precision, scale)` is not carried by the generated metadata,
-   * and a scale is a rounding rule rather than a validation one — the backend rounds what it stores.
-   * `nullable` for the same reason as [intField]: an emptied box must be reportable as missing instead
-   * of silently saving a 0, which is a different, valid amount.
+   * No digit count: `@Column(precision, scale)` is not carried by the generated metadata, and a scale
+   * is a rounding rule rather than a validation one — the backend rounds what it stores. `nullable`
+   * for the same reason as [intField]: an emptied box must be reportable as missing instead of
+   * silently saving a 0, which is a different, valid amount.
    */
-  function decimalField(name: FieldName<M>) {
-    const schema = z.number().nullable();
-    return field(name).required
-      ? schema.refine((v): boolean => v != null, REQUIRED)
-      : schema;
+  function decimalField(
+    name: FieldName<M>,
+    overrides: { min?: number; max?: number } = {}
+  ) {
+    let schema: z.ZodType<number | null, number | null> = z.number().nullable();
+    if (field(name).required) {
+      schema = schema.refine((v): boolean => v != null, REQUIRED);
+    }
+    return withBounds(schema, bounds(name, overrides));
   }
 
   /**

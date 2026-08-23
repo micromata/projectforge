@@ -157,12 +157,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     } else {
       auftrag.copyFrom(obj)
     }
-    auftrag.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
-    auftrag.writeAccess = if (obj.id == null) {
-      baseDao.hasLoggedInUserInsertAccess(obj, false)
-    } else {
-      baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
-    }
+    // writeAccess/deleteAccess are filled generically by AbstractEntityRest.getById, see
+    // EntityAccessSupport. Only the per-field right below is specific to an order.
     // Changeable only for the accounting staff with the invoice right, which is what
     // AuftragRight.hasAccess enforces on write. Wicket offers the checkbox to a non-finance user anyway
     // and lets the save fail with `fibu.auftrag.error.vollstaendigFakturiertProtection`; the next form

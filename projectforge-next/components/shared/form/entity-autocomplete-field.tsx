@@ -4,6 +4,7 @@ import {
   EntityAutocomplete,
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
+import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import {
   FieldShell,
   useFieldIds,
@@ -22,6 +23,11 @@ export interface EntityAutocompleteFieldProps extends BaseFieldProps {
   entity: string;
   /** Characters before the lookup fires; the backend defaults it to 2. */
   minChars?: number;
+  /**
+   * Further request parameters of that search — `{projektId}` narrows the cost units to one project's
+   * (see EntityAutocomplete).
+   */
+  params?: Record<string, unknown>;
   /** Called after the value changed, for a field that fills others from it (project → customer). */
   onPicked?: (value: EntityRef | null) => void;
   /**
@@ -47,6 +53,7 @@ export function EntityAutocompleteField({
   className,
   entity,
   minChars,
+  params,
   onPicked,
   metadataLess,
 }: EntityAutocompleteFieldProps) {
@@ -54,6 +61,10 @@ export function EntityAutocompleteField({
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const { required } = useFieldMetadata(name, metadataLess);
+  // Only where a person is asked for: a field picking oneself is what the legacy UserSelect offers as
+  // its „select me" smiley, and it means nothing for a project or a cost unit.
+  const me = useCurrentUserRef();
+  const selectMe = entity === "user" ? me : null;
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -78,6 +89,8 @@ export function EntityAutocompleteField({
               url={`${entity}/autosearch?search=:search`}
               value={(field.state.value as EntityRef | null) ?? null}
               minChars={minChars}
+              params={params}
+              selectMe={selectMe}
               onChange={(value) => {
                 field.handleChange(value);
                 // Blurring by hand: the picker is a popover, so nothing else ever marks the field

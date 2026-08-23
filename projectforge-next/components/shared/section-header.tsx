@@ -1,8 +1,11 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface SectionHeaderProps {
   title: string;
   className?: string;
+  /** Before the title — the chevron of a section that folds (see DeclaredSection). */
+  leading?: ReactNode;
 }
 
 /**
@@ -10,9 +13,14 @@ export interface SectionHeaderProps {
  * one — the outline around the card is [SectionCard]'s part of that, and the rule inside it stays
  * neutral so the two don't compete.
  */
-export function SectionHeader({ title, className }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  className,
+  leading,
+}: SectionHeaderProps) {
   return (
     <div className={cn("mb-4 flex items-center gap-3.5", className)}>
+      {leading}
       <span className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-foreground/85 transition-colors group-data-[active=true]/section:text-primary">
         {title}
       </span>

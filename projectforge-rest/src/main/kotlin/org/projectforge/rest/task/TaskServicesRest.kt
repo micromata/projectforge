@@ -27,6 +27,8 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.NextMigration
 import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostHelper
 import org.projectforge.business.task.*
 import org.projectforge.business.user.ProjectForgeGroup
@@ -37,12 +39,14 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
@@ -62,6 +66,64 @@ import java.math.BigDecimal
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
     class Kost2(val id: Long, val title: String)
+
+    /**
+     * The project a task's cost units come from, resolved by walking up the tree
+     * ([TaskTree.getProjekt]) — so a task without a project of its own reports its ancestor's, which is
+     * the one its kost2 list is built from.
+     */
+    class Projekt(
+        val id: Long?,
+        val name: String?,
+        /**
+         * The cost number of the project without the two Kost2Art digits, e. g. `5.123.45`
+         * ([ProjektDO.kost]). What the Wicket form shows as `<kost>.*` next to the black/white list.
+         */
+        val kost: String?,
+    )
+
+    /**
+     * The state of the kost2 block of the task form, for a list that is not saved yet: everything derived
+     * from `kost2BlackWhiteList` + `kost2IsBlackList` the client cannot derive itself.
+     *
+     * Not reimplemented in TypeScript on purpose. [TaskTree.getKost2List] matches the entries of the list
+     * as suffixes against the active cost units of the project (`KostCache`), and [TaskHelper.addKost2]
+     * abbreviates a picked unit to its two Kost2Art digits — except for a task that has no id but a parent,
+     * where it appends the full number. A copy of that would have to duplicate the number format, the
+     * Kost2Art ids and the project resolution.
+     */
+    class Kost2Preview(
+        /** The black/white list, normalized and sorted ([TaskHelper.normalizeKost2BlackWhiteList]). */
+        val kost2BlackWhiteList: String?,
+        /** [Projekt.kost] of the resolved project, or null if the task has none. */
+        val projektKost: String?,
+        /** The resulting cost units in wild card form, e. g. `5.123.45.*`. */
+        val kost2WildCard: String?,
+        /** The resulting cost units, one formatted number per line — the Wicket tooltip's content. */
+        val kost2ListAsLines: String?,
+    )
+
+    /**
+     * What the client asks a [Kost2Preview] for: the black/white list as the user has it in the form,
+     * plus the task it belongs to.
+     */
+    class Kost2PreviewRequest(
+        /** Id of the task being edited, null while it is being added. */
+        var id: Long? = null,
+        /**
+         * Id of the parent task. The only way to resolve the project of a task that has no id yet, and
+         * what `TaskHelper.addKost2` and `TaskDao.hasAccessForKost2AndTimesheetBookingStatus` fall back
+         * on (Wicket passes the parent for the same reason, see `TaskEditForm.onBeforeRender`).
+         */
+        var parentTaskId: Long? = null,
+        var kost2BlackWhiteList: String? = null,
+        var kost2IsBlackList: Boolean = false,
+        /**
+         * A cost unit just picked from the list, to be appended before the preview is computed — one round
+         * trip instead of two, because after a pick the client needs the new preview anyway.
+         */
+        var addKost2Id: Long? = null,
+    )
 
     /**
      * One order having at least one position assigned to a task, as the tree's `Aufträge` column shows
@@ -110,6 +172,18 @@ class TaskServicesRest {
          * Wild card form of kost2List, e. g. 5.123.456.*
          */
         var kost2WildCard: String? = null,
+        /**
+         * The project the cost units come from, resolved through the ancestors. Only filled by
+         * [createTask] (`info/{id}`), not per tree node: the edit form needs it to show `<kost>.*` and to
+         * prefilter the cost unit picker, the tree shows the units themselves.
+         */
+        var projekt: Projekt? = null,
+        /**
+         * Whether cost units are configured at all ([Configuration.isCostConfigured]) — the gate for
+         * showing the kost2 block of the form in the first place, as in `TaskEditForm.init`. Not
+         * derivable from an empty `projekt`: a task simply without a project looks the same.
+         */
+        var costConfigured: Boolean? = null,
         var path: List<Task>? = null,
         var consumption: Consumption? = null,
         var orderList: MutableList<Order>? = null,
@@ -196,13 +270,25 @@ class TaskServicesRest {
         /** REST category of the order book (`OrderEntityRest`), whose page an order link leads to. */
         private const val ORDER_CATEGORY = "order"
 
-        /** The groups that may see which orders are booked against a task, as `TaskTreePage` has it. */
-        private val ORDER_GROUPS = arrayOf(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP,
-            ProjectForgeGroup.PROJECT_ASSISTANT,
-            ProjectForgeGroup.PROJECT_MANAGER,
-        )
+        /**
+         * The fields the type-ahead searches, as `TaskSelectAutoCompleteFormComponent.SEARCH_FIELDS`:
+         * the title and `taskpath`, the class bridge holding the titles of all ancestors
+         * ([org.projectforge.business.task.HibernateSearchTaskPathBridge]).
+         */
+        private val AUTOCOMPLETE_SEARCH_FIELDS = arrayOf("title", "taskpath")
+
+        /**
+         * The path of a task as one line, `Structure | Customer | Development` — the label of a type-ahead
+         * hit, built as Wicket's `createPath` builds it. [TaskTree.getPathToRoot] ends at the task itself
+         * and leaves the root out, so the root task alone has an empty path and is named instead.
+         */
+        private fun formatPath(taskId: Long?): String {
+            val path = TaskTree.instance.getPathToRoot(taskId)
+            if (path.isEmpty()) {
+                return translate("task.path.rootTask")
+            }
+            return path.joinToString(" | ") { it.task.title ?: "" }
+        }
 
         fun createTask(id: Long?): Task? {
             if (id == null)
@@ -212,6 +298,8 @@ class TaskServicesRest {
             val task = Task(taskNode)
             addKost2List(task)
             addTimesheetReferenceList(task)
+            task.costConfigured = Configuration.instance.isCostConfigured
+            task.projekt = taskTree.getProjekt(id)?.let { Projekt(it.id, it.name, it.kost) }
             task.consumption = Consumption.create(taskNode)
             val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
             val pathArray = mutableListOf<Task>()
@@ -300,26 +388,13 @@ class TaskServicesRest {
         val withOrders: Boolean = false,
     )
 
-    /**
-     * Which of the tree's optional columns to show: one is shown if any task in the tree has a value for
-     * it, as the Wicket page does (`TaskTreeBuilder.createColumns`), so a tree without a single reference
-     * doesn't carry an empty Reference column across the screen.
-     *
-     * Over the whole tree rather than over the answer, because the answer is a moving target — it depends
-     * on the filter, on which nodes are open and on the highlighted node, and the columns would come and
-     * go with every click. The tree is held in memory, so this costs no query.
-     */
-    private class ColumnVisibility(
-        val orders: Boolean = false,
-        val protectTimesheetsUntil: Boolean = false,
-        val reference: Boolean = false,
-        val priority: Boolean = false,
-    )
-
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var listFilterService: ListFilterService
@@ -337,43 +412,15 @@ class TaskServicesRest {
     private lateinit var agGridSupport: AGGridSupport
 
     /**
-     * Which optional columns the tree has data for, and which of them this user may see at all.
-     *
-     * The access rules are the Wicket page's (`TaskTreePage.onInitialize`): orders for project staff and
-     * above, the timesheet protection for financial staff only.
-     */
-    private fun columnVisibility(): ColumnVisibility {
-        val maySeeOrders = accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS)
-        val maySeeProtection = accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
-        // One walk over the tasks in memory, so a column that nothing fills doesn't show up empty.
-        val tasks = mutableListOf<TaskDO>()
-        collectTasks(taskTree.rootTaskNode, tasks)
-        return ColumnVisibility(
-            orders = maySeeOrders && taskTree.hasOrderPositionsEntries(),
-            protectTimesheetsUntil = maySeeProtection && tasks.any { it.protectTimesheetsUntil != null },
-            reference = tasks.any { !it.reference.isNullOrBlank() },
-            priority = tasks.any { it.priority != null },
-        )
-    }
-
-    /**
-     * The node's task and those of all its descendants, depth first.
-     *
-     * Own walk rather than [TaskTree.getDescendants]: that one only collects the direct children.
-     */
-    private fun collectTasks(node: TaskNode, result: MutableList<TaskDO>) {
-        result.add(node.task)
-        node.children.forEach { collectTasks(it, result) }
-    }
-
-    /**
      * The columns of the task tree, in the order the Wicket page shows them.
      *
      * @param columns Which optional columns have data. All off for the select mode, whose popover only
      * has room for the narrow ones anyway.
      * @return MutableList of UIAgGridColumnDef with all default columns
      */
-    private fun createDefaultColumnDefs(columns: ColumnVisibility = ColumnVisibility()): MutableList<UIAgGridColumnDef> {
+    private fun createDefaultColumnDefs(
+        columns: TaskColumnVisibility = TaskColumnVisibility()
+    ): MutableList<UIAgGridColumnDef> {
         val lc = LayoutContext(TaskDO::class.java)
         val kost2Visible = Configuration.instance.isCostConfigured
         val columnDefs = mutableListOf<UIAgGridColumnDef>()
@@ -532,7 +579,7 @@ class TaskServicesRest {
             // answer needn't carry them (see createDefaultColumnDefs). Access as the Wicket page has it
             // (TaskTreePage.onInitialize): orders for project staff and above.
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
-                    accessChecker.isLoggedInUserMemberOfGroup(*ORDER_GROUPS),
+                    accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
         )
         if (highlightedTaskId != null) {
             ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
@@ -561,7 +608,10 @@ class TaskServicesRest {
             // the extra ones (orders, reference, priority, protection) don't fit and aren't what the user
             // picks a task by.
             result.columnDefs.addAll(
-                createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
+                createDefaultColumnDefs(
+                    if (selectMode) TaskColumnVisibility()
+                    else TaskColumnVisibility.of(accessChecker, taskTree)
+                )
             )
 
             // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest). The mode is
@@ -603,6 +653,95 @@ class TaskServicesRest {
     fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
         val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
+    }
+
+    /**
+     * The tasks a typed term matches, as `{id, displayName}` — the type-ahead beside the tree of the task
+     * select field (Wicket's `TaskSelectAutoCompleteFormComponent`).
+     *
+     * Everything about it is that component's: the two search fields (`title` and the indexed `taskpath`,
+     * so a term matches a task's ancestors as well), the search itself ([TaskDao.select], which sorts by
+     * title, drops what the user may not see and — through the [TaskFilter] it wraps a plain filter in —
+     * leaves closed tasks out), and the label, which is the whole path rather than the bare title: in a
+     * deep tree two tasks called "Development" are told apart by nothing else.
+     *
+     * Not `task/autosearch`: that name belongs to [org.projectforge.rest.task.TaskPagesRest], which
+     * inherits it without declaring `autoCompleteSearchFields` — hence the `tree/` prefix, as for the grid
+     * state above. The answer is a `DisplayObject` all the same, so the client's shared picker
+     * (`EntitySearchList`) needs nothing of its own.
+     *
+     * An empty term is answered with the head of the list, because a picker asks that way as soon as it is
+     * opened (see `useEntityLookup`); Wicket's field, which only ever searches on two typed characters,
+     * never sees that case.
+     */
+    @GetMapping("tree/autosearch")
+    fun autosearch(
+        @RequestParam("search") search: String?,
+        @RequestParam("maxResults") maxResults: Int?,
+    ): List<AbstractEntityRest.DisplayObject> {
+        val filter = BaseSearchFilter()
+        filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
+        filter.searchString = search
+        maxResults?.let { filter.maxRows = it }
+        return taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+    }
+
+    /**
+     * The root of the structure tree, as `{id, displayName}`.
+     *
+     * Every task needs a parent — `TaskDao.checkConstraintVioloation` refuses one without it — and a caller
+     * that wants to add a top level element has to name the root, which only the server knows. Wicket's
+     * structure wizard does exactly that for its "create structure element" link
+     * (`TaskWizardForm`, `TaskTree.getRootTaskNode`); the client here needs the id to build the same url.
+     *
+     * Nothing to protect: the root's id is in every tree answer an admin sees, and its name is the
+     * installation's own (`task.path.rootTask`). Whether a user may add below it is the DAO's decision, not
+     * this endpoint's.
+     */
+    @GetMapping("tree/root")
+    fun getRoot(): AbstractEntityRest.DisplayObject {
+        val rootId = TaskTree.instance.rootTaskNode.id
+        return AbstractEntityRest.DisplayObject(rootId, formatPath(rootId))
+    }
+
+    /**
+     * What the kost2 block of the task form would resolve to for a black/white list the user has typed but
+     * not saved — and, with [Kost2PreviewRequest.addKost2Id], the list with a picked cost unit appended.
+     *
+     * Wicket recomputes this locally on every render from the unsaved form model
+     * (`TaskEditForm`, the tooltip of `projektKostLabel`); a hand built page has to ask, because the three
+     * calls behind it need the cost cache, the project of the task and the number format.
+     *
+     * Read only, but a POST: the black/white list is form content, and a GET would carry it in the url and
+     * into every log.
+     */
+    @PostMapping("kost2Preview")
+    fun getKost2Preview(@RequestBody request: Kost2PreviewRequest): ResponseEntity<Kost2Preview> {
+        // The task as the form has it, not as the database has it: the preview is about the unsaved list.
+        // Access is not checked - nothing is written, and what may be seen is the cost units of a project,
+        // which the tree shows to everybody who may see the task. A task id that doesn't exist resolves no
+        // project and answers an empty preview.
+        val task = TaskDO()
+        task.id = request.id
+        request.parentTaskId?.let { taskDao.setParentTask(task, it) }
+        task.kost2IsBlackList = request.kost2IsBlackList
+        task.kost2BlackWhiteList = request.kost2BlackWhiteList
+        request.addKost2Id?.let { kost2Id ->
+            // Appends the two Kost2Art digits, or the whole number - see TaskHelper.addKost2, whose
+            // branches are the reason this is not done in the client.
+            task.kost2BlackWhiteList = TaskHelper.addKost2(taskTree, task, kostCache.getKost2(kost2Id))
+        }
+        val projekt = taskTree.getProjekt(task.id ?: task.parentTaskId)
+        val kost2List = taskTree.getKost2List(projekt, task, task.kost2BlackWhiteItems, task.kost2IsBlackList)
+        return ResponseEntity(
+            Kost2Preview(
+                kost2BlackWhiteList = TaskHelper.normalizeKost2BlackWhiteList(task),
+                projektKost = projekt?.kost,
+                kost2WildCard = kost2List?.let { KostHelper.getWildCardString(it, "*") },
+                kost2ListAsLines = kost2List?.let { KostHelper.getFormattedNumberLines(it) },
+            ),
+            HttpStatus.OK,
+        )
     }
 
     /**
@@ -741,8 +880,10 @@ class TaskServicesRest {
 
         // The same set the initial call would send, so "reset" restores what the user started with.
         val agGrid = UIAgGrid("taskTree")
-        createDefaultColumnDefs(if (selectMode) ColumnVisibility() else columnVisibility())
-            .forEach { agGrid.add(it) }
+        createDefaultColumnDefs(
+            if (selectMode) TaskColumnVisibility()
+            else TaskColumnVisibility.of(accessChecker, taskTree)
+        ).forEach { agGrid.add(it) }
 
         // Create ResponseAction using AGGridSupport helper
         return agGridSupport.createResetGridStateResponse(agGrid)

@@ -57,6 +57,30 @@ public @interface PropertyInfo {
   boolean required() default false;
 
   /**
+   * Smallest / largest value a numeric property accepts, as a decimal literal ("0", "100", "9999.99").
+   * Empty means unbounded, which is the default: most numbers are bounded by their column, not by a
+   * rule of the domain.
+   * <p>
+   * The one numeric rule the JPA {@code @Column} cannot express: {@code length} is a digit count, and
+   * {@code precision}/{@code scale} are a storage size, neither of them a "0 to 100 percent". Wicket
+   * says it per form field ({@code MinMaxNumberField}), which is why the rule only ever applied to
+   * Wicket; declared here it reaches every client — the automatic validation of
+   * {@code ValidationUtils.validateFields} and, through the generated metadata, the forms of
+   * projectforge-next.
+   * <p>
+   * A string and not a {@code double}: an annotation may only hold compile-time constants, and a
+   * {@code BigDecimal} bound written as a floating point number is no longer the bound that was meant.
+   * Parsed once by {@code ElementsRegistry}, so a malformed literal fails at startup rather than
+   * silently dropping the rule.
+   */
+  String min() default "";
+
+  /**
+   * @see #min()
+   */
+  String max() default "";
+
+  /**
    * @see PropertyType
    */
   PropertyType type() default PropertyType.UNSPECIFIED;

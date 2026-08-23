@@ -27,7 +27,9 @@ import type { TaskNode } from "@/lib/rs/task";
  */
 export function useTaskTreeColumns(
   grid: AgGridNode | undefined,
-  onToggle: (task: TaskNode) => void
+  onToggle: (task: TaskNode) => void,
+  /** Whether a cell may link away from the tree, see [CellRenderProps.linkEnabled]. */
+  linkEnabled: boolean
 ): ColumnDef<TaskNode, unknown>[] {
   const formatCtx = useFormatContext();
   const t = useTranslations();
@@ -58,6 +60,7 @@ export function useTaskTreeColumns(
             row: row.original as Record<string, unknown>,
             ctx: formatCtx,
             t,
+            linkEnabled,
           };
           return spec.kind === "tree" ? (
             <TreeCell {...props} onToggle={() => onToggle(row.original)} />
@@ -67,5 +70,5 @@ export function useTaskTreeColumns(
         },
       } satisfies ColumnDef<TaskNode, unknown>;
     });
-  }, [grid, formatCtx, t, onToggle]);
+  }, [grid, formatCtx, t, onToggle, linkEnabled]);
 }

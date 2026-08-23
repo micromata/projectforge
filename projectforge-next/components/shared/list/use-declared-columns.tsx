@@ -76,12 +76,20 @@ export function useDeclaredColumns<
         ...(isField
           ? { accessorKey: name }
           : { id: name, accessorFn: declaration.accessor }),
-        meta: { label, align, filterKind: filterKind ?? undefined },
+        meta: {
+          label,
+          align,
+          filterKind: filterKind ?? undefined,
+          wrap: declaration.wrap,
+        },
         // Left to the table's default (sortable) unless the declaration opts out — see
         // ColumnBase.sortable.
         ...(declaration.sortable === false ? { enableSorting: false } : {}),
         size: declaration.size,
         minSize: declaration.minSize,
+        // Only where the declaration says so: the default is sortable, and the header renders no sort
+        // control for a column that isn't (see ColumnBase.sortable).
+        ...(declaration.sortable === false ? { enableSorting: false } : {}),
         header: ({ column, table }) => (
           <DataTableColumnHeader
             column={column}

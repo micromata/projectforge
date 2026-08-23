@@ -151,6 +151,15 @@ object NextMigration {
             newEntryRoute = "cost1/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
+        // way back leads. Hand built rather than generic because the React list has a filter of its own
+        // (the group type) and an Excel export, neither of which the generic UILayout route renders.
+        "group" to NextPage(
+            route = "group",
+            editRoute = "group/$ID_PLACEHOLDER",
+            newEntryRoute = "group/new",
+            legacyApp = LegacyApp.REACT,
+        ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
         // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back
@@ -177,6 +186,23 @@ object NextMigration {
             route = "invoice",
             editRoute = "invoice/$ID_PLACEHOLDER",
             newEntryRoute = "invoice/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
+        // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
+        // *list* perspective of the entity, /next/task, as for every other page - the structure tree is
+        // a second next page of the same entity, under a route of its own (/next/taskTree, served by
+        // TaskServicesRest rather than by a list layout). Only one of the two can be a NextPage.route,
+        // and it has to be the list: every server side redirect for the category `task` goes through
+        // [listUrl], and a redirect after a save must not land on the tree.
+        // Which of the two the menu opens is [nextRouteUrl]'s answer, not this route's (see
+        // MenuItemDefId.TASK_TREE). The legacy routes follow Wicket's convention - taskList / taskEdit
+        // are its mount points (WebRegistry, DaoConst.TASK) - so none has to be spelled out; the tree
+        // page names wa/taskTree itself, which is where the two entries of that page next has not
+        // migrated still are (the task favourites and the task wizard).
+        "task" to NextPage(
+            route = "task",
+            editRoute = "task/$ID_PLACEHOLDER",
+            newEntryRoute = "task/new",
             legacyApp = LegacyApp.WICKET,
         ),
     )
@@ -242,6 +268,24 @@ object NextMigration {
      */
     fun listUrl(category: String): String {
         return "${appPath(category)}${routeOrCategory(category)}"
+    }
+
+    /**
+     * A *second* next page of an already migrated entity, under a route the category doesn't name.
+     *
+     * Only for a page whose entity has more than one perspective in projectforge-next: the task has its
+     * list (`next/task`, the [NextPage.route]) and its structure tree (`next/taskTree`), and the menu
+     * entry opens the tree while every redirect for the category goes to the list. The route cannot be
+     * derived from the category, so the caller names it - and it stays tied to [MIGRATED] all the same:
+     * as long as the entity isn't migrated, the answer is the legacy url the caller passes.
+     *
+     * @param category The REST category the page belongs to, e.g. `task`.
+     * @param route The route inside projectforge-next, without the `next/` prefix, e.g. `taskTree`.
+     * @param legacyUrl The url to use while [category] is not migrated, e.g. `wa/taskTree`.
+     * @return e.g. `next/taskTree`, or [legacyUrl].
+     */
+    fun nextRouteUrl(category: String, route: String, legacyUrl: String): String {
+        return if (isMigrated(category)) "${Constants.NEXT_APP_PATH}$route" else legacyUrl
     }
 
     /**

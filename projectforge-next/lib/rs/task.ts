@@ -20,6 +20,48 @@ export interface TaskKost2 {
 }
 
 /**
+ * The project a task's cost units come from, `TaskServicesRest.Projekt` — resolved through the
+ * ancestors, so a task without a project of its own reports the one it inherits.
+ */
+export interface TaskProjekt {
+  id?: number | null;
+  name?: string | null;
+  /** The cost number without the two Kost2Art digits, e.g. `5.123.45` — shown as `<kost>.*`. */
+  kost?: string | null;
+}
+
+/**
+ * A task's booked-versus-planned effort, `rest/task/Consumption.kt` — pre-rendered by the backend,
+ * because the percentage, the wording and the colour all follow rules only it knows (the "finished"
+ * flag, the person-day unit, the user's number format).
+ *
+ * Declared here rather than beside the cell that paints it: both perspectives of a task carry the
+ * same value — the tree sends it per node, the list per row (`Task.copyFrom4ListRow`).
+ */
+export interface TaskConsumption {
+  /** Already localised, e.g. "350PT/188PT (186%)" — the bar's tooltip. */
+  title?: string;
+  /** One of the `progress-*` names of `Consumption.Status`, which picks the bar's colour. */
+  status?: string;
+  percentage?: number;
+  /** Capped at 100, unlike `percentage` — the width the bar is painted with. */
+  barPercentage?: number;
+}
+
+/**
+ * One order booked against a task, `TaskServicesRest.Task.Order`.
+ *
+ * The `url` is the backend's: the order's page may be Wicket's or this app's, which only
+ * `NextMigration` knows.
+ */
+export interface TaskOrder {
+  number: string;
+  title?: string;
+  text?: string;
+  url?: string;
+}
+
+/**
  * One node, `TaskServicesRest.Task`. Only the fields the backend actually sends, and only for the
  * two shapes this app asks for: the flat tree (`table=true`) and a single task (`info/{id}`).
  *
@@ -43,6 +85,10 @@ export interface TaskNode {
   kost2List?: TaskKost2[];
   /** Only sent by `info/{id}`: the ancestors, root first, *excluding* the task itself. */
   path?: TaskNode[];
+  /** Only sent by `info/{id}`: the project the cost units come from (see FinanceSection). */
+  projekt?: TaskProjekt | null;
+  /** Only sent by `info/{id}`: whether cost units are configured at all (`Configuration`). */
+  costConfigured?: boolean;
   /**
    * The tree's root node, sent last and only to admins and financial staff (`showRootForAdmins`).
    *
@@ -187,4 +233,123 @@ export function fetchTaskInfo(
   signal?: AbortSignal
 ): Promise<TaskNode> {
   return request<TaskNode>(`/rs/task/info/${id}`, { method: "GET" }, signal);
+}
+
+/**
+ * The root of the structure tree, `{id, displayName}` — the parent every top level element hangs below.
+ *
+ * Asked for rather than assumed: a task without a parent is refused
+ * (`TaskDao.checkConstraintVioloation`), and which task is the root is the server's knowledge. The
+ * caller is the wizard's "create structure element" link, which presets it as the parent exactly as
+ * Wicket does (see TaskServicesRest.getRoot).
+ */
+export function fetchRootTask(
+  signal?: AbortSignal
+): Promise<TaskDisplayObject> {
+  return request<TaskDisplayObject>(
+    `/rs/task/tree/root`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/** A task as `AbstractEntityRest.DisplayObject` — id plus the label the backend built for it. */
+export interface TaskDisplayObject {
+  id: number;
+  displayName?: string;
+}
+
+/** What the client asks a preview for, `TaskServicesRest.Kost2PreviewRequest`. */
+export interface Kost2PreviewRequest {
+  /** Id of the task being edited, null while it is being added. */
+  id?: number | null;
+  /** The only way to resolve the project of a task that has no id yet. */
+  parentTaskId?: number | null;
+  kost2BlackWhiteList?: string | null;
+  kost2IsBlackList: boolean;
+  /** A cost unit just picked, appended by the backend before the preview is computed. */
+  addKost2Id?: number | null;
+}
+
+/** `TaskServicesRest.Kost2Preview`. */
+export interface Kost2Preview {
+  /** The list, normalized and sorted — what the form's field is set to after a pick. */
+  kost2BlackWhiteList?: string | null;
+  /** The cost number of the resolved project, or null if the task has none. */
+  projektKost?: string | null;
+  /** The resulting cost units in wild card form, e.g. `5.123.45.*`. */
+  kost2WildCard?: string | null;
+  /** The resulting cost units, one formatted number per line — the Wicket tooltip's content. */
+  kost2ListAsLines?: string | null;
+}
+
+/**
+ * What the kost2 block of the task form resolves to for a black/white list the user has typed but not
+ * saved — and, with `addKost2Id`, for the list with a picked cost unit appended.
+ *
+ * Asked rather than computed here: the three calls behind it need the cost cache, the project of the
+ * task and the number format, and `TaskHelper.addKost2` has a branch a TypeScript copy would get wrong
+ * (see the backend's own note on `Kost2Preview`).
+ *
+ * A POST although nothing is written: the list is form content, and a GET would carry it in the url and
+ * into every log.
+ */
+export function postKost2Preview(
+  body: Kost2PreviewRequest,
+  signal?: AbortSignal
+): Promise<Kost2Preview> {
+  return request<Kost2Preview>(
+    "/rs/task/kost2Preview",
+    { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
+}
+
+/** `TaskWizardRest.ExecuteRequest`. All three groups are optional; the task is not. */
+export interface TaskWizardRequest {
+  taskId: number;
+  managerGroupId?: number | null;
+  teamGroupId?: number | null;
+  externalGroupId?: number | null;
+}
+
+/** What became of one access entry, `TaskWizardService.AccessStatus`. */
+export type TaskWizardAccessStatus = "CREATED" | "UPDATED" | "UNCHANGED";
+
+/** The role a group was granted, `TaskWizardService.GroupType`. */
+export type TaskWizardGroupType = "MANAGER" | "TEAM" | "EXTERNAL";
+
+/** `TaskWizardRest.AccessEntry`: one access entry the wizard looked at. */
+export interface TaskWizardAccessEntry {
+  groupName?: string | null;
+  groupType: TaskWizardGroupType;
+  taskId: number;
+  taskTitle?: string | null;
+  /** True for the element the user picked, false for an ancestor that only got read access. */
+  pickedElement: boolean;
+  status: TaskWizardAccessStatus;
+}
+
+/** `TaskWizardRest.ExecuteResponse`. */
+export interface TaskWizardResult {
+  taskTitle?: string | null;
+  /** Access entries the wizard touched over all groups, the ancestors' and the unchanged included. */
+  accessEntries: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  /** The single entries behind those numbers, the picked element's first per group. */
+  entries: TaskWizardAccessEntry[];
+}
+
+/** Grants the chosen groups their rights on the structure element and read access on its ancestors. */
+export function executeTaskWizard(
+  body: TaskWizardRequest,
+  signal?: AbortSignal
+): Promise<TaskWizardResult> {
+  return request<TaskWizardResult>(
+    "/rs/taskWizard/execute",
+    { method: "POST", body: JSON.stringify(body) },
+    signal
+  );
 }

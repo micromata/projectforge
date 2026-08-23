@@ -26,6 +26,12 @@ interface WriteOptions {
   listQueryKey: readonly unknown[];
 }
 
+/** Query parameters of a preset — see [useEntityDetail]'s `newParams`. */
+export type NewEntryParams = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
+
 /**
  * The entity being edited, or — for id null — the preset one an "add" starts from.
  *
@@ -33,13 +39,27 @@ interface WriteOptions {
  * looks like is the backend's decision (`newBaseDTO`), and an order in particular cannot be saved
  * without the status it presets there. The two cases share the query so the form's reset path is the
  * same for both.
+ *
+ * @param newParams Parameters for the preset, ignored for an existing entity — the tree's "add
+ *   subtask" passes `{parentTaskId}`, which `TaskPagesRest.newBaseDO` reads. Part of the query key,
+ *   so two presets of the same entity are two cache entries; a call without them keeps the plain
+ *   `[entity, id]` key that every cache read of a loaded entity uses.
  */
-export function useEntityDetail<T>(entity: string, id: number | null) {
+export function useEntityDetail<T>(
+  entity: string,
+  id: number | null,
+  newParams?: NewEntryParams
+) {
   const isNew = id == null;
+  // Only what is actually asked for reaches the key: an empty object would make `[entity, id, {}]`
+  // out of every call and part the form's own read from the cache entry beside it.
+  const params = isNew ? nonEmpty(newParams) : undefined;
   return useQuery<T>({
-    queryKey: [entity, id],
+    queryKey: params ? [entity, id, params] : [entity, id],
     queryFn: ({ signal }) =>
-      isNew ? fetchNew<T>(entity, signal) : fetchOne<T>(entity, id, signal),
+      isNew
+        ? fetchNew<T>(entity, params, signal)
+        : fetchOne<T>(entity, id, signal),
     enabled: isNew || (Number.isFinite(id) && id > 0),
     // A preset is a starting point, not shared state: refetching it would overwrite a form the user
     // has already begun to fill in.
@@ -47,6 +67,21 @@ export function useEntityDetail<T>(entity: string, id: number | null) {
     refetchOnMount: isNew ? false : undefined,
     refetchOnWindowFocus: isNew ? false : undefined,
   });
+}
+
+/**
+ * The parameters that carry a value, or undefined if none do.
+ *
+ * A caller passes what it has (`{parentTaskId: task?.id}`), so an unresolved id must read as "no
+ * parameters" rather than as one whose value is null — otherwise it would be its own cache entry and
+ * would put `parentTaskId=null` into the url. The query hashes keys structurally, so the object may be
+ * rebuilt per render.
+ */
+function nonEmpty(params?: NewEntryParams): NewEntryParams | undefined {
+  const entries = Object.entries(params ?? {}).filter(
+    ([, value]) => value !== undefined && value !== null
+  );
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
 /**

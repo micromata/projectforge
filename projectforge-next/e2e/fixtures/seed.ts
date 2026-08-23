@@ -283,52 +283,38 @@ let rootTaskId: number | undefined;
  * out ids in steps of 50, so on a database set up differently pk 1 may be an ordinary task — under
  * which these tests would then silently hang their tasks.
  *
- * Two ways to it, because the first one is not open to every account:
- * - `showRootForAdmins` appends the root to the tree, flagged `root: true`, but only for admins and
- *   financial staff (`TaskServicesRest.getTree`).
- * - otherwise the parent chain of any visible node leads there: the root is the one task whose
- *   `parentTask` is unset.
+ * `TaskServicesRest.getRoot` answers it for every account, which is also where the app itself asks (the
+ * wizard's "create structure element" link presets the root as the parent). Before that endpoint existed
+ * this walked the tree: `showRootForAdmins` appends the root flagged `root: true`, but only for admins
+ * and financial staff, so a plain account had to follow the parent chain of any visible node up to the
+ * one task without a parent.
  */
-async function fetchRootTaskId(request: APIRequestContext): Promise<number> {
+export async function fetchRootTaskId(
+  request: APIRequestContext
+): Promise<number> {
   if (rootTaskId != null) return rootTaskId;
-  const res = await request.get(
-    "/rs/task/tree?table=true&showRootForAdmins=true&opened=true&notOpened=true&closed=true&deleted=false",
-    { headers: { "X-PF-Frontend": "next" } }
-  );
+  const res = await request.get("/rs/task/tree/root", {
+    headers: { "X-PF-Frontend": "next" },
+  });
   if (!res.ok()) {
-    throw new Error(`Could not read the task tree: HTTP ${res.status()}`);
-  }
-  const { nodes = [] } = (await res.json()) as {
-    nodes?: { id: number; root?: boolean }[];
-  };
-  const flagged = nodes.find((node) => node.root === true);
-  if (flagged) return (rootTaskId = flagged.id);
-  if (nodes.length === 0) {
     throw new Error(
-      "The task tree is empty and the account may not see its root — cannot create a task."
+      `Could not read the task tree's root: HTTP ${res.status()}`
     );
   }
-  // Upwards from the first node. Bounded, so a contract change cannot turn this into an endless
-  // walk; a task tree deeper than 50 would be a problem of its own.
-  let id = nodes[0].id;
-  for (let step = 0; step < 50; step++) {
-    const task = await fetchEntity<{ parentTask?: { id?: number } }>(
-      request,
-      "task",
-      id
-    );
-    if (task.parentTask?.id == null) return (rootTaskId = id);
-    id = task.parentTask.id;
-  }
-  throw new Error(
-    "Followed 50 parent tasks without reaching the root — see TaskServicesRest.getTree."
-  );
+  const { id } = (await res.json()) as { id: number };
+  return (rootTaskId = id);
 }
 
 /** A task of the tests' own and one child, so the tree has a node that can be expanded. */
 export interface SeededTask {
   id: number;
   title: string;
+  /**
+   * The run's own suffix, and the one word of the title that hits this run only — the rest of it
+   * ("ZZ e2e task") is in every task an earlier run left, and the backend's search matches a row on
+   * any word of the term.
+   */
+  suffix: string;
   child: { id: number; title: string };
 }
 
@@ -355,7 +341,39 @@ export async function createTask(
     status: "O",
     parentTask: { id },
   });
-  return { id, title, child: { id: childId, title: childTitle } };
+  return { id, title, suffix, child: { id: childId, title: childTitle } };
+}
+
+/** A group of the tests' own, for the specs that hand rights to one. */
+export interface SeededGroup {
+  id: number;
+  name: string;
+  /** The run's own suffix, the one word of the name that hits this run only. */
+  suffix: string;
+}
+
+/**
+ * Creates a group.
+ *
+ * `localGroup: true`, so the group is never written to an LDAP the installation may be attached to
+ * (`GroupDO.localGroup`) — a test group has no business leaving the database it was made in. No members:
+ * the specs that need one grant it rights, they do not log in as it.
+ *
+ * Created rather than looked up, although the database has hundreds: a spec that grants rights to a
+ * group of a production copy changes what real people may see, and it would have to name that group in
+ * the source (see the confidentiality note above).
+ */
+export async function createGroup(
+  request: APIRequestContext,
+  suffix = uniqueSuffix()
+): Promise<SeededGroup> {
+  const name = `${MARKER} group ${suffix}`;
+  const id = await insert(request, "group", {
+    name,
+    localGroup: true,
+    assignedUsers: [],
+  });
+  return { id, name, suffix };
 }
 
 /**

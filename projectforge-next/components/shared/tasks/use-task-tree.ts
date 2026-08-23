@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
+  DEFAULT_TASK_TREE_FILTER,
   fetchTaskTree,
   taskTreeFilterOf,
   type TaskNode,
@@ -62,6 +63,22 @@ export function useTaskTree({
   // overriding it with a default here would drop a filter set on the legacy page.
   const [filter, setFilter] = useState<TaskTreeFilter | null>(null);
   const [toggle, setToggle] = useState<Toggle>();
+  /**
+   * Counts the resets, for the same reason [Toggle.revision] counts the clicks — and here it is not
+   * merely cosmetic: a non-initial call *stores* its parameters as the user's filter, so a request
+   * served from the cache leaves the session with the old one. Resetting after a search lands exactly
+   * there (the defaults were the key of the very first call), and without this the tree would look
+   * reset while the backend still held the search string.
+   */
+  const [resetRevision, setResetRevision] = useState(0);
+  /**
+   * The very filter object the last reset installed, so this render can tell "the user cleared the
+   * field" from "the reset button did it" — see [searchString], which skips the debounce for the
+   * latter. Compared by identity: the next `setFilter` produces a new object, so typing resumes
+   * debouncing by itself.
+   */
+  const [resetFilterValue, setResetFilterValue] =
+    useState<TaskTreeFilter | null>(null);
 
   const scope = useMemo(
     () => ({
@@ -86,7 +103,13 @@ export function useTaskTree({
     [filter, initFilter]
   );
   // Only the search string is debounced: a checkbox is one deliberate click, a keystroke isn't.
-  const searchString = useDebouncedValue(effective.searchString, 250);
+  const debouncedSearch = useDebouncedValue(effective.searchString, 250);
+  // A reset is a click as well, and its request is what stores the cleared filter server-side — going
+  // out with the string still in flight would leave the session filtered by what was just discarded.
+  const searchString =
+    filter !== null && filter === resetFilterValue
+      ? filter.searchString
+      : debouncedSearch;
 
   // Interacting at all switches to this query. It always carries the whole filter, even for a mere
   // expand: the backend takes every parameter of a non-initial call as the user's new filter, so
@@ -105,7 +128,7 @@ export function useTaskTree({
   const tree = useQuery({
     // The revision belongs in the key, not in the request: it distinguishes two identical toggles
     // for the cache, and the backend has no such parameter.
-    queryKey: ["taskTree", params, toggle?.revision],
+    queryKey: ["taskTree", params, toggle?.revision, resetRevision],
     queryFn: ({ signal }) => fetchTaskTree(params, signal),
     enabled: interacted,
     // The tree that was on screen stays there while the next one loads — a search narrowing row by
@@ -130,6 +153,23 @@ export function useTaskTree({
     grid: initial.data,
     filter: effective,
     setFilter,
+    /**
+     * Puts the filter back to what `TaskFilter.reset()` produces — Wicket's "Rücksetzen" button on the
+     * tree form, which does exactly that and re-renders.
+     *
+     * No endpoint of its own, and not `filter/reset` either: that one drops the *entity's* stored
+     * `MagicFilter`, while the tree keeps a `TaskFilter` in the session under its own key (see
+     * ListFilterService). Setting the defaults here has the backend store them on the next call,
+     * because it reads every parameter of a non-initial request as the user's new filter — so the
+     * reset outlives the page just as Wicket's does. Which is also why it bumps [resetRevision]: that
+     * next call has to actually go out, cache or no cache.
+     */
+    resetFilter: useCallback(() => {
+      const defaults = { ...DEFAULT_TASK_TREE_FILTER };
+      setFilter(defaults);
+      setResetFilterValue(defaults);
+      setResetRevision((revision) => revision + 1);
+    }, []),
     isLoading: source.isLoading,
     isFetching: source.isFetching,
     isError: initial.isError || tree.isError,

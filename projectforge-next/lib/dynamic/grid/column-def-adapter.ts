@@ -30,9 +30,9 @@ const FILTER_KINDS: Record<string, FilterKind> = {
  * implementation detail rather than intent: `headerClass` (a CSS contract for an
  * icon-only header — the adapter uses `headerTooltip` for the label instead),
  * `filterParams` (which buttons the AG-Grid filter panel shows), `suppressSizeToFit`
- * and `autoHeight`/`wrapText` (AG-Grid's own layout engine), and the grid-wide
- * locale/format block (those values come from `useFormatContext()`, so there is
- * one source rather than two).
+ * and `autoHeight` (implied by `wrapText`, which is kept — see ColumnMeta.wrap), and
+ * the grid-wide locale/format block (those values come from `useFormatContext()`,
+ * so there is one source rather than two).
  */
 /**
  * @param TRow the row type of the table the columns are for. Generic because a hand-built page knows
@@ -82,6 +82,9 @@ function adaptColumn<TRow extends DataObject>(
       filterKind,
       headerTooltip: col.headerTooltip,
       pinnedLocked: !!col.lockPosition,
+      // Intent, not layout engine: the backend says this value is a sentence or a list and belongs on
+      // several lines (a group's description and its members, see UIAgGrid.add).
+      wrap: col.wrapText,
     },
   };
 }

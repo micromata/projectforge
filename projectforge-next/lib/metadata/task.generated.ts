@@ -28,6 +28,8 @@ export const TASK_METADATA = {
       dataType: "DECIMAL",
       i18nKey: "gantt.duration",
       required: false,
+      min: 0,
+      max: 10000,
     },
     endDate: {
       dataType: "DATE",
@@ -36,7 +38,7 @@ export const TASK_METADATA = {
     },
     ganttObjectType: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.objectType",
       required: false,
       enumValues: [
         {
@@ -55,17 +57,17 @@ export const TASK_METADATA = {
     },
     ganttPredecessor: {
       dataType: "TASK",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.predecessor",
       required: false,
     },
     ganttPredecessorOffset: {
       dataType: "INT",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.predecessorOffset",
       required: false,
     },
     ganttRelationType: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "gantt.relationType",
       required: false,
       enumValues: [
         {
@@ -97,6 +99,11 @@ export const TASK_METADATA = {
       required: false,
       maxLength: 1024,
     },
+    kost2IsBlackList: {
+      dataType: "BOOLEAN",
+      i18nKey: "task.kost2list.type",
+      required: false,
+    },
     lastUpdate: {
       dataType: "TIMESTAMP",
       i18nKey: "modified",
@@ -106,6 +113,8 @@ export const TASK_METADATA = {
       dataType: "INT",
       i18nKey: "task.maxHours",
       required: false,
+      min: 0,
+      max: 9999,
     },
     parentTask: {
       dataType: "TASK",
@@ -143,6 +152,8 @@ export const TASK_METADATA = {
       dataType: "INT",
       i18nKey: "task.progress",
       required: false,
+      min: 0,
+      max: 100,
     },
     protectTimesheetsUntil: {
       dataType: "DATE",
@@ -230,7 +241,7 @@ export const TASK_METADATA = {
     },
     workpackageCode: {
       dataType: "STRING",
-      i18nKey: "task.parentTask",
+      i18nKey: "task.workpackageCode",
       required: false,
       maxLength: 100,
     },

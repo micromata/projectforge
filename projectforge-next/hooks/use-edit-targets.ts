@@ -32,11 +32,14 @@ export interface EditTargets {
  * there too, or the user would land in a form this app cannot save.
  *
  * @param hasEditPage Whether this app renders the form, i.e. `page.edit` is declared.
+ * @param returnTargets The form's declared callers (`EditDef.returnTargets`), so a list that is one
+ *   of them can name itself in the url it opens — see [returnToQuery].
  */
 export function useEditTargets(
   entity: string,
   route: string,
-  hasEditPage: boolean
+  hasEditPage: boolean,
+  returnTargets?: { route: string }[]
 ): EditTargets {
   const router = useRouter();
   // Read unconditionally: `listMeta` is loaded for the filter fields anyway, so this is a cache read,
@@ -44,9 +47,10 @@ export function useEditTargets(
   const meta = useListMeta(entity).data;
 
   if (hasEditPage) {
+    const back = returnToQuery(route, returnTargets);
     return {
-      addHref: `${route}/new`,
-      openEntry: (id) => router.push(`${route}/${id}`),
+      addHref: `${route}/new${back}`,
+      openEntry: (id) => router.push(`${route}/${id}${back}`),
       legacy: false,
     };
   }
@@ -70,4 +74,20 @@ export function useEditTargets(
     },
     legacy: true,
   };
+}
+
+/**
+ * `?returnTo=<the list>`, for a form that names more than one caller — and nothing otherwise.
+ *
+ * A form whose `returnTargets` are absent returns to its entity's own list anyway, so the parameter
+ * would say what the default already says. A form that has them, though, has a *first* one as its
+ * default, and that need not be this list: a task's form is reached from the structure tree as well,
+ * and without the parameter a row opened from the list would send the user to the tree on cancel.
+ *
+ * Only a route the form itself named is passed on. That is not sanitizing — `useEditReturn` ignores an
+ * unknown value regardless — but it keeps a page out of the url that the form would silently drop.
+ */
+function returnToQuery(route: string, targets?: { route: string }[]): string {
+  if (!targets?.some((target) => target.route === route)) return "";
+  return `?returnTo=${encodeURIComponent(route)}`;
 }

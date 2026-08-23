@@ -196,9 +196,27 @@ export function fetchOne<O>(
  * `{entity}/newEntry` answers with that preset and nothing else
  * (`AbstractEntityRest.getNewEntry`). Its predecessor `{entity}/edit` wrapped it in the
  * server-rendered edit layout, which a hand-built page has no use for.
+ *
+ * @param params Query parameters for the preset. `newBaseDO` is handed the request, so an entity may
+ *   read one: `TaskPagesRest` takes `parentTaskId` and presets the parent of a new subtask, which is
+ *   the only way the tree can say "add below *this* task". Null and undefined are dropped, so a
+ *   caller may pass an unresolved id without special-casing it.
  */
-export function fetchNew<O>(entity: string, signal?: AbortSignal): Promise<O> {
-  return request<O>(`/rs/${entity}/newEntry`, { method: "GET" }, signal);
+export function fetchNew<O>(
+  entity: string,
+  params?: Record<string, string | number | boolean | null | undefined>,
+  signal?: AbortSignal
+): Promise<O> {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined && value !== null) query.set(key, String(value));
+  }
+  const suffix = query.size > 0 ? `?${query}` : "";
+  return request<O>(
+    `/rs/${entity}/newEntry${suffix}`,
+    { method: "GET" },
+    signal
+  );
 }
 
 // Entity writes (saveorupdate, markAsDeleted, …) live in ./entity.ts: they speak the

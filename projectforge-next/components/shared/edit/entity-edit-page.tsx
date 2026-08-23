@@ -14,11 +14,14 @@ import {
   useSaveEntity,
   type EntityWithId,
 } from "@/hooks/use-entity-detail";
+import { useEditReturn } from "@/hooks/use-edit-return";
+import { useNewEntryParams } from "@/hooks/use-new-entry-params";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFocusFirstField } from "@/hooks/use-focus-first-field";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
 import { useInsertAccess } from "@/hooks/use-insert-access";
+import { useHistoryCommentSupport } from "@/hooks/use-history-comment-support";
 import {
   CLONE_PARAM,
   setPendingClone,
@@ -33,9 +36,11 @@ import { entityAccess } from "@/lib/rs/entity-access";
 import { cloneEntity } from "@/lib/rs/entity";
 import { DeclaredSection } from "./declared-sections";
 import { EntityCloneButton } from "./entity-clone-button";
+import { EntityCrossLinks } from "./entity-cross-links";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityEditHeader } from "./entity-edit-header";
+import { HistoryUserCommentField } from "./history-user-comment-field";
 import { entityTabPanels } from "./entity-tab-panels";
 import { entityTabs } from "./entity-tabs";
 
@@ -67,14 +72,22 @@ export function EntityEditPage<
   const t = useTranslations();
   const { edit } = page;
   const writeOptions = { listQueryKey: page.queryKey };
+  // Where leaving the page leads: the caller that sent the user here, or the entity's own list.
+  const back = useEditReturn({
+    targets: edit.returnTargets,
+    fallback: { route: page.route, labelKey: page.titleKey },
+  });
 
+  // What an "add" starts from: `/task/new?parentTaskId=42` presets the parent, and only the backend
+  // can resolve it (see useNewEntryParams). Ignored for an existing entry.
+  const newParams = useNewEntryParams(edit.newEntryParams);
   // A new entry has nothing to load — the hook stays disabled for id null.
   const {
     data: loaded,
     isLoading,
     isError,
     error,
-  } = useEntityDetail<Data>(page.entity, id);
+  } = useEntityDetail<Data>(page.entity, id, newParams);
   // An add page opened by the clone button starts from the clone instead of from the backend's preset
   // (see runClone). Recognised by `?clone=1`, so a reload or a later add is a plain add again.
   const clone = usePendingClone<Data>(page.entity, id == null);
@@ -91,6 +104,11 @@ export function EntityEditPage<
   // Cloning writes nothing, but it produces a *new* entry, so it needs the insert right and not the
   // write right of the entry on screen.
   const canInsert = useInsertAccess(page.entity);
+  // Whether this entity's history takes a comment, and the comment itself. State of the page rather
+  // than a form value: nothing loads it, nothing validates it, and it belongs to the one save it is
+  // sent with (see HistoryUserCommentField).
+  const takesHistoryComment = useHistoryCommentSupport(page.entity);
+  const [historyComment, setHistoryComment] = useState("");
   const [isCloning, setCloning] = useState(false);
   // Adding an entry starts in the field the definition names, or in the first one; editing an existing
   // entry leaves the focus alone.
@@ -106,12 +124,20 @@ export function EntityEditPage<
     schema: edit.schema,
     fieldNames: edit.fieldNames,
     arrayFieldNames: edit.arrayFieldNames,
-    listRoute: page.route,
+    listRoute: back.route,
+    // The caller may want the new entry's id in the url it gets back (the wizard does, see
+    // WizardTaskStep); for every other one this is `back.route` itself.
+    savedRoute: back.savedRoute,
     savedMessage: t(edit.savedMessageKey),
     // The form's values are the DTO the backend expects — the type only differs in what it makes
     // optional (see the entity's schema file).
     save: (values, meta) => {
-      const data = values as unknown as Data;
+      // The comment rides along with the values, as `BaseDTO.historyUserComment` — the backend copies
+      // it onto the DO, from where the history entry of this write takes it. Only when there is one, so
+      // an entity without the field never sees the property.
+      const data = (historyComment.trim()
+        ? { ...values, historyUserComment: historyComment }
+        : values) as unknown as Data;
       // A declared action posts to `/rs/{entity}/{action}`; anything else is a save. An action name
       // the declaration doesn't list can only come from a typo in a button, and saving instead of
       // posting to a route that doesn't exist is the harmless of the two.
@@ -152,7 +178,7 @@ export function EntityEditPage<
     if (id != null && data) {
       await cancelMutation.mutateAsync(data).catch(() => undefined);
     }
-    router.push(page.route);
+    router.push(back.route);
   }
 
   async function runDelete(): Promise<void> {
@@ -169,7 +195,7 @@ export function EntityEditPage<
       return;
     }
     toast.success(t("message.successfullChanged"));
-    router.push(page.route);
+    router.push(back.route);
   }
 
   /**
@@ -219,8 +245,17 @@ export function EntityEditPage<
   const headerTitle =
     id == null || !data ? t(edit.newTitleKey) : edit.title(data);
 
+  // The sections this entry has: one whose subject the installation doesn't know is dropped here, so
+  // it is missing from the tab strip and from the cards alike (see SectionDef.visible).
+  const sections = edit.sections.filter(
+    (section) =>
+      section.visible?.({
+        data: data as unknown as Record<string, unknown> | undefined,
+      }) ?? true
+  );
+
   const tabs = entityTabs({
-    sections: edit.sections,
+    sections,
     t,
     id: data?.id ?? null,
     history: page.metadata.historizable,
@@ -241,10 +276,16 @@ export function EntityEditPage<
         <EditPageShell
           header={
             <EntityEditHeader
-              listRoute={page.route}
-              listLabel={t(page.titleKey)}
+              listRoute={back.route}
+              listLabel={back.label}
               title={headerTitle}
               trailing={edit.headerTrailing?.(data)}
+              // Only for a stored entry: every cross link names it in its url (see CrossLinkDef).
+              crossLinks={
+                edit.crossLinks && id != null ? (
+                  <EntityCrossLinks links={edit.crossLinks} data={data} />
+                ) : undefined
+              }
               legacyUrl={legacyUrl}
             />
           }
@@ -256,14 +297,35 @@ export function EntityEditPage<
             extraTabs: edit.extraTabs,
           })}
           banner={edit.editBanner && <edit.editBanner />}
-          sections={edit.sections.map((section) => (
-            <DeclaredSection
-              key={section.id}
-              section={section}
-              metadata={page.metadata}
-              id={data?.id ?? null}
-            />
-          ))}
+          // A function per section, so a folded one learns that its tab was clicked (see
+          // EditPageShell and DeclaredSection). Not a component — the shell calls it with the flag,
+          // React never renders it — hence the named function rather than an arrow, which the
+          // display-name rule would read as an anonymous component.
+          sections={sections.map(
+            (section) =>
+              function renderSection(active: boolean) {
+                return (
+                  <DeclaredSection
+                    key={section.id}
+                    section={section}
+                    metadata={page.metadata}
+                    id={data?.id ?? null}
+                    active={active}
+                  />
+                );
+              }
+          )}
+          // Only where the entity's history takes one, and only with write access: a comment on a save
+          // that cannot happen is nothing the page should ask for (the same condition the server laid
+          // out page checks, see LayoutUtils.processEditPage).
+          belowSections={
+            takesHistoryComment && access.write ? (
+              <HistoryUserCommentField
+                value={historyComment}
+                onChange={setHistoryComment}
+              />
+            ) : undefined
+          }
           actions={
             <EntityEditActions
               onCancel={() => void runCancel()}

@@ -111,7 +111,13 @@ export function DataTableRow<TData>({
             // Fully opaque (no /50): a translucent hover would undo exactly the
             // coverage the background provides. A highlighted row keeps it and
             // tints it as a background *image* instead (see globals.css).
-            "truncate border-b bg-background group-hover:bg-muted",
+            "border-b bg-background group-hover:bg-muted",
+            // Clipped to one line, unless the column is one whose value is a sentence or a list — then
+            // the cell wraps and the row grows (see ColumnMeta.wrap). `align-top`, because a row as tall
+            // as its longest cell would otherwise centre every short one in the middle of nothing.
+            cell.column.columnDef.meta?.wrap
+              ? "whitespace-normal break-words align-top"
+              : "truncate",
             // Hover marker as a pseudo element on the first cell: a dedicated <td>
             // would occupy a column slot and shift every cell out of its column.
             index === 0 &&

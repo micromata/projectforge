@@ -20,6 +20,15 @@ declare module "@tanstack/react-table" {
     cellSpec?: CellSpec;
     /** Which filter UI the header offers. */
     filterKind?: FilterKind;
+    /**
+     * The cell wraps its text over several lines instead of clipping it, and the row grows with it
+     * (AG-Grid's `wrapText`, which implies its `autoHeight` — see UIAgGrid.add).
+     *
+     * For a column whose value is a sentence or a list rather than a name: a group's description and
+     * its members are what the legacy list wraps. Only where the declaration asks for it, because a
+     * wrapped column makes every row as tall as its longest cell.
+     */
+    wrap?: boolean;
     /** Tooltip of the header itself (UIAgGridColumnDef.headerTooltip). */
     headerTooltip?: string;
     /**

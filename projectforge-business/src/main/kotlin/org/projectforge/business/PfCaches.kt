@@ -427,9 +427,14 @@ class PfCaches {
         }
 
         /**
-         * Makes [instance] the given bean, for a test which has a Spring context: the bean assigns itself in its
-         * own `@PostConstruct`, but a test base class doing setup of its own may run before that and would
+         * Makes [instance] the given bean, for a test which has a Spring context: the bean assigns itself in
+         * its own `@PostConstruct`, but a test base class doing setup of its own may run before that and would
          * otherwise leave the cacheless [internalSetupForTestCases] instance in place.
+         *
+         * That instance has no dependency injected, so anything reaching [instance] afterwards fails on an
+         * uninitialized `persistenceService`. Whether it does depends on the order the beans are created in,
+         * which is why this only shows up in some modules (`Kost2DO.effectiveKostentraegerStatus` is such a
+         * caller).
          */
         @JvmStatic
         fun internalSetInstanceForTestCases(caches: PfCaches) {

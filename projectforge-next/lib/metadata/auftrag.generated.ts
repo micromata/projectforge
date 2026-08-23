@@ -122,6 +122,8 @@ export const AUFTRAG_METADATA = {
       dataType: "INT",
       i18nKey: "fibu.probabilityOfOccurrence",
       required: false,
+      min: 0,
+      max: 100,
     },
     projectManager: {
       dataType: "USER",

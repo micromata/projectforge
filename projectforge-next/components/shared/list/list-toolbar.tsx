@@ -1,15 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { AddEntryButton } from "@/components/shared/add-entry-button";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
-import { useAddEntryShortcut } from "@/hooks/use-add-entry-shortcut";
 import { SearchInput } from "./search-input";
 
 export interface ListToolbarProps {
@@ -64,8 +58,6 @@ export function ListToolbar({
   filterPills,
   gearMenu,
 }: ListToolbarProps) {
-  const t = useTranslations();
-  useAddEntryShortcut(addHref, addIsLegacy);
   return (
     <div className="border-b bg-background">
       <div className="flex items-center gap-3 px-4 pt-3">
@@ -95,31 +87,7 @@ export function ListToolbar({
               <Separator orientation="vertical" className="!h-5 !self-center" />
             </>
           )}
-          {/* With no label on the button the tooltip has to say what it does before it says how to
-              reach it by keyboard. `._`: the shortcut key has a child (.title), so it is nested
-              under `_` in the catalog. */}
-          <HintTooltip
-            title={t("menu.addNewEntry")}
-            text={`${t("tooltip.shortcut.addEntry.title")}\n\n${t("tooltip.shortcut.addEntry._")}`}
-          >
-            {/* Icon only, and the same on every list: what is added is said by the page's own
-                heading, so a label ("New book", "New order/offer") only repeats it — and reads
-                badly wherever the noun has no good article. The accessible name stays generic
-                for the same reason; the tooltip beside it names the shortcut. */}
-            <Button asChild size="icon-lg" aria-label={t("menu.addNewEntry")}>
-              {addIsLegacy ? (
-                <a href={addHref}>
-                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
-                </a>
-              ) : (
-                <Link href={addHref}>
-                  {/* No `size` prop: the primitive sizes the icon with the button, and an explicit
-                      width/height attribute would win over that class. */}
-                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2.5} />
-                </Link>
-              )}
-            </Button>
-          </HintTooltip>
+          <AddEntryButton href={addHref} isLegacy={addIsLegacy} />
         </div>
       </div>
 

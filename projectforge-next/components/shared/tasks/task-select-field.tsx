@@ -1,11 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Edit02Icon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import {
   FieldShell,
@@ -18,9 +13,7 @@ import {
 } from "@/components/shared/form/form-context";
 import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import type { BaseFieldProps } from "@/components/shared/form/field-shell";
-import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
-import { TaskEditLink } from "./task-edit-link";
-import { TaskPath } from "./task-path";
+import { TaskSelectControl } from "./task-select-control";
 import { TaskSelectModal } from "./task-select-modal";
 
 /**
@@ -35,7 +28,11 @@ export function TaskSelectField({
   label,
   hint,
   className,
-}: BaseFieldProps) {
+  disabled,
+}: BaseFieldProps & {
+  /** The path may be read but not changed (see DeclaredField.readOnly). */
+  disabled?: boolean;
+}) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
@@ -51,35 +48,35 @@ export function TaskSelectField({
         const ref = (field.state.value as EntityRef | null) ?? null;
         const taskId = ref?.id ?? null;
 
+        /** The field stores the reference the form layer expects, not the whole node. */
+        const change = (task: { id: number; title?: string } | null) => {
+          field.handleChange(
+            task != null ? { id: task.id, displayName: task.title } : null
+          );
+          field.handleBlur();
+        };
+
         return (
           <FieldShell
             label={label}
             required={required}
+            readOnly={disabled}
             hint={hint}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             className={className}
             ids={ids}
           >
-            <TaskSelectFieldContent
+            <TaskSelectControl
               taskId={taskId}
               ariaLabel={label}
+              disabled={disabled}
               onOpen={() => setOpen(true)}
-              onSelect={(task) => {
-                field.handleChange(
-                  task != null ? { id: task.id, displayName: task.title } : null
-                );
-                field.handleBlur();
-              }}
+              onSelect={change}
             />
             <TaskSelectModal
               value={taskId}
-              onChange={(task) => {
-                field.handleChange(
-                  task != null ? { id: task.id, displayName: task.title } : null
-                );
-                field.handleBlur();
-              }}
+              onChange={change}
               open={open}
               onOpenChange={setOpen}
             />
@@ -87,49 +84,5 @@ export function TaskSelectField({
         );
       }}
     </form.Field>
-  );
-}
-
-function TaskSelectFieldContent({
-  taskId,
-  ariaLabel,
-  onOpen,
-  onSelect,
-}: {
-  taskId: number | null;
-  ariaLabel: string;
-  onOpen: () => void;
-  onSelect: (task: TaskNode | null) => void;
-}) {
-  const t = useTranslations();
-
-  const { data: task } = useQuery({
-    queryKey: ["taskInfo", taskId],
-    queryFn: ({ signal }) => fetchTaskInfo(taskId!, signal),
-    enabled: taskId != null,
-    staleTime: Infinity,
-  });
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <div className="min-w-0 flex-1">
-        <TaskPath
-          task={(taskId != null && task) || null}
-          onSelect={(node) => onSelect(node)}
-        />
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        aria-label={t("task.tree.title.select") + " " + ariaLabel}
-        onClick={onOpen}
-        className="size-7 shrink-0"
-      >
-        <HugeiconsIcon icon={Edit02Icon} size={14} />
-      </Button>
-      {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
-      <TaskEditLink taskId={taskId} />
-    </div>
   );
 }

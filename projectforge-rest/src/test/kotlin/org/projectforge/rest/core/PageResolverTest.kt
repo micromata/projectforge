@@ -92,7 +92,7 @@ class PageResolverTest {
     /**
      * The row click url of a list grid is the *edit* page with the id placeholder - not the *new
      * entry* url with an id appended, which is what it used to be built from. For the generic React
-     * shape both happened to be the same (`react/group/edit` + `/id`), so the difference only showed
+     * shape both happen to be the same (`react/address/edit` + `/id`), so the difference only shows
      * on a hand built page: book answered a row click with `next/book/new/<id>`, the empty add
      * form.
      */
@@ -104,7 +104,9 @@ class PageResolverTest {
             NextMigration.standardEditPage("book"),
             "The new entry url is not a template of the edit url - see AGGridSupport.prepareUIGrid4ListPage."
         )
-        assertEquals("react/group/edit/:id", NextMigration.standardEditPage("group"))
+        assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
+        // group has been hand built in projectforge-next since, and follows book's shape.
+        assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
     }
 
     /**

@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { listRows } from "./fixtures/list-table";
 import type { Page } from "@playwright/test";
 
 /**
@@ -35,7 +36,7 @@ const COMMENT_KEY = "comment";
  * "the list is empty" is a statement about the database rather than about the code under test.
  */
 async function requireRows(page: Page) {
-  const rows = page.locator("tbody tr");
+  const rows = listRows(page);
   // A page of the list has to have arrived first: straight after the navigation every list is empty.
   await expect(page.locator("table")).toBeVisible({ timeout: 20_000 });
   const count = await rows
@@ -99,7 +100,7 @@ test.describe("dynamic grid", () => {
 
     // The DATE formatter renders through Intl with the layout's dd.MM.yyyy, so every start date is
     // a German date and never an ISO string.
-    const startDates = page.locator("tbody tr td:nth-child(2)");
+    const startDates = listRows(page).locator("td:nth-child(2)");
     for (const text of await startDates.allInnerTexts()) {
       expect(text.trim()).toMatch(/^\d{2}\.\d{2}\.\d{4}$/);
     }
@@ -109,9 +110,9 @@ test.describe("dynamic grid", () => {
     // is one the stylesheet defines — an unrecognised rule (or a class name the parser passed through)
     // would show up here as a row-* that globals.css never styles.
     await page.getByRole("combobox").last().selectOption("100");
-    const classes = await page
-      .locator("tbody tr")
-      .evaluateAll((rows) => rows.flatMap((row) => Array.from(row.classList)));
+    const classes = await listRows(page).evaluateAll((rows) =>
+      rows.flatMap((row) => Array.from(row.classList))
+    );
     for (const className of classes.filter((name) => name.startsWith("row-"))) {
       expect(className).toMatch(/^row-(deleted|red|green|blue|grey)$/);
     }
@@ -145,8 +146,7 @@ test.describe("dynamic grid", () => {
     // Sorting: a click on the header cell sorts (DataTable sorts on the whole cell), which posts to
     // onColumnStatesChangedUrl.
     await (await headerCell(page, t(EMPLOYEE_KEY))).click();
-    const sortedFirst = await page
-      .locator("tbody tr")
+    const sortedFirst = await listRows(page)
       .first()
       .locator("td")
       .first()
@@ -175,9 +175,9 @@ test.describe("dynamic grid", () => {
     await expect(
       page.locator("th").filter({ hasText: t(COMMENT_KEY) })
     ).toHaveCount(0);
-    await expect(
-      page.locator("tbody tr").first().locator("td").first()
-    ).toHaveText(sortedFirst);
+    await expect(listRows(page).first().locator("td").first()).toHaveText(
+      sortedFirst
+    );
 
     // "Reset columns" (useGridStateReset) is the counterpart: it drops the stored preference and
     // applies the answer's default columnDefs to the table state, so the column comes back without a

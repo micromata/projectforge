@@ -75,7 +75,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
-    GROUP_LIST("menu.groupList", getReactListUrl("group")), //
+    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
+    // see NextMigration.legacyListUrl.
+    GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
@@ -105,6 +107,10 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
+    // Still Wicket, although the tree is migrated: the switch stays out until the next page is complete
+    // (the task favourites and the wizard's remaining gaps). Flipping it is one call away -
+    // `NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")`, the tree and not the category's
+    // list, because the entity has two perspectives in projectforge-next.
     TASK_TREE("menu.taskTree", "wa/taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
