@@ -1629,6 +1629,30 @@ und die Sonderbehandlung hier wieder auflösen. Dasselbe gilt für die schon vor
 Strukturbaum-Seite (`app/(authenticated)/taskTree/page.tsx`), die ihren Zeilenklick heute über
 `listMeta.legacyEditPage` in die React-App schickt.
 
+#### Offen: Die Consumption-Bar zeigt noch auf Wicket
+
+Die Consumption-Bar ist im Wicket-Baum ein **Link** (`ConsumptionBarPanel`): ein Klick zeigt die
+Zeitberichte, die die Zahl ausmachen, auf das Strukturelement gefiltert. Ohne ihn ist der Balken
+nur ein Bild, und der Weg von „186 %" zu den Buchungen dahinter fehlt – deshalb ist er in
+`components/data-table/cells/consumption-cell.tsx` nachgezogen, für die Baumseite **und** die
+Listenperspektive (in Wicket verlinken beide). Im Auswahl-Panel nicht: dort wird ein
+Strukturelement für ein Formular gepickt, ein Link würde es verlassen – das ist Wickets
+`linkEnabled`, in next `CellRenderProps.linkEnabled`, gesetzt von `TaskTreePanel` (`!selectMode`).
+
+Das Ziel ist **fest verdrahtetes Wicket**
+(`wa/timesheetList?taskId=…&clear=true&storeFilter=false` – die drei Parameter, die
+`ConsumptionBarPanel` setzt: das Strukturelement, ein für diesen Sprung geleerter Filter, der
+hinterher nicht als der gemerkte des Kontos zurückbleibt). Wicket ist die **Vorlage**; die
+React-Liste ist nie fertig gebaut worden, auch wenn `TimesheetPagesRest.getInitialList` einen
+`taskId`-Parameter kennt und daraus einen `MagicFilterEntry("task", …)` baut. Damit ist das
+neben `task-edit-link.tsx` die zweite Stelle in next, die eine Legacy-URL selbst bildet – aus
+demselben Grund und mit demselben Verfallsdatum.
+
+**Nach der Migration der Zeitberichte nach next ist dieser Link umzustellen:**
+`wa/timesheetList?…` in `consumption-cell.tsx` durch die next-Route der Zeitberichte ersetzen
+(samt Filter auf das Strukturelement) und die hart gebildete Legacy-URL damit auflösen –
+dieselbe Aufgabe wie beim Sprung zum Strukturelement einen Abschnitt weiter oben.
+
 #### Kalenderseite (zweiter handgebauter Fall) – Detailplan liegt vor
 
 Die **Kalenderseite** (`/react/calendar`) ist der zweite Härtefall und
@@ -2003,7 +2027,9 @@ Was fehlt, gegen `TaskEditForm.java` (481 Z.) und `TaskEditPage.java`:
    Baumperspektive sie rechnet – `Task.copyFrom4ListRow` ruft `Consumption.create`,
    `TaskServicesRest.addKost2List` (ohne die Kostenträger-Objekte, die nur der Picker des
    Baums braucht) und `addOrderList`. Dieselben Funktionen, also können beide
-   Perspektiven nie verschiedene Zahlen zeigen; und es kostet keine Abfrage, weil der
+   Perspektiven nie verschiedene Zahlen zeigen (auch nicht denselben Link: die
+   Consumption-Bar führt in beiden auf die Zeitberichte des Strukturelements, s. eigener
+   Abschnitt „Offen: Die Consumption-Bar zeigt noch auf Wicket"); und es kostet keine Abfrage, weil der
    Baum im Speicher liegt und die Auftragspositionen nach Task-Id cacht. Die lean row
    lässt alles weg, was nur das Formular braucht (`description`, die geschachtelten
    Tasks, die Zugriffs-Flags) – `JsonInclude.Include.NON_NULL` hält es damit pro Zeile

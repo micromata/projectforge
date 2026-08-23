@@ -1815,6 +1815,9 @@
     "startTime": "Start time",
     "stopTime": "Stop time",
     "tag": "Tag",
+    "title": {
+      "list": "List of time sheets"
+    },
     "user": "Employee"
   },
   "timezone": "Time zone",

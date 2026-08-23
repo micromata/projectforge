@@ -48,4 +48,12 @@ export interface CellRenderProps {
   ctx: FormatContext;
   /** Localised texts a cell needs for its accessible name. */
   t: (key: string) => string;
+  /**
+   * Whether a cell may link out of the table (Wicket's `linkEnabled`). Off where following the link
+   * would leave what the user is doing — a select popover picks a task for a form, so the
+   * consumption bar there is a picture and not a way to the task's time sheets.
+   *
+   * Default: on, as on the tree page and in the task list.
+   */
+  linkEnabled?: boolean;
 }

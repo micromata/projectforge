@@ -76,6 +76,9 @@ export function TaskTreePanel({
           onToggle={toggle}
           onSelect={select}
           pageActions={pageMode}
+          // A select popover picks a task for a form — following the consumption bar to the time
+          // sheets would leave it (see TaskTreeTableProps.linkEnabled).
+          linkEnabled={!selectMode}
           actionBar={
             pageMode && <TaskTreeActionBar onFilterReset={resetFilter} />
           }

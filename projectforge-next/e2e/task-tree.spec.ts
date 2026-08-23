@@ -56,6 +56,38 @@ test.describe("task tree", () => {
     await expect(row.locator("td").first()).toHaveText(/\p{L}/u);
   });
 
+  test("the consumption bar links to the task's time sheets", async ({
+    loggedInPage: page,
+  }) => {
+    await goto(page, PAGE);
+    const rows = await waitForRows(page);
+
+    // Whichever row of the tree has effort booked or planned — `Consumption.create` answers nothing
+    // for the others, and which those are is the database's business (the seeded task is one of them).
+    const bar = page.locator("tbody tr[data-row-id] a .consumption-track");
+    const count = await bar.count();
+    test.skip(
+      count === 0,
+      "no task with booked or planned effort among the open nodes"
+    );
+
+    // The target is the point of the bar: Wicket's ConsumptionBarPanel opens the time sheets behind
+    // the number, filtered to the task — still Wicket's list (see MIGRATION.md), with the three
+    // parameters that panel sets, so the id has to be the row's own.
+    const link = bar.first().locator("xpath=ancestor::a[1]");
+    const rowId = await bar
+      .first()
+      .locator("xpath=ancestor::tr[1]")
+      .getAttribute("data-row-id");
+    await expect(link).toHaveAttribute(
+      "href",
+      `/wa/timesheetList?taskId=${rowId}&clear=true&storeFilter=false`
+    );
+    // A link with no text of its own needs a name; and the row's own click must not fire.
+    await expect(link).toHaveAttribute("aria-label", /\S/);
+    expect(await rows.count()).toBeGreaterThan(0);
+  });
+
   test("keeps an expanded node across a reload", async ({
     loggedInPage: page,
     seededTask,

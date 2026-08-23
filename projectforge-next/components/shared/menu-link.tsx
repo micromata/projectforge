@@ -25,23 +25,36 @@ export function MenuLink({
   children,
   className,
   onClick,
+  "aria-label": ariaLabel,
 }: {
   url: string | undefined;
   children: React.ReactNode;
   className?: string;
   /** The event is passed on, so a link inside a clickable row can stop propagation. */
   onClick?: (event: React.MouseEvent) => void;
+  /** For a link whose content carries no text of its own, e.g. the bar of a ConsumptionCell. */
+  "aria-label"?: string;
 }) {
   const target = resolveMenuUrl(url);
   if (target.kind === "external") {
     return (
-      <a href={target.href} className={className} onClick={onClick}>
+      <a
+        href={target.href}
+        className={className}
+        onClick={onClick}
+        aria-label={ariaLabel}
+      >
         {children}
       </a>
     );
   }
   return (
-    <GuardedLink href={target.href} className={className} onClick={onClick}>
+    <GuardedLink
+      href={target.href}
+      className={className}
+      onClick={onClick}
+      aria-label={ariaLabel}
+    >
       {children}
     </GuardedLink>
   );

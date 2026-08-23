@@ -1815,6 +1815,9 @@
     "startTime": "Beginn",
     "stopTime": "Ende",
     "tag": "Etikett",
+    "title": {
+      "list": "Zeitberichte"
+    },
     "user": "Mitarbeiter:in"
   },
   "timezone": "Zeitzone",

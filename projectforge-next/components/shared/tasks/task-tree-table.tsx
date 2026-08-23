@@ -46,6 +46,12 @@ interface TaskTreeTableProps {
    * does: a select popover is for picking a task, not for creating one.
    */
   pageActions?: boolean;
+  /**
+   * Let a cell link out of the tree — the consumption bar to the task's time sheets. Off in a select
+   * popover, where the link would leave the form the task is being picked for (Wicket does the same,
+   * see TaskListPage.getConsumptionBarPanel).
+   */
+  linkEnabled?: boolean;
 }
 
 /**
@@ -66,9 +72,10 @@ export function TaskTreeTable({
   onSelect,
   actionBar,
   pageActions,
+  linkEnabled = true,
 }: TaskTreeTableProps) {
   const t = useTranslations();
-  const columns = useTaskTreeColumns(grid, onToggle);
+  const columns = useTaskTreeColumns(grid, onToggle, linkEnabled);
 
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
   // initial answer, and this component only exists once that has arrived.
