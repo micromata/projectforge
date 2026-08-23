@@ -146,7 +146,8 @@ constructor(
     internal fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
         val userAccess = UILayout.UserAccess()
         checkUserAccess(null, userAccess)
-        userAccess.update = true // Assume that the user has general update access (change this, see GroupPagesRest)
+        // Assume that the user has general update access (override listUpdateAccess, see GroupPagesRest)
+        userAccess.update = listUpdateAccess()
         val layout = UILayout("$i18nKeyPrefix.list")
         if (!isMultiSelectionMode(request, magicFilter)) {
             val gearMenu = layout.ensureGearMenu()

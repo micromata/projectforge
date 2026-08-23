@@ -1,5 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
-import { test, expect, goto } from "./fixtures/auth";
+import { test, expect, goto, login } from "./fixtures/auth";
+import { hasRole } from "./fixtures/credentials";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
 import { waitForRow } from "./fixtures/list-table";
 import { GROUP_PAGE } from "../components/features/group/group.page";
@@ -222,6 +223,73 @@ test.describe("group page", () => {
     await request
       .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
+  });
+});
+
+/**
+ * The same list for a user who may read it but not add to it — the rights case of every hand-built list
+ * (see useEditTargets), with `group` as the entity that has it: `GroupDao.hasUserSelectAccess` answers
+ * true for everyone, while inserting is the admin group's (`GroupDao.hasAccess`), so `listMeta` answers
+ * `userAccess.insert: false` for a plain user. Legacy leaves the create entry out of the page menu in
+ * that case (`AbstractPagesRest.createListLayout`); next offered its "+" to everyone.
+ *
+ * The row click goes with it (`userAccess.update`, which `GroupPagesRest.listUpdateAccess` answers for
+ * administrators only — Wicket's `GroupListPage` renders the name as a plain label without it). That one
+ * is asserted on the response rather than on a row: this user's list is empty, `GroupDao` shows them no
+ * group at all, so there would be nothing to click either way.
+ *
+ * Skipped rather than failed where the account is missing: not every instance has every role (see
+ * fixtures/credentials.ts).
+ */
+test.describe("group list without the insert right", () => {
+  test.skip(
+    !hasRole("normalo-user"),
+    "no normalo-user in this instance's testAccounts.txt"
+  );
+
+  test("leaves the add button out", async ({ page }) => {
+    // Not `loggedInPage`: that fixture logs in as the account with every right, which is the account
+    // that must *not* be looked at here.
+    await login(page, "/next/", "normalo-user");
+    const format = await userFormat(page);
+    await goto(page, "/group");
+    // The page itself is there — this user may read the list (`userAccess.read`), it is only empty for
+    // them, so the assertion below is about the button and not about a page that never rendered.
+    await expect(
+      page.getByRole("heading", { name: format.t("group.title.list._") })
+    ).toBeVisible({ timeout: 30_000 });
+
+    // Gone, not disabled: there is nothing this user could do to enable it, and its `N` shortcut goes
+    // with it (see AddEntryButton, which owns both).
+    await expect(
+      page.getByRole("link", { name: format.t("menu.addNewEntry") })
+    ).toHaveCount(0);
+  });
+
+  test("is not offered as clickable rows either", async ({ page }) => {
+    await login(page, "/next/", "normalo-user");
+    // The flag both list pages hang their row click on — read here, because this account sees no group
+    // to click. The counter-case is the whole spec above: `loggedInPage` is an administrator and opens
+    // the seeded group by its row.
+    const meta = await page.request.get("/rs/group/listMeta", {
+      headers: { "X-PF-Frontend": "next" },
+    });
+    expect(meta.ok()).toBe(true);
+    const { userAccess } = (await meta.json()) as {
+      userAccess?: { update?: boolean; insert?: boolean };
+    };
+    expect(userAccess?.update).toBe(false);
+    expect(userAccess?.insert).toBe(false);
+  });
+
+  test("keeps it for a user who may insert", async ({ loggedInPage: page }) => {
+    // The counter-case, so the one above cannot pass on a toolbar that stopped rendering the button
+    // altogether.
+    const format = await userFormat(page);
+    await goto(page, "/group");
+    await expect(
+      page.getByRole("link", { name: format.t("menu.addNewEntry") })
+    ).toBeVisible({ timeout: 30_000 });
   });
 });
 
