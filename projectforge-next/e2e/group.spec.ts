@@ -101,10 +101,36 @@ test.describe("group page", () => {
     if (stored.localGroup) await expect(localGroup).toBeChecked();
     else await expect(localGroup).not.toBeChecked();
     // Computed by the backend from the members and never written back — the form's counterpart of
-    // `UIReadOnlyField("emails")`.
+    // `UIReadOnlyField("emails")`. The seeded group has no members, so this one is empty; that it
+    // carries what the response carries is the case below.
+    const emails = page.getByLabel(label(format, "address.emails"), {
+      exact: true,
+    });
+    await expect(emails).toBeDisabled();
+    await expect(emails).toHaveValue(stored.emails ?? "");
+  });
+
+  test("shows the mail addresses of the members", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // A group of the database that has members, found at runtime: the seeded group has none (it grants
+    // rights, nobody logs in as it), and no group of this production copy may be named in the source.
+    const withMembers = await groupWithMembers(page.request);
+    test.skip(
+      withMembers === null,
+      "no group with a member whose address is known"
+    );
+    const stored = await storedGroup(page.request, withMembers!);
+
+    // Both halves in one: `Group.populateEmails` runs on read at all (it used to run only while the
+    // server built the layout, which a hand built form never asks for — the field stayed empty), and the
+    // form shows exactly what came with the entity.
+    expect(stored.emails ?? "").toContain("@");
+    await goto(page, `/group/${withMembers}`);
     await expect(
       page.getByLabel(label(format, "address.emails"), { exact: true })
-    ).toBeDisabled();
+    ).toHaveValue(stored.emails ?? "", { timeout: 30_000 });
   });
 
   test("saves a change and returns to the list", async ({
@@ -209,6 +235,7 @@ async function storedGroup(
   description?: string;
   localGroup?: boolean;
   ldapValues?: string;
+  emails?: string;
 }> {
   const response = await request.get(`/rs/group/${id}`, {
     headers: { "X-PF-Frontend": "next" },
@@ -219,27 +246,64 @@ async function storedGroup(
   return await response.json();
 }
 
+/**
+ * The id of a group whose members have mail addresses, or null if this installation has none.
+ *
+ * Found through the list, whose rows carry `assignedUsers` (`GroupPagesRest.createListLayout`), and
+ * then confirmed on the entity: a member without an address contributes nothing to `emails`, so only
+ * reading it settles whether the case has anything to assert on. Few candidates on purpose — one hit
+ * is enough and every candidate is a request.
+ */
+async function groupWithMembers(
+  request: APIRequestContext
+): Promise<number | null> {
+  const response = await request.post("/rs/group/list", {
+    headers: await writeHeaders(request),
+    data: { searchString: "" },
+  });
+  if (!response.ok()) return null;
+  const { resultSet = [] } = (await response.json()) as {
+    resultSet?: { id?: number; assignedUsers?: unknown[] }[];
+  };
+  const candidates = resultSet
+    .filter((row) => (row.assignedUsers?.length ?? 0) > 0)
+    .map((row) => row.id)
+    .filter((id): id is number => typeof id === "number")
+    .slice(0, 5);
+  for (const id of candidates) {
+    if ((await storedGroup(request, id)).emails?.includes("@")) return id;
+  }
+  return null;
+}
+
+/** A POST is a write as far as the backend is concerned and therefore needs the CSRF token. */
+async function writeHeaders(
+  request: APIRequestContext
+): Promise<Record<string, string>> {
+  const status = await request.get("/rs/userStatus", {
+    headers: { "X-PF-Frontend": "next" },
+  });
+  const { csrfToken } = (await status.json()) as { csrfToken: string };
+  return {
+    "X-PF-Frontend": "next",
+    "X-PF-CSRF-Token": csrfToken,
+    "Content-Type": "application/json",
+  };
+}
+
 /** Writes the organization back as the fixture handed it over, bypassing the page under test. */
 async function restoreOrganization(
   request: APIRequestContext,
   id: number,
   organization: string | undefined
 ): Promise<void> {
-  const status = await request.get("/rs/userStatus", {
-    headers: { "X-PF-Frontend": "next" },
-  });
-  const { csrfToken } = (await status.json()) as { csrfToken: string };
   // The whole DTO as it stands now, with `organization` explicitly null where the seed had none:
   // `saveorupdate` saves what it is given, so a field merely left out would keep the changed value.
   const current = await request.get(`/rs/group/${id}`, {
     headers: { "X-PF-Frontend": "next" },
   });
   await request.put("/rs/group/saveorupdate", {
-    headers: {
-      "X-PF-Frontend": "next",
-      "X-PF-CSRF-Token": csrfToken,
-      "Content-Type": "application/json",
-    },
+    headers: await writeHeaders(request),
     data: {
       data: {
         ...((await current.json()) as Record<string, unknown>),

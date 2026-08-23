@@ -105,6 +105,13 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 group.gidNumber = ldapGroupValues.gidNumber
             }
         }
+        if (editMode) {
+            // The read-only mail addresses of the members, which no GroupDO property holds: a hand built form
+            // (projectforge-next) reads the entity through GET {id} and never sees the server side layout, where
+            // this used to be filled. Edit mode only - no list column shows them, and it costs a cache lookup
+            // per assigned user of every row.
+            group.populateEmails()
+        }
         return group
     }
 
@@ -275,7 +282,8 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
             }
         }
-        dto.populateEmails()
+        // No populateEmails() here: the dto arrives from getById(editMode = true), i.e. already filled by
+        // transformFromDB - and a new entry has no members to collect addresses from.
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
