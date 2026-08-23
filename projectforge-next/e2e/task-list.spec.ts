@@ -6,6 +6,7 @@ import { TASK_PAGE } from "../components/features/task/task.page";
 import { TASK_METADATA } from "../lib/metadata/task.generated";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
 import type { TaskListRow } from "../components/features/task/types";
+import type { ListMetaData, MagicFilter } from "../lib/rs/types";
 import type { SeededTask } from "./fixtures/seed";
 
 /**
@@ -155,6 +156,41 @@ test.describe("task list", () => {
     await expect(page).toHaveURL(/\/task(\?|$)/, { timeout: 20_000 });
   });
 
+  test("starts with closed tasks hidden and shows them when the status filter asks", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    // What a user who has no stored filter starts with, and what the reset in beforeEach put back:
+    // `TaskPagesRest.newMagicFilter` presets the two statuses Wicket's `TaskFilter` defaults to.
+    const meta = await listMeta(page.request);
+    const preset = meta.filter?.entries?.find(
+      (entry) => entry.field === "status"
+    );
+    expect(preset?.value?.values?.slice().sort()).toEqual(["N", "O"]);
+
+    // And the query honours it: no closed task comes back under the default, every one does under the
+    // third choice. Both halves through the api, because which tasks are closed is the database's
+    // business and none of them may be named here.
+    const byDefault = await fetchRows(page.request, meta.filter);
+    expect(byDefault.some((row) => row.status === "C")).toBe(false);
+    const closed = await fetchRows(page.request, {
+      ...meta.filter,
+      entries: [{ field: "status", value: { values: ["C"] } }],
+    });
+    test.skip(closed.length === 0, "no closed task in this installation");
+    expect(closed.every((row) => row.status === "C")).toBe(true);
+
+    // Visible as a filter, not applied behind the user's back: the element is a `defaultFilter`, so its
+    // pill is on the row of the list page without being added first (see GroupPagesRest for the same).
+    await goto(page, PAGE);
+    await waitForRows(page);
+    await expect(
+      page.getByRole("button", {
+        name: format.t("filter.editEntry", { arg0: label(format, "status") }),
+      })
+    ).toHaveCount(1);
+  });
+
   test("links to the tree, and the tree back to the list", async ({
     loggedInPage: page,
   }) => {
@@ -222,15 +258,32 @@ function escapeForRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/** Everything beside the rows the list page is given — its stored filter above all. */
+async function listMeta(request: APIRequestContext): Promise<ListMetaData> {
+  const res = await request.get("/rs/task/listMeta", {
+    headers: { "X-PF-Frontend": "next" },
+  });
+  return (await res.json()) as ListMetaData;
+}
+
 /** What this installation and this account have of the three conditional columns. */
 async function listVariables(
   request: APIRequestContext
 ): Promise<ListVariables> {
-  const res = await request.get("/rs/task/listMeta", {
-    headers: { "X-PF-Frontend": "next" },
+  return (await listMeta(request)).variables ?? {};
+}
+
+/** The rows one filter yields, asked for as the page asks (`POST {entity}/list`). */
+async function fetchRows(
+  request: APIRequestContext,
+  filter: Partial<MagicFilter> | undefined
+): Promise<TaskListRow[]> {
+  const res = await request.post("/rs/task/list", {
+    headers: await writeHeaders(request),
+    data: { searchString: "", ...(filter ?? {}) },
   });
-  const meta = (await res.json()) as { variables?: ListVariables };
-  return meta.variables ?? {};
+  const body = (await res.json()) as { resultSet?: TaskListRow[] };
+  return body.resultSet ?? [];
 }
 
 /** The seeded task's row as the list serves it, found by the search the page's box sends. */
@@ -238,12 +291,7 @@ async function fetchRow(
   request: APIRequestContext,
   id: number
 ): Promise<TaskListRow | undefined> {
-  const res = await request.post("/rs/task/list", {
-    headers: await writeHeaders(request),
-    data: { searchString: "" },
-  });
-  const body = (await res.json()) as { resultSet?: TaskListRow[] };
-  return (body.resultSet ?? []).find((row) => row.id === id);
+  return (await fetchRows(request, undefined)).find((row) => row.id === id);
 }
 
 /** The same task as the tree's own endpoint answers it. */

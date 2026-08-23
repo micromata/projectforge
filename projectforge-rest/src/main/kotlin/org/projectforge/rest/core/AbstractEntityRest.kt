@@ -349,10 +349,25 @@ constructor(
     open fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
     }
 
+    /**
+     * The filter a user who has none starts with, and the one a reset returns to.
+     *
+     * Empty for most pages, but not for every: Wicket's task list hides closed tasks until they are asked
+     * for ([org.projectforge.business.task.TaskFilter] defaults `closed` to false), and a preset entry is
+     * the only way to say so *and* show it - the client renders the filter row from the stored filter, so a
+     * restriction applied silently while querying would filter the list without appearing anywhere in it.
+     *
+     * Only preset entries whose field is offered as a filter element (see [addMagicFilterElements]):
+     * [removeUnknownFilterEntries] drops the rest.
+     */
+    open fun newMagicFilter(): MagicFilter {
+        return MagicFilter()
+    }
+
     fun getCurrentFilter(): MagicFilter {
         var currentFilter = userPrefService.getEntry(category, Favorites.PREF_NAME_CURRENT, MagicFilter::class.java)
         if (currentFilter == null) {
-            currentFilter = MagicFilter()
+            currentFilter = newMagicFilter()
             saveCurrentFilter(currentFilter)
         } else {
             currentFilter.init()
@@ -506,10 +521,10 @@ constructor(
      */
     @GetMapping("filter/reset")
     fun resetListFilter(): ResponseAction {
-        saveCurrentFilter(MagicFilter())
+        saveCurrentFilter(newMagicFilter())
         agGridSupport.resetGridState(category)
         return ResponseAction(targetType = TargetType.RELOAD)
-            .addVariable("filter", MagicFilter())
+            .addVariable("filter", newMagicFilter())
     }
 
     /**
@@ -519,6 +534,10 @@ constructor(
     fun filterReset(): MagicFilter {
         val filter = getCurrentFilter()
         filter.reset()
+        // The defaults of this page again ([newMagicFilter]): reset only clears, so a page that hides
+        // something until it is asked for (task: closed tasks) would come back showing it. The instance
+        // itself is kept, because it may be a named favorite.
+        filter.entries.addAll(newMagicFilter().entries)
         return filter
     }
 

@@ -27,16 +27,19 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.common.task.TaskStatus
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Task
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -116,6 +119,38 @@ class TaskPagesRest
             "orders" to columns.orders,
             "protectTimesheetsUntil" to columns.protectTimesheetsUntil,
         )
+    }
+
+    /**
+     * The status filter of the list, with the same three choices and the same wording the tree perspective
+     * offers (`task-tree-filter.tsx`, fed from [TaskServicesRest.getTree]) - both read
+     * [TaskStatus]'s own i18n keys.
+     *
+     * Wicket has it as three checkboxes (`TaskListForm.onOptionsPanelCreate`); here it is one multi select
+     * element on the real enum property, which [org.projectforge.framework.persistence.api.MagicFilterProcessor]
+     * turns into a `status in (…)` by itself - no `CustomResultFilter` and no `preProcessMagicFilter`
+     * needed. Its default is [newMagicFilter].
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("status", label = translate("status"), defaultFilter = true)
+                .buildValues(TaskStatus::class.java)
+        )
+    }
+
+    /**
+     * Opened and not opened tasks, as `TaskFilter` has it (`notOpened = opened = true, closed = false`):
+     * a closed task is done, and Wicket's list has hidden it since forever.
+     *
+     * Preset as an entry rather than added while querying, so the list *shows* what it is showing - the
+     * client renders its filter row from this filter, and the third choice is one tick away.
+     */
+    override fun newMagicFilter(): MagicFilter {
+        val filter = super.newMagicFilter()
+        val entry = MagicFilterEntry("status")
+        entry.value.values = arrayOf(TaskStatus.N.name, TaskStatus.O.name)
+        filter.entries.add(entry)
+        return filter
     }
 
     override fun transformForDB(dto: Task): TaskDO {
