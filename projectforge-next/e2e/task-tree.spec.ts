@@ -153,7 +153,9 @@ test.describe("task tree", () => {
     // The seeded task's own title, not a term of the database: every title of this instance is
     // production content (see fixtures/seed.ts), and on a fresh database none of them exists.
     // Searched server-side, so the answer is the matching subtrees rather than a filtered page.
-    await page.getByLabel(t("search._")).fill(seededTask.title);
+    await page
+      .getByLabel(t("search._"), { exact: true })
+      .fill(seededTask.title);
     await expect
       .poll(() => rows.count(), { timeout: 20_000 })
       .toBeLessThanOrEqual(before);

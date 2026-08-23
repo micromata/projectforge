@@ -183,7 +183,7 @@ test.describe("task tree actions", () => {
 
     // Away from the defaults first, in both halves of the filter: `closed` is off by default, and a
     // search string is what a reset has to clear as well (`TaskFilter.reset`).
-    const search = page.getByLabel(format.t("search._"));
+    const search = page.getByLabel(format.t("search._"), { exact: true });
     await search.fill("zzz-nothing-matches");
     await statusPill(page, format, [
       "task.status.opened",
@@ -214,7 +214,9 @@ test.describe("task tree actions", () => {
     // And the backend kept it: it reads every parameter of a non-initial call as the user's new
     // filter, so a reload has to come back with the defaults rather than with what was typed above.
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(page.getByLabel(format.t("search._"))).toHaveValue("", {
+    await expect(
+      page.getByLabel(format.t("search._"), { exact: true })
+    ).toHaveValue("", {
       timeout: 20_000,
     });
   });

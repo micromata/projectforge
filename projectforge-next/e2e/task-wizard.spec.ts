@@ -268,7 +268,7 @@ async function pickSeededTask(
     })
     .click();
   if (cached) {
-    const search = page.getByLabel(format.t("search._"));
+    const search = page.getByLabel(format.t("search._"), { exact: true });
     if ((await search.inputValue()) !== title) {
       await search.fill(title);
     }

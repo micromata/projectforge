@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
 import { TaskEditLink } from "./task-edit-link";
 import { TaskPath } from "./task-path";
+import { TaskSearchPopover } from "./task-search-popover";
 
 export interface TaskSelectControlProps {
   /** The picked task, or null while nothing is picked. */
@@ -23,8 +24,8 @@ export interface TaskSelectControlProps {
 }
 
 /**
- * The visible half of a task picker: the breadcrumb path of the current value, the button that opens
- * the tree, and the link into the task itself.
+ * The visible half of a task picker: the breadcrumb path of the current value, the type-ahead, the
+ * button that opens the tree, and the link into the task itself.
  *
  * Separate from [TaskSelectField] because the field only adds the form layer around it — the wizard
  * has no form context and picks a task the same way (see TaskWizard). The task behind the id is
@@ -56,6 +57,13 @@ export function TaskSelectControl({
           disabled={disabled}
         />
       </div>
+      {/* Before the tree button, in the order Wicket's select panel has the two: the term first, the
+          tree for when the name is not what the user knows. */}
+      <TaskSearchPopover
+        ariaLabel={ariaLabel}
+        disabled={disabled}
+        onSelect={onSelect}
+      />
       <Button
         type="button"
         variant="outline"

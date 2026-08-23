@@ -161,8 +161,9 @@ test.describe("task edit", () => {
     await expect(titleBox(page, format)).toHaveValue(seededTask.title);
 
     // `dataType: "TASK"` dispatches to TaskSelectField, whose picker is the tree in a dialog — the
-    // one control that can express a task's place in a hierarchy. An entity autocomplete would be a
-    // combobox with a flat result list.
+    // one control that can express a task's place in a hierarchy. A plain entity autocomplete would be
+    // a combobox and nothing else; the type-ahead beside this button is the second way in, not the
+    // only one (see the case below).
     await page
       .getByRole("button", {
         name: `${format.t("task.tree.title.select")} ${label(format, "task.parentTask")}`,
@@ -172,6 +173,48 @@ test.describe("task edit", () => {
     await expect(dialog).toBeVisible();
     await waitForRows(dialog);
     await page.keyboard.press("Escape");
+  });
+
+  test("a task is found by typing, and the hit names its whole path", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, `/task/${seededTask.id}`);
+    await expect(titleBox(page, format)).toHaveValue(seededTask.title);
+
+    // `TaskServicesRest.autosearch`, not the `task/autosearch` every category inherits: that one has no
+    // search fields configured and answers an error (see AbstractEntityRest.getAutoCompleteObjects).
+    const asked = page.waitForRequest(
+      (request) => request.url().includes("/rs/task/tree/autosearch"),
+      { timeout: 20_000 }
+    );
+    await page
+      .getByRole("button", {
+        name: `${format.t("search._")} ${label(format, "task.parentTask")}`,
+      })
+      .click();
+    await page
+      .getByPlaceholder(format.t("filter.search"))
+      .fill(seededTask.child.title);
+    await asked;
+
+    // The hit is labelled with the path from the root down, joined as Wicket's own type-ahead joins it
+    // — the only thing that tells two structure elements of the same name apart.
+    const hit = page.getByRole("option", {
+      name: `${seededTask.title} | ${seededTask.child.title}`,
+      exact: true,
+    });
+    await expect(hit).toBeVisible({ timeout: 20_000 });
+    await hit.click();
+
+    // And it landed in the field: the breadcrumb of the parent now ends in the picked task. Nothing is
+    // saved — the value is only in the form, as everywhere else in this file.
+    await expect(
+      page.getByRole("navigation", {
+        name: format.t("task.path.pleaseSelectTask"),
+      })
+    ).toContainText(seededTask.child.title, { timeout: 20_000 });
   });
 
   test("the cost unit block survives a task without a project", async ({
@@ -388,12 +431,14 @@ test.describe("task tree row click", () => {
     const term = seededTask.title.split(" ").at(-1) ?? seededTask.title;
     const filtered = page.waitForResponse(
       (response) =>
-        response.url().includes("/rs/task/tree") &&
+        response.url().includes("/rs/task/tree?") &&
         response.url().includes(term) &&
         response.status() === 200,
       { timeout: 20_000 }
     );
-    await page.getByLabel(format.t("search._")).fill(seededTask.title);
+    await page
+      .getByLabel(format.t("search._"), { exact: true })
+      .fill(seededTask.title);
     await filtered;
     const row = rows.filter({ hasText: seededTask.title }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });

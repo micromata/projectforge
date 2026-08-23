@@ -62,7 +62,9 @@ export async function narrowToSeeded(
   t: UserFormat["t"],
   title: string
 ) {
-  const search = page.getByLabel(t("search._"));
+  // The whole label, not merely a part of it: a task select field carries a search button of its own,
+  // named after the field it belongs to (see TaskSearchPopover), and `getByLabel` matches substrings.
+  const search = page.getByLabel(t("search._"), { exact: true });
   // Cleared first where it already holds the title: filling a field with the value it has is no change,
   // the query key stays the same and no request goes out — the wait below would then time out although
   // the tree is showing exactly what was asked for. `resetTreeState` keeps that out of the session, and
@@ -72,7 +74,7 @@ export async function narrowToSeeded(
   }
   const filtered = page.waitForResponse(
     (response) =>
-      response.url().includes("/rs/task/tree") &&
+      response.url().includes("/rs/task/tree?") &&
       response.url().includes(searchTerm(title)) &&
       response.status() === 200,
     { timeout: 20_000 }

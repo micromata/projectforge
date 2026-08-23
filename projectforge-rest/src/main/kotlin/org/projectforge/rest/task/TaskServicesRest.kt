@@ -39,12 +39,14 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
@@ -267,6 +269,26 @@ class TaskServicesRest {
 
         /** REST category of the order book (`OrderEntityRest`), whose page an order link leads to. */
         private const val ORDER_CATEGORY = "order"
+
+        /**
+         * The fields the type-ahead searches, as `TaskSelectAutoCompleteFormComponent.SEARCH_FIELDS`:
+         * the title and `taskpath`, the class bridge holding the titles of all ancestors
+         * ([org.projectforge.business.task.HibernateSearchTaskPathBridge]).
+         */
+        private val AUTOCOMPLETE_SEARCH_FIELDS = arrayOf("title", "taskpath")
+
+        /**
+         * The path of a task as one line, `Structure | Customer | Development` — the label of a type-ahead
+         * hit, built as Wicket's `createPath` builds it. [TaskTree.getPathToRoot] ends at the task itself
+         * and leaves the root out, so the root task alone has an empty path and is named instead.
+         */
+        private fun formatPath(taskId: Long?): String {
+            val path = TaskTree.instance.getPathToRoot(taskId)
+            if (path.isEmpty()) {
+                return translate("task.path.rootTask")
+            }
+            return path.joinToString(" | ") { it.task.title ?: "" }
+        }
 
         fun createTask(id: Long?): Task? {
             if (id == null)
@@ -631,6 +653,37 @@ class TaskServicesRest {
     fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
         val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
+    }
+
+    /**
+     * The tasks a typed term matches, as `{id, displayName}` — the type-ahead beside the tree of the task
+     * select field (Wicket's `TaskSelectAutoCompleteFormComponent`).
+     *
+     * Everything about it is that component's: the two search fields (`title` and the indexed `taskpath`,
+     * so a term matches a task's ancestors as well), the search itself ([TaskDao.select], which sorts by
+     * title, drops what the user may not see and — through the [TaskFilter] it wraps a plain filter in —
+     * leaves closed tasks out), and the label, which is the whole path rather than the bare title: in a
+     * deep tree two tasks called "Development" are told apart by nothing else.
+     *
+     * Not `task/autosearch`: that name belongs to [org.projectforge.rest.task.TaskPagesRest], which
+     * inherits it without declaring `autoCompleteSearchFields` — hence the `tree/` prefix, as for the grid
+     * state above. The answer is a `DisplayObject` all the same, so the client's shared picker
+     * (`EntitySearchList`) needs nothing of its own.
+     *
+     * An empty term is answered with the head of the list, because a picker asks that way as soon as it is
+     * opened (see `useEntityLookup`); Wicket's field, which only ever searches on two typed characters,
+     * never sees that case.
+     */
+    @GetMapping("tree/autosearch")
+    fun autosearch(
+        @RequestParam("search") search: String?,
+        @RequestParam("maxResults") maxResults: Int?,
+    ): List<AbstractEntityRest.DisplayObject> {
+        val filter = BaseSearchFilter()
+        filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
+        filter.searchString = search
+        maxResults?.let { filter.maxRows = it }
+        return taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
     }
 
     /**
