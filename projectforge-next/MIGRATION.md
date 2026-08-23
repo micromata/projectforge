@@ -1642,19 +1642,38 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    die Weitergabe des Query-Strings in `fetchDynamic`, dazu `COLOR_CHOOSER` in der
    `UICustomized`-Registry. (Auftragsbuch und Debitorenrechnungen sind fertig, s.
    Phase 3.)
-3. **Mehrere Testkonten statt einem.** `~/ProjectForge/testAccount.txt` hält heute
-   genau ein Konto, und das ist Admin **und** in den FiBu-Gruppen **und** deutsch.
-   Damit ist von jeder rechteabhängigen Regel nur der Erfolgsfall prüfbar – die
-   Ablehnung, also die Hälfte, auf die es ankommt, ist unerreichbar. Gebraucht werden
-   drei:
+3. **Mehrere Testkonten statt einem.** Solange die Konten-Datei ein einziges Konto
+   hielt – Admin **und** in den FiBu-Gruppen **und** deutsch –, war von jeder
+   rechteabhängigen Regel nur der Erfolgsfall prüfbar; die Ablehnung, also die Hälfte,
+   auf die es ankommt, war unerreichbar. Die Datei trägt jetzt **eine Zeile je Rolle**
+   (`role=username/password`), `e2e/fixtures/credentials.ts` liest sie mit
+   `readCredentials(role)` und meldet über `hasRole(role)`, ob es die Rolle lokal gibt
+   – ein Spec, dessen Rolle fehlt, soll sich überspringen und nicht fehlschlagen.
 
-   - **`full-access-user`** – Admin plus alle FiBu-/ORGA-Gruppen, das heutige Konto.
-   - **`finance-user`** – die FiBu-Rechte, aber nicht Admin (trennt
-     `FINANCE`/`FINANCE_WRITE` von der Admin-Gruppe, s. die 2FA-Kurzbefehle).
-   - **`normalo-user`** – ein angemeldeter Benutzer ohne besondere Rechte, und
-     **`locale=en`**, damit derselbe Benutzer den englischen Durchlauf trägt.
+   **Die Konten legt die Instanz selbst an** (`E2ETestAccountsService`,
+   `projectforge-business`): im Development-Mode erzeugt sie beim Start jedes fehlende
+   Konto samt Gruppen und Rechten, mit einem **Zufallspasswort je Instanz**, und
+   schreibt `$PROJECTFORGE_HOME/testAccounts.txt` (Rechte `600`). Das war nötig, weil
+   die Passwörter der Testuser aus `data/pfTestdata.sql` Hashes ohne bekannten Klartext
+   sind – ein neuer Entwickler hatte damit kein funktionierendes Konto. Alles ist
+   idempotent: ein stehengebliebenes Passwort behebt ein Neustart, nachdem die Zeile
+   gelöscht wurde; eine Zeile, die einen **anderen** Benutzernamen nennt, bleibt
+   unangetastet (eigenes Konto für eine Rolle). Auf einer Produktivinstanz passiert
+   nichts, dort ist `projectforge.development.mode` aus. **Erledigt.**
 
-   Was damit erst prüfbar wird, steht heute an vier Stellen als „nicht verifiziert":
+   | Rolle              | Benutzer          | Hat                                             |
+   | ------------------ | ----------------- | ----------------------------------------------- |
+   | `full-access-user` | `e2e-full-access` | alle Gruppen, alle Rechte; die Vorgabe          |
+   | `finance-user`     | `e2e-finance`     | PF_Finance, PF_Controlling, die FiBu-Rechte     |
+   | `admin-user`       | `e2e-admin`       | PF_Admin, **keine** FiBu-Rechte                 |
+   | `normalo-user`     | `e2e-normalo`     | nichts, `locale=en`                             |
+
+   `e2e-admin` ist der Gegenfall, der vorher fehlte: Admin, aber auf Rechnungen und
+   Auftragsbuch abgewiesen. `e2e-normalo` trägt das englische Gebietsschema, damit
+   Formatierungs-Assertions nicht nur für ein deutsches Konto grün werden.
+
+   Was damit prüfbar wird, steht heute an vier Stellen als „nicht verifiziert" – die
+   Specs dazu sind die verbleibende Restarbeit:
    die 403-Ablehnung des E-Rechnungs-Prüfers (`EInvoiceCheckerPageRest`, s. das
    Access-Audit), der Lese-Guard einer abgelehnten Liste (`useReadAccessGuard` – der
    Fall, für den die 403-Antwort überhaupt gebaut wurde), der `rejected`-Pfad des
@@ -1662,11 +1681,11 @@ keine Route) und die Weitergabe des Query-Strings in `fetchDynamic`. Dazu die
    Recht voraus) und der englische Locale-Pfad (s. Phase 1.5). Dazu die Gegenprobe zu
    `book-list-gear.spec.ts`, das den vollen Reindex heute nur als Admin sieht.
 
-   Mitzuziehen sind `e2e/fixtures/` (Login pro Rolle statt eines globalen Kontos, die
-   Datei mit mehreren Zeilen) und der Absatz „Testing against the running system" in
-   `projectforge-next/CLAUDE.md`, der das eine Konto nennt. Ein Spec, das eine Rolle
-   verlangt, die die Installation nicht hat, soll sich überspringen und nicht
-   fehlschlagen – die Konten sind lokal und nicht Teil des Repos.
+   `login(page, returnUrl, role)` nimmt die Rolle entgegen (`e2e/fixtures/auth.ts`), die
+   `loggedInPage`-Fixture und die Saat-Daten bleiben bei der Vorgaberolle: ein Spec mit
+   einer anderen Rolle meldet sich selbst an, statt die Fixture zu übernehmen – die
+   Saat-Entitäten sollen weiter mit allen Rechten entstehen, geprüft wird nur der Zugriff
+   darauf.
 
 4. **Ein Spec für Favoriten umbenennen/löschen** und die Umstellung von
    `task-edit-link.tsx` auf die next-Route, sobald die Strukturelement-Seite

@@ -210,10 +210,17 @@ What goes into them for an entity is not written per page but declared once — 
 - `npm run test` — Vitest, for the pure logic (`lib/page-def/*`, `lib/format`, `lib/validation`,
   filter and column-order derivations). Deliberately DOM-free: what is worth asserting is the
   derivation, not the JSX around it.
-- `npm run e2e` — Playwright against the **running** system. Credentials of a local test account are
-  in `~/ProjectForge/testAccount.txt` (format `username/password` in one line); the suite logs in via `POST /rsPublic/nextLogin` and takes the
+- `npm run e2e` — Playwright against the **running** system. Credentials of the local test accounts
+  are in `$PROJECTFORGE_HOME/testAccounts.txt`, one line per role (`role=username/password`, see
+  `e2e/fixtures/credentials.ts`); the suite logs in via `POST /rsPublic/nextLogin` and takes the
   `csrfToken` from `GET /rs/userStatus`. Seeing a real response settles at once whether a field is
-  missing, null or merely displayed wrong.
+  missing, null or merely displayed wrong. A spec about a rights rule asks for the role that makes
+  the refusal reachable (`normalo-user`, `admin-user`, `finance-user`) and skips via `hasRole` where
+  the instance has no such account.
+- The four accounts need no setup: in development mode the backend creates the ones it doesn't find
+  (`e2e-full-access`, `e2e-finance`, `e2e-admin`, `e2e-normalo`) with a random password per instance
+  and writes that file itself — see `E2ETestAccountsService` in `projectforge-business`. A stale
+  password is fixed by deleting its line and restarting.
 
 ### Which server the E2E suite runs against
 
