@@ -157,6 +157,14 @@ class TaskTest : AbstractTestBase() {
             Assertions.assertTrue(ids.contains(getTask("d.1.2.1").id))
             Assertions.assertTrue(ids.contains(getTask("d.2").id))
             Assertions.assertFalse(ids.contains(getTask("d").id))
+
+            // The tree's own descendants have to be the node's, whole subtree and not only the children:
+            // TaskTree.getDescendants once lost its recursion and answered a single level.
+            val treeIds = taskTree.getDescendantTaskIds(d.id, false)
+            Assertions.assertEquals(ids.sorted(), treeIds.filterNotNull().sorted())
+            val withSelf = taskTree.getDescendantTaskIds(d.id, true)
+            Assertions.assertEquals(ids.size + 1, withSelf.size)
+            Assertions.assertTrue(withSelf.contains(d.id))
             null
         }
     }
