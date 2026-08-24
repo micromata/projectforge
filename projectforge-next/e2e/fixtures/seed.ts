@@ -85,6 +85,30 @@ export async function insert(
   return body.variables.id;
 }
 
+/**
+ * Marks an entity as deleted — the delete of a historizable entity, which keeps the row
+ * (`RestPaths.MARK_AS_DELETED`, see lib/rs/entity.ts).
+ *
+ * The whole stored DTO goes with it, as the endpoint expects; read here rather than asked from the
+ * caller, so a spec only has to name the entry.
+ */
+export async function markAsDeleted(
+  request: APIRequestContext,
+  entity: string,
+  id: number
+): Promise<void> {
+  const data = await fetchEntity<Record<string, unknown>>(request, entity, id);
+  const res = await request.delete(`/rs/${entity}/markAsDeleted`, {
+    headers: await writeHeaders(request),
+    data: { data },
+  });
+  if (!res.ok()) {
+    throw new Error(
+      `Could not mark ${entity} ${id} as deleted: HTTP ${res.status()}`
+    );
+  }
+}
+
 /** Reads an entity back as its page's DTO — what a write has to be given in full. */
 export async function fetchEntity<T>(
   request: APIRequestContext,

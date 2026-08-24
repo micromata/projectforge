@@ -24,7 +24,8 @@
   },
   "entityEdit": {
     "lastSaved": "Zuletzt gespeichert: {time}",
-    "notFound": "Eintrag nicht gefunden."
+    "notFound": "Eintrag nicht gefunden.",
+    "deletedInfo": "Dieser Eintrag ist als gelöscht markiert. Zum Bearbeiten zuerst wiederherstellen."
   },
   "filter": {
     "selectNone": "Keine auswählen",

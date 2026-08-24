@@ -32,9 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 
 /**
- * The test runs [E2ETestAccountsService.ensureAccounts] directly rather than through the
- * `ApplicationReadyEvent`, with a temporary home directory: what is worth asserting is that a second
- * run changes nothing and that a password the file no longer agrees with is replaced.
+ * The test runs [E2ETestAccountsService.ensureAccounts] and [E2ETestAccountsService.disableAccounts]
+ * directly rather than through the `ApplicationReadyEvent`, with a temporary home directory: what is
+ * worth asserting is that a second run changes nothing, that a password the file no longer agrees with
+ * is replaced, and that a start without the development mode takes the accounts out of service — in
+ * both directions, because a developer switching back must not be left with dead accounts.
  *
  * Every case runs **without a logged-in user**, because that is the situation at startup — and one the
  * service has to arrange for itself: writing a history entry asks the access checker about the
@@ -138,5 +140,74 @@ class E2ETestAccountsServiceTest : AbstractTestBase() {
             file.readText().contains("finance-user=$TEST_FULL_ACCESS_USER/somePassword"),
             "...and the rewritten file still has that line.",
         )
+    }
+
+    @Test
+    fun `a start without development mode disables the accounts`(@TempDir homeDir: File) {
+        ThreadLocalUserContext.clear() // As at startup: nobody is logged in.
+        val accounts = e2eTestAccountsService.ensureAccounts(homeDir)
+        val file = File(homeDir, E2ETestAccountsService.FILENAME)
+        val fullAccess = accounts["full-access-user"]!!
+
+        val disabled = e2eTestAccountsService.disableAccounts(homeDir)
+        Assertions.assertEquals(
+            accounts.values.map { it.username }.sorted(),
+            disabled.sorted(),
+            "Every account of the four roles is disabled.",
+        )
+        Assertions.assertFalse(file.exists(), "The file with the passwords is gone.")
+        val user = userService.getInternalByUsername(fullAccess.username)!!
+        Assertions.assertTrue(user.deactivated, "The user can't log in any more.")
+        Assertions.assertFalse(user.deleted, "...but it is kept, so that a switch back can undo this.")
+        Assertions.assertNotEquals(
+            true,
+            userPasswordDao.checkPassword(user, fullAccess.password.toCharArray())?.isOK,
+            "The password the file named is worthless now.",
+        )
+
+        // Nothing left to do on the second run - and nothing that throws either.
+        Assertions.assertTrue(
+            e2eTestAccountsService.disableAccounts(homeDir).isNotEmpty(),
+            "The accounts are still found (deactivated ones are reported as well).",
+        )
+    }
+
+    @Test
+    fun `a productive system that never had these accounts is untouched`(@TempDir homeDir: File) {
+        ThreadLocalUserContext.clear() // As at startup: nobody is logged in.
+        // The normal production case: no such user, no such file. Asserted through the answer rather than
+        // the log, so it is also the assertion that nothing is written (see disableAccounts).
+        Assertions.assertTrue(
+            e2eTestAccountsService.disableAccounts(homeDir).isEmpty(),
+            "Nothing found, nothing done.",
+        )
+        Assertions.assertFalse(File(homeDir, E2ETestAccountsService.FILENAME).exists())
+    }
+
+    @Test
+    fun `switching back to development mode reactivates them with new passwords`(@TempDir homeDir: File) {
+        ThreadLocalUserContext.clear() // As at startup: nobody is logged in.
+        val before = e2eTestAccountsService.ensureAccounts(homeDir)
+        e2eTestAccountsService.disableAccounts(homeDir)
+
+        val after = e2eTestAccountsService.ensureAccounts(homeDir)
+        Assertions.assertEquals(
+            before.mapValues { it.value.username },
+            after.mapValues { it.value.username },
+            "The same four users, no second one of any name.",
+        )
+        val fullAccess = after["full-access-user"]!!
+        val user = userService.getInternalByUsername(fullAccess.username)!!
+        Assertions.assertFalse(user.deactivated, "The account is usable again.")
+        Assertions.assertNotEquals(
+            before["full-access-user"]!!.password,
+            fullAccess.password,
+            "With a new password, since the rotated one no longer matches what was remembered.",
+        )
+        Assertions.assertTrue(
+            userPasswordDao.checkPassword(user, fullAccess.password.toCharArray())!!.isOK,
+            "...which is the one the file now names.",
+        )
+        Assertions.assertTrue(File(homeDir, E2ETestAccountsService.FILENAME).exists(), "The file is back.")
     }
 }

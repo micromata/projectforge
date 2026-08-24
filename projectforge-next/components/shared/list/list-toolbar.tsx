@@ -14,8 +14,11 @@ export interface ListToolbarProps {
   searchValue: string;
   /** Called with the typed value once it has settled, see [SearchInput]. */
   onSearchChange: (value: string) => void;
-  /** Route of the add page, e.g. `/book/new`. */
-  addHref: string;
+  /**
+   * Route of the add page, e.g. `/book/new` — absent where this user may not add an entry, which
+   * leaves the button and its keyboard shortcut out entirely (see useEditTargets.canAdd).
+   */
+  addHref?: string;
   /**
    * Whether [addHref] leaves this app — the add page of an entity whose list is migrated but whose
    * form is not (see useEditTargets). Rendered as a plain anchor then, because client-side routing
@@ -63,8 +66,8 @@ export function ListToolbar({
       <PageTitleRow title={title} category={category} legacyUrl={legacyUrl}>
         {selectionToggle}
         {actions}
-        {/* Divider only with a menu beside it: it separates the list's own actions from
-            "add", which creates an entity. */}
+        {/* Divider only with a menu beside it *and* something to separate it from: it parts the
+            list's own actions from "add", which creates an entity. */}
         {gearMenu && (
           <>
             {gearMenu}
@@ -72,10 +75,12 @@ export function ListToolbar({
                 flex-start and hangs the line above the buttons. The `!` is needed because the
                 primitive's `data-vertical:self-stretch` carries an attribute selector and would
                 otherwise outweigh a plain `self-center`. */}
-            <Separator orientation="vertical" className="!h-5 !self-center" />
+            {addHref && (
+              <Separator orientation="vertical" className="!h-5 !self-center" />
+            )}
           </>
         )}
-        <AddEntryButton href={addHref} isLegacy={addIsLegacy} />
+        {addHref && <AddEntryButton href={addHref} isLegacy={addIsLegacy} />}
       </PageTitleRow>
 
       <div className="flex items-center gap-3 px-4 py-2.5">

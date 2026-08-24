@@ -24,7 +24,8 @@
   },
   "entityEdit": {
     "lastSaved": "Last saved: {time}",
-    "notFound": "Entry not found."
+    "notFound": "Entry not found.",
+    "deletedInfo": "This entry is marked as deleted. Restore it before editing."
   },
   "filter": {
     "selectNone": "Select none",

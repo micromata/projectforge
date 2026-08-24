@@ -95,6 +95,47 @@ test.describe("all-filters dialog", () => {
     );
     await expect(dialog.getByText("attachmentsIds")).toBeVisible();
   });
+
+  test("offers the deleted flag at the top, not sorted in by its label", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const elements = await filterElements(page, "book");
+    const deleted = elements.find((element) => element.id === "deleted");
+    if (!deleted?.label) {
+      throw new Error(
+        "No `deleted` filter field. Does LayoutListFilterUtils still add it to every list?"
+      );
+    }
+
+    await goto(page, "/book");
+    // The picker's list: the change history first, then this one — the backend sends it sorted by
+    // label, i.e. somewhere in the middle of the entity's own properties (see hoistDeletedFilter).
+    await page
+      .getByRole("button", { name: format.t("filter.addField") })
+      .click();
+    // Scoped to the popover's list: the table's page-size select has options of its own.
+    const items = page.getByRole("listbox").getByRole("option");
+    await expect(items.first()).toHaveText(format.t("filter.history"));
+    await expect(items.nth(1)).toHaveText(deleted.label);
+
+    // And the same order in the dialog, where it leads the entity's own fields.
+    await page
+      .getByRole("button", { name: format.t("filter.allFilters"), exact: true })
+      .click();
+    const general = page
+      .getByRole("dialog")
+      .locator("section")
+      .filter({
+        has: page.getByRole("heading", {
+          name: format.t("filter.generalFields"),
+        }),
+      });
+    await expect(
+      general.getByText(deleted.label, { exact: true })
+    ).toBeVisible();
+    await expect(general.locator("label").first()).toHaveText(deleted.label);
+  });
 });
 
 /** The picker's "+" chip, then its "all filters" entry — the one way in. */

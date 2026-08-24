@@ -18,6 +18,11 @@
 export interface EntityAccessFlags {
   writeAccess?: boolean;
   deleteAccess?: boolean;
+  /**
+   * `BaseDTO.deleted` — unlike the two above not a right but a state, and every entity has it. It
+   * decides the same question, though: a marked-as-deleted entry is read-only until it is restored.
+   */
+  deleted?: boolean | null;
 }
 
 export interface EntityAccess {
@@ -25,6 +30,8 @@ export interface EntityAccess {
   write: boolean;
   /** Whether the entry may be marked as deleted. */
   delete: boolean;
+  /** Whether the entry *is* marked as deleted, and therefore offers a restore instead of the two above. */
+  deleted: boolean;
 }
 
 /**
@@ -39,10 +46,15 @@ export interface EntityAccess {
  * `AbstractEditForm.updateButtonVisibility`, which shows create-or-update, never both.
  */
 export function entityAccess(data: unknown, isNew: boolean): EntityAccess {
-  if (isNew) return { write: true, delete: false };
+  if (isNew) return { write: true, delete: false, deleted: false };
   const flags = (data ?? {}) as EntityAccessFlags;
+  // A deleted entry may only be restored — not saved, and not deleted a second time. The same order
+  // `LayoutUtils.processEditPage` lays the buttons out in: undelete where the entry is deleted, save
+  // and mark-as-deleted where it is not.
+  const deleted = flags.deleted === true;
   return {
-    write: flags.writeAccess !== false,
-    delete: flags.deleteAccess !== false,
+    write: !deleted && flags.writeAccess !== false,
+    delete: !deleted && flags.deleteAccess !== false,
+    deleted,
   };
 }

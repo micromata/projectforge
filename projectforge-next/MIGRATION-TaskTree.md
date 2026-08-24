@@ -182,25 +182,98 @@ Element gelten, weiß nur das Backend.
   bekommt. `e2e/task-tree-actions.spec.ts` prüft, dass beim Zurücksetzen im Baum **kein**
   Aufruf an `task/filter/reset` geht und die eigenen Filterwerte trotzdem stehen.
 
-### 5. Querschnittlich, hier aufgefallen
+### 5. Querschnittlich, hier aufgefallen – erledigt
 
-Beides betrifft **jede** handgebaute Seite, nicht nur die Strukturelemente – notiert, wo
-es gefunden wurde, umzusetzen aber einmal für alle:
+Beides betrifft **jede** handgebaute Seite, nicht nur die Strukturelemente – gefunden bei
+den Strukturelementen, umgesetzt einmal für alle. Die offene Frage aus der Planung hat der
+Test beantwortet, und zwar mit „ja": es war das Loch, nicht nur der fehlende Knopf.
 
-- **Es gibt keinen Weg zurück aus dem Löschen.** `lib/rs/entity.ts` hat `undeleteEntity`
-  und **keinen** Aufrufer; ein gelöschter Datensatz bietet in next erneut „als gelöscht
-  markieren". Legacy tauscht den Knopf (`LayoutUtils.processEditPage`: `undelete` statt
-  `markAsDeleted`, wenn der Eintrag gelöscht und historisierbar ist und der Benutzer
-  Insert-Recht hat). Vorher zu klären, weil es die schlimmere Variante desselben Lochs
-  wäre: ein handgebautes Formular postet seine Werte _als_ DTO, `deleted` steht in keinem
-  Schema (`group-schema.ts`, `task-schema.ts`) – ob ein Speichern an einem gelöschten
-  Datensatz ihn damit still wiederherstellt, muss ein Test zeigen.
-- **„+" und Zeilenklick fragen nicht nach dem Recht.** Legacy hängt den Anlege-Eintrag nur
-  bei `userAccess.insert` ans Menü (`AbstractPagesRest`) und verdrahtet den Zeilenklick nur
-  bei `userAccess.update` (`AGGridSupport`). In next sind `AddEntryButton` samt `N`-Kürzel
-  und der Zeilenklick von `EntityListPage` bedingungslos; `useInsertAccess` gibt es schon
-  und wird im Formular benutzt, `use-edit-targets.ts` liest es nicht. Für `task` ist das
-  spürbar, weil `TaskDao` das Insert-Recht am Elternknoten entscheidet.
+- **Es gab keinen Weg zurück aus dem Löschen – und jedes Schreiben holte den Eintrag
+  zurück.** `lib/rs/entity.ts` hatte `undeleteEntity` und keinen Aufrufer; ein gelöschter
+  Datensatz bot erneut „als gelöscht markieren". Der Beweis am laufenden System (ein Buch,
+  `markAsDeleted`, danach `saveorupdate` mit einem DTO **ohne** `deleted`): der Datensatz
+  kam als `deleted: false` mit dem geänderten Titel zurück. Ein handgebautes Formular postet
+  seine Werte _als_ DTO, `deleted` steht in keinem Schema, und `CandHMaster.copyValues`
+  überträgt die Eigenschaft des geposteten Objekts auf die Zeile – also stellte **jedes**
+  Schreiben still wieder her, das Ausleihen eines Buches genauso (`BookServicesRest.lendOut`
+  gibt das gepostete DTO direkt an `saveOrUpdate`).
+
+  Umgesetzt in der gemeinsamen Maschinerie, in drei Lagen:
+  - `entityAccess` (`lib/rs/entity-access.ts`) kennt jetzt `deleted` – kein Recht, sondern
+    ein Zustand, der dieselbe Frage entscheidet: ein gelöschter Eintrag hat weder
+    Schreib- noch Löschrecht. Damit verschwinden „Speichern", das Return-Kürzel und das
+    Kommentarfeld der Historie von sich aus.
+  - An ihre Stelle tritt `EntityUndeleteButton` (`useUndeleteEntity`, `runUndelete` in
+    `EntityEditPage`) – ohne Rückfrage, wie `UIButton.createUndeleteButton`, und unter der
+    Bedingung, die Legacy stellt: `userAccess.insert`, nicht das Schreibrecht eines
+    Eintrags, den es so nicht mehr gibt (`LayoutUtils.processEditPage`).
+  - Die Felder eines gelöschten Eintrags sind **nur noch Anzeige**: ein `<fieldset disabled>`
+    um die deklarierten Abschnitte sperrt jedes Bedienelement darin, Felder wie die eigenen
+    Aktionsknöpfe einer Entität (das Ausleihen des Buches). Das war die Alternative zum
+    stillen Verwerfen – Wiederherstellen ignoriert die Formulareingaben, und ein Formular,
+    das Eingaben annimmt und dann wegwirft, sagt das nirgends. Erst nach dem
+    Wiederherstellen ist der Eintrag wieder ein Eintrag. Das `fieldset` sperrt, ansehen kann man
+    das den Feldern aber nicht: dieselbe Auskunft geht deshalb als `readOnly` durch den Formularkontext
+    (`useFormReadOnly`, gelesen von `DeclaredFormField`), damit die Felder auch _aussehen_ wie
+    Anzeige – ein Auswahlfeld behielt sonst sein „×" zum Leeren, und die Objektsuche ihren
+    „mich auswählen"-Knopf.
+  - Und es steht dabei, statt erschlossen werden zu müssen: `EntityDeletedBanner` über den
+    Abschnitten („Dieser Eintrag ist als gelöscht markiert. Zum Bearbeiten zuerst
+    wiederherstellen.", `entityEdit.deletedInfo` in `messages/{de,en}.json`) und im Kopf der
+    Titel durchgestrichen mit einem `deleted`-Abzeichen. Vorher war der Zustand an genau einer
+    Sache ablesbar – dass die Seite Wiederherstellen anbietet statt Speichern –, und das ist
+    ein Schluss, keine Aussage; die gesperrten Felder sahen nach einem fehlenden Recht aus. Der
+    Hinweis ersetzt das Banner einer Entität nicht, er steht darüber.
+  - Darunter bleibt die Absicherung auf Datenebene: ist der geladene Eintrag gelöscht,
+    postet das Formular `deleted: true` mit. Nur dann, die Nutzlast jedes normalen
+    Speicherns ist unverändert. Sie bleibt, weil sie auch für eine Seite gilt, die diese
+    Hooks selbst zusammensetzt.
+
+- **„+" und Zeilenklick fragten nicht nach dem Recht.** Legacy hängt den Anlege-Eintrag nur
+  bei `userAccess.insert` ans Menü (`AbstractPagesRest.createListLayout`) und verdrahtet den
+  Zeilenklick nur bei `userAccess.update` (`AGGridSupport`, weshalb die servergelayoutete
+  `DynamicGrid` schon richtig lag). `useEditTargets` liest jetzt beides: `canAdd` lässt
+  `AddEntryButton` samt `N`-Kürzel weg, `canOpen` lässt den Zeilenklick weg – kein Handler,
+  kein Zeigefinger, so wie Wickets Liste den Namen dann als schlichtes Label statt als Link
+  zeigt (`GroupListPage`).
+
+  Dafür musste das Backend erst aufhören zu lügen: `AbstractEntityRest.getListMeta` setzte
+  `userAccess.update = true` für jeden, mit dem Argument, das Schreibrecht sei eine Frage am
+  einzelnen Eintrag und reise auf seinem DTO. Das stimmt für die meisten Entitäten und für
+  ein paar eben nicht – eine Gruppe darf jeder lesen und nur ein Administrator ändern. Die
+  Antwort steht jetzt in `AbstractEntityRest.listUpdateAccess()` (Voreinstellung `true`,
+  überschreibbar), `GroupPagesRest` überschreibt sie mit
+  `accessChecker.isLoggedInUserMemberOfAdminGroup` – genau der Wert, den es vorher nur in
+  seinem `createListLayout` gesetzt hat, jetzt für beide Listenseiten an einer Stelle.
+
+- **Und man muss gelöschte Einträge auch finden können.** Das `deleted`-Feld hängt
+  `LayoutListFilterUtils` an jede Liste, sortiert dann aber alle Filterfelder nach Beschriftung
+  – womit „gelöscht" mitten unter den Eigenschaften der Entität landet, obwohl es die eine Frage
+  ist, die jede Liste kennt, und der einzige Weg zu einem Eintrag, den der Standardfilter
+  verbirgt. `hoistDeletedFilter` (`components/data-table/filter-groups.ts`) zieht es nach vorn,
+  an beiden Stellen, an denen ein Feld gewählt wird: in der Auswahlliste des „+"-Chips direkt
+  hinter „geändert" (die Änderungshistorie), und im „Alle Filter"-Dialog an die Spitze der
+  eigenen Felder der Entität.
+
+- Zusicherungen: `e2e/deleted-entry.spec.ts` (neu, an einem eigenen Buch, das es hinterher
+  gelöscht zurücklässt) prüft, dass der gelöschte Eintrag den Hinweis und `undelete` anbietet
+  und weder „Speichern" noch „als gelöscht markieren", dass der Knopf ihn zurückholt und auf
+  die Liste führt, und dass Titelfeld, Auswahlfelder **und** Ausleihknopf gesperrt sind (die
+  Auswahlfelder über ihren eigenen Zustand, nicht nur über das `fieldset` um sie herum).
+  `e2e/filter-all-dialog.spec.ts` prüft die Reihenfolge der beiden Feldauswahlen,
+  `filter-groups.test.ts` das Umsortieren selbst. `e2e/group.spec.ts` prüft
+  als `normalo-user` – dem Konto, das Gruppen lesen, aber nicht anlegen darf – dass die
+  Liste keinen „+"-Knopf trägt, und dass `listMeta` `update: false` und `insert: false`
+  antwortet; der Zeilenklick selbst ist dort nicht zu klicken, weil `GroupDao` diesem Konto
+  keine Gruppe zeigt. Gegenprobe in derselben Datei mit dem Vollzugriffskonto, das die
+  gesäte Gruppe per Zeile öffnet.
+
+- Bewusst nicht angefasst: der „+"-Knopf der Baumseite (`task-tree-action-bar.tsx`).
+  `TaskDao` hat keine `userRightId`, `hasInsertAccess(user)` ist damit für jeden wahr – die
+  echte Prüfung läuft am Elternknoten beim Speichern (`hasInsertAccess(user, obj)`). Eine
+  Abfrage wäre wirkungslos und würde der Baumseite eine `listMeta`-Anfrage aufhalsen, die
+  sie sonst nicht braucht. `DynamicGrid` bleibt ebenfalls, wie sie ist: dort entscheidet der
+  Server über `clickable`.
 
 ### Wie das zu prüfen ist
 

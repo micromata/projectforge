@@ -25,6 +25,8 @@
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
   --color-warning: var(--warning);
+  --color-development: var(--development);
+  --color-development-foreground: var(--development-foreground);
   --color-legacy: var(--legacy);
   --color-legacy-hover: var(--legacy-hover);
   --color-legacy-foreground: var(--legacy-foreground);
@@ -98,6 +100,16 @@
    * unreadable at icon size; `--destructive` is the wrong answer since nothing here is refused.
    */
   --warning: var(--brand-yellow-dark);
+
+  /*
+   * This instance runs in development mode, said in the logo row (see DevelopmentMarker). The same
+   * darkened brand yellow as `--warning`: nothing is refused here, the system must only not be taken
+   * for a productive one. Filled rather than tinted, because the marker has to catch the eye of
+   * someone who is looking at the page for another reason entirely.
+   */
+  --development: var(--brand-yellow-dark);
+  /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
+  --development-foreground: #3d2200;
 
   /*
    * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is
@@ -221,6 +233,9 @@
 
   /* Brightened: the darkened yellow of the light theme is 2.4:1 against the dark card */
   --warning: var(--brand-yellow);
+
+  /* Brightened as well; the foreground stays dark, the marker is filled in either theme */
+  --development: var(--brand-yellow);
 
   /* Change history: the tints need more opacity to stay visible on the dark card */
   --history-insert: var(--brand-green);

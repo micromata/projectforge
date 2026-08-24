@@ -1645,6 +1645,9 @@
   "show": "Show",
   "statistics": "Statistics",
   "status": "Status",
+  "system": {
+    "developmentSystem": "Development system"
+  },
   "task": {
     "_": "Structure element",
     "assignedUser": "Responsible user",

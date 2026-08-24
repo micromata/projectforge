@@ -146,6 +146,8 @@ export interface SystemStatus {
   releaseYear: string;
   copyRightYears: string;
   logoUrl?: string;
+  /** `projectforge.development.mode` of the instance — the flag behind DevelopmentMarker. */
+  developmentMode?: boolean;
   setupRedirectUrl?: string;
   messageOfTheDay?: string;
 }

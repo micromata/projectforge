@@ -231,7 +231,9 @@ function DeclaredList<
             category={t(page.categoryKey)}
             searchValue={list.globalFilter}
             onSearchChange={list.setGlobalFilter}
-            addHref={targets.addHref}
+            // Only where this user may add one: without the right the button is left out, as the
+            // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
+            addHref={targets.canAdd ? targets.addHref : undefined}
             addIsLegacy={targets.legacy}
             legacyUrl={list.legacyUrl}
             selectionToggle={
@@ -307,7 +309,12 @@ function DeclaredList<
           // Leaving the list to look at an entry and coming back returns to the page and the offset it
           // was left with (see useRememberScroll).
           viewScope={page.entity}
-          onRowClick={(row) => targets.openEntry(row.id)}
+          // Only where an entry may be opened at all: without the right there is no handler and no
+          // pointer cursor, the way Wicket's list shows a plain label instead of a link (see
+          // useEditTargets.canOpen — it is the entity's answer, not the single entry's).
+          onRowClick={
+            targets.canOpen ? (row) => targets.openEntry(row.id) : undefined
+          }
           // The mode decides what a click means: outside it every click opens the entry, inside it
           // every click selects (`selection` is undefined outside, so nothing of it is wired up).
           selection={mode.selection}

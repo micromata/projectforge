@@ -10,6 +10,7 @@ import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
+import { useFormReadOnly } from "@/components/shared/form/form-context";
 import { useFormatContext } from "@/hooks/use-format";
 import { cn } from "@/lib/utils";
 import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
@@ -53,6 +54,11 @@ export function DeclaredFormField<M extends EntityMetadata>({
 }): ReactNode {
   const t = useTranslations();
   const format = useFormatContext();
+  // A form that is only being looked at overrides every field's own declaration — the entry is deleted
+  // and offers nothing but its restore (see useFormReadOnly). The fieldset around the sections already
+  // blocks the input natively; this is what makes the fields say so, down to the clear buttons a
+  // dropdown offers beside itself.
+  const formReadOnly = useFormReadOnly();
 
   if ("custom" in field) {
     const Custom = field.custom;
@@ -77,6 +83,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
         begin={bound(field.begin)}
         end={bound(field.end)}
         hint={field.hintKey ? translate(field.hintKey) : undefined}
+        disabled={formReadOnly}
         periodKinds={field.periodKinds}
         paging={field.paging}
         className={className}
@@ -123,12 +130,13 @@ export function DeclaredFormField<M extends EntityMetadata>({
   );
   const hint = field.hintKey ? translate(field.hintKey) : undefined;
   const common = { name: field.name, label, hint, className };
+  const readOnly = field.readOnly || formReadOnly;
 
   if (meta.enumValues) {
     return (
       <SelectField
         {...common}
-        disabled={field.readOnly}
+        disabled={readOnly}
         emphasized={field.emphasized}
         options={meta.enumValues.map((v) => ({
           value: v.value,
@@ -138,12 +146,10 @@ export function DeclaredFormField<M extends EntityMetadata>({
     );
   }
   if (field.rows) {
-    return (
-      <TextAreaField {...common} rows={field.rows} disabled={field.readOnly} />
-    );
+    return <TextAreaField {...common} rows={field.rows} disabled={readOnly} />;
   }
   if (meta.dataType === "BOOLEAN") {
-    return <CheckboxField {...common} disabled={field.readOnly} />;
+    return <CheckboxField {...common} disabled={readOnly} />;
   }
   if (
     meta.dataType === "AMOUNT" ||
@@ -156,7 +162,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
     return (
       <NumberField
         {...common}
-        disabled={field.readOnly}
+        disabled={readOnly}
         fractionDigits={meta.dataType === "INT" ? 0 : undefined}
         maxDigits={field.maxDigits}
         align={field.alignNumber}
@@ -169,7 +175,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
     // The tree, not an autocomplete: a task is picked by where it sits, and its title alone is
     // ambiguous — several projects have a „Wartung". The same picker every other reference to a task
     // uses (a timesheet, an order position).
-    return <TaskSelectField {...common} disabled={field.readOnly} />;
+    return <TaskSelectField {...common} disabled={readOnly} />;
   }
   const searchEntity = SEARCH_ENTITY[meta.dataType];
   if (searchEntity) {
@@ -179,7 +185,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
     <InputField
       {...common}
       type={meta.dataType === "DATE" ? "date" : "text"}
-      disabled={field.readOnly}
+      disabled={readOnly}
     />
   );
 }

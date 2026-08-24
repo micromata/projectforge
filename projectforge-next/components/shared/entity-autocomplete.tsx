@@ -45,6 +45,12 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
   "aria-label"?: string;
   className?: string;
   autoFocus?: boolean;
+  /**
+   * Shown but not changeable — a value this user may read and not set, or a whole form that is only
+   * being looked at (a deleted entry, see useFormReadOnly). The trigger cannot be opened and the two
+   * buttons beside it are left out: both are ways of changing the value.
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -65,6 +71,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   className,
   autoFocus,
   selectMe,
+  disabled,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -87,6 +94,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-expanded={open}
             aria-label={ariaLabel}
             autoFocus={autoFocus}
+            disabled={disabled}
             className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
@@ -95,7 +103,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
           </Button>
         </PopoverTrigger>
-        {value && (
+        {value && !disabled && (
           <button
             type="button"
             // On pointer down, not click: the button unmounts as soon as the value is gone, and a
@@ -110,7 +118,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </button>
         )}
-        {selectMe && selectMe.id !== value?.id && (
+        {selectMe && !disabled && selectMe.id !== value?.id && (
           <SelectMeButton me={selectMe} onPick={() => onChange(selectMe)} />
         )}
       </div>

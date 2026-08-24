@@ -12,6 +12,7 @@ import {
   useEntityAction,
   useEntityDetail,
   useSaveEntity,
+  useUndeleteEntity,
   type EntityWithId,
 } from "@/hooks/use-entity-detail";
 import { useEditReturn } from "@/hooks/use-edit-return";
@@ -32,14 +33,16 @@ import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
-import { entityAccess } from "@/lib/rs/entity-access";
+import { entityAccess, type EntityAccessFlags } from "@/lib/rs/entity-access";
 import { cloneEntity } from "@/lib/rs/entity";
 import { DeclaredSection } from "./declared-sections";
 import { EntityCloneButton } from "./entity-clone-button";
 import { EntityCrossLinks } from "./entity-cross-links";
+import { EntityDeletedBanner } from "./entity-deleted-banner";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityEditHeader } from "./entity-edit-header";
+import { EntityUndeleteButton } from "./entity-undelete-button";
 import { HistoryUserCommentField } from "./history-user-comment-field";
 import { entityTabPanels } from "./entity-tab-panels";
 import { entityTabs } from "./entity-tabs";
@@ -98,6 +101,7 @@ export function EntityEditPage<
   const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
+  const undeleteMutation = useUndeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
   const legacyUrl = useLegacyEditUrl(page.entity, id);
@@ -132,18 +136,33 @@ export function EntityEditPage<
     // The form's values are the DTO the backend expects — the type only differs in what it makes
     // optional (see the entity's schema file).
     save: (values, meta) => {
-      // The comment rides along with the values, as `BaseDTO.historyUserComment` — the backend copies
-      // it onto the DO, from where the history entry of this write takes it. Only when there is one, so
-      // an entity without the field never sees the property.
-      const data = (historyComment.trim()
-        ? { ...values, historyUserComment: historyComment }
-        : values) as unknown as Data;
+      const posted = {
+        ...values,
+        // The comment rides along with the values, as `BaseDTO.historyUserComment` — the backend copies
+        // it onto the DO, from where the history entry of this write takes it. Only when there is one,
+        // so an entity without the field never sees the property.
+        ...(historyComment.trim()
+          ? { historyUserComment: historyComment }
+          : {}),
+        // And so does "deleted", where the entry is: a hand-built form posts its values *as* the DTO,
+        // `deleted` is in no schema, and the backend copies the property of the posted object onto the
+        // stored row (`CandHMaster.copyValues`) — so a write that left it out silently brought the
+        // entry back to life. Only ever added as `true`: a `false` would say what the DTO of every
+        // ordinary entry says by omitting it, and this way their payload is unchanged.
+        //
+        // The second line of defence, not the first: the fieldset below leaves a deleted entry no
+        // control to write with. It stays because it is the one that holds for a page composing these
+        // hooks itself (a book's lend-out posts through this callback too).
+        ...((data as EntityAccessFlags | undefined)?.deleted === true
+          ? { deleted: true }
+          : {}),
+      } as unknown as Data;
       // A declared action posts to `/rs/{entity}/{action}`; anything else is a save. An action name
       // the declaration doesn't list can only come from a typo in a button, and saving instead of
       // posting to a route that doesn't exist is the harmless of the two.
       return edit.actions?.includes(meta.action)
-        ? actionMutation.mutateAsync({ action: meta.action, data })
-        : saveMutation.mutateAsync(data);
+        ? actionMutation.mutateAsync({ action: meta.action, data: posted })
+        : saveMutation.mutateAsync(posted);
     },
   });
 
@@ -191,6 +210,25 @@ export function EntityEditPage<
     }
     if (result.kind === "rejected") {
       // The delete was refused, not merely invalid — an AccessException (see lib/rs/entity.ts).
+      toast.error(result.message || t("validation.error.generic"));
+      return;
+    }
+    toast.success(t("message.successfullChanged"));
+    router.push(back.route);
+  }
+
+  /**
+   * Brings the entry back and leaves the page, the way a delete does — the list is where the user sees
+   * the entry among the others again, which is what the restore was for.
+   */
+  async function runUndelete(): Promise<void> {
+    if (!data) return;
+    const result = await undeleteMutation.mutateAsync(data);
+    if (result.kind === "validationErrors") {
+      result.validationErrors.forEach((error) => toast.error(error.message));
+      return;
+    }
+    if (result.kind === "rejected") {
       toast.error(result.message || t("validation.error.generic"));
       return;
     }
@@ -263,7 +301,11 @@ export function EntityEditPage<
   });
 
   return (
-    <EntityEditFormProvider value={{ form, metadata: page.metadata }}>
+    <EntityEditFormProvider
+      // `readOnly` for a deleted entry: the fieldset below is what blocks the input, this is what the
+      // fields read to look the part (a select keeps its clear button otherwise, see useFormReadOnly).
+      value={{ form, metadata: page.metadata, readOnly: access.deleted }}
+    >
       <form
         ref={formRef}
         onSubmit={(e) => {
@@ -288,6 +330,7 @@ export function EntityEditPage<
                 ) : undefined
               }
               legacyUrl={legacyUrl}
+              deleted={access.deleted}
             />
           }
           tabs={tabs}
@@ -297,7 +340,16 @@ export function EntityEditPage<
             history: page.metadata.historizable,
             extraTabs: edit.extraTabs,
           })}
-          banner={edit.editBanner && <edit.editBanner />}
+          // The notice about a deleted entry comes first and does not replace the entity's own banner:
+          // an order's number and sums are still what the reader looks for, deleted or not.
+          banner={
+            access.deleted || edit.editBanner ? (
+              <>
+                {access.deleted && <EntityDeletedBanner />}
+                {edit.editBanner && <edit.editBanner />}
+              </>
+            ) : undefined
+          }
           // A function per section, so a folded one learns that its tab was clicked (see
           // EditPageShell and DeclaredSection). Not a component — the shell calls it with the flag,
           // React never renders it — hence the named function rather than an arrow, which the
@@ -305,7 +357,7 @@ export function EntityEditPage<
           sections={sections.map(
             (section) =>
               function renderSection(active: boolean) {
-                return (
+                const rendered = (
                   <DeclaredSection
                     key={section.id}
                     section={section}
@@ -313,6 +365,25 @@ export function EntityEditPage<
                     id={data?.id ?? null}
                     active={active}
                   />
+                );
+                // A deleted entry is shown, not edited: there is no save button, so anything typed into
+                // it would be discarded by the restore without a word. One disabled fieldset around the
+                // section does that for every control inside it — fields, pickers and an entity's own
+                // action buttons alike (a book's lend-out) — without a single field component having to
+                // know about it. `contents` keeps the fieldset out of the layout; the section's own
+                // wrapper is what spaces the cards.
+                return access.deleted ? (
+                  <fieldset
+                    key={section.id}
+                    disabled
+                    className="contents"
+                    // Read-only, not broken: without this the block would merely look dead.
+                    aria-label={t("deleted")}
+                  >
+                    {rendered}
+                  </fieldset>
+                ) : (
+                  rendered
                 );
               }
           )}
@@ -349,6 +420,17 @@ export function EntityEditPage<
                   <EntityDeleteButton
                     onDelete={runDelete}
                     disabled={isSubmitting || deleteMutation.isPending}
+                  />
+                ) : undefined
+              }
+              // In the place of the delete button, and under the condition legacy restores with: the
+              // right to insert, not the write access of an entry that is gone (see
+              // LayoutUtils.processEditPage, which asks `userAccess.insert` for exactly this button).
+              undeleteAction={
+                id != null && data && access.deleted && canInsert ? (
+                  <EntityUndeleteButton
+                    onUndelete={runUndelete}
+                    disabled={isSubmitting || undeleteMutation.isPending}
                   />
                 ) : undefined
               }

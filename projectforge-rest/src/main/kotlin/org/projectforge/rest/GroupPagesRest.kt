@@ -145,6 +145,16 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         get() = "wa/groupList"
 
     /**
+     * Every user may read the groups (`GroupDao.hasUserSelectAccess`), only an administrator may change
+     * one (`GroupDao.hasAccess`) - so this is one of the few entities where the write access is a
+     * question about the entity and not about the single entry, and the list page may leave its rows
+     * unclickable for everyone else.
+     */
+    override fun listUpdateAccess(): Boolean {
+        return accessChecker.isLoggedInUserMemberOfAdminGroup
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(
@@ -153,7 +163,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
-        userAccess.update = accessChecker.isLoggedInUserMemberOfAdminGroup
         val agGrid = agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,

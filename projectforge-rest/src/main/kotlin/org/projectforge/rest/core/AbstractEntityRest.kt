@@ -278,7 +278,10 @@ constructor(
         // projectforge-next keeps the page from rendering rather than offering an empty one. Still not
         // the authorization - `list` is refused by the DAO either way, and answers 403 for a next client
         // (see GlobalDefaultExceptionHandler).
-        userAccess.update = true
+        //
+        // Assumed for every entity that has no entity wide answer, and asked where one exists: a list
+        // whose rows nobody may open must not offer the click that opens them (see listUpdateAccess).
+        userAccess.update = listUpdateAccess()
         // Whether a write may carry a comment for the history entry it produces, which is a property of
         // the entity and not of the user: the same answer AbstractPagesRest puts into the layout's
         // userAccess, from where the server laid out edit page adds its comment field
@@ -766,6 +769,23 @@ constructor(
         }
         return result
     }
+
+    /**
+     * Whether this user may write entries of this entity at all - the question a *list* asks, as opposed
+     * to the write access of a single entry.
+     *
+     * True by default, because for most entities there is no entity wide answer: whether an entry may be
+     * written depends on the entry (its task, its status, its owner) and travels on its DTO
+     * (EntityAccessSupport, filled in [getById]). A few DAOs do answer it for the entity as a whole
+     * though - only an administrator may change a group, whoever may read one - and their pages override
+     * this. Wicket asks the same question in the same place (`GroupListPage` renders the name as a plain
+     * label instead of a link without it), and both list pages of this app use the flag for it: the
+     * server laid out grid makes its rows clickable with it (`AGGridSupport`), a hand built list wires
+     * its row click with it (see useEditTargets in projectforge-next).
+     *
+     * Not authorization, like the rest of [UILayout.UserAccess]: the DAO refuses the write regardless.
+     */
+    protected open fun listUpdateAccess(): Boolean = true
 
     protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
         if (userAccess != null) {

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { FilterElement } from "@/lib/rs/types";
 import type { PeriodKindId } from "@/lib/date-period";
 import { FilterFieldPicker } from "./filter-field-picker";
+import { hoistDeletedFilter } from "./filter-groups";
 import { FilterPeriodKindsProvider } from "./filter-period-kinds";
 import { FilterPill } from "./filter-pill";
 import { withFilterValue, type FilterValues } from "./filter-value";
@@ -116,11 +117,15 @@ export function FilterPills({
             ...(history
               ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
               : []),
-            ...withoutHistoryFilters(elements).map((element) => ({
-              id: element.id,
-              label: element.label ?? element.id,
-              tooltip: element.tooltip,
-            })),
+            // `deleted` right behind the change history instead of alphabetically among the entity's
+            // own properties, in both places a field can be picked (see hoistDeletedFilter).
+            ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
+              (element) => ({
+                id: element.id,
+                label: element.label ?? element.id,
+                tooltip: element.tooltip,
+              })
+            ),
           ]}
           activeIds={[
             ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),

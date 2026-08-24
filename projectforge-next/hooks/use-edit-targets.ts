@@ -15,6 +15,24 @@ export interface EditTargets {
    * it to do a full page load (see LegacyPageLink for why that is unavoidable).
    */
   legacy: boolean;
+  /**
+   * Whether this user may add an entry at all — false leaves the button (and with it its shortcut) out
+   * of the toolbar, as `AbstractPagesRest.createListLayout` leaves the create entry out of the legacy
+   * page's menu.
+   */
+  canAdd: boolean;
+  /**
+   * Whether a row may be opened at all — false leaves the list without its row click, as Wicket's list
+   * renders a plain label instead of a link (`GroupListPage`) and as the server laid out grid drops its
+   * `clickable` (`AGGridSupport`).
+   *
+   * The entity wide question, not the entry's: for most entities the backend answers it with true and
+   * whether *this* entry may be written travels on its DTO (`writeAccess`, see lib/rs/entity-access.ts),
+   * which is what makes the form read-only. Only an entity that refuses every write to a whole class of
+   * users answers false here (`AbstractEntityRest.listUpdateAccess`, overridden by `GroupPagesRest`), and
+   * then a row that opens a form nobody may save is a dead end worth not offering.
+   */
+  canOpen: boolean;
 }
 
 /**
@@ -45,10 +63,20 @@ export function useEditTargets(
   // Read unconditionally: `listMeta` is loaded for the filter fields anyway, so this is a cache read,
   // and a hook may not be called conditionally.
   const meta = useListMeta(entity).data;
+  // `!== false` rather than `=== true`: a flag the entity's rest class fills with nothing means "not
+  // restricted" — the same reading `entityAccess` gives a missing flag of an entry, and the one
+  // `AbstractPagesRest` writes down itself (`if (ui.userAccess.insert != false)`). It also covers the
+  // moment before `listMeta` is there, which is no moment for a hand-built list: its shell waits for
+  // that response anyway (see useReadAccessGuard).
+  const access = {
+    canAdd: meta?.userAccess?.insert !== false,
+    canOpen: meta?.userAccess?.update !== false,
+  };
 
   if (hasEditPage) {
     const back = returnToQuery(route, returnTargets);
     return {
+      ...access,
       addHref: `${route}/new${back}`,
       openEntry: (id) => router.push(`${route}/${id}${back}`),
       legacy: false,
@@ -64,7 +92,10 @@ export function useEditTargets(
         )
       : undefined;
 
+  // The right applies to the legacy target as well: a list that hands its entries to Wicket must not
+  // offer an add page that refuses them there.
   return {
+    ...access,
     // `#` while the meta is still loading: the button stays reachable and its shortcut does nothing,
     // rather than the toolbar rendering without it and jumping once the url arrives.
     addHref: legacyUrl(meta?.legacyNewEntryPage) ?? "#",

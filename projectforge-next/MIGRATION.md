@@ -1655,14 +1655,18 @@ ungespeicherten Eingaben stehen bleibt). Das war eine Rückmeldung aus dem Betri
 Version kam man von der Position zum Strukturelement und dort an die darauf gebuchten
 **Zeitberichte**.
 
-Das Ziel ist **fest verdrahtetes Wicket** (`wa/taskEdit?id=…`) und damit die einzige Stelle in
-next, die eine Legacy-URL selbst bildet. Grund: `listMeta.legacyEditPage` liefert für die
-Kategorie `task` `react/task/edit/:id` – `task` steht nicht in `NextMigration.MIGRATED`, also
-fällt `legacyApp` auf die React-App zurück –, und das React-Formular ist ein reines
+Der Stand ist **fest verdrahtetes Wicket** (`wa/taskEdit?id=…`) und damit die einzige Stelle in
+next, die eine Legacy-URL selbst bildet. Grund war: `listMeta.legacyEditPage` lieferte für die
+Kategorie `task` `react/task/edit/:id` – `task` stand nicht in `NextMigration.MIGRATED`, also
+fiel `legacyApp` auf die React-App zurück –, und das React-Formular ist ein reines
 UILayout-Formular ohne die Aktion, um die es hier geht: „Zeitberichte anzeigen" ist ein
 Content-Menü-Eintrag von Wickets `TaskEditPage` (`task.menu.showTimesheets`).
 
-**Nach der Migration der Strukturelement-Seite ist das umzustellen:** Link von Wicket auf die
+**Diese Bedingung ist inzwischen erfüllt** – `task` steht in `MIGRATED`, und das next-Formular
+trägt die fünf Querverweise aus Wickets Content-Menü, „Zeitberichte anzeigen" eingeschlossen.
+Die Umstellung ist damit fällig und steht als erster Punkt unter „Als nächstes".
+
+**Umzustellen ist:** Link von Wicket auf die
 next-Route, das heißt `wa/taskEdit?id=…` in `task-edit-link.tsx` ersetzen durch die URL, die das
 Backend dann nennt (`useLegacyEditUrl`/`nextEditPage` mit einem `task`-Eintrag in `MIGRATED`),
 und die Sonderbehandlung hier wieder auflösen. Dasselbe gilt für die schon vorhandene
@@ -1728,10 +1732,13 @@ alles aus Wicket nachbauen – Baum _und_ Edit-Seite –, dann umschalten**, den
 Teilumstieg, dessen Zeilenklick nach `wa/taskEdit` zurückführt, hätte Funktionalität
 verloren statt gewonnen.
 
-Bestandsaufnahme, die fünf Umsetzungsschritte mit ihren Begründungen und **was gegen die
-Wicket-Vorlage noch offen ist**: **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)**. Zwei
-dort aufgefallene Lücken sind nicht baumspezifisch, sondern betreffen jede handgebaute
-Seite – der fehlende Undelete-Weg und der ungeprüfte Zugriff bei „+" und Zeilenklick.
+Bestandsaufnahme, die fünf Umsetzungsschritte mit ihren Begründungen und die Prüfung gegen
+die Wicket-Vorlage: **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)**. Deren Liste „Was
+noch offen ist" ist **abgearbeitet**; zwei der dort aufgefallenen Lücken waren nicht
+baumspezifisch, sondern betrafen jede handgebaute Seite – der fehlende Undelete-Weg und
+der ungeprüfte Zugriff bei „+" und Zeilenklick – und sind entsprechend zentral behoben.
+Offen bleiben bewusst nur die Aufgaben-Favoriten (es fehlt die Verwaltungsseite
+`UserPrefListPage`); daran hängt der Menüeintrag.
 
 #### Gruppen (`group`, vierter handgebauter Fall) – vollständig migriert
 
@@ -1990,29 +1997,71 @@ springt (`SearchFilter.jsx`).
   (`components/shared/date-input.tsx`) statt vier `<input type="date">`: Layout,
   Platzhaltermaske und erster Wochentag aus `userData`, Wert immer ISO
   `yyyy-MM-dd`. Gegen das laufende System geprüft (`e2e/date-input.spec.ts`).
+- **Strukturelemente (`task`) vollständig** – Baum, Aktionsleiste, handgebaute
+  Edit-Seite, Listenperspektive und Aufgaben-Assistent; `NextMigration.MIGRATED["task"]`
+  ist umgeschaltet. Die Prüfung Wicket ↔ next vom 23.08.2026 ist **abgearbeitet**
+  (Status-Vorgabe der Liste, die fünf Querverweise im Kopf des Formulars, die Tippsuche
+  im Auswahlfeld, die vier Kleinigkeiten) – Einzelheiten mit Begründung in
+  [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md). Bewusst ausgelassen bleiben allein die
+  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`, es fehlt die Verwaltungsseite);
+  deshalb zeigt der Menüeintrag `TASK_TREE` noch auf `wa/taskTree`. Zwei dort
+  aufgefallene Lücken waren nicht baumspezifisch und sind für **jede** handgebaute Seite
+  behoben: der fehlende Undelete-Weg (samt der stillen Wiederherstellung durch jedes
+  Speichern) und „+"/Zeilenklick ohne Rechteprüfung.
 
 **Als nächstes:**
 
-1. **Phase 2** – Dynamic-Renderer ausbauen (bringt die ~36 UILayout-Seiten in der
-   Masse). Listen rendern inzwischen mit der echten `DataTable`; als nächstes
-   fehlen die Entity-Picker-Elementtypen und der `UICustomized`-Escape-Hatch. Erst
-   danach lohnt es, Seiten in `NextMigration.MIGRATED` umzuschalten.
-2. **Phase 3 – Strukturelemente**: Baum, Listenperspektive, handgebaute Edit-Seite und
-   Assistent stehen, `NextMigration.MIGRATED["task"]` ist umgeschaltet; der Menüeintrag
-   `TASK_TREE` zeigt bis auf Weiteres noch auf `wa/taskTree`. Was gegen die Wicket-Vorlage
-   noch fehlt, steht mit Reihenfolge in
-   **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)** („Was noch offen ist"): der
-   Status-Default der Liste, die fünf Querverweise im Kopf des Formulars, die Tippsuche im
-   Auswahlfeld – und querschnittlich der fehlende Undelete-Weg sowie „+"/Zeilenklick ohne
-   Rechteprüfung.
-3. **Phase 3** – die **Kalenderseite** als nächster handgebauter Härtefall und
+1. **Drei kleine Reste, die durch die fertigen Strukturelemente reif geworden sind** –
+   sie kosten wenig und räumen jeweils eine Stelle auf, die heute noch auf Wicket zeigt
+   oder eine Unwahrheit behauptet:
+   - `components/shared/tasks/task-edit-link.tsx` zeigt noch fest auf
+     `wa/taskEdit?id=…`. Die Bedingung, die der Kommentar dort nennt, ist erfüllt:
+     `task` steht in `MIGRATED`, und das next-Formular trägt die Querverweise
+     (inkl. „Zeitberichte anzeigen"). Umstellen auf die next-Route, damit ein Klick aus
+     Auftragsbuch, Rechnung oder Baum nicht mehr aus der App herausführt.
+     Nicht dazu gehört `consumption-cell.tsx`
+     (`wa/timesheetList?taskId=…`) – die bleibt hart, bis die Zeitberichte migriert sind.
+   - **Entscheidung zum Menüeintrag `TASK_TREE`.** Technisch ist es ein Aufruf
+     (`nextRouteUrl("task", "taskTree", "wa/taskTree")`); es hängt allein an den
+     Aufgaben-Favoriten, deren Verwaltungsseite (`UserPrefListPage`) fehlt, während
+     `TaskFavoritesRest` fertig und unbenutzt daliegt. Entweder die Favoritenseite
+     nachziehen oder bewusst ohne sie umschalten – offen lassen ist die schlechteste
+     der drei Möglichkeiten, weil der Baum dann fertig ist und niemand ihn sieht.
+   - Diese Liste selbst aktuell halten: sie hat die abgeschlossene Baumarbeit noch als
+     offen geführt, und eine Planungsdatei, die das tut, wird bei der nächsten Frage
+     „was ist als nächstes zu tun" zur falschen Antwort.
+
+   Danach steht die Wahl zwischen drei großen Blöcken (2–4). **Empfehlung: der
+   Kalender.** Er ist die Startseite nach dem Login, hat also den größten sichtbaren
+   Effekt, sein Plan ist vollständig, und seine beiden Voraussetzungen sind ohnehin
+   Phase-2-Arbeit – man erledigt damit zwei Phasen mit einem Schritt.
+
+2. **Phase 3 – die Kalenderseite** als nächster handgebauter Härtefall und
    Standard-Startseite nach dem Login; der Detailplan liegt vor
-   (`MIGRATION-calendar.md`), umgesetzt ist nichts. Sie zieht zwei Phase-2-Stücke
-   mit, die auch anderen Seiten nützen: die 2-Segment-Route `[category]/[type]` und
-   die Weitergabe des Query-Strings in `fetchDynamic`, dazu `COLOR_CHOOSER` in der
+   (**[MIGRATION-calendar.md](MIGRATION-calendar.md)**), umgesetzt ist nichts. Sie zieht
+   zwei Phase-2-Stücke mit, die auch anderen Seiten nützen: die 2-Segment-Route
+   `[category]/[type]` (samt Herausziehen des Seitenkörpers nach
+   `components/dynamic/dynamic-form-page.tsx`) und die Weitergabe des Query-Strings in
+   `fetchDynamic` (bis in den Query-Key), dazu `COLOR_CHOOSER` in der
    `UICustomized`-Registry. (Auftragsbuch und Debitorenrechnungen sind fertig, s.
    Phase 3.)
-4. **Mehrere Testkonten statt einem.** Solange die Konten-Datei ein einziges Konto
+3. **Phase 2 in der Breite** – Dynamic-Renderer ausbauen (bringt die ~36
+   UILayout-Seiten in der Masse). Listen rendern inzwischen mit der echten
+   `DataTable`; es fehlen die restlichen Entity-Picker-Elementtypen (`TASK`, `LOCALE`,
+   `TIMEZONE`, `PICTURE`), die `UICustomized`-Registry und ein tragfähiger
+   MODAL-Stack statt der heutigen Notlösung. Erst danach lohnt es, weitere Seiten in
+   `NextMigration.MIGRATED` umzuschalten. Der Block bringt viele Seiten, aber keine
+   davon vollständig – deshalb hinter dem Kalender, der die Hälfte davon mitzieht.
+4. **Serverseitiges Paging fertigstellen** –
+   **[MIGRATION-list-paging.md](MIGRATION-list-paging.md)**, Stufen 1a–1c und 3a/3b sind
+   erledigt, offen sind 2, 4, 5 und der Rollout (6). Die Auftragsliste ist der Maßstab:
+   7132 Zeilen, die Leitung ist auf 549 KB herunter, die Gesamtzeit bleibt bei **2,68 s** –
+   der Rest sitzt vollständig im Server. Deshalb rät die Datei selbst dazu, **erst den
+   schnellen Pfad aus Stufe 5** (`SELECT id`-Projektion, `hasUniformSelectAccess`) zu
+   messen, bevor der Id-Listen-Cache aus Stufe 2 gebaut wird: es kann sein, dass der
+   Cache dann nicht mehr gebraucht wird. Reine Performance-Arbeit, keine neue Seite –
+   drängt also nur, wenn die 2,68 s zum Problem werden.
+5. **Mehrere Testkonten statt einem.** Solange die Konten-Datei ein einziges Konto
    hielt – Admin **und** in den FiBu-Gruppen **und** deutsch –, war von jeder
    rechteabhängigen Regel nur der Erfolgsfall prüfbar; die Ablehnung, also die Hälfte,
    auf die es ankommt, war unerreichbar. Die Datei trägt jetzt **eine Zeile je Rolle**
@@ -2057,10 +2106,8 @@ springt (`SearchFilter.jsx`).
    Saat-Entitäten sollen weiter mit allen Rechten entstehen, geprüft wird nur der Zugriff
    darauf.
 
-5. **Ein Spec für Favoriten umbenennen/löschen** und die Umstellung von
-   `task-edit-link.tsx` auf die next-Route, sobald die Strukturelement-Seite
-   migriert ist (s. eigener Abschnitt).
-6. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
+6. **Ein Spec für Favoriten umbenennen/löschen** (s. eigener Abschnitt).
+7. **Auth-Restprüfungen mit echtem zweiten Faktor** – der Legacy-Login ist
    gelöscht, es gibt keine Rückfallebene mehr. Gegen das laufende System geprüft
    ist: `e2e/login.spec.ts` (Fehlanmeldung, `returnUrl`, fremder Host,
    Passwort-vergessen), der Wicket-Umweg (ohne Session `302` auf

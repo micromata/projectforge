@@ -12,6 +12,7 @@ import {
   markEntityAsDeleted,
   postEntityAction,
   saveOrUpdateEntity,
+  undeleteEntity,
   type EntityWriteResult,
 } from "@/lib/rs/entity";
 import { historyQueryKey } from "@/hooks/use-history";
@@ -161,6 +162,27 @@ export function useDeleteEntity<T extends EntityWithId>(
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => markEntityAsDeleted(entity, data),
+    onSuccess: (result, data) => {
+      if (result.kind !== "ok") return;
+      invalidateEntity(qc, entity, data.id, listQueryKey);
+    },
+  });
+}
+
+/**
+ * Brings a marked-as-deleted entity back — the counterpart of [useDeleteEntity], and the reason that
+ * delete keeps the row (`RestPaths.UNDELETE`).
+ *
+ * Needs no more of the entity than the delete does: the endpoint sets `deleted` itself before it saves
+ * what was posted, so the loaded entity is passed on unchanged.
+ */
+export function useUndeleteEntity<T extends EntityWithId>(
+  entity: string,
+  { listQueryKey }: WriteOptions
+) {
+  const qc = useQueryClient();
+  return useMutation<EntityWriteResult, Error, T>({
+    mutationFn: (data) => undeleteEntity(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
       invalidateEntity(qc, entity, data.id, listQueryKey);
