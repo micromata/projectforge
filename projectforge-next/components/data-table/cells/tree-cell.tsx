@@ -13,6 +13,11 @@ type TreeStatus = "OPENED" | "CLOSED" | "LEAF";
  * and an expansion model in DataTable — so the chevron shows the server's state
  * without being clickable. `onToggle` is already in the signature so the
  * interactive version doesn't have to change the call sites.
+ *
+ * [action] hangs behind the title: what the row lets one do with this node — the task tree's "add a
+ * subtask". Here rather than in DataTable's `rowActions`, which is a slot after the *last* column:
+ * this cell is the tree's own, usually pinned, so the button stays beside the title it belongs to
+ * instead of sitting ten columns away and scrolling out of sight.
  */
 export function TreeCell({
   spec,
@@ -20,7 +25,8 @@ export function TreeCell({
   row,
   t,
   onToggle,
-}: CellRenderProps & { onToggle?: () => void }) {
+  action,
+}: CellRenderProps & { onToggle?: () => void; action?: React.ReactNode }) {
   const declared = spec.tooltipPath
     ? getByPath(row, spec.tooltipPath)
     : undefined;
@@ -52,9 +58,20 @@ export function TreeCell({
       </span>
       {/* The declared tooltip where the column has one (the task's description), otherwise none: the
           delegated tooltip shows the title itself as soon as the cell clips it. */}
-      <span className="truncate" data-tooltip={tooltip}>
+      <span className="min-w-0 flex-1 truncate" data-tooltip={tooltip}>
         {String(value ?? "")}
       </span>
+      {action ? (
+        // Revealed on hover of the row, whose <tr> is the `group` (see DataTableRow) — the same
+        // reveal the trailing actions column had. stopPropagation, or the click would reach this
+        // cell's own handler as well and expand the node the action is about (see TaskTreeTable).
+        <span
+          className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {action}
+        </span>
+      ) : null}
     </span>
   );
 }

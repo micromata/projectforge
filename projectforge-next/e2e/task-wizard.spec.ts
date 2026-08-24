@@ -71,6 +71,40 @@ test.describe("task wizard", () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 
+  test("the element's own form starts the wizard on that element", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
+    test.setTimeout(60_000);
+    const format = await userFormat(page);
+    await goto(page, `/task/${seededTask.id}`);
+
+    // Not in Wicket's top menu of the form: an admin who is in an element is who wants its rights set
+    // up, and the way through the tree is the detour. Admins only (`CrossLinkDef.adminOnly`) — the test
+    // account is one.
+    await page.getByRole("button", { name: format.t("more") }).click();
+    await page
+      .getByRole("menuitem", { name: format.t("task.wizard.pageTitle") })
+      .click();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/taskWizard\\?taskId=${seededTask.id}$`),
+      { timeout: 20_000 }
+    );
+    // The point of the parameter: step 1 arrives done, with the element's path instead of
+    // „please select".
+    await expect(
+      page
+        .getByRole("navigation", {
+          name: format.t("task.path.pleaseSelectTask"),
+        })
+        .first()
+    ).toContainText(seededTask.title, { timeout: 20_000 });
+    await expect(
+      page.getByRole("button", { name: format.t("task.wizard.finish") })
+    ).toBeEnabled();
+  });
+
   test("without a structure element nothing can be finished", async ({
     loggedInPage: page,
   }) => {

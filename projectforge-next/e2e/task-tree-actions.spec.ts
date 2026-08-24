@@ -78,8 +78,8 @@ test.describe("task tree actions", () => {
     await goto(page, PAGE);
     const { row } = await narrowToSeeded(page, format.t, seededTask.title);
 
-    // Revealed on hover (`group-hover:opacity-100`), so the row's own click keeps its meaning — the
-    // action is a link and stops the event itself (see DataTableRow).
+    // Behind the title, revealed on hover (`group-hover:opacity-100`), so the row's own click keeps
+    // its meaning — the action is a link and stops the event itself (see TreeCell).
     await row
       .getByRole("link", {
         name: `${format.t("task.title.add")}: ${seededTask.title}`,

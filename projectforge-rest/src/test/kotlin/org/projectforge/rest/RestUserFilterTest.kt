@@ -37,6 +37,8 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.security.My2FARequestConfiguration
+import org.projectforge.security.My2FARequestHandler
 import org.projectforge.web.rest.RestUserFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -50,6 +52,12 @@ class RestUserFilterTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var my2FARequestConfiguration: My2FARequestConfiguration
+
+    @Autowired
+    private lateinit var my2FARequestHandler: My2FARequestHandler
 
     val filter: RestUserFilter = RestUserFilter()
 
@@ -149,6 +157,41 @@ class RestUserFilterTest : AbstractTestBase() {
     }
 
     /**
+     * A client authenticated by an authentication token can't do a 2FA (it has no session, so
+     * UserContext.lastSuccessful2FA is always null). A protected url must therefore be answered with a 403 and a json
+     * body, not with the ResponseAction of the UILayout clients: the latter is sent with status 200 and would be read
+     * as a success by such a client.
+     */
+    @Test
+    @Throws(IOException::class, ServletException::class)
+    fun twoFactorProtectedUrlIsDeniedForTokenAuthentication() {
+        val writer = StringWriter()
+        val response = mockResponse(writer)
+        val request = mockRequest(null, null, userId, userToken, "${Rest.URL}order/list")
+        val chain = Mockito.mock(FilterChain::class.java)
+        try {
+            my2FARequestConfiguration.internalSet4TestCases(expiryPeriodMinutes10 = "${Rest.URL}order")
+            my2FARequestHandler.reload()
+            suppressErrorLogs {
+                filter.doFilter(request, response, chain)
+            }
+        } finally {
+            my2FARequestConfiguration.internalSet4TestCases() // Restore: the configuration is a shared bean.
+            my2FARequestHandler.reload()
+        }
+        Mockito.verify(chain, Mockito.never()).doFilter(
+            Mockito.any(HttpServletRequest::class.java), Mockito.any(HttpServletResponse::class.java)
+        )
+        Mockito.verify(response).status = HttpServletResponse.SC_FORBIDDEN
+        Mockito.verify(response).contentType = MediaType.APPLICATION_JSON_VALUE
+        val body = writer.toString()
+        Assertions.assertTrue(
+            body.contains("\"status\":403"),
+            "Json body with the real status expected, but was '$body'.",
+        )
+    }
+
+    /**
      * The writer has to be stubbed: a denied call writes its json error body into it (see
      * [org.projectforge.web.rest.RestAuthenticationUtils]), and a mock returns null for it by default.
      */
@@ -160,7 +203,8 @@ class RestUserFilterTest : AbstractTestBase() {
 
     private fun mockRequest(
         username: String?, password: CharArray?, userId: Long?,
-        authenticationToken: String?
+        authenticationToken: String?,
+        requestURI: String? = null,
     ): HttpServletRequest {
         val request = Mockito.mock(
             HttpServletRequest::class.java
@@ -180,7 +224,9 @@ class RestUserFilterTest : AbstractTestBase() {
         if (authenticationToken != null) {
             Mockito.`when`(request.getHeader(Mockito.eq(Authentication.AUTHENTICATION_TOKEN)))
                 .thenReturn(authenticationToken)
-            Mockito.`when`(request.requestURI).thenReturn(Rest.URL + "....")
+        }
+        if (requestURI != null || authenticationToken != null) {
+            Mockito.`when`(request.requestURI).thenReturn(requestURI ?: (Rest.URL + "...."))
         }
         return request
     }

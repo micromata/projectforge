@@ -73,7 +73,20 @@ export function TaskTreeTable({
   linkEnabled = true,
 }: TaskTreeTableProps) {
   const t = useTranslations();
-  const columns = useTaskTreeColumns(grid, onToggle, linkEnabled);
+  // Behind the task's title rather than in DataTable's trailing actions column, which on a tree ten
+  // columns wide is nowhere near the title it belongs to (see TreeCell). Not in Wicket, whose tree
+  // can only add below the root — where the new task then has to be moved by hand. The parent travels
+  // as a parameter of the preset, because only the backend can resolve what hangs on it (see
+  // newTaskHref). Memoised, or every render would hand useTaskTreeColumns a new function and rebuild
+  // the columns.
+  const rowAction = useMemo(
+    () =>
+      pageActions
+        ? (task: TaskNode) => <AddSubtaskAction task={task} />
+        : undefined,
+    [pageActions]
+  );
+  const columns = useTaskTreeColumns(grid, onToggle, linkEnabled, rowAction);
 
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
   // initial answer, and this component only exists once that has arrived.
@@ -172,12 +185,6 @@ export function TaskTreeTable({
             onSelect?.(row);
           }
         }}
-        // Not in Wicket, whose tree can only add below the root — where the new task then has to be
-        // moved by hand. The parent travels as a parameter of the preset, because only the backend can
-        // resolve what hangs on it (see newTaskHref).
-        rowActions={
-          pageActions ? (row) => <AddSubtaskAction task={row} /> : undefined
-        }
         className="flex-1"
       />
     </>

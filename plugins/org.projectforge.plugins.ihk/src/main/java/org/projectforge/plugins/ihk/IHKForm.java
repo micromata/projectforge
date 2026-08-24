@@ -35,6 +35,7 @@ import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
@@ -84,9 +85,14 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         List<AddressDO> addressDos = WicketSupport.get(AddressDao.class).select(new BaseSearchFilter());
         boolean foundUser = false;
 
-        for (AddressDO addressDo : addressDos) {
-            if (addressDo.getName().equals(ThreadLocalUserContext.getLoggedInUser().getLastname())) {
-                if (addressDo.getFirstName().equals(ThreadLocalUserContext.getLoggedInUser().getFirstname())) {
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        final String lastname = loggedInUser != null ? loggedInUser.getLastname() : null;
+        final String firstname = loggedInUser != null ? loggedInUser.getFirstname() : null;
+
+        if (lastname != null && firstname != null) {
+            // Addresses may have no name and/or no first name at all, so compare starting from the user's values.
+            for (AddressDO addressDo : addressDos) {
+                if (lastname.equals(addressDo.getName()) && firstname.equals(addressDo.getFirstName())) {
                     userComment = addressDo.getComment();
                     foundUser = true;
                     break;

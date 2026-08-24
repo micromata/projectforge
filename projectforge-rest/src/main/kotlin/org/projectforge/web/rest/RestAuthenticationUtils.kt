@@ -299,6 +299,21 @@ open class RestAuthenticationUtils {
       val expiryMillis = my2FARequestHandler.handleRequest(authInfo.request, authInfo.response, false)
       if (expiryMillis != null) {
         log.info { "2FA is required for this request: ${authInfo.request.requestURI}" }
+        if (authInfo.loggedInByAuthenticationToken) {
+          // A client authenticated by an authentication token can't do a 2FA at all: it has no session, so
+          // registerUser creates a fresh UserContext for every request and UserContext.lastSuccessful2FA is always
+          // null (My2FAExpiryPeriod.valid). Such a request is therefore permanently denied and the client only needs
+          // to be told so in a way it can evaluate: without this branch it got the ResponseAction below with status
+          // 200 and had to read a login page url as if it were the requested payload.
+          // Checked before isNextClient, because that one is only a hint given by the client itself.
+          val msg =
+            "2FA is required for ${request.requestURI}, but the request was authenticated by an authentication token: " +
+                "a rest client can't do a 2FA. Either exclude this url from projectforge.2fa.expiryPeriod.* or use " +
+                "an url not protected by a second factor."
+          logError(authInfo, msg)
+          sendError(response, HttpStatus.FORBIDDEN.value(), "Access denied: 2FA required, not available for rest clients.")
+          return
+        }
         if (isNextClient(request)) {
           // projectforge-next doesn't know the UILayout based ResponseAction protocol: it opens its own 2FA dialog
           // and repeats the request afterwards (see lib/rs/client.ts).
