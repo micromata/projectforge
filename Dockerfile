@@ -1,5 +1,5 @@
 # Base image (openjdk:* is deprecated and its tags were removed from Docker Hub):
-ARG BASE_IMAGE=eclipse-temurin:17-jdk-jammy
+ARG BASE_IMAGE=eclipse-temurin:21-jdk-jammy
 FROM ${BASE_IMAGE}
 
 # Argument for JAR file name to use in working directory:
