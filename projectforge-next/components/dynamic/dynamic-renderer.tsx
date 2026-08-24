@@ -18,6 +18,7 @@ import { DynamicGrid } from "./components/grid/dynamic-grid";
 import { DynamicBadge } from "./components/dynamic-badge";
 import { DynamicSpacer } from "./components/dynamic-spacer";
 import { DynamicFallback } from "./components/dynamic-fallback";
+import { DynamicCustomized } from "./customized/dynamic-customized";
 
 export interface DynamicComponentProps {
   node: DynamicLayoutNode;
@@ -48,6 +49,7 @@ const COMPONENT_MAP: Record<string, ComponentType<DynamicComponentProps>> = {
   BADGE: DynamicBadge,
   BADGE_LIST: DynamicBadge,
   SPACER: DynamicSpacer,
+  CUSTOMIZED: DynamicCustomized,
 };
 
 export function DynamicRenderer({
