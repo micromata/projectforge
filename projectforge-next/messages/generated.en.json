@@ -210,7 +210,27 @@
     },
     "settings": {
       "_": "Settings (colors)",
-      "colors": "Colors"
+      "alternateHoursBackground": {
+        "_": "Alternate colors for hours",
+        "toolip": "The background colors of even and odd colors are different in the week and day view (reload of calendar required)."
+      },
+      "colors": {
+        "_": "Colors",
+        "scheme": {
+          "_": "Color scheme",
+          "classic": "Classic (more contrast)",
+          "standard": "Standard (transparent)"
+        },
+        "timesheetBreaks": "Breaks between timesheets",
+        "timesheetStats": "Timesheet statistics",
+        "timesheets": "Timesheets",
+        "vacations": {
+          "_": "Vacations",
+          "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/react/teamCal/edit)."
+        }
+      },
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
+      "title": "Calendar settings"
     },
     "short": {
       "yearToDate": "Y→"

@@ -210,7 +210,27 @@
     },
     "settings": {
       "_": "Einstellungen (Farben)",
-      "colors": "Farben"
+      "alternateHoursBackground": {
+        "_": "Stunden in wechselnden Farben",
+        "toolip": "In der Wochen- und Tagessicht werden gerade und ungerade Stunden farblich anders hinterlegt (Neuladen des Kalenders erforderlich)."
+      },
+      "colors": {
+        "_": "Farben",
+        "scheme": {
+          "_": "Farbschema",
+          "classic": "Klassische (mehr Kontrast)",
+          "standard": "Standard (Transparenz)"
+        },
+        "timesheetBreaks": "Zeitberichtspausen",
+        "timesheetStats": "Zeitberichtsstatistiken",
+        "timesheets": "Zeitberichte",
+        "vacations": {
+          "_": "Urlaube",
+          "info": "Diese Farbe wird für Urlaube verwendet, die in den Ansichtseinstellungen über das Zahnrad ausgewählt wurden.\n\nWenn verschiedene Farben für verschiedene Urlaube von Teams und/oder Personen gewünscht sind, dann kann leicht ein Urlaubskalender für Gruppen/Personen [hier](/react/teamCal/edit) eingerichtet werden."
+        }
+      },
+      "intro": "Beachte: Die Farben von anderen Kalendern kann einfach durch Klicken auf die Pillen in der Kalenderauswahl oben in der Zeile der Kalenderseite verändert werden.",
+      "title": "Kalendereinstellungen"
     },
     "short": {
       "yearToDate": "J→"
