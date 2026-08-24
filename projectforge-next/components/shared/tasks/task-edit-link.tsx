@@ -6,20 +6,20 @@ import { LinkSquare02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
+import { taskHref } from "./task-routes";
 
 /**
  * The way from a selected task to that task's own page — the shortcut the legacy order form offered
  * from a position, and from where the timesheets booked on the task are reachable.
  *
- * Opens in a new tab on purpose: this sits inside an edit form, and following it in the same tab
- * would throw away everything typed so far.
+ * The target is the migrated next form (`task` is in `NextMigration.MIGRATED`), which carries the
+ * five cross-links of Wicket's content menu, „Zeitberichte anzeigen" among them — the one action this
+ * link exists for. Until the migration this pointed at `wa/taskEdit`, because the React form was a
+ * plain UILayout form without that action.
  *
- * The target is Wicket's page and is spelled out here, not taken from `listMeta.legacyEditPage` as
- * everywhere else: that one answers `react/task/edit/:id` for the task (the category isn't migrated,
- * so `NextMigration.legacyApp` falls back to the React app), and the React form is a plain UILayout
- * form without the one action this link exists for — „Zeitberichte anzeigen" is a content menu entry
- * of `TaskEditPage`. Once the task page itself is migrated, this has to point at its next route
- * instead; see MIGRATION.md.
+ * Still a plain anchor in a new tab, not `next/link`: this sits inside an edit form, and following it
+ * in the same tab — even to a route of this app — would unmount the form and throw away everything
+ * typed so far. The absolute url (`toAbsoluteUrl`) is what a new tab needs.
  */
 export function TaskEditLink({ taskId }: { taskId: number | null }) {
   const t = useTranslations();
@@ -35,9 +35,8 @@ export function TaskEditLink({ taskId }: { taskId: number | null }) {
         aria-label={label}
         className="size-7 shrink-0"
       >
-        {/* A plain anchor, not next/link: the target belongs to another app and needs a full load. */}
         <a
-          href={toAbsoluteUrl(resolveMenuUrl(`wa/taskEdit?id=${taskId}`))}
+          href={toAbsoluteUrl(resolveMenuUrl(`next${taskHref(taskId)}`))}
           target="_blank"
           rel="noopener noreferrer"
         >
