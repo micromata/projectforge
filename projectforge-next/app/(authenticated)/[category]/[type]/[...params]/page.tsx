@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { DynamicFormPageClient } from "./page-client";
 
 // Static export emits a single placeholder route; Spring forwards /next/** deep links (e.g.
@@ -7,6 +8,11 @@ export function generateStaticParams() {
   return [{ category: "address", type: "edit", params: ["new"] }];
 }
 
+// DynamicFormPage reads useSearchParams(), which requires a Suspense boundary under static export.
 export default function DynamicFormPage() {
-  return <DynamicFormPageClient />;
+  return (
+    <Suspense>
+      <DynamicFormPageClient />
+    </Suspense>
+  );
 }

@@ -408,16 +408,24 @@ export function fetchListData(
   );
 }
 
+/**
+ * @param search extra query parameters to forward verbatim (without `id`), e.g. the `startDate`/
+ *   `endDate`/`firstHour` a calendar hands a new timesheet: `TimesheetPagesRest` reads them from
+ *   the request to preset the times. `id` travels as its own argument, so it never belongs here.
+ */
 export function fetchDynamic(
   category: string,
   type?: string,
   id?: string | number,
+  search?: string,
   signal?: AbortSignal
 ): Promise<DynamicPageResponse> {
   const path = type ? `/rs/${category}/${type}` : `/rs/${category}/dynamic`;
-  const params = id != null ? `?id=${id}` : "";
+  const query = new URLSearchParams(search ?? "");
+  if (id != null) query.set("id", String(id));
+  const suffix = query.toString();
   return request<DynamicPageResponse>(
-    `${path}${params}`,
+    `${path}${suffix ? `?${suffix}` : ""}`,
     { method: "GET" },
     signal
   );
