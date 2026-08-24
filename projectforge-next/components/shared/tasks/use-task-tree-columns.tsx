@@ -22,14 +22,17 @@ import type { TaskNode } from "@/lib/rs/task";
  * that one reused, because the structure tree has no DynamicLayout to take `translate` from: its
  * headers arrive already translated, so `next-intl` covers the rest.
  *
- * The one column that differs is the tree column: [TreeCell] gets an `onToggle`, which the generic
- * `renderCell` has no channel for — expanding is this table's own concern, not a cell kind's.
+ * The one column that differs is the tree column: [TreeCell] gets an `onToggle` and the row's
+ * `action`, which the generic `renderCell` has no channel for — expanding and adding below a node
+ * are this table's own concern, not a cell kind's.
  */
 export function useTaskTreeColumns(
   grid: AgGridNode | undefined,
   onToggle: (task: TaskNode) => void,
   /** Whether a cell may link away from the tree, see [CellRenderProps.linkEnabled]. */
-  linkEnabled: boolean
+  linkEnabled: boolean,
+  /** What the row lets one do with the task, rendered behind its title (see [TreeCell]). */
+  rowAction?: (task: TaskNode) => React.ReactNode
 ): ColumnDef<TaskNode, unknown>[] {
   const formatCtx = useFormatContext();
   const t = useTranslations();
@@ -63,12 +66,16 @@ export function useTaskTreeColumns(
             linkEnabled,
           };
           return spec.kind === "tree" ? (
-            <TreeCell {...props} onToggle={() => onToggle(row.original)} />
+            <TreeCell
+              {...props}
+              onToggle={() => onToggle(row.original)}
+              action={rowAction?.(row.original)}
+            />
           ) : (
             renderCell(props)
           );
         },
       } satisfies ColumnDef<TaskNode, unknown>;
     });
-  }, [grid, formatCtx, t, onToggle, linkEnabled]);
+  }, [grid, formatCtx, t, onToggle, linkEnabled, rowAction]);
 }
