@@ -28,7 +28,15 @@ export function PageShell({ children }: PageShellProps) {
   }, [pathname, setLogoCollapsed]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    // `relative`, so this box is the containing block of every absolutely positioned descendant that
+    // has no positioned parent of its own — Tailwind's `sr-only` is one (the file inputs behind the
+    // attachment buttons). Without it their containing block is <body>: they are laid out at their
+    // static position deep inside a scroll column, escape that column's clipping (clipping follows the
+    // containing block chain, not the DOM parent chain) and make the *document* as tall as the whole
+    // form. The document then scrolls, and at the end of a column that scroll chains into it, lifting
+    // the app - the action bar included - out of the viewport and leaving white below it. With the
+    // containing block here, `overflow-hidden` clips them and the page itself never scrolls.
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <LogoRow />
       <BrandStripe />
       <TopNavigation />
