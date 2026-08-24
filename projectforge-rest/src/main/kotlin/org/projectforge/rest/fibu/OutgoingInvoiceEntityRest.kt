@@ -475,6 +475,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * position (`position.info.netSum`), and those are `lateinit` too. `ensuredInfo` would not fill them — the
      * load already put an invoice level [RechnungInfo] from the cache on the object (`RechnungDao.afterLoad`),
      * so it considers the work done while every position still throws.
+     *
+     * The payment terms in days, which Wicket derives before building its page (`RechnungEditPage`,
+     * `recalculate()`), are none of this endpoint's business: [InvoiceService] derives the discount terms of
+     * the document from the stored dates itself, so that every caller of it prints the same invoice.
      */
     @GetMapping("$EXPORT_WORD_PATH/{id}")
     fun exportInvoiceWord(

@@ -102,8 +102,14 @@ open class InvoiceService {
     open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
         log.info { "Creating invoice document for invoice number ${data.nummer}." }
         return try {
-            val isSkonto =
-                data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
+            // The stored fields alone, and not `discountZahlungsZielInTagen`: that one is transient and derived
+            // (see AbstractRechnungDO.recalculate), so an invoice just loaded from the database carries no
+            // discount term at all. Wicket happens to hold one because its edit page recalculates the invoice
+            // before building the form, and it is that accident the condition used to rest on - every other
+            // caller (the REST export, the ZUGFeRD conversion) printed an invoice whose discount text was
+            // silently dropped. Since the term is nothing but the days between the two dates, requiring the
+            // dates says the same thing for everybody.
+            val isSkonto = data.datum != null && data.discountMaturity != null && data.discountPercent != null
             // The packaged template where the installation configured none: it is the fallback
             // `getOfficeTemplateFile` is called with anyway, and the only variant of an unconfigured
             // installation is the unnamed one (see getTemplateVariants). Without it the export threw an NPE
