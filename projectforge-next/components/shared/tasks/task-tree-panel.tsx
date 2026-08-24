@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Spinner } from "@/components/shared/spinner";
 import { isSelectableTask, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
-import { TaskTreeActionBar } from "./task-tree-action-bar";
 import { TaskTreeTable } from "./task-tree-table";
 import type { TaskTreePanelProps } from "./types";
 import { useTaskTree } from "./use-task-tree";
@@ -15,7 +14,9 @@ import { useTaskTree } from "./use-task-tree";
  * The structure tree as a table: filter, tree and the hint how to select a folder.
  *
  * Reusable on purpose — the `/next/taskTree` page and the select field are the same panel with
- * different props. Which is why it takes `onSelect` instead of navigating itself.
+ * different props. Which is why it takes `onSelect` instead of navigating itself, and why the page's
+ * actions are not in here: they sit in that page's header row, where the list's own sit too, and act on
+ * the state the page then owns (see TaskTreePanelProps.tree).
  *
  * The columns and their stored widths come from the backend (see useTaskTree), so the panel needs no
  * column declaration of its own; the state is persisted through the two urls of the response rather
@@ -28,19 +29,16 @@ export function TaskTreePanel({
   rootSelectable,
   selectMode,
   pageMode,
+  tree,
   className,
 }: TaskTreePanelProps) {
   const t = useTranslations();
-  const {
-    nodes,
-    grid,
-    filter,
-    setFilter,
-    resetFilter,
-    isLoading,
-    isFetching,
-    toggleNode,
-  } = useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
+  // The hook is called either way — hooks are not conditional — but with the same options the caller
+  // passed, so both instances share one query and no second request goes out. Only the state of the
+  // caller's instance is read, since that is the one its buttons act on.
+  const own = useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
+  const { nodes, grid, filter, setFilter, isLoading, isFetching, toggleNode } =
+    tree ?? own;
 
   const toggle = useCallback(
     (task: TaskNode) => {
@@ -79,9 +77,6 @@ export function TaskTreePanel({
           // A select popover picks a task for a form — following the consumption bar to the time
           // sheets would leave it (see TaskTreeTableProps.linkEnabled).
           linkEnabled={!selectMode}
-          actionBar={
-            pageMode && <TaskTreeActionBar onFilterReset={resetFilter} />
-          }
         />
       ) : (
         <div className="flex flex-1 items-center justify-center">

@@ -197,8 +197,8 @@ test.describe("task list", () => {
     const format = await userFormat(page);
     await goto(page, PAGE);
 
-    // Wicket's pair of perspective buttons (see TaskPerspectiveLink). The list's own title is the label
-    // of the way back, since Wicket's button there reads an untranslated model.
+    // Wicket's pair of perspective buttons (see TaskPerspectiveLink), which read as the two
+    // perspectives they switch between - and each is the title of the page it leads to.
     await page
       .getByRole("link", {
         name: label(format, "task.tree.perspective"),
@@ -209,11 +209,29 @@ test.describe("task list", () => {
 
     await page
       .getByRole("link", {
-        name: label(format, "task.title.list"),
+        name: label(format, "task.list.perspective"),
         exact: true,
       })
       .click();
     await expect(page).toHaveURL(/\/task$/, { timeout: 20_000 });
+  });
+
+  test("the access wizard is reachable from this perspective too", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, PAGE);
+
+    // The same button the tree page has (see TaskWizardLink): what the wizard sets up are the rights on
+    // the structure elements, which is no business of the perspective they are looked at in. Admins
+    // only, and the default account is one.
+    await page
+      .getByRole("link", { name: format.t("task.wizard.pageTitle") })
+      .click();
+    await expect(page).toHaveURL(/\/taskWizard$/, { timeout: 20_000 });
+    await expect(
+      page.getByRole("heading", { name: format.t("task.wizard.pageTitle") })
+    ).toBeVisible({ timeout: 20_000 });
   });
 });
 

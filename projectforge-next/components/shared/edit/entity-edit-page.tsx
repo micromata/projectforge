@@ -276,6 +276,7 @@ export function EntityEditPage<
         <EditPageShell
           header={
             <EntityEditHeader
+              category={t(page.categoryKey)}
               listRoute={back.route}
               listLabel={back.label}
               title={headerTitle}

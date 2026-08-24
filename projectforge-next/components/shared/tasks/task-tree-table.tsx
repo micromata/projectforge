@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -20,6 +20,7 @@ import { initialStateFrom } from "@/lib/dynamic/grid/initial-state";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
+import { cn } from "@/lib/utils";
 import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
 import { TaskTreeFilterBar } from "./task-tree-filter";
 import { useTaskTreeColumns } from "./use-task-tree-columns";
@@ -39,8 +40,6 @@ interface TaskTreeTableProps {
   onFilterChange: (filter: TaskTreeFilter) => void;
   onToggle: (task: TaskNode) => void;
   onSelect?: (task: TaskNode) => void;
-  /** The actions of the tree page above the filter row, see TaskTreeActionBar. */
-  actionBar?: ReactNode;
   /**
    * Offer "add a subtask" per row, and the handbook link beside the search field. Only the tree page
    * does: a select popover is for picking a task, not for creating one.
@@ -70,7 +69,6 @@ export function TaskTreeTable({
   onFilterChange,
   onToggle,
   onSelect,
-  actionBar,
   pageActions,
   linkEnabled = true,
 }: TaskTreeTableProps) {
@@ -133,8 +131,15 @@ export function TaskTreeTable({
 
   return (
     <>
-      {actionBar}
-      <div className="flex items-center gap-2">
+      {/* On the page this is the last row of the page's header, so it spans the whole width and carries
+          the header's one bottom border - the place the list has it too (see ListToolbar). `-mx-4`
+          against the padding of the page's content area, which the popover does not have. */}
+      <div
+        className={cn(
+          "flex items-center gap-2",
+          pageActions && "-mx-4 border-b bg-background px-4 pb-2.5"
+        )}
+      >
         <TaskTreeFilterBar
           filter={filter}
           onChange={onFilterChange}

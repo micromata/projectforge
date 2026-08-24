@@ -1681,6 +1681,9 @@
       "type": "Type of Kost2 list",
       "whiteList": "White list"
     },
+    "list": {
+      "perspective": "List view"
+    },
     "maxDuration": "Maximum duration",
     "maxHours": "Maximum hours",
     "menu": {
@@ -1747,7 +1750,7 @@
       "explore": "Close/open all structure sub elements",
       "info": "You may expand or collapse structure elements with structure sub elements by clicking the folder icons or the title of the element, you may select any element by clicking the row at any other position.",
       "open": "Open structure element",
-      "perspective": "structure tree",
+      "perspective": "Tree view",
       "rootNode": "Root node",
       "title": {
         "_": "structure tree",
@@ -1782,7 +1785,7 @@
         "groupNameSuffix": "pm",
         "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
       },
-      "pageTitle": "Structure wizard",
+      "pageTitle": "Access wizard",
       "preview": {
         "element": "Structure element",
         "intro": "Every element of the path with the right each group would get on it. Nothing is written before you click finish.",

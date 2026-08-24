@@ -56,7 +56,9 @@ export const TASK_PAGE = definePage<
   route: TASK_ROUTE,
   queryKey: TASK_LIST_QUERY_KEY,
   categoryKey: "menu.taskTree",
-  titleKey: "task.title.list",
+  // „List view", as the tree page is headed „Tree view": the two perspectives name themselves the
+  // same way they name each other (see TaskPerspectiveLink).
+  titleKey: "task.list.perspective",
   columns: [
     // The one column a reader looks for first, so it stays in view while the rest scrolls sideways.
     // Headed "Structure element" rather than the field's own "Title", as both Wicket pages head it
@@ -149,7 +151,7 @@ export const TASK_PAGE = definePage<
         labelKey: "menu.taskTree",
         savedIdParam: SAVED_ID_PARAM,
       },
-      { route: TASK_ROUTE, labelKey: "task.title.list" },
+      { route: TASK_ROUTE, labelKey: "task.list.perspective" },
       // The wizard's "create structure element" link, which expects the user back with the new element
       // — hence the id in the url it returns to (see WizardTaskStep).
       {

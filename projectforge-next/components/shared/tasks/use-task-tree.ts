@@ -189,3 +189,10 @@ export function useTaskTree({
     ),
   };
 }
+
+/**
+ * Everything the tree panel works with, so a page can own the state and hand it in instead of letting
+ * the panel keep it to itself — the tree page does, because its header acts on the filter (see
+ * TaskTreePanelProps.tree).
+ */
+export type TaskTreeState = ReturnType<typeof useTaskTree>;

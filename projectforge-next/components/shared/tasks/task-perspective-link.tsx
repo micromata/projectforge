@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HierarchyIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { leafKeyOf } from "@/lib/leaf-key";
 import { TASK_ROUTE, TASK_TREE_ROUTE } from "./task-routes";
 
 /**
@@ -21,12 +20,10 @@ import { TASK_ROUTE, TASK_TREE_ROUTE } from "./task-routes";
 export function TaskPerspectiveLink({ to }: { to: "tree" | "list" }) {
   const t = useTranslations();
   const tree = to === "tree";
-  // The bundle's own wording. Wicket's list-view button reads the untranslated model `"listView"`,
-  // which is a bug there and not a text to copy — the list's own title says what it is. Through
-  // leafKeyOf, because `task.title.list` is a namespace as well (`…list.select`).
-  const label = t(
-    leafKeyOf(tree ? "task.tree.perspective" : "task.title.list", t.has)
-  );
+  // A pair of keys of their own („Tree view" / „List view"), and each is the title of the page it
+  // leads to as well: the two buttons then read as the two perspectives they switch between. Wicket's
+  // list-view button reads the untranslated model `"listView"`, which is a bug there, not a text to copy.
+  const label = t(tree ? "task.tree.perspective" : "task.list.perspective");
   return (
     <Button asChild variant="ghost" size="sm" className="gap-1.5">
       <Link href={tree ? TASK_TREE_ROUTE : TASK_ROUTE}>

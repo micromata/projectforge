@@ -33,7 +33,7 @@ test.describe("task tree", () => {
     await goto(page, PAGE);
 
     await expect(
-      page.getByRole("heading", { name: t("menu.taskTree") })
+      page.getByRole("heading", { name: t("task.tree.perspective") })
     ).toBeVisible({ timeout: 20_000 });
 
     // The headers prove the column defs of createDefaultColumnDefs survived the adapter. They arrive

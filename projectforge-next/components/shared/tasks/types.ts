@@ -1,4 +1,5 @@
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
+import type { TaskTreeState } from "./use-task-tree";
 
 export type { TaskNode, TaskTreeFilter };
 
@@ -42,5 +43,11 @@ export interface TaskTreePanelProps {
    * there (see TaskTreeActionBar).
    */
   pageMode?: boolean;
+  /**
+   * The tree's state, when the caller owns it: the value of [useTaskTree]. Handed in by the tree page,
+   * whose header holds the buttons that act on the filter — the same reason [DataTable] takes a table
+   * instance. Left out everywhere else, and the panel keeps its own.
+   */
+  tree?: TaskTreeState;
   className?: string;
 }

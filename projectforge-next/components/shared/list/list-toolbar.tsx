@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Separator } from "@/components/ui/separator";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SearchInput } from "./search-input";
 
 export interface ListToolbarProps {
@@ -60,36 +60,23 @@ export function ListToolbar({
 }: ListToolbarProps) {
   return (
     <div className="border-b bg-background">
-      <div className="flex items-center gap-3 px-4 pt-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            {category}
-          </p>
-          <h1 className="text-lg font-bold tracking-tight">{title}</h1>
-        </div>
-        <div className="flex-1" />
-        {/* `self-start`: the actions line up with the top of the two-line title block rather than
-            with its middle. Their own row keeps them centered among themselves. */}
-        <div className="flex items-center gap-3 self-start">
-          {/* Leftmost of the actions: it leaves the page, the ones to its right act on it. */}
-          <LegacyPageLink url={legacyUrl} />
-          {selectionToggle}
-          {actions}
-          {/* Divider only with a menu beside it: it separates the list's own actions from
-              "add", which creates an entity. */}
-          {gearMenu && (
-            <>
-              {gearMenu}
-              {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
-                  flex-start and hangs the line above the buttons. The `!` is needed because the
-                  primitive's `data-vertical:self-stretch` carries an attribute selector and would
-                  otherwise outweigh a plain `self-center`. */}
-              <Separator orientation="vertical" className="!h-5 !self-center" />
-            </>
-          )}
-          <AddEntryButton href={addHref} isLegacy={addIsLegacy} />
-        </div>
-      </div>
+      <PageTitleRow title={title} category={category} legacyUrl={legacyUrl}>
+        {selectionToggle}
+        {actions}
+        {/* Divider only with a menu beside it: it separates the list's own actions from
+            "add", which creates an entity. */}
+        {gearMenu && (
+          <>
+            {gearMenu}
+            {/* `!self-center`: with an explicit height the primitive's `self-stretch` degrades to
+                flex-start and hangs the line above the buttons. The `!` is needed because the
+                primitive's `data-vertical:self-stretch` carries an attribute selector and would
+                otherwise outweigh a plain `self-center`. */}
+            <Separator orientation="vertical" className="!h-5 !self-center" />
+          </>
+        )}
+        <AddEntryButton href={addHref} isLegacy={addIsLegacy} />
+      </PageTitleRow>
 
       <div className="flex items-center gap-3 px-4 py-2.5">
         <div className="relative max-w-md flex-1">
