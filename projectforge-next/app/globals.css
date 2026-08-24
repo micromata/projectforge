@@ -493,3 +493,148 @@ span.row-grey {
   min-width: calc(var(--pagination-digits, 2) * 1ch + 1rem);
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * FullCalendar v6, themed through its own CSS variables bound to the shadcn tokens rather than the
+ * Bootstrap theme the legacy app used. Dark mode needs almost no duplicate rules, because the tokens
+ * these point at already flip under `.dark`. Event colours are NOT set here — they arrive as inline
+ * styles on each event (contrast-computed by the backend, see CalendarStyle).
+ */
+.pf-calendar {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--muted);
+  --fc-neutral-text-color: var(--muted-foreground);
+  --fc-today-bg-color: color-mix(in oklab, var(--primary) 8%, transparent);
+  --fc-now-indicator-color: var(--destructive);
+  --fc-highlight-color: color-mix(in oklab, var(--primary) 14%, transparent);
+  --fc-list-event-hover-bg-color: var(--accent);
+  --fc-event-selected-overlay-color: color-mix(
+    in oklab,
+    var(--foreground) 12%,
+    transparent
+  );
+  color: var(--foreground);
+}
+
+/* Toolbar buttons as quiet outline buttons; the active view reads as the primary. */
+.pf-calendar .fc .fc-button {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: none;
+  text-transform: none;
+  font-weight: 500;
+}
+.pf-calendar .fc .fc-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.pf-calendar .fc .fc-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.pf-calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+.pf-calendar .fc .fc-button-primary:not(:disabled):active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.pf-calendar .fc .fc-button:disabled {
+  opacity: 0.5;
+}
+.pf-calendar .fc .fc-toolbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/*
+ * Legacy readability patches ported verbatim, since they make the semi-transparent event colours
+ * legible: a little event padding, a slight blur behind stacked events, and bold time-grid titles.
+ */
+.pf-calendar .fc-event {
+  padding: 1px 2px;
+}
+.pf-calendar .fc-timegrid-event {
+  backdrop-filter: blur(1px);
+}
+.pf-calendar .fc-timegrid-event .fc-event-title {
+  font-weight: 600;
+}
+
+/* Weekend/holiday background events shade the whole day column/cell. */
+.pf-calendar .fc-holiday-weekend,
+.pf-calendar .fc-bg-event.fc-holiday-weekend {
+  background: color-mix(in oklab, var(--muted-foreground) 12%, transparent);
+  opacity: 1;
+}
+
+/*
+ * Alternate-hours banding in the time-grid views. `nth-of-type` cannot take a custom property, so the
+ * rhythm is one explicit rule set per grid size (rows per hour = 60 / gridSize): shade the first hour
+ * of every two-hour band. The colour is `--foreground`-derived, not the legacy `#00000007`, which is
+ * invisible on a dark grid.
+ */
+.pf-calendar-alt .fc-timegrid-slots tr {
+  --pf-alt-bg: color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+.pf-calendar-alt[data-grid-size="60"]
+  .fc-timegrid-slots
+  tr:nth-of-type(2n + 1) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="30"] .fc-timegrid-slots tr:nth-of-type(4n + 1),
+.pf-calendar-alt[data-grid-size="30"]
+  .fc-timegrid-slots
+  tr:nth-of-type(4n + 2) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 1),
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 2),
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 3),
+.pf-calendar-alt[data-grid-size="15"]
+  .fc-timegrid-slots
+  tr:nth-of-type(8n + 4) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 1),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 2),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 3),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 4),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 5),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 6) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 1),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 2),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 3),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 4),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 5),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 6),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 7),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 8),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 9),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 10),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 11),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 12) {
+  background: var(--pf-alt-bg);
+}
