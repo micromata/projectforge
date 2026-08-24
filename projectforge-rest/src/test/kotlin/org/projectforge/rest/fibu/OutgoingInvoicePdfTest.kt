@@ -55,10 +55,13 @@ import java.time.LocalDate
  * - the round trip, i.e. that an uploaded PDF is what the info endpoint answers afterwards and that deleting
  *   it leaves none — the marker (`__INVOICE_PDF__`) is what ties the three calls together, so a mismatch
  *   would show as an invoice PDF that vanishes right after it was stored;
- * - that the marked attachment stays in the *normal* attachment list, because filtering it out is the
- *   client's job (see AttachmentSection) and a server that hid it would break Wicket's own list;
+ * - that the marked attachment stays in the *normal* attachment list and that its `fileId` travels with the
+ *   info, because that is what the client downloads it by (the generic attachment route serves it, see
+ *   AttachmentSection) and a server that hid it would break Wicket's own list;
  * - that a file which is not a PDF is refused with the backend's own text instead of being dropped in
- *   silence, which is what Wicket does (`processInvoicePdfUpload` checks the extension and returns).
+ *   silence, which is what Wicket does (`processInvoicePdfUpload` checks the extension and returns);
+ * - that both writes appear in the invoice's change history, since the JCR keeps none of its own: the file is
+ *   gone for good, and the entry naming it is what is left afterwards.
  */
 class OutgoingInvoicePdfTest : AbstractTestBase() {
 
@@ -106,6 +109,13 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
         val attachments = attachmentsService.internalGetAttachments(EInvoiceExportService.JCR_PATH, id)
         assertEquals(1, attachments.size)
         assertEquals(EInvoiceExportService.INVOICE_PDF_MARKER, attachments.first().description)
+        // The very file id the info answers: it is what the form's download link is built from, so the two
+        // must not drift apart — a link with another id leads to a 404.
+        assertEquals(
+            attachments.first().fileId,
+            outgoingInvoiceEntityRest.getInvoicePdfInfo(id).pdf?.fileId,
+            "The info answers the file id the attachment route serves this file by.",
+        )
 
         assertNull(outgoingInvoiceEntityRest.deleteInvoicePdf(id).pdf)
         assertNull(outgoingInvoiceEntityRest.getInvoicePdfInfo(id).pdf, "Deleted for good.")
@@ -122,6 +132,54 @@ class OutgoingInvoicePdfTest : AbstractTestBase() {
         assertEquals("second.pdf", outgoingInvoiceEntityRest.getInvoicePdfInfo(id).pdf?.name)
         // Not two files: `uploadInvoicePdf` deletes the previous one, or the export would have to pick.
         assertEquals(1, attachmentsService.internalGetAttachments(EInvoiceExportService.JCR_PATH, id).size)
+    }
+
+    @Test
+    fun `uploading and deleting the pdf is written to the invoice's change history`() {
+        logon(TEST_FINANCE_USER)
+        val id = insertInvoice("Invoice PDF history")
+
+        outgoingInvoiceEntityRest.uploadInvoicePdf(id, pdf("history.pdf"))
+
+        // `attachmentsLastUserAction` is the only historized one of the attachment fields — the counter, the
+        // names, the ids and the size are `@NoHistory`, they exist for the search index. So a write that
+        // updates only those leaves no trace at all, which is what this asserts against.
+        assertTrue(
+            lastUserAction(id)?.contains("history.pdf") == true,
+            "The upload names the file it stored: ${lastUserAction(id)}",
+        )
+        assertTrue(
+            historyOf(id).any { it.contains("history.pdf") },
+            "…and the invoice's history says so, not just its current state.",
+        )
+
+        outgoingInvoiceEntityRest.deleteInvoicePdf(id)
+
+        // The delete overwrites the sentence, so the history holds both — the file is gone from the JCR,
+        // which keeps no history of its own, and this is all that is left of it.
+        assertTrue(
+            lastUserAction(id)?.contains("deleted") == true,
+            "The delete is an action of its own: ${lastUserAction(id)}",
+        )
+        assertEquals(
+            2,
+            historyOf(id).count { it.contains("history.pdf") },
+            "Two entries for the one file: the upload and the delete.",
+        )
+    }
+
+    /** What the invoice currently says about the last write to its attachments. */
+    private fun lastUserAction(id: Long): String? {
+        return rechnungDao.find(id, checkAccess = false)?.attachmentsLastUserAction
+    }
+
+    /** Every value `attachmentsLastUserAction` ever took, as the invoice's history recorded it. */
+    private fun historyOf(id: Long): List<String> {
+        val invoice = rechnungDao.find(id, checkAccess = false)!!
+        return rechnungDao.loadHistory(invoice, checkAccess = false).sortedEntries
+            .flatMap { it.attributes ?: emptySet() }
+            .filter { it.propertyName == "attachmentsLastUserAction" }
+            .mapNotNull { it.value }
     }
 
     @Test

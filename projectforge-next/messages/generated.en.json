@@ -535,6 +535,9 @@
       "targetCurrency": "Target currency"
     },
     "customerref1": "Customer reference",
+    "eInvoiceChecker": {
+      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
+    },
     "employee": {
       "_": "Employee",
       "austrittsdatum": "Leaving date",

@@ -31,19 +31,40 @@ export interface AttachmentListProps {
    */
   embedded?: boolean;
   /**
-   * Hides the attachments carrying exactly this description.
+   * Shows the attachment carrying exactly this description as a row like any other — downloadable and
+   * deletable — except that it cannot be renamed.
    *
    * For a file the backend stores as an attachment but treats as a value of its own: the invoice PDF is
-   * marked by the description `__INVOICE_PDF__` (`EInvoiceExportService.INVOICE_PDF_MARKER`) and shown by a
-   * field of its own, so listing it here as well would offer two ways to delete one file — with the second
-   * one skipping the bookkeeping the first does.
+   * marked by the description `__INVOICE_PDF__` (`EInvoiceExportService.INVOICE_PDF_MARKER`) and has a
+   * field of its own. Listed here nonetheless, because it is one of the files of this entity and reaching
+   * it with one click is the point of the list.
+   *
+   * Only the rename is withheld, and not because the file is precious: the dialog edits the description,
+   * which here *is* the marker — and since the row shows `lockedLabel` in its place, saving that dialog
+   * would replace the marker with the label and silently turn the invoice PDF into an ordinary
+   * attachment. Deleting on the other hand is the very same call as for its neighbours
+   * (`AttachmentsService.deleteAttachment`, counters written back included), so withholding it would only
+   * be a detour to the button in the file's own field.
    *
    * Client side because the marker is a backend convention that no endpoint filters by: `getAttachments`
    * answers the whole node, and `AbstractEntityRest.getById` — where the list is read from — is not
-   * overridable. Which keeps this component free of any invoice knowledge: all it is told is "hide the
-   * attachments with this description".
+   * overridable. Which keeps this component free of any invoice knowledge: all it is told is which
+   * description marks the locked file and what to call it.
    */
-  excludeDescription?: string;
+  lockedDescription?: string;
+  /**
+   * What the locked row shows instead of its description — the name of the role the file plays ("invoice
+   * PDF"), since the marker itself is an internal string no user should be shown.
+   */
+  lockedLabel?: string;
+  /**
+   * Called after the stored files changed here (upload, rename, delete).
+   *
+   * For a page that shows one of these files a second time, as a value of its own: the invoice PDF's field
+   * keeps a query of its own, which would otherwise still offer a file this list has just deleted. The
+   * list itself refreshes without it (see useAttachmentMutations).
+   */
+  onChanged?: () => void;
 }
 
 /**
@@ -64,7 +85,9 @@ export function AttachmentList({
   id,
   readOnly,
   embedded,
-  excludeDescription,
+  lockedDescription,
+  lockedLabel,
+  onChanged,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -82,9 +105,11 @@ export function AttachmentList({
       mergeResult(result);
       if (result.kind === "rejected") {
         toast.error(result.message || t("file.upload.error._"));
+      } else {
+        onChanged?.();
       }
     },
-    [mergeResult, t]
+    [mergeResult, onChanged, t]
   );
 
   const uploads = useAttachmentUploads(entity, id, {
@@ -111,9 +136,13 @@ export function AttachmentList({
     );
   }
 
-  const attachments = excludeDescription
-    ? (data ?? []).filter((a) => a.description !== excludeDescription)
-    : (data ?? []);
+  // `renameLocked` is a flag the row acts on by itself, so the locked file needs no case of its own
+  // downstream: it keeps its download and its delete and loses the pencil.
+  const attachments = (data ?? []).map((a) =>
+    lockedDescription && a.description === lockedDescription
+      ? { ...a, renameLocked: true, description: lockedLabel }
+      : a
+  );
   // Embedded, the toolbar carries the add button, so it has to be there before the first file too.
   const showFiles = attachments.length > 0 || (embedded && !readOnly);
 
@@ -142,6 +171,7 @@ export function AttachmentList({
           id={id}
           readOnly={readOnly}
           onFiles={embedded ? uploads.enqueue : undefined}
+          onChanged={onChanged}
         />
       )}
       {/* Nothing stored and nothing on its way: the uploads above would otherwise be contradicted. */}

@@ -9,11 +9,7 @@ import {
   removeCreditorInvoice,
 } from "./fixtures/creditor-invoice";
 import { MARKER, uniqueSuffix } from "./fixtures/seed";
-import {
-  formatCurrency,
-  formatPercentageDecimal,
-  type FormatContext,
-} from "../lib/format";
+import { formatCurrency, formatPercentageDecimal } from "../lib/format";
 import { formatNumberInput } from "../lib/number-parse";
 
 /**

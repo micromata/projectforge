@@ -25,7 +25,9 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -142,6 +144,33 @@ class GroupDaoTest : AbstractTestBase() {
         }
 
         hist.loadRecentHistoryEntries(4, 4)
+    }
+
+    /**
+     * A group whose name holds a hyphen: the index holds the name as two terms (the default analyzer separates
+     * at the hyphen), and Lucene doesn't tokenize a wildcard term - so the search used to ask for a term
+     * beginning with `dhl-pop`, which cannot exist. See [org.projectforge.framework.persistence.search.SearchStringTokenizer].
+     */
+    @Test
+    fun searchStringWithHyphenTest() {
+        logon(ADMIN_USER)
+        val group = GroupDO()
+        group.name = "dhl-pop.$PREFIX"
+        groupDao.insert(group)
+        QueryFilter(BaseSearchFilter().also { it.searchString = "dxl-pop" }).let { filter ->
+            Assertions.assertTrue(
+                groupDao.select(filter).none { it.id == group.id },
+                "The search is a search: a word the name doesn't hold finds nothing.",
+            )
+        }
+        listOf("dhl-pop", "dhl-po", "dhl-", "dhl", "pop", "dhl pop").forEach { searchString ->
+            val filter = QueryFilter(BaseSearchFilter().also { it.searchString = searchString })
+            val result = groupDao.select(filter)
+            Assertions.assertTrue(
+                result.any { it.id == group.id },
+                "Group '${group.name}' not found by search string '$searchString': ${result.map { it.name }}",
+            )
+        }
     }
 
     @Test

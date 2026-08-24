@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
+import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -338,6 +339,9 @@ export const INVOICE_PAGE = definePage<
         // Below those very fields: the invoice PDF, what is still missing for an e-invoice, and the three
         // buttons — the fields above are what the checklist is about (see EInvoiceSection).
         footer: EInvoiceSection,
+        // Beside the heading, at the right end: the counterpart of the exports below — an exported file is
+        // read back here to see what arrived (see EInvoiceCheckerButton).
+        headerActions: EInvoiceCheckerButton,
       },
       {
         id: "attachments",

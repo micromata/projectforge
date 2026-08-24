@@ -111,13 +111,19 @@ object RechnungCalculator {
     internal fun calculate(posInfo: RechnungPosInfo, position: AbstractRechnungsPositionDO): RechnungPosInfo {
         position.info = posInfo
         if (position is RechnungsPositionDO) {
-            val orderPosInfo = auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id)
-            if (orderPosInfo != null) { // auftragsPosition is null, if auftragsPosition is deleted.
-                position.auftragsPosition?.id.let { auftragsPositionId ->
-                    posInfo.auftragsPositionId = auftragsPositionId
-                    posInfo.auftragsId = orderPosInfo.auftragId
-                    posInfo.auftragsPositionNummer = orderPosInfo.number
-                }
+            // The id of the assigned order position is taken from the position itself, not from AuftragsCache:
+            // this method runs inside RechnungCache.refresh, and that refresh happens while AuftragsCache is
+            // still refreshing (the two caches use each other, see AuftragsRechnungCache.coupledRefreshRounds).
+            // AuftragsCache then answers nothing at all - a nested refresh of a cache returns immediately - and
+            // the id stayed null in the cached RechnungPosInfo until the next refresh of RechnungCache, which
+            // is why the invoice list showed no orders (Rechnung.copyFrom4ListRow resolves them from this id).
+            posInfo.auftragsPositionId = position.auftragsPosition?.id
+            // The order behind the position is the cache's answer and is only known once it has been read.
+            // Whoever needs it later resolves it from auftragsPositionId, when the cache is filled (see
+            // ForecastExportInvoices).
+            auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id)?.let { orderPosInfo ->
+                posInfo.auftragsId = orderPosInfo.auftragId
+                posInfo.auftragsPositionNummer = orderPosInfo.number
             }
         }
         posInfo.netSum = calculateNetSum(position)

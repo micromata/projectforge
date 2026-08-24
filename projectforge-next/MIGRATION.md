@@ -1705,7 +1705,7 @@ legt ihre eigene Wegwerf-Rechnung an und markiert sie gelöscht.
   der Export aus der Mehrfachauswahl heraus (`exportTransfers`) ist mitgezogen, die
   Upload-/Import-Strecke davor nicht.
 
-#### Offen: Sprung zum Strukturelement zeigt noch auf Wicket
+#### Erledigt: Sprung zum Strukturelement zeigt auf next
 
 Die Auftragsposition verlinkt ihr Strukturelement wieder auf dessen eigene Seite
 (`components/shared/tasks/task-edit-link.tsx`, neuer Tab, damit das Formular mit allen
@@ -1713,23 +1713,25 @@ ungespeicherten Eingaben stehen bleibt). Das war eine Rückmeldung aus dem Betri
 Version kam man von der Position zum Strukturelement und dort an die darauf gebuchten
 **Zeitberichte**.
 
-Der Stand ist **fest verdrahtetes Wicket** (`wa/taskEdit?id=…`) und damit die einzige Stelle in
-next, die eine Legacy-URL selbst bildet. Grund war: `listMeta.legacyEditPage` lieferte für die
-Kategorie `task` `react/task/edit/:id` – `task` stand nicht in `NextMigration.MIGRATED`, also
-fiel `legacyApp` auf die React-App zurück –, und das React-Formular ist ein reines
-UILayout-Formular ohne die Aktion, um die es hier geht: „Zeitberichte anzeigen" ist ein
-Content-Menü-Eintrag von Wickets `TaskEditPage` (`task.menu.showTimesheets`).
+Der Stand war **fest verdrahtetes Wicket** (`wa/taskEdit?id=…`), die einzige Stelle in next, die
+eine Legacy-URL selbst bildete. Grund war: `listMeta.legacyEditPage` lieferte für die Kategorie
+`task` `react/task/edit/:id` – `task` stand nicht in `NextMigration.MIGRATED`, also fiel
+`legacyApp` auf die React-App zurück –, und das React-Formular ist ein reines UILayout-Formular
+ohne die Aktion, um die es hier geht: „Zeitberichte anzeigen" ist ein Content-Menü-Eintrag von
+Wickets `TaskEditPage` (`task.menu.showTimesheets`).
 
-**Diese Bedingung ist inzwischen erfüllt** – `task` steht in `MIGRATED`, und das next-Formular
-trägt die fünf Querverweise aus Wickets Content-Menü, „Zeitberichte anzeigen" eingeschlossen.
-Die Umstellung ist damit fällig und steht als erster Punkt unter „Als nächstes".
+**Inzwischen umgestellt.** `task` steht in `MIGRATED`, und das next-Formular trägt die fünf
+Querverweise aus Wickets Content-Menü, „Zeitberichte anzeigen" eingeschlossen. `task-edit-link.tsx`
+zeigt daher jetzt auf die next-Route – gebildet über `taskHref` (dieselbe Route, die auch die
+Baumseite für ihren Zeilenklick nimmt), als absolute URL für den neuen Tab. Der neue Tab bleibt:
+er verhindert, dass das umgebende Formular seine ungespeicherten Eingaben verliert, und das gilt
+auch bei einem Ziel innerhalb dieser App (ein `next/link` im selben Tab würde das Formular
+abbauen). Die Baumseite (`app/(authenticated)/taskTree/page.tsx`) schickt ihren Zeilenklick schon
+länger über `taskHref` (`onSelect` → `taskHref(task.id, { returnTo: TASK_TREE_ROUTE })`), nicht
+über `listMeta.legacyEditPage` – hier gab es nichts mehr umzustellen.
 
-**Umzustellen ist:** Link von Wicket auf die
-next-Route, das heißt `wa/taskEdit?id=…` in `task-edit-link.tsx` ersetzen durch die URL, die das
-Backend dann nennt (`useLegacyEditUrl`/`nextEditPage` mit einem `task`-Eintrag in `MIGRATED`),
-und die Sonderbehandlung hier wieder auflösen. Dasselbe gilt für die schon vorhandene
-Strukturbaum-Seite (`app/(authenticated)/taskTree/page.tsx`), die ihren Zeilenklick heute über
-`listMeta.legacyEditPage` in die React-App schickt.
+Nicht dazu gehört `consumption-cell.tsx` (`wa/timesheetList?taskId=…`): das ist die zweite hart
+gebildete Legacy-URL und bleibt so, bis die Zeitberichte migriert sind (s. nächster Abschnitt).
 
 #### Offen: Die Consumption-Bar zeigt noch auf Wicket
 
@@ -1746,9 +1748,9 @@ Das Ziel ist **fest verdrahtetes Wicket**
 `ConsumptionBarPanel` setzt: das Strukturelement, ein für diesen Sprung geleerter Filter, der
 hinterher nicht als der gemerkte des Kontos zurückbleibt). Wicket ist die **Vorlage**; die
 React-Liste ist nie fertig gebaut worden, auch wenn `TimesheetPagesRest.getInitialList` einen
-`taskId`-Parameter kennt und daraus einen `MagicFilterEntry("task", …)` baut. Damit ist das
-neben `task-edit-link.tsx` die zweite Stelle in next, die eine Legacy-URL selbst bildet – aus
-demselben Grund und mit demselben Verfallsdatum.
+`taskId`-Parameter kennt und daraus einen `MagicFilterEntry("task", …)` baut. Damit ist das –
+seit `task-edit-link.tsx` auf die next-Route umgestellt ist – die **einzige** verbliebene Stelle
+in next, die eine Legacy-URL selbst bildet.
 
 **Nach der Migration der Zeitberichte nach next ist dieser Link umzustellen:**
 `wa/timesheetList?…` in `consumption-cell.tsx` durch die next-Route der Zeitberichte ersetzen
@@ -2071,29 +2073,28 @@ springt (`SearchFilter.jsx`).
 
 **Als nächstes:**
 
-1. **Drei kleine Reste, die durch die fertigen Strukturelemente reif geworden sind** –
-   sie kosten wenig und räumen jeweils eine Stelle auf, die heute noch auf Wicket zeigt
-   oder eine Unwahrheit behauptet:
-   - `components/shared/tasks/task-edit-link.tsx` zeigt noch fest auf
-     `wa/taskEdit?id=…`. Die Bedingung, die der Kommentar dort nennt, ist erfüllt:
-     `task` steht in `MIGRATED`, und das next-Formular trägt die Querverweise
-     (inkl. „Zeitberichte anzeigen"). Umstellen auf die next-Route, damit ein Klick aus
-     Auftragsbuch, Rechnung oder Baum nicht mehr aus der App herausführt.
-     Nicht dazu gehört `consumption-cell.tsx`
-     (`wa/timesheetList?taskId=…`) – die bleibt hart, bis die Zeitberichte migriert sind.
+1. ~~**Drei kleine Reste, die durch die fertigen Strukturelemente reif geworden sind.**~~
+   **Erledigt** – alle drei sind abgeräumt:
+   - ~~`components/shared/tasks/task-edit-link.tsx` zeigt noch fest auf `wa/taskEdit?id=…`.~~
+     **Umgestellt:** der Link zeigt auf die next-Route (`taskHref`, absolute URL für den
+     neuen Tab), damit ein Klick aus Auftragsbuch, Rechnung oder Baum nicht mehr aus der App
+     herausführt (s. „Erledigt: Sprung zum Strukturelement zeigt auf next"). Nicht dazu
+     gehört `consumption-cell.tsx` (`wa/timesheetList?taskId=…`) – die bleibt hart, bis die
+     Zeitberichte migriert sind.
    - ~~**Entscheidung zum Menüeintrag `TASK_TREE`.**~~ **Erledigt:** `TASK_TREE` steht auf
      `nextRouteUrl("task", "taskTree", "wa/taskTree")`, der Baum ist im Hauptmenü verlinkt.
      Die Aufgaben-Favoriten waren dafür keine Bedingung: sie sind eine Wicket-Abkürzung, die
      in React und next die Auswahlfelder selbst leisten, also wird `UserPrefListPage` für
      next nicht nachgezogen und `TaskFavoritesRest` bleibt hier unbenutzt.
-   - Diese Liste selbst aktuell halten: sie hat die abgeschlossene Baumarbeit noch als
-     offen geführt, und eine Planungsdatei, die das tut, wird bei der nächsten Frage
-     „was ist als nächstes zu tun" zur falschen Antwort.
+   - ~~Diese Liste selbst aktuell halten.~~ **Erledigt** mit diesem Durchgang: die Baumarbeit
+     steht als abgeschlossen, und Phase 3 ist – bis auf den parallel gebauten Kalender –
+     als abgeschlossen markiert.
 
-   Danach steht die Wahl zwischen drei großen Blöcken (2–4). **Empfehlung: der
-   Kalender.** Er ist die Startseite nach dem Login, hat also den größten sichtbaren
-   Effekt, sein Plan ist vollständig, und seine beiden Voraussetzungen sind ohnehin
-   Phase-2-Arbeit – man erledigt damit zwei Phasen mit einem Schritt.
+   **Damit ist Phase 3 abgeschlossen, bis auf die Kalenderseite (Punkt 2), die parallel
+   gebaut wird.** Auftragsbuch, Debitorenrechnungen, Strukturelemente und Gruppen sind
+   fertig; die beiden verbleibenden hart gebildeten Legacy-URLs (`consumption-cell.tsx`
+   und, für den Filtersprung, `wa/timesheetList`) hängen an der noch nicht migrierten
+   Zeitbericht-Seite und nicht an einer offenen Phase-3-Aufgabe.
 
 2. **Phase 3 – die Kalenderseite** als nächster handgebauter Härtefall und
    Standard-Startseite nach dem Login; der Detailplan liegt vor

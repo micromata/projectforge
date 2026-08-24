@@ -70,7 +70,8 @@ export function ConsumptionCell({
         // The time sheets of this task, on Wicket's list and with its own three parameters
         // (ConsumptionBarPanel): the task, and a filter that is cleared for it and not remembered
         // afterwards. Wicket rather than the React app, whose list was never finished — see
-        // MIGRATION.md, and TaskEditLink, which spells out a legacy url for the same reason.
+        // MIGRATION.md. The last place in next that spells out a legacy url; it stays hard until the
+        // time sheets are migrated, then it points at their next route.
         url={`wa/timesheetList?taskId=${id}&clear=true&storeFilter=false`}
         className="block"
         aria-label={`${t("timesheet.title.list")}: ${label}`}

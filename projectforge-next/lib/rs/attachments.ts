@@ -83,6 +83,13 @@ export interface Attachment {
   encrypted?: boolean | null;
   /** True if the user may neither rename nor delete this attachment. */
   readonly?: boolean | null;
+  /**
+   * Client side only, never sent: this file's description is not the user's to type — it marks the role
+   * the file plays for its entity (the invoice PDF's `__INVOICE_PDF__`). So the row offers no rename,
+   * which would replace the marker with whatever is displayed in its place, but deletes like any other
+   * file (see AttachmentList's `lockedDescription`).
+   */
+  renameLocked?: boolean;
 }
 
 /** What a write returns: the entity's full attachment list, or the reason it was refused. */

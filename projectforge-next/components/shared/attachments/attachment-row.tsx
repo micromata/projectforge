@@ -32,8 +32,11 @@ interface Props {
  * is a plain link, not a fetch: the answer is the file itself, so the browser has to handle it (see
  * attachmentDownloadUrl).
  *
- * A read-only row downloads on a click instead, like the legacy list (`DynamicAttachmentList`'s
- * `handleRowClick`): there is no detail dialog to reach when nothing in it can be changed.
+ * A row without a rename downloads on a click instead, like the legacy list (`DynamicAttachmentList`'s
+ * `handleRowClick`): there is no detail dialog to reach when nothing in it can be changed. That is every
+ * read-only row, and the one whose description is a marker rather than a text — that one keeps its
+ * delete, since deleting it is the same call with the same bookkeeping as for any other file
+ * (`AttachmentsService.deleteAttachment` writes the counters back either way).
  */
 export function AttachmentRow({
   attachment,
@@ -49,6 +52,9 @@ export function AttachmentRow({
   const t = useTranslations();
   // Either the whole list is read-only, or this one file is (`Attachment.readonly`).
   const readonly = readOnly === true || attachment.readonly === true;
+  // A file whose description carries a marker can be deleted but not renamed (`Attachment.renameLocked`),
+  // so the pencil and the row's click follow this one and the trash follows `readonly`.
+  const noRename = readonly || attachment.renameLocked === true;
   const downloadUrl = attachmentDownloadUrl({
     entity,
     id,
@@ -62,7 +68,7 @@ export function AttachmentRow({
           real controls layered above it (`z-10`). A mouse shortcut only: it duplicates the name link
           resp. the pencil, so it stays out of the tab order and out of the accessibility tree —
           otherwise every row would answer to two identical names. */}
-      {readonly ? (
+      {noRename ? (
         <a
           href={downloadUrl}
           className="absolute inset-0"
@@ -129,17 +135,19 @@ export function AttachmentRow({
       </div>
       {!readonly && (
         <div className="relative z-10 flex shrink-0 items-center gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-7 text-muted-foreground"
-            disabled={busy}
-            aria-label={`${t("edit")}: ${attachment.name}`}
-            onClick={() => onEdit(attachment)}
-          >
-            <HugeiconsIcon icon={Edit02Icon} size={13} />
-          </Button>
+          {!noRename && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              disabled={busy}
+              aria-label={`${t("edit")}: ${attachment.name}`}
+              onClick={() => onEdit(attachment)}
+            >
+              <HugeiconsIcon icon={Edit02Icon} size={13} />
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"

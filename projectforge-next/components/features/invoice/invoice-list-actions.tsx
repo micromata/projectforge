@@ -11,13 +11,15 @@ import {
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
 import { ExportButton } from "@/components/shared/export-button";
+import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 
 /**
  * The two exports of the invoice list, as Wicket's list page offers them in its content menu: one row per
- * invoice, and one row per cost assignment.
+ * invoice, and one row per cost assignment — and the e-invoice checker beside them.
  *
- * Both act on the filter the list is showing, which is why they live in its toolbar and are handed that
- * filter (see PageDef.listActions).
+ * Both exports act on the filter the list is showing, which is why they live in its toolbar and are handed
+ * that filter (see PageDef.listActions). The checker takes no filter and no invoice at all: it is here
+ * because this is the page one exports e-invoices from, and reading one back is the same errand.
  */
 export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
@@ -58,6 +60,7 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
         isPending={costAssignments.isPending}
         onClick={() => costAssignments.mutate()}
       />
+      <EInvoiceCheckerButton />
     </>
   );
 }

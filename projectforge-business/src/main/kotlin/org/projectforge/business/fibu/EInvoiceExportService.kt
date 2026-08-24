@@ -180,12 +180,12 @@ class EInvoiceExportService(
     }
 
     fun deleteUploadedInvoicePdf(invoiceId: Long) {
-        deleteUploadedInvoicePdfInternal(invoiceId)
-        updateAttachmentsCounter(invoiceId)
+        val deleted = deleteUploadedInvoicePdfInternal(invoiceId)
+        updateAttachmentsCounter(invoiceId, deleted?.let { "Invoice PDF '$it' deleted." })
     }
 
     fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
-        deleteUploadedInvoicePdfInternal(invoiceId)
+        val replaced = deleteUploadedInvoicePdfInternal(invoiceId)
         val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
         repoService.ensureNode(null, nodePath)
         val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
@@ -193,26 +193,49 @@ class EInvoiceExportService(
         fileObject.content = pdfContent
         repoService.storeFile(fileObject, InternalFileSizeChecker)
         log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
-        updateAttachmentsCounter(invoiceId)
+        // The replaced file is named too: an upload onto a stored PDF is one action of the user, and the
+        // history entry it leaves is the only place afterwards saying which file it took the place of.
+        updateAttachmentsCounter(
+            invoiceId,
+            if (replaced != null) {
+                "Invoice PDF uploaded: '$fileName' (replacing '$replaced')."
+            } else {
+                "Invoice PDF uploaded: '$fileName'."
+            },
+        )
     }
 
-    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long) {
+    /**
+     * @return the name of the file that was there, or null if this invoice had no invoice PDF.
+     */
+    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long): String? {
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
-        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return
-        val fileId = pdfAttachment.fileId ?: return
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
+        val fileId = pdfAttachment.fileId ?: return null
         val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
         val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
         repoService.deleteFile(fileObject)
         log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
+        return pdfAttachment.name
     }
 
-    private fun updateAttachmentsCounter(invoiceId: Long) {
+    /**
+     * Writes the invoice's attachment info after a write to its JCR node, as
+     * `AttachmentsService.updateAttachmentsInfo` does for every other attachment.
+     *
+     * [lastUserAction] is what makes the write appear in the invoice's change history: the four counter and
+     * name fields are `@NoHistory` (they exist for the search index), so a save that touches only them leaves
+     * no entry at all — `attachmentsLastUserAction` is the one historized field of the group, which is why
+     * `AttachmentsService` phrases a sentence into it for each of its own events.
+     */
+    private fun updateAttachmentsCounter(invoiceId: Long, lastUserAction: String? = null) {
         val invoice = rechnungDao.find(invoiceId, checkAccess = false) ?: return
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
         invoice.attachmentsCounter = if (attachments.isNotEmpty()) attachments.size else null
         invoice.attachmentsSize = if (attachments.isNotEmpty()) attachments.sumOf { it.size ?: 0L } else null
         invoice.attachmentsNames = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.name ?: "" } else null
         invoice.attachmentsIds = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.fileId ?: "" } else null
+        lastUserAction?.let { invoice.attachmentsLastUserAction = it }
         rechnungDao.updateAny(invoice, checkAccess = false)
     }
 
