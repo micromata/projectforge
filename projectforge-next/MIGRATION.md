@@ -1726,8 +1726,8 @@ nicht (`TaskPagesRest.createListLayout` besteht aus einer einzigen Spalte `title
 Spalten kommen aus einem eigenen Endpunkt `TaskServicesRest`.
 
 Umgesetzt sind Baumseite samt Aktionsleiste, die handgebaute Edit-Seite, die
-Listenperspektive und der Aufgaben-Assistent; die Kategorie `task` ist umgeschaltet, der
-Menüeintrag `TASK_TREE` zeigt vorerst weiter auf Wicket. Der Grundsatz dabei war: **erst
+Listenperspektive und der Aufgaben-Assistent; die Kategorie `task` ist umgeschaltet, und der
+Menüeintrag `TASK_TREE` zeigt auf `next/taskTree`. Der Grundsatz dabei war: **erst
 alles aus Wicket nachbauen – Baum _und_ Edit-Seite –, dann umschalten**, denn ein
 Teilumstieg, dessen Zeilenklick nach `wa/taskEdit` zurückführt, hätte Funktionalität
 verloren statt gewonnen.
@@ -1737,8 +1737,9 @@ die Wicket-Vorlage: **[MIGRATION-TaskTree.md](MIGRATION-TaskTree.md)**. Deren Li
 noch offen ist" ist **abgearbeitet**; zwei der dort aufgefallenen Lücken waren nicht
 baumspezifisch, sondern betrafen jede handgebaute Seite – der fehlende Undelete-Weg und
 der ungeprüfte Zugriff bei „+" und Zeilenklick – und sind entsprechend zentral behoben.
-Offen bleiben bewusst nur die Aufgaben-Favoriten (es fehlt die Verwaltungsseite
-`UserPrefListPage`); daran hängt der Menüeintrag.
+Nicht übernommen werden allein die Aufgaben-Favoriten, und zwar endgültig: was sie in Wicket
+abkürzen, leisten in React und next die Auswahlfelder selbst (Baum mit Tippsuche,
+`EntityAutocomplete`). Sie bleiben eine Sache der klassischen Version.
 
 #### Gruppen (`group`, vierter handgebauter Fall) – vollständig migriert
 
@@ -2002,9 +2003,10 @@ springt (`SearchFilter.jsx`).
   ist umgeschaltet. Die Prüfung Wicket ↔ next vom 23.08.2026 ist **abgearbeitet**
   (Status-Vorgabe der Liste, die fünf Querverweise im Kopf des Formulars, die Tippsuche
   im Auswahlfeld, die vier Kleinigkeiten) – Einzelheiten mit Begründung in
-  [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md). Bewusst ausgelassen bleiben allein die
-  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`, es fehlt die Verwaltungsseite);
-  deshalb zeigt der Menüeintrag `TASK_TREE` noch auf `wa/taskTree`. Zwei dort
+  [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md). Der Menüeintrag `TASK_TREE` zeigt auf
+  `next/taskTree`. Bewusst ausgelassen bleiben allein die Aufgaben-Favoriten
+  (`UserPrefArea.TASK_FAVORITE`) – sie sind für next gegenstandslos, weil die Auswahlfelder
+  selbst die Schnellauswahl bieten, und bleiben Wicket-Sache. Zwei dort
   aufgefallene Lücken waren nicht baumspezifisch und sind für **jede** handgebaute Seite
   behoben: der fehlende Undelete-Weg (samt der stillen Wiederherstellung durch jedes
   Speichern) und „+"/Zeilenklick ohne Rechteprüfung.
@@ -2021,12 +2023,11 @@ springt (`SearchFilter.jsx`).
      Auftragsbuch, Rechnung oder Baum nicht mehr aus der App herausführt.
      Nicht dazu gehört `consumption-cell.tsx`
      (`wa/timesheetList?taskId=…`) – die bleibt hart, bis die Zeitberichte migriert sind.
-   - **Entscheidung zum Menüeintrag `TASK_TREE`.** Technisch ist es ein Aufruf
-     (`nextRouteUrl("task", "taskTree", "wa/taskTree")`); es hängt allein an den
-     Aufgaben-Favoriten, deren Verwaltungsseite (`UserPrefListPage`) fehlt, während
-     `TaskFavoritesRest` fertig und unbenutzt daliegt. Entweder die Favoritenseite
-     nachziehen oder bewusst ohne sie umschalten – offen lassen ist die schlechteste
-     der drei Möglichkeiten, weil der Baum dann fertig ist und niemand ihn sieht.
+   - ~~**Entscheidung zum Menüeintrag `TASK_TREE`.**~~ **Erledigt:** `TASK_TREE` steht auf
+     `nextRouteUrl("task", "taskTree", "wa/taskTree")`, der Baum ist im Hauptmenü verlinkt.
+     Die Aufgaben-Favoriten waren dafür keine Bedingung: sie sind eine Wicket-Abkürzung, die
+     in React und next die Auswahlfelder selbst leisten, also wird `UserPrefListPage` für
+     next nicht nachgezogen und `TaskFavoritesRest` bleibt hier unbenutzt.
    - Diese Liste selbst aktuell halten: sie hat die abgeschlossene Baumarbeit noch als
      offen geführt, und eine Planungsdatei, die das tut, wird bei der nächsten Frage
      „was ist als nächstes zu tun" zur falschen Antwort.

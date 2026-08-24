@@ -296,10 +296,13 @@ Unit-Tests, die statt ihrer geschrieben wurden.
 ### Bewusst nicht vorgesehen
 
 **Die Strukturelement-Favoriten** (`UserPrefArea.TASK_FAVORITE`) – Wicket hat sie an drei
-Stellen: Baumseite, Listenseite und Auswahlfeld. `TaskFavoritesRest` ist vollständig
-vorhanden und in next unbenutzt; es fehlt die Verwaltungsseite (`UserPrefListPage`). Der
-Weg dorthin bleibt die Fluchtluke ins Alt-Frontend. Solange das so ist, bleibt auch der
-Menüeintrag `TASK_TREE` auf `wa/taskTree` (s. Schritt 5 unten).
+Stellen: Baumseite, Listenseite und Auswahlfeld. Sie sind **kein Rückstand, sondern
+gegenstandslos**: was sie in Wicket abkürzen, leisten in React und next die Auswahlfelder
+selbst – beim Strukturelement der Baum samt Tippsuche im Auswahlfeld, beim Benutzer
+`EntityAutocomplete`. `TaskFavoritesRest` bleibt also in next unbenutzt, die
+Verwaltungsseite (`UserPrefListPage`) wird für next nicht nachgezogen, und die Favoriten
+bleiben eine Sache der klassischen Version (erreichbar über die Fluchtluke). Am
+Menüeintrag `TASK_TREE` hängt damit nichts mehr (s. Schritt 5 unten).
 
 ## Bestandsaufnahme: wie die Seiten entstanden sind
 
@@ -790,16 +793,14 @@ Wicket form refuses` war seit `ac46dda0b` rot. Die Bereichsregeln sind dort von
    wenn dieser eine Aufrufer inzwischen handgebaut ist. Offen bleiben `TASK`, `LOCALE`,
    `TIMEZONE`, `PICTURE` und `CUSTOMIZED`.
 
-5. **Erledigt: Umschaltung. Der Menüschalter bleibt vorerst draußen.**
+5. **Erledigt: Umschaltung, Menüeintrag inklusive.**
    `NextMigration.MIGRATED["task"]` und `lib/hand-built-categories.ts` sind zusammen
    umgeschaltet (`NextMigrationTest` erzwingt es), also gehen Redirects und Editier-URLs der
-   Kategorie `task` nach next. `MenuItemDefId.TASK_TREE` zeigt dagegen **weiter auf
-   `wa/taskTree`**: solange die next-Seite noch Lücken hat (die Aufgaben-Favoriten), soll ein
-   Merge nach `develop` den Menüeintrag nicht umlegen. Umlegen ist ein Aufruf –
-   `NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")`, der Baum und nicht die
-   Liste der Kategorie, Einzelheiten in Lücke 1 oben. Die next-Seite ist bis dahin über
-   `/next/taskTree` direkt erreichbar; die Wicket-Seite bliebe nach dem Umlegen über die
-   Fluchtluke am Seitentitel erreichbar (`NextMigration.legacyListUrl`).
+   Kategorie `task` nach next. `MenuItemDefId.TASK_TREE` steht auf
+   `NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")` – der Baum und nicht die
+   Liste der Kategorie, Einzelheiten in Lücke 1 oben. Die Aufgaben-Favoriten halten das
+   nicht auf – sie sind für next gegenstandslos, s. „Bewusst nicht vorgesehen" oben. Wicket
+   bleibt über die Fluchtluke am Seitentitel erreichbar (`NextMigration.legacyListUrl`).
 
    Gegen das laufende System geprüft (nach `npm run build` +
    `:projectforge-next:copyNextBuild`, mit damals umgelegtem Menüeintrag): der Menüeintrag

@@ -107,11 +107,13 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
-    // Still Wicket, although the tree is migrated: the switch stays out until the next page is complete
-    // (the task favourites and the wizard's remaining gaps). Flipping it is one call away -
-    // `NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")`, the tree and not the category's
-    // list, because the entity has two perspectives in projectforge-next.
-    TASK_TREE("menu.taskTree", "wa/taskTree"), //
+    // Migrated to projectforge-next; wa/taskTree stays reachable through the escape hatch, see
+    // NextMigration.legacyListUrl. Nothing waits on the task favourites (UserPrefArea.TASK_FAVORITE):
+    // they are a Wicket affair, replaced in React and next by the quick access of the select fields
+    // themselves (the tree with its search, EntityAutocomplete for a user).
+    // The tree and not the category's list, because the entity has two perspectives in
+    // projectforge-next (see NextMigration.nextRouteUrl).
+    TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //
     TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //
