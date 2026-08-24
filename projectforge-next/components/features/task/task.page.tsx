@@ -169,9 +169,13 @@ export const TASK_PAGE = definePage<
     // wording. Only the first target lives in this app; the other four are Wicket pages, and they
     // turn into routes of this app with nothing but a changed href once they are migrated.
     crossLinks: [
+      // The two that are worth a button of their own beside the heading (see CrossLinkDef.prominent):
+      // structuring the tree and looking at what was booked on the element are what an open task is left
+      // for, and having to open a menu for them is a click on every one of them.
       {
         labelKey: "task.menu.addSubTask",
         href: (task) => `${TASK_ROUTE}/new?parentTaskId=${task.id}`,
+        prominent: true,
       },
       {
         labelKey: "task.menu.addTimesheet",
@@ -180,6 +184,7 @@ export const TASK_PAGE = definePage<
       {
         labelKey: "task.menu.showTimesheets",
         href: (task) => `wa/timesheetList?taskId=${task.id}`,
+        prominent: true,
       },
       {
         // `gantt` is the basename the Gantt pages are mounted under, so the edit page is `ganttEdit`

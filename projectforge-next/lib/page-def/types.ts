@@ -373,6 +373,16 @@ export interface CrossLinkDef<Data> {
    * is no access control but the same courtesy [TaskWizardLink] does on the two task headers.
    */
   adminOnly?: boolean;
+  /**
+   * Offered as a button of its own beside the heading instead of only inside the menu — the two detours
+   * that are taken often enough to be worth the width (a task's "new structure element" and "show time
+   * sheets"), the way the invoice's export sits there (`headerTrailing`).
+   *
+   * From `md` up only: below it the row has no space for a spelled-out label, so it stays a menu entry
+   * like the others — nothing is reachable in one breakpoint and unreachable in another (see
+   * EntityCrossLinks).
+   */
+  prominent?: boolean;
 }
 
 export interface EditDef<Values, Data, M extends EntityMetadata> {
