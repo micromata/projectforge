@@ -22,6 +22,28 @@ export const TASK_ROUTE = "/task";
 export const TASK_WIZARD_ROUTE = "/taskWizard";
 
 /**
+ * The element the wizard opens on, as a parameter of its url — how the task's own form starts the
+ * wizard for the element on screen (see TASK_PAGE.crossLinks).
+ *
+ * Not [SAVED_ID_PARAM], although both end up in the same first step: that one means "this element was
+ * just created for the wizard" and comes with the groups picked before that detour
+ * (see wizard-handover.ts). This one is a plain preset, and the wizard is otherwise fresh.
+ */
+export const WIZARD_TASK_PARAM = "taskId";
+
+/**
+ * The url of the structure wizard, opened on `taskId` where one is given.
+ *
+ * Nullable, because a caller passes the id of an entity as it comes from the backend
+ * (`TaskDetail.id`) — without one the wizard opens as it does from the tree, on an empty first step.
+ */
+export function taskWizardHref(options?: { taskId?: number | null }): string {
+  return `${TASK_WIZARD_ROUTE}${query({
+    [WIZARD_TASK_PARAM]: options?.taskId ?? undefined,
+  })}`;
+}
+
+/**
  * The parameter a caller of the task form gets the id of the saved element back in — set by the form
  * (`EditDef.returnTargets`, see useEditReturn) and read by the page that returns.
  *

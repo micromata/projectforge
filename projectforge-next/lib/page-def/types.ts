@@ -357,6 +357,14 @@ export interface CrossLinkDef<Data> {
    * `resolveMenuUrl`, the same way a menu entry is. Null hides the entry for this entry.
    */
   href: (data: Data) => string | null;
+  /**
+   * Only offered to a member of the admin group — the structure wizard, which sets the rights of a
+   * whole project.
+   *
+   * Hides what the endpoints behind it refuse anyway (`TaskWizardRest` checks the same thing), so this
+   * is no access control but the same courtesy [TaskWizardLink] does on the two task headers.
+   */
+  adminOnly?: boolean;
 }
 
 export interface EditDef<Values, Data, M extends EntityMetadata> {

@@ -3,6 +3,7 @@ import {
   TASK_TREE_ROUTE,
   TASK_WIZARD_ROUTE,
   SAVED_ID_PARAM,
+  taskWizardHref,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
@@ -189,6 +190,16 @@ export const TASK_PAGE = definePage<
       {
         labelKey: "task.menu.showAccessRights",
         href: (task) => `wa/accessList?taskId=${task.id}`,
+      },
+      // Not in Wicket's top menu, where the wizard is reachable from the tree page alone: an admin who
+      // is *in* an element is exactly who wants its rights set up, and having to go back to the tree
+      // and find the row again is the detour. Preset with this element, so the wizard opens on its
+      // first step done (see taskWizardHref) — and offered to admins only, like the button on the two
+      // task headers (TaskWizardLink), because that is who the wizard's endpoints answer.
+      {
+        labelKey: "task.wizard.pageTitle",
+        href: (task) => taskWizardHref({ taskId: task.id }),
+        adminOnly: true,
       },
     ],
     sections: [
