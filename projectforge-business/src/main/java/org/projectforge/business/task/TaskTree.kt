@@ -604,7 +604,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     private val orderPositionEntries: Map<Long, Set<OrderPositionInfo>>?
         get() {
             synchronized(this) {
-                if (this.orderPositionReferencesDirty) {
+                // The tree may not be built yet: this refresh is marked dirty by a cache listener
+                // (AuftragsCache), and a request can reach it while the base refresh - which fills root and
+                // taskMap - is still running on another thread, so checkRefresh returned at once without
+                // populating them (see AbstractCache.refreshLock). Leaving it dirty, the references are
+                // rebuilt on the next call, once root is there; refresh itself marks it dirty again at its end.
+                if (this.orderPositionReferencesDirty && root != null) {
                     log.info { "TaskTree: refreshing order position references..." }
                     val duration = LogDuration()
                     val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
@@ -624,8 +629,10 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     }
                     resetOrderPersonDays(root!!)
                     references.forEach orderPositions@{ (key, value) ->
-                        val node = getTaskNodeById(key)
-                        node!!.orderedPersonDays = null
+                        // Null for an order position referencing a task not in the tree (deleted meanwhile):
+                        // skip it rather than fail the whole refresh.
+                        val node = getTaskNodeById(key) ?: return@orderPositions
+                        node.orderedPersonDays = null
                         value.forEach { pos ->
                             if (pos.personDays == null) {
                                 return@orderPositions

@@ -169,6 +169,13 @@ class TaskPagesRest
     override fun transformForDB(dto: Task): TaskDO {
         val taskDO = TaskDO()
         dto.copyTo(taskDO)
+        // The DTO's status is nullable (a form need not carry it), and copyTo writes it through as null. The
+        // column is nullable too, so a task with no status persists - and then breaks the load of the whole
+        // task tree, whose entity property is non-null (see TaskDO.status). Default it here, as Wicket's form
+        // does with its `TaskStatus.N` initial value.
+        if (dto.status == null) {
+            taskDO.status = TaskStatus.N
+        }
         return taskDO
     }
 
