@@ -62,17 +62,20 @@ export function DeclaredSection<M extends EntityMetadata>({
 
   // Through leafKeyOf, as the tab bar resolves the same key — see entityTabs.
   const title = t(leafKeyOf(section.titleKey, t.has));
+  const actions = section.headerActions ? (
+    <section.headerActions id={id} />
+  ) : null;
 
   if (!section.collapsed) {
     return (
       <SectionCard>
-        <SectionHeader title={title} />
+        <SectionHeader title={title} trailing={actions} />
         {body}
       </SectionCard>
     );
   }
   return (
-    <CollapsedSection title={title} active={active}>
+    <CollapsedSection title={title} active={active} trailing={actions}>
       {body}
     </CollapsedSection>
   );
@@ -86,10 +89,12 @@ export function DeclaredSection<M extends EntityMetadata>({
 function CollapsedSection({
   title,
   active,
+  trailing,
   children,
 }: {
   title: string;
   active?: boolean;
+  trailing?: ReactNode;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -108,26 +113,31 @@ function CollapsedSection({
   return (
     <SectionCard>
       <Collapsible open={open} onOpenChange={setOpen}>
-        {/* The heading is the whole trigger, spanning the card: the fold reacts to a click anywhere
-            on that line rather than to the chevron alone. */}
-        <CollapsibleTrigger className="w-full cursor-pointer text-left">
-          <SectionHeader
-            title={title}
-            // No gap below while folded: the card is then nothing but this line.
-            className={open ? undefined : "mb-0"}
-            leading={
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                size={14}
-                aria-hidden
-                className={cn(
-                  "shrink-0 text-muted-foreground transition-transform",
-                  !open && "-rotate-90"
-                )}
-              />
-            }
-          />
-        </CollapsibleTrigger>
+        {/* No gap below while folded: the card is then nothing but this line. The action sits beside the
+            trigger rather than inside it — it is a button (or a link) of its own, which nested in one
+            would be invalid markup and would fold the card on its way. */}
+        <div className={cn("flex items-center gap-3.5", open && "mb-4")}>
+          {/* The heading is the whole trigger, spanning the card: the fold reacts to a click anywhere
+              on that line rather than to the chevron alone. */}
+          <CollapsibleTrigger className="flex flex-1 cursor-pointer text-left">
+            <SectionHeader
+              title={title}
+              className="mb-0 flex-1"
+              leading={
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={14}
+                  aria-hidden
+                  className={cn(
+                    "shrink-0 text-muted-foreground transition-transform",
+                    !open && "-rotate-90"
+                  )}
+                />
+              }
+            />
+          </CollapsibleTrigger>
+          {trailing}
+        </div>
         <CollapsibleContent>{children}</CollapsibleContent>
       </Collapsible>
     </SectionCard>

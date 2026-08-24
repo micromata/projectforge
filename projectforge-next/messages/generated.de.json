@@ -535,6 +535,9 @@
       "targetCurrency": "Zielwährung"
     },
     "customerref1": "Kundenreferenz",
+    "eInvoiceChecker": {
+      "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
+    },
     "employee": {
       "_": "Mitarbeiter:in",
       "austrittsdatum": "Austrittsdatum",

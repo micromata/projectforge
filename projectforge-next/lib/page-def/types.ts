@@ -322,6 +322,14 @@ export interface SectionDef<M extends EntityMetadata> {
    * for what the backend says about the stored entry, the form store for the submit).
    */
   footer?: ComponentType<{ id: number | null }>;
+  /**
+   * At the right end of the card's heading — an action about the section as a whole, not about a field of
+   * it: the e-invoice checker beside the e-invoice heading.
+   *
+   * Belongs there rather than into the [footer] because it is not a step of the form: the footer's buttons
+   * act on this invoice, this one opens a tool, and a card's heading is where a tool about the card goes.
+   */
+  headerActions?: ComponentType<{ id: number | null }>;
 }
 
 /**
