@@ -176,6 +176,7 @@
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
     "day": "Tag",
+    "defaultCalendar": "Standardkalender",
     "filter": {
       "vacation": {
         "groups": {
@@ -186,9 +187,17 @@
           "_": "Urlaubskalender Benutzer:in",
           "tooltip": "Für diese Personen werden die Urlaube angezeigt."
         }
-      }
+      },
+      "visible": "sichtbar"
     },
     "month": "Monat",
+    "newEntry": "Neuer Eintrag",
+    "option": {
+      "firstHour": "Tagesbeginn",
+      "gridSize": "Raster in Minuten",
+      "showBreaks": "Pausen",
+      "timesheets": "Zeitberichte"
+    },
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quickselect - aktueller Monat",
@@ -198,6 +207,10 @@
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"
       }
+    },
+    "settings": {
+      "_": "Einstellungen (Farben)",
+      "colors": "Farben"
     },
     "short": {
       "yearToDate": "J→"
@@ -209,7 +222,16 @@
       "tuesday": "Di",
       "wednesday": "Mi"
     },
+    "title": "Kalender",
     "today": "Heute",
+    "view": {
+      "agenda": "Agenda",
+      "overview": "Übersicht",
+      "settings": {
+        "tooltip": "Einstellungen der Ansicht"
+      },
+      "workDays": "Werktage"
+    },
     "week": "Woche",
     "year": "Jahr",
     "yearToDate": "Jahr bis heute"
@@ -257,6 +279,7 @@
     "_": "Datumsformat",
     "xls": "Exceldatumsformat"
   },
+  "day": "Tag(e)",
   "days": "Tage",
   "delete": "Löschen",
   "deleted": "gelöscht",
@@ -285,6 +308,9 @@
     "_": "Ein Fehler trat auf: {arg0}",
     "endDateBeforeBeginDate": "Das Endedatum darf nicht vor dem Anfangsdatum liegen.",
     "posFromDateBeforeFromDate": "Das Anfangsdatum einer Position darf nicht vor dem Anfangsdatum des Auftrages liegen."
+  },
+  "errorpage": {
+    "title": "Ein Fehler ist aufgetreten."
   },
   "expand": "Aufklappen",
   "exportAsXls": "Excel-Export",
@@ -1345,6 +1371,7 @@
   "menu": {
     "addNewEntry": "Neuer Eintrag",
     "administration": "Administration",
+    "calendar": "Kalender",
     "common": "Allgemein",
     "favorites": {
       "more": "Weitere Favoriten"
@@ -1380,6 +1407,9 @@
       "title": "Hauptmenü"
     },
     "myAccount": "Mein Zugang",
+    "plugins": {
+      "teamcal": "Kalenderliste"
+    },
     "quickAccess": {
       "_": "Schnellzugriff",
       "placeholder": "Menü durchsuchen",
@@ -1558,6 +1588,7 @@
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
+  "reload": "Neu laden",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
   "resubmissionOnDate": "Wiedervorlage",

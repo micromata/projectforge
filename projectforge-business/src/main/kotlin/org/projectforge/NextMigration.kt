@@ -142,6 +142,14 @@ object NextMigration {
             newEntryRoute = "book/new",
             legacyApp = null,
         ),
+        // Hand built calendar (the default page after login), migrated from the React app, which is where
+        // the way back leads (react/calendar). It has no edit page of its own - a new or clicked entry
+        // opens a timesheet or team event through their own dynamic routes - so the inherited editRoute /
+        // newEntryRoute defaults (calendar/edit/:id, calendar/edit) are dead and never asked for.
+        "calendar" to NextPage(
+            route = "calendar",
+            legacyApp = LegacyApp.REACT,
+        ),
         // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
         // which pointed at wa/cost1List): the way back leads to Wicket, not to the React page - that one
         // exists as a layout (Kost1PagesRest) but was never mounted in the menu.

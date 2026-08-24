@@ -176,6 +176,7 @@
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
     "day": "day",
+    "defaultCalendar": "Default calendar",
     "filter": {
       "vacation": {
         "groups": {
@@ -186,9 +187,17 @@
           "_": "Vacation users",
           "tooltip": "For these users any vacation will be displayed."
         }
-      }
+      },
+      "visible": "visible"
     },
     "month": "Month",
+    "newEntry": "New entry",
+    "option": {
+      "firstHour": "Begin of day",
+      "gridSize": "Grid size in minutes",
+      "showBreaks": "Breaks",
+      "timesheets": "time sheets"
+    },
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
@@ -198,6 +207,10 @@
         "selectPreviousMonth": "Quick select - previous month",
         "selectPreviousYearToDate": "Quick select - previous year to date"
       }
+    },
+    "settings": {
+      "_": "Settings (colors)",
+      "colors": "Colors"
     },
     "short": {
       "yearToDate": "Y→"
@@ -209,7 +222,16 @@
       "tuesday": "Tu",
       "wednesday": "We"
     },
+    "title": "Calendar",
     "today": "Today",
+    "view": {
+      "agenda": "agenda",
+      "overview": "overview",
+      "settings": {
+        "tooltip": "View settings"
+      },
+      "workDays": "Workdays"
+    },
     "week": "Week",
     "year": "Year",
     "yearToDate": "Year to date"
@@ -257,6 +279,7 @@
     "_": "Date format",
     "xls": "Excel date format"
   },
+  "day": "day(s)",
   "days": "days",
   "delete": "Delete",
   "deleted": "deleted",
@@ -285,6 +308,9 @@
     "_": "An error occurs: {arg0}",
     "endDateBeforeBeginDate": "End date can't be before begin date.",
     "posFromDateBeforeFromDate": "Start date of a position can't be before start date of order."
+  },
+  "errorpage": {
+    "title": "An error has occurred."
   },
   "expand": "Expand",
   "exportAsXls": "Excel export",
@@ -1345,6 +1371,7 @@
   "menu": {
     "addNewEntry": "New entry",
     "administration": "Administration",
+    "calendar": "Calendar",
     "common": "Common",
     "favorites": {
       "more": "More favorites"
@@ -1380,6 +1407,9 @@
       "title": "Main menu"
     },
     "myAccount": "My account",
+    "plugins": {
+      "teamcal": "List of calendars"
+    },
     "quickAccess": {
       "_": "Quick access",
       "placeholder": "Search menu",
@@ -1558,6 +1588,7 @@
   },
   "rating": "Rating",
   "recursive": "recursive",
+  "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
   "resubmissionOnDate": "Resubmission on",

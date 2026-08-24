@@ -24,7 +24,7 @@
 package org.projectforge.rest.calendar
 
 import jakarta.ws.rs.BadRequestException
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
@@ -371,9 +371,9 @@ class CalendarServicesRest {
                 // Time sheet was modified, so reload page and goto date of timesheet (if modified):
                 val hash = NumberHelper.getSecureRandomAlphanumeric(4)
                 val gotoDate = PFDateTime.fromOrNow(date).localDate
-                return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$gotoDate&hash=$hash")
+                return ResponseAction("/${NextMigration.listUrl("calendar")}?gotoDate=$gotoDate&hash=$hash")
             }
-            return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
+            return ResponseAction("/${NextMigration.listUrl("calendar")}")
         }
     }
 }
