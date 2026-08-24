@@ -55,7 +55,7 @@ export function CalendarVacationSelects({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="calendar-vacation-groups" className="text-sm">
-          {t("calendar.filter.vacation.groups")}
+          {t("calendar.filter.vacation.groups._")}
         </Label>
         <EntityMultiAutocomplete
           id="calendar-vacation-groups"
@@ -66,12 +66,12 @@ export function CalendarVacationSelects({
             onGroupsChange(next.map((r) => r.id));
           }}
           removeLabel={remove}
-          aria-label={t("calendar.filter.vacation.groups")}
+          aria-label={t("calendar.filter.vacation.groups._")}
         />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="calendar-vacation-users" className="text-sm">
-          {t("calendar.filter.vacation.users")}
+          {t("calendar.filter.vacation.users._")}
         </Label>
         <EntityMultiAutocomplete
           id="calendar-vacation-users"
@@ -82,7 +82,7 @@ export function CalendarVacationSelects({
             onUsersChange(next.map((r) => r.id));
           }}
           removeLabel={remove}
-          aria-label={t("calendar.filter.vacation.users")}
+          aria-label={t("calendar.filter.vacation.users._")}
         />
       </div>
     </div>

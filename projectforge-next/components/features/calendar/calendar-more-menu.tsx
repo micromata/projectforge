@@ -51,7 +51,8 @@ export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
           onSelect={() => router.push("/calendarSettings/dynamic/-1")}
         >
           <HugeiconsIcon icon={Settings02Icon} size={14} />
-          {t("calendar.settings")}
+          {/* `calendar.settings` is a subtree (it also has `.colors`), so the label is on its `_` leaf. */}
+          {t("calendar.settings._")}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={onRefresh}>
           <HugeiconsIcon icon={CircleArrowReload01Icon} size={14} />

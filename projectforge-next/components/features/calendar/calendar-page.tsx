@@ -36,7 +36,9 @@ export function CalendarPage() {
 
   useGotoDate(
     apiRef,
-    useCallback(() => setNonce((n) => n + 1), [])
+    useCallback(() => setNonce((n) => n + 1), []),
+    // The calendar has mounted and set `apiRef.current` once it has reported a range.
+    range !== null
   );
 
   const activeCalendars = useMemo(

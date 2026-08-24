@@ -81,7 +81,10 @@ export function FullCalendarPanel({
 
   const handleDatesSet = useCallback(
     (arg: DatesSetArg) => {
-      if (apiRef) apiRef.current = calendarRef.current?.getApi() ?? null;
+      // From the event, not `calendarRef.current?.getApi()`: FullCalendar fires the first `datesSet`
+      // before React has assigned the ref, so reading the ref here yields null on the initial mount
+      // and `use-goto-date` would never get an api (see its KDoc). `arg.view.calendar` is always set.
+      if (apiRef) apiRef.current = arg.view.calendar;
       const clampedEnd = clampVisibleEnd(arg.start, arg.end);
       onRangeChange({
         start: arg.startStr,

@@ -24,7 +24,9 @@ import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
  * - style / visibility carry colour and visibility in their payload → apply the patch and refetch events;
  * - timesheet-user / show-breaks / vacations answer with only `isFilterModified`, so the new value is
  *   patched into the filter locally and the events refetch off the changed key;
- * - grid size / first hour / default calendar are purely presentational → apply the patch, no refetch.
+ * - grid size / first hour / default calendar answer with only `isFilterModified` too and are purely
+ *   presentational, so the new value is patched into the filter locally (nothing echoes it back, and
+ *   without the local patch the change would not show until a reload) and no refetch is needed.
  *
  * Show-breaks sends `checked` (the new value), fixing the legacy bug where the old value was sent to the
  * server while the client kept the new one.
@@ -49,9 +51,18 @@ export function useCalendarFilterMutations() {
         run(changeCalendarStyle(calendarId, bgColor), { events: true }),
       setVisibility: (calendarId: number, visible: boolean) =>
         run(setCalendarVisibility(calendarId, visible), { events: true }),
-      changeGridSize: (size: number) => run(changeGridSize(size)),
-      changeFirstHour: (hour: number) => run(changeFirstHour(hour)),
-      changeDefaultCalendar: (id: number) => run(changeDefaultCalendar(id)),
+      changeGridSize: (size: number) => {
+        patchFilter({ gridSize: size });
+        return run(changeGridSize(size));
+      },
+      changeFirstHour: (hour: number) => {
+        patchFilter({ firstHour: hour });
+        return run(changeFirstHour(hour));
+      },
+      changeDefaultCalendar: (id: number) => {
+        patchFilter({ defaultCalendarId: id });
+        return run(changeDefaultCalendar(id));
+      },
       changeTimesheetUser: (userId: number | undefined) => {
         patchFilter({ timesheetUserId: userId ?? null });
         return run(changeTimesheetUser(userId), { events: true });

@@ -96,7 +96,7 @@ export function CalendarSelect({
         </PopoverTrigger>
         <PopoverContent align="start" className="w-64 p-0">
           <Command>
-            <CommandInput placeholder={t("search")} />
+            <CommandInput placeholder={t("search._")} />
             <CommandList>
               <CommandEmpty>{t("nothingFound")}</CommandEmpty>
               <CommandGroup>

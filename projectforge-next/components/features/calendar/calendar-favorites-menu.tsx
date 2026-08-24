@@ -53,7 +53,9 @@ export function CalendarFavoritesMenu({
           type="button"
           variant="outline"
           size="sm"
-          aria-label={t("favorites")}
+          // `favorites` is both a label and the parent of `favorites.saveModification`, so the bundle
+          // exports it as a subtree with the label on a `_` leaf — that leaf is the accessible name.
+          aria-label={t("favorites._")}
           className="relative h-7 gap-1.5"
         >
           <HugeiconsIcon icon={Bookmark02Icon} size={14} aria-hidden />

@@ -80,7 +80,7 @@ export function CalendarSettingsDialog({
               }
             >
               <SelectTrigger className="h-8">
-                <SelectValue placeholder={t("select")} />
+                <SelectValue placeholder={t("select._")} />
               </SelectTrigger>
               <SelectContent>
                 {(init.listOfDefaultCalendars ?? []).map((calendar) => (
