@@ -402,7 +402,7 @@ test.describe("task edit", () => {
     await expect(titleBox(page, format)).toHaveValue(changed);
   });
 
-  test("the five cross links of the Wicket form are in the header menu", async ({
+  test("the five cross links of the Wicket form are in the header, the two used most as buttons", async ({
     loggedInPage: page,
     seededTask,
   }) => {
@@ -410,17 +410,25 @@ test.describe("task edit", () => {
     await goto(page, `/task/${seededTask.id}`);
     await expect(titleBox(page, format)).toHaveValue(seededTask.title);
 
-    await page
-      .getByRole("main")
-      .getByRole("button", { name: format.t("more") })
-      .click();
-    const menu = page.getByRole("menu");
-    // The entries and their order are `TaskEditPage.addTopMenuPanel`'s; every url names this task,
-    // which is what makes them cross links and not menu items (see CrossLinkDef).
+    const header = page.getByRole("main");
+    // Beside the heading without a click, on this viewport: the two an open task is left for
+    // (`CrossLinkDef.prominent`). Below `md` they are menu entries like the rest, so this half of the
+    // assertion belongs to the desktop viewport the suite runs in.
     for (const [key, href] of [
       ["task.menu.addSubTask", `/task/new?parentTaskId=${seededTask.id}`],
-      ["task.menu.addTimesheet", `/wa/timesheetEdit?taskId=${seededTask.id}`],
       ["task.menu.showTimesheets", `/wa/timesheetList?taskId=${seededTask.id}`],
+    ] as const) {
+      await expect(
+        header.getByRole("link", { name: format.t(key) })
+      ).toHaveAttribute("href", new RegExp(`${escapeRegExp(href)}$`));
+    }
+
+    await header.getByRole("button", { name: format.t("more") }).click();
+    const menu = page.getByRole("menu");
+    // The remaining entries and their order are `TaskEditPage.addTopMenuPanel`'s; every url names this
+    // task, which is what makes them cross links and not menu items (see CrossLinkDef).
+    for (const [key, href] of [
+      ["task.menu.addTimesheet", `/wa/timesheetEdit?taskId=${seededTask.id}`],
       ["gantt.title.add", `/wa/ganttEdit?task=${seededTask.id}`],
       ["task.menu.showAccessRights", `/wa/accessList?taskId=${seededTask.id}`],
     ] as const) {
@@ -428,6 +436,13 @@ test.describe("task edit", () => {
         menu.getByRole("menuitem", { name: format.t(key) })
         // Ends with, not equals: this app's own routes carry the base path in front of them.
       ).toHaveAttribute("href", new RegExp(`${escapeRegExp(href)}$`));
+    }
+    // The two that became buttons are still in the markup of the menu, hidden from `md` up — so a
+    // reader of the a11y tree finds each target exactly once, not twice.
+    for (const key of ["task.menu.addSubTask", "task.menu.showTimesheets"]) {
+      await expect(
+        menu.getByRole("menuitem", { name: format.t(key) })
+      ).toHaveCount(0);
     }
     await page.keyboard.press("Escape");
   });
