@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { CustomerLogo } from "@/components/shared/customer-logo";
+import { DevelopmentMarker } from "@/components/shared/development-marker";
 // A static import rather than a file in public/: next's image loader rewrites this to
 // /next/_next/static/media/<name>.<hash>.png, because assetPrefix defaults to basePath - so the url
 // is right in dev and in the static export alike. `next/image` is not an option: with
@@ -47,6 +48,7 @@ export function LogoRow({ collapsible = true }: LogoRowProps) {
       data-collapsed={collapsed}
     >
       <CustomerLogo />
+      <DevelopmentMarker />
       {/* eslint-disable-next-line @next/next/no-img-element -- see the import above: next/image is
           incompatible with output: "export" here, and this is a fixed-size raster that needs no
           optimisation. */}

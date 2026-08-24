@@ -1629,6 +1629,9 @@
   "show": "Anzeigen",
   "statistics": "Statistik",
   "status": "Status",
+  "system": {
+    "developmentSystem": "Development-System"
+  },
   "task": {
     "_": "Strukturelement",
     "assignedUser": "Verantwortliche:r",

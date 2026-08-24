@@ -26,6 +26,7 @@ package org.projectforge.business.user
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -60,7 +61,10 @@ private val log = KotlinLogging.logger {}
  *
  * The accounts are as harmless as the development mode they come with: their passwords are random per
  * instance and stand in a file only the developer can read. They are never created on a production
- * system, because `projectforge.development.mode` is false there.
+ * system, because `projectforge.development.mode` is false there — and an instance that *was* a
+ * development one before it went productive doesn't keep them either: a start without the development
+ * mode disables whatever it finds (see [disableAccounts]), so the accounts can't outlive the mode they
+ * belong to.
  */
 @Service
 class E2ETestAccountsService {
@@ -91,18 +95,27 @@ class E2ETestAccountsService {
     /**
      * [ApplicationReadyEvent] rather than `@PostConstruct`: the database is migrated and the caches are
      * usable by then, and a failure cannot keep the application from starting.
+     *
+     * Both directions are handled: in development mode the accounts are kept up to date, without it they
+     * are disabled. The second half is the one that matters for a system that changes its mind — the
+     * accounts and their password file survive a change of `projectforge.development.mode` otherwise.
      */
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationReady() {
-        if (!systemStatus.developmentMode) {
-            return
-        }
+        val homeDir = File(configurationService.applicationHomeDir)
         try {
-            ensureAccounts(File(configurationService.applicationHomeDir))
+            if (systemStatus.developmentMode) {
+                val accounts = ensureAccounts(homeDir)
+                logAccountsEnabled(File(homeDir, FILENAME), accounts)
+            } else {
+                disableAccounts(homeDir)
+            }
         } catch (ex: Exception) {
             // Logged, not rethrown: test accounts are a convenience, and an unusable one must not cost
-            // the developer the whole application.
-            log.error(ex) { "Can't create or update the E2E test accounts: ${ex.message}" }
+            // the developer the whole application. The same holds for disabling them - a start that fails
+            // here would leave a productive system without any application at all, which is worse than a
+            // deactivation that has to be done by hand (the log says which accounts).
+            log.error(ex) { "Can't create, update or disable the E2E test accounts: ${ex.message}" }
         }
     }
 
@@ -133,6 +146,110 @@ class E2ETestAccountsService {
                     accounts.entries.joinToString { "${it.key}=${it.value.username}" }
         }
         return accounts
+    }
+
+    /**
+     * Takes the E2E test accounts out of service, for a system that is not (or no longer) a development
+     * one.
+     *
+     * Three things, because each of them alone would leave a way in: the user is deactivated (no login),
+     * its password is replaced by a fresh random one (so what [FILENAME] says, or whoever read it once,
+     * is worthless), and the file itself is deleted. Deactivated rather than deleted, and the groups and
+     * rights are left alone: this is reversible on purpose — a start in development mode reactivates the
+     * account and generates a new password again ([ensureUser], [ensurePassword]), which is what a
+     * developer switching back expects.
+     *
+     * Nothing is written on a system that never had these accounts, which is the normal production case.
+     *
+     * @return The usernames that were found and disabled, in the order of the roles — empty when there
+     * was nothing to do.
+     */
+    fun disableAccounts(homeDir: File): List<String> {
+        val changes = Changes()
+        val disabled = withSystemAdminUser {
+            persistenceService.runInTransaction { _ ->
+                E2ETestAccount.entries.mapNotNull { disableAccount(it, changes) }
+            }
+        }
+        if (changes.any) {
+            userGroupCache.forceReload()
+        }
+        val file = File(homeDir, FILENAME)
+        val fileDeleted = file.exists() && file.delete()
+        if (!fileDeleted && file.exists()) {
+            log.error { "Can't delete ${file.absolutePath}. It holds the passwords of the E2E test accounts, delete it by hand." }
+        }
+        if (disabled.isNotEmpty() || fileDeleted) {
+            logAccountsDisabled(file, disabled, fileDeleted)
+        }
+        return disabled
+    }
+
+    /**
+     * @return The username, if there was an account to disable — null if this instance doesn't have it (or
+     * only has it as a deleted one, which can't log in anyway).
+     */
+    private fun disableAccount(account: E2ETestAccount, changes: Changes): String? {
+        val user = userDao.getInternalByName(account.username) ?: return null
+        if (user.deleted) {
+            return null
+        }
+        if (!user.deactivated) {
+            user.deactivated = true
+            userDao.update(user, checkAccess = false)
+            changes.any = true
+        }
+        // Rotated in any case, also for an already deactivated account: a deactivation can be undone in the
+        // user's page, the password in the file can't be made secret again.
+        userPasswordDao.encryptAndSavePassword(
+            user.id!!,
+            NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH).toCharArray(),
+            false,
+        )
+        changes.any = true
+        return account.username
+    }
+
+    /**
+     * Says in the log of every development start that these accounts exist — the one place a developer
+     * looks, and the reminder that the instance mustn't be put in front of real users as it stands.
+     */
+    private fun logAccountsEnabled(file: File, accounts: Map<String, Account>) {
+        val logSupport = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT)
+            .log("ATTENTION!")
+            .log("")
+            .log("E2E test accounts are enabled (projectforge.development.mode=true):")
+            .log("")
+        accounts.forEach { (role, account) -> logSupport.log("  ${account.username} ($role)") }
+        logSupport
+            .log("")
+            .log("Their passwords are in ${file.absolutePath}.")
+            .log("")
+            .log("These accounts are not allowed on a productive system!")
+            .log("Set projectforge.development.mode=false there; the next start disables them.")
+            .logEnd()
+    }
+
+    /** The other half: what was found on a system that isn't a development one, and what was done with it. */
+    private fun logAccountsDisabled(file: File, disabled: List<String>, fileDeleted: Boolean) {
+        val logSupport = EmphasizedLogSupport(log, EmphasizedLogSupport.Priority.VERY_IMPORTANT)
+            .setLogLevel(EmphasizedLogSupport.LogLevel.ERROR)
+            .log("SECURITY: E2E test accounts found on a system without development mode!")
+            .log("")
+            .log("They are not allowed on productive systems and have therefore been disabled")
+            .log("(deactivated, and their passwords replaced by new random ones):")
+            .log("")
+        disabled.forEach { username -> logSupport.log("  $username") }
+        if (fileDeleted) {
+            logSupport
+                .log("")
+                .log("Deleted ${file.absolutePath}, which held their passwords.")
+        }
+        logSupport
+            .log("")
+            .log("This instance ran with projectforge.development.mode=true before. Please check whether")
+            .log("any of these accounts was used, and that no other development setting is still active.")
+            .logEnd()
     }
 
     /**

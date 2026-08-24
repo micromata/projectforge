@@ -109,6 +109,10 @@ base("the logo row stays on the login page", async ({ page }) => {
     byRole(page, translate(locales()[0])("logo.projectforge"))
   ).toBeVisible();
   expect(await height(logoRow(page))).toBe(LOGO_ROW_HEIGHT);
+  // And the marker of a development instance is there before a login as well - this suite only ever runs
+  // against one (its accounts exist in development mode only), so its absence is a real failure: either
+  // the flag stopped arriving in the redacted publicSystemData or the marker was dropped from the row.
+  await expect(page.locator("[data-development-mode]")).toBeVisible();
 });
 
 /** The ProjectForge wordmark, as the accessibility tree exposes it. */

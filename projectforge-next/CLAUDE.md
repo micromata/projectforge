@@ -124,6 +124,11 @@ against the live system instead of mock data. **The instance writes that file it
 doesn't find, with a random password per instance, and repairs a missing group or right on every
 start. Nothing to set up by hand.
 
+A start **without** the development mode does the opposite: whatever accounts of these it finds are
+deactivated, their passwords are replaced by new random ones and `testAccounts.txt` is deleted, with a
+prominent log message saying so — they are not allowed on a productive system. Switching back to
+`projectforge.development.mode=true` restores them on the next start, with new passwords.
+
 | Role               | User              | Has                                             |
 | ------------------ | ----------------- | ----------------------------------------------- |
 | `full-access-user` | `e2e-full-access` | every group, every right — the default          |
