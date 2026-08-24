@@ -10,11 +10,11 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { daysBetweenDates, shiftDateByDays } from "@/lib/date-parse";
 import { formatCurrency } from "@/lib/format";
-import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
+import { EINGANGSRECHNUNG_METADATA } from "@/lib/metadata/eingangsrechnung.generated";
 import { cn } from "@/lib/utils";
-import type { InvoiceValues } from "../invoice-schema";
 import { deviatingGrossSum } from "@/components/shared/invoice/payment-amount-deviation";
 import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
+import type { CreditorInvoiceValues } from "../creditor-invoice-schema";
 
 /** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
 const DERIVED_TARGETS = [
@@ -33,14 +33,12 @@ const DERIVED_TARGETS = [
  * split as `AbstractRechnungEditForm` (a dropdown while the date is empty, a read-only text after that), and
  * for its reason: from the second the invoice has dates, those are what it is judged by, and the days are the
  * formula they came out of. They stay on screen and stay part of what is saved, because they are the number
- * an invoice is actually agreed in ("30 days net") and the number a clone is rebuilt from
- * (`OutgoingInvoiceEntityRest.prepareInvoiceClone`) — hiding them left an opened invoice looking as if it
- * had no payment term at all.
+ * an invoice is actually agreed in ("30 days net").
  *
  * The days are free to type rather than picked from Wicket's `ZAHLUNGSZIELE_IN_TAGEN` list: every term
  * that list doesn't happen to contain is as valid as the five that are on it.
  */
-export function PaymentTermsFields({
+export function PaymentFields({
   id,
   className,
 }: {
@@ -49,7 +47,7 @@ export function PaymentTermsFields({
   className?: string;
 }) {
   const t = useTranslations();
-  const label = useFieldLabels(RECHNUNG_METADATA);
+  const label = useFieldLabels(EINGANGSRECHNUNG_METADATA);
   const format = useFormatContext();
   const form = useEntityEditForm();
   const isNew = id == null;
@@ -60,7 +58,7 @@ export function PaymentTermsFields({
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
-      const v = state.values as InvoiceValues;
+      const v = state.values as CreditorInvoiceValues;
       return {
         datum: v.datum,
         faelligkeit: v.faelligkeit,
@@ -75,10 +73,9 @@ export function PaymentTermsFields({
    * with before this said so — a digit too many is easy to type and invisible to read back.
    *
    * The sums are the server's and the same ones the banner shows (one query, one cache entry), so they
-   * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip. That is the right
-   * moment: a warning about a half-typed number would be about a number nobody entered.
+   * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip.
    */
-  const { sums } = useInvoiceSums("outgoingInvoice");
+  const { sums } = useInvoiceSums("incomingInvoice");
   const deviatesFrom = deviatingGrossSum(zahlBetrag, sums);
 
   // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the
@@ -102,7 +99,7 @@ export function PaymentTermsFields({
    * changed term would otherwise leave the old date standing.
    *
    * An emptied box leaves the date alone: deleting a number is how one is retyped, and dropping the due
-   * date of an issued invoice over a keystroke is not what anybody means by it.
+   * date of a booked invoice over a keystroke is not what anybody means by it.
    */
   const moveDate = (
     date: (typeof DERIVED_TARGETS)[number]["date"],

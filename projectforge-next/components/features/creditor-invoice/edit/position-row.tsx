@@ -3,17 +3,15 @@
 import { useTranslations } from "next-intl";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
 import { RepeatableRow } from "@/components/shared/form/repeatable-row";
-import { RECHNUNGS_POSITION_METADATA } from "@/lib/metadata/rechnungs-position.generated";
+import { EINGANGSRECHNUNGS_POSITION_METADATA } from "@/lib/metadata/eingangsrechnungs-position.generated";
 import { CostAssignmentsSection } from "@/components/shared/invoice/cost-assignments-section";
 import { PositionFields } from "./position-fields";
 import { PositionRowHeader } from "./position-row-header";
-import { useProjectKost2 } from "../use-project-kost2";
-import { Kost2Warning } from "./kost2-warning";
-import type { InvoicePositionValues } from "../invoice-schema";
-import type { InvoicePositionSums } from "@/lib/rs/invoice";
+import type { CreditorInvoicePositionValues } from "../creditor-invoice-schema";
+import type { InvoicePositionSums } from "@/lib/rs/invoice-sums";
 
 export interface PositionRowProps {
-  position: InvoicePositionValues;
+  position: CreditorInvoicePositionValues;
   /** Index in the form's `positionen` array — the row's field names are built from it. */
   index: number;
   /** Prefix of every field name of this row, e.g. `positionen[2].`. */
@@ -23,21 +21,19 @@ export interface PositionRowProps {
   onRemove?: () => void;
   onRestore?: () => void;
   /**
-   * Whether cost accounting is configured at all (`Configuration.isCostConfigured`, carried by the DTO
-   * as `costConfigured`). False hides the cost assignments entirely, as Wicket's form does.
+   * Whether cost accounting is configured at all (`Configuration.isCostConfigured`, carried by the DTO as
+   * `costConfigured`). False hides the cost assignments entirely, as the Wicket form does.
    */
   costConfigured: boolean;
 }
 
 /**
- * One invoice position: what is billed, how much of it at what unit price and VAT rate, the period it
- * covers, and how its net sum is split across cost units.
+ * One incoming invoice position: what is billed, how much of it at what unit price and VAT rate, and how
+ * its net sum is split across cost units.
  *
- * The collapsing row itself, composing [PositionFields] and [CostAssignmentsSection]. Hand-written JSX
- * rather than a declaration, for the reason the order's [PositionRow] is: what a position looks like — a
- * period that appears only when it has its own, a nested table of cost assignments — is this entity's
- * business. Every *mechanism* is the shared one: the collapsing row, the fields, and their labels and
- * rules from the position's own metadata ([NestedFieldMetadata]).
+ * The collapsing row itself, composing [PositionFields] and the shared [CostAssignmentsSection]. Unlike
+ * the outgoing invoice it hands the section neither a `defaultKost2` nor a `renderWarning`: a creditor
+ * invoice has no project to preselect a cost unit from or to check one against.
  */
 export function PositionRow({
   position,
@@ -50,13 +46,10 @@ export function PositionRow({
 }: PositionRowProps) {
   const t = useTranslations();
   const writeAccess = !!onRemove;
-  // The first active cost unit of the invoice's project, preselected on a fresh cost split's first row —
-  // the project-coupled bits the shared section leaves to the page (see CostAssignmentsSection).
-  const defaultKost2 = useProjectKost2();
 
   return (
     <NestedFieldMetadata
-      metadata={RECHNUNGS_POSITION_METADATA}
+      metadata={EINGANGSRECHNUNGS_POSITION_METADATA}
       namePrefix={prefix}
     >
       <RepeatableRow
@@ -84,16 +77,12 @@ export function PositionRow({
           sums.kostZuweisungNetFehlbetrag !== 0
         }
       >
-        <PositionFields position={position} prefix={prefix} sums={sums} />
+        <PositionFields prefix={prefix} sums={sums} />
         {costConfigured && (
           <CostAssignmentsSection
             prefix={prefix}
             sums={sums}
             writeAccess={writeAccess}
-            defaultKost2={defaultKost2}
-            // The outgoing invoice flags a cost 2 unit that doesn't belong to its project; the shared
-            // section renders whatever the page hands it beside the field.
-            renderWarning={(kost2Id) => <Kost2Warning kost2Id={kost2Id} />}
             className="md:col-span-3"
           />
         )}

@@ -8,32 +8,24 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CostAssignmentsSummary } from "@/components/shared/invoice/cost-assignments-summary";
-import { OrderPositionLink } from "./order-position-link";
 import { usePositionDetailChips } from "./position-detail-chips";
-import type { InvoicePositionValues } from "../invoice-schema";
-import type { InvoicePositionSums } from "@/lib/rs/invoice";
+import type { CreditorInvoicePositionValues } from "../creditor-invoice-schema";
+import type { InvoicePositionSums } from "@/lib/rs/invoice-sums";
 
 export interface PositionRowHeaderProps {
-  position: InvoicePositionValues;
-  /** From `POST /rs/outgoingInvoice/recalculate`; absent until the first answer arrives. */
+  position: CreditorInvoicePositionValues;
+  /** From `POST /rs/incomingInvoice/recalculate`; absent until the first answer arrives. */
   sums: InvoicePositionSums | undefined;
   /** Whether cost accounting is configured at all — see [PositionRow]. False hides the split. */
   costConfigured: boolean;
 }
 
 /**
- * What a collapsed invoice position says: number, text and net sum on the first line, then **every**
- * remaining field of the position and its whole cost split below.
+ * What a collapsed incoming invoice position says: number, text and net sum on the first line, then its
+ * remaining fields and its whole cost split below.
  *
- * Complete rather than a teaser, because folded is the normal state of a stored invoice ([PositionRow]
- * opens only what was just added) — anything left out here is a field nobody reads back. Everything
- * below the first line steps aside once the row is open, where the same values sit in the fields
- * ([CollapsibleSummary]). The order's header follows the same rule; what differs is that an invoice
- * position's amounts need naming ([usePositionDetailChips]) and that its cost assignments are a list of
- * their own ([CostAssignmentsSummary]).
- *
- * The Fehlbetrag sits on the first line rather than among the chips: a position whose assignments do not
- * add up is what a reader scanning an invoice is looking for (Wicket paints the same number red).
+ * The same rule as the outgoing invoice's header — folded is the normal state of a stored invoice, so
+ * anything left out here is a field nobody reads back — but with a leaner position: no order link.
  */
 export function PositionRowHeader({
   position,
@@ -45,7 +37,6 @@ export function PositionRowHeader({
   const chips = usePositionDetailChips(position, sums);
   const netSum = sums?.netSum;
   const fehlbetrag = sums?.kostZuweisungNetFehlbetrag;
-  const order = position.auftragsPosition;
 
   return (
     <CollapsibleSummary
@@ -78,19 +69,14 @@ export function PositionRowHeader({
           </span>
         </>
       }
-      details={[
-        ...chips.map((chip, i) => (
-          <span key={i} className="tabular-nums">
-            {/* The term in front of the value, dimmed: the numbers are what is read, the words only
-                say which is which. */}
-            {chip.label && <span className="opacity-70">{chip.label} </span>}
-            {chip.value}
-          </span>
-        )),
-        // The order this position bills, as a link to it — the same link the picker of the unfolded
-        // row carries (see OrderPositionLink).
-        order?.auftragId != null && <OrderPositionLink order={order} />,
-      ]}
+      details={chips.map((chip, i) => (
+        <span key={i} className="tabular-nums">
+          {/* The term in front of the value, dimmed: the numbers are what is read, the words only say
+              which is which. */}
+          {chip.label && <span className="opacity-70">{chip.label} </span>}
+          {chip.value}
+        </span>
+      ))}
       // The whole cost split, which is several lines rather than a chip.
       extra={
         costConfigured && (

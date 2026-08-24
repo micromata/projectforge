@@ -6,15 +6,14 @@ import { useFieldArray } from "@/hooks/use-field-array";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import {
   emptyKostZuweisungValues,
-  nextKostZuweisungIndex,
-  remainingNet,
-} from "../invoice-values";
-import { useProjectKost2 } from "../use-project-kost2";
+  type KostZuweisungValues,
+} from "./kost-zuweisung";
+import { nextKostZuweisungIndex, remainingNet } from "./values";
 import { CostAssignmentRow } from "./cost-assignment-row";
-import type { KostZuweisungValues } from "../invoice-schema";
-import type { InvoicePositionSums } from "@/lib/rs/invoice";
+import type { InvoicePositionSums } from "@/lib/rs/invoice-sums";
 
 export interface CostAssignmentsSectionProps {
   /** Prefix of the enclosing position's fields, e.g. `positionen[1].`. */
@@ -22,6 +21,13 @@ export interface CostAssignmentsSectionProps {
   sums: InvoicePositionSums | undefined;
   /** Absent where the invoice may not be written — then the rows are read-only. */
   writeAccess: boolean;
+  /**
+   * The cost unit a fresh first row is preselected with — the outgoing invoice's project cost unit,
+   * nothing on the incoming invoice, which has no project (see [useProjectKost2] on the outgoing side).
+   */
+  defaultKost2?: KostZuweisungValues["kost2"];
+  /** A per-row warning beside the cost 2 field, injected by the page (see [CostAssignmentRow]). */
+  renderWarning?: (kost2Id: number | null | undefined) => ReactNode;
   className?: string;
 }
 
@@ -41,13 +47,13 @@ export function CostAssignmentsSection({
   prefix,
   sums,
   writeAccess,
+  defaultKost2,
+  renderWarning,
   className,
 }: CostAssignmentsSectionProps) {
   const t = useTranslations();
   const format = useFormatContext();
   const array = useFieldArray<KostZuweisungValues>(`${prefix}kostZuweisungen`);
-  // The first cost unit of the invoice's project, for the very first row of a position.
-  const defaultKost2 = useProjectKost2();
   // Negated by `RechnungPosInfo`: an unassigned rest of 400,00 € arrives as -400,00 (see
   // InvoicePositionSums). Shown as the amount that is still missing, which is how Wicket words it.
   const fehlbetrag = sums?.kostZuweisungNetFehlbetrag;
@@ -103,6 +109,7 @@ export function CostAssignmentsSection({
             netto={assignment.netto}
             positionNetSum={sums?.netSum}
             kost2Id={assignment.kost2?.id}
+            renderWarning={renderWarning}
             onRemove={writeAccess ? () => array.remove(index) : undefined}
             onRestore={writeAccess ? () => array.restore(index) : undefined}
           />

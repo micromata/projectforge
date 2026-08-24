@@ -1,7 +1,7 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
-import { CostAssignmentCell } from "./cost-assignment-cell";
+import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -19,8 +19,8 @@ import {
   type InvoiceValues,
 } from "./invoice-schema";
 import { OrdersCell, orderNumbers } from "./orders-cell";
-import { InvoiceStatisticsLine } from "./invoice-statistics-line";
-import type { InvoiceStatistics } from "./invoice-statistics";
+import { InvoiceStatisticsLine } from "@/components/shared/invoice/invoice-statistics-line";
+import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-statistics";
 import { emptyInvoiceValues, toFormValues } from "./invoice-values";
 import type { InvoiceDetail, InvoiceListRow } from "./types";
 

@@ -4,16 +4,19 @@ import { useTranslations } from "next-intl";
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useFieldArray } from "@/hooks/use-field-array";
-import { emptyPositionValues, nextPositionNumber } from "../invoice-values";
-import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
 import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
+import {
+  emptyPositionValues,
+  nextPositionNumber,
+} from "../creditor-invoice-values";
+import { useCreditorInvoiceFormDefaults } from "../use-creditor-invoice-form-defaults";
 import { PositionRow } from "./position-row";
-import type { InvoicePositionValues } from "../invoice-schema";
-import type { InvoiceDetail } from "../types";
+import type { CreditorInvoicePositionValues } from "../creditor-invoice-schema";
+import type { CreditorInvoiceDetail } from "../types";
 
 /**
- * The positions of an invoice: the collection that makes this page the hard case — any number of rows,
- * each carrying a collection of its own ([CostAssignmentsSection]) and sums the server computes.
+ * The positions of a creditor invoice: the collection that makes this page the hard case — any number of
+ * rows, each carrying a cost split of its own ([CostAssignmentsSection]) and sums the server computes.
  *
  * The mechanics are the shared ones ([useFieldArray], [RepeatableList]); what a row looks like is
  * [PositionRow]. What is decided here is only who may change the rows and whether cost accounting is
@@ -23,14 +26,17 @@ import type { InvoiceDetail } from "../types";
  */
 export function PositionsSection({ id }: { id: number | null }) {
   const t = useTranslations();
-  const array = useFieldArray<InvoicePositionValues>("positionen");
-  const { positionSums } = useInvoiceSums("outgoingInvoice");
+  const array = useFieldArray<CreditorInvoicePositionValues>("positionen");
+  const { positionSums } = useInvoiceSums("incomingInvoice");
   // The configured `fibu.defaultVAT`, for the first position of an invoice — from then on the row above
   // is the better guess (see emptyPositionValues).
-  const defaults = useInvoiceFormDefaults();
+  const defaults = useCreditorInvoiceFormDefaults();
   // A cache read of the invoice the form was filled from, not a second request: the access flags and
   // whether cost ids are configured are the server's and are not part of the form's values.
-  const invoice = useEntityDetail<InvoiceDetail>("outgoingInvoice", id).data;
+  const invoice = useEntityDetail<CreditorInvoiceDetail>(
+    "incomingInvoice",
+    id
+  ).data;
   // New invoices are editable by definition — the flags only come with a loaded one.
   const writeAccess = id == null || invoice?.writeAccess === true;
   // Absent on a new invoice, where nothing has been loaded yet: assume configured rather than hiding the

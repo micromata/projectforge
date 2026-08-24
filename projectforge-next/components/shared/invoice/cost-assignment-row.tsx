@@ -15,8 +15,8 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { KOST_ZUWEISUNG_METADATA } from "@/lib/metadata/kost-zuweisung.generated";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import { CostAssignmentShare } from "./cost-assignment-share";
-import { Kost2Warning } from "./kost2-warning";
 
 export interface CostAssignmentRowProps {
   /**
@@ -31,8 +31,14 @@ export interface CostAssignmentRowProps {
   /** The row's own amount and the position's net sum, for the share it carries of it. */
   netto?: number | null;
   positionNetSum?: number | null;
-  /** The chosen cost 2 unit, checked against the invoice's project; see [Kost2Warning]. */
+  /** The chosen cost 2 unit, handed to [renderWarning] so a page can flag it. */
   kost2Id?: number | null;
+  /**
+   * A warning beside the cost 2 field, injected by the page — the outgoing invoice checks the unit
+   * against its project (`Kost2Warning`), the incoming invoice has no project and passes nothing. Kept
+   * out of this shared row so neither the project lookup nor its hook leaks into the incoming form.
+   */
+  renderWarning?: (kost2Id: number | null | undefined) => ReactNode;
   onRemove?: () => void;
   onRestore?: () => void;
 }
@@ -52,6 +58,7 @@ export function CostAssignmentRow({
   netto,
   positionNetSum,
   kost2Id,
+  renderWarning,
   onRemove,
   onRestore,
 }: CostAssignmentRowProps) {
@@ -101,8 +108,9 @@ export function CostAssignmentRow({
           entity="cost2"
           className="min-w-0 flex-1 basis-40"
         />
-        {/* Beside the field it is about, as Wicket outlines that very field. */}
-        <Kost2Warning kost2Id={kost2Id} />
+        {/* Beside the field it is about, as Wicket outlines that very field — the page decides whether
+            there is anything to warn about (see [renderWarning]). */}
+        {renderWarning?.(kost2Id)}
         <NumberField
           name={name("netto")}
           label={label("netto")}

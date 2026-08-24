@@ -8,8 +8,8 @@ import {
   formatPercentageDecimal,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { shareOfNetSum } from "../invoice-values";
-import type { KostZuweisungValues } from "../invoice-schema";
+import { shareOfNetSum } from "./values";
+import type { KostZuweisungValues } from "./kost-zuweisung";
 
 /**
  * The cost assignments of a position as one line each, for a row that is folded shut.

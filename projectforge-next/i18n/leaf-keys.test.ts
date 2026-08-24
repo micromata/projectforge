@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { describe, expect, it } from "vitest";
 import { leafKeyOf } from "@/lib/leaf-key";
-import { invoiceStatisticsEntries } from "@/components/features/invoice/invoice-statistics";
+import { invoiceStatisticsEntries } from "@/components/shared/invoice/invoice-statistics";
 import { orderStatisticsEntries } from "@/components/features/order/order-statistics";
 import { BOOK_PAGE } from "@/components/features/book/book.page";
 import { COST1_PAGE } from "@/components/features/cost1/cost1.page";
