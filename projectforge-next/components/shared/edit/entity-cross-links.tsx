@@ -54,17 +54,25 @@ export function EntityCrossLinks<Data>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {/* Outlined and spelled out, between the ghost icon it was (too quiet to be found at all) and
+            the brand yellow of „Klassische Version" beside it, which has to stay the loudest thing on
+            this row. The label carries the border; the icon alone said nothing about what is behind it.
+            `sr-only` below `md`, where the row is tight — as the legacy link does it. */}
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           aria-label={t("more")}
-          className="h-7 shrink-0 px-1.5 text-muted-foreground hover:text-foreground"
+          className="gap-1.5"
         >
-          <HugeiconsIcon icon={MoreHorizontalIcon} size={16} aria-hidden />
+          <HugeiconsIcon icon={MoreHorizontalIcon} size={14} aria-hidden />
+          <span className="sr-only md:not-sr-only">{t("more")}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      {/* As wide as its longest entry: the primitive's default is the *trigger's* width, which for a
+          small button cuts „Neues Strukturunterelement" off (it also clips overflowing text rather
+          than wrapping it). */}
+      <DropdownMenuContent align="end" className="w-auto">
         {entries.map((entry) => {
           const target = resolveMenuUrl(entry.href);
           return (
