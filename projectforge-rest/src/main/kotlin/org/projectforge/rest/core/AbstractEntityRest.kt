@@ -47,6 +47,7 @@ import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryFormatService
+import org.projectforge.framework.persistence.search.SearchStringTokenizer
 import org.projectforge.jcr.FileSizeStandardChecker
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -912,9 +913,17 @@ constructor(
             )
         }
         val filter = createAutoCompleteObjectsFilter(request)
+        // Every word required, and each of them matched either as typed or as the terms the index holds for it:
+        // 'dhl-pop' is two terms in the index, and 'dhl-pop*' - a wildcard term, which Lucene doesn't tokenize -
+        // used to match nothing at all (see [SearchStringTokenizer]). A word the caller already marked as
+        // required carries a syntax of its own and stays untouched, as before.
         val modifiedSearchString = searchString
             ?.split(' ', '\t', '\n')
-            ?.joinToString(" ") { if (it.startsWith("+")) it else "+$it*" }
+            ?.filter { it.isNotBlank() }
+            ?.joinToString(" ") {
+                if (it.startsWith("+")) it else SearchStringTokenizer.expandWord(it, required = true)
+            }
+            ?.takeIf { it.isNotBlank() }
         filter.searchString = modifiedSearchString
         filter.searchFields = autoCompleteSearchFields!!
         maxResults?.let { filter.maxRows = it }
