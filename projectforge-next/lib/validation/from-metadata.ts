@@ -187,6 +187,23 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
   }
 
   /**
+   * A point in time as the wire carries it: an ISO 8601 instant in UTC ("2026-08-09T08:12:34.000Z"),
+   * which is what Jackson writes a `java.util.Date` as and what the shared DateTimeInput consumes and
+   * produces (see lib/user-zone.ts).
+   *
+   * Held as a string rather than parsed: the value is handed straight back to the backend, and a `Date`
+   * in the form would mean choosing a zone to interpret it in — which is the user's, not the browser's.
+   * `nullable` and mandatory meaning "not null", as for the other non-string kinds: an emptied box must
+   * be reportable as missing. The *format* is not validated — nothing but the date input writes here.
+   */
+  function instantField(name: FieldName<M>) {
+    const schema = z.string().nullable();
+    return field(name).required
+      ? schema.refine((v): boolean => v != null, REQUIRED)
+      : schema;
+  }
+
+  /**
    * A referenced entity as the DTO carries it: `{id, displayName}` and whatever else the backend sent,
    * of which only the id is written back (`BaseDTO.copyTo` resolves the object by id).
    *
@@ -251,6 +268,7 @@ export function fromMetadata<M extends EntityMetadata>(metadata: M) {
     intField,
     decimalField,
     booleanField,
+    instantField,
     entityField,
     enumField,
     enumOptions,

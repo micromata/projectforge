@@ -1430,6 +1430,7 @@
     "plugins": {
       "teamcal": "List of calendars"
     },
+    "projectmanagement": "Project management",
     "quickAccess": {
       "_": "Quick access",
       "placeholder": "Search menu",
@@ -1452,7 +1453,8 @@
       "_": "Reset filter",
       "info": "Resets the current filter if you have any trouble with the given search function."
     },
-    "taskTree": "Structure tree"
+    "taskTree": "Structure tree",
+    "timesheetList": "Time sheets"
   },
   "message": {
     "successfullChanged": "Successfully changed.",
@@ -1881,7 +1883,11 @@
     "12": "12-hour notation",
     "24": "24-hour notation"
   },
+  "timePeriodPanel": {
+    "startTimeAfterStopTime": "Start time should not be after stop time."
+  },
   "timesheet": {
+    "_": "Time-sheet",
     "ai": {
       "timeSavedByAI": {
         "_": "Time savings AI",
@@ -1897,12 +1903,16 @@
       }
     },
     "description": "Activity report",
+    "duration": "Duration",
     "location": "Location",
+    "recent": "Recent",
     "reference": "Reference",
     "startTime": "Start time",
     "stopTime": "Stop time",
     "tag": "Tag",
+    "templates": "Templates",
     "title": {
+      "add": "New time sheet",
       "list": "List of time sheets"
     },
     "user": "Employee"

@@ -16,9 +16,30 @@ export const REQUIRED = "@required";
 /** Not a whole number — `validation.error.format.integer`, which takes no argument. */
 export const INTEGER = "@integer";
 
+const I18N_PREFIX = "@i18n:";
 const MAX_LENGTH_PREFIX = "@maxLength:";
 const MIN_PREFIX = "@min:";
 const MAX_PREFIX = "@max:";
+
+/**
+ * A rule whose wording the bundle already has, complete and without arguments — a time sheet's start
+ * that lies after its stop (`timePeriodPanel.startTimeAfterStopTime`).
+ *
+ * For the cross-field rules a schema can check itself: unlike the rules above, their text needs no
+ * label and no limit, so the key *is* the message and naming it is all a `refine` has to do. Still a
+ * marker rather than the plain key, so the field can tell a key of ours from the server's already
+ * translated message (see `useFieldErrors`) — and from one of Zod's English defaults.
+ */
+export function i18nMarker(key: string): string {
+  return `${I18N_PREFIX}${key}`;
+}
+
+/** The bundle key of an [i18nMarker], or null for any other message. */
+export function parseI18nMarker(message: string): string | null {
+  return message.startsWith(I18N_PREFIX)
+    ? message.slice(I18N_PREFIX.length)
+    : null;
+}
 
 export function maxLengthMarker(maxLength: number): string {
   return `${MAX_LENGTH_PREFIX}${maxLength}`;

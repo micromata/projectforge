@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { resolveMenuUrl, sanitizeRedirectUrl } from "@/lib/menu-url";
 import { fetchCalendarAction } from "@/lib/rs/calendar";
 import type { CalendarActionParams } from "@/lib/rs/calendar-types";
+import { toTimesheetRoute } from "./timesheet-route";
 
 /** `returnToCaller` for the pages the calendar opens, so their Save/Cancel comes back here. */
 const RETURN_TO_CALENDAR = encodeURIComponent("/next/calendar");
@@ -31,7 +32,13 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
     case "timesheet-stats":
       return null;
     case "timesheet-break":
-      return `/timesheet/edit?startDate=${start ?? ""}&endDate=${end ?? ""}`;
+      // A gap between two sheets: open a new one for its span (this app's add route, not the legacy
+      // `/timesheet/edit`), preset from the break's start and end.
+      return `/timesheet/new?startDate=${start ?? ""}&endDate=${end ?? ""}`;
+    case "timesheet":
+      // A click on an existing sheet edits it by id; save and cancel return to the calendar (see
+      // TIMESHEET_PAGE.returnTargets), so no `returnToCaller` is needed here.
+      return id != null ? `/timesheet/${id}` : null;
     case "vacation":
       return id != null
         ? `/vacation/edit/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
@@ -75,7 +82,9 @@ export function useCalendarAction() {
     async (params: CalendarActionParams) => {
       try {
         const action = await fetchCalendarAction(params);
-        navigate(action.url);
+        // The backend answers a slot select / create / resize / drag with the legacy `/timesheet/edit`
+        // url — one source of truth for the route-shape switch (see toTimesheetRoute).
+        navigate(action.url ? toTimesheetRoute(action.url) : action.url);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Action failed.");
       }

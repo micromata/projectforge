@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import {
   INTEGER,
   REQUIRED,
+  parseI18nMarker,
   parseMaxLengthMarker,
   parseMaxMarker,
   parseMinMarker,
@@ -39,6 +40,9 @@ export function useFieldErrors(): (
         if (message === REQUIRED)
           return t("validation.error.fieldRequired", { arg0: label });
         if (message === INTEGER) return t("validation.error.format.integer");
+        // A rule the bundle words completely on its own — see i18nMarker.
+        const i18nKey = parseI18nMarker(message);
+        if (i18nKey !== null) return t(i18nKey);
         const maxLength = parseMaxLengthMarker(message);
         if (maxLength !== null)
           return t("validation.error.maxLength", {

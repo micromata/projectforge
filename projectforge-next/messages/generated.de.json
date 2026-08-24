@@ -1430,6 +1430,7 @@
     "plugins": {
       "teamcal": "Kalenderliste"
     },
+    "projectmanagement": "Projektmanagement",
     "quickAccess": {
       "_": "Schnellzugriff",
       "placeholder": "Menü durchsuchen",
@@ -1452,7 +1453,8 @@
       "_": "Filter zurücksetzen",
       "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
     },
-    "taskTree": "Strukturbaum"
+    "taskTree": "Strukturbaum",
+    "timesheetList": "Zeitberichte"
   },
   "message": {
     "successfullChanged": "Änderung erfolgreich durchgeführt.",
@@ -1881,7 +1883,11 @@
     "12": "12 Stunden",
     "24": "24 Stunden"
   },
+  "timePeriodPanel": {
+    "startTimeAfterStopTime": "Der Beginn muss vor dem Ende liegen."
+  },
   "timesheet": {
+    "_": "Zeitbericht",
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
@@ -1897,12 +1903,16 @@
       }
     },
     "description": "Tätigkeitsbericht",
+    "duration": "Dauer",
     "location": "Ort",
+    "recent": "Zuletzt verwendet",
     "reference": "Referenz",
     "startTime": "Beginn",
     "stopTime": "Ende",
     "tag": "Etikett",
+    "templates": "Vorlagen",
     "title": {
+      "add": "Neuer Zeitbericht",
       "list": "Zeitberichte"
     },
     "user": "Mitarbeiter:in"

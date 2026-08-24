@@ -121,6 +121,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val timesheet = Timesheet()
         caches.initialize(obj)
         timesheet.copyFrom(obj)
+        timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
     }
@@ -180,6 +181,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         if (sheet.user == null) {
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
+        sheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        // The hand-built page reaches this preset through newEntry, which — unlike the UILayout edit
+        // endpoint — never runs onGetItemAndLayout. Apply the same start/stop preset here so a timesheet
+        // created from the calendar is snapped, defaulted to firstHour and rolled to the day's last sheet
+        // exactly as before (see presetStartStopTime). Idempotent, so the edit endpoint applying it again
+        // in onGetItemAndLayout does no harm.
+        request?.let { presetStartStopTime(it, sheet) }
         return sheet
     }
 
@@ -525,6 +533,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * @see PFDateTimeUtils.parse for supported date formats.
      */
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
+        presetStartStopTime(request, dto)
+        super.onGetItemAndLayout(request, dto, formLayoutData)
+    }
+
+    /**
+     * Presets [Timesheet.startTime]/[Timesheet.stopTime] from the request parameters `startDate`/`endDate`,
+     * shared by the UILayout edit page ([onGetItemAndLayout]) and the hand-built page's preset ([newBaseDTO]).
+     *
+     * Both parameters accept an epoch-seconds number or an ISO date-time including any zone offset
+     * (see [PFDateTimeUtils.parse]). When both fall on the begin of a day — a length-less sheet dropped
+     * from a month/agenda grid — the start rolls to `firstHour` (default 8) and, if the user already has
+     * sheets that day, to the end of the day's last one. Both ends are then snapped to five minutes. Does
+     * nothing when neither parameter is present, so a plain add is untouched.
+     */
+    private fun presetStartStopTime(request: HttpServletRequest, dto: Timesheet) {
         var startTime = PFDateTimeUtils.parseAndCreateDateTime(
             request.getParameter("startDate"),
             numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
@@ -533,6 +556,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             request.getParameter("endDate"),
             numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
         )
+        if (startTime == null && stopTime == null) {
+            return
+        }
         if (startTime != null && startTime.isBeginOfDay && stopTime != null && stopTime.isBeginOfDay) {
             // Time sheet has no length (generated from grid view like month, agenda or overview).
             // Try to find a better startTime
@@ -566,7 +592,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         stopTime?.let {
             dto.stopTime = it.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
         }
-        super.onGetItemAndLayout(request, dto, formLayoutData)
     }
 
     /**

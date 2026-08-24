@@ -48,4 +48,12 @@ class Timesheet(
     var timeSavedByAI: BigDecimal? = null
     var timeSavedByAIUnit: TimesheetDO.TimeSavedByAIUnit? = TimesheetDO.TimeSavedByAIUnit.PERCENTAGE
     var timeSavedByAIDescription: String? = null
+
+    /**
+     * Whether AI time-savings tracking is enabled in this installation (transient, server set). The
+     * hand-built edit page has no UILayout to hide the AI fields from, so it reads this flag from the
+     * DTO to gate the section — the counterpart of `baseDao.timeSavingsByAIEnabled` guarding the
+     * UILayout in [org.projectforge.rest.TimesheetPagesRest.createEditLayout].
+     */
+    var timeSavingsByAIEnabled: Boolean = false
 }

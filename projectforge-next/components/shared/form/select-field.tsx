@@ -48,8 +48,13 @@ export interface SelectFieldProps extends BaseFieldProps {
    * Here rather than in the calling feature because the whole point of this component is that a field
    * binds to what the entity declares: a select handing a string to an INT field would fail the schema
    * on save, and every caller would need the same two conversions.
+   *
+   * `entityRef` is the case where the *choice* is a list but the *value* is a reference — a time sheet's
+   * cost unit, which is one of the few its task allows (`TaskNode.kost2List`) and is stored as
+   * `{id, displayName}` like every other reference. The option's value is read as the id and its label
+   * kept as the display name, so no caller rebuilds the same object.
    */
-  valueType?: "string" | "number" | "boolean";
+  valueType?: "string" | "number" | "boolean" | "entityRef";
   /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
   disabled?: boolean;
 }
@@ -80,8 +85,18 @@ export function SelectField({
         const invalid = meta.isTouched && !meta.isValid;
         // The option values are strings either way — Radix has no other kind — so a field of another
         // type is read as a string and written back as its own type (see valueType).
-        const value = field.state.value as string | number | boolean | null;
-        const raw = value == null ? "" : String(value);
+        const value = field.state.value as
+          | string
+          | number
+          | boolean
+          | { id: number }
+          | null;
+        const raw =
+          value == null
+            ? ""
+            : String(
+                valueType === "entityRef" ? (value as { id: number }).id : value
+              );
         return (
           <FieldShell
             name={name}
@@ -109,7 +124,13 @@ export function SelectField({
                 // default.
                 onValueChange={(v) => {
                   if (v === "") return;
-                  field.handleChange(parseOptionValue(v, valueType));
+                  field.handleChange(
+                    parseOptionValue(
+                      v,
+                      valueType,
+                      options.find((o) => o.value === v)?.label
+                    )
+                  );
                 }}
               >
                 {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
@@ -160,9 +181,13 @@ export function SelectField({
  */
 function parseOptionValue(
   value: string,
-  valueType: "string" | "number" | "boolean"
-): string | number | boolean {
+  valueType: "string" | "number" | "boolean" | "entityRef",
+  /** The chosen option's label, which for a reference is its display name (see valueType). */
+  label?: string
+): string | number | boolean | { id: number; displayName: string } {
   if (valueType === "number") return Number(value);
   if (valueType === "boolean") return value === "true";
+  if (valueType === "entityRef")
+    return { id: Number(value), displayName: label ?? value };
   return value;
 }

@@ -29,9 +29,19 @@ export function TaskSelectField({
   hint,
   className,
   disabled,
+  onPicked,
 }: BaseFieldProps & {
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * What else changing the task means for the form — a time sheet's cost unit belongs to the task it was
+   * chosen under, so picking another one drops it (see TaskKost2Section).
+   *
+   * Called after the field itself was written, with the new reference (null when cleared), so a handler
+   * reading other values sees the task already changed. The counterpart of
+   * [EntityAutocompleteFieldProps.onPicked].
+   */
+  onPicked?: (task: EntityRef | null) => void;
 }) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -50,10 +60,13 @@ export function TaskSelectField({
 
         /** The field stores the reference the form layer expects, not the whole node. */
         const change = (task: { id: number; title?: string } | null) => {
-          field.handleChange(
-            task != null ? { id: task.id, displayName: task.title } : null
-          );
+          const ref =
+            task != null
+              ? { id: task.id, displayName: task.title ?? "" }
+              : null;
+          field.handleChange(ref);
           field.handleBlur();
+          onPicked?.(ref);
         };
 
         return (
