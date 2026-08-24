@@ -30,14 +30,14 @@ import org.mockito.Mockito
 
 class LoginServiceRestTest {
     /**
-     * Where a login without a requested target sends the user: the start page of the legacy React app, which
-     * still covers the whole application. Not derived from the request - the requested target is kept by the
-     * client, because a login rotates the http session (see the method's KDoc).
+     * Where a login without a requested target sends the user: the calendar, the application's start page,
+     * now served by projectforge-next (routed through [NextMigration], see the method's KDoc). Not derived
+     * from the request - the requested target is kept by the client, because a login rotates the http session.
      */
     @Test
     fun getRedirectUrlTest() {
         val request = Mockito.mock(HttpServletRequest::class.java)
-        Assertions.assertEquals("/react/calendar", LoginServiceRest.getRedirectUrl(request))
+        Assertions.assertEquals("/next/calendar", LoginServiceRest.getRedirectUrl(request))
     }
 
     /**

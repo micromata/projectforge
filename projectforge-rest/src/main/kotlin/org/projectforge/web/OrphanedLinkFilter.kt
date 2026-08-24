@@ -27,6 +27,7 @@ import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.NextMigration
 import org.projectforge.business.vacation.service.VacationSendMailService
 import org.projectforge.menu.builder.MenuItemDefId
 import java.io.IOException
@@ -57,7 +58,7 @@ class OrphanedLinkFilter : Filter {
         if (uri.contains("/wa/login")) { // Old Wicket login page, bookmarked by some users.
             redirect(servletResponse, uri, "/")
         } else if (uri.contains("/wa/calendar") || uri.contains("/wa/teamCalendar")) { // Old Wicket calendars, bookmarked by some users.
-            redirect(servletResponse, uri, "/react/calendar")
+            redirect(servletResponse, uri, "/${NextMigration.listUrl("calendar")}")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is

@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.login.LoginService
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.ResponseAction
@@ -72,10 +73,12 @@ class LoginServiceRest {
         }
 
         /**
-         * Where the user lands if there is nothing to return to: the start page of the legacy React app. Not the
-         * start page of projectforge-next, because that one doesn't cover the whole application yet.
+         * Where the user lands if there is nothing to return to: the calendar, the application's start page.
+         * Routed through [NextMigration] rather than hardcoded, so it follows the calendar wherever it is
+         * served - now projectforge-next ([NextMigration.listUrl] answers `next/calendar`), the legacy React
+         * app again should it ever be rolled back. Kept in step with [PagesResolver.getDefaultUrl].
          */
-        private val DEFAULT_REDIRECT_URL = "/${Constants.REACT_APP_PATH}calendar"
+        private val DEFAULT_REDIRECT_URL = "/${NextMigration.listUrl("calendar")}"
 
         /**
          * A url the user is sent to after an authentication step, so an attacker-supplied one would be an open

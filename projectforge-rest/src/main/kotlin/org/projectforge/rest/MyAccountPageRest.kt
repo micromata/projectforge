@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.StayLoggedInTokenDao
@@ -127,7 +127,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         user.gpgPublicKey = data.gpgPublicKey
         user.sshPublicKey = data.sshPublicKey
         userService.updateMyAccount(user)
-        return ResponseEntity(ResponseAction("/${Constants.REACT_APP_PATH}calendar"), HttpStatus.OK)
+        return ResponseEntity(ResponseAction("/${NextMigration.listUrl("calendar")}"), HttpStatus.OK)
     }
 
     @GetMapping("dynamic")
