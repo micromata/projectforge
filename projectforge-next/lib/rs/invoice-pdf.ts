@@ -11,10 +11,16 @@
 import { request, RsError } from "./client";
 import { uploadWithProgress, type UploadOptions } from "./upload";
 
-/** What the form shows of the stored PDF; `sizeHumanReadable` arrives formatted by the backend. */
+/**
+ * What the form shows of the stored PDF; `sizeHumanReadable` arrives formatted by the backend.
+ *
+ * `fileId` is what the download is built from: the file lies in the invoice's regular attachment node, so
+ * `attachmentDownloadUrl` (./attachments.ts) serves it — there is no download endpoint under this BASE.
+ */
 export interface InvoicePdfInfo {
   name?: string | null;
   sizeHumanReadable?: string | null;
+  fileId?: string | null;
 }
 
 /** `OutgoingInvoiceEntityRest.InvoicePdfState` — `pdf` is null where the invoice has none. */
@@ -23,6 +29,16 @@ export interface InvoicePdfState {
 }
 
 const BASE = "/rs/outgoingInvoice/invoicePdf";
+
+/**
+ * The cache entry of one invoice's PDF.
+ *
+ * Exported because a second place writes to it: the attachment list of the same page shows this very file
+ * and can delete it there, after which this entry describes a file that is gone (see AttachmentSection).
+ */
+export function invoicePdfQueryKey(invoiceId: number | null) {
+  return ["outgoingInvoice", "invoicePdf", invoiceId] as const;
+}
 
 export function fetchInvoicePdfInfo(
   invoiceId: number,

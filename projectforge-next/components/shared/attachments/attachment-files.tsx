@@ -23,6 +23,8 @@ interface Props {
    * offers the click (see AttachmentList).
    */
   onFiles?: (files: File[]) => void;
+  /** Called after a rename or a delete went through — see AttachmentList, which passes it on. */
+  onChanged?: () => void;
 }
 
 /**
@@ -38,6 +40,7 @@ export function AttachmentFiles({
   id,
   readOnly,
   onFiles,
+  onChanged,
 }: Props) {
   const t = useTranslations();
   const { rename, remove, removeMany } = useAttachmentMutations(entity, id);
@@ -51,6 +54,8 @@ export function AttachmentFiles({
   function report(result: AttachmentWriteResult): void {
     if (result.kind === "rejected") {
       toast.error(result.message || t("validation.error.generic"));
+    } else {
+      onChanged?.();
     }
   }
 

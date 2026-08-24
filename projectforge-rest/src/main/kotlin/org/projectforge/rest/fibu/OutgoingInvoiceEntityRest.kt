@@ -504,7 +504,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * `sizeHumanReadable` travels formatted, as it comes from [Attachment]: it is the backend's own rendering
      * in the user's locale, and formatting bytes a second time in the browser would be a second place to be
-     * wrong.
+     * wrong. The `fileId` travels so the form can offer the file for download through the generic attachment
+     * route rather than through an endpoint of its own (see [InvoicePdfInfo]).
      */
     @GetMapping("$INVOICE_PDF_PATH/{id}/info")
     fun getInvoicePdfInfo(@PathVariable("id") id: Long): InvoicePdfState {
@@ -562,11 +563,20 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * and cannot be told apart from a truncated answer. `{"pdf":null}` says "there is none".
      */
     class InvoicePdfState(pdf: Attachment?) {
-        val pdf: InvoicePdfInfo? = pdf?.let { InvoicePdfInfo(name = it.name, sizeHumanReadable = it.sizeHumanReadable) }
+        val pdf: InvoicePdfInfo? = pdf?.let {
+            InvoicePdfInfo(name = it.name, sizeHumanReadable = it.sizeHumanReadable, fileId = it.fileId)
+        }
     }
 
-    /** What the form shows of the stored invoice PDF: its name and its size, nothing else is acted on. */
-    class InvoicePdfInfo(val name: String?, val sizeHumanReadable: String?)
+    /**
+     * What the form shows of the stored invoice PDF: its name, its size, and the `fileId` to download it by.
+     *
+     * The `fileId` travels so that no second download path has to exist for this one file: it lies in the
+     * invoice's regular attachment node (`AttachmentsService.DEFAULT_NODE`), so
+     * `AttachmentsServicesRest.download` already serves it, under the same access check as its siblings. An
+     * endpoint of our own here would be a second answer to a question already answered.
+     */
+    class InvoicePdfInfo(val name: String?, val sizeHumanReadable: String?, val fileId: String?)
 
     /**
      * What stands between this invoice and an e-invoice of it — Wicket's error line above its two export
