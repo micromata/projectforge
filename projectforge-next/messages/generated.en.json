@@ -915,6 +915,12 @@
       "showKostZuweisungstatus": "Status of cost id assignments",
       "showTextAreas": "Position texts",
       "skonto": "Discount",
+      "statistics": {
+        "currentPeriod": "Current",
+        "previousYear": "Previous year",
+        "previousYearComparison": "Previous-year comparison (same period)",
+        "previousYearComparisonHint": "Only for a bounded invoice-date range."
+      },
       "status": {
         "_": "Status of invoice",
         "bezahlt": "paid",
@@ -961,7 +967,8 @@
       },
       "zahlungsZiel": {
         "_": "Payment target",
-        "actual": "Actual payment target"
+        "actual": "Actual payment target",
+        "actualShort": "Actual PT"
       }
     },
     "rechnungen": "Invoices",

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { invoiceStatisticsEntries } from "./invoice-statistics";
+import {
+  invoiceComparisonEntries,
+  invoiceStatisticsEntries,
+} from "./invoice-statistics";
 
 /** The three entries every line carries, whatever the numbers are. */
 const ALWAYS = [
@@ -92,5 +95,64 @@ describe("invoiceStatisticsEntries", () => {
     expect(byKey.get("fibu.common.brutto")?.tone).toBe("plain");
     expect(byKey.get("fibu.rechnung.zahlungsZiel")?.kind).toBe("days");
     expect(byKey.get("fibu.common.netto")?.kind).toBe("currency");
+  });
+});
+
+describe("invoiceComparisonEntries", () => {
+  it("has nothing to compare without both years", () => {
+    const current = { brutto: 1190, netto: 1000, open: 0 };
+    expect(invoiceComparisonEntries(undefined, current)).toEqual([]);
+    expect(invoiceComparisonEntries(current, undefined)).toEqual([]);
+    expect(invoiceComparisonEntries(current, null)).toEqual([]);
+  });
+
+  it("aligns to the current line's entries, carrying the year-earlier value", () => {
+    const current = { brutto: 1200, netto: 1000, open: 300 };
+    const previous = { brutto: 1000, netto: 800, open: 100 };
+    const entries = invoiceComparisonEntries(current, previous);
+    expect(entries.map((entry) => entry.labelKey)).toEqual([
+      "fibu.common.brutto",
+      "fibu.common.netto",
+      "fibu.rechnung.offen",
+    ]);
+    const byKey = new Map(entries.map((entry) => [entry.labelKey, entry]));
+    expect(byKey.get("fibu.common.brutto")?.value).toBe(1000);
+    expect(byKey.get("fibu.common.netto")?.value).toBe(800);
+  });
+
+  it("reads the true year-earlier value even where the current line drops the entry", () => {
+    // Current overdue is zero, so the current line omits it — the previous year still had one, but the
+    // comparison follows the current entries, so it does not appear.
+    const current = { brutto: 1200, netto: 1000, open: 300, overdue: 0 };
+    const previous = { brutto: 1000, netto: 800, open: 100, overdue: 500 };
+    const entries = invoiceComparisonEntries(current, previous);
+    expect(
+      entries.some(
+        (entry) => entry.labelKey === "fibu.rechnung.filter.ueberfaellig"
+      )
+    ).toBe(false);
+  });
+
+  it("forms the percentage change against the previous value", () => {
+    const entries = invoiceComparisonEntries(
+      { brutto: 1200, netto: 1000, open: 300 },
+      { brutto: 1000, netto: 800, open: 600 }
+    );
+    const byKey = new Map(entries.map((entry) => [entry.labelKey, entry]));
+    // +20 %, +25 %, −50 %.
+    expect(byKey.get("fibu.common.brutto")?.deltaPercent).toBe(20);
+    expect(byKey.get("fibu.common.netto")?.deltaPercent).toBe(25);
+    expect(byKey.get("fibu.rechnung.offen")?.deltaPercent).toBe(-50);
+  });
+
+  it("has no percentage where the previous value is zero — no base to grow from", () => {
+    const entries = invoiceComparisonEntries(
+      { brutto: 1200, netto: 1000, open: 300 },
+      { brutto: 0, netto: 800, open: 300 }
+    );
+    const byKey = new Map(entries.map((entry) => [entry.labelKey, entry]));
+    expect(byKey.get("fibu.common.brutto")?.deltaPercent).toBeNull();
+    // Unchanged is a real zero, not "no base".
+    expect(byKey.get("fibu.rechnung.offen")?.deltaPercent).toBe(0);
   });
 });

@@ -573,8 +573,19 @@ export interface PageDef<
    * The value is `unknown` because its shape belongs to the entity's rest class, and this is the one
    * place that knows which: the declaration names the component, so it narrows there and nothing
    * generic has to carry a type it cannot check.
+   *
+   * Beyond the aggregates it is handed the list's view state so a slot can offer an option of its own:
+   * `previousYearComparison` (with its setter) toggles the invoice list's same-period-last-year figures,
+   * and `filter` — the MagicFilter as sent — lets the slot decide whether that option even applies
+   * (a year-earlier period is undefined without a bounded date range).
    */
-  statistics?: (ctx: { statistics: unknown; isFetching: boolean }) => ReactNode;
+  statistics?: (ctx: {
+    statistics: unknown;
+    isFetching: boolean;
+    filter: MagicFilter;
+    previousYearComparison: boolean;
+    setPreviousYearComparison: (on: boolean) => void;
+  }) => ReactNode;
   /**
    * Actions on the whole list, rendered in the toolbar left of the gear menu — the Excel and forecast
    * exports of the order book (see OrderListActions).

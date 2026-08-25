@@ -205,13 +205,22 @@ export const INVOICE_PAGE = definePage<
     if (row.status !== "BEZAHLT") return "row-blue";
     return undefined;
   },
-  // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
-  // the untyped `ResultSet.statistics` becomes what `OutgoingInvoiceEntityRest` sends — see
-  // PageDef.statistics for why this is the place for it.
-  statistics: ({ statistics, isFetching }) => (
+  // The sums over the whole result set, above the table as the legacy list shows them, with the
+  // "Vorjahresvergleich" toggle over them. The cast is where the untyped `ResultSet.statistics` becomes
+  // what `OutgoingInvoiceEntityRest` sends — see PageDef.statistics for why this is the place for it.
+  statistics: ({
+    statistics,
+    isFetching,
+    filter,
+    previousYearComparison,
+    setPreviousYearComparison,
+  }) => (
     <InvoiceStatisticsLine
       statistics={statistics as InvoiceStatistics | undefined}
       isFetching={isFetching}
+      filter={filter}
+      previousYearComparison={previousYearComparison}
+      setPreviousYearComparison={setPreviousYearComparison}
     />
   ),
   listActions: InvoiceListActions,

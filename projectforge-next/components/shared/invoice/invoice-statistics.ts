@@ -22,6 +22,12 @@ export interface InvoiceStatistics {
   actualPaymentTargetAverage?: number | null;
   /** Invoices whose currency could not be converted, so their own amount entered the sums. */
   currencyConversionWarnings?: string[] | null;
+  /**
+   * The same statistics for the same period one calendar year earlier, when the user asked for the
+   * comparison and the invoice-date filter is a bounded range — the backend fills it only on the
+   * top-level object (its own `previousYear` stays null). See `OutgoingInvoiceEntityRest`.
+   */
+  previousYear?: InvoiceStatistics | null;
 }
 
 /**
@@ -32,6 +38,16 @@ export interface InvoiceStatistics {
  * one place (see app/globals.css).
  */
 export type InvoiceStatisticsTone = "plain" | "open" | "overdue";
+
+/**
+ * The brand token each tone reads in — blue and red as the Wicket list colours them. A plain string map
+ * rather than a component concern, so the line and the comparison table read from one place.
+ */
+export const TONE_CLASS: Record<InvoiceStatisticsTone, string> = {
+  plain: "",
+  open: "text-brand-teal",
+  overdue: "text-brand-pink",
+};
 
 /** One entry of the line: its label, its value, and how it reads. */
 export interface InvoiceStatisticsEntry {
@@ -117,4 +133,72 @@ export function invoiceStatisticsEntries(
     },
   ];
   return [...entries, ...optional.filter((entry) => !!entry.value)];
+}
+
+/** One entry of the muted "Vorjahr" row: the year-earlier value and its change from it to now. */
+export interface InvoiceComparisonEntry extends InvoiceStatisticsEntry {
+  /** The value of the same entry one calendar year earlier — what this row's amount reads. */
+  value?: number | null;
+  /**
+   * Percentage change from the previous value to the current one, `(current − previous) / |previous|`
+   * as a percentage. Null when it cannot be formed — the previous value is zero or absent, so there is
+   * no base to grow from — in which case the row shows the amount without a delta.
+   */
+  deltaPercent: number | null;
+}
+
+/**
+ * The raw value behind a statistics entry, read straight off the object rather than off the displayed
+ * line: the previous-year row must show the true year-earlier figure even where the current line drops
+ * it (a zero overdue, a discount not taken). Kept next to [invoiceStatisticsEntries] so the two stay in
+ * step — a new entry there needs a case here.
+ */
+function valueByLabelKey(
+  statistics: InvoiceStatistics,
+  labelKey: string
+): number | null | undefined {
+  switch (labelKey) {
+    case "fibu.common.brutto":
+      return statistics.brutto;
+    case "fibu.rechnung.mitSkonto":
+      return statistics.bruttoWithDiscount;
+    case "fibu.common.netto":
+      return statistics.netto;
+    case "fibu.rechnung.offen":
+      return statistics.open;
+    case "fibu.rechnung.filter.ueberfaellig":
+      return statistics.overdue;
+    case "fibu.rechnung.skonto":
+      return statistics.discount;
+    case "fibu.rechnung.zahlungsZiel":
+      return statistics.paymentTargetAverage;
+    case "fibu.rechnung.zahlungsZiel.actual":
+      return statistics.actualPaymentTargetAverage;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * The "Vorjahr" row: the same entries the current line shows (same labels, same order), each carrying its
+ * year-earlier value and the change to now. Aligned to the current entries on purpose — a column the
+ * current line omits has nothing to compare against, and one only the previous year had would sit under
+ * an empty current cell.
+ */
+export function invoiceComparisonEntries(
+  current: InvoiceStatistics | undefined,
+  previous: InvoiceStatistics | undefined | null
+): InvoiceComparisonEntry[] {
+  if (!current || !previous) return [];
+  return invoiceStatisticsEntries(current).map((entry) => {
+    const currentValue = entry.value ?? 0;
+    const previousValue = valueByLabelKey(previous, entry.labelKey) ?? 0;
+    // No base to grow from: a percentage against zero is either undefined or infinite, so the row
+    // shows the amount alone.
+    const deltaPercent =
+      previousValue !== 0
+        ? ((currentValue - previousValue) / Math.abs(previousValue)) * 100
+        : null;
+    return { ...entry, value: previousValue, deltaPercent };
+  });
 }

@@ -915,6 +915,12 @@
       "showKostZuweisungstatus": "Kostzuweisungsstatus",
       "showTextAreas": "Positionsbeschreibungen",
       "skonto": "Skonto / Fehlbetrag",
+      "statistics": {
+        "currentPeriod": "Aktuell",
+        "previousYear": "Vorjahr",
+        "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
+        "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum."
+      },
       "status": {
         "_": "Rechnungsstatus",
         "bezahlt": "bezahlt",
@@ -961,7 +967,8 @@
       },
       "zahlungsZiel": {
         "_": "Zahlungsziel",
-        "actual": "Tatsächliches Zahlungsziel"
+        "actual": "Tatsächliches Zahlungsziel",
+        "actualShort": "tatsächliches ZZ"
       }
     },
     "rechnungen": "Debitorenrechnungen",

@@ -162,7 +162,9 @@ test.describe("period stepper", () => {
     // Commit one month back and close, so the pill has an open-time state worth restoring — the revert
     // is asserted on the range itself, not a list request, because restoring a range already fetched
     // is served from TanStack's cache and sends nothing.
-    const back = page.getByRole("button", { name: t(MONTH.tooltipPreviousKey) });
+    const back = page.getByRole("button", {
+      name: t(MONTH.tooltipPreviousKey),
+    });
     const committed = listRequest(page, ENTITY);
     await back.click();
     await committed;

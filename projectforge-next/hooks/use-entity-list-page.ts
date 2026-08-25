@@ -71,6 +71,12 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    * withLockedFirst).
    */
   lockedColumnIds?: string[];
+  /**
+   * Hook to customise the MagicFilter before it is sent — the page's own view options that are not
+   * filter pills (e.g. the invoice list's previous-year comparison, which adds `extended` flags). The
+   * built filter is part of the query key, so a change here refetches on its own.
+   */
+  buildFilter?: (base: MagicFilter) => MagicFilter;
 }
 
 /**
@@ -93,6 +99,7 @@ export function useEntityListPage<Row extends ListRow>({
   defaultVisibility,
   massUpdateEndpoint,
   lockedColumnIds,
+  buildFilter,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -128,6 +135,8 @@ export function useEntityListPage<Row extends ListRow>({
     // no longer be saved back into it.
     favoriteId: filters.favorite?.id,
     favoriteName: filters.favorite?.name,
+    // The page's non-pill view options (see UseEntityListPageOptions.buildFilter).
+    buildFilter,
   });
 
   // The user's saved filters — the backend's filter favorites, so a filter saved here is the same
