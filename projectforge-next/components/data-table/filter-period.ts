@@ -64,6 +64,52 @@ export function periodOfInstantValue(
   );
 }
 
+/** Whether a value's bounds are instants (a time of day) rather than plain dates — an `hh:mm` says so. */
+function isInstantValue(value: MagicFilterEntryValue | undefined): boolean {
+  return !!value?.from?.includes("T") || !!value?.to?.includes("T");
+}
+
+/**
+ * The period a filter pill can page — non-null exactly when the range is a nameable art (a stored
+ * `periodKind`, or one the two bounds are), so the pill shows its arrows only when there is something to
+ * page. DATE or TIMESTAMP is told from the bounds themselves, as [refreshedPeriodValues] does.
+ */
+export function pageablePeriodOf(
+  value: MagicFilterEntryValue | undefined,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): Period | null {
+  return isInstantValue(value)
+    ? periodOfInstantValue(value, kinds, ctx)
+    : periodOfDateValue(value, kinds, ctx);
+}
+
+/**
+ * The value one period `steps` away, or null when there is nothing to page — the same shift the popover
+ * stepper does ([RangeField.onSelect]), so paging from the pill and from the popover agree. The art is
+ * kept on the value (`periodKind`), since one of the arts cannot be read back off the two dates.
+ */
+export function steppedPeriodValue(
+  value: MagicFilterEntryValue | undefined,
+  steps: number,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): MagicFilterEntryValue | null {
+  const period = pageablePeriodOf(value, kinds, ctx);
+  if (!period) return null;
+  try {
+    const anchor = period.kind.shift(period.anchor, steps, ctx);
+    const bounds = isInstantValue(value)
+      ? instantBoundsOfPeriod(period.kind, anchor, ctx)
+      : boundsOfPeriod(period.kind, anchor, ctx);
+    if (!bounds) return null;
+    return { ...value, ...bounds, periodKind: period.kind.id };
+  } catch {
+    // A bound this cannot compute from — the value stays as it is, which is the period still on screen.
+    return null;
+  }
+}
+
 /**
  * Every stored value whose art moves with the calendar, recomputed for today.
  *

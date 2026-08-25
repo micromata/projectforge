@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { FilterField } from "./filter-field";
 import { FilterPillShell } from "./filter-pill-shell";
+import { useFilterPeriodKinds } from "./filter-period-kinds";
+import { pageablePeriodOf, steppedPeriodValue } from "./filter-period";
 import { useDebouncedApply } from "./use-debounced-apply";
 import { describeFilterValue, isEmptyFilterValue } from "./filter-value";
 
@@ -39,8 +42,23 @@ export function FilterPill({
   // The committed value the popover opened with, restored by "Abbrechen".
   const baseline = useRef(value);
   const ctx = useFormatContext();
+  const t = useTranslations();
 
   useDebouncedApply(draft, value, save);
+
+  // A period in effect: the pill offers arrows that page it without opening the popover, so the list —
+  // and the statistics above it — step month by month while the popover stays closed.
+  const kinds = useFilterPeriodKinds();
+  const period = pageablePeriodOf(value, kinds, ctx);
+  const onStep = period
+    ? (steps: number) => {
+        const next = steppedPeriodValue(value, steps, kinds, ctx);
+        if (!next) return;
+        // Keep the draft in step too, in case the popover is open while paging from the pill.
+        setDraft(next);
+        onSave(next);
+      }
+    : undefined;
 
   return (
     <FilterPillShell
@@ -48,6 +66,11 @@ export function FilterPill({
       text={describeFilterValue(value, element, ctx)}
       tooltip={element.tooltip}
       active={!isEmptyFilterValue(value)}
+      onStep={onStep}
+      stepPreviousLabel={t(
+        period?.kind.tooltipPreviousKey ?? "duration.previous"
+      )}
+      stepNextLabel={t(period?.kind.tooltipNextKey ?? "duration.next")}
       open={open}
       onOpenChange={(next) => {
         // Re-seed on open so a live-applied edit can still be taken back.

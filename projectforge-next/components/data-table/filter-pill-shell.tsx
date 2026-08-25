@@ -1,7 +1,11 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +32,14 @@ interface FilterPillShellProps {
   onDelete: () => void;
   /** Wider than the default for a pill holding more than one field. */
   contentClassName?: string;
+  /**
+   * Pages the pill's period without opening the popover — set only for a period filter with something to
+   * page (see [FilterPill]). Then two arrows flank the label, so the statistics above the list stay in
+   * view while the user steps month by month.
+   */
+  onStep?: (steps: number) => void;
+  stepPreviousLabel?: string;
+  stepNextLabel?: string;
   /** The input(s) in the popover. */
   children: React.ReactNode;
 }
@@ -51,10 +63,33 @@ export function FilterPillShell({
   onCancel,
   onDelete,
   contentClassName,
+  onStep,
+  stepPreviousLabel,
+  stepNextLabel,
   children,
 }: FilterPillShellProps) {
   const t = useTranslations("filter");
   const tAction = useTranslations();
+
+  // The arrows are for paging with the popover shut; while it is open the in-popover stepper is right
+  // there, so showing them too would only double the control (and its accessible name) on screen.
+  const stepping = onStep && !open;
+
+  const stepButton = (
+    steps: number,
+    icon: typeof ArrowLeft01Icon,
+    label?: string
+  ) => (
+    <button
+      type="button"
+      onClick={() => onStep?.(steps)}
+      aria-label={label}
+      title={label}
+      className="flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-primary/20"
+    >
+      <HugeiconsIcon icon={icon} size={12} />
+    </button>
+  );
 
   return (
     <span
@@ -65,6 +100,13 @@ export function FilterPillShell({
           : "border-dashed border-muted-foreground/40 text-muted-foreground"
       )}
     >
+      {/* The arrows flank the label so the pill reads as a pager; they are siblings of the trigger, never
+          nested in it, and paging applies live without opening the popover below. */}
+      {stepping && (
+        <span className="pl-1">
+          {stepButton(-1, ArrowLeft01Icon, stepPreviousLabel)}
+        </span>
+      )}
       <Popover open={open} onOpenChange={onOpenChange}>
         {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
         <HintTooltip text={tooltip}>
@@ -117,6 +159,11 @@ export function FilterPillShell({
           </div>
         </PopoverContent>
       </Popover>
+      {stepping && (
+        <span className={cn(!removable && "pr-1")}>
+          {stepButton(1, ArrowRight01Icon, stepNextLabel)}
+        </span>
+      )}
       {removable && (
         <button
           type="button"

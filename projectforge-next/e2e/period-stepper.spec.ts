@@ -253,6 +253,51 @@ test.describe("period stepper", () => {
     );
   });
 
+  test("pages from the pill with its popover closed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // Put a whole month in effect and close the popover — the pill grows its own arrows only once a
+    // period is on it, and their whole point is to page with the popover shut, so the statistics line
+    // above the list stays in view instead of being covered by the popover. Wait for the pick to apply
+    // (it is debounced) before dismissing, or Escape would close over an uncommitted draft.
+    const applied = listRequest(page, ENTITY);
+    await pickKind(page, format, MONTH);
+    await applied;
+    await page.keyboard.press("Escape");
+    await expect(cancelButton(page, t)).toHaveCount(0);
+
+    // The previous-period arrow now on the pill — the popover being shut, it is the only one by that
+    // name — pages live, and paging must not reopen the popover it is meant to spare the user.
+    const request = listRequest(page, ENTITY);
+    await page
+      .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
+      .click();
+    await expect(cancelButton(page, t)).toHaveCount(0);
+
+    const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
+    const bounds = boundsOfPeriod(MONTH, previous, context);
+    const entry = (await request).entries.find(
+      (candidate) => candidate.field === field.id
+    );
+    expect(entry?.value.from).toBe(bounds.from);
+    expect(entry?.value.to).toBe(bounds.to);
+
+    // Reopening reads the stepped month back: the pill applied and kept what the pill arrow paged to.
+    await reopenPill(page, t, field.label!);
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(bounds.from)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(bounds.to)
+    );
+  });
+
   test("pages from the month of a date typed by hand", async ({
     loggedInPage: page,
   }) => {
