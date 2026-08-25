@@ -10,6 +10,12 @@ interface Props {
   /** Called once per dropped/chosen file — the endpoint takes a single file per call. */
   onFiles: (files: File[]) => void;
   disabled?: boolean;
+  /** `<input accept>` filter, e.g. `.csv`. Omitted → any file (the default). */
+  accept?: string;
+  /** Whether more than one file may be chosen at once. Defaults to true. */
+  multiple?: boolean;
+  /** Overrides the label inside the area (defaults to the attachment upload text). */
+  label?: string;
 }
 
 /**
@@ -23,12 +29,18 @@ interface Props {
  * installation via `projectforge.jcr.maxDefaultFileSize`), it rejects an oversized file with a
  * translated message, and duplicating the number here would be a second place to get it wrong.
  */
-export function AttachmentDropArea({ onFiles, disabled }: Props) {
+export function AttachmentDropArea({
+  onFiles,
+  disabled,
+  accept,
+  multiple = true,
+  label,
+}: Props) {
   const t = useTranslations();
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
 
-  function accept(files: FileList | null) {
+  function acceptFiles(files: FileList | null) {
     const list = Array.from(files ?? []);
     if (list.length > 0) onFiles(list);
   }
@@ -36,7 +48,7 @@ export function AttachmentDropArea({ onFiles, disabled }: Props) {
   function onDrop(e: DragEvent) {
     e.preventDefault();
     setOver(false);
-    if (!disabled) accept(e.dataTransfer.files);
+    if (!disabled) acceptFiles(e.dataTransfer.files);
   }
 
   return (
@@ -62,18 +74,19 @@ export function AttachmentDropArea({ onFiles, disabled }: Props) {
         )}
       >
         <HugeiconsIcon icon={CloudUploadIcon} size={20} />
-        {t("attachment.upload.title")}
+        {label ?? t("attachment.upload.title")}
       </button>
       <input
         ref={inputRef}
         type="file"
-        multiple
+        multiple={multiple}
+        accept={accept}
         // sr-only rather than hidden: a hidden input is not focusable, and the file dialog of some
         // browsers refuses to open from one.
         className="sr-only"
         aria-label={t("file.upload.choose")}
         onChange={(e) => {
-          accept(e.target.files);
+          acceptFiles(e.target.files);
           // Clears the selection so choosing the same file twice fires change again — the second
           // attempt is what surfaces the backend's duplicate-name message.
           e.target.value = "";

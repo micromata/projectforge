@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FileImportIcon } from "@hugeicons/core-free-icons";
 import { toast } from "@/lib/toast";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { RsError } from "@/lib/rs/client";
@@ -10,6 +13,7 @@ import {
   downloadCreditorInvoiceExcel,
 } from "@/lib/rs/creditor-invoice";
 import type { MagicFilter } from "@/lib/rs/types";
+import { Button } from "@/components/ui/button";
 import { ExportButton } from "@/components/shared/export-button";
 
 /**
@@ -25,6 +29,7 @@ export function CreditorInvoiceListActions({
   filter: MagicFilter;
 }) {
   const t = useTranslations();
+  const router = useRouter();
 
   /**
    * A 404 is no error here: the filter matched nothing, or — for the cost assignments — the installation
@@ -49,6 +54,14 @@ export function CreditorInvoiceListActions({
 
   return (
     <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => router.push("/creditor-invoice-import")}
+      >
+        <HugeiconsIcon icon={FileImportIcon} />
+        {t("import._")}
+      </Button>
       <ExportButton
         tooltip={t("tooltip.export.excel")}
         label={t("exportAsXls")}

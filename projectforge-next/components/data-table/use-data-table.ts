@@ -16,6 +16,7 @@ import {
   type ColumnSizingState,
   type OnChangeFn,
   type PaginationState,
+  type Row,
   type RowSelectionState,
   type SortingState,
   type Table,
@@ -62,8 +63,11 @@ export interface UseDataTableOptions<TData> {
    */
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
-  /** Whether rows can be picked at all; only a page with a mass update switches this on. */
-  enableRowSelection?: boolean;
+  /**
+   * Whether rows can be picked at all; only a page with a mass update switches this on. A predicate
+   * gates it per row — the import preview lets only importable statuses be ticked.
+   */
+  enableRowSelection?: boolean | ((row: Row<TData>) => boolean);
 
   /** Column filters are applied client-side; the backend returns the full result set. */
   enableColumnFilters?: boolean;
