@@ -59,7 +59,7 @@ export interface UseEntityEditFormOptions<Values, Data> {
   savedRoute?: (id: number | null) => string;
   /**
    * Takes the place of leaving for [listRoute] after a successful save — for a form that has no page
-   * to leave: the one in a dialog ([EntityEditDialog]), whose caller closes it and goes on with what
+   * to leave: the one in a dialog ([EntityEditModal]), whose caller closes it and goes on with what
    * was written.
    *
    * Gets the id the backend assigned (null if it named none) and the values that were saved, since

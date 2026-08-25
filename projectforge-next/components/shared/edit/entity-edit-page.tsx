@@ -1,51 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { toast } from "@/lib/toast";
 import { EditPageShell } from "@/components/shared/edit-page-shell";
-import { EntityEditFormProvider } from "@/components/shared/form/form-context";
-import {
-  useCancelEntityEdit,
-  useDeleteEntity,
-  useEntityAction,
-  useEntityDetail,
-  useSaveEntity,
-  useUndeleteEntity,
-  type EntityWithId,
-} from "@/hooks/use-entity-detail";
+import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { useEditReturn } from "@/hooks/use-edit-return";
 import { useNewEntryParams } from "@/hooks/use-new-entry-params";
-import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
-import { useFocusFirstField } from "@/hooks/use-focus-first-field";
-import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
-import { useLegacyEditUrl } from "@/hooks/use-legacy-edit-url";
-import { useInsertAccess } from "@/hooks/use-insert-access";
-import { useHistoryCommentSupport } from "@/hooks/use-history-comment-support";
-import {
-  CLONE_PARAM,
-  setPendingClone,
-  usePendingClone,
-} from "@/hooks/use-pending-clone";
-import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
-import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { EditablePageDef } from "@/lib/page-def/types";
-import { entityAccess, type EntityAccessFlags } from "@/lib/rs/entity-access";
-import { cloneEntity } from "@/lib/rs/entity";
-import { DeclaredSection } from "./declared-sections";
-import { EntityCloneButton } from "./entity-clone-button";
-import { EntityCrossLinks } from "./entity-cross-links";
-import { EntityDeletedBanner } from "./entity-deleted-banner";
-import { EntityDeleteButton } from "./entity-delete-button";
-import { EntityEditActions } from "./entity-edit-actions";
+import { EntityEditBody } from "./entity-edit-body";
 import { EntityEditHeader } from "./entity-edit-header";
-import { EntityUndeleteButton } from "./entity-undelete-button";
-import { HistoryUserCommentField } from "./history-user-comment-field";
-import { entityTabPanels } from "./entity-tab-panels";
-import { entityTabs } from "./entity-tabs";
+import type { EditOutcome } from "./edit-outcome";
 
 export interface EntityEditPageProps<
   Row extends ListRow,
@@ -59,11 +24,12 @@ export interface EntityEditPageProps<
 }
 
 /**
- * The whole edit page of an entity, rendered from its declaration: load, form, sections, tabs,
- * save, delete.
+ * The edit form of an entity on its own page: [EntityEditBody] wrapped in the page chrome and told
+ * that every way it ends is a navigation. The shared body is where load, form, sections and save
+ * live; this component adds only what makes it a *page* — the way back (`useEditReturn`), the new-entry
+ * presets read from the URL (`useNewEntryParams`), and the [EditPageShell] with its breadcrumb header.
  *
- * An entity with writes of its own (a book's lend-out) keeps composing `useEntityEditForm` itself —
- * the hooks stay public, and this component is nothing but their normal case.
+ * The modal ([EntityEditModal]) is the same body with a different outcome and shell.
  */
 export function EntityEditPage<
   Row extends ListRow,
@@ -72,395 +38,59 @@ export function EntityEditPage<
   M extends EntityMetadata,
 >({ page, id }: EntityEditPageProps<Row, Values, Data, M>) {
   const router = useRouter();
-  const t = useTranslations();
   const { edit } = page;
-  const writeOptions = { listQueryKey: page.queryKey };
   // Where leaving the page leads: the caller that sent the user here, or the entity's own list.
   const back = useEditReturn({
     targets: edit.returnTargets,
     fallback: { route: page.route, labelKey: page.titleKey },
   });
-
-  // What an "add" starts from: `/task/new?parentTaskId=42` presets the parent, and only the backend
-  // can resolve it (see useNewEntryParams). Ignored for an existing entry.
+  // What an "add" starts from: `/task/new?parentTaskId=42` presets the parent (see useNewEntryParams).
   const newParams = useNewEntryParams(edit.newEntryParams);
-  // A new entry has nothing to load — the hook stays disabled for id null.
-  const {
-    data: loaded,
-    isLoading,
-    isError,
-    error,
-  } = useEntityDetail<Data>(page.entity, id, newParams);
-  // An add page opened by the clone button starts from the clone instead of from the backend's preset
-  // (see runClone). Recognised by `?clone=1`, so a reload or a later add is a plain add again.
-  const clone = usePendingClone<Data>(page.entity, id == null);
-  const data = clone ?? loaded;
-  // Whether this user may see this entity at all. Not the same question as the write access below: that
-  // one hides the save and delete buttons of an entry the user may read, this one keeps the page from
-  // existing. The list meta data it reads is the one `useLegacyEditUrl` already loads.
-  const readAccess = useReadAccessGuard(page.entity, error);
-  const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
-  const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
-  const undeleteMutation = useUndeleteEntity<Data>(page.entity, writeOptions);
-  const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
-  const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
-  const legacyUrl = useLegacyEditUrl(page.entity, id);
-  // Cloning writes nothing, but it produces a *new* entry, so it needs the insert right and not the
-  // write right of the entry on screen.
-  const canInsert = useInsertAccess(page.entity);
-  // Whether this entity's history takes a comment, and the comment itself. State of the page rather
-  // than a form value: nothing loads it, nothing validates it, and it belongs to the one save it is
-  // sent with (see HistoryUserCommentField).
-  const takesHistoryComment = useHistoryCommentSupport(page.entity);
-  const [historyComment, setHistoryComment] = useState("");
-  const [isCloning, setCloning] = useState(false);
-  // Adding an entry starts in the field the definition names, or in the first one; editing an existing
-  // entry leaves the focus alone.
-  const formRef = useFocusFirstField<HTMLFormElement>(
-    id == null,
-    edit.autoFocus
-  );
 
-  const { form, isDirty, isSubmitting } = useEntityEditForm<Values, Data>({
-    data,
-    toFormValues: edit.toFormValues,
-    defaultValues: edit.defaultValues(),
-    schema: edit.schema,
-    fieldNames: edit.fieldNames,
-    arrayFieldNames: edit.arrayFieldNames,
-    listRoute: back.route,
-    // The caller may want the new entry's id in the url it gets back (the wizard does, see
-    // WizardTaskStep); for every other one this is `back.route` itself.
-    savedRoute: back.savedRoute,
-    savedMessage: t(edit.savedMessageKey),
-    // The form's values are the DTO the backend expects — the type only differs in what it makes
-    // optional (see the entity's schema file).
-    save: (values, meta) => {
-      const posted = {
-        ...values,
-        // The comment rides along with the values, as `BaseDTO.historyUserComment` — the backend copies
-        // it onto the DO, from where the history entry of this write takes it. Only when there is one,
-        // so an entity without the field never sees the property.
-        ...(historyComment.trim()
-          ? { historyUserComment: historyComment }
-          : {}),
-        // And so does "deleted", where the entry is: a hand-built form posts its values *as* the DTO,
-        // `deleted` is in no schema, and the backend copies the property of the posted object onto the
-        // stored row (`CandHMaster.copyValues`) — so a write that left it out silently brought the
-        // entry back to life. Only ever added as `true`: a `false` would say what the DTO of every
-        // ordinary entry says by omitting it, and this way their payload is unchanged.
-        //
-        // The second line of defence, not the first: the fieldset below leaves a deleted entry no
-        // control to write with. It stays because it is the one that holds for a page composing these
-        // hooks itself (a book's lend-out posts through this callback too).
-        ...((data as EntityAccessFlags | undefined)?.deleted === true
-          ? { deleted: true }
-          : {}),
-      } as unknown as Data;
-      // A declared action posts to `/rs/{entity}/{action}`; anything else is a save. An action name
-      // the declaration doesn't list can only come from a typo in a button, and saving instead of
-      // posting to a route that doesn't exist is the harmless of the two.
-      return edit.actions?.includes(meta.action)
-        ? actionMutation.mutateAsync({ action: meta.action, data: posted })
-        : saveMutation.mutateAsync(posted);
-    },
-  });
-
-  // What the backend says this user may do with this entry — the counterpart of Wicket's
-  // `AbstractEditForm.updateButtonVisibility`, which hides the save button without update access and
-  // the delete button without delete access.
-  const access = entityAccess(data, id == null);
-
-  // Return, and CTRL-Return inside a textarea, save — as the default button of a Wicket form does.
-  // Under the same condition the save button carries, so the shortcut is never the looser way in —
-  // including the write access, or it would submit a form that offers no save button (Wicket makes
-  // cancel the default button in that case, see AbstractEditForm.updateButtonVisibility).
-  const onKeyDown = useSubmitShortcut(
-    () => void form.handleSubmit(),
-    isDirty && !isSubmitting && access.write
-  );
-
-  // Asks before a link or a reload throws the entries away. Not for the page's own ways out — cancel,
-  // save and clone are decisions the user just made, and asking again about a cancel would say the
-  // button hadn't been understood.
-  useUnsavedChangesWarning(isDirty && !isSubmitting);
-
-  /**
-   * Leaves the page without saving — and tells the backend so, which is what makes the list mark the
-   * entry the user was looking at (`onCancelEdit`, same as after a save).
-   *
-   * Awaited, so the list is refetched with the id already remembered; a cancel the server never
-   * answers must still leave the page, hence the caught error. A new entry has no id to mark and
-   * nothing to report, so it skips the call.
-   */
-  async function runCancel(): Promise<void> {
-    if (id != null && data) {
-      await cancelMutation.mutateAsync(data).catch(() => undefined);
-    }
-    router.push(back.route);
-  }
-
-  async function runDelete(): Promise<void> {
-    if (!data) return;
-    const result = await deleteMutation.mutateAsync(data);
-    if (result.kind === "validationErrors") {
-      // Nothing was deleted; the server explains why (e.g. the entry is still referenced).
-      result.validationErrors.forEach((error) => toast.error(error.message));
-      return;
-    }
-    if (result.kind === "rejected") {
-      // The delete was refused, not merely invalid — an AccessException (see lib/rs/entity.ts).
-      toast.error(result.message || t("validation.error.generic"));
-      return;
-    }
-    toast.success(t("message.successfullChanged"));
-    router.push(back.route);
-  }
-
-  /**
-   * Brings the entry back and leaves the page, the way a delete does — the list is where the user sees
-   * the entry among the others again, which is what the restore was for.
-   */
-  async function runUndelete(): Promise<void> {
-    if (!data) return;
-    const result = await undeleteMutation.mutateAsync(data);
-    if (result.kind === "validationErrors") {
-      result.validationErrors.forEach((error) => toast.error(error.message));
-      return;
-    }
-    if (result.kind === "rejected") {
-      toast.error(result.message || t("validation.error.generic"));
-      return;
-    }
-    toast.success(t("message.successfullChanged"));
-    router.push(back.route);
-  }
-
-  /**
-   * Opens a new entry built from this one — Wicket's `RechnungEditPage.cloneData`.
-   *
-   * Posted are the *form's current values*, not the loaded entity, so unsaved edits travel; neither
-   * side validates them (Wicket's `ignoreErrorOnClone` says the same), because a clone is a starting
-   * point and not a write.
-   *
-   * The prepared clone is handed to the add page outside React (see usePendingClone) — under
-   * `output: "export"` no state rides along a navigation.
-   */
-  async function runClone(): Promise<void> {
-    setCloning(true);
-    try {
-      const prepared = await cloneEntity<Data>(
-        page.entity,
-        form.state.values as unknown as Data
-      );
-      setPendingClone(page.entity, prepared);
-      // The parameter is what tells the add page to take it (see usePendingClone) — and what keeps a
-      // later plain `/new` a plain add, without the handover having to clear itself on the first read.
-      router.push(`${page.route}/new?${CLONE_PARAM}=1`);
-    } catch {
-      // Nothing was written and the page stays, so the form is still the way forward.
-      toast.error(t("validation.error.generic"));
-    } finally {
-      setCloning(false);
-    }
-  }
-
-  // Before the two branches below: a refused read is an error here as well, and "not found" would be
-  // the wrong thing to say about an entry the user merely may not see.
-  if (readAccess.denied) {
-    return null;
-  }
-  if (isLoading || readAccess.isPending) {
-    return <Centered>{t("loading")}</Centered>;
-  }
-  if (id != null && (isError || !data)) {
-    return <Centered>{t("entityEdit.notFound")}</Centered>;
-  }
-
-  // On `id`, not on `data`: a new entry has data too — the preset the backend answers `fetchNew`
-  // with (see useEntityDetail) — and `edit.title` of a blank preset is the empty string, which left
-  // the breadcrumb of an added entry ending in a bare slash.
-  const headerTitle =
-    id == null || !data ? t(edit.newTitleKey) : edit.title(data);
-
-  // The sections this entry has: one whose subject the installation doesn't know is dropped here, so
-  // it is missing from the tab strip and from the cards alike (see SectionDef.visible).
-  const sections = edit.sections.filter(
-    (section) =>
-      section.visible?.({
-        data: data as unknown as Record<string, unknown> | undefined,
-      }) ?? true
-  );
-
-  const tabs = entityTabs({
-    sections,
-    t,
-    id: data?.id ?? null,
-    history: page.metadata.historizable,
-    extraTabs: edit.extraTabs,
-  });
+  // On a page every ending is a navigation — the one thing that differs from the modal (see
+  // EditOutcome). Not memoized: the handlers are read when the user acts, never as an effect
+  // dependency, so a fresh object each render costs nothing (as the page's own handlers always did).
+  const outcome: EditOutcome = {
+    afterSave: (savedId) =>
+      router.push(
+        savedId != null && back.savedRoute
+          ? back.savedRoute(savedId)
+          : back.route
+      ),
+    afterCancel: () => router.push(back.route),
+    afterDelete: () => router.push(back.route),
+    afterUndelete: () => router.push(back.route),
+    afterClone: (route) => router.push(route),
+  };
 
   return (
-    <EntityEditFormProvider
-      // `readOnly` for a deleted entry: the fieldset below is what blocks the input, this is what the
-      // fields read to look the part (a select keeps its clear button otherwise, see useFormReadOnly).
-      value={{ form, metadata: page.metadata, readOnly: access.deleted }}
-    >
-      <form
-        ref={formRef}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void form.handleSubmit();
-        }}
-        onKeyDown={onKeyDown}
-        className="flex min-w-0 flex-1 flex-col overflow-hidden"
-      >
+    <EntityEditBody
+      page={page}
+      id={id}
+      newParams={newParams}
+      outcome={outcome}
+      renderShell={(regions) => (
         <EditPageShell
           header={
             <EntityEditHeader
-              category={t(page.categoryKey)}
+              category={regions.category}
               listRoute={back.route}
               listLabel={back.label}
-              title={headerTitle}
-              trailing={edit.headerTrailing?.(data)}
-              // Only for a stored entry: every cross link names it in its url (see CrossLinkDef).
-              crossLinks={
-                edit.crossLinks && id != null ? (
-                  <EntityCrossLinks links={edit.crossLinks} data={data} />
-                ) : undefined
-              }
-              legacyUrl={legacyUrl}
-              deleted={access.deleted}
+              title={regions.title}
+              trailing={regions.trailing}
+              crossLinks={regions.crossLinks}
+              legacyUrl={regions.legacyUrl}
+              deleted={regions.deleted}
             />
           }
-          tabs={tabs}
-          tabPanels={entityTabPanels({
-            entity: page.entity,
-            id: data?.id ?? null,
-            history: page.metadata.historizable,
-            extraTabs: edit.extraTabs,
-          })}
-          // The notice about a deleted entry comes first and does not replace the entity's own banner:
-          // an order's number and sums are still what the reader looks for, deleted or not.
-          banner={
-            access.deleted || edit.editBanner ? (
-              <>
-                {access.deleted && <EntityDeletedBanner />}
-                {edit.editBanner && <edit.editBanner />}
-              </>
-            ) : undefined
-          }
-          // A function per section, so a folded one learns that its tab was clicked (see
-          // EditPageShell and DeclaredSection). Not a component — the shell calls it with the flag,
-          // React never renders it — hence the named function rather than an arrow, which the
-          // display-name rule would read as an anonymous component.
-          sections={sections.map(
-            (section) =>
-              function renderSection(active: boolean) {
-                const rendered = (
-                  <DeclaredSection
-                    key={section.id}
-                    section={section}
-                    metadata={page.metadata}
-                    id={data?.id ?? null}
-                    active={active}
-                  />
-                );
-                // A deleted entry is shown, not edited: there is no save button, so anything typed into
-                // it would be discarded by the restore without a word. One disabled fieldset around the
-                // section does that for every control inside it — fields, pickers and an entity's own
-                // action buttons alike (a book's lend-out) — without a single field component having to
-                // know about it. `contents` keeps the fieldset out of the layout; the section's own
-                // wrapper is what spaces the cards.
-                return access.deleted ? (
-                  <fieldset
-                    key={section.id}
-                    disabled
-                    className="contents"
-                    // Read-only, not broken: without this the block would merely look dead.
-                    aria-label={t("deleted")}
-                  >
-                    {rendered}
-                  </fieldset>
-                ) : (
-                  rendered
-                );
-              }
-          )}
-          // Only where the entity's history takes one, and only with write access: a comment on a save
-          // that cannot happen is nothing the page should ask for (the same condition the server laid
-          // out page checks, see LayoutUtils.processEditPage).
-          belowSections={
-            takesHistoryComment && access.write ? (
-              <HistoryUserCommentField
-                value={historyComment}
-                onChange={setHistoryComment}
-              />
-            ) : undefined
-          }
-          actions={
-            <EntityEditActions
-              onCancel={() => void runCancel()}
-              saveOption={edit.saveOption && <edit.saveOption />}
-              // Only for a stored entry: cloning an entry that isn't saved yet would copy a form the
-              // user can simply keep filling in. `canInsert` is undefined until `listMeta` is there,
-              // which keeps the button out of a page whose access is not known yet.
-              cloneAction={
-                edit.clone && id != null && canInsert ? (
-                  <EntityCloneButton
-                    onClone={runClone}
-                    disabled={isSubmitting || isCloning}
-                  />
-                ) : undefined
-              }
-              // Nothing to delete before the first save. On `id` rather than on `data`: a new entry
-              // has data too — the preset the backend answers `fetchNew` with (see useEntityDetail).
-              deleteAction={
-                id != null && data && access.delete ? (
-                  <EntityDeleteButton
-                    onDelete={runDelete}
-                    disabled={isSubmitting || deleteMutation.isPending}
-                  />
-                ) : undefined
-              }
-              // In the place of the delete button, and under the condition legacy restores with: the
-              // right to insert, not the write access of an entry that is gone (see
-              // LayoutUtils.processEditPage, which asks `userAccess.insert` for exactly this button).
-              undeleteAction={
-                id != null && data && access.deleted && canInsert ? (
-                  <EntityUndeleteButton
-                    onUndelete={runUndelete}
-                    disabled={isSubmitting || undeleteMutation.isPending}
-                  />
-                ) : undefined
-              }
-              canSave={access.write}
-              isSaving={isSubmitting}
-              isDirty={isDirty}
-              // Saving leaves the page, so this is always the write before the one being made now:
-              // `lastUpdate` from the backend, falling back to `created` for an entry never changed
-              // since (both are on `BaseDTO`, so every entity carries them).
-              lastSaved={
-                (
-                  data as
-                    | { lastUpdate?: string | null; created?: string | null }
-                    | undefined
-                )?.lastUpdate ??
-                (data as { created?: string | null } | undefined)?.created ??
-                null
-              }
-            />
-          }
+          tabs={regions.tabs}
+          tabPanels={regions.tabPanels}
+          banner={regions.banner}
+          sections={regions.sections}
+          belowSections={regions.belowSections}
+          actions={regions.actions}
         />
-      </form>
-    </EntityEditFormProvider>
-  );
-}
-
-function Centered({ children }: { children: string }) {
-  return (
-    <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-      {children}
-    </div>
+      )}
+    />
   );
 }

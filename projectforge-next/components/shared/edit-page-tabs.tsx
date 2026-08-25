@@ -28,6 +28,11 @@ export interface EditPageTabsProps {
   /** Id of the selected tab, set while one of the tabs beside the form is open. */
   activeId?: string;
   onSelect?: (index: number) => void;
+  /**
+   * Opens a tab beside the form by its id. When given, those tabs are buttons driven by local state
+   * instead of `?tab=` links — what a modal needs, having no shareable URL (see EntityEditDialogShell).
+   */
+  onSelectTab?: (tab: string) => void;
 }
 
 const TAB_CLASS =
@@ -47,6 +52,7 @@ export function EditPageTabs({
   activeIndex,
   activeId,
   onSelect,
+  onSelectTab,
 }: EditPageTabsProps) {
   // The params are kept, so a tab link doesn't drop what else the URL carries (`?clone=1` on an
   // added entry). The pathname is spelled out rather than left to a bare `?tab=…`: the same page is
@@ -64,17 +70,33 @@ export function EditPageTabs({
         // activeId wins: while a tab beside the form is open, the form's scroll position says nothing
         // about which tab that is.
         const selected = activeId ? tab.id === activeId : i === activeIndex;
-        return tab.tab ? (
-          <Link
-            key={tab.id}
-            href={`${pathname}?${tabQuery(params, tab.tab)}`}
-            role="tab"
-            aria-selected={selected}
-            className={tabClass(selected)}
-          >
-            {tab.label}
-          </Link>
-        ) : (
+        if (tab.tab) {
+          // Controlled: a modal has no shareable URL, so its side-tabs are buttons over local state.
+          const sideTab = tab.tab;
+          return onSelectTab ? (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => onSelectTab(sideTab)}
+              className={tabClass(selected)}
+            >
+              {tab.label}
+            </button>
+          ) : (
+            <Link
+              key={tab.id}
+              href={`${pathname}?${tabQuery(params, sideTab)}`}
+              role="tab"
+              aria-selected={selected}
+              className={tabClass(selected)}
+            >
+              {tab.label}
+            </Link>
+          );
+        }
+        return (
           <button
             key={tab.id}
             type="button"

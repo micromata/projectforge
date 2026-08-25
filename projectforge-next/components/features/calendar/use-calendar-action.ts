@@ -2,11 +2,15 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import type { EventClickArg } from "@fullcalendar/core";
 import { toast } from "@/lib/toast";
 import { resolveMenuUrl, sanitizeRedirectUrl } from "@/lib/menu-url";
 import { fetchCalendarAction } from "@/lib/rs/calendar";
 import type { CalendarActionParams } from "@/lib/rs/calendar-types";
+import { useEntityEditModalStore } from "@/store/entity-edit-modal-store";
+import { parseCalendarEditTarget } from "./calendar-edit-target";
+import { CALENDAR_EVENTS_KEY } from "./use-calendar-init";
 import { toTeamEventRoute } from "./team-event-route";
 import { toTimesheetRoute } from "./timesheet-route";
 
@@ -69,6 +73,8 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
  */
 export function useCalendarAction() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const openEntityEdit = useEntityEditModalStore((s) => s.openEntityEdit);
 
   const navigate = useCallback(
     (url: string | undefined | null) => {
@@ -81,9 +87,28 @@ export function useCalendarAction() {
     [router]
   );
 
+  // A timesheet or a team event opens in the modal, everything else navigates. The modal's save and
+  // its dismissal both refetch the events: `invalidateEntity` refreshes the entity's own caches but
+  // not the calendar's (`["calendar","events"]`), so a sheet edited in place would otherwise stay as
+  // it was drawn until the next reload.
+  const openTarget = useCallback(
+    (url: string | undefined | null) => {
+      if (!url) return;
+      const target = parseCalendarEditTarget(url);
+      if (!target) {
+        navigate(url);
+        return;
+      }
+      const refetch = () =>
+        void queryClient.invalidateQueries({ queryKey: CALENDAR_EVENTS_KEY });
+      openEntityEdit({ ...target, onSaved: refetch, onClose: refetch });
+    },
+    [navigate, openEntityEdit, queryClient]
+  );
+
   const handleEventClick = useCallback(
-    (arg: EventClickArg) => navigate(eventClickUrl(arg.event)),
-    [navigate]
+    (arg: EventClickArg) => openTarget(eventClickUrl(arg.event)),
+    [openTarget]
   );
 
   const requestAction = useCallback(
@@ -97,12 +122,12 @@ export function useCalendarAction() {
         const url = action.url
           ? toTeamEventRoute(toTimesheetRoute(action.url))
           : action.url;
-        navigate(url);
+        openTarget(url);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Action failed.");
       }
     },
-    [navigate]
+    [openTarget]
   );
 
   return { handleEventClick, requestAction };

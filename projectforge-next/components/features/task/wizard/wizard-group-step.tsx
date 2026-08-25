@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { GROUP_PAGE } from "@/components/features/group/group.page";
-import { EntityEditDialog } from "@/components/shared/edit/entity-edit-dialog";
+import { EntityEditModal } from "@/components/shared/edit/entity-edit-modal";
 import {
   EntityAutocomplete,
   type EntityRef,
@@ -81,8 +81,9 @@ export function WizardGroupStepCard({
           {t("task.wizard.button.createGroup._")}
         </button>
       </HintTooltip>
-      <EntityEditDialog
+      <EntityEditModal
         page={GROUP_PAGE}
+        id={null}
         open={creating}
         onOpenChange={setCreating}
         // Wicket's suggestion, and now an actual prefill rather than a name to copy by hand.
@@ -92,7 +93,10 @@ export function WizardGroupStepCard({
         onSaved={(id, values) =>
           id == null
             ? undefined
-            : onChange({ id, displayName: values.name ?? "" })
+            : onChange({
+                id,
+                displayName: (values as { name?: string }).name ?? "",
+              })
         }
       />
     </WizardStepCard>
