@@ -23,6 +23,44 @@ const SCROLL_MARGIN = 8;
  */
 const scrolledTo = new Set<string>();
 
+/**
+ * Brings a row into view only when it is not fully visible — the scroll a keyboard navigation needs as
+ * the focus moves down or up (see DataTable's keyboardNav). Unlike [useHighlightedRow], which pages to
+ * the row and lifts it near the top once, this leaves the viewport alone while the focused row stays on
+ * screen, so arrowing through visible rows doesn't jerk the list.
+ *
+ * The measurement is the same rect arithmetic [useHighlightedRow] uses: `offsetTop` counts from the
+ * nearest positioned ancestor, which need not be the scroll container.
+ */
+export function scrollRowIntoView(
+  container: HTMLElement | null,
+  rowId: string
+): void {
+  const row = container?.querySelector<HTMLElement>(
+    `[data-row-id="${CSS.escape(rowId)}"]`
+  );
+  if (!container || !row) return;
+  const rowTop =
+    row.getBoundingClientRect().top -
+    container.getBoundingClientRect().top +
+    container.scrollTop;
+  const rowBottom = rowTop + row.offsetHeight;
+  // The sticky header covers the top of the scrolled content, so "visible" starts below it.
+  const viewTop = container.scrollTop + STICKY_HEADER_HEIGHT;
+  const viewBottom = container.scrollTop + container.clientHeight;
+  if (rowTop < viewTop) {
+    container.scrollTo({
+      top: Math.max(0, rowTop - STICKY_HEADER_HEIGHT - SCROLL_MARGIN),
+      behavior: "smooth",
+    });
+  } else if (rowBottom > viewBottom) {
+    container.scrollTo({
+      top: rowBottom - container.clientHeight + SCROLL_MARGIN,
+      behavior: "smooth",
+    });
+  }
+}
+
 interface UseHighlightedRowOptions<TData> {
   table: Table<TData>;
   /** The row to mark, as the backend remembers it (see ResultSet.highlightRowId). */

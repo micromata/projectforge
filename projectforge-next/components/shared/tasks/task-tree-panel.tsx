@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
 import { isSelectableTask, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,11 @@ export function TaskTreePanel({
           below its tree page (TaskTreePage's "info" label). */}
       <Alert>
         <AlertDescription>
-          {t(pageMode ? "task.tree.info" : "task.selectPanel.info")}
+          {/* The hint carries markdown (a lead-in plus the key bindings as a list); rendered like
+              every other `*.info` text in the bundle rather than as one flat paragraph. */}
+          <MarkdownText
+            text={t(pageMode ? "task.tree.info" : "task.selectPanel.info")}
+          />
         </AlertDescription>
       </Alert>
     </div>

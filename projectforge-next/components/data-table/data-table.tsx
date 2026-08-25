@@ -17,7 +17,8 @@ import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
-import { useHighlightedRow } from "./use-highlighted-row";
+import { scrollRowIntoView, useHighlightedRow } from "./use-highlighted-row";
+import type { KeyboardNav } from "./use-keyboard-nav";
 import {
   recallMarkedRowId,
   rememberMarkedRow,
@@ -87,6 +88,14 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    */
   selection?: RowSelection;
 
+  /**
+   * Drive the table from the keyboard without the multi-select mode: one focused row moved by the
+   * arrow keys, the domain deciding what each key does to it (see KeyboardNav). Mutually exclusive
+   * with [selection] in practice — a table is either picking rows or being walked through, not both.
+   * The structure tree passes this so it reads like a file explorer (see useTreeKeyboard).
+   */
+  keyboardNav?: KeyboardNav;
+
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
   /**
@@ -129,6 +138,7 @@ export function DataTable<TData>({
   highlightScope,
   viewScope,
   selection,
+  keyboardNav,
   pageSizeOptions,
   showPagination = true,
   emptyState,
@@ -164,6 +174,14 @@ export function DataTable<TData>({
     bodyRef.current?.focus({ preventScroll: true });
     focusFirstRow();
   }, [focusFirstRow]);
+  // Keyboard navigation moves a focused row that the table has to keep on screen — but only when it
+  // scrolls off, so arrowing between rows already visible doesn't jerk the viewport (see
+  // scrollRowIntoView). The row must be in the document first, hence an effect and not the key handler.
+  const keyboardFocusedRowId = keyboardNav?.focusedRowId;
+  useEffect(() => {
+    if (keyboardFocusedRowId == null) return;
+    scrollRowIntoView(scrollRef.current, keyboardFocusedRowId);
+  }, [keyboardFocusedRowId]);
   // Both work on the same container and the same settled rows, and the highlight has the last word —
   // hence the flag between them rather than two hooks scrolling independently.
   const highlightPending = useHighlightedRow({
@@ -300,9 +318,23 @@ export function DataTable<TData>({
                 is the marked row (`row-focused`). */}
             <TableBody
               ref={bodyRef}
-              className={selection ? "outline-none" : undefined}
-              tabIndex={selection ? 0 : undefined}
-              onKeyDown={selection?.onKeyDown}
+              className={selection || keyboardNav ? "outline-none" : undefined}
+              tabIndex={selection || keyboardNav ? 0 : undefined}
+              onKeyDown={selection?.onKeyDown ?? keyboardNav?.onKeyDown}
+              // Clicking into the body focuses it (it is `tabIndex=0`); this also moves the keyboard
+              // focus onto the clicked row, so the arrow keys continue from where the user pointed
+              // rather than from the top. The row id is read off the nearest `[data-row-id]`, so no
+              // per-row handler is needed.
+              onMouseDown={
+                keyboardNav
+                  ? (event) => {
+                      const rowId = (event.target as HTMLElement)
+                        .closest("[data-row-id]")
+                        ?.getAttribute("data-row-id");
+                      if (rowId) keyboardNav.focusRow(rowId);
+                    }
+                  : undefined
+              }
               aria-multiselectable={selection ? true : undefined}
             >
               {showSkeleton ? (
@@ -349,7 +381,8 @@ export function DataTable<TData>({
                       rowClassName?.(row.original),
                       row.id === markedRowId && "row-highlighted",
                       selection && row.getIsSelected() && "row-selected",
-                      selection?.focusedRowId === row.id && "row-focused"
+                      (selection?.focusedRowId ?? keyboardNav?.focusedRowId) ===
+                        row.id && "row-focused"
                     )}
                   />
                 ))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
 import { TaskTreeFilterBar } from "./task-tree-filter";
 import { useTaskTreeColumns } from "./use-task-tree-columns";
+import { useTreeKeyboard } from "./use-tree-keyboard";
 
 /** The tree column, whose click means "expand" rather than "select". */
 const TREE_COLUMN = "title";
@@ -87,6 +88,15 @@ export function TaskTreeTable({
     [pageActions]
   );
   const columns = useTaskTreeColumns(grid, onToggle, linkEnabled, rowAction);
+
+  // File-explorer keys over the tree: ↑/↓ move the focus, →/← expand and collapse, Enter opens (or,
+  // in a select popover, picks) the focused element. `onSelect` is wrapped so the hook always has a
+  // handler; where the panel passes none, the key is simply a no-op.
+  const selectTask = useCallback(
+    (task: TaskNode) => onSelect?.(task),
+    [onSelect]
+  );
+  const keyboardNav = useTreeKeyboard(nodes, onToggle, selectTask);
 
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
   // initial answer, and this component only exists once that has arrived.
@@ -179,6 +189,7 @@ export function TaskTreeTable({
         // The tree is a file-explorer view: the more of a deep structure fits on screen, the better
         // (see Wicket's taskTree), so its rows are tighter than an ordinary list's.
         dense
+        keyboardNav={keyboardNav}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {
