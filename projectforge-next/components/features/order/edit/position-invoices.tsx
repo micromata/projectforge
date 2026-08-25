@@ -45,9 +45,12 @@ export function PositionInvoices({
       </p>
       <p className="mt-1 text-sm tabular-nums">
         {formatCurrency(invoiceInfo.invoicedSum, format)}
+        {/* „noch nicht fakturiert", not „zu fakturieren": this is `OrderPositionInfo.notYetInvoiced` —
+            the commissioned amount not yet billed (an information) — not the part of it that is due now
+            (the to-do). See `AuftragsPosition.notInvoicedSum` and order-statistics.ts. */}
         {invoiceInfo.notInvoicedSum != null && (
           <span className="text-muted-foreground">
-            {` / ${formatCurrency(invoiceInfo.notInvoicedSum, format)} ${t("fibu.toBeInvoiced")}`}
+            {` / ${formatCurrency(invoiceInfo.notInvoicedSum, format)} ${t("fibu.notYetInvoiced")}`}
           </span>
         )}
       </p>
