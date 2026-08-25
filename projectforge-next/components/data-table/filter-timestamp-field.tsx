@@ -5,6 +5,7 @@ import { DateTimeInput } from "@/components/shared/date-time-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
+import { CUSTOM_PERIOD_KIND } from "@/lib/date-period";
 import {
   anchorOfInstantBounds,
   instantBoundsOfPeriod,
@@ -12,7 +13,7 @@ import {
 import { DEFAULT_TO_TIME } from "@/lib/user-zone";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import type { FilterInputProps } from "./filter-field-inputs";
-import { periodOfInstantValue } from "./filter-period";
+import { editedInstantValue, periodOfInstantValue } from "./filter-period";
 import { useFilterPeriodKinds } from "./filter-period-kinds";
 import { IntervalPresetsSelect } from "./filter-interval-presets-select";
 
@@ -48,13 +49,9 @@ export function TimestampRangeField({
     part: "from" | "to",
     iso: string | null
   ): MagicFilterEntryValue | undefined {
-    // As in [RangeField]: an edited bound dissolves the art.
-    const merged = {
-      ...value,
-      periodKind: undefined,
-      [part]: iso ?? undefined,
-    };
-    return merged.from || merged.to ? merged : undefined;
+    // As in [RangeField]: a typed begin keeps the art and drags the end along it, a typed end dissolves it
+    // (see [editedInstantValue]).
+    return editedInstantValue(value, part, iso, kinds, ctx);
   }
 
   return (
@@ -92,6 +89,9 @@ export function TimestampRangeField({
           const bounds = instantBoundsOfPeriod(kind, anchor, ctx);
           if (bounds) onChange({ ...bounds, periodKind: kind.id });
         }}
+        // As in [RangeField]: releases the art for a free range, keeping the two bounds, so a whole month
+        // no longer snaps the begin back to its first day.
+        onClear={() => onChange({ ...value, periodKind: CUSTOM_PERIOD_KIND })}
         // Room for the spelled-out art on its own line below the two bounds, unlike the form grid.
         longLabel
       />

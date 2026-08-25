@@ -44,3 +44,17 @@ export async function pickKind(
     .getByRole("option", { name: kindName(format, kind), exact: true })
     .click();
 }
+
+/**
+ * Picks the "Eigener Zeitraum" entry, which releases the art in effect while keeping the two dates — the
+ * first entry the picker grows once an art is on (see [PeriodQuickSelect]).
+ */
+export async function pickCustom(
+  page: Page,
+  format: UserFormat
+): Promise<void> {
+  await picker(page, format).click();
+  await page
+    .getByRole("option", { name: format.t("duration.custom"), exact: true })
+    .click();
+}

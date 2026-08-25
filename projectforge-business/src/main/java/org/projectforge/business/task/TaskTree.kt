@@ -340,7 +340,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @param recursive If true then search the ancestor task for cost definitions if current task haven't.
      * @return Available Kost2DOs or null, if no Kost2DO found.
      */
-    fun getKost2List(taskId: Long?, recursive: Boolean): List<Kost2DO?>? {
+    fun getKost2List(taskId: Long?, recursive: Boolean): List<Kost2DO>? {
         val node = getTaskNodeById(taskId)
         return getKost2List(node, recursive)
     }

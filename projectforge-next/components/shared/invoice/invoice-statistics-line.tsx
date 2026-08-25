@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
+import { plusYears } from "@/lib/date-period-math";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -25,12 +26,27 @@ const DATE_FIELD = "datum";
 /** The gross-with-discount column is dropped from the comparison table — see [InvoiceStatisticsLine]. */
 const MIT_SKONTO = "fibu.rechnung.mitSkonto";
 
-/** Whether the filter carries a bounded Rechnungsdatum range, so a year-earlier period exists. */
-function hasBoundedDateRange(filter: MagicFilter | undefined): boolean {
+/** The bounded Rechnungsdatum range of the filter, or null when either bound is missing. */
+function boundedDateRange(
+  filter: MagicFilter | undefined
+): { from: string; to: string } | null {
   const value = filter?.entries.find(
     (entry) => entry.field === DATE_FIELD
   )?.value;
-  return !!value?.from && !!value?.to;
+  return value?.from && value?.to ? { from: value.from, to: value.to } : null;
+}
+
+/**
+ * The window the previous-year row actually compares against: the invoice-date range shifted twelve
+ * months back, exactly as the backend builds it (`OutgoingInvoiceEntityRest.previousYearFilter` does
+ * `minusYears(1)` on both bounds and drops the period kind). Reconstructed here so the label can name
+ * the dates — "Vorjahr" over a year-to-date range means a partial year, not 01.01.–31.12.
+ */
+function previousYearPeriod(
+  range: { from: string; to: string } | null
+): { from: string; to: string } | null {
+  if (!range) return null;
+  return { from: plusYears(range.from, -1), to: plusYears(range.to, -1) };
 }
 
 /**
@@ -76,10 +92,11 @@ export function InvoiceStatisticsLine({
   const tableEntries = entries.filter((entry) => entry.labelKey !== MIT_SKONTO);
   const expanded = !!previousYearComparison && comparison.length > 0;
 
+  const dateRange = boundedDateRange(filter);
   const caret = setPreviousYearComparison ? (
     <InvoiceComparisonToggle
       expanded={expanded}
-      canCompare={hasBoundedDateRange(filter)}
+      canCompare={!!dateRange}
       onToggle={setPreviousYearComparison}
     />
   ) : null;
@@ -96,6 +113,7 @@ export function InvoiceStatisticsLine({
         <InvoiceStatisticsTable
           current={tableEntries}
           comparison={comparison}
+          previousPeriod={previousYearPeriod(dateRange)}
           corner={caret}
         />
       ) : (

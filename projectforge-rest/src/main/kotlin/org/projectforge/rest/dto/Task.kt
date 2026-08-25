@@ -156,7 +156,9 @@ class Task(id: Long? = null,
         val node = TaskTree.instance.getTaskNodeById(id) ?: return
         consumption = Consumption.create(node)
         val serviceTask = TaskServicesRest.Task(id)
-        TaskServicesRest.addKost2List(serviceTask, includeKost2ObjectList = false)
+        // Non-recursive: the list column, like the tree's, shows a task's own cost units, not the ones it
+        // inherits (see TaskServicesRest.addKost2List). Display only — no bookable object list here.
+        TaskServicesRest.addKost2List(serviceTask, includeKost2ObjectList = false, recursive = false)
         TaskServicesRest.addOrderList(serviceTask)
         kost2WildCard = serviceTask.kost2WildCard
         kost2ListAsLines = serviceTask.kost2ListAsLines

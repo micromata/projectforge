@@ -85,6 +85,19 @@ export interface Period {
 
 export { PERIOD_KINDS };
 
+/**
+ * The marker a filter value carries once the user released the art for a free range ("Eigener Zeitraum"):
+ * the two dates are kept, but no art is read back off them, so a range that happens to be a whole calendar
+ * month is no longer snapped when its begin is retyped. It is deliberately no [PeriodKindId] — `periodKindOf`
+ * returns null for it, which is what makes the derivation fall away (see `periodOfDateValue`).
+ */
+export const CUSTOM_PERIOD_KIND = "custom";
+
+/** Whether a stored `periodKind` is the free-range marker rather than one of the arts. */
+export function isCustomPeriod(periodKind: string | null | undefined): boolean {
+  return periodKind === CUSTOM_PERIOD_KIND;
+}
+
 /** The ids of the term kinds, for a field that offers all of them — a period of performance. */
 export const TERM_KIND_IDS: readonly PeriodKindId[] = TERM_KINDS.map(
   (kind) => kind.id

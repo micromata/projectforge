@@ -32,6 +32,11 @@ export interface DatePeriodFieldProps {
    * [periodKinds]: a period entered by hand pages by the days it spans.
    */
   paging?: boolean;
+  /**
+   * Spell the art out in its trigger ("3 Monate") rather than abbreviate it ("3M"), for a grid cell with
+   * the room for it (see [PeriodQuickSelect]). Off by default, as the narrow position grid needs.
+   */
+  longLabel?: boolean;
   className?: string;
   /** Both boxes; a period is shown-but-not-fillable as a whole, never half of it. */
   disabled?: boolean;
@@ -54,8 +59,10 @@ export interface DatePeriodFieldProps {
  * Where `periodKinds` are offered the period can also be given as a term: pick "3 Monate" and the end is
  * filled in from the begin, and from then on moving the begin moves the end with it. Which term is in
  * effect is read off the two dates rather than stored (there is no such property on the entity), so
- * editing the end by hand simply dissolves it — see [useDatePeriodKind]. Where `paging` is on, the arrows
- * beside them move the whole period on by that term, or by its day count where it is none.
+ * editing the end by hand simply dissolves it — as does the picker's "Eigener Zeitraum", which lets the
+ * term go while keeping the two dates so the begin can be moved on its own (see [useDatePeriodKind]). Where
+ * `paging` is on, the arrows beside them move the whole period on by that term, or by its day count where
+ * it is none.
  */
 export function DatePeriodField({
   label,
@@ -64,18 +71,26 @@ export function DatePeriodField({
   hint,
   periodKinds,
   paging = false,
+  longLabel = false,
   className,
   disabled,
 }: DatePeriodFieldProps) {
   const { bounds, values, invalid, errors } = useDatePeriodGroup(begin, end);
-  const { kinds, kind, onBeginChanged, onKindSelected, canStep, onStep } =
-    useDatePeriodKind({
-      beginName: begin.name,
-      endName: end.name,
-      begin: values[0],
-      end: values[1],
-      ids: periodKinds,
-    });
+  const {
+    kinds,
+    kind,
+    onBeginChanged,
+    onKindSelected,
+    onCleared,
+    canStep,
+    onStep,
+  } = useDatePeriodKind({
+    beginName: begin.name,
+    endName: end.name,
+    begin: values[0],
+    end: values[1],
+    ids: periodKinds,
+  });
 
   return (
     <fieldset
@@ -112,9 +127,13 @@ export function DatePeriodField({
           // beside a begin of 15.03. means that term, not one beginning today.
           anchor={values[0]}
           onSelect={onKindSelected}
+          // Lets the art go while keeping the two dates, so the begin can then be moved without the end
+          // following — the picker offers it as a first "Eigener Zeitraum" entry only while an art is on.
+          onClear={onCleared}
           paging={paging}
           canStep={canStep}
           onStep={onStep}
+          longLabel={longLabel}
           disabled={disabled}
         />
       </div>

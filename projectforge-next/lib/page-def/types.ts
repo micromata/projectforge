@@ -243,6 +243,11 @@ export interface DatePeriodDeclaration<
    * [periodKinds] — only where paging a period is something a user does.
    */
   paging?: boolean;
+  /**
+   * Spell the art out in its trigger ("3 Monate") rather than abbreviate it ("3M"). For the roomier
+   * forms whose grid cell fits the full name (see DatePeriodField / [PeriodQuickSelect]).
+   */
+  longLabel?: boolean;
 }
 
 /** A field the declaration cannot describe: a cost number, a keyword picker. */

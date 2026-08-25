@@ -22,6 +22,9 @@
       "newTitle": "New book"
     }
   },
+  "duration": {
+    "custom": "Custom period"
+  },
   "entityEdit": {
     "lastSaved": "Last saved: {time}",
     "notFound": "Entry not found.",

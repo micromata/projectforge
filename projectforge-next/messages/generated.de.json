@@ -965,7 +965,8 @@
         "currentPeriod": "Aktuell",
         "previousYear": "Vorjahr",
         "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
-        "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum."
+        "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum.",
+        "previousYearPeriod": "Vergleichszeitraum"
       },
       "status": {
         "_": "Rechnungsstatus",

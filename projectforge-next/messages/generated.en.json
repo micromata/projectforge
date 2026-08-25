@@ -965,7 +965,8 @@
         "currentPeriod": "Current",
         "previousYear": "Previous year",
         "previousYearComparison": "Previous-year comparison (same period)",
-        "previousYearComparisonHint": "Only for a bounded invoice-date range."
+        "previousYearComparisonHint": "Only for a bounded invoice-date range.",
+        "previousYearPeriod": "Comparison period"
       },
       "status": {
         "_": "Status of invoice",

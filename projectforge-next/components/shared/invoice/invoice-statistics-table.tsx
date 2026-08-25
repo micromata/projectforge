@@ -3,9 +3,14 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
-import { formatCurrency, type FormatContext } from "@/lib/format";
+import {
+  formatCurrency,
+  formatDateRange,
+  type FormatContext,
+} from "@/lib/format";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   TONE_CLASS,
   type InvoiceComparisonEntry,
@@ -56,10 +61,17 @@ function headerLabel(labelKey: string, has: (key: string) => boolean): string {
 export function InvoiceStatisticsTable({
   current,
   comparison,
+  previousPeriod,
   corner,
 }: {
   current: InvoiceStatisticsEntry[];
   comparison: InvoiceComparisonEntry[];
+  /**
+   * The window the "Vorjahr" row compares against — the invoice-date range shifted a year back. Shown as
+   * a "*" footnote on the row's label, because "Vorjahr" over a year-to-date range is a partial year, not
+   * a whole one; null when there is no bounded range (then the comparison is not shown at all).
+   */
+  previousPeriod?: { from: string; to: string } | null;
   corner?: ReactNode;
 }) {
   const t = useTranslations();
@@ -107,6 +119,20 @@ export function InvoiceStatisticsTable({
               className="px-4 py-0.5 text-left text-[11px] font-medium"
             >
               {t("fibu.rechnung.statistics.previousYear")}
+              {previousPeriod && (
+                <HintTooltip
+                  title={t("fibu.rechnung.statistics.previousYearPeriod")}
+                  text={formatDateRange(
+                    previousPeriod.from,
+                    previousPeriod.to,
+                    format
+                  )}
+                  plain
+                >
+                  {/* A footnote marker, not a control: the caret in the corner already toggles the row. */}
+                  <sup className="ml-0.5 cursor-help">*</sup>
+                </HintTooltip>
+              )}
             </th>
             {comparison.map((entry) => (
               <MetricCells

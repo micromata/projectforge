@@ -1,4 +1,9 @@
-import { periodKindOf, type Period, type PeriodKind } from "@/lib/date-period";
+import {
+  isCustomPeriod,
+  periodKindOf,
+  type Period,
+  type PeriodKind,
+} from "@/lib/date-period";
 import { boundsOfPeriod, periodOfBounds } from "@/lib/date-period-bounds";
 import {
   instantBoundsOfPeriod,
@@ -40,12 +45,19 @@ function storedPeriod(
   }
 }
 
-/** The period of a DATE filter value: the art it remembers, else the one its two dates are. */
+/**
+ * The period of a DATE filter value: the art it remembers, else the one its two dates are.
+ *
+ * A value the user set to "Eigener Zeitraum" ([CUSTOM_PERIOD_KIND]) is no period at all, however whole a
+ * calendar month its two dates may happen to be: the free-range marker exists precisely to stop that
+ * read-back, so the begin can then be retyped to a non-first day without being snapped.
+ */
 export function periodOfDateValue(
   value: MagicFilterEntryValue | undefined,
   kinds: readonly PeriodKind[],
   ctx: FormatContext
 ): Period | null {
+  if (isCustomPeriod(value?.periodKind)) return null;
   return (
     storedPeriod(value, value?.from, kinds, ctx) ??
     periodOfBounds(value?.from, value?.to, kinds, ctx)
@@ -58,10 +70,76 @@ export function periodOfInstantValue(
   kinds: readonly PeriodKind[],
   ctx: FormatContext
 ): Period | null {
+  if (isCustomPeriod(value?.periodKind)) return null;
   return (
     storedPeriod(value, zonedPartsOf(value?.from, ctx)?.date, kinds, ctx) ??
     periodOfInstantBounds(value?.from, value?.to, kinds, ctx)
   );
+}
+
+/** The free result of a hand-typed bound: the art gone, and undefined once no bound is left. */
+function freeEdit(
+  value: MagicFilterEntryValue | undefined,
+  part: "from" | "to",
+  raw: string | null
+): MagicFilterEntryValue | undefined {
+  const merged = { ...value, periodKind: undefined, [part]: raw ?? undefined };
+  return merged.from || merged.to ? merged : undefined;
+}
+
+/**
+ * The value after a DATE bound was typed by hand.
+ *
+ * The end frees the range — the two dates are the user's again, and "bis heute" must not drag the other
+ * end along tomorrow. A begin typed while an art is in effect keeps it instead and re-anchors the whole
+ * period on that begin (`boundsOfPeriod`), so the end follows: a term measured off the new begin, "Jahr
+ * bis heute" ending today again, and the calendar month snapped to the first of the begin's month — the
+ * one asymmetry the stepper's [RangeField] `onSelect` does not have.
+ */
+export function editedDateValue(
+  value: MagicFilterEntryValue | undefined,
+  part: "from" | "to",
+  raw: string | null,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): MagicFilterEntryValue | undefined {
+  if (part === "from" && raw) {
+    const period = periodOfDateValue(value, kinds, ctx);
+    if (period) {
+      try {
+        return {
+          ...boundsOfPeriod(period.kind, raw, ctx),
+          periodKind: period.kind.id,
+        };
+      } catch {
+        // A begin this art cannot compute from: fall through to the free range below.
+      }
+    }
+  }
+  return freeEdit(value, part, raw);
+}
+
+/** The same for a TIMESTAMP filter, whose begin is an instant and re-anchors on its date in the zone. */
+export function editedInstantValue(
+  value: MagicFilterEntryValue | undefined,
+  part: "from" | "to",
+  raw: string | null,
+  kinds: readonly PeriodKind[],
+  ctx: FormatContext
+): MagicFilterEntryValue | undefined {
+  if (part === "from" && raw) {
+    const period = periodOfInstantValue(value, kinds, ctx);
+    const anchor = zonedPartsOf(raw, ctx)?.date;
+    if (period && anchor) {
+      try {
+        const bounds = instantBoundsOfPeriod(period.kind, anchor, ctx);
+        if (bounds) return { ...bounds, periodKind: period.kind.id };
+      } catch {
+        // A begin this art cannot compute from: fall through to the free range below.
+      }
+    }
+  }
+  return freeEdit(value, part, raw);
 }
 
 /** Whether a value's bounds are instants (a time of day) rather than plain dates — an `hh:mm` says so. */
