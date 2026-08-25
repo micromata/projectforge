@@ -7,7 +7,7 @@ import type { WizardGroups } from "./types";
  *
  * Same pattern and same reasoning as [usePendingClone]: this app is a static export, so no state
  * rides along a route change, and the url carries only the *fact* that something was created
- * (`?savedId=42`, see EditReturn.savedRoute) while the payload waits in a module variable.
+ * (`?highlightId=42`, see EditReturn.savedRoute) while the payload waits in a module variable.
  *
  * Reading is idempotent — the wizard can mount more than once for one navigation (a Suspense retry,
  * React's double invocation in development) — so nothing is consumed here. What ends it is the next

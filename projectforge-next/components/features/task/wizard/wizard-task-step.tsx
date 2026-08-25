@@ -66,7 +66,7 @@ export function WizardTaskStep({
         onOpenChange={setOpen}
       />
       {/* Into this app, since the task pages are migrated — and back here with the id of what was
-          saved (`?savedId=`, see useEditReturn), so the element just added is the one the wizard goes
+          saved (`?highlightId=`, see useEditReturn), so the element just added is the one the wizard goes
           on with. The groups picked so far don't fit into a url and travel outside React instead (see
           wizard-handover.ts). */}
       <HintTooltip text={t("task.wizard.button.createTask.tooltip")}>

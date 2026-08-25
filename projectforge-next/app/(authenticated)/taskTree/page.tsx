@@ -3,12 +3,14 @@
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { recallMarkedRowId } from "@/components/data-table";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import {
   taskHref,
-  SAVED_ID_PARAM,
+  HIGHLIGHT_ID_PARAM,
   TASK_TREE_ROUTE,
+  TASK_TREE_VIEW_SCOPE,
 } from "@/components/shared/tasks/task-routes";
 import { TaskTreeActionBar } from "@/components/shared/tasks/task-tree-action-bar";
 import { TaskTreePanel } from "@/components/shared/tasks/task-tree-panel";
@@ -32,7 +34,7 @@ import { useTaskTree } from "@/components/shared/tasks/use-task-tree";
 export default function TaskTreePage() {
   return (
     <PageShell>
-      {/* Header and tree together read `?savedId=`, and `useSearchParams` needs this boundary under
+      {/* Header and tree together read `?highlightId=`, and `useSearchParams` needs this boundary under
           `output: "export"` — the first, empty read is the tree without a marked row. */}
       <Suspense>
         <TaskTreeBody />
@@ -44,16 +46,22 @@ export default function TaskTreePage() {
 /**
  * Header and tree, split off for the `<Suspense>` above.
  *
- * A save on the task form returns here with the id of the written element (`?savedId=`, see
- * `EditDef.returnTargets` and useEditReturn), and that element is the row to mark — the server opens its
- * ancestors for it, so it is on screen even if its part of the tree was folded. Wicket does the same
- * with `PARAMETER_HIGHLIGHTED_ROW`.
+ * The row to mark comes from one of two places, and both get the same treatment — the server opens its
+ * ancestors (so it is on screen even where the tree was folded), the panel marks it and scrolls to it,
+ * as Wicket's `PARAMETER_HIGHLIGHTED_ROW` does:
+ * - a *save* returns with the written element's id in the url (`?highlightId=`, see
+ *   `EditDef.returnTargets` and useEditReturn), which wins while it is there;
+ * - *Cancel* and the browser's back button carry no id, so the last row opened from here stands in —
+ *   remembered in the shared list memory the tree writes on select (see TaskTreeTable) and every list
+ *   page uses through its `viewScope` (rememberMarkedRow/recallMarkedRowId).
  */
 function TaskTreeBody() {
   const t = useTranslations();
   const router = useRouter();
-  const savedId = Number(useSearchParams().get(SAVED_ID_PARAM));
-  const highlightTaskId = savedId > 0 ? savedId : null;
+  const urlHighlightId = Number(useSearchParams().get(HIGHLIGHT_ID_PARAM));
+  const recalled = Number(recallMarkedRowId(TASK_TREE_VIEW_SCOPE));
+  const highlightTaskId =
+    urlHighlightId > 0 ? urlHighlightId : recalled > 0 ? recalled : null;
   const tree = useTaskTree({ highlightTaskId, showRootForAdmins: true });
 
   return (

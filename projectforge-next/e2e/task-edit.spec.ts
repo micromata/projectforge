@@ -348,10 +348,10 @@ test.describe("task edit", () => {
 
     // A save leaves for the caller, which is the whole point of `returnTargets` — the task list has
     // no page yet, so landing there would be a 404 of the static export. And it names what was saved
-    // (`?savedId=`, see SAVED_ID_PARAM), which is the only thing the tree could mark a row by: its
-    // rows are the visible nodes of a tree, not a result set with a stored highlight.
+    // (`?highlightId=`, see HIGHLIGHT_ID_PARAM), which is the only thing the tree could mark a row by:
+    // its rows are the visible nodes of a tree, not a result set with a stored highlight.
     await expect(page).toHaveURL(
-      new RegExp(`${TREE}\\?savedId=${seededTask.id}$`),
+      new RegExp(`${TREE}\\?highlightId=${seededTask.id}$`),
       { timeout: 20_000 }
     );
 

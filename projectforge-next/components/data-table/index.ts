@@ -37,6 +37,8 @@ export {
   recallPageIndex,
   useRememberPageIndex,
   useRememberScroll,
+  rememberMarkedRow,
+  recallMarkedRowId,
 } from "./use-list-view-memory";
 export { useTableState } from "./use-table-state";
 export type { ColumnState, TableStateResult } from "./use-table-state";

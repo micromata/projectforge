@@ -25,8 +25,8 @@ export const TASK_WIZARD_ROUTE = "/taskWizard";
  * The element the wizard opens on, as a parameter of its url — how the task's own form starts the
  * wizard for the element on screen (see TASK_PAGE.crossLinks).
  *
- * Not [SAVED_ID_PARAM], although both end up in the same first step: that one means "this element was
- * just created for the wizard" and comes with the groups picked before that detour
+ * Not [HIGHLIGHT_ID_PARAM], although both end up in the same first step: that one means "this element
+ * was just created for the wizard" and comes with the groups picked before that detour
  * (see wizard-handover.ts). This one is a plain preset, and the wizard is otherwise fresh.
  */
 export const WIZARD_TASK_PARAM = "taskId";
@@ -44,14 +44,27 @@ export function taskWizardHref(options?: { taskId?: number | null }): string {
 }
 
 /**
- * The parameter a caller of the task form gets the id of the saved element back in — set by the form
- * (`EditDef.returnTargets`, see useEditReturn) and read by the page that returns.
+ * The parameter a caller of the task form gets the id of the written element back in — set by the form
+ * on a successful save (`EditDef.returnTargets`, see useEditReturn) and read by the page that returns.
  *
- * Two callers ask for it: the wizard goes on with the element that was just created, and the tree
- * marks it (Wicket's `PARAMETER_HIGHLIGHTED_ROW`). Beside the routes for the same reason they are
- * here — the form's declaration and both pages need it, and none of them may import the other.
+ * Named for what the returning page does with it rather than where it came from: two callers ask for
+ * it, and the tree *highlights* the row (Wicket's `PARAMETER_HIGHLIGHTED_ROW`) while the wizard goes on
+ * with the element that was just created — the same id, put to two uses. Beside the routes for the
+ * same reason they are here — the form's declaration and both pages need it, and none of them may
+ * import the other.
  */
-export const SAVED_ID_PARAM = "savedId";
+export const HIGHLIGHT_ID_PARAM = "highlightId";
+
+/**
+ * What the tree page remembers the last opened row under, so Cancel and the browser's back button mark
+ * it again the way a save's [HIGHLIGHT_ID_PARAM] does (see the shared list memory in use-list-view-memory
+ * — rememberMarkedRow/recallMarkedRowId, which every list page uses through its `viewScope`).
+ *
+ * Its own scope, distinct from the task *list*'s (`"task"`, its entity name): the two perspectives
+ * onto the same tasks should not mark each other's rows. Only the tree *page* writes it — the select
+ * dialog picks a value and never returns to a highlight.
+ */
+export const TASK_TREE_VIEW_SCOPE = "taskTree";
 
 /**
  * The url of a task's edit page, with the page to return to from it.

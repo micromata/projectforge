@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormAlert } from "@/components/shared/form-alert";
 import {
   TASK_TREE_ROUTE,
-  SAVED_ID_PARAM,
+  HIGHLIGHT_ID_PARAM,
   WIZARD_TASK_PARAM,
 } from "@/components/shared/tasks/task-routes";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
@@ -43,10 +43,10 @@ export function TaskWizard() {
   const t = useTranslations();
   const router = useRouter();
   // What a return from the task form brings back: the element that was just created — its id is in the
-  // url (`?savedId=`, see useEditReturn) — and the groups that were picked before that detour, which no
-  // url could carry (see wizard-handover.ts).
+  // url (`?highlightId=`, see useEditReturn) — and the groups that were picked before that detour,
+  // which no url could carry (see wizard-handover.ts).
   const params = useSearchParams();
-  const savedId = Number(params.get(SAVED_ID_PARAM));
+  const savedId = Number(params.get(HIGHLIGHT_ID_PARAM));
   const returning = savedId > 0;
   // The element a caller opened the wizard on: the task's own form, for the element on screen (see
   // TASK_PAGE.crossLinks). Only the first step is preset, the groups are picked here as always —

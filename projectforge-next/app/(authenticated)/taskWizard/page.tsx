@@ -29,7 +29,7 @@ export default function TaskWizardPage() {
         </h1>
       </div>
       <div className="flex min-h-0 flex-1 flex-col p-4">
-        {/* The wizard reads `?savedId=`, and `useSearchParams` needs this boundary under
+        {/* The wizard reads `?highlightId=`, and `useSearchParams` needs this boundary under
             `output: "export"` — nothing is rendered during the prerender anyway. */}
         <Suspense>
           <TaskWizard />

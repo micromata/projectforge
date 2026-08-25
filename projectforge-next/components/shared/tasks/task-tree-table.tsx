@@ -10,6 +10,7 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   DataTable,
   DataTableColumnPanel,
+  rememberMarkedRow,
   useColumnStatePersistenceByUrl,
   useDataTable,
   useGridStateReset,
@@ -21,7 +22,11 @@ import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
-import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
+import {
+  TASK_TREE_ROUTE,
+  TASK_TREE_VIEW_SCOPE,
+  newTaskHref,
+} from "./task-routes";
 import { TaskTreeFilterBar } from "./task-tree-filter";
 import { useTaskTreeColumns } from "./use-task-tree-columns";
 import { useTreeKeyboard } from "./use-tree-keyboard";
@@ -89,13 +94,22 @@ export function TaskTreeTable({
   );
   const columns = useTaskTreeColumns(grid, onToggle, linkEnabled, rowAction);
 
-  // File-explorer keys over the tree: ↑/↓ move the focus, →/← expand and collapse, Enter opens (or,
-  // in a select popover, picks) the focused element. `onSelect` is wrapped so the hook always has a
-  // handler; where the panel passes none, the key is simply a no-op.
+  // The one select path, for mouse (onCellClick below) and keyboard alike, so both remember the row —
+  // on the *page* only: opening a task there is what a Cancel or a browser-back returns to, so the
+  // tree marks it again the way a save's `?highlightId=` does (see the tree page and the shared list
+  // memory, rememberMarkedRow/recallMarkedRowId). A select popover picks a value and never returns to
+  // a highlight, so it writes nothing — and only a select remembers, never a toggle, which would light
+  // up a node just from browsing (recallMarkedRowId is read on every render). `onSelect` is optional,
+  // so where the panel passes none the key is a no-op.
   const selectTask = useCallback(
-    (task: TaskNode) => onSelect?.(task),
-    [onSelect]
+    (task: TaskNode) => {
+      if (pageActions) rememberMarkedRow(TASK_TREE_VIEW_SCOPE, String(task.id));
+      onSelect?.(task);
+    },
+    [pageActions, onSelect]
   );
+  // File-explorer keys over the tree: ↑/↓ move the focus, →/← expand and collapse, Enter opens (or,
+  // in a select popover, picks) the focused element.
   const keyboardNav = useTreeKeyboard(nodes, onToggle, selectTask);
 
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
@@ -206,7 +220,7 @@ export function TaskTreeTable({
           if (columnId === TREE_COLUMN && row.treeStatus !== "LEAF") {
             onToggle(row);
           } else {
-            onSelect?.(row);
+            selectTask(row);
           }
         }}
         // In a dialog the table fills the bounded body (flex-1); on its own page it takes its natural
