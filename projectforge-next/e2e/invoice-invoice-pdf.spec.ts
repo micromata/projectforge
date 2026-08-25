@@ -125,9 +125,10 @@ test.describe("outgoing invoice PDF", () => {
       .click();
 
     // Both views of the one file are empty now: the list because it wrote its own cache, the field
-    // because the list said so (`onChanged`) — without that it would still offer a download.
+    // because the list said so (`onChanged`) — without that it would still offer a download. Each says
+    // "nothing found" in its own place, so the count is two: the field's empty state and the list's.
     await expect(page.getByText(new RegExp(escapeRegExp(name)))).toHaveCount(0);
-    await expect(page.getByText(t("nothingFound"))).toBeVisible();
+    await expect(page.getByText(t("nothingFound"))).toHaveCount(2);
   });
 
   test("refuses a file that is not a PDF, in the backend's own words", async ({

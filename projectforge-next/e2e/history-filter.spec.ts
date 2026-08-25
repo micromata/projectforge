@@ -128,8 +128,12 @@ test.describe("history filter", () => {
       })
       .focus();
     await expect(grid).toBeHidden();
+    // Scoped to the picker's popover: the list underneath can carry a "45" of its own once it grows
+    // past 45 pages, and its active page button would otherwise collide with the minute column.
     await expect(
-      page.getByRole("button", { name: "45", exact: true })
+      page
+        .locator('[data-slot="popover-content"]')
+        .getByRole("button", { name: "45", exact: true })
     ).toBeVisible();
   });
 
@@ -151,10 +155,13 @@ test.describe("history filter", () => {
     // Hour and minute in one visit — the popover deliberately stays open between the two. The hour is
     // labelled in the account's notation, the minute always as two digits, so neither label occurs in
     // the other column.
-    await page
+    // Scoped to the picker's popover: the list underneath can carry a page button of the same digits
+    // once it grows past that many pages (its active "45" collides with the minute column otherwise).
+    const picker = page.locator('[data-slot="popover-content"]');
+    await picker
       .getByRole("button", { name: hourLabelOf(13, context), exact: true })
       .click();
-    await page.getByRole("button", { name: "45", exact: true }).click();
+    await picker.getByRole("button", { name: "45", exact: true }).click();
 
     await expect(
       page.getByLabel(`${t("modificationTime")}: ${t("filter.timeFrom")}`)
