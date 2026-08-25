@@ -45,16 +45,18 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <LocaleProvider>
-            <QueryProvider>
+          {/* QueryProvider wraps LocaleProvider because the latter fetches the deployment's
+              CustomerI18nResources overrides via TanStack Query to overlay on its static catalog. */}
+          <QueryProvider>
+            <LocaleProvider>
               <TooltipProvider>
                 {children}
                 {/* More than sonner's three: a job's progress toast stays until the job is done
                     (see JobToasts) and must not be pushed out by the messages of other actions. */}
                 <Toaster richColors position="top-right" visibleToasts={5} />
               </TooltipProvider>
-            </QueryProvider>
-          </LocaleProvider>
+            </LocaleProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
