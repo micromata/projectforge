@@ -14,6 +14,24 @@ const STICKY_HEADER_HEIGHT = 28;
 const SCROLL_MARGIN = 8;
 
 /**
+ * The nearest ancestor that scrolls, so the scroll helpers can act on it.
+ *
+ * A table with its own inner scroll container is its own scroller; one grown to full height (see
+ * DataTable's `autoHeight`) is scrolled by the page instead — `<main>` in this app (see PageShell,
+ * which names the task tree as one of its scroll columns). The measurements below are all rect
+ * arithmetic, so they work on either.
+ */
+export function getScrollParent(element: HTMLElement | null): HTMLElement | null {
+  let node = element?.parentElement ?? null;
+  while (node) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+/**
  * Ids already scrolled to, keyed by scope so two entities cannot mistake each other's ids.
  *
  * Module level rather than a ref: the list unmounts on every navigation, so a ref would forget and
