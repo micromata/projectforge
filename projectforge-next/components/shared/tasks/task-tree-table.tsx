@@ -176,6 +176,9 @@ export function TaskTreeTable({
         // scrolling to it is what makes it findable in a tree of thousands. No scope: the dialog is
         // reopened in order to see the selected task, so it scrolls there every time.
         highlightRowId={highlightTaskId}
+        // The tree is a file-explorer view: the more of a deep structure fits on screen, the better
+        // (see Wicket's taskTree), so its rows are tighter than an ordinary list's.
+        dense
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {
@@ -205,14 +208,17 @@ function AddSubtaskAction({ task }: { task: TaskNode }) {
 
   return (
     <HintTooltip text={`${t("task.title.add")} (${t("task.parentTask")})`}>
-      <Button asChild variant="ghost" size="icon" aria-label={label}>
+      {/* icon-xs, not the default icon size: the button sits inline in the title cell and, even
+          revealed only on hover, its box sets the row's height. A larger one would make every tree
+          row taller than its text needs — the tree is meant to be dense (see Wicket's taskTree). */}
+      <Button asChild variant="ghost" size="icon-xs" aria-label={label}>
         <Link
           href={newTaskHref({
             parentTaskId: task.id,
             returnTo: TASK_TREE_ROUTE,
           })}
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2.5} />
+          <HugeiconsIcon icon={PlusSignIcon} size={12} strokeWidth={2.5} />
         </Link>
       </Button>
     </HintTooltip>

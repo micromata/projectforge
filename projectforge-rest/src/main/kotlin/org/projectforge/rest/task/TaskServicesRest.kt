@@ -581,7 +581,11 @@ class TaskServicesRest {
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
                     accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
         )
-        if (highlightedTaskId != null) {
+        if (selectMode && highlightedTaskId != null) {
+            // Narrowing the answer to the highlighted node's neighbourhood is the select popover's view.
+            // The tree page also passes a highlightedTaskId after a save, but there it only wants the
+            // ancestors opened (below) and the row marked client-side (Wicket's PARAMETER_HIGHLIGHTED_ROW),
+            // not the rest of the tree hidden.
             ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
         }
         openTask(ctx, open)

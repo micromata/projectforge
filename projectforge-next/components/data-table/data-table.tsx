@@ -109,6 +109,12 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * a form (SelectedEntriesTable) or inside a dialog (the task picker) must not move the app's header.
    */
   collapseLogoOnScroll?: boolean;
+  /**
+   * Tighter rows: half the vertical cell padding, for a table meant to show as many rows at once as it
+   * can - the structure tree, whose file-explorer view is judged by how much of a deep tree fits on
+   * screen (see Wicket's taskTree). Off by default, so an ordinary list keeps its comfortable spacing.
+   */
+  dense?: boolean;
 }
 
 export function DataTable<TData>({
@@ -129,6 +135,7 @@ export function DataTable<TData>({
   footer,
   className,
   collapseLogoOnScroll = false,
+  dense = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -217,7 +224,10 @@ export function DataTable<TData>({
               container the sticky header would stick to — the wrong one, since
               vertical scrolling happens further out. */}
           <table
-            className="min-w-full table-fixed border-separate border-spacing-0 text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
+            className={cn(
+              "min-w-full table-fixed border-separate border-spacing-0 text-xs [&_td]:px-2 [&_th]:h-7 [&_th]:px-2",
+              dense ? "[&_td]:py-0.5" : "[&_td]:py-1"
+            )}
             style={{ width: totalWidth }}
           >
             <colgroup>
