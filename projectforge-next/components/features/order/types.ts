@@ -142,6 +142,12 @@ export interface OrderDetail {
    * than hiding them, so a reader sees the flag without being offered a change the backend would refuse.
    */
   vollstaendigFakturiertWriteAccess?: boolean;
+  /**
+   * Whether the invoice numbers a position was invoiced with may be opened — the select access on
+   * outgoing invoices. The numbers are shown either way; false renders them as plain text rather than a
+   * link, since a non-finance reader could not open the invoice (see `Auftrag.invoicesSelectAccess`).
+   */
+  invoicesSelectAccess?: boolean;
   created?: string | null;
   lastUpdate?: string | null;
 }

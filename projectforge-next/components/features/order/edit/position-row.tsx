@@ -41,6 +41,12 @@ export interface PositionRowProps {
    */
   invoiceFlagWriteAccess: boolean;
   /**
+   * Whether the invoice numbers may link to the invoice's own page — the select access on outgoing
+   * invoices. False shows them as plain text, as Wicket's `InvoicePositionsPanel` does for a non-finance
+   * reader (see `PositionInvoices`).
+   */
+  invoicesSelectAccess: boolean;
+  /**
    * Read-only invoice data of this position, from the loaded order rather than from the form — absent
    * for a position that was never invoiced (and for one that was never saved).
    */
@@ -65,6 +71,7 @@ export function PositionRow({
   onRemove,
   onRestore,
   invoiceFlagWriteAccess,
+  invoicesSelectAccess,
   invoiceInfo,
 }: PositionRowProps) {
   const t = useTranslations();
@@ -87,6 +94,7 @@ export function PositionRow({
             position={position}
             sums={sums}
             invoiceInfo={invoiceInfo}
+            canOpenInvoice={invoicesSelectAccess}
           />
         }
         // A row just added is there to be filled in; a stored one stays folded, which is what makes an
@@ -194,6 +202,7 @@ export function PositionRow({
         {invoiceInfo?.invoicedElsewhere && (
           <PositionInvoices
             invoiceInfo={invoiceInfo}
+            canOpenInvoice={invoicesSelectAccess}
             className="md:col-span-2"
           />
         )}

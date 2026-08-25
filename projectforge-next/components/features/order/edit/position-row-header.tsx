@@ -29,6 +29,11 @@ export interface PositionRowHeaderProps {
   /** From `/rs/order/recalculate`; absent for a position that has no number yet. */
   sums: OrderPositionSums | undefined;
   invoiceInfo?: PositionInvoiceInfo;
+  /**
+   * Whether an invoice number links to the invoice's own page — the select access on outgoing invoices.
+   * False shows it as plain text, as Wicket's `InvoicePositionsPanel` does for a non-finance reader.
+   */
+  canOpenInvoice: boolean;
 }
 
 /**
@@ -39,6 +44,7 @@ export function PositionRowHeader({
   position,
   sums,
   invoiceInfo,
+  canOpenInvoice,
 }: PositionRowHeaderProps) {
   const t = useTranslations();
   const format = useFormatContext();
@@ -166,16 +172,22 @@ export function PositionRowHeader({
                 size={12}
                 className="text-muted-foreground"
               />
-              {/* `/invoice/{id}`, not `/outgoingInvoice/edit/{id}`: the generic route answers
-                  notFound() for a hand-built entity. Guarded, as in position-invoices.tsx: this
-                  link sits inside the order's own form and leads out of it. */}
-              <GuardedLink
-                href={`/invoice/${invoice.id}`}
-                className="text-primary underline-offset-2 hover:underline"
-                aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
-              >
-                {invoice.nummer}
-              </GuardedLink>
+              {canOpenInvoice ? (
+                /* `/invoice/{id}`, not `/outgoingInvoice/edit/{id}`: the generic route answers
+                   notFound() for a hand-built entity. Guarded, as in position-invoices.tsx: this
+                   link sits inside the order's own form and leads out of it. */
+                <GuardedLink
+                  href={`/invoice/${invoice.id}`}
+                  className="text-primary underline-offset-2 hover:underline"
+                  aria-label={`${t("fibu.rechnung._")} ${invoice.nummer}`}
+                >
+                  {invoice.nummer}
+                </GuardedLink>
+              ) : (
+                /* No select access on outgoing invoices: the number is shown, but not as a link the
+                   invoice page would refuse to open (see position-invoices.tsx). */
+                <span>{invoice.nummer}</span>
+              )}
             </span>
           </HintTooltip>
         )),
