@@ -12,7 +12,7 @@ import {
 import { DEFAULT_TO_TIME } from "@/lib/user-zone";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import type { FilterInputProps } from "./filter-field-inputs";
-import { periodOfInstantValue } from "./filter-period";
+import { editedInstantValue, periodOfInstantValue } from "./filter-period";
 import { useFilterPeriodKinds } from "./filter-period-kinds";
 import { IntervalPresetsSelect } from "./filter-interval-presets-select";
 
@@ -48,13 +48,9 @@ export function TimestampRangeField({
     part: "from" | "to",
     iso: string | null
   ): MagicFilterEntryValue | undefined {
-    // As in [RangeField]: an edited bound dissolves the art.
-    const merged = {
-      ...value,
-      periodKind: undefined,
-      [part]: iso ?? undefined,
-    };
-    return merged.from || merged.to ? merged : undefined;
+    // As in [RangeField]: a typed begin keeps the art and drags the end along it, a typed end dissolves it
+    // (see [editedInstantValue]).
+    return editedInstantValue(value, part, iso, kinds, ctx);
   }
 
   return (

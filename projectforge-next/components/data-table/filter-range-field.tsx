@@ -7,7 +7,7 @@ import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
 import { anchorOfBounds, boundsOfPeriod } from "@/lib/date-period-bounds";
 import type { FilterInputProps } from "./filter-field-inputs";
-import { periodOfDateValue } from "./filter-period";
+import { editedDateValue, periodOfDateValue } from "./filter-period";
 import { useFilterPeriodKinds } from "./filter-period-kinds";
 
 /**
@@ -30,14 +30,10 @@ export function RangeField({
   const kinds = useFilterPeriodKinds();
 
   function next(part: "from" | "to", raw: string | null) {
-    // The art falls away with a bound typed by hand, exactly as a term does on a form: the two dates are
-    // the user's again, and "bis heute" must not drag the other end along tomorrow.
-    const merged = {
-      ...value,
-      periodKind: undefined,
-      [part]: raw ?? undefined,
-    };
-    return merged.from || merged.to ? merged : undefined;
+    // A begin typed by hand keeps the art and drags the end along it, exactly as a term does on a form;
+    // the end typed by hand dissolves it, so the two dates are the user's again and "bis heute" cannot
+    // drag the other end along tomorrow (see [editedDateValue]).
+    return editedDateValue(value, part, raw, kinds, ctx);
   }
 
   return (

@@ -4,6 +4,7 @@ import { userFormat } from "./fixtures/format";
 import { kindName, pickKind, picker } from "./fixtures/period-kind";
 import { periodKindsOf } from "../lib/date-period";
 import { boundsOfPeriod, currentAnchorOf } from "../lib/date-period-bounds";
+import { plusDays } from "../lib/date-period-math";
 import { zonedPartsOf } from "../lib/user-zone";
 import type { FilterElement } from "../lib/rs/types";
 import {
@@ -86,10 +87,9 @@ test.describe("period stepper", () => {
     await expect(bound(page, format, field, "valueTo")).toHaveValue(
       format.date(bounds.to)
     );
-    // And the art the arrows page in stands in the trigger between them.
-    await expect(picker(page, format)).toHaveText(
-      kindName(format, MONTH, true)
-    );
+    // And the art the arrows page in stands in the trigger between them, spelled out — a filter has room
+    // for the full name, unlike the form grid (see [PeriodQuickSelect] `longLabel`).
+    await expect(picker(page, format)).toHaveText(kindName(format, MONTH));
   });
 
   test("sends the month as two dates once stepping settles", async ({
@@ -324,6 +324,35 @@ test.describe("period stepper", () => {
     await expect(bound(page, format, field, "valueTo")).toHaveValue(
       format.date(MONTH.endOf(previous, context))
     );
+  });
+
+  test("keeps the art and drags the end when the begin is typed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // A whole month in effect, then a begin typed by hand into a different, mid-month day. The art holds
+    // and the end follows it — for the calendar month the begin snaps to the first, the end to the last —
+    // where a begin typed with no art in effect would just be that one date (see [editedDateValue]).
+    await pickKind(page, format, MONTH);
+    const other = MONTH.shift(currentAnchorOf(MONTH, context), -4, context);
+    await bound(page, format, field, "value").fill(
+      format.date(plusDays(other, 14))
+    );
+
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(MONTH.beginOf(other, context))
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(MONTH.endOf(other, context))
+    );
+    // The art is still the one between the arrows (spelled out in a filter), so paging goes on from where
+    // the begin put it.
+    await expect(picker(page, format)).toHaveText(kindName(format, MONTH));
   });
 
   test("pages from an end date given on its own", async ({
