@@ -1,4 +1,5 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
+import { TERM_KIND_IDS } from "@/lib/date-period";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
@@ -297,10 +298,13 @@ export const INVOICE_PAGE = definePage<
           { name: "attachment", rows: 2 },
           {
             // One label, two dates — the way the invoice states it. The positions may each have one of
-            // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`).
+            // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`). As on the
+            // order, a term picks the end off the begin and pages the whole period on.
             periodLabelKey: "fibu.periodOfPerformance._",
             begin: "periodOfPerformanceBegin",
             end: "periodOfPerformanceEnd",
+            periodKinds: TERM_KIND_IDS,
+            paging: true,
             startsRow: true,
           },
         ],

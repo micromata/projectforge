@@ -7,6 +7,7 @@ import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
+import { TERM_KIND_IDS } from "@/lib/date-period";
 import { RECHNUNGS_POSITION_METADATA } from "@/lib/metadata/rechnungs-position.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { OrderPositionField } from "./order-position-field";
@@ -91,6 +92,8 @@ export function PositionFields({
             name: name("periodOfPerformanceEnd"),
             label: label("periodOfPerformanceEnd"),
           }}
+          periodKinds={TERM_KIND_IDS}
+          paging
           className="md:col-span-2"
         />
       )}
