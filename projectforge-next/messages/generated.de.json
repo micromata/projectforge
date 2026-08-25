@@ -151,6 +151,7 @@
     },
     "title": {
       "_": "Titel",
+      "add": "Neues Buch",
       "list": "Bücherliste"
     },
     "type": {
