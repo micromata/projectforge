@@ -158,6 +158,13 @@ export function DateInput({
             if (!refocusing.current) setPickerOpen(true);
             refocusing.current = false;
           }}
+          // A click reopens it too, not only the focus: after a pick the field keeps the focus it never
+          // gave up (see onPicked), so focusing it again fires nothing — and the calendar button that
+          // would reopen it is hidden while the focus is here. Without this a picked date could not be
+          // corrected with the mouse without leaving the field first. Harmless on the opening click,
+          // where onFocus already set it; the programmatic refocus is a focus, not a click, so it never
+          // reopens what a pick just closed.
+          onClick={() => setPickerOpen(true)}
           onChange={(e) => {
             setText(e.target.value);
             // Strict, so a date is only committed once it is fully typed.
