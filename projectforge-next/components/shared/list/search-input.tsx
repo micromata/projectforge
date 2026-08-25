@@ -65,6 +65,13 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
       <Input
         value={typed}
         onChange={(e) => setTyped(e.target.value)}
+        onKeyDown={(e) => {
+          // Escape clears the box, the way a user expects a search field to reset.
+          if (e.key === "Escape" && typed !== "") {
+            e.preventDefault();
+            setTyped("");
+          }
+        }}
         placeholder={placeholder}
         aria-label={placeholder}
         className="h-9 pl-9"
