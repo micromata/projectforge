@@ -38,7 +38,7 @@ export default function DemoPage() {
   });
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <BrandStripe />
       <SidebarProvider className="!min-h-0 flex flex-1 overflow-hidden">
         <AppSidebar />
