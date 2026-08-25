@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { LogoRow } from "@/components/shared/logo-row";
+import { StatusBar } from "@/components/shared/status-bar";
 import { SystemAlertBanner } from "@/components/shared/system-alert-banner";
 import { TopNavigation } from "@/components/shared/top-navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
@@ -54,6 +55,9 @@ export function PageShell({ children }: PageShellProps) {
       >
         {children}
       </main>
+      {/* Sibling of <main>, not inside it: shrink-0 keeps the strip pinned at the true bottom while
+          <main> takes the remaining height, exactly as Wicket's footer sits below the scroll area. */}
+      <StatusBar />
     </div>
   );
 }
