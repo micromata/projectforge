@@ -21,7 +21,9 @@ const SCROLL_MARGIN = 8;
  * which names the task tree as one of its scroll columns). The measurements below are all rect
  * arithmetic, so they work on either.
  */
-export function getScrollParent(element: HTMLElement | null): HTMLElement | null {
+export function getScrollParent(
+  element: HTMLElement | null
+): HTMLElement | null {
   let node = element?.parentElement ?? null;
   while (node) {
     const overflowY = getComputedStyle(node).overflowY;

@@ -17,7 +17,11 @@ import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
-import { scrollRowIntoView, useHighlightedRow } from "./use-highlighted-row";
+import {
+  getScrollParent,
+  scrollRowIntoView,
+  useHighlightedRow,
+} from "./use-highlighted-row";
 import type { KeyboardNav } from "./use-keyboard-nav";
 import {
   recallMarkedRowId,
@@ -124,6 +128,18 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * screen (see Wicket's taskTree). Off by default, so an ordinary list keeps its comfortable spacing.
    */
   dense?: boolean;
+  /**
+   * Grow to the full height of the rows instead of keeping an inner vertical scroller: the table is
+   * then scrolled by the page (`<main>`, see PageShell, which names the task tree as one of its scroll
+   * columns), so the whole structure stands vertically complete with nothing folded behind a scrollbar.
+   *
+   * The sticky header and the pinned columns anchor to that ancestor instead of an inner box, and the
+   * scroll helpers (see [containerRef]) act on it too. One consequence of scrolling the page in both
+   * axes: a table wider than the viewport scrolls the page's title and filter row along with it — the
+   * price of not having a second, inner scroll container that would trap the sticky header. Off by
+   * default; a bounded table (a list page, a dialog) keeps its own scroller.
+   */
+  autoHeight?: boolean;
 }
 
 export function DataTable<TData>({
@@ -146,6 +162,7 @@ export function DataTable<TData>({
   className,
   collapseLogoOnScroll = false,
   dense = false,
+  autoHeight = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -164,6 +181,16 @@ export function DataTable<TData>({
   const collapseLogo = useCollapseOnScroll(collapseLogoOnScroll);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // In autoHeight the inner div does not scroll — the page does — so the scroll helpers below have to
+  // act on that ancestor, not on `scrollRef`. Found once from the mounted table (a settled layout);
+  // null otherwise, so the ordinary bounded table keeps using its own container.
+  const scrollParentRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    scrollParentRef.current = autoHeight
+      ? getScrollParent(scrollRef.current)
+      : null;
+  }, [autoHeight]);
+  const containerRef = autoHeight ? scrollParentRef : scrollRef;
   // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
   // below, so without this they do nothing until a click happens to focus it — which is what made
   // "↑/↓ only work after I marked a row" the way the mode used to behave.
@@ -180,14 +207,14 @@ export function DataTable<TData>({
   const keyboardFocusedRowId = keyboardNav?.focusedRowId;
   useEffect(() => {
     if (keyboardFocusedRowId == null) return;
-    scrollRowIntoView(scrollRef.current, keyboardFocusedRowId);
-  }, [keyboardFocusedRowId]);
+    scrollRowIntoView(containerRef.current, keyboardFocusedRowId);
+  }, [keyboardFocusedRowId, containerRef]);
   // Both work on the same container and the same settled rows, and the highlight has the last word —
   // hence the flag between them rather than two hooks scrolling independently.
   const highlightPending = useHighlightedRow({
     table,
     highlightRowId,
-    containerRef: scrollRef,
+    containerRef,
     // Only on rows that are settled. A skeleton has no row to scroll to, and rows still being
     // fetched are the *previous* result set (`keepPreviousData`): jumping to a page of those is
     // undone a moment later, because TanStack resets the page index when the data is replaced.
@@ -195,7 +222,7 @@ export function DataTable<TData>({
     scope: highlightScope,
   });
   const rememberScroll = useRememberScroll({
-    containerRef: scrollRef,
+    containerRef,
     scope: viewScope,
     ready: !showSkeleton && !isFetching,
     highlightPending,
@@ -209,18 +236,36 @@ export function DataTable<TData>({
     (highlightRowId != null ? String(highlightRowId) : undefined);
 
   return (
-    <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
+    <div
+      className={cn(
+        "flex flex-col",
+        // A bounded table clips to its box and lets the inner div below scroll; an autoHeight one grows
+        // and hands the scrolling to the page (see [autoHeight]).
+        !autoHeight && "flex-1 overflow-hidden",
+        className
+      )}
+    >
       {/* The overlay's positioning parent, and not the scroll container below it: `inset-0` there
           would be the whole scrolled content, so the spinner would sit at the top of the rows and
           scroll out of sight instead of staying where the user is looking. */}
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div
+        className={cn(
+          "relative flex flex-col",
+          !autoHeight && "flex-1 overflow-hidden"
+        )}
+      >
         {/* Also over the skeleton, which is where the wait is longest: a first load of the order book
             takes seconds, and eight rows of grey bars say "there is a table here", not "it is being
             fetched" — least of all that it is still being fetched after the second one. */}
         {isFetching && <TableLoadingOverlay />}
         <div
           ref={scrollRef}
-          className="relative flex-1 overflow-auto bg-background"
+          className={cn(
+            "relative bg-background",
+            // The scroll container of a bounded table; in autoHeight the div just holds the table and
+            // the page scrolls, so the sticky header anchors to the page rather than to this box.
+            !autoHeight && "flex-1 overflow-auto"
+          )}
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
           // Three listeners on the one column: the tooltip clears itself, the collapse drives the logo

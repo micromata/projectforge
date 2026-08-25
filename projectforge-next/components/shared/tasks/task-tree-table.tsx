@@ -120,6 +120,9 @@ export function TaskTreeTable({
     enableColumnFilters: true,
     enableColumnResizing: true,
     manualSorting: false,
+    // The tree is never paged: it is one connected structure, shown whole as Wicket's does — so the
+    // pagination row model is left off (all rows render) and the pagination bar is hidden below.
+    manualPagination: true,
     getRowId: (row, index) => String(row.id ?? index),
   });
 
@@ -189,6 +192,13 @@ export function TaskTreeTable({
         // The tree is a file-explorer view: the more of a deep structure fits on screen, the better
         // (see Wicket's taskTree), so its rows are tighter than an ordinary list's.
         dense
+        // A tree is never paged (see manualPagination above), so the bar would only ever read
+        // "1-N of N" over the whole structure.
+        showPagination={false}
+        // On its own page the tree stands vertically complete: no inner scroller, the page scrolls, so
+        // the whole structure is there to scroll through and the help hint sits below it in the flow.
+        // In a select dialog it stays a bounded, scrolling box (autoHeight off).
+        autoHeight={pageActions}
         keyboardNav={keyboardNav}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
@@ -199,7 +209,9 @@ export function TaskTreeTable({
             onSelect?.(row);
           }
         }}
-        className="flex-1"
+        // In a dialog the table fills the bounded body (flex-1); on its own page it takes its natural
+        // height instead, so the page - not the table - scrolls (see autoHeight).
+        className={pageActions ? undefined : "flex-1"}
       />
     </>
   );
