@@ -13,13 +13,13 @@ describe("matchRoute", () => {
   });
 
   it("keeps the literal segments apart from the params", () => {
-    expect(matchRoute("/book/[id]/history", "/book/42/history")).toEqual({
+    expect(matchRoute("/order/[id]/forecast", "/order/42/forecast")).toEqual({
       id: "42",
     });
-    // /book/[id] must not swallow the deeper route, or a deep link to the history page would
+    // /order/[id] must not swallow the deeper route, or a deep link to the forecast page would
     // render the edit form with id "42".
-    expect(matchRoute("/book/[id]", "/book/42/history")).toBeNull();
-    expect(matchRoute("/book/[id]/history", "/book/42")).toBeNull();
+    expect(matchRoute("/order/[id]", "/order/42/forecast")).toBeNull();
+    expect(matchRoute("/order/[id]/forecast", "/order/42")).toBeNull();
   });
 
   it("rejects a path that is short or of another route", () => {

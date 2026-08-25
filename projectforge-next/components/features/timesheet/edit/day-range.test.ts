@@ -22,7 +22,9 @@ describe("durationMinutesOf", () => {
   it("is null while either end is missing or unparseable", () => {
     expect(durationMinutesOf(null, "2026-08-09T09:00:00.000Z")).toBeNull();
     expect(durationMinutesOf("2026-08-09T08:00:00.000Z", null)).toBeNull();
-    expect(durationMinutesOf("not-a-date", "2026-08-09T09:00:00.000Z")).toBeNull();
+    expect(
+      durationMinutesOf("not-a-date", "2026-08-09T09:00:00.000Z")
+    ).toBeNull();
   });
 });
 
@@ -44,7 +46,8 @@ describe("stopTimeForNewStart", () => {
       })
     ).toBe(
       new Date(
-        Date.parse("2026-08-09T10:00:00.000Z") + DEFAULT_DURATION_MINUTES * 60_000
+        Date.parse("2026-08-09T10:00:00.000Z") +
+          DEFAULT_DURATION_MINUTES * 60_000
       ).toISOString()
     );
   });
@@ -74,8 +77,8 @@ describe("normalizedStopTime", () => {
 
   it("passes a missing end through unchanged", () => {
     expect(normalizedStopTime(null, "2026-08-09T08:00:00.000Z")).toBeNull();
-    expect(
-      normalizedStopTime("2026-08-09T09:00:00.000Z", null)
-    ).toBe("2026-08-09T09:00:00.000Z");
+    expect(normalizedStopTime("2026-08-09T09:00:00.000Z", null)).toBe(
+      "2026-08-09T09:00:00.000Z"
+    );
   });
 });

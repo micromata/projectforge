@@ -1,8 +1,140 @@
 # Migrationsplan: Kalenderseite (`/react/calendar` → `/next/calendar`)
 
-Detailplan zu [MIGRATION.md](MIGRATION.md). Noch **nicht umgesetzt** – dieses
-Dokument hält die Analyse fest, damit die Umsetzung später ohne erneute
-Erkundung starten kann.
+Detailplan zu [MIGRATION.md](MIGRATION.md). Die Umsetzung ist **weitgehend
+abgeschlossen**; dieses Dokument hält die ursprüngliche Analyse fest und
+dokumentiert im folgenden Abschnitt den erreichten Stand.
+
+## Todo-Liste (Umsetzungsstand)
+
+Abgehakt = im Code vorhanden und dem Plan entsprechend umgesetzt.
+
+### Renderer-Voraussetzungen (Blocker)
+
+- [x] 2-Segment-Route `app/(authenticated)/[category]/[type]/` (`page.tsx` + `page-client.tsx`)
+- [x] `route-params.ts` behandelt den No-Rest-Fall (`rest.length === 0`)
+- [x] `fetchDynamic` in `lib/rs/client.ts` reicht `search?:` durch (startDate/endDate/firstHour)
+- [x] Extraktion nach `components/dynamic/dynamic-form-page.tsx`
+
+### Backend-Vertrag & RS-Client
+
+- [x] `lib/rs/calendar-types.ts` (DTO-Spiegel)
+- [x] `lib/rs/calendar.ts` (Wrapper über `request()`, alle `change*`- und Favoriten-Aufrufe)
+
+### Kalenderseite & Feature-Komponenten
+
+- [x] `app/(authenticated)/calendar/page.tsx` + `page-client.tsx`
+- [x] `calendar-page.tsx`, `full-calendar-panel.tsx`, `types.ts`, `view-config.ts`
+- [x] Hooks: `use-calendar-init`, `use-calendar-events`, `use-calendar-filter-mutations`,
+      `use-calendar-favorites`, `use-calendar-state`, `use-calendar-action`,
+      `use-goto-date`, `use-view-buttons`
+- [x] `calendar-event-content.tsx`, `calendar-event-tooltip.tsx`
+- [x] Toolbar-Familie: `calendar-toolbar`, `calendar-select`, `calendar-pill`,
+      `calendar-style-popover`, `calendar-favorites-menu`, `calendar-favorite-entry`,
+      `calendar-settings-dialog`, `calendar-vacation-selects`, `calendar-more-menu`
+- [x] Tooltip-Parser `tooltip-html.ts` ohne `dangerouslySetInnerHTML`
+
+### Shared / generischer Renderer
+
+- [x] `components/shared/color-picker.tsx`
+- [x] UICustomized-Registry mit `COLOR_CHOOSER` (`components/dynamic/customized/`,
+      `color-chooser.tsx`)
+- [ ] `components/shared/async-entity-multi-select.tsx` – **nicht als separater Shared-Baustein
+      angelegt**; die Urlaubs-Auswahl steckt in `calendar-vacation-selects.tsx`. Bei einem
+      zweiten Nutzer noch nach `shared/` zu extrahieren.
+
+### FullCalendar & Styling
+
+- [x] FullCalendar v6 Deps (`@fullcalendar/*@^6.1.x`) in `package.json`
+- [x] shadcn `hover-card` (`components/ui/hover-card.tsx`)
+- [x] `.pf-calendar`-CSS-Block in `app/globals.css`
+
+### Menü-Umschaltung & Backend
+
+- [x] `NextMigration.kt`: `"calendar" to NextPage(route = "calendar")`
+- [x] `MenuItemDefId.kt`: `CALENDAR` nutzt `getListUrl("calendar")` statt `getReactListUrl`
+- [x] `lib/hand-built-categories.ts` enthält `"calendar"`
+- [x] `app-sidebar.tsx`-Platzhalter (`href: "#"`) **absichtlich nicht** verdrahtet (plangemäß)
+
+### Tests
+
+- [x] `tooltip-html.test.ts`, `view-config.test.ts`
+- [x] `e2e/calendar.spec.ts`
+- [ ] Manuelle Verifikation & Live-Backend-Abgleich (siehe Abschnitt „Verifikation") – bei Bedarf durchführen
+
+## Edit-Komponenten (Timesheet & TeamCal-Event)
+
+Der Kalender navigiert zum Bearbeiten auf entity-Edit-Seiten. Ursprünglich war
+dafür der generische UILayout-Renderer vorgesehen; stattdessen werden diese
+Seiten **handgebaut** analog `book`/`order` (`definePage` + `EntityEditPage`,
+`@tanstack/react-form` + Zod aus den generierten Metadaten). Speichern läuft über
+das generische `lib/rs/entity.ts` (`saveOrUpdateEntity`), Validierung bleibt
+serverseitig (HTTP 406).
+
+### Timesheet – fertig
+
+- [x] `components/features/timesheet/timesheet.page.tsx` (`definePage` mit Edit-Config,
+      `returnTargets` zurück zum Kalender, `TemplatesRecentBar` als Banner)
+- [x] `edit/timesheet-edit-schema.ts` (Zod aus Metadaten, Cross-Field-Refine start < stop),
+      `edit/timesheet-edit-values.ts`, `edit/day-range.ts` (+Test)
+- [x] Sections: `task-kost2-section`, `day-range-section`, `location-field`,
+      `reference-field`, `templates-recent-bar`
+- [x] Route `app/(authenticated)/timesheet/[id]/`, RS-Helper `lib/rs/timesheet.ts`
+      (Recents/Favorites/Suggestions)
+- [x] `TimesheetDetail`/Schema spiegeln **jedes** DTO-Feld – beim Speichern geht nichts verloren
+- [x] **History-Tab.** Rendert automatisch, weil `TIMESHEET_METADATA.historizable === true`
+      und `EntityEditPage` `history: page.metadata.historizable` durchreicht. **Keine**
+      Redirect-Route `[id]/history/` nötig (anders als book/order): die Legacy-URLs zeigen
+      auf `/react/…` bzw. `/wa/…`, nicht auf `/next/timesheet/[id]/history` – siehe unten.
+- [ ] **List-Page** (`app/(authenticated)/timesheet/page.tsx`) – bewusst zurückgestellt;
+      Spalten sind in `timesheet.page.tsx` schon deklariert, aber nicht geroutet. Liste
+      bleibt vorerst in Wicket (`MenuItemDefId.TIMESHEET_LIST`). „Eine Route und eine
+      Spaltenliste, kein Umbau."
+
+### TeamCal-Event – noch nicht begonnen
+
+Es existieren nur die generierten Metadaten (`team-event.generated.ts`,
+`team-event-attendee.generated.ts`, `team-event-attachment.generated.ts`). Kein
+Feature-Ordner, keine Route, kein RS-Client. Aktiver Backend-Vertrag:
+`TeamEventPagesRest` + DTO `TeamEvent.kt`. `calEvent` ist nur ein abgeschaltetes
+Flag (`calendar.useNewCalendarEvents=false`) **ohne** Controller/DTO – ignorieren.
+
+- [ ] Feature-Gerüst analog Timesheet: `teamEvent.page.tsx`, `types.ts`,
+      `edit/*-schema.ts`, `edit/*-values.ts`, Route `app/(authenticated)/teamEvent/[id]/`
+- [ ] Scalare Sections: `subject`, `location`, `note`, `startDate`/`endDate`, `allDay`
+      (schaltet start/end zwischen TIMESTAMP und DATE). Diese Felder deckt die generierte
+      Metadatendatei ab – wie Timesheet in überschaubarer Zeit machbar.
+
+Die eigentlichen Brocken – jeweils ein eigenes Custom-Widget, **nicht** in den
+Metadaten enthalten (Relationen/`UICustomized`):
+
+- [ ] **`calendar`-Select** (Pflicht, `UISelect`) – Zuordnung zum Team-Kalender
+- [ ] **Attendees** (`MutableSet<TeamEventAttendeeDO>`) – eigener Multi-Select
+- [ ] **Reminder** – im Backend `UICustomized("calendar.reminder")`, muss als Widget
+      nachgebaut werden
+- [ ] **Recurrence / Serientermine** – `UICustomized("calendar.recurrency")` plus der
+      Rückfrage-Dialog `SeriesModificationMode` (ALL/FUTURE/SINGLE), konditional je nach
+      Master-Startdatum; `validate` verweigert das Speichern eines Serientermins ohne
+      gewählten Modus. Deckt sich mit **offenem Risiko 3** (MODAL-`ResponseAction` öffnet in
+      next noch eine Seite statt Overlay). Das ist der harte Teil.
+
+### History-Tab: nicht pro Entität anzulegen
+
+Der History-**Tab** ist entity-unabhängig: `EntityEditPage` liest
+`history: page.metadata.historizable` aus den generierten Metadaten. Jede
+historisierbare Entität (`@WithHistory` → `historizable: true`) bekommt den Tab
+automatisch, ohne eine Zeile Deklaration. Einzige Autorität ist das Backend-Flag –
+bewusst kein zweiter Ort, an dem es driften könnte.
+
+Die Route `[id]/history/` war **kein** Teil des Tabs, sondern nur ein
+Redirect-Überbleibsel für alte **Next**-Deep-Links (`/next/<entity>/<id>/history` →
+`?tab=history`) aus einer früheren Next-Iteration, in der die History eine eigene
+Seite war. Solche Next-URLs kursieren nirgends – die echten Legacy-URLs zeigen auf
+`/react/…` bzw. `/wa/…` (anderer Mechanismus, trifft diese Route nie). Die
+Redirect-Routen sind daher toter Code und wurden für alle Entitäten gelöscht (book,
+group/cost1, order, invoice, creditor-invoice, task); der Tab funktioniert ohne
+sie, und frisch migrierte Entitäten wie Timesheet bekommen sie gar nicht erst. Siehe
+den Nachtrag in [MIGRATION.md](MIGRATION.md) („die `[id]/history/`-Routen werden
+gelöscht").
 
 ## Ausgangslage
 

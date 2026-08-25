@@ -952,6 +952,21 @@ History-Request mehr auslöst und der Reiter „Verlauf“ ihn erst beim Wechsel
 absetzt; ebenso der Kommentar-Dialog (in next noch von keiner Seite erreichbar, da
 User/Gruppe dort keine handgebaute Editierseite haben) und die beiden Backend-Fixes.
 
+**Nachtrag (erledigt): die `[id]/history/`-Routen sind gelöscht.**
+Inzwischen ist die Historie ein **Tab der Edit-Seite** (`?tab=history`), der sich
+automatisch aus `EntityMetadata.historizable` ergibt – `EntityEditPage` reicht
+`history: page.metadata.historizable` durch, ohne dass eine Seite etwas deklariert.
+Die separaten Routen `app/(authenticated)/<entity>/[id]/history/` waren seitdem nur
+noch `EntityTabRedirect`-Stubs, die alte **Next**-Deep-Links
+(`/next/book/5/history` → `?tab=history`) auffingen. Solche Next-URLs kursieren aber
+nirgends: die echten Legacy-URLs zeigen auf `/react/…` bzw. `/wa/…` (anderer
+Mechanismus, trifft diese Routen nie), und eine eigenständige `/next/…/history`-Seite
+war nie released. Die Redirect-Routen waren damit toter Code und wurden für alle
+sieben Entitäten entfernt (book, group, cost1, order, invoice, creditor-invoice,
+task); der Tab funktioniert ohne sie, der Clean-Build bestätigt es. `EntityTabRedirect`
+bleibt bestehen – `order/[id]/forecast` nutzt dieselbe Mechanik weiter. Frisch
+migrierte Entitäten (z. B. `timesheet`) bekommen die Route gar nicht erst.
+
 #### Erledigt: Anhänge (`UIAttachmentList`) – generisch, nicht buchspezifisch
 
 **Was ersetzt wurde.** `BookEntityRest.createEditLayout` hängt ein
@@ -1954,9 +1969,9 @@ springt (`SearchFilter.jsx`).
   (`appendUserComment`), Fähigkeits-Flag `.../persistence/api/BaseDao.kt`
   (`supportsHistoryUserComments`) + `HistoryUserCommentSupport`;
   Frontend `projectforge-next/lib/rs/history.ts`, `hooks/use-history.ts`,
-  `components/shared/history/*`, Route
-  `app/(authenticated)/book/[id]/history/`, Reiterleiste
-  `components/shared/edit/entity-tabs.ts`; Vorlage
+  `components/shared/history/*`, Tab (`?tab=history`) über die Reiterleiste
+  `components/shared/edit/entity-tabs.ts` (die alten `[id]/history/`-Redirect-Routen
+  sind gelöscht, s. Nachtrag oben); Vorlage
   `projectforge-webapp/src/containers/page/form/history/`
 - **Menü:** `projectforge-business/.../menu/builder/MenuItemDefId.kt`,
   `MenuCreator.kt`; `projectforge-rest/.../MenuRest.kt`
