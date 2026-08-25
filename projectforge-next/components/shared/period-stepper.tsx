@@ -27,6 +27,11 @@ export interface PeriodStepperProps {
   /** Sets both bounds to the period named — picking an art, and paging where the art decides. */
   onSelect: (kind: PeriodKind, anchor: string) => void;
   /**
+   * Where given, offered as a first "Eigener Zeitraum" entry that releases the art for a free range while
+   * keeping the two dates (see [PeriodQuickSelect]). The filters pass it; a form does not.
+   */
+  onClear?: () => void;
+  /**
    * Where given, the arrows move *the bounds* through this instead of the anchor: a range that is no
    * period at all still pages, by the days it spans, and that is the caller's arithmetic (see
    * `shiftBounds`). Then `canStep` says whether there is anything to move.
@@ -75,6 +80,7 @@ export function PeriodStepper({
   current,
   anchor: hint,
   onSelect,
+  onClear,
   onStep,
   canStep = true,
   paging = true,
@@ -143,6 +149,7 @@ export function PeriodStepper({
               : (current?.anchor ?? hint ?? currentAnchorOf(picked, ctx))
           )
         }
+        onClear={onClear}
         disabled={disabled}
         longLabel={longLabel}
       />

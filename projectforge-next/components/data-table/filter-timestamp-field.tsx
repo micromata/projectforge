@@ -5,6 +5,7 @@ import { DateTimeInput } from "@/components/shared/date-time-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
+import { CUSTOM_PERIOD_KIND } from "@/lib/date-period";
 import {
   anchorOfInstantBounds,
   instantBoundsOfPeriod,
@@ -88,6 +89,9 @@ export function TimestampRangeField({
           const bounds = instantBoundsOfPeriod(kind, anchor, ctx);
           if (bounds) onChange({ ...bounds, periodKind: kind.id });
         }}
+        // As in [RangeField]: releases the art for a free range, keeping the two bounds, so a whole month
+        // no longer snaps the begin back to its first day.
+        onClear={() => onChange({ ...value, periodKind: CUSTOM_PERIOD_KIND })}
         // Room for the spelled-out art on its own line below the two bounds, unlike the form grid.
         longLabel
       />

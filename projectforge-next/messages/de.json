@@ -22,6 +22,9 @@
       "newTitle": "Neues Buch"
     }
   },
+  "duration": {
+    "custom": "Eigener Zeitraum"
+  },
   "entityEdit": {
     "lastSaved": "Zuletzt gespeichert: {time}",
     "notFound": "Eintrag nicht gefunden.",

@@ -41,6 +41,27 @@ describe("pageablePeriodOf", () => {
   });
 });
 
+describe("the custom (free-range) marker", () => {
+  // A range that IS a whole calendar month, but the user released the art for a free range.
+  const freeMonth = {
+    from: "2026-05-01",
+    to: "2026-05-31",
+    periodKind: "custom",
+  };
+
+  it("is no pageable period however whole the two dates are", () => {
+    // Without the marker this exact range infers `month` (see above) — the marker is what stops it.
+    expect(pageablePeriodOf(freeMonth, kinds, berlin)).toBeNull();
+  });
+
+  it("lets a begin be retyped off the first without snapping back", () => {
+    // The whole point: under `month` this begin would snap to 2026-05-01; here it stays and the art goes.
+    expect(
+      editedDateValue(freeMonth, "from", "2026-05-15", kinds, berlin)
+    ).toEqual({ from: "2026-05-15", to: "2026-05-31", periodKind: undefined });
+  });
+});
+
 describe("steppedPeriodValue", () => {
   const may = { from: "2026-05-01", to: "2026-05-31", periodKind: "month" };
 

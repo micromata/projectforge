@@ -59,6 +59,8 @@ export function useDatePeriodKind({
   onBeginChanged: (next: string | null) => void;
   /** From the picker: writes the end, and the begin where there was none. */
   onKindSelected: (kind: PeriodKind, anchor: string) => void;
+  /** From the picker's "Eigener Zeitraum": drops the art so the two dates are the user's, untouched. */
+  onCleared: () => void;
   /** Whether the period has a length to be paged by — false leaves the arrows disabled. */
   canStep: boolean;
   /** From the arrows: the whole period `steps` of its own lengths on. */
@@ -97,6 +99,12 @@ export function useDatePeriodKind({
       if (computed) form.setFieldValue(endName, computed);
       // Explicitly, for the render in which the values do not show it yet.
       setSelected(picked.id);
+    },
+    onCleared: () => {
+      // The dates stay as they are; only the art is let go, so moving the begin no longer drags the end. The
+      // render sync leaves it dropped as long as the two ends do not change — it only ever re-measures on a
+      // value change, and picking this changed none.
+      setSelected(null);
     },
     canStep: shiftBounds(begin, end, kind, 1, ctx) !== null,
     onStep: (steps) => {

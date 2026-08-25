@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { label, userFormat, type UserFormat } from "./fixtures/format";
-import { kindName, pickKind, picker } from "./fixtures/period-kind";
+import { kindName, pickCustom, pickKind, picker } from "./fixtures/period-kind";
 import { periodKindOf, type PeriodKind } from "../lib/date-period";
 import { endOfPeriod, shiftBounds } from "../lib/date-period-bounds";
 import { todayIso } from "../lib/date-parse";
@@ -106,6 +106,30 @@ test.describe("period of performance as a term", () => {
     // And from here the end is the user's again: moving the begin must not overwrite it.
     await type(begin(page, format), format.date("2026-03-20"));
     await expect(end(page, format)).toHaveValue(format.date("2026-04-20"));
+  });
+
+  test("lets the term go so the begin moves without the end", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, "/order/new");
+    await expect(begin(page, format)).toBeVisible();
+
+    await type(begin(page, format), format.date("2026-03-15"));
+    await pickKind(page, format, THREE_MONTHS);
+    const released = format.date(
+      endOfPeriodOf("2026-03-15", THREE_MONTHS, format)
+    );
+    await expect(end(page, format)).toHaveValue(released);
+
+    // "Eigener Zeitraum" releases the term but keeps both dates — the trigger falls back to its icon.
+    await pickCustom(page, format);
+    await expect(picker(page, format)).toHaveText("");
+    await expect(end(page, format)).toHaveValue(released);
+
+    // And now the begin is the user's alone: moving it no longer drags the end, unlike under a term.
+    await type(begin(page, format), format.date("2026-03-20"));
+    await expect(end(page, format)).toHaveValue(released);
   });
 
   test("starts a term with no begin today", async ({ loggedInPage: page }) => {

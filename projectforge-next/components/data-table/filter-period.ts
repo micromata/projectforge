@@ -1,4 +1,9 @@
-import { periodKindOf, type Period, type PeriodKind } from "@/lib/date-period";
+import {
+  isCustomPeriod,
+  periodKindOf,
+  type Period,
+  type PeriodKind,
+} from "@/lib/date-period";
 import { boundsOfPeriod, periodOfBounds } from "@/lib/date-period-bounds";
 import {
   instantBoundsOfPeriod,
@@ -40,12 +45,19 @@ function storedPeriod(
   }
 }
 
-/** The period of a DATE filter value: the art it remembers, else the one its two dates are. */
+/**
+ * The period of a DATE filter value: the art it remembers, else the one its two dates are.
+ *
+ * A value the user set to "Eigener Zeitraum" ([CUSTOM_PERIOD_KIND]) is no period at all, however whole a
+ * calendar month its two dates may happen to be: the free-range marker exists precisely to stop that
+ * read-back, so the begin can then be retyped to a non-first day without being snapped.
+ */
 export function periodOfDateValue(
   value: MagicFilterEntryValue | undefined,
   kinds: readonly PeriodKind[],
   ctx: FormatContext
 ): Period | null {
+  if (isCustomPeriod(value?.periodKind)) return null;
   return (
     storedPeriod(value, value?.from, kinds, ctx) ??
     periodOfBounds(value?.from, value?.to, kinds, ctx)
@@ -58,6 +70,7 @@ export function periodOfInstantValue(
   kinds: readonly PeriodKind[],
   ctx: FormatContext
 ): Period | null {
+  if (isCustomPeriod(value?.periodKind)) return null;
   return (
     storedPeriod(value, zonedPartsOf(value?.from, ctx)?.date, kinds, ctx) ??
     periodOfInstantBounds(value?.from, value?.to, kinds, ctx)

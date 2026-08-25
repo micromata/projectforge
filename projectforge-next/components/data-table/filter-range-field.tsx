@@ -5,6 +5,7 @@ import { DateInput } from "@/components/shared/date-input";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { RangeBounds } from "@/components/shared/range-bounds";
 import { useFormatContext } from "@/hooks/use-format";
+import { CUSTOM_PERIOD_KIND } from "@/lib/date-period";
 import { anchorOfBounds, boundsOfPeriod } from "@/lib/date-period-bounds";
 import type { FilterInputProps } from "./filter-field-inputs";
 import { editedDateValue, periodOfDateValue } from "./filter-period";
@@ -76,6 +77,9 @@ export function RangeField({
             periodKind: kind.id,
           })
         }
+        // Releases the art for a free range, keeping the two dates: the marker stops the read-back that a
+        // whole calendar month would otherwise give, so the begin can be retyped off the first of the month.
+        onClear={() => onChange({ ...value, periodKind: CUSTOM_PERIOD_KIND })}
         // Room for the spelled-out art on its own line below the two dates, unlike the form grid.
         longLabel
       />

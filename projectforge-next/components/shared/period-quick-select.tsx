@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { PeriodKind } from "@/lib/date-period";
+import { CUSTOM_PERIOD_KIND, type PeriodKind } from "@/lib/date-period";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,9 +26,11 @@ import { cn } from "@/lib/utils";
  * A list rather than a row of buttons, as the filter's [IntervalPresetsSelect] is: four terms as chips
  * would be as wide as the two dates they belong to, and only one of them can be in effect anyway.
  *
- * No "no art" entry. With nothing in effect the trigger already shows its placeholder, and an entry for it
- * would have to *do* something when picked — clear the end? leave it? — where neither is a thing anybody
- * means. An art is dissolved by editing the end, which is the box the user reaches for.
+ * A first "Eigener Zeitraum" entry appears wherever a caller passes [onClear] and an art is in effect. It
+ * releases the art while keeping the two dates, so moving the begin no longer drags the end along — the
+ * one thing editing a box cannot do: in a filter, retyping the begin under a `month` re-snaps it to the
+ * first; on a form, it drags the end to hold the term. What "letting go" means differs by surface (a
+ * filter remembers the art, a form derives it from the dates), which is why the caller passes the handler.
  *
  * Picking the art that is already in effect is not a no-op: it sets the *current* period of that art, which
  * is how one gets back to this month after paging away (the entry says so in its tooltip).
@@ -37,6 +39,7 @@ export function PeriodQuickSelect({
   kinds,
   value,
   onSelect,
+  onClear,
   disabled,
   className,
   longLabel = false,
@@ -49,6 +52,11 @@ export function PeriodQuickSelect({
    * current period (see [PeriodStepper]), and Radix would report no change for it.
    */
   onSelect: (kind: PeriodKind) => void;
+  /**
+   * Where given, a first "Eigener Zeitraum" entry that releases the art in effect for a free range. Absent
+   * on a form, whose art is derived from the dates and freed by editing them (see the class comment).
+   */
+  onClear?: () => void;
   disabled?: boolean;
   className?: string;
   /**
@@ -74,6 +82,7 @@ export function PeriodQuickSelect({
       value={value?.id ?? ""}
       disabled={disabled}
       onValueChange={(id) => {
+        if (id === CUSTOM_PERIOD_KIND) return onClear?.();
         const picked = kinds.find((kind) => kind.id === id);
         if (picked) onSelect(picked);
       }}
@@ -112,6 +121,13 @@ export function PeriodQuickSelect({
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
+        {onClear && value && (
+          // Releases the art for a free range, keeping the two dates — see the class comment. First, so it
+          // reads as "none of the below". Its value is no [PeriodKindId], so it never clashes with an art.
+          <SelectItem value={CUSTOM_PERIOD_KIND}>
+            {t("duration.custom")}
+          </SelectItem>
+        )}
         {kinds.map((kind) =>
           kind.id === value?.id ? (
             // The art already in effect: Radix reports no change for it, so the pick is taken from the

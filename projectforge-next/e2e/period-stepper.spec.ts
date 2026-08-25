@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
-import { kindName, pickKind, picker } from "./fixtures/period-kind";
+import { kindName, pickCustom, pickKind, picker } from "./fixtures/period-kind";
 import { periodKindsOf } from "../lib/date-period";
 import { boundsOfPeriod, currentAnchorOf } from "../lib/date-period-bounds";
 import { plusDays } from "../lib/date-period-math";
@@ -353,6 +353,38 @@ test.describe("period stepper", () => {
     // The art is still the one between the arrows (spelled out in a filter), so paging goes on from where
     // the begin put it.
     await expect(picker(page, format)).toHaveText(kindName(format, MONTH));
+  });
+
+  test("releases the art so the begin can leave the first of the month", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // A whole calendar month in effect: typing a mid-month begin would otherwise snap straight back to the
+    // first (the case above). "Eigener Zeitraum" releases the art while keeping the two dates, so the begin
+    // then stays where it is typed and only its own end holds.
+    await pickKind(page, format, MONTH);
+    await pickCustom(page, format);
+
+    const anchor = currentAnchorOf(MONTH, context);
+    await bound(page, format, field, "value").fill(
+      format.date(plusDays(anchor, 14))
+    );
+
+    // The begin sits on the fifteenth, not snapped to the first, and the end is untouched.
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(plusDays(anchor, 14))
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(MONTH.endOf(anchor, context))
+    );
+    // No art stands between the arrows anymore — the trigger falls back to its placeholder and the range
+    // is the user's two dates.
+    await expect(picker(page, format)).toHaveText(t("duration.choose"));
   });
 
   test("pages from an end date given on its own", async ({
