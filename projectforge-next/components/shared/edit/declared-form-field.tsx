@@ -186,6 +186,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
       {...common}
       type={meta.dataType === "DATE" ? "date" : "text"}
       disabled={readOnly}
+      emphasized={field.emphasized}
     />
   );
 }

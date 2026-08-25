@@ -227,7 +227,8 @@ export const ORDER_PAGE = definePage<
           },
           { name: "status", emphasized: true },
           { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
-          { name: "titel", span: 2 },
+          // Highlighted like the list's title column, so both set the same focus.
+          { name: "titel", span: 2, emphasized: true },
           { name: "referenz" },
           { custom: CustomerProjectFields, span: 3 },
           { name: "contactPerson" },

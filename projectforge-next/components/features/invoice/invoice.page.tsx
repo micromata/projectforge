@@ -287,7 +287,8 @@ export const INVOICE_PAGE = definePage<
           },
           { name: "status", emphasized: true },
           { name: "typ" },
-          { name: "betreff", span: 2 },
+          // Highlighted like the list's subject column, so both set the same focus.
+          { name: "betreff", span: 2, emphasized: true },
           { custom: AccountField },
           { custom: CustomerProjectFields, span: 3 },
           // Two free texts of the invoice head, both `TextArea` in Wicket and both about what the

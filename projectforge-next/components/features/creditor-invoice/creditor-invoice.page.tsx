@@ -190,7 +190,8 @@ export const CREDITOR_INVOICE_PAGE = definePage<
         titleKey: "fibu.rechnung",
         fields: [
           { name: "datum" },
-          { name: "betreff", span: 2 },
+          // Highlighted like the list's subject column, so both set the same focus.
+          { name: "betreff", span: 2, emphasized: true },
           { name: "kreditor" },
           { name: "referenz" },
           { name: "customernr" },
