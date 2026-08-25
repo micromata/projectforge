@@ -2,10 +2,11 @@ import type { Locator, Page } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import {
+  cancelButton,
   filterField,
+  listRequest,
   openPill,
   resetFilter,
-  saveButton,
 } from "./fixtures/filter-pill";
 import { pickKind } from "./fixtures/period-kind";
 import { periodKindOf, type PeriodKind } from "../lib/date-period";
@@ -55,8 +56,9 @@ test.describe("saved filter modification marker", () => {
     await expect(marker(page, format, NAME)).toHaveCount(0);
     await page.reload();
     // Still the applied favorite, and still nothing to save — although "Jahr bis heute" recomputes its
-    // end while the filter is being restored.
-    await expect(bookmark(page, NAME)).toBeVisible();
+    // end while the filter is being restored. Late in a serial full run the reloaded page compiles and
+    // restores under a loaded machine, so the wait is longer than the default here.
+    await expect(bookmark(page, NAME)).toBeVisible({ timeout: 40_000 });
     await expect(marker(page, format, NAME)).toHaveCount(0);
   });
 
@@ -80,7 +82,8 @@ test.describe("saved filter modification marker", () => {
     await expect(marker(page, format, NAME)).toHaveCount(0);
 
     await page.reload();
-    await expect(bookmark(page, NAME)).toBeVisible();
+    // The longer wait as above: the reload after the full run's load has to recompile and restore.
+    await expect(bookmark(page, NAME)).toBeVisible({ timeout: 40_000 });
     await expect(marker(page, format, NAME)).toHaveCount(0);
   });
 });
@@ -113,8 +116,11 @@ async function pickYearToDate(page: Page, format: UserFormat): Promise<void> {
   );
   await openPill(page, format.t, field.label!);
   await pickKind(page, format, YEAR_TO_DATE);
-  await saveButton(page, format.t).click();
-  await expect(saveButton(page, format.t)).toHaveCount(0);
+  // The art applies to the list on its own; wait until it has landed, then close the popover — which
+  // keeps it — so the saved-filters trigger below is uncovered.
+  await listRequest(page, ENTITY);
+  await page.keyboard.press("Escape");
+  await expect(cancelButton(page, format.t)).toHaveCount(0);
 }
 
 /** Saves the filter the list currently uses under `name`, through the menu a user goes through. */

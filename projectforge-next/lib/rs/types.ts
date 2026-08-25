@@ -125,9 +125,22 @@ export interface UserData {
   decimalSeparator: string;
 }
 
+/**
+ * Application facts carried by the authenticated `userStatus` (SystemStatusRest.SystemData).
+ * Unlike the public `/rsPublic/systemStatus` (see {@link SystemStatus}), this one is not masked —
+ * it holds the real version and build date, which is why the status bar reads them from here.
+ */
+export interface SystemData {
+  version: string;
+  buildTimestamp: string;
+  buildDate: string;
+  releaseYear: string;
+  copyRightYears: string;
+}
+
 export interface UserStatus {
   userData: UserData;
-  systemData?: Record<string, unknown>;
+  systemData?: SystemData;
   alertMessage?: string;
   /** CSRF token of the session, see setCsrfToken in ./client.ts. */
   csrfToken?: string;

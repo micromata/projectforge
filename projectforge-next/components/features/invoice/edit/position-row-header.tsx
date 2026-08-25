@@ -7,7 +7,7 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { CostAssignmentsSummary } from "./cost-assignments-summary";
+import { CostAssignmentsSummary } from "@/components/shared/invoice/cost-assignments-summary";
 import { OrderPositionLink } from "./order-position-link";
 import { usePositionDetailChips } from "./position-detail-chips";
 import type { InvoicePositionValues } from "../invoice-schema";

@@ -196,6 +196,18 @@ object NextMigration {
             newEntryRoute = "invoice/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice`
+        // is the outgoing side, and this is the incoming (creditor) one - which side the category names is
+        // what the menu says. The CSV/SEPA import wizard and the SEPA transfer export stay on Wicket for now
+        // (see MIGRATION.md), so wa/incomingInvoiceEdit stays reachable through the escape hatch. Wicket's
+        // mount points follow the convention (DaoConst.INCOMING_INVOICE + List/Edit), so no legacy route has
+        // to be spelled out.
+        "incomingInvoice" to NextPage(
+            route = "creditor-invoice",
+            editRoute = "creditor-invoice/$ID_PLACEHOLDER",
+            newEntryRoute = "creditor-invoice/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
         // *list* perspective of the entity, /next/task, as for every other page - the structure tree is
         // a second next page of the same entity, under a route of its own (/next/taskTree, served by

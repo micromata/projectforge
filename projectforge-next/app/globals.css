@@ -24,6 +24,8 @@
   --color-status-available: var(--status-available);
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
+  --color-status-bar: var(--status-bar);
+  --color-status-bar-foreground: var(--status-bar-foreground);
   --color-warning: var(--warning);
   --color-development: var(--development);
   --color-development-foreground: var(--development-foreground);
@@ -93,6 +95,10 @@
   --status-available: var(--brand-green);
   --status-available-bg: rgba(117, 190, 1, 0.1);
   --status-available-border: rgba(117, 190, 1, 0.3);
+
+  /* The Wicket-style footer strip: a dark bar with muted light text, the same in either theme. */
+  --status-bar: oklch(0.28 0 0);
+  --status-bar-foreground: oklch(0.62 0 0);
 
   /*
    * Something is questionable but allowed - a cost unit outside the invoice's project, say (see

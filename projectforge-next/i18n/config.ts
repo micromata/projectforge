@@ -36,6 +36,56 @@ export const MESSAGES: Record<Locale, Record<string, unknown>> = {
   en: mergeMessages(generatedEn as MessageTree, en as MessageTree),
 };
 
+/**
+ * Overlays a deployment's `CustomerI18nResources` onto the static catalog with highest priority.
+ *
+ * The static catalog is built from the product bundle only; a customer's overrides live in the backend's
+ * runtime resourceDir, so the frontend fetches them (flat, dotted keys — the properties form) and applies
+ * them here. Each override is written along its dotted path, mirroring the generator's own rule
+ * (`GenerateNextI18nMessagesMain.JsonNode.put`): a key that is both a leaf and a namespace keeps its leaf
+ * under the reserved `_`, so an override never silently drops a sibling namespace. The base is cloned, not
+ * mutated — the shared `MESSAGES` stays the untouched fallback.
+ */
+export function applyCustomerOverrides(
+  base: Record<string, unknown>,
+  overrides: Record<string, string> | undefined
+): Record<string, unknown> {
+  if (!overrides || Object.keys(overrides).length === 0) return base;
+  const root = structuredClone(base) as MessageTree;
+  for (const [dottedKey, value] of Object.entries(overrides)) {
+    setByDottedPath(root, dottedKey, value);
+  }
+  return root;
+}
+
+function setByDottedPath(root: MessageTree, dottedKey: string, value: string) {
+  const parts = dottedKey.split(".");
+  let node = root;
+  for (const part of parts.slice(0, -1)) {
+    const existing = node[part];
+    if (existing !== null && typeof existing === "object") {
+      node = existing;
+    } else if (typeof existing === "string") {
+      // A leaf that now needs children: keep it under "_", as the generator does.
+      const branch: MessageTree = { _: existing };
+      node[part] = branch;
+      node = branch;
+    } else {
+      const branch: MessageTree = {};
+      node[part] = branch;
+      node = branch;
+    }
+  }
+  const last = parts[parts.length - 1];
+  const existing = node[last];
+  if (existing !== null && typeof existing === "object") {
+    // A namespace already claims this name; store the override beside it under "_".
+    existing._ = value;
+  } else {
+    node[last] = value;
+  }
+}
+
 export const LOCALE_COOKIE = "pf.locale";
 
 // The backend sends the user's real time zone in userData.timeZone; this is only

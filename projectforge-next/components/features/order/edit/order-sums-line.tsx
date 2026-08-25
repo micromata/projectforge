@@ -25,20 +25,45 @@ export function OrderSumsLine({ className }: { className?: string }) {
   const format = useFormatContext();
   const { sums, isLoading } = useOrderSums();
 
-  const entries: [string, string][] = [
+  const toBeInvoiced = sums?.toBeInvoicedSum;
+  const entries: { key: string; value: string; className?: string }[] = [
     // `._` because the key is a text of its own *and* the parent of `fibu.auftrag.nettoSumme.weighted`,
     // which the generator can only express as a nested object plus a `_` leaf.
-    ["fibu.auftrag.nettoSumme._", formatCurrency(sums?.netSum, format)],
-    [
-      "fibu.auftrag.commissioned",
-      formatCurrency(sums?.commissionedNetSum, format),
-    ],
-    ["fibu.fakturiert", formatCurrency(sums?.invoicedSum, format)],
-    ["fibu.toBeInvoiced", formatCurrency(sums?.toBeInvoicedSum, format)],
-    [
-      "projectmanagement.personDays._",
-      formatNumber(sums?.personDays, format, 2),
-    ],
+    {
+      key: "fibu.auftrag.nettoSumme._",
+      value: formatCurrency(sums?.netSum, format),
+    },
+    {
+      key: "fibu.auftrag.commissioned",
+      value: formatCurrency(sums?.commissionedNetSum, format),
+    },
+    {
+      key: "fibu.fakturiert",
+      value: formatCurrency(sums?.invoicedSum, format),
+    },
+    // Two different things, kept apart as the list statistics do (see order-statistics.ts):
+    // „noch nicht fakturiert" is the commissioned amount not yet billed — an information — while
+    // „zu fakturieren" is the part of it that is due now, the accounting staff's to-do.
+    {
+      key: "fibu.notYetInvoiced",
+      value: formatCurrency(sums?.notYetInvoicedSum, format),
+    },
+    // „zu fakturieren" only when there is something due, and then in red — a 0,00 € to-do says
+    // nothing, and the list statistics drop it just the same (order-statistics.ts). The colour is the
+    // list's own token for this concept (`toBeInvoiced` tone, order-statistics-line.tsx).
+    ...(toBeInvoiced != null && toBeInvoiced > 0
+      ? [
+          {
+            key: "fibu.toBeInvoiced",
+            value: formatCurrency(toBeInvoiced, format),
+            className: "text-brand-pink",
+          },
+        ]
+      : []),
+    {
+      key: "projectmanagement.personDays._",
+      value: formatNumber(sums?.personDays, format, 2),
+    },
   ];
 
   // The period over *all* positions, beside the numbers it belongs with rather than in the head section:
@@ -50,7 +75,8 @@ export function OrderSumsLine({ className }: { className?: string }) {
     sums?.periodOfPerformanceEnd,
     format
   );
-  if (period) entries.push(["fibu.periodOfPerformance._", period]);
+  if (period)
+    entries.push({ key: "fibu.periodOfPerformance._", value: period });
 
   return (
     <dl
@@ -62,11 +88,11 @@ export function OrderSumsLine({ className }: { className?: string }) {
         className
       )}
     >
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex flex-col">
+      {entries.map(({ key, value, className: entryClassName }) => (
+        <div key={key} className={cn("flex flex-col", entryClassName)}>
           {/* Neither bold nor upper case, and the same size as in the list statistics
               ([OrderStatisticsLine]): the two lines carry the same vocabulary, so a reader who knows
-              „zu fakturieren" from the list should meet it here in the same shape. */}
+              „zu fakturieren" from the list should meet it here in the same shape — colour included. */}
           <dt className="text-[11px] opacity-70">{t(key)}</dt>
           <dd className="text-sm tabular-nums">{value}</dd>
         </div>

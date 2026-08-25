@@ -43,9 +43,10 @@ const NO_NODES: TaskNode[] = [];
  *
  * Two queries, one request on mount. The first call is the only one with `initial=true`, which is
  * what makes the backend send the column defs, the grid-state urls and the filter it has in the
- * session — and what makes it *ignore* filter parameters. It is cached for good (nothing about it
- * changes while the panel is open), so the second query only exists from the first interaction on:
- * as long as the user has neither filtered nor expanded anything, the initial answer *is* the tree.
+ * session — and what makes it *ignore* filter parameters. It never goes stale while the panel is
+ * open (but is re-read on each mount, so browser-back shows the current server state — see the query
+ * below), so the second query only exists from the first interaction on: as long as the user has
+ * neither filtered nor expanded anything, the initial answer *is* the tree.
  *
  * Expanding is a request, not local state (see lib/rs/task.ts), so both queries answer with the
  * whole visible tree and the panel has no expansion model of its own.
@@ -94,7 +95,15 @@ export function useTaskTree({
   const initial = useQuery({
     queryKey: ["taskTree", "initial", scope],
     queryFn: ({ signal }) => fetchTaskTree({ ...scope, initial: true }, signal),
+    // Stable *while the panel is open* — nothing about the initial answer changes under it, so no
+    // refetch on a window focus or a re-render. But a fresh mount re-reads it: expanding a node is
+    // stored in the user's prefs server-side (see TaskServicesRest.getTree, which mutates the cached
+    // openNodes set), so leaving the tree to open a task and coming back with the browser must show
+    // the tree as the user left it, not the folded snapshot this query first cached. `interacted`
+    // resets on that remount, so the panel falls back to this answer — which therefore has to be the
+    // current one.
     staleTime: Infinity,
+    refetchOnMount: "always",
   });
 
   const initFilter = initial.data?.initFilter;

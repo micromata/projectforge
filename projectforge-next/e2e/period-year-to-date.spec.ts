@@ -8,7 +8,6 @@ import {
   openPill,
   reopenPill,
   resetFilter,
-  saveButton,
 } from "./fixtures/filter-pill";
 import {
   periodKindOf,
@@ -120,8 +119,9 @@ test.describe("year to date", () => {
     const begin = startOfLastYear(context);
     await bound(page, format, field, "value").fill(format.date(begin));
     await pickKind(page, format, YEAR_TO_DATE);
+    // Picking the art is the last edit; the list follows it on its own (no save click). Wait for the
+    // request it settles into, which reflects the year-to-date state, not an intermediate one.
     const request = listRequest(page, ENTITY);
-    await saveButton(page, t).click();
 
     // The art is sent as a third value beside the two dates: the backend stores it with the filter and
     // returns it untouched, and without it the reload below could only restore frozen bounds.

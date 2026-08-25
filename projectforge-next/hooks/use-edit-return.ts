@@ -11,7 +11,7 @@ export interface EditReturn {
   label: string;
   /**
    * Where a *successful save* leads: [route], with the id of the written entry appended for a caller
-   * that asked for it (see [ReturnTarget.savedIdParam]).
+   * that asked for it (see [ReturnTarget.highlightIdParam]).
    */
   savedRoute: (id: number | null) => string;
 }
@@ -19,15 +19,15 @@ export interface EditReturn {
 /**
  * One page a `?returnTo=` may name.
  *
- * @param savedIdParam Name of a query parameter the id of the saved entry is appended as, for a
- * caller that sent the user here to *create* something and goes on with it — the structure wizard,
- * whose element step does exactly that (see WizardTaskStep). Left out by a caller that only wants
- * the user back, which is every other one: the id would be noise in its url.
+ * @param highlightIdParam Name of a query parameter the id of the saved entry is appended as, for a
+ * caller that wants it on the way back — the tree, which highlights that row, and the structure wizard,
+ * which goes on with the element just created (see WizardTaskStep). Left out by a caller that only
+ * wants the user back, which is every other one: the id would be noise in its url.
  */
 export interface ReturnTarget {
   route: string;
   labelKey: string;
-  savedIdParam?: string;
+  highlightIdParam?: string;
 }
 
 export interface UseEditReturnOptions {
@@ -63,15 +63,15 @@ export function useEditReturn({
     targets?.find((entry) => entry.route === requested) ??
     targets?.[0] ??
     fallback;
-  const savedIdParam = target.savedIdParam;
+  const highlightIdParam = target.highlightIdParam;
   return {
     route: target.route,
     // Through leafKeyOf: a target's key may be a namespace as well (`task.title.list` is both the
     // list's title and the parent of `task.title.list.select`), and the bare key would throw.
     label: t(leafKeyOf(target.labelKey, t.has)),
     savedRoute: (id) =>
-      savedIdParam && id != null
-        ? `${target.route}?${savedIdParam}=${id}`
+      highlightIdParam && id != null
+        ? `${target.route}?${highlightIdParam}=${id}`
         : target.route,
   };
 }

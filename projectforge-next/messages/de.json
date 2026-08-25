@@ -75,6 +75,11 @@
     "backToLogin": "Zurück zur Anmeldung",
     "error": "Das Passwort konnte nicht geändert werden"
   },
+  "statusBar": {
+    "copyright": "©{years} by Micromata GmbH",
+    "company": "Micromata GmbH",
+    "version": "Version {version}, {buildDate}"
+  },
   "select": {
     "search": "Suchen…",
     "noOptions": "Keine Auswahl",

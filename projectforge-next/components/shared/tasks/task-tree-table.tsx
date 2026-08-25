@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -10,6 +10,7 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   DataTable,
   DataTableColumnPanel,
+  rememberMarkedRow,
   useColumnStatePersistenceByUrl,
   useDataTable,
   useGridStateReset,
@@ -21,9 +22,14 @@ import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { resolveRestUrl } from "@/lib/dynamic/response-action";
 import type { TaskNode, TaskTreeFilter } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
-import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
+import {
+  TASK_TREE_ROUTE,
+  TASK_TREE_VIEW_SCOPE,
+  newTaskHref,
+} from "./task-routes";
 import { TaskTreeFilterBar } from "./task-tree-filter";
 import { useTaskTreeColumns } from "./use-task-tree-columns";
+import { useTreeKeyboard } from "./use-tree-keyboard";
 
 /** The tree column, whose click means "expand" rather than "select". */
 const TREE_COLUMN = "title";
@@ -88,6 +94,24 @@ export function TaskTreeTable({
   );
   const columns = useTaskTreeColumns(grid, onToggle, linkEnabled, rowAction);
 
+  // The one select path, for mouse (onCellClick below) and keyboard alike, so both remember the row —
+  // on the *page* only: opening a task there is what a Cancel or a browser-back returns to, so the
+  // tree marks it again the way a save's `?highlightId=` does (see the tree page and the shared list
+  // memory, rememberMarkedRow/recallMarkedRowId). A select popover picks a value and never returns to
+  // a highlight, so it writes nothing — and only a select remembers, never a toggle, which would light
+  // up a node just from browsing (recallMarkedRowId is read on every render). `onSelect` is optional,
+  // so where the panel passes none the key is a no-op.
+  const selectTask = useCallback(
+    (task: TaskNode) => {
+      if (pageActions) rememberMarkedRow(TASK_TREE_VIEW_SCOPE, String(task.id));
+      onSelect?.(task);
+    },
+    [pageActions, onSelect]
+  );
+  // File-explorer keys over the tree: ↑/↓ move the focus, →/← expand and collapse, Enter opens (or,
+  // in a select popover, picks) the focused element.
+  const keyboardNav = useTreeKeyboard(nodes, onToggle, selectTask);
+
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
   // initial answer, and this component only exists once that has arrived.
   const restoredState = useMemo(() => initialStateFrom(grid), [grid]);
@@ -110,6 +134,9 @@ export function TaskTreeTable({
     enableColumnFilters: true,
     enableColumnResizing: true,
     manualSorting: false,
+    // The tree is never paged: it is one connected structure, shown whole as Wicket's does — so the
+    // pagination row model is left off (all rows render) and the pagination bar is hidden below.
+    manualPagination: true,
     getRowId: (row, index) => String(row.id ?? index),
   });
 
@@ -176,16 +203,29 @@ export function TaskTreeTable({
         // scrolling to it is what makes it findable in a tree of thousands. No scope: the dialog is
         // reopened in order to see the selected task, so it scrolls there every time.
         highlightRowId={highlightTaskId}
+        // The tree is a file-explorer view: the more of a deep structure fits on screen, the better
+        // (see Wicket's taskTree), so its rows are tighter than an ordinary list's.
+        dense
+        // A tree is never paged (see manualPagination above), so the bar would only ever read
+        // "1-N of N" over the whole structure.
+        showPagination={false}
+        // On its own page the tree stands vertically complete: no inner scroller, the page scrolls, so
+        // the whole structure is there to scroll through and the help hint sits below it in the flow.
+        // In a select dialog it stays a bounded, scrolling box (autoHeight off).
+        autoHeight={pageActions}
+        keyboardNav={keyboardNav}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {
           if (columnId === TREE_COLUMN && row.treeStatus !== "LEAF") {
             onToggle(row);
           } else {
-            onSelect?.(row);
+            selectTask(row);
           }
         }}
-        className="flex-1"
+        // In a dialog the table fills the bounded body (flex-1); on its own page it takes its natural
+        // height instead, so the page - not the table - scrolls (see autoHeight).
+        className={pageActions ? undefined : "flex-1"}
       />
     </>
   );
@@ -205,14 +245,17 @@ function AddSubtaskAction({ task }: { task: TaskNode }) {
 
   return (
     <HintTooltip text={`${t("task.title.add")} (${t("task.parentTask")})`}>
-      <Button asChild variant="ghost" size="icon" aria-label={label}>
+      {/* icon-xs, not the default icon size: the button sits inline in the title cell and, even
+          revealed only on hover, its box sets the row's height. A larger one would make every tree
+          row taller than its text needs — the tree is meant to be dense (see Wicket's taskTree). */}
+      <Button asChild variant="ghost" size="icon-xs" aria-label={label}>
         <Link
           href={newTaskHref({
             parentTaskId: task.id,
             returnTo: TASK_TREE_ROUTE,
           })}
         >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2.5} />
+          <HugeiconsIcon icon={PlusSignIcon} size={12} strokeWidth={2.5} />
         </Link>
       </Button>
     </HintTooltip>

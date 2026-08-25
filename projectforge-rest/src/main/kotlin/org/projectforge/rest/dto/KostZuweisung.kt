@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import java.math.BigDecimal
@@ -58,5 +59,14 @@ class KostZuweisung(
     fun copyTo(dest: KostZuweisungDO, position: RechnungsPositionDO) {
         copyTo(dest)
         dest.rechnungsPosition = position
+    }
+
+    /**
+     * The incoming-invoice counterpart of the overload above: assigns the back reference
+     * [KostZuweisungDO.eingangsrechnungsPosition]. Called by [EingangsrechnungsPosition.copyTo].
+     */
+    fun copyTo(dest: KostZuweisungDO, position: EingangsrechnungsPositionDO) {
+        copyTo(dest)
+        dest.eingangsrechnungsPosition = position
     }
 }

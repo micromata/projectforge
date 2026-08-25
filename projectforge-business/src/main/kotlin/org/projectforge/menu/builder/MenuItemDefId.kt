@@ -81,7 +81,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
-    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
+    // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the
+    // escape hatch, see NextMigration.legacyListUrl.
+    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //

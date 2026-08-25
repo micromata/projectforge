@@ -188,8 +188,10 @@ export interface TaskTreeParams extends Partial<TaskTreeFilter> {
   /** Collapse this node; persisted server-side. */
   close?: number;
   /**
-   * Narrow the answer to this node, its descendants and (for a leaf) its siblings — how the select
-   * field shows the neighbourhood of the current value instead of the whole tree.
+   * The task to bring into view. On the initial call the backend opens its ancestors so the row is on
+   * screen in the full tree (the tree page marks it client-side, Wicket's `PARAMETER_HIGHLIGHTED_ROW`).
+   * With `select`, it *additionally* narrows the answer to this node, its descendants and (for a leaf)
+   * its siblings — how the select field shows the neighbourhood of the current value.
    */
   highlightedTaskId?: number;
   /** Prepend the root node, for admins and financial staff. */

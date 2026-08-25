@@ -114,6 +114,19 @@ class Auftrag(
     var vollstaendigFakturiertWriteAccess: Boolean = false
 
     /**
+     * Whether the invoice numbers a position was invoiced with may be *opened* — the select access on
+     * `FIBU_AUSGANGSRECHNUNGEN` (`RechnungDao.hasLoggedInUserSelectAccess`), set by
+     * `OrderEntityRest.transformFromDB`.
+     *
+     * The numbers themselves are shown to everybody who may read the order, exactly as Wicket's
+     * `InvoicePositionsPanel` does: a non-finance contact person or project manager sees which invoices
+     * bill their order, with date and net sum. Only whether the number links to the invoice's own page
+     * depends on this flag — a link a non-finance user could not follow (the invoice page refuses the
+     * read) becomes plain text instead, which is what the panel renders for them.
+     */
+    var invoicesSelectAccess: Boolean = false
+
+    /**
      * Everything a list row shows, and nothing that costs a query.
      *
      * [AuftragDO.positionen] and [AuftragDO.paymentSchedules] are `FetchType.LAZY`, so reading either one

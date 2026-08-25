@@ -70,6 +70,7 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.PostData
@@ -839,7 +840,14 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     ): ResultSet<*> {
         val invoices = resultSet.resultSet
         return super.postProcessResultSet(resultSet, request, magicFilter).also {
-            it.statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
+            val statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
+            previousYearFilter(magicFilter)?.let { previousFilter ->
+                // The same query one year back, run through the same pipeline (getObjectList + filterList)
+                // as the list itself, so the two sums differ only by the period.
+                val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
+                statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
+            }
+            it.statistics = statistics
         }
     }
 
@@ -873,6 +881,13 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * every installation with a single currency, and the reason the client shows a warning.
          */
         val currencyConversionWarnings: List<String> = statistics.currencyConversionWarningsList
+
+        /**
+         * The same figures for the same period one year earlier, or null unless the client asked for the
+         * comparison and the invoice-date filter is a bounded range (see [previousYearFilter]). Only the
+         * top-level object carries it; the one nested here is always null.
+         */
+        var previousYear: InvoiceStatistics? = null
     }
 
     /**
@@ -1224,6 +1239,46 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         private const val LIST_TYPE_UNPAID = "unbezahlt"
         private const val LIST_TYPE_PAID = "bezahlt"
         private const val LIST_TYPE_OVERDUE = "ueberfaellig"
+
+        /** The invoice-date property ([AbstractRechnungDO.datum]) whose range the previous-year comparison shifts. */
+        private const val DATE_FIELD = "datum"
+
+        /** [MagicFilter.extended] flag by which the client asks for the previous-year comparison. */
+        internal const val PREVIOUS_YEAR_COMPARISON = "previousYearComparison"
+
+        /**
+         * The filter of the previous-year comparison - the same one shifted twelve months back - or null when
+         * it does not apply.
+         *
+         * It applies only when the client asked for it ([PREVIOUS_YEAR_COMPARISON] in [MagicFilter.extended])
+         * and the invoice-date filter ([AbstractRechnungDO.datum], the field [DATE_FIELD]) is a bounded range:
+         * "the same period a year earlier" has no meaning without both a start and an end. Both bounds move by a
+         * year while every other criterion stays, so the two statistics answer the same question one year apart.
+         *
+         * The [MagicFilterEntry.Value.periodKind] is dropped on the clone: a range shifted by hand is no longer
+         * "this month", and the flag is removed so a re-select cannot recurse. Static and [internal] so the
+         * shift can be asserted without a Spring context (see OutgoingInvoicePreviousYearFilterTest).
+         */
+        internal fun previousYearFilter(magicFilter: MagicFilter): MagicFilter? {
+            val requested = magicFilter.extended[PREVIOUS_YEAR_COMPARISON].let { it == true || it == "true" }
+            if (!requested) {
+                return null
+            }
+            val datum = magicFilter.entries.find { it.field == DATE_FIELD }
+            val from = parseIsoDate(datum?.value?.fromValue) ?: return null
+            val to = parseIsoDate(datum?.value?.toValue) ?: return null
+            return magicFilter.clone().also { clone ->
+                clone.extended.remove(PREVIOUS_YEAR_COMPARISON)
+                clone.entries.find { it.field == DATE_FIELD }?.value?.let { value ->
+                    value.fromValue = from.minusYears(1).toString()
+                    value.toValue = to.minusYears(1).toString()
+                    value.periodKind = null
+                }
+            }
+        }
+
+        private fun parseIsoDate(value: String?): LocalDate? =
+            value?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
         /**
          * Id of the combined period-of-performance filter, standing for a criterion over

@@ -17,7 +17,12 @@ import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
-import { useHighlightedRow } from "./use-highlighted-row";
+import {
+  getScrollParent,
+  scrollRowIntoView,
+  useHighlightedRow,
+} from "./use-highlighted-row";
+import type { KeyboardNav } from "./use-keyboard-nav";
 import {
   recallMarkedRowId,
   rememberMarkedRow,
@@ -87,6 +92,14 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    */
   selection?: RowSelection;
 
+  /**
+   * Drive the table from the keyboard without the multi-select mode: one focused row moved by the
+   * arrow keys, the domain deciding what each key does to it (see KeyboardNav). Mutually exclusive
+   * with [selection] in practice — a table is either picking rows or being walked through, not both.
+   * The structure tree passes this so it reads like a file explorer (see useTreeKeyboard).
+   */
+  keyboardNav?: KeyboardNav;
+
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
   /**
@@ -109,6 +122,24 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * a form (SelectedEntriesTable) or inside a dialog (the task picker) must not move the app's header.
    */
   collapseLogoOnScroll?: boolean;
+  /**
+   * Tighter rows: half the vertical cell padding, for a table meant to show as many rows at once as it
+   * can - the structure tree, whose file-explorer view is judged by how much of a deep tree fits on
+   * screen (see Wicket's taskTree). Off by default, so an ordinary list keeps its comfortable spacing.
+   */
+  dense?: boolean;
+  /**
+   * Grow to the full height of the rows instead of keeping an inner vertical scroller: the table is
+   * then scrolled by the page (`<main>`, see PageShell, which names the task tree as one of its scroll
+   * columns), so the whole structure stands vertically complete with nothing folded behind a scrollbar.
+   *
+   * The sticky header and the pinned columns anchor to that ancestor instead of an inner box, and the
+   * scroll helpers (see [containerRef]) act on it too. One consequence of scrolling the page in both
+   * axes: a table wider than the viewport scrolls the page's title and filter row along with it — the
+   * price of not having a second, inner scroll container that would trap the sticky header. Off by
+   * default; a bounded table (a list page, a dialog) keeps its own scroller.
+   */
+  autoHeight?: boolean;
 }
 
 export function DataTable<TData>({
@@ -123,12 +154,15 @@ export function DataTable<TData>({
   highlightScope,
   viewScope,
   selection,
+  keyboardNav,
   pageSizeOptions,
   showPagination = true,
   emptyState,
   footer,
   className,
   collapseLogoOnScroll = false,
+  dense = false,
+  autoHeight = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -147,6 +181,16 @@ export function DataTable<TData>({
   const collapseLogo = useCollapseOnScroll(collapseLogoOnScroll);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // In autoHeight the inner div does not scroll — the page does — so the scroll helpers below have to
+  // act on that ancestor, not on `scrollRef`. Found once from the mounted table (a settled layout);
+  // null otherwise, so the ordinary bounded table keeps using its own container.
+  const scrollParentRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    scrollParentRef.current = autoHeight
+      ? getScrollParent(scrollRef.current)
+      : null;
+  }, [autoHeight]);
+  const containerRef = autoHeight ? scrollParentRef : scrollRef;
   // Entering the selection mode puts the keyboard on the table: the arrow keys are handled by the body
   // below, so without this they do nothing until a click happens to focus it — which is what made
   // "↑/↓ only work after I marked a row" the way the mode used to behave.
@@ -157,12 +201,20 @@ export function DataTable<TData>({
     bodyRef.current?.focus({ preventScroll: true });
     focusFirstRow();
   }, [focusFirstRow]);
+  // Keyboard navigation moves a focused row that the table has to keep on screen — but only when it
+  // scrolls off, so arrowing between rows already visible doesn't jerk the viewport (see
+  // scrollRowIntoView). The row must be in the document first, hence an effect and not the key handler.
+  const keyboardFocusedRowId = keyboardNav?.focusedRowId;
+  useEffect(() => {
+    if (keyboardFocusedRowId == null) return;
+    scrollRowIntoView(containerRef.current, keyboardFocusedRowId);
+  }, [keyboardFocusedRowId, containerRef]);
   // Both work on the same container and the same settled rows, and the highlight has the last word —
   // hence the flag between them rather than two hooks scrolling independently.
   const highlightPending = useHighlightedRow({
     table,
     highlightRowId,
-    containerRef: scrollRef,
+    containerRef,
     // Only on rows that are settled. A skeleton has no row to scroll to, and rows still being
     // fetched are the *previous* result set (`keepPreviousData`): jumping to a page of those is
     // undone a moment later, because TanStack resets the page index when the data is replaced.
@@ -170,7 +222,7 @@ export function DataTable<TData>({
     scope: highlightScope,
   });
   const rememberScroll = useRememberScroll({
-    containerRef: scrollRef,
+    containerRef,
     scope: viewScope,
     ready: !showSkeleton && !isFetching,
     highlightPending,
@@ -184,18 +236,36 @@ export function DataTable<TData>({
     (highlightRowId != null ? String(highlightRowId) : undefined);
 
   return (
-    <div className={cn("flex flex-1 flex-col overflow-hidden", className)}>
+    <div
+      className={cn(
+        "flex flex-col",
+        // A bounded table clips to its box and lets the inner div below scroll; an autoHeight one grows
+        // and hands the scrolling to the page (see [autoHeight]).
+        !autoHeight && "flex-1 overflow-hidden",
+        className
+      )}
+    >
       {/* The overlay's positioning parent, and not the scroll container below it: `inset-0` there
           would be the whole scrolled content, so the spinner would sit at the top of the rows and
           scroll out of sight instead of staying where the user is looking. */}
-      <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div
+        className={cn(
+          "relative flex flex-col",
+          !autoHeight && "flex-1 overflow-hidden"
+        )}
+      >
         {/* Also over the skeleton, which is where the wait is longest: a first load of the order book
             takes seconds, and eight rows of grey bars say "there is a table here", not "it is being
             fetched" — least of all that it is still being fetched after the second one. */}
         {isFetching && <TableLoadingOverlay />}
         <div
           ref={scrollRef}
-          className="relative flex-1 overflow-auto bg-background"
+          className={cn(
+            "relative bg-background",
+            // The scroll container of a bounded table; in autoHeight the div just holds the table and
+            // the page scrolls, so the sticky header anchors to the page rather than to this box.
+            !autoHeight && "flex-1 overflow-auto"
+          )}
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
           // Three listeners on the one column: the tooltip clears itself, the collapse drives the logo
@@ -217,7 +287,10 @@ export function DataTable<TData>({
               container the sticky header would stick to — the wrong one, since
               vertical scrolling happens further out. */}
           <table
-            className="min-w-full table-fixed border-separate border-spacing-0 text-xs [&_td]:px-2 [&_td]:py-1 [&_th]:h-7 [&_th]:px-2"
+            className={cn(
+              "min-w-full table-fixed border-separate border-spacing-0 text-xs [&_td]:px-2 [&_th]:h-7 [&_th]:px-2",
+              dense ? "[&_td]:py-0.5" : "[&_td]:py-1"
+            )}
             style={{ width: totalWidth }}
           >
             <colgroup>
@@ -290,9 +363,23 @@ export function DataTable<TData>({
                 is the marked row (`row-focused`). */}
             <TableBody
               ref={bodyRef}
-              className={selection ? "outline-none" : undefined}
-              tabIndex={selection ? 0 : undefined}
-              onKeyDown={selection?.onKeyDown}
+              className={selection || keyboardNav ? "outline-none" : undefined}
+              tabIndex={selection || keyboardNav ? 0 : undefined}
+              onKeyDown={selection?.onKeyDown ?? keyboardNav?.onKeyDown}
+              // Clicking into the body focuses it (it is `tabIndex=0`); this also moves the keyboard
+              // focus onto the clicked row, so the arrow keys continue from where the user pointed
+              // rather than from the top. The row id is read off the nearest `[data-row-id]`, so no
+              // per-row handler is needed.
+              onMouseDown={
+                keyboardNav
+                  ? (event) => {
+                      const rowId = (event.target as HTMLElement)
+                        .closest("[data-row-id]")
+                        ?.getAttribute("data-row-id");
+                      if (rowId) keyboardNav.focusRow(rowId);
+                    }
+                  : undefined
+              }
               aria-multiselectable={selection ? true : undefined}
             >
               {showSkeleton ? (
@@ -339,7 +426,8 @@ export function DataTable<TData>({
                       rowClassName?.(row.original),
                       row.id === markedRowId && "row-highlighted",
                       selection && row.getIsSelected() && "row-selected",
-                      selection?.focusedRowId === row.id && "row-focused"
+                      (selection?.focusedRowId ?? keyboardNav?.focusedRowId) ===
+                        row.id && "row-focused"
                     )}
                   />
                 ))

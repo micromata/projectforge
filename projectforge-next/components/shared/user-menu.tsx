@@ -13,6 +13,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /**
@@ -71,11 +72,7 @@ export function UserMenu({
               >
                 <span className="truncate">{item.title}</span>
                 {/* "2FA setup" carries a counter; without this it would be lost here. */}
-                {item.badge?.counter ? (
-                  <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
-                    {item.badge.counter}
-                  </span>
-                ) : null}
+                <MenuCounterBadge badge={item.badge} />
               </MenuLink>
             </MenubarItem>
           );

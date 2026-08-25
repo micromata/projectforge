@@ -98,10 +98,27 @@ class AuftragsRechnungCache : AbstractCache() {
     @Volatile
     private var suppressCoupledRefresh = false
 
+    /**
+     * True, if [refresh] read [RechnungCache] before it was completely filled - a concurrent refresh answered with
+     * incomplete data (see [org.projectforge.framework.cache.AbstractCache.performRefresh], the lock timeout) - so some
+     * invoice positions couldn't be resolved to their invoice and were left out of the maps. This cache must run again
+     * once RechnungCache is done (see [rechnungCacheListener]), otherwise those order/invoice links stay missing until
+     * the next invalidation (invoice list orders, order edit invoices).
+     */
+    @Volatile
+    private var invoiceResolutionIncomplete = false
+
+    /**
+     * Bounds how often a completion of [RechnungCache] may re-trigger this cache (see [invoiceResolutionIncomplete]),
+     * so a permanently incomplete RechnungCache can't spin this forever. Reset once a refresh resolved everything.
+     */
+    private val invoiceHealRounds = AtomicInteger(0)
+
     @PostConstruct
     private fun init() {
         rechnungDao.register(rechnungListener)
         auftragsCache.register(auftragsCacheListener)
+        rechnungCache.register(rechnungCacheListener)
     }
 
     override fun setExpired() {
@@ -139,6 +156,7 @@ class AuftragsRechnungCache : AbstractCache() {
         log.info("Initializing AuftragsRechnungCache...")
         val duration = LogDuration()
         orderResolutionIncomplete = false
+        invoiceResolutionIncomplete = false
         val list = rechnungJdbcService.selectRechnungsPositionenWithAuftragPosition()
         // This method must not be synchronized because it works with new copies of maps.
         val mapByAuftragId = mutableMapOf<Long, TreeSet<Long>>()
@@ -152,7 +170,15 @@ class AuftragsRechnungCache : AbstractCache() {
                 log.error("Assigned order position expected: $pos")
                 continue
             }
-            if (pos.deleted || rechnungInfo == null || rechnungInfo.deleted || rechnungInfo.nummer == null) {
+            if (rechnungInfo == null) {
+                // RechnungCache didn't have this invoice yet: it was still (re)filling on another thread and answered
+                // with incomplete data. Every existing invoice is in that cache once it is complete - a deleted one
+                // included, caught by rechnungInfo.deleted below - so a null here is always this transient race, never
+                // a genuinely missing invoice. Rebuild once RechnungCache is done (see rechnungCacheListener).
+                invoiceResolutionIncomplete = true
+                continue
+            }
+            if (pos.deleted || rechnungInfo.deleted || rechnungInfo.nummer == null) {
                 // Invoice position or invoice is deleted.
                 continue
             }
@@ -178,6 +204,10 @@ class AuftragsRechnungCache : AbstractCache() {
         this.invoicePositionMapByAuftragId = mapByAuftragId
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
+        if (!invoiceResolutionIncomplete) {
+            // Everything resolved against a complete RechnungCache: the heal counter can start over.
+            invoiceHealRounds.set(0)
+        }
         log.info { "Initializing of AuftragsRechnungCache done: ${duration.toSeconds()}." }
         // The invoice positions of the orders are known now, so the order sums (OrderPositionInfo.invoicedSum) have to
         // be re-calculated on top of them:
@@ -214,6 +244,25 @@ class AuftragsRechnungCache : AbstractCache() {
      * [AuftragsCache] resolves its order positions to invoice positions via this cache, so this cache must be filled
      * whenever the order cache is (re-)calculated.
      */
+    /**
+     * This cache resolves each invoice position to its invoice via [RechnungCache], so it has to be rebuilt whenever
+     * that cache was still incomplete while this one was refreshing (see [invoiceResolutionIncomplete]). RechnungCache
+     * signals completion here; the rebuild then reads a complete cache. Bounded by [invoiceHealRounds] so a chronically
+     * incomplete RechnungCache can't spin this forever.
+     *
+     * Not suppressing the coupled AuftragsCache refresh on purpose: the order sums (OrderPositionInfo.invoicedSum) were
+     * calculated on the incomplete invoice data too and have to be redone - [forceReload] resets [coupledRefreshRounds]
+     * via [setExpired], so [refreshAuftragsCacheIfNeeded] runs again.
+     */
+    private val rechnungCacheListener = object : CacheListener {
+        override fun onAfterCacheRefresh() {
+            if (invoiceResolutionIncomplete && invoiceHealRounds.incrementAndGet() <= MAX_COUPLED_REFRESH_ROUNDS) {
+                log.info { "RechnungCache is complete now, re-reading the order/invoice assignments built while it was still incomplete." }
+                forceReload()
+            }
+        }
+    }
+
     private val auftragsCacheListener = object : CacheListener {
         override fun onBeforeCacheRefresh() {
             if (!initialized) {

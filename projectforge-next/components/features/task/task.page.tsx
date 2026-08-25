@@ -2,7 +2,7 @@ import {
   TASK_ROUTE,
   TASK_TREE_ROUTE,
   TASK_WIZARD_ROUTE,
-  SAVED_ID_PARAM,
+  HIGHLIGHT_ID_PARAM,
   taskWizardHref,
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
@@ -150,7 +150,7 @@ export const TASK_PAGE = definePage<
       {
         route: TASK_TREE_ROUTE,
         labelKey: "menu.taskTree",
-        savedIdParam: SAVED_ID_PARAM,
+        highlightIdParam: HIGHLIGHT_ID_PARAM,
       },
       { route: TASK_ROUTE, labelKey: "task.list.perspective" },
       // The wizard's "create structure element" link, which expects the user back with the new element
@@ -158,7 +158,7 @@ export const TASK_PAGE = definePage<
       {
         route: TASK_WIZARD_ROUTE,
         labelKey: "task.wizard.pageTitle",
-        savedIdParam: SAVED_ID_PARAM,
+        highlightIdParam: HIGHLIGHT_ID_PARAM,
       },
     ],
     // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend

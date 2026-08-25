@@ -10,7 +10,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { RECHNUNGS_POSITION_METADATA } from "@/lib/metadata/rechnungs-position.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { OrderPositionField } from "./order-position-field";
-import { PositionSumsLine } from "./position-sums-line";
+import { PositionSumsLine } from "@/components/shared/invoice/position-sums-line";
 import type { InvoicePositionValues } from "../invoice-schema";
 import type { InvoicePositionSums } from "@/lib/rs/invoice";
 

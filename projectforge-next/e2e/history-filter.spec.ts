@@ -68,7 +68,6 @@ test.describe("history filter", () => {
 
     const request = listRequest(page);
     await choosePeriod(page, t, t("search.lastMinutes", { arg0: 30 }));
-    await page.getByRole("button", { name: t("save"), exact: true }).click();
 
     const interval = (await request).entries.find(
       (entry) => entry.field === "modifiedInterval"
@@ -128,8 +127,12 @@ test.describe("history filter", () => {
       })
       .focus();
     await expect(grid).toBeHidden();
+    // Scoped to the picker's popover: the list underneath can carry a "45" of its own once it grows
+    // past 45 pages, and its active page button would otherwise collide with the minute column.
     await expect(
-      page.getByRole("button", { name: "45", exact: true })
+      page
+        .locator('[data-slot="popover-content"]')
+        .getByRole("button", { name: "45", exact: true })
     ).toBeVisible();
   });
 
@@ -151,10 +154,13 @@ test.describe("history filter", () => {
     // Hour and minute in one visit — the popover deliberately stays open between the two. The hour is
     // labelled in the account's notation, the minute always as two digits, so neither label occurs in
     // the other column.
-    await page
+    // Scoped to the picker's popover: the list underneath can carry a page button of the same digits
+    // once it grows past that many pages (its active "45" collides with the minute column otherwise).
+    const picker = page.locator('[data-slot="popover-content"]');
+    await picker
       .getByRole("button", { name: hourLabelOf(13, context), exact: true })
       .click();
-    await page.getByRole("button", { name: "45", exact: true }).click();
+    await picker.getByRole("button", { name: "45", exact: true }).click();
 
     await expect(
       page.getByLabel(`${t("modificationTime")}: ${t("filter.timeFrom")}`)
@@ -188,10 +194,8 @@ test.describe("history filter", () => {
     // Scoped to the suggestion list: the page-size select contributes options of its own.
     const suggestion = page.getByRole("listbox").getByRole("option").first();
     await expect(suggestion).toBeVisible();
-    await suggestion.click();
-
     const request = listRequest(page);
-    await page.getByRole("button", { name: t("save"), exact: true }).click();
+    await suggestion.click();
 
     const user = (await request).entries.find(
       (entry) => entry.field === "modifiedByUser"
@@ -207,9 +211,8 @@ test.describe("history filter", () => {
     await goto(page, "/book");
     await openHistoryPill(page, t);
 
-    await page.getByLabel(t("modifiedHistoryValue")).fill("Titel");
     const request = listRequest(page);
-    await page.getByRole("button", { name: t("save"), exact: true }).click();
+    await page.getByLabel(t("modifiedHistoryValue")).fill("Titel");
 
     const value = (await request).entries.find(
       (entry) => entry.field === "historySearch"
@@ -255,7 +258,10 @@ test.describe("history filter", () => {
 
     await page.getByLabel(t("modifiedHistoryValue")).fill("Titel");
     await choosePeriod(page, t, t("search.lastMinutes", { arg0: 30 }));
-    await page.getByRole("button", { name: t("save"), exact: true }).click();
+    // The edits apply on their own; wait until they have, then close (keeping them), so the removal
+    // below is a removal of a committed filter rather than of one that never landed.
+    await listRequest(page);
+    await page.keyboard.press("Escape");
 
     await page
       .getByRole("button", {
@@ -299,8 +305,9 @@ async function openHistoryPill(page: Page, t: Translate): Promise<void> {
   await page
     .getByRole("option", { name: t("filter.history"), exact: true })
     .click();
+  // The popover applies live and has no save button; "Abbrechen" is the footer control it opens with.
   await expect(
-    page.getByRole("button", { name: t("save"), exact: true })
+    page.getByRole("button", { name: t("cancel"), exact: true })
   ).toBeVisible();
 }
 

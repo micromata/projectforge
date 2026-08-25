@@ -71,6 +71,9 @@ export function PositionsSection({ id }: { id: number | null }) {
             invoiceFlagWriteAccess={
               order?.vollstaendigFakturiertWriteAccess === true
             }
+            // The invoice numbers are shown to every reader; only the link to the invoice's own page is
+            // the finance staff's (see Auftrag.invoicesSelectAccess).
+            invoicesSelectAccess={order?.invoicesSelectAccess === true}
             invoiceInfo={invoiceInfo}
           />
         );
