@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { KOST_ZUWEISUNG_METADATA } from "@/lib/metadata/kost-zuweisung.generated";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { RECHNUNGS_POSITION_METADATA } from "@/lib/metadata/rechnungs-position.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
+import {
+  kostZuweisungSchema,
+  type KostZuweisungValues,
+} from "@/components/shared/invoice/kost-zuweisung";
 
 /**
  * Every rule below — mandatory, maximum length, the constants of each enum — comes from `RechnungDO`,
@@ -23,7 +26,6 @@ import { fromMetadata } from "@/lib/validation/from-metadata";
  */
 const m = fromMetadata(RECHNUNG_METADATA);
 const p = fromMetadata(RECHNUNGS_POSITION_METADATA);
-const k = fromMetadata(KOST_ZUWEISUNG_METADATA);
 
 /**
  * A referenced entity none of the three metadata objects has a field for: the customer, the project and
@@ -35,25 +37,6 @@ const k = fromMetadata(KOST_ZUWEISUNG_METADATA);
 const entityRef = z
   .looseObject({ id: z.number(), displayName: z.string().optional() })
   .nullable();
-
-/**
- * One cost assignment of a position — the third nesting level of this form.
- *
- * `index` travels back untouched, and a removed row stays with `deleted = true`, for the same reason a
- * position does: `RechnungsPositionDO.kostZuweisungen` carries `autoUpdateCollectionEntries` but no
- * `@SoftDeleteCollection`, and `KostZuweisungDO.equals` matches on `(index, owner)` — so an omitted or
- * renumbered row reads as "removed" to the collection handler and is deleted physically, history and all.
- */
-export const kostZuweisungSchema = z.object({
-  id: z.number().nullable(),
-  deleted: z.boolean(),
-  /** 0-based, unlike a position's 1-based number (`KostZuweisungDO.addKostZuweisung`). */
-  index: z.number().nullable(),
-  netto: k.decimalField("netto"),
-  kost1: entityRef,
-  kost2: entityRef,
-  comment: k.nullableString("comment"),
-});
 
 /**
  * One invoice position. Kept in the values even when deleted, with `deleted = true`: the backend's
@@ -168,7 +151,9 @@ export const invoiceSchema = z.object({
 
 export type InvoiceValues = z.infer<typeof invoiceSchema>;
 export type InvoicePositionValues = z.infer<typeof invoicePositionSchema>;
-export type KostZuweisungValues = z.infer<typeof kostZuweisungSchema>;
+// Re-exported from the shared module so this feature's existing imports keep resolving here — the cost
+// assignment is identical on both invoices and lives in components/shared/invoice/kost-zuweisung.ts.
+export type { KostZuweisungValues };
 
 /**
  * Field names of the form, so a server validation error can be checked against what actually renders

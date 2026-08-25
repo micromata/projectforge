@@ -151,6 +151,7 @@
     },
     "title": {
       "_": "Title",
+      "add": "Add new book",
       "list": "Book list"
     },
     "type": {
@@ -232,6 +233,17 @@
     "unpin": "Unpin"
   },
   "comment": "Comment",
+  "common": {
+    "import": {
+      "action": {
+        "commit": "Commit",
+        "deselectAll": "Deselect all",
+        "reconcile": "Reconcile",
+        "selectAll": "Select all"
+      },
+      "clearStorage": "Clear"
+    }
+  },
   "contactPerson": "Contact person",
   "copy": "Copy",
   "create": "Create",
@@ -537,6 +549,11 @@
     "customerref1": "Customer reference",
     "eInvoiceChecker": {
       "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
+    },
+    "eingangsrechnung": {
+      "import": {
+        "title": "Upload of creditor invoices"
+      }
     },
     "employee": {
       "_": "Employee",
@@ -1156,6 +1173,61 @@
     }
   },
   "id": "Id",
+  "import": {
+    "_": "Import",
+    "confirmMessage": "Would you like to import the selected entries now? This operation cannot be undone.",
+    "display": {
+      "options": "Display options"
+    },
+    "entry": {
+      "error": "Error",
+      "status": {
+        "deleted": "Deleted",
+        "faulty": "Faulty",
+        "imported": "Imported",
+        "modified": "Modified",
+        "new": "New",
+        "unknown": "Unknown",
+        "unknown_modification": "Unknown",
+        "unmodified": "Unmodified"
+      }
+    },
+    "error": {
+      "noEntrySelected": "No entries select for import.",
+      "nothingToImport": "Nothing found to import. Please use another file or define the import settings."
+    },
+    "field": {
+      "mapping": "Feldzuordnung",
+      "name": "Feld"
+    },
+    "help": {
+      "settings": {
+        "info": "You may define import settings such as encoding and field mappings and formats. Below you will find an example for copy & paste.",
+        "title": "Tips"
+      }
+    },
+    "info": {
+      "detectedColumns": "Detected columns",
+      "unknownColumns": "Unknown columns"
+    },
+    "result": {
+      "numberOfCreated": "Number of created entries",
+      "numberOfDeleted": "Number of deleted entries",
+      "numberOfUnmodified": "Number of unmodified entries",
+      "numberOfUpdated": "Number of updated entries",
+      "title": "Result of import"
+    },
+    "stats": {
+      "deleted": "Number of to be deleted entries",
+      "faulty": "Number of faulty entries (see tooltip of status)",
+      "modified": "Number of to be modified entries",
+      "new": "Number of new entries",
+      "total": "Total number of entries",
+      "unknown": "Number of unknown entries",
+      "unmodified": "Number of unmodified entries"
+    },
+    "title": "Import tool"
+  },
   "index": {
     "development": "Website for developers",
     "website": "Website",

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatPercentageDecimal } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { shareOfNetSum } from "../invoice-values";
+import { shareOfNetSum } from "./values";
 
 /**
  * What share of its position a cost assignment carries, beside the amount it is derived from.

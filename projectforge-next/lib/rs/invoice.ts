@@ -11,8 +11,17 @@
 
 import { request } from "./client";
 import { downloadFile, downloadPost } from "./download";
+import {
+  recalculateInvoiceSums,
+  type InvoicePositionSums,
+  type InvoiceSums,
+} from "./invoice-sums";
 import { downloadListExcel } from "./list-export";
-import type { MagicFilter, PostData } from "./types";
+import type { MagicFilter } from "./types";
+
+// Re-exported so the many callers that reach for the sums shapes through this module keep working;
+// the definitions themselves are shared with the incoming invoice (see ./invoice-sums).
+export type { InvoicePositionSums, InvoiceSums };
 
 /**
  * The filtered invoices as the Excel file Wicket's "Excel export" produces — one row per invoice.
@@ -72,46 +81,9 @@ export function downloadInvoiceWord(
   );
 }
 
-/** Sums of one position, matched by its number — a new position has no id yet. */
-export interface InvoicePositionSums {
-  number?: number | null;
-  netSum?: number | null;
-  vatAmount?: number | null;
-  grossSum?: number | null;
-  /** Net sum of this position's cost assignments. */
-  kostZuweisungNetSum?: number | null;
-  /**
-   * How much of the position's net sum is not assigned to a cost unit yet — **negated**, as
-   * `RechnungPosInfo` computes it: an unassigned rest of 400,00 € reads as -400,00. A hint only, since
-   * `RechnungDao` validates no cost assignment sums.
-   */
-  kostZuweisungNetFehlbetrag?: number | null;
-}
-
-/** What `OutgoingInvoiceEntityRest.recalculate` answers (`InvoiceSums` there). */
-export interface InvoiceSums {
-  netSum?: number | null;
-  vatAmount?: number | null;
-  grossSum?: number | null;
-  /** Gross sum minus a discount that was taken — the amount the invoice actually comes to. */
-  grossSumWithDiscount?: number | null;
-  kostZuweisungenNetSum?: number | null;
-  /** The same difference as above for the whole invoice, but **not** negated (`RechnungInfo`). */
-  kostZuweisungenFehlbetrag?: number | null;
-  bezahlt?: boolean | null;
-  ueberfaellig?: boolean | null;
-  positions?: InvoicePositionSums[] | null;
-}
-
 /**
- * Recalculates every sum of an invoice from the **unsaved** form state.
- *
- * Needed rather than convenient: how a position is rounded before it enters a sum is German law and
- * `RechnungCalculator`'s rule (`roundPositionsBeforeSum`), and the caches only know saved invoices. So
- * the backend builds a transient `RechnungDO` from the posted DTO and computes on that, with
- * `useCaches = false` — the posted positions have no ids to look anything up by.
- *
- * Deleted rows may be sent along untouched: the calculator skips them itself.
+ * Recalculates every sum of an outgoing invoice from the **unsaved** form state — the shared call fixed
+ * to this category (see recalculateInvoiceSums for the why).
  *
  * @param data The form's values, i.e. the same `Rechnung` DTO a save would send.
  */
@@ -119,12 +91,7 @@ export function recalculateInvoice(
   data: unknown,
   signal?: AbortSignal
 ): Promise<InvoiceSums> {
-  const postData: PostData = { data } as PostData;
-  return request<InvoiceSums>(
-    "/rs/outgoingInvoice/recalculate",
-    { method: "POST", body: JSON.stringify(postData) },
-    signal
-  );
+  return recalculateInvoiceSums("outgoingInvoice", data, signal);
 }
 
 /** One entry of the `sellerBankAccount` select — the value is the IBAN, which is what the column holds. */

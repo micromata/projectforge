@@ -4,9 +4,11 @@ import { useTranslations } from "next-intl";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
 import { RepeatableRow } from "@/components/shared/form/repeatable-row";
 import { RECHNUNGS_POSITION_METADATA } from "@/lib/metadata/rechnungs-position.generated";
-import { CostAssignmentsSection } from "./cost-assignments-section";
+import { CostAssignmentsSection } from "@/components/shared/invoice/cost-assignments-section";
 import { PositionFields } from "./position-fields";
 import { PositionRowHeader } from "./position-row-header";
+import { useProjectKost2 } from "../use-project-kost2";
+import { Kost2Warning } from "./kost2-warning";
 import type { InvoicePositionValues } from "../invoice-schema";
 import type { InvoicePositionSums } from "@/lib/rs/invoice";
 
@@ -48,6 +50,9 @@ export function PositionRow({
 }: PositionRowProps) {
   const t = useTranslations();
   const writeAccess = !!onRemove;
+  // The first active cost unit of the invoice's project, preselected on a fresh cost split's first row —
+  // the project-coupled bits the shared section leaves to the page (see CostAssignmentsSection).
+  const defaultKost2 = useProjectKost2();
 
   return (
     <NestedFieldMetadata
@@ -85,6 +90,10 @@ export function PositionRow({
             prefix={prefix}
             sums={sums}
             writeAccess={writeAccess}
+            defaultKost2={defaultKost2}
+            // The outgoing invoice flags a cost 2 unit that doesn't belong to its project; the shared
+            // section renders whatever the page hands it beside the field.
+            renderWarning={(kost2Id) => <Kost2Warning kost2Id={kost2Id} />}
             className="md:col-span-3"
           />
         )}

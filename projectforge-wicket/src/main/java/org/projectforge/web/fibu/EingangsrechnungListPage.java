@@ -45,7 +45,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.core.PagesResolver;
-import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
+import org.projectforge.rest.fibu.IncomingInvoiceEntityRest;
 import org.projectforge.rest.fibu.EingangsrechnungUploadPageRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
@@ -258,7 +258,7 @@ public class EingangsrechnungListPage
         }
         final ExternalLink importLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(EingangsrechnungUploadPageRest.class, null, null, true));
         addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), importLink, getString("import")));
-        addNewMassSelect(EingangsrechnungPagesRest.class);
+        addNewMassSelect(IncomingInvoiceEntityRest.class);
     }
 
     /**

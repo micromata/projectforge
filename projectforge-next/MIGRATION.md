@@ -1647,6 +1647,64 @@ mehr eigens angezeigt – „Verkäufer nicht konfiguriert" ist der erste Eintra
 `translate(key)` und nicht gegen englische Teilzeichenketten, die nur für ein
 englisches Konto gehalten hätten.
 
+#### Kreditorenrechnungen (`incomingInvoice`) – migriert (Liste, Formular, Mehrfachauswahl)
+
+Die fünfte handgebaute Seite, am Muster der Debitorenrechnung (`outgoingInvoice`)
+gebaut. `EingangsrechnungDO` teilt mit `RechnungDO` die Basis `AbstractRechnungDO` –
+also Positionen → `KostZuweisung`, Summen, Skonto –, ist aber die **einfachere**
+Schwester: **keine** E-Rechnung, kein Rechnungs-PDF, kein Word-Export, keine
+Auftragspositionen, kein Kunde/Projekt, kein Verkäufer-Bankkonto, keine Anhänge und
+kein Leistungszeitraum. Sie ergänzt `kreditor`, `receiver`, `iban`/`bic`, `referenz`,
+`customernr` und `paymentType`.
+
+Die Route ist `creditor-invoice` (`/next/creditor-invoice`), nicht die Kategorie:
+`invoice` ist die Ausgangsseite, dies ist die Eingangs-(Kreditor-)Seite – welche der
+beiden die Kategorie nennt, sagt das Menü. Der Release-Schalter steht in
+`NextMigration.MIGRATED["incomingInvoice"]` (`route = creditor-invoice`,
+`editRoute = creditor-invoice/:id`, `newEntryRoute = creditor-invoice/new`,
+`legacyApp = WICKET`); Zeilenklick, „Neu" und jeder serverseitige Redirect führen nach
+next, Wickets Formular bleibt über die Escape-Hatch-Verlinkung erreichbar.
+
+Backendseitig ersetzt `IncomingInvoiceEntityRest` (layoutfrei, erbt von
+`AbstractDTOEntityRest`) die alte `EingangsrechnungPagesRest` (gelöscht) – ohne
+`createListLayout`/`createEditLayout`, die Spalten kommen aus `creditor-invoice.page.tsx`.
+Portiert sind `transformForDB` (mit demselben `uiStatusAsXml`-Zurückschreiben wie beim
+Auftrag/der Debitorenrechnung, aber ohne Anhangsspalten), `transformFromDB`,
+`recalculate` (Live-Summen des ungespeicherten Formulars), `formDefaults` (nur
+Default-MwSt – keine Bankkonten, Template-Varianten, E-Rechnungs-Flags), die beiden
+Excel-Exporte (Liste und Kostzuweisungen) und die Magic-Filter (Zahlungsstatus,
+Vollständigkeit; **kein** Leistungszeitraum). Da es weder Kunde noch Projekt gibt,
+entfällt das `activeKost2`/`kost2Check`-Paar samt Kost2-Vorbelegung und -Warnung – eine
+Kostzuweisung wählt Kost1/Kost2 frei, ohne Abgleich. Die Mehrfachauswahl
+(`EingangsrechnungMultiSelectedPageRest`, Endpunkt `incomingInvoiceSelected`, inklusive
+SEPA-Transfer-Export) zeigt jetzt auf den neuen Controller.
+
+Die entity-agnostischen Bausteine des Rechnungs-Features (Kostzuweisungen, Positions-
+und Rechnungssummen, `use-invoice-sums`, Statistikzeile) sind nach
+`components/shared/invoice/` gehoben und um die harten Strings (`"outgoingInvoice"`)
+parametrisiert, damit beide Rechnungsarten sie teilen statt zu duplizieren; die
+projekt-/kundengekoppelten Teile (Kost2-Warnung/-Vorbelegung, Auftragsposition,
+Leistungszeitraum, E-Rechnung, PDF) bleiben im Ausgangsrechnungs-Feature.
+
+**Verifikation.** Backendseitig `org.projectforge.rest.fibu.IncomingInvoice*` und
+`org.projectforge.rest.dto.EingangsrechnungDtoTest` (DTO-Rundlauf beider verschachtelter
+Sammlungen, Summen der ungespeicherten Rechnung, `uiStatusAsXml`-Erhalt); die
+Migrations-Wächter `NextMigrationTest` und `NextMigration2FATest` halten den Eintrag in
+`MIGRATED`/`HAND_BUILT_CATEGORIES` bzw. die 2FA-Registrierung fest. Jede Spezifikation
+legt ihre eigene Wegwerf-Rechnung an und markiert sie gelöscht.
+
+**TODO – bewusst offen und noch auf Wicket/React:**
+
+- **Der CSV/SEPA-Import-Assistent** (`EingangsrechnungUploadPageRest` und alles unter
+  `org.projectforge.rest.fibu.importer.*`, dazu `IncomingInvoicePosImportPageRest`)
+  ist **nicht** migriert und bleibt auf Wicket/React. Die Ausgangsrechnung hat kein
+  Gegenstück, an dem man das Muster hätte abnehmen können; ein späterer Durchgang holt
+  es nach, statt es stillschweigend zu vergessen. Der „Import"-Menüeintrag der
+  Wicket-Liste (`EingangsrechnungListPage`) zeigt weiterhin dorthin.
+- **Der SEPA-Überweisungs-Export** als eigenständige Seite bleibt ebenfalls auf Wicket;
+  der Export aus der Mehrfachauswahl heraus (`exportTransfers`) ist mitgezogen, die
+  Upload-/Import-Strecke davor nicht.
+
 #### Erledigt: Sprung zum Strukturelement zeigt auf next
 
 Die Auftragsposition verlinkt ihr Strukturelement wieder auf dessen eigene Seite
