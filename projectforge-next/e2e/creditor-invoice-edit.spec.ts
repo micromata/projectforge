@@ -66,9 +66,12 @@ test.describe("creditor invoice edit", () => {
     try {
       await goto(page, `${ROUTE}/new`);
       // The creditor is the form's autofocus field, so it is visible once the form has hydrated.
-      const creditorField = page.getByLabel(label(format, "fibu.common.creditor"), {
-        exact: true,
-      });
+      const creditorField = page.getByLabel(
+        label(format, "fibu.common.creditor"),
+        {
+          exact: true,
+        }
+      );
       await expect(creditorField).toBeVisible({ timeout: 60_000 });
 
       await creditorField.fill(kreditor);
@@ -117,8 +120,7 @@ test.describe("creditor invoice edit", () => {
       // find its row by — and the form leaves for the list once it is stored.
       const saved = page.waitForResponse(
         (response) =>
-          response.url().includes(`/rs/${ENTITY}/saveorupdate`) &&
-          response.ok()
+          response.url().includes(`/rs/${ENTITY}/saveorupdate`) && response.ok()
       );
       await page
         .getByRole("button", { name: format.t("save"), exact: true })

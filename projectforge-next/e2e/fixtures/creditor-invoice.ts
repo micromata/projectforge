@@ -72,21 +72,24 @@ export async function createCreditorInvoice(
   positions: PostedPosition[],
   options: CreditorInvoiceOptions
 ): Promise<number> {
-  const response = await page.request.put(`/rs/${CREDITOR_ENTITY}/saveorupdate`, {
-    headers: await writeHeaders(page),
-    data: {
+  const response = await page.request.put(
+    `/rs/${CREDITOR_ENTITY}/saveorupdate`,
+    {
+      headers: await writeHeaders(page),
       data: {
-        datum: "2026-03-02",
-        ...(options.faelligkeit == null
-          ? {}
-          : { faelligkeit: options.faelligkeit }),
-        kreditor: options.kreditor,
-        ...(options.referenz == null ? {} : { referenz: options.referenz }),
-        betreff: options.betreff,
-        positionen: positions.map((pos) => ({ ...pos, vat: 0.19 })),
+        data: {
+          datum: "2026-03-02",
+          ...(options.faelligkeit == null
+            ? {}
+            : { faelligkeit: options.faelligkeit }),
+          kreditor: options.kreditor,
+          ...(options.referenz == null ? {} : { referenz: options.referenz }),
+          betreff: options.betreff,
+          positionen: positions.map((pos) => ({ ...pos, vat: 0.19 })),
+        },
       },
-    },
-  });
+    }
+  );
   const body = (await response.json()) as {
     variables?: { id?: number };
     validationErrors?: { message?: string }[];
@@ -95,7 +98,9 @@ export async function createCreditorInvoice(
     const reason =
       body.validationErrors?.map((e) => e.message).join("; ") ??
       `HTTP ${response.status()}`;
-    throw new Error(`Could not create the incoming invoice for the test: ${reason}`);
+    throw new Error(
+      `Could not create the incoming invoice for the test: ${reason}`
+    );
   }
   return body.variables.id;
 }
@@ -109,7 +114,9 @@ export async function fetchCreditorInvoice(
     { headers: { "X-PF-Frontend": "next" } }
   );
   if (!response.ok()) {
-    throw new Error(`Could not read incoming invoice ${id}: HTTP ${response.status()}`);
+    throw new Error(
+      `Could not read incoming invoice ${id}: HTTP ${response.status()}`
+    );
   }
   return (await response.json()) as StoredCreditorInvoice;
 }
@@ -137,9 +144,12 @@ export async function removeCreditorInvoice(page: Page, id: number | null) {
 export async function fetchFormDefaults(
   page: Page
 ): Promise<{ defaultVat?: number | null }> {
-  const response = await page.request.get(`/rs/${CREDITOR_ENTITY}/formDefaults`, {
-    headers: { "X-PF-Frontend": "next" },
-  });
+  const response = await page.request.get(
+    `/rs/${CREDITOR_ENTITY}/formDefaults`,
+    {
+      headers: { "X-PF-Frontend": "next" },
+    }
+  );
   if (!response.ok()) return {};
   return (await response.json()) as { defaultVat?: number | null };
 }

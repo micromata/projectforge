@@ -242,7 +242,12 @@ test.describe("creditor invoice cost assignment form", () => {
 /** The seed with this file's subject and a unique creditor filled in. */
 function seedInvoice(
   page: Page,
-  positions: { number: number; text: string; menge: number; einzelNetto: number }[]
+  positions: {
+    number: number;
+    text: string;
+    menge: number;
+    einzelNetto: number;
+  }[]
 ) {
   return createCreditorInvoice(page, positions, {
     betreff: SUBJECT,
