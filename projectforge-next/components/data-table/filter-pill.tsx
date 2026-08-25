@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useFormatContext } from "@/hooks/use-format";
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { FilterField } from "./filter-field";
 import { FilterPillShell } from "./filter-pill-shell";
+import { useDebouncedApply } from "./use-debounced-apply";
 import { describeFilterValue, isEmptyFilterValue } from "./filter-value";
 
 interface FilterPillProps {
@@ -14,14 +15,16 @@ interface FilterPillProps {
   onOpenChange: (open: boolean) => void;
   /** Default filters stay on the row, so they only offer emptying, not removing. */
   removable: boolean;
+  /** Applies a value to the list without closing the popover — the list refetches live. */
   onSave: (value: MagicFilterEntryValue | undefined) => void;
   onDelete: () => void;
 }
 
 /**
  * One filter field as a pill whose popover holds its input — the primary way to filter a
- * list, as in the legacy webapp. Editing happens on a draft so the list is only
- * refetched once, on save.
+ * list, as in the legacy webapp. Editing a draft applies to the list automatically (debounced),
+ * so the list follows along as the user steps a period; closing keeps what was applied and
+ * "Abbrechen" restores the value the popover opened with.
  */
 export function FilterPill({
   element,
@@ -33,7 +36,11 @@ export function FilterPill({
   onDelete,
 }: FilterPillProps) {
   const [draft, setDraft] = useState(value);
+  // The committed value the popover opened with, restored by "Abbrechen".
+  const baseline = useRef(value);
   const ctx = useFormatContext();
+
+  useDebouncedApply(draft, value, save);
 
   return (
     <FilterPillShell
@@ -43,12 +50,15 @@ export function FilterPill({
       active={!isEmptyFilterValue(value)}
       open={open}
       onOpenChange={(next) => {
-        // Re-seed on open so an abandoned edit doesn't come back.
-        if (next) setDraft(value);
+        // Re-seed on open so a live-applied edit can still be taken back.
+        if (next) {
+          setDraft(value);
+          baseline.current = value;
+        }
         onOpenChange(next);
       }}
       removable={removable}
-      onSave={() => save()}
+      onCancel={cancel}
       onDelete={onDelete}
     >
       <FilterField
@@ -57,20 +67,31 @@ export function FilterPill({
         onChange={setDraft}
         autoFocus
         // The pill's own popover already holds the field; a field opening a second one over it would
-        // cover the save button below.
+        // cover the buttons below.
         inline
-        onSubmit={(committed) => save(committed)}
+        // Enter is "done": apply straight away, without waiting for the debounce, and close.
+        onSubmit={(committed) => {
+          save(committed);
+          onOpenChange(false);
+        }}
       />
     </FilterPillShell>
   );
 
   /**
-   * Saving an emptied field removes it, as in the legacy MagicInput.isEmpty check.
+   * Applying an emptied field removes it, as in the legacy MagicInput.isEmpty check.
    *
    * A field submitting on Enter passes what it changed to, because its `onChange` has not come back
    * through `setDraft` yet at that point (see FilterField.onSubmit).
    */
   function save(value: MagicFilterEntryValue | undefined = draft) {
     onSave(isEmptyFilterValue(value) ? undefined : value);
+  }
+
+  /** Restore the value the popover opened with and close. */
+  function cancel() {
+    setDraft(baseline.current);
+    save(baseline.current);
+    onOpenChange(false);
   }
 }

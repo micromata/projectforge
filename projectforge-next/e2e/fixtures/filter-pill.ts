@@ -60,8 +60,12 @@ export function bound(
   });
 }
 
-export function saveButton(page: Page, t: Translate): Locator {
-  return page.getByRole("button", { name: t("save"), exact: true });
+/**
+ * The pill popover applies live and has no save button; "Abbrechen" is the footer control a spec
+ * waits on to know the popover is open.
+ */
+export function cancelButton(page: Page, t: Translate): Locator {
+  return page.getByRole("button", { name: t("cancel"), exact: true });
 }
 
 /** Adds a filter pill from the "+" chip and waits for its popover. */
@@ -72,7 +76,7 @@ export async function openPill(
 ): Promise<void> {
   await page.getByRole("button", { name: t("filter.addField") }).click();
   await page.getByRole("option", { name, exact: true }).click();
-  await expect(saveButton(page, t)).toBeVisible();
+  await expect(cancelButton(page, t)).toBeVisible();
 }
 
 /**
@@ -87,7 +91,7 @@ export async function reopenPill(
   await page
     .getByRole("button", { name: t("filter.editEntry", { arg0: name }) })
     .click();
-  await expect(saveButton(page, t)).toBeVisible();
+  await expect(cancelButton(page, t)).toBeVisible();
 }
 
 export interface ListRequestBody {

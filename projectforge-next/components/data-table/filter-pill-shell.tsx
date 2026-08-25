@@ -23,7 +23,8 @@ interface FilterPillShellProps {
   onOpenChange: (open: boolean) => void;
   /** Default filters stay on the row, so they only offer emptying, not removing. */
   removable: boolean;
-  onSave: () => void;
+  /** Restores the value the popover opened with — edits apply live, so there is no "save". */
+  onCancel: () => void;
   onDelete: () => void;
   /** Wider than the default for a pill holding more than one field. */
   contentClassName?: string;
@@ -33,11 +34,11 @@ interface FilterPillShellProps {
 
 /**
  * The chrome of a filter pill: the trigger, the popover, the remove button and the
- * save/delete footer.
+ * cancel/delete footer.
  *
  * Shared so that a pill standing for one backend field ([FilterPill]) and the one standing for the
  * three grouped history fields ([HistoryFilterPill]) are the same thing on screen and by keyboard —
- * only their contents and what "save" means differ.
+ * only their contents and what they apply differ.
  */
 export function FilterPillShell({
   label,
@@ -47,7 +48,7 @@ export function FilterPillShell({
   open,
   onOpenChange,
   removable,
-  onSave,
+  onCancel,
   onDelete,
   contentClassName,
   children,
@@ -105,8 +106,13 @@ export function FilterPillShell({
             >
               {tAction("delete")}
             </Button>
-            <Button size="sm" className="h-7 text-xs" onClick={onSave}>
-              {tAction("save")}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={onCancel}
+            >
+              {tAction("cancel")}
             </Button>
           </div>
         </PopoverContent>
