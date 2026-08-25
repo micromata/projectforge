@@ -39,6 +39,7 @@ export function PeriodQuickSelect({
   onSelect,
   disabled,
   className,
+  longLabel = false,
 }: {
   kinds: readonly PeriodKind[];
   /** The art in effect, or null while the two ends are none. */
@@ -50,6 +51,12 @@ export function PeriodQuickSelect({
   onSelect: (kind: PeriodKind) => void;
   disabled?: boolean;
   className?: string;
+  /**
+   * Spell the art out in the trigger ("Jahr bis heute") rather than abbreviate it ("J→"). For the roomy
+   * contexts — a filter popover with the stepper on a line of its own — where the two characters the form
+   * grid squeezes it to would only be a riddle no width forces. The dropdown always spells it out anyway.
+   */
+  longLabel?: boolean;
 }) {
   const t = useTranslations();
   if (!kinds.length) return null;
@@ -79,20 +86,29 @@ export function PeriodQuickSelect({
         title={value ? name(value) : t("duration.choose")}
         size="sm"
         // Tighter than a select of words: two characters and a caret, so the whole quick access still
-        // fits on the line the two date boxes leave.
+        // fits on the line the two date boxes leave. Where it is spelled out (a filter with room) it
+        // may grow to the label instead.
         className={cn("w-auto gap-0.5 px-1", className)}
       >
         {/* Children rather than the item's own text, which would be the spelled-out name: Radix falls
-            back to them only while something is selected, so the placeholder below still shows. */}
+            back to them only while something is selected, so the placeholder below still shows. The
+            placeholder names the control where there is room (a filter), and is only the icon where the
+            form grid has none — there nothing but an art in effect is worth the width. */}
         <SelectValue
           placeholder={
-            <HugeiconsIcon
-              icon={Timer01Icon}
-              className="text-muted-foreground"
-            />
+            longLabel ? (
+              <span className="text-muted-foreground">
+                {t("duration.choose")}
+              </span>
+            ) : (
+              <HugeiconsIcon
+                icon={Timer01Icon}
+                className="text-muted-foreground"
+              />
+            )
           }
         >
-          {value && name(value, true)}
+          {value && name(value, !longLabel)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

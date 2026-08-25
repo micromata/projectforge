@@ -80,6 +80,8 @@ export function RangeField({
             periodKind: kind.id,
           })
         }
+        // Room for the spelled-out art on its own line below the two dates, unlike the form grid.
+        longLabel
       />
     </div>
   );

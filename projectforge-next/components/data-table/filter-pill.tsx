@@ -46,6 +46,12 @@ export function FilterPill({
 
   useDebouncedApply(draft, value, save);
 
+  // A period filter earns a wider popover: with room the two date boxes sit side by side (the `@2xs`
+  // the default `w-72` stays just under, see [RangeBounds]) and the art is spelled out below them,
+  // rather than stacked and abbreviated as they are in a form's narrow column.
+  const isPeriod =
+    element.filterType === "DATE" || element.filterType === "TIMESTAMP";
+
   // A period in effect: the pill offers arrows that page it without opening the popover, so the list —
   // and the statistics above it — step month by month while the popover stays closed.
   const kinds = useFilterPeriodKinds();
@@ -83,6 +89,7 @@ export function FilterPill({
       removable={removable}
       onCancel={cancel}
       onDelete={onDelete}
+      contentClassName={isPeriod ? "w-80" : undefined}
     >
       <FilterField
         element={element}
