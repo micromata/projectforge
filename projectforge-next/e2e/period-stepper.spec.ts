@@ -8,11 +8,12 @@ import { zonedPartsOf } from "../lib/user-zone";
 import type { FilterElement } from "../lib/rs/types";
 import {
   bound,
+  cancelButton,
   filterField,
   listRequest,
   openPill,
+  reopenPill,
   resetFilter,
-  saveButton,
 } from "./fixtures/filter-pill";
 
 /** The books list is where both filter kinds live; its DATE field is `lendOutDate`. */
@@ -91,7 +92,7 @@ test.describe("period stepper", () => {
     );
   });
 
-  test("sends the month as two dates, and only once saved", async ({
+  test("sends the month as two dates once stepping settles", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -100,20 +101,13 @@ test.describe("period stepper", () => {
     await goto(page, "/book");
     await openPill(page, t, field.label!);
 
-    // Paging must neither fetch nor close the popover: an arrow that did would make stepping twice
-    // impossible, which is the whole point of the panel.
-    let fetched = false;
-    page.on("request", (candidate) => {
-      if (candidate.url().includes("/rs/book/list")) fetched = true;
-    });
+    // Stepping applies to the list on its own (no save click), but must not close the popover: an
+    // arrow that did would make stepping twice impossible, which is the whole point of the panel.
+    const request = listRequest(page, ENTITY);
     await page
       .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
       .click();
-    await expect(saveButton(page, t)).toBeVisible();
-    expect(fetched).toBe(false);
-
-    const request = listRequest(page, ENTITY);
-    await saveButton(page, t).click();
+    await expect(cancelButton(page, t)).toBeVisible();
 
     const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
     const bounds = boundsOfPeriod(MONTH, previous, context);
@@ -124,6 +118,75 @@ test.describe("period stepper", () => {
     expect(entry?.value.to).toBe(bounds.to);
   });
 
+  test("keeps a stepped range when the popover is dismissed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // Step back, wait for the live apply to land, then dismiss with Escape: auto-save is the default,
+    // so closing keeps what was applied — there is no save to forget.
+    const request = listRequest(page, ENTITY);
+    await page
+      .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
+      .click();
+    await request;
+    await page.keyboard.press("Escape");
+    await expect(cancelButton(page, t)).toHaveCount(0);
+
+    // Reopening reads the committed value back: the stepped month is still in effect, which it would
+    // not be had dismissing dropped it (an unapplied draft would have left the pill empty and gone).
+    const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
+    const bounds = boundsOfPeriod(MONTH, previous, context);
+    await reopenPill(page, t, field.label!);
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(bounds.from)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(bounds.to)
+    );
+  });
+
+  test("takes a stepped range back to the open-time state on Abbrechen", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // Commit one month back and close, so the pill has an open-time state worth restoring — the revert
+    // is asserted on the range itself, not a list request, because restoring a range already fetched
+    // is served from TanStack's cache and sends nothing.
+    const back = page.getByRole("button", {
+      name: t(MONTH.tooltipPreviousKey),
+    });
+    const committed = listRequest(page, ENTITY);
+    await back.click();
+    await committed;
+    await page.keyboard.press("Escape");
+
+    // Reopen and step once more — the draft moves to two months back — then Abbrechen throws that step
+    // away, restoring the one-month-back range the popover opened with.
+    await reopenPill(page, t, field.label!);
+    await back.click();
+    await cancelButton(page, t).click();
+
+    const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
+    const bounds = boundsOfPeriod(MONTH, previous, context);
+    await reopenPill(page, t, field.label!);
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(bounds.from)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(bounds.to)
+    );
+  });
+
   test("sends a TIMESTAMP month as the instants bounding the user's days", async ({
     loggedInPage: page,
   }) => {
@@ -132,11 +195,10 @@ test.describe("period stepper", () => {
     await goto(page, "/book");
     await openPill(page, t, t("filter.history"));
 
+    const request = listRequest(page, ENTITY);
     await page
       .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
       .click();
-    const request = listRequest(page, ENTITY);
-    await saveButton(page, t).click();
 
     const entry = (await request).entries.find(
       (candidate) => candidate.field === "modifiedInterval"
@@ -183,6 +245,51 @@ test.describe("period stepper", () => {
       currentAnchorOf(MONTH, context),
       context
     );
+    await expect(bound(page, format, field, "value")).toHaveValue(
+      format.date(bounds.from)
+    );
+    await expect(bound(page, format, field, "valueTo")).toHaveValue(
+      format.date(bounds.to)
+    );
+  });
+
+  test("pages from the pill with its popover closed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const { t, context } = format;
+    const field = await dateField(page);
+    await goto(page, "/book");
+    await openPill(page, t, field.label!);
+
+    // Put a whole month in effect and close the popover — the pill grows its own arrows only once a
+    // period is on it, and their whole point is to page with the popover shut, so the statistics line
+    // above the list stays in view instead of being covered by the popover. Wait for the pick to apply
+    // (it is debounced) before dismissing, or Escape would close over an uncommitted draft.
+    const applied = listRequest(page, ENTITY);
+    await pickKind(page, format, MONTH);
+    await applied;
+    await page.keyboard.press("Escape");
+    await expect(cancelButton(page, t)).toHaveCount(0);
+
+    // The previous-period arrow now on the pill — the popover being shut, it is the only one by that
+    // name — pages live, and paging must not reopen the popover it is meant to spare the user.
+    const request = listRequest(page, ENTITY);
+    await page
+      .getByRole("button", { name: t(MONTH.tooltipPreviousKey) })
+      .click();
+    await expect(cancelButton(page, t)).toHaveCount(0);
+
+    const previous = MONTH.shift(currentAnchorOf(MONTH, context), -1, context);
+    const bounds = boundsOfPeriod(MONTH, previous, context);
+    const entry = (await request).entries.find(
+      (candidate) => candidate.field === field.id
+    );
+    expect(entry?.value.from).toBe(bounds.from);
+    expect(entry?.value.to).toBe(bounds.to);
+
+    // Reopening reads the stepped month back: the pill applied and kept what the pill arrow paged to.
+    await reopenPill(page, t, field.label!);
     await expect(bound(page, format, field, "value")).toHaveValue(
       format.date(bounds.from)
     );

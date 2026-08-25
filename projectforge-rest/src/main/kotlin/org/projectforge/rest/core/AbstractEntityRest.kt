@@ -735,7 +735,10 @@ constructor(
      * Gets the item from the database.
      * @param id Id of the item to get or null, for new items (null  will be returned)
      */
-    @GetMapping("{id}")
+    // Digits only: a non-numeric single segment (e.g. a removed legacy endpoint like the former
+    // `/rs/order/edit`, or a stale bookmark) must miss this handler and fall through to a 404, not
+    // reach it and 500 while Spring tries to parse the word as a Long.
+    @GetMapping("{id:\\d+}")
     fun getItem(@PathVariable("id") id: Long?): ResponseEntity<Any> {
         val item = getById(id, true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(item, HttpStatus.OK)

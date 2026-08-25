@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
-import { InvoiceSumsLine } from "./invoice-sums-line";
+import { InvoiceSumsLine } from "@/components/shared/invoice/invoice-sums-line";
 import type { InvoiceValues } from "../invoice-schema";
 
 const m = fromMetadata(RECHNUNG_METADATA);
@@ -56,7 +56,7 @@ export function InvoiceEditBanner() {
           </Badge>
         )}
       </div>
-      <InvoiceSumsLine className="min-w-0 flex-1" />
+      <InvoiceSumsLine entity="outgoingInvoice" className="min-w-0 flex-1" />
     </div>
   );
 }

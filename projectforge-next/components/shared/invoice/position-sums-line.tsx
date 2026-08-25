@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { InvoicePositionSums } from "@/lib/rs/invoice";
+import type { InvoicePositionSums } from "@/lib/rs/invoice-sums";
 
 /**
  * Net, VAT and gross of one position, as the server computes them from what is currently in the form

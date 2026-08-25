@@ -13,8 +13,8 @@ import { formatCurrency } from "@/lib/format";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { cn } from "@/lib/utils";
 import type { InvoiceValues } from "../invoice-schema";
-import { deviatingGrossSum } from "../payment-amount-deviation";
-import { useInvoiceSums } from "../use-invoice-sums";
+import { deviatingGrossSum } from "@/components/shared/invoice/payment-amount-deviation";
+import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
 
 /** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
 const DERIVED_TARGETS = [
@@ -78,7 +78,7 @@ export function PaymentTermsFields({
    * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip. That is the right
    * moment: a warning about a half-typed number would be about a number nobody entered.
    */
-  const { sums } = useInvoiceSums();
+  const { sums } = useInvoiceSums("outgoingInvoice");
   const deviatesFrom = deviatingGrossSum(zahlBetrag, sums);
 
   // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the

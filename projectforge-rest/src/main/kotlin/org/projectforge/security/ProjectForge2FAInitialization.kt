@@ -125,7 +125,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       Kost1PagesRest::class.java,
       Kost2PagesRest::class.java,
       KontoPagesRest::class.java,
-      EingangsrechnungPagesRest::class.java,
+      IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
       ProjectPagesRest::class.java,

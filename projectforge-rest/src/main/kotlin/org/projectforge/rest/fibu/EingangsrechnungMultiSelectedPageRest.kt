@@ -67,7 +67,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   @Autowired
-  private lateinit var eingangsrechnungPagesRest: EingangsrechnungPagesRest
+  private lateinit var incomingInvoiceEntityRest: IncomingInvoiceEntityRest
 
   @Autowired
   private lateinit var configurationService: org.projectforge.business.configuration.ConfigurationService
@@ -82,7 +82,20 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
 
   @PostConstruct
   private fun postConstruct() {
-    pagesRest = eingangsrechnungPagesRest
+    pagesRest = incomingInvoiceEntityRest
+  }
+
+  /**
+   * The picked invoices summed up, as the values the hand built next mass-update page renders its
+   * statistics line from — the counterpart of [getStatistics]'s markdown. See
+   * [RechnungMultiSelectedPageRest.getStatisticsData].
+   */
+  override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
+    val stats = EingangsrechnungsStatistik()
+    eingangsrechnungDao.select(selectedIds)?.forEach { invoice ->
+      stats.add(invoice)
+    }
+    return IncomingInvoiceEntityRest.InvoiceStatistics(stats)
   }
 
   override fun fillForm(

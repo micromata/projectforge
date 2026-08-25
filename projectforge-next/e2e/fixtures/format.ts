@@ -6,7 +6,12 @@ import {
   formatTimestampMinutes,
   type FormatContext,
 } from "../../lib/format";
-import { MESSAGES, normalizeLocale, DEFAULT_LOCALE } from "../../i18n/config";
+import {
+  MESSAGES,
+  applyCustomerOverrides,
+  normalizeLocale,
+  DEFAULT_LOCALE,
+} from "../../i18n/config";
 import type { UserData, UserStatus } from "../../lib/rs/types";
 
 /**
@@ -41,9 +46,15 @@ export async function userFormat(page: Page): Promise<UserFormat> {
   const user = await fetchUserData(page);
   const context = formatContextFrom(user);
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
+  // The app overlays the deployment's CustomerI18nResources onto the static catalog (locale-provider →
+  // applyCustomerOverrides). A test that skipped them would look up the shipped label ("Abgleichen")
+  // while the page renders the customer's ("Tindern") and never find the control — so overlay them here
+  // too, from the same public endpoint, and translate against exactly what the user sees.
+  const overrides = await fetchCustomerOverrides(page, locale);
+  const messages = applyCustomerOverrides(MESSAGES[locale], overrides);
   return {
     context,
-    t: translate(locale),
+    t: translateMessages(locale, messages),
     date: (value) => formatDate(value, context),
     timestamp: (value) => formatTimestampMinutes(value, context),
   };
@@ -68,12 +79,20 @@ export function label(format: UserFormat, key: string): string {
  * server picks it from `Accept-Language`.
  */
 export function translate(locale: keyof typeof MESSAGES): UserFormat["t"] {
+  return translateMessages(locale, MESSAGES[locale]);
+}
+
+/** Builds a lookup for a locale over an explicit catalog (with or without customer overrides applied). */
+function translateMessages(
+  locale: keyof typeof MESSAGES,
+  messages: Record<string, unknown>
+): UserFormat["t"] {
   // Cast because next-intl derives the allowed keys from the *type* of the messages, and the
   // generated catalogs are plain JSON imports — a test looks its keys up as strings, exactly as the
   // dotted backend keys arrive.
   return createTranslator({
     locale,
-    messages: MESSAGES[locale],
+    messages,
     // A missing key must fail the test loudly instead of yielding the key itself, which would make
     // an assertion pass against a page that shows nothing.
     onError: (error) => {
@@ -96,4 +115,26 @@ async function fetchUserData(page: Page): Promise<UserData> {
     return response.json();
   });
   return status.userData;
+}
+
+/**
+ * The deployment's CustomerI18nResources overrides for a locale — the same public endpoint the app reads
+ * (see lib/rs/i18n.ts). Empty (`{}`) when this instance ships none. Failing softly to `{}` keeps a test
+ * on an override-less instance honest against the shipped catalog rather than crashing the fixture.
+ */
+async function fetchCustomerOverrides(
+  page: Page,
+  locale: string
+): Promise<Record<string, string>> {
+  return page.evaluate<Record<string, string>, string>(async (loc) => {
+    try {
+      const response = await fetch(
+        `/rsPublic/i18nCustomerOverrides?locale=${encodeURIComponent(loc)}`,
+        { credentials: "include" }
+      );
+      return response.ok ? await response.json() : {};
+    } catch {
+      return {};
+    }
+  }, locale);
 }

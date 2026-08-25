@@ -16,6 +16,7 @@ export const HAND_BUILT_CATEGORIES = [
   "book",
   "cost1",
   "group",
+  "incomingInvoice",
   "order",
   "outgoingInvoice",
   "task",

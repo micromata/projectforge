@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useInvoiceSums } from "../use-invoice-sums";
+import { useInvoiceSums } from "./use-invoice-sums";
 
 /**
  * The sums of the invoice, as the server computes them from what is currently in the form
@@ -13,11 +13,19 @@ import { useInvoiceSums } from "../use-invoice-sums";
  * Shown rather than editable, and computed there rather than here: rounding a position before it enters
  * a sum is German law and `RechnungCalculator`'s rule, and whether a discount was taken in time follows
  * from `RechnungInfo` — a second implementation in the browser would be a second answer.
+ *
+ * @param entity The REST category of the invoice on the page, handed to [useInvoiceSums].
  */
-export function InvoiceSumsLine({ className }: { className?: string }) {
+export function InvoiceSumsLine({
+  entity,
+  className,
+}: {
+  entity: string;
+  className?: string;
+}) {
   const t = useTranslations();
   const format = useFormatContext();
-  const { sums, isLoading } = useInvoiceSums();
+  const { sums, isLoading } = useInvoiceSums(entity);
 
   const entries: [string, string][] = [
     ["fibu.common.netto", formatCurrency(sums?.netSum, format)],

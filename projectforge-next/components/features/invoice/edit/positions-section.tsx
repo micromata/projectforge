@@ -6,7 +6,7 @@ import { useEntityDetail } from "@/hooks/use-entity-detail";
 import { useFieldArray } from "@/hooks/use-field-array";
 import { emptyPositionValues, nextPositionNumber } from "../invoice-values";
 import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
-import { useInvoiceSums } from "../use-invoice-sums";
+import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
 import { PositionRow } from "./position-row";
 import type { InvoicePositionValues } from "../invoice-schema";
 import type { InvoiceDetail } from "../types";
@@ -24,7 +24,7 @@ import type { InvoiceDetail } from "../types";
 export function PositionsSection({ id }: { id: number | null }) {
   const t = useTranslations();
   const array = useFieldArray<InvoicePositionValues>("positionen");
-  const { positionSums } = useInvoiceSums();
+  const { positionSums } = useInvoiceSums("outgoingInvoice");
   // The configured `fibu.defaultVAT`, for the first position of an invoice — from then on the row above
   // is the better guess (see emptyPositionValues).
   const defaults = useInvoiceFormDefaults();

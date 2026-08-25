@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -188,6 +188,22 @@ function DeclaredList<
     [declarations.columns]
   );
 
+  // A view option the statistics slot may switch on (the invoice list's previous-year comparison): a
+  // transient boolean that adds an `extended` flag to the list call. Owned here because the slot is
+  // declarative and cannot hold state; it survives period stepping (only the filter values change) and
+  // resets when the page is left, which is what "on demand" asks for.
+  const [previousYearComparison, setPreviousYearComparison] = useState(false);
+  const buildFilter = useCallback(
+    (base: MagicFilter): MagicFilter =>
+      previousYearComparison
+        ? {
+            ...base,
+            extended: { ...base.extended, previousYearComparison: true },
+          }
+        : base,
+    [previousYearComparison]
+  );
+
   const list = useEntityListPage<Row>({
     entity: page.entity,
     queryKey: page.queryKey,
@@ -198,6 +214,7 @@ function DeclaredList<
     defaultVisibility: declarations.defaultVisibility,
     massUpdateEndpoint: page.massUpdate?.endpoint,
     lockedColumnIds: LOCKED_COLUMN_IDS,
+    buildFilter,
   });
   // The shell's guard has already passed the meta data, so what is left for this one is a right the
   // list call is the first to see refused - withdrawn mid-session, or an entity whose rest class fills
@@ -277,6 +294,11 @@ function DeclaredList<
         banner={page.statistics?.({
           statistics: list.statistics,
           isFetching: list.isFetching,
+          // The filter as sent, so a slot can decide whether its view option even applies (the invoice
+          // line enables its comparison only for a bounded date range).
+          filter: list.filter,
+          previousYearComparison,
+          setPreviousYearComparison,
         })}
         selectionBar={
           page.massUpdate &&

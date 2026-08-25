@@ -84,10 +84,7 @@ export function FilterPills({
             onOpenChange={(open) =>
               open ? setOpenId(HISTORY_FILTER_GROUP_ID) : close()
             }
-            onSave={(draft) => {
-              onChange(mergeHistoryFilters(values, draft));
-              close();
-            }}
+            onSave={(draft) => onChange(mergeHistoryFilters(values, draft))}
             onDelete={() => {
               onChange(clearHistoryFilters(values));
               close();
@@ -102,10 +99,9 @@ export function FilterPills({
             open={openId === element.id}
             onOpenChange={(open) => (open ? setOpenId(element.id) : close())}
             removable={!element.defaultFilter}
-            onSave={(value) => {
-              onChange(withFilterValue(values, element.id, value));
-              close();
-            }}
+            onSave={(value) =>
+              onChange(withFilterValue(values, element.id, value))
+            }
             onDelete={() => {
               onChange(withFilterValue(values, element.id, undefined));
               close();

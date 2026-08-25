@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { LogoRow } from "@/components/shared/logo-row";
+import { StatusBar } from "@/components/shared/status-bar";
 import { SystemAlertBanner } from "@/components/shared/system-alert-banner";
 import { TopNavigation } from "@/components/shared/top-navigation";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
@@ -36,7 +37,12 @@ export function PageShell({ children }: PageShellProps) {
     // form. The document then scrolls, and at the end of a column that scroll chains into it, lifting
     // the app - the action bar included - out of the viewport and leaving white below it. With the
     // containing block here, `overflow-hidden` clips them and the page itself never scrolls.
-    <div className="relative flex h-screen flex-col overflow-hidden">
+    // `h-dvh`, not `h-screen`: on iOS Safari `100vh` is the *large* viewport (the area behind the
+    // collapsible toolbars), so the box is taller than what's on screen and the pinned action bar of
+    // an edit page falls below the fold — reachable only by scrolling the outer <main>, never the
+    // inner form column. `100dvh` tracks the visible viewport, so the bar stays anchored at the true
+    // bottom and <main> keeps no extra overflow to scroll.
+    <div className="relative flex h-dvh flex-col overflow-hidden">
       <LogoRow />
       <BrandStripe />
       <TopNavigation />
@@ -49,6 +55,9 @@ export function PageShell({ children }: PageShellProps) {
       >
         {children}
       </main>
+      {/* Sibling of <main>, not inside it: shrink-0 keeps the strip pinned at the true bottom while
+          <main> takes the remaining height, exactly as Wicket's footer sits below the scroll area. */}
+      <StatusBar />
     </div>
   );
 }

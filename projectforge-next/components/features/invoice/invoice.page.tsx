@@ -1,7 +1,7 @@
 import { attachmentsColumn } from "@/components/shared/attachments/attachments-column";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
-import { CostAssignmentCell } from "./cost-assignment-cell";
+import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
@@ -20,8 +20,8 @@ import {
   type InvoiceValues,
 } from "./invoice-schema";
 import { OrdersCell, orderNumbers } from "./orders-cell";
-import { InvoiceStatisticsLine } from "./invoice-statistics-line";
-import type { InvoiceStatistics } from "./invoice-statistics";
+import { InvoiceStatisticsLine } from "@/components/shared/invoice/invoice-statistics-line";
+import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-statistics";
 import { emptyInvoiceValues, toFormValues } from "./invoice-values";
 import type { InvoiceDetail, InvoiceListRow } from "./types";
 
@@ -205,13 +205,22 @@ export const INVOICE_PAGE = definePage<
     if (row.status !== "BEZAHLT") return "row-blue";
     return undefined;
   },
-  // The sums over the whole result set, above the table as the legacy list shows them. The cast is where
-  // the untyped `ResultSet.statistics` becomes what `OutgoingInvoiceEntityRest` sends — see
-  // PageDef.statistics for why this is the place for it.
-  statistics: ({ statistics, isFetching }) => (
+  // The sums over the whole result set, above the table as the legacy list shows them, with the
+  // "Vorjahresvergleich" toggle over them. The cast is where the untyped `ResultSet.statistics` becomes
+  // what `OutgoingInvoiceEntityRest` sends — see PageDef.statistics for why this is the place for it.
+  statistics: ({
+    statistics,
+    isFetching,
+    filter,
+    previousYearComparison,
+    setPreviousYearComparison,
+  }) => (
     <InvoiceStatisticsLine
       statistics={statistics as InvoiceStatistics | undefined}
       isFetching={isFetching}
+      filter={filter}
+      previousYearComparison={previousYearComparison}
+      setPreviousYearComparison={setPreviousYearComparison}
     />
   ),
   listActions: InvoiceListActions,

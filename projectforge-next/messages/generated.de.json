@@ -151,6 +151,7 @@
     },
     "title": {
       "_": "Titel",
+      "add": "Neues Buch",
       "list": "Bücherliste"
     },
     "type": {
@@ -232,6 +233,17 @@
     "unpin": "Nicht mehr anheften"
   },
   "comment": "Bemerkung",
+  "common": {
+    "import": {
+      "action": {
+        "commit": "Übernehmen",
+        "deselectAll": "Alle abwählen",
+        "reconcile": "Abgleichen",
+        "selectAll": "Alle auswählen"
+      },
+      "clearStorage": "Leeren"
+    }
+  },
   "contactPerson": "Ansprechpartner:in",
   "copy": "Kopieren",
   "create": "Anlegen",
@@ -537,6 +549,11 @@
     "customerref1": "Kundenreferenz",
     "eInvoiceChecker": {
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
+    },
+    "eingangsrechnung": {
+      "import": {
+        "title": "Kreditorenrechnungen hochladen"
+      }
     },
     "employee": {
       "_": "Mitarbeiter:in",
@@ -898,6 +915,12 @@
       "showKostZuweisungstatus": "Kostzuweisungsstatus",
       "showTextAreas": "Positionsbeschreibungen",
       "skonto": "Skonto / Fehlbetrag",
+      "statistics": {
+        "currentPeriod": "Aktuell",
+        "previousYear": "Vorjahr",
+        "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
+        "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum."
+      },
       "status": {
         "_": "Rechnungsstatus",
         "bezahlt": "bezahlt",
@@ -944,7 +967,8 @@
       },
       "zahlungsZiel": {
         "_": "Zahlungsziel",
-        "actual": "Tatsächliches Zahlungsziel"
+        "actual": "Tatsächliches Zahlungsziel",
+        "actualShort": "tatsächliches ZZ"
       }
     },
     "rechnungen": "Debitorenrechnungen",
@@ -1156,6 +1180,61 @@
     }
   },
   "id": "Id",
+  "import": {
+    "_": "Importieren",
+    "confirmMessage": "Sollen nun alle ausgewählten Einträge importiert werden? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "display": {
+      "options": "Anzeigeoptionen"
+    },
+    "entry": {
+      "error": "Fehler",
+      "status": {
+        "deleted": "Gelöscht",
+        "faulty": "Fehlerhaft",
+        "imported": "Importiert",
+        "modified": "Modifiziert",
+        "new": "Neu",
+        "unknown": "Unbekannt",
+        "unknown_modification": "Unbekannt",
+        "unmodified": "Unverändert"
+      }
+    },
+    "error": {
+      "noEntrySelected": "Kein Eintrag zum Importieren ausgewählt.",
+      "nothingToImport": "Nichts zum Importieren gefunden. Bitte eine andere Datei probieren oder die Importeinstellungen entsprechend definieren."
+    },
+    "field": {
+      "mapping": "Feldzuordnung",
+      "name": "Feldname"
+    },
+    "help": {
+      "settings": {
+        "info": "Es können Importeinstellungen wie Encoding (Zeichensatz) und Feldzuordnungen sowie Datenformatee definiert werden. Hier ein Beispiel als Kopiervorlage:",
+        "title": "Tipps"
+      }
+    },
+    "info": {
+      "detectedColumns": "Erkannte Spalten",
+      "unknownColumns": "Unbekannte Spalten"
+    },
+    "result": {
+      "numberOfCreated": "Anzahl neu angelegter Einträge",
+      "numberOfDeleted": "Anzahl gelöschter Einträge",
+      "numberOfUnmodified": "Anzahl unveränderter Einträge",
+      "numberOfUpdated": "Anzahl geänderter Einträge",
+      "title": "Importergebnis"
+    },
+    "stats": {
+      "deleted": "Anzahl zu löschender Einträge",
+      "faulty": "Anzahl fehlerhafter Einträge (s. Statustooltip)",
+      "modified": "Anzahl zu ändernder Einträge",
+      "new": "Anzahl neuer Einträge",
+      "total": "Gesamtanzahl",
+      "unknown": "Anzahl unbekannter Einträge",
+      "unmodified": "Anzahl unverändert Einträge"
+    },
+    "title": "Import-Tool"
+  },
   "index": {
     "development": "Webseite für Entwicklung",
     "website": "Webseite",
