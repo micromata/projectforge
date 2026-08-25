@@ -94,6 +94,7 @@ export function PositionFields({
           }}
           periodKinds={TERM_KIND_IDS}
           paging
+          longLabel
           className="md:col-span-2"
         />
       )}

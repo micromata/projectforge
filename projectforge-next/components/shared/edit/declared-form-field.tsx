@@ -86,6 +86,7 @@ export function DeclaredFormField<M extends EntityMetadata>({
         disabled={formReadOnly}
         periodKinds={field.periodKinds}
         paging={field.paging}
+        longLabel={field.longLabel}
         className={className}
       />
     );

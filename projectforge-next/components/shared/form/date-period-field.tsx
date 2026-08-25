@@ -32,6 +32,11 @@ export interface DatePeriodFieldProps {
    * [periodKinds]: a period entered by hand pages by the days it spans.
    */
   paging?: boolean;
+  /**
+   * Spell the art out in its trigger ("3 Monate") rather than abbreviate it ("3M"), for a grid cell with
+   * the room for it (see [PeriodQuickSelect]). Off by default, as the narrow position grid needs.
+   */
+  longLabel?: boolean;
   className?: string;
   /** Both boxes; a period is shown-but-not-fillable as a whole, never half of it. */
   disabled?: boolean;
@@ -64,6 +69,7 @@ export function DatePeriodField({
   hint,
   periodKinds,
   paging = false,
+  longLabel = false,
   className,
   disabled,
 }: DatePeriodFieldProps) {
@@ -115,6 +121,7 @@ export function DatePeriodField({
           paging={paging}
           canStep={canStep}
           onStep={onStep}
+          longLabel={longLabel}
           disabled={disabled}
         />
       </div>

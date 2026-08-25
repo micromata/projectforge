@@ -305,6 +305,7 @@ export const INVOICE_PAGE = definePage<
             end: "periodOfPerformanceEnd",
             periodKinds: TERM_KIND_IDS,
             paging: true,
+            longLabel: true,
             startsRow: true,
           },
         ],
