@@ -311,8 +311,16 @@ class TaskServicesRest {
             return task
         }
 
-        fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
-            val kost2DOList = TaskTree.instance.getKost2List(task.id)
+        /**
+         * @param recursive Whether inherited cost units count. `false` for the tree/list display, where a
+         *   task shows its cost units only where they are *specifically* defined — through its own project
+         *   assignment or its own black/white list — never the ones it merely inherits from an ancestor
+         *   (matching Wicket's list column, `TaskListPage: getKost2List(id, false)`). `true` (the default)
+         *   for `info/{id}`, whose `kost2List` is the *bookable* list a timesheet on this task may charge,
+         *   which must include the inherited cost units (see the webapp's TimesheetEditTaskAndKost2).
+         */
+        fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true, recursive: Boolean = true) {
+            val kost2DOList = TaskTree.instance.getKost2List(task.id, recursive)
             if (!kost2DOList.isNullOrEmpty()) {
                 if (includeKost2ObjectList) {  // Only if needed in tree, save bandwidth...
                     val kost2List: List<Kost2> = kost2DOList.map {
@@ -598,7 +606,7 @@ class TaskServicesRest {
         val indent = if (table == true) 0 else null
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
-        addKost2List(root)
+        addKost2List(root, recursive = false)
         buildTree(ctx, root, rootNode, indent)
         if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
                     accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
@@ -765,7 +773,7 @@ class TaskServicesRest {
                     taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)
                 ) {
                     val child = Task(node)
-                    addKost2List(child, false)
+                    addKost2List(child, includeKost2ObjectList = false, recursive = false)
                     child.consumption = Consumption.create(node)
                     if (indent != null) {
                         var hidden = false
