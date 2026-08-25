@@ -101,6 +101,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @Autowired
   private lateinit var forecastExport: ForecastExport
 
+  @Autowired
+  private lateinit var rechnungDao: RechnungDao
+
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
    * [onAfterEdit] within one request. A thread local because this rest service is a singleton serving
@@ -167,6 +170,10 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     auftrag.vollstaendigFakturiertWriteAccess = orderAccessChecker.hasLoggedInUserRight(
       RechnungDao.USER_RIGHT_ID, false, UserRightValue.READWRITE
     ) && orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+    // Whether the invoice numbers of the positions may link to the invoice's own page: the select access
+    // on outgoing invoices, exactly as Wicket's InvoicePositionsPanel gates its link. A non-finance user
+    // who may read this order still sees the numbers, but as plain text (see Auftrag.invoicesSelectAccess).
+    auftrag.invoicesSelectAccess = rechnungDao.hasLoggedInUserSelectAccess(throwException = false)
     if (obj.id == null) {
       return auftrag
     }

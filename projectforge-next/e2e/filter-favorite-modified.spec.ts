@@ -55,8 +55,9 @@ test.describe("saved filter modification marker", () => {
     await expect(marker(page, format, NAME)).toHaveCount(0);
     await page.reload();
     // Still the applied favorite, and still nothing to save — although "Jahr bis heute" recomputes its
-    // end while the filter is being restored.
-    await expect(bookmark(page, NAME)).toBeVisible();
+    // end while the filter is being restored. Late in a serial full run the reloaded page compiles and
+    // restores under a loaded machine, so the wait is longer than the default here.
+    await expect(bookmark(page, NAME)).toBeVisible({ timeout: 40_000 });
     await expect(marker(page, format, NAME)).toHaveCount(0);
   });
 
@@ -80,7 +81,8 @@ test.describe("saved filter modification marker", () => {
     await expect(marker(page, format, NAME)).toHaveCount(0);
 
     await page.reload();
-    await expect(bookmark(page, NAME)).toBeVisible();
+    // The longer wait as above: the reload after the full run's load has to recompile and restore.
+    await expect(bookmark(page, NAME)).toBeVisible({ timeout: 40_000 });
     await expect(marker(page, format, NAME)).toHaveCount(0);
   });
 });

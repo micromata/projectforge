@@ -34,7 +34,7 @@ test.describe("task tree", () => {
 
     await expect(
       page.getByRole("heading", { name: t("task.tree.perspective") })
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: 40_000 });
 
     // The headers prove the column defs of createDefaultColumnDefs survived the adapter. They arrive
     // already translated (`headerName`), so the expectation goes through the same catalogs.
@@ -93,8 +93,9 @@ test.describe("task tree", () => {
     seededTask,
   }) => {
     // Login, three tree loads and two round trips to the user prefs don't fit into the default 30s
-    // against a dev server that compiles on demand.
-    test.setTimeout(90_000);
+    // against a dev server that compiles on demand — and late in a serial full run the machine is
+    // loaded enough that even 90s is not always enough, so the ceiling is higher here.
+    test.setTimeout(180_000);
     const { t } = await userFormat(page);
     await goto(page, PAGE);
 
@@ -110,12 +111,12 @@ test.describe("task tree", () => {
     await folder.getByRole("img", { name: t("expand") }).click();
     // More rows: the children the server added, since the client has no expansion model to unfold.
     await expect
-      .poll(() => rows.count(), { timeout: 20_000 })
+      .poll(() => rows.count(), { timeout: 40_000 })
       .toBeGreaterThan(before);
     // The reload is the assertion: the open set is in the user's prefs
     // (TaskTree.USER_PREFS_KEY_OPEN_TASKS), so the tree has to come back unfolded.
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+    await expect(rows.first()).toBeVisible({ timeout: 40_000 });
     // The node itself, rather than the row count: `open=<id>` opens the ancestors too, and any node
     // the account had open before this run adds rows this test never asked for. That it offers
     // "collapse" now is what says the server remembered it.
@@ -126,9 +127,9 @@ test.describe("task tree", () => {
         .getByRole("img", {
           name: t("collapse"),
         })
-    ).toBeVisible({ timeout: 20_000 });
+    ).toBeVisible({ timeout: 40_000 });
     await expect
-      .poll(() => rows.count(), { timeout: 20_000 })
+      .poll(() => rows.count(), { timeout: 40_000 })
       .toBeGreaterThan(before);
 
     // Collapsing the same node again leaves the account as the test found it.
@@ -137,7 +138,7 @@ test.describe("task tree", () => {
       .first()
       .getByRole("img", { name: t("collapse") })
       .click();
-    await expect.poll(() => rows.count(), { timeout: 20_000 }).toBe(before);
+    await expect.poll(() => rows.count(), { timeout: 40_000 }).toBe(before);
   });
 
   test("searching narrows the tree", async ({
@@ -157,7 +158,7 @@ test.describe("task tree", () => {
       .getByLabel(t("search._"), { exact: true })
       .fill(seededTask.title);
     await expect
-      .poll(() => rows.count(), { timeout: 20_000 })
+      .poll(() => rows.count(), { timeout: 40_000 })
       .toBeLessThanOrEqual(before);
     // The task and its child, plus the ancestors the backend sends along to place them.
     await expect(rows.filter({ hasText: seededTask.title })).toHaveCount(1);
@@ -187,12 +188,12 @@ test.describe("task tree", () => {
     // Inside the tree column: expands, and the url stays.
     await folder.locator("td").first().click();
     await expect
-      .poll(() => rows.count(), { timeout: 20_000 })
+      .poll(() => rows.count(), { timeout: 40_000 })
       .toBeGreaterThan(before);
     expect(page.url()).toContain(PAGE);
 
     // Outside it: selects, which on this page means opening the task's (legacy) edit page.
     await folder.locator("td").nth(3).click();
-    await expect(page).toHaveURL(/task/i, { timeout: 20_000 });
+    await expect(page).toHaveURL(/task/i, { timeout: 40_000 });
   });
 });

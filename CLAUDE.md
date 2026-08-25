@@ -30,6 +30,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project can use a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. Both the graph and the tool are local and untracked: install graphify into a project-local venv, then run `graphify update .` to build graphify-out/. Until then the rules below simply do not apply — work from the sources as usual.
 
+The graphify binary is installed here at `venv/bin/graphify` (project-local venv, never on `$PATH`); invoke it as `venv/bin/graphify query "..."` etc.
+
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.

@@ -15,6 +15,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /**
@@ -94,8 +95,9 @@ function CategoryColumn({ category }: { category: MenuItem }) {
   return (
     <div className="flex flex-col gap-0.5">
       {/* The brand token, not text-primary: --primary turns near-white in dark mode. */}
-      <span className="truncate px-2 py-1 text-xs font-semibold tracking-wide text-brand-teal uppercase">
-        {category.title}
+      <span className="flex items-center gap-2 px-2 py-1 text-xs font-semibold tracking-wide text-brand-teal uppercase">
+        <span className="truncate">{category.title}</span>
+        <MenuCounterBadge badge={category.badge} />
       </span>
       {category.subMenu?.map((item) => (
         // MenubarItem, not a bare link: it is what closes the panel on click and wires up
@@ -107,11 +109,7 @@ function CategoryColumn({ category }: { category: MenuItem }) {
             className={cn("text-sm", MENU_HOVER_CLASS)}
           >
             <span className="truncate">{item.title}</span>
-            {item.badge?.counter ? (
-              <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
-                {item.badge.counter}
-              </span>
-            ) : null}
+            <MenuCounterBadge badge={item.badge} />
           </MenuLink>
         </MenubarItem>
       ))}
