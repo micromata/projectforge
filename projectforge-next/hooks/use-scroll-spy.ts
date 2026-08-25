@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseScrollSpyOptions {
   offset?: number;
@@ -23,6 +23,11 @@ export function useScrollSpy(sectionCount: number, opts?: UseScrollSpyOptions) {
   const [activeIndex, setActiveIndex] = useState(0);
   /** Section a click chose, held until the user scrolls of their own accord. */
   const pinnedIndex = useRef<number | null>(null);
+  /** Keeps the pinned section aligned while it unfolds (see scrollToSection). */
+  const alignObserver = useRef<ResizeObserver | null>(null);
+
+  // The observer outlives a single scroll, so a leaving page must let go of it.
+  useEffect(() => () => alignObserver.current?.disconnect(), []);
 
   const sectionRef = useCallback(
     (index: number) => (el: HTMLDivElement | null) => {
@@ -78,12 +83,36 @@ export function useScrollSpy(sectionCount: number, opts?: UseScrollSpyOptions) {
     pinnedIndex.current = index;
     setActiveIndex(index);
     const container = scrollRef.current;
-    const bounds = sectionBounds(container, sectionRefs.current[index]);
-    if (!container || !bounds) return;
-    const top = bounds.top;
+    const el = sectionRefs.current[index];
+    if (!container || !el) return;
+
     // As far up as the column can bring it, which for the last sections is short of the top. The
     // first section lands at 0, so the column really does scroll all the way back up.
-    container.scrollTo({ top, behavior: "smooth" });
+    const alignTop = (behavior: ScrollBehavior) => {
+      const bounds = sectionBounds(container, el);
+      if (bounds) container.scrollTo({ top: bounds.top, behavior });
+    };
+    alignTop("smooth");
+
+    // A folded section unfolds when its tab is clicked, so it grows *after* this scroll — and while
+    // it was still folded the column had nothing below it to scroll against, so the last section's
+    // top could not reach the top of the column and the freshly revealed body hung off the bottom.
+    // Track the growth and re-align, until the section settles or the user scrolls away.
+    alignObserver.current?.disconnect();
+    let lastHeight = el.getBoundingClientRect().height;
+    const observer = new ResizeObserver(() => {
+      if (pinnedIndex.current !== index) {
+        observer.disconnect();
+        return;
+      }
+      const height = el.getBoundingClientRect().height;
+      // The observer fires once on connect with the current size; only a real change is the unfold.
+      if (height === lastHeight) return;
+      lastHeight = height;
+      alignTop("auto");
+    });
+    observer.observe(el);
+    alignObserver.current = observer;
   }, []);
 
   // No `scrollRef`/`onScroll` of their own: they are part of `scrollProps`, and a column wired up
