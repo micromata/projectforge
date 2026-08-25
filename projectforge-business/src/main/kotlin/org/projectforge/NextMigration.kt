@@ -236,6 +236,19 @@ object NextMigration {
             newEntryRoute = "timesheet/new",
             legacyApp = LegacyApp.REACT,
         ),
+        // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
+        // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
+        // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
+        // so this repoints only the edit routes. The way back leads to the React app, whose team event form
+        // was rendered from the same UILayout under calendar/teamEvent (TeamEventPagesRest.getRestEditPath).
+        "teamEvent" to NextPage(
+            route = "teamEvent",
+            editRoute = "teamEvent/$ID_PLACEHOLDER",
+            newEntryRoute = "teamEvent/new",
+            legacyApp = LegacyApp.REACT,
+            legacyEditRoute = "calendar/teamEvent/edit/$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "calendar/teamEvent/edit",
+        ),
     )
 
     /**

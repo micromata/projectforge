@@ -1647,7 +1647,13 @@
         "endDate": "End",
         "location": "Location",
         "note": "Note",
-        "subject": "Subject"
+        "subject": "Subject",
+        "teamCal": "Calendar",
+        "title": {
+          "add": "Create team event",
+          "heading": "Event",
+          "list": "List of team events"
+        }
       },
       "externalsubscription": {
         "label": "External subscription",

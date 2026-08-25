@@ -90,32 +90,54 @@ serverseitig (HTTP 406).
       bleibt vorerst in Wicket (`MenuItemDefId.TIMESHEET_LIST`). „Eine Route und eine
       Spaltenliste, kein Umbau."
 
-### TeamCal-Event – noch nicht begonnen
+### TeamCal-Event – Phase A (Grundgerüst) erledigt
 
-Es existieren nur die generierten Metadaten (`team-event.generated.ts`,
-`team-event-attendee.generated.ts`, `team-event-attachment.generated.ts`). Kein
-Feature-Ordner, keine Route, kein RS-Client. Aktiver Backend-Vertrag:
-`TeamEventPagesRest` + DTO `TeamEvent.kt`. `calEvent` ist nur ein abgeschaltetes
-Flag (`calendar.useNewCalendarEvents=false`) **ohne** Controller/DTO – ignorieren.
+Aktiver Backend-Vertrag: `TeamEventPagesRest` + DTO `TeamEvent.kt`. `calEvent` ist nur ein
+abgeschaltetes Flag (`calendar.useNewCalendarEvents=false`) **ohne** Controller/DTO – ignorieren.
 
-- [ ] Feature-Gerüst analog Timesheet: `teamEvent.page.tsx`, `types.ts`,
-      `edit/*-schema.ts`, `edit/*-values.ts`, Route `app/(authenticated)/teamEvent/[id]/`
-- [ ] Scalare Sections: `subject`, `location`, `note`, `startDate`/`endDate`, `allDay`
-      (schaltet start/end zwischen TIMESTAMP und DATE). Diese Felder deckt die generierte
-      Metadatendatei ab – wie Timesheet in überschaubarer Zeit machbar.
+**Phase A – lauffähiges Grundgerüst (fertig):**
 
-Die eigentlichen Brocken – jeweils ein eigenes Custom-Widget, **nicht** in den
-Metadaten enthalten (Relationen/`UICustomized`):
+- [x] Feature-Gerüst analog Timesheet: `teamEvent.page.tsx`, `types.ts`,
+      `edit/team-event-edit-schema.ts`, `edit/team-event-edit-values.ts`,
+      Route `app/(authenticated)/teamEvent/[id]/` (`page.tsx` + `page-client.tsx`)
+- [x] Scalare Sections: `subject`, `location`, `note`, `startDate`/`endDate`, `allDay`
+      (`date-range-section.tsx` schaltet start/end per allDay zwischen `DateTimeInput` und
+      date-only `DateInput` und verankert die Enden beim Umschalten auf 00:00/23:59)
+- [x] **`calendar`-Select** (Pflicht) – eigener `calendar-select-field.tsx`: lädt die
+      schreibbaren Kalender per TanStack Query aus neuem Endpoint
+      `TeamEventPagesRest.getCalendars` (`@GetMapping("calendars")`, `lib/rs/team-event.ts`),
+      Pflichtfeld ohne Clear, hängt einen nicht-schreibbaren Event-Kalender vorne an
+- [x] **Kein Datenverlust beim Speichern.** `EntityEditPage.save` postet die Formwerte _als_
+      DTO, daher trägt Schema+`toFormValues` **jedes** nicht editierte DTO-Feld unverändert
+      durch (recurrence*, attendees, reminder*, organizer\*, ownership, sequence, uid, …). Ein
+      Serientermin wird dadurch beim Speichern **laut** abgelehnt (`validate` verlangt
+      `seriesModificationMode`), statt still korrumpiert zu werden
+- [x] **History-Tab** automatisch (`TEAM_EVENT_METADATA.historizable === true`)
+- [x] Backend `newBaseDTO(request)` überschrieben – die hand-gebaute Add-Seite holt `newEntry`
+      statt der UILayout-`edit`-Route; wiederverwendet `onBeforeGetItemAndLayout` für die
+      startDate/endDate/calendar-Presets aus dem Kalender
+- [x] Kalender-Routing: `team-event-route.ts` (`/teamEvent/edit`→`/teamEvent/new`,
+      `/teamEvent/edit/<id>`→`/teamEvent/<id>`) + `case "teamEvent"` in `use-calendar-action.ts`
+- [x] Registrierung: `lib/hand-built-categories.ts` + `NextMigration.MIGRATED["teamEvent"]`
+      (Test `NextMigrationTest` grün), i18n-Katalog regeneriert (`GenerateNextI18nMessagesTest` grün)
 
-- [ ] **`calendar`-Select** (Pflicht, `UISelect`) – Zuordnung zum Team-Kalender
-- [ ] **Attendees** (`MutableSet<TeamEventAttendeeDO>`) – eigener Multi-Select
-- [ ] **Reminder** – im Backend `UICustomized("calendar.reminder")`, muss als Widget
-      nachgebaut werden
-- [ ] **Recurrence / Serientermine** – `UICustomized("calendar.recurrency")` plus der
+Bewusst **zurückgestellt** (jeweils eigenes Custom-Widget, **nicht** in den Metadaten;
+Relationen/`UICustomized`) – vor Umsetzung mit Nutzer bestätigen:
+
+- [ ] **Phase B – Reminder** – im Backend `UICustomized("calendar.reminder")`, muss als Widget
+      nachgebaut werden (`reminderDuration`/`reminderDurationUnit`/`reminderActionType` werden
+      bereits verlustfrei durchgereicht)
+- [ ] **Phase C – Attendees** (`MutableSet<TeamEventAttendeeDO>`) – eigener Multi-Select
+- [ ] **Phase D – Recurrence / Serientermine** – `UICustomized("calendar.recurrency")` plus der
       Rückfrage-Dialog `SeriesModificationMode` (ALL/FUTURE/SINGLE), konditional je nach
       Master-Startdatum; `validate` verweigert das Speichern eines Serientermins ohne
       gewählten Modus. Deckt sich mit **offenem Risiko 3** (MODAL-`ResponseAction` öffnet in
       next noch eine Seite statt Overlay). Das ist der harte Teil.
+- [ ] **Drag/Resize bestehender Events** öffnet den Termin, aber noch nicht bereits verschoben
+      (Query wird für bestehende Events verworfen, analog Timesheet); gehört zu Phase D
+- [ ] **List-Page** (`app/(authenticated)/teamEvent/page.tsx`) – bewusst zurückgestellt; der
+      Termin wird über den Kalender erreicht. Spalten sind in `teamEvent.page.tsx` bereits
+      deklariert, sodass die Liste später nur eine Route ist
 
 ### History-Tab: nicht pro Entität anzulegen
 

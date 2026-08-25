@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { resolveMenuUrl, sanitizeRedirectUrl } from "@/lib/menu-url";
 import { fetchCalendarAction } from "@/lib/rs/calendar";
 import type { CalendarActionParams } from "@/lib/rs/calendar-types";
+import { toTeamEventRoute } from "./team-event-route";
 import { toTimesheetRoute } from "./timesheet-route";
 
 /** `returnToCaller` for the pages the calendar opens, so their Save/Cancel comes back here. */
@@ -39,6 +40,13 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
       // A click on an existing sheet edits it by id; save and cancel return to the calendar (see
       // TIMESHEET_PAGE.returnTargets), so no `returnToCaller` is needed here.
       return id != null ? `/timesheet/${id}` : null;
+    case "teamEvent":
+      // A click on an existing event edits it by its database id; save and cancel return to the calendar
+      // (see TEAM_EVENT_PAGE.returnTargets). The numeric `dbId`, never the `uid`: the edit route loads by
+      // a numeric id, and a subscribed calendar's `{calId}-{uid}` events are read-only anyway.
+      return event.extendedProps.dbId != null
+        ? `/teamEvent/${event.extendedProps.dbId}`
+        : null;
     case "vacation":
       return id != null
         ? `/vacation/edit/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
@@ -82,9 +90,14 @@ export function useCalendarAction() {
     async (params: CalendarActionParams) => {
       try {
         const action = await fetchCalendarAction(params);
-        // The backend answers a slot select / create / resize / drag with the legacy `/timesheet/edit`
-        // url — one source of truth for the route-shape switch (see toTimesheetRoute).
-        navigate(action.url ? toTimesheetRoute(action.url) : action.url);
+        // The backend answers a slot select / create / resize / drag with a legacy `/<category>/edit` url,
+        // its category chosen from the calendar filter (`CalendarServicesRest.action`): a timesheet where
+        // no default calendar is set, a team event where one is. Each rewrite is total and only touches
+        // its own category, so both can wrap the url in turn (see toTimesheetRoute, toTeamEventRoute).
+        const url = action.url
+          ? toTeamEventRoute(toTimesheetRoute(action.url))
+          : action.url;
+        navigate(url);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Action failed.");
       }

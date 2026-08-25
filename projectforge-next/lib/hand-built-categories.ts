@@ -21,6 +21,7 @@ export const HAND_BUILT_CATEGORIES = [
   "order",
   "outgoingInvoice",
   "task",
+  "teamEvent",
   "timesheet",
 ];
 

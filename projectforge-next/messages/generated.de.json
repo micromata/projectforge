@@ -1647,7 +1647,13 @@
         "endDate": "Ende",
         "location": "Ort",
         "note": "Notiz",
-        "subject": "Betreff"
+        "subject": "Betreff",
+        "teamCal": "Teamkalender",
+        "title": {
+          "add": "Ereignis hinzufügen",
+          "heading": "Ereignis",
+          "list": "Ereignisliste"
+        }
       },
       "externalsubscription": {
         "label": "Externes Abonnement",
