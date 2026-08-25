@@ -20,6 +20,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { MENU_HOVER_CLASS, MenuLink } from "@/components/shared/menu-link";
+import { MenuCounterBadge } from "@/components/shared/menu-counter-badge";
 import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 
 /** Shared by the real entries and the hidden measurement row, so both are exactly as wide. */
@@ -67,6 +68,7 @@ export function FavoritesBar({ items }: { items: MenuItem[] }) {
             {item.subMenu?.length ? (
               <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
             ) : null}
+            <MenuCounterBadge badge={item.badge} />
           </span>
         ))}
       </div>
@@ -106,6 +108,7 @@ function FavoriteEntry({ item }: { item: MenuItem }) {
         className={ENTRY_CLASS}
       >
         {item.title}
+        <MenuCounterBadge badge={item.badge} />
       </MenuLink>
     );
   }
@@ -115,6 +118,7 @@ function FavoriteEntry({ item }: { item: MenuItem }) {
       <MenubarTrigger className={ENTRY_CLASS}>
         {item.title}
         <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
+        <MenuCounterBadge badge={item.badge} />
       </MenubarTrigger>
       <MenubarContent align="start">
         {item.subMenu.map((child) => (
@@ -137,6 +141,7 @@ function MenuEntry({ item }: { item: MenuItem }) {
           className={MENU_HOVER_CLASS}
         >
           {item.title}
+          <MenuCounterBadge badge={item.badge} />
         </MenuLink>
       </MenubarItem>
     );
@@ -146,6 +151,7 @@ function MenuEntry({ item }: { item: MenuItem }) {
     <MenubarSub>
       <MenubarSubTrigger className={MENU_HOVER_CLASS}>
         {item.title}
+        <MenuCounterBadge badge={item.badge} />
       </MenubarSubTrigger>
       <MenubarSubContent>
         {item.subMenu.map((child) => (
