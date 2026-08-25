@@ -213,8 +213,10 @@ const MonthGrid = memo(function MonthGrid({
       selected={selected}
       month={month}
       onMonthChange={onMonthChange}
-      // Clicking the selected day again clears it, as in the legacy picker.
-      onSelect={(date) => onPick(date ? isoOf(date) : null)}
+      // Clicking the already-selected day keeps it (single mode reports that click as a deselect,
+      // date === undefined): confirming the date must not empty the field. Clearing is the reset
+      // button below and the ✕ in the field, not an accidental second click on the same day.
+      onSelect={(date) => onPick(date ? isoOf(date) : (value ?? null))}
       locale={locale}
       weekStartsOn={weekStartsOn}
       captionLayout="dropdown"

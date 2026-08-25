@@ -40,6 +40,12 @@ export interface PeriodStepperProps {
   paging?: boolean;
   disabled?: boolean;
   className?: string;
+  /**
+   * Spell the art out in the select ("Jahr bis heute") instead of abbreviating it ("J→") — for the roomy
+   * contexts (a filter popover, where the stepper has a line of its own), passed through to
+   * [PeriodQuickSelect]. The form grid leaves it off and keeps the abbreviation.
+   */
+  longLabel?: boolean;
 }
 
 /**
@@ -74,6 +80,7 @@ export function PeriodStepper({
   paging = true,
   disabled,
   className,
+  longLabel = false,
 }: PeriodStepperProps) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -137,6 +144,7 @@ export function PeriodStepper({
           )
         }
         disabled={disabled}
+        longLabel={longLabel}
       />
       {paging &&
         arrow(1, ArrowRight01Icon, kind?.tooltipNextKey ?? "duration.next")}

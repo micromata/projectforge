@@ -92,6 +92,8 @@ export function TimestampRangeField({
           const bounds = instantBoundsOfPeriod(kind, anchor, ctx);
           if (bounds) onChange({ ...bounds, periodKind: kind.id });
         }}
+        // Room for the spelled-out art on its own line below the two bounds, unlike the form grid.
+        longLabel
       />
       {showPresets && (
         <IntervalPresetsSelect

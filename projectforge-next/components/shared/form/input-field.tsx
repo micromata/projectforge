@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/shared/date-input";
+import { cn } from "@/lib/utils";
 import {
   FieldShell,
   useFieldIds,
@@ -18,6 +19,12 @@ export interface InputFieldProps extends BaseFieldProps {
   /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
   disabled?: boolean;
   /**
+   * Renders the text bold and in the accent colour — for the one value a reader looks for first (a
+   * book's title). Unlike the select's [emphasized], no box: it mirrors the list column's own
+   * `font-semibold text-primary`, so list and form set the same focus. Text branch only.
+   */
+  emphasized?: boolean;
+  /**
    * The entity has no metadata for this field, and cannot have any: a value the DTO computes — a
    * group's `emails` — is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
    */
@@ -33,6 +40,7 @@ export function InputField({
   placeholder,
   disabled,
   metadataLess,
+  emphasized,
 }: InputFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -74,6 +82,7 @@ export function InputField({
               <Input
                 id={ids.controlId}
                 type={type}
+                className={cn(emphasized && "font-semibold text-primary")}
                 placeholder={placeholder}
                 disabled={disabled}
                 // The column's length, so typing stops at the limit instead of only complaining

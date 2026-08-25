@@ -92,7 +92,8 @@ export const BOOK_PAGE = definePage<
         titleKey: "books.edit.sections.general",
         tabTitleKey: "books.edit.tabs.general",
         fields: [
-          { name: "title", span: 3 },
+          // Highlighted like the list's title column, so both set the same focus.
+          { name: "title", span: 3, emphasized: true },
           { name: "authors", span: 3 },
           { name: "type" },
           // The one value a reader looks for first — whether the book is there at all.

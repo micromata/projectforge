@@ -910,6 +910,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         val statusFilter = elements.find { it is UIFilterElement && it.id == RechnungDO::status.name }
         (statusFilter as? UIFilterElement)?.defaultFilter = true
+        // The invoice date opens by default too: an invoice list is read by period as much as by status.
+        val datumFilter = elements.find { it is UIFilterElement && it.id == RechnungDO::datum.name }
+        (datumFilter as? UIFilterElement)?.defaultFilter = true
         elements.add(
             UIFilterListElement(
                 LIST_TYPE_FILTER,

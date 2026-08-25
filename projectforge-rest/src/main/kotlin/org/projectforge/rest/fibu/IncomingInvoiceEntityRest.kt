@@ -290,6 +290,10 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * ([INCOMPLETE_FILTER]). The incoming invoice has no period of performance, so that filter is absent.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        // The invoice date opens by default: an incoming invoice list is read by period as much as by
+        // its payment state. (There is no status property here, unlike the outgoing invoice.)
+        val datumFilter = elements.find { it is UIFilterElement && it.id == EingangsrechnungDO::datum.name }
+        (datumFilter as? UIFilterElement)?.defaultFilter = true
         elements.add(
             UIFilterListElement(
                 LIST_TYPE_FILTER,

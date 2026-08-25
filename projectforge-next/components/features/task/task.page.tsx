@@ -212,9 +212,9 @@ export const TASK_PAGE = definePage<
         id: "general",
         titleKey: "task.title.heading",
         fields: [
-          { name: "parentTask" },
           { name: "title", emphasized: true },
           { name: "status" },
+          { name: "parentTask" },
           { name: "responsibleUser" },
           { name: "priority" },
           {
