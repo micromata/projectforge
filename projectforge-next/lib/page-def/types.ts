@@ -405,8 +405,14 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Values of a new, empty entry. */
   defaultValues: () => Values;
   toFormValues: (data: Data) => Values;
-  /** Heading of an existing entry, e.g. the book's title. */
-  title: (data: Data) => string;
+  /**
+   * Heading of an existing entry, e.g. the book's title. Given the live form values as well as the
+   * loaded row, so a heading may follow a field the user is editing — a time sheet named after its
+   * task changes its heading the moment another task is picked. Reading `values` is optional; most
+   * headings are a property of the row and ignore it. The result is compared as a string, so the
+   * header re-renders only when the heading itself changes, not on every keystroke (see EntityEditBody).
+   */
+  title: (data: Data, values: Values) => string;
   /** Heading while adding one, e.g. `books.edit.newTitle`. */
   newTitleKey: string;
   savedMessageKey: string;

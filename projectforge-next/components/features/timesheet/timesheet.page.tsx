@@ -16,7 +16,7 @@ import {
   emptyTimesheetValues,
   toFormValues,
 } from "./edit/timesheet-edit-values";
-import type { TimesheetDetail, TimesheetListRow } from "./types";
+import type { EntityRefDto, TimesheetDetail, TimesheetListRow } from "./types";
 
 /** REST category of a time sheet — the entity name every shared hook is parameterised with. */
 export const TIMESHEET_ENTITY = "timesheet";
@@ -71,7 +71,14 @@ export const TIMESHEET_PAGE = definePage<
     fieldNames: TIMESHEET_EDIT_FIELDS,
     defaultValues: emptyTimesheetValues,
     toFormValues,
-    title: (timesheet) => timesheet.task?.displayName ?? "",
+    // The task the sheet is booked on, and the live one once another is picked — so the heading follows
+    // the select. Its `title` is the task's plain name, without the "(#id)" the backend appends to
+    // `displayName` to keep it unique in a flat list; the picker already stores that plain name (see
+    // TaskSelectField), so the fallback covers a freshly picked task too.
+    title: (timesheet, values) => {
+      const task = (values.task ?? timesheet.task) as EntityRefDto | null;
+      return task?.title ?? task?.displayName ?? "";
+    },
     newTitleKey: "timesheet.title.add",
     savedMessageKey: "message.successfullChanged",
     newEntryParams: NEW_ENTRY_PARAMS,

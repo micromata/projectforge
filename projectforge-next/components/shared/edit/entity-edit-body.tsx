@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import {
@@ -186,6 +187,18 @@ export function EntityEditBody<
     },
   });
 
+  // The heading, following the live form as well as the loaded row: an entry named after a field it
+  // holds (a time sheet after its task) re-titles the moment that field changes. On `id`, not on
+  // `data`: a new entry has data too (the backend's `fetchNew` preset), and its `edit.title` is the
+  // empty string. Selecting the title *string* means the header re-renders only when it changes, not
+  // on every keystroke — the store would otherwise fire on all of them.
+  const title = useStore(form.store, (state) =>
+    id == null || !data
+      ? t(edit.newTitleKey)
+      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        edit.title(data, (state as any).values as Values)
+  );
+
   // What the backend says this user may do with this entry — the counterpart of Wicket's
   // `AbstractEditForm.updateButtonVisibility`.
   const access = entityAccess(data, id == null);
@@ -227,10 +240,6 @@ export function EntityEditBody<
       <Centered>{t("loading")}</Centered>
     );
   if (notFound) return <Centered>{t("entityEdit.notFound")}</Centered>;
-
-  // On `id`, not on `data`: a new entry has data too (the backend's `fetchNew` preset), and its
-  // `edit.title` is the empty string.
-  const title = id == null || !data ? t(edit.newTitleKey) : edit.title(data);
 
   // A section whose subject the installation doesn't know is dropped here — missing from the tab strip
   // and the cards alike (see SectionDef.visible).
