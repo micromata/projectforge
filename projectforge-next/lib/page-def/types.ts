@@ -390,6 +390,21 @@ export interface CrossLinkDef<Data> {
   prominent?: boolean;
 }
 
+/**
+ * A conversion an edit page offers — this entry turned into an entry of another entity (see
+ * `EditDef.convert`). The target is named, not imported, so the two features stay decoupled.
+ */
+export interface EditConvert {
+  /** The switch endpoint on *this* entity's REST class, e.g. `switch2CalendarEvent`. */
+  action: string;
+  /** REST/entity name of the target, keying its add-page handover (see setPendingClone), e.g. `teamEvent`. */
+  targetEntity: string;
+  /** App route of the target's edit page, e.g. `/teamEvent` — the button opens `<route>/new`. */
+  targetRoute: string;
+  /** i18n key of the button label, the backend's own, e.g. `plugins.teamcal.switchToTeamEventButton`. */
+  labelKey: string;
+}
+
 export interface EditDef<Values, Data, M extends EntityMetadata> {
   /** Zod schema of the form, built from the metadata (lib/validation/from-metadata.ts). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -445,6 +460,16 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * plus a `prepareClone` override if dropping the ids doesn't suffice.
    */
   clone?: boolean;
+  /**
+   * Turns this entry into an entry of a *different* entity — a time sheet into a calendar event and
+   * back (`plugins.teamcal.switchToTeamEventButton` / `switchToTimesheetButton`).
+   *
+   * The button posts the form to the switch endpoint, which prepares the target entry without saving
+   * (see convertEntity), and opens the target's add page with it — the same handover a clone uses (see
+   * usePendingClone). Referenced by name and route, not by importing the target's page def, so the two
+   * features that convert into each other don't import in a circle.
+   */
+  convert?: EditConvert;
   /**
    * Beside the heading of the edit page — a badge saying whether the book is lent out. Rendered on
    * the form and on the pages of its own alike, hence the entity rather than the form values.

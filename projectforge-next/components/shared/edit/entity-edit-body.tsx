@@ -203,17 +203,24 @@ export function EntityEditBody<
   // `AbstractEditForm.updateButtonVisibility`.
   const access = entityAccess(data, id == null);
 
-  const { runCancel, runDelete, runUndelete, runClone, isCloning } =
-    useEditRunActions({
-      page,
-      id,
-      data,
-      form,
-      cancelMutation,
-      deleteMutation,
-      undeleteMutation,
-      outcome,
-    });
+  const {
+    runCancel,
+    runDelete,
+    runUndelete,
+    runClone,
+    isCloning,
+    runConvert,
+    isConverting,
+  } = useEditRunActions({
+    page,
+    id,
+    data,
+    form,
+    cancelMutation,
+    deleteMutation,
+    undeleteMutation,
+    outcome,
+  });
 
   // Return, and CTRL-Return in a textarea, save — under the same condition the save button carries.
   const onKeyDown = useSubmitShortcut(
@@ -340,12 +347,19 @@ export function EntityEditBody<
         showUndelete={Boolean(
           id != null && data && access.deleted && canInsert
         )}
+        // Wherever the entity declares a conversion — the backend adds its switch button to the layout
+        // unconditionally too (TimesheetPagesRest/TeamEventPagesRest.createEditLayout), and it acts on
+        // the form's values, so it needs no stored entry.
+        showConvert={Boolean(edit.convert)}
+        convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
         onClone={runClone}
         onDelete={runDelete}
         onUndelete={runUndelete}
+        onConvert={runConvert}
         cloneDisabled={isSubmitting || isCloning}
         deleteDisabled={isSubmitting || deleteMutation.isPending}
         undeleteDisabled={isSubmitting || undeleteMutation.isPending}
+        convertDisabled={isSubmitting || isConverting}
         canSave={access.write}
         isSaving={isSubmitting}
         isDirty={isDirty}

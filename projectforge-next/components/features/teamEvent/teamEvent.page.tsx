@@ -65,6 +65,19 @@ export const TEAM_EVENT_PAGE = definePage<
     newTitleKey: "plugins.teamcal.event.title.add",
     savedMessageKey: "message.successfullChanged",
     newEntryParams: NEW_ENTRY_PARAMS,
+    // Offer the clone, as Wicket does (TeamEventPagesRest.cloneSupport). `cloneData` prepares it (id and
+    // timestamps dropped, the default prepareClone; AUTOSAVE is not honoured there, only NONE turns
+    // clone off, see AbstractEntityRest.cloneData); the add form opens under `/teamEvent/new?clone=1`.
+    clone: true,
+    // "In Zeitbuchung umwandeln" — build a time sheet from this event's span and texts and open it as a
+    // new sheet (TeamEventPagesRest.switch2Timesheet → TimesheetPagesRest.cloneFromCalendarEvent). The
+    // time sheet is named, not imported, so the two features don't depend on each other in a circle.
+    convert: {
+      action: "switch2Timesheet",
+      targetEntity: "timesheet",
+      targetRoute: "/timesheet",
+      labelKey: "plugins.teamcal.switchToTimesheetButton",
+    },
     // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
     // no team event list of this app to return to (see toTeamEventRoute).
     returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],

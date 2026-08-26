@@ -57,6 +57,11 @@ export function CalendarEditRouteClient() {
       onOpenChange={(next) => {
         if (!next) close();
       }}
+      // A clone or a convert stays in the calendar: open the prepared new entry as the calendar's own
+      // nested route (`/calendar/timesheet/new?clone=1`, `/calendar/teamEvent/new?clone=1`), so it
+      // layers over the still-mounted calendar in this dialog rather than leaving for the full page. The
+      // handover survives the navigation (see usePendingClone); the changed key remounts the form fresh.
+      onCloneNavigate={(route) => router.push(`/calendar${route}`)}
     />
   );
 }

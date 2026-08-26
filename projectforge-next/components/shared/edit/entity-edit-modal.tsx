@@ -40,6 +40,14 @@ export interface EntityEditModalProps<
   onSaved?: (id: number | null, values: unknown) => void;
   /** The dialog closed without a save (cancel, delete, undelete, dismiss) — e.g. refetch the calendar. */
   onClose?: () => void;
+  /**
+   * Where a clone or a convert goes, when the host keeps it in place rather than letting it leave for
+   * the target's own page. The calendar passes its own `/calendar`-prefixed push, so the prepared new
+   * entry opens over the still-mounted calendar in this same dialog (see CalendarEditRouteClient); the
+   * handover survives the navigation as a module variable (see usePendingClone). Omitted elsewhere (the
+   * wizard), where a clone leaves for the entry's own page as before.
+   */
+  onCloneNavigate?: (route: string) => void;
 }
 
 /**
@@ -66,6 +74,7 @@ export function EntityEditModal<
   onOpenChange,
   onSaved,
   onClose,
+  onCloneNavigate,
 }: EntityEditModalProps<Row, Values, Data, M>) {
   const router = useRouter();
   const t = useTranslations();
@@ -92,11 +101,17 @@ export function EntityEditModal<
         close();
       },
       afterClone: (route) => {
+        // The host may keep the new entry in place (the calendar reopens it over itself); otherwise a
+        // clone leaves for the target's own page, closing this dialog on the way out.
+        if (onCloneNavigate) {
+          onCloneNavigate(route);
+          return;
+        }
         close();
         router.push(route);
       },
     }),
-    [onSaved, onClose, close, router]
+    [onSaved, onClose, close, router, onCloneNavigate]
   );
 
   // ESC, the overlay and the close button all arrive here. Only these are guarded: a dirty form asks

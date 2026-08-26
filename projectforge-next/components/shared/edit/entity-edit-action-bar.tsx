@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { EntityCloneButton } from "./entity-clone-button";
+import { EntityConvertButton } from "./entity-convert-button";
 import { EntityDeleteButton } from "./entity-delete-button";
 import { EntityEditActions } from "./entity-edit-actions";
 import { EntityUndeleteButton } from "./entity-undelete-button";
@@ -17,12 +18,17 @@ export interface EntityEditActionBarProps {
   showClone: boolean;
   showDelete: boolean;
   showUndelete: boolean;
+  /** The conversion, where the entity declares one (see EditDef.convert); its label varies by direction. */
+  showConvert: boolean;
+  convertLabel: string;
   onClone: () => void | Promise<void>;
   onDelete: () => void | Promise<void>;
   onUndelete: () => void | Promise<void>;
+  onConvert: () => void | Promise<void>;
   cloneDisabled: boolean;
   deleteDisabled: boolean;
   undeleteDisabled: boolean;
+  convertDisabled: boolean;
 }
 
 /**
@@ -41,12 +47,16 @@ export function EntityEditActionBar({
   showClone,
   showDelete,
   showUndelete,
+  showConvert,
+  convertLabel,
   onClone,
   onDelete,
   onUndelete,
+  onConvert,
   cloneDisabled,
   deleteDisabled,
   undeleteDisabled,
+  convertDisabled,
 }: EntityEditActionBarProps) {
   return (
     <EntityEditActions
@@ -55,6 +65,15 @@ export function EntityEditActionBar({
       cloneAction={
         showClone ? (
           <EntityCloneButton onClone={onClone} disabled={cloneDisabled} />
+        ) : undefined
+      }
+      convertAction={
+        showConvert ? (
+          <EntityConvertButton
+            label={convertLabel}
+            onConvert={onConvert}
+            disabled={convertDisabled}
+          />
         ) : undefined
       }
       deleteAction={

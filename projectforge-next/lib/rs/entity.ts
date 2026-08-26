@@ -141,6 +141,44 @@ export async function cloneEntity<D extends object>(
   return (await res.json()) as D;
 }
 
+/**
+ * Turns this entity into a *different* one — a time sheet into a calendar event and back
+ * (`TimesheetPagesRest.switch2CalendarEvent`, `TeamEventPagesRest.switch2Timesheet`).
+ *
+ * A sibling of [cloneEntity]: nothing is saved either, the posted form travels unvalidated, and the
+ * answer is the prepared new entry. It differs only in what comes back — the target entity, not this
+ * one — and in the envelope: these endpoints are layout endpoints and answer a `ResponseAction`, so the
+ * prepared entry rides under `variables.data` (the same slot the attachment and save calls read).
+ *
+ * @param action the switch endpoint on *this* entity's REST class (e.g. `switch2CalendarEvent`).
+ * @returns the target entity as the backend prepared it, to hand to its add page (see usePendingClone).
+ * @throws RsError when the endpoint answers anything but 200 — a button offered where it shouldn't be.
+ */
+export async function convertEntity<Target extends object>(
+  entity: string,
+  action: string,
+  data: object,
+  signal?: AbortSignal
+): Promise<Target> {
+  const res = await rawRequest(
+    `/rs/${entity}/${action}`,
+    { method: "POST", body: JSON.stringify({ data }) },
+    signal
+  );
+  if (!res.ok) {
+    throw new RsError(
+      res.status,
+      `${res.status} ${res.statusText}: convert of ${entity} via ${action}`
+    );
+  }
+  const body = (await res.json().catch(() => null)) as ResponseAction | null;
+  const prepared = body?.variables?.data;
+  if (!prepared || typeof prepared !== "object") {
+    throw new RsError(res.status, `convert of ${entity}: no data in response`);
+  }
+  return prepared as Target;
+}
+
 async function write<D extends object>(
   path: string,
   method: "PUT" | "POST" | "DELETE",

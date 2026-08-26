@@ -82,6 +82,20 @@ export const TIMESHEET_PAGE = definePage<
     newTitleKey: "timesheet.title.add",
     savedMessageKey: "message.successfullChanged",
     newEntryParams: NEW_ENTRY_PARAMS,
+    // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport). The button builds a new sheet
+    // from the one on screen — the backend's `cloneData` prepares it (id and timestamps dropped, the
+    // default prepareClone; AUTOSAVE is not honoured there, only NONE turns clone off, see
+    // AbstractEntityRest.cloneData), and the add form opens under `/timesheet/new?clone=1`.
+    clone: true,
+    // "In Termin umwandeln" — build a calendar event from this sheet's span and texts and open it as a
+    // new event (TimesheetPagesRest.switch2CalendarEvent → TeamEventPagesRest.cloneFromTimesheet). The
+    // team event is named, not imported, so the two features don't depend on each other in a circle.
+    convert: {
+      action: "switch2CalendarEvent",
+      targetEntity: "teamEvent",
+      targetRoute: "/teamEvent",
+      labelKey: "plugins.teamcal.switchToTeamEventButton",
+    },
     // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
     // no timesheet list of this app to return to (see toTimesheetRoute).
     returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],

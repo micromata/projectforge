@@ -8,7 +8,7 @@ import type { EntityForm } from "@/components/shared/form/form-context";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { CLONE_PARAM, setPendingClone } from "@/hooks/use-pending-clone";
 import type { EntityWriteResult } from "@/lib/rs/entity";
-import { cloneEntity } from "@/lib/rs/entity";
+import { cloneEntity, convertEntity } from "@/lib/rs/entity";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
@@ -63,6 +63,7 @@ export function useEditRunActions<
 }: UseEditRunActionsOptions<Row, Values, Data, M>) {
   const t = useTranslations();
   const [isCloning, setCloning] = useState(false);
+  const [isConverting, setConverting] = useState(false);
 
   /**
    * Leaves without saving — and tells the backend so, which is what makes the list mark the entry the
@@ -140,5 +141,42 @@ export function useEditRunActions<
     }
   }
 
-  return { runCancel, runDelete, runUndelete, runClone, isCloning };
+  /**
+   * Turns this entry into an entry of another entity and opens its add page — a time sheet into a
+   * calendar event and back (`EditDef.convert`, `switch2CalendarEvent` / `switch2Timesheet`).
+   *
+   * The same shape as [runClone], and it ends the same way: the prepared target is handed to *its* add
+   * page (keyed by the target entity, so a time sheet's convert seeds the team event add page and not
+   * this one) and the URL says a prepared entry waits there (`?clone=1`). Posted are the form's current
+   * values, unvalidated — a conversion is a starting point, not a write (see convertEntity).
+   */
+  async function runConvert(): Promise<void> {
+    const convert = page.edit.convert;
+    if (!convert) return;
+    setConverting(true);
+    try {
+      const prepared = await convertEntity(
+        page.entity,
+        convert.action,
+        form.state.values as object
+      );
+      setPendingClone(convert.targetEntity, prepared);
+      outcome.afterClone(`${convert.targetRoute}/new?${CLONE_PARAM}=1`);
+    } catch {
+      // Nothing was written, so the form is still the way forward.
+      toast.error(t("validation.error.generic"));
+    } finally {
+      setConverting(false);
+    }
+  }
+
+  return {
+    runCancel,
+    runDelete,
+    runUndelete,
+    runClone,
+    isCloning,
+    runConvert,
+    isConverting,
+  };
 }

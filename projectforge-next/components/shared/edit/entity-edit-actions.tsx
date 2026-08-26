@@ -25,6 +25,12 @@ export interface EntityEditActionsProps {
    */
   cloneAction?: ReactNode;
   /**
+   * Convert button, beside [cloneAction]: like it, an action on this entry rather than a choice about
+   * the save — it turns the entry into another entity (see [EntityConvertButton]). Omitted for an
+   * entity that offers no conversion.
+   */
+  convertAction?: ReactNode;
+  /**
    * Delete button, rendered right-aligned. Omitted while the entry doesn't exist yet — deleting it
    * needs the saved entity (see [EntityDeleteButton]).
    */
@@ -62,6 +68,7 @@ export function EntityEditActions({
   onCancel,
   saveOption,
   cloneAction,
+  convertAction,
   deleteAction,
   undeleteAction,
   canSave,
@@ -115,6 +122,7 @@ export function EntityEditActions({
         </>
       )}
       {cloneAction}
+      {convertAction}
       <div className="flex-1" />
       {lastSaved && (
         <span className="text-xs text-muted-foreground">
