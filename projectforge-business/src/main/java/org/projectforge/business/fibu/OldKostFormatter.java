@@ -105,7 +105,7 @@ public class OldKostFormatter {
   }
 
   /**
-   * Gibt vollständige Kundennummer aus ("5.xxx") und hängt den Kundennamen (max. 30 stellig) an, z. B.
+   * Gibt vollständige Kundennummer aus ("5.xxx") und hängt den Kundennamen (max. 60 stellig) an, z. B.
    * "5.120 - ABC Verwaltungs GmbH"
    *
    * @param kunde
@@ -114,7 +114,10 @@ public class OldKostFormatter {
     if (kunde == null) {
       return "";
     }
-    return format(kunde) + " - " + StringUtils.abbreviate(kunde.getName(), 30);
+    // 60, not 30: this feeds KundeDO.displayName, which the entity pickers of the invoice and order edit
+    // show. They truncate to their own width already, so abbreviating shorter here only cuts the name
+    // twice (see KostFormatter.ABBREVIATION_LENGTH, raised for the same reason).
+    return format(kunde) + " - " + StringUtils.abbreviate(kunde.getName(), 60);
   }
 
   /**

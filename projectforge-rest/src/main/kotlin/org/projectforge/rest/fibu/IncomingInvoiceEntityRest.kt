@@ -258,10 +258,13 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val invoices = resultSet.resultSet
-        return super.postProcessResultSet(resultSet, request, magicFilter).also {
-            it.statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        if (resultSet.offset == null) {
+            // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
+            result.statistics = InvoiceStatistics(baseDao.buildStatistik(resultSet.resultSet))
         }
+        // Server-side paged: the whole-result statistics were computed over the full id list in aggregate().
+        return result
     }
 
     /**
@@ -367,6 +370,32 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         return SortPropertyComparator.sort(resultSet, sortProperties) { invoice, property ->
             COMPUTED_SORT_PROPERTIES[property]?.invoke(invoice)
         }
+    }
+
+    /**
+     * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): orders the
+     * materialized id list once per (session, filter) by loading the matching invoices and reusing
+     * [filterList]'s comparator over them, so the paged order is byte-for-byte the non-paged one. Cached by
+     * [getListPage] (once per filter) and only when one of the two computed sum columns is sorted on - a
+     * database column is ordered by the query itself. See [OutgoingInvoiceEntityRest.sortIds].
+     */
+    override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
+        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
+        if (computed.isEmpty()) {
+            return ids
+        }
+        val sorted = filterList(getListByIds(ids.toList()).toMutableList(), filter)
+        return sorted.mapNotNull { it.id }.toLongArray()
+    }
+
+    /**
+     * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
+     * over the single page [postProcessResultSet] sees (see `MIGRATION-list-paging.md`).
+     * [EingangsrechnungsStatistik] converts foreign currencies from the loaded [EingangsrechnungDO], which no
+     * cache holds, so the matching invoices are loaded here. See [OutgoingInvoiceEntityRest.aggregate].
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+        return InvoiceStatistics(baseDao.buildStatistik(getListByIds(ids.toList())))
     }
 
     /**

@@ -215,6 +215,7 @@ function DeclaredList<
     massUpdateEndpoint: page.massUpdate?.endpoint,
     lockedColumnIds: LOCKED_COLUMN_IDS,
     buildFilter,
+    serverPaging: page.serverPaging,
   });
   // The shell's guard has already passed the meta data, so what is left for this one is a right the
   // list call is the first to see refused - withdrawn mid-session, or an entity whose rest class fills

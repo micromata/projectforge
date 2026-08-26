@@ -23,11 +23,13 @@
 
 package org.projectforge.framework.persistence.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.AbstractFavorite
 import org.projectforge.framework.utils.NumberHelper
+import java.security.MessageDigest
 
 class MagicFilter(
   /**
@@ -106,6 +108,44 @@ class MagicFilter(
       return size
     }
 
+  /**
+   * A stable hash over everything that decides **which rows in which order** the filter selects. It is the
+   * cache key of the server-side paged id list (see `MIGRATION-list-paging.md`): two filters with the same
+   * fingerprint yield the same ordered result, so their materialized id list may be reused.
+   *
+   * Included: [entries] (sorted, [PAGINATION_PAGE_SIZE] excluded — page size does not change the row set),
+   * [searchString], [searchHistory], [deleted], [sortProperties], [autoWildcardSearch], [extended] and
+   * [maxRows]. Excluded: [name]/[id] (the favorite reference must not invalidate a cache) and
+   * [multiSelection].
+   *
+   * Prefixed with [FINGERPRINT_VERSION] so a release changing filter semantics invalidates every cached
+   * list without touching the stored favorites. Server-internal ([JsonIgnore]); it never travels the wire.
+   */
+  @get:JsonIgnore
+  val resultFingerprint: String
+    get() {
+      val mapper = UserPrefDao.objectMapper
+      // Serialize each entry whole (so any added field, e.g. operator, is covered) and sort, so entry
+      // order does not change the fingerprint.
+      val entriesCanonical = entries
+        .filter { it.field != PAGINATION_PAGE_SIZE }
+        .map { mapper.writeValueAsString(it) }
+        .sorted()
+      val canonical = buildString {
+        append(FINGERPRINT_VERSION)
+        append('|').append(entriesCanonical.joinToString(","))
+        append('|').append(searchString ?: "")
+        append('|').append(searchHistory ?: "")
+        append('|').append(deleted)
+        append('|').append(sortProperties.joinToString(",") { "${it.property}:${it.sortOrder}" })
+        append('|').append(autoWildcardSearch)
+        append('|').append(mapper.writeValueAsString(extended.toSortedMap()))
+        append('|').append(maxRows)
+      }
+      val digest = MessageDigest.getInstance("SHA-256").digest(canonical.toByteArray(Charsets.UTF_8))
+      return digest.joinToString("") { "%02x".format(it) }
+    }
+
   fun reset() {
     entries.clear()
     sortProperties.clear()
@@ -147,5 +187,11 @@ class MagicFilter(
 
   companion object {
     const val PAGINATION_PAGE_SIZE = "paginationPageSize"
+
+    /**
+     * Bumped whenever the meaning of a filter changes (a new operator semantics, a changed default), so
+     * every cached paged id list ([resultFingerprint]) is invalidated on the next read.
+     */
+    const val FINGERPRINT_VERSION = "v1"
   }
 }

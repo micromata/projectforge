@@ -38,6 +38,8 @@ import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.fibu.RechnungInfo
 import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.RechnungTyp
@@ -200,6 +202,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
+        // editMode is true only for the single-item detail/edit/clone endpoints, never for a list row, so
+        // this is the one place to keep order book users out of the detail view without emptying their list.
+        if (editMode) {
+            checkSingleInvoiceDetailAccess()
+        }
         val rechnung = Rechnung()
         // Only the edit page needs the positions with their cost assignments, and only it can afford them:
         // both collections are lazy, so mapping them is a query per invoice.
@@ -486,6 +493,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         @PathVariable("id") id: Long,
         @RequestParam("variant", required = false) variant: String?,
     ): ResponseEntity<*> {
+        checkSingleInvoiceDetailAccess()
         log.info { "Exporting invoice #$id as Word document, variant='${variant ?: ""}'." }
         val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
         RechnungCalculator.calculate(invoice)
@@ -716,6 +724,45 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
+     * The "no detail view yet" layer on top of [RechnungDao]'s access: order book users (right
+     * [org.projectforge.business.user.UserRightId.PM_ORDER_BOOK] without the invoice right) may read the
+     * filtered, read-only invoice *list* only. [RechnungDao] already bounds them to the invoices of orders
+     * they may see - this keeps them out of every endpoint that serves a *single* invoice's detail or its
+     * document (word export, edit/clone layout), which stays reserved for the invoice right (or the
+     * controlling group, which reads all invoices). Throws if the user has neither.
+     */
+    private fun checkSingleInvoiceDetailAccess() {
+        if (!hasSingleInvoiceDetailAccess()) {
+            throw AccessException("access.exception.userHasNotRight")
+        }
+    }
+
+    /**
+     * Whether the logged in user has real (single-invoice) access: the controlling group, or the invoice
+     * right ([RechnungDao.USER_RIGHT_ID]) read-only or read-write. Order book users (only [PM_ORDER_BOOK])
+     * answer false — they get the filtered read-only list, but no detail view (see
+     * [checkSingleInvoiceDetailAccess] and [listUpdateAccess]).
+     */
+    private fun hasSingleInvoiceDetailAccess(): Boolean {
+        if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.CONTROLLING_GROUP)) {
+            return true
+        }
+        return accessChecker.hasLoggedInUserRight(
+            RechnungDao.USER_RIGHT_ID, false, UserRightValue.READONLY, UserRightValue.READWRITE
+        )
+    }
+
+    /**
+     * Whether a row of the list may be opened at all — the entity-wide question projectforge-next reads as
+     * `canOpen` (see ListMetaData.userAccess.update / useEditTargets). Order book users may only read the
+     * filtered list, so their rows don't open a detail view (which [checkSingleInvoiceDetailAccess] refuses
+     * anyway); real invoice/controlling users keep the row click as before.
+     */
+    override fun listUpdateAccess(): Boolean {
+        return hasSingleInvoiceDetailAccess()
+    }
+
+    /**
      * The invoice, if the user may change the file that represents it: the groups above, plus write access to
      * this very invoice.
      *
@@ -838,17 +885,30 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val invoices = resultSet.resultSet
-        return super.postProcessResultSet(resultSet, request, magicFilter).also {
-            val statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
-            previousYearFilter(magicFilter)?.let { previousFilter ->
-                // The same query one year back, run through the same pipeline (getObjectList + filterList)
-                // as the list itself, so the two sums differ only by the period.
-                val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
-                statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
-            }
-            it.statistics = statistics
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        if (resultSet.offset == null) {
+            // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
+            result.statistics = buildStatistics(resultSet.resultSet, magicFilter)
         }
+        // Server-side paged: resultSet.resultSet is one page; the whole-result statistics were computed over the
+        // full id list in aggregate() and carried through the DTO transform, so they are left as they are here.
+        return result
+    }
+
+    /**
+     * The statistics of the given invoices, plus - when the client asked for it and the invoice-date filter is
+     * a bounded range - the same figures for the period a year earlier (see [previousYearFilter]). Shared by
+     * the non-paged [postProcessResultSet] and the server-side paged [aggregate], so both show the same sums.
+     */
+    private fun buildStatistics(invoices: List<RechnungDO>, magicFilter: MagicFilter): InvoiceStatistics {
+        val statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
+        previousYearFilter(magicFilter)?.let { previousFilter ->
+            // The same query one year back, run through the same pipeline (getObjectList + filterList)
+            // as the list itself, so the two sums differ only by the period.
+            val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
+            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
+        }
+        return statistics
     }
 
     /**
@@ -1036,6 +1096,36 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         return SortPropertyComparator.sort(resultSet, sortProperties) { invoice, property ->
             COMPUTED_SORT_PROPERTIES[property]?.invoke(invoice)
         }
+    }
+
+    /**
+     * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): orders the
+     * materialized id list once per (session, filter), so a page is a slice of an already sorted list.
+     *
+     * The customer and the project sort by a `displayName` no [RechnungInfo] holds, so - unlike the order
+     * book, which sorts its ids from [AuftragsCache] alone - this loads the matching invoices and reuses
+     * [filterList]'s comparator over them, which makes the paged order byte-for-byte the non-paged one. The
+     * load is cached by [getListPage] (once per filter, not once per page) and happens only when a computed
+     * column is sorted on - a database column is ordered by the query itself and the ids come pre-sorted.
+     */
+    override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
+        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
+        if (computed.isEmpty()) {
+            return ids
+        }
+        val sorted = filterList(getListByIds(ids.toList()).toMutableList(), filter)
+        return sorted.mapNotNull { it.id }.toLongArray()
+    }
+
+    /**
+     * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
+     * over the single page [postProcessResultSet] sees, so the footer shows the sums of every matching
+     * invoice (see `MIGRATION-list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
+     * loaded [RechnungDO], which no cache holds, so the matching invoices are loaded here - the same work
+     * [postProcessResultSet] does over its (complete) result set on the non-paged `POST list`.
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+        return buildStatistics(getListByIds(ids.toList()), filter)
     }
 
     /**

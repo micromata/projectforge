@@ -269,8 +269,9 @@ constructor(
                 "searchFilter",
                 "nothingFound"
             )
-        // The way back to the legacy list page, shown by projectforge-next next to the page title.
-        ui.legacyUrl = NextMigration.legacyListUrl(category)
+        // The way back to the legacy list page, shown by projectforge-next next to the page title. The
+        // marker keeps OrphanedLinkFilter from bouncing this escape hatch straight back to next.
+        ui.legacyUrl = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category))
         if (isMultiSelectionMode(request, filter)) {
             // Don't show search filter in multi selection mode (it isn't supported). The user
             // should use the AG-Grid filter instead.
@@ -309,8 +310,9 @@ constructor(
         return InitialListData(
             ui = ui,
             standardEditPage = getEditPage(request),
-            legacyEditPage = NextMigration.legacyEditPage(category),
-            legacyNewEntryPage = NextMigration.legacyNewEntryUrl(category),
+            // Escape hatches, marked so OrphanedLinkFilter lets them reach the legacy page (see above).
+            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
+            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             quickSelectUrl = quickSelectUrl,
             useModalEditDialog = useModalEditDialog,
             data = resultSet,
@@ -424,14 +426,15 @@ constructor(
         val ui = createEditLayout(dto, userAccess)
         ui.addTranslations("changes", "history.userComment.edit", "tooltip.selectMe")
         // The way back to the legacy edit page of this very entry, shown by projectforge-next next to
-        // the page title. A new entry has no id yet, so it leads to the legacy add page instead.
-        ui.legacyUrl = getId(dto).let { id ->
+        // the page title. A new entry has no id yet, so it leads to the legacy add page instead. The
+        // marker keeps OrphanedLinkFilter from bouncing this escape hatch straight back to next.
+        ui.legacyUrl = NextMigration.withEscapeHatchMarker(getId(dto).let { id ->
             if (id != null) {
                 NextMigration.legacyEditPage(category)?.replace(NextMigration.ID_PLACEHOLDER, "$id")
             } else {
                 NextMigration.legacyNewEntryUrl(category)
             }
-        }
+        })
         val serverData = sessionCsrfService.createServerData(request)
         val result = FormLayoutData(dto, ui, serverData)
         onGetItemAndLayout(request, dto, result)

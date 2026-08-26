@@ -70,9 +70,17 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         return orderPositionMapByPosId.values.filter { it.auftragId == auftragId } // No sync, immutable map.
     }
 
-    fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
+    /**
+     * @param checkRefresh If true, the cache will be checked for refresh. Pass false to avoid a deadlock when
+     * this is read from inside a running insert/update transaction (see [RechnungCache.update]): a refresh would
+     * run a JDBC SELECT on the invoice-position table the still-open transaction has write-locked.
+     */
+    @JvmOverloads
+    fun getOrderPositionInfo(auftragsPositionId: Long?, checkRefresh: Boolean = true): OrderPositionInfo? {
         auftragsPositionId ?: return null
-        checkRefresh()
+        if (checkRefresh) {
+            checkRefresh()
+        }
         return orderPositionMapByPosId[auftragsPositionId] // No sync, immutable map.
     }
 

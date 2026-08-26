@@ -51,6 +51,9 @@ export const CREDITOR_INVOICE_PAGE = definePage<
   metadata: EINGANGSRECHNUNG_METADATA,
   route: CREDITOR_INVOICE_ROUTE,
   queryKey: CREDITOR_INVOICE_LIST_QUERY_KEY,
+  // Served one page at a time: its CustomResultFilters run inside the query and its statistics come from the
+  // aggregate hook, so nothing narrows after the pipeline (see IncomingInvoiceEntityRest, PageDef.serverPaging).
+  serverPaging: true,
   // Finance > Incoming invoices (MenuItemDefId.INCOMING_INVOICE_LIST). `._` is the bare key of a namespace
   // that also has children (`menu.fibu.kost`) — see labelKeyFor.
   categoryKey: "menu.fibu._",

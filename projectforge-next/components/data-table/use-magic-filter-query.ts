@@ -7,7 +7,7 @@ import type {
   PaginationState,
   SortingState,
 } from "@tanstack/react-table";
-import { fetchList } from "@/lib/rs/client";
+import { fetchList, fetchListPage } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
 import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
 import { DEFAULT_PAGE_SIZE } from "./page-size-options";
@@ -44,6 +44,18 @@ interface UseMagicFilterQueryOptions {
   /** Hook that lets callers customize the MagicFilter before it's sent. */
   buildFilter?: (base: MagicFilter) => MagicFilter;
   enabled?: boolean;
+  /**
+   * Fetch one server-side page at a time (`listPage`) instead of the whole result set (`list`). Off by
+   * default, so an unmigrated page is untouched. A page opts in via `PageDef.serverPaging`.
+   */
+  serverPaging?: boolean;
+  /**
+   * A column-header (funnel) filter is set. The funnel narrows on the client, so under it the page
+   * falls back to fetching the whole result set (`list`) even when `serverPaging` is on — slower, but
+   * the footer total and the narrowing then agree. Without it the page would show "50 of 7000" while
+   * the funnel hid rows of the loaded 50 only.
+   */
+  columnFilterActive?: boolean;
 }
 
 interface UseMagicFilterQueryResult<O> {
@@ -98,8 +110,10 @@ export function useMagicFilterQuery<O>({
   favoriteName,
   buildFilter,
   enabled = true,
+  serverPaging = false,
+  columnFilterActive = false,
 }: UseMagicFilterQueryOptions): UseMagicFilterQueryResult<O> {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting);
+  const [sorting, setSortingState] = useState<SortingState>(initialSorting);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: initialPageIndex,
     pageSize: initialPageSize,
@@ -109,6 +123,14 @@ export function useMagicFilterQuery<O>({
   const setGlobalFilter = (v: string) => {
     setGlobalFilterState(v);
     // Reset to first page on search change.
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  };
+
+  // Sorting drives the backend query, so a new order is a new sequence of rows — the page the user was
+  // on may no longer hold the same ones (and under server-side paging a stale high index past the new
+  // end would render an empty page). Back to page 1, as a filter or search change does.
+  const setSorting: OnChangeFn<SortingState> = (updater) => {
+    setSortingState(updater);
     setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
 
@@ -145,9 +167,27 @@ export function useMagicFilterQuery<O>({
     buildFilter,
   ]);
 
+  // Server-side paging only while no column filter is set — the funnel narrows on the client, so it
+  // needs the whole result set (see columnFilterActive). The two paths key on different things: the
+  // paged one refetches per page, the whole-list one does not.
+  const paged = serverPaging && !columnFilterActive;
+  const { pageIndex, pageSize } = pagination;
+
   const query = useQuery<ResultSet<O>>({
-    queryKey: [...queryKey, filter],
-    queryFn: ({ signal }) => fetchList<O>(entity, filter, signal),
+    queryKey: paged
+      ? [...queryKey, filter, pageIndex, pageSize]
+      : [...queryKey, filter],
+    queryFn: ({ signal }) =>
+      paged
+        ? fetchListPage<O>(
+            entity,
+            filter,
+            pageIndex * pageSize,
+            pageSize,
+            false,
+            signal
+          )
+        : fetchList<O>(entity, filter, signal),
     placeholderData: keepPreviousData,
     enabled,
   });
@@ -177,7 +217,7 @@ export function useMagicFilterQuery<O>({
 
   function applyFilter(applied: MagicFilter) {
     setGlobalFilterState(applied.searchString ?? "");
-    setSorting(
+    setSortingState(
       (applied.sortProperties ?? []).map((property) => ({
         id: property.property,
         desc: property.sortOrder === "DESCENDING",

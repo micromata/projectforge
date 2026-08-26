@@ -42,6 +42,8 @@ public class RestPaths
 
   public static final String LIST = "list";
 
+  public static final String LIST_PAGE = "listPage";
+
   public static final String CANCEL = "cancel";
 
   public static final String CANCEL_MULTI_SELECTION = "cancelMultiSelection";

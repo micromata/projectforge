@@ -175,6 +175,9 @@ constructor(
     @Autowired
     protected lateinit var userPrefService: UserPrefService
 
+    @Autowired
+    private lateinit var listPageCache: ListPageCache
+
     @PostConstruct
     private fun postConstruct() {
         this.lc = LayoutContext(baseDao.doClass)
@@ -301,9 +304,11 @@ constructor(
             filterFavorite = favorites.get(filter.id),
             filterElements = elements,
             standardEditPage = getStandardEditPage(),
-            legacyListPage = NextMigration.legacyListUrl(category),
-            legacyEditPage = NextMigration.legacyEditPage(category),
-            legacyNewEntryPage = NextMigration.legacyNewEntryUrl(category),
+            // Escape hatches ("way back" to the legacy page), marked so OrphanedLinkFilter lets them
+            // reach it instead of bending them straight back to next (see NextMigration.withEscapeHatchMarker).
+            legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
+            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
+            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,
             // What this user last ticked for a mass update, so a reload (or a detour through the legacy
             // app) restores it. Read under this rest class, the identifier startSelection registers and
@@ -565,10 +570,75 @@ constructor(
     }
 
     /**
+     * The envelope of a [listPage] request: the filter plus the slice, kept out of [MagicFilter] itself.
+     *
+     * `offset`/`limit` must not live in [MagicFilter] — it is the persisted favorite and the argument of
+     * [MagicFilter.isModified], so a page flip would mark the favorite modified (the `paginationPageSize`
+     * as-entry mess is the cautionary tale). `refresh` forces a rebuild of the cached id list after the
+     * client's own write.
+     */
+    class ListPageRequest(
+        var filter: MagicFilter = MagicFilter(),
+        var offset: Int = 0,
+        var limit: Int = 50,
+        var refresh: Boolean = false,
+    )
+
+    /**
+     * One page of the list, served server-side: the ordered id list is materialized once per (session,
+     * filter) and cached, and this returns the 50-row slice at `offset` (see [getListPage] and
+     * `MIGRATION-list-paging.md`). A new path beside [getList], not an extension of it: `POST list` stays
+     * byte-identical for the legacy React app, the multi-selection start and the Excel exports, all of which
+     * need every row.
+     *
+     * Opt in per page with `serverPaging` on the next `PageDef`; the frontend calls this only then.
+     */
+    @PostMapping(RestPaths.LIST_PAGE)
+    fun listPage(request: HttpServletRequest, @RequestBody body: ListPageRequest): ResultSet<*> {
+        val filter = body.filter
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        val list = getListPage(request, this, baseDao, listPageCache, filter, body.offset, body.limit, body.refresh)
+        saveCurrentFilter(filter)
+        val resultSet = postProcessResultSet(list, request, filter)
+        resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
+        return resultSet
+    }
+
+    /**
      * Get the list by ids.
      */
     open fun getListByIds(entityIds: Collection<Serializable>?): List<O> {
         return baseDao.select(entityIds) ?: listOf()
+    }
+
+    /**
+     * Orders the materialized id list of a server-side paged list (see [getListPage]). The default keeps the
+     * order the database produced; a page whose list has computed columns (no database column to sort on)
+     * overrides this to sort the ids once per (session, filter), instead of sorting each loaded page.
+     *
+     * Runs on ids only. An override sorts as cheaply as its keys allow: from a cache where every sort key is
+     * there (`AuftragsCache`, the order book), or by loading the matching entities and reusing [filterList]'s
+     * comparator where a key is not (the customer/project columns of the invoice lists). Either way it runs
+     * once per (session, filter), not once per page. It is the paging counterpart of [filterList], which still
+     * sorts the non-paged `POST list` result.
+     */
+    open fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
+        return ids
+    }
+
+    /**
+     * Aggregates of the whole result of a server-side paged list — the value assigned to
+     * [ResultSet.statistics] (see [getListPage]). The default is none; a page overrides this to compute its
+     * totals over the full id list rather than over the single page it returns (the order book's sums).
+     *
+     * Given the whole ordered id list. It aggregates from a cache where the data allows (the order book), or
+     * by loading the matching entities where the totals need more than a cache holds (the invoice statistics,
+     * which convert foreign currencies from the loaded `RechnungDO`). The paging counterpart of computing
+     * statistics in [postProcessResultSet] over `resultSet.resultSet`.
+     */
+    open fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+        return null
     }
 
     /**

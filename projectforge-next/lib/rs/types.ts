@@ -61,6 +61,19 @@ export interface MagicFilter {
   extended?: Record<string, unknown>;
 }
 
+/**
+ * Envelope of the `listPage` call (mirrors `AbstractEntityRest.ListPageRequest`): the filter plus the
+ * slice to serve. Offset and limit travel *beside* the filter, never inside it — the filter is the
+ * persisted favorite and the argument of `isModified`, so a page flip must not touch it.
+ */
+export interface ListPageRequest {
+  filter: MagicFilter;
+  offset: number;
+  limit: number;
+  /** Skip the session-cached id list and re-materialize it — sent right after the client's own write. */
+  refresh?: boolean;
+}
+
 export const PAGINATION_PAGE_SIZE_FIELD = "paginationPageSize";
 
 /**
@@ -80,7 +93,21 @@ export function paginationPageSizeEntry(pageSize: number): MagicFilterEntry {
 
 export interface ResultSet<O> {
   resultSet: O[];
+  /**
+   * For a server-side paged result (`listPage`) this is the size of the *whole* result, not of the
+   * page in `resultSet` — what the footer's total and the page count are read from. For the plain
+   * `list` call it is the size of the returned list.
+   */
   totalSize?: number;
+  /** The page's offset into the whole result, echoed back by `listPage`; absent for a plain `list`. */
+  offset?: number;
+  /** The page size `listPage` served; absent for a plain `list`. */
+  limit?: number;
+  /**
+   * Whether `totalSize` is the exact count or a lower bound — false once the id list hit `maxRows` and
+   * was truncated (see `DBIdResult.truncated`). Always true for a plain `list`.
+   */
+  totalSizeExact?: boolean;
   paginationPageSize?: number;
   resultInfo?: string;
   /**

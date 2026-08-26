@@ -3,6 +3,7 @@ import type {
   FilterFavoritesResponse,
   InitialListData,
   ListMetaData,
+  ListPageRequest,
   MagicFilter,
   MenuData,
   ResultSet,
@@ -175,6 +176,31 @@ export function fetchList<O>(
   return request<ResultSet<O>>(
     `/rs/${entity}/list`,
     { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
+/**
+ * One server-side page of a list: the backend materializes the ordered id list once per (user, filter)
+ * in the session, then serves `[offset, offset+limit)` of it (see `AbstractEntityRest.listPage`). Unlike
+ * {@link fetchList} — which returns the whole result set for the client to page — this returns just the
+ * page, and `ResultSet.totalSize` carries the size of the whole result.
+ *
+ * @param refresh Drop the cached id list and rebuild it, for the reload right after the client's own
+ *   write; a stale list can only yield a short page, never a forbidden row (access is re-checked per row).
+ */
+export function fetchListPage<O>(
+  entity: string,
+  filter: MagicFilter,
+  offset: number,
+  limit: number,
+  refresh = false,
+  signal?: AbortSignal
+): Promise<ResultSet<O>> {
+  const body: ListPageRequest = { filter, offset, limit, refresh };
+  return request<ResultSet<O>>(
+    `/rs/${entity}/listPage`,
+    { method: "POST", body: JSON.stringify(body) },
     signal
   );
 }

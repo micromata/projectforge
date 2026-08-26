@@ -28,7 +28,12 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightServiceImpl
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.MessageParam
 import org.projectforge.common.i18n.MessageParamType
 import org.projectforge.common.i18n.UserException
@@ -39,6 +44,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.HistoryLoadContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
@@ -48,6 +54,7 @@ import org.springframework.stereotype.Service
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -59,6 +66,12 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     @Autowired
     private lateinit var projektDao: ProjektDao
+
+    @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     /**
      * @return the rechnungCache
@@ -396,9 +409,132 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return RechnungDO()
     }
 
+    /**
+     * In addition to the invoice right (FIBU_AUSGANGSRECHNUNGEN), users with order book access
+     * ([UserRightId.PM_ORDER_BOOK]) may open the outgoing invoice list. They only get to see the invoices
+     * linked to an order they may see, filtered per row in [hasUserSelectAccess] (obj form). Read-only:
+     * insert/update/delete still require the invoice right.
+     */
+    override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
+        if (super.hasUserSelectAccess(user, false)) {
+            return true
+        }
+        if (hasOrderBookSelectAccess(user)) {
+            // Order book users may open the (per-row filtered) list.
+            return true
+        }
+        // Delegate to super to throw the standard AccessException if requested.
+        return super.hasUserSelectAccess(user, throwException)
+    }
+
+    /**
+     * Grants read-only access to a single outgoing invoice for order book users if it is linked to an order
+     * the user may see and isn't older than [MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER] years. This is also
+     * the per-row filter of the list query (see [org.projectforge.framework.persistence.api.impl.DBQuery]).
+     */
+    override fun hasUserSelectAccess(user: PFUserDO, obj: RechnungDO, throwException: Boolean): Boolean {
+        if (super.hasUserSelectAccess(user, obj, false)) {
+            return true
+        }
+        if (hasOrderBookUserReadAccess(user, obj)) {
+            return true
+        }
+        // Delegate to super to throw the standard AccessException if requested.
+        return super.hasUserSelectAccess(user, obj, throwException)
+    }
+
+    /**
+     * @return true if the user has (at least read-only) access to the order book ([UserRightId.PM_ORDER_BOOK]).
+     */
+    private fun hasOrderBookSelectAccess(user: PFUserDO): Boolean {
+        return accessChecker.hasRight(
+            user, AuftragDao.USER_RIGHT_ID,
+            UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE
+        )
+    }
+
+    /**
+     * Read-only fallback for order book users: the invoice must be linked (via one of its positions ->
+     * order position -> order) to an order the user is allowed to see, and it must not be older than
+     * [MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER] years.
+     */
+    private fun hasOrderBookUserReadAccess(user: PFUserDO, obj: RechnungDO?): Boolean {
+        obj ?: return false
+        if (!hasOrderBookSelectAccess(user)) {
+            return false
+        }
+        val datum = obj.datum ?: return false
+        if (datum.isBefore(LocalDate.now().minusYears(MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER.toLong()))) {
+            return false
+        }
+        // An invoice position doesn't know its order directly; resolve it through the caches (no lazy init).
+        val auftragIds = rechnungCache.getRechnungInfo(obj.id)?.positions
+            ?.mapNotNull { auftragsCache.getOrderPositionInfo(it.auftragsPositionId)?.auftragId }
+            ?.distinct()
+            ?: return false
+        for (auftragId in auftragIds) {
+            val orderInfo = auftragsCache.getOrderInfo(auftragId) ?: continue
+            if (hasOrderSelectAccess(user, orderInfo)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Cache-only reimplementation of [AuftragRight.hasAccess] for [OperationType.SELECT]. This is called
+     * once per candidate invoice row of the list, so it must not touch the database: loading the order via
+     * [AuftragDao.find] (and letting [AuftragRight.hasAccess] initialize the order's positions and payment
+     * schedules) turned the list into an N+1 storm. All fields the SELECT path needs are available from the
+     * [AuftragsCache] order info and the [ProjektCache] project (whose *Id getters read the foreign key
+     * without initializing the lazy association).
+     */
+    private fun hasOrderSelectAccess(user: PFUserDO, orderInfo: OrderInfo): Boolean {
+        if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
+            return true
+        }
+        if (!hasOrderBookSelectAccess(user)) {
+            return false
+        }
+        if (accessChecker.isUserMemberOfGroup(user, *UserRightServiceImpl.FIBU_ORGA_GROUPS)
+            && accessChecker.hasRight(user, AuftragDao.USER_RIGHT_ID, UserRightValue.READONLY, UserRightValue.READWRITE)
+        ) {
+            // Members of the finance/orga groups with (at least) read access to the order book see every order.
+            return true
+        }
+        // Otherwise the user must be tied to the order as contact person or through the project's manager group.
+        var hasAccess = false
+        if (accessChecker.userEquals(user, orderInfo.contactPerson)) {
+            hasAccess = true
+        }
+        projektCache.getProjekt(orderInfo.projektId)?.let { projekt ->
+            if (UserGroupCache.getInstance().isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
+                || projekt.headOfBusinessManagerId == user.id
+                || projekt.salesManagerId == user.id
+            ) {
+                hasAccess = true
+            }
+        }
+        if (!hasAccess) {
+            return false
+        }
+        if (!orderInfo.isVollstaendigFakturiert) {
+            return true
+        }
+        // Fully invoiced orders stay visible for a while, keyed off the performance/offer date (see AuftragRight).
+        val endDate = orderInfo.periodOfPerformanceEnd ?: orderInfo.angebotsDatum ?: return false
+        return LocalDate.now().toEpochDay() - endDate.toEpochDay() <= AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER
+    }
+
     companion object {
         @JvmField
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_AUSGANGSRECHNUNGEN
+
+        /**
+         * Outgoing invoices older than this number of years won't be visible for order book users
+         * (users with [UserRightId.PM_ORDER_BOOK] but without the invoice right).
+         */
+        const val MAX_YEARS_OF_VISIBILITY_4_ORDER_BOOK_USER: Int = 2
 
         const val START_NUMBER: Int = 1000
 
