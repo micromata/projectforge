@@ -112,7 +112,8 @@ export function DataTableColumnPanel<TData>({
 
     const activeId = String(active.id);
     const overId = String(over.id);
-    const group = pinnedIds.includes(activeId) ? pinnedIds : unpinnedIds;
+    const inPinnedGroup = pinnedIds.includes(activeId);
+    const group = inPinnedGroup ? pinnedIds : unpinnedIds;
 
     // Ignore drops onto the other group — pinning moves columns between them.
     if (!group.includes(activeId) || !group.includes(overId)) return;
@@ -124,6 +125,21 @@ export function DataTableColumnPanel<TData>({
     const to = orderedIds.indexOf(overId);
     if (from < 0 || to < 0) return;
     table.setColumnOrder(arrayMove(orderedIds, from, to));
+
+    // A pinned column renders in its *pinning* order, not in columnOrder (see
+    // withPinnedFirst), so reordering the order alone would leave it where it was
+    // — the pinning order has to move with it. Only the user's pinned ids are
+    // reordered here; the locked ones are folded back in ahead of them at render
+    // time (see effectivePinning in useDataTable), so they must stay out of what
+    // is persisted.
+    if (inPinnedGroup) {
+      const pinnedFrom = pinnedIds.indexOf(activeId);
+      const pinnedTo = pinnedIds.indexOf(overId);
+      table.setColumnPinning({
+        ...table.getState().columnPinning,
+        left: arrayMove(pinnedIds, pinnedFrom, pinnedTo),
+      });
+    }
   }
 
   /**
