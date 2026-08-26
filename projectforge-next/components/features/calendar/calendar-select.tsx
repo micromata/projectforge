@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/command";
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
@@ -32,10 +33,13 @@ interface CalendarSelectProps {
 }
 
 /**
- * The calendar chooser: the chosen calendars as pills, and a searchable command list of all of them to
- * add or drop one. Replaces the legacy react-select `isMulti`. The menu stays open while several are
- * ticked, and the pills are sorted by title the way the backend sorts the list — stable after a local
- * add so a pill does not jump.
+ * The calendar chooser: the chosen calendars as pills inside a bordered field that wraps to more lines
+ * as they accumulate — the look of the app's other multi-select inputs (see EntityMultiAutocomplete) —
+ * with a searchable command list of all calendars to add or drop one. Replaces the legacy react-select
+ * `isMulti`. The menu stays open while several are ticked, and the pills are sorted by title the way the
+ * backend sorts the list — stable after a local add so a pill does not jump. Clicking the empty part of
+ * the field opens the list; unlike the user pickers, the list is client-side over the calendars already
+ * in hand and each pill keeps its own colour/visibility controls.
  */
 export function CalendarSelect({
   teamCalendars,
@@ -67,68 +71,73 @@ export function CalendarSelect({
   };
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {sortedActive.map((calendar) => (
-        <CalendarPill
-          key={calendar.id}
-          calendar={calendar}
-          onSetVisibility={onSetVisibility}
-          onChangeStyle={onChangeStyle}
-          onRemove={(id) =>
-            onSetActive(activeCalendars.filter((c) => c.id !== id))
-          }
-        />
-      ))}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            role="combobox"
-            aria-expanded={open}
-            aria-label={t("calendar.title")}
-            className="h-7 gap-1.5"
-          >
-            <HugeiconsIcon icon={Calendar03Icon} size={14} aria-hidden />
-            {activeCalendars.length}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-64 p-0">
-          <Command>
-            <CommandInput placeholder={t("search._")} />
-            <CommandList>
-              <CommandEmpty>{t("nothingFound")}</CommandEmpty>
-              <CommandGroup>
-                {teamCalendars.map((calendar) => (
-                  <CommandItem
-                    key={calendar.id}
-                    value={calendar.title ?? String(calendar.id)}
-                    onSelect={() => toggle(calendar)}
-                  >
-                    <span
-                      className="size-2.5 shrink-0 rounded-full border border-border/50"
-                      style={{
-                        background: calendar.style?.bgColor || "transparent",
-                      }}
+    <Popover open={open} onOpenChange={setOpen}>
+      {/* The field itself: styled like the app's text inputs (see EntityMultiAutocomplete) so the pills
+          read as its values, and `flex-wrap` lets it grow to more lines when many are chosen. */}
+      <PopoverAnchor asChild>
+        <div className="flex min-h-8 w-full min-w-0 flex-wrap items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 py-1 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 dark:bg-input/30">
+          {sortedActive.map((calendar) => (
+            <CalendarPill
+              key={calendar.id}
+              calendar={calendar}
+              onSetVisibility={onSetVisibility}
+              onChangeStyle={onChangeStyle}
+              onRemove={(id) =>
+                onSetActive(activeCalendars.filter((c) => c.id !== id))
+              }
+            />
+          ))}
+          {/* Fills the rest of the row so a click on the empty field opens the add-list. */}
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              role="combobox"
+              aria-expanded={open}
+              aria-label={t("calendar.title")}
+              className="h-6 min-w-24 flex-1 justify-start gap-1.5 px-1 font-normal text-muted-foreground hover:bg-transparent"
+            >
+              <HugeiconsIcon icon={Calendar03Icon} size={14} aria-hidden />
+              <span className="truncate">{t("calendar.title")}</span>
+            </Button>
+          </PopoverTrigger>
+        </div>
+      </PopoverAnchor>
+      <PopoverContent align="start" className="w-64 p-0">
+        <Command>
+          <CommandInput placeholder={t("search._")} />
+          <CommandList>
+            <CommandEmpty>{t("nothingFound")}</CommandEmpty>
+            <CommandGroup>
+              {teamCalendars.map((calendar) => (
+                <CommandItem
+                  key={calendar.id}
+                  value={calendar.title ?? String(calendar.id)}
+                  onSelect={() => toggle(calendar)}
+                >
+                  <span
+                    className="size-2.5 shrink-0 rounded-full border border-border/50"
+                    style={{
+                      background: calendar.style?.bgColor || "transparent",
+                    }}
+                    aria-hidden
+                  />
+                  <span className="flex-1 truncate">{calendar.title}</span>
+                  {activeIds.has(calendar.id) && (
+                    <HugeiconsIcon
+                      icon={Tick02Icon}
+                      size={14}
+                      className={cn("text-primary")}
                       aria-hidden
                     />
-                    <span className="flex-1 truncate">{calendar.title}</span>
-                    {activeIds.has(calendar.id) && (
-                      <HugeiconsIcon
-                        icon={Tick02Icon}
-                        size={14}
-                        className={cn("text-primary")}
-                        aria-hidden
-                      />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

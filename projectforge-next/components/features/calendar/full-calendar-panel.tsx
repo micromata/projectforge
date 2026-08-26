@@ -21,6 +21,7 @@ import type {
 } from "@/lib/rs/calendar-types";
 import { cn } from "@/lib/utils";
 import { CalendarEventContent } from "./calendar-event-content";
+import { useAllDayResizer } from "./use-allday-resizer";
 import { useCalendarAction } from "./use-calendar-action";
 import { useViewButtons } from "./use-view-buttons";
 import { clampVisibleEnd } from "./view-config";
@@ -60,8 +61,10 @@ export function FullCalendarPanel({
   apiRef,
 }: FullCalendarPanelProps) {
   const calendarRef = useRef<FullCalendar>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { locale, weekStartsOn, hour12 } = useFormatContext();
   const { handleEventClick, requestAction } = useCalendarAction();
+  useAllDayResizer(containerRef);
 
   const handleCreate = useCallback(() => {
     const api = calendarRef.current?.getApi();
@@ -134,6 +137,7 @@ export function FullCalendarPanel({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "pf-calendar h-full",
         alternateHoursBackground && "pf-calendar-alt"
@@ -155,6 +159,9 @@ export function FullCalendarPanel({
         locale={locale}
         firstDay={weekStartsOn}
         height="100%"
+        // Pin the weekday column headers and the all-day row while the hours scroll, so the column a
+        // scrolled-to event belongs to stays labelled.
+        stickyHeaderDates
         nowIndicator
         editable
         selectable

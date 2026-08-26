@@ -10,9 +10,11 @@ import type { CalendarViewKey } from "@/lib/rs/calendar-types";
 import { useCalendarInit } from "./use-calendar-init";
 import { useCalendarEvents } from "./use-calendar-events";
 import { useStoreCalendarState } from "./use-calendar-state";
+import { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
 import { useGotoDate } from "./use-goto-date";
 import { normalizeInitialDate } from "./view-config";
 import { CalendarToolbar } from "./calendar-toolbar";
+import { CalendarSelect } from "./calendar-select";
 import { FullCalendarPanel } from "./full-calendar-panel";
 import type { CalendarRange, EventsRequest } from "./types";
 
@@ -33,6 +35,8 @@ export function CalendarPage() {
   const [nonce, setNonce] = useState(0);
   const apiRef = useRef<CalendarApi | null>(null);
   const storeState = useStoreCalendarState();
+  // Created once for the page and shared by the chooser row and the header toolbar (settings/refresh).
+  const mutations = useCalendarFilterMutations();
 
   useGotoDate(
     apiRef,
@@ -96,12 +100,22 @@ export function CalendarPage() {
 
   return (
     <>
+      {/* No category over the title: it would only repeat "Kalender". The chooser rides the title row's
+          flexible middle (a wrapping field that grows down as more are picked) to save a vertical line. */}
       <PageTitleRow
-        category={t("menu.calendar")}
         title={t("calendar.title")}
         legacyUrl="react/calendar"
+        center={
+          <CalendarSelect
+            teamCalendars={init.teamCalendars ?? []}
+            activeCalendars={init.activeCalendars ?? []}
+            onSetActive={mutations.setActiveCalendars}
+            onSetVisibility={mutations.setVisibility}
+            onChangeStyle={mutations.changeStyle}
+          />
+        }
       >
-        <CalendarToolbar init={init} />
+        <CalendarToolbar init={init} mutations={mutations} />
       </PageTitleRow>
       <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
         <FullCalendarPanel

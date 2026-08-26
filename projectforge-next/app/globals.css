@@ -521,6 +521,12 @@ span.row-grey {
     transparent
   );
   color: var(--foreground);
+  /*
+   * The calendar inherited the browser default 16px while the rest of the app runs at 14px, so it read
+   * oversized. 13px both matches the app more closely and, because FullCalendar's time-grid slot heights
+   * are em-based, shortens the rows so more hours fit on screen.
+   */
+  font-size: 0.8125rem;
 }
 
 /* Toolbar buttons as quiet outline buttons; the active view reads as the primary. */
@@ -531,6 +537,9 @@ span.row-grey {
   box-shadow: none;
   text-transform: none;
   font-weight: 500;
+  /* Compact: match the smaller calendar text and reclaim vertical space in the header. */
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
 }
 .pf-calendar .fc .fc-button:hover:not(:disabled) {
   background: var(--accent);
@@ -551,8 +560,51 @@ span.row-grey {
   opacity: 0.5;
 }
 .pf-calendar .fc .fc-toolbar-title {
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
+}
+/* Tighten the gap under the header toolbar so the compacted controls give the grid more room. */
+.pf-calendar .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.5rem;
+}
+/* Day/weekday column headers default to a larger, heavier link; bring them down to the grid's size. */
+.pf-calendar .fc .fc-col-header-cell-cushion {
+  padding: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/*
+ * All-day section in the time-grid views. FullCalendar renders it as a non-liquid body section, so on a
+ * day with many all-day entries (a full vacation column) it grows without bound and pushes the timed grid
+ * off screen — the lower hours become unreachable. Cap its height and let it scroll on its own. The
+ * all-day chunk is the only one inside `.fc-timegrid` that hosts a `.fc-daygrid-body`, so `:has()` targets
+ * it without touching the timed body or the pure day-grid views. The height is a variable so a future
+ * drag-to-resize splitter can override it inline. */
+.pf-calendar .fc-timegrid .fc-scroller-harness:has(.fc-daygrid-body) {
+  max-height: var(--pf-allday-max-height, 2.5rem);
+}
+.pf-calendar
+  .fc-timegrid
+  .fc-scroller-harness:has(.fc-daygrid-body)
+  > .fc-scroller {
+  max-height: var(--pf-allday-max-height, 2.5rem);
+  overflow-y: auto !important;
+}
+/* The all-day/timed divider doubles as the resize handle (see use-allday-resizer): a taller, row-resize
+   strip with a centred grip that brightens on hover. `touch-action: none` keeps a touch-drag from
+   scrolling the page instead of resizing. */
+.pf-calendar .fc .fc-timegrid-divider {
+  cursor: row-resize;
+  padding: 3px 0;
+  touch-action: none;
+  background-image: linear-gradient(var(--border), var(--border));
+  background-size: 2rem 2px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.pf-calendar .fc .fc-timegrid-divider:hover {
+  background-image: linear-gradient(var(--primary), var(--primary));
 }
 
 /*
