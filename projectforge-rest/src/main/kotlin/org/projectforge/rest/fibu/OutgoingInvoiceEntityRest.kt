@@ -38,6 +38,8 @@ import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.fibu.RechnungInfo
 import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.business.fibu.RechnungTyp
@@ -200,6 +202,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     override fun transformFromDB(obj: RechnungDO, editMode: Boolean): Rechnung {
+        // editMode is true only for the single-item detail/edit/clone endpoints, never for a list row, so
+        // this is the one place to keep order book users out of the detail view without emptying their list.
+        if (editMode) {
+            checkSingleInvoiceDetailAccess()
+        }
         val rechnung = Rechnung()
         // Only the edit page needs the positions with their cost assignments, and only it can afford them:
         // both collections are lazy, so mapping them is a query per invoice.
@@ -486,6 +493,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         @PathVariable("id") id: Long,
         @RequestParam("variant", required = false) variant: String?,
     ): ResponseEntity<*> {
+        checkSingleInvoiceDetailAccess()
         log.info { "Exporting invoice #$id as Word document, variant='${variant ?: ""}'." }
         val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
         RechnungCalculator.calculate(invoice)
@@ -713,6 +721,45 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      */
     private fun checkEInvoiceAccess() {
         accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+    }
+
+    /**
+     * The "no detail view yet" layer on top of [RechnungDao]'s access: order book users (right
+     * [org.projectforge.business.user.UserRightId.PM_ORDER_BOOK] without the invoice right) may read the
+     * filtered, read-only invoice *list* only. [RechnungDao] already bounds them to the invoices of orders
+     * they may see - this keeps them out of every endpoint that serves a *single* invoice's detail or its
+     * document (word export, edit/clone layout), which stays reserved for the invoice right (or the
+     * controlling group, which reads all invoices). Throws if the user has neither.
+     */
+    private fun checkSingleInvoiceDetailAccess() {
+        if (!hasSingleInvoiceDetailAccess()) {
+            throw AccessException("access.exception.userHasNotRight")
+        }
+    }
+
+    /**
+     * Whether the logged in user has real (single-invoice) access: the controlling group, or the invoice
+     * right ([RechnungDao.USER_RIGHT_ID]) read-only or read-write. Order book users (only [PM_ORDER_BOOK])
+     * answer false — they get the filtered read-only list, but no detail view (see
+     * [checkSingleInvoiceDetailAccess] and [listUpdateAccess]).
+     */
+    private fun hasSingleInvoiceDetailAccess(): Boolean {
+        if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.CONTROLLING_GROUP)) {
+            return true
+        }
+        return accessChecker.hasLoggedInUserRight(
+            RechnungDao.USER_RIGHT_ID, false, UserRightValue.READONLY, UserRightValue.READWRITE
+        )
+    }
+
+    /**
+     * Whether a row of the list may be opened at all — the entity-wide question projectforge-next reads as
+     * `canOpen` (see ListMetaData.userAccess.update / useEditTargets). Order book users may only read the
+     * filtered list, so their rows don't open a detail view (which [checkSingleInvoiceDetailAccess] refuses
+     * anyway); real invoice/controlling users keep the row click as before.
+     */
+    override fun listUpdateAccess(): Boolean {
+        return hasSingleInvoiceDetailAccess()
     }
 
     /**
