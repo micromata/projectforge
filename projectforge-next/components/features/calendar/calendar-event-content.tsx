@@ -1,16 +1,19 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { EventContentArg } from "@fullcalendar/core";
-import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { CalendarEventTooltip } from "./calendar-event-tooltip";
 import type { CalendarEventExtendedProps } from "@/lib/rs/calendar-types";
 
+/** Hover-open delay, matching the legacy tooltip's, so a glance across events does not flash cards. */
+const OPEN_DELAY = 200;
+
 /**
  * FullCalendar's per-event body. Month cells show a coloured dot plus title, time-grid and list rows
- * show the time and title (with the optional description below). When the event carries a tooltip the
- * whole body becomes a hover-card trigger — one card per event, which replaces the legacy manual
- * `createPopper`/`destroy` lifecycle and its collision handling comes for free.
+ * show the time and title (with the optional description below). When the event carries a tooltip,
+ * pointing at the body opens a card next to the cursor (see CalendarEventTooltip for why it is pinned
+ * to the cursor rather than anchored to the event).
  *
  * The event's colours stay FullCalendar's own inline styles (contrast-computed by the backend), so
  * this only lays out the text.
@@ -18,6 +21,33 @@ import type { CalendarEventExtendedProps } from "@/lib/rs/calendar-types";
 export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   const props = arg.event.extendedProps as CalendarEventExtendedProps;
   const isMonth = arg.view.type.startsWith("dayGrid");
+  // The viewport point the card is pinned to while open, null when closed. Set from where the pointer
+  // entered the event, after the open delay.
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelOpen = () => {
+    if (openTimer.current) clearTimeout(openTimer.current);
+    openTimer.current = null;
+  };
+  const close = () => {
+    cancelOpen();
+    setAnchor(null);
+  };
+
+  // A scroll dismisses the card: the pointer sits still while the grid moves under it, so a card left
+  // open would describe an event no longer under the cursor. Capture, because FullCalendar's inner
+  // scroller emits a scroll that never reaches a bubbling listener; and the timer is cleared too, so a
+  // scroll during the open delay does not still pop a card afterwards. Cleared on unmount.
+  useEffect(() => {
+    const onScroll = () => close();
+    document.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("scroll", onScroll, true);
+      cancelOpen();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const body = isMonth ? (
     <div className="fc-event-main-frame flex items-center gap-1 overflow-hidden">
@@ -47,13 +77,18 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   if (!props.tooltip) return body;
 
   return (
-    <HoverCard openDelay={200} closeDelay={80}>
-      <HoverCardTrigger asChild>
-        <div className={cn("h-full w-full", isMonth && "overflow-hidden")}>
-          {body}
-        </div>
-      </HoverCardTrigger>
-      <CalendarEventTooltip props={props} />
-    </HoverCard>
+    <div
+      className={cn("h-full w-full", isMonth && "overflow-hidden")}
+      onPointerEnter={(e) => {
+        // Freeze the cursor point now; the card opens there after the delay and stays put.
+        const { clientX: x, clientY: y } = e;
+        cancelOpen();
+        openTimer.current = setTimeout(() => setAnchor({ x, y }), OPEN_DELAY);
+      }}
+      onPointerLeave={close}
+    >
+      {body}
+      {anchor && <CalendarEventTooltip props={props} anchor={anchor} />}
+    </div>
   );
 }
