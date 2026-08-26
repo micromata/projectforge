@@ -122,6 +122,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         caches.initialize(obj)
         timesheet.copyFrom(obj)
         timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        timesheet.timeSavingsByAINote = timeSavingsByAINote()
         timesheet.tags = timesheetDao.getTags(timesheet.tag)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
@@ -183,6 +184,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
         sheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        sheet.timeSavingsByAINote = timeSavingsByAINote()
         sheet.tags = timesheetDao.getTags(sheet.tag)
         // The hand-built page reaches this preset through newEntry, which — unlike the UILayout edit
         // endpoint — never runs onGetItemAndLayout. Apply the same start/stop preset here so a timesheet
@@ -379,14 +381,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
             )
         }
-        if (baseDao.timeSavingsByAIEnabled) {
-            configurationService.timesheetNoteSavingsByAI?.let { hint ->
-                if (hint.isNotBlank()) {
-                    layout.layoutBelowActions.add(
-                        UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
-                    )
-                }
-            }
+        timeSavingsByAINote()?.let { hint ->
+            layout.layoutBelowActions.add(
+                UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
+            )
         }
 
         JiraSupport.createJiraElement(dto.description, descriptionArea)
@@ -420,6 +418,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         )
         LayoutUtils.addTranslations4TaskSelection(layout)
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * The configured note to show below the edit form, or null when AI time-savings tracking is off or
+     * no note is configured. The single source both the UILayout ([createEditLayout], as a
+     * [UIAlert] in `layoutBelowActions`) and the hand-built page (via [Timesheet.timeSavingsByAINote])
+     * read, so the two can never drift.
+     */
+    private fun timeSavingsByAINote(): String? {
+        if (!baseDao.timeSavingsByAIEnabled) {
+            return null
+        }
+        return configurationService.timesheetNoteSavingsByAI?.takeIf { it.isNotBlank() }
     }
 
     /**

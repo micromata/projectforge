@@ -65,6 +65,13 @@ export interface TimesheetDetail {
    * out of, so the section reads this flag instead (see TIMESHEET_PAGE).
    */
   timeSavingsByAIEnabled?: boolean;
+  /**
+   * The configured note shown below the form, or null/absent where none is configured — transient,
+   * set by the server only when {@link timeSavingsByAIEnabled} (`ConfigurationService.timesheetNoteSavingsByAI`).
+   * The hand-built form has no UILayout to carry the legacy `layoutBelowActions` alert, so AiNoteFooter
+   * reads the text from here (see TIMESHEET_PAGE `editFooter`).
+   */
+  timeSavingsByAINote?: string | null;
   /** Position in the recent list — the backend's key for an entry that has no id (see RecentTimesheets). */
   counter?: number | null;
   deleted?: boolean;

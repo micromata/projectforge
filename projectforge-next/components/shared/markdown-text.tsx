@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,14 +16,19 @@ import { cn } from "@/lib/utils";
  * Only for texts *we* wrote. Content from the database or from the user is passed through as it is
  * (an underscore in an entity name is not emphasis), so callers keep plain rendering for that.
  *
- * No raw HTML: a text that has to become markup is a text that belongs in a component.
+ * No raw HTML by default: a text that has to become markup is a text that belongs in a component. The
+ * one exception is `allowHtml`, for an authored text an admin configures that legitimately carries HTML
+ * (a time sheet's AI-savings note links with an `<a>`, mirroring the legacy `DynamicAlert`'s `rehypeRaw`)
+ * — trusted, admin-only content, never something from an end user.
  */
 export function MarkdownText({
   text,
   className,
+  allowHtml = false,
 }: {
   text: string;
   className?: string;
+  allowHtml?: boolean;
 }) {
   return (
     // Paragraph spacing rather than blank lines: the `\n\n` of the bundle become <p>s, and margins
@@ -33,7 +39,12 @@ export function MarkdownText({
         className
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={allowHtml ? [rehypeRaw] : undefined}
+      >
+        {text}
+      </ReactMarkdown>
     </div>
   );
 }

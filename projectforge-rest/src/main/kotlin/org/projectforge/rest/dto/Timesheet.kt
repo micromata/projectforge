@@ -58,6 +58,15 @@ class Timesheet(
     var timeSavingsByAIEnabled: Boolean = false
 
     /**
+     * The configured note shown below the edit form (transient, server set), or null where none is
+     * configured — the counterpart of the [org.projectforge.ui.UIAlert] the UILayout adds to
+     * `layoutBelowActions` in [org.projectforge.rest.TimesheetPagesRest.createEditLayout]. The
+     * hand-built edit page has no UILayout to carry it, so it reads the text from the DTO. Set only
+     * when [timeSavingsByAIEnabled], as in the UILayout.
+     */
+    var timeSavingsByAINote: String? = null
+
+    /**
      * The tags to choose from (transient, server set), or null/empty where none is configured. Like
      * [timeSavingsByAIEnabled], the hand-built edit page has no UILayout to read the `tag` select's
      * values from, so it takes them from here — the counterpart of `createTagUISelect` returning null

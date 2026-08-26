@@ -1,5 +1,6 @@
 import { TIMESHEET_METADATA } from "@/lib/metadata/timesheet.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { AiNoteFooter } from "./edit/sections/ai-note-footer";
 import { TaskKost2Section } from "./edit/sections/task-kost2-section";
 import { DayRangeSection } from "./edit/sections/day-range-section";
 import { LocationField } from "./edit/sections/location-field";
@@ -80,6 +81,10 @@ export const TIMESHEET_PAGE = definePage<
     // The templates/recent bar sits above the sections and stays visible while the user scrolls — the
     // legacy form's `timesheet.edit.templatesAndRecent` widget, which is not a field of any section.
     editBanner: TemplatesRecentBar,
+    // Below the form: the configured AI-time-savings note the legacy UILayout put in
+    // `layoutBelowActions`, shown only where the installation tracks AI savings and a text is
+    // configured (see AiNoteFooter, TimesheetPagesRest.timeSavingsByAINote).
+    editFooter: AiNoteFooter,
     sections: [
       {
         id: "general",

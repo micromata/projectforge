@@ -459,6 +459,14 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * Rendered inside the form so it can subscribe to live form values via `useEntityEditForm`.
    */
   editBanner?: ComponentType;
+  /**
+   * Below the scrolled sections, above the sticky action bar — the counterpart of the legacy UILayout's
+   * `layoutBelowActions`, for a note that belongs to the whole form rather than to any one section (a
+   * time sheet's configured AI-savings hint, see AiNoteFooter).
+   *
+   * Rendered inside the form like [editBanner], so it can read the loaded entry via `useEntityData`.
+   */
+  editFooter?: ComponentType;
   /** Further tabs beside the form. Appended after the history. */
   extraTabs?: ExtraTabDef[];
   /**

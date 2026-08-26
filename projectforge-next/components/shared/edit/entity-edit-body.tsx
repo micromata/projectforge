@@ -302,14 +302,21 @@ export function EntityEditBody<
           {edit.editBanner && <edit.editBanner />}
         </>
       ) : undefined,
-    // Only where the history takes a comment, and only with write access: a comment on a save that
-    // cannot happen is nothing to ask for (see LayoutUtils.processEditPage).
+    // Below the sections: the entity's own footer note (the legacy `layoutBelowActions`, e.g. a time
+    // sheet's AI-savings hint) and, only where the history takes a comment and the user may write, the
+    // change-comment field — a comment on a save that cannot happen is nothing to ask for (see
+    // LayoutUtils.processEditPage).
     belowSections:
-      takesHistoryComment && access.write ? (
-        <HistoryUserCommentField
-          value={historyComment}
-          onChange={setHistoryComment}
-        />
+      edit.editFooter || (takesHistoryComment && access.write) ? (
+        <>
+          {edit.editFooter && <edit.editFooter />}
+          {takesHistoryComment && access.write && (
+            <HistoryUserCommentField
+              value={historyComment}
+              onChange={setHistoryComment}
+            />
+          )}
+        </>
       ) : undefined,
     actions: (
       <EntityEditActionBar
