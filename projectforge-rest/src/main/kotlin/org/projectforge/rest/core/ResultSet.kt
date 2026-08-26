@@ -39,6 +39,20 @@ class ResultSet<O : Any>(
     var highlightRowId: Long? = null,
     var selectedEntityIds: Collection<Serializable>? = null,
     magicFilter: MagicFilter, // only needed to check if the result set was truncated (has size of magicFilter.maxRows).
+    /**
+     * The offset of the first row of [resultSet] within the whole filtered result, or null for a non-paged
+     * result (`POST list`). When set, [totalSize] is the size of the whole result and [resultSet] is one page.
+     */
+    var offset: Int? = null,
+    /**
+     * The page size requested for a server-side paged result (see [offset]), or null for a non-paged result.
+     */
+    var limit: Int? = null,
+    /**
+     * True if [totalSize] is the exact count of the whole result; false if the underlying id list was
+     * truncated at the row cap, so more rows may exist. Meaningful only for a paged result ([offset] set).
+     */
+    var totalSizeExact: Boolean = true,
 ) {
     /**
      * Result info as mark down to display. Is usable for statistics as well as for important note, that the
@@ -74,7 +88,10 @@ class ResultSet<O : Any>(
         if (origResultSet != null && selectedEntityIds == null) {
             selectedEntityIds = origResultSet.selectedEntityIds
         }
-        if (resultSet.size == magicFilter.maxRows) {
+        // Only for the non-paged path: there the page equals the whole result, so a full page means the cap
+        // was hit. For a paged result the truncation is known exactly (totalSizeExact), and a full 50-row page
+        // is the normal case, not a truncation.
+        if (offset == null && resultSet.size == magicFilter.maxRows) {
             val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
             resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
         }

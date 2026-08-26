@@ -66,10 +66,16 @@ constructor(
         val result = ResultSet(
             newList,
             resultSet,
-            newList.size,
+            // For a server-side paged result totalSize is the size of the whole result, not of this page;
+            // keep it (and the paging fields below), which the DTO transform would otherwise drop.
+            totalSize = resultSet.totalSize ?: newList.size,
             selectedEntityIds = resultSet.selectedEntityIds,
             magicFilter = magicFilter,
+            offset = resultSet.offset,
+            limit = resultSet.limit,
+            totalSizeExact = resultSet.totalSizeExact,
         )
+        result.statistics = resultSet.statistics
         resultSet.resultInfo?.let { info ->
             if (info.isNotBlank()) {
                 result.resultInfo = info

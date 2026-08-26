@@ -57,6 +57,9 @@ export const ORDER_PAGE = definePage<
   metadata: AUFTRAG_METADATA,
   route: "/order",
   queryKey: ORDER_LIST_QUERY_KEY,
+  // The order book is the reference for server-side paging: ~7000 rows, four CustomResultFilters (so
+  // nothing narrows after the query) and statistics from the aggregate hook. See PageDef.serverPaging.
+  serverPaging: true,
   // Where the entry sits in the main menu: Finance > Order book (MenuItemDefId.ORDER_LIST). It hangs
   // under Project management as well, for users outside the finance groups (MenuCreator).
   // `._` is the bare key of a namespace that also has children (`menu.fibu.kost`) — a title is

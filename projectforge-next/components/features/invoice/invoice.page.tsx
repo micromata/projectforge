@@ -71,6 +71,9 @@ export const INVOICE_PAGE = definePage<
   metadata: RECHNUNG_METADATA,
   route: INVOICE_ROUTE,
   queryKey: INVOICE_LIST_QUERY_KEY,
+  // Served one page at a time: its CustomResultFilters run inside the query and its statistics come from the
+  // aggregate hook, so nothing narrows after the pipeline (see OutgoingInvoiceEntityRest, PageDef.serverPaging).
+  serverPaging: true,
   // Finance > Invoices (MenuItemDefId.OUTGOING_INVOICE_LIST). `._` is the bare key of a namespace that
   // also has children (`menu.fibu.kost`) — see labelKeyFor.
   categoryKey: "menu.fibu._",

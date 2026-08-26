@@ -121,6 +121,38 @@ open class DBQuery {
         }
     }
 
+    /**
+     * Result of [selectIds]: the ordered ids matching the filter and whether the result was truncated
+     * (the pipeline hit [org.projectforge.framework.persistence.api.impl.DBFilter.maxRows]).
+     */
+    class DBIdResult(val ids: LongArray, val truncated: Boolean)
+
+    /**
+     * Same result as [select], but returns only the ids of the matching objects (in the same order).
+     *
+     * Used by server-side paging (see `MIGRATION-list-paging.md`): the ordered id list is materialized
+     * once per (user, filter), so the expensive per-row work of [select] — DTO mapping, currency
+     * formatting, Jackson serialization — runs on one page of ids instead of on every row.
+     *
+     * For now this delegates to [select] and maps the loaded objects to their ids: it saves nothing on the
+     * database but removes everything after it. A `SELECT id` projection is a later optimization and the
+     * only place the row set or its order could drift, so it deliberately does not live here.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Long>> selectIds(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    ): DBIdResult {
+        val list = select(baseDao, filter, customResultFilters, checkAccess)
+        val ids = LongArray(list.size)
+        list.forEachIndexed { index, obj -> ids[index] = obj.id!! }
+        // A full result equal to maxRows is treated as truncated: there may be more rows the cap dropped.
+        val truncated = list.size >= filter.maxRows
+        return DBIdResult(ids, truncated)
+    }
+
     private fun <O : ExtendedBaseDO<Long>> privateCreateList(
         baseDao: BaseDao<O>,
         dbResultIterator: DBResultIterator<O>,

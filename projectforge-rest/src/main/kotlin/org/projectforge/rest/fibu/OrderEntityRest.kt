@@ -104,6 +104,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @Autowired
   private lateinit var rechnungDao: RechnungDao
 
+  @Autowired
+  private lateinit var auftragsCache: AuftragsCache
+
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
    * [onAfterEdit] within one request. A thread local because this rest service is a singleton serving
@@ -328,10 +331,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     request: HttpServletRequest,
     magicFilter: MagicFilter,
   ): ResultSet<*> {
-    val orders = resultSet.resultSet
-    return super.postProcessResultSet(resultSet, request, magicFilter).also {
-      it.statistics = OrderStatistics(baseDao.buildStatistik(orders))
+    val result = super.postProcessResultSet(resultSet, request, magicFilter)
+    if (resultSet.offset == null) {
+      // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
+      result.statistics = OrderStatistics(baseDao.buildStatistik(resultSet.resultSet))
     }
+    // Server-side paged: resultSet.resultSet is one page; the whole-result statistics were computed over the
+    // full id list in aggregate() and carried through the DTO transform, so they are left as they are here.
+    return result
   }
 
   /**
@@ -509,11 +516,49 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
     // The number as the last criterion, so equal values (0.00 is the most common one of all four sums,
     // and a customer has many orders) keep a deterministic order instead of shifting between two
-    // requests over the same data.
+    // requests over the same data. It resolves reflectively against AuftragDO.nummer (no COMPUTED entry).
     val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
     return SortPropertyComparator.sort(resultSet, sortProperties) { order, property ->
-      COMPUTED_SORT_PROPERTIES[property]?.invoke(order)
+      COMPUTED_SORT_PROPERTIES[property]?.invoke(auftragsCache.getOrderInfo(order))
     }
+  }
+
+  /**
+   * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): sorts the
+   * materialized id list by the computed columns once per (session, filter), so a page is a slice of an
+   * already ordered list. Reads each id's [OrderInfo] from [AuftragsCache] — no entity load — and sorts by
+   * the same [COMPUTED_SORT_PROPERTIES] and the same `nummer` tie-break as [filterList], so the paged result
+   * is byte-for-byte the same order as the non-paged `POST list`.
+   *
+   * The tie-break resolves against [OrderInfo.nummer] here (an id has no reflective `nummer`); [filterList]
+   * resolves it against `AuftragDO.nummer` — the same value, so both paths order equal computed values
+   * identically. An id whose info is not (yet) cached sorts as blank rather than dropping out of the list.
+   */
+  override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
+    val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
+    if (computed.isEmpty()) {
+      return ids
+    }
+    val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
+    val sorted = SortPropertyComparator.sort(ids.toList(), sortProperties) { id, property ->
+      val info = auftragsCache.getOrderInfo(id) ?: return@sort null
+      COMPUTED_SORT_PROPERTIES[property]?.invoke(info)
+        ?: if (property == AuftragDO::nummer.name) info.nummer else null
+    }
+    return sorted.toLongArray()
+  }
+
+  /**
+   * The whole-result statistics of a server-side paged order list: computed over the full id list, not over
+   * the single page [postProcessResultSet] sees, so the footer shows the sums of every matching order (see
+   * `MIGRATION-list-paging.md`). Each id's [OrderInfo] is a cache lookup, so this stays cheap for the whole
+   * result. The non-paged `POST list` keeps computing the same statistics over its (complete) result set in
+   * [postProcessResultSet].
+   */
+  override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+    val statistics = AuftragsStatistik()
+    ids.forEach { id -> auftragsCache.getOrderInfo(id)?.let { statistics.add(it) } }
+    return OrderStatistics(statistics)
   }
 
   /**
@@ -983,20 +1028,35 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * path handles it. It resolves against the entity, so the sort reaches the query and only its own
      * `addOrder` fails.
      */
-    private val COMPUTED_SORT_PROPERTIES = mapOf<String, (AuftragDO) -> Comparable<*>?>(
-      Auftrag::nettoSumme.name to { Auftrag.orderInfo(it).netSum },
-      Auftrag::beauftragtNettoSumme.name to { Auftrag.orderInfo(it).commissionedNetSum },
-      Auftrag::fakturiertSum.name to { Auftrag.orderInfo(it).invoicedSum },
-      Auftrag::zuFakturierenSum.name to { Auftrag.orderInfo(it).notYetInvoicedSum },
-      Auftrag::personDays.name to { Auftrag.orderInfo(it).personDays },
-      Auftrag::pos.name to { order ->
-        Auftrag.orderInfo(order).infoPositions?.count { !it.deleted } ?: 0
+    /**
+     * The computed columns, keyed by the property `order.page.tsx` sorts by, each reading its value from an
+     * [OrderInfo] — a map lookup in [AuftragsCache], no database column and no entity load. Defined over
+     * [OrderInfo] rather than [AuftragDO] so the two callers share one definition and cannot drift:
+     * [filterList] sorts the loaded order list (each order's info via the cache) for the non-paged `POST
+     * list`, and [sortIds] sorts the materialized id list (each id's info via the cache) for server-side
+     * paging — the paged result must be the same rows in the same order as `POST list` (see
+     * `MIGRATION-list-paging.md`).
+     *
+     * The customer and the project sort by the very string the cell shows — the `displayName` of the cached
+     * [org.projectforge.business.fibu.kunde.KundeDO]/[org.projectforge.business.fibu.ProjektDO], formatted by
+     * `KostFormatter` out of number and name ("473 - Air Liquide"), left padded so ordering by the string
+     * orders by the number. With no customer, [OrderInfo.kundeAsString] is the free-text customer, which is
+     * what the cell shows then.
+     */
+    private val COMPUTED_SORT_PROPERTIES = mapOf<String, (OrderInfo) -> Comparable<*>?>(
+      Auftrag::nettoSumme.name to { it.netSum },
+      Auftrag::beauftragtNettoSumme.name to { it.commissionedNetSum },
+      Auftrag::fakturiertSum.name to { it.invoicedSum },
+      Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
+      Auftrag::personDays.name to { it.personDays },
+      Auftrag::pos.name to { info ->
+        info.infoPositions?.count { !it.deleted } ?: 0
       },
-      CUSTOMER_SORT_PROPERTY to { order ->
-        PfCaches.instance.getKundeIfNotInitialized(order.kunde)?.displayName ?: order.kundeText
+      CUSTOMER_SORT_PROPERTY to { info ->
+        PfCaches.instance.getKunde(info.kundeId)?.displayName ?: info.kundeAsString
       },
-      PROJECT_SORT_PROPERTY to { order ->
-        PfCaches.instance.getProjektIfNotInitialized(order.projekt)?.displayName
+      PROJECT_SORT_PROPERTY to { info ->
+        PfCaches.instance.getProjekt(info.projektId)?.displayName
       },
     )
 

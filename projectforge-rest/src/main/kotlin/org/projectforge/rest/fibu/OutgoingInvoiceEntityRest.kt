@@ -885,17 +885,30 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val invoices = resultSet.resultSet
-        return super.postProcessResultSet(resultSet, request, magicFilter).also {
-            val statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
-            previousYearFilter(magicFilter)?.let { previousFilter ->
-                // The same query one year back, run through the same pipeline (getObjectList + filterList)
-                // as the list itself, so the two sums differ only by the period.
-                val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
-                statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
-            }
-            it.statistics = statistics
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        if (resultSet.offset == null) {
+            // Non-paged POST list: the result set is the whole result, so its statistics are the whole result's.
+            result.statistics = buildStatistics(resultSet.resultSet, magicFilter)
         }
+        // Server-side paged: resultSet.resultSet is one page; the whole-result statistics were computed over the
+        // full id list in aggregate() and carried through the DTO transform, so they are left as they are here.
+        return result
+    }
+
+    /**
+     * The statistics of the given invoices, plus - when the client asked for it and the invoice-date filter is
+     * a bounded range - the same figures for the period a year earlier (see [previousYearFilter]). Shared by
+     * the non-paged [postProcessResultSet] and the server-side paged [aggregate], so both show the same sums.
+     */
+    private fun buildStatistics(invoices: List<RechnungDO>, magicFilter: MagicFilter): InvoiceStatistics {
+        val statistics = InvoiceStatistics(baseDao.buildStatistik(invoices))
+        previousYearFilter(magicFilter)?.let { previousFilter ->
+            // The same query one year back, run through the same pipeline (getObjectList + filterList)
+            // as the list itself, so the two sums differ only by the period.
+            val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
+            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
+        }
+        return statistics
     }
 
     /**
@@ -1083,6 +1096,36 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         return SortPropertyComparator.sort(resultSet, sortProperties) { invoice, property ->
             COMPUTED_SORT_PROPERTIES[property]?.invoke(invoice)
         }
+    }
+
+    /**
+     * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): orders the
+     * materialized id list once per (session, filter), so a page is a slice of an already sorted list.
+     *
+     * The customer and the project sort by a `displayName` no [RechnungInfo] holds, so - unlike the order
+     * book, which sorts its ids from [AuftragsCache] alone - this loads the matching invoices and reuses
+     * [filterList]'s comparator over them, which makes the paged order byte-for-byte the non-paged one. The
+     * load is cached by [getListPage] (once per filter, not once per page) and happens only when a computed
+     * column is sorted on - a database column is ordered by the query itself and the ids come pre-sorted.
+     */
+    override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
+        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
+        if (computed.isEmpty()) {
+            return ids
+        }
+        val sorted = filterList(getListByIds(ids.toList()).toMutableList(), filter)
+        return sorted.mapNotNull { it.id }.toLongArray()
+    }
+
+    /**
+     * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not
+     * over the single page [postProcessResultSet] sees, so the footer shows the sums of every matching
+     * invoice (see `MIGRATION-list-paging.md`). [RechnungsStatistik] converts foreign currencies from the
+     * loaded [RechnungDO], which no cache holds, so the matching invoices are loaded here - the same work
+     * [postProcessResultSet] does over its (complete) result set on the non-paged `POST list`.
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+        return buildStatistics(getListByIds(ids.toList()), filter)
     }
 
     /**

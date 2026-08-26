@@ -536,6 +536,17 @@ export interface PageDef<
   route: string;
   /** React Query key of the list, e.g. `["cost1"]`. */
   queryKey: readonly unknown[];
+  /**
+   * Fetch the list one server-side page at a time instead of shipping the whole result set and paging
+   * it in the browser (the default). Off unless a page opts in — the generic paging stack is
+   * unreachable without it, which keeps unmigrated and legacy list paths untouched.
+   *
+   * A page may only turn this on once nothing filters or aggregates *after* the query pipeline (those
+   * would see one page, not the whole result). The order book is the reference: its four filters are
+   * `CustomResultFilter`s and its statistics come from the aggregate hook. When a column-header funnel
+   * is set the page falls back to fetching the whole result set, so that funnel keeps working.
+   */
+  serverPaging?: boolean;
   /** The menu parent above the title, e.g. `menu.fibu`. */
   categoryKey: string;
   titleKey: string;

@@ -343,6 +343,24 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
+     * Like [select], but returns only the ordered ids of the matching objects (see [DBQuery.selectIds]).
+     * Used by server-side paging to materialize the id list without loading, mapping or serializing entities.
+     * No `afterLoad` is fired here — nothing is loaded.
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun selectIds(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    ): DBQuery.DBIdResult {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        return dbQuery.selectIds(this, filter, customResultFilters, checkAccess)
+    }
+
+    /**
      * idSet.contains(entry.getId()) at default.
      */
     open fun contains(idSet: Set<Long>?, entry: O): Boolean {

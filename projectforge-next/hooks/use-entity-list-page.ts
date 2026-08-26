@@ -77,6 +77,12 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    * built filter is part of the query key, so a change here refetches on its own.
    */
   buildFilter?: (base: MagicFilter) => MagicFilter;
+  /**
+   * Fetch the list one server-side page at a time (see `PageDef.serverPaging`). When a column-header
+   * filter is set the page falls back to fetching the whole result set, so that funnel still narrows
+   * the *whole* list rather than the loaded page (see useMagicFilterQuery.columnFilterActive).
+   */
+  serverPaging?: boolean;
 }
 
 /**
@@ -100,6 +106,7 @@ export function useEntityListPage<Row extends ListRow>({
   massUpdateEndpoint,
   lockedColumnIds,
   buildFilter,
+  serverPaging = false,
 }: UseEntityListPageOptions<Row>) {
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
@@ -115,9 +122,17 @@ export function useEntityListPage<Row extends ListRow>({
     initialVisibility: defaultVisibility,
   });
 
+  // The funnel filters on the client, so once one is set the page has to hold the whole result set for
+  // it to narrow — server-side paging falls back to fetching everything (see useMagicFilterQuery). Both
+  // the query (which fetch) and the table (whether TanStack pages) read this, so they stay in step.
+  const columnFilterActive = columnState.columnFilters.length > 0;
+  const pagedFromServer = serverPaging && !columnFilterActive;
+
   const query = useMagicFilterQuery<Row>({
     entity,
     queryKey,
+    serverPaging,
+    columnFilterActive,
     // Stored per entity along with the column state, so the size the user picked survives a reload.
     initialPageSize: storedState.paginationPageSize ?? DEFAULT_PAGE_SIZE,
     // The page the list was left on, so opening an entry and coming back does not start over at the
@@ -198,9 +213,12 @@ export function useEntityListPage<Row extends ListRow>({
     enableRowSelection: selectionMode.active,
     enableColumnFilters: true,
     enableColumnResizing: true,
-    // Sorting and the search string go to Spring; the column filters and paging work on the client,
-    // because getList returns the whole result set at once.
+    // Sorting and the search string always go to Spring. Paging is the server's only while a page opts
+    // into it and no funnel is set: then `data` is the 50-row page and TanStack must not page it again.
+    // With a funnel set (or an unmigrated page) the client holds the whole result set and pages it, the
+    // way it always did. The two switch together with the fetch mode above so they can never disagree.
     manualSorting: true,
+    manualPagination: pagedFromServer,
     getRowId: (row: Row) => String(row.id),
   });
   useEffect(() => {
