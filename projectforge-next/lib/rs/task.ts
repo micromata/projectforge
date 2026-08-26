@@ -189,9 +189,9 @@ export interface TaskTreeParams extends Partial<TaskTreeFilter> {
   close?: number;
   /**
    * The task to bring into view. On the initial call the backend opens its ancestors so the row is on
-   * screen in the full tree (the tree page marks it client-side, Wicket's `PARAMETER_HIGHLIGHTED_ROW`).
-   * With `select`, it *additionally* narrows the answer to this node, its descendants and (for a leaf)
-   * its siblings — how the select field shows the neighbourhood of the current value.
+   * screen in the *full* tree; the client marks and scrolls to it (see TaskTreeTable's `highlightRowId`,
+   * Wicket's `PARAMETER_HIGHLIGHTED_ROW`). The select field passes the current value here, so its popover
+   * opens on the whole tree expanded to that task rather than on a narrowed neighbourhood of it.
    */
   highlightedTaskId?: number;
   /** Prepend the root node, for admins and financial staff. */

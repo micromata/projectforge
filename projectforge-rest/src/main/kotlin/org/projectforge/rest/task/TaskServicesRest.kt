@@ -391,7 +391,6 @@ class TaskServicesRest {
         val user: PFUserDO,
         val taskFilter: TaskFilter,
         val openedNodes: MutableSet<Long>,
-        var highlightedTaskNode: TaskNode? = null,
         /** Whether the answer carries each node's orders, i. e. whether the user may see them at all. */
         val withOrders: Boolean = false,
     )
@@ -589,13 +588,6 @@ class TaskServicesRest {
             withOrders = !selectMode && taskTree.hasOrderPositionsEntries() &&
                     accessChecker.isLoggedInUserMemberOfGroup(*TaskColumnVisibility.ORDER_GROUPS),
         )
-        if (selectMode && highlightedTaskId != null) {
-            // Narrowing the answer to the highlighted node's neighbourhood is the select popover's view.
-            // The tree page also passes a highlightedTaskId after a save, but there it only wants the
-            // ancestors opened (below) and the row marked client-side (Wicket's PARAMETER_HIGHLIGHTED_ROW),
-            // not the rest of the tree hidden.
-            ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
-        }
         openTask(ctx, open)
         closeTask(ctx, close)
         if (initial == true) {
@@ -776,46 +768,14 @@ class TaskServicesRest {
                     addKost2List(child, includeKost2ObjectList = false, recursive = false)
                     child.consumption = Consumption.create(node)
                     if (indent != null) {
-                        var hidden = false
-                        val highlightedTaskNode = ctx.highlightedTaskNode
-                        if (highlightedTaskNode != null) {
-                            // Show only ancestor, the highlighted node itself and descendants. siblings only for leafs.
-                            // Following if-else cascade should be written much shorter, but less understandable!
-                            if (highlightedTaskNode.isRootNode) {
-                                // Show all nodes, because they are descendants of the root node.
-                            } else if (highlightedTaskNode.ancestorIds.contains(node.id)) {
-                                log.debug("Current node ${node.task.title} is ancestor of highlighted node: ${!hidden}")
-                                // Don't show ancestor nodes:
-                                hidden = true
-                                // But proceed with child nodes:
-                                buildTree(
-                                    ctx,
-                                    child,
-                                    node,
-                                    indent
-                                ) // Build as table (all children are direct children of root node.
-                            } else if (!highlightedTaskNode.hasChildren()) {
-                                // Node is a leaf node, so show also all siblings:
-                                hidden = !node.ancestorIds.contains(highlightedTaskNode.parent.id)
-                                log.debug("Current node ${node.task.title} is sibling of highlighted node: ${!hidden}")
-                            } else {
-                                hidden =
-                                    !(highlightedTaskNode.taskId == node.taskId ||      // highlighted node == current?
-                                            node.ancestorIds.contains(highlightedTaskNode.id)) // node is descendant of highlighted?
-                                log.debug("Current node ${node.task.title} is descendant of highlighted node: ${!hidden}")
-                            }
-                        }
-                        if (!hidden) {
-                            ctx.result.nodes.add(child) // All children are added to root task (table view!)
-                            child.indent = indent
-                            completeVisible(ctx, child)
-                            buildTree(
-                                ctx,
-                                child,
-                                node,
-                                indent + 1
-                            ) // Build as table (all children are direct children of root node.
-                        }
+                        // Flat (table) view: every visible node is a row of its own, carrying its depth as
+                        // `indent`. The whole tree is returned down to the opened nodes — the select popover
+                        // opens the current task's ancestors (see `openTask` on the initial call) and marks
+                        // the row client-side, rather than hiding the rest of the tree around it.
+                        ctx.result.nodes.add(child)
+                        child.indent = indent
+                        completeVisible(ctx, child)
+                        buildTree(ctx, child, node, indent + 1)
                     } else {
                         // TaskNode has children and is opened:
                         if (task.children == null)
@@ -834,8 +794,8 @@ class TaskServicesRest {
     /**
      * What only a node the user actually gets to see is worth doing: its orders.
      *
-     * Called for a node that made it into the answer, not for every one built — [buildTree] also builds
-     * ancestors of a highlighted node just to walk their children, and those never reach the client.
+     * Called for a node that made it into the answer, so the cost of resolving its orders is only paid
+     * for rows the client is actually sent.
      */
     private fun completeVisible(ctx: BuildContext, task: Task) {
         if (ctx.withOrders) {

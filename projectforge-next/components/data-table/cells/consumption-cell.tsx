@@ -44,28 +44,32 @@ export function ConsumptionCell({
   const label = title
     ? `${t("task.consumption")}: ${title}`
     : t("task.consumption");
+  // The tooltip is anchored to this element's rect (see useOverflowTooltip), so it must be the bar
+  // itself and not a wrapper: the track is a `display:block` box of the bar's own width, while an inline
+  // wrapper around a block child reports a rect as wide as the whole row and the tooltip drifts off it.
   const bar = (
     <span
       className={cn(
         "consumption-track",
         STATUS_CLASS[status ?? ""] ?? "consumption-none"
       )}
+      data-tooltip={title}
     >
       <span className="consumption-bar" style={{ width: `${percentage}%` }} />
     </span>
   );
 
-  // Shown by the table's one delegated tooltip, see useOverflowTooltip. On the wrapper rather than on
-  // the link, as in OrdersCell: the tooltip is found by `closest` and MenuLink renders the anchor.
+  // Shown by the table's one delegated tooltip, see useOverflowTooltip. `block` wrappers so the bar keeps
+  // its own box; the tooltip is found by `closest` from the `data-tooltip` on the bar above.
   if (!linkEnabled || id == null) {
     return (
-      <span role="img" aria-label={label} data-tooltip={title}>
+      <span role="img" aria-label={label} className="block">
         {bar}
       </span>
     );
   }
   return (
-    <span className="block" data-tooltip={title}>
+    <span className="block">
       <MenuLink
         // The time sheets of this task, on Wicket's list and with its own three parameters
         // (ConsumptionBarPanel): the task, and a filter that is cleared for it and not remembered

@@ -100,11 +100,11 @@ interface UseHighlightedRowOptions<TData> {
 /**
  * Brings the row the user edited last into view, once.
  *
- * Two steps, because paging happens on the client over the whole result set: the row is usually not on
- * the page the list opens on — not even where that page is the one the list was left on (see
- * recallPageIndex), since the entry may have been created or renamed into a different place. So the
- * table is paged to it first, and the scroll happens on the pass after that — the row has to exist in
- * the document before it can be measured.
+ * A row already in the document — every row of an unpaged view like the task tree, or the current page
+ * of a paged one — is scrolled to straight away. Otherwise it is on another page of a client-paged list
+ * (the entry may have been created or renamed into a different place than the one the list was left on,
+ * see recallPageIndex), so the table is paged to it first and the scroll happens on the pass after that:
+ * the row has to exist in the document before it can be measured.
  *
  * Marking the row is not this hook's job; DataTable adds the class (see `row-highlighted` in
  * globals.css), which is why the highlight stays for as long as the backend reports the id while
@@ -132,40 +132,40 @@ export function useHighlightedRow<TData>({
     const key = scope ? `${scope}:${highlightRowId}` : undefined;
     if (key ? scrolledTo.has(key) : done.current === highlightRowId) return;
 
-    // Sorted, not paged: the index within the whole result set is what names the page. With
-    // `manualSorting` this is the order the server sent, which is the same thing.
-    const index = table
-      .getSortedRowModel()
-      .rows.findIndex((row) => row.id === String(highlightRowId));
-    // Not in the list at all — a column filter may hide it, or it was deleted for good. Deliberately
-    // not remembered as done: should the filter go, the row is still worth showing.
-    if (index < 0) return;
-
-    const { pageIndex, pageSize } = table.getState().pagination;
-    const targetPage = Math.floor(index / pageSize);
-    if (targetPage !== pageIndex) {
-      table.setPageIndex(targetPage);
-      // The rows of that page render first; this effect runs again on them and scrolls.
-      return;
-    }
-
     const container = containerRef.current;
     const row = container?.querySelector<HTMLElement>(
       `[data-row-id="${CSS.escape(String(highlightRowId))}"]`
     );
-    if (!container || !row) return;
+    // Already in the document — an unpaged view (the task tree renders the whole structure at once) or
+    // the right page of a paged one. Scroll to it and remember it as done. Measured through the rects
+    // rather than `offsetTop`, as useScrollSpy does: that one counts from the nearest positioned
+    // ancestor, which need not be the scroll container.
+    if (container && row) {
+      const top =
+        row.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop -
+        STICKY_HEADER_HEIGHT -
+        SCROLL_MARGIN;
+      container.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      if (key) scrolledTo.add(key);
+      else done.current = highlightRowId;
+      return;
+    }
 
-    // Measured through the rects rather than `offsetTop`, as useScrollSpy does: that one counts from
-    // the nearest positioned ancestor, which need not be the scroll container.
-    const top =
-      row.getBoundingClientRect().top -
-      container.getBoundingClientRect().top +
-      container.scrollTop -
-      STICKY_HEADER_HEIGHT -
-      SCROLL_MARGIN;
-    container.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    if (key) scrolledTo.add(key);
-    else done.current = highlightRowId;
+    // Not rendered, so it is on another page of a client-paged list. Find the page it falls on over the
+    // whole result set and turn to it; this effect runs again on those rows and scrolls (above). Sorted,
+    // not paged: the index within the whole set is what names the page. With `manualSorting` this is the
+    // order the server sent, which is the same thing.
+    const index = table
+      .getSortedRowModel()
+      .rows.findIndex((r) => r.id === String(highlightRowId));
+    // Not in the list at all — a column filter may hide it, or it was deleted for good. Deliberately
+    // not remembered as done: should the filter go, the row is still worth showing.
+    if (index < 0) return;
+    const { pageIndex, pageSize } = table.getState().pagination;
+    const targetPage = Math.floor(index / pageSize);
+    if (targetPage !== pageIndex) table.setPageIndex(targetPage);
   }, [table, highlightRowId, containerRef, ready, scope, rows]);
 
   // Read during render, so it says what this pass knows — the effect marks the row as done without a

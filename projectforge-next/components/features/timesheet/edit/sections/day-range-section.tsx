@@ -9,6 +9,7 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import { TimeInput } from "@/components/shared/time-input";
 import { useFormatContext } from "@/hooks/use-format";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { zonedIsoOf, zonedPartsOf } from "@/lib/user-zone";
 import { cn } from "@/lib/utils";
 import type { FieldMetaState } from "@/components/shared/form/field-shell";
@@ -68,7 +69,8 @@ export function DayRangeSection({ className }: { className?: string }) {
     >
       <EntityAutocompleteField
         name="user"
-        label={t("user")}
+        // "user" is both a text and a namespace in the bundle, so resolve to its exported leaf (see leafKeyOf).
+        label={t(leafKeyOf("user", t.has))}
         entity="user"
         // A bounded width, not flex-1: a name needs about this much and letting it grow into the row's
         // leftover space made it far wider than it reads.

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -157,7 +158,12 @@ function OverflowTooltip({
 }) {
   if (!target) return null;
   const { rect, text } = target;
-  return (
+  // Portalled to the body, not left where the table renders it: the anchor placeholder is positioned
+  // `fixed` in viewport coordinates, but `position: fixed` is relative to any transformed ancestor
+  // (the centred DialogContent uses a `translate`), so inside a dialog the placeholder — and with it
+  // the tooltip — would be shifted by the dialog's offset. The body has no such ancestor. `createPortal`
+  // keeps the React context, so the Radix tooltip provider still applies.
+  return createPortal(
     // Remounted per target: Radix tracks the anchor element, and this one only
     // ever changes its position, which no observer would report.
     <Tooltip
@@ -186,6 +192,7 @@ function OverflowTooltip({
       >
         {text}
       </TooltipContent>
-    </Tooltip>
+    </Tooltip>,
+    document.body
   );
 }

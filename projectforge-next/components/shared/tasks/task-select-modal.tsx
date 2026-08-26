@@ -36,7 +36,12 @@ export function TaskSelectModal({
         <DialogHeader>
           <DialogTitle>{t("task.tree.title.select")}</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[65vh] overflow-auto rounded-md border p-2">
+        {/* A bounded flex column, not a scrolling block: the panel is built to scroll *inside* its own
+            table (flex-1 + min-h-0, like the list page's `flex flex-1 overflow-hidden` host), and that
+            inner scroller is the one the highlight jumps to (see useHighlightedRow). A wrapper that
+            scrolled itself would leave the table's scroller idle, so the current task never came into
+            view. */}
+        <div className="flex max-h-[65vh] flex-col overflow-hidden rounded-md border p-2">
           <TaskTreePanel
             highlightTaskId={value}
             onSelect={handleSelect}
