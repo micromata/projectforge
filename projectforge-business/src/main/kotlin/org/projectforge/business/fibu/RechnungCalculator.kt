@@ -45,8 +45,14 @@ object RechnungCalculator {
      * @param rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
      * @return The calculated values.
      */
+    /**
+     * @param checkRefresh If false, [AuftragsCache] is read without triggering a refresh. Pass false when
+     * calculating from inside a running insert/update transaction (see [RechnungCache.update]) to avoid a
+     * self-deadlock: a refresh would run a JDBC SELECT on the invoice-position table the still-open transaction
+     * has write-locked.
+     */
     @JvmOverloads
-    fun calculate(rechnung: AbstractRechnungDO, useCaches: Boolean = true): RechnungInfo {
+    fun calculate(rechnung: AbstractRechnungDO, useCaches: Boolean = true, checkRefresh: Boolean = true): RechnungInfo {
         val info = RechnungInfo(rechnung)
         if (rechnung.deleted) {
             return info
@@ -70,7 +76,7 @@ object RechnungCalculator {
             if (posInfo == null) {
                 posInfo = RechnungPosInfo(info, pos as AbstractRechnungsPositionDO)
             }
-            calculate(posInfo, pos as AbstractRechnungsPositionDO)
+            calculate(posInfo, pos as AbstractRechnungsPositionDO, checkRefresh)
             posInfoList.add(posInfo)
         }
         info.positions = posInfoList
@@ -108,7 +114,11 @@ object RechnungCalculator {
     /**
      * Calculations for invoice positions.
      */
-    internal fun calculate(posInfo: RechnungPosInfo, position: AbstractRechnungsPositionDO): RechnungPosInfo {
+    internal fun calculate(
+        posInfo: RechnungPosInfo,
+        position: AbstractRechnungsPositionDO,
+        checkRefresh: Boolean = true,
+    ): RechnungPosInfo {
         position.info = posInfo
         if (position is RechnungsPositionDO) {
             // The id of the assigned order position is taken from the position itself, not from AuftragsCache:
@@ -121,7 +131,7 @@ object RechnungCalculator {
             // The order behind the position is the cache's answer and is only known once it has been read.
             // Whoever needs it later resolves it from auftragsPositionId, when the cache is filled (see
             // ForecastExportInvoices).
-            auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id)?.let { orderPosInfo ->
+            auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id, checkRefresh)?.let { orderPosInfo ->
                 posInfo.auftragsId = orderPosInfo.auftragId
                 posInfo.auftragsPositionNummer = orderPosInfo.number
             }

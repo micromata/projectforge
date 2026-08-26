@@ -151,12 +151,11 @@ class RechnungDaoOrderBookAccessTest : AbstractTestBase() {
      * order (null for none). Must be inserted immediately after building it, so its number stays the next
      * free one.
      *
-     * The [AuftragsCache] is force-reloaded first, on purpose: inserting the order (and every previous
-     * linked invoice) marks it expired, and [RechnungDao.afterInsertOrModify] recalculates the invoice via
-     * [AuftragsCache.getOrderPositionInfo] *inside* this insert's transaction. A stale cache would refresh
-     * itself there, running a SELECT on the invoice-position table that the still-open insert has locked -
-     * a self-deadlock. Refreshing here (outside the transaction, nothing locked) keeps it warm so the
-     * in-transaction recalculation only reads the cache.
+     * Note: inserting the order (and every previous linked invoice) marks [AuftragsCache] expired, and
+     * [RechnungDao.afterInsertOrModify] recalculates the invoice via [AuftragsCache.getOrderPositionInfo]
+     * *inside* this insert's transaction. That read no longer refreshes the cache (RechnungCache.update
+     * passes checkRefresh = false), so it can't run a SELECT on the invoice-position table the still-open
+     * insert has locked - what used to be a self-deadlock.
      */
     private fun insertInvoice(
         projekt: ProjektDO,
@@ -164,7 +163,6 @@ class RechnungDaoOrderBookAccessTest : AbstractTestBase() {
         orderPos: AuftragsPositionDO?,
         text: String,
     ): Serializable {
-        auftragsCache.forceReload()
         val rechnung = RechnungDO().also {
             val position = RechnungsPositionDO()
             position.auftragsPosition = orderPos
