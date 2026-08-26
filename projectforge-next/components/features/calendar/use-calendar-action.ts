@@ -2,15 +2,12 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import type { EventClickArg } from "@fullcalendar/core";
 import { toast } from "@/lib/toast";
 import { resolveMenuUrl, sanitizeRedirectUrl } from "@/lib/menu-url";
 import { fetchCalendarAction } from "@/lib/rs/calendar";
 import type { CalendarActionParams } from "@/lib/rs/calendar-types";
-import { useEntityEditModalStore } from "@/store/entity-edit-modal-store";
 import { parseCalendarEditTarget } from "./calendar-edit-target";
-import { CALENDAR_EVENTS_KEY } from "./use-calendar-init";
 import { toTeamEventRoute } from "./team-event-route";
 import { toTimesheetRoute } from "./timesheet-route";
 
@@ -73,8 +70,6 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
  */
 export function useCalendarAction() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const openEntityEdit = useEntityEditModalStore((s) => s.openEntityEdit);
 
   const navigate = useCallback(
     (url: string | undefined | null) => {
@@ -87,10 +82,10 @@ export function useCalendarAction() {
     [router]
   );
 
-  // A timesheet or a team event opens in the modal, everything else navigates. The modal's save and
-  // its dismissal both refetch the events: `invalidateEntity` refreshes the entity's own caches but
-  // not the calendar's (`["calendar","events"]`), so a sheet edited in place would otherwise stay as
-  // it was drawn until the next reload.
+  // A timesheet or a team event edits in place, everything else navigates. The in-place edit is a
+  // nested route of the calendar (`/calendar/timesheet/5`, see calendar/[...edit]): the url is already
+  // this app's own `/timesheet/…` shape, and the `/calendar` prefix turns it into that route, so it
+  // opens over the still-mounted calendar and a reload or a shared link reopens it.
   const openTarget = useCallback(
     (url: string | undefined | null) => {
       if (!url) return;
@@ -99,11 +94,9 @@ export function useCalendarAction() {
         navigate(url);
         return;
       }
-      const refetch = () =>
-        void queryClient.invalidateQueries({ queryKey: CALENDAR_EVENTS_KEY });
-      openEntityEdit({ ...target, onSaved: refetch, onClose: refetch });
+      router.push(`/calendar${url}`);
     },
-    [navigate, openEntityEdit, queryClient]
+    [navigate, router]
   );
 
   const handleEventClick = useCallback(

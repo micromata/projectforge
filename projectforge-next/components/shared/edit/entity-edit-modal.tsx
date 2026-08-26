@@ -32,6 +32,8 @@ export interface EntityEditModalProps<
   newParams?: NewEntryParams;
   /** Values written over the preset — the wizard's "create group with this name". */
   prefill?: Partial<Values>;
+  /** Tab beside the form to open on mount — the `?tab=` of a url that opened this modal. */
+  initialTab?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** The entry was saved — `id` as the backend assigned it, `values` as they were saved. */
@@ -59,6 +61,7 @@ export function EntityEditModal<
   id,
   newParams,
   prefill,
+  initialTab,
   open,
   onOpenChange,
   onSaved,
@@ -152,7 +155,10 @@ export function EntityEditModal<
             )}
             onUnavailable={handleUnavailable}
             renderShell={(regions) => (
-              <EntityEditDialogShell regions={regions} />
+              <EntityEditDialogShell
+                regions={regions}
+                initialTab={initialTab}
+              />
             )}
           />
         )}

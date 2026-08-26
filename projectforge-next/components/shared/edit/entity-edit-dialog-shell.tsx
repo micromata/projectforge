@@ -9,14 +9,26 @@ import type { EditRegions } from "./entity-edit-body";
 /**
  * The modal counterpart of [EditPageShell]: the same tab strip, scrolled section column and sticky
  * action bar, but with the open side-tab held in local state instead of the URL — a modal has no
- * shareable link, and a route change would unmount the form (see EditPageShell). Rendered inside a
- * [DialogContent] by [EntityEditModal]; the regions are computed once by [EntityEditBody].
+ * shareable link of its own, and a route change would unmount the form (see EditPageShell). Rendered
+ * inside a [DialogContent] by [EntityEditModal]; the regions are computed once by [EntityEditBody].
+ *
+ * `initialTab` seeds that state once: a modal opened *by* a url (the calendar's `/calendar/timesheet/5
+ * ?tab=history`, see calendar/[...edit]) starts on the named tab, ignored unless the entity actually
+ * has it — the form is the fallback.
  */
-export function EntityEditDialogShell({ regions }: { regions: EditRegions }) {
+export function EntityEditDialogShell({
+  regions,
+  initialTab,
+}: {
+  regions: EditRegions;
+  initialTab?: string;
+}) {
   const { scrollProps, sectionRef, activeIndex, scrollToSection } =
     useScrollSpy(regions.sections.length);
   // Which tab beside the form is open, null while the form is. Local state, not `?tab=`.
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>(
+    initialTab && regions.tabPanels[initialTab] ? initialTab : null
+  );
   // A section tab clicked while a side tab is open first closes that tab, then scrolls once the form
   // is on screen again — a hidden column has no layout to scroll (same dance as EditPageShell).
   const pendingSection = useRef<number | null>(null);
