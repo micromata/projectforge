@@ -109,7 +109,7 @@ export function SelectField({
             className={className}
             ids={ids}
           >
-            <div className="flex items-center gap-1">
+            <div className="flex min-w-0 items-center gap-1">
               <Select
                 value={raw}
                 disabled={disabled}
@@ -138,7 +138,9 @@ export function SelectField({
                   id={ids.controlId}
                   aria-labelledby={ids.labelId}
                   className={cn(
-                    "flex-1",
+                    // min-w-0 lets the trigger shrink to its column so the value's line-clamp can
+                    // truncate a long label instead of overflowing (see Kost2 on a time sheet).
+                    "min-w-0 flex-1",
                     emphasized &&
                       "h-9 border-primary/40 bg-primary/5 text-sm font-semibold text-primary data-[size=default]:h-9"
                   )}

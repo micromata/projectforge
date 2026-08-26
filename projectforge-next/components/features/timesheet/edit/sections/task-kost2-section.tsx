@@ -58,7 +58,7 @@ export function TaskKost2Section({ className }: { className?: string }) {
     >
       <TaskSelectField
         name="task"
-        label={t("task")}
+        label={t("task._")}
         className="md:col-span-2"
         // The cost unit belongs to the task it was chosen under — see above. Dropped even when the new
         // task allows the same one: it is then re-picked from *its* list, and the select shows it as
