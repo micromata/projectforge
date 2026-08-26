@@ -6,7 +6,7 @@ import { Menu01Icon } from "@hugeicons/core-free-icons";
 import { balanceMenuColumns } from "@/lib/menu-columns";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import type { MenuItem } from "@/lib/rs/types";
+import type { MenuBadge, MenuItem } from "@/lib/rs/types";
 import { buttonVariants } from "@/components/ui/button";
 import {
   MenubarContent,
@@ -39,8 +39,20 @@ function useMenuLayout() {
   return LAYOUTS.base;
 }
 
-/** The full menu tree, grouped into balanced columns. Belongs inside the nav's `Menubar`. */
-export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
+/**
+ * The full menu tree, grouped into balanced columns. Belongs inside the nav's `Menubar`.
+ *
+ * `badge` is the total the backend accumulates across every category (Menu.postProcess): open items
+ * are otherwise buried behind a closed panel, so the trigger carries the sum, mirroring the legacy
+ * apps' main-menu toggle.
+ */
+export function MainMenuDropdown({
+  categories,
+  badge,
+}: {
+  categories: MenuItem[];
+  badge?: MenuBadge;
+}) {
   const t = useTranslations("menu");
   const { columns, widthClass } = useMenuLayout();
   const balanced = balanceMenuColumns(categories, columns);
@@ -58,6 +70,7 @@ export function MainMenuDropdown({ categories }: { categories: MenuItem[] }) {
       >
         <HugeiconsIcon icon={Menu01Icon} size={16} />
         <span className="hidden sm:inline">{t("main.title")}</span>
+        <MenuCounterBadge badge={badge} />
       </MenubarTrigger>
       <MenubarContent
         align="start"

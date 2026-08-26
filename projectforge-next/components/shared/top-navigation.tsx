@@ -31,7 +31,10 @@ export function TopNavigation() {
       className="h-12 gap-2 rounded-none border-x-0 border-t-0 bg-background px-4"
     >
       <nav>
-        <MainMenuDropdown categories={menu?.mainMenu?.menuItems ?? []} />
+        <MainMenuDropdown
+          categories={menu?.mainMenu?.menuItems ?? []}
+          badge={menu?.mainMenu?.badge}
+        />
         <QuickAccessSearch />
         <FavoritesBar items={menu?.favoritesMenu?.menuItems ?? []} />
         {/* ml-auto keeps the user menu right-aligned even when there are no favourites at all. */}
