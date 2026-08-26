@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type { TimesheetDetail } from "../../types";
 
 export interface RecentTimesheetsPopoverProps {
@@ -53,8 +54,44 @@ export function RecentTimesheetsPopover({
     return entries.filter((entry) => searchText(entry).includes(needle));
   }, [entries, query]);
 
+  // The columns, in reading order — description before the tag, and kost2 only where the installation
+  // books on cost units. `width` is a share of the fixed-layout table, so every cell truncates to its
+  // column and the table never grows past the popover (no horizontal scroll, whatever the values are).
+  const columns: RecentColumn[] = [
+    cost2Visible && {
+      head: t("fibu.kost2._"),
+      width: "w-[15%]",
+      cell: (e: TimesheetDetail) => e.kost2?.displayName ?? "",
+    },
+    { head: t("task._"), width: "w-[23%]", cell: taskName },
+    {
+      head: t("timesheet.location"),
+      width: "w-[14%]",
+      cell: (e: TimesheetDetail) => e.location ?? "",
+    },
+    {
+      head: t("description"),
+      width: "w-[24%]",
+      cell: (e: TimesheetDetail) => e.description ?? "",
+    },
+    {
+      head: t("timesheet.tag"),
+      width: "w-[10%]",
+      cell: (e: TimesheetDetail) => e.tag ?? "",
+    },
+    {
+      head: t("timesheet.reference"),
+      width: "w-[14%]",
+      cell: (e: TimesheetDetail) => e.reference ?? "",
+    },
+  ].filter(Boolean) as RecentColumn[];
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // `modal`, because this popover is opened from inside the edit dialog: a non-modal layer stays
+    // outside the dialog's scroll lock (react-remove-scroll), so the wheel never reaches the table
+    // below. A modal layer wraps its own content as the active scroll region — the same reason a
+    // Select scrolls inside a dialog and a plain popover does not.
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -89,22 +126,26 @@ export function RecentTimesheetsPopover({
           />
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
-          <Table>
+          {/* `table-fixed` and the smaller type let all columns show at once; each cell truncates to
+              its share above, so a long structure element or reference no longer widens the table. */}
+          <Table className="table-fixed text-[11px]">
             <TableHeader>
               <TableRow>
-                {cost2Visible && <TableHead>{t("fibu.kost2._")}</TableHead>}
-                <TableHead>{t("task._")}</TableHead>
-                <TableHead>{t("timesheet.location")}</TableHead>
-                <TableHead>{t("timesheet.tag")}</TableHead>
-                <TableHead>{t("timesheet.reference")}</TableHead>
-                <TableHead>{t("description")}</TableHead>
+                {columns.map((col) => (
+                  <TableHead
+                    key={col.head}
+                    className={cn(col.width, "h-8 px-2 py-1")}
+                  >
+                    {col.head}
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={cost2Visible ? 6 : 5}
+                    colSpan={columns.length}
                     className="py-6 text-center text-muted-foreground"
                   >
                     {t("nothingFound")}
@@ -115,7 +156,7 @@ export function RecentTimesheetsPopover({
                   <RecentRow
                     key={entry.counter ?? searchText(entry)}
                     entry={entry}
-                    cost2Visible={cost2Visible}
+                    columns={columns}
                     onSelect={() => {
                       onSelect(entry);
                       setOpen(false);
@@ -131,14 +172,21 @@ export function RecentTimesheetsPopover({
   );
 }
 
-/** One recent entry as a clickable row — its columns match the header, gated on `cost2Visible`. */
+/** One column of the recent table: its heading, its share of the fixed width and the value it reads. */
+interface RecentColumn {
+  head: string;
+  width: string;
+  cell: (entry: TimesheetDetail) => string;
+}
+
+/** One recent entry as a clickable row — every cell truncates to its column, full text on hover. */
 function RecentRow({
   entry,
-  cost2Visible,
+  columns,
   onSelect,
 }: {
   entry: TimesheetDetail;
-  cost2Visible: boolean;
+  columns: RecentColumn[];
   onSelect: () => void;
 }) {
   return (
@@ -154,16 +202,25 @@ function RecentRow({
       }}
       className="cursor-pointer"
     >
-      {cost2Visible && <TableCell>{entry.kost2?.displayName ?? ""}</TableCell>}
-      <TableCell>{entry.task?.displayName ?? ""}</TableCell>
-      <TableCell>{entry.location ?? ""}</TableCell>
-      <TableCell>{entry.tag ?? ""}</TableCell>
-      <TableCell>{entry.reference ?? ""}</TableCell>
-      <TableCell className="max-w-64 truncate">
-        {entry.description ?? ""}
-      </TableCell>
+      {columns.map((col) => {
+        const value = col.cell(entry);
+        return (
+          <TableCell
+            key={col.head}
+            className="truncate px-2 py-1"
+            title={value || undefined}
+          >
+            {value}
+          </TableCell>
+        );
+      })}
     </TableRow>
   );
+}
+
+/** The structure element's name without its trailing task id — "Neukundenakquise (#25207467)" → "Neukundenakquise". */
+function taskName(entry: TimesheetDetail): string {
+  return (entry.task?.displayName ?? "").replace(/\s*\(#\d+\)\s*$/, "");
 }
 
 /** The one lower-cased string a row is matched against — every field it shows (see filterRecent, legacy). */

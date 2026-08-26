@@ -10,7 +10,6 @@
 
 import { request } from "./client";
 import { fetchAutoCompletion } from "./dynamic";
-import { postEntityAction, type EntityWriteResult } from "./entity";
 import type { TimesheetDetail } from "@/components/features/timesheet/types";
 
 const ENTITY = "timesheet";
@@ -43,20 +42,31 @@ export function fetchRecentTimesheets(
   );
 }
 
+/** What `selectRecent` answers: the merged sheet in the UPDATE action's `data` variable. */
+interface SelectRecentResult {
+  variables?: { data?: TimesheetDetail };
+}
+
 /**
  * Applies a recent entry (or a template) to the sheet being edited: the backend answers with the
  * merged sheet and the full task behind it, which is more than the entry carries — the task's path,
  * its cost units and its consumption (`TaskServicesRest.createTask`).
  *
- * A write in shape only. It stores nothing; posting the current form values is how the backend knows
- * what to merge the entry *into* (`TimesheetPagesRest.selectRecent`), so it goes through the same
- * action helper the other non-save writes use.
+ * A write in shape only: it stores nothing, but posting the sheet on screen is how the backend knows
+ * what to merge the entry *into*. Unlike the save endpoints, `TimesheetPagesRest.selectRecent` takes
+ * the sheet as a bare `@RequestBody` (no `{ data }` envelope) — the same raw shape the favorites
+ * endpoints accept — so it goes through `request`, not the enveloping entity-action helper.
  */
-export function selectRecentTimesheet(
+export async function selectRecentTimesheet(
   timesheet: TimesheetDetail,
   signal?: AbortSignal
-): Promise<EntityWriteResult> {
-  return postEntityAction(ENTITY, "selectRecent", timesheet, signal);
+): Promise<TimesheetDetail | null> {
+  const result = await request<SelectRecentResult>(
+    `/rs/${ENTITY}/selectRecent`,
+    { method: "POST", body: JSON.stringify(timesheet) },
+    signal
+  );
+  return result.variables?.data ?? null;
 }
 
 /**

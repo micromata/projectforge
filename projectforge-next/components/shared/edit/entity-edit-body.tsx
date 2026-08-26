@@ -352,7 +352,12 @@ export function EntityEditBody<
     <EntityEditFormProvider
       // `readOnly` for a deleted entry: the fieldset above blocks input, this is what the fields read
       // to look the part (a select keeps its clear button otherwise, see useFormReadOnly).
-      value={{ form, metadata: page.metadata, readOnly: access.deleted }}
+      value={{
+        form,
+        metadata: page.metadata,
+        readOnly: access.deleted,
+        data,
+      }}
     >
       <form
         ref={formRef}

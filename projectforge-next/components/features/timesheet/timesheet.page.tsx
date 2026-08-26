@@ -4,6 +4,7 @@ import { TaskKost2Section } from "./edit/sections/task-kost2-section";
 import { DayRangeSection } from "./edit/sections/day-range-section";
 import { LocationField } from "./edit/sections/location-field";
 import { ReferenceField } from "./edit/sections/reference-field";
+import { TagField } from "./edit/sections/tag-field";
 import { TemplatesRecentBar } from "./edit/sections/templates-recent-bar";
 import {
   timesheetEditSchema,
@@ -87,11 +88,12 @@ export const TIMESHEET_PAGE = definePage<
           // Task, its cost unit and the task's consumption in one block — the task decides the other two
           // (see TaskKost2Section). A full row, so its own three columns line up with the grid's.
           { custom: TaskKost2Section, span: 3 },
-          { name: "user", span: 3 },
-          // Start, stop and the duration between them, moved as one (see DayRangeSection).
+          // User, start, stop and the duration between them — who and when on one line (see
+          // DayRangeSection, which declares the user field for that reason).
           { custom: DayRangeSection, span: 3 },
           { custom: LocationField },
-          { name: "tag" },
+          // A select of the configured tags, rendered only where any are configured (see TagField).
+          { custom: TagField },
           { custom: ReferenceField },
           { name: "description", rows: 5, span: 3 },
         ],

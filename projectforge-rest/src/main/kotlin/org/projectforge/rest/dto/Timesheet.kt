@@ -56,4 +56,13 @@ class Timesheet(
      * UILayout in [org.projectforge.rest.TimesheetPagesRest.createEditLayout].
      */
     var timeSavingsByAIEnabled: Boolean = false
+
+    /**
+     * The tags to choose from (transient, server set), or null/empty where none is configured. Like
+     * [timeSavingsByAIEnabled], the hand-built edit page has no UILayout to read the `tag` select's
+     * values from, so it takes them from here — the counterpart of `createTagUISelect` returning null
+     * (and no field at all) when there is nothing to choose. Includes the sheet's own tag even after it
+     * was dropped from the configuration (see `TimesheetDao.getTags`).
+     */
+    var tags: List<String>? = null
 }

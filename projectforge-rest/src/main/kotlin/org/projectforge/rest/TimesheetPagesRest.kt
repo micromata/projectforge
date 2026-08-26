@@ -122,6 +122,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         caches.initialize(obj)
         timesheet.copyFrom(obj)
         timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        timesheet.tags = timesheetDao.getTags(timesheet.tag)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
     }
@@ -182,6 +183,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
         sheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        sheet.tags = timesheetDao.getTags(sheet.tag)
         // The hand-built page reaches this preset through newEntry, which — unlike the UILayout edit
         // endpoint — never runs onGetItemAndLayout. Apply the same start/stop preset here so a timesheet
         // created from the calendar is snapped, defaulted to firstHour and rolled to the day's last sheet

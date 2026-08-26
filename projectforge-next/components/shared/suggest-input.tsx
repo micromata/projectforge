@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -28,6 +28,12 @@ export interface SuggestInputProps {
    * with the previous context's hits.
    */
   queryKey: readonly unknown[];
+  /**
+   * Characters to type before the server is asked. Defaults to [SUGGEST_MIN_CHARS]; `0` asks straight
+   * away, so focusing the empty box already offers what the backend has seen — a time sheet's location,
+   * whose endpoint answers an empty search with all recent entries (see fetchLocationSuggestions).
+   */
+  minChars?: number;
   id?: string;
   invalid?: boolean;
   disabled?: boolean;
@@ -57,6 +63,7 @@ export function SuggestInput({
   onChange,
   suggest,
   queryKey,
+  minChars = SUGGEST_MIN_CHARS,
   id,
   invalid,
   disabled,
@@ -73,14 +80,23 @@ export function SuggestInput({
   const { data: completions = [] } = useQuery({
     queryKey: ["suggest", ...queryKey, value],
     queryFn: ({ signal }) => suggest(value, signal),
-    enabled: open && !disabled && value.length >= SUGGEST_MIN_CHARS,
+    enabled: open && !disabled && value.length >= minChars,
+    // While typing, keep the previous term's hits on screen until the next request answers. Without it
+    // every keystroke changes the key, the data falls back to empty, and the list — shown only while
+    // there are suggestions — empties and refills: a flicker. Not for the empty-field open though: there
+    // is no term yet, so keeping a prior term's (differently sized) hits would only make the box appear
+    // at one size and then jump to another. Empty open waits for its own answer and appears once.
+    placeholderData: value.length > 0 ? keepPreviousData : undefined,
   });
 
   // What the box already holds is no suggestion — offering it would be a click that changes nothing.
   const suggestions = completions.filter((entry) => entry !== value);
 
   return (
-    <Popover open={open && suggestions.length > 0} onOpenChange={setOpen}>
+    // `open` follows the focus state alone, never the async list: gating Radix's open on
+    // `suggestions.length` made it flip as the query loaded, replaying the open animation. The list is
+    // gated on the *content* instead — it mounts once when the hits arrive and updates in place after.
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
         <Input
           id={id}
@@ -99,29 +115,48 @@ export function SuggestInput({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={onBlur}
+          // A click when the box is already focused (so onFocus won't fire again) reopens the list —
+          // clicking the field is how a user asks to see the recent entries again after dismissing it.
+          onClick={() => setOpen(true)}
+          // Leaving the field closes the list (tabbing away, clicking elsewhere). Picking a suggestion
+          // does not blur the input — the buttons keep the focus with onMouseDown below — so the click
+          // still lands before this would tear the list down.
+          onBlur={() => {
+            setOpen(false);
+            onBlur?.();
+          }}
         />
       </PopoverAnchor>
-      <PopoverContent
-        align="start"
-        className="w-(--radix-popover-trigger-width) p-1"
-        // Keep the caret in the input while the list is open.
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        {suggestions.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-muted"
-            onClick={() => {
-              onChange(entry);
-              setOpen(false);
-            }}
-          >
-            {entry}
-          </button>
-        ))}
-      </PopoverContent>
+      {suggestions.length > 0 && (
+        <PopoverContent
+          align="start"
+          className="w-(--radix-popover-trigger-width) p-1"
+          // Keep the caret in the input while the list is open.
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          // The caret lives in the anchor input, which is *outside* this content — so the moment the
+          // list mounts Radix reads focus as "outside" and dismisses it. That is what made a Tab-focus
+          // flash the box and lose it (a mouse focus had already settled before mount, so no move was
+          // seen). Closing is our job here: the input's onBlur does it on a real leave.
+          onFocusOutside={(e) => e.preventDefault()}
+        >
+          {suggestions.map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-muted"
+              // Keep the focus in the input so its onBlur doesn't fire and close the list before this
+              // click is delivered — the box stays open on pick and closes on a real focus leave.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onChange(entry);
+                setOpen(false);
+              }}
+            >
+              {entry}
+            </button>
+          ))}
+        </PopoverContent>
+      )}
     </Popover>
   );
 }

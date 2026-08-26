@@ -19,6 +19,9 @@ export function LocationField({ className }: { className?: string }) {
       suggest={fetchLocationSuggestions}
       // The completions depend on nothing but the term the user is typing.
       queryKey={["timesheet", "location"]}
+      // Clicking the field opens all recently used locations, no typing needed — the backend answers an
+      // empty search with every recent entry (see fetchLocationSuggestions and the legacy form).
+      minChars={0}
     />
   );
 }

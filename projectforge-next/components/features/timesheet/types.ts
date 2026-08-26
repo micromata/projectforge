@@ -41,6 +41,13 @@ export interface TimesheetDetail {
   location?: string | null;
   reference?: string | null;
   tag?: string | null;
+  /**
+   * The tags to choose from, or null/empty where none is configured — transient, set by the server
+   * (`TimesheetDao.getTags`), including the sheet's own tag even after it left the configuration. The
+   * hand-built form has no UILayout to read the `tag` select's values from, so TagField takes them from
+   * here and shows the field only when there are any (see TIMESHEET_PAGE).
+   */
+  tags?: string[] | null;
   description?: string | null;
   /**
    * Both ends as an instant, ISO 8601 in UTC ("2026-08-09T08:12:34.000Z") — a `java.util.Date` as

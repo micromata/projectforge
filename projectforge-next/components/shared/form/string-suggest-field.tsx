@@ -15,6 +15,8 @@ export interface StringSuggestFieldProps extends BaseFieldProps {
   suggest: (search: string, signal?: AbortSignal) => Promise<string[]>;
   /** See [SuggestInputProps.queryKey] — everything the lookup depends on besides the term. */
   queryKey: readonly unknown[];
+  /** See [SuggestInputProps.minChars] — `0` offers the recent entries as soon as the box is focused. */
+  minChars?: number;
   disabled?: boolean;
 }
 
@@ -34,6 +36,7 @@ export function StringSuggestField({
   className,
   suggest,
   queryKey,
+  minChars,
   disabled,
 }: StringSuggestFieldProps) {
   const form = useEntityEditForm();
@@ -69,6 +72,7 @@ export function StringSuggestField({
               onBlur={field.handleBlur}
               suggest={suggest}
               queryKey={queryKey}
+              minChars={minChars}
               invalid={invalid}
               disabled={disabled}
               required={required}

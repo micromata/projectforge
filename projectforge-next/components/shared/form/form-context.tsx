@@ -36,6 +36,15 @@ interface EntityEditFormContext {
    * field could neither drop its clear button nor mark its label read-only without being told.
    */
   readOnly?: boolean;
+  /**
+   * The loaded entity as the backend returned it — the DTO behind the form values, not the values.
+   *
+   * For a custom field that has to look at something the user does not edit: a time sheet's `tags` are
+   * the choices its `tag` select offers and whether it is shown at all (see TagField), server-set on the
+   * DTO like `timeSavingsByAIEnabled` and absent from the form values. `undefined` on a new entry before
+   * its preset loads (and on a form that carries none).
+   */
+  data?: unknown;
 }
 
 const Ctx = createContext<EntityEditFormContext | null>(null);
@@ -66,10 +75,10 @@ export function NestedFieldMetadata({
   namePrefix: string;
   children: ReactNode;
 }) {
-  const { form, readOnly } = useFormContext();
+  const { form, readOnly, data } = useFormContext();
   const value = useMemo(
-    () => ({ form, metadata, namePrefix, readOnly }),
-    [form, metadata, namePrefix, readOnly]
+    () => ({ form, metadata, namePrefix, readOnly, data }),
+    [form, metadata, namePrefix, readOnly, data]
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -94,6 +103,14 @@ export function useEntityEditForm(): EntityForm {
  */
 export function useFormReadOnly(): boolean {
   return useFormContext().readOnly === true;
+}
+
+/**
+ * The loaded entity behind the form — for a custom field that reads something the user does not edit
+ * (see [EntityEditFormContext.data]). The caller names the DTO type; it is not validated here.
+ */
+export function useEntityData<T = unknown>(): T | undefined {
+  return useFormContext().data as T | undefined;
 }
 
 /**

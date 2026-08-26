@@ -69,12 +69,8 @@ export function useTimesheetTemplates() {
   const applyRecent = useCallback(
     async (entry: TimesheetDetail) => {
       try {
-        const result = await selectRecentTimesheet({ ...current(), ...entry });
-        if (result.kind === "ok") {
-          apply((result.action.variables?.data as TimesheetDetail) ?? entry);
-        } else if (result.kind === "rejected") {
-          toast.error(result.message);
-        }
+        const merged = await selectRecentTimesheet({ ...current(), ...entry });
+        apply(merged ?? entry);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : String(err));
       }
