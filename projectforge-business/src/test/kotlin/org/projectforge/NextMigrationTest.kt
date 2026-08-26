@@ -105,6 +105,54 @@ class NextMigrationTest {
     }
 
     /**
+     * The escape hatch shares its url with the orphaned link it must be let past, so it carries the
+     * marker OrphanedLinkFilter looks for - appended as the first or a further query parameter as the
+     * url already has one.
+     */
+    @Test
+    fun `the escape hatch marker is appended as a query parameter`() {
+        Assertions.assertEquals(
+            "wa/orderBookList?${NextMigration.ESCAPE_HATCH_PARAM}",
+            NextMigration.withEscapeHatchMarker("wa/orderBookList"),
+        )
+        Assertions.assertEquals(
+            "wa/orderBookEdit?id=:id&${NextMigration.ESCAPE_HATCH_PARAM}",
+            NextMigration.withEscapeHatchMarker("wa/orderBookEdit?id=:id"),
+        )
+        Assertions.assertNull(NextMigration.withEscapeHatchMarker(null))
+    }
+
+    /**
+     * OrphanedLinkFilter redirects each migrated page in its own legacy app: a page migrated from Wicket
+     * orphans its `wa/...` links, one from React its `react/...` links, and a page whose legacy form is
+     * gone (`book`) has no legacy link to orphan.
+     */
+    @Test
+    fun `orphaned links map each migrated legacy page to its next url`() {
+        val byList = NextMigration.orphanedLinks().associateBy { it.legacyListPath }
+
+        val order = byList["wa/orderBookList"]
+        Assertions.assertNotNull(order, "The order page was migrated from Wicket and must be redirected.")
+        Assertions.assertEquals(NextMigration.LegacyApp.WICKET, order!!.legacyApp)
+        Assertions.assertEquals("wa/orderBookEdit", order.legacyEditPath) // Id is the `id` query parameter.
+        Assertions.assertEquals("/next/order", order.nextListUrl)
+        Assertions.assertEquals("/next/order/:id", order.nextEditUrl)
+        Assertions.assertEquals("/next/order/new", order.nextNewEntryUrl)
+
+        val group = byList["react/group"]
+        Assertions.assertNotNull(group, "The group page was migrated from the React app and must be redirected.")
+        Assertions.assertEquals(NextMigration.LegacyApp.REACT, group!!.legacyApp)
+        Assertions.assertEquals("react/group/edit", group.legacyEditPath) // Id is a path segment.
+        Assertions.assertEquals("/next/group", group.nextListUrl)
+
+        // The book's legacy form was removed (legacyApp == null), so there is no legacy link to bend.
+        Assertions.assertTrue(
+            NextMigration.orphanedLinks().none { it.nextListUrl == "/next/book" },
+            "A page whose legacy implementation is gone has no orphaned link.",
+        )
+    }
+
+    /**
      * The working directory of a test run is the module, not the repository, and both are valid
      * (Gradle vs. IDE), so the project root is searched upwards instead of assumed.
      */

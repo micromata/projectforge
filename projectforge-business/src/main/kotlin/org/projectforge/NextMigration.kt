@@ -427,4 +427,80 @@ object NextMigration {
         val app = legacyApp(category) ?: return null
         return "${app.appPath}${page?.legacyNewEntryRoute ?: app.newEntryRoute(category)}"
     }
+
+    /**
+     * Query parameter that marks a link as the "way back" escape hatch (see `LegacyPageLink` in
+     * projectforge-next): `OrphanedLinkFilter` lets a request carrying it through to the legacy page
+     * instead of bending it back to projectforge-next. Every other request to a migrated legacy url is a
+     * bookmark or a link from an e-mail sent before the migration, and gets redirected.
+     */
+    const val ESCAPE_HATCH_PARAM = "legacyEscape"
+
+    /**
+     * Marks a legacy url as the escape hatch, so `OrphanedLinkFilter` passes it through. Applied to the
+     * "way back" urls the server hands projectforge-next ([AbstractPagesRest]'s `legacyUrl`,
+     * `legacyEditPage`, `legacyNewEntryPage`), which is where every escape hatch - hand built pages
+     * included - reads them from.
+     *
+     * @return [legacyUrl] with [ESCAPE_HATCH_PARAM] appended, or null if [legacyUrl] is null.
+     */
+    fun withEscapeHatchMarker(legacyUrl: String?): String? {
+        legacyUrl ?: return null
+        val separator = if (legacyUrl.contains('?')) '&' else '?'
+        return "$legacyUrl$separator$ESCAPE_HATCH_PARAM"
+    }
+
+    /**
+     * A legacy list/edit/add page of a migrated entity and where it now leads, for `OrphanedLinkFilter`
+     * to bend a bookmarked or emailed link onto projectforge-next.
+     *
+     * @property legacyApp The frontend the legacy urls belong to. Decides how the edit page carries the
+     * id: Wicket as the `id` query parameter, the React app as a path segment (`/edit/<id>`).
+     * @property legacyListPath The legacy list url without leading slash, e.g. `wa/orderBookList` or
+     * `react/group`.
+     * @property legacyEditPath The legacy edit url without leading slash and without the id, e.g.
+     * `wa/orderBookEdit` or `react/group/edit`. The add page is mounted here too (no id).
+     * @property nextListUrl The next list url with leading slash, e.g. `/next/order`.
+     * @property nextEditUrl The next edit url with leading slash and [ID_PLACEHOLDER], e.g. `/next/order/:id`.
+     * @property nextNewEntryUrl The next add url with leading slash, e.g. `/next/order/new`.
+     */
+    class OrphanedLink(
+        val legacyApp: LegacyApp,
+        val legacyListPath: String,
+        val legacyEditPath: String,
+        val nextListUrl: String,
+        val nextEditUrl: String,
+        val nextNewEntryUrl: String,
+    )
+
+    /**
+     * One [OrphanedLink] per migrated page whose form was migrated too. Derived from [MIGRATED], so a page
+     * joins the moment it is migrated - nothing to maintain here.
+     *
+     * A [NextPage.listOnly] page keeps its legacy form, so its edit link must not be bent away from it and
+     * it is left out. A category is redirected in its own legacy app only: a page migrated from Wicket
+     * orphans `/wa/...` links, one migrated from React orphans `/react/...` links - that is where its old
+     * links pointed. A page whose legacy implementation is gone (`legacyApp == null`) has no legacy url to
+     * orphan.
+     */
+    @JvmStatic
+    fun orphanedLinks(): List<OrphanedLink> {
+        return MIGRATED.entries.mapNotNull { (category, page) ->
+            val app = page.legacyApp
+            if (app == null || page.listOnly) {
+                return@mapNotNull null
+            }
+            OrphanedLink(
+                legacyApp = app,
+                // Non-null: legacyApp is set (see legacyListUrl / legacyEditPage).
+                legacyListPath = legacyListUrl(category)!!,
+                // The path only, no query: `wa/orderBookEdit?id=:id` -> `wa/orderBookEdit`, and
+                // `react/group/edit/:id` -> `react/group/edit`. A request URI carries no query string.
+                legacyEditPath = legacyEditPage(category)!!.substringBefore('?').substringBefore(ID_PLACEHOLDER).trimEnd('/'),
+                nextListUrl = "/${listUrl(category)}",
+                nextEditUrl = "/${standardEditPage(category)}",
+                nextNewEntryUrl = "/${newEntryUrl(category)}",
+            )
+        }
+    }
 }

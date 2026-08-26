@@ -27,6 +27,7 @@ import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.NextMigration
 import org.projectforge.business.vacation.service.VacationSendMailService
 import org.projectforge.menu.builder.MenuItemDefId
 import java.io.IOException
@@ -69,9 +70,55 @@ class OrphanedLinkFilter : Filter {
             } else {
                 redirect(servletResponse, uri, VacationSendMailService.getLinkToVacationEntry(id))
             }
+        } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else {
             chain.doFilter(servletRequest, servletResponse)
         }
+    }
+
+    /**
+     * Bends a bookmarked or emailed link to a legacy list/edit/add page that has moved to
+     * projectforge-next onto its new url (see [NextMigration.orphanedLinks]).
+     *
+     * The escape hatch - the "way back" link projectforge-next shows on a migrated page - points at the
+     * very same legacy urls, so it carries [NextMigration.ESCAPE_HATCH_PARAM] to be let through instead
+     * of being bounced straight back to next.
+     *
+     * @return true if the request was a migrated legacy link and a redirect was sent.
+     */
+    private fun redirectMigratedPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        if (request.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
+            return false // The escape hatch: let it reach the legacy page.
+        }
+        for (link in NextMigration.orphanedLinks()) {
+            // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
+            // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
+            if (uri.contains("/${link.legacyEditPath}")) {
+                val id = when (link.legacyApp) {
+                    NextMigration.LegacyApp.WICKET -> request.getParameter("id")?.toLongOrNull()
+                    // react/group/edit/<id>; no id means the add page.
+                    NextMigration.LegacyApp.REACT ->
+                        uri.substringAfter("/${link.legacyEditPath}/", "").substringBefore('/').toLongOrNull()
+                }
+                val target = if (id != null) {
+                    link.nextEditUrl.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                } else {
+                    link.nextNewEntryUrl
+                }
+                redirect(response, uri, target)
+                return true
+            }
+            if (uri.contains("/${link.legacyListPath}")) {
+                redirect(response, uri, link.nextListUrl)
+                return true
+            }
+        }
+        return false
     }
 
     private fun redirect(servletResponse: ServletResponse, uri: String, redirectUrl: String) {

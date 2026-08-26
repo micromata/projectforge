@@ -301,9 +301,11 @@ constructor(
             filterFavorite = favorites.get(filter.id),
             filterElements = elements,
             standardEditPage = getStandardEditPage(),
-            legacyListPage = NextMigration.legacyListUrl(category),
-            legacyEditPage = NextMigration.legacyEditPage(category),
-            legacyNewEntryPage = NextMigration.legacyNewEntryUrl(category),
+            // Escape hatches ("way back" to the legacy page), marked so OrphanedLinkFilter lets them
+            // reach it instead of bending them straight back to next (see NextMigration.withEscapeHatchMarker).
+            legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
+            legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
+            legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,
             // What this user last ticked for a mass update, so a reload (or a detour through the legacy
             // app) restores it. Read under this rest class, the identifier startSelection registers and
