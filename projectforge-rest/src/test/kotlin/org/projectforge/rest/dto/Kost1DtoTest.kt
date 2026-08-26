@@ -98,11 +98,11 @@ class Kost1DtoTest : AbstractTestBase() {
     @Test
     fun `the display name is abbreviated, as the legacy pages show it`() {
         val kost1DO = createKost1()
-        kost1DO.description = "A description far beyond thirty characters"
+        kost1DO.description = "A description that is clearly far beyond sixty characters in length"
         val dto = Kost1()
         dto.copyFrom(kost1DO)
-        // FormatType.TEXT cuts at KostFormatter.ABBREVIATION_LENGTH (30), on a word boundary.
-        assertEquals("6.100.01.02: A description ...", dto.displayName)
+        // FormatType.TEXT cuts at KostFormatter.ABBREVIATION_LENGTH (60).
+        assertEquals("6.100.01.02: A description that is clearly far beyond six...", dto.displayName)
     }
 
     @Test

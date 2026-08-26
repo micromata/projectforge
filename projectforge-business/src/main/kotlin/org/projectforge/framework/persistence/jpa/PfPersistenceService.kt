@@ -149,7 +149,11 @@ open class PfPersistenceService {
                     //openedTransactions.remove(em.transaction)
                     //log.info { "Commit transaction ${em.transaction}..." }
                     return ret
-                } catch (ex: Exception) {
+                } catch (ex: Throwable) {
+                    // Catch Throwable, not only Exception: an Error escaping here (e.g. a JUnit
+                    // AssertionFailedError from a test running inside a transaction) would otherwise leave the
+                    // transaction uncommitted. The abandoned connection keeps its locks, and the next
+                    // "CHECKPOINT DEFRAG" (see AbstractTestBase.recreateDataBase) blocks on them forever.
                     em.transaction.rollback()
                     //openedTransactions.remove(em.transaction)
                     //log.info { "Rollback transaction ${em.transaction}..." }
