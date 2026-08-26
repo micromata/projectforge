@@ -4,6 +4,7 @@ import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { renderCell, type CellSpec } from "@/components/data-table";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { SelectField } from "@/components/shared/form/select-field";
 import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
@@ -83,19 +84,30 @@ export function TaskKost2Section({ className }: { className?: string }) {
       {/* What is already booked on this task, as everywhere else it is shown — the same bar, linking to
           the sheets behind it. A picture only while no task is chosen. */}
       {info?.consumption != null && (
-        <div className="flex flex-col gap-1.5 md:col-span-3">
+        <div className="flex flex-col items-start gap-1.5 md:col-span-3">
           <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t("task.consumption")}
           </span>
-          {renderCell({
-            spec: CONSUMPTION,
-            value: info.consumption,
-            row: info as unknown as Record<string, unknown>,
-            ctx: format,
-            // The cells name their keys at runtime, which next-intl's literal key type cannot express —
-            // the same widening the task list's cell wrappers do.
-            t: t as unknown as (key: string) => string,
-          })}
+          {/* The track is `width:100%`, so on its own row it would run the whole form width — bound it to
+              the compact width it has in the tree. The delegated table tooltip does not reach a bar shown
+              on its own (it listens on a DataTable), so the pre-rendered figures ride an explicit tooltip
+              here instead; `plain`, since the "0,00PT/225PT (0%)" text is a formatted value, not markdown. */}
+          <HintTooltip
+            plain
+            text={(info.consumption as { title?: string }).title}
+          >
+            <div className="w-full max-w-[220px]">
+              {renderCell({
+                spec: CONSUMPTION,
+                value: info.consumption,
+                row: info as unknown as Record<string, unknown>,
+                ctx: format,
+                // The cells name their keys at runtime, which next-intl's literal key type cannot express —
+                // the same widening the task list's cell wrappers do.
+                t: t as unknown as (key: string) => string,
+              })}
+            </div>
+          </HintTooltip>
         </div>
       )}
     </div>
