@@ -52,7 +52,7 @@ export function CalendarVacationSelects({
     `${t("delete")}: ${entry.displayName}`;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="calendar-vacation-groups" className="text-sm">
           {t("calendar.filter.vacation.groups._")}

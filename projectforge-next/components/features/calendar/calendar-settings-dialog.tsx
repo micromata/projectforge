@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/rs/calendar-types";
 import type { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
 import { CalendarVacationSelects } from "./calendar-vacation-selects";
+import { CalendarColorSettings } from "./calendar-color-settings";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
@@ -38,9 +40,10 @@ interface CalendarSettingsDialogProps {
 
 /**
  * The gear dialog: the presentational settings that do not belong on the toolbar itself — default
- * calendar, whose timesheets to show, breaks, vacation overlays, and the time-grid's slot size and
- * first hour. Each control fires its own `change*` the moment it changes (see the mutations hook); the
- * dialog holds no draft, so there is no save button, exactly as the legacy settings modal.
+ * calendar, whose timesheets to show, breaks, vacation overlays, the time-grid's slot size and first
+ * hour, and the event colours (see CalendarColorSettings; formerly the separate `calendarSettings`
+ * page). Each control fires its own `change*`/persist the moment it changes; the dialog holds no draft,
+ * so there is no save button, exactly as the legacy settings modal.
  */
 export function CalendarSettingsDialog({
   init,
@@ -66,53 +69,57 @@ export function CalendarSettingsDialog({
           <HugeiconsIcon icon={Settings02Icon} size={16} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{t("settings")}</DialogTitle>
+          <DialogTitle>{t("calendar.settings._")}</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-sm">{t("calendar.defaultCalendar")}</Label>
-            <Select
-              value={filter?.defaultCalendarId?.toString() ?? ""}
-              onValueChange={(value) =>
-                mutations.changeDefaultCalendar(Number(value))
-              }
-            >
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder={t("select._")} />
-              </SelectTrigger>
-              <SelectContent>
-                {(init.listOfDefaultCalendars ?? []).map((calendar) => (
-                  <SelectItem
-                    key={calendar.id}
-                    value={String(calendar.id ?? "")}
-                  >
-                    {calendar.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-sm">{t("calendar.option.timesheets")}</Label>
-            {otherEnabled ? (
-              <EntityAutocomplete
-                url="user/autosearch?search=:search"
-                value={
-                  showsOwn && timesheetUser?.id != null
-                    ? {
-                        id: timesheetUser.id,
-                        displayName: timesheetUser.displayName ?? "",
-                      }
-                    : null
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3">
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-sm">{t("calendar.defaultCalendar")}</Label>
+              <Select
+                value={filter?.defaultCalendarId?.toString() ?? ""}
+                onValueChange={(value) =>
+                  mutations.changeDefaultCalendar(Number(value))
                 }
-                onChange={(user) => mutations.changeTimesheetUser(user?.id)}
-                aria-label={t("calendar.option.timesheets")}
-              />
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder={t("select._")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(init.listOfDefaultCalendars ?? []).map((calendar) => (
+                    <SelectItem
+                      key={calendar.id}
+                      value={String(calendar.id ?? "")}
+                    >
+                      {calendar.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {otherEnabled ? (
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm">
+                  {t("calendar.option.timesheets")}
+                </Label>
+                <EntityAutocomplete
+                  url="user/autosearch?search=:search"
+                  value={
+                    showsOwn && timesheetUser?.id != null
+                      ? {
+                          id: timesheetUser.id,
+                          displayName: timesheetUser.displayName ?? "",
+                        }
+                      : null
+                  }
+                  onChange={(user) => mutations.changeTimesheetUser(user?.id)}
+                  aria-label={t("calendar.option.timesheets")}
+                />
+              </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex h-8 items-center gap-2">
                 <Checkbox
                   id="calendar-show-timesheets"
                   checked={showsOwn}
@@ -156,7 +163,7 @@ export function CalendarSettingsDialog({
             />
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
             <div className="flex flex-col gap-1.5">
               <Label className="text-sm">{t("calendar.option.gridSize")}</Label>
               <Select
@@ -200,6 +207,13 @@ export function CalendarSettingsDialog({
               </Select>
             </div>
           </div>
+
+          {open && (
+            <>
+              <Separator />
+              <CalendarColorSettings />
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

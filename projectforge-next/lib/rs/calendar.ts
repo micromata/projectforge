@@ -17,10 +17,12 @@ import type {
   CalendarInit,
   CalendarInitPatch,
   CalendarRefreshResult,
+  CalendarSettings,
   CalendarState,
 } from "./calendar-types";
 
 const BASE = "/rs/calendar";
+const SETTINGS_BASE = "/rs/calendarSettings";
 
 /** Builds a `?a=b&…` suffix, dropping null/undefined so a caller can pass optionals straight through. */
 function query(
@@ -111,6 +113,34 @@ export async function storeCalendarState(
   await request<unknown>(
     `${BASE}/storeState`,
     { method: "POST", body: JSON.stringify(state) },
+    signal
+  );
+}
+
+// --- Colour settings (persisted apart from the filter; served by CalendarSettingsPageRest) ---
+
+/** The current colour settings (`GET /rs/calendarSettings/settings`); every colour comes filled with its default. */
+export function fetchCalendarSettings(
+  signal?: AbortSignal
+): Promise<CalendarSettings> {
+  return request<CalendarSettings>(
+    `${SETTINGS_BASE}/settings`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Persists the colour settings (`POST /rs/calendarSettings/settings`) and returns the canonical result.
+ * A bad hex code answers 406 with `validationErrors`, surfaced as an {@link RsError} by {@link request}.
+ */
+export function saveCalendarSettings(
+  settings: CalendarSettings,
+  signal?: AbortSignal
+): Promise<CalendarSettings> {
+  return request<CalendarSettings>(
+    `${SETTINGS_BASE}/settings`,
+    { method: "POST", body: JSON.stringify(settings) },
     signal
   );
 }

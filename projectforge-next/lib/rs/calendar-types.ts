@@ -132,6 +132,23 @@ export type CalendarInitPatch = Partial<
   >
 >;
 
+/** How event colours are derived (`CalendarEventColorScheme`): transparent standard vs. higher-contrast classic. */
+export type CalendarEventColorScheme = "STANDARD" | "CLASSIC";
+
+/**
+ * The calendar's presentational settings, persisted separately from the filter under the user-pref area
+ * `calendar` (`org.projectforge.rest.calendar.CalendarSettings`, via `GET`/`POST /rs/calendarSettings/settings`).
+ * The four colours are hex strings; the backend fills any missing one with its default on read.
+ */
+export interface CalendarSettings {
+  timesheetsColor?: string | null;
+  timesheetsBreaksColor?: string | null;
+  timesheetsStatsColor?: string | null;
+  vacationsColor?: string | null;
+  colorScheme?: CalendarEventColorScheme | null;
+  alternateHoursBackground?: boolean | null;
+}
+
 /** A tooltip carried on an event (`FullCalendarEvent.Tooltip`); `text` is HTML. */
 export interface CalendarEventTooltip {
   title?: string | null;

@@ -4,10 +4,17 @@ import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouteParams } from "@/hooks/use-route-params";
+import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { EntityEditModal } from "@/components/shared/edit/entity-edit-modal";
 import { TAB_PARAM } from "@/components/shared/edit-page-tabs";
 import { parseCalendarEditTarget } from "@/components/features/calendar/calendar-edit-target";
-import { CALENDAR_EVENTS_KEY } from "@/components/features/calendar/use-calendar-init";
+import { TIMESHEET_PAGE } from "@/components/features/timesheet/timesheet.page";
+import {
+  CALENDAR_EVENTS_KEY,
+  CALENDAR_INIT_KEY,
+} from "@/components/features/calendar/use-calendar-init";
+import { useCalendarFilterMutations } from "@/components/features/calendar/use-calendar-filter-mutations";
+import type { CalendarInit } from "@/lib/rs/calendar-types";
 
 /**
  * The edit that hangs off the calendar as a nested route (`/calendar/timesheet/5`,
@@ -22,6 +29,8 @@ export function CalendarEditRouteClient() {
   const queryClient = useQueryClient();
   const params = useRouteParams<{ edit: string[] }>("/calendar/[...edit]");
   const searchParams = useSearchParams();
+  const mutations = useCalendarFilterMutations();
+  const currentUser = useCurrentUserRef();
 
   // Every way the modal closes — save, cancel, delete, ESC, overlay, an entry gone — funnels through
   // onOpenChange(false). Both refetch and navigation belong here so the calendar redraws the edited
@@ -31,6 +40,19 @@ export function CalendarEditRouteClient() {
     void queryClient.invalidateQueries({ queryKey: CALENDAR_EVENTS_KEY });
     router.push("/calendar");
   }, [queryClient, router]);
+
+  // A new colleague logs their first timesheet and doesn't see it, because the calendar hides
+  // timesheets by default. Saving one here turns their own timesheets on — but only when nothing is
+  // shown yet, so a privileged user already viewing someone else's timesheets is left alone. The
+  // logged-in user's real id is passed (not the show/hide sentinel), which is what changeTimesheetUser
+  // wants for a privileged account; a normal user is clamped to themselves server-side regardless.
+  const activateOwnTimesheets = useCallback(() => {
+    const init = queryClient.getQueryData<CalendarInit>(CALENDAR_INIT_KEY);
+    const userId = currentUser?.id;
+    if (userId == null) return;
+    if ((init?.timesheetUser?.id ?? 0) > 0) return;
+    void mutations.changeTimesheetUser(userId);
+  }, [queryClient, currentUser, mutations]);
 
   // No match during the prerender pass, and for the instant a client navigation is still on the old
   // url — render nothing over the calendar rather than a stray modal.
@@ -57,6 +79,11 @@ export function CalendarEditRouteClient() {
       onOpenChange={(next) => {
         if (!next) close();
       }}
+      // Saving a timesheet from the calendar activates the user's own timesheets when none are shown,
+      // so the sheet they just booked is actually visible (see activateOwnTimesheets).
+      onSaved={
+        target.page === TIMESHEET_PAGE ? activateOwnTimesheets : undefined
+      }
       // A clone or a convert stays in the calendar: open the prepared new entry as the calendar's own
       // nested route (`/calendar/timesheet/new?clone=1`, `/calendar/teamEvent/new?clone=1`), so it
       // layers over the still-mounted calendar in this dialog rather than leaving for the full page. The
