@@ -399,7 +399,12 @@ open class MenuCreator {
         )
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) })
+                // Also open to order-book users: the checker only parses an uploaded file and exposes
+                // no ProjectForge data (see EInvoiceCheckerPageRest.checkAccess).
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_GROUPS) ||
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
+                })
         )
 
         //////////////////////////////////////
