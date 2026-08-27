@@ -30,7 +30,9 @@ export function useViewButtons({
         firstHour,
         hour12,
         labels: {
-          month: t("month"),
+          // `calendar.month` is also a namespace (the recurrence editor's month names), so its own
+          // value lives under `_` (see i18n/config.ts).
+          month: t("month._"),
           week: t("week"),
           day: t("day"),
           workDays: t("view.workDays"),
