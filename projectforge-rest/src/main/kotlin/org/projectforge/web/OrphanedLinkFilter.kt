@@ -95,6 +95,14 @@ class OrphanedLinkFilter : Filter {
         if (request.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
             return false // The escape hatch: let it reach the legacy page.
         }
+        // The React calendar is where the calendar's "classic version" switch leads, and it owns its whole
+        // subtree: the nested timesheet and team event editors open under react/calendar/... . Bending any
+        // of that to next would bounce the user straight back out of the app they deliberately switched to,
+        // and a one-shot escape-hatch marker can't survive their navigation inside it - so the whole subtree
+        // is left alone (see calendar-page.tsx, legacyUrl "react/calendar").
+        if (CALENDAR_LEGACY_SUBTREE != null && uri.contains("/$CALENDAR_LEGACY_SUBTREE")) {
+            return false
+        }
         for (link in NextMigration.orphanedLinks()) {
             // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
             // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
@@ -138,5 +146,12 @@ class OrphanedLinkFilter : Filter {
 
     companion object {
         private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
+
+        /**
+         * The legacy React calendar's list url without leading slash, e.g. `react/calendar` - the root of
+         * the subtree the classic calendar owns and that must not be redirected (see [redirectMigratedPage]).
+         * Null once the calendar's legacy implementation is gone, at which point there is nothing to exempt.
+         */
+        private val CALENDAR_LEGACY_SUBTREE = NextMigration.legacyListUrl("calendar")
     }
 }
