@@ -33,6 +33,7 @@ export interface UseEditRunActionsOptions<
   form: EntityForm;
   cancelMutation: WriteMutation<Data>;
   deleteMutation: WriteMutation<Data>;
+  forceDeleteMutation: WriteMutation<Data>;
   undeleteMutation: WriteMutation<Data>;
   outcome: EditOutcome;
 }
@@ -58,12 +59,14 @@ export function useEditRunActions<
   form,
   cancelMutation,
   deleteMutation,
+  forceDeleteMutation,
   undeleteMutation,
   outcome,
 }: UseEditRunActionsOptions<Row, Values, Data, M>) {
   const t = useTranslations();
   const [isCloning, setCloning] = useState(false);
   const [isConverting, setConverting] = useState(false);
+  const [isForceDeleting, setForceDeleting] = useState(false);
 
   /**
    * Leaves without saving — and tells the backend so, which is what makes the list mark the entry the
@@ -93,6 +96,32 @@ export function useEditRunActions<
     }
     toast.success(t("message.successfullChanged"));
     outcome.afterDelete();
+  }
+
+  /**
+   * Destroys the entry for good — row and history, no undo (`forceDeleteEntity`). The same tail as
+   * [runDelete]: the entry is gone from the list either way, so afterwards means the same. Offered only
+   * where the entity allows it and behind a confirmation (see EntityForceDeleteButton); the button
+   * itself asks before this runs.
+   */
+  async function runForceDelete(): Promise<void> {
+    if (!data) return;
+    setForceDeleting(true);
+    try {
+      const result = await forceDeleteMutation.mutateAsync(data);
+      if (result.kind === "validationErrors") {
+        result.validationErrors.forEach((error) => toast.error(error.message));
+        return;
+      }
+      if (result.kind === "rejected") {
+        toast.error(result.message || t("validation.error.generic"));
+        return;
+      }
+      toast.success(t("message.successfullChanged"));
+      outcome.afterDelete();
+    } finally {
+      setForceDeleting(false);
+    }
   }
 
   /**
@@ -173,6 +202,8 @@ export function useEditRunActions<
   return {
     runCancel,
     runDelete,
+    runForceDelete,
+    isForceDeleting,
     runUndelete,
     runClone,
     isCloning,

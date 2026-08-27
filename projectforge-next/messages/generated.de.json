@@ -1124,6 +1124,7 @@
   },
   "financeAdministration": "Finanzbuchhaltung",
   "firstName": "Vorname",
+  "forceDelete": "Unwiderruflich löschen",
   "gantt": {
     "duration": "Dauer",
     "endDate": "Endedatum",
@@ -1693,6 +1694,7 @@
   "question": {
     "deleteQuestion": "Soll das Objekt wirklich unwiderruflich gelöscht werden?",
     "deleteRowQuestion": "Soll dieser Eintrag wirklich entfernt werden? Er wird beim Speichern des Formulars gelöscht.",
+    "forceDeleteQuestion": "ACHTUNG!!! Soll das Object tatsächlich uwiderruflich gelöscht werden? Es werden auch alle Einträge aus der Änderungshistorie zu diesem Object unwiderruflich gelöscht!!!!!!",
     "leaveUnsavedChanges": "Es gibt ungespeicherte Änderungen. Soll die Seite trotzdem verlassen werden?",
     "markAsDeletedQuestion": "Soll das Objekt als gelöscht markiert werden?"
   },

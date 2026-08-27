@@ -54,8 +54,9 @@ export function saveOrUpdateEntity<D extends object>(
 /**
  * Marks the entity as deleted, keeping it undeletable (`undeleteEntity`).
  *
- * This is the delete a historized entity supports; `RestPaths.DELETE`/`FORCE_DELETE` destroy the
- * row and its history and are deliberately not wired up here.
+ * This is the delete a historized entity supports, and the default one: it survives and
+ * `RestPaths.UNDELETE` brings it back. The destroying counterpart is [forceDeleteEntity], offered only
+ * by the few entities that allow it.
  */
 export function markEntityAsDeleted<D extends object>(
   entity: string,
@@ -63,6 +64,23 @@ export function markEntityAsDeleted<D extends object>(
   signal?: AbortSignal
 ): Promise<EntityWriteResult> {
   return write(`/rs/${entity}/markAsDeleted`, "DELETE", data, signal);
+}
+
+/**
+ * Destroys the entity for good — the row *and* its change history, with no undo (`RestPaths.FORCE_DELETE`,
+ * "Unwiderruflich löschen").
+ *
+ * Only the entities whose DAO sets `isForceDeletionSupport` offer it (a team event, an address); a
+ * historized entity refuses it, which is why the default delete only marks (see markEntityAsDeleted).
+ * The button is a per-page opt-in (`EditDef.forceDelete`), so this is reached only where the backend
+ * accepts it, behind a confirmation (see EntityForceDeleteButton).
+ */
+export function forceDeleteEntity<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/forceDelete`, "DELETE", data, signal);
 }
 
 /** Reverses [markEntityAsDeleted]. */

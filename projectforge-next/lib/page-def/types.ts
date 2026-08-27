@@ -471,6 +471,15 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   convert?: EditConvert;
   /**
+   * Whether the edit page offers an irrevocable delete beside the ordinary one — the row and its whole
+   * change history destroyed, with no undo (`forceDelete`, "Unwiderruflich löschen").
+   *
+   * The counterpart of the DAO's `isForceDeletionSupport`, which only a team event and an address set;
+   * that flag isn't serialized to the client, so the button is a per-page opt-in (default off, honouring
+   * how sparingly the backend grants it). See `forceDeleteEntity` and EntityForceDeleteButton.
+   */
+  forceDelete?: boolean;
+  /**
    * Beside the heading of the edit page — a badge saying whether the book is lent out. Rendered on
    * the form and on the pages of its own alike, hence the entity rather than the form values.
    */

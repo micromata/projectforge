@@ -31,6 +31,11 @@ export interface EntityEditActionsProps {
    */
   convertAction?: ReactNode;
   /**
+   * Irrevocable-delete button, left of [deleteAction] and right-aligned with it. Omitted for an entity
+   * that doesn't allow it, and while the entry doesn't exist yet (see [EntityForceDeleteButton]).
+   */
+  forceDeleteAction?: ReactNode;
+  /**
    * Delete button, rendered right-aligned. Omitted while the entry doesn't exist yet — deleting it
    * needs the saved entity (see [EntityDeleteButton]).
    */
@@ -69,6 +74,7 @@ export function EntityEditActions({
   saveOption,
   cloneAction,
   convertAction,
+  forceDeleteAction,
   deleteAction,
   undeleteAction,
   canSave,
@@ -131,6 +137,7 @@ export function EntityEditActions({
           })}
         </span>
       )}
+      {forceDeleteAction}
       {deleteAction}
       {undeleteAction}
     </div>

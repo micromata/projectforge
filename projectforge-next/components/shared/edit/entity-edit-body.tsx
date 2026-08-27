@@ -15,6 +15,7 @@ import {
   useDeleteEntity,
   useEntityAction,
   useEntityDetail,
+  useForceDeleteEntity,
   useSaveEntity,
   useUndeleteEntity,
   type EntityWithId,
@@ -126,6 +127,10 @@ export function EntityEditBody<
   const readAccess = useReadAccessGuard(page.entity, error);
   const saveMutation = useSaveEntity<Data>(page.entity, writeOptions);
   const deleteMutation = useDeleteEntity<Data>(page.entity, writeOptions);
+  const forceDeleteMutation = useForceDeleteEntity<Data>(
+    page.entity,
+    writeOptions
+  );
   const undeleteMutation = useUndeleteEntity<Data>(page.entity, writeOptions);
   const actionMutation = useEntityAction<Data>(page.entity, writeOptions);
   const cancelMutation = useCancelEntityEdit<Data>(page.entity, writeOptions);
@@ -206,6 +211,8 @@ export function EntityEditBody<
   const {
     runCancel,
     runDelete,
+    runForceDelete,
+    isForceDeleting,
     runUndelete,
     runClone,
     isCloning,
@@ -218,6 +225,7 @@ export function EntityEditBody<
     form,
     cancelMutation,
     deleteMutation,
+    forceDeleteMutation,
     undeleteMutation,
     outcome,
   });
@@ -343,6 +351,16 @@ export function EntityEditBody<
         showClone={Boolean(edit.clone && id != null && canInsert)}
         // On `id` rather than `data`: a new entry has data too (the `fetchNew` preset).
         showDelete={Boolean(id != null && data && access.delete)}
+        // The irrevocable delete, beside the ordinary one: only where the entity opts in
+        // (EditDef.forceDelete → isForceDeletionSupport) and the same access the mark-as-deleted needs,
+        // and never while an entry is already deleted (undelete takes that place).
+        showForceDelete={Boolean(
+          edit.forceDelete &&
+          id != null &&
+          data &&
+          access.delete &&
+          !access.deleted
+        )}
         // In the delete button's place, under the right legacy restores with — insert, not write.
         showUndelete={Boolean(
           id != null && data && access.deleted && canInsert
@@ -354,10 +372,12 @@ export function EntityEditBody<
         convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
         onClone={runClone}
         onDelete={runDelete}
+        onForceDelete={runForceDelete}
         onUndelete={runUndelete}
         onConvert={runConvert}
         cloneDisabled={isSubmitting || isCloning}
         deleteDisabled={isSubmitting || deleteMutation.isPending}
+        forceDeleteDisabled={isSubmitting || isForceDeleting}
         undeleteDisabled={isSubmitting || undeleteMutation.isPending}
         convertDisabled={isSubmitting || isConverting}
         canSave={access.write}

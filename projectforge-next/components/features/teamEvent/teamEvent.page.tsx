@@ -78,6 +78,9 @@ export const TEAM_EVENT_PAGE = definePage<
       targetRoute: "/timesheet",
       labelKey: "plugins.teamcal.switchToTimesheetButton",
     },
+    // "Unwiderruflich löschen" — a team event is one of the few entities whose DAO allows the destroying
+    // delete (TeamEventDao.isForceDeletionSupport; that flag isn't serialized, so it's opted in here).
+    forceDelete: true,
     // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
     // no team event list of this app to return to (see toTeamEventRoute).
     returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],

@@ -1124,6 +1124,7 @@
   },
   "financeAdministration": "Finance administration",
   "firstName": "First name",
+  "forceDelete": "Irrevocable deletion",
   "gantt": {
     "duration": "Duration",
     "endDate": "End date",
@@ -1693,6 +1694,7 @@
   "question": {
     "deleteQuestion": "Do your really want to delete this object finally?",
     "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
+    "forceDeleteQuestion": "ATTENTION!!! Do you really want to destroy this object including all history entries? This option is irrevocable!!!!!",
     "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
     "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
   },

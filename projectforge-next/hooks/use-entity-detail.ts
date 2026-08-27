@@ -9,6 +9,7 @@ import {
 import { fetchNew, fetchOne } from "@/lib/rs/client";
 import {
   cancelEntityEdit,
+  forceDeleteEntity,
   markEntityAsDeleted,
   postEntityAction,
   saveOrUpdateEntity,
@@ -162,6 +163,24 @@ export function useDeleteEntity<T extends EntityWithId>(
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => markEntityAsDeleted(entity, data),
+    onSuccess: (result, data) => {
+      if (result.kind !== "ok") return;
+      invalidateEntity(qc, entity, data.id, listQueryKey);
+    },
+  });
+}
+
+/**
+ * Destroys an entity for good — row and history, no undo (`forceDeleteEntity`). Offered only by the few
+ * entities that allow it (see EditDef.forceDelete); invalidates exactly what a mark-as-deleted does.
+ */
+export function useForceDeleteEntity<T extends EntityWithId>(
+  entity: string,
+  { listQueryKey }: WriteOptions
+) {
+  const qc = useQueryClient();
+  return useMutation<EntityWriteResult, Error, T>({
+    mutationFn: (data) => forceDeleteEntity(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
       invalidateEntity(qc, entity, data.id, listQueryKey);
