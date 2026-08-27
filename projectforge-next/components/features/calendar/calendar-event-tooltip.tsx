@@ -68,7 +68,15 @@ export function CalendarEventTooltip({
         {rows.map((row, index) => (
           <div key={`${row.label}-${index}`} className="contents">
             <dt className="text-muted-foreground">{row.label}</dt>
-            <dd className={cn(row.multiline && "whitespace-pre-wrap")}>
+            {/* `min-w-0` lets the 1fr cell shrink below its content, `break-words` breaks a long
+                value with no spaces (a structure path's dotted segments) so it wraps inside the card
+                instead of running past its border. */}
+            <dd
+              className={cn(
+                "min-w-0 break-words",
+                row.multiline && "whitespace-pre-wrap"
+              )}
+            >
               {row.value}
             </dd>
           </div>
