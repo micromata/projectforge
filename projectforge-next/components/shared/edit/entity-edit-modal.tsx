@@ -32,6 +32,11 @@ export interface EntityEditModalProps<
   newParams?: NewEntryParams;
   /** Values written over the preset — the wizard's "create group with this name". */
   prefill?: Partial<Values>;
+  /**
+   * Values applied over the loaded entry as a dirtying change — a team event or a time sheet opened on
+   * its dragged/resized position, which is a move to persist (see calendar-edit-target).
+   */
+  dirtyPrefill?: Partial<Values>;
   /** Tab beside the form to open on mount — the `?tab=` of a url that opened this modal. */
   initialTab?: string;
   open: boolean;
@@ -69,6 +74,7 @@ export function EntityEditModal<
   id,
   newParams,
   prefill,
+  dirtyPrefill,
   initialTab,
   open,
   onOpenChange,
@@ -156,6 +162,7 @@ export function EntityEditModal<
             id={id}
             newParams={newParams}
             prefill={prefill}
+            dirtyPrefill={dirtyPrefill}
             outcome={outcome}
             formClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
             renderLoading={() => (

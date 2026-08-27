@@ -7,11 +7,11 @@
  * `/teamEvent/edit/<id>` for an existing one (a resize or drag). This app routes them as `/teamEvent/new`
  * and `/teamEvent/<id>` (see the `[id]` route), so the translation happens here, on the way to the router.
  *
- * The new-event query is kept — the calendar the slot was drawn in and the slot's start and end are what
- * preset the form (`TeamEventPagesRest.newBaseDTO`). The existing-event query is dropped, as it is for a
- * timesheet: the event is loaded by id. A drag or resize therefore opens the event rather than opening it
- * already moved; repositioning without a form is a later phase, together with the recurrence handling the
- * same url carries `origStartDate` for.
+ * The query is kept in both cases. A new event's `calendar`/`start`/`end` preset the form
+ * (`TeamEventPagesRest.newBaseDTO`). An existing event's `startDate`/`endDate` carry the dragged or
+ * resized position and `origStartDate`/`origEndDate` the occurrence that was moved, so the event opens
+ * already at its new place; `parseCalendarEditTarget` turns them into the dirtying prefill that lets the
+ * move be saved (and, for a series, tells the backend which occurrence a single/future edit acts on).
  *
  * Pure and total: a url that is not a team event edit url — a timesheet's, an absolute one, anything
  * unexpected — is returned unchanged, so this can wrap every action url without a second thought.
@@ -23,8 +23,8 @@ const EDIT_PREFIX = "/teamEvent/edit";
 export function toTeamEventRoute(url: string): string {
   if (!url.startsWith(EDIT_PREFIX)) return url;
 
-  // Split the query off first: a new event keeps its preset parameters (calendar/start/end), while an
-  // existing one is loaded by id.
+  // Split the query off first: a new event carries its preset parameters (calendar/start/end), an
+  // existing one the dragged/resized position (start/end/origStart/origEnd) — both are kept.
   const queryAt = url.indexOf("?");
   const path = queryAt === -1 ? url : url.slice(0, queryAt);
   const query = queryAt === -1 ? "" : url.slice(queryAt);
@@ -32,12 +32,12 @@ export function toTeamEventRoute(url: string): string {
   // Exactly `/teamEvent/edit` → adding an event, preset from the query.
   if (path === EDIT_PREFIX) return `/teamEvent/new${query}`;
 
-  // `/teamEvent/edit/<id>` → editing that event; the query is dropped.
+  // `/teamEvent/edit/<id>` → editing that event, at the moved position the query carries.
   const rest = path.slice(EDIT_PREFIX.length);
   if (rest.startsWith("/")) {
     const id = rest.slice(1);
     // Only a plain id segment is a match; anything deeper is left as it was.
-    if (id.length > 0 && !id.includes("/")) return `/teamEvent/${id}`;
+    if (id.length > 0 && !id.includes("/")) return `/teamEvent/${id}${query}`;
   }
   return url;
 }

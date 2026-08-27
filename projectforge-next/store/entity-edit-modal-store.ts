@@ -21,6 +21,11 @@ export interface EntityEditModalDescriptor {
   newParams?: NewEntryParams;
   /** Values written over the preset — the wizard's "create group with this name". */
   prefill?: Record<string, unknown>;
+  /**
+   * Values applied over the loaded entry as a dirtying change — a calendar event opened on its
+   * dragged/resized position, a move to persist (see calendar-edit-target).
+   */
+  dirtyPrefill?: Record<string, unknown>;
   /** The entry was saved. */
   onSaved?: (id: number | null, values: unknown) => void;
   /** The dialog closed without a save — e.g. refetch the calendar the entry belongs to. */

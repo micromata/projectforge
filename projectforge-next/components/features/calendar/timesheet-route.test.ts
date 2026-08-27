@@ -9,10 +9,11 @@ describe("toTimesheetRoute", () => {
     expect(toTimesheetRoute("/timesheet/edit")).toBe("/timesheet/new");
   });
 
-  it("maps an existing sheet by id and drops its query", () => {
+  it("maps an existing sheet by id and keeps its moved-position query", () => {
     expect(toTimesheetRoute("/timesheet/edit/42")).toBe("/timesheet/42");
-    expect(toTimesheetRoute("/timesheet/edit/42?startDate=1")).toBe(
-      "/timesheet/42"
+    // A drag/resize carries the new start and end, which the edit target turns into the move to save.
+    expect(toTimesheetRoute("/timesheet/edit/42?startDate=1&endDate=2")).toBe(
+      "/timesheet/42?startDate=1&endDate=2"
     );
   });
 

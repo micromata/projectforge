@@ -22,6 +22,7 @@ export function EntityEditModalHost() {
       id={descriptor.id}
       newParams={descriptor.newParams}
       prefill={descriptor.prefill}
+      dirtyPrefill={descriptor.dirtyPrefill}
       open
       onOpenChange={(next) => {
         if (!next) closeEntityEdit();

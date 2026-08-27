@@ -74,8 +74,10 @@ export function CalendarEditRouteClient() {
       id={target.id}
       newParams={target.newParams}
       // A recurring team event opens on the clicked occurrence, layered over the loaded master without
-      // dirtying the form (see occurrencePrefill); undefined for everything else.
+      // dirtying the form; a drag or resize opens the entry already at its moved position as a change
+      // to save (see calendar-edit-target). Both undefined for a plain click.
       prefill={target.prefill}
+      dirtyPrefill={target.dirtyPrefill}
       // `?tab=history` on the link opens that tab straight away (see EntityEditDialogShell).
       initialTab={searchParams.get(TAB_PARAM) ?? undefined}
       open

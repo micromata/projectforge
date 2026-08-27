@@ -133,8 +133,11 @@ Relationen/`UICustomized`) – vor Umsetzung mit Nutzer bestätigen:
       Master-Startdatum; `validate` verweigert das Speichern eines Serientermins ohne
       gewählten Modus. Deckt sich mit **offenem Risiko 3** (MODAL-`ResponseAction` öffnet in
       next noch eine Seite statt Overlay). Das ist der harte Teil.
-- [ ] **Drag/Resize bestehender Events** öffnet den Termin, aber noch nicht bereits verschoben
-      (Query wird für bestehende Events verworfen, analog Timesheet); gehört zu Phase D
+- [x] **Drag/Resize bestehender Events** öffnet den Termin bereits verschoben. `toTeamEventRoute`/
+      `toTimesheetRoute` behalten die Query bestehender Events; `calendarPrefill` macht daraus einen
+      *dirtyPrefill* (echte, speicherbare Änderung — im Gegensatz zum klickbasierten, nicht-dirtying
+      `prefill`), Team-Event zusätzlich mit `selectedSeriesEvent` aus `origStartDate` für Single/Future.
+      Datumsformate ISO (Drag/Resize) und Epoch-Sekunden (Klick) werden beide gelesen (`toIsoInstant`)
 - [ ] **List-Page** (`app/(authenticated)/teamEvent/page.tsx`) – bewusst zurückgestellt; der
       Termin wird über den Kalender erreicht. Spalten sind in `teamEvent.page.tsx` bereits
       deklariert, sodass die Liste später nur eine Route ist

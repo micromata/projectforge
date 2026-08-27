@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -78,6 +79,11 @@ export interface EntityEditBodyProps<
   newParams?: NewEntryParams;
   /** Values written over the preset — the wizard's "create group with this name" (see EntityEditModal). */
   prefill?: Partial<Values>;
+  /**
+   * Values applied over the loaded entry as a real, dirtying change — a calendar event opened on its
+   * dragged/resized position, which is a move to persist and not a preset (see EntityEditModal).
+   */
+  dirtyPrefill?: Partial<Values>;
   outcome: EditOutcome;
   renderShell: (regions: EditRegions) => ReactNode;
   /** The `<form>`'s classes — a page fills its column, a modal fits its content box. */
@@ -103,6 +109,7 @@ export function EntityEditBody<
   id,
   newParams,
   prefill,
+  dirtyPrefill,
   outcome,
   renderShell,
   formClassName = "flex min-w-0 flex-1 flex-col overflow-hidden",
@@ -191,6 +198,24 @@ export function EntityEditBody<
         : saveMutation.mutateAsync(posted);
     },
   });
+
+  // A moved calendar event opens already at its dragged/resized position, applied over the loaded
+  // event as a real change — so Save is enabled and the move persists. Unlike `prefill`, which seeds
+  // the clean baseline the form resets onto (a viewed occurrence, no change intended), this writes the
+  // values *after* that reset has settled onto the backend's, marking the form dirty. The ref keeps a
+  // later re-render — a side tab hidden and shown again, a refetch after an action — from re-applying
+  // it and clobbering what the user then typed (see the reset effect in useEntityEditForm).
+  const dirtyPrefillKey = JSON.stringify(dirtyPrefill ?? null);
+  const dirtyPrefillDone = useRef(false);
+  useEffect(() => {
+    if (id == null || !data || dirtyPrefillDone.current) return;
+    const values = JSON.parse(dirtyPrefillKey) as Partial<Values> | null;
+    if (!values) return;
+    dirtyPrefillDone.current = true;
+    for (const [name, value] of Object.entries(values)) {
+      form.setFieldValue(name, value);
+    }
+  }, [id, data, dirtyPrefillKey, form]);
 
   // The heading, following the live form as well as the loaded row: an entry named after a field it
   // holds (a time sheet after its task) re-titles the moment that field changes. On `id`, not on

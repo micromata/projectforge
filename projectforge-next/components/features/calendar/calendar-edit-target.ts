@@ -6,7 +6,7 @@ import type { EntityEditModalDescriptor } from "@/store/entity-edit-modal-store"
 /** What a calendar interaction resolves to when it edits a timesheet or a team event in the modal. */
 type CalendarEditTarget = Pick<
   EntityEditModalDescriptor,
-  "page" | "id" | "newParams" | "prefill"
+  "page" | "id" | "newParams" | "prefill" | "dirtyPrefill"
 >;
 
 /**
@@ -51,7 +51,7 @@ export function parseCalendarEditTarget(
       const rest = path.slice(route.length + 1);
       const id = Number(rest);
       if (rest.length > 0 && !rest.includes("/") && Number.isInteger(id)) {
-        return { page, id, prefill: occurrencePrefill(query, page) };
+        return { page, id, ...calendarPrefill(query, page) };
       }
     }
   }
@@ -59,37 +59,67 @@ export function parseCalendarEditTarget(
 }
 
 /**
- * The clicked occurrence of a recurring team event, as a non-dirtying prefill over the loaded master:
- * the master is fetched by id and shows its own start (`fetchOne`), so the occurrence's span is layered
- * on here, and carried again as `selectedSeriesEvent` — the answer a single/future edit posts to say
- * which day of the series it acts on (see team-event-edit-schema.ts). Absent for a one-off click (no
- * date params) and for the timesheet, which has no occurrences.
+ * What a click or a drag/resize on an existing entry lays over the loaded entry, split by whether it is
+ * a change to keep. A **click** on a recurring team event only *views* the occurrence, so its span is a
+ * non-dirtying `prefill` over the master the id fetches (the master shows its own start). A **drag or
+ * resize** *moves* the entry, so its new position is a `dirtyPrefill` — applied as a real change, which
+ * enables Save and persists the move (see EntityEditBody). Everything else — a one-off click, a plain
+ * time sheet click — carries no date params and lays nothing over the entry.
  */
-function occurrencePrefill(
+function calendarPrefill(
   query: string,
   page: (typeof ENTITIES)[number]["page"]
-): Record<string, unknown> | undefined {
-  if (page !== TEAM_EVENT_PAGE) return undefined;
+): Pick<CalendarEditTarget, "prefill" | "dirtyPrefill"> {
   const params = new URLSearchParams(query);
-  const startDate = epochToIso(params.get("startDate"));
-  if (!startDate) return undefined;
-  const endDate = epochToIso(params.get("endDate"));
+  const startDate = toIsoInstant(params.get("startDate"));
+  if (!startDate) return {};
+  const endDate = toIsoInstant(params.get("endDate"));
+
+  if (page === TIMESHEET_PAGE) {
+    // A time sheet only ever reaches here dragged/resized (a plain click carries no query); only its
+    // period moves, mapped to the sheet's own field names (see timesheet-edit-values).
+    const dirtyPrefill: Record<string, unknown> = { startTime: startDate };
+    if (endDate) dirtyPrefill.stopTime = endDate;
+    return { dirtyPrefill };
+  }
+  if (page !== TEAM_EVENT_PAGE) return {};
+
   const allDay = params.get("allDay") === "true";
-  return {
+  // Which occurrence a single/future edit acts on: the moved occurrence's *original* place
+  // (`origStartDate`) for a drag/resize, or the clicked occurrence itself when none is given (a click).
+  const origStartDate = toIsoInstant(params.get("origStartDate")) ?? startDate;
+  const origEndDate = toIsoInstant(params.get("origEndDate")) ?? endDate;
+  const values = {
     startDate,
     endDate,
     allDay,
-    selectedSeriesEvent: { startDate, endDate, allDay },
+    selectedSeriesEvent: {
+      startDate: origStartDate,
+      endDate: origEndDate,
+      allDay,
+    },
   };
+  // A drag or resize carries the origin occurrence; a click does not. The former is a move to save.
+  return params.has("origStartDate")
+    ? { dirtyPrefill: values }
+    : { prefill: values };
 }
 
-/** Epoch seconds (the form the calendar click url uses) to an ISO instant, or null when absent/invalid. */
-function epochToIso(value: string | null): string | null {
+/**
+ * A calendar date param to an ISO instant, or null when absent/invalid. Two formats reach here: epoch
+ * seconds, the form a click url uses (`useCalendarAction.epochSeconds`), and an ISO instant, the
+ * `javaScriptString` the `/action` endpoint answers a drag/resize with (`CalendarServicesRest`).
+ */
+function toIsoInstant(value: string | null): string | null {
   if (!value) return null;
-  const seconds = Number(value);
-  return Number.isFinite(seconds)
-    ? new Date(seconds * 1000).toISOString()
-    : null;
+  if (/^-?\d+$/.test(value)) {
+    const seconds = Number(value);
+    return Number.isFinite(seconds)
+      ? new Date(seconds * 1000).toISOString()
+      : null;
+  }
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
 }
 
 /** The declared preset keys present in the query, dropped when there are none. */
