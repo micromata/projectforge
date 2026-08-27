@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   checkOtp,
@@ -42,6 +42,7 @@ export function TwoFactorForm({
   // Backend bundle keys (GenerateNextI18nMessagesMain): shared with Wicket/React.
   const tb = useTranslations();
   const [code, setCode] = useState("");
+  const codeInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,6 +85,10 @@ export function TwoFactorForm({
       }
     } catch {
       setError(tb("user.My2FACode.error.validation"));
+    } finally {
+      // The click moved focus to the button — hand it back so the user can type
+      // the freshly sent code without reaching for the mouse.
+      codeInputRef.current?.focus();
     }
   }
 
@@ -104,6 +109,7 @@ export function TwoFactorForm({
         <Label htmlFor="otp-code">{tb("user.My2FACode.code._")}</Label>
         <Input
           id="otp-code"
+          ref={codeInputRef}
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
