@@ -27,6 +27,7 @@ import {
   useReadAccessGuard,
 } from "@/hooks/use-read-access-guard";
 import { useSelectAllShortcut } from "@/hooks/use-select-all-shortcut";
+import { useUpdateAccess } from "@/hooks/use-update-access";
 import { useEntitySelection } from "@/store/selection-store";
 import { deletedRowClass } from "@/lib/dynamic/grid/row-class";
 import { leafKeyOf } from "@/lib/leaf-key";
@@ -150,6 +151,11 @@ function DeclaredList<
   // as `ListMetaData.variables` (see ColumnBase.visible). Already in the cache: the page loads the
   // list's meta data for its filter fields and its edit targets anyway.
   const variables = useListMeta(page.entity).data?.variables;
+  // Whether this user may change entries at all. A write-only affordance — the mass-update toggle —
+  // has no place for a read-only viewer, e.g. an order-book user on the outgoing invoice list, whose
+  // rest class reports `update: false` (see useUpdateAccess). Only entities overriding
+  // `listUpdateAccess()` answer anything but `true`, so this changes nothing elsewhere.
+  const updateAccess = useUpdateAccess(page.entity);
   // Every list offers `created` and `lastUpdate`, hidden until the user asks for them — appended here
   // rather than declared per page (see auditColumnsFor).
   const declarations = useMemo(() => {
@@ -255,7 +261,8 @@ function DeclaredList<
             addIsLegacy={targets.legacy}
             legacyUrl={list.legacyUrl}
             selectionToggle={
-              page.massUpdate && (
+              page.massUpdate &&
+              updateAccess !== false && (
                 <SelectionModeToggle
                   active={mode.active}
                   onToggle={() => (mode.active ? mode.leave() : mode.enter())}

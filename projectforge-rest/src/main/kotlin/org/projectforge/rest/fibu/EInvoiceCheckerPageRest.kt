@@ -25,8 +25,10 @@ package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.fibu.AuftragDao
 import org.projectforge.business.fibu.EInvoiceData
 import org.projectforge.business.fibu.EInvoiceReadService
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.UserRightService
@@ -65,13 +67,27 @@ class EInvoiceCheckerPageRest : AbstractDynamicPageRest() {
     private lateinit var eInvoiceReadService: EInvoiceReadService
 
     /**
-     * The groups the menu entry of this page requires (`MenuCreator`, `MenuItemDefId.E_INVOICE_CHECKER`).
+     * Who this page requires (`MenuCreator`, `MenuItemDefId.E_INVOICE_CHECKER`): the FIBU/ORGA groups, or
+     * order-book users ([UserRightId.PM_ORDER_BOOK]). The checker parses an uploaded file and exposes no
+     * ProjectForge data of its own, so it is opened to the non-finance users who now reach the outgoing
+     * invoice list (see `RechnungDao.hasOrderBookSelectAccess`, whose right check this mirrors).
      *
-     * Every endpoint checks them itself: there is no DAO behind this page that could do it, and the classic
+     * Every endpoint checks this itself: there is no DAO behind this page that could do it, and the classic
      * frontends only ever hid the menu entry. projectforge-next builds its menu on its own, so a hidden
      * entry no longer keeps anybody out.
      */
     private fun checkAccess() {
+        if (accessChecker.isLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)) {
+            return
+        }
+        if (accessChecker.hasLoggedInUserRight(
+                AuftragDao.USER_RIGHT_ID, false,
+                UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE,
+            )
+        ) {
+            return
+        }
+        // Neither — let the group check throw the standard AccessException.
         accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
     }
 

@@ -10,6 +10,7 @@ import {
   downloadInvoiceExcel,
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
+import { useUpdateAccess } from "@/hooks/use-update-access";
 import { ExportButton } from "@/components/shared/export-button";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 
@@ -23,6 +24,10 @@ import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
  */
 export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
+  // The cost-assignment export is finance data: hidden from a read-only viewer (an order-book user,
+  // whose rest class reports `update: false`), kept for finance/controlling. The plain Excel export
+  // stays — exporting the rows one may already see is no more than the list itself shows.
+  const updateAccess = useUpdateAccess("outgoingInvoice");
 
   /**
    * A 404 is no error here: the filter matched nothing, or — for the cost assignments — the installation
@@ -53,13 +58,15 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
         isPending={excel.isPending}
         onClick={() => excel.mutate()}
       />
-      <ExportButton
-        tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
-        // The label is the parent of that tooltip key, so it travels as the generator's leaf.
-        label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
-        isPending={costAssignments.isPending}
-        onClick={() => costAssignments.mutate()}
-      />
+      {updateAccess !== false && (
+        <ExportButton
+          tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
+          // The label is the parent of that tooltip key, so it travels as the generator's leaf.
+          label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
+          isPending={costAssignments.isPending}
+          onClick={() => costAssignments.mutate()}
+        />
+      )}
       <EInvoiceCheckerButton />
     </>
   );
