@@ -49,7 +49,9 @@ export function FilterFavoritesMenu({
           says which saved filter they came from. Wrapping the trigger, not wrapped by it — `asChild`
           has to reach a DOM element. */}
       <HintTooltip
-        text={current ? `${tFilter("list")}: ${current.name}` : tFilter("list")}
+        text={
+          current ? `${t("favorites._")}: ${current.name}` : t("favorites._")
+        }
       >
         <PopoverTrigger asChild>
           <Button
@@ -62,7 +64,7 @@ export function FilterFavoritesMenu({
           >
             <HugeiconsIcon icon={Bookmark02Icon} size={13} />
             <span className="max-w-32 truncate">
-              {current?.name ?? tFilter("list")}
+              {current?.name ?? t("favorites._")}
             </span>
             {/* Says there is something to save without opening the menu. */}
             {current && favorites.isModified && (

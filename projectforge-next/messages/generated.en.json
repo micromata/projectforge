@@ -1641,7 +1641,12 @@
   "percentage": "Percentage",
   "plugins": {
     "teamcal": {
-      "calendar": "Calendar",
+      "calendar": {
+        "_": "Calendar",
+        "refresh": {
+          "tooltip": "Reload calendar events and refresh any external subscribed calendar if displayed."
+        }
+      },
       "description": "Description",
       "event": {
         "allDay": "Whole day",

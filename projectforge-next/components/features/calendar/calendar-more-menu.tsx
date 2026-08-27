@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
 interface CalendarMoreMenuProps {
@@ -43,10 +44,15 @@ export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={onRefresh}>
-          <HugeiconsIcon icon={CircleArrowReload01Icon} size={14} />
-          {t("reload")}
-        </DropdownMenuItem>
+        <HintTooltip
+          side="left"
+          text={t("plugins.teamcal.calendar.refresh.tooltip")}
+        >
+          <DropdownMenuItem onSelect={onRefresh}>
+            <HugeiconsIcon icon={CircleArrowReload01Icon} size={14} />
+            {t("reload")}
+          </DropdownMenuItem>
+        </HintTooltip>
         <DropdownMenuItem asChild>
           <a href={teamCalList}>
             <HugeiconsIcon icon={Calendar03Icon} size={14} />

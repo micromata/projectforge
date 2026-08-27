@@ -107,13 +107,13 @@ export function ColorPicker({
             background: isValidHexColor(current) ? current : "transparent",
           }}
         >
-          <span className="sr-only">{t("select")}</span>
+          <span className="sr-only">{t("select._")}</span>
           <input
             type="color"
             value={isValidHexColor(current) ? current : "#000000"}
             onChange={(e) => commit(e.target.value)}
             className="sr-only"
-            aria-label={ariaLabel ?? t("select")}
+            aria-label={ariaLabel ?? t("select._")}
           />
         </label>
         <Input

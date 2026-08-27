@@ -1641,7 +1641,12 @@
   "percentage": "Prozentsatz",
   "plugins": {
     "teamcal": {
-      "calendar": "Kalender",
+      "calendar": {
+        "_": "Kalender",
+        "refresh": {
+          "tooltip": "Kalender neu laden und extern abonnierte Kalender, sofern angezeigt, aktualisieren."
+        }
+      },
       "description": "Beschreibung",
       "event": {
         "allDay": "Ganztags",
