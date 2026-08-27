@@ -78,9 +78,9 @@ class AutoCompleteObjectsTest : AbstractTestBase() {
     }
 
     /**
-     * `KundeDO.name` is indexed by `customAnalyzer` (a keyword tokenizer), i.e. the whole name is one term -
-     * so here it is the word as typed that matches, and the terms of the standard analyzer would not. Both
-     * readings are offered, which is why this still works.
+     * `KundeDO.name` is indexed by `customAnalyzer` (a whitespace tokenizer), i.e. `acme-pop` stays one term
+     * (only whitespace splits) - so here it is the word as typed that matches, and the terms of the standard
+     * analyzer would not. Both readings are offered, which is why this still works.
      */
     @Test
     fun customerNameWithHyphenTest() {
