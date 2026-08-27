@@ -125,7 +125,9 @@ class RechnungDaoTest : AbstractTestBase() {
             checkNoAccess(id, rechnung, "Other")
 
             logon(TEST_PROJECT_MANAGER_USER)
-            checkNoAccess(id, rechnung, "Project manager")
+            // The project manager has PM_ORDER_BOOK, so it may open the (per-row filtered) outgoing invoice
+            // list - but not this invoice, which is linked to no order (see RechnungDaoOrderBookAccessTest).
+            checkNoAccess(id, rechnung, "Project manager", mayOpenList = true)
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(id, rechnung, "Admin ")
@@ -133,13 +135,19 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
-    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String) {
-        try {
-            val filter = RechnungFilter()
+    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String, mayOpenList: Boolean = false) {
+        val filter = RechnungFilter()
+        if (mayOpenList) {
+            // Order book users (PM_ORDER_BOOK) may open the per-row filtered list without an exception; the
+            // per-row grant itself is asserted in RechnungDaoOrderBookAccessTest.
             rechnungDao.select(filter)
-            Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
-        } catch (ex: AccessException) {
-            // OK
+        } else {
+            try {
+                rechnungDao.select(filter)
+                Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
+            } catch (ex: AccessException) {
+                // OK
+            }
         }
         try {
             rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
