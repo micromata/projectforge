@@ -125,6 +125,10 @@ open class TeamCalEventsProvider() {
       event.ensureExtendedProps().let { props ->
         props.dbId = dbId
         props.uid = uid
+        // A recurring master is expanded into one FullCalendarEvent per occurrence (TeamRecurrenceEvent),
+        // each carrying the master's dbId; the flag lets the client thread the clicked occurrence's date
+        // into a single/future edit (see the Next.js use-calendar-action).
+        if (eventDO.hasRecurrence()) props.recurrence = true
       }
       event.withColor(settings, style = style)
 

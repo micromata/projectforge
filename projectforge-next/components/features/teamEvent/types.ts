@@ -22,6 +22,17 @@ export type CalendarRef = { id: number; title?: string | null };
 export interface TeamEventDetail {
   /** null for an event that has not been saved yet (Spring assigns the id). */
   id: number | null;
+  /**
+   * Which occurrences of a series an edit touches, and the one the user opened — neither is stored on
+   * the event; they are the client's answer to the "change all / future / only this" question, posted as
+   * transient attributes the DAO reads (see team-event-edit-schema.ts and TeamEventPagesRest).
+   */
+  seriesModificationMode?: "ALL" | "FUTURE" | "SINGLE" | null;
+  selectedSeriesEvent?: {
+    startDate?: string | null;
+    endDate?: string | null;
+    allDay?: boolean | null;
+  } | null;
   subject?: string | null;
   calendar?: CalendarRef | null;
   location?: string | null;

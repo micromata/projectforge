@@ -284,6 +284,16 @@
         "selectAll": "Select all"
       },
       "clearStorage": "Clear"
+    },
+    "recurrence": {
+      "frequency": {
+        "daily": "Daily",
+        "label": "Frequency",
+        "monthly": "Monthly",
+        "none": "None",
+        "weekly": "Weekly",
+        "yearly": "Yearly"
+      }
     }
   },
   "contactPerson": "Contact person",
@@ -1402,7 +1412,6 @@
       }
     }
   },
-  "list": "List",
   "loading": "Loading...",
   "login": {
     "_": "Login",
@@ -1654,6 +1663,44 @@
         "endDate": "End",
         "location": "Location",
         "note": "Note",
+        "recurrence": {
+          "_": "Recurrence",
+          "change": {
+            "all": "All events",
+            "content": "Do you want to change all events, all future events, or only this event?",
+            "future": "All future events",
+            "single": "Only this event",
+            "text": "Any modification regards:"
+          },
+          "customized": {
+            "_": "customized",
+            "day": "day(s)",
+            "month": "month(s)",
+            "week": "week(s)",
+            "year": "year(s)"
+          },
+          "each": "each",
+          "friday": "Friday",
+          "monday": "Monday",
+          "saturday": "Saturday",
+          "sunday": "Sunday",
+          "thursday": "Thursday",
+          "tuesday": "Tuesday",
+          "until": "Until",
+          "wednesday": "Wednesday",
+          "weekday": "Weekday"
+        },
+        "reminder": {
+          "_": "Reminder",
+          "DAYS_BEFORE": "Days before",
+          "HOURS_BEFORE": "Hours before",
+          "MESSAGE": "Message",
+          "MESSAGE_SOUND": "Message with sound",
+          "MINUTES_BEFORE": "Minutes before",
+          "NONE": "None",
+          "options": "Reminder options",
+          "title": "Reminder"
+        },
         "subject": "Subject",
         "teamCal": "Calendar",
         "title": {

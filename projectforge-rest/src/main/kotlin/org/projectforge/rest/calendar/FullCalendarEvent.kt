@@ -79,6 +79,12 @@ class FullCalendarEvent(
      * If given, a tooltip will be displayed on mouse-over. Don't forget to add the content of the tooltip.
      */
     var tooltip: Tooltip? = null,
+    /**
+     * True for one occurrence of a recurring team event. The hand-built calendar reads it to carry the
+     * clicked occurrence's date into the edit, so a single/future modification knows which day it acts on
+     * (see TeamCalEventsProvider and the Next.js use-calendar-action).
+     */
+    var recurrence: Boolean? = null,
   ) {
     var category = category?.string
   }

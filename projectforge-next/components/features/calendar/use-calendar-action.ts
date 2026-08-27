@@ -41,13 +41,23 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
       // A click on an existing sheet edits it by id; save and cancel return to the calendar (see
       // TIMESHEET_PAGE.returnTargets), so no `returnToCaller` is needed here.
       return id != null ? `/timesheet/${id}` : null;
-    case "teamEvent":
+    case "teamEvent": {
       // A click on an existing event edits it by its database id; save and cancel return to the calendar
       // (see TEAM_EVENT_PAGE.returnTargets). The numeric `dbId`, never the `uid`: the edit route loads by
       // a numeric id, and a subscribed calendar's `{calId}-{uid}` events are read-only anyway.
-      return event.extendedProps.dbId != null
-        ? `/teamEvent/${event.extendedProps.dbId}`
-        : null;
+      const dbId = event.extendedProps.dbId;
+      if (dbId == null) return null;
+      // A recurring event's click carries the clicked occurrence's span, so a single/future edit knows
+      // which day it acts on — the master is loaded by id, the occurrence threaded in as a prefill (see
+      // parseCalendarEditTarget). A one-off event carries nothing extra.
+      if (!event.extendedProps.recurrence) return `/teamEvent/${dbId}`;
+      const params = new URLSearchParams();
+      if (start != null) params.set("startDate", String(start));
+      if (end != null) params.set("endDate", String(end));
+      if (event.allDay) params.set("allDay", "true");
+      const q = params.toString();
+      return q ? `/teamEvent/${dbId}?${q}` : `/teamEvent/${dbId}`;
+    }
     case "vacation":
       return id != null
         ? `/vacation/edit/${id}?returnToCaller=${RETURN_TO_CALENDAR}`

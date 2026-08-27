@@ -6,7 +6,7 @@ import type { EntityEditModalDescriptor } from "@/store/entity-edit-modal-store"
 /** What a calendar interaction resolves to when it edits a timesheet or a team event in the modal. */
 type CalendarEditTarget = Pick<
   EntityEditModalDescriptor,
-  "page" | "id" | "newParams"
+  "page" | "id" | "newParams" | "prefill"
 >;
 
 /**
@@ -51,11 +51,45 @@ export function parseCalendarEditTarget(
       const rest = path.slice(route.length + 1);
       const id = Number(rest);
       if (rest.length > 0 && !rest.includes("/") && Number.isInteger(id)) {
-        return { page, id };
+        return { page, id, prefill: occurrencePrefill(query, page) };
       }
     }
   }
   return null;
+}
+
+/**
+ * The clicked occurrence of a recurring team event, as a non-dirtying prefill over the loaded master:
+ * the master is fetched by id and shows its own start (`fetchOne`), so the occurrence's span is layered
+ * on here, and carried again as `selectedSeriesEvent` — the answer a single/future edit posts to say
+ * which day of the series it acts on (see team-event-edit-schema.ts). Absent for a one-off click (no
+ * date params) and for the timesheet, which has no occurrences.
+ */
+function occurrencePrefill(
+  query: string,
+  page: (typeof ENTITIES)[number]["page"]
+): Record<string, unknown> | undefined {
+  if (page !== TEAM_EVENT_PAGE) return undefined;
+  const params = new URLSearchParams(query);
+  const startDate = epochToIso(params.get("startDate"));
+  if (!startDate) return undefined;
+  const endDate = epochToIso(params.get("endDate"));
+  const allDay = params.get("allDay") === "true";
+  return {
+    startDate,
+    endDate,
+    allDay,
+    selectedSeriesEvent: { startDate, endDate, allDay },
+  };
+}
+
+/** Epoch seconds (the form the calendar click url uses) to an ISO instant, or null when absent/invalid. */
+function epochToIso(value: string | null): string | null {
+  if (!value) return null;
+  const seconds = Number(value);
+  return Number.isFinite(seconds)
+    ? new Date(seconds * 1000).toISOString()
+    : null;
 }
 
 /** The declared preset keys present in the query, dropped when there are none. */

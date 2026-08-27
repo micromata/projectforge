@@ -284,6 +284,16 @@
         "selectAll": "Alle auswählen"
       },
       "clearStorage": "Leeren"
+    },
+    "recurrence": {
+      "frequency": {
+        "daily": "Täglich",
+        "label": "Häufigkeit",
+        "monthly": "Monatlich",
+        "none": "Ohne",
+        "weekly": "Wöchentlich",
+        "yearly": "Jährlich"
+      }
     }
   },
   "contactPerson": "Ansprechpartner:in",
@@ -1402,7 +1412,6 @@
       }
     }
   },
-  "list": "Liste",
   "loading": "Laden...",
   "login": {
     "_": "Anmelden",
@@ -1654,6 +1663,44 @@
         "endDate": "Ende",
         "location": "Ort",
         "note": "Notiz",
+        "recurrence": {
+          "_": "Wiederholung",
+          "change": {
+            "all": "Alle Ereignisse",
+            "content": "Möchten Sie alle Ereignisse, nur zukünftige oder nur dieses einzelne Ereignis ändern?",
+            "future": "Alle zukünftigen Ereignisse",
+            "single": "Nur dieses Ereignis",
+            "text": "Alle Änderungen betreffen:"
+          },
+          "customized": {
+            "_": "angepasst",
+            "day": "Tag(e)",
+            "month": "Monat(e)",
+            "week": "Woche(n)",
+            "year": "Jahr(e)"
+          },
+          "each": "Jeden",
+          "friday": "Freitag",
+          "monday": "Montag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag",
+          "thursday": "Donnerstag",
+          "tuesday": "Dienstag",
+          "until": "Ende",
+          "wednesday": "Mittwoch",
+          "weekday": "Wochentag"
+        },
+        "reminder": {
+          "_": "Erinnerung",
+          "DAYS_BEFORE": "Tage davor",
+          "HOURS_BEFORE": "Stunden davor",
+          "MESSAGE": "Nachricht",
+          "MESSAGE_SOUND": "Nachricht mit Ton",
+          "MINUTES_BEFORE": "Minuten davor",
+          "NONE": "Ohne",
+          "options": "Erinnerungsoptionen",
+          "title": "Erinnerung"
+        },
         "subject": "Betreff",
         "teamCal": "Teamkalender",
         "title": {

@@ -44,9 +44,32 @@ const calendarField = z
  * The server validates too and has the last word: it requires the subject and, for a recurring event,
  * the modification mode (HTTP 406 → see lib/validation/server-errors.ts).
  */
+/**
+ * Which events of a series an edit touches (`SeriesModificationMode`). Not a stored field: it is the
+ * answer to the "all / all future / only this one" question the server asks when a recurring event is
+ * saved, posted as a transient attribute the DAO reads (`TeamEventPagesRest.transformForDB`).
+ */
+const seriesModificationMode = z.enum(["ALL", "FUTURE", "SINGLE"]).nullable();
+
+/**
+ * The one occurrence of a series the user opened, so a `SINGLE`/`FUTURE` edit knows which day it acts on.
+ * Sent back as `{startDate, endDate, allDay}`; the backend deserialises `ICalendarEvent` as a `TeamEvent`
+ * (`ICalendarEventDeserializer`), so a bare occurrence is enough. Threaded in from the calendar click as
+ * a non-dirtying prefill (see CalendarEditRouteClient), null for a non-recurring event or a fresh one.
+ */
+const selectedSeriesEvent = z
+  .looseObject({
+    startDate: z.string().nullish(),
+    endDate: z.string().nullish(),
+    allDay: z.boolean().nullish(),
+  })
+  .nullable();
+
 const teamEventEditObject = z.object({
   // null while the event is new — Spring assigns the id on the first save.
   id: z.number().nullable(),
+  seriesModificationMode,
+  selectedSeriesEvent,
   // Optional per the entity, but the server refuses an event without one
   // (`validation.error.fieldRequired` on `subject`): anticipated as required, since the box is on the
   // form and the answer is the client's to give.
@@ -87,7 +110,20 @@ export const teamEventEditSchema = teamEventEditObject
   .refine((v) => !v.startDate || !v.endDate || v.startDate <= v.endDate, {
     path: ["endDate"],
     message: i18nMarker("timePeriodPanel.startTimeAfterStopTime"),
-  });
+  })
+  // Editing a stored recurring event must say which occurrences it touches — the same rule the server
+  // enforces (`TeamEventPagesRest.validate`), anticipated here so the inline radios light up before the
+  // save round-trips rather than only on the HTTP 406 that carries the identical key and field.
+  .refine(
+    (v) =>
+      v.id == null ||
+      !v.recurrenceRule?.trim() ||
+      v.seriesModificationMode != null,
+    {
+      path: ["seriesModificationMode"],
+      message: i18nMarker("plugins.teamcal.event.recurrence.change.content"),
+    }
+  );
 
 export type TeamEventEditValues = z.infer<typeof teamEventEditSchema>;
 

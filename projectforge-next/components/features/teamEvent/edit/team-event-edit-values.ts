@@ -31,6 +31,10 @@ export function toCalendarRef(
 export function toFormValues(event: TeamEventDetail): TeamEventEditValues {
   return {
     id: event.id ?? null,
+    // The two series-edit answers start unset: the mode is the user's to give, and the opened occurrence
+    // is threaded in as a prefill over these values (see CalendarEditRouteClient), not read off the event.
+    seriesModificationMode: event.seriesModificationMode ?? null,
+    selectedSeriesEvent: event.selectedSeriesEvent ?? null,
     subject: event.subject ?? "",
     calendar: toCalendarRef(event.calendar),
     location: event.location ?? null,
@@ -73,6 +77,8 @@ export function toFormValues(event: TeamEventDetail): TeamEventEditValues {
 export function emptyTeamEventValues(): TeamEventEditValues {
   return {
     id: null,
+    seriesModificationMode: null,
+    selectedSeriesEvent: null,
     subject: "",
     calendar: null,
     location: null,

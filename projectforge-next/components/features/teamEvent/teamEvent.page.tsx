@@ -2,6 +2,9 @@ import { TEAM_EVENT_METADATA } from "@/lib/metadata/team-event.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CalendarSelectField } from "./edit/sections/calendar-select-field";
 import { DateRangeSection } from "./edit/sections/date-range-section";
+import { RecurrenceSection } from "./edit/sections/recurrence-section";
+import { ReminderSection } from "./edit/sections/reminder-section";
+import { SeriesModificationSection } from "./edit/sections/series-modification-section";
 import {
   teamEventEditSchema,
   TEAM_EVENT_EDIT_FIELDS,
@@ -28,11 +31,12 @@ const NEW_ENTRY_PARAMS = ["startDate", "endDate", "calendar"] as const;
  * shape every page has, so adding a list later is a route and not a restructuring (see TeamEventListRow).
  *
  * The edit page is the one that is live. Its fields follow the legacy form
- * (`TeamEventPagesRest.createEditLayout`) — the calendar the event lives in, its subject, the period and
- * the two texts. Reminder, attendees and recurrence are deliberately left out of this phase: each needs
- * its own control the UILayout renderer expressed as a `UICustomized`, and none is a scalar field. An
- * event that already has one of them still round-trips untouched (see team-event-edit-schema.ts), and a
- * recurring one is refused loudly by the server rather than silently changed.
+ * (`TeamEventPagesRest.createEditLayout`) — the calendar the event lives in, its subject, the period, the
+ * two texts, the reminder and the recurrence. Reminder and recurrence are each their own control the
+ * UILayout renderer expressed as a `UICustomized`, hand-built here on the DTO fields they carry (see the
+ * `reminder-section`, `recurrence-section` and `series-modification-section`). Editing a stored recurring
+ * event asks which occurrences the change touches, the same choice the server enforces. Attendees remain
+ * out of this phase: an event that has them still round-trips untouched (see team-event-edit-schema.ts).
  */
 export const TEAM_EVENT_PAGE = definePage<
   TeamEventListRow,
@@ -98,6 +102,24 @@ export const TEAM_EVENT_PAGE = definePage<
           { custom: DateRangeSection, span: 3 },
           { name: "location" },
           { name: "note", rows: 4, span: 3 },
+        ],
+      },
+      {
+        id: "recurrence",
+        titleKey: "plugins.teamcal.event.recurrence",
+        fields: [
+          // How the event repeats (see RecurrenceSection), and — for a stored recurring event — which
+          // occurrences an edit touches (see SeriesModificationSection, which renders nothing otherwise).
+          { custom: RecurrenceSection, span: 3 },
+          { custom: SeriesModificationSection, span: 3 },
+        ],
+      },
+      {
+        id: "reminder",
+        titleKey: "plugins.teamcal.event.reminder.title",
+        fields: [
+          // When to remind before the event begins (see ReminderSection).
+          { custom: ReminderSection, span: 3 },
         ],
       },
     ],
