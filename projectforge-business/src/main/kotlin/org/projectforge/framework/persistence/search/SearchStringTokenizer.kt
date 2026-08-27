@@ -45,8 +45,8 @@ private val log = KotlinLogging.logger {}
  *
  * [expandWord] therefore offers both readings of a word, the raw one and the split one. The raw one has to
  * stay, because not every searched field is analyzed this way: `KundeDO.name` uses `customAnalyzer`
- * (a `KeywordTokenizer` — the whole name is one term, so a prefix of the whole name is exactly what matches),
- * and `TaskDO.title` or `TimesheetDO.reference` use `jiraPreservingAnalyzer` (a `ClassicTokenizer`, which
+ * (a `WhitespaceTokenizer` — it splits only on whitespace, so `K+S` stays one term and a prefix of a word
+ * matches), and `TaskDO.title` or `TimesheetDO.reference` use `jiraPreservingAnalyzer` (a `ClassicTokenizer`, which
  * keeps `ACME-1234` in one piece). Splitting alone would break those, splitting or matching whole covers
  * both — and needs no reindex.
  *
