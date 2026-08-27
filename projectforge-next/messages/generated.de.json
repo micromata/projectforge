@@ -191,7 +191,21 @@
       },
       "visible": "sichtbar"
     },
-    "month": "Monat",
+    "month": {
+      "_": "Monat",
+      "april": "April",
+      "august": "August",
+      "december": "Dezember",
+      "february": "Februar",
+      "january": "Januar",
+      "july": "Juli",
+      "june": "Juni",
+      "march": "März",
+      "may": "Mai",
+      "november": "November",
+      "october": "Oktober",
+      "september": "September"
+    },
     "newEntry": "Neuer Eintrag",
     "option": {
       "firstHour": "Tagesbeginn",
@@ -1665,30 +1679,66 @@
         "note": "Notiz",
         "recurrence": {
           "_": "Wiederholung",
+          "atthe": "Am",
           "change": {
             "all": "Alle Ereignisse",
             "content": "Möchten Sie alle Ereignisse, nur zukünftige oder nur dieses einzelne Ereignis ändern?",
             "future": "Alle zukünftigen Ereignisse",
             "single": "Nur dieses Ereignis",
-            "text": "Alle Änderungen betreffen:"
+            "text": {
+              "_": "Alle Änderungen betreffen:",
+              "all": "alle Ereignisse",
+              "allFuture": "alle zukünfigen Ereignisse",
+              "onlyCurrent": "nur das aktuelle Ereignis"
+            },
+            "title": "Sie ändern ein wiederkehrendes Ereignis."
           },
+          "changed": "Wiederholung geändert",
           "customized": {
             "_": "angepasst",
+            "all": "Alle",
             "day": "Tag(e)",
             "month": "Monat(e)",
             "week": "Woche(n)",
             "year": "Jahr(e)"
           },
+          "day": "Tag",
           "each": "Jeden",
+          "end": {
+            "_": "Ende",
+            "after": "Nach",
+            "never": "Niemals",
+            "onDate": "Am Datum",
+            "times": "Mal"
+          },
+          "exDate": {
+            "_": "Ausnahmetage",
+            "tooltip": "An diesen Tagen fällt der Wiederholungstermin aus. Bitte diesen Wert nicht manuell ändern, da er in einem besonderen Format vorliegen muss."
+          },
+          "fifth": "Fünfter",
+          "first": "Erster",
+          "fourth": "Vierter",
           "friday": "Freitag",
+          "in": "Im",
+          "last": "Letzter",
           "monday": "Montag",
+          "none": "---",
+          "ofmonth": "des Monats",
+          "oftheyear": "des Jahres",
+          "on": "am",
+          "onDay": "am Tag",
+          "onThe": "an dem",
           "saturday": "Samstag",
+          "second": "Zweiter",
+          "show": "Wiederholungen anzeigen ...",
           "sunday": "Sonntag",
+          "third": "Dritter",
           "thursday": "Donnerstag",
           "tuesday": "Dienstag",
           "until": "Ende",
           "wednesday": "Mittwoch",
-          "weekday": "Wochentag"
+          "weekday": "Wochentag",
+          "weekend": "Wochenende"
         },
         "reminder": {
           "_": "Erinnerung",

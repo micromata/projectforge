@@ -1,52 +1,22 @@
 import { Frequency, RRule, type Options } from "rrule";
+import {
+  emptyRecurrence,
+  indicesToOnTheDay,
+  onTheDayToIndices,
+  WEEKDAYS,
+  type RecurrenceFreq,
+  type RecurrenceMode,
+  type RecurrenceModel,
+  type SetPos,
+} from "./recurrence-model";
 
 /**
- * The RFC 5545 recurrence rule of a team event, reduced to the four things the form edits, and the pure
- * translation between it and the `recurrenceRule` string the backend stores.
- *
- * The backend keeps the rule as a bare `RRULE` body ("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE"), the `RRULE:`
- * prefix stripped (`TeamEventDO.recurrenceRule` setter). The `rrule` package does the actual RFC parsing
- * and formatting; this module is only the mapping to a small, UI-shaped model, so the section component
- * stays declarative and this stays testable without React.
+ * The translation between the stored `recurrenceRule` string and the customized editor's model. The
+ * backend keeps the rule as a bare `RRULE` body ("FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO"), the
+ * `RRULE:` prefix stripped (`TeamEventDO.recurrenceRule` setter). The `rrule` package does the RFC parsing
+ * and formatting; this is only the mapping to the small model, matching the legacy `compute*.js` exactly,
+ * so the section components stay declarative and this stays testable without React.
  */
-
-/** The frequencies the form offers — the legacy `RecurrenceFrequency` without `HOURLY`, and no `NONE`. */
-export type RecurrenceFreq = "YEARLY" | "MONTHLY" | "WEEKLY" | "DAILY";
-
-/** iCalendar weekday tokens, Monday first, as `BYDAY` writes them and the weekday checkboxes offer them. */
-export const WEEKDAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"] as const;
-export type Weekday = (typeof WEEKDAYS)[number];
-
-/**
- * The rule as the form holds it. `freq` null means "no recurrence" (an empty rule); `byWeekday` only
- * matters while `freq` is `WEEKLY`; `until`, when set, is an inclusive last day as `yyyy-MM-dd`.
- */
-export interface RecurrenceModel {
-  freq: RecurrenceFreq | null;
-  interval: number;
-  byWeekday: Weekday[];
-  until: string | null;
-}
-
-/**
- * The top-level options the recurrence select offers: no recurrence, one of the four plain frequencies
- * (a bare `FREQ` repeated every period), or "customized" — the interval, weekdays and end date panel.
- */
-export type RecurrenceMode = "NONE" | RecurrenceFreq | "CUSTOMIZED";
-
-/**
- * Which top-level option a stored rule presents as, mirroring the legacy `CalendarEventRecurrence`: a
- * bare frequency with interval 1 and nothing else is that plain frequency; anything carrying a non-1
- * interval, weekdays or an end date is "customized"; no frequency at all is "none". This only seeds the
- * select on load — once the user picks "customized" the section holds that choice itself, so a customized
- * rule that happens to read back as a plain frequency (interval 1, no extras) does not snap the select.
- */
-export function recurrenceMode(model: RecurrenceModel): RecurrenceMode {
-  if (!model.freq) return "NONE";
-  if (model.interval !== 1 || model.byWeekday.length > 0 || model.until != null)
-    return "CUSTOMIZED";
-  return model.freq;
-}
 
 const FREQ_TO_RRULE: Record<RecurrenceFreq, Frequency> = {
   YEARLY: Frequency.YEARLY,
@@ -62,56 +32,126 @@ const RRULE_TO_FREQ: Partial<Record<Frequency, RecurrenceFreq>> = {
   [Frequency.DAILY]: "DAILY",
 };
 
-/** A rule with no recurrence — the starting point and what an unparseable or non-recurring rule reads as. */
-export function emptyRecurrence(): RecurrenceModel {
-  return { freq: null, interval: 1, byWeekday: [], until: null };
-}
-
 /**
- * Reads a stored `recurrenceRule` into the model. Anything without a `FREQ` (an empty string, a rule the
- * form does not cover such as `HOURLY`) reads as "no recurrence" rather than throwing, so a value the UI
- * cannot represent is simply shown as none — never silently mangled on the way back out.
+ * Reads a stored `recurrenceRule` into the model. A rule without a `FREQ`, one the form does not cover
+ * (`HOURLY`) or an unparseable one reads as "no recurrence" rather than throwing, so a value the UI cannot
+ * represent is shown as none — never silently mangled on the way back out.
  */
 export function parseRecurrence(
   rule: string | null | undefined
 ): RecurrenceModel {
-  const cleaned = (rule ?? "").replace(/^RRULE:/i, "").trim();
-  if (!cleaned || !/FREQ=/i.test(cleaned)) return emptyRecurrence();
-  let opts: Partial<Options>;
-  try {
-    opts = RRule.parseString(cleaned);
-  } catch {
-    return emptyRecurrence();
+  const opts = parseOptions(rule);
+  const freq = opts && opts.freq != null ? RRULE_TO_FREQ[opts.freq] : undefined;
+  if (!opts || !freq) return emptyRecurrence();
+
+  const model = emptyRecurrence();
+  model.freq = freq;
+  model.interval = opts.interval && opts.interval > 0 ? opts.interval : 1;
+
+  if (opts.count != null && opts.count > 0) {
+    model.endMode = "COUNT";
+    model.count = opts.count;
+  } else if (opts.until) {
+    model.endMode = "UNTIL";
+    model.until = toDateString(opts.until);
   }
-  const freq = opts.freq != null ? RRULE_TO_FREQ[opts.freq] : undefined;
-  if (!freq) return emptyRecurrence();
-  return {
-    freq,
-    interval: opts.interval && opts.interval > 0 ? opts.interval : 1,
-    byWeekday: readWeekdays(opts.byweekday ?? null),
-    until: opts.until ? toDateString(opts.until) : null,
-  };
+
+  const bymonth = firstNumber(opts.bymonth);
+  const bymonthday = firstNumber(opts.bymonthday);
+  const bysetpos = firstNumber(opts.bysetpos);
+  const days = weekdayIndices(opts.byweekday);
+
+  if (freq === "WEEKLY") {
+    model.weeklyDays = WEEKDAYS.filter((_, i) => days.includes(i));
+  } else if (freq === "MONTHLY") {
+    if (bysetpos != null) {
+      model.monthlyMode = "ONTHE";
+      model.which = normalizeSetPos(bysetpos);
+      model.onTheDay = indicesToOnTheDay(days);
+    } else if (bymonthday != null) {
+      model.monthlyDay = bymonthday;
+    }
+  } else if (freq === "YEARLY") {
+    if (bymonth != null) model.yearlyMonth = bymonth;
+    if (bysetpos != null) {
+      model.yearlyMode = "ONTHE";
+      model.which = normalizeSetPos(bysetpos);
+      model.onTheDay = indicesToOnTheDay(days);
+    } else if (bymonthday != null) {
+      model.yearlyDay = bymonthday;
+    }
+  }
+  return model;
 }
 
 /**
  * Writes the model back to a `recurrenceRule` body (no `RRULE:` prefix, as the backend stores it), or the
- * empty string for no recurrence. `INTERVAL` is always present, as the legacy form wrote it; `BYDAY` only
- * for a weekly rule with days picked; `UNTIL` is the end of the chosen day in UTC, matching the day the
- * backend derives for `recurrenceUntil` (`TeamEventDO.fixUntilInRecur`).
+ * empty string for no recurrence — mirroring the legacy `compute*.js`. Interval is written for
+ * monthly/weekly/daily (never yearly, which repeats every year); the `BY…`/`COUNT`/`UNTIL` fields follow
+ * the active mode. `UNTIL` is the end of the chosen day in UTC, the day `TeamEventDO.fixUntilInRecur`
+ * derives for `recurrenceUntil`.
  */
 export function serializeRecurrence(model: RecurrenceModel): string {
   if (!model.freq) return "";
-  const options: Partial<Options> = {
-    freq: FREQ_TO_RRULE[model.freq],
-    interval: model.interval > 1 ? model.interval : 1,
-  };
-  if (model.freq === "WEEKLY" && model.byWeekday.length > 0) {
-    options.byweekday = model.byWeekday.map((day) => WEEKDAYS.indexOf(day));
+  const options: Partial<Options> = { freq: FREQ_TO_RRULE[model.freq] };
+  const interval = model.interval > 1 ? model.interval : 1;
+
+  if (model.freq === "YEARLY") {
+    if (model.yearlyMode === "ON") {
+      options.bymonth = model.yearlyMonth;
+      options.bymonthday = model.yearlyDay;
+    } else {
+      options.bysetpos = model.which;
+      options.byweekday = onTheDayToIndices(model.onTheDay);
+      options.bymonth = model.yearlyMonth;
+    }
+  } else if (model.freq === "MONTHLY") {
+    options.interval = interval;
+    if (model.monthlyMode === "ON") {
+      options.bymonthday = model.monthlyDay;
+    } else {
+      options.bysetpos = model.which;
+      options.byweekday = onTheDayToIndices(model.onTheDay);
+    }
+  } else if (model.freq === "WEEKLY") {
+    options.interval = interval;
+    if (model.weeklyDays.length > 0)
+      options.byweekday = model.weeklyDays.map((d) => WEEKDAYS.indexOf(d));
+  } else {
+    options.interval = interval;
   }
-  if (model.until) options.until = untilDate(model.until);
+
+  if (model.endMode === "COUNT")
+    options.count = model.count > 0 ? model.count : 1;
+  else if (model.endMode === "UNTIL" && model.until)
+    options.until = untilDate(model.until);
+
   return RRule.optionsToString(options)
     .replace(/^RRULE:/i, "")
     .trim();
+}
+
+/**
+ * Which top-level option a stored rule seeds the select with: none for no `FREQ`; customized once any
+ * `BY…`/`COUNT`/`UNTIL` or a non-1 interval is present; otherwise the plain frequency (a bare
+ * `FREQ=…;INTERVAL=1`). Only seeds on load — the section then holds the choice itself, so a customized
+ * rule that happens to read back as a plain frequency does not snap the select.
+ */
+export function recurrenceMode(
+  rule: string | null | undefined
+): RecurrenceMode {
+  const opts = parseOptions(rule);
+  const freq = opts && opts.freq != null ? RRULE_TO_FREQ[opts.freq] : undefined;
+  if (!opts || !freq) return "NONE";
+  const customized =
+    (opts.interval != null && opts.interval !== 1) ||
+    opts.bymonth != null ||
+    opts.bymonthday != null ||
+    opts.bysetpos != null ||
+    opts.byweekday != null ||
+    opts.count != null ||
+    opts.until != null;
+  return customized ? "CUSTOMIZED" : freq;
 }
 
 /** The end-of-day UTC instant a `recurrenceUntil` should carry for the chosen last day, or null. */
@@ -119,18 +159,43 @@ export function untilInstant(until: string | null): string | null {
   return until ? untilDate(until).toISOString() : null;
 }
 
-/** Normalises `rrule`'s several byweekday shapes (number, Weekday, arrays of either) to our tokens. */
-function readWeekdays(byweekday: Options["byweekday"]): Weekday[] {
+/** Parses a rule body (tolerating the `RRULE:` prefix), or null for empty/FREQ-less/unparseable input. */
+function parseOptions(
+  rule: string | null | undefined
+): Partial<Options> | null {
+  const cleaned = (rule ?? "").replace(/^RRULE:/i, "").trim();
+  if (!cleaned || !/FREQ=/i.test(cleaned)) return null;
+  try {
+    return RRule.parseString(cleaned);
+  } catch {
+    return null;
+  }
+}
+
+/** The first value of one of rrule's number|number[] fields, or null. */
+function firstNumber(
+  value: number | number[] | null | undefined
+): number | null {
+  if (value == null) return null;
+  return Array.isArray(value) ? (value.length ? value[0] : null) : value;
+}
+
+/** Normalises rrule's several byweekday shapes (number, Weekday, arrays of either) to indices 0..6. */
+function weekdayIndices(byweekday: Options["byweekday"] | undefined): number[] {
   if (byweekday == null) return [];
   const list = Array.isArray(byweekday) ? byweekday : [byweekday];
-  const days = list
+  return list
     .map((entry) =>
       typeof entry === "number" ? entry : (entry as { weekday: number }).weekday
     )
-    .filter((n) => n >= 0 && n < WEEKDAYS.length)
-    .map((n) => WEEKDAYS[n]);
-  // Keep the calendar order and drop any duplicate a malformed rule might carry.
-  return WEEKDAYS.filter((day) => days.includes(day));
+    .filter((n) => n >= 0 && n < WEEKDAYS.length);
+}
+
+/** Clamps an arbitrary `BYSETPOS` to the five the UI offers: first..fourth, or last. */
+function normalizeSetPos(pos: number): SetPos {
+  if (pos < 0) return -1;
+  if (pos >= 4) return 4;
+  return (pos <= 1 ? 1 : pos) as SetPos;
 }
 
 /** The UTC calendar date of an instant as `yyyy-MM-dd` — `UNTIL` is read back as the day it names. */

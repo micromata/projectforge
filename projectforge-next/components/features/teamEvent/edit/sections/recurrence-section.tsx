@@ -15,12 +15,14 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { cn } from "@/lib/utils";
 import {
   emptyRecurrence,
+  type RecurrenceMode,
+  type RecurrenceModel,
+} from "../recurrence-model";
+import {
   parseRecurrence,
   recurrenceMode,
   serializeRecurrence,
   untilInstant,
-  type RecurrenceMode,
-  type RecurrenceModel,
 } from "../recurrence-rrule";
 import type { TeamEventEditValues } from "../team-event-edit-schema";
 import { RecurrenceCustomized } from "./recurrence-customized";
@@ -38,7 +40,7 @@ const MODES: { value: RecurrenceMode; labelKey: string }[] = [
   { value: "DAILY", labelKey: "common.recurrence.frequency.daily" },
   {
     value: "CUSTOMIZED",
-    labelKey: "plugins.teamcal.event.recurrence.customized",
+    labelKey: "plugins.teamcal.event.recurrence.customized._",
   },
 ];
 
@@ -65,7 +67,7 @@ export function RecurrenceSection({ className }: { className?: string }) {
     (state: any) => (state.values as TeamEventEditValues).recurrenceRule
   );
   const model = parseRecurrence(rule);
-  const [mode, setMode] = useState<RecurrenceMode>(() => recurrenceMode(model));
+  const [mode, setMode] = useState<RecurrenceMode>(() => recurrenceMode(rule));
 
   const update = (next: RecurrenceModel) => {
     form.setFieldValue("recurrenceRule", serializeRecurrence(next) || null);
@@ -81,7 +83,7 @@ export function RecurrenceSection({ className }: { className?: string }) {
       if (!model.freq) update({ ...emptyRecurrence(), freq: "WEEKLY" });
     } else {
       // A plain frequency: a bare `FREQ=…;INTERVAL=1`, dropping any customized detail, as legacy did.
-      update({ freq: value, interval: 1, byWeekday: [], until: null });
+      update({ ...emptyRecurrence(), freq: value });
     }
   };
 
@@ -90,7 +92,7 @@ export function RecurrenceSection({ className }: { className?: string }) {
       <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
         <FieldShell
           name="recurrenceRule"
-          label={t("plugins.teamcal.event.recurrence")}
+          label={t("plugins.teamcal.event.recurrence._")}
           invalid={false}
           errors={[]}
           ids={ids}

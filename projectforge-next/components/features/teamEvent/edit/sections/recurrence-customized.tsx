@@ -1,9 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,19 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DateInput } from "@/components/shared/date-input";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
-import {
-  WEEKDAYS,
-  type RecurrenceFreq,
-  type RecurrenceModel,
-  type Weekday,
-} from "../recurrence-rrule";
+import type { RecurrenceFreq, RecurrenceModel } from "../recurrence-model";
+import { RecurrenceDetailMonthly } from "./recurrence-detail-monthly";
+import { RecurrenceDetailYearly } from "./recurrence-detail-yearly";
+import { RecurrenceEndField } from "./recurrence-end-field";
+import { RecurrenceWeekdayToggle } from "./recurrence-weekday-toggle";
 
 /**
- * The frequencies, interval units and weekday labels the customized panel offers, each with its i18n key
- * spelt out in full: a `t(\`…${value}\`)` built at runtime would be invisible to the key scanner (see
- * NextI18nKeyScanner), so every key a control shows is a literal here.
+ * The frequencies and interval units the customized panel offers, each i18n key spelt out in full: a
+ * `t(\`…${value}\`)` built at runtime would be invisible to the key scanner (see NextI18nKeyScanner).
  */
 const FREQUENCIES: { value: RecurrenceFreq; labelKey: string }[] = [
   { value: "YEARLY", labelKey: "common.recurrence.frequency.yearly" },
@@ -38,15 +33,6 @@ const INTERVAL_UNIT: Record<RecurrenceFreq, string> = {
   MONTHLY: "plugins.teamcal.event.recurrence.customized.month",
   YEARLY: "plugins.teamcal.event.recurrence.customized.year",
 };
-const WEEKDAY_LABEL: Record<Weekday, string> = {
-  MO: "plugins.teamcal.event.recurrence.monday",
-  TU: "plugins.teamcal.event.recurrence.tuesday",
-  WE: "plugins.teamcal.event.recurrence.wednesday",
-  TH: "plugins.teamcal.event.recurrence.thursday",
-  FR: "plugins.teamcal.event.recurrence.friday",
-  SA: "plugins.teamcal.event.recurrence.saturday",
-  SU: "plugins.teamcal.event.recurrence.sunday",
-};
 
 interface Props {
   model: RecurrenceModel;
@@ -54,22 +40,32 @@ interface Props {
 }
 
 /**
- * The "customized" recurrence panel — the legacy `RRuleGenerator` reduced to the frequency, its interval,
- * the weekdays a weekly rule falls on and the optional end date. Shown only while the section's mode is
- * "customized"; the plain frequencies write a bare `FREQ=…;INTERVAL=1` and show none of this.
+ * The "customized" recurrence panel — a faithful replica of the legacy `RRuleGenerator`: a frequency
+ * sub-select, the interval (monthly/weekly/daily; yearly repeats every year), the per-frequency detail
+ * (yearly/monthly on vs. on-the, the weekly weekday toggles) and the shared end row. Shown only while the
+ * section's mode is "customized"; the plain frequencies write a bare `FREQ=…;INTERVAL=1` and show none of
+ * this. Each row delegates to its own component so this stays a thin orchestrator.
  */
 export function RecurrenceCustomized({ model, update }: Props) {
   const freq = model.freq ?? "WEEKLY";
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
         <FrequencyField freq={freq} model={model} update={update} />
-        <IntervalField freq={freq} model={model} update={update} />
-        <UntilField model={model} update={update} />
+        {freq !== "YEARLY" ? (
+          <IntervalField freq={freq} model={model} update={update} />
+        ) : null}
       </div>
-      {freq === "WEEKLY" ? (
-        <WeekdayPicker model={model} update={update} />
+      {freq === "YEARLY" ? (
+        <RecurrenceDetailYearly model={model} update={update} />
       ) : null}
+      {freq === "MONTHLY" ? (
+        <RecurrenceDetailMonthly model={model} update={update} />
+      ) : null}
+      {freq === "WEEKLY" ? (
+        <RecurrenceWeekdayToggle model={model} update={update} />
+      ) : null}
+      <RecurrenceEndField model={model} update={update} />
     </div>
   );
 }
@@ -143,63 +139,5 @@ function IntervalField({
         </span>
       </div>
     </FieldShell>
-  );
-}
-
-/** The optional last day the series runs to; empty means it repeats without end. */
-function UntilField({ model, update }: Props) {
-  const t = useTranslations();
-  const ids = useFieldIds();
-  const label = t("plugins.teamcal.event.recurrence.until");
-  return (
-    <FieldShell
-      name="recurrenceUntil"
-      label={label}
-      invalid={false}
-      errors={[]}
-      ids={ids}
-    >
-      <DateInput
-        id={ids.controlId}
-        aria-label={label}
-        value={model.until}
-        onChange={(until) => update({ ...model, until })}
-      />
-    </FieldShell>
-  );
-}
-
-/** Which weekdays a weekly rule falls on — none picked means every day the interval lands on. */
-function WeekdayPicker({ model, update }: Props) {
-  const t = useTranslations();
-  const toggle = (day: Weekday, on: boolean) =>
-    update({
-      ...model,
-      byWeekday: on
-        ? WEEKDAYS.filter((d) => d === day || model.byWeekday.includes(d))
-        : model.byWeekday.filter((d) => d !== day),
-    });
-  return (
-    <div
-      role="group"
-      aria-label={t("plugins.teamcal.event.recurrence.weekday")}
-      className="flex flex-wrap gap-x-4 gap-y-2"
-    >
-      {WEEKDAYS.map((day) => (
-        <div key={day} className="flex items-center gap-2">
-          <Checkbox
-            id={`recurrence-day-${day}`}
-            checked={model.byWeekday.includes(day)}
-            onCheckedChange={(checked) => toggle(day, checked === true)}
-          />
-          <Label
-            htmlFor={`recurrence-day-${day}`}
-            className="text-xs font-normal text-foreground"
-          >
-            {t(WEEKDAY_LABEL[day])}
-          </Label>
-        </div>
-      ))}
-    </div>
   );
 }

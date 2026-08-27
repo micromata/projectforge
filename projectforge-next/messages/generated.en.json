@@ -191,7 +191,21 @@
       },
       "visible": "visible"
     },
-    "month": "Month",
+    "month": {
+      "_": "Month",
+      "april": "April",
+      "august": "August",
+      "december": "December",
+      "february": "February",
+      "january": "January",
+      "july": "July",
+      "june": "June",
+      "march": "March",
+      "may": "May",
+      "november": "November",
+      "october": "October",
+      "september": "September"
+    },
     "newEntry": "New entry",
     "option": {
       "firstHour": "Begin of day",
@@ -1665,30 +1679,66 @@
         "note": "Note",
         "recurrence": {
           "_": "Recurrence",
+          "atthe": "at the",
           "change": {
             "all": "All events",
             "content": "Do you want to change all events, all future events, or only this event?",
             "future": "All future events",
             "single": "Only this event",
-            "text": "Any modification regards:"
+            "text": {
+              "_": "Any modification regards:",
+              "all": "all events.",
+              "allFuture": "all future events.",
+              "onlyCurrent": "only the current event."
+            },
+            "title": "You are going to change a recurring event."
           },
+          "changed": "Recurrence changed",
           "customized": {
             "_": "customized",
+            "all": "All",
             "day": "day(s)",
             "month": "month(s)",
             "week": "week(s)",
             "year": "year(s)"
           },
+          "day": "Day",
           "each": "each",
+          "end": {
+            "_": "End",
+            "after": "After",
+            "never": "Never",
+            "onDate": "On date",
+            "times": "time(s)"
+          },
+          "exDate": {
+            "_": "Exclude days",
+            "tooltip": "Exclude these days from the recurrence. Please don't edit this field manually because a specific format is required."
+          },
+          "fifth": "fifth",
+          "first": "first",
+          "fourth": "fourth",
           "friday": "Friday",
+          "in": "in",
+          "last": "last",
           "monday": "Monday",
+          "none": "---",
+          "ofmonth": "of month",
+          "oftheyear": "of the year",
+          "on": "on",
+          "onDay": "on day",
+          "onThe": "on the",
           "saturday": "Saturday",
+          "second": "second",
+          "show": "show recurrence ...",
           "sunday": "Sunday",
+          "third": "third",
           "thursday": "Thursday",
           "tuesday": "Tuesday",
           "until": "Until",
           "wednesday": "Wednesday",
-          "weekday": "Weekday"
+          "weekday": "Weekday",
+          "weekend": "Weekend"
         },
         "reminder": {
           "_": "Reminder",
