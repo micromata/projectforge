@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
+import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import {
   CALENDAR_GRID_SIZES,
   type CalendarInit,
@@ -51,10 +52,13 @@ export function CalendarSettingsDialog({
 }: CalendarSettingsDialogProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  const currentUser = useCurrentUserRef();
   const filter = init.filter;
   const otherEnabled = filter?.otherTimesheetUsersEnabled ?? false;
   const timesheetUser = init.timesheetUser;
-  const showsOwn = (timesheetUser?.id ?? 0) > 0;
+  // The filter is what the mutations patch locally, so it reflects a change at once; `timesheetUser`
+  // is only the resolved name for the combobox trigger.
+  const showsOwn = (filter?.timesheetUserId ?? 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,7 +118,10 @@ export function CalendarSettingsDialog({
                         }
                       : null
                   }
-                  onChange={(user) => mutations.changeTimesheetUser(user?.id)}
+                  onChange={(user) =>
+                    mutations.changeTimesheetUser(user?.id, user)
+                  }
+                  selectMe={currentUser}
                   aria-label={t("calendar.option.timesheets")}
                 />
               </div>

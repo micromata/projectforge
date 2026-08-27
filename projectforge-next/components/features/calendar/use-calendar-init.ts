@@ -8,6 +8,7 @@ import type {
   CalendarFilter,
   CalendarInit,
   CalendarInitPatch,
+  UserRef,
 } from "@/lib/rs/calendar-types";
 
 export const CALENDAR_INIT_KEY = ["calendar", "init"] as const;
@@ -65,6 +66,21 @@ export function useInitPatchRunner() {
     [queryClient]
   );
 
+  /**
+   * Keeps the resolved timesheet user in sync with `filter.timesheetUserId`. The backend answers
+   * `changeTimesheetUser` with only `isFilterModified`, so without this the combobox trigger — which
+   * shows `timesheetUser.displayName` — would keep naming the originally-loaded user after a new one
+   * is picked. Passed the picked entry (autocomplete) or `null` (cleared / hidden).
+   */
+  const patchTimesheetUser = useCallback(
+    (user: UserRef | null) => {
+      queryClient.setQueryData<CalendarInit>(CALENDAR_INIT_KEY, (prev) =>
+        prev ? { ...prev, timesheetUser: user } : prev
+      );
+    },
+    [queryClient]
+  );
+
   const run = useCallback(
     async (
       promise: Promise<CalendarInitPatch>,
@@ -82,5 +98,5 @@ export function useInitPatchRunner() {
     [applyPatch, invalidateEvents]
   );
 
-  return { applyPatch, invalidateEvents, patchFilter, run };
+  return { applyPatch, invalidateEvents, patchFilter, patchTimesheetUser, run };
 }

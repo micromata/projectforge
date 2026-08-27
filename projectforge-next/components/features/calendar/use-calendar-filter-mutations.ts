@@ -14,7 +14,11 @@ import {
   refreshSubscriptions,
   setCalendarVisibility,
 } from "@/lib/rs/calendar";
-import type { CalendarInit, StyledTeamCalendar } from "@/lib/rs/calendar-types";
+import type {
+  CalendarInit,
+  StyledTeamCalendar,
+  UserRef,
+} from "@/lib/rs/calendar-types";
 import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
 
 /**
@@ -33,7 +37,8 @@ import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
  */
 export function useCalendarFilterMutations() {
   const queryClient = useQueryClient();
-  const { invalidateEvents, patchFilter, run } = useInitPatchRunner();
+  const { invalidateEvents, patchFilter, patchTimesheetUser, run } =
+    useInitPatchRunner();
 
   /** Local add/remove/replace of the chosen calendars (the ± of the calendar select). Persisted via `storeState`. */
   const setActiveCalendars = useCallback(
@@ -63,8 +68,14 @@ export function useCalendarFilterMutations() {
         patchFilter({ defaultCalendarId: id });
         return run(changeDefaultCalendar(id));
       },
-      changeTimesheetUser: (userId: number | undefined) => {
+      changeTimesheetUser: (
+        userId: number | undefined,
+        user?: UserRef | null
+      ) => {
         patchFilter({ timesheetUserId: userId ?? null });
+        // Keep the resolved user in sync so the combobox names whoever was just picked; the checkbox
+        // path (sentinel 1/-1) has no ref and needs none — its state is read off the filter.
+        patchTimesheetUser(user ?? null);
         return run(changeTimesheetUser(userId), { events: true });
       },
       changeShowBreaks: (checked: boolean) => {
@@ -90,6 +101,13 @@ export function useCalendarFilterMutations() {
         }
       },
     }),
-    [run, patchFilter, setActiveCalendars, invalidateEvents, queryClient]
+    [
+      run,
+      patchFilter,
+      patchTimesheetUser,
+      setActiveCalendars,
+      invalidateEvents,
+      queryClient,
+    ]
   );
 }
