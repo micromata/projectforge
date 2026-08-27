@@ -477,6 +477,9 @@ class CalendarFilterServicesRest {
     if (currentFilter == null) {
       // Creating empty filter (user has no filter list yet):
       currentFilter = CalendarFilter()
+      // Default the timesheet display to the logged-in user's own time sheets (checkbox on for a fresh filter).
+      // An explicit uncheck later persists timesheetUserId = null on the existing filter and is therefore respected.
+      currentFilter.timesheetUserId = ThreadLocalUserContext.loggedInUserId
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
     currentFilter.afterDeserialization()
