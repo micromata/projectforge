@@ -47,6 +47,13 @@ class KontoPagesRest
         KontoDao::class.java,
         "fibu.konto.title") {
 
+    /**
+     * Feeds the generic `account/autosearch` (AbstractEntityRest.getAutoCompleteObjects) used by the
+     * next frontend's account picker. Without it the endpoint throws and the picker stays empty — no
+     * entry can be chosen and typing finds nothing. Mirrors the fields the custom `ac` endpoint searches.
+     */
+    override val autoCompleteSearchFields = arrayOf("nummer", "bezeichnung", "description")
+
     override fun transformFromDB(obj: KontoDO, editMode: Boolean): Konto {
         val konto = Konto()
         konto.copyFrom(obj)
