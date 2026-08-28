@@ -4,6 +4,12 @@ Detailplan zu [MIGRATION.md](MIGRATION.md). Die Umsetzung ist **weitgehend
 abgeschlossen**; dieses Dokument hält die ursprüngliche Analyse fest und
 dokumentiert im folgenden Abschnitt den erreichten Stand.
 
+**Stand:** Kalenderseite komplett; Timesheet-Edit fertig; TeamEvent-Edit in den Phasen A
+(Grundgerüst), B (Reminder) und D (Recurrence/Serientermine) umgesetzt und verdrahtet.
+**Offen** und bewusst zurückgestellt: TeamEvent-**Attendees** (Phase C, *später wenn überhaupt*),
+die beiden **List-Pages** (timesheet/teamEvent) sowie die Extraktion von
+`shared/async-entity-multi-select`.
+
 ## Todo-Liste (Umsetzungsstand)
 
 Abgehakt = im Code vorhanden und dem Plan entsprechend umgesetzt.
@@ -40,7 +46,8 @@ Abgehakt = im Code vorhanden und dem Plan entsprechend umgesetzt.
       `color-chooser.tsx`)
 - [ ] `components/shared/async-entity-multi-select.tsx` – **nicht als separater Shared-Baustein
       angelegt**; die Urlaubs-Auswahl steckt in `calendar-vacation-selects.tsx`. Bei einem
-      zweiten Nutzer noch nach `shared/` zu extrahieren.
+      zweiten Nutzer noch nach `shared/` zu extrahieren. Der einzige plausible zweite Nutzer
+      (TeamEvent-Attendees, Phase C) ist selbst zurückgestellt – bleibt also offen.
 
 ### FullCalendar & Styling
 
@@ -90,7 +97,7 @@ serverseitig (HTTP 406).
       bleibt vorerst in Wicket (`MenuItemDefId.TIMESHEET_LIST`). „Eine Route und eine
       Spaltenliste, kein Umbau."
 
-### TeamCal-Event – Phase A (Grundgerüst) erledigt
+### TeamCal-Event – Phasen A/B/D umgesetzt, C (Attendees) offen
 
 Aktiver Backend-Vertrag: `TeamEventPagesRest` + DTO `TeamEvent.kt`. `calEvent` ist nur ein
 abgeschaltetes Flag (`calendar.useNewCalendarEvents=false`) **ohne** Controller/DTO – ignorieren.
@@ -121,18 +128,24 @@ abgeschaltetes Flag (`calendar.useNewCalendarEvents=false`) **ohne** Controller/
 - [x] Registrierung: `lib/hand-built-categories.ts` + `NextMigration.MIGRATED["teamEvent"]`
       (Test `NextMigrationTest` grün), i18n-Katalog regeneriert (`GenerateNextI18nMessagesTest` grün)
 
-Bewusst **zurückgestellt** (jeweils eigenes Custom-Widget, **nicht** in den Metadaten;
-Relationen/`UICustomized`) – vor Umsetzung mit Nutzer bestätigen:
+Die anfangs zurückgestellten Custom-Widgets (jeweils **nicht** in den Metadaten;
+Relationen/`UICustomized`) sind inzwischen bis auf Attendees umgesetzt:
 
-- [ ] **Phase B – Reminder** – im Backend `UICustomized("calendar.reminder")`, muss als Widget
-      nachgebaut werden (`reminderDuration`/`reminderDurationUnit`/`reminderActionType` werden
-      bereits verlustfrei durchgereicht)
-- [ ] **Phase C – Attendees** (`MutableSet<TeamEventAttendeeDO>`) – eigener Multi-Select
-- [ ] **Phase D – Recurrence / Serientermine** – `UICustomized("calendar.recurrency")` plus der
-      Rückfrage-Dialog `SeriesModificationMode` (ALL/FUTURE/SINGLE), konditional je nach
-      Master-Startdatum; `validate` verweigert das Speichern eines Serientermins ohne
-      gewählten Modus. Deckt sich mit **offenem Risiko 3** (MODAL-`ResponseAction` öffnet in
-      next noch eine Seite statt Overlay). Das ist der harte Teil.
+- [x] **Phase B – Reminder** – nachgebaut als `edit/sections/reminder-section.tsx`, verdrahtet in
+      `teamEvent.page.tsx` (`reminderDuration`/`reminderDurationUnit`/`reminderActionType`), ersetzt
+      das Backend-`UICustomized("calendar.reminder")`
+- [ ] **Phase C – Attendees** (`MutableSet<TeamEventAttendeeDO>`) – **bewusst offen, später wenn
+      überhaupt.** Ein eigener Multi-Select (idealerweise über einen nach `shared/` extrahierten
+      `async-entity-multi-select`, s. o.). Bis dahin trägt das Schema `attendees` verlustfrei als
+      `z.array(z.unknown())` durch (`team-event-edit-schema.ts:90`, `team-event-edit-values.ts:50`) –
+      bestehende Teilnehmer gehen beim Speichern also nicht verloren, nur editiert werden sie nicht.
+- [x] **Phase D – Recurrence / Serientermine** – nachgebaut als `edit/recurrence-*.ts(x)` +
+      `edit/sections/recurrence-section.tsx` (repliziert den Legacy-`react-rrule-generator`) und
+      `series-modification-section.tsx` (`SeriesModificationMode` ALL/FUTURE/SINGLE, konditional je
+      nach Master-Startdatum; rendert für Nicht-Serien nichts). `validate` verweigert weiterhin das
+      Speichern eines Serientermins ohne gewählten Modus. Der Rückfrage-Dialog ist damit als
+      In-Page-Section gelöst – **offenes Risiko 3** (MODAL-`ResponseAction` als eigene Seite statt
+      Overlay) betrifft diesen Pfad daher nicht mehr.
 - [x] **Drag/Resize bestehender Events** öffnet den Termin bereits verschoben. `toTeamEventRoute`/
       `toTimesheetRoute` behalten die Query bestehender Events; `calendarPrefill` macht daraus einen
       *dirtyPrefill* (echte, speicherbare Änderung — im Gegensatz zum klickbasierten, nicht-dirtying
@@ -184,10 +197,13 @@ die Migration ist deshalb fast reine Frontend-Arbeit.
   die shadcn-Tokens. Begründung: das Backend serialisiert `FullCalendarEvent` und
   die View-Keys (`dayGridMonth` …) direkt für diese Bibliothek; ein Eigenbau
   müsste Monats-/Wochen-Grid, Overlap-Layout, Drag&Drop und Resize nachbauen.
-- **Event-Bearbeitung über den generischen UILayout-Renderer.** Timesheet,
-  TeamEvent und Urlaub bleiben Backend-getriebene Formulare; der Kalender
-  navigiert dorthin. Kein neuer Formularcode – so hält es die Legacy-Seite
-  ebenfalls (`FormModal` im `<Outlet />`).
+- **Event-Bearbeitung über den generischen UILayout-Renderer.**
+  **⚠️ Überholt** – bei der Umsetzung verworfen. Timesheet und TeamEvent sind
+  **handgebaut** (`definePage` + `EntityEditPage`, `@tanstack/react-form` + Zod)
+  analog `book`/`order`, nicht UILayout-getrieben; nur Urlaub navigiert noch auf die
+  Legacy-Edit-Seite. Begründung und Umfang siehe Abschnitt
+  „[Edit-Komponenten (Timesheet & TeamCal-Event)](#edit-komponenten-timesheet--teamcal-event)".
+  Der Kalender navigiert weiterhin dorthin; „kein neuer Formularcode" gilt nicht mehr.
 - **UICustomized-Registry mit `COLOR_CHOOSER` wird mitgebaut**, weil das
   Kalender-Menü selbst auf `calendarSettings` verlinkt und diese Seite vier
   solche Felder hat. Sie ist zugleich das Fundament, das Phase 2 ohnehin braucht.
@@ -625,10 +641,10 @@ Toolbar muss umbrechen, nicht überlaufen).
    auf `calEvent`; mit gesetztem Flag liefert `action` eine URL auf eine
    Kategorie ohne Backend-Seite. Vorbestand, aber next zeigt das als leere Seite
    statt als Legacy-404 – vor der Umschaltung ansehen.
-3. **Serientermine.** Der Rückfrage-Dialog („verschieben & speichern / kopieren &
-   bearbeiten“, `calendar.dd.*`) ist ein MODAL-`ResponseAction`; MODAL öffnet in
-   next derzeit eine Seite statt eines Overlays (Phase-2-Lücke). Drag&Drop einer
-   Serie funktioniert, sieht aber anders aus. Nur vermerken, hier nicht lösen.
+3. **Serientermine.** ~~Der Rückfrage-Dialog ist ein MODAL-`ResponseAction`; MODAL öffnet in
+   next derzeit eine Seite statt eines Overlays.~~ **Gelöst:** Die Serien-Rückfrage ist als
+   In-Page-`series-modification-section.tsx` umgesetzt (Phase D), nicht als MODAL. Der
+   allgemeine MODAL-Overlay-Mangel bleibt für andere Pfade bestehen, trifft diesen aber nicht.
 4. `changeStyle` liefert kein `isFilterModified`, und `styleMap` zählt nicht zu
    `CalendarFilter.isModified` – Umfärben markiert den Filter also nie als
    geändert. Backend-treu, kann Nutzer irritieren; so lassen.
