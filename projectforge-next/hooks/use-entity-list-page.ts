@@ -11,10 +11,12 @@ import {
   useRememberFilter,
   useRememberPageIndex,
   recallPageIndex,
+  refreshedPeriodValues,
   useTableState,
   type ColumnState,
   type FilterValues,
 } from "@/components/data-table";
+import { useFormatContext } from "@/hooks/use-format";
 import { useCallback, useEffect, useRef } from "react";
 import type {
   ColumnDef,
@@ -108,6 +110,7 @@ export function useEntityListPage<Row extends ListRow>({
   buildFilter,
   serverPaging = false,
 }: UseEntityListPageOptions<Row>) {
+  const ctx = useFormatContext();
   const filters = useListFilters(entity, { restoredFilter });
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
   const meta = useListMeta(entity);
@@ -162,7 +165,13 @@ export function useEntityListPage<Row extends ListRow>({
     current: filters.favorite,
     onCurrentChange: filters.setFavorite,
     onApply: (applied) => {
-      filters.setValues(filterValuesFromEntries(applied.entries));
+      // A period given as "bis heute" is brought up to the day the favorite is applied, the same
+      // refresh the first mount does when the list seeds from the stored filter (see [useListFilters]).
+      // Without it a saved "Jahr bis heute" would apply the bounds frozen at save time — 24.08 today
+      // still says 24.08 — since one of the arts cannot be read back off its two dates.
+      filters.setValues(
+        refreshedPeriodValues(filterValuesFromEntries(applied.entries), ctx)
+      );
       query.applyFilter(applied);
     },
   });
