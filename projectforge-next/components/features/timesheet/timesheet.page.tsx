@@ -1,5 +1,8 @@
 import { TIMESHEET_METADATA } from "@/lib/metadata/timesheet.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { TimesheetListActions } from "./timesheet-list-actions";
+import { TimesheetStatisticsLine } from "./timesheet-statistics-line";
+import type { TimesheetStatistics } from "./timesheet-statistics";
 import { AiNoteFooter } from "./edit/sections/ai-note-footer";
 import { TaskKost2Section } from "./edit/sections/task-kost2-section";
 import { DayRangeSection } from "./edit/sections/day-range-section";
@@ -33,11 +36,12 @@ const NEW_ENTRY_PARAMS = [
 /**
  * The whole time sheet page as data (see lib/page-def/types.ts).
  *
- * The list is declared but not routed yet — nothing links to a next one and the menu entry still points
- * at Wicket (`MenuItemDefId.TIMESHEET_LIST`), so `columns` names the entity's own fields in the one shape
- * every page has and adding the list later is a route and not a restructuring (see TimesheetListRow).
+ * The list is live and routed at `next/timesheet` (`MenuItemDefId.TIMESHEET_LIST` resolves there via
+ * `listUrl`): the filter toggles recursive/onlyBillable, the summed-duration + AI-share footer
+ * (`statistics`), the Excel and ics exports (`listActions`) and the mass update (`massUpdate`) match the
+ * legacy list — only its PDF export (wicket-coupled formatter) and Vorlagen button stay behind.
  *
- * The edit page is the one that is live: the calendar opens it (see toTimesheetRoute). Its fields follow
+ * The edit page the calendar opens (see toTimesheetRoute). Its fields follow
  * the legacy form (`TimesheetPagesRest.createEditLayout`) — the task and its cost unit, the period, the
  * texts — with the templates/recent bar above them and the AI-time-savings block only where the
  * installation tracks it (`timeSavingsByAIEnabled`).
@@ -55,8 +59,8 @@ export const TIMESHEET_PAGE = definePage<
   // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
   categoryKey: "menu.projectmanagement",
   titleKey: "menu.timesheetList",
-  // Minimal, since no list renders yet: the fields that identify a sheet, in the order the legacy list
-  // shows them (`TimesheetPagesRest.createListLayout`).
+  // The fields that identify a sheet, in the order the legacy list shows them
+  // (`TimesheetPagesRest.createListLayout`).
   columns: [
     { name: "user", size: 140 },
     { name: "task", size: 240, className: "font-medium" },
@@ -66,6 +70,28 @@ export const TIMESHEET_PAGE = definePage<
     { name: "reference", size: 140 },
     { name: "description", size: 320, wrap: true },
   ],
+  // The list's footer between the toolbar and the table: the summed duration and, where the installation
+  // tracks it, the AI share — the two numbers the legacy list shows (TimesheetPagesRest.postProcessResultSet).
+  // The cast is where the untyped `ResultSet.statistics` becomes what the rest class sends (see
+  // PageDef.statistics for why this is the place for it).
+  statistics: ({ statistics, isFetching }) => (
+    <TimesheetStatisticsLine
+      statistics={statistics as TimesheetStatistics | undefined}
+      isFetching={isFetching}
+    />
+  ),
+  // The list's exports, in the toolbar: the filtered sheets as Excel and the ics subscription url. The PDF
+  // export the legacy list also has stays in Wicket for now — its formatter is coupled to that module (see
+  // TimesheetListActions).
+  listActions: TimesheetListActions,
+  // "Mehrfachauswahl" — the legacy list's mass select and update, backed by TimesheetMultiSelectedPageRest
+  // (mounted under `timesheetSelected`, the entity's own name + URL_SUFFIX_SELECTED, not `${entity}Selected`).
+  // The selection column and mode toggle appear only for a user with update access; the mass-update form
+  // itself is the backend's UILayout, rendered by the generic MassUpdatePage under the route below.
+  massUpdate: {
+    endpoint: "timesheetSelected",
+    route: "/timesheet/mass-update",
+  },
   edit: {
     schema: timesheetEditSchema,
     fieldNames: TIMESHEET_EDIT_FIELDS,

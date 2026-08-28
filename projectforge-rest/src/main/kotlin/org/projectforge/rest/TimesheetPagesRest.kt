@@ -31,13 +31,17 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
@@ -50,12 +54,18 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
+import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -91,6 +101,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
+    @Autowired
+    private lateinit var timesheetExport: TimesheetExport
+
+    @Autowired
+    private lateinit var calendarFeedService: CalendarFeedService
+
     /**
      * For exporting list of timesheets.
      */
@@ -115,6 +131,20 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     class RecentTimesheets(
         val timesheets: List<Timesheet>,
         val cost2Visible: Boolean
+    )
+
+    /**
+     * The aggregates of the whole timesheet list for a hand-built page that formats nothing itself: the summed
+     * duration (already formatted in the user's locale, taken as-is), its raw millis for a client that wants to
+     * add it up itself, and — only where the installation tracks it — the share of time saved by AI. The typed
+     * counterpart of the [resultInfo] markdown the legacy React list reads (see [ResultSet.statistics]).
+     */
+    @Suppress("unused")
+    class TimesheetListStatistics(
+        val totalDurationMillis: Long,
+        val totalDuration: String,
+        val aiEnabled: Boolean,
+        val aiPercentage: String?,
     )
 
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
@@ -233,18 +263,34 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 deleted = timesheet.deleted,
             )
         }
-        var duration = 0L
-        resultSet.resultSet.forEach { timesheet ->
-            duration += timesheet.duration
-        }
+        // One pass over the result set for both the summed duration and the AI share, so the footer's two
+        // numbers can never disagree (see AITimeSavings.buildStats).
+        val stats = AITimeSavings.buildStats(resultSet.resultSet)
+        val duration = stats.totalDurationMillis
+        val aiEnabled = baseDao.timeSavingsByAIEnabled
+        val formattedDuration = dateTimeFormatter.getPrettyFormattedDuration(duration)
         val md = MarkdownBuilder()
         md.appendPipedValue(
             "timesheet.totalDuration",
-            dateTimeFormatter.getPrettyFormattedDuration(duration),
+            formattedDuration,
             MarkdownBuilder.Color.BLUE
         )
+        if (aiEnabled) {
+            md.appendPipedValue(
+                "timesheet.ai.timeSavedByAI",
+                stats.percentageString,
+                MarkdownBuilder.Color.BLUE
+            )
+        }
         val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
         myResultSet.addResultInfo(md.toString())
+        // The typed footer for the hand-built next page, beside the markdown the legacy React list keeps.
+        myResultSet.statistics = TimesheetListStatistics(
+            totalDurationMillis = duration,
+            totalDuration = formattedDuration,
+            aiEnabled = aiEnabled,
+            aiPercentage = if (aiEnabled) stats.percentageString else null,
+        )
         return myResultSet
     }
 
@@ -631,6 +677,66 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             )
         )
         elements.add(element)
+        // The two options of the legacy list form (TimesheetListForm): search the picked task including its
+        // sub-tasks (on by default, see MagicFilterProcessor, and consumed in preProcessMagicFilter so the
+        // toggle can switch it off), and keep only sheets booked on a billable cost unit.
+        elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
+        elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+    }
+
+    /**
+     * Consumes the list's two option toggles ([addMagicFilterElements]) before the generic processor turns the
+     * remaining entries into the query:
+     * - `recursive` (default true): the task search is recursive by default (see [MagicFilterProcessor]). When
+     *   switched off, the task entry is taken over here and restricted to the exact task, so the generic
+     *   processor doesn't re-add the recursive predicate for it.
+     * - `onlyBillable`: a post filter over the result, as `TimesheetDao.internalGetList` does it.
+     */
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<TimesheetDO>> {
+        val filters = mutableListOf<CustomResultFilter<TimesheetDO>>()
+        val recursiveEntry = source.entries.find { it.field == "recursive" }
+        recursiveEntry?.synthetic = true
+        val recursive = recursiveEntry?.value?.value != "false" // Default true, as the legacy list.
+        if (!recursive) {
+            source.entries.find { it.field == "task" }?.let { taskEntry ->
+                taskEntry.synthetic = true
+                target.add(QueryFilter.taskSearch("task", taskEntry.value.value?.toLongOrNull(), false))
+            }
+        }
+        source.entries.find { it.field == "onlyBillable" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(TimesheetBillableFilter())
+            }
+        }
+        return filters
+    }
+
+    /**
+     * Exports the filtered timesheets as an Excel file, the "Excel export" of the legacy list
+     * (`TimesheetListPage.exportExcel` → [TimesheetExport]).
+     */
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // Always a workbook, header row included even for an empty result (TimesheetExport.export) — so the
+        // download never yields an empty file that would read as a broken export.
+        val xls = timesheetExport.export(getObjectList(this, baseDao, filter))
+        val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/octet-stream"))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+            .body(ByteArrayResource(xls))
+    }
+
+    /**
+     * The subscription URL of the timesheet calendar feed for the given user (the current one by default), the
+     * "ics export" of the legacy list. Returns the URL rather than a stream: the client shows it for the user
+     * to subscribe to in their calendar (see [CalendarFeedService.getUrl4Timesheets]).
+     */
+    @GetMapping("icsExportUrl")
+    fun getIcsExportUrl(@RequestParam("userId", required = false) userId: Long?): Map<String, String> {
+        val id = userId ?: ThreadLocalUserContext.loggedInUserId
+        return mapOf("url" to calendarFeedService.getUrl4Timesheets(id))
     }
 
     /**
@@ -645,5 +751,22 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             return null
         }
         return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
+    }
+
+    /**
+     * Keeps only time sheets booked on a billable cost unit, the `onlyBillable` option of the legacy list
+     * (`TimesheetDao.internalGetList`). The cost unit and its type come from the cache, not from a lazy
+     * association on the detached result row.
+     */
+    private class TimesheetBillableFilter : CustomResultFilter<TimesheetDO> {
+        override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean {
+            val kost2Id = element.kost2?.id ?: return false
+            return caches.getKost2(kost2Id)?.kost2Art?.fakturiert == true
+        }
+
+        companion object {
+            private val caches =
+                ApplicationContextProvider.getApplicationContext().getBean(PfCaches::class.java)
+        }
     }
 }

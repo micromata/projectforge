@@ -116,7 +116,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // The tree and not the category's list, because the entity has two perspectives in
     // projectforge-next (see NextMigration.nextRouteUrl).
     TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //
-    TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
+    TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //

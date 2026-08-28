@@ -9,10 +9,41 @@
  */
 
 import { request } from "./client";
+import { downloadPost } from "./download";
 import { fetchAutoCompletion } from "./dynamic";
 import type { TimesheetDetail } from "@/components/features/timesheet/types";
+import type { MagicFilter } from "./types";
 
 const ENTITY = "timesheet";
+
+/**
+ * The filtered time sheets as the Excel file of `TimesheetExport` — the legacy list's "Excel export".
+ * Acts on the filter the list is showing, so the download is exactly the rows on screen.
+ */
+export function downloadTimesheetExcel(
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadPost(`/rs/${ENTITY}/exportAsExcel`, filter, signal);
+}
+
+/**
+ * The subscription URL of the time sheet calendar feed — the legacy list's "ics export". It carries the
+ * user's personal, encrypted token, so it is shown for the user to subscribe to rather than downloaded
+ * (`TimesheetPagesRest.getIcsExportUrl`, see calendar.icsExport.securityAdvice). The logged-in user by
+ * default.
+ */
+export function fetchTimesheetIcsUrl(
+  userId?: number,
+  signal?: AbortSignal
+): Promise<{ url: string }> {
+  const query = userId != null ? `?userId=${userId}` : "";
+  return request<{ url: string }>(
+    `/rs/${ENTITY}/icsExportUrl${query}`,
+    { method: "GET" },
+    signal
+  );
+}
 
 /** What `timesheet/recentList` answers with (`TimesheetPagesRest.RecentTimesheets`). */
 export interface RecentTimesheets {

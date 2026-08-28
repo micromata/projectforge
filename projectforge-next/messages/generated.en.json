@@ -191,6 +191,9 @@
       },
       "visible": "visible"
     },
+    "icsExport": {
+      "securityAdvice": "This url contains your personal login token of ProjectForge (it's encrypted and independent of your password), keep it secret. In case of doubt about secrecy of your data, please renew your authentication token under 'my account'. Otherwise a third party is able to download your calendar too."
+    },
     "month": {
       "_": "Month",
       "april": "April",
@@ -2096,6 +2099,8 @@
     },
     "description": "Activity report",
     "duration": "Duration",
+    "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
+    "icsExport": "ics export",
     "location": "Location",
     "recent": "Recent",
     "reference": "Reference",
@@ -2107,6 +2112,7 @@
       "add": "New time sheet",
       "list": "List of time sheets"
     },
+    "totalDuration": "Total duration",
     "user": "Employee"
   },
   "timezone": "Time zone",

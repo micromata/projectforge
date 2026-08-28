@@ -191,6 +191,9 @@
       },
       "visible": "sichtbar"
     },
+    "icsExport": {
+      "securityAdvice": "Diese URL enthält deinen persönlichen Anmeldeschlüssel für ProjectForge (er ist verschlüsselt und unabhängig von deinem Passwort). Sollte der Verdacht bestehen, dass diese Daten ggf. Dritten vorliegen, so bitte den 'Schlüssel zur Authentifizierung' unter 'Mein Zugang' erneuern. Andernfalls könnten Dritte ebenfalls diesen Kalender abonnieren."
+    },
     "month": {
       "_": "Monat",
       "april": "April",
@@ -2096,6 +2099,8 @@
     },
     "description": "Tätigkeitsbericht",
     "duration": "Dauer",
+    "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
+    "icsExport": "ics-Export",
     "location": "Ort",
     "recent": "Zuletzt verwendet",
     "reference": "Referenz",
@@ -2107,6 +2112,7 @@
       "add": "Neuer Zeitbericht",
       "list": "Zeitberichte"
     },
+    "totalDuration": "Gesamtdauer",
     "user": "Mitarbeiter:in"
   },
   "timezone": "Zeitzone",

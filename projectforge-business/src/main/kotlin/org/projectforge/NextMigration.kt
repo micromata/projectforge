@@ -225,11 +225,11 @@ object NextMigration {
             newEntryRoute = "task/new",
             legacyApp = LegacyApp.WICKET,
         ),
-        // Hand built *edit* page only (next/timesheet/:id, next/timesheet/new): the two most-used
-        // calendar editors are being migrated ahead of the list. The list stays in Wicket and its menu
-        // entry is hardcoded there (MenuItemDefId.TIMESHEET_LIST = wa/timesheetList, not via this map), so
-        // registering the category here repoints only the edit routes, not the list. The way back leads to
-        // the React app, where the timesheet form was rendered from the same UILayout before.
+        // Hand built list and edit page (next/timesheet, next/timesheet/:id, next/timesheet/new). The two
+        // most-used calendar editors were migrated ahead of the list; the list followed, so the menu entry
+        // now resolves through [listUrl] (MenuItemDefId.TIMESHEET_LIST = getListUrl("timesheet")) rather
+        // than pointing at wa/timesheetList. The way back leads to the React app, whose timesheet list and
+        // form were rendered from the same UILayout before.
         "timesheet" to NextPage(
             route = "timesheet",
             editRoute = "timesheet/$ID_PLACEHOLDER",

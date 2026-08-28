@@ -4,11 +4,11 @@ Detailplan zu [MIGRATION.md](MIGRATION.md). Die Umsetzung ist **weitgehend
 abgeschlossen**; dieses Dokument hält die ursprüngliche Analyse fest und
 dokumentiert im folgenden Abschnitt den erreichten Stand.
 
-**Stand:** Kalenderseite komplett; Timesheet-Edit fertig; TeamEvent-Edit in den Phasen A
-(Grundgerüst), B (Reminder) und D (Recurrence/Serientermine) umgesetzt und verdrahtet.
-**Offen** und bewusst zurückgestellt: TeamEvent-**Attendees** (Phase C, *später wenn überhaupt*),
-die beiden **List-Pages** (timesheet/teamEvent) sowie die Extraktion von
-`shared/async-entity-multi-select`.
+**Stand:** Kalenderseite komplett; Timesheet-Edit **und Timesheet-Liste** fertig; TeamEvent-Edit
+in den Phasen A (Grundgerüst), B (Reminder) und D (Recurrence/Serientermine) umgesetzt und verdrahtet.
+**Offen** und bewusst zurückgestellt: TeamEvent-**Attendees** (Phase C, _später wenn überhaupt_),
+die **TeamEvent-List-Page**, der Timesheet-**PDF-Export** (noch wicket-gekoppelt) und der
+Timesheet-**Vorlagen**-Button sowie die Extraktion von `shared/async-entity-multi-select`.
 
 ## Todo-Liste (Umsetzungsstand)
 
@@ -92,10 +92,23 @@ serverseitig (HTTP 406).
       und `EntityEditPage` `history: page.metadata.historizable` durchreicht. **Keine**
       Redirect-Route `[id]/history/` nötig (anders als book/order): die Legacy-URLs zeigen
       auf `/react/…` bzw. `/wa/…`, nicht auf `/next/timesheet/[id]/history` – siehe unten.
-- [ ] **List-Page** (`app/(authenticated)/timesheet/page.tsx`) – bewusst zurückgestellt;
-      Spalten sind in `timesheet.page.tsx` schon deklariert, aber nicht geroutet. Liste
-      bleibt vorerst in Wicket (`MenuItemDefId.TIMESHEET_LIST`). „Eine Route und eine
-      Spaltenliste, kein Umbau."
+- [x] **List-Page** (`app/(authenticated)/timesheet/page.tsx`) – migriert und geroutet
+      (`next/timesheet`); `MenuItemDefId.TIMESHEET_LIST` löst über `listUrl` dorthin auf.
+      Umgesetzt (volle Parität zur Wicket-Liste außer den beiden unten genannten Punkten):
+  - [x] **Filter-Toggles** `recursive` (Task rekursiv, default an) und `onlyBillable` als
+        `UIFilterBooleanElement` in `addMagicFilterElements`; `preProcessMagicFilter`
+        fängt beide ab (`synthetic=true`): bei `recursive=false` ein nicht-rekursives
+        `QueryFilter.taskSearch`, `onlyBillable` als `TimesheetBillableFilter`
+        (`CustomResultFilter`, prüft `kost2.kost2Art.fakturiert` über `PfCaches`)
+  - [x] **Footer** (Summe der Dauer + KI-Anteil) über `TimesheetListStatistics`
+        (`ResultSet.statistics`, `AITimeSavings.buildStats`) → `TimesheetStatisticsLine`
+        im `statistics`-Slot; KI-Zeile nur bei `timeSavingsByAIEnabled`
+  - [x] **Export** – Excel (`exportAsExcel` → `downloadTimesheetExcel`) und ics-Abo-Dialog
+        (`getIcsExportUrl` → `TimesheetIcsDialog`) im `listActions`-Slot (`TimesheetListActions`)
+  - [x] **Mehrfachauswahl** – `massUpdate` (`timesheetSelected`, Route `/timesheet/mass-update`)
+  - [ ] **PDF-Export** bewusst zurückgestellt – der Formatter ist an das
+        `projectforge-wicket`-Modul gekoppelt; bleibt vorerst in Wicket
+  - [ ] **Vorlagen-Button** bewusst nicht migriert (laut Vorgabe außen vor)
 
 ### TeamCal-Event – Phasen A/B/D umgesetzt, C (Attendees) offen
 
@@ -148,7 +161,7 @@ Relationen/`UICustomized`) sind inzwischen bis auf Attendees umgesetzt:
       Overlay) betrifft diesen Pfad daher nicht mehr.
 - [x] **Drag/Resize bestehender Events** öffnet den Termin bereits verschoben. `toTeamEventRoute`/
       `toTimesheetRoute` behalten die Query bestehender Events; `calendarPrefill` macht daraus einen
-      *dirtyPrefill* (echte, speicherbare Änderung — im Gegensatz zum klickbasierten, nicht-dirtying
+      _dirtyPrefill_ (echte, speicherbare Änderung — im Gegensatz zum klickbasierten, nicht-dirtying
       `prefill`), Team-Event zusätzlich mit `selectedSeriesEvent` aus `origStartDate` für Single/Future.
       Datumsformate ISO (Drag/Resize) und Epoch-Sekunden (Klick) werden beide gelesen (`toIsoInstant`)
 - [ ] **List-Page** (`app/(authenticated)/teamEvent/page.tsx`) – bewusst zurückgestellt; der
