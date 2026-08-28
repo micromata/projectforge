@@ -59,6 +59,12 @@ class AbstractCacheTest {
 
         var throwExceptionOnRefresh = false
 
+        /** Overrides [maxRefreshDurationMs] for the stuck-refresh test; null keeps the production default. */
+        var maxRefreshDurationMsOverride: Long? = null
+
+        override val maxRefreshDurationMs: Long
+            get() = maxRefreshDurationMsOverride ?: super.maxRefreshDurationMs
+
         val events: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
         override fun refresh() {
@@ -80,8 +86,8 @@ class AbstractCacheTest {
         }
 
         /** [checkRefresh] is protected, so the tests need this bridge. */
-        fun accessData() {
-            checkRefresh()
+        fun accessData(waitForRefresh: Boolean = false) {
+            checkRefresh(waitForRefresh)
         }
     }
 
@@ -256,6 +262,156 @@ class AbstractCacheTest {
         Assertions.assertEquals(2, cache.refreshCount.get(), "The reader doesn't refresh the cache a second time.")
         refreshThread.join(20_000)
         Assertions.assertEquals(1, cache.maxConcurrentRefreshes.get())
+    }
+
+    @Test
+    @Timeout(30)
+    fun `mutually dependent caches don't deadlock a caller`() {
+        // Reproduces the AuftragsCache <-> AuftragsRechnungCache lock inversion: two threads each refresh one cache,
+        // and each refresh accesses the other cache. A refresh holding one cache's lock must not wait for the other's
+        // lock (it uses a non-blocking tryLock while nested, see AbstractCache.performRefresh), so neither thread
+        // deadlocks - it works with the current data instead.
+        val cacheA = TestCache()
+        val cacheB = TestCache()
+        val bothRefreshing = CountDownLatch(2)
+        cacheA.refreshAction = {
+            bothRefreshing.countDown()
+            bothRefreshing.await(20, TimeUnit.SECONDS) // Both locks are held now: the deadlock window.
+            cacheB.accessData()
+        }
+        cacheB.refreshAction = {
+            bothRefreshing.countDown()
+            bothRefreshing.await(20, TimeUnit.SECONDS)
+            cacheA.accessData()
+        }
+        val threadA = Thread { cacheA.forceReload() }
+        val threadB = Thread { cacheB.forceReload() }
+        val begin = System.currentTimeMillis()
+        threadA.start()
+        threadB.start()
+        threadA.join(20_000)
+        threadB.join(20_000)
+        val duration = System.currentTimeMillis() - begin
+        Assertions.assertFalse(threadA.isAlive || threadB.isAlive, "The mutually dependent refreshes didn't deadlock.")
+        // With the bug the cross-cache access blocks and only recovers after the 10s lock timeout. Non-blocking nested
+        // access must return at once, so the whole thing finishes well below that timeout.
+        Assertions.assertTrue(duration < 5_000, "No blocking cross-lock wait occurred (took ${duration}ms).")
+    }
+
+    @Test
+    @Timeout(30)
+    fun `mutually dependent caches don't deadlock via onBeforeCacheRefresh listeners`() {
+        // The AuftragsCache.auftragsCacheListener reloads AuftragsRechnungCache from onBeforeCacheRefresh, i.e. while
+        // the refreshLock is already held. That cross-cache access must count as nested (non-blocking) too, otherwise
+        // two threads can deadlock in each other's onBeforeCacheRefresh. This reproduces exactly that window.
+        val cacheA = TestCache()
+        val cacheB = TestCache()
+        val bothInBeforeRefresh = CountDownLatch(2)
+        cacheA.register(object : CacheListener {
+            override fun onBeforeCacheRefresh() {
+                bothInBeforeRefresh.countDown()
+                bothInBeforeRefresh.await(20, TimeUnit.SECONDS) // Both hold their own lock now: the deadlock window.
+                cacheB.accessData()
+            }
+        })
+        cacheB.register(object : CacheListener {
+            override fun onBeforeCacheRefresh() {
+                bothInBeforeRefresh.countDown()
+                bothInBeforeRefresh.await(20, TimeUnit.SECONDS)
+                cacheA.accessData()
+            }
+        })
+        val threadA = Thread { cacheA.forceReload() }
+        val threadB = Thread { cacheB.forceReload() }
+        val begin = System.currentTimeMillis()
+        threadA.start()
+        threadB.start()
+        threadA.join(20_000)
+        threadB.join(20_000)
+        val duration = System.currentTimeMillis() - begin
+        Assertions.assertFalse(
+            threadA.isAlive || threadB.isAlive,
+            "onBeforeCacheRefresh cross-cache access must not deadlock."
+        )
+        Assertions.assertTrue(duration < 5_000, "No blocking cross-lock wait occurred (took ${duration}ms).")
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a stuck refresh is interrupted and the cache heals itself`() {
+        val cache = TestCache()
+        cache.accessData() // Initial refresh.
+        Assertions.assertEquals(1, cache.refreshCount.get())
+        cache.maxRefreshDurationMsOverride = 200
+        cache.refreshDurationMs = 60_000 // The next refresh blocks, simulating a wedged JDBC call.
+        cache.setExpired()
+        val stuckThread = Thread { cache.accessData() } // Blocks in the stuck refresh.
+        stuckThread.start()
+        while (!cache.isRefreshInProgress) {
+            Thread.sleep(10)
+        }
+        Thread.sleep(400) // Let the refresh exceed maxRefreshDurationMs.
+        cache.refreshDurationMs = 0 // The healing refresh is fast.
+        // This access detects the stuck refresh, interrupts it, then refreshes the cache (which heals itself, because
+        // the interrupted refresh left the cache expired).
+        cache.accessData()
+        stuckThread.join(20_000)
+        Assertions.assertFalse(stuckThread.isAlive, "The stuck refresh was interrupted.")
+        Assertions.assertFalse(cache.isRefreshInProgress, "The cache refreshed again after the stuck refresh.")
+        Assertions.assertEquals(3, cache.refreshCount.get(), "1 initial + interrupted + healed refresh.")
+        Assertions.assertEquals(1, cache.maxConcurrentRefreshes.get(), "The stuck and healing refresh didn't overlap.")
+    }
+
+    @Test
+    @Timeout(30)
+    fun `a caller may wait synchronously for a refresh caused by expire time`() {
+        // Opt-in synchronous refresh (checkRefresh(waitForRefresh = true)): unlike the default, the caller must not
+        // get stale data but block until the fresh data is there. For tests and the rare read-after-write caller.
+        val cache = TestCache(expireTime = 100)
+        cache.accessData() // Initial refresh.
+        Assertions.assertEquals(1, cache.refreshCount.get())
+        cache.refreshDurationMs = 300
+        Thread.sleep(200) // Expired by time only (not invalidated), so the default would serve stale data.
+        val begin = System.currentTimeMillis()
+        cache.accessData(waitForRefresh = true)
+        val duration = System.currentTimeMillis() - begin
+        Assertions.assertEquals(2, cache.refreshCount.get(), "The caller waited for the synchronous refresh.")
+        Assertions.assertFalse(cache.isRefreshInProgress, "The refresh completed before the caller returned.")
+        Assertions.assertTrue(
+            duration >= 300,
+            "The caller really waited for the ${300}ms refresh (waited ${duration}ms)."
+        )
+        Assertions.assertEquals(1, cache.maxConcurrentRefreshes.get())
+    }
+
+    @Test
+    @Timeout(30)
+    fun `synchronous wait for a refresh doesn't deadlock mutually dependent caches`() {
+        // The synchronous wait (waitForRefresh = true) must stay deadlock-safe: a refresh reaching into the other,
+        // mutually dependent cache while waiting synchronously must still use the non-blocking nested tryLock.
+        val cacheA = TestCache(expireTime = 100)
+        val cacheB = TestCache(expireTime = 100)
+        val bothRefreshing = CountDownLatch(2)
+        cacheA.refreshAction = {
+            bothRefreshing.countDown()
+            bothRefreshing.await(20, TimeUnit.SECONDS)
+            cacheB.accessData(waitForRefresh = true)
+        }
+        cacheB.refreshAction = {
+            bothRefreshing.countDown()
+            bothRefreshing.await(20, TimeUnit.SECONDS)
+            cacheA.accessData(waitForRefresh = true)
+        }
+        val threadA = Thread { cacheA.forceReload() }
+        val threadB = Thread { cacheB.forceReload() }
+        val begin = System.currentTimeMillis()
+        threadA.start()
+        threadB.start()
+        threadA.join(20_000)
+        threadB.join(20_000)
+        val duration = System.currentTimeMillis() - begin
+        Assertions.assertFalse(threadA.isAlive || threadB.isAlive, "The synchronous cross-cache waits didn't deadlock.")
+        Assertions.assertTrue(duration < 5_000, "No blocking cross-lock wait occurred (took ${duration}ms).")
     }
 
     @Test
