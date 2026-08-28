@@ -56,6 +56,9 @@ class AuftragDaoTest : AbstractTestBase() {
     private lateinit var projektDao: ProjektDao
 
     @Autowired
+    private lateinit var projektCache: org.projectforge.business.fibu.kost.ProjektCache
+
+    @Autowired
     private lateinit var groupDao: GroupDao
 
     @Autowired
@@ -215,6 +218,55 @@ class AuftragDaoTest : AbstractTestBase() {
 
         logon(TEST_ADMIN_USER)
         checkNoAccess(id, auftrag1, "Admin ")
+    }
+
+    /**
+     * A project manager updates an order through the next/REST layer, which checks the access against the
+     * posted order — and there `projekt` is a stub carrying only its id (see `Auftrag.copyTo`), so its
+     * `projektManagerGroup` is not loaded. [AuftragRight.hasAccess] must still grant the update by resolving
+     * the project from the cache; otherwise the save fails with `PM_ORDER_BOOK - update` although the same
+     * order is writable from the classic (Wicket) page, which works with the fully loaded entity.
+     */
+    @Test
+    fun checkUpdateAccessWithProjektStub() {
+        lateinit var projektId: Serializable
+        lateinit var auftragId: Serializable
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val group = initTestDB.addGroup("AuftragDaoTest.ProjektStub", TEST_PROJECT_MANAGER_USER)
+            var projekt = ProjektDO()
+            projekt.name = "ACME - Projekt stub access"
+            projekt.projektManagerGroup = group
+            projektId = projektDao.insert(projekt)
+            projekt = projektDao.find(projektId, attached = true)!! // Attached is important, otherwise deadlock.
+            val auftrag = createOrder().also {
+                it.nummer = auftragDao.getNextNumber(it)
+                it.projekt = projekt
+                it.addPosition(createOrderPos())
+            }
+            auftragId = auftragDao.insert(auftrag)
+            dbNumber++ // Needed for getNextNumber test;
+        }
+        projektCache.setExpired() // The group assignment was made after the cache was last built.
+        logon(TEST_PROJECT_MANAGER_USER)
+        persistenceService.runInTransaction { _ ->
+            // Rebuild the posted order the way the next/REST layer does: a fresh order whose projekt is a
+            // stub holding only the id (Auftrag.copyTo), not the fully loaded entity Wicket would pass.
+            val stored = auftragDao.find(auftragId, attached = true)!! // Attached is important, otherwise deadlock.
+            val posted = AuftragDO().also {
+                it.id = stored.id
+                it.nummer = stored.nummer
+                it.status = stored.status
+                it.projekt = ProjektDO().also { p -> p.id = projektId as Long }
+                it.bemerkung = "updated through the next frontend"
+                stored.positionenIncludingDeleted?.forEach { pos -> it.addPosition(pos) }
+            }
+            auftragDao.update(posted) // Must not throw: the project manager may write their project's order.
+        }
+        persistenceService.runInTransaction { _ ->
+            val auftrag = auftragDao.find(auftragId, attached = true)!! // Attached is important, otherwise deadlock.
+            Assertions.assertEquals("updated through the next frontend", auftrag.bemerkung)
+        }
     }
 
     @Test

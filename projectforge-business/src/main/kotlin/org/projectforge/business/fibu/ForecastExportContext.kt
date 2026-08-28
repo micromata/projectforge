@@ -48,6 +48,12 @@ internal class ForecastExportContext(
     val invoicesPrevPrevYearSheet: ExcelSheet,
     val planningSheet: ExcelSheet,
     val planningInvoicesSheet: ExcelSheet,
+    /**
+     * Optional sheet with one row per project (see [ForecastExport.fillProjectOverviewSheet]). The user creates this
+     * sheet (with header row and autofilter) in the template; the code only fills the value rows. Null if the template
+     * doesn't contain it.
+     */
+    val projectOverviewSheet: ExcelSheet?,
     val startDate: PFDay,
     val invoices: List<RechnungDO>,
     val baseDate: PFDay = PFDay.now(),
@@ -67,7 +73,19 @@ internal class ForecastExportContext(
         INVOICES_PREV_PREV_YEAR("Rechnungen Vorvorjahr"),
         PLANNING("Planning_Data"),
         PLANNING_INVOICES("Planning_Invoices"),
+        PROJECT_OVERVIEW("Projektübersicht"),
         INFO("Info")
+    }
+
+    /**
+     * Columns of the [Sheet.PROJECT_OVERVIEW] sheet. The header texts are fixed in the template (including the fixed
+     * year labels for previous/pre-previous year). All access is by header name only, so the user may reorder the
+     * columns in the template freely.
+     */
+    enum class ProjectOverviewCol(val header: String) {
+        UNIT("Unit"), CUSTOMER("Kunde"), PROJECT("Projekt"), PLAN("Plan"), FORECAST("Forecast"),
+        PREV_YEAR("Vorjahr"), PREV_PREV_YEAR("Vorvorjahr"), DIFF_PLAN("Differenz Plan"),
+        DIFF_PREV_YEAR("Differenz Vorjahr"), DIFF_PREV_PREV_YEAR("Differenz Vorvorjahr")
     }
 
     enum class ForecastCol(val header: String) {

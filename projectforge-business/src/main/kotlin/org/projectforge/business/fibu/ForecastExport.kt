@@ -26,6 +26,8 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.Row
 import mu.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.*
 import org.projectforge.business.fibu.kost.ProjektCache
@@ -376,6 +378,16 @@ open class ForecastExport { // open needed by Wicket.
             InvoicesCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { planningInvoicesSheet.registerColumn(it.header) }
 
+            // Optional overview sheet (one row per project). The user creates it in the template with header row and
+            // autofilter; the code only fills the value rows. Missing sheet -> skip (older templates without it).
+            val projectOverviewSheet = workbook.getSheet(Sheet.PROJECT_OVERVIEW.title)
+            if (projectOverviewSheet != null) {
+                log.debug { "Project overview sheet: $projectOverviewSheet" }
+                ProjectOverviewCol.entries.forEach { projectOverviewSheet.registerColumn(it.header) }
+            } else {
+                log.info { "Template has no '${Sheet.PROJECT_OVERVIEW.title}' sheet, skipping project overview." }
+            }
+
             val ctx = Context(
                 workbook,
                 forecastSheet = forecastSheet,
@@ -384,6 +396,7 @@ open class ForecastExport { // open needed by Wicket.
                 invoicesPrevPrevYearSheet = invoicesPrevPrevYearSheet,
                 planningSheet = planningSheet,
                 planningInvoicesSheet = planningInvoicesSheet,
+                projectOverviewSheet = projectOverviewSheet,
                 startDate = startDate,
                 invoices = invoices,
                 baseDate = PFDay.fromOrNow(snapshotDate),
@@ -438,6 +451,7 @@ open class ForecastExport { // open needed by Wicket.
             planningInvoicesSheet.setAutoFilter()
 
             fillPlanningForecast(planningDate, ctx)
+            fillProjectOverviewSheet(ctx)
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             return workbook.asByteArrayOutputStream.toByteArray()
         }
@@ -899,6 +913,178 @@ open class ForecastExport { // open needed by Wicket.
                 sheet.getCell(row, columnDef.columnNumber)?.cellStyle = ctx.errorCurrencyCellStyle
             }
         }
+    }
+
+    /**
+     * Per-project accumulator for the [Sheet.PROJECT_OVERVIEW] sheet. All values are summed over the month columns of
+     * the respective detail sheet for a single project id.
+     */
+    private class ProjectOverviewAgg {
+        var unit: String? = null
+        var customer: String? = null
+        var project: String? = null
+        var forecastRemaining: BigDecimal = BigDecimal.ZERO // Rest forecast (Forecast_Data)
+        var ist: BigDecimal = BigDecimal.ZERO               // already invoiced (Rechnungen)
+        var planRemaining: BigDecimal = BigDecimal.ZERO     // Rest plan (Planning_Data)
+        var planIst: BigDecimal = BigDecimal.ZERO           // plan already invoiced (Planning_Invoices)
+        var prevYear: BigDecimal = BigDecimal.ZERO          // Rechnungen Vorjahr
+        var prevPrevYear: BigDecimal = BigDecimal.ZERO      // Rechnungen Vorvorjahr
+    }
+
+    /**
+     * Fills the optional [Sheet.PROJECT_OVERVIEW] sheet with one row per project. This is a pure re-presentation of the
+     * data already written to the detail sheets — no new calculation. All values are aggregated per project id from the
+     * literal month cells of the detail sheets (read before [org.apache.poi.ss.usermodel.FormulaEvaluator.evaluateAll]
+     * is fine, because those cells are literal numbers, not formulas).
+     *
+     * Column mapping (sum per project id over the detail rows):
+     * - Plan       = Σ Planning_Data months + Σ Planning_Invoices months
+     * - Forecast   = Σ Forecast_Data months (remaining forecast) + Σ Rechnungen months (already invoiced)
+     * - Vorjahr    = Σ Rechnungen Vorjahr months
+     * - Vorvorjahr = Σ Rechnungen Vorvorjahr months
+     * - Differenz Plan/Vorjahr/Vorvorjahr = Forecast − Plan/Vorjahr/Vorvorjahr
+     *
+     * All columns are addressed by header name only, so the user may reorder the columns in the template.
+     */
+    private fun fillProjectOverviewSheet(ctx: Context) {
+        val sheet = ctx.projectOverviewSheet ?: return
+        val map = mutableMapOf<Long, ProjectOverviewAgg>()
+
+        // Forecast_Data: remaining (weighted) forecast + unit/customer/project labels.
+        accumulateMonths(ctx.forecastSheet, ForecastCol.PROJECT_ID.header, map) { agg, row ->
+            agg.forecastRemaining = agg.forecastRemaining.add(sumMonths(ctx.forecastSheet, row))
+            if (agg.unit.isNullOrBlank()) agg.unit = ctx.forecastSheet.getCellString(row, ForecastCol.UNIT.header)
+            if (agg.customer.isNullOrBlank()) agg.customer =
+                ctx.forecastSheet.getCellString(row, ForecastCol.CUSTOMER.header)
+            if (agg.project.isNullOrBlank()) agg.project =
+                ctx.forecastSheet.getCellString(row, ForecastCol.PROJECT.header)
+        }
+        // Rechnungen: already invoiced part of the current year (IST).
+        accumulateMonths(ctx.invoicesSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.ist = agg.ist.add(sumMonths(ctx.invoicesSheet, row))
+            if (agg.customer.isNullOrBlank()) agg.customer =
+                ctx.invoicesSheet.getCellString(row, InvoicesCol.CUSTOMER.header)
+            if (agg.project.isNullOrBlank()) agg.project =
+                ctx.invoicesSheet.getCellString(row, InvoicesCol.PROJECT.header)
+        }
+        // Planning_Data: remaining plan.
+        accumulateMonths(ctx.planningSheet, ForecastCol.PROJECT_ID.header, map) { agg, row ->
+            agg.planRemaining = agg.planRemaining.add(sumMonths(ctx.planningSheet, row))
+        }
+        // Planning_Invoices: already invoiced part of the plan (IST at planning date).
+        accumulateMonths(ctx.planningInvoicesSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.planIst = agg.planIst.add(sumMonths(ctx.planningInvoicesSheet, row))
+        }
+        // Rechnungen Vorjahr / Vorvorjahr.
+        accumulateMonths(ctx.invoicesPrevYearSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.prevYear = agg.prevYear.add(sumMonths(ctx.invoicesPrevYearSheet, row))
+        }
+        accumulateMonths(ctx.invoicesPrevPrevYearSheet, InvoicesCol.PROJECT_ID.header, map) { agg, row ->
+            agg.prevPrevYear = agg.prevPrevYear.add(sumMonths(ctx.invoicesPrevPrevYearSheet, row))
+        }
+
+        // Resolve missing customer/project labels via the project cache (invoices without an order carry no labels).
+        map.forEach { (id, agg) ->
+            if (id != Context.PROJECT_ID_NONE && (agg.customer.isNullOrBlank() || agg.project.isNullOrBlank())) {
+                projectCache.getProjekt(id)?.let { projekt ->
+                    if (agg.project.isNullOrBlank()) agg.project = projekt.name
+                    if (agg.customer.isNullOrBlank()) agg.customer = projekt.kunde?.name
+                }
+            }
+        }
+
+        val entries = map.entries.sortedWith(
+            compareBy({ it.value.unit ?: "" }, { it.value.customer ?: "" }, { it.value.project ?: "" })
+        )
+        // Write directly below the header row (row 2 in Excel if the header is row 1). Don't use createRow(), which
+        // would append after any empty/pre-formatted rows the template carries.
+        var rowNum = (sheet.headRow?.rowNum ?: 0) + 1
+        for ((id, agg) in entries) {
+            val plan = agg.planRemaining.add(agg.planIst)
+            val forecast = agg.forecastRemaining.add(agg.ist)
+            val prevYear = agg.prevYear
+            val prevPrevYear = agg.prevPrevYear
+            sheet.getRow(rowNum) // Ensure the row exists before setting values.
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.UNIT.header, agg.unit)
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.CUSTOMER.header, agg.customer)
+            val projectLabel = if (id == Context.PROJECT_ID_NONE && agg.project.isNullOrBlank()) {
+                "(ohne Projekt)"
+            } else {
+                agg.project
+            }
+            setOverviewString(sheet, rowNum, ProjectOverviewCol.PROJECT.header, projectLabel)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PLAN.header, plan)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.FORECAST.header, forecast)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PREV_YEAR.header, prevYear)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.PREV_PREV_YEAR.header, prevPrevYear)
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PLAN.header, forecast.subtract(plan))
+            setOverviewCurrency(ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PREV_YEAR.header, forecast.subtract(prevYear))
+            setOverviewCurrency(
+                ctx, sheet, rowNum, ProjectOverviewCol.DIFF_PREV_PREV_YEAR.header, forecast.subtract(prevPrevYear)
+            )
+            rowNum++
+        }
+        // Re-apply the autofilter over the header row so it stays consistent after the rows were added.
+        sheet.setAutoFilter()
+    }
+
+    /**
+     * Iterates the data rows of [sheet] and invokes [block] per row that carries a numeric project id in the given
+     * [projectIdHeader] column. Rows without that column or without a numeric project id are skipped. No-op if the
+     * sheet doesn't contain the project id column (columns are addressed by header name only).
+     */
+    private fun accumulateMonths(
+        sheet: ExcelSheet,
+        projectIdHeader: String,
+        map: MutableMap<Long, ProjectOverviewAgg>,
+        block: (agg: ProjectOverviewAgg, row: Row) -> Unit,
+    ) {
+        if (sheet.getColumnDef(projectIdHeader) == null) {
+            log.warn { "Sheet '${sheet.sheetName}' has no column '$projectIdHeader', skipping for project overview." }
+            return
+        }
+        val it = sheet.dataRowIterator
+        while (it.hasNext()) {
+            val row = it.next()
+            // Skip header/summary rows and rows without a project id: their ProjectID cell is non-numeric (text or
+            // empty), so readNumeric returns null. This also guards against merlin picking a head row above row 9.
+            val id = readNumeric(sheet, row, projectIdHeader)?.toLong() ?: continue
+            block(map.getOrPut(id) { ProjectOverviewAgg() }, row)
+        }
+    }
+
+    /**
+     * Sums the 12 month columns (Month 1..Month 12) of [row] on [sheet]. Missing columns and non-numeric/empty cells
+     * count as zero.
+     */
+    private fun sumMonths(sheet: ExcelSheet, row: Row): BigDecimal {
+        var sum = BigDecimal.ZERO
+        MonthCol.entries.forEach { monthCol ->
+            readNumeric(sheet, row, monthCol.header)?.let { sum = sum.add(it) }
+        }
+        return sum
+    }
+
+    /**
+     * Reads the numeric value of [header] in [row], or null if the column is missing or the cell isn't numeric (text,
+     * empty or blank). Unlike merlin's getCellDouble this doesn't log a warning for non-numeric cells, which are
+     * expected here (header/summary rows, empty month cells).
+     */
+    private fun readNumeric(sheet: ExcelSheet, row: Row, header: String): BigDecimal? {
+        val cell = sheet.getCell(row, header, false) ?: return null
+        if (cell.cellType != CellType.NUMERIC) return null
+        return BigDecimal.valueOf(cell.numericCellValue)
+    }
+
+    private fun setOverviewString(sheet: ExcelSheet, rowNum: Int, header: String, value: String?) {
+        if (sheet.getColumnDef(header) == null) return
+        sheet.setStringValue(rowNum, header, value ?: "")
+    }
+
+    private fun setOverviewCurrency(ctx: Context, sheet: ExcelSheet, rowNum: Int, header: String, value: BigDecimal) {
+        if (sheet.getColumnDef(header) == null) return
+        sheet.setBigDecimalValue(rowNum, header, value.setScale(2, RoundingMode.HALF_UP)).cellStyle =
+            ctx.currencyCellStyle
     }
 
     private fun readSnapshot(date: LocalDate, filter: AuftragFilter): List<AuftragDO> {

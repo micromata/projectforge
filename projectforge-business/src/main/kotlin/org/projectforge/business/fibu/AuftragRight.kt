@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.apache.commons.collections4.CollectionUtils
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.user.*
 import org.projectforge.business.user.UserGroupCache.Companion.getInstance
 import org.projectforge.framework.access.AccessException
@@ -151,7 +152,13 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
             if (accessChecker.userEquals(user, obj.contactPerson)) {
                 hasAccess = true
             }
-            obj.projekt?.let { projekt ->
+            obj.projekt?.let { projektRef ->
+                // The next/REST layer checks this against the posted order, whose projekt is a stub
+                // carrying only its id (Auftrag.copyTo), so its projektManagerGroup and the two managers
+                // are null there. Resolve the full project from the cache by id, or the project manager
+                // access path would silently fail in the next frontend while it works from Wicket's fully
+                // loaded entity (contact person still matches, as it is compared by id alone).
+                val projekt = ProjektCache.instance.getProjekt(projektRef.id) ?: projektRef
                 if (userGroupCache.isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
                     || projekt.headOfBusinessManagerId == user.id
                     || projekt.salesManagerId == user.id
