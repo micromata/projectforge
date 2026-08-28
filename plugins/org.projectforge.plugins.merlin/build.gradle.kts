@@ -13,7 +13,12 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(project(":projectforge-rest"))
-    api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
+    // Exclude the ancient com.lowagie:itext:2.1.7 here too, so the plugin doesn't pull it back onto
+    // the classpath beside OpenPDF (which provides the same com.lowagie.text.* classes, see
+    // projectforge-business build).
+    api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf) {
+        exclude(group = "com.lowagie", module = "itext")
+    }
     testImplementation(project(":projectforge-business"))
 }
 

@@ -24,6 +24,7 @@
 package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.projectforge.business.PfCaches
 import org.projectforge.business.timesheet.TimesheetDO
 import java.math.BigDecimal
 import java.util.*
@@ -74,4 +75,33 @@ class Timesheet(
      * was dropped from the configuration (see `TimesheetDao.getTags`).
      */
     var tags: List<String>? = null
+
+    /**
+     * The lean row of the hand-built next list: exactly the columns of `timesheet.page.tsx` (see
+     * `TimesheetListRow`) and nothing else, so `JsonInclude.Include.NON_NULL` keeps the rest — the tag,
+     * the AI fields, the counter — off the wire (see [BaseDTO.copyFrom4ListRow]). The counterpart of the
+     * nested `Timesheet4ListExport` the legacy React list reads; the next client gets this flat shape
+     * because [org.projectforge.rest.TimesheetPagesRest.newDTO] returns a non-null DTO (see
+     * [org.projectforge.rest.core.AbstractDTOPagesRest.createListRow]).
+     */
+    override fun copyFrom4ListRow(src: TimesheetDO) {
+        id = src.id
+        deleted = src.deleted
+        // The two timestamps every next list offers as a column, hidden until switched on
+        // (`lib/page-def/audit-columns.ts`).
+        copyAuditFieldsFrom(src)
+        // Populate task/user/kost2 from the in-memory caches by their FK ids before reading them: otherwise
+        // each row would lazy load its task from the DB, an N+1 over the page (getListByIds loads by IN(...)).
+        PfCaches.instance.initialize(src)
+        startTime = src.startTime
+        stopTime = src.stopTime
+        location = src.location
+        reference = src.reference
+        description = src.description
+        // The columns show a name (and, for the cost unit, its formatted number), not a whole entity — so
+        // the id and display name only. Not the DTOs' copyFrom, which would nest the task's parent chain.
+        src.task?.let { task = Task(id = it.id, displayName = it.displayName) }
+        src.user?.let { user = User(id = it.id, displayName = it.displayName) }
+        src.kost2?.let { kost2 = Kost2().also { dto -> dto.copyFromMinimal(it) } }
+    }
 }

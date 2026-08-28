@@ -79,12 +79,10 @@ export interface TimesheetDetail {
 }
 
 /**
- * Projection of the (not yet built) list page.
- *
- * The list stays in Wicket for now — nothing links to a next one, and the menu entry points there
- * (`MenuItemDefId.TIMESHEET_LIST`). Declared so the page can name its columns and be handed to
- * `definePage` in the one shape every entity has; adding the list later is a route and a column list,
- * not a restructuring.
+ * The flat list row the live `/next/timesheet` list reads — the shape the backend now ships to the
+ * next client (`TimesheetPagesRest.newDTO` + `Timesheet.copyFrom4ListRow`), one field per column of
+ * `timesheet.page.tsx`. Distinct from the nested `Timesheet4ListExport` the classic React list still
+ * reads via the kept UILayout.
  */
 export interface TimesheetListRow {
   id: number;

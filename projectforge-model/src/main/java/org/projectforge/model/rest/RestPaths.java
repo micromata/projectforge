@@ -34,6 +34,8 @@ public class RestPaths
 
   public static final String REST_EXCEL_SUB_PATH = "exportAsExcel";
 
+  public static final String REST_PDF_SUB_PATH = "exportAsPdf";
+
   public static final String REST_START_MULTI_SELECTION = "startMultiSelection";
 
   public static final String TASK = "task";

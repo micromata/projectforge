@@ -28,6 +28,18 @@ export function downloadTimesheetExcel(
 }
 
 /**
+ * The filtered time sheets as the PDF of `TimesheetListPdfExport` — the legacy list's "PDF export", now
+ * built with OpenPDF in the backend instead of the wicket-bound FOP path. Acts on the filter the list is
+ * showing, exactly like the Excel export above.
+ */
+export function downloadTimesheetPdf(
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadPost(`/rs/${ENTITY}/exportAsPdf`, filter, signal);
+}
+
+/**
  * The subscription URL of the time sheet calendar feed — the legacy list's "ics export". It carries the
  * user's personal, encrypted token, so it is shown for the user to subscribe to rather than downloaded
  * (`TimesheetPagesRest.getIcsExportUrl`, see calendar.icsExport.securityAdvice). The logged-in user by

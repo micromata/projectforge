@@ -372,6 +372,7 @@
     "title": "Ein Fehler ist aufgetreten."
   },
   "expand": "Aufklappen",
+  "exportAsPdf": "Pdf-Export",
   "exportAsXls": "Excel-Export",
   "favorite": {
     "_": "Favorit",
@@ -2119,7 +2120,8 @@
   "title": "Titel",
   "tooltip": {
     "export": {
-      "excel": "Export im Excelformat"
+      "excel": "Export im Excelformat",
+      "pdf": "Export als pdf"
     },
     "lucene": {
       "link": "Link zur Lucene-Abfrage-Syntax."

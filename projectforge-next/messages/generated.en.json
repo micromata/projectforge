@@ -372,6 +372,7 @@
     "title": "An error has occurred."
   },
   "expand": "Expand",
+  "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",
   "favorite": {
     "_": "Favorite",
@@ -2119,7 +2120,8 @@
   "title": "Title",
   "tooltip": {
     "export": {
-      "excel": "Export as Excel file"
+      "excel": "Export as Excel file",
+      "pdf": "Export as pdf"
     },
     "lucene": {
       "link": "Link to howto of lucene queries."

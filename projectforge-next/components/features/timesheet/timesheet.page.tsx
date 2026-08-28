@@ -38,8 +38,8 @@ const NEW_ENTRY_PARAMS = [
  *
  * The list is live and routed at `next/timesheet` (`MenuItemDefId.TIMESHEET_LIST` resolves there via
  * `listUrl`): the filter toggles recursive/onlyBillable, the summed-duration + AI-share footer
- * (`statistics`), the Excel and ics exports (`listActions`) and the mass update (`massUpdate`) match the
- * legacy list — only its PDF export (wicket-coupled formatter) and Vorlagen button stay behind.
+ * (`statistics`), the Excel/PDF/ics exports (`listActions`) and the mass update (`massUpdate`) match the
+ * legacy list — only its Vorlagen (templates) button stays behind.
  *
  * The edit page the calendar opens (see toTimesheetRoute). Its fields follow
  * the legacy form (`TimesheetPagesRest.createEditLayout`) — the task and its cost unit, the period, the
@@ -56,6 +56,11 @@ export const TIMESHEET_PAGE = definePage<
   metadata: TIMESHEET_METADATA,
   route: "/timesheet",
   queryKey: TIMESHEET_LIST_QUERY_KEY,
+  // Served one page at a time (POST listPage): the list sorts only on DB columns and its onlyBillable option
+  // is a CustomResultFilter that runs inside the query pipeline, so nothing narrows or re-sorts after it — the
+  // page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
+  // aggregate hook over the full id list (see TimesheetPagesRest.aggregate, PageDef.serverPaging).
+  serverPaging: true,
   // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
   categoryKey: "menu.projectmanagement",
   titleKey: "menu.timesheetList",
@@ -80,9 +85,8 @@ export const TIMESHEET_PAGE = definePage<
       isFetching={isFetching}
     />
   ),
-  // The list's exports, in the toolbar: the filtered sheets as Excel and the ics subscription url. The PDF
-  // export the legacy list also has stays in Wicket for now — its formatter is coupled to that module (see
-  // TimesheetListActions).
+  // The list's exports, in the toolbar: the filtered sheets as Excel or PDF, and the ics subscription url
+  // (see TimesheetListActions). The PDF is built with OpenPDF in the backend now, no longer the wicket FOP.
   listActions: TimesheetListActions,
   // "Mehrfachauswahl" — the legacy list's mass select and update, backed by TimesheetMultiSelectedPageRest
   // (mounted under `timesheetSelected`, the entity's own name + URL_SUFFIX_SELECTED, not `${entity}Selected`).

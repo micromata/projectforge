@@ -132,6 +132,35 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         get() = ADDITIONAL_SEARCH_FIELDS
 
     /**
+     * The data the list statistics need for the given time sheets, as a lean projection instead of the whole
+     * entities: only the four columns [AITimeSavings.buildStats] reads — start and stop for the duration, the
+     * AI amount and its unit. Returned as detached [TimesheetDO] stubs (nothing else set) so the existing
+     * [AITimeSavings.buildStats] can consume them unchanged.
+     *
+     * One `SELECT` of four columns, no lazy relations and no row hydration: the id list of a server-side paged
+     * list can be thousands of sheets, and loading them whole (all columns, in `IN` batches) only to sum
+     * durations is exactly what this avoids (see `TimesheetPagesRest.aggregate`). Access is already checked -
+     * the ids come from the access-filtered id list of the paged result.
+     */
+    open fun selectStatisticsData(ids: Collection<Long>): List<TimesheetDO> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        return persistenceService.executeQuery(
+            "SELECT t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit FROM TimesheetDO t WHERE t.id IN :ids",
+            Tuple::class.java,
+            Pair("ids", ids),
+        ).map { tuple ->
+            TimesheetDO().also {
+                it.startTime = tuple.get("startTime") as Date?
+                it.stopTime = tuple.get("stopTime") as Date?
+                it.timeSavedByAI = tuple.get("timeSavedByAI") as BigDecimal?
+                it.timeSavedByAIUnit = tuple.get("timeSavedByAIUnit") as TimesheetDO.TimeSavedByAIUnit?
+            }
+        }
+    }
+
+    /**
      * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
      * user=?.
      */

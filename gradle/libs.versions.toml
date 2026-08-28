@@ -7,6 +7,7 @@ org-projectforge = "8.0.0-SNAPSHOT"
 com-fasterxml-jackson = "2.18.5"
 com-google-zxing-core = "3.5.4"
 com-google-zxing-javase = "3.5.4"
+com-github-librepdf-openpdf = "2.0.3" # newest still on Java 17 bytecode (2.1.0+ = Java 21) and still carrying the com.lowagie.text namespace xdocreport/Merlin need (3.x drops it)
 com-googlecode-ez-vcard = "0.12.2"
 com-googlecode-gson = "2.13.2"
 com-googlecode-json-simple = "1.1.1"
@@ -116,6 +117,7 @@ com-fasterxml-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:j
 com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com-googlecode-gson" }
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
+com-github-librepdf-openpdf = { module = "com.github.librepdf:openpdf", version.ref = "com-github-librepdf-openpdf" }
 com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard" }
 com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple" }
 com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna" }

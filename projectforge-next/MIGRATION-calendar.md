@@ -7,8 +7,8 @@ dokumentiert im folgenden Abschnitt den erreichten Stand.
 **Stand:** Kalenderseite komplett; Timesheet-Edit **und Timesheet-Liste** fertig; TeamEvent-Edit
 in den Phasen A (Grundgerüst), B (Reminder) und D (Recurrence/Serientermine) umgesetzt und verdrahtet.
 **Offen** und bewusst zurückgestellt: TeamEvent-**Attendees** (Phase C, _später wenn überhaupt_),
-die **TeamEvent-List-Page**, der Timesheet-**PDF-Export** (noch wicket-gekoppelt) und der
-Timesheet-**Vorlagen**-Button sowie die Extraktion von `shared/async-entity-multi-select`.
+die **TeamEvent-List-Page** und der Timesheet-**Vorlagen**-Button sowie die Extraktion von
+`shared/async-entity-multi-select`.
 
 ## Todo-Liste (Umsetzungsstand)
 
@@ -103,11 +103,15 @@ serverseitig (HTTP 406).
   - [x] **Footer** (Summe der Dauer + KI-Anteil) über `TimesheetListStatistics`
         (`ResultSet.statistics`, `AITimeSavings.buildStats`) → `TimesheetStatisticsLine`
         im `statistics`-Slot; KI-Zeile nur bei `timeSavingsByAIEnabled`
-  - [x] **Export** – Excel (`exportAsExcel` → `downloadTimesheetExcel`) und ics-Abo-Dialog
-        (`getIcsExportUrl` → `TimesheetIcsDialog`) im `listActions`-Slot (`TimesheetListActions`)
+  - [x] **Export** – Excel (`exportAsExcel` → `downloadTimesheetExcel`), PDF (`exportAsPdf` →
+        `downloadTimesheetPdf`) und ics-Abo-Dialog (`getIcsExportUrl` → `TimesheetIcsDialog`) im
+        `listActions`-Slot (`TimesheetListActions`)
+  - [x] **PDF-Export** – neu als Kotlin-Service `TimesheetListPdfExport` (projectforge-business,
+        **OpenPDF** statt des wicket-gebundenen Apache-FOP-Pfads), gleiche Signatur wie
+        `TimesheetExport`. Dafür wurde modernes `com.github.librepdf:openpdf` deklariert und das
+        transitive uralte `com.lowagie:itext:2.1.7` (via xdocreport) in business **und** im
+        Merlin-Plugin ausgeschlossen (OpenPDF liefert denselben `com.lowagie.text`-Namespace)
   - [x] **Mehrfachauswahl** – `massUpdate` (`timesheetSelected`, Route `/timesheet/mass-update`)
-  - [ ] **PDF-Export** bewusst zurückgestellt – der Formatter ist an das
-        `projectforge-wicket`-Modul gekoppelt; bleibt vorerst in Wicket
   - [ ] **Vorlagen-Button** bewusst nicht migriert (laut Vorgabe außen vor)
 
 ### TeamCal-Event – Phasen A/B/D umgesetzt, C (Attendees) offen

@@ -105,6 +105,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private lateinit var timesheetExport: TimesheetExport
 
     @Autowired
+    private lateinit var timesheetListPdfExport: TimesheetListPdfExport
+
+    @Autowired
     private lateinit var calendarFeedService: CalendarFeedService
 
     /**
@@ -146,6 +149,16 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val aiEnabled: Boolean,
         val aiPercentage: String?,
     )
+
+    /**
+     * Returning a non-null DTO opts the next list into the lean row: [createListRow] then fills only the
+     * list's columns via [Timesheet.copyFrom4ListRow] instead of the whole [transformFromDB] DTO (see
+     * [org.projectforge.rest.core.AbstractDTOPagesRest.createListRow]). The React list still gets the full
+     * DTO against the kept [createListLayout], as [postProcessResultSet] keeps its own row shape for it.
+     */
+    override fun newDTO(): Timesheet {
+        return Timesheet()
+    }
 
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
         val timesheet = Timesheet()
@@ -245,53 +258,99 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
-            val timesheet = Timesheet()
-            timesheet.copyFrom(it)
-            val day = PFDay.fromOrNull(it.startTime)
-            Timesheet4ListExport(
-                timesheet,
-                id = it.id!!,
-                weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
-                dayName = day?.dayOfWeekAsShortString ?: "??",
-                timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
-                duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
-                durationMillis = it.duration,
-                aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
-                    AITimeSavings.getFormattedTimeSavedByAI(it)
-                } else "",
-                deleted = timesheet.deleted,
-            )
+        // Two clients, two row shapes: the hand-built next list reads a flat row (TimesheetListRow, with
+        // top-level task/user/times/texts), while the legacy React list reads the nested Timesheet4ListExport
+        // with its pre-formatted week/day/period/duration columns. useListRow is the framework's switch (next
+        // client of a migrated entity vs. the rest, see AbstractEntityRest.useListRow).
+        val leanRows = useListRow(request)
+        val list: List<Any> = resultSet.resultSet.map {
+            if (leanRows) {
+                // The flat row the hand-built next list reads: only its columns, task/user/kost2 populated
+                // from the caches (no N+1) — the shared lean-row path (newDTO + Timesheet.copyFrom4ListRow).
+                createListRow(it)
+            } else {
+                // Populate task, user and kost2 from the in-memory caches by their FK ids (as transformFromDB
+                // does for the single entity) before copyFrom dereferences them: otherwise each row would lazy
+                // load its task from the DB, an N+1 over the page (getListByIds loads by IN(...), see getListPage).
+                caches.initialize(it)
+                val timesheet = Timesheet()
+                timesheet.copyFrom(it)
+                val day = PFDay.fromOrNull(it.startTime)
+                Timesheet4ListExport(
+                    timesheet,
+                    id = it.id!!,
+                    weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
+                    dayName = day?.dayOfWeekAsShortString ?: "??",
+                    timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
+                    duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+                    durationMillis = it.duration,
+                    aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
+                        AITimeSavings.getFormattedTimeSavedByAI(it)
+                    } else "",
+                    deleted = timesheet.deleted,
+                )
+            }
         }
-        // One pass over the result set for both the summed duration and the AI share, so the footer's two
-        // numbers can never disagree (see AITimeSavings.buildStats).
-        val stats = AITimeSavings.buildStats(resultSet.resultSet)
-        val duration = stats.totalDurationMillis
-        val aiEnabled = baseDao.timeSavingsByAIEnabled
-        val formattedDuration = dateTimeFormatter.getPrettyFormattedDuration(duration)
-        val md = MarkdownBuilder()
-        md.appendPipedValue(
-            "timesheet.totalDuration",
-            formattedDuration,
-            MarkdownBuilder.Color.BLUE
+        // Carry the paging fields through: for a server-side paged result (POST listPage) totalSize is the
+        // size of the whole result, not of this page, and offset being set is what tells the client it holds
+        // one page (see ResultSet, AbstractDTOPagesRest.postProcessResultSet). For the non-paged POST list
+        // offset stays null and totalSize is this page, which is the whole result.
+        val myResultSet = ResultSet(
+            list,
+            resultSet,
+            totalSize = resultSet.totalSize ?: list.size,
+            magicFilter = magicFilter,
+            offset = resultSet.offset,
+            limit = resultSet.limit,
+            totalSizeExact = resultSet.totalSizeExact,
         )
-        if (aiEnabled) {
-            md.appendPipedValue(
-                "timesheet.ai.timeSavedByAI",
-                stats.percentageString,
-                MarkdownBuilder.Color.BLUE
-            )
+        if (resultSet.offset == null) {
+            // Non-paged POST list (the legacy React list and the exports): the result set is the whole result,
+            // so its statistics are the whole result's, computed here in one pass.
+            val stats = buildStatistics(resultSet.resultSet)
+            myResultSet.statistics = stats
+            // The markdown footer the legacy React list reads, beside the typed statistics the next page reads.
+            val md = MarkdownBuilder()
+            md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
+            if (stats.aiEnabled) {
+                md.appendPipedValue("timesheet.ai.timeSavedByAI", stats.aiPercentage ?: "", MarkdownBuilder.Color.BLUE)
+            }
+            myResultSet.addResultInfo(md.toString())
+        } else {
+            // Server-side paged (the next client only): resultSet.resultSet is one page, so the whole-result
+            // statistics were computed over the full id list in aggregate() and are carried through here.
+            myResultSet.statistics = resultSet.statistics
         }
-        val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
-        myResultSet.addResultInfo(md.toString())
-        // The typed footer for the hand-built next page, beside the markdown the legacy React list keeps.
-        myResultSet.statistics = TimesheetListStatistics(
-            totalDurationMillis = duration,
-            totalDuration = formattedDuration,
+        return myResultSet
+    }
+
+    /**
+     * The whole-result statistics of a server-side paged list (see [getListPage]): the summed duration and the
+     * AI share over the full id list, not over the single page [postProcessResultSet] returns. The paging
+     * counterpart of computing them there over the whole non-paged result.
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any {
+        // A lean four-column projection, not getListByIds: the whole id list can be thousands of sheets, and
+        // buildStatistics reads only the duration and the AI fields, so hydrating the entities (all columns, in
+        // IN batches) just to sum them is pure waste (see TimesheetDao.selectStatisticsData). The result is
+        // cached with the id list, so this runs once per filter, not per page (see getListPage).
+        return buildStatistics(timesheetDao.selectStatisticsData(ids.toList()))
+    }
+
+    /**
+     * The summed duration and — where the installation tracks it — the AI share over the given time sheets, in
+     * one pass so the footer's two numbers can never disagree (see [AITimeSavings.buildStats]). Reads only the
+     * duration and AI fields of each sheet, so it needs no cache-populated task.
+     */
+    private fun buildStatistics(list: List<TimesheetDO>): TimesheetListStatistics {
+        val stats = AITimeSavings.buildStats(list)
+        val aiEnabled = baseDao.timeSavingsByAIEnabled
+        return TimesheetListStatistics(
+            totalDurationMillis = stats.totalDurationMillis,
+            totalDuration = dateTimeFormatter.getPrettyFormattedDuration(stats.totalDurationMillis),
             aiEnabled = aiEnabled,
             aiPercentage = if (aiEnabled) stats.percentageString else null,
         )
-        return myResultSet
     }
 
     override fun isAutocompletionPropertyEnabled(property: String): Boolean {
@@ -726,6 +785,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             .contentType(MediaType.parseMediaType("application/octet-stream"))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
             .body(ByteArrayResource(xls))
+    }
+
+    /**
+     * Exports the filtered timesheets as a PDF, the "PDF export" of the legacy list — now built with OpenPDF
+     * in the business layer ([TimesheetListPdfExport]) rather than the wicket-bound FOP path.
+     */
+    @PostMapping(RestPaths.REST_PDF_SUB_PATH)
+    fun exportAsPdf(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // Always a valid PDF, header row included even for an empty result (TimesheetListPdfExport.export).
+        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter))
+        val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.pdf"
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+            .body(ByteArrayResource(pdf))
     }
 
     /**

@@ -161,7 +161,12 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         page, null, totalSize = allIds.size, magicFilter = magicFilter,
         offset = offset, limit = limit, totalSizeExact = !idList.truncated,
     )
-    resultSet.statistics = pagesRest.aggregate(allIds, magicFilter)
+    // Whole-result statistics are a property of the id list, not of the page: compute them once and cache them
+    // with the ids (invalidated together by the change counter), so paging through the same filter does not
+    // recompute them on every flip. For a list whose aggregate reloads the whole result set from the database
+    // (all invoices plus the previous-year set, all matching time sheets), that recompute was a full reload per
+    // page. `aggregate` may legitimately return null (no statistics); recomputing null costs nothing.
+    resultSet.statistics = idList.statistics ?: pagesRest.aggregate(allIds, magicFilter)?.also { idList.statistics = it }
     return resultSet
 }
 

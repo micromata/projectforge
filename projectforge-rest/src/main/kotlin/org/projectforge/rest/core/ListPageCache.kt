@@ -54,7 +54,18 @@ class CachedIdList(
     val truncated: Boolean,
     val changeCounter: Long,
     val createdMillis: Long,
-)
+) {
+    /**
+     * The whole-result statistics of this id list ([AbstractEntityRest.aggregate]), computed once and reused
+     * while paging through the same filter. Null until the first page of this id list is served. Tied to the
+     * id list on purpose: both depend only on the filter and the entity's change counter, so a change that
+     * rebuilds the ids rebuilds these too. Without this, every page flip would recompute the statistics, which
+     * for a list like the invoices means reloading the whole result set (all invoices plus the previous-year
+     * set) from the database on each flip.
+     */
+    @Volatile
+    var statistics: Any? = null
+}
 
 /**
  * A monotonically increasing change counter per entity class.
