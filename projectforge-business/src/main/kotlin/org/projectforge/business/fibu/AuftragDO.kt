@@ -212,6 +212,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * Datum der schriftlichen Beauftragung steht.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
+    @GenericField // Indexed so the order book list filter offers it as a date range, like the sibling dates above.
     @get:Column(name = "beauftragungs_datum")
     open var beauftragungsDatum: LocalDate? = null
 
