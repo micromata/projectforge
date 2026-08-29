@@ -101,6 +101,10 @@ Three kinds, told apart structurally:
   nested property (`kunde.displayName`), or a transient one the backend computes (an order's net sum).
   `id` **must** be the property the backend sorts by, because there is no field to take it from. Only
   a computed column may state a `dataType`, and only because there is no metadata to derive one from.
+  For a value no SQL `ORDER BY` can express (a transient sum, `kunde.displayName`), the entity's REST
+  class declares it in `AbstractEntityRest.computedSortProperties` under this same `id`; the base then
+  drops it from the query and sorts the result in Kotlin, so the order the client picked drives both the
+  list and every export. See `MIGRATION-list-paging.md` (Stage 3) for the mechanism.
 - **`PeriodColumn`** — `{ periodLabelKey, begin, end }`, two date fields shown as the one value they
   are. A period is deliberately _not_ a data type of its own: the entity has two properties, the
   metadata reports two dates, and the backend sorts by `begin` (which is therefore the column's id).

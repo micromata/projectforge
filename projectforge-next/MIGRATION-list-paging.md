@@ -302,14 +302,30 @@ pushes these into the query either, it loads the complete list and sorts it with
   cheaply. Keeps the criteria search's semantics (blank ranks lowest and therefore flips with the
   direction, strings through a locale `Collator`), so a list sorted in Kotlin and one sorted by the
   database read the same. Covered by `SortPropertyComparatorTest`.
-- `OrderEntityRest.postProcessMagicFilter` removes the computed sort properties from the `QueryFilter`
-  (else `addOrder` logs per request), and `filterList` sorts the loaded orders by them —
-  `COMPUTED_SORT_PROPERTIES` maps each sort id onto an `OrderInfo` accessor, so each comparison is a map
-  lookup in `AuftragsCache`, not a query. `pos` sorts by the position count, so `#2` precedes `#10`.
-  Tie-breaker `nummer` desc, since 0.00 is the most common value of all four sums.
+- The mechanism is generic on `AbstractEntityRest` (it was hand-rolled per entity at first; lifted into
+  the base once three finance lists shared the same trio of overrides). A page only **declares** its
+  computed columns; the base owns the rest:
+  - `computedSortProperties: Map<String, (O) -> Comparable<*>?>` — the sort ids the client sends (the
+    column `id` in `*.page.tsx`) mapped to the value a loaded entity sorts by. Empty default = no
+    computed column, so both generic paths below are no-ops and every other page is untouched.
+  - `computedSortTieBreak: SortProperty` — the stable last criterion, since 0.00 is the most common of
+    all sums and a customer has many orders. Default primary key desc; the invoice lists override it
+    (`nummer`/`datum`).
+  - `AbstractPagesRestUtils.buildQueryFilter` strips these from the `QueryFilter` once for every entity
+    (else `addOrder` swallows them and ships an unordered query), never from `magicFilter.sortProperties`.
+  - the generic `filterList` sorts the loaded list by them via `SortPropertyComparator`; `pos` sorts by
+    the position count, so `#2` precedes `#10`.
+- `OrderEntityRest` keeps its private `COMPUTED_SORT_PROPERTIES` map (each sort id → an `OrderInfo`
+  accessor, so a comparison is an `AuftragsCache` lookup, not a query) and exposes it through
+  `computedSortProperties`.
 
-When stage 2 lands, this moves from `filterList` onto the materialized id list (`sortIds(ids, filter)`,
-once per (user, filter) rather than per page); the ordering itself stays as it is.
+This runs on the materialized id list under paging (`sortIds(ids, filter)`, once per (user, filter)
+rather than per page), not only on the loaded list — and by construction the two orderings are
+byte-for-byte identical: same computed selection, same `computedSortTieBreak`, same comparator. Two
+paths: `OrderEntityRest` opts into the cheap one (`hasComputedSortById = true` → `computedSortValueById`
+reads the value straight from `AuftragsCache`, no entity load, for its thousands of rows); the invoice
+lists take the default one (`sortIds` loads the matching entities and reuses `filterList`), since their
+customer/project `displayName` is in no cache.
 
 `assignedPersons` is left to reflection: it is a `@Transient` getter of `AuftragDO`, so it resolves
 against the entity and only its own `addOrder` fails — but it works in fulltext mode, where the sort runs

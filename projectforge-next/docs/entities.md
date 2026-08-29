@@ -116,7 +116,12 @@ The 19 columns of `OrderEntityRest.createListLayout` plus `lastUpdate`, in an or
   no `UIDataType`, so the metadata cannot carry them however the entity is annotated. The position
   count, the assigned persons, the person days and the four sums are transient properties computed by
   `OrderInfo` (`@get:Transient`). Each names as its `id` exactly the property the backend sorts by —
-  including the cases the backend sorts in memory (`kunde.displayName`, `pos`).
+  including the cases the backend sorts in memory (`kunde.displayName`, `pos`). Those in-memory cases
+  are declared once in `OrderEntityRest.computedSortProperties` (mapping each `id` to an `OrderInfo`
+  accessor); the generic base in `AbstractEntityRest` strips them from the query and sorts by them, for
+  the paged id list as for the whole `POST list` and every export alike. `OrderEntityRest` sets
+  `hasComputedSortById = true` so its thousands of rows sort from `AuftragsCache` by id, without loading
+  an entity per comparison.
 - **Amounts render the numeric fields, not the `formatted*` strings** the legacy list uses: a string
   column sorts "900,00" after "1.100,00". A computed column may state `dataType: "AMOUNT"`, which is
   what makes a transient sum read as money in the user's currency.
