@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
@@ -273,11 +274,15 @@ public class DateTimeFormatter extends AbstractFormatter {
    */
   public String getFormattedDuration(final long millis, final int hoursOfDay, final int minHours4DaySeparation) {
     final int[] fields = TimePeriod.getDurationFields(millis, hoursOfDay, minHours4DaySeparation);
+    // Group days and hours in the user's locale ("16.655" / "16,655"): both fields carry the whole
+    // duration of a list's summed rows and grow to thousands, unreadable without a thousands separator.
+    // Below 1000 the grouping is a no-op, so a plain "12d 1:00h" / "9:00h" is unchanged.
+    final NumberFormat groupingFormat = NumberFormat.getIntegerInstance(ThreadLocalUserContext.getLocale());
     final StringBuilder buf = new StringBuilder();
     if (fields[0] > 0) { // days
-      buf.append(fields[0]).append(getI18nMessage("calendar.unit.day")).append(" ");
+      buf.append(groupingFormat.format(fields[0])).append(getI18nMessage("calendar.unit.day")).append(" ");
     }
-    buf.append(fields[1]).append(":"); // hours
+    buf.append(groupingFormat.format(fields[1])).append(":"); // hours
     formatNumber(buf, fields[2]); // minutes
     buf.append(getI18nMessage("calendar.unit.hour"));
     return buf.toString();

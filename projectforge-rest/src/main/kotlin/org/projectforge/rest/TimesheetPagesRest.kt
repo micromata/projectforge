@@ -61,6 +61,7 @@ import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
@@ -736,6 +737,41 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             )
         )
         elements.add(element)
+        // The three settings the legacy list form keeps always open (TimesheetListForm): the period the
+        // sheets fall into, the user they belong to and the task they were booked on. All `defaultFilter`,
+        // so they show without being added — the pills the user narrows a time sheet list by first.
+        //
+        // `startTime` and `stopTime` are both `@GenericField`, so each is auto-generated above as a
+        // TIMESTAMP filter ("Beginn"/"Stopp", down to the time of day) — the two literal-bound filters a
+        // user can add to pin an exact start or end. The list's own default period is a *third*, distinct
+        // filter: a sticky date range whose overlap semantics differ from either bound (it catches a sheet
+        // that began before the window but runs into it, see preProcessMagicFilter). It gets its own id so
+        // it never collides with the `startTime`/`stopTime` pills — a shared id would open two at once.
+        elements.add(
+            // A synthetic field (no `period` property on TimesheetDO): consumed in preProcessMagicFilter,
+            // where its DATE from/to become the overlap predicate. DATE, so the picker sends day-only bounds.
+            UIFilterElement("period", filterType = UIFilterElement.FilterType.DATE, label = translate("timePeriod"))
+                .also { it.defaultFilter = true }
+        )
+        elements.add(
+            // Consumed in preProcessMagicFilter, because the object picker sends the picked user as `value.id`
+            // and the generic BaseDO predicate reads `value.value` instead (see there).
+            UIFilterObjectElement(
+                "user",
+                label = translate("timesheet.user"),
+                autoCompletion = AutoCompletion.getAutoCompletion4Users(),
+            ).also { it.defaultFilter = true }
+        )
+        elements.add(
+            // The task's own type-ahead — `TaskServicesRest.autosearch` under `task/tree`, not the inherited
+            // `task/autosearch` of this class (which has no search fields and would error). Consumed in
+            // preProcessMagicFilter, both for the recursive toggle and for the `value.id` the picker sends.
+            UIFilterObjectElement(
+                "task",
+                label = translate("task"),
+                autoCompletion = AutoCompletion<Long>(url = AutoCompletion.getAutoCompletionUrl("task/tree")),
+            ).also { it.defaultFilter = true }
+        )
         // The two options of the legacy list form (TimesheetListForm): search the picked task including its
         // sub-tasks (on by default, see MagicFilterProcessor, and consumed in preProcessMagicFilter so the
         // toggle can switch it off), and keep only sheets booked on a billable cost unit.
@@ -744,22 +780,56 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * Consumes the list's two option toggles ([addMagicFilterElements]) before the generic processor turns the
+     * Consumes the list's sticky settings ([addMagicFilterElements]) before the generic processor turns the
      * remaining entries into the query:
-     * - `recursive` (default true): the task search is recursive by default (see [MagicFilterProcessor]). When
-     *   switched off, the task entry is taken over here and restricted to the exact task, so the generic
-     *   processor doesn't re-add the recursive predicate for it.
+     * - `period` (a `defaultFilter` date range): a synthetic field, turned into the overlap predicate
+     *   `stopTime >= from AND startTime <= to` — so a sheet that began before the window but runs into it is
+     *   kept (as `TimesheetDao.buildQueryFilter` does). The literal `startTime`/`stopTime` pills a user may
+     *   add stay with the generic processor as plain bounds on their columns.
+     * - `task` (a `defaultFilter` object picker): taken over here rather than left to the generic processor,
+     *   because the picker sends the task as `value.id` while the generic `TaskDO` predicate reads
+     *   `value.value` (null then, which would match sheets *without* a task). The `recursive` toggle decides
+     *   whether the sub-tasks are searched too (default true, as the legacy list).
+     * - `recursive` (default true): see above; only consumed so it doesn't fall through as an unknown field.
+     * - `user` (a `defaultFilter` object picker): same `value.id` reason, filtered by `user.id` as
+     *   `TimesheetDao.getList` does it.
      * - `onlyBillable`: a post filter over the result, as `TimesheetDao.internalGetList` does it.
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<TimesheetDO>> {
         val filters = mutableListOf<CustomResultFilter<TimesheetDO>>()
+        source.entries.find { it.field == "period" }?.let { periodEntry ->
+            periodEntry.synthetic = true
+            // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that
+            // began before the window but runs into it is kept — the same predicate TimesheetDao.buildQueryFilter
+            // builds. The DATE picker sends day-only bounds; widen them to the whole day in the user's zone
+            // (begin of the from-day, end of the to-day) so both edges are inclusive.
+            val periodStart = PFDateTimeUtils.parseAndCreateDateTime(periodEntry.value.fromValue)?.beginOfDay?.utilDate
+            val periodEnd = PFDateTimeUtils.parseAndCreateDateTime(periodEntry.value.toValue)?.endOfDay?.utilDate
+            if (periodStart != null) {
+                target.add(QueryFilter.ge("stopTime", periodStart))
+            }
+            if (periodEnd != null) {
+                target.add(QueryFilter.le("startTime", periodEnd))
+            }
+        }
         val recursiveEntry = source.entries.find { it.field == "recursive" }
         recursiveEntry?.synthetic = true
         val recursive = recursiveEntry?.value?.value != "false" // Default true, as the legacy list.
-        if (!recursive) {
-            source.entries.find { it.field == "task" }?.let { taskEntry ->
-                taskEntry.synthetic = true
-                target.add(QueryFilter.taskSearch("task", taskEntry.value.value?.toLongOrNull(), false))
+        source.entries.find { it.field == "task" }?.let { taskEntry ->
+            taskEntry.synthetic = true
+            val taskId = taskEntry.value.id ?: taskEntry.value.value?.toLongOrNull()
+            if (taskId != null) {
+                // On `task.id`, not the `task` association: the recursive case is an `isIn` of the descendant
+                // ids, and comparing the TaskDO association to a list of Longs is a type error (as TimesheetDao
+                // does it too).
+                target.add(QueryFilter.taskSearch("task.id", taskId, recursive))
+            }
+        }
+        source.entries.find { it.field == "user" }?.let { userEntry ->
+            userEntry.synthetic = true
+            val userId = userEntry.value.id ?: userEntry.value.value?.toLongOrNull()
+            if (userId != null) {
+                target.add(QueryFilter.eq("user.id", userId))
             }
         }
         source.entries.find { it.field == "onlyBillable" }?.let { entry ->
@@ -777,6 +847,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
+        // do the same, or its full-text search behaves differently and returns nothing where the list showed rows.
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
         // Always a workbook, header row included even for an empty result (TimesheetExport.export) — so the
         // download never yields an empty file that would read as a broken export.
         val xls = timesheetExport.export(getObjectList(this, baseDao, filter))
@@ -793,8 +867,22 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     @PostMapping(RestPaths.REST_PDF_SUB_PATH)
     fun exportAsPdf(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
+        // do the same, or its full-text search behaves differently and returns nothing where the list showed rows.
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        // The filter summary shown on the PDF's first page: the sticky pills the list was narrowed by
+        // (see addMagicFilterElements) — the period, the free-text search and the picked user.
+        val periodEntry = filter.entries.find { it.field == "period" }
+        val userEntry = filter.entries.find { it.field == "user" }
+        val context = TimesheetListPdfExport.Context(
+            periodFrom = periodEntry?.value?.fromValue,
+            periodTo = periodEntry?.value?.toValue,
+            searchString = filter.searchString,
+            userName = userEntry?.value?.displayName,
+        )
         // Always a valid PDF, header row included even for an empty result (TimesheetListPdfExport.export).
-        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter))
+        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter), context)
         val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.pdf"
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)

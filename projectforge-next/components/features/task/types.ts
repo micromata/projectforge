@@ -105,6 +105,8 @@ export interface TaskDetail {
 export interface TaskListRow {
   id: number;
   title?: string | null;
+  /** The path to the root ("A -> B -> C") including this task — the tooltip of the title column. */
+  path?: string | null;
   /** Whether the task is marked as deleted — the row is then tinted and struck through. */
   deleted?: boolean;
   shortDescription?: string | null;

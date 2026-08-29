@@ -14,7 +14,13 @@ export type TimeSavedByAIUnit =
  * displayName?: string }`), and TypeScript gives an alias that same implicit index signature but never an
  * interface — so only the alias is assignable to the schema's inferred type (see order/types.ts).
  */
-export type EntityRefDto = { id: number; displayName?: string; title?: string };
+export type EntityRefDto = {
+  id: number;
+  displayName?: string;
+  title?: string;
+  /** The task's path to the root ("A -> B -> C"), shown as the tooltip of the structure element column. */
+  path?: string;
+};
 
 /**
  * A cost unit as the DTO carries it (`rest/dto/Kost2`): the id every reference is written back by, and

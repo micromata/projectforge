@@ -27,6 +27,7 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
@@ -105,6 +106,14 @@ class Task(id: Long? = null,
     var kost2ListAsLines: String? = null
 
     /**
+     * The path to the root as "Micromata -> Business Unit -> ProjectForge", shown as the tooltip of the
+     * structure element column — the list counterpart of the tree's path (`TaskFormatter.getTaskPath`).
+     * Only filled by [copyFrom4ListRow], see [consumption]; on a nested task of a time sheet row it is the
+     * *parent* path (see [Timesheet.copyFrom4ListRow]).
+     */
+    var path: String? = null
+
+    /**
      * The orders having a position booked against this task, for the list's `Aufträge` column. Only filled
      * by [copyFrom4ListRow], see [consumption].
      */
@@ -163,6 +172,9 @@ class Task(id: Long? = null,
         kost2WildCard = serviceTask.kost2WildCard
         kost2ListAsLines = serviceTask.kost2ListAsLines
         orderList = serviceTask.orderList
+        // The whole path including this task, as the Wicket list shows it in the title cell's tooltip
+        // (`WicketTaskFormatter.appendFormattedTask(..., showPathAsTooltip = true)`).
+        path = TaskFormatter.getTaskPath(id)
     }
 
     override fun copyFromMinimal(src: TaskDO) {

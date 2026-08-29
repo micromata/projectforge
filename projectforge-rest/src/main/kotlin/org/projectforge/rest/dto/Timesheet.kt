@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.projectforge.business.PfCaches
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.timesheet.TimesheetDO
 import java.math.BigDecimal
 import java.util.*
@@ -100,7 +101,14 @@ class Timesheet(
         description = src.description
         // The columns show a name (and, for the cost unit, its formatted number), not a whole entity — so
         // the id and display name only. Not the DTOs' copyFrom, which would nest the task's parent chain.
-        src.task?.let { task = Task(id = it.id, displayName = it.displayName) }
+        // The plain title (not `displayName`, which appends "(#id)") is the label, and the path *without*
+        // this task is its tooltip — the Wicket column shows exactly that (`TaskPropertyColumn`, path with
+        // `showCurrentTask = false`, since the cell already names the task).
+        src.task?.let {
+            task = Task(id = it.id, displayName = it.displayName, title = it.title).apply {
+                path = TaskFormatter.getTaskPath(it.id, showCurrentTask = false)
+            }
+        }
         src.user?.let { user = User(id = it.id, displayName = it.displayName) }
         src.kost2?.let { kost2 = Kost2().also { dto -> dto.copyFromMinimal(it) } }
     }

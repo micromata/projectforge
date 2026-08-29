@@ -67,8 +67,26 @@ export const TIMESHEET_PAGE = definePage<
   // The fields that identify a sheet, in the order the legacy list shows them
   // (`TimesheetPagesRest.createListLayout`).
   columns: [
-    { name: "user", size: 140 },
-    { name: "task", size: 240, className: "font-medium" },
+    // Both are entity references the row carries as `{ id, displayName }`, not a plain value, so each
+    // names the string it shows rather than letting the default cell stringify the object. The sort id
+    // stays the field name, which is what the backend orders the server-side pages by.
+    {
+      name: "user",
+      size: 140,
+      cell: ({ row }) => row.original.user?.displayName ?? null,
+    },
+    {
+      name: "task",
+      size: 240,
+      // The plain task title (the backend drops the "(#id)" of its display name), with the path to the
+      // root as the tooltip — the Wicket column shows exactly this (`TaskPropertyColumn`).
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.task?.title ?? row.original.task?.displayName ?? null}
+        </span>
+      ),
+      tooltip: (row) => row.task?.path ?? undefined,
+    },
     { name: "startTime", size: 150 },
     { name: "stopTime", size: 150 },
     { name: "location", size: 140 },

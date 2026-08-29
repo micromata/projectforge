@@ -70,6 +70,9 @@ export const TASK_PAGE = definePage<
       size: 400,
       className: "font-semibold",
       pinned: "left",
+      // The whole path to the root on hover, as the Wicket list shows it in an info tooltip
+      // (`WicketTaskFormatter.appendFormattedTask`, `showPathAsTooltip`).
+      tooltip: (row) => row.path ?? undefined,
     },
     {
       // Painted rather than written out: the bar, its colour and its tooltip are all the backend's
