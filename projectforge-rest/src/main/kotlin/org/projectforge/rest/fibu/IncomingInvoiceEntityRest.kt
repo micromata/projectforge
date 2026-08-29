@@ -41,7 +41,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.model.rest.RestPaths
@@ -356,44 +355,12 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
     }
 
     /**
-     * Takes the columns no `ORDER BY` can express out of the query — [filterList] sorts by those. See
-     * [OutgoingInvoiceEntityRest.postProcessMagicFilter].
+     * The columns no `ORDER BY` can express — the two sums, which live in [RechnungInfo]. See
+     * [OutgoingInvoiceEntityRest.computedSortProperties]. `sortIds` keeps the base's load path.
      */
-    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
-        target.sortProperties.removeIf { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-    }
+    override val computedSortProperties get() = COMPUTED_SORT_PROPERTIES
 
-    /**
-     * Sorts the loaded invoices by the columns that are no database column — the two sums, which live in
-     * [RechnungInfo]. See [OutgoingInvoiceEntityRest.filterList].
-     */
-    override fun filterList(resultSet: MutableList<EingangsrechnungDO>, filter: MagicFilter): List<EingangsrechnungDO> {
-        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-        if (computed.isEmpty()) {
-            return resultSet
-        }
-        // A stable last criterion, so equal values keep a deterministic order between two requests.
-        val sortProperties = computed + SortProperty.desc(EingangsrechnungDO::datum.name)
-        return SortPropertyComparator.sort(resultSet, sortProperties) { invoice, property ->
-            COMPUTED_SORT_PROPERTIES[property]?.invoke(invoice)
-        }
-    }
-
-    /**
-     * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): orders the
-     * materialized id list once per (session, filter) by loading the matching invoices and reusing
-     * [filterList]'s comparator over them, so the paged order is byte-for-byte the non-paged one. Cached by
-     * [getListPage] (once per filter) and only when one of the two computed sum columns is sorted on - a
-     * database column is ordered by the query itself. See [OutgoingInvoiceEntityRest.sortIds].
-     */
-    override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
-        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-        if (computed.isEmpty()) {
-            return ids
-        }
-        val sorted = filterList(getListByIds(ids.toList()).toMutableList(), filter)
-        return sorted.mapNotNull { it.id }.toLongArray()
-    }
+    override val computedSortTieBreak get() = SortProperty.desc(EingangsrechnungDO::datum.name)
 
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not

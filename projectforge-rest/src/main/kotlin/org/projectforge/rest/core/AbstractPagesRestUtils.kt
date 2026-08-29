@@ -92,6 +92,10 @@ private fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFilt
     magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
     MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
     pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
+    // A computed column is no database column; DBQueryBuilderByCriteria.addOrder would swallow it and ship a
+    // query with no ORDER BY at all. Drop the computed sort properties from the QUERY here, once for every
+    // entity — never from magicFilter.sortProperties, which filterList/sortIds still read to sort by them.
+    queryFilter.sortProperties.removeIf { pagesRest.computedSortProperties.containsKey(it.property) }
     return queryFilter to customResultFilters
 }
 

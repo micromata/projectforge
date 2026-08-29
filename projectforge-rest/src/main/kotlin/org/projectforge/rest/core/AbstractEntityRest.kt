@@ -613,18 +613,69 @@ constructor(
     }
 
     /**
-     * Orders the materialized id list of a server-side paged list (see [getListPage]). The default keeps the
-     * order the database produced; a page whose list has computed columns (no database column to sort on)
-     * overrides this to sort the ids once per (session, filter), instead of sorting each loaded page.
+     * The computed/transient list columns of this page — the ones no SQL `ORDER BY` can express (sums,
+     * person days, a `#count`, `kunde.displayName`, an invoice's translated status). Keyed by the sort
+     * property the Next.js client sends (the column `id` declared in `*.page.tsx`), each mapped to the
+     * value a *loaded* entity sorts by.
      *
-     * Runs on ids only. An override sorts as cheaply as its keys allow: from a cache where every sort key is
-     * there (`AuftragsCache`, the order book), or by loading the matching entities and reusing [filterList]'s
-     * comparator where a key is not (the customer/project columns of the invoice lists). Either way it runs
-     * once per (session, filter), not once per page. It is the paging counterpart of [filterList], which still
-     * sorts the non-paged `POST list` result.
+     * Declaring a column here is all a page needs: the query drops these properties before it runs (see
+     * `AbstractPagesRestUtils.buildQueryFilter`, where `addOrder` would otherwise swallow them and ship an
+     * unordered query), and the generic [filterList]/[sortIds] sort by them afterwards. The empty default
+     * means no computed column, so both generic paths are no-ops — every page without one is untouched.
+     */
+    open val computedSortProperties: Map<String, (O) -> Comparable<*>?> get() = emptyMap()
+
+    /**
+     * The stable last criterion [filterList] and [sortIds] append after the [computedSortProperties], so
+     * equal computed values (0.00 is the most common of all sums, a customer has many orders) keep a
+     * deterministic order between two requests over the same data — and the paged and non-paged orderings
+     * agree at ties. Default: primary key descending, which reflection resolves on any entity. Consulted
+     * only when a computed column is actually sorted on.
+     */
+    open val computedSortTieBreak: SortProperty get() = SortProperty.desc("id")
+
+    /**
+     * Opt-in cheap id path for [sortIds]: true if the page can resolve every computed sort value (and the
+     * [computedSortTieBreak] value) straight from an id via a cache, without loading the entity — worth it
+     * for a list of thousands (the order book reads [computedSortValueById] from `AuftragsCache`). Default
+     * false: [sortIds] loads the matching entities and reuses [filterList], which the invoice lists do
+     * because their customer/project `displayName` is in no cache.
+     */
+    open val hasComputedSortById: Boolean get() = false
+
+    /**
+     * The value an id sorts by for [property] on the cheap id path — consulted only when
+     * [hasComputedSortById]. Must resolve both the [computedSortProperties] keys and the
+     * [computedSortTieBreak] property. `null` sorts the id as blank (which ranks lowest), the same
+     * fallback as an id not (yet) in the cache.
+     */
+    open fun computedSortValueById(id: Long, property: String): Comparable<*>? = null
+
+    /**
+     * Orders the materialized id list of a server-side paged list (see [getListPage]) by the
+     * [computedSortProperties] a database `ORDER BY` cannot express, so a page is a slice of an already
+     * ordered list. Sorts once per (session, filter), not once per page, and — sharing the same computed
+     * selection, [computedSortTieBreak] and comparator as [filterList] — yields byte-for-byte the order the
+     * non-paged `POST list` returns. Keeps the database order when no computed column is sorted on (the ids
+     * then already came pre-ordered from the query).
+     *
+     * Two paths: the cheap one reads each id's value from a cache ([computedSortValueById], the order book);
+     * the default one loads the matching entities and reuses [filterList] (the invoice lists). A page opts
+     * into the cheap one via [hasComputedSortById].
      */
     open fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
-        return ids
+        val computed = filter.sortProperties.filter { computedSortProperties.containsKey(it.property) }
+        if (computed.isEmpty()) {
+            return ids
+        }
+        return if (hasComputedSortById) {
+            val sortProperties = computed + computedSortTieBreak
+            SortPropertyComparator.sort(ids.toList(), sortProperties) { id, property ->
+                computedSortValueById(id, property)
+            }.toLongArray()
+        } else {
+            filterList(getListByIds(ids.toList()).toMutableList(), filter).mapNotNull { it.id }.toLongArray()
+        }
     }
 
     /**
@@ -711,8 +762,20 @@ constructor(
         return transformFromDB(obj, false)
     }
 
+    /**
+     * Sorts the loaded result set by the [computedSortProperties] a database `ORDER BY` cannot express (see
+     * there), and leaves the order the query produced alone when none of them is sorted on: a stable sort by
+     * nothing is not the same as no sort. The [computedSortTieBreak] is appended last for a deterministic
+     * order at equal computed values. The paging counterpart is [sortIds], which returns the same order.
+     */
     internal open fun filterList(resultSet: MutableList<O>, filter: MagicFilter): List<O> {
-        return resultSet
+        val props = computedSortProperties
+        val computed = filter.sortProperties.filter { props.containsKey(it.property) }
+        if (computed.isEmpty()) {
+            return resultSet
+        }
+        val sortProperties = computed + computedSortTieBreak
+        return SortPropertyComparator.sort(resultSet, sortProperties) { obj, property -> props[property]?.invoke(obj) }
     }
 
     /**

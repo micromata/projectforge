@@ -42,7 +42,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
@@ -476,76 +475,40 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * Takes the columns no `ORDER BY` can express out of the query — [filterList] sorts by those.
+   * The eight columns no `ORDER BY` can express, the way the Wicket list page has always sorted them
+   * (`MyListPageSortableDataProvider` with `MyBeanComparator`). The four sums and the person days are
+   * `@get:Transient` getters of [AuftragDO] over [OrderInfo], and the position count is a string ("#3");
+   * all six are readable for free, because [AuftragsCache] answered them for every row loaded anyway — a
+   * map lookup per comparison, not a query. The count sorts numerically, so `#2` comes before `#10`.
    *
-   * `addOrder` swallows the exception such a property causes, so the query went out with no `ORDER BY`
-   * at all and the list came back in whatever order the database produced — the sort a user asked for
-   * silently did nothing.
+   * The customer and the project sort by the very string the cell shows — `displayName`, formatted by
+   * `KostFormatter` out of number and name ("473 - Air Liquide", "5.100.06: Xmlgate"), which is what the
+   * Wicket list sorts by too. Ordering by `kunde.name`/`projekt.name` instead produced a list that looks
+   * unsorted: the numbers lead every cell, so the names they hide sort in no visible order. The numbers
+   * are left padded, so ordering by the string is ordering by the number.
+   *
+   * Wrapped over [AuftragDO] for [filterList] (the base contract); [computedSortValueById] reads the same
+   * [COMPUTED_SORT_PROPERTIES] straight from [AuftragsCache] for the cheap id path of `sortIds`.
    */
-  override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
-    target.sortProperties.removeIf { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-  }
+  override val computedSortProperties: Map<String, (AuftragDO) -> Comparable<*>?>
+    get() = COMPUTED_SORT_PROPERTIES.mapValues { (_, valueOf) ->
+      { order: AuftragDO -> valueOf(auftragsCache.getOrderInfo(order)) }
+    }
+
+  override val computedSortTieBreak get() = SortProperty.desc(AuftragDO::nummer.name)
+
+  /** The order book has thousands of rows, so `sortIds` reads its keys from the cache rather than load them. */
+  override val hasComputedSortById get() = true
 
   /**
-   * Sorts the loaded orders by the columns that are no database column, the way the Wicket list page has
-   * always done it (`MyListPageSortableDataProvider` with `MyBeanComparator`).
-   *
-   * Eight of the list's columns are computed. The four sums and the person days are `@get:Transient`
-   * getters of [AuftragDO] over [OrderInfo], and the position count is a string ("#3"); all six are
-   * readable here for free, because [AuftragsCache] answered them for every row that was loaded anyway —
-   * a map lookup per comparison, not a query. The count sorts numerically, so `#2` comes before `#10`.
-   *
-   * The customer and the project are the other two, and they sort by the very string the cell shows —
-   * `displayName`, formatted by `KostFormatter` out of number and name ("473 - Air Liquide",
-   * "5.100.06: Xmlgate"), which is also what the Wicket list sorts its two columns by. Ordering by
-   * `kunde.name`/`projekt.name` instead, as this did before, produced a list that looks unsorted to
-   * whoever reads it: the numbers lead every cell, so the names they hide sort in no visible order. The
-   * numbers are left padded, so ordering by the string is ordering by the number.
-   *
-   * The place for it: the whole result set is loaded (there is no server side paging yet, see
-   * `MIGRATION-list-paging.md`), so sorting it here is sorting all of it. Once paging lands, this moves
-   * onto the materialized id list — the ordering itself stays as it is.
-   *
-   * Sorts only by what [postProcessMagicFilter] took out of the query, and leaves the order the database
-   * produced alone otherwise: a stable sort by nothing is not the same as no sort.
+   * The `nummer` tie-break resolves against [OrderInfo.nummer] here (an id has no reflective `nummer`);
+   * [filterList] resolves it against `AuftragDO.nummer` — the same value, so both paths order equal
+   * computed values identically. An id whose info is not (yet) cached sorts as blank.
    */
-  override fun filterList(resultSet: MutableList<AuftragDO>, filter: MagicFilter): List<AuftragDO> {
-    val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-    if (computed.isEmpty()) {
-      return resultSet
-    }
-    // The number as the last criterion, so equal values (0.00 is the most common one of all four sums,
-    // and a customer has many orders) keep a deterministic order instead of shifting between two
-    // requests over the same data. It resolves reflectively against AuftragDO.nummer (no COMPUTED entry).
-    val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
-    return SortPropertyComparator.sort(resultSet, sortProperties) { order, property ->
-      COMPUTED_SORT_PROPERTIES[property]?.invoke(auftragsCache.getOrderInfo(order))
-    }
-  }
-
-  /**
-   * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): sorts the
-   * materialized id list by the computed columns once per (session, filter), so a page is a slice of an
-   * already ordered list. Reads each id's [OrderInfo] from [AuftragsCache] — no entity load — and sorts by
-   * the same [COMPUTED_SORT_PROPERTIES] and the same `nummer` tie-break as [filterList], so the paged result
-   * is byte-for-byte the same order as the non-paged `POST list`.
-   *
-   * The tie-break resolves against [OrderInfo.nummer] here (an id has no reflective `nummer`); [filterList]
-   * resolves it against `AuftragDO.nummer` — the same value, so both paths order equal computed values
-   * identically. An id whose info is not (yet) cached sorts as blank rather than dropping out of the list.
-   */
-  override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
-    val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-    if (computed.isEmpty()) {
-      return ids
-    }
-    val sortProperties = computed + SortProperty.desc(AuftragDO::nummer.name)
-    val sorted = SortPropertyComparator.sort(ids.toList(), sortProperties) { id, property ->
-      val info = auftragsCache.getOrderInfo(id) ?: return@sort null
-      COMPUTED_SORT_PROPERTIES[property]?.invoke(info)
-        ?: if (property == AuftragDO::nummer.name) info.nummer else null
-    }
-    return sorted.toLongArray()
+  override fun computedSortValueById(id: Long, property: String): Comparable<*>? {
+    val info = auftragsCache.getOrderInfo(id) ?: return null
+    return COMPUTED_SORT_PROPERTIES[property]?.invoke(info)
+      ?: if (property == AuftragDO::nummer.name) info.nummer else null
   }
 
   /**
