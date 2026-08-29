@@ -60,7 +60,6 @@ import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.api.SortPropertyComparator
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
@@ -1068,61 +1067,20 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
-     * Takes the columns no `ORDER BY` can express out of the query - [filterList] sorts by those.
+     * The columns no `ORDER BY` can express, the way the Wicket list page has always sorted them
+     * (`MyListPageSortableDataProvider`). The two sums and the translated status live in [RechnungInfo],
+     * which `RechnungCache` answered for every row that was loaded anyway - a map lookup per comparison,
+     * not a query. The customer and the project sort by the very string their cell shows, `displayName`,
+     * which `KostFormatter` composes of number and name ("473 - Air Liquide"); the numbers are left
+     * padded, so ordering by the string is ordering by the number. Sorting by `kunde.name` instead
+     * produces a list that looks unsorted, since the numbers lead every cell.
      *
-     * Without it the whole `ORDER BY` is lost: `addOrder` swallows the exception an unknown property
-     * causes, so the list comes back in whatever order the database produced and the sort the user asked
-     * for silently does nothing.
+     * A `displayName` is in no [RechnungInfo], so `sortIds` keeps the base's load path (load the invoices,
+     * reuse [filterList]) rather than the order book's cache path.
      */
-    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
-        target.sortProperties.removeIf { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-    }
+    override val computedSortProperties get() = COMPUTED_SORT_PROPERTIES
 
-    /**
-     * Sorts the loaded invoices by the columns that are no database column, the way the Wicket list page
-     * has always done it (`MyListPageSortableDataProvider`).
-     *
-     * The two sums and the translated status live in [RechnungInfo], which `RechnungCache` answered for
-     * every row that was loaded anyway - a map lookup per comparison, not a query. The customer and the
-     * project sort by the very string their cell shows, `displayName`, which `KostFormatter` composes of
-     * number and name ("473 - Air Liquide"); the numbers are left padded, so ordering by the string is
-     * ordering by the number. Sorting by `kunde.name` instead produces a list that looks unsorted to
-     * whoever reads it, since the numbers lead every cell.
-     *
-     * The whole result set is loaded (there is no server side paging yet, see
-     * `MIGRATION-list-paging.md`), so sorting it here is sorting all of it.
-     */
-    override fun filterList(resultSet: MutableList<RechnungDO>, filter: MagicFilter): List<RechnungDO> {
-        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-        if (computed.isEmpty()) {
-            return resultSet
-        }
-        // The invoice number as the last criterion, so equal values keep a deterministic order instead of
-        // shifting between two requests over the same data.
-        val sortProperties = computed + SortProperty.desc(RechnungDO::nummer.name)
-        return SortPropertyComparator.sort(resultSet, sortProperties) { invoice, property ->
-            COMPUTED_SORT_PROPERTIES[property]?.invoke(invoice)
-        }
-    }
-
-    /**
-     * The server-side paging counterpart of [filterList] (see `MIGRATION-list-paging.md`): orders the
-     * materialized id list once per (session, filter), so a page is a slice of an already sorted list.
-     *
-     * The customer and the project sort by a `displayName` no [RechnungInfo] holds, so - unlike the order
-     * book, which sorts its ids from [AuftragsCache] alone - this loads the matching invoices and reuses
-     * [filterList]'s comparator over them, which makes the paged order byte-for-byte the non-paged one. The
-     * load is cached by [getListPage] (once per filter, not once per page) and happens only when a computed
-     * column is sorted on - a database column is ordered by the query itself and the ids come pre-sorted.
-     */
-    override fun sortIds(ids: LongArray, filter: MagicFilter): LongArray {
-        val computed = filter.sortProperties.filter { COMPUTED_SORT_PROPERTIES.containsKey(it.property) }
-        if (computed.isEmpty()) {
-            return ids
-        }
-        val sorted = filterList(getListByIds(ids.toList()).toMutableList(), filter)
-        return sorted.mapNotNull { it.id }.toLongArray()
-    }
+    override val computedSortTieBreak get() = SortProperty.desc(RechnungDO::nummer.name)
 
     /**
      * The whole-result statistics of a server-side paged invoice list: computed over the full id list, not

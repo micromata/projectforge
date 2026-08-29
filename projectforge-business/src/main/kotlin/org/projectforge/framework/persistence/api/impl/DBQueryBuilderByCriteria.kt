@@ -103,7 +103,12 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
             }
             order.add(cb.sort(expression, direction, nulls))
         } catch (ex: Exception) {
-            log.error("Can't add order for property '${ctx.entityName}.${sortProperty.property}: ${ex.message}")
+            log.error(
+                "Can't add order for property '${ctx.entityName}.${sortProperty.property}': ${ex.message}. " +
+                        "The query goes out without this ORDER BY. If this is a computed/transient column (no " +
+                        "database column to sort on), declare it in AbstractEntityRest.computedSortProperties " +
+                        "so filterList/sortIds sort by it instead."
+            )
         }
     }
 }
