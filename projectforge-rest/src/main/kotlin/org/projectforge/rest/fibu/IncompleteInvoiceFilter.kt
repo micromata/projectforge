@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.KontoDO
+import org.projectforge.business.fibu.RechnungInfo
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.NumberHelper
 
@@ -62,18 +63,27 @@ internal const val INCOMPLETE_FILTER = "incomplete"
  * one `KontoCache.getKonto(invoice)` finds, which falls back through project and customer, since that is
  * the account the export uses; for an incoming invoice its own, there being no such fallback. Passed in
  * rather than resolved here so the filter needs no cache of its own.
+ * @param infoOf The [RechnungInfo] of the invoice from the matching invoice cache, or null for one created
+ * after the last refresh. Passed in for the reason [accountOf] is, and read instead of
+ * [AbstractRechnungDO.ensuredInfo] for the reason [OutgoingInvoiceEntityRest.PaymentStateFilter] reads the
+ * cache: a custom result filter runs inside `DBQuery.select`, before `BaseDao.select` fires the `afterLoad`
+ * that would put the cached info on the row, so `ensuredInfo` would lazily load every invoice's positions
+ * and cost assignments - one query pair per invoice, the N+1 storm the cache exists to avoid. The fallback
+ * to `ensuredInfo` is for the single uncached row only.
  */
 internal class IncompleteInvoiceFilter<O : AbstractRechnungDO>(
     private val costConfigured: Boolean,
     private val accountRequired: Boolean,
     private val accountOf: (O) -> KontoDO?,
+    private val infoOf: (O) -> RechnungInfo?,
 ) : CustomResultFilter<O> {
     /**
      * `isNotZero` rather than `!= BigDecimal.ZERO`: `BigDecimal.equals` compares the scale as well, so a
      * `0.00` would count as a difference.
      */
     override fun match(list: MutableList<O>, element: O): Boolean {
-        if (costConfigured && NumberHelper.isNotZero(element.ensuredInfo.kostZuweisungenFehlbetrag)) {
+        val info = infoOf(element) ?: element.ensuredInfo
+        if (costConfigured && NumberHelper.isNotZero(info.kostZuweisungenFehlbetrag)) {
             return true
         }
         return accountRequired && accountOf(element) == null

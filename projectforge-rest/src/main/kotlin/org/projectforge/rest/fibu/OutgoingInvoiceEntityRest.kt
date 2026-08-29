@@ -35,6 +35,7 @@ import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.PeriodOfPerformanceValidator
+import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungCalculator
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
@@ -127,6 +128,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     @Autowired
     private lateinit var kontoCache: KontoCache
+
+    @Autowired
+    private lateinit var rechnungCache: RechnungCache
 
     @Autowired
     private lateinit var kostZuweisungExport: KostZuweisungExport
@@ -1023,7 +1027,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val listTypeEntry = source.entries.find { it.field == LIST_TYPE_FILTER }
         listTypeEntry?.synthetic = true // No property of RechnungDO, so the database cannot answer it.
         listTypeEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.let { listType ->
-            filters.add(PaymentStateFilter(listType))
+            filters.add(PaymentStateFilter(listType, rechnungCache))
         }
         val incompleteEntry = source.entries.find { it.field == INCOMPLETE_FILTER }
         // Neither of the two reasons is a column: the difference is computed by RechnungCalculator, and the
@@ -1037,6 +1041,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                     // The account the export would use, not the invoice's own: an invoice without one is
                     // booked to the account of its project or its customer, so it lacks nothing.
                     accountOf = { kontoCache.getKonto(it) },
+                    // From the cache, not ensuredInfo: this filter runs before afterLoad puts the cached info
+                    // on the row (see IncompleteInvoiceFilter and PaymentStateFilter).
+                    infoOf = { rechnungCache.getRechnungInfo(it.id) },
                 )
             )
         }
@@ -1223,10 +1230,22 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * A [CustomResultFilter] and not a query criterion: whether an invoice is paid or overdue follows from
      * [RechnungInfo] - the sum of its positions against what was paid, and the due date against today -
      * which is why `RechnungDao.select` filters it in memory as well.
+     *
+     * The [RechnungInfo] comes from [RechnungCache] and not from [AbstractRechnungDO.ensuredInfo], for the
+     * reason the cache exists at all: a custom result filter runs inside `DBQuery.select`, i.e. *before*
+     * `BaseDao.select` fires `RechnungDao.afterLoad` that would put the cached info on the row. So `ensuredInfo`
+     * would find `info` still uninitialized and fall back to [RechnungCalculator.calculate], lazily loading
+     * that invoice's positions and cost assignments - one query pair per invoice of the whole result set, the
+     * very N+1 storm the cache is there to avoid. The cache is filled once at startup and holds every invoice,
+     * so a lookup by id answers without touching the database; only an invoice created after the last refresh
+     * misses, and for that single row the fallback is fine.
      */
-    private class PaymentStateFilter(private val listType: String) : CustomResultFilter<RechnungDO> {
+    private class PaymentStateFilter(
+        private val listType: String,
+        private val rechnungCache: RechnungCache,
+    ) : CustomResultFilter<RechnungDO> {
         override fun match(list: MutableList<RechnungDO>, element: RechnungDO): Boolean {
-            val info = element.ensuredInfo
+            val info = rechnungCache.getRechnungInfo(element.id) ?: element.ensuredInfo
             return when (listType) {
                 LIST_TYPE_UNPAID -> !info.isBezahlt
                 LIST_TYPE_PAID -> info.isBezahlt
