@@ -109,9 +109,19 @@ abstract class AbstractCache {
 
     /**
      * @return true if the cache is initialized, otherwise false (no refresh has been made yet).
+     * Note: this becomes true as soon as a refresh _starts_ (see [performRefresh], which sets [timeOfLastRefresh]
+     * before calling [refresh]). It is therefore NOT a reliable "the cache holds data" signal - use [everFilled]
+     * for that.
      */
     val initialized: Boolean
         get() = timeOfLastRefresh != -1L
+
+    /**
+     * @return true once at least one [refresh] has _completed successfully_, i.e. the cache actually holds data.
+     * Unlike [initialized] this only flips after [refresh] returned without throwing (see [performRefresh]).
+     */
+    private val everFilled: Boolean
+        get() = refreshedInvalidation != -1L
 
     protected constructor()
 
@@ -204,6 +214,62 @@ abstract class AbstractCache {
         } else {
             // Normal case: trigger async refresh, return stale data, don't block the (possibly DB-holding) caller.
             triggerAsyncRefresh(byTimeExpiry = true)
+        }
+    }
+
+    /**
+     * "Wait until initially filled, otherwise consume the current data directly - even while a refresh is running."
+     *
+     * Semantics:
+     * - Not yet filled (no [refresh] has ever completed, i.e. the startup window): waits until the first refresh
+     *   succeeds - triggering it itself if necessary - so the caller reads a populated cache instead of an empty one.
+     *   The wait is bounded by [maxRefreshDurationMs] so a permanently failing refresh (e.g. database down) can never
+     *   block the request thread forever; after the bound it returns and the caller works with whatever is there.
+     * - Already filled at least once: returns immediately and lets the caller consume the current data as is, even
+     *   while a time-/invalidation-triggered refresh is running. A due refresh is only kicked off asynchronously
+     *   (never blocking here); its result is picked up on a later call.
+     *
+     * Use this instead of [checkRefresh] on a read path whose cache-miss fallback is expensive per element - e.g.
+     * [org.projectforge.business.fibu.AbstractRechnungCache.ensureRechnungInfo], called once per row while building an
+     * invoice list: before the cache is filled, every miss would lazily load that invoice's positions and cost
+     * assignments (an N+1 storm). Waiting once for the single bulk refresh is far cheaper, and after the initial fill
+     * serving complete but possibly slightly stale data is fine - the running/next refresh reconciles it.
+     *
+     * Deadlock-safe: from within another cache's refresh (nested, [refreshDepthOnThisThread] > 0) it never waits on
+     * this cache's lock (exactly like [checkRefresh]/[performRefresh]); it tries a refresh once and returns.
+     */
+    protected fun waitForInitialization() {
+        checkStuckRefresh()
+        if (everFilled) {
+            // Filled at least once: never block. Only kick off a due refresh asynchronously and serve current data.
+            if (isExpired) {
+                triggerAsyncRefresh(byTimeExpiry = false)
+            } else if (System.currentTimeMillis() - timeOfLastRefresh > expireTime) {
+                triggerAsyncRefresh(byTimeExpiry = true)
+            }
+            return
+        }
+        if (refreshDepthOnThisThread.get() > 0) {
+            // Nested cross-cache refresh: must not wait on this cache's lock. Try once, then serve whatever is there.
+            performRefresh()
+            return
+        }
+        // Not filled yet (startup): wait for the initial refresh (ours or a concurrent one) to complete, bounded so a
+        // permanently failing refresh can't block the request thread forever.
+        val deadline = System.currentTimeMillis() + maxRefreshDurationMs
+        while (!everFilled) {
+            performRefresh()
+            if (everFilled || System.currentTimeMillis() >= deadline) {
+                return
+            }
+            // A concurrent refresh is running (performRefresh returned without acquiring the lock, or its refresh()
+            // failed): back off briefly instead of spinning, then re-check whether it filled the cache.
+            try {
+                Thread.sleep(INITIAL_FILL_RETRY_INTERVAL_MS)
+            } catch (ex: InterruptedException) {
+                Thread.currentThread().interrupt()
+                return
+            }
         }
     }
 
@@ -385,6 +451,12 @@ abstract class AbstractCache {
          * refresh duration to avoid interrupting a legitimately slow refresh.
          */
         private const val MAX_REFRESH_DURATION_MS = 120_000L
+
+        /**
+         * Back-off between attempts in [waitForInitialization] while another thread's initial refresh is still
+         * running: short enough to pick up the fresh data promptly, long enough not to busy-spin.
+         */
+        private const val INITIAL_FILL_RETRY_INTERVAL_MS = 50L
 
         /**
          * Milliseconds.

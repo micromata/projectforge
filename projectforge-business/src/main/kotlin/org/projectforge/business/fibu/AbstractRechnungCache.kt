@@ -56,13 +56,27 @@ abstract class AbstractRechnungCache(
      * @return The RechnungInfo (from cache or calculated).
      */
     fun ensureRechnungInfo(rechnung: AbstractRechnungDO): RechnungInfo {
-        val info = getRechnungInfo(rechnung.id)
-        if (info != null) {
-            rechnung.info = info
-            return info
+        // Wait only for the initial fill (the startup window); afterwards serve the current cache data as is, even
+        // while a refresh is running. This is what avoids the SQL storm: this method runs once per row while building
+        // an invoice list (RechnungDao.afterLoad). On a not-yet-filled cache, every miss would fall through to
+        // RechnungCalculator.calculate below, lazily loading that invoice's positions and cost assignments - an N+1
+        // flood. Waiting once for the single bulk refresh instead is far cheaper.
+        waitForInitialization()
+        rechnung.id?.let { id ->
+            invoiceInfoMap[id]?.let {
+                rechnung.info = it
+                return it
+            }
+        }
+        // Genuine miss on a filled cache (e.g. an invoice not yet persisted, or created after the last refresh):
+        // calculate it from the attached entity - a single invoice, not a list-wide N+1.
+        log.warn {
+            "ensureRechnungInfo cache MISS ($entityName): id=${rechnung.id}, deleted=${rechnung.deleted}, " +
+                    "initialized=$initialized, cacheSize=${invoiceInfoMap.size} - calculating (lazy-loads positions " +
+                    "and kostZuweisungen for this invoice)."
         }
         return RechnungCalculator.calculate(rechnung).also {
-            invoiceInfoMap[rechnung.id!!] = it
+            rechnung.id?.let { id -> invoiceInfoMap[id] = it }
             // rechnung.info = it // Set by RechnungsCalculator.
         }
     }
