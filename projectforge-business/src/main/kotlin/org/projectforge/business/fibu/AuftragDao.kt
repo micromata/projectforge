@@ -599,7 +599,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     private fun resolveRelationsForNotification(auftrag: AuftragDO) {
         val caches = PfCaches.instance
         auftrag.contactPerson?.id?.let { id -> caches.getUser(id)?.let { auftrag.contactPerson = it } }
-        auftrag.kunde?.id?.let { id -> caches.getKunde(id)?.let { auftrag.kunde = it } }
+        // Use nummer (KundeDO's real @Id); reading the transient id alias would initialize the lazy proxy
+        // with a DB load, defeating the purpose of swapping in the cached instance.
+        auftrag.kunde?.nummer?.let { id -> caches.getKunde(id)?.let { auftrag.kunde = it } }
         auftrag.projekt?.id?.let { id ->
             caches.getProjekt(id)?.let { projekt ->
                 // The project prints its customer's name as well (see OldKostFormatter.formatProjekt).

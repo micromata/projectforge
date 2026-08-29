@@ -19,6 +19,7 @@ export {
 } from "./use-remembered-filter";
 export type { FilterValues } from "./filter-value";
 export { filterEntriesOf, filterValuesFromEntries } from "./filter-value";
+export { refreshedPeriodValues } from "./filter-period";
 export { DataTablePagination } from "./data-table-pagination";
 export { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "./page-size-options";
 export { ColumnFilter } from "./column-filter";

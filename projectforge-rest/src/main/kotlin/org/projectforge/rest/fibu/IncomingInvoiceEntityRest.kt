@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsStatistik
+import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.RechnungInfo
@@ -94,6 +95,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     @Autowired
     private lateinit var kontoCache: KontoCache
+
+    @Autowired
+    private lateinit var rechnungCache: RechnungCache
 
     @Autowired
     private lateinit var kostZuweisungExport: KostZuweisungExport
@@ -331,7 +335,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val listTypeEntry = source.entries.find { it.field == LIST_TYPE_FILTER }
         listTypeEntry?.synthetic = true // No property of EingangsrechnungDO, so the database cannot answer it.
         listTypeEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.let { listType ->
-            filters.add(PaymentStateFilter(listType))
+            filters.add(PaymentStateFilter(listType, rechnungCache))
         }
         val incompleteEntry = source.entries.find { it.field == INCOMPLETE_FILTER }
         incompleteEntry?.synthetic = true
@@ -342,6 +346,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
                     accountRequired = invoiceConfig.accountRequired,
                     // The incoming invoice's own account, there being no project/customer to inherit one from.
                     accountOf = { kontoCache.getKontoIfNotInitialized(it.konto) },
+                    // From the cache, not ensuredInfo: this filter runs before afterLoad puts the cached info
+                    // on the row (see IncompleteInvoiceFilter and PaymentStateFilter).
+                    infoOf = { rechnungCache.getEingangsrechnungInfo(it.id) },
                 )
             )
         }
@@ -471,11 +478,15 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     /**
      * Wicket's radio group over `EingangsrechnungListFilter.listType`, as a filter of the result list. See
-     * [OutgoingInvoiceEntityRest]'s `PaymentStateFilter`.
+     * [OutgoingInvoiceEntityRest]'s `PaymentStateFilter`, including why the info comes from the cache and not
+     * from [org.projectforge.business.fibu.AbstractRechnungDO.ensuredInfo].
      */
-    private class PaymentStateFilter(private val listType: String) : CustomResultFilter<EingangsrechnungDO> {
+    private class PaymentStateFilter(
+        private val listType: String,
+        private val rechnungCache: RechnungCache,
+    ) : CustomResultFilter<EingangsrechnungDO> {
         override fun match(list: MutableList<EingangsrechnungDO>, element: EingangsrechnungDO): Boolean {
-            val info = element.ensuredInfo
+            val info = rechnungCache.getEingangsrechnungInfo(element.id) ?: element.ensuredInfo
             return when (listType) {
                 LIST_TYPE_UNPAID -> !info.isBezahlt
                 LIST_TYPE_PAID -> info.isBezahlt

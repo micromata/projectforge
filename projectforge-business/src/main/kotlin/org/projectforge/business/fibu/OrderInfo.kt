@@ -129,7 +129,9 @@ class OrderInfo : Serializable {
         created = order.created
         erfassungsDatum = order.erfassungsDatum
         entscheidungsDatum = order.entscheidungsDatum
-        kundeId = order.kunde?.id
+        // Use nummer (the real @Id of KundeDO) instead of the transient id alias: reading id would call a
+        // non-identifier getter on the lazy proxy and force a per-order "where pk=?" load (N+1). See KundeDO.
+        kundeId = order.kunde?.nummer
         kundeAsString = order.kundeAsString
         projektId = order.projekt?.id
         projektAsString = order.projektAsString
