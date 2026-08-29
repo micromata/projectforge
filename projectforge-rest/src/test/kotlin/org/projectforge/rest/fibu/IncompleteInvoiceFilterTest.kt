@@ -84,6 +84,7 @@ class IncompleteInvoiceFilterTest {
             costConfigured = false,
             accountRequired = true,
             accountOf = { KontoDO() }, // Stands for the account of the project or the customer.
+            infoOf = { it.info }, // The test sets info by hand; read it as the cache would.
         )
         assertFalse(filter.matches(invoice))
     }
@@ -113,6 +114,7 @@ class IncompleteInvoiceFilterTest {
             costConfigured = costConfigured,
             accountRequired = accountRequired,
             accountOf = { it.konto },
+            infoOf = { it.info }, // The test sets info by hand; read it as the cache would.
         )
 
     /**
