@@ -49,7 +49,9 @@ export function TaskSelectControl({
 
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <div className="min-w-0 flex-1">
+      {/* Only as wide as the path itself, so the buttons sit directly after it rather than at the row's
+          right edge; still `min-w-0` so a long path truncates instead of pushing them off-screen. */}
+      <div className="min-w-0 shrink">
         <TaskPath
           task={(taskId != null && task) || null}
           onSelect={(node) => onSelect(node)}

@@ -147,6 +147,10 @@ export const TIMESHEET_PAGE = definePage<
     },
     newTitleKey: "timesheet.title.add",
     savedMessageKey: "message.successfullChanged",
+    // A new sheet opens in its description (the "Tätigkeitsbericht"), not in the first text control the
+    // form happens to have (the location) — that report is what the user came to write, and the task and
+    // period are usually preset from the calendar slot or a template (see useFocusFirstField).
+    autoFocus: "description",
     newEntryParams: NEW_ENTRY_PARAMS,
     // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport). The button builds a new sheet
     // from the one on screen — the backend's `cloneData` prepares it (id and timestamps dropped, the
