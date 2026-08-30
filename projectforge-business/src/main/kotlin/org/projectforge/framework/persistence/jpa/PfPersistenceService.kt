@@ -53,6 +53,18 @@ open class PfPersistenceService {
     }
 
     /**
+     * @return true if the current thread runs inside an active write transaction (a transactional
+     * [PfPersistenceContext] is set in the ThreadLocal), i.e. it holds a DB connection that may hold row/table
+     * locks. Readonly contexts do not count - they never open a transaction (see [runReadOnly]).
+     *
+     * A caller that opens a *second* DB connection (e.g. a cache refresh via JDBC) while such a transaction is
+     * open risks a single-thread self-deadlock: the second connection blocks on a lock the open transaction
+     * holds, and that transaction cannot commit because the same thread is blocked waiting for the second
+     * connection. See [org.projectforge.business.fibu.AbstractRechnungCache.ensureRechnungInfo].
+     */
+    fun isTransactionActive(): Boolean = PfPersistenceContextThreadLocal.getTransactional() != null
+
+    /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
      * If a transaction is already running inside the current thread (threadlocal is used), the block will be executed in the same transaction.
      * @see internalRunInNewTransaction
