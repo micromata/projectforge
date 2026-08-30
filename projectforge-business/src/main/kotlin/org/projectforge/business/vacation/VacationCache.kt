@@ -33,7 +33,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -50,9 +49,6 @@ private val log = KotlinLogging.logger {}
 open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     @Autowired
     private lateinit var employeeCache: EmployeeCache
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -113,10 +109,16 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
 
     override fun afterInsertOrModify(obj: VacationDO, operationType: OperationType) {
         val id = obj.id ?: return
-        // The listener runs outside any transaction, so obj is detached and its lazy associations mustn't be
-        // touched (see BaseDOModifiedListener). Only the ids of the employee proxies are read (which needs no
-        // query); the graph is then hydrated from the caches, so serving this entry never triggers a lazy load.
-        persistenceService.runIsolatedReadOnly { context ->
+        // obj is detached here and its lazy associations mustn't be touched (see BaseDOModifiedListener). Only the
+        // ids of the employee proxies are read (which needs no query); the graph is then hydrated from the caches,
+        // so serving this entry never triggers a lazy load.
+        //
+        // runReadOnlyForCacheMaintenance, NOT runIsolatedReadOnly: this listener is called from within the insert's
+        // write transaction (BaseDOPersistenceService.privateInsert -> BaseDOChangedRegistry.afterInsertOrModify).
+        // A second, isolated connection would deadlock on the row locks that still-open transaction holds - it froze
+        // VacationDaoTest. The helper reuses the transaction's connection when one is active (seeing the just
+        // inserted/updated row) and stays isolated otherwise.
+        runReadOnlyForCacheMaintenance { context ->
             hydrate(obj, loadOtherReplacementIds(context, id)[id])
         }
         synchronized(vacationMap) {
@@ -134,7 +136,10 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
      */
     override fun refresh() {
         log.info("Refreshing VacationCache ...")
-        persistenceService.runIsolatedReadOnly { context ->
+        // runReadOnlyForCacheMaintenance guards against the same self-deadlock as afterInsertOrModify: a refresh
+        // triggered from within a write transaction (e.g. a cache getter called mid-insert) must not open a second
+        // connection. Outside a transaction it stays isolated, as a refresh normally is.
+        runReadOnlyForCacheMaintenance { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long?, VacationDO>()
             vacationDao.selectAll(checkAccess = false).forEach {
