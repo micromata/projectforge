@@ -172,6 +172,11 @@ export interface CalendarEventExtendedProps {
   tooltip?: CalendarEventTooltip | null;
   category?: string | null;
   /**
+   * Preformatted AI time savings of a time sheet, e.g. "1:00h, 33 %" (`AITimeSavings`). Present only when
+   * a saving is given and non-zero (see TimesheetEventsProvider); shown as a compact line in the block.
+   */
+  timeSavedByAI?: string | null;
+  /**
    * Whether this is one occurrence of a recurring team event (`TeamCalEventsProvider`). A click on such
    * an event carries the clicked occurrence's date so a single/future edit knows which day it acts on
    * (see use-calendar-action.ts); absent or false for a one-off event.

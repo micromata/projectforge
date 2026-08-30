@@ -85,6 +85,11 @@ class FullCalendarEvent(
      * (see TeamCalEventsProvider and the Next.js use-calendar-action).
      */
     var recurrence: Boolean? = null,
+    /**
+     * Preformatted AI time savings of a time sheet, e.g. "1:00h, 33 %". Only set when a saving is given
+     * and not zero (see TimesheetEventsProvider); shown as a compact line in the event block.
+     */
+    var timeSavedByAI: String? = null,
   ) {
     var category = category?.string
   }

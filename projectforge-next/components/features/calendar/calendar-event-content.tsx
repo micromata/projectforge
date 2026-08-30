@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { EventContentArg } from "@fullcalendar/core";
+import { AiMagicIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { CalendarEventTooltip } from "./calendar-event-tooltip";
 import type { CalendarEventExtendedProps } from "@/lib/rs/calendar-types";
@@ -19,6 +22,7 @@ const OPEN_DELAY = 200;
  * this only lays out the text.
  */
 export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
+  const t = useTranslations();
   const props = arg.event.extendedProps as CalendarEventExtendedProps;
   const isMonth = arg.view.type.startsWith("dayGrid");
   // The viewport point the card is pinned to while open, null when closed. Set from where the pointer
@@ -68,6 +72,18 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
           {arg.event.title}
           {props.description && (
             <div className="whitespace-pre-wrap">{props.description}</div>
+          )}
+          {/* AI time savings, compact: the icon carries the label (see the popover for the full one),
+              only present on time-sheet events with a non-zero saving (see TimesheetEventsProvider). */}
+          {props.timeSavedByAI && (
+            <div className="flex items-center gap-1 opacity-80">
+              <HugeiconsIcon
+                icon={AiMagicIcon}
+                size={12}
+                aria-label={t("timesheet.ai.timeSavedByAI._")}
+              />
+              <span>{props.timeSavedByAI}</span>
+            </div>
           )}
         </div>
       </div>

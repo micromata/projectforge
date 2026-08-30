@@ -29,6 +29,7 @@ import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.teamcal.CalendarHelper
+import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
@@ -161,6 +162,14 @@ class TimesheetEventsProvider {
                     )
                     .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
                     .addPropRow(translate("description"), timesheet.description, pre = true, abbreviate = true)
+                // AI time savings, only when given and non-zero: a labelled tooltip row and a compact line
+                // in the event block (see FullCalendarEvent.ExtendedProps.timeSavedByAI).
+                val aiMillis = AITimeSavings.getTimeSavedByAIMillisOrNull(timesheet)
+                if (AITimeSavings.timeSavingsByAIEnabled && aiMillis != null && aiMillis != 0L) {
+                    val formatted = AITimeSavings.getFormattedTimeSavedByAI(timesheet)
+                    tooltipBuilder.addPropRow(translate("timesheet.ai.timeSavedByAI"), formatted)
+                    event.ensureExtendedProps().timeSavedByAI = formatted
+                }
                 event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
             }
 
