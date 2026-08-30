@@ -34,6 +34,12 @@ export interface TaskTreePanelProps {
    */
   selectMode?: boolean;
   /**
+   * Show a breadcrumb above the tree that re-roots it at a subtree (see TaskRootBreadcrumb). Set by the
+   * select field, where a task is picked from its neighbourhood rather than by scrolling the whole tree;
+   * the tree page leaves it off.
+   */
+  rootNavigable?: boolean;
+  /**
    * Render the tree as its own *page*: the action bar above it, "add a subtask" per row, the handbook
    * link beside the search field, and the page's hint (`task.tree.info`) instead of the select
    * panel's.

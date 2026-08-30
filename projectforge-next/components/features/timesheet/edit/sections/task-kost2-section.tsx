@@ -60,7 +60,7 @@ export function TaskKost2Section({ className }: { className?: string }) {
       <TaskSelectField
         name="task"
         label={t("task._")}
-        className="md:col-span-2"
+        className="md:col-span-3"
         // The cost unit belongs to the task it was chosen under — see above. Dropped even when the new
         // task allows the same one: it is then re-picked from *its* list, and the select shows it as
         // unset rather than as a value that happens to still be valid.
@@ -84,7 +84,7 @@ export function TaskKost2Section({ className }: { className?: string }) {
       {/* What is already booked on this task, as everywhere else it is shown — the same bar, linking to
           the sheets behind it. A picture only while no task is chosen. */}
       {info?.consumption != null && (
-        <div className="flex flex-col items-start gap-1.5 md:col-span-3">
+        <div className="flex flex-col items-start gap-1.5 md:col-start-3">
           <span className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t("task.consumption")}
           </span>

@@ -194,6 +194,13 @@ export interface TaskTreeParams extends Partial<TaskTreeFilter> {
    * opens on the whole tree expanded to that task rather than on a narrowed neighbourhood of it.
    */
   highlightedTaskId?: number;
+  /**
+   * Re-root the answer at this node instead of the real root: only its subtree is returned, its direct
+   * children starting at indent 0. The breadcrumb of the select panel sets it to climb the structure
+   * without scrolling the whole tree (see TaskServicesRest.getTree). A node the user may not select is
+   * ignored server-side, falling back to the full tree.
+   */
+  rootTaskId?: number;
   /** Prepend the root node, for admins and financial staff. */
   showRootForAdmins?: boolean;
   /**

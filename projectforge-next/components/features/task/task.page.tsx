@@ -237,9 +237,14 @@ export const TASK_PAGE = definePage<
         id: "general",
         titleKey: "task.title.heading",
         fields: [
-          { name: "title", emphasized: true },
+          // The parent alone on the first row: it is a breadcrumb path, not a one-line value, and it is
+          // what places every other field of the element. Its leaf is the turquoise-highlighted current
+          // task of the select control (see TaskPath).
+          { name: "parentTask", span: 3 },
+          // The element's own name across two columns, its status in the third — the pair that reads as
+          // one line beneath the parent it hangs under.
+          { name: "title", emphasized: true, span: 2 },
           { name: "status" },
-          { name: "parentTask" },
           { name: "responsibleUser" },
           { name: "priority" },
           {

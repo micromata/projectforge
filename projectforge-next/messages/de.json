@@ -102,5 +102,12 @@
     "legend": {
       "deleted": "Gelöscht"
     }
+  },
+  "taskReRoot": {
+    "label": "Strukturnavigation",
+    "wholeTree": "Ganzen Baum anzeigen",
+    "ancestor": "Unterbaum dieses Elements anzeigen",
+    "back": "Zurück",
+    "forward": "Vor"
   }
 }

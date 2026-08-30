@@ -556,6 +556,7 @@ class TaskServicesRest {
         @RequestParam("deleted") deleted: Boolean?,
         @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?,
         @RequestParam("select") select: Boolean?,
+        @RequestParam("rootTaskId") rootTaskId: Long?,
     )
             : Result {
         val selectMode = select == true
@@ -596,11 +597,21 @@ class TaskServicesRest {
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
         filter.resetMatch() // taskFilter caches visibility, reset needed first.
         val indent = if (table == true) 0 else null
-        val rootNode = taskTree.rootTaskNode
+        // Re-rooting (the breadcrumb navigation of the select panel): seed the walk at a chosen node so the
+        // answer is only its subtree, with that node's direct children starting at indent 0 exactly as the
+        // real root's would. buildTree only recurses into the real root or an opened node, so the pseudo-root
+        // is opened first (openTask). A node the user may not select is ignored, falling back to the full tree.
+        val rerootNode = rootTaskId?.let { taskTree.getTaskNodeById(it) }
+            ?.takeIf { taskDao.hasUserSelectAccess(ctx.user, it.getTask(), false) }
+        val rootNode = rerootNode ?: taskTree.rootTaskNode
+        if (rerootNode != null) {
+            openTask(ctx, rerootNode.taskId)
+        }
         val root = Task(rootNode)
         addKost2List(root, recursive = false)
         buildTree(ctx, root, rootNode, indent)
-        if (showRootForAdmins == true && table == true && (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
+        if (rerootNode == null && showRootForAdmins == true && table == true &&
+            (accessChecker.isLoggedInUserMemberOfAdminGroup() ||
                     accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
         ) {
             // Append root node for admins and financial staff only in table view for displaying purposes.

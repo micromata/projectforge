@@ -92,7 +92,12 @@ export function TaskSelect({
         {/* Bounded and scrollable: the tree can be hundreds of rows long, and it sits inside a form
             that must stay reachable. */}
         <div className="mt-2 flex max-h-[600px] flex-col overflow-auto rounded-md border p-2">
-          <TaskTreePanel highlightTaskId={value} onSelect={select} selectMode />
+          <TaskTreePanel
+            highlightTaskId={value}
+            onSelect={select}
+            selectMode
+            rootNavigable
+          />
         </div>
       </CollapsibleContent>
     </Collapsible>

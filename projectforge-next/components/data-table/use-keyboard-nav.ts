@@ -28,8 +28,15 @@ export interface KeyboardNav {
  * The row ids are taken as a function evaluated on each key, not as an array captured once: the rows
  * change under the focus (a filter, a refetch, a tree expanding), and the movement has to be over the
  * set on screen at the moment the key is pressed.
+ *
+ * `initialFocusId` seeds the focus at mount so the keyboard cursor can start on a meaningful row rather
+ * than nowhere — the structure tree opens with it on the task the field already holds (see
+ * useTreeKeyboard). It is read once, on mount; moving the focus afterwards is the user's to do.
  */
-export function useKeyboardNavState(rowIds: () => string[]): {
+export function useKeyboardNavState(
+  rowIds: () => string[],
+  initialFocusId?: string | null
+): {
   focusedRowId: string | null;
   focusRow: (rowId: string) => void;
   /** Moves the focus by `step` rows, clamped; from nothing, ↓ starts at the top and ↑ at the bottom. */
@@ -37,7 +44,9 @@ export function useKeyboardNavState(rowIds: () => string[]): {
   /** The row the focus is on right now, or undefined — for a caller deciding what a key does to it. */
   focusedIndex: () => number;
 } {
-  const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(
+    initialFocusId ?? null
+  );
 
   const focusedIndex = useCallback(() => {
     if (!focusedRowId) return -1;
