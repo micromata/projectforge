@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jira.JiraUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
@@ -777,6 +778,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         // toggle can switch it off), and keep only sheets booked on a billable cost unit.
         elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
         elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+        // Keep only sheets whose description or reference names a JIRA issue — the fields the next list
+        // renders as JIRA links. Offered only where JIRA is configured (as IncompleteInvoiceFilter.isOffered
+        // gates its pill), so the option doesn't appear on an instance that has no JIRA to link to.
+        if (JiraUtils.isJiraConfigured) {
+            elements.add(UIFilterBooleanElement("hasJiraIssues", label = translate("timesheet.filter.hasJiraIssues")))
+        }
     }
 
     /**
@@ -836,6 +843,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             entry.synthetic = true
             if (entry.value.value == "true") {
                 filters.add(TimesheetBillableFilter())
+            }
+        }
+        source.entries.find { it.field == "hasJiraIssues" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(TimesheetJiraFilter())
             }
         }
         return filters
@@ -930,5 +943,17 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             private val caches =
                 ApplicationContextProvider.getApplicationContext().getBean(PfCaches::class.java)
         }
+    }
+
+    /**
+     * Keeps only time sheets whose own text names a JIRA issue — its description or reference, the two
+     * fields the next list renders as JIRA links. The task's fields (title, short description, description)
+     * are deliberately not scanned: a key in a task title would otherwise match every sheet booked on it,
+     * which is not what „time sheets with JIRA issues" means. A pure text check (`JiraUtils.hasJiraIssues`)
+     * needs no cache and no DB — the availability of JIRA is already gated at the filter's registration.
+     */
+    internal class TimesheetJiraFilter : CustomResultFilter<TimesheetDO> {
+        override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean =
+            JiraUtils.hasJiraIssues(element.description) || JiraUtils.hasJiraIssues(element.reference)
     }
 }
