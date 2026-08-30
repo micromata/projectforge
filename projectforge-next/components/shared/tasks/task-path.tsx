@@ -35,8 +35,9 @@ interface TaskPathProps {
   showPlaceholder?: boolean;
   /**
    * Mark the last segment as the current one — turquoise and bold, the way a list marks a distinguished
-   * cell. The re-root breadcrumb sets it so the node the tree is rooted at stands out from its ancestors;
-   * the selection field leaves it off, where the last segment is just the chosen task.
+   * cell. On by default: the select component always highlights the chosen task, so a reader sees at a
+   * glance which segment is the task and which are its ancestors. The re-root breadcrumb relies on it for
+   * the same reason (the node the tree is rooted at). Pass `false` to render the last segment plain.
    */
   highlightCurrent?: boolean;
 }
@@ -45,7 +46,8 @@ interface TaskPathProps {
  * The selected task as its path from the root: home / ancestor / … / task.
  *
  * The ancestors are buttons, since selecting one is how the timesheet moves a booking up the tree
- * without opening the whole panel. The last segment is the current selection and does nothing.
+ * without opening the whole panel. The last segment is the current selection: highlighted turquoise by
+ * default and inert (see [highlightCurrent]).
  */
 export function TaskPath({
   task,
@@ -56,7 +58,7 @@ export function TaskPath({
   homeTooltip,
   ancestorTooltip,
   showPlaceholder = true,
-  highlightCurrent = false,
+  highlightCurrent = true,
 }: TaskPathProps) {
   const t = useTranslations();
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
