@@ -65,10 +65,16 @@ class DatatransferAuditJob {
 
             var sentMailCounter = 0
             val areas = dataTransferAreaDao.selectAll(checkAccess = false)
+            // Fetch all queued and download audit entries with two bulk queries instead of two queries per area
+            // (avoids flooding the database with a select per area on every run).
+            val queuedEntriesByAreaId = dataTransferAuditDao.internalGetQueuedEntriesGroupedByAreaId()
+            val downloadEntriesByAreaId =
+                dataTransferAuditDao.internalGetDownloadEntriesGroupedByAreaId(queuedEntriesByAreaId.keys)
             areas.forEach { area ->
-                val auditEntries = dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)
-                val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
+                val areaId = area.id ?: return@forEach
+                val auditEntries = queuedEntriesByAreaId[areaId]
                 if (!auditEntries.isNullOrEmpty()) {
+                    val downloadAuditEntries = downloadEntriesByAreaId[areaId] ?: emptyList()
                     dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
                     ++sentMailCounter
                     dataTransferAuditDao.removeFromQueue(auditEntries)
