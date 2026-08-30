@@ -63,8 +63,12 @@ function eventClickUrl(event: EventClickArg["event"]): string | null {
         ? `/vacation/edit/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
         : null;
     case "address":
+      // A birthday opens the address view. That page isn't migrated yet, so keep it on the legacy
+      // React app (`react/` prefix → external, full page load); without it `resolveMenuUrl` would
+      // treat the path as this app's own route and land on the unfinished Next address page. The
+      // backend builds the same `react/addressView/dynamic/{id}` for the unmigrated category.
       return id != null
-        ? `/addressView/dynamic/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
+        ? `/react/addressView/dynamic/${id}?returnToCaller=${RETURN_TO_CALENDAR}`
         : null;
     default:
       return category && id != null
