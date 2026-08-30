@@ -177,6 +177,7 @@
     "chooseDate": "Datum auswählen",
     "chooseTime": "Uhrzeit auswählen",
     "day": "Tag",
+    "dayOfWeekShortLabel": "WT",
     "defaultCalendar": "Standardkalender",
     "filter": {
       "vacation": {
@@ -271,6 +272,7 @@
       "workDays": "Werktage"
     },
     "week": "Woche",
+    "weekOfYearShortLabel": "KW",
     "year": "Jahr",
     "yearToDate": "Jahr bis heute"
   },
@@ -2079,6 +2081,7 @@
     "12": "12 Stunden",
     "24": "24 Stunden"
   },
+  "timePeriod": "Zeitraum",
   "timePeriodPanel": {
     "startTimeAfterStopTime": "Der Beginn muss vor dem Ende liegen."
   },

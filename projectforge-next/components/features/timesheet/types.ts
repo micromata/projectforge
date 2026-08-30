@@ -97,8 +97,22 @@ export interface TimesheetListRow {
   kost2?: Kost2Ref | null;
   startTime?: string | null;
   stopTime?: string | null;
+  /** Two-digit calendar week of {@link startTime}, formatted by the backend (see Timesheet.weekOfYear). */
+  weekOfYear?: string | null;
+  /** Short day-of-week name of {@link startTime}, in the user's locale (see Timesheet.dayName). */
+  dayName?: string | null;
+  /** The whole period as "date fromTime-toTime", formatted by the backend (see Timesheet.formattedTimePeriod). */
+  formattedTimePeriod?: string | null;
+  /** The duration as "h:mm(:days)", formatted in the user's working-day config (see Timesheet.formattedDuration). */
+  formattedDuration?: string | null;
+  /** The duration in millis — the sort key of the duration column (see Timesheet.durationMillis). */
+  durationMillis?: number | null;
+  /** The share of time saved by AI ("1:30h, 25%"), only where the installation tracks it (see Timesheet.aiTimeSavings). */
+  aiTimeSavings?: string | null;
   location?: string | null;
   reference?: string | null;
+  /** The sheet's tag, shown only where tags are configured (gated by the `tagsConfigured` list variable). */
+  tag?: string | null;
   description?: string | null;
   created?: string | null;
 }

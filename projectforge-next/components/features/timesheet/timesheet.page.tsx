@@ -81,6 +81,22 @@ export const TIMESHEET_PAGE = definePage<
       size: 140,
       cell: ({ row }) => row.original.user?.displayName ?? null,
     },
+    // The cost unit, shown only where cost accounting is configured — the Wicket column the list gates on
+    // `Configuration.isCostConfigured` (the `kost2Configured` list variable, see
+    // TimesheetPagesRest.addVariablesForListPage). Its formatted number is the label ("5.100.01.02"), the
+    // description the tooltip. Nothing single-property backs a formatted cost unit, so it does not sort.
+    {
+      name: "kost2",
+      size: 110,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.kost2Configured === true,
+      cell: ({ row }) =>
+        row.original.kost2?.formattedNumber ??
+        row.original.kost2?.displayName ??
+        null,
+      tooltip: (row) => row.kost2?.description ?? undefined,
+    },
     {
       name: "task",
       size: 240,
@@ -93,16 +109,86 @@ export const TIMESHEET_PAGE = definePage<
       ),
       tooltip: (row) => row.task?.path ?? undefined,
     },
-    { name: "startTime", size: 150 },
-    { name: "stopTime", size: 150 },
+    // The week of the year and the day-of-week name of the sheet's start, both pre-formatted by the
+    // backend (see TimesheetListRow) — the two narrow Wicket columns. Neither is a property the backend
+    // could order by, so both opt out of sorting and offer no filter.
+    {
+      id: "weekOfYear",
+      labelKey: "calendar.weekOfYearShortLabel",
+      accessor: (row) => row.weekOfYear ?? "",
+      size: 50,
+      sortable: false,
+      filterKind: null,
+    },
+    {
+      id: "dayName",
+      labelKey: "calendar.dayOfWeekShortLabel",
+      accessor: (row) => row.dayName ?? "",
+      size: 50,
+      sortable: false,
+      filterKind: null,
+    },
+    // The whole booked span as one "date fromTime-toTime" column, as the Wicket list shows it instead of
+    // separate start/stop columns — pre-formatted by the backend. Its id is `startTime` so the header
+    // sorts the server-side pages by the start (the legacy column's `sortField`); the period filter is a
+    // filter of its own (see TimesheetPagesRest), so this column offers none.
+    {
+      id: "startTime",
+      labelKey: "timePeriod",
+      accessor: (row) => row.formattedTimePeriod ?? "",
+      size: 170,
+      filterKind: null,
+      // Tabular figures so every digit has the same width: the fixed-format date then lines up column for
+      // column down the list and the start/end times sit flush under each other, which a proportional font
+      // (narrow "1", wide "0") would jitter row to row.
+      className: "tabular-nums",
+    },
+    // The duration, pre-formatted as "h:mm" (with days where the working-day config splits them). Backed
+    // by no orderable property (the DO computes it), so it does not sort and offers no filter.
+    {
+      id: "duration",
+      labelKey: "timesheet.duration",
+      accessor: (row) => row.formattedDuration ?? "",
+      size: 70,
+      align: "right",
+      sortable: false,
+      filterKind: null,
+      // Same tabular figures as the period, so the "h:mm" values align on the colon down the column.
+      className: "tabular-nums",
+    },
+    // The share of time saved by AI, only where the installation tracks it (the `timeSavingsByAIEnabled`
+    // list variable) — the Wicket column gated on `baseDao.timeSavingsByAIEnabled`. Pre-formatted
+    // ("1:30h, 25%"); nothing single-property backs it, so it neither sorts nor filters.
+    {
+      id: "aiTimeSavings",
+      labelKey: "timesheet.ai.timeSavedByAI",
+      accessor: (row) => row.aiTimeSavings ?? "",
+      size: 90,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.timeSavingsByAIEnabled === true,
+    },
     { name: "location", size: 140 },
     // Both free-text fields can carry JIRA issue keys; linked as in the Wicket list, which links the
     // description column (`JiraUtils.linkJiraIssues`) — here the reference too, since it commonly holds
     // ticket numbers (see JiraLinkedText).
+    // Offered but off until switched on in the column panel — the reference is a niche column most readers
+    // do not need on screen.
     {
       name: "reference",
       size: 140,
+      hiddenByDefault: true,
       cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+    },
+    // The tag, shown only where any tag is configured — the Wicket column gated on a non-empty tag list
+    // (the `tagsConfigured` list variable, see TimesheetPagesRest.addVariablesForListPage). Off by default
+    // like the reference; the two gates compose — the column exists only where tags are configured, and
+    // even then starts hidden until the user switches it on.
+    {
+      name: "tag",
+      size: 100,
+      hiddenByDefault: true,
+      visible: ({ variables }) => variables?.tagsConfigured === true,
     },
     {
       name: "description",

@@ -267,9 +267,22 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val leanRows = useListRow(request)
         val list: List<Any> = resultSet.resultSet.map {
             if (leanRows) {
-                // The flat row the hand-built next list reads: only its columns, task/user/kost2 populated
-                // from the caches (no N+1) — the shared lean-row path (newDTO + Timesheet.copyFrom4ListRow).
-                createListRow(it)
+                // The flat row the hand-built next list reads: its plain columns via the shared lean-row
+                // path (newDTO + Timesheet.copyFrom4ListRow, task/user/kost2 from the caches, no N+1), plus
+                // the same pre-formatted week/day/period/duration/AI columns the legacy export below builds —
+                // here on the flat row instead of a nested one, formatted in the user's locale and working-day
+                // config so the hand-built page renders them as-is.
+                createListRow(it).also { row ->
+                    val day = PFDay.fromOrNull(it.startTime)
+                    row.weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime)
+                    row.dayName = day?.dayOfWeekAsShortString ?: "??"
+                    row.formattedTimePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod)
+                    row.formattedDuration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
+                    row.durationMillis = it.duration
+                    if (baseDao.timeSavingsByAIEnabled) {
+                        row.aiTimeSavings = AITimeSavings.getFormattedTimeSavedByAI(it)
+                    }
+                }
             } else {
                 // Populate task, user and kost2 from the in-memory caches by their FK ids (as transformFromDB
                 // does for the single entity) before copyFrom dereferences them: otherwise each row would lazy
@@ -394,6 +407,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return timesheetDao.getUsedReferences(taskId, search)
     }
 
+
+    /**
+     * The gates of the hand-built next list's optional columns, read by their `visible` callbacks (see
+     * `timesheet.page.tsx`): the cost unit only where cost accounting is configured, the AI time-savings
+     * only where the installation tracks it, the tag only where any tag is configured — the same three
+     * conditions the [createListLayout] UILayout guards its columns with, so the two clients cannot
+     * disagree about which columns the list has.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf(
+            "kost2Configured" to Configuration.instance.isCostConfigured,
+            "timeSavingsByAIEnabled" to baseDao.timeSavingsByAIEnabled,
+            "tagsConfigured" to !baseDao.getTags().isNullOrEmpty(),
+        )
+    }
 
     /**
      * LAYOUT List page

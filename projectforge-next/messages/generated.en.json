@@ -177,6 +177,7 @@
     "chooseDate": "Choose date",
     "chooseTime": "Choose time",
     "day": "day",
+    "dayOfWeekShortLabel": "D",
     "defaultCalendar": "Default calendar",
     "filter": {
       "vacation": {
@@ -271,6 +272,7 @@
       "workDays": "Workdays"
     },
     "week": "Week",
+    "weekOfYearShortLabel": "CW",
     "year": "Year",
     "yearToDate": "Year to date"
   },
@@ -2079,6 +2081,7 @@
     "12": "12-hour notation",
     "24": "24-hour notation"
   },
+  "timePeriod": "Time period",
   "timePeriodPanel": {
     "startTimeAfterStopTime": "Start time should not be after stop time."
   },
