@@ -85,6 +85,12 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    * the *whole* list rather than the loaded page (see useMagicFilterQuery.columnFilterActive).
    */
   serverPaging?: boolean;
+  /**
+   * The list was opened by a transient jump into a pre-filtered view (the consumption bar → a task's
+   * time sheets). Its filter must not stick as the user's remembered one — neither on the backend
+   * (`ListPageRequest.doNotStore`) nor in the local `listMeta` cache (see useRememberFilter).
+   */
+  transient?: boolean;
 }
 
 /**
@@ -109,6 +115,7 @@ export function useEntityListPage<Row extends ListRow>({
   lockedColumnIds,
   buildFilter,
   serverPaging = false,
+  transient = false,
 }: UseEntityListPageOptions<Row>) {
   const ctx = useFormatContext();
   const filters = useListFilters(entity, { restoredFilter });
@@ -155,6 +162,8 @@ export function useEntityListPage<Row extends ListRow>({
     favoriteName: filters.favorite?.name,
     // The page's non-pill view options (see UseEntityListPageOptions.buildFilter).
     buildFilter,
+    // A transient jump must not leave its filter behind as the user's remembered one.
+    doNotStore: transient,
   });
 
   // The user's saved filters — the backend's filter favorites, so a filter saved here is the same
@@ -237,7 +246,8 @@ export function useEntityListPage<Row extends ListRow>({
   // Coming back to the list should show the filter it was left with, also without a reload — the
   // cached listMeta would otherwise still hold the old one. The filter already carries the
   // favorite's id and name.
-  useRememberFilter(entity, query.filter);
+  // Off for a transient jump, so its task filter is not remembered locally either.
+  useRememberFilter(entity, query.filter, !transient);
 
   // The other half of the page memory: records where the user is, and clamps a remembered page the
   // result set no longer has.

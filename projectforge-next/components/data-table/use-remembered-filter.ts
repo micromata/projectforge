@@ -28,15 +28,25 @@ export function useRememberedFilter(entity: string) {
  * (the filter fields in it only change with a release), so without this, leaving
  * the page and coming back would restore the filter as of the first page load.
  */
-export function useRememberFilter(entity: string, filter: MagicFilter) {
+export function useRememberFilter(
+  entity: string,
+  filter: MagicFilter,
+  /**
+   * Off for a transient jump (`doNotStore`): its filter must not become the remembered one, on the
+   * backend or here — otherwise leaving the page and coming back would restore the task filter the
+   * consumption bar seeded, exactly what the transient jump avoids.
+   */
+  enabled = true
+) {
   const queryClient = useQueryClient();
   const serialized = JSON.stringify(filter);
 
   useEffect(() => {
+    if (!enabled) return;
     queryClient.setQueryData<ListMetaData>(["listMeta", entity], (previous) =>
       previous
         ? { ...previous, filter: JSON.parse(serialized) as MagicFilter }
         : previous
     );
-  }, [queryClient, entity, serialized]);
+  }, [queryClient, entity, serialized, enabled]);
 }

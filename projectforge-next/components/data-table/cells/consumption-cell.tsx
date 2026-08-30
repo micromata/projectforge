@@ -13,6 +13,15 @@ interface Consumption {
   id?: number;
 }
 
+/**
+ * Query parameters the bar's link carries into the time sheet list: the task to filter by, and its name
+ * for the filter pill (the bar knows the id but not the display name the pill wants). The timesheet route
+ * reads them back (see app/(authenticated)/timesheet/page.tsx) and seeds a transient, cleared filter — the
+ * three things Wicket's `ConsumptionBarPanel` did with `taskId`/`clear`/`storeFilter`.
+ */
+export const TIMESHEET_TASK_ID_PARAM = "taskId";
+export const TIMESHEET_TASK_NAME_PARAM = "taskName";
+
 /** Consumption.Status → the token pair driving the bar's track and fill. */
 const STATUS_CLASS: Record<string, string> = {
   "progress-none": "consumption-none",
@@ -35,11 +44,15 @@ const STATUS_CLASS: Record<string, string> = {
  */
 export function ConsumptionCell({
   value,
+  row,
   t,
   linkEnabled = true,
 }: CellRenderProps) {
   if (!value || typeof value !== "object") return null;
   const { title, status, barPercentage, id } = value as Consumption;
+  // The task's name for the filter pill: the consumption value carries the id, but the row it sits on is
+  // the task, so its title is the name to show. Both the task list row and the tree node carry `title`.
+  const taskName = typeof row?.title === "string" ? row.title : undefined;
   const percentage = Math.min(Math.max(barPercentage ?? 0, 0), 100);
   const label = title
     ? `${t("task.consumption")}: ${title}`
@@ -71,12 +84,12 @@ export function ConsumptionCell({
   return (
     <span className="block">
       <MenuLink
-        // The time sheets of this task, on Wicket's list and with its own three parameters
-        // (ConsumptionBarPanel): the task, and a filter that is cleared for it and not remembered
-        // afterwards. Wicket rather than the React app, whose list was never finished — see
-        // MIGRATION.md. The last place in next that spells out a legacy url; it stays hard until the
-        // time sheets are migrated, then it points at their next route.
-        url={`wa/timesheetList?taskId=${id}&clear=true&storeFilter=false`}
+        // The time sheets of this task, on this app's list (the time sheets are migrated), filtered to
+        // the task. The route reads the two params back and seeds a transient, cleared filter — the task
+        // (with its name for the pill), not remembered afterwards, as Wicket's `ConsumptionBarPanel` set
+        // `taskId`/`clear=true`/`storeFilter=false` (see app/(authenticated)/timesheet/page.tsx). An
+        // internal `next/` url now, so the jump is a client-side navigation.
+        url={timesheetLinkUrl(id, taskName)}
         className="block"
         aria-label={`${t("timesheet.title.list")}: ${label}`}
         // The row itself is clickable (it selects the task), so a click on the bar must not count.
@@ -86,4 +99,15 @@ export function ConsumptionCell({
       </MenuLink>
     </span>
   );
+}
+
+/**
+ * The time sheet list of one task, as a `next/` menu url (resolved to a client-side route by
+ * [resolveMenuUrl]). Carries the task id and, when known, its name — the timesheet route turns them into
+ * a transient, cleared filter (see the module doc on the two param names).
+ */
+function timesheetLinkUrl(id: number, taskName: string | undefined): string {
+  const params = new URLSearchParams({ [TIMESHEET_TASK_ID_PARAM]: String(id) });
+  if (taskName) params.set(TIMESHEET_TASK_NAME_PARAM, taskName);
+  return `next/timesheet?${params.toString()}`;
 }

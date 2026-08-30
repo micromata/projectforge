@@ -582,6 +582,12 @@ constructor(
         var offset: Int = 0,
         var limit: Int = 50,
         var refresh: Boolean = false,
+        /**
+         * Do not remember this filter as the user's current one ([saveCurrentFilter]). For a transient jump
+         * into a pre-filtered list — the consumption bar linking to a task's time sheets, Wicket's
+         * `storeFilter=false` — so opening the list from the menu afterwards does not still show that filter.
+         */
+        var doNotStore: Boolean = false,
     )
 
     /**
@@ -599,7 +605,10 @@ constructor(
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
         val list = getListPage(request, this, baseDao, listPageCache, filter, body.offset, body.limit, body.refresh)
-        saveCurrentFilter(filter)
+        // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
+        if (!body.doNotStore) {
+            saveCurrentFilter(filter)
+        }
         val resultSet = postProcessResultSet(list, request, filter)
         resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
         return resultSet

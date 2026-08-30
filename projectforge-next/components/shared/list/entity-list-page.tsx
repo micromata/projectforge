@@ -52,6 +52,17 @@ export interface EntityListPageProps<
   M extends EntityMetadata,
 > {
   page: PageDef<Row, Values, Data, M>;
+  /**
+   * A filter to seed the list with instead of the one the backend remembers for this user — the
+   * "cleared" filter of a transient jump (the consumption bar opening a task's time sheets). When set,
+   * pass `transient` too, so it is not stored as the user's current filter afterwards.
+   */
+  filterOverride?: MagicFilter;
+  /**
+   * The list was opened by such a jump: its filter must not be remembered (see `filterOverride` and
+   * useEntityListPage.transient).
+   */
+  transient?: boolean;
 }
 
 /**
@@ -66,7 +77,11 @@ export function EntityListPage<
   Values,
   Data extends EntityWithId,
   M extends EntityMetadata,
->({ page }: EntityListPageProps<Row, Values, Data, M>) {
+>({
+  page,
+  filterOverride,
+  transient = false,
+}: EntityListPageProps<Row, Values, Data, M>) {
   // Column layout is stored server-side per entity, so it follows the user across devices (see
   // AbstractPagesRest.columnStates). The table only mounts once it has arrived: the state seeds
   // TanStack's initial state, which can't be replaced afterwards without fighting the user's own
@@ -91,12 +106,15 @@ export function EntityListPage<
     return null;
   }
 
-  // A failed read is not worth blocking the page for — start from the defaults.
+  // A failed read is not worth blocking the page for — start from the defaults. A transient jump seeds
+  // the list from its own filter (`filterOverride`) rather than the remembered one, and marks it so the
+  // filter is not stored back (see DeclaredList).
   return (
     <DeclaredList
       page={page}
       storedState={stored.data ?? {}}
-      restoredFilter={remembered.filter}
+      restoredFilter={filterOverride ?? remembered.filter}
+      transient={transient}
     />
   );
 }
@@ -131,10 +149,12 @@ function DeclaredList<
   page,
   storedState,
   restoredFilter,
+  transient = false,
 }: {
   page: PageDef<Row, Values, Data, M>;
   storedState: ColumnState;
   restoredFilter?: MagicFilter;
+  transient?: boolean;
 }) {
   const t = useTranslations();
   // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
@@ -222,6 +242,7 @@ function DeclaredList<
     lockedColumnIds: LOCKED_COLUMN_IDS,
     buildFilter,
     serverPaging: page.serverPaging,
+    transient,
   });
   // The shell's guard has already passed the meta data, so what is left for this one is a right the
   // list call is the first to see refused - withdrawn mid-session, or an entity whose rest class fills

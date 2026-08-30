@@ -72,6 +72,12 @@ export interface ListPageRequest {
   limit: number;
   /** Skip the session-cached id list and re-materialize it — sent right after the client's own write. */
   refresh?: boolean;
+  /**
+   * Do not remember this filter as the user's current one (mirrors `ListPageRequest.doNotStore`). Set for a
+   * transient jump into a pre-filtered list — the consumption bar linking to a task's time sheets — so the
+   * filter does not stay behind when the list is opened from the menu afterwards.
+   */
+  doNotStore?: boolean;
 }
 
 export const PAGINATION_PAGE_SIZE_FIELD = "paginationPageSize";

@@ -56,6 +56,12 @@ interface UseMagicFilterQueryOptions {
    * the funnel hid rows of the loaded 50 only.
    */
   columnFilterActive?: boolean;
+  /**
+   * Do not let the backend remember this filter as the user's current one (`ListPageRequest.doNotStore`).
+   * For a transient jump into a pre-filtered list — the consumption bar linking to a task's time sheets.
+   * Only the server-side page path honours it; the whole-list fallback (`getList`) always stores.
+   */
+  doNotStore?: boolean;
 }
 
 interface UseMagicFilterQueryResult<O> {
@@ -112,6 +118,7 @@ export function useMagicFilterQuery<O>({
   enabled = true,
   serverPaging = false,
   columnFilterActive = false,
+  doNotStore = false,
 }: UseMagicFilterQueryOptions): UseMagicFilterQueryResult<O> {
   const [sorting, setSortingState] = useState<SortingState>(initialSorting);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -185,7 +192,8 @@ export function useMagicFilterQuery<O>({
             pageIndex * pageSize,
             pageSize,
             false,
-            signal
+            signal,
+            doNotStore
           )
         : fetchList<O>(entity, filter, signal),
     placeholderData: keepPreviousData,

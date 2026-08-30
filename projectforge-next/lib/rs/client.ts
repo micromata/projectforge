@@ -195,9 +195,10 @@ export function fetchListPage<O>(
   offset: number,
   limit: number,
   refresh = false,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  doNotStore = false
 ): Promise<ResultSet<O>> {
-  const body: ListPageRequest = { filter, offset, limit, refresh };
+  const body: ListPageRequest = { filter, offset, limit, refresh, doNotStore };
   return request<ResultSet<O>>(
     `/rs/${entity}/listPage`,
     { method: "POST", body: JSON.stringify(body) },
