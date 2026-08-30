@@ -226,6 +226,10 @@ export function TaskTreeTable({
         // In a select dialog it stays a bounded, scrolling box (autoHeight off).
         autoHeight={pageActions}
         keyboardNav={keyboardNav}
+        // In a select field or dialog the tree opens on the current task and should be drivable with
+        // the arrow keys at once; on its own page a click focuses the body, so it isn't grabbed on
+        // load (see DataTable.autoFocusKeyboard).
+        autoFocusKeyboard={!pageActions}
         // A folder's title expands it, every other column selects it — the rule the hint below
         // states, and the reason DataTable knows about cells at all.
         onCellClick={(row, columnId) => {

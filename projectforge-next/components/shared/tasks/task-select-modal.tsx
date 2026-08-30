@@ -32,7 +32,13 @@ export function TaskSelectModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] !max-w-[95vw]">
+      {/* Let the tree body take the focus (see DataTable.autoFocusKeyboard) instead of the dialog's
+          focus trap landing it on the close button or the filter input — so the arrow keys drive the
+          tree the moment it opens. */}
+      <DialogContent
+        className="w-[95vw] !max-w-[95vw]"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{t("task.tree.title.select")}</DialogTitle>
         </DialogHeader>

@@ -130,6 +130,7 @@
   "attr": {
     "validSince": "Valid since"
   },
+  "back": "Back",
   "book": {
     "abstract": "Abstract",
     "authors": "Authors",
@@ -1969,7 +1970,7 @@
       "displayTask": {
         "tooltip": "Display structure element."
       },
-      "info": "You may select folders by clicking in other columns of the row than the first.",
+      "info": "You may select folders by clicking in other columns of the row than the first.\n\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
       "noTasksFound": "No structure elements found.",
       "selectAncestorTask": {
         "tooltip": "Replace task by this ancestor structure element."

@@ -99,6 +99,14 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * The structure tree passes this so it reads like a file explorer (see useTreeKeyboard).
    */
   keyboardNav?: KeyboardNav;
+  /**
+   * Focus the keyboard body on mount so the arrow keys work without a click first. The initial
+   * focused row is already seeded by the caller's [keyboardNav] (see useTreeKeyboard's initialFocusId),
+   * so this only puts the DOM focus where the keys are handled. On by the task-select panel, where the
+   * tree opens on the current task; off on the standalone tree page, which must not steal focus or
+   * scroll on load — there a click focuses the body as before.
+   */
+  autoFocusKeyboard?: boolean;
 
   /** Page sizes the pagination select offers; defaults to PAGE_SIZE_OPTIONS. */
   pageSizeOptions?: number[];
@@ -155,6 +163,7 @@ export function DataTable<TData>({
   viewScope,
   selection,
   keyboardNav,
+  autoFocusKeyboard = false,
   pageSizeOptions,
   showPagination = true,
   emptyState,
@@ -201,6 +210,14 @@ export function DataTable<TData>({
     bodyRef.current?.focus({ preventScroll: true });
     focusFirstRow();
   }, [focusFirstRow]);
+  // The same for keyboardNav where the caller asks for it (the select panel): its focused row is
+  // already seeded, so this only puts the DOM focus on the body the keys are handled by, without a
+  // click. preventScroll — the seeded row is brought into view by the keyboardFocusedRowId effect
+  // below, so scrolling here too would jump twice.
+  useEffect(() => {
+    if (!keyboardNav || !autoFocusKeyboard) return;
+    bodyRef.current?.focus({ preventScroll: true });
+  }, [keyboardNav, autoFocusKeyboard]);
   // Keyboard navigation moves a focused row that the table has to keep on screen — but only when it
   // scrolls off, so arrowing between rows already visible doesn't jerk the viewport (see
   // scrollRowIntoView). The row must be in the document first, hence an effect and not the key handler.
