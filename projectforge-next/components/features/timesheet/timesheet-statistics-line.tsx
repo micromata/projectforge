@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { TimesheetStatistics } from "./timesheet-statistics";
 
 /**
@@ -45,7 +46,7 @@ export function TimesheetStatisticsLine({
       {statistics.aiEnabled && statistics.aiPercentage && (
         <div className="flex items-baseline gap-1.5">
           <dt className="text-[11px] opacity-70">
-            {t("timesheet.ai.timeSavedByAI")}
+            {t(leafKeyOf("timesheet.ai.timeSavedByAI", t.has))}
           </dt>
           <dd className="tabular-nums">{statistics.aiPercentage}</dd>
         </div>
