@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useStore } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -21,11 +22,17 @@ const CONSUMPTION: CellSpec = { kind: "consumption" };
  * the `timesheet.edit.taskAndKost2` and `task.consumption` widgets of the legacy form in one card.
  *
  * The three belong together because the task decides the other two. Which cost units may be booked is a
- * property of the task (`TaskNode.kost2List`), so the select only exists where that list is not empty,
- * and picking another task drops the cost unit — it belonged to the old one, and keeping it would post a
- * combination the backend refuses (`timesheet.error.invalidKost2`). Whether one is *required* stays the
+ * property of the task (`TaskNode.kost2List`), so the select only exists where that list is not empty.
+ * Picking another task keeps the chosen cost unit *when the new task allows it too* — a shared cost unit
+ * is a common case (sibling tasks of the same project), and dropping it would make the user re-pick the
+ * same value. It is dropped only when the new task's list no longer contains it, since that combination
+ * is one the backend refuses (`timesheet.error.invalidKost2`). Whether one is *required* stays the
  * server's answer (`timesheet.error.kost2Required`): it depends on the task's project, which the client
  * does not reason about.
+ *
+ * The reconciliation is reactive rather than done at pick time: the new task's `kost2List` is not on the
+ * reference the picker hands back, it arrives with the `["taskInfo", id]` query below, so keeping-or-
+ * dropping can only be decided once that answer is in.
  *
  * `["taskInfo", id]` is the same query every other view of a task by its id uses (TaskChip,
  * TaskSelectField, the task form's cost unit block), so this is a cache read wherever the tree has
@@ -48,7 +55,32 @@ export function TaskKost2Section({ className }: { className?: string }) {
     staleTime: Infinity,
   });
 
+  const kost2Id = useStore(
+    form.store,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => (state.values as TimesheetEditValues).kost2?.id ?? null
+  ) as number | null;
+
   const kost2List = info?.kost2List ?? [];
+
+  // Reconcile the cost unit against the task's list: keep it while the (new) task still allows it, drop
+  // it otherwise. `info == null` means the list for the current task is not in yet — leave the value be
+  // until it is, or a shared cost unit would blink out and back during the fetch. A task with no cost
+  // units (`costConfigured` false) allows none, so its empty list clears any leftover value.
+  useEffect(() => {
+    if (kost2Id == null) return;
+    // Task cleared: nothing allows a cost unit, so drop it right away (no list to wait for).
+    if (taskId == null) {
+      form.setFieldValue("kost2", null);
+      return;
+    }
+    if (info == null) return;
+    if (!kost2List.some((kost2) => kost2.id === kost2Id)) {
+      form.setFieldValue("kost2", null);
+    }
+    // `kost2List` is derived from `info`; keying on `info` avoids a new array identity re-running this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskId, info, kost2Id, form]);
 
   return (
     <div
@@ -57,14 +89,12 @@ export function TaskKost2Section({ className }: { className?: string }) {
         className
       )}
     >
+      {/* Whether the cost unit survives the new task is decided reactively once its list arrives — see
+          the effect above — not here, where the new task's `kost2List` is not yet known. */}
       <TaskSelectField
         name="task"
         label={t("task._")}
         className="md:col-span-3"
-        // The cost unit belongs to the task it was chosen under — see above. Dropped even when the new
-        // task allows the same one: it is then re-picked from *its* list, and the select shows it as
-        // unset rather than as a value that happens to still be valid.
-        onPicked={() => form.setFieldValue("kost2", null)}
       />
       {/* Only where the task has cost units at all: on a task without them the select would be an empty
           dropdown next to a field the backend never asks for. */}
