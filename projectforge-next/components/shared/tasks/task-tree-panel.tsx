@@ -7,6 +7,7 @@ import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
 import { isSelectableTask, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
+import { TaskRootBreadcrumb } from "./task-root-breadcrumb";
 import { TaskTreeTable } from "./task-tree-table";
 import type { TaskTreePanelProps } from "./types";
 import { useTaskTree } from "./use-task-tree";
@@ -29,6 +30,7 @@ export function TaskTreePanel({
   showRootForAdmins,
   rootSelectable,
   selectMode,
+  rootNavigable,
   pageMode,
   tree,
   className,
@@ -37,9 +39,27 @@ export function TaskTreePanel({
   // The hook is called either way — hooks are not conditional — but with the same options the caller
   // passed, so both instances share one query and no second request goes out. Only the state of the
   // caller's instance is read, since that is the one its buttons act on.
-  const own = useTaskTree({ highlightTaskId, showRootForAdmins, selectMode });
-  const { nodes, grid, filter, setFilter, isLoading, isFetching, toggleNode } =
-    tree ?? own;
+  const own = useTaskTree({
+    highlightTaskId,
+    showRootForAdmins,
+    selectMode,
+    rootNavigable,
+  });
+  const {
+    nodes,
+    grid,
+    filter,
+    setFilter,
+    isLoading,
+    isFetching,
+    toggleNode,
+    rootTaskId,
+    navigateToRoot,
+    goBack,
+    goForward,
+    canGoBack,
+    canGoForward,
+  } = tree ?? own;
 
   const toggle = useCallback(
     (task: TaskNode) => {
@@ -78,6 +98,20 @@ export function TaskTreePanel({
           // A select popover picks a task for a form — following the consumption bar to the time
           // sheets would leave it (see TaskTreeTableProps.linkEnabled).
           linkEnabled={!selectMode}
+          // Below the search row rather than above it (see TaskTreeTable): the breadcrumb captions the
+          // tree it re-roots, so it belongs next to the tree, not stacked over the filter toolbar.
+          breadcrumb={
+            rootNavigable && (
+              <TaskRootBreadcrumb
+                rootTaskId={rootTaskId}
+                onNavigate={navigateToRoot}
+                onBack={goBack}
+                onForward={goForward}
+                canGoBack={canGoBack}
+                canGoForward={canGoForward}
+              />
+            )
+          }
         />
       ) : (
         <div className="flex flex-1 items-center justify-center">

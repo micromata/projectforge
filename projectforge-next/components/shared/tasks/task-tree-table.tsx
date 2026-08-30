@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -57,6 +57,11 @@ interface TaskTreeTableProps {
    * see TaskListPage.getConsumptionBarPanel).
    */
   linkEnabled?: boolean;
+  /**
+   * The root breadcrumb of a re-rootable panel, rendered right below the search row so it reads as a
+   * caption of the tree beneath it rather than as a second toolbar above the filter (see TaskTreePanel).
+   */
+  breadcrumb?: ReactNode;
 }
 
 /**
@@ -77,6 +82,7 @@ export function TaskTreeTable({
   onSelect,
   pageActions,
   linkEnabled = true,
+  breadcrumb,
 }: TaskTreeTableProps) {
   const t = useTranslations();
   // Behind the task's title rather than in DataTable's trailing actions column, which on a tree ten
@@ -110,7 +116,12 @@ export function TaskTreeTable({
   );
   // File-explorer keys over the tree: ↑/↓ move the focus, →/← expand and collapse, Enter opens (or,
   // in a select popover, picks) the focused element.
-  const keyboardNav = useTreeKeyboard(nodes, onToggle, selectTask);
+  const keyboardNav = useTreeKeyboard(
+    nodes,
+    onToggle,
+    selectTask,
+    highlightTaskId
+  );
 
   // Guaranteed to be the state stored for the user: the backend folds it into the column defs of the
   // initial answer, and this component only exists once that has arrived.
@@ -191,6 +202,7 @@ export function TaskTreeTable({
           className="h-8 rounded-full px-2.5 text-xs"
         />
       </div>
+      {breadcrumb}
       <DataTable<TaskNode>
         table={table}
         columns={columns}

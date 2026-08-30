@@ -102,5 +102,12 @@
     "legend": {
       "deleted": "Deleted"
     }
+  },
+  "taskReRoot": {
+    "label": "Structure navigation",
+    "wholeTree": "Show the whole tree",
+    "ancestor": "Show this element's subtree",
+    "back": "Back",
+    "forward": "Forward"
   }
 }

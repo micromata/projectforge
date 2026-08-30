@@ -46,6 +46,7 @@ export function TaskSelectModal({
             highlightTaskId={value}
             onSelect={handleSelect}
             selectMode
+            rootNavigable
           />
         </div>
       </DialogContent>

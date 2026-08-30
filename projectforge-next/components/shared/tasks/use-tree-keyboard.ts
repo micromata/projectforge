@@ -23,14 +23,18 @@ import type { TaskNode } from "@/lib/rs/task";
 export function useTreeKeyboard(
   nodes: TaskNode[],
   toggle: (task: TaskNode) => void,
-  select: (task: TaskNode) => void
+  select: (task: TaskNode) => void,
+  /** The task the tree opens on: the keyboard cursor starts on it, marked and scrolled into view. */
+  initialFocusId?: number | null
 ): KeyboardNav {
   const rowIds = useCallback(
     () => nodes.map((node) => String(node.id)),
     [nodes]
   );
-  const { focusedRowId, focusRow, move, focusedIndex } =
-    useKeyboardNavState(rowIds);
+  const { focusedRowId, focusRow, move, focusedIndex } = useKeyboardNavState(
+    rowIds,
+    initialFocusId != null ? String(initialFocusId) : null
+  );
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {

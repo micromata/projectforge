@@ -5,6 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   DEFAULT_TASK_TREE_FILTER,
+  fetchTaskInfo,
   fetchTaskTree,
   taskTreeFilterOf,
   type TaskNode,
@@ -27,6 +28,18 @@ interface UseTaskTreeOptions {
   highlightTaskId?: number | null;
   showRootForAdmins?: boolean;
   selectMode?: boolean;
+  /**
+   * Let the tree be re-rooted at a subtree, navigated by a breadcrumb (the select panel). When on and a
+   * task is selected, the tree opens at that task's parent — its neighbourhood — rather than at the whole
+   * tree; the breadcrumb then climbs back up. Off for the plain tree page, which always starts at the root.
+   */
+  rootNavigable?: boolean;
+}
+
+/** The visited pseudo-roots, so the breadcrumb's back/forward can step through them (`null` = whole tree). */
+interface RootHistory {
+  stack: (number | null)[];
+  index: number;
 }
 
 /**
@@ -59,6 +72,7 @@ export function useTaskTree({
   highlightTaskId,
   showRootForAdmins,
   selectMode,
+  rootNavigable,
 }: UseTaskTreeOptions) {
   // null while the session's filter is in effect: only the initial answer knows what that is, and
   // overriding it with a default here would drop a filter set on the legacy page.
@@ -81,6 +95,61 @@ export function useTaskTree({
   const [resetFilterValue, setResetFilterValue] =
     useState<TaskTreeFilter | null>(null);
 
+  // The parent of the selected task is where a re-rootable tree opens: the neighbourhood of the current
+  // value rather than the whole tree. Its id is the last of the selection's ancestors (path excludes the
+  // task itself), so the selection's info is fetched for it — shared by key with the breadcrumb's own fetch.
+  const selectedInfo = useQuery({
+    queryKey: ["taskInfo", highlightTaskId],
+    queryFn: ({ signal }) => fetchTaskInfo(highlightTaskId!, signal),
+    enabled: !!rootNavigable && highlightTaskId != null,
+    staleTime: Infinity,
+  });
+  const autoRootTaskId = rootNavigable
+    ? (selectedInfo.data?.path?.at(-1)?.id ?? null)
+    : null;
+
+  // null until the user navigates: until then the effective root simply follows [autoRootTaskId]. Once the
+  // user clicks a breadcrumb, this history takes over so back/forward can step through the visited roots.
+  const [rootHistory, setRootHistory] = useState<RootHistory | null>(null);
+  const rootTaskId = rootHistory
+    ? (rootHistory.stack[rootHistory.index] ?? null)
+    : autoRootTaskId;
+
+  // Depends on [autoRootTaskId] so the first navigation seeds the history with the root the tree opened
+  // at — its identity may change, but unlike [toggleNode] no memoised columns hang off it.
+  const navigateToRoot = useCallback(
+    (id: number | null) => {
+      setRootHistory((prev) => {
+        const base = prev ?? { stack: [autoRootTaskId], index: 0 };
+        if ((base.stack[base.index] ?? null) === id) return base;
+        // Drop any forward entries the way a browser does, then append the new root.
+        const stack = base.stack.slice(0, base.index + 1);
+        stack.push(id);
+        return { stack, index: stack.length - 1 };
+      });
+    },
+    [autoRootTaskId]
+  );
+  const goBack = useCallback(
+    () =>
+      setRootHistory((prev) =>
+        prev && prev.index > 0 ? { ...prev, index: prev.index - 1 } : prev
+      ),
+    []
+  );
+  const goForward = useCallback(
+    () =>
+      setRootHistory((prev) =>
+        prev && prev.index < prev.stack.length - 1
+          ? { ...prev, index: prev.index + 1 }
+          : prev
+      ),
+    []
+  );
+  const canGoBack = !!rootHistory && rootHistory.index > 0;
+  const canGoForward =
+    !!rootHistory && rootHistory.index < rootHistory.stack.length - 1;
+
   const scope = useMemo(
     () => ({
       highlightedTaskId: highlightTaskId ?? undefined,
@@ -88,8 +157,11 @@ export function useTaskTree({
       // In the scope, so it is part of both query keys: the two modes get different columns and
       // must not share a cache entry.
       select: selectMode || undefined,
+      // Also in the scope: re-rooting changes the whole answer, so both queries must refetch and
+      // neither root's tree may be served from the other's cache entry.
+      rootTaskId: rootTaskId ?? undefined,
     }),
-    [highlightTaskId, showRootForAdmins, selectMode]
+    [highlightTaskId, showRootForAdmins, selectMode, rootTaskId]
   );
 
   const initial = useQuery({
@@ -196,6 +268,14 @@ export function useTaskTree({
         })),
       []
     ),
+    /** The node the tree is currently rooted at, `null` for the whole tree. Drives the breadcrumb. */
+    rootTaskId,
+    /** Re-root the tree at a node (or `null` for the whole tree); pushes onto the back/forward history. */
+    navigateToRoot,
+    goBack,
+    goForward,
+    canGoBack,
+    canGoForward,
   };
 }
 
