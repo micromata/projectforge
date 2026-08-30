@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 
 /**
@@ -13,13 +13,35 @@ import { useTranslations } from "next-intl";
 let pending: { message: string } | null = null;
 
 /**
+ * The in-app "leave anyway?" currently on screen, if any, and the resolver its buttons answer. Watched
+ * by the one mounted dialog (see [useUnsavedChangesRequest]) so the question is the app's own styled
+ * dialog rather than the browser's `window.confirm` box. There is only ever one, for the same reason
+ * `pending` is a single slot.
+ */
+let request: { message: string; resolve: (leave: boolean) => void } | null =
+  null;
+const listeners = new Set<() => void>();
+
+function emit(): void {
+  for (const listener of listeners) listener();
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/**
  * Warns before what is being edited is thrown away — the counterpart of Wicket's own "are you sure"
  * on an edit form.
  *
  * Two ways out of the form need it, and neither can be caught by keeping the values somewhere: the
  * link back to the legacy page (`LegacyPageLink`, deliberately a full reload) and a link out of the
  * form into another entity (an invoice position's order). The first is the browser's business, hence
- * `beforeunload`; the second is a client navigation, which [confirmLeaveUnsavedChanges] guards.
+ * `beforeunload`; the second is a client navigation, which [confirmLeaveUnsavedChanges] guards with
+ * the app's own dialog.
  *
  * @param isDirty whether the form holds changes. False disarms both, so a saved or untouched form
  *   leaves without a word.
@@ -43,15 +65,50 @@ export function useUnsavedChangesWarning(isDirty: boolean): void {
   }, [isDirty, message]);
 }
 
+/** Whether a form on screen holds unsaved changes — a synchronous check for a link's `onNavigate`. */
+export function hasUnsavedChanges(): boolean {
+  return pending !== null;
+}
+
 /**
- * Asks whether the edit form on screen may be left, and answers true when there is nothing to lose.
+ * Asks whether the edit form on screen may be left, and resolves true when there is nothing to lose.
  *
- * For the `onNavigate` of a link that leads out of an edit form — see [useUnsavedChangesWarning]:
+ * A promise, not the boolean `window.confirm` returned: the question is the app's own dialog (see
+ * [useUnsavedChangesRequest]), which answers asynchronously. A caller therefore holds the navigation
+ * and goes through only once this resolves true — for a link, `preventDefault` then a `router.push`:
  *
  * ```tsx
- * <Link onNavigate={(e) => { if (!confirmLeaveUnsavedChanges()) e.preventDefault(); }} … />
+ * onNavigate={(e) => {
+ *   if (!hasUnsavedChanges()) return;
+ *   e.preventDefault();
+ *   void confirmLeaveUnsavedChanges().then((leave) => { if (leave) router.push(href); });
+ * }}
  * ```
  */
-export function confirmLeaveUnsavedChanges(): boolean {
-  return !pending || window.confirm(pending.message);
+export function confirmLeaveUnsavedChanges(): Promise<boolean> {
+  if (!pending) return Promise.resolve(true);
+  // A second ask while one is still open answers the first as "stay" — one question at a time.
+  request?.resolve(false);
+  const { message } = pending;
+  return new Promise<boolean>((resolve) => {
+    request = { message, resolve };
+    emit();
+  });
+}
+
+/** Answers the open question (if any) and closes the dialog. Idempotent: a second call is a no-op. */
+export function resolveUnsavedChanges(leave: boolean): void {
+  const current = request;
+  request = null;
+  emit();
+  current?.resolve(leave);
+}
+
+/** The open "leave anyway?" question, or null — for the one mounted dialog that renders it. */
+export function useUnsavedChangesRequest(): { message: string } | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => request,
+    () => null
+  );
 }

@@ -79,19 +79,23 @@ export function QuickAccessResults({
 
   function go(url: string, menuKey?: string) {
     const target = resolveMenuUrl(url);
-    // Asked before anything is remembered or closed: a router.push is not a link, so nothing else
-    // would stop it (see useUnsavedChangesWarning). The external case is a full page load, which
-    // `beforeunload` catches by itself.
-    if (target.kind === "internal" && !confirmLeaveUnsavedChanges()) return;
-    remember(menuKey);
-    onNavigate();
-    if (target.kind === "internal") {
-      router.push(target.href);
+    // The legacy React app and Wicket are served by Spring, not by this app: a client-side route
+    // would land on Next's own 404, and that is where most menu entries still point. A full page load,
+    // which `beforeunload` guards by itself — so it is not asked about here.
+    if (target.kind === "external") {
+      remember(menuKey);
+      onNavigate();
+      window.location.assign(toAbsoluteUrl(target));
       return;
     }
-    // The legacy React app and Wicket are served by Spring, not by this app: a client-side route
-    // would land on Next's own 404, and that is where most menu entries still point.
-    window.location.assign(toAbsoluteUrl(target));
+    // A router.push is not a link, so nothing else would stop it (see useUnsavedChangesWarning): ask
+    // with the app's own dialog first and go through only on "leave".
+    void confirmLeaveUnsavedChanges().then((leave) => {
+      if (!leave) return;
+      remember(menuKey);
+      onNavigate();
+      router.push(target.href);
+    });
   }
 
   return (

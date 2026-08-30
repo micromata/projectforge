@@ -109,5 +109,10 @@
     "ancestor": "Unterbaum dieses Elements anzeigen",
     "back": "Zurück",
     "forward": "Vor"
+  },
+  "unsavedChanges": {
+    "title": "Ungespeicherte Änderungen",
+    "confirm": "Verlassen",
+    "stay": "Hier bleiben"
   }
 }

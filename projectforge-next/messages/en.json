@@ -109,5 +109,10 @@
     "ancestor": "Show this element's subtree",
     "back": "Back",
     "forward": "Forward"
+  },
+  "unsavedChanges": {
+    "title": "Unsaved changes",
+    "confirm": "Leave page",
+    "stay": "Stay here"
   }
 }

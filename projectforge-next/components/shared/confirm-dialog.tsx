@@ -20,6 +20,8 @@ export interface ConfirmDialogProps {
   description: ReactNode;
   /** Label of the confirming button, e.g. the translated "markAsDeleted". */
   confirmLabel: string;
+  /** Label of the dismissing button; the translated "cancel" ("Abbrechen") unless a caller overrides it. */
+  cancelLabel?: string;
   /** Destructive actions (delete) get the red button; anything else the default one. */
   destructive?: boolean;
   onConfirm: () => void;
@@ -35,6 +37,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel,
   destructive,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -47,7 +50,7 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             variant={destructive ? "destructive" : "default"}
             onClick={onConfirm}

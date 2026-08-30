@@ -128,10 +128,13 @@ export function EntityEditModal<
         onOpenChange(true);
         return;
       }
-      if (confirmLeaveUnsavedChanges()) {
-        onClose?.();
-        onOpenChange(false);
-      }
+      // The dialog stays open while the app's own "leave anyway?" is answered; it closes only on "leave".
+      void confirmLeaveUnsavedChanges().then((leave) => {
+        if (leave) {
+          onClose?.();
+          onOpenChange(false);
+        }
+      });
     },
     [onOpenChange, onClose]
   );
