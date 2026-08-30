@@ -24,7 +24,9 @@ const SPAN_CLASS = { 1: undefined, 2: "md:col-span-2", 3: "md:col-span-3" };
 export function fieldKey<M extends EntityMetadata>(
   field: FieldDeclaration<M>
 ): string {
-  if ("custom" in field) return field.custom.name;
+  // displayName over name: a factory-made custom (makeJiraFieldLinks) hands every instance the same
+  // function name but a unique displayName, so two of them in one section would otherwise collide.
+  if ("custom" in field) return field.custom.displayName ?? field.custom.name;
   if ("begin" in field) return field.begin;
   if ("group" in field) return field.group.map((f) => f.name).join("+");
   return field.name;
