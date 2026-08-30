@@ -127,6 +127,48 @@ class DataTransferAuditDao {
     }
 
     /**
+     * Fetches all queued (unprocessed, non-download) audit entries in a single query and groups them by area id.
+     * This avoids the N+1 flood produced by calling [internalGetQueuedEntriesByAreaId] once per area.
+     *
+     * Areas with any entry newer than 10 minutes are omitted from the result (wait for further actions before
+     * sending notifications), mirroring the per-area behavior of [internalGetQueuedEntriesByAreaId].
+     */
+    internal fun internalGetQueuedEntriesGroupedByAreaId(): Map<Long, List<DataTransferAuditDO>> {
+        val resultList = persistenceService.executeNamedQuery(
+            DataTransferAuditDO.FIND_QUEUED_ENTRIES_IGNORE_TYPES,
+            DataTransferAuditDO::class.java,
+            Pair("eventTypes", downloadEventTypes),
+        )
+        val tenMinutesAgo = PFDateTime.now().minus(10, ChronoUnit.MINUTES).utilDate
+        return resultList
+            .filter { it.areaId != null }
+            .groupBy { it.areaId!! }
+            .filterValues { entries ->
+                // Skip areas with modifications newer than 10 minutes, wait for other actions before notification.
+                entries.none { entry ->
+                    val timestamp = entry.timestamp
+                    timestamp != null && timestamp > tenMinutesAgo
+                }
+            }
+    }
+
+    /**
+     * Fetches all download audit entries for the given area ids in a single query and groups them by area id.
+     * This avoids the N+1 flood produced by calling [internalGetDownloadEntriesByAreaId] once per area.
+     */
+    internal fun internalGetDownloadEntriesGroupedByAreaId(areaIds: Collection<Long>): Map<Long, List<DataTransferAuditDO>> {
+        if (areaIds.isEmpty()) {
+            return emptyMap()
+        }
+        return persistenceService.executeNamedQuery(
+            DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_IDS,
+            DataTransferAuditDO::class.java,
+            Pair("areaIds", areaIds),
+            Pair("eventTypes", downloadEventTypes),
+        ).filter { it.areaId != null }.groupBy { it.areaId!! }
+    }
+
+    /**
      * @return list of all download events (download, download multi or download all).
      */
     internal fun internalGetDownloadEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO> {

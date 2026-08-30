@@ -63,6 +63,14 @@ import org.projectforge.framework.json.IdOnlySerializer
     query = "from DataTransferAuditDO where areaId=:areaId and notified=false and eventType not in :eventTypes order by timestamp desc"
   ),
   NamedQuery(
+    name = DataTransferAuditDO.FIND_QUEUED_ENTRIES_IGNORE_TYPES,
+    query = "from DataTransferAuditDO where notified=false and eventType not in :eventTypes order by timestamp desc"
+  ),
+  NamedQuery(
+    name = DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_IDS,
+    query = "from DataTransferAuditDO where areaId in :areaIds and eventType in :eventTypes order by timestamp desc"
+  ),
+  NamedQuery(
     name = DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS,
     query = "update DataTransferAuditDO set notified=true where id IN :idList"
   ),
@@ -176,7 +184,9 @@ open class DataTransferAuditDO {
     internal const val FIND_BY_AREA_ID = "DataTransferAuditDO_FindByAreaId"
     internal const val FIND_BY_ID = "DataTransferAuditDO_FindById"
     internal const val FIND_DOWNLOADS_BY_AREA_ID = "DataTransferAuditDO_FindDownloadsByAreaId"
+    internal const val FIND_DOWNLOADS_BY_AREA_IDS = "DataTransferAuditDO_FindDownloadsByAreaIds"
     internal const val FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID_IGNORE_TYPES = "DataTransferAuditDO_FindQueuedEntriesByAreaId"
+    internal const val FIND_QUEUED_ENTRIES_IGNORE_TYPES = "DataTransferAuditDO_FindQueuedEntries"
     internal const val UPDATE_NOTIFICATION_STATUS = "DataTransferAuditDO_UpdateNotificationStatus"
   }
 }
