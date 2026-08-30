@@ -6,6 +6,7 @@ import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { DatePeriodField } from "@/components/shared/form/date-period-field";
 import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
 import { JiraIssuesLinks } from "@/components/shared/jira/jira-issues-links";
+import { useJiraFieldHint } from "@/components/shared/jira/use-jira-field-hint";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
@@ -79,6 +80,9 @@ export function PositionRow({
   const label = useFieldLabels(AUFTRAGS_POSITION_METADATA);
   const format = useFormatContext();
   const name = (field: string) => `${prefix}${field}`;
+  // The position's comment is scanned for JIRA keys like the order's own note fields, so it carries the
+  // same "supports JIRA" hint (see useJiraFieldHint).
+  const jiraHint = useJiraFieldHint(true);
   // The order's own period applies unless the position was given one — then, and only then, are the two
   // date fields and the mode of payment hers to fill in (`PeriodOfPerformanceType`, and Wicket's form
   // does the same).
@@ -183,6 +187,7 @@ export function PositionRow({
         <TextAreaField
           name={name("bemerkung")}
           label={label("bemerkung")}
+          hint={jiraHint}
           rows={2}
           className="md:col-span-3"
         />

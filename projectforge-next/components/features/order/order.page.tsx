@@ -253,7 +253,7 @@ export const ORDER_PAGE = definePage<
           { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
           // Highlighted like the list's title column, so both set the same focus.
           { name: "titel", span: 2, emphasized: true },
-          { name: "referenz" },
+          { name: "referenz", jiraHint: true },
           // A full-width row of its own, so it sits below the title/reference line rather than in a
           // lonely grid cell beside it (see makeJiraFieldLinks).
           { custom: ReferenzJiraLinks, span: 3 },
@@ -298,9 +298,9 @@ export const ORDER_PAGE = definePage<
         id: "notes",
         titleKey: "comment",
         fields: [
-          { name: "statusBeschreibung", rows: 3, span: 3 },
+          { name: "statusBeschreibung", rows: 3, span: 3, jiraHint: true },
           { custom: StatusBeschreibungJiraLinks, span: 3 },
-          { name: "bemerkung", rows: 3, span: 3 },
+          { name: "bemerkung", rows: 3, span: 3, jiraHint: true },
           { custom: BemerkungJiraLinks, span: 3 },
         ],
       },

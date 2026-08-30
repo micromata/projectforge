@@ -3,6 +3,7 @@
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { StringSuggestField } from "@/components/shared/form/string-suggest-field";
+import { useJiraFieldHint } from "@/components/shared/jira/use-jira-field-hint";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { fetchReferenceSuggestions } from "@/lib/rs/timesheet";
 import type { TimesheetEditValues } from "../timesheet-edit-schema";
@@ -21,11 +22,15 @@ export function ReferenceField({ className }: { className?: string }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => (state.values as TimesheetEditValues).task?.id ?? null
   ) as number | null;
+  // The reference commonly holds a ticket number and is scanned for JIRA keys, so it carries the same
+  // "supports JIRA" hint as the declarative free-text fields (see useJiraFieldHint).
+  const jiraHint = useJiraFieldHint(true);
 
   return (
     <StringSuggestField
       name="reference"
       label={t("timesheet.reference")}
+      hint={jiraHint}
       className={className}
       suggest={(search, signal) =>
         fetchReferenceSuggestions(search, taskId, signal)

@@ -193,6 +193,13 @@ export interface DeclaredField<M extends EntityMetadata> extends FieldBase {
   name: FieldNameOf<M>;
   labelKey?: string;
   hintKey?: string;
+  /**
+   * Marks the field as one that understands JIRA issue keys, adding the "supports JIRA" ⓘ beside its
+   * label — the hint Wicket's `FieldsetPanel.addJIRAField` puts on such a field, so the user knows a
+   * ticket typed here becomes a link. Resolved to the generic [hint] through [useJiraFieldHint], which
+   * shows it only where JIRA is configured; an explicit [hintKey] wins over it.
+   */
+  jiraHint?: boolean;
   /** Renders a textarea of this many rows instead of a single-line input. */
   rows?: number;
   /**

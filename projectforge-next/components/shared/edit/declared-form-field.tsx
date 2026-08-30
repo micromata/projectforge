@@ -10,6 +10,7 @@ import { NumberField } from "@/components/shared/form/number-field";
 import { SelectField } from "@/components/shared/form/select-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
+import { useJiraFieldHint } from "@/components/shared/jira/use-jira-field-hint";
 import { useFormReadOnly } from "@/components/shared/form/form-context";
 import { useFormatContext } from "@/hooks/use-format";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,11 @@ export function DeclaredFormField<M extends EntityMetadata>({
 }): ReactNode {
   const t = useTranslations();
   const format = useFormatContext();
+  // Called unconditionally (a hook), so it sits above the custom/period/group returns even though only a
+  // plain [DeclaredField] can carry the flag; it yields nothing unless JIRA is configured.
+  const jiraHint = useJiraFieldHint(
+    "jiraHint" in field ? field.jiraHint : false
+  );
   // A form that is only being looked at overrides every field's own declaration — the entry is deleted
   // and offers nothing but its restore (see useFormReadOnly). The fieldset around the sections already
   // blocks the input natively; this is what makes the fields say so, down to the clear buttons a
@@ -129,7 +135,10 @@ export function DeclaredFormField<M extends EntityMetadata>({
   const label = translate(
     labelKeyFor(metadata, field.name, translate.has, field.labelKey)
   );
-  const hint = field.hintKey ? translate(field.hintKey) : undefined;
+  // The field's own hint wins; a JIRA field falls back to the "supports JIRA" hint, which is present
+  // only where JIRA is configured (see useJiraFieldHint).
+  const hint =
+    (field.hintKey ? translate(field.hintKey) : undefined) ?? jiraHint;
   const common = { name: field.name, label, hint, className };
   const readOnly = field.readOnly || formReadOnly;
 

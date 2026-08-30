@@ -247,13 +247,13 @@ export const TASK_PAGE = definePage<
             maxDigits: 4,
             hintKey: "task.edit.maxHoursIngoredDueToAssignedOrders",
           },
-          { name: "shortDescription", span: 3 },
+          { name: "shortDescription", span: 3, jiraHint: true },
           { custom: ShortDescriptionJiraLinks, span: 3 },
-          { name: "reference", span: 3 },
+          { name: "reference", span: 3, jiraHint: true },
           { custom: ReferenceJiraLinks, span: 3 },
           // Last, as it is in Wicket — where it is a panel of its own, which here would be a card
           // holding nothing but one textarea.
-          { name: "description", span: 3, rows: 6 },
+          { name: "description", span: 3, rows: 6, jiraHint: true },
           { custom: DescriptionJiraLinks, span: 3 },
         ],
       },

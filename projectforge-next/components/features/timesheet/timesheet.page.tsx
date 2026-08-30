@@ -188,7 +188,7 @@ export const TIMESHEET_PAGE = definePage<
           { custom: TagField },
           { custom: ReferenceField },
           { custom: ReferenceJiraLinks },
-          { name: "description", rows: 5, span: 3 },
+          { name: "description", rows: 5, span: 3, jiraHint: true },
           { custom: DescriptionJiraLinks, span: 3 },
         ],
       },
