@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.Constants
+import org.projectforge.business.PfCaches
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.business.book.BookStatus
@@ -35,6 +36,7 @@ import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.Validation
 import org.projectforge.rest.dto.Book
 import org.projectforge.ui.ValidationError
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.annotation.PostConstruct
@@ -43,6 +45,9 @@ import jakarta.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/book")
 class BookEntityRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
+
+  @Autowired
+  private lateinit var caches: PfCaches
 
   @PostConstruct
   private fun postConstruct() {
@@ -72,6 +77,10 @@ class BookEntityRest : AbstractDTOEntityRest<BookDO, Book, BookDao>(BookDao::cla
 
   override fun transformFromDB(obj: BookDO, editMode: Boolean): Book {
     val book = Book()
+    // Resolve the lazy lendOutBy proxy from the UserGroupCache before copyFrom reads it. Otherwise every
+    // book row of the list triggers its own T_PF_USER query (the N+1 the book list suffered from); the cache
+    // holds all users in memory, so this is an O(1) lookup and no query.
+    obj.lendOutBy = caches.getUserIfNotInitialized(obj.lendOutBy)
     book.copyFrom(obj)
     return book
   }
