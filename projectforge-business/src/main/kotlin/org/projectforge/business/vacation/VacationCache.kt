@@ -32,6 +32,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
@@ -111,8 +112,19 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     }
 
     override fun afterInsertOrModify(obj: VacationDO, operationType: OperationType) {
+        val id = obj.id ?: return
+        // The listener runs outside any transaction, so obj is detached and its lazy associations mustn't be
+        // touched (see BaseDOModifiedListener). Only the ids of the employee proxies are read (which needs no
+        // query); the graph is then hydrated from the caches, so serving this entry never triggers a lazy load.
+        persistenceService.runIsolatedReadOnly { context ->
+            hydrate(obj, loadOtherReplacementIds(context, id)[id])
+        }
         synchronized(vacationMap) {
-            vacationMap[obj.id] = obj
+            if (obj.deleted) {
+                vacationMap.remove(id)
+            } else {
+                vacationMap[id] = obj
+            }
             vacations = vacationMap.values.toList()
         }
     }
@@ -122,7 +134,7 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
      */
     override fun refresh() {
         log.info("Refreshing VacationCache ...")
-        persistenceService.runIsolatedReadOnly {
+        persistenceService.runIsolatedReadOnly { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long?, VacationDO>()
             vacationDao.selectAll(checkAccess = false).forEach {
@@ -130,9 +142,62 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
                     map[it.id] = it
                 }
             }
+            // Hydrate the employee graph of every cached vacation from the caches, so serving the cache
+            // (calendar events, access checks) never triggers a lazy load. selectAll returns detached
+            // entities, so the other-replacements join table is read in a single query here instead of one
+            // lazy collection init per vacation — the N+1 the calendar suffered from.
+            val otherReplacementIds = loadOtherReplacementIds(context)
+            map.values.forEach { hydrate(it, otherReplacementIds[it.id]) }
             vacationMap = map
             vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
         }
         log.info("Refreshing of VacationCache done.")
+    }
+
+    /**
+     * Replaces the lazy [EmployeeDO] proxies of the given vacation (employee, manager, replacement and the
+     * other replacements) by the fully initialized instances held in [EmployeeCache]. The proxy ids are read
+     * without initializing them (a proxy always knows its id), so this is safe on a detached entity and adds
+     * no query. Afterwards nothing on the cached vacation is lazy, so serving it hits neither the database nor
+     * a [org.hibernate.LazyInitializationException].
+     *
+     * @param otherReplacementIds The employee ids of [VacationDO.otherReplacements], pre-loaded in one query
+     * (see [loadOtherReplacementIds]) to avoid initializing the many-to-many collection per vacation.
+     */
+    private fun hydrate(vacation: VacationDO, otherReplacementIds: Set<Long>?) {
+        vacation.employee = employeeCache.getEmployee(vacation.employee?.id)
+        vacation.manager = employeeCache.getEmployee(vacation.manager?.id)
+        vacation.replacement = employeeCache.getEmployee(vacation.replacement?.id)
+        vacation.otherReplacements = otherReplacementIds
+            ?.mapNotNull { employeeCache.getEmployee(it) }
+            ?.toMutableSet()
+    }
+
+    /**
+     * Reads the vacation → other-replacement-employee mapping straight from the join table in a single query,
+     * so [hydrate] doesn't have to initialize the many-to-many collection of every vacation one by one.
+     *
+     * @param vacationId When given, only that vacation's row is read (used when a single entry is updated).
+     */
+    private fun loadOtherReplacementIds(
+        context: PfPersistenceContext,
+        vacationId: Long? = null,
+    ): Map<Long, MutableSet<Long>> {
+        val sql = StringBuilder("SELECT vacation_id, employee_id FROM t_employee_vacation_other_replacements")
+        if (vacationId != null) {
+            sql.append(" WHERE vacation_id = :vacationId")
+        }
+        val query = context.em.createNativeQuery(sql.toString())
+        if (vacationId != null) {
+            query.setParameter("vacationId", vacationId)
+        }
+        val result = mutableMapOf<Long, MutableSet<Long>>()
+        @Suppress("UNCHECKED_CAST")
+        (query.resultList as List<Array<Any?>>).forEach { row ->
+            val vId = (row[0] as Number).toLong()
+            val employeeId = (row[1] as Number).toLong()
+            result.getOrPut(vId) { mutableSetOf() }.add(employeeId)
+        }
+        return result
     }
 }
