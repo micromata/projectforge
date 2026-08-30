@@ -9,10 +9,17 @@ import type {
 import { useTranslations } from "next-intl";
 import { DataTableColumnHeader, renderCell } from "@/components/data-table";
 import { TreeCell } from "@/components/data-table/cells/tree-cell";
+import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { useFormatContext } from "@/hooks/use-format";
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { adaptColumnDefs } from "@/lib/dynamic/grid/column-def-adapter";
 import type { TaskNode } from "@/lib/rs/task";
+
+/**
+ * The tree's free-text columns whose values may carry JIRA issue keys, linked as Wicket links its list
+ * columns. The title stays [TreeCell] (its click expands the node), so it is not among them.
+ */
+const JIRA_TREE_FIELDS = new Set(["shortDescription", "reference"]);
 
 /**
  * The tree's columns, from the `columnDefs` of the initial answer.
@@ -44,6 +51,9 @@ export function useTaskTreeColumns(
       const label = meta?.label ?? "";
       const spec = meta?.cellSpec;
       const tooltip = meta?.headerTooltip;
+      const field =
+        (column as { accessorKey?: string }).accessorKey ?? column.id;
+      const jiraLinked = !!field && JIRA_TREE_FIELDS.has(field);
       return {
         ...column,
         header: ({ column: col, table }: HeaderContext<TaskNode, unknown>) => (
@@ -57,6 +67,14 @@ export function useTaskTreeColumns(
         ),
         cell: ({ getValue, row }: CellContext<TaskNode, unknown>) => {
           if (!spec) return null;
+          // A free-text column: link its JIRA issue keys, as Wicket does in its list columns. The plain
+          // string cell is what these columns render anyway, so the value stands in for it.
+          if (jiraLinked) {
+            const value = getValue();
+            return (
+              <JiraLinkedText text={typeof value === "string" ? value : null} />
+            );
+          }
           const props = {
             spec,
             value: getValue(),

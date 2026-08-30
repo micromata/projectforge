@@ -1908,6 +1908,46 @@ Legacy-Fluchtluke zeigt über `ui.legacyUrl` auf die React-Seite, Wickets `wa/gr
 reines Textfeld, während Legacy aus ihm über `quickSelectUrl` direkt in den Treffer
 springt (`SearchFilter.jsx`).
 
+#### Erledigt: JIRA-Issues als Links (querschnittlich)
+
+Wickets Freitextfelder machen aus jedem JIRA-Schlüssel im Text (`PROJECTFORGE-222` und
+dergleichen, Muster `[A-Z][A-Z_0-9]*-[0-9]+`) einen Link auf das Ticket
+(`JiraUtils.linkJiraIssues`), und unter einem Feld führt das `JiraIssuesPanel` (angehängt von
+`FieldsetPanel.addJIRAField`) die enthaltenen Schlüssel noch einmal als Linkzeile auf. Das ist
+jetzt in next nachgebaut – für **Strukturelemente** (`task`, Liste, Baum und Formular),
+**Zeitberichte** (`timesheet`, Liste und Formular) und das **Auftragsbuch** (`order`, Liste,
+Formular und Positionen).
+
+**Die Konfiguration reist einmalig über `userStatus`, nicht pro Zeile.** Ob JIRA an ist, mit
+welchen Projektpräfixen und Basis-URLs, weiß allein das Backend (`ConfigXml`, `jiraServers` +
+`jiraBrowseBaseUrl`). `JiraUtils.getClientConfig()` bündelt das zu einem
+`JiraClientConfig`, das `UserStatusRest` an sein (authentifiziertes) `Result` hängt – **nicht**
+an die öffentliche, maskierte `SystemData` von `pub/SystemStatusRest`, damit keine internen
+Server-URLs vor dem Login nach außen gehen. Der Client liest es über `useAuth()` (`jira`), das
+URL-Bauen spiegelt die Backend-Logik (Server nach Projektpräfix, sonst Default-Browse-URL) in
+`lib/jira.ts` – eine reine Hilfe ohne Netzzugriff, weil der Text schon da ist.
+
+**Die geteilten Bausteine** liegen unter `components/shared/jira/`: `JiraLinkedText` ersetzt in
+Listen-/Baumzellen die JIRA-Schlüssel eines Textes durch Links (Rest bleibt Klartext, der Anker
+stoppt den Zeilenklick und öffnet einen neuen Tab); `JiraIssuesLinks` ist die Linkzeile unter
+einem Formularfeld (das „JIRA"-Vorwort trägt denselben Hilfetext wie Wickets Icon,
+`tooltip.jiraSupport.field.content` – ein vorhandener Schlüssel, kein neuer Text); und
+`makeJiraFieldLinks(fieldName)` erzeugt daraus die Feld-Komponente für die deklarativen
+Formulare (`PageDef` hat für ein `custom`-Feld keinen Namenskanal, daher die Fabrik; sie liest
+den Live-Wert über `useEntityEditForm()` + `useStore`). Verlinkt sind die Freitextfelder
+(Beschreibung/`bemerkung`/Referenz/Kurzbeschreibung/Statusbeschreibung); **bewusst ausgelassen**
+sind die einspaltigen Titelfelder am Kopf des Grids (Task-Titel, Auftrags-Titel/Referenz im
+Formularkopf, Positions-Titel) – eine Linkzeile dort verschöbe die Felder daneben; in den
+**Listen** ist der Auftrags-Titel dagegen sehr wohl verlinkt, wie in Wicket.
+
+**Offen, für spätere Migrationen:** Wickets `addJIRAField`/`JiraIssuesPanel` wird außerhalb dieser
+vier Entitäten noch an zwei Stellen benutzt, die in next noch nicht existieren – beim Umzug dort
+dieselben Bausteine anhängen:
+
+- **Personalplanung** (`HRPlanning`): Liste `HRPlanningListPage` (~Z. 162) und Formular
+  `HRPlanningEditForm` (~Z. 413).
+- **Verträge** (`Contract`): `ContractPagesRest` (~Z. 199, über den UILayout-Weg).
+
 ### Phase 4 – Ablösung & Aufräumen
 
 - Pro vollständig migrierter Seite: Menü auf `next/`, alte Route deaktivieren.

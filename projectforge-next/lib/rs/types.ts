@@ -165,6 +165,27 @@ export interface SystemData {
   copyRightYears: string;
 }
 
+/**
+ * One JIRA server as the client builds browse links against: an issue key is appended to {@link baseUrl}
+ * (see {@link buildJiraIssueUrl}), and {@link projects} are the key prefixes hosted on it.
+ */
+export interface JiraServerConfig {
+  baseUrl: string;
+  projects: string[];
+}
+
+/**
+ * The JIRA configuration `userStatus` carries so the client can turn issue keys into links itself,
+ * mirroring the backend's `JiraUtils` — absent (Spring's `JsonInclude.NON_NULL`) where JIRA is not
+ * configured. Pick the server whose {@link JiraServerConfig.projects} the key starts with, else fall
+ * back to {@link defaultBrowseBaseUrl} (see lib/jira.ts).
+ */
+export interface JiraConfig {
+  configured: boolean;
+  defaultBrowseBaseUrl?: string;
+  servers?: JiraServerConfig[];
+}
+
 export interface UserStatus {
   userData: UserData;
   systemData?: SystemData;
@@ -176,6 +197,8 @@ export interface UserStatus {
    * on its own whether to offer an admin only action (see ListGearMenu).
    */
   adminUser?: boolean;
+  /** JIRA config for client-side issue linking, only where JIRA is configured (see JiraConfig). */
+  jira?: JiraConfig;
 }
 
 export interface SystemStatus {

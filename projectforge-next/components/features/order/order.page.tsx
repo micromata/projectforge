@@ -2,6 +2,8 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
+import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { AttachmentSection } from "./edit/attachment-section";
 import { OrderForecastPanel } from "./forecast/order-forecast-panel";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -27,6 +29,13 @@ export const ORDER_ENTITY = "order";
 export const ORDER_LIST_QUERY_KEY = ["order"] as const;
 /** Id of the forecast tab — what the URL carries as `?tab=forecast`. */
 export const FORECAST_TAB_ID = "forecast";
+
+// JIRA issue links below the free-text fields. The reference and the two note fields are the ones that
+// carry issue keys; the title stays plain, a two-column field at the top of the head grid whose links
+// row would shift the fields beside it (see makeJiraFieldLinks).
+const ReferenzJiraLinks = makeJiraFieldLinks("referenz");
+const StatusBeschreibungJiraLinks = makeJiraFieldLinks("statusBeschreibung");
+const BemerkungJiraLinks = makeJiraFieldLinks("bemerkung");
 
 /**
  * The whole order page — list and edit — as data (see lib/page-def/types.ts).
@@ -88,13 +97,21 @@ export const ORDER_PAGE = definePage<
       size: 160,
       pinned: "left",
     },
-    // No link in the cell: the whole row navigates to the edit page.
+    // The row navigates to the edit page; a JIRA issue key in the title, though, links to JIRA (the
+    // anchor stops the row click, see JiraLinkedText). The cell keeps the title's own emphasis, since a
+    // custom cell drops the column's `className`.
     {
       name: "titel",
       size: 260,
       minSize: 180,
       className: "font-semibold text-primary",
       pinned: "left",
+      cell: ({ row }) => (
+        <JiraLinkedText
+          text={row.original.titel}
+          className="font-semibold text-primary"
+        />
+      ),
     },
     {
       id: "nettoSumme",
@@ -154,7 +171,11 @@ export const ORDER_PAGE = definePage<
       size: 90,
       headerLabelKey: "projectmanagement.personDays.short",
     },
-    { name: "referenz", size: 120 },
+    {
+      name: "referenz",
+      size: 120,
+      cell: ({ row }) => <JiraLinkedText text={row.original.referenz} />,
+    },
     attachmentsColumn<OrderListRow>(),
     // The four managers in one column, as the legacy list shows them ("PM/HOB/KAM/CP").
     {
@@ -233,6 +254,9 @@ export const ORDER_PAGE = definePage<
           // Highlighted like the list's title column, so both set the same focus.
           { name: "titel", span: 2, emphasized: true },
           { name: "referenz" },
+          // A full-width row of its own, so it sits below the title/reference line rather than in a
+          // lonely grid cell beside it (see makeJiraFieldLinks).
+          { custom: ReferenzJiraLinks, span: 3 },
           { custom: CustomerProjectFields, span: 3 },
           { name: "contactPerson" },
           { name: "projectManager" },
@@ -275,7 +299,9 @@ export const ORDER_PAGE = definePage<
         titleKey: "comment",
         fields: [
           { name: "statusBeschreibung", rows: 3, span: 3 },
+          { custom: StatusBeschreibungJiraLinks, span: 3 },
           { name: "bemerkung", rows: 3, span: 3 },
+          { custom: BemerkungJiraLinks, span: 3 },
         ],
       },
       {

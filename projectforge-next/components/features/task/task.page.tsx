@@ -7,6 +7,8 @@ import {
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
+import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { FinanceSection } from "./edit/finance-section";
 import { TaskListActions } from "./task-list-actions";
 import {
@@ -24,6 +26,13 @@ import {
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
 export const TASK_LIST_QUERY_KEY = ["task"] as const;
+
+// JIRA issue links below the full-width free-text fields, as Wicket's `addJIRAField` shows them
+// (TaskEditForm). Not below `title`, a single-column field at the top of the grid whose descriptive
+// content lives in these fields anyway — a links row there would shift the fields beside it.
+const ShortDescriptionJiraLinks = makeJiraFieldLinks("shortDescription");
+const ReferenceJiraLinks = makeJiraFieldLinks("reference");
+const DescriptionJiraLinks = makeJiraFieldLinks("description");
 
 /**
  * The task page as data (see lib/page-def/types.ts) — the form of one structure element.
@@ -108,14 +117,27 @@ export const TASK_PAGE = definePage<
       filterKind: null,
       visible: ({ variables }) => variables?.orders === true,
     },
-    { name: "shortDescription", size: 300 },
+    // The two free-text columns can carry JIRA issue keys; linked as Wicket links its description column
+    // (`JiraUtils.linkJiraIssues`). The title stays the plain structure-element name, as it does in the
+    // tree (see TaskTreeTable / TreeCell).
+    {
+      name: "shortDescription",
+      size: 300,
+      cell: ({ row }) => (
+        <JiraLinkedText text={row.original.shortDescription} />
+      ),
+    },
     {
       name: "protectTimesheetsUntil",
       headerLabelKey: "task.protectTimesheetsUntil.short",
       size: 110,
       visible: ({ variables }) => variables?.protectTimesheetsUntil === true,
     },
-    { name: "reference", size: 120 },
+    {
+      name: "reference",
+      size: 120,
+      cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+    },
     { name: "priority", size: 110 },
     {
       // Coloured by the raw enum letter, worded by the bundle — as the Wicket page shows it.
@@ -226,10 +248,13 @@ export const TASK_PAGE = definePage<
             hintKey: "task.edit.maxHoursIngoredDueToAssignedOrders",
           },
           { name: "shortDescription", span: 3 },
+          { custom: ShortDescriptionJiraLinks, span: 3 },
           { name: "reference", span: 3 },
+          { custom: ReferenceJiraLinks, span: 3 },
           // Last, as it is in Wicket — where it is a panel of its own, which here would be a card
           // holding nothing but one textarea.
           { name: "description", span: 3, rows: 6 },
+          { custom: DescriptionJiraLinks, span: 3 },
         ],
       },
       {

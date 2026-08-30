@@ -1,5 +1,7 @@
 import { TIMESHEET_METADATA } from "@/lib/metadata/timesheet.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
+import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { TimesheetListActions } from "./timesheet-list-actions";
 import { TimesheetStatisticsLine } from "./timesheet-statistics-line";
 import type { TimesheetStatistics } from "./timesheet-statistics";
@@ -32,6 +34,10 @@ const NEW_ENTRY_PARAMS = [
   "userId",
   "firstHour",
 ] as const;
+
+/** JIRA issue links below the two free-text fields, as Wicket's `addJIRAField` shows them. */
+const DescriptionJiraLinks = makeJiraFieldLinks("description");
+const ReferenceJiraLinks = makeJiraFieldLinks("reference");
 
 /**
  * The whole time sheet page as data (see lib/page-def/types.ts).
@@ -90,8 +96,20 @@ export const TIMESHEET_PAGE = definePage<
     { name: "startTime", size: 150 },
     { name: "stopTime", size: 150 },
     { name: "location", size: 140 },
-    { name: "reference", size: 140 },
-    { name: "description", size: 320, wrap: true },
+    // Both free-text fields can carry JIRA issue keys; linked as in the Wicket list, which links the
+    // description column (`JiraUtils.linkJiraIssues`) — here the reference too, since it commonly holds
+    // ticket numbers (see JiraLinkedText).
+    {
+      name: "reference",
+      size: 140,
+      cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+    },
+    {
+      name: "description",
+      size: 320,
+      wrap: true,
+      cell: ({ row }) => <JiraLinkedText text={row.original.description} />,
+    },
   ],
   // The list's footer between the toolbar and the table: the summed duration and, where the installation
   // tracks it, the AI share — the two numbers the legacy list shows (TimesheetPagesRest.postProcessResultSet).
@@ -169,7 +187,9 @@ export const TIMESHEET_PAGE = definePage<
           // A select of the configured tags, rendered only where any are configured (see TagField).
           { custom: TagField },
           { custom: ReferenceField },
+          { custom: ReferenceJiraLinks },
           { name: "description", rows: 5, span: 3 },
+          { custom: DescriptionJiraLinks, span: 3 },
         ],
       },
       {

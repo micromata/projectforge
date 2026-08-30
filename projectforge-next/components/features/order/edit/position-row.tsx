@@ -5,6 +5,7 @@ import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.gen
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
 import { DatePeriodField } from "@/components/shared/form/date-period-field";
 import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
+import { JiraIssuesLinks } from "@/components/shared/jira/jira-issues-links";
 import { InputField } from "@/components/shared/form/input-field";
 import { NestedFieldMetadata } from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
@@ -185,6 +186,10 @@ export function PositionRow({
           rows={2}
           className="md:col-span-3"
         />
+        {/* JIRA issue keys of the position's comment as links, below it — the position's free-text
+            field, like the order's own note fields (see JiraIssuesLinks). Reads the live value from the
+            reactive `position` prop. */}
+        <JiraIssuesLinks text={position.bemerkung} className="md:col-span-3" />
         {/* Always rendered — the flag says something about the position everybody who may read the order
             should see; only ticking it is the accounting staff's. */}
         <CheckboxField

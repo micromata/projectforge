@@ -36,6 +36,8 @@ export function useAuth() {
     isAuthenticated: !!query.data?.userData,
     /** Member of the admin group — gates menu entries this app declares itself. */
     isAdmin: !!query.data?.adminUser,
+    /** JIRA config for client-side issue linking, null where JIRA is not configured (see JiraConfig). */
+    jira: query.data?.jira ?? null,
     error: query.error,
     refetch: query.refetch,
   };

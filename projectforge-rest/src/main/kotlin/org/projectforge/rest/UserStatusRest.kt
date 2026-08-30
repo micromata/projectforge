@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.jira.JiraUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.PFDateCompatibilityUtils
@@ -129,6 +130,12 @@ open class UserStatusRest {
      * don't need it: there the server omits such entries from the page menu (see AbstractPagesRest).
      */
     val adminUser: Boolean = false,
+    /**
+     * The JIRA configuration projectforge-next needs to turn issue keys into links itself (see
+     * [JiraUtils.getClientConfig]), sent only where JIRA is configured. The UILayout based clients don't need it:
+     * there the server emits the finished links (see JiraSupport / JiraIssuesPanel).
+     */
+    val jira: JiraUtils.JiraClientConfig? = null,
   )
 
   @GetMapping
@@ -176,6 +183,7 @@ open class UserStatusRest {
         SystemAlertMessage.alertMessage,
         csrfToken,
         accessChecker.isLoggedInUserMemberOfAdminGroup,
+        JiraUtils.getClientConfig().takeIf { it.configured },
       ),
       HttpStatus.OK
     )

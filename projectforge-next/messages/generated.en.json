@@ -2123,6 +2123,11 @@
       "excel": "Export as Excel file",
       "pdf": "Export as pdf"
     },
+    "jiraSupport": {
+      "field": {
+        "content": "JIRA issues are supported by this field, therefore JIRA issues such as PROJECTFORGE-123 will be displayed as a link to JIRA."
+      }
+    },
     "lucene": {
       "link": "Link to howto of lucene queries."
     },
