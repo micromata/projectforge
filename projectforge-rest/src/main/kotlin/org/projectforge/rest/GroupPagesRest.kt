@@ -90,6 +90,14 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
 
     override fun transformFromDB(obj: GroupDO, editMode: Boolean): Group {
         val group = Group()
+        // Resolve the lazy associations from the cache before copyFrom reads them. Otherwise every row of the
+        // list fires its own T_GROUP_USER join (the assignedUsers collection) plus a T_PF_USER select (the
+        // groupOwner proxy) - the N+1 the group list suffered from. UserGroupCache holds all groups fully
+        // hydrated (assignedUsers are initialized on refresh) and all users, so both lookups are O(1) and
+        // hit no database. The cached group's members replace obj's own uninitialized collection, so it is
+        // never touched.
+        obj.groupOwner = userGroupCache.getUserIfNotInitialized(obj.groupOwner)
+        userGroupCache.getGroup(obj.id)?.let { obj.assignedUsers = it.assignedUsers }
         group.copyFrom(obj)
         group.assignedUsers?.forEach {
             val user = userService.getUser(it.id)
