@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
@@ -61,7 +62,23 @@ abstract class AbstractRechnungCache(
         // an invoice list (RechnungDao.afterLoad). On a not-yet-filled cache, every miss would fall through to
         // RechnungCalculator.calculate below, lazily loading that invoice's positions and cost assignments - an N+1
         // flood. Waiting once for the single bulk refresh instead is far cheaper.
-        waitForInitialization()
+        //
+        // But NOT while this thread is inside a write transaction: the initial fill runs refresh() ->
+        // RechnungJdbcService on a *second* DB connection, whose SELECT on t_fibu_rechnung would block on the rows
+        // the open transaction has locked - and that transaction can never commit, because the same thread is blocked
+        // here waiting for the fill. A single-thread self-deadlock across two connections (it froze
+        // RechnungDaoTest.testNextNumber, and would freeze the first invoice load after a cache expiry inside a write
+        // transaction in production until the stuck-refresh watchdog interrupts it). Inside a transaction we skip the
+        // wait and fall through to the per-entity calculation below, which lazy-loads on the *same* connection - safe.
+        // A list load inside a write transaction is unusual, so the N+1 trade-off for that rare case is acceptable.
+        if (PfPersistenceService.instance.isTransactionActive()) {
+            log.debug {
+                "ensureRechnungInfo ($entityName): inside a write transaction, skipping the cache initial-fill wait " +
+                        "to avoid a cross-connection self-deadlock; serving cached data or calculating per entity."
+            }
+        } else {
+            waitForInitialization()
+        }
         rechnung.id?.let { id ->
             invoiceInfoMap[id]?.let {
                 rechnung.info = it

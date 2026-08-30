@@ -302,10 +302,19 @@ abstract class AbstractCache {
         }
         stuckRefreshReported = true
         val thread = refreshingThread
+        val runningSeconds = (System.currentTimeMillis() - startMillis) / 1000
+        // Dump where the refresh is wedged (almost always a JDBC call blocked on a database lock - e.g. a cache
+        // refresh that opened a second connection from within a still-open write transaction) so the production log
+        // pinpoints the exact stack instead of only telling that "something" is stuck. Then interrupt it: refresh()
+        // catches the resulting exception, releases the lock and leaves the cache expired, so it heals on the next
+        // access without a restart.
+        val stackTrace = thread?.stackTrace?.joinToString(separator = "") { "\n\tat $it" } ?: " <thread already gone>"
         log.error {
-            "Refresh of cache ${this::class.simpleName} has been running for more than " +
-                    "${maxRefreshDurationMs / 1000}s and seems to be stuck (thread=${thread?.name}). " +
-                    "Interrupting it so the cache can refresh again without a restart."
+            "Refresh of cache ${this::class.simpleName} has been running for ${runningSeconds}s and seems to be " +
+                    "stuck (thread=${thread?.name}, state=${thread?.state}). This is usually a JDBC call blocked on a " +
+                    "database lock (e.g. a cache refresh opening a second connection from within an open write " +
+                    "transaction). Interrupting it so the cache can refresh again without a restart. Stack trace of " +
+                    "the stuck thread:$stackTrace"
         }
         thread?.interrupt()
     }
