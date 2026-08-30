@@ -28,6 +28,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -426,6 +428,38 @@ abstract class AbstractCache {
             return System.currentTimeMillis() - timeOfLastRefresh <= expireTime
         }
         return refreshedInvalidation >= requiredInvalidation
+    }
+
+    /**
+     * Runs read-only database work needed to keep this cache up to date (a [refresh], or an incremental update from a
+     * [org.projectforge.framework.persistence.api.BaseDOModifiedListener] callback).
+     *
+     * If the current thread is already inside a write transaction, the block runs on that transaction's own
+     * connection instead of a new, isolated one: opening a second connection here and querying from it would block
+     * on the row/table locks the still-open transaction holds, while that transaction can never commit because this
+     * same thread is parked waiting for the second connection - a single-thread self-deadlock across two connections.
+     * It froze VacationDaoTest (VacationCache.afterInsertOrModify -> loadOtherReplacementIds) and the invoice caches,
+     * and would freeze the same paths in production (only broken out of by the [checkStuckRefresh] watchdog after
+     * [MAX_REFRESH_DURATION_MS], and not at all on a single-threaded path that never observes itself). Reusing the
+     * transaction's connection sees its still-uncommitted changes - exactly what a cache update right after an
+     * insert/update wants - and cannot deadlock.
+     *
+     * Outside a write transaction the work runs in its own isolated read-only context, exactly as a cache refresh
+     * does normally (see [PfPersistenceService.runIsolatedReadOnly]). Note: [PfPersistenceService.runIsolatedReadOnly]
+     * must NOT be changed to reuse the transaction globally - it is contractually isolated even inside a transaction
+     * (see PfPersistenceServiceTest), so the safe choice is made here, where cache maintenance is the caller.
+     */
+    protected fun <T> runReadOnlyForCacheMaintenance(block: (context: PfPersistenceContext) -> T): T {
+        val persistenceService = PfPersistenceService.instance
+        return if (persistenceService.isTransactionActive()) {
+            log.debug {
+                "runReadOnlyForCacheMaintenance (${this::class.simpleName}): inside a write transaction, reusing its " +
+                        "connection instead of opening a second one, to avoid a cross-connection self-deadlock."
+            }
+            persistenceService.runReadOnly(block)
+        } else {
+            persistenceService.runIsolatedReadOnly(block = block)
+        }
     }
 
     /**

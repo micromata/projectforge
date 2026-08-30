@@ -60,7 +60,14 @@ open class PfPersistenceService {
      * A caller that opens a *second* DB connection (e.g. a cache refresh via JDBC) while such a transaction is
      * open risks a single-thread self-deadlock: the second connection blocks on a lock the open transaction
      * holds, and that transaction cannot commit because the same thread is blocked waiting for the second
-     * connection. See [org.projectforge.business.fibu.AbstractRechnungCache.ensureRechnungInfo].
+     * connection.
+     *
+     * Two things build on this:
+     * - [org.projectforge.framework.cache.AbstractCache.runReadOnlyForCacheMaintenance] - the central helper for
+     *   cache read work that reuses the transaction's own connection instead of an isolated one when active.
+     * - [org.projectforge.business.fibu.AbstractRechnungCache.ensureRechnungInfo] - a special case whose second
+     *   connection is a [org.springframework.jdbc.core.JdbcTemplate] (RechnungJdbcService), which cannot be routed
+     *   onto the transaction's connection, so it skips triggering the refresh while a transaction is active instead.
      */
     fun isTransactionActive(): Boolean = PfPersistenceContextThreadLocal.getTransactional() != null
 

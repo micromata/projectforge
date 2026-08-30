@@ -71,6 +71,12 @@ abstract class AbstractRechnungCache(
         // transaction in production until the stuck-refresh watchdog interrupts it). Inside a transaction we skip the
         // wait and fall through to the per-entity calculation below, which lazy-loads on the *same* connection - safe.
         // A list load inside a write transaction is unusual, so the N+1 trade-off for that rare case is acceptable.
+        //
+        // NB: this is the JdbcTemplate variant of the same self-deadlock that
+        // [org.projectforge.framework.cache.AbstractCache.runReadOnlyForCacheMaintenance] solves for caches whose
+        // second connection is a persistence context (e.g. VacationCache). There the fix reuses the transaction's
+        // connection; here the second connection is RechnungJdbcService's own JdbcTemplate connection, which cannot
+        // be routed onto the transaction, so we must avoid triggering the refresh at all while a transaction is active.
         if (PfPersistenceService.instance.isTransactionActive()) {
             log.debug {
                 "ensureRechnungInfo ($entityName): inside a write transaction, skipping the cache initial-fill wait " +
