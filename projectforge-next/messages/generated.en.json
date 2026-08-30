@@ -2091,6 +2091,10 @@
     "ai": {
       "timeSavedByAI": {
         "_": "Time savings AI",
+        "error": {
+          "invalidPercentage": "The percentage is invalid. It must be between 0 and 99.",
+          "unitMissing": "Please specify unit for AI savings."
+        },
         "info": "Savings in hours through AI or in percent (example percent: I needed 9 hours and would have needed 10 hours without AI, then I saved 10%).\n\nThis information is used in evaluations and reports."
       },
       "timeSavedByAIDescription": {

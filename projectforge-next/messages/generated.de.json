@@ -2091,6 +2091,10 @@
     "ai": {
       "timeSavedByAI": {
         "_": "KI-Ersparnis",
+        "error": {
+          "invalidPercentage": "Die Prozentangabe ist ungültig. Sie muss zwischen 0 und 99 liegen.",
+          "unitMissing": "Bitte Einheit für die KI-Ersparnis angeben."
+        },
         "info": "Geschätze Zeitersparnis in Prozent oder Stunden durch den Einsatz von KI in diesem Zeitbericht.\n\nDiese Angabe wird in Auswertungen und Reports verwendet."
       },
       "timeSavedByAIDescription": {
