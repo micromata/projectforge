@@ -1970,7 +1970,7 @@
       "displayTask": {
         "tooltip": "Strukturelement anzeigen."
       },
-      "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\n\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
+      "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
       "noTasksFound": "Keine Strukturelemente gefunden.",
       "selectAncestorTask": {
         "tooltip": "Strukturelement durch dieses Strukturoberelement ersetzen."
