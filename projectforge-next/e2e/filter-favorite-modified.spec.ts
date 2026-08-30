@@ -130,7 +130,7 @@ async function saveAs(
   name: string
 ): Promise<void> {
   const { t } = format;
-  await bookmark(page, t("favorite.filter.list")).click();
+  await bookmark(page, t("favorites._")).click();
   const dialog = page.getByRole("dialog");
   // By role: the row's input and its button carry the same name, which is what a user reads once.
   await dialog
