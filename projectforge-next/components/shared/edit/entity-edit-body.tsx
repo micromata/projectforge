@@ -255,10 +255,14 @@ export function EntityEditBody<
     outcome,
   });
 
+  // A new entry (clone or a calendar-preset sheet) may be saved as it stands, so it needs no edit to
+  // enable Save — the same reason Wicket's create button is always live (see EntityEditActions).
+  const allowSaveUnchanged = id == null;
+
   // Return, and CTRL-Return in a textarea, save — under the same condition the save button carries.
   const onKeyDown = useSubmitShortcut(
     () => void form.handleSubmit(),
-    isDirty && !isSubmitting && access.write
+    (isDirty || allowSaveUnchanged) && !isSubmitting && access.write
   );
 
   // Asks before a link or a reload throws the entries away — a modal reads the same armed flag to
@@ -408,6 +412,7 @@ export function EntityEditBody<
         canSave={access.write}
         isSaving={isSubmitting}
         isDirty={isDirty}
+        allowSaveUnchanged={allowSaveUnchanged}
         // Saving leaves, so this is always the write before this one: `lastUpdate`, or `created` for
         // an entry never changed since (both on `BaseDTO`).
         lastSaved={

@@ -53,6 +53,13 @@ export interface EntityEditActionsProps {
   isSaving: boolean;
   isDirty: boolean;
   /**
+   * Whether an unchanged form may still be saved — true for a new entry (`id == null`). A clone or a
+   * calendar-preset sheet arrives complete but pristine (its baseline *is* the preset), and creating it
+   * as-is is a legitimate save, as Wicket's always-enabled create button is. An existing entry keeps the
+   * dirty guard: there is nothing to write when nothing changed (see EntityEditBody).
+   */
+  allowSaveUnchanged: boolean;
+  /**
    * When the entry was last written, as the ISO timestamp the backend sends (`created`,
    * `lastUpdate`). Formatted here in the user's locale and time zone — the raw value would read
    * "2003-01-25T08:39:29.000Z". Null for a new entry, which has no such moment yet.
@@ -80,6 +87,7 @@ export function EntityEditActions({
   canSave,
   isSaving,
   isDirty,
+  allowSaveUnchanged,
   lastSaved,
 }: EntityEditActionsProps) {
   const t = useTranslations();
@@ -107,7 +115,7 @@ export function EntityEditActions({
             <Button
               type="submit"
               size="sm"
-              disabled={isSaving || !isDirty}
+              disabled={isSaving || (!isDirty && !allowSaveUnchanged)}
               className="gap-1.5"
               // The button is the only thing that changes while saving, so it carries the busy state.
               aria-busy={isSaving}

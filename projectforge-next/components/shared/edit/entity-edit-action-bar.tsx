@@ -14,6 +14,8 @@ export interface EntityEditActionBarProps {
   canSave: boolean;
   isSaving: boolean;
   isDirty: boolean;
+  /** Whether an unchanged form may still be saved — true for a new entry (see EntityEditActions). */
+  allowSaveUnchanged: boolean;
   lastSaved: string | null;
   /** Clone, delete and undelete each appear only where the entry and this user's access allow it. */
   showClone: boolean;
@@ -48,6 +50,7 @@ export function EntityEditActionBar({
   canSave,
   isSaving,
   isDirty,
+  allowSaveUnchanged,
   lastSaved,
   showClone,
   showDelete,
@@ -108,6 +111,7 @@ export function EntityEditActionBar({
       canSave={canSave}
       isSaving={isSaving}
       isDirty={isDirty}
+      allowSaveUnchanged={allowSaveUnchanged}
       lastSaved={lastSaved}
     />
   );
