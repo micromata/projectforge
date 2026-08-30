@@ -140,10 +140,9 @@ test.describe("year to date", () => {
     await expect(bound(page, format, field, "valueTo")).toHaveValue(
       format.date(todayOf(context))
     );
-    // And still the art in effect, so the comparison is one click away again.
-    await expect(picker(page, format)).toHaveText(
-      kindName(format, YEAR_TO_DATE, true)
-    );
+    // And still the art in effect, so the comparison is one click away again. The filter popover has room
+    // and spells the art out (`longLabel`, see [PeriodQuickSelect]), so the trigger carries the long name.
+    await expect(picker(page, format)).toHaveText(kindName(format, YEAR_TO_DATE));
   });
 
   test("stands beside the lengths a ledger is read in", async ({

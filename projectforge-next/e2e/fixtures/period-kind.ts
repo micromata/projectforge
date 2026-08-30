@@ -19,10 +19,17 @@ export function kindName(
   kind: PeriodKind,
   short = false
 ): string {
-  return format.t(
-    short ? kind.shortLabelKey : kind.labelKey,
-    kind.labelArg == null ? {} : { arg0: kind.labelArg }
-  );
+  const key = short ? kind.shortLabelKey : kind.labelKey;
+  const values: Record<string, string | number> =
+    kind.labelArg == null ? {} : { arg0: kind.labelArg };
+  // A label key can be both a text and a namespace in the bundle (`calendar.month` also parents the
+  // month names), where the leaf is `<key>._` and the bare key throws `INSUFFICIENT_PATH` — as
+  // `leafKeyOf` resolves for the app and `label()` does for a field. Mirror that here.
+  try {
+    return format.t(`${key}._`, values);
+  } catch {
+    return format.t(key, values);
+  }
 }
 
 /** The art select; its accessible name is `duration.choose` on both surfaces. */

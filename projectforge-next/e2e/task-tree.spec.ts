@@ -47,7 +47,12 @@ test.describe("task tree", () => {
 
     // The hint below the table is what makes the cell-level click discoverable at all. On the page it
     // is Wicket's own tree text; the select panel's variant is asserted in task-tree-actions.spec.ts.
-    await expect(page.getByText(t("task.tree.info"))).toBeVisible();
+    // It is rendered as markdown now (MarkdownText: the lead-in a <p>, the key bindings a list), so the
+    // catalog string is split across elements and no single node holds it whole. Match the plain lead-in
+    // — everything up to the first markdown token — still taken from the catalog through `t()`, so the
+    // assertion stays locale-independent.
+    const hintLeadIn = t("task.tree.info").split(/[\n\\*]/)[0].trim();
+    await expect(page.getByText(hintLeadIn)).toBeVisible();
 
     // A row shows its title rather than an object or an empty cell. The seeded task's row, not the
     // first one: the root is appended only for admins and financial staff (`showRootForAdmins`), so on

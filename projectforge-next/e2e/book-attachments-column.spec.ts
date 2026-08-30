@@ -99,19 +99,20 @@ test.describe("books list attachments", () => {
       .getByRole("option", { name: t("attachments._"), exact: true })
       .click();
 
-    // A LIST field in a pill: its choices lie open in the pill's popover ([ListField]'s inline
-    // mode), so they cannot cover the save button below them.
+    // The pill popover applies live and has no save button (see filter-pill-shell): picking a value
+    // fires the list request by itself, so the wait is armed before the click and matched on the body
+    // it carries — not on a stray earlier request from opening the empty field. A LIST field's choices
+    // lie open in the popover ([FilterListField]'s inline mode) rather than behind a select of their own.
+    const request = page.waitForRequest(
+      (candidate) =>
+        candidate.url().includes("/rs/book/list") &&
+        candidate.method() === "POST" &&
+        (candidate.postData() ?? "").includes("hasAttachments")
+    );
     await page
       .locator('[data-slot="popover-content"]')
       .getByRole("option", { name: t("yes"), exact: true })
       .click();
-
-    const request = page.waitForRequest(
-      (candidate) =>
-        candidate.url().includes("/rs/book/list") &&
-        candidate.method() === "POST"
-    );
-    await page.getByRole("button", { name: t("save"), exact: true }).click();
 
     const body = JSON.parse((await request).postData() ?? "{}") as {
       entries: { field: string; value: { values?: string[] } }[];

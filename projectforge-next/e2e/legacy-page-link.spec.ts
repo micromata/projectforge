@@ -38,15 +38,17 @@ test.describe("legacy page link", () => {
     // cost1 came straight from Wicket, whose mount points differ from React's: `<category>List`, and
     // an id as a query parameter (see NextMigration.LegacyApp). The add url is therefore not the edit
     // url with the id dropped, which is why the server sends it as its own field.
+    // The link carries the `?legacyEscape` marker the backend appends (NextMigration): it is what the
+    // orphaned-link redirect filter reads to let the way back through instead of bouncing it to Next.
     await goto(page, "/cost1");
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", "/wa/cost1List");
+    ).toHaveAttribute("href", "/wa/cost1List?legacyEscape");
 
     await goto(page, "/cost1/new");
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", "/wa/cost1Edit");
+    ).toHaveAttribute("href", "/wa/cost1Edit?legacyEscape");
   });
 
   test("leads from a server-laid-out list to its own legacy page", async ({
@@ -59,6 +61,6 @@ test.describe("legacy page link", () => {
 
     await expect(
       page.getByRole("link", { name: t("goreact.menu.classics") })
-    ).toHaveAttribute("href", "/react/vacation");
+    ).toHaveAttribute("href", "/react/vacation?legacyEscape");
   });
 });

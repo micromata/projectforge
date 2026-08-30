@@ -210,16 +210,24 @@ test.describe("calendar", () => {
       });
       await expect(event).toBeVisible();
 
-      // Hover → the hover-card shows the event's data; its task path carries the MARKER.
-      await event.hover();
-      const card = page.locator('[data-slot="hover-card-content"]');
-      await expect(card).toBeVisible();
+      // Hover → the cursor-pinned tooltip shows the event's data; its task path carries the MARKER. It is
+      // a custom `role="tooltip"` portal now (see [CalendarEventTooltip]), not the old shadcn hover-card.
+      // Re-enter each try: the card opens 200ms after the pointer enters, and any document scroll in that
+      // window cancels it (CalendarEventContent closes on scroll), so a grid still settling can swallow a
+      // single hover. Leaving and re-entering reschedules the open until one lands on a quiet grid.
+      const card = page.getByRole("tooltip");
+      await expect(async () => {
+        await page.mouse.move(0, 0);
+        await event.hover();
+        await expect(card).toBeVisible({ timeout: 1_500 });
+      }).toPass({ timeout: 15_000 });
       await expect(card).toContainText(MARKER);
 
-      // Click → the migrated 3-segment timesheet edit route, with the event's id (query passthrough).
+      // Click → the timesheet edits in place as a nested route of the calendar (`/calendar/timesheet/<id>`,
+      // see useCalendarAction/[...edit]), so save and cancel come back to the still-mounted calendar.
       await event.click();
       await expect(page).toHaveURL(
-        new RegExp(`/next/timesheet/edit/${timesheet.id}(\\?|$)`)
+        new RegExp(`/next/calendar/timesheet/${timesheet.id}(\\?|$)`)
       );
     } finally {
       await markAsDeleted(page.request, "timesheet", timesheet.id);
@@ -239,10 +247,10 @@ test.describe("calendar", () => {
     await expect(page.locator(".pf-calendar")).toBeVisible();
 
     // The "+" create button and an empty-slot select share the /action endpoint; the button is the
-    // deterministic way to reach the 2-segment route with a preset start time (new-route regression).
+    // deterministic way to reach the nested add route with a preset start time (new-route regression).
     await page.locator(".fc-addEvent-button").click();
     await expect(page).toHaveURL(
-      /\/next\/(timesheet|teamEvent)\/edit\?.*startDate=/
+      /\/next\/calendar\/(timesheet|teamEvent)\/new\?.*startDate=/
     );
   });
 });

@@ -189,21 +189,21 @@ test.describe("group page", () => {
         name: format.t("filter.editEntry", { arg0: format.t("status") }),
       })
       .click();
-    // A LIST field in a pill has its choices lying open, so they cannot cover the save button below.
+    // The pill popover applies live and has no save button (see filter-pill-shell): picking a value
+    // fires the list request by itself, so the wait is armed before the click and matched on the enum
+    // it carries. A LIST field's choices lie open in the popover rather than behind a select of their own.
+    const request = page.waitForRequest(
+      (candidate) =>
+        candidate.url().includes("/rs/group/list") &&
+        candidate.method() === "POST" &&
+        (candidate.postData() ?? "").includes("LOCAL_GROUP")
+    );
     await page
       .locator('[data-slot="popover-content"]')
       .getByRole("option", {
         name: format.t("group.localGroup._"),
         exact: true,
       })
-      .click();
-    const request = page.waitForRequest(
-      (candidate) =>
-        candidate.url().includes("/rs/group/list") &&
-        candidate.method() === "POST"
-    );
-    await page
-      .getByRole("button", { name: format.t("save"), exact: true })
       .click();
 
     // `GroupTypeFilter` matches on the enum name, and a value in the wrong shape would be dropped

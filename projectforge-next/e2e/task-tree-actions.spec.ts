@@ -270,9 +270,14 @@ test.describe("task tree actions", () => {
 
     const dialog = page.getByRole("dialog");
     await waitForRows(dialog);
-    await expect(
-      dialog.getByText(format.t("task.selectPanel.info"))
-    ).toBeVisible();
+    // The hint is rendered as markdown (MarkdownText), so the catalog string is split across elements —
+    // its lead-in sentence, terminated here by an escaped hard break (`\` then newline), is the one <p> a
+    // single-node match can land on. Taken from the catalog through `t()` so it stays locale-independent.
+    const hintLeadIn = format
+      .t("task.selectPanel.info")
+      .split(/[\n\\*]/)[0]
+      .trim();
+    await expect(dialog.getByText(hintLeadIn)).toBeVisible();
     await expect(
       dialog.getByRole("link", { name: format.t("menu.addNewEntry") })
     ).toHaveCount(0);

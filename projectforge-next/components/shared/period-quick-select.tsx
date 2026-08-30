@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CUSTOM_PERIOD_KIND, type PeriodKind } from "@/lib/date-period";
+import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 
 /**
@@ -71,7 +72,9 @@ export function PeriodQuickSelect({
 
   const name = (kind: PeriodKind, short = false) =>
     t(
-      short ? kind.shortLabelKey : kind.labelKey,
+      // A label key can be a namespace in the bundle (`calendar.month` also parents the month names),
+      // where the leaf is `<key>._`; asking next-intl for the bare key throws `INSUFFICIENT_PATH`.
+      leafKeyOf(short ? kind.shortLabelKey : kind.labelKey, t.has),
       kind.labelArg == null ? {} : { arg0: kind.labelArg }
     );
 
