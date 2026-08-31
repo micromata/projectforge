@@ -146,10 +146,14 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (ids.isEmpty()) {
             return emptyList()
         }
-        return persistenceService.executeQuery(
+        // Batched IN query: the id list can hold up to the list row cap (100k), which a single IN clause
+        // would push past PostgreSQL's 65535 bind-parameter limit. buildStatistics sums the whole returned
+        // list afterwards, so batching is transparent to the caller (see executeQueryBatched).
+        return persistenceService.executeQueryBatched(
             "SELECT t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit FROM TimesheetDO t WHERE t.id IN :ids",
             Tuple::class.java,
-            Pair("ids", ids),
+            batchParam = "ids",
+            batchValues = ids,
         ).map { tuple ->
             TimesheetDO().also {
                 it.startTime = tuple.get("startTime") as Date?

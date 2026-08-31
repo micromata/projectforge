@@ -343,6 +343,48 @@ open class PfPersistenceService {
     }
 
     /**
+     * Runs [executeQuery] in batches over a large collection bind parameter and concatenates the row results,
+     * so an `IN` clause can't exceed the database's per-statement bind-parameter limit (PostgreSQL: 65535).
+     * Each id list of a server-side paged result can be up to the list row cap (100k), which a single `IN`
+     * would blow past.
+     *
+     * Only correct for row-returning selects whose full result is the **union** of the per-batch results.
+     * Do NOT use for aggregates (`COUNT`, `SUM`, `GROUP BY`) or `ORDER BY` + [maxResults]: those results
+     * don't concatenate. Compute such aggregates in the application over the batched rows instead.
+     *
+     * @param batchParam Name of the collection parameter to chunk; it must appear in an `IN :param` clause of [sql].
+     * @param batchValues The values for [batchParam]; chunked into slices of at most [batchSize].
+     * @param keyValues Any further (non-batched) bind parameters, passed unchanged to every batch.
+     */
+    @JvmOverloads
+    fun <T> executeQueryBatched(
+        sql: String,
+        resultClass: Class<T>,
+        batchParam: String,
+        batchValues: Collection<*>,
+        vararg keyValues: Pair<String, Any?>,
+        attached: Boolean = false,
+        namedQuery: Boolean = false,
+        entityGraphName: String? = null,
+        batchSize: Int = IN_CLAUSE_MAX_BATCH_SIZE,
+    ): List<T> {
+        if (batchValues.isEmpty()) {
+            return emptyList()
+        }
+        return batchValues.chunked(batchSize).flatMap { batch ->
+            val params = arrayOf(Pair(batchParam, batch as Any?), *keyValues)
+            executeQuery(
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = params,
+                attached = attached,
+                namedQuery = namedQuery,
+                entityGraphName = entityGraphName,
+            )
+        }
+    }
+
+    /**
      * Convenience call for [executeQuery] with namedQuery = true. Encapsulated in [runReadOnly].
      * @see executeQuery
      */
@@ -417,5 +459,11 @@ open class PfPersistenceService {
         @JvmStatic
         lateinit var instance: PfPersistenceService
             private set
+
+        /**
+         * Default batch size for [executeQueryBatched]: kept well below PostgreSQL's hard limit of 65535 bind
+         * parameters per prepared statement, so a chunked `IN` clause never overflows even at the 100k list row cap.
+         */
+        const val IN_CLAUSE_MAX_BATCH_SIZE = 50000
     }
 }
