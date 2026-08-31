@@ -42,6 +42,12 @@ export interface ListToolbarProps {
   columnPanel?: ReactNode;
   /** Active filters as editable pills plus the "all filters" trigger. */
   filterPills?: ReactNode;
+  /**
+   * A note about the result of the current filter, shown in the filter row above the pills — the red
+   * "list is truncated" warning when the backend capped the result (see ListTruncationNotice). Absent
+   * for a complete result.
+   */
+  notice?: ReactNode;
   /** Maintenance actions of the list (re-index, reset filter), see ListGearMenu. */
   gearMenu?: ReactNode;
 }
@@ -59,6 +65,7 @@ export function ListToolbar({
   selectionToggle,
   columnPanel,
   filterPills,
+  notice,
   gearMenu,
 }: ListToolbarProps) {
   return (
@@ -89,11 +96,17 @@ export function ListToolbar({
         </div>
       </div>
 
-      {/* Filters left, table settings right: both act on the list below, not on the page. */}
-      {(filterPills || columnPanel) && (
-        <div className="flex items-start gap-3 px-4 pb-2.5">
-          <div className="flex-1">{filterPills}</div>
-          {columnPanel}
+      {/* Filters left, table settings right: both act on the list below, not on the page. The notice
+          sits above the pills — right where the user narrows the filter that overflowed. */}
+      {(filterPills || columnPanel || notice) && (
+        <div className="flex flex-col gap-2 px-4 pb-2.5">
+          {notice}
+          {(filterPills || columnPanel) && (
+            <div className="flex items-start gap-3">
+              <div className="flex-1">{filterPills}</div>
+              {columnPanel}
+            </div>
+          )}
         </div>
       )}
     </div>

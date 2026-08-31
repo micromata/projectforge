@@ -73,6 +73,18 @@ interface UseMagicFilterQueryResult<O> {
   data: O[];
   rowCount: number;
   /**
+   * The result was capped by the backend's row limit, so more rows match the filter than came back
+   * (`ResultSet.resultSetTruncated`). What lets the list warn that its rows are incomplete — see the
+   * truncation notice in the list toolbar. `rowCount` is the cap that was hit.
+   */
+  truncated: boolean;
+  /**
+   * The backend's note about the result, as markdown (`ResultSet.resultInfo`) — for a hand built page
+   * it is the red "list is truncated" span, shown under the table (see ListResultInfo). Undefined for a
+   * result the backend sent none for.
+   */
+  resultInfo?: string;
+  /**
    * Aggregates the backend computed over the whole result set, untouched — the sums and counters of the
    * order book (see `ResultSet.statistics` in lib/rs/types.ts). Undefined for an entity that sends none.
    */
@@ -207,6 +219,8 @@ export function useMagicFilterQuery<O>({
   return {
     data: rows,
     rowCount: query.data?.totalSize ?? rows.length,
+    truncated: query.data?.resultSetTruncated ?? false,
+    resultInfo: query.data?.resultInfo,
     statistics: query.data?.statistics,
     highlightRowId: query.data?.highlightRowId,
     filter,

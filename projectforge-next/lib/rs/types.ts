@@ -114,6 +114,12 @@ export interface ResultSet<O> {
    * was truncated (see `DBIdResult.truncated`). Always true for a plain `list`.
    */
   totalSizeExact?: boolean;
+  /**
+   * Whether the result was capped by the row limit, so more rows match the filter than came back. The
+   * typed counterpart of the truncation note in `resultInfo` (see `ResultSet.resultSetTruncated` on the
+   * backend): a hand built list renders its own red warning from this rather than the server's markup.
+   */
+  resultSetTruncated?: boolean;
   paginationPageSize?: number;
   resultInfo?: string;
   /**

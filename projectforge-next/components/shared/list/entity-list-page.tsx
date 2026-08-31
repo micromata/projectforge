@@ -42,6 +42,8 @@ import type { MagicFilter } from "@/lib/rs/types";
 import { TableLegend } from "@/components/data-table/table-legend";
 import { ListSelectionSection } from "./list-selection-section";
 import { ListToolbar } from "./list-toolbar";
+import { ListResultInfo } from "./list-result-info";
+import { ListTruncationNotice } from "./list-truncation-notice";
 import { SelectionModeToggle } from "./selection-mode-toggle";
 import { useDeclaredColumns } from "./use-declared-columns";
 
@@ -297,6 +299,14 @@ function DeclaredList<
                 onFilterReset={list.resetFilter}
               />
             }
+            // The result hit the backend's row cap, so it is incomplete — a prominent red warning
+            // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
+            // that was reached (see useMagicFilterQuery.truncated).
+            notice={
+              list.truncated ? (
+                <ListTruncationNotice count={list.rowCount} />
+              ) : undefined
+            }
             columnPanel={
               <DataTableColumnPanel
                 table={list.table}
@@ -369,7 +379,20 @@ function DeclaredList<
           // The mode decides what a click means: outside it every click opens the entry, inside it
           // every click selects (`selection` is undefined outside, so nothing of it is wired up).
           selection={mode.selection}
-          footer={<TableLegend entries={legendEntries(page)} />}
+          // Under the table, above the pagination: the colour legend, and the backend's result note
+          // where it sent one — for a hand built list that is the red truncation span (see
+          // ListResultInfo), the same note the legacy React list shows beneath its table.
+          footer={
+            <>
+              {list.resultInfo && (
+                <ListResultInfo
+                  info={list.resultInfo}
+                  className="border-t px-4 py-2"
+                />
+              )}
+              <TableLegend entries={legendEntries(page)} />
+            </>
+          }
           className="flex-1"
         />
       </ListPageShell>
