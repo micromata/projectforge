@@ -14,7 +14,10 @@ import {
   type InvoiceStatistics,
 } from "./invoice-statistics";
 import { CurrencyConversionWarnings } from "./currency-conversion-warnings";
-import { InvoiceComparisonToggle } from "./invoice-comparison-toggle";
+import {
+  ComparisonCaret,
+  ComparisonToggleRegion,
+} from "./invoice-comparison-toggle";
 import { InvoiceStatisticsTable } from "./invoice-statistics-table";
 
 /**
@@ -93,12 +96,10 @@ export function InvoiceStatisticsLine({
   const expanded = !!previousYearComparison && comparison.length > 0;
 
   const dateRange = boundedDateRange(filter);
+  // A decorative caret only — the click lives on the wrapping region, so the whole line (or the whole
+  // table) toggles, not just this icon (see ComparisonToggleRegion).
   const caret = setPreviousYearComparison ? (
-    <InvoiceComparisonToggle
-      expanded={expanded}
-      canCompare={!!dateRange}
-      onToggle={setPreviousYearComparison}
-    />
+    <ComparisonCaret expanded={expanded} canCompare={!!dateRange} />
   ) : null;
 
   return (
@@ -106,48 +107,51 @@ export function InvoiceStatisticsLine({
       <CurrencyConversionWarnings
         warnings={statistics?.currencyConversionWarnings}
       />
-      {expanded ? (
-        // The same period a year earlier next to now: a table lines the two amounts and each change up in
-        // a column, which the wrapping line cannot (see InvoiceStatisticsTable). The caret sits in its
-        // corner to collapse it again.
-        <InvoiceStatisticsTable
-          current={tableEntries}
-          comparison={comparison}
-          previousPeriod={previousYearPeriod(dateRange)}
-          corner={caret}
-        />
-      ) : (
-        <dl
-          className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]"
-          aria-label={t("statistics")}
-        >
-          {caret && <div className="flex items-center">{caret}</div>}
-          {entries.map((entry) => (
-            <div
-              key={entry.labelKey}
-              className={cn(
-                "flex items-baseline gap-1.5",
-                TONE_CLASS[entry.tone]
-              )}
-            >
-              {/* Quiet labels and plain values: the line carries up to seven of them, and emphasizing all
+      <ComparisonToggleRegion
+        expanded={expanded}
+        canCompare={!!dateRange}
+        onToggle={setPreviousYearComparison}
+      >
+        {expanded ? (
+          // The same period a year earlier next to now: a table lines the two amounts and each change up
+          // in a column, which the wrapping line cannot (see InvoiceStatisticsTable). The caret sits in
+          // its corner; clicking anywhere on the table collapses it again.
+          <InvoiceStatisticsTable
+            current={tableEntries}
+            comparison={comparison}
+            previousPeriod={previousYearPeriod(dateRange)}
+            corner={caret}
+          />
+        ) : (
+          <dl className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b bg-muted/40 px-4 py-1.5 text-[13px]">
+            {caret && <div className="flex items-center">{caret}</div>}
+            {entries.map((entry) => (
+              <div
+                key={entry.labelKey}
+                className={cn(
+                  "flex items-baseline gap-1.5",
+                  TONE_CLASS[entry.tone]
+                )}
+              >
+                {/* Quiet labels and plain values: the line carries up to seven of them, and emphasizing all
                   emphasizes none — what is open and what is overdue are what stands out, as in the legacy
                   list. The wording is the bundle's, so it reads as written ("Zahlungsziel"). */}
-              <dt className="text-[11px] opacity-70">
-                {/* `fibu.rechnung.zahlungsZiel` is a text and the parent of `.actual` — see leafKeyOf. */}
-                {t(leafKeyOf(entry.labelKey, t.has))}
-              </dt>
-              <dd className="tabular-nums">
-                {entry.kind === "days"
-                  ? // "Ø 30" — days, as the Wicket panel writes them. No unit: both entries are labelled
-                    // as a payment target, which is measured in nothing else.
-                    `Ø ${entry.value ?? 0}`
-                  : formatCurrency(entry.value, format)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
+                <dt className="text-[11px] opacity-70">
+                  {/* `fibu.rechnung.zahlungsZiel` is a text and the parent of `.actual` — see leafKeyOf. */}
+                  {t(leafKeyOf(entry.labelKey, t.has))}
+                </dt>
+                <dd className="tabular-nums">
+                  {entry.kind === "days"
+                    ? // "Ø 30" — days, as the Wicket panel writes them. No unit: both entries are labelled
+                      // as a payment target, which is measured in nothing else.
+                      `Ø ${entry.value ?? 0}`
+                    : formatCurrency(entry.value, format)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </ComparisonToggleRegion>
     </div>
   );
 }
