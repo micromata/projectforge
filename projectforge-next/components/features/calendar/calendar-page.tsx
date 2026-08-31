@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import type { CalendarApi } from "@fullcalendar/core";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { AddEntryButton } from "@/components/shared/add-entry-button";
@@ -32,6 +33,10 @@ const ids = (list: { id: number | null }[]) =>
 export function CalendarPage() {
   const t = useTranslations();
   const { timeZone } = useFormatContext();
+  // The server computes event text colours for the client's theme, so a theme change refetches (darkMode is
+  // in the events query key). `resolvedTheme` folds "system" into the actual light/dark the page is showing.
+  const { resolvedTheme } = useTheme();
+  const darkMode = resolvedTheme === "dark";
   const { data: init, isPending, isError } = useCalendarInit();
 
   const [range, setRange] = useState<CalendarRange | null>(null);
@@ -96,10 +101,11 @@ export function CalendarPage() {
             showBreaks: filter?.showBreaks,
             vacationGroupIds: filter?.vacationGroupIds ?? [],
             vacationUserIds: filter?.vacationUserIds ?? [],
+            darkMode,
             nonce,
           }
         : null,
-    [range, activeCalendars, filter, nonce]
+    [range, activeCalendars, filter, darkMode, nonce]
   );
 
   const { data: eventsData } = useCalendarEvents(request, timeZone);

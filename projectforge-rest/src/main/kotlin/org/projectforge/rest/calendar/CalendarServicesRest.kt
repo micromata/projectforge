@@ -265,7 +265,8 @@ class CalendarServicesRest {
             PFDateTime.fromOrNull(filter.end)
         )
         adjustRange(range)
-        val settings = calendarSettingsService.getSettings()
+        val darkMode = filter.darkMode == true
+        val settings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         timesheetsProvider.addTimesheetEvents(
             range.start,
             range.end!!,
@@ -289,7 +290,7 @@ class CalendarServicesRest {
         }
         val visibleTeamCalendarIds =
             visibleCalendarIds?.filter { it != null && it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
-        val calendarSettings = calendarSettingsService.getSettings()
+        val calendarSettings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         teamCalEventsProvider.addEvents(
             range.start,
             range.end!!,

@@ -25,6 +25,7 @@ export function eventsKey(request: EventsRequest) {
       showBreaks: request.showBreaks ?? null,
       vacationGroupIds: sorted(request.vacationGroupIds),
       vacationUserIds: sorted(request.vacationUserIds),
+      darkMode: request.darkMode,
       nonce: request.nonce,
     },
   ] as const;
@@ -51,6 +52,7 @@ export function useCalendarEvents(
         activeCalendarIds: request!.activeCalendarIds,
         useVisibilityState: true,
         timeZone,
+        darkMode: request!.darkMode,
       };
       return fetchCalendarEvents(filter, signal);
     },

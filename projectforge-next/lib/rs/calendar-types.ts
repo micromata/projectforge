@@ -230,6 +230,11 @@ export interface CalendarEventsFilter {
   activeCalendarIds?: number[];
   useVisibilityState?: boolean;
   timeZone?: string;
+  /**
+   * The client's resolved page theme. The server computes the transparent scheme's event text colour for it
+   * (light page → darkened base colour, dark page → lightened), since only the client knows the theme.
+   */
+  darkMode?: boolean;
 }
 
 /** The `POST /rs/calendar/storeState` request (`CalendarServicesRest.CalendarState`). */

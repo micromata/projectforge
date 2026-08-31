@@ -134,7 +134,7 @@ class FullCalendarEvent(
    */
   fun withColor(calendarSettings: CalendarSettings, bgColor: String? = null, style: CalendarStyle? = null): FullCalendarEvent {
     val useStyle = style ?: CalendarStyle(bgColor)
-    textColor = useStyle.getTextColor(calendarSettings.colorScheme)
+    textColor = useStyle.getTextColor(calendarSettings.colorScheme, calendarSettings.darkMode)
     borderColor = useStyle.bgColor
     backgroundColor = useStyle.getBackgroundColor(calendarSettings.colorScheme)
     return this

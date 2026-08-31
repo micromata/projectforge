@@ -23,6 +23,8 @@ export interface EventsRequest {
   showBreaks?: boolean | null;
   vacationGroupIds: number[];
   vacationUserIds: number[];
+  /** The resolved page theme; the server computes event text colours for it (see CalendarEventsFilter). */
+  darkMode: boolean;
   /** Bumped by `?hash` and the manual refresh to force a refetch without any parameter change. */
   nonce: number;
 }
