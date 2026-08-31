@@ -24,7 +24,7 @@ export function SelectionModeToggle({
   const t = useTranslations();
   return (
     <HintTooltip
-      title={t("multiselection.button")}
+      // No `title`: it would only repeat the button's own label, which is spelled out beside the icon.
       // How to pick rows once the mode is on, straight from the bundle — the same text the bar's help
       // icon shows, so the gestures are stated once. `._`: the shortcut key has a child (.title).
       text={`${t("multiselection.aggrid.selection.info.message")}\n\n* **${t(
