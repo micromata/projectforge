@@ -3,6 +3,27 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { useSearchParams } from "next/navigation";
 import type { CalendarApi } from "@fullcalendar/core";
+import type { ResponseAction } from "@/lib/rs/types";
+
+/**
+ * Builds the calendar url a save should return to, so the view jumps to the saved entry's period
+ * (see {@link useGotoDate}). The backend's `redirectToCalendarWithDate` already encoded the entry's
+ * start date and a fresh random hash into `action.url` (`/…/calendar?gotoDate=…&hash=…`); this reuses
+ * that computation entity-agnostically instead of re-deriving the date from a timesheet's `startTime`
+ * or a team event's `startDate` per entity. Falls back to a bare `/calendar` when no `gotoDate` is
+ * present (nothing to jump to).
+ */
+export function calendarGotoUrl(action: ResponseAction | undefined): string {
+  if (!action?.url) return "/calendar";
+  // `action.url` is relative; the origin is only needed to parse its query and is dropped again.
+  const params = new URL(action.url, "http://localhost").searchParams;
+  const gotoDate = params.get("gotoDate");
+  if (!gotoDate) return "/calendar";
+  const hash = params.get("hash");
+  const query = new URLSearchParams({ gotoDate });
+  if (hash) query.set("hash", hash);
+  return `/calendar?${query.toString()}`;
+}
 
 /**
  * Honours `?gotoDate` and `?hash` after a save sends the user back here (see

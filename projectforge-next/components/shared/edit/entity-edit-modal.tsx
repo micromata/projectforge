@@ -18,6 +18,7 @@ import type { EditablePageDef } from "@/lib/page-def/types";
 import { EntityEditBody } from "./entity-edit-body";
 import { EntityEditDialogShell } from "./entity-edit-dialog-shell";
 import type { EditOutcome } from "./edit-outcome";
+import type { ResponseAction } from "@/lib/rs/types";
 
 export interface EntityEditModalProps<
   Row extends ListRow,
@@ -41,8 +42,15 @@ export interface EntityEditModalProps<
   initialTab?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The entry was saved — `id` as the backend assigned it, `values` as they were saved. */
-  onSaved?: (id: number | null, values: unknown) => void;
+  /**
+   * The entry was saved — `id` as the backend assigned it, `values` as they were saved, and the
+   * write's `ResponseAction` (the calendar reads its `?gotoDate=…&hash=…` redirect url).
+   */
+  onSaved?: (
+    id: number | null,
+    values: unknown,
+    action?: ResponseAction
+  ) => void;
   /** The dialog closed without a save (cancel, delete, undelete, dismiss) — e.g. refetch the calendar. */
   onClose?: () => void;
   /**
@@ -90,8 +98,8 @@ export function EntityEditModal<
 
   const outcome: EditOutcome = useMemo(
     () => ({
-      afterSave: (savedId, values) => {
-        onSaved?.(savedId, values);
+      afterSave: (savedId, values, action) => {
+        onSaved?.(savedId, values, action);
         close();
       },
       afterCancel: () => {

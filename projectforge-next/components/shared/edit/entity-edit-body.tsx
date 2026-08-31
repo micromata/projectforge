@@ -176,7 +176,8 @@ export function EntityEditBody<
     arrayFieldNames: edit.arrayFieldNames,
     // Never navigated to: `onSaved` takes the place of leaving (see EditOutcome).
     listRoute: page.route,
-    onSaved: (savedId, values) => outcome.afterSave(savedId, values),
+    onSaved: (savedId, values, action) =>
+      outcome.afterSave(savedId, values, action),
     savedMessage: t(edit.savedMessageKey),
     save: (values, meta) => {
       const posted = {

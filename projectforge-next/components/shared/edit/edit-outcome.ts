@@ -1,3 +1,5 @@
+import type { ResponseAction } from "@/lib/rs/types";
+
 /**
  * What happens after each way an edit form finishes — the one thing a page and a modal do
  * differently.
@@ -9,11 +11,17 @@
  *
  * `afterSave` gets the id the backend assigned (null if it named none) and the values that were saved,
  * since the answer of a write carries no entity (see lib/rs/entity.ts) and a caller usually wants a
- * name as well as an id. `afterClone` gets the add route the clone was prepared under
+ * name as well as an id. It also gets the write's `ResponseAction`: the calendar reads its
+ * `?gotoDate=…&hash=…` redirect url to jump to the saved entry's period (see CalendarEditRouteClient);
+ * a page host ignores it. `afterClone` gets the add route the clone was prepared under
  * (`/{entity}/new?clone=1`), which a page navigates to and a dialog opens as its own page.
  */
 export interface EditOutcome {
-  afterSave: (id: number | null, values: unknown) => void;
+  afterSave: (
+    id: number | null,
+    values: unknown,
+    action?: ResponseAction
+  ) => void;
   afterCancel: () => void;
   afterDelete: () => void;
   afterUndelete: () => void;

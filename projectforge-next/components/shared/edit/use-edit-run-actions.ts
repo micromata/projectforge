@@ -167,9 +167,10 @@ export function useEditRunActions<
         form.state.values as unknown as Data
       );
       if (result.kind === "ok" && result.action.targetType !== "UPDATE") {
-        // No collision: the copy was saved straight away.
+        // No collision: the copy was saved straight away. The write's ResponseAction rides along so the
+        // calendar jumps to the clone's period the same way a plain save does (its `?gotoDate=…`).
         toast.success(t(page.edit.savedMessageKey));
-        outcome.afterSave(result.id, form.state.values);
+        outcome.afterSave(result.id, form.state.values, result.action);
         return;
       }
       // Any validation error (an overlapping time period is the common one) means the copy wasn't

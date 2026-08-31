@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouteParams } from "@/hooks/use-route-params";
@@ -14,6 +14,7 @@ import {
   CALENDAR_INIT_KEY,
 } from "@/components/features/calendar/use-calendar-init";
 import { useCalendarFilterMutations } from "@/components/features/calendar/use-calendar-filter-mutations";
+import { calendarGotoUrl } from "@/components/features/calendar/use-goto-date";
 import type { CalendarInit } from "@/lib/rs/calendar-types";
 
 /**
@@ -32,13 +33,23 @@ export function CalendarEditRouteClient() {
   const mutations = useCalendarFilterMutations();
   const currentUser = useCurrentUserRef();
 
+  // Set by a successful save to the calendar url that jumps to the saved entry's period
+  // (`/calendar?gotoDate=…&hash=…`, see handleSaved); read and cleared by the close below. A ref, not
+  // state, because it is written and read within the same close cycle (afterSave → onSaved sets it →
+  // close reads it) and must not trigger a render.
+  const pendingGoto = useRef<string | null>(null);
+
   // Every way the modal closes — save, cancel, delete, ESC, overlay, an entry gone — funnels through
   // onOpenChange(false). Both refetch and navigation belong here so the calendar redraws the edited
   // sheet (invalidateEntity refreshes the entity's caches, not the calendar's ["calendar","events"])
-  // and the url returns to the calendar itself.
+  // and the url returns to the calendar itself. A save leaves a `gotoDate` target behind so the view
+  // jumps into the saved entry's period (like the legacy app); every other exit returns to a bare
+  // /calendar and stays where it was.
   const close = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: CALENDAR_EVENTS_KEY });
-    router.push("/calendar");
+    const target = pendingGoto.current ?? "/calendar";
+    pendingGoto.current = null;
+    router.push(target);
   }, [queryClient, router]);
 
   // A new colleague logs their first timesheet and doesn't see it, because the calendar hides
@@ -84,11 +95,14 @@ export function CalendarEditRouteClient() {
       onOpenChange={(next) => {
         if (!next) close();
       }}
-      // Saving a timesheet from the calendar activates the user's own timesheets when none are shown,
-      // so the sheet they just booked is actually visible (see activateOwnTimesheets).
-      onSaved={
-        target.page === TIMESHEET_PAGE ? activateOwnTimesheets : undefined
-      }
+      // On save, remember where the following close should jump so the calendar lands on the saved
+      // entry's period (see close/pendingGoto and useGotoDate). Saving a timesheet additionally turns
+      // on the user's own timesheets when none are shown, so the sheet they just booked is visible at
+      // all (see activateOwnTimesheets).
+      onSaved={(_id, _values, action) => {
+        pendingGoto.current = calendarGotoUrl(action);
+        if (target.page === TIMESHEET_PAGE) activateOwnTimesheets();
+      }}
       // A clone or a convert stays in the calendar: open the prepared new entry as the calendar's own
       // nested route (`/calendar/timesheet/new?clone=1`, `/calendar/teamEvent/new?clone=1`), so it
       // layers over the still-mounted calendar in this dialog rather than leaving for the full page. The

@@ -6,6 +6,7 @@ import { useForm, useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { toast } from "@/lib/toast";
 import type { EntityWriteResult } from "@/lib/rs/entity";
+import type { ResponseAction } from "@/lib/rs/types";
 import type { EntityForm } from "@/components/shared/form/form-context";
 import { applyServerValidationErrors } from "@/lib/validation/server-errors";
 import { showResponseMessage } from "@/lib/dynamic/response-toast";
@@ -64,9 +65,10 @@ export interface UseEntityEditFormOptions<Values, Data> {
    *
    * Gets the id the backend assigned (null if it named none) and the values that were saved, since
    * the answer of a write carries no entity (see lib/rs/entity.ts) and a caller usually wants a name
-   * as well as an id.
+   * as well as an id. The write's `ResponseAction` is passed along too — the calendar reads its
+   * `?gotoDate=…&hash=…` redirect url to jump to the saved entry's period (see CalendarEditRouteClient).
    */
-  onSaved?: (id: number | null, values: Values) => void;
+  onSaved?: (id: number | null, values: Values, action: ResponseAction) => void;
   /** Toast text of a successful save, e.g. `t("saved")`. */
   savedMessage: string;
   save: MutateFn<Values>;
@@ -164,7 +166,7 @@ export function useEntityEditForm<Values, Data>({
       if (onSaved) {
         // A form without a page of its own: its caller decides what "afterwards" means, and there is
         // nothing to navigate to (see the option).
-        onSaved(result.id, value as Values);
+        onSaved(result.id, value as Values, result.action);
         return;
       }
       // The id of what was just written, for a caller that asked to be told (`savedRoute`): an insert
