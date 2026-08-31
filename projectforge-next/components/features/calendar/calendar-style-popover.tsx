@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ColorPicker } from "@/components/shared/color-picker";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 interface CalendarStylePopoverProps {
   title: string;
@@ -46,7 +47,9 @@ export function CalendarStylePopover({
       <ColorPicker
         value={color}
         onChange={onColorChange}
-        aria-label={t("calendar.settings.colors")}
+        // `calendar.settings.colors` is a namespace as well as a label (its children are the scheme
+        // and per-kind colours), so the bare key resolves to an object — leafKeyOf takes the `._` leaf.
+        aria-label={t(leafKeyOf("calendar.settings.colors", t.has))}
       />
     </div>
   );
