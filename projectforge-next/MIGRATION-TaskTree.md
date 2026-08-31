@@ -70,7 +70,7 @@ Funktionalität verloren.
   (`wa/timesheetEdit`, `wa/timesheetList`, `wa/ganttEdit`, `wa/accessList`).
 - **Tippsuche im Auswahlfeld:** eigener Endpunkt `GET /rs/task/tree/autosearch`
   (`task/autosearch` ist unbenutzbar – keine `autoCompleteSearchFields`), sucht über `title`
-  + indizierten `taskpath`, Label ist der ganze Pfad (`" | "`, Wurzel = `task.path.rootTask`).
+  - indizierten `taskpath`, Label ist der ganze Pfad (`" | "`, Wurzel = `task.path.rootTask`).
 
 ## Querschnittliche Funde (einmal für alle Seiten behoben)
 

@@ -130,7 +130,7 @@ Detail steht im Code – hier nur die Regeln und die Fallen, die wiederkehren.
   Sortierung und Suchstring gehen an Spring. (Serverseitiges Paging: eigener Plan, s.
   [MIGRATION-list-paging.md](MIGRATION-list-paging.md).)
 - **Schreiben** (`lib/rs/entity.ts`, getrennt von `client.ts`): `PUT
-  /rs/{entity}/saveorupdate` für Anlegen **und** Ändern (unterschieden an `data.id`), Body
+/rs/{entity}/saveorupdate` für Anlegen **und** Ändern (unterschieden an `data.id`), Body
   immer der `PostData`-Umschlag `{ data }`. `DELETE …/markAsDeleted` + `PUT …/undelete`.
   `RestPaths.DELETE`/`FORCE_DELETE` (zerstören auch Historie) sind absichtlich nicht
   angebunden. Antwort ist eine `ResponseAction`, **nicht** die Entität – die id eines neuen
@@ -145,7 +145,7 @@ Detail steht im Code – hier nur die Regeln und die Fallen, die wiederkehren.
   `validationErrors` auch im Erfolgsfall. Eine `AccessException` sieht als **HTTP 200 mit
   reinem Toast** wie ein Erfolg aus: die vier CRUD-Endpunkte machen daraus über
   `handleException` ein **406**; eigene Endpunkte (`postEntityAction`) liefern `kind:
-  "rejected"` (unterschieden vom Erfolg-mit-Warnung am `targetType`: Ablehnung ist `TOAST`,
+"rejected"` (unterschieden vom Erfolg-mit-Warnung am `targetType`: Ablehnung ist `TOAST`,
   Erfolg trägt `REDIRECT`); lesende Aufrufe bekommen für next-Clients **403** + `RestError`
   (`useReadAccessGuard`). `isNextClient` wählt nur die Antwortform, ist keine
   Vertrauensgrenze.

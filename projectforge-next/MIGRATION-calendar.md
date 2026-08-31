@@ -88,7 +88,7 @@ Drei Details, die den Frontend-Entwurf bestimmen (weiterhin gültig):
 
 1. Mutierende Endpunkte antworten mit **Teilmengen** von `CalendarInit`
    (`filter | activeCalendars | teamCalendars | styleMap | filterFavorites |
-   isFilterModified`); `selectFilter` liefert das komplette `CalendarInit`,
+isFilterModified`); `selectFilter` liefert das komplette `CalendarInit`,
    `changeStyle` **kein** `isFilterModified`.
 2. `start`/`end` der Events sind flach serialisiert (ISO-Instant oder
    `yyyy-MM-dd`) – **unverändert** an FullCalendar durchreichen, sonst verschieben

@@ -142,7 +142,9 @@ test.describe("year to date", () => {
     );
     // And still the art in effect, so the comparison is one click away again. The filter popover has room
     // and spells the art out (`longLabel`, see [PeriodQuickSelect]), so the trigger carries the long name.
-    await expect(picker(page, format)).toHaveText(kindName(format, YEAR_TO_DATE));
+    await expect(picker(page, format)).toHaveText(
+      kindName(format, YEAR_TO_DATE)
+    );
   });
 
   test("stands beside the lengths a ledger is read in", async ({

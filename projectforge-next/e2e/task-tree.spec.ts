@@ -51,7 +51,9 @@ test.describe("task tree", () => {
     // catalog string is split across elements and no single node holds it whole. Match the plain lead-in
     // — everything up to the first markdown token — still taken from the catalog through `t()`, so the
     // assertion stays locale-independent.
-    const hintLeadIn = t("task.tree.info").split(/[\n\\*]/)[0].trim();
+    const hintLeadIn = t("task.tree.info")
+      .split(/[\n\\*]/)[0]
+      .trim();
     await expect(page.getByText(hintLeadIn)).toBeVisible();
 
     // A row shows its title rather than an object or an empty cell. The seeded task's row, not the
