@@ -160,6 +160,25 @@ export async function cloneEntity<D extends object>(
 }
 
 /**
+ * Clones the entity and saves the copy in one call — the `CloneSupport.AUTOSAVE` counterpart of
+ * [cloneEntity] (`RestPaths.CLONE`, not `cloneData`). The backend runs `prepareClone` (ids dropped)
+ * and then the very same `saveOrUpdate` a normal save does, so the clone is validated and persisted.
+ *
+ * Told apart from a clone that fell back to editing by the answer's `targetType`, because both come
+ * back as HTTP 200: a save answers with its `REDIRECT` (`onAfterEdit`), while `AbstractPagesRest.clone`
+ * discards a failed save and re-serves the form as an `UPDATE`. So the caller reads a successful save
+ * as `kind: "ok"` with `action.targetType !== "UPDATE"`, and the `UPDATE` — an overlapping time period
+ * is the case — as "not saved, left on the form" (see runClone). Same `write` protocol otherwise.
+ */
+export function cloneAndSaveEntity<D extends object>(
+  entity: string,
+  data: D,
+  signal?: AbortSignal
+): Promise<EntityWriteResult> {
+  return write(`/rs/${entity}/clone`, "POST", data, signal);
+}
+
+/**
  * Turns this entity into a *different* one — a time sheet into a calendar event and back
  * (`TimesheetPagesRest.switch2CalendarEvent`, `TeamEventPagesRest.switch2Timesheet`).
  *

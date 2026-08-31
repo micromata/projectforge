@@ -52,8 +52,18 @@ export default function RootLayout({
               <TooltipProvider>
                 {children}
                 {/* More than sonner's three: a job's progress toast stays until the job is done
-                    (see JobToasts) and must not be pushed out by the messages of other actions. */}
-                <Toaster richColors position="top-right" visibleToasts={5} />
+                    (see JobToasts) and must not be pushed out by the messages of other actions.
+                    `pointer-events-auto` on each toast keeps it clickable over a modal dialog: an open
+                    Radix modal sets `body { pointer-events: none }` (react-dismissable-layer), which
+                    would otherwise swallow the toast's close button and let the click fall through to
+                    the overlay behind it — closing the dialog while the toast stayed (see
+                    EntityEditModal's onInteractOutside, which then keeps the dialog open). */}
+                <Toaster
+                  richColors
+                  position="top-right"
+                  visibleToasts={5}
+                  toastOptions={{ className: "pointer-events-auto" }}
+                />
               </TooltipProvider>
             </LocaleProvider>
           </QueryProvider>

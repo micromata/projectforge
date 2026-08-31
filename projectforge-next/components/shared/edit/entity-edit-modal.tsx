@@ -156,6 +156,16 @@ export function EntityEditModal<
         // Radix would focus the dialog itself; let useFocusFirstField place the caret in the first
         // field instead (see EntityEditBody).
         onOpenAutoFocus={(e) => e.preventDefault()}
+        // A failure toast (a save refused for an overlapping time period is the case) is rendered
+        // outside this content, in sonner's portal. Clicking or focusing it is an interaction "outside"
+        // the dialog, which Radix would answer by closing it — dropping the very form the message is
+        // about while the toast stays behind. Keep the dialog open for any interaction inside the
+        // toaster; every other outside interaction still closes it through handleOpenChange.
+        onInteractOutside={(event) => {
+          const target = event.detail.originalEvent
+            .target as HTMLElement | null;
+          if (target?.closest("[data-sonner-toaster]")) event.preventDefault();
+        }}
       >
         {/* Mounted only while open and unmounted with it: the form starts from the backend's preset
             every time it opens, and one filled in once must not come back on the next. */}

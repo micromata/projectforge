@@ -239,11 +239,12 @@ export const TIMESHEET_PAGE = definePage<
     // period are usually preset from the calendar slot or a template (see useFocusFirstField).
     autoFocus: "description",
     newEntryParams: NEW_ENTRY_PARAMS,
-    // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport). The button builds a new sheet
-    // from the one on screen — the backend's `cloneData` prepares it (id and timestamps dropped, the
-    // default prepareClone; AUTOSAVE is not honoured there, only NONE turns clone off, see
-    // AbstractEntityRest.cloneData), and the add form opens under `/timesheet/new?clone=1`.
-    clone: true,
+    // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport = AUTOSAVE). The button saves a
+    // copy of the sheet on screen straight away (`/clone`, honouring AUTOSAVE) rather than opening it
+    // as a new entry: a sheet dragged onto another day and cloned persists there in one step, and the
+    // dialog closes back onto the calendar. Where the copy overlaps another sheet the backend can't
+    // save it and the form is simply left standing to adjust (see runClone / cloneAndSaveEntity).
+    clone: "autosave",
     // "In Termin umwandeln" — build a calendar event from this sheet's span and texts and open it as a
     // new event (TimesheetPagesRest.switch2CalendarEvent → TeamEventPagesRest.cloneFromTimesheet). The
     // team event is named, not imported, so the two features don't depend on each other in a circle.

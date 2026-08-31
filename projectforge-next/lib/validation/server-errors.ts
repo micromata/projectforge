@@ -97,15 +97,13 @@ export function applyServerValidationErrors(
     }
   }
 
-  setServerErrors(form, {
-    onServer: {
-      fields,
-      // A form level error would render nowhere in the current layout, so the caller shows the
-      // unassigned messages instead; setting it anyway keeps the form invalid, which blocks a
-      // resubmit of unchanged values.
-      ...(unassigned.length > 0 ? { form: unassigned.join(". ") } : {}),
-    },
-  });
+  // Only the field errors go in: an unassigned message is the caller's to show (a toast), and it must
+  // not also become a form level error. That would render nowhere yet keep the form invalid, and then
+  // pressing Save again on the unchanged form is dropped before onSubmit runs — the server is never
+  // asked again and the toast, the only sign of the refusal, never comes back. Leaving the form valid
+  // lets the resubmit go through and the message reappear (see useEntityEditForm), which is what a user
+  // re-pressing Save is asking for. A field error still blocks its own field until edited, as it should.
+  setServerErrors(form, { onServer: { fields } });
 
   return { unassigned, hasAssigned: Object.keys(fields).length > 0 };
 }

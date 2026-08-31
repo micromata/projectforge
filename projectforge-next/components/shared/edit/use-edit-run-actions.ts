@@ -8,7 +8,11 @@ import type { EntityForm } from "@/components/shared/form/form-context";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import { CLONE_PARAM, setPendingClone } from "@/hooks/use-pending-clone";
 import type { EntityWriteResult } from "@/lib/rs/entity";
-import { cloneEntity, convertEntity } from "@/lib/rs/entity";
+import {
+  cloneAndSaveEntity,
+  cloneEntity,
+  convertEntity,
+} from "@/lib/rs/entity";
 import type { EditablePageDef } from "@/lib/page-def/types";
 import type { ListRow } from "@/hooks/use-entity-list-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
@@ -144,6 +148,53 @@ export function useEditRunActions<
   }
 
   /**
+   * The clone the button does, `CloneSupport.AUTOSAVE` (`page.edit.clone === "autosave"`): the copy is
+   * saved straight away rather than opened as a new entry — a time sheet dragged onto another day and
+   * cloned persists there without a detour through the add form (see cloneAndSaveEntity).
+   *
+   * On success the form ends the way a save does (`outcome.afterSave` — closing the calendar's dialog,
+   * refetching, reactivating the user's own time sheets). When the backend can't save the copy — an
+   * overlapping time period is the case, which cloning an *unmoved* sheet always is (the copy overlaps
+   * the original), as is a busy target slot — it re-serves the prepared clone as an `UPDATE`. That is
+   * the pre-AUTOSAVE clone: open it as a new unsaved entry for the user to adjust and save (see
+   * runClone). The clone rides along from the answer (`variables.data`), so no second prepare call.
+   */
+  async function runCloneAndSave(): Promise<void> {
+    setCloning(true);
+    try {
+      const result = await cloneAndSaveEntity<Data>(
+        page.entity,
+        form.state.values as unknown as Data
+      );
+      if (result.kind === "ok" && result.action.targetType !== "UPDATE") {
+        // No collision: the copy was saved straight away.
+        toast.success(t(page.edit.savedMessageKey));
+        outcome.afterSave(result.id, form.state.values);
+        return;
+      }
+      // Any validation error (an overlapping time period is the common one) means the copy wasn't
+      // saved: fall back to the plain clone. The backend's `UPDATE` fall-back carries the prepared clone
+      // under `variables.data`; a rejection without one is re-prepared unsaved via `cloneData` (see
+      // cloneEntity).
+      const prepared =
+        (result.kind === "ok"
+          ? (result.action.variables?.data as Data | undefined)
+          : undefined) ??
+        (await cloneEntity<Data>(
+          page.entity,
+          form.state.values as unknown as Data
+        ));
+      setPendingClone(page.entity, prepared);
+      outcome.afterClone(`${page.route}/new?${CLONE_PARAM}=1`);
+    } catch {
+      // Nothing was written, so the form is still the way forward.
+      toast.error(t("validation.error.generic"));
+    } finally {
+      setCloning(false);
+    }
+  }
+
+  /**
    * Opens a new entry built from this one — Wicket's `RechnungEditPage.cloneData`.
    *
    * Posted are the *form's current values*, not the loaded entity, so unsaved edits travel; neither
@@ -152,6 +203,10 @@ export function useEditRunActions<
    * usePendingClone) — under `output: "export"` no state rides along a navigation.
    */
   async function runClone(): Promise<void> {
+    if (page.edit.clone === "autosave") {
+      await runCloneAndSave();
+      return;
+    }
     setCloning(true);
     try {
       const prepared = await cloneEntity<Data>(
