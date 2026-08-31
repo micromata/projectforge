@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CalendarApi } from "@fullcalendar/core";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { AddEntryButton } from "@/components/shared/add-entry-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormatContext } from "@/hooks/use-format";
 import type { CalendarViewKey } from "@/lib/rs/calendar-types";
@@ -11,6 +12,8 @@ import { useCalendarInit } from "./use-calendar-init";
 import { useCalendarEvents } from "./use-calendar-events";
 import { useStoreCalendarState } from "./use-calendar-state";
 import { useCalendarFilterMutations } from "./use-calendar-filter-mutations";
+import { useCalendarAction } from "./use-calendar-action";
+import { useCreateShortcut } from "./use-create-shortcut";
 import { useGotoDate } from "./use-goto-date";
 import { normalizeInitialDate } from "./view-config";
 import { CalendarToolbar } from "./calendar-toolbar";
@@ -50,6 +53,23 @@ export function CalendarPage() {
     [init?.activeCalendars]
   );
   const filter = init?.filter;
+  const firstHour = filter?.firstHour ?? 8;
+
+  // A new entry is a page-level action, not a FullCalendar toolbar button: the shared AddEntryButton
+  // renders it in the header (see PageTitleRow below) so it matches every list page, and the same
+  // `N` / `+` chord opens it. The backend picks timesheet vs. team event from the filter; the current
+  // day comes from the calendar api the panel publishes to `apiRef`.
+  const { requestAction } = useCalendarAction();
+  const handleCreate = useCallback(() => {
+    const api = apiRef.current;
+    if (!api) return;
+    void requestAction({
+      action: "create",
+      startDate: api.getDate().toISOString(),
+      firstHour,
+    });
+  }, [requestAction, firstHour]);
+  useCreateShortcut(handleCreate);
 
   const onRangeChange = useCallback(
     (next: CalendarRange) => {
@@ -115,6 +135,7 @@ export function CalendarPage() {
           />
         }
       >
+        <AddEntryButton onClick={handleCreate} />
         <CalendarToolbar init={init} mutations={mutations} />
       </PageTitleRow>
       <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
@@ -123,7 +144,7 @@ export function CalendarPage() {
           initialView={(init.view as CalendarViewKey) ?? "dayGridMonth"}
           initialDate={normalizeInitialDate(init.date, init.view)}
           gridSize={filter?.gridSize ?? 30}
-          firstHour={filter?.firstHour ?? 8}
+          firstHour={firstHour}
           alternateHoursBackground={
             eventsData?.alternateHoursBackground ??
             init.alternateHoursBackground ??

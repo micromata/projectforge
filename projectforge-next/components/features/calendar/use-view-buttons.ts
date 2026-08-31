@@ -8,17 +8,16 @@ import { buildViews, HEADER_TOOLBAR } from "./view-config";
 
 /**
  * The header's data- and locale-dependent pieces: the `views` map (with the slot size / scroll
- * position from the filter and the localised button labels), the "+" create button, and the localised
- * "today" label. The static button layout stays in `view-config.ts` (`HEADER_TOOLBAR`).
+ * position from the filter and the localised button labels) and the localised "today" label. The
+ * static button layout stays in `view-config.ts` (`HEADER_TOOLBAR`); the "new entry" button is the
+ * page-level AddEntryButton, not a FullCalendar custom button (see CalendarPage).
  */
 export function useViewButtons({
   gridSize,
   firstHour,
-  onCreate,
 }: {
   gridSize: number;
   firstHour: number;
-  onCreate: () => void;
 }) {
   const t = useTranslations("calendar");
   const { hour12 } = useFormatContext();
@@ -43,17 +42,10 @@ export function useViewButtons({
     [gridSize, firstHour, hour12, t]
   );
 
-  const customButtons: CalendarOptions["customButtons"] = useMemo(
-    () => ({
-      addEvent: { text: "+", hint: t("newEntry"), click: onCreate },
-    }),
-    [t, onCreate]
-  );
-
   const buttonText: CalendarOptions["buttonText"] = useMemo(
     () => ({ today: t("today") }),
     [t]
   );
 
-  return { views, headerToolbar: HEADER_TOOLBAR, customButtons, buttonText };
+  return { views, headerToolbar: HEADER_TOOLBAR, buttonText };
 }

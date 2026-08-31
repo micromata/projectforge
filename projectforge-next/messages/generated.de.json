@@ -2142,8 +2142,8 @@
     "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
-        "_": "N drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
-        "title": "Tastaturkürzel N"
+        "_": "N oder + drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
+        "title": "Tastaturkürzel N oder +"
       },
       "selectAll": {
         "_": "STRG-A (macOS: CMD-A) wählt im Auswahlmodus alle Einträge der Liste aus.",

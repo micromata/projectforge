@@ -66,20 +66,9 @@ export function FullCalendarPanel({
   const { handleEventClick, requestAction } = useCalendarAction();
   useAllDayResizer(containerRef);
 
-  const handleCreate = useCallback(() => {
-    const api = calendarRef.current?.getApi();
-    if (!api) return;
-    void requestAction({
-      action: "create",
-      startDate: api.getDate().toISOString(),
-      firstHour,
-    });
-  }, [requestAction, firstHour]);
-
-  const { views, headerToolbar, customButtons, buttonText } = useViewButtons({
+  const { views, headerToolbar, buttonText } = useViewButtons({
     gridSize,
     firstHour,
-    onCreate: handleCreate,
   });
 
   const handleDatesSet = useCallback(
@@ -150,7 +139,6 @@ export function FullCalendarPanel({
         initialView={initialView}
         initialDate={initialDate}
         headerToolbar={headerToolbar}
-        customButtons={customButtons}
         buttonText={buttonText}
         views={views}
         events={events as unknown as EventInput[]}

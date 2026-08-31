@@ -2142,8 +2142,8 @@
     "selectMe": "You are great!",
     "shortcut": {
       "addEntry": {
-        "_": "Press N, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
-        "title": "Keyboard shortcut N"
+        "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
+        "title": "Keyboard shortcut N or +"
       },
       "selectAll": {
         "_": "Press CTRL-A (macOS: CMD-A) to select all entries of the list while the selection mode is on.",

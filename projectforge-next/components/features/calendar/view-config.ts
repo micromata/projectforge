@@ -64,11 +64,15 @@ export function clampVisibleEnd(start: Date, end: Date): Date {
   return end.getTime() > maxEnd.getTime() ? maxEnd : end;
 }
 
-/** Button layout of the calendar's own header; the labels come from `use-view-buttons.ts`. */
+/**
+ * Button layout of the calendar's own header; the labels come from `use-view-buttons.ts`. The "new
+ * entry" button is not here: it lives in the page header as the shared AddEntryButton (see
+ * CalendarPage), so it carries the same icon, tooltip and `N`/`+` shortcut as every list page.
+ */
 export const HEADER_TOOLBAR: CalendarOptions["headerToolbar"] = {
   left: "title",
   center:
-    "addEvent dayGridMonth,dayGridWorkingMonth,listMonth timeGridWeek,timeGridWorkingWeek,dayGridWeek,listWeek timeGridDay",
+    "dayGridMonth,dayGridWorkingMonth,listMonth timeGridWeek,timeGridWorkingWeek,dayGridWeek,listWeek timeGridDay",
   right: "today prev,next",
 };
 
