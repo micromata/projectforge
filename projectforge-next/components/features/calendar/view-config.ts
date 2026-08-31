@@ -68,12 +68,15 @@ export function clampVisibleEnd(start: Date, end: Date): Date {
  * Button layout of the calendar's own header; the labels come from `use-view-buttons.ts`. The "new
  * entry" button is not here: it lives in the page header as the shared AddEntryButton (see
  * CalendarPage), so it carries the same icon, tooltip and `N`/`+` shortcut as every list page.
+ *
+ * `gotoDate` is a custom button registered in FullCalendarPanel: it opens the jump-to-date popover
+ * (a month grid with a year dropdown) next to "today", so a date years back is one pick away.
  */
 export const HEADER_TOOLBAR: CalendarOptions["headerToolbar"] = {
   left: "title",
   center:
     "dayGridMonth,dayGridWorkingMonth,listMonth timeGridWeek,timeGridWorkingWeek,dayGridWeek,listWeek timeGridDay",
-  right: "today prev,next",
+  right: "gotoDate today prev,next",
 };
 
 /** Per-view labels for the header buttons (resolved from i18n in `use-view-buttons.ts`). */

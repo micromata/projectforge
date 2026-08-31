@@ -1,6 +1,17 @@
 "use client";
 
-import { useCallback, useRef, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar01Icon } from "@hugeicons/core-free-icons";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -8,6 +19,7 @@ import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 import type {
   CalendarApi,
+  CalendarOptions,
   DateSelectArg,
   DatesSetArg,
   EventInput,
@@ -20,6 +32,7 @@ import type {
   FullCalendarEventDto,
 } from "@/lib/rs/calendar-types";
 import { cn } from "@/lib/utils";
+import { CalendarDateJump } from "./calendar-date-jump";
 import { CalendarEventContent } from "./calendar-event-content";
 import { useAllDayResizer } from "./use-allday-resizer";
 import { useCalendarAction } from "./use-calendar-action";
@@ -62,6 +75,7 @@ export function FullCalendarPanel({
 }: FullCalendarPanelProps) {
   const calendarRef = useRef<FullCalendar>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("calendar");
   const { locale, weekStartsOn, hour12 } = useFormatContext();
   const { handleEventClick, requestAction } = useCalendarAction();
   useAllDayResizer(containerRef);
@@ -70,6 +84,41 @@ export function FullCalendarPanel({
     gridSize,
     firstHour,
   });
+
+  // The jump-to-date control is a custom toolbar button next to "today" (see HEADER_TOOLBAR).
+  // FullCalendar buttons are plain DOM and take only a text/icon label, so the Hugeicons icon is
+  // portaled into the button node and the popover anchors to it. `getApi()` moves the calendar the
+  // same way the prev/next buttons do; the resulting `datesSet` drives the events refetch.
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const [jumpButton, setJumpButton] = useState<HTMLElement | null>(null);
+  const jumpAnchor = useRef<HTMLElement | null>(null);
+  const chooseDateLabel = t("chooseDate");
+
+  const getApi = useCallback(() => calendarRef.current?.getApi() ?? null, []);
+  const handleGoto = useCallback(
+    (date: Date) => getApi()?.gotoDate(date),
+    [getApi]
+  );
+  const getCurrentDate = useCallback(
+    () => getApi()?.getDate() ?? null,
+    [getApi]
+  );
+
+  const customButtons = useMemo<CalendarOptions["customButtons"]>(
+    () => ({ gotoDate: { text: "", click: () => setJumpOpen((o) => !o) } }),
+    []
+  );
+
+  // Locate the button FullCalendar rendered for `gotoDate` so the icon can be portaled into it and
+  // the popover can anchor to it. Re-run when the toolbar config changes, in case the node is rebuilt.
+  useEffect(() => {
+    const el =
+      containerRef.current?.querySelector<HTMLElement>(".fc-gotoDate-button") ??
+      null;
+    jumpAnchor.current = el;
+    setJumpButton(el);
+    if (el) el.setAttribute("aria-label", chooseDateLabel);
+  }, [headerToolbar, buttonText, views, chooseDateLabel]);
 
   const handleDatesSet = useCallback(
     (arg: DatesSetArg) => {
@@ -140,6 +189,7 @@ export function FullCalendarPanel({
         initialDate={initialDate}
         headerToolbar={headerToolbar}
         buttonText={buttonText}
+        customButtons={customButtons}
         views={views}
         events={events as unknown as EventInput[]}
         eventContent={(arg) => <CalendarEventContent arg={arg} />}
@@ -158,6 +208,18 @@ export function FullCalendarPanel({
         select={handleSelect}
         eventResize={(info) => handleEventChange("resize", info)}
         eventDrop={(info) => handleEventChange("dragAndDrop", info)}
+      />
+      {jumpButton &&
+        createPortal(
+          <HugeiconsIcon icon={Calendar01Icon} size={16} />,
+          jumpButton
+        )}
+      <CalendarDateJump
+        open={jumpOpen}
+        onOpenChange={setJumpOpen}
+        anchorRef={jumpAnchor}
+        onGoto={handleGoto}
+        getCurrentDate={getCurrentDate}
       />
     </div>
   );
