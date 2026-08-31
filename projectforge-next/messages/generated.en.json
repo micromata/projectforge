@@ -220,10 +220,13 @@
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
+        "selectCurrentWeek": "Quick select - current week",
         "selectCurrentYearToDate": "Quick select - year to date",
         "selectNextMonth": "Quick select - next month",
+        "selectNextWeek": "Quick select - next week",
         "selectNextYearToDate": "Quick select - next year to date",
         "selectPreviousMonth": "Quick select - previous month",
+        "selectPreviousWeek": "Quick select - previous week",
         "selectPreviousYearToDate": "Quick select - previous year to date"
       }
     },

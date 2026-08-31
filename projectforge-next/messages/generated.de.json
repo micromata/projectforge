@@ -220,10 +220,13 @@
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quickselect - aktueller Monat",
+        "selectCurrentWeek": "Quickselect - aktuelle Woche",
         "selectCurrentYearToDate": "Quickselect - Jahr bis heute",
         "selectNextMonth": "Quickselect - nachfolgender Monat",
+        "selectNextWeek": "Quickselect - nachfolgende Woche",
         "selectNextYearToDate": "Quickselect - nachfolgendes Jahr bis heute",
         "selectPreviousMonth": "Quickselect - vorangehender Monat",
+        "selectPreviousWeek": "Quickselect - vorangehende Woche",
         "selectPreviousYearToDate": "Quickselect - vorangehendes Jahr bis heute"
       }
     },

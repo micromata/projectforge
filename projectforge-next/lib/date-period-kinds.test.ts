@@ -6,6 +6,7 @@ import { plusDays } from "./date-period-math";
 
 const berlin: FormatContext = { locale: "de-DE", timeZone: "Europe/Berlin" };
 const of = (id: string) => periodKindOf(id) as PeriodKind;
+const calWeek = of("week");
 const month = of("month");
 const yearToDate = of("yearToDate");
 const week = of("termWeek");
@@ -54,6 +55,53 @@ describe("the calendar month", () => {
     expect(month.shift("2026-12-15", 1, berlin)).toBe("2027-01-01");
     expect(month.shift("2026-01-15", -1, berlin)).toBe("2025-12-01");
     expect(month.shift("2026-06-15", -12, berlin)).toBe("2025-06-01");
+  });
+});
+
+/** A calendar-aligned week, Monday to Sunday where the user starts on Monday — what a list filter asks. */
+describe("the calendar week", () => {
+  const sunday: FormatContext = { ...berlin, weekStartsOn: 0 };
+
+  it("spans Monday to Sunday of the week a date lies in, Monday the default", () => {
+    // 2026-08-17 is a Monday, 2026-08-19 the Wednesday of the same week.
+    expect(boundsOfPeriod(calWeek, "2026-08-19", berlin)).toEqual({
+      from: "2026-08-17",
+      to: "2026-08-23",
+    });
+    expect(boundsOfPeriod(calWeek, "2026-08-17", berlin)).toEqual({
+      from: "2026-08-17",
+      to: "2026-08-23",
+    });
+  });
+
+  it("snaps to the user's own first weekday", () => {
+    // Same Wednesday, but a week that starts on Sunday runs 16.–22.
+    expect(boundsOfPeriod(calWeek, "2026-08-19", sunday)).toEqual({
+      from: "2026-08-16",
+      to: "2026-08-22",
+    });
+  });
+
+  it("pages a week at a time", () => {
+    expect(calWeek.shift("2026-08-19", 1, berlin)).toBe("2026-08-24");
+    expect(calWeek.shift("2026-08-19", -1, berlin)).toBe("2026-08-10");
+    expect(calWeek.shift("2026-08-19", 0, berlin)).toBe("2026-08-17");
+  });
+
+  it("pages across the turn of the year", () => {
+    // The week of 2026-01-01 (a Thursday) begins on Monday 2025-12-29.
+    expect(boundsOfPeriod(calWeek, "2026-01-01", berlin)).toEqual({
+      from: "2025-12-29",
+      to: "2026-01-04",
+    });
+    expect(calWeek.shift("2026-01-01", -1, berlin)).toBe("2025-12-22");
+  });
+
+  it("has a current week, unlike a term", () => {
+    expect(calWeek.tooltipCurrentKey).toBe(
+      "calendar.quickselect.tooltip.selectCurrentWeek"
+    );
+    expect(calWeek.dependsOnToday).toBeUndefined();
   });
 });
 

@@ -1,7 +1,9 @@
 import { todayOf } from "./user-zone";
 import {
   endOfMonth,
+  endOfWeek,
   firstOfMonth,
+  firstOfWeek,
   isEarlierInYear,
   isoOfParts,
   partsOf,
@@ -29,6 +31,24 @@ import type { PeriodKind, PeriodKindId } from "./date-period";
  * rather than one with a switch: a field offers the ids that make sense there, and nothing has to be
  * told which flavour it is dealing with.
  */
+
+/**
+ * Calendar-aligned week: the begin snaps to the user's own first weekday (`weekStartsOn`, Monday
+ * where unset), the end is six days on, and one click pages a whole week. That is what a list filter
+ * asks for — "welche Woche?" — and it lines up with the list's KW column, unlike the `termWeek` term
+ * (rolling seven days off the begin) which is a Leistungszeitraum. Wicket's `QuickSelectWeekPanel`.
+ */
+const WEEK: PeriodKind = {
+  id: "week",
+  labelKey: "calendar.week",
+  shortLabelKey: "duration.short.week",
+  tooltipPreviousKey: "calendar.quickselect.tooltip.selectPreviousWeek",
+  tooltipCurrentKey: "calendar.quickselect.tooltip.selectCurrentWeek",
+  tooltipNextKey: "calendar.quickselect.tooltip.selectNextWeek",
+  beginOf: (iso, ctx) => firstOfWeek(iso, ctx.weekStartsOn),
+  endOf: (iso, ctx) => endOfWeek(iso, ctx.weekStartsOn),
+  shift: (iso, steps, ctx) => firstOfWeek(iso, ctx.weekStartsOn, steps),
+};
 
 const MONTH: PeriodKind = {
   id: "month",
@@ -134,10 +154,12 @@ export const TERM_KINDS: readonly PeriodKind[] = [
 
 /**
  * Every kind there is, and this is the order every picker offers its own selection in (see
- * [periodKindsOf]): the calendar month, then the terms rising in length, and "Jahr bis heute" last — it is
- * the year again, only ending today, so it reads as the entry below "Jahr" rather than between the lengths.
+ * [periodKindsOf]): the calendar week and month, then the terms rising in length, and "Jahr bis heute"
+ * last — it is the year again, only ending today, so it reads as the entry below "Jahr" rather than
+ * between the lengths.
  */
 export const PERIOD_KINDS: readonly PeriodKind[] = [
+  WEEK,
   MONTH,
   ...TERM_KINDS,
   YEAR_TO_DATE,
