@@ -282,6 +282,7 @@
   "cancel": "Abbrechen",
   "changes": "Änderungen",
   "clone": "Klonen",
+  "close": "Schließen",
   "collapse": "Zuklappen",
   "columns": {
     "_": "Spalten",
@@ -1750,7 +1751,6 @@
           "weekend": "Wochenende"
         },
         "reminder": {
-          "_": "Erinnerung",
           "DAYS_BEFORE": "Tage davor",
           "HOURS_BEFORE": "Stunden davor",
           "MESSAGE": "Nachricht",
