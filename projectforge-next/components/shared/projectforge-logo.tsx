@@ -26,13 +26,20 @@ export function ProjectForgeLogo({ label, className }: ProjectForgeLogoProps) {
       role="img"
       aria-label={label}
       className={cn(
-        "relative inline-flex flex-col items-start pr-8 text-foreground",
-        "font-semibold italic leading-[1.05] tracking-tight",
+        // self-end anchors the mark at the bottom of the (overflow-hidden) brand row so the tall
+        // flames get clearance at the top instead of being clipped there.
+        "relative inline-flex flex-col items-start self-end pb-1 pr-8 text-foreground",
+        // Bold italic narrow sans (Archivo Narrow, Roboto Condensed fallback - see .wordmark-font in
+        // globals.css and the fonts in app/layout.tsx), tight tracking and leading, to approximate the
+        // original logo lettering.
+        "wordmark-font font-bold italic leading-[0.85] tracking-[-0.04em]",
         className
       )}
     >
-      <span className="text-[15px]">Project</span>
-      <span className="pl-3 text-[15px]">Forge</span>
+      <span className="translate-x-2 text-[13px]">Project</span>
+      {/* Slid right with a transform (not layout) so its tail runs under the flames, as in the
+          original, without widening the box and pushing the flames out with it. */}
+      <span className="translate-x-4 pl-3 text-[13px]">Forge</span>
       {/* Decorative: the wordmark text already names the app (see the row's aria-label). */}
       {/* eslint-disable-next-line @next/next/no-img-element -- a static vector asset, next/image is
           incompatible with output: "export" here (see logo-row.tsx). */}
@@ -40,8 +47,10 @@ export function ProjectForgeLogo({ label, className }: ProjectForgeLogoProps) {
         src={flame.src}
         alt=""
         aria-hidden
-        // Sheared to match the italic lean of the text, as in the original mark.
-        className="pointer-events-none absolute -right-0.5 -top-1 h-11 w-9 -skew-x-12"
+        // Sheared to match the italic lean of the text, as in the original mark. Anchored at the
+        // bottom and made tall so the top rises above "Project" while the lower end sits halfway onto
+        // "Forge". z-10 keeps the flames above "Forge", whose transform would otherwise paint over them.
+        className="pointer-events-none absolute bottom-2.5 right-0 z-10 h-9 w-7 -skew-x-12"
       />
     </div>
   );

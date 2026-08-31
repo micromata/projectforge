@@ -696,3 +696,10 @@ span.row-grey {
   tr:nth-of-type(24n + 12) {
   background: var(--pf-alt-bg);
 }
+
+/* ProjectForge wordmark (see ProjectForgeLogo): Archivo Narrow, with Roboto Condensed as the
+   documented fallback. Both faces are loaded as bold italic via next/font in app/layout.tsx. */
+.wordmark-font {
+  font-family:
+    var(--font-condensed), var(--font-condensed-fallback), sans-serif;
+}
