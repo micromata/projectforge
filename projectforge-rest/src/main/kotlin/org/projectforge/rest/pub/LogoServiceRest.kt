@@ -66,15 +66,38 @@ class LogoServiceRest {
         return getLogo()
     }
 
-    private fun getLogo(): ByteArray {
-        if (logoFile == null) {
-            log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via projectforge.logoFile=logo.png.")
+    @GetMapping(value = arrayOf("logoDark.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getJpgLogoDark(): ByteArray {
+        return getLogo(dark = true)
+    }
+
+    @GetMapping(value = arrayOf("logoDark.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getPngLogoDark(): ByteArray {
+        return getLogo(dark = true)
+    }
+
+    @GetMapping(value = arrayOf("logoDark.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
+    @ResponseBody
+    @Throws(IOException::class)
+    fun getGifLogoDark(): ByteArray {
+        return getLogo(dark = true)
+    }
+
+    private fun getLogo(dark: Boolean = false): ByteArray {
+        val file = if (dark) logoFileDark else logoFile
+        if (file == null) {
+            val property = if (dark) "projectforge.logoFileDark" else "projectforge.logoFile"
+            log.error("Logo not configured. Can't download logo. You may configure a logo in projectforge.properties via $property=logo.png.")
             throw IOException("Logo not configured. Refer log files for further information.")
         }
         try {
-            return FileUtils.readFileToByteArray(logoFile)
+            return FileUtils.readFileToByteArray(file)
         } catch (ex: IOException) {
-            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(logoFile)}': ${ex.message}")
+            log.error("Error while reading logo file '${CanonicalFileUtils.absolutePath(file)}': ${ex.message}")
             throw ex
         }
     }
@@ -91,8 +114,24 @@ class LogoServiceRest {
             }
         }
 
+        /** Rest url for the optional dark-mode logo; null when no dark variant is configured. */
+        @JvmStatic
+        val logoUrlDark: String? by lazy {
+            val configurationService =
+                ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java)
+            configurationService.syntheticLogoNameDark.also { url ->
+                if (url.isNullOrBlank() && !configurationService.isLogoFileDarkValid && logoFileDark != null) {
+                    log.error("Dark logo file configured but not readable: '${CanonicalFileUtils.absolutePath(logoFileDark)}'.")
+                }
+            }
+        }
+
         private val logoFile: File? by lazy {
             ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObject
+        }
+
+        private val logoFileDark: File? by lazy {
+            ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService::class.java).logoFileObjectDark
         }
     }
 }

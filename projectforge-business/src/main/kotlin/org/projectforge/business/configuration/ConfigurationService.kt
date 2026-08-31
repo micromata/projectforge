@@ -156,6 +156,15 @@ open class ConfigurationService {
     protected set
 
   /**
+   * Optional dark-mode variant of [logoFileName]. The Next.js client shows it while the dark theme is active
+   * and falls back to the light logo where this is unset. Empty by default, so existing configurations keep
+   * working without the property.
+   */
+  @Value("\${projectforge.logoFileDark:}")
+  open var logoFileNameDark: String? = null
+    protected set
+
+  /**
    * Default is €
    */
   @Value("\${projectforge.currencySymbol}")
@@ -475,37 +484,69 @@ open class ConfigurationService {
       val logoFile = logoFileObject
       return logoFile != null && logoFile.canRead() && logoFile.isFile
     }
-  open val syntheticLogoName: String?
+
+  open val isLogoFileDarkValid: Boolean
     get() {
-      val logoFile = logoFileName
-      if (StringUtils.isBlank(logoFile)) {
-        return null
-      }
-      if (logoFile!!.endsWith(".png")) {
-        return "logo.png"
-      }
-      return if (logoFile.endsWith(".jpg") || logoFile.endsWith(".jpeg")) {
-        "logo.jpg"
-      } else "logo.gif"
+      val logoFile = logoFileObjectDark
+      return logoFile != null && logoFile.canRead() && logoFile.isFile
     }
+
+  open val syntheticLogoName: String?
+    get() = syntheticLogoNameFor(logoFileName, "logo")
+
+  /**
+   * Synthetic name of the dark logo (`logoDark.<ext>`), so that [org.projectforge.rest.pub.LogoServiceRest] can
+   * serve it under a stable url independent of the configured file name.
+   */
+  open val syntheticLogoNameDark: String?
+    get() = syntheticLogoNameFor(logoFileNameDark, "logoDark")
+
   open var logoFileObject: File? = null
     get() {
       if (field != null) {
         return field
       }
-      logoFileName?.let {
-        if (it.isNotBlank()) {
-          var file = File(it)
-          if (!file.isAbsolute) {
-            file = Paths.get(resourceDirName, "images", it).toFile()
-          }
-          field = file
-          return file
-        }
-      }
-      return null
+      field = resolveLogoFile(logoFileName)
+      return field
     }
     protected set
+
+  open var logoFileObjectDark: File? = null
+    get() {
+      if (field != null) {
+        return field
+      }
+      field = resolveLogoFile(logoFileNameDark)
+      return field
+    }
+    protected set
+
+  /** Maps a configured logo file name to its stable download name `<baseName>.<ext>`, or null if unset. */
+  private fun syntheticLogoNameFor(fileName: String?, baseName: String): String? {
+    if (StringUtils.isBlank(fileName)) {
+      return null
+    }
+    if (fileName!!.endsWith(".png")) {
+      return "$baseName.png"
+    }
+    return if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+      "$baseName.jpg"
+    } else "$baseName.gif"
+  }
+
+  /** Resolves a configured logo file name to a [File]: used as is when absolute, else under `<resourceDir>/images`. */
+  private fun resolveLogoFile(fileName: String?): File? {
+    fileName?.let {
+      if (it.isNotBlank()) {
+        var file = File(it)
+        if (!file.isAbsolute) {
+          file = Paths.get(resourceDirName, "images", it).toFile()
+        }
+        return file
+      }
+    }
+    return null
+  }
 
   companion object {
     @Transient

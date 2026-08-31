@@ -52,6 +52,8 @@ class SystemStatusRest {
         var messageOfTheDay: String? = null,
         var copyRightYears: String,
         var logoUrl: String? = null,
+        /** Optional dark-mode variant of [logoUrl]; null when no dark logo is configured. */
+        var logoUrlDark: String? = null,
         /**
          * True if `projectforge.development.mode` is set, so that a client can show that this instance
          * isn't a productive one (projectforge-next shows a marker in its logo row).
@@ -77,6 +79,7 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = systemStatus.copyRightYears,
             logoUrl = LogoServiceRest.logoUrl,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
             startTimeUTC = Date(systemStatus.startTimeMillis)
@@ -102,6 +105,7 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = "2001-${Year.now()}",
             logoUrl = LogoServiceRest.logoUrl,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
             startTimeUTC = Date(0L)
