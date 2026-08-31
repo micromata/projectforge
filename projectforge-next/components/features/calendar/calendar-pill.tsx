@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDebouncedApply } from "@/components/data-table/use-debounced-apply";
 import { cn } from "@/lib/utils";
 import type { StyledTeamCalendar } from "@/lib/rs/calendar-types";
 import { CalendarStylePopover } from "./calendar-style-popover";
@@ -23,8 +24,9 @@ interface CalendarPillProps {
 /**
  * One chosen calendar in the select's trigger row. Its coloured body opens the style popover
  * (visibility + colour), the × removes it from the selection. A hidden calendar is struck through, the
- * way the legacy react-select override marked it. The colour is committed once on close, so dragging
- * across the palette is a single `changeStyle`.
+ * way the legacy react-select override marked it. A chosen colour takes effect at once — the popover
+ * stays open — debounced only so a drag across the native picker's slider settles into one
+ * `changeStyle` rather than one call per intermediate shade.
  */
 export function CalendarPill({
   calendar,
@@ -36,22 +38,20 @@ export function CalendarPill({
   const id = calendar.id;
   const title = calendar.title ?? "";
   const bgColor = calendar.style?.bgColor ?? "";
-  // The colour the popover is showing; committed to the backend only when it closes.
+  // The colour the popover is showing; applied live once it settles (see below).
   const [pendingColor, setPendingColor] = useState(bgColor);
-  const committed = useRef(bgColor);
+
+  // Commit the chosen colour as soon as it settles, comparing against the committed `bgColor` so our
+  // own applied colour coming back does not re-fire and an external change wins over a stale draft.
+  useDebouncedApply(pendingColor, bgColor, (color) => {
+    if (id != null && color) onChangeStyle(id, color);
+  });
 
   if (id == null) return null;
 
+  // Start each opening from the calendar's current colour, in case it changed underneath us.
   const onOpenChange = (open: boolean) => {
-    if (open) {
-      setPendingColor(bgColor);
-      committed.current = bgColor;
-      return;
-    }
-    if (pendingColor && pendingColor !== committed.current) {
-      committed.current = pendingColor;
-      onChangeStyle(id, pendingColor);
-    }
+    if (open) setPendingColor(bgColor);
   };
 
   return (
