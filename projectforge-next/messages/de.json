@@ -110,6 +110,12 @@
     "back": "Zurück",
     "forward": "Vor"
   },
+  "theme": {
+    "label": "Erscheinungsbild",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
   "unsavedChanges": {
     "title": "Ungespeicherte Änderungen",
     "confirm": "Verlassen",

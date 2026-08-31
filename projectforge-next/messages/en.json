@@ -110,6 +110,12 @@
     "back": "Back",
     "forward": "Forward"
   },
+  "theme": {
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "unsavedChanges": {
     "title": "Unsaved changes",
     "confirm": "Leave page",
