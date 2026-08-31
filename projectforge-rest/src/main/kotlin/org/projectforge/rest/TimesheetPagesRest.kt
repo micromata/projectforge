@@ -798,7 +798,12 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             UIFilterObjectElement(
                 "task",
                 label = translate("task"),
-                autoCompletion = AutoCompletion<Long>(url = AutoCompletion.getAutoCompletionUrl("task/tree")),
+                // Marked TASK so the next frontend swaps the plain type-ahead for the structure-tree
+                // picker and shows the task's path in the filter pill (FilterTaskField).
+                autoCompletion = AutoCompletion<Long>(
+                    url = AutoCompletion.getAutoCompletionUrl("task/tree"),
+                    type = AutoCompletion.Type.TASK.name,
+                ),
             ).also { it.defaultFilter = true }
         )
         // The two options of the legacy list form (TimesheetListForm): search the picked task including its

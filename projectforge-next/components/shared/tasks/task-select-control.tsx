@@ -17,6 +17,11 @@ export interface TaskSelectControlProps {
   ariaLabel: string;
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * Show the link into the task's own edit page. On by default; a filter turns it off, where leaving the
+   * list to edit a structure element makes no sense (see FilterTaskField).
+   */
+  showEditLink?: boolean;
   /** Open the tree — the caller owns the dialog, since it also owns where the value goes. */
   onOpen: () => void;
   /** An ancestor was picked from the path, or the selection was cleared. */
@@ -35,6 +40,7 @@ export function TaskSelectControl({
   taskId,
   ariaLabel,
   disabled,
+  showEditLink = true,
   onOpen,
   onSelect,
 }: TaskSelectControlProps) {
@@ -78,7 +84,7 @@ export function TaskSelectControl({
         <HugeiconsIcon icon={Edit02Icon} size={14} />
       </Button>
       {/* Leads to the task itself, where its timesheets are — see TaskEditLink. */}
-      <TaskEditLink taskId={taskId} />
+      {showEditLink && <TaskEditLink taskId={taskId} />}
     </div>
   );
 }
