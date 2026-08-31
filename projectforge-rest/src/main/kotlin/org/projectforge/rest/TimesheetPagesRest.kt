@@ -836,10 +836,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             periodEntry.synthetic = true
             // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that
             // began before the window but runs into it is kept — the same predicate TimesheetDao.buildQueryFilter
-            // builds. The DATE picker sends day-only bounds; widen them to the whole day in the user's zone
-            // (begin of the from-day, end of the to-day) so both edges are inclusive.
-            val periodStart = PFDateTimeUtils.parseAndCreateDateTime(periodEntry.value.fromValue)?.beginOfDay?.utilDate
-            val periodEnd = PFDateTimeUtils.parseAndCreateDateTime(periodEntry.value.toValue)?.endOfDay?.utilDate
+            // builds. The DATE picker sends day-only bounds (`yyyy-MM-dd`, no time of day); widen them to the whole
+            // day in the user's zone (begin of the from-day, end of the to-day) so both edges are inclusive.
+            // Parsed via PFDayUtils.parseDate, not parseAndCreateDateTime: the latter parses to null for a string
+            // without a time of day (DateParser with parseLocalDateIfNoTimeOfDayGiven=false), which would drop both
+            // bounds and show every sheet.
+            val periodStart = PFDayUtils.parseDate(periodEntry.value.fromValue)?.let { PFDateTime.from(it).beginOfDay.utilDate }
+            val periodEnd = PFDayUtils.parseDate(periodEntry.value.toValue)?.let { PFDateTime.from(it).endOfDay.utilDate }
             if (periodStart != null) {
                 target.add(QueryFilter.ge("stopTime", periodStart))
             }
