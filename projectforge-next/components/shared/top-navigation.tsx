@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMenu } from "@/hooks/use-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useThemeSync } from "@/hooks/use-theme-sync";
 import { logout } from "@/lib/rs/client";
 import { Menubar } from "@/components/ui/menubar";
 import { MainMenuDropdown } from "@/components/shared/main-menu-dropdown";
@@ -16,6 +17,8 @@ export function TopNavigation() {
   const { user } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  // Apply the user's server-stored light/dark choice once they're authenticated.
+  useThemeSync();
 
   async function handleLogout() {
     await logout();
