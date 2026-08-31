@@ -17,9 +17,8 @@ interface CalendarStylePopoverProps {
 
 /**
  * The body of a calendar pill's popover: whether the calendar is shown, and in which colour. Purely
- * presentational — the visibility toggle takes effect at once (`setVisibility`), while the chosen
- * colour is only reported here; the pill commits it once, when the popover closes, so a run over the
- * palette is one `changeStyle` and not one per swatch (see calendar-pill).
+ * presentational — the visibility toggle takes effect at once (`setVisibility`), and the chosen colour
+ * is reported up on every change; the pill applies it live, debounced (see calendar-pill).
  */
 export function CalendarStylePopover({
   title,
