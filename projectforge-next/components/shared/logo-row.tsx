@@ -5,12 +5,7 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { CustomerLogo } from "@/components/shared/customer-logo";
 import { DevelopmentMarker } from "@/components/shared/development-marker";
-// A static import rather than a file in public/: next's image loader rewrites this to
-// /next/_next/static/media/<name>.<hash>.png, because assetPrefix defaults to basePath - so the url
-// is right in dev and in the static export alike. `next/image` is not an option: with
-// output: "export" and the default loader the export fails unless images.unoptimized is set, and for
-// a 65x43 raster it would buy nothing.
-import projectForgeLogo from "./projectforge-logo.png";
+import { ProjectForgeLogo } from "@/components/shared/projectforge-logo";
 
 interface LogoRowProps {
   /** False where the row should stay put — a page that does not scroll has nothing to yield to. */
@@ -49,20 +44,8 @@ export function LogoRow({ collapsible = true }: LogoRowProps) {
     >
       <CustomerLogo />
       <DevelopmentMarker />
-      {/* eslint-disable-next-line @next/next/no-img-element -- see the import above: next/image is
-          incompatible with output: "export" here, and this is a fixed-size raster that needs no
-          optimisation. */}
-      <img
-        src={projectForgeLogo.src}
-        width={projectForgeLogo.width}
-        height={projectForgeLogo.height}
-        alt={t("projectforge")}
-        // ml-auto keeps the wordmark right-aligned even with no customer logo on the left. The plate
-        // in dark mode is deliberate: the mark is a raster of grey text and a red flame, which reads
-        // faintly on the dark background, and no filter saves it - inverting turns the flame cyan.
-        // A proper dark or vector asset would replace this.
-        className="ml-auto rounded-sm dark:bg-white/90 dark:px-1.5 dark:py-0.5"
-      />
+      {/* ml-auto keeps the wordmark right-aligned even with no customer logo on the left. */}
+      <ProjectForgeLogo className="ml-auto" label={t("projectforge")} />
     </div>
   );
 }

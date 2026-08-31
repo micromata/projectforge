@@ -215,6 +215,8 @@ export interface SystemStatus {
   releaseYear: string;
   copyRightYears: string;
   logoUrl?: string;
+  /** Optional dark-mode variant of {@link logoUrl}; absent when no dark logo is configured. */
+  logoUrlDark?: string;
   /** `projectforge.development.mode` of the instance — the flag behind DevelopmentMarker. */
   developmentMode?: boolean;
   setupRedirectUrl?: string;

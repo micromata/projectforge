@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.calendar.CalendarEventColorScheme
 import org.projectforge.business.calendar.CalendarStyle
 
@@ -40,6 +41,13 @@ class CalendarSettings {
   var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
   var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
   var colorScheme: CalendarEventColorScheme? = CalendarEventColorScheme.STANDARD
+
+  /**
+   * Transient, per-request: the client's resolved page theme (see CalendarStyle.getTextColor). Not a stored
+   * setting, so it is neither persisted nor cloned — buildEvents sets it from the events request's darkMode.
+   */
+  @JsonIgnore
+  var darkMode: Boolean = false
 
   val timesheetsColorOrDefault: String
     get() = timesheetsColor ?: TIMESHEETS_DEFAULT_COLOR

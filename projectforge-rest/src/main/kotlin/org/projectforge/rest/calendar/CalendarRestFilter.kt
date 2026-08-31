@@ -71,7 +71,13 @@ class CalendarRestFilter(
    * The browsers time zone is needed for BigCalendar if the user's timezone of the server
    * differs from the browsers timezone. BigCalendar doesn't support the setting of a timezone.
    */
-  var timeZone: String? = null
+  var timeZone: String? = null,
+  /**
+   * The client's resolved page theme (dark vs. light). Only the client knows it — "system" resolves via the
+   * browser's prefers-color-scheme — so it is sent per request and drives the transparent scheme's text color
+   * (see CalendarStyle.getTextColor). Null/false means light.
+   */
+  var darkMode: Boolean? = null
 ) {
   /**
    * The set [activeCalendarIds] may contain a null value after deserialization. This will be removed by calling this

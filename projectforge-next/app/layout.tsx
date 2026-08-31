@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Archivo_Narrow,
+  Geist_Mono,
+  Plus_Jakarta_Sans,
+  Roboto_Condensed,
+} from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { LocaleProvider } from "@/i18n/locale-provider";
 import { DEFAULT_LOCALE } from "@/i18n/config";
@@ -18,6 +23,23 @@ const jakarta = Plus_Jakarta_Sans({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Only for the ProjectForge wordmark (see ProjectForgeLogo): a bold, italic narrow sans that
+// approximates the original logo lettering, with Roboto Condensed as the documented fallback (the
+// wordmark chains both variables, see the .wordmark-font rule in globals.css).
+const archivoNarrow = Archivo_Narrow({
+  variable: "--font-condensed",
+  subsets: ["latin"],
+  weight: ["700"],
+  style: ["italic"],
+});
+
+const robotoCondensed = Roboto_Condensed({
+  variable: "--font-condensed-fallback",
+  subsets: ["latin"],
+  weight: ["700"],
+  style: ["italic"],
 });
 
 export const metadata: Metadata = {
@@ -40,6 +62,8 @@ export default function RootLayout({
         "antialiased",
         jakarta.variable,
         geistMono.variable,
+        archivoNarrow.variable,
+        robotoCondensed.variable,
         "font-sans"
       )}
     >
