@@ -33,6 +33,13 @@ export interface FavoritesMenuProps {
   label?: string;
   /** Renders the trigger label beside the icon rather than as an icon-only button. */
   showLabel?: boolean;
+  /**
+   * Open as a modal layer. Required when the menu lives inside a modal dialog (the timesheet edit
+   * form): a non-modal popover stays outside the dialog's scroll lock (react-remove-scroll), so the
+   * wheel never reaches the favorites list and only the scrollbar can be dragged. Defaults to false
+   * for standalone use (calendar filters), where a modal scroll lock would be unwanted.
+   */
+  modal?: boolean;
   className?: string;
 }
 
@@ -57,6 +64,7 @@ export function FavoritesMenu({
   header,
   label,
   showLabel,
+  modal = false,
   className,
 }: FavoritesMenuProps) {
   const t = useTranslations();
@@ -71,7 +79,7 @@ export function FavoritesMenu({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           type="button"
