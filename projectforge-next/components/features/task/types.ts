@@ -78,6 +78,8 @@ export interface TaskDetail {
   kost2BlackWhiteList?: string | null;
   kost2IsBlackList?: boolean | null;
   protectionOfPrivacy?: boolean | null;
+  /** Inherited by the task's subtree — lets a user's time sheets here overlap those of other projects (shared costs). */
+  allowTimeOverlap?: boolean | null;
   ganttPredecessorOffset?: number | null;
   ganttRelationType?: GanttRelationType | null;
   ganttObjectType?: GanttObjectType | null;

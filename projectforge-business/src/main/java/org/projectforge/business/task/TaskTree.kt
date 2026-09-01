@@ -312,6 +312,19 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         return node?.getProjekt()
     }
 
+    /**
+     * @param taskId
+     * @return true, if the task or any ancestor task is marked as a shared cost element (allowing time sheet overlap).
+     * @see TaskNode.isTimeOverlapAllowed
+     */
+    fun isTimeOverlapAllowed(taskId: Long?): Boolean {
+        if (taskId == null) {
+            return false
+        }
+        val node = getTaskNodeById(taskId)
+        return node?.isTimeOverlapAllowed() == true
+    }
+
     fun internalSetProject(taskId: Long, projekt: ProjektDO?) {
         val node = getTaskNodeById(taskId)
             ?: throw InternalErrorException("Could not found task with id $taskId in internalSetProject")

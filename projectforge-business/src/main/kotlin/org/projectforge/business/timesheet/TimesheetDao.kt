@@ -437,7 +437,12 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
      * update (also undelete). For time collision detection deleted time sheets are ignored.
      *
-     * @return The existing time sheet with the time period collision.
+     * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two involved tasks is marked
+     * as a shared cost element ([TaskDO.allowTimeOverlap], inherited from ancestor tasks) AND the two time sheets don't
+     * belong to the same project (booking overlapping time twice inside the same project is always a forbidden double
+     * booking). See [TimesheetOverlapUtils] for the purpose (cost sharing between projects/customers).
+     *
+     * @return true, if at least one overlapping time sheet is a forbidden collision.
      */
     open fun hasTimeOverlap(timesheet: TimesheetDO, throwException: Boolean): Boolean {
         val begin = System.currentTimeMillis()
@@ -452,25 +457,45 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             queryFilter.add(ne("id", timesheet.id!!))
         }
         val list = select(queryFilter)
-        if (list.isNotEmpty()) {
-            val ts = list[0]
+        // Find the first overlapping time sheet that is a real (forbidden) collision. Overlaps with shared cost
+        // elements in other projects are allowed.
+        val collision = list.firstOrNull { !isOverlapAllowed(timesheet, it) }
+        val end = System.currentTimeMillis()
+        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
+        if (collision != null) {
             if (throwException) {
-                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $ts")
-                val startTime = DateHelper.formatIsoTimestamp(ts.startTime)
-                val stopTime = DateHelper.formatIsoTimestamp(ts.stopTime)
+                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $collision")
+                val startTime = DateHelper.formatIsoTimestamp(collision.startTime)
+                val stopTime = DateHelper.formatIsoTimestamp(collision.stopTime)
                 throw UserException(
                     "timesheet.error.timeperiodOverlapDetection", MessageParam(
-                        ts.id
+                        collision.id
                     ), MessageParam(startTime), MessageParam(stopTime)
                 )
             }
-            val end = System.currentTimeMillis()
-            log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
             return true
         }
-        val end = System.currentTimeMillis()
-        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
         return false
+    }
+
+    /**
+     * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of the involved
+     * tasks is a shared cost element (inherited) and the two time sheets don't belong to the same project.
+     */
+    private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        val released = taskTree.isTimeOverlapAllowed(timesheet.taskId) || taskTree.isTimeOverlapAllowed(other.taskId)
+        if (!released) {
+            return false
+        }
+        val projektId = getProjektId(timesheet)
+        val otherProjektId = getProjektId(other)
+        // Same project => forbidden double booking. Time sheets without project (internal tasks) never count as the
+        // same project.
+        return projektId == null || projektId != otherProjektId
+    }
+
+    private fun getProjektId(timesheet: TimesheetDO): Long? {
+        return taskTree.getProjekt(timesheet.taskId)?.id ?: timesheet.kost2?.projekt?.id
     }
 
     /**

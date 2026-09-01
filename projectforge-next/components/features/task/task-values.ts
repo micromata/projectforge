@@ -6,9 +6,9 @@ import type { TaskDetail } from "./types";
  * `undefined`; every value is normalised here, so no field ever holds `undefined` — which a controlled
  * input would read as "uncontrolled" and the schema as a missing value.
  *
- * The two flags become `false` rather than null: they are Kotlin primitives on `TaskDO`
- * (`kost2IsBlackList`, `protectionOfPrivacy`), so "not set" is not a value the backend can hold, and
- * the DTO only reports them as nullable because it copies through a `Boolean?`.
+ * The three flags become `false` rather than null: they are Kotlin primitives on `TaskDO`
+ * (`kost2IsBlackList`, `protectionOfPrivacy`, `allowTimeOverlap`), so "not set" is not a value the
+ * backend can hold, and the DTO only reports them as nullable because it copies through a `Boolean?`.
  */
 export function toFormValues(task: TaskDetail): TaskValues {
   return {
@@ -32,6 +32,7 @@ export function toFormValues(task: TaskDetail): TaskValues {
     kost2BlackWhiteList: task.kost2BlackWhiteList ?? null,
     kost2IsBlackList: task.kost2IsBlackList ?? false,
     protectionOfPrivacy: task.protectionOfPrivacy ?? false,
+    allowTimeOverlap: task.allowTimeOverlap ?? false,
     workpackageCode: task.workpackageCode ?? null,
     ganttPredecessorOffset: task.ganttPredecessorOffset ?? null,
     ganttRelationType: task.ganttRelationType ?? null,

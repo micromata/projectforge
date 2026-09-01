@@ -86,6 +86,14 @@ export function FinanceSection({ id }: { id: number | null }) {
             : t("task.error.protectionOfPrivacyReadonly")
         }
       />
+      {/* Not access-gated: a structural property of the task (inherited by its subtree), editable by
+          whoever may edit the task at all — unlike the four fields above, which the DAO reserves for
+          the finance group or the project's manager. */}
+      <CheckboxField
+        name="allowTimeOverlap"
+        label={label("allowTimeOverlap")}
+        hint={t("task.allowTimeOverlap.tooltip")}
+      />
     </div>
   );
 }
