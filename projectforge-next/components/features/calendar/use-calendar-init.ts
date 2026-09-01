@@ -8,6 +8,7 @@ import type {
   CalendarFilter,
   CalendarInit,
   CalendarInitPatch,
+  StyledTeamCalendar,
   UserRef,
 } from "@/lib/rs/calendar-types";
 
@@ -81,13 +82,46 @@ export function useInitPatchRunner() {
     [queryClient]
   );
 
+  /**
+   * Flips one calendar's `visible` flag in the cached `activeCalendars` at once, so a hide/show shows
+   * immediately and does not depend on the server's `activeCalendars` echo — which is derived from the
+   * lazily-persisted `calendarIds` and would be short a just-added, not-yet-persisted calendar (see the
+   * `keepActiveCalendars` note on `run`, and `setVisibility` in the mutations hook).
+   */
+  const setLocalVisibility = useCallback(
+    (calendarId: number, visible: boolean) => {
+      queryClient.setQueryData<CalendarInit>(CALENDAR_INIT_KEY, (prev) =>
+        prev?.activeCalendars
+          ? {
+              ...prev,
+              activeCalendars: prev.activeCalendars.map(
+                (c): StyledTeamCalendar =>
+                  c.id === calendarId ? { ...c, visible } : c
+              ),
+            }
+          : prev
+      );
+    },
+    [queryClient]
+  );
+
   const run = useCallback(
     async (
       promise: Promise<CalendarInitPatch>,
-      opts?: { events?: boolean }
+      opts?: { events?: boolean; keepActiveCalendars?: boolean }
     ): Promise<void> => {
       try {
-        applyPatch(await promise);
+        const patch = await promise;
+        // `keepActiveCalendars` drops the server's `activeCalendars` from the patch: it is derived from
+        // the lazily-persisted `calendarIds` and would be short (or empty) right after a local add,
+        // wiping pills. The caller keeps its own membership (already flipped via `setLocalVisibility`).
+        if (opts?.keepActiveCalendars && patch && "activeCalendars" in patch) {
+          const rest = { ...patch };
+          delete rest.activeCalendars;
+          applyPatch(rest);
+        } else {
+          applyPatch(patch);
+        }
         if (opts?.events) await invalidateEvents();
       } catch (err) {
         toast.error(
@@ -98,5 +132,12 @@ export function useInitPatchRunner() {
     [applyPatch, invalidateEvents]
   );
 
-  return { applyPatch, invalidateEvents, patchFilter, patchTimesheetUser, run };
+  return {
+    applyPatch,
+    invalidateEvents,
+    patchFilter,
+    patchTimesheetUser,
+    setLocalVisibility,
+    run,
+  };
 }

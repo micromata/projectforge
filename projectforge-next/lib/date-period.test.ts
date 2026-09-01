@@ -9,9 +9,11 @@ import {
 
 /** The vocabulary itself: which kinds there are, and how one is looked up. What each of them computes is in ./date-period-kinds.test.ts. */
 describe("PERIOD_KINDS", () => {
-  it("offers the calendar month, the four terms and the year to date", () => {
-    // The order a picker shows its selection in: the lengths rise, and "Jahr bis heute" comes after "Jahr".
+  it("offers the calendar week and month, the four terms and the year to date", () => {
+    // The order a picker shows its selection in: the calendar week and month first, then the terms
+    // rising in length, and "Jahr bis heute" after "Jahr".
     expect(PERIOD_KINDS.map((kind) => kind.id)).toEqual([
+      "week",
       "month",
       "termWeek",
       "termMonth",

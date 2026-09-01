@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektStatus
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.framework.i18n.translate
 
 class Project(
@@ -66,7 +67,10 @@ class Project(
 
     override fun copyFromMinimal(src: ProjektDO) {
         super.copyFromMinimal(src)
-        this.customer = src.kunde?.let {
+        // Resolve the customer through the cache: src may be a detached/cached ProjektDO whose kunde is
+        // a lazy proxy. KundeDO.id is @Transient and initializes the whole proxy on access (-> "statement
+        // closed"), so build the Customer from the fully initialized cached KundeDO instead.
+        this.customer = KundeCache.instance.getKundeIfNotInitialized(src.kunde)?.let {
             Customer(it)
         }
     }

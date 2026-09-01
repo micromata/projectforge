@@ -88,7 +88,7 @@ export function ReminderSection({ className }: { className?: string }) {
     >
       <FieldShell
         name="reminderActionType"
-        label={t("plugins.teamcal.event.reminder")}
+        label={t("plugins.teamcal.event.reminder.title")}
         invalid={false}
         errors={[]}
         ids={ids}

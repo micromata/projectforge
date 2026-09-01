@@ -5,8 +5,10 @@ import {
   EntityAutocomplete,
   type EntityRef,
 } from "@/components/shared/entity-autocomplete";
+import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import type { FilterElement } from "@/lib/rs/types";
 import { TextField, type FilterInputProps } from "./filter-field-inputs";
+import { FilterTaskField } from "./filter-task-field";
 
 /**
  * An OBJECT filter (org.projectforge.ui.filter.UIFilterObjectElement): picks the entity to filter
@@ -25,6 +27,27 @@ export function FilterObjectField({
   autoFocus,
   onSubmit,
 }: FilterInputProps & { element: FilterElement }) {
+  // Only a user filter offers the „select me" smiley: it picks the logged-in user with one click, as
+  // the form's [EntityAutocompleteField] does for a user field. A filter on an employee, project or
+  // customer takes a different entity's id, for which the current user reference means nothing.
+  const me = useCurrentUserRef();
+  const selectMe = element.autoCompletion?.type === "USER" ? me : null;
+
+  // A task filter (AutoCompletion.Type.TASK) picks from the structure tree, not a flat combobox — a
+  // task title only means something in its place in the structure (see [FilterTaskField]).
+  if (element.autoCompletion?.type === "TASK") {
+    return (
+      <FilterTaskField
+        value={value}
+        onChange={onChange}
+        label={label}
+        id={id}
+        autoFocus={autoFocus}
+        onSubmit={onSubmit}
+      />
+    );
+  }
+
   const url = element.autoCompletion?.url;
 
   // No lookup url means there is nothing to search: fall back to the plain text input, whose value
@@ -54,6 +77,7 @@ export function FilterObjectField({
         minChars={element.autoCompletion?.minChars}
         autoFocus={autoFocus}
         aria-label={label}
+        selectMe={selectMe}
         value={entityRefOf(value)}
         onChange={(entity) =>
           onChange(

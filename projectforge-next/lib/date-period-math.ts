@@ -86,6 +86,33 @@ export function endOfMonth(iso: string): string {
 }
 
 /**
+ * First day of the week `steps` weeks from the one `iso` lies in, aligned to the user's own first
+ * weekday (`weekStartsOn`, 0 = Sunday … 6 = Saturday — the react-day-picker form, see FormatContext).
+ *
+ * Defaults to Monday when the setting is absent: the German ISO calendar week is Monday-based and
+ * matches the list's KW column, the same fallback the date picker takes (see date-input-calendar.tsx).
+ */
+export function firstOfWeek(
+  iso: string,
+  weekStartsOn: number | undefined,
+  steps = 0
+): string {
+  const start = weekStartsOn ?? 1;
+  const { year, month, day } = partsOf(iso);
+  const weekday = new Date(year, month - 1, day).getDay();
+  const offset = (((weekday - start) % 7) + 7) % 7;
+  return plusDays(iso, -offset + steps * 7);
+}
+
+/** Last day (begin + 6) of the week `iso` lies in, aligned the same way. */
+export function endOfWeek(
+  iso: string,
+  weekStartsOn: number | undefined
+): string {
+  return plusDays(firstOfWeek(iso, weekStartsOn), 6);
+}
+
+/**
  * Whether the day and month of `iso` come before those of `other`, the year ignored — the question
  * "is today still inside the year that began on the anchor's day?" (see the `yearToDate` kind).
  */

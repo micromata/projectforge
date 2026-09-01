@@ -123,7 +123,7 @@ export function FilterPillShell({
         </HintTooltip>
         <PopoverContent
           align="start"
-          className={cn("w-72 space-y-2 p-3", contentClassName)}
+          className={cn("relative w-72 space-y-2 p-3", contentClassName)}
           // Radix would focus the first tabbable child on open, whatever the field asked for. Which
           // field takes the cursor — if any — is the field's decision: it is the one that knows that
           // focusing a [DateInput] opens a calendar over the rest of this popover ([RangeField] opts
@@ -138,7 +138,18 @@ export function FilterPillShell({
             (event.currentTarget as HTMLElement | null)?.focus();
           }}
         >
-          {children}
+          {/* A close cross top-right, on every filter's popover: edits apply live, so closing simply
+              leaves the panel with what is applied (unlike "Abbrechen", which restores what it opened
+              with). Room is kept for it with the label's own padding, so it never sits on the content. */}
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label={t("close")}
+            className="absolute right-2 top-2 flex size-5 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-primary/20 hover:text-foreground"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+          </button>
+          <div className="pr-6">{children}</div>
           <div className="flex justify-end gap-1">
             <Button
               variant="ghost"

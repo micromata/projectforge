@@ -66,11 +66,23 @@ export function FilterPill({
       }
     : undefined;
 
+  // The pill truncates its text, so the tooltip carries the full value — a long task path is only
+  // recognizable that way. With no value it falls back to the field's description (element.tooltip).
+  const label = element.label ?? element.id;
+  const valueText = describeFilterValue(value, element, ctx);
+
+  // A task filter's value names the whole path ("A | B | Task"); the pill shows only the task itself,
+  // since the ancestors would truncate away the one segment that identifies it. The full path stays in
+  // the tooltip and the popover. Its picker needs a wider popover for the breadcrumb and the controls.
+  const isTask =
+    element.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
+  const pillText = isTask ? taskLeafOf(valueText) : valueText;
+
   return (
     <FilterPillShell
-      label={element.label ?? element.id}
-      text={describeFilterValue(value, element, ctx)}
-      tooltip={element.tooltip}
+      label={label}
+      text={pillText}
+      tooltip={valueText ? `${label}: ${valueText}` : element.tooltip}
       active={!isEmptyFilterValue(value)}
       onStep={onStep}
       stepPreviousLabel={t(
@@ -89,7 +101,7 @@ export function FilterPill({
       removable={removable}
       onCancel={cancel}
       onDelete={onDelete}
-      contentClassName={isPeriod ? "w-80" : undefined}
+      contentClassName={isPeriod ? "w-80" : isTask ? "w-96" : undefined}
     >
       <FilterField
         element={element}
@@ -124,4 +136,10 @@ export function FilterPill({
     save(baseline.current);
     onOpenChange(false);
   }
+}
+
+/** The last segment of a " | "-joined task path — the task itself, without its ancestors. */
+function taskLeafOf(path: string): string {
+  const segments = path.split(" | ");
+  return segments[segments.length - 1] || path;
 }

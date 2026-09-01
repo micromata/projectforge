@@ -21,6 +21,7 @@ import { PERIOD_KINDS, TERM_KINDS } from "./date-period-kinds";
  */
 
 export type PeriodKindId =
+  | "week"
   | "month"
   | "yearToDate"
   | "termWeek"

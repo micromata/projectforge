@@ -3,12 +3,10 @@
 import { notFound } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useRouteParams } from "@/hooks/use-route-params";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { fetchInitialList } from "@/lib/rs/client";
 import { PageShell } from "@/components/shared/page-shell";
 import { DynamicPage } from "@/components/dynamic/dynamic-page";
+import { ListResultInfo } from "@/components/shared/list/list-result-info";
 import { isHandBuilt } from "@/lib/hand-built-categories";
 
 /**
@@ -63,22 +61,10 @@ export function DynamicListPageClient() {
     <PageShell>
       <DynamicPage response={response} category={category} queryKey={queryKey}>
         {resultInfo && (
-          <div className="mt-4 rounded-md bg-sky-50 px-4 py-3 text-sm dark:bg-sky-950">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                ul: ({ children }) => (
-                  <ul className="list-disc pl-4 space-y-1">{children}</ul>
-                ),
-                li: ({ children }) => (
-                  <li className="text-muted-foreground">{children}</li>
-                ),
-              }}
-            >
-              {resultInfo}
-            </ReactMarkdown>
-          </div>
+          <ListResultInfo
+            info={resultInfo}
+            className="mt-4 rounded-md bg-sky-50 px-4 py-3 dark:bg-sky-950"
+          />
         )}
       </DynamicPage>
     </PageShell>

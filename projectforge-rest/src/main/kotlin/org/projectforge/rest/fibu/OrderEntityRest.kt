@@ -56,12 +56,14 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.dto.Auftrag
 import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -414,6 +416,20 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         label = translate("fibu.periodOfPerformance"),
       )
     )
+    // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
+    // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
+    // user picker each, as the edit form offers — a person is searched by picking them, not by typing a
+    // name fragment. Consumed by the picked user's id in preProcessMagicFilter.
+    USER_FILTER_FIELDS.forEach { (property, i18nKey) ->
+      elements.removeIf { it is UIFilterElement && it.id.startsWith("$property.") }
+      elements.add(
+        UIFilterObjectElement(
+          property,
+          label = translate(i18nKey),
+          autoCompletion = AutoCompletion.getAutoCompletion4Users(),
+        )
+      )
+    }
   }
 
   override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<AuftragDO>>? {
@@ -448,6 +464,18 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     fakturiertFilter?.value?.values?.let {
       if (it.isNotEmpty()) {
         filters.add(AuftragFakturiertFilter.create(it))
+      }
+    }
+    // The three person pickers (see addMagicFilterElements) send the chosen user as `value.id`; turn each
+    // into an equality on the reference's id, as AuftragDao filters contactPerson/projectManager by the
+    // whole user. Synthetic, so the generic processor doesn't also try to match the bare property name.
+    USER_FILTER_FIELDS.forEach { (property, _) ->
+      source.entries.find { it.field == property }?.let { entry ->
+        entry.synthetic = true
+        val userId = entry.value.id ?: entry.value.value?.toLongOrNull()
+        if (userId != null) {
+          target.add(QueryFilter.eq("$property.id", userId))
+        }
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
@@ -1035,6 +1063,16 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
     /** The two date properties the combined filter replaces in the filter field list. */
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
+
+    /**
+     * The PFUserDO reference fields whose free-text name pills are replaced by a user picker, each with the
+     * i18n key of its label (see [addMagicFilterElements] and [preProcessMagicFilter]).
+     */
+    private val USER_FILTER_FIELDS = listOf(
+      "contactPerson" to "contactPerson",
+      "projectManager" to "fibu.projectManager",
+      "headOfBusinessManager" to "fibu.headOfBusinessManager",
+    )
 
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"

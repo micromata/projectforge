@@ -68,6 +68,16 @@ export const TIMESHEET_PAGE = definePage<
   // page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
   // aggregate hook over the full id list (see TimesheetPagesRest.aggregate, PageDef.serverPaging).
   serverPaging: true,
+  // The period filter pages a week at a time as well — a sheet is read by its week (the list's KW
+  // column), so "Woche" leads the arts before the calendar month, the terms and "Jahr bis heute"
+  // (see FilterPeriodKindsProvider; the default omits the week).
+  filterPeriodKinds: [
+    "week",
+    "month",
+    "termThreeMonths",
+    "termYear",
+    "yearToDate",
+  ],
   // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
   categoryKey: "menu.projectmanagement",
   titleKey: "menu.timesheetList",

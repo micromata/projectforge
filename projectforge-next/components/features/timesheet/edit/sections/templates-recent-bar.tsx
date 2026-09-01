@@ -34,6 +34,7 @@ export function TemplatesRecentBar() {
         favorites={favorites}
         label={t("timesheet.templates")}
         showLabel
+        modal
         className="h-7 shrink-0"
         onSelect={applyFavorite}
         onCreate={create}

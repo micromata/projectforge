@@ -84,6 +84,18 @@ class ResultSet<O : Any>(
 
     var paginationPageSize = magicFilter.paginationPageSize
 
+    /**
+     * True if the result was capped by the row limit, so more rows match the filter than were returned.
+     * A typed flag beside [resultInfo]: a hand built page in projectforge-next wants the fact, not the
+     * server's red-span markdown, so it can render the warning itself (see the list toolbar there).
+     *
+     * Derived for both paths: the non-paged [getList] returns the whole result, so a full page (size
+     * equals [MagicFilter.maxRows]) means the cap was hit; the paged [listPage] knows it exactly, from
+     * whether [totalSize] is the exact count ([totalSizeExact]).
+     */
+    var resultSetTruncated: Boolean = false
+        internal set
+
     init {
         if (origResultSet != null && selectedEntityIds == null) {
             selectedEntityIds = origResultSet.selectedEntityIds
@@ -91,9 +103,14 @@ class ResultSet<O : Any>(
         // Only for the non-paged path: there the page equals the whole result, so a full page means the cap
         // was hit. For a paged result the truncation is known exactly (totalSizeExact), and a full 50-row page
         // is the normal case, not a truncation.
-        if (offset == null && resultSet.size == magicFilter.maxRows) {
-            val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
-            resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
+        if (offset == null) {
+            if (resultSet.size == magicFilter.maxRows) {
+                resultSetTruncated = true
+                val msg = translateMsg("search.maxRowsExceeded", magicFilter.maxRows)
+                resultInfo = "<span style=\"color:red; font-weight: bold;\">$msg</span>"
+            }
+        } else {
+            resultSetTruncated = !totalSizeExact
         }
     }
 

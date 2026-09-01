@@ -214,10 +214,16 @@ export function DataTable<TData>({
   // already seeded, so this only puts the DOM focus on the body the keys are handled by, without a
   // click. preventScroll — the seeded row is brought into view by the keyboardFocusedRowId effect
   // below, so scrolling here too would jump twice.
+  //
+  // Gated on *whether* keyboardNav exists, not on its identity: the hook hands back a fresh object
+  // every render (see useTreeKeyboard), so depending on the object itself would re-run this on every
+  // render — and re-stealing the focus on each keystroke is what kept the search field to a single
+  // character before the tree grabbed the cursor back.
+  const hasKeyboardNav = keyboardNav != null;
   useEffect(() => {
-    if (!keyboardNav || !autoFocusKeyboard) return;
+    if (!hasKeyboardNav || !autoFocusKeyboard) return;
     bodyRef.current?.focus({ preventScroll: true });
-  }, [keyboardNav, autoFocusKeyboard]);
+  }, [hasKeyboardNav, autoFocusKeyboard]);
   // Keyboard navigation moves a focused row that the table has to keep on screen — but only when it
   // scrolls off, so arrowing between rows already visible doesn't jerk the viewport (see
   // scrollRowIntoView). The row must be in the document first, hence an effect and not the key handler.

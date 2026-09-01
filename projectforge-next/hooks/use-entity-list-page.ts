@@ -318,6 +318,18 @@ export function useEntityListPage<Row extends ListRow>({
     legacyUrl: meta.data?.legacyListPage,
     data: query.data,
     /**
+     * The result was capped by the backend's row limit, so more rows match than came back
+     * (see useMagicFilterQuery.truncated). Drives the toolbar's red truncation notice; `rowCount`
+     * is the cap that was hit.
+     */
+    truncated: query.truncated,
+    rowCount: query.rowCount,
+    /**
+     * The backend's markdown note about the result (`ResultSet.resultInfo`), shown under the table —
+     * for a hand built list the red truncation span (see ListResultInfo). Undefined when there is none.
+     */
+    resultInfo: query.resultInfo,
+    /**
      * The MagicFilter exactly as the list call sends it — what a list-level action has to post to act on
      * the same rows the table shows (see PageDef.listActions and the order book's exports).
      */
