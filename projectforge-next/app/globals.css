@@ -155,6 +155,13 @@
   --row-highlighted: rgba(255, 157, 1, 0.9);
 
   /*
+   * The matched part of a search term, wrapped in <mark> (see HighlightedText). A tint behind the
+   * text rather than the browser's solid-yellow block, so the match reads as an emphasis on the
+   * text and keeps its own colour. Its own token, not --warning: nothing here is questionable.
+   */
+  --search-match-bg: rgba(255, 203, 0, 0.5);
+
+  /*
    * A task's status, as the Wicket page paints it (projectforge-css.less:
    * .taskStatus_opened / .taskStatus_closed). "Not opened" stays the row's colour.
    */
@@ -266,6 +273,8 @@
   --row-grey: rgba(255, 255, 255, 0.04);
   /* Lightened, since the marker is drawn against the dark row rather than a white one */
   --row-highlighted: rgba(255, 183, 77, 0.95);
+  /* Fainter over the dark card, where a translucent yellow reads brighter than on white */
+  --search-match-bg: rgba(255, 203, 0, 0.35);
   --consumption-track: oklch(0.32 0 0);
 
   /* Wicket's status colours are mixed for print; lightened to stay readable here */
@@ -361,6 +370,18 @@
     inset 3px 0 0 var(--row-highlighted),
     inset 0 1px 0 var(--row-highlighted),
     inset 0 -1px 0 var(--row-highlighted);
+}
+
+/*
+ * The matched part of a search term (see HighlightedText). A tint behind the text keeping the
+ * text's own colour, so the match is emphasised without the browser's solid-yellow <mark> block,
+ * which would fight the row and drop the foreground in dark mode.
+ */
+.text-match {
+  background-color: var(--search-match-bg);
+  color: inherit;
+  border-radius: 0.125rem;
+  padding: 0 0.05em;
 }
 
 /* Legend swatches — same tokens applied to arbitrary inline elements. */

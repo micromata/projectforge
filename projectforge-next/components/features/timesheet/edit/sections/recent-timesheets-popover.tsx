@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { TimesheetDetail } from "../../types";
 
 export interface RecentTimesheetsPopoverProps {
@@ -170,6 +171,7 @@ export function RecentTimesheetsPopover({
                     key={entry.counter ?? searchText(entry)}
                     entry={entry}
                     columns={columns}
+                    query={query}
                     onSelect={() => {
                       onSelect(entry);
                       setOpen(false);
@@ -196,10 +198,13 @@ interface RecentColumn {
 function RecentRow({
   entry,
   columns,
+  query,
   onSelect,
 }: {
   entry: TimesheetDetail;
   columns: RecentColumn[];
+  /** The search term, highlighted in each cell (see HighlightedText). */
+  query: string;
   onSelect: () => void;
 }) {
   return (
@@ -223,7 +228,7 @@ function RecentRow({
             className="truncate px-2 py-1"
             title={value || undefined}
           >
-            {value}
+            <HighlightedText text={value} query={query} />
           </TableCell>
         );
       })}

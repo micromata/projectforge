@@ -238,6 +238,10 @@ export function useEntityListPage<Row extends ListRow>({
     manualSorting: true,
     manualPagination: pagedFromServer,
     getRowId: (row: Row) => String(row.id),
+    // The search string sent to Spring, so every text cell highlights where it matched (see
+    // TableMeta.highlight). Its MagicFilter syntax degrades safely — HighlightedText strips a word's
+    // `*`/quotes and a leftover operator just highlights nothing.
+    highlight: query.globalFilter,
   });
   useEffect(() => {
     tableRef.current = table;

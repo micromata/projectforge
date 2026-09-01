@@ -233,6 +233,12 @@ export function useTaskTree({
     /** Column defs, sort model and the grid-state urls — from the initial answer only. */
     grid: initial.data,
     filter: effective,
+    /**
+     * The search term the visible rows were actually filtered by — the debounced (or reset) value that
+     * drove the request, not the live keystroke. Used to highlight the match in the rows (see
+     * HighlightedText), where the live value could highlight a term the shown rows don't yet reflect.
+     */
+    searchTerm: searchString,
     setFilter,
     /**
      * Puts the filter back to what `TaskFilter.reset()` produces — Wicket's "Rücksetzen" button on the

@@ -49,6 +49,7 @@ export function TaskTreePanel({
     nodes,
     grid,
     filter,
+    searchTerm,
     setFilter,
     isLoading,
     isFetching,
@@ -91,6 +92,7 @@ export function TaskTreePanel({
           isLoading={isLoading}
           isFetching={isFetching}
           filter={filter}
+          searchTerm={searchTerm}
           onFilterChange={setFilter}
           onToggle={toggle}
           onSelect={select}
