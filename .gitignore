@@ -13,7 +13,6 @@ target.tgz
 *.pydevproject
 .project
 .metadata
-/bin/
 tmp/
 test-output
 /work/
