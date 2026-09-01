@@ -63,9 +63,15 @@ export function useEntityDetail<T>(
         ? fetchNew<T>(entity, params, signal)
         : fetchOne<T>(entity, id, signal),
     enabled: isNew || (Number.isFinite(id) && id > 0),
-    // A preset is a starting point, not shared state: refetching it would overwrite a form the user
-    // has already begun to fill in.
+    // A preset is a starting point, not shared state. While the add dialog is open the query keeps a
+    // continuous observer, so `staleTime: Infinity` (+ the two `refetch*: false`) hold it stable and
+    // stop a refetch from overwriting a form the user has already begun to fill in. `gcTime: 0` drops
+    // it the moment the dialog closes (observer count → 0), so *reopening* the add dialog re-reads the
+    // backend's preset instead of serving the frozen first response: that preset depends on live data
+    // — a timesheet's start rolls to the day's last booking's stop (TimesheetPagesRest.presetStartStopTime)
+    // — and was otherwise stale until a full page reload cleared the whole cache.
     staleTime: isNew ? Infinity : undefined,
+    gcTime: isNew ? 0 : undefined,
     refetchOnMount: isNew ? false : undefined,
     refetchOnWindowFocus: isNew ? false : undefined,
   });
