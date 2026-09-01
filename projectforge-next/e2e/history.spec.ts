@@ -22,10 +22,9 @@ const ENTITIES = [
     name: "book",
     seed: createBookWithHistory,
     // A tab of the edit page, not a page of its own: leaving the form would unmount it and throw
-    // away what was being filled in (see EditPageShell).
+    // away what was being filled in (see EditPageShell). The legacy `/{id}/history` deep-link was
+    // dropped (commit "Drop the dead history redirect routes"), so `?tab=history` is the only way in.
     historyPath: (book: SeededBook) => `/book/${book.id}?tab=history`,
-    /** The route the history used to have, which is still linked from bookmarks and mails. */
-    legacyPath: (book: SeededBook) => `/book/${book.id}/history`,
   },
 ];
 
@@ -86,22 +85,6 @@ test.describe("change history", () => {
       await expect(first).toHaveAttribute("aria-expanded", "true");
       await page.keyboard.press(" ");
       await expect(first).toHaveAttribute("aria-expanded", "false");
-    });
-
-    test(`${entity.name}: the old history url still leads to the history`, async ({
-      loggedInPage: page,
-    }) => {
-      // `/book/25/history` was a page of its own until the history became a tab. The url is in
-      // bookmarks and in mails, so it redirects (see EntityTabRedirect).
-      await goto(page, entity.legacyPath(seeded));
-      // A substring check, not a regexp: the path carries a `?`, which a regexp would read as a
-      // quantifier — and the base path in front of it is the config's business.
-      await expect
-        .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
-        .toContain(entity.historyPath(seeded));
-      await expect(
-        page.getByRole("listitem").first().getByRole("button")
-      ).toBeVisible();
     });
   }
 });

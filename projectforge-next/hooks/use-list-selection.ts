@@ -75,12 +75,27 @@ export function useListSelection({
   });
   const { selectedIds } = selection;
 
+  /**
+   * The filter the session is currently registered for. Guards the registration effect below against
+   * re-running `startSelection` when nothing about the registration changed — a `startSelection`
+   * rebuilds the whole session context and resets its `selectedIdList` (`MultiSelectionSupport
+   * .registerEntityIdsForSelection`, "Clear session"), so a redundant one only risks dropping the
+   * ticks it would then have to restate.
+   */
+  const registeredFilter = useRef<string | null>(null);
+
   // The restore itself decides whether it applies (it declines once the entity has an entry), so this
   // may run again when `listMeta` is refetched.
+  const serializedFilter = JSON.stringify(filter);
   useEffect(() => {
     if (!endpoint || !restoredIds?.length) return;
     restoreRows(entity, restoredIds);
-  }, [entity, endpoint, restoredIds, restoreRows]);
+    // A session that still has a selection is already registered for the filter the list just loaded
+    // with (both are the persisted magic filter); adopt that as the current registration so the
+    // effect below does not re-register — which, on a reload, would clear the very ids restored here
+    // and lose them if the reload interrupted it before the paired `select` landed.
+    registeredFilter.current ??= serializedFilter;
+  }, [entity, endpoint, restoredIds, restoreRows, serializedFilter]);
 
   // A list opened *for* a mass update comes with the mode already on (see MULTI_SELECTION_PARAM).
   const requested = useMultiSelectionRequest();
@@ -105,10 +120,24 @@ export function useListSelection({
 
   // Registering what may be picked: on entering the mode, and again whenever the filter changed while
   // it is on — the registered set is the result set, and that is what the filter decides.
-  const serializedFilter = JSON.stringify(filter);
   useEffect(() => {
     if (!active || !endpoint) return;
-    const running = startMultiSelection(entity, filter)
+    // Nothing to do when the session is already registered for this filter — a fresh mount that
+    // restored an existing selection (see above), or a re-render that did not change the filter. Only
+    // a genuine change re-registers, so the ticks restored from the session are not thrown away.
+    if (registeredFilter.current === serializedFilter) return;
+    registeredFilter.current = serializedFilter;
+    // Chained onto the registration in flight rather than fired alongside it, so the calls reach the
+    // backend in the order the filters changed. `startSelection` *replaces* the whole session context,
+    // and two registrations racing (a slow one over a wide filter, a fast one over a narrow) do not
+    // finish in the order they started — so an older, slower one could land last and leave the session
+    // describing a filter the list no longer shows, dropping the ticks with it (the reason a reload
+    // right after a filter change would come back with nothing selected). Serialized, the newest
+    // filter is always the last to register, and its `select` the last to narrow.
+    const previous = registration.current ?? Promise.resolve();
+    const running = previous
+      .catch(() => {})
+      .then(() => startMultiSelection(entity, filter))
       // The ticks are restated right after, because `startSelection` replaces the whole session
       // context and takes the ticked subset with it (`MultiSelectionSupport
       // .registerEntityIdsForSelection`, "Clear session"). Without this, changing the filter while
@@ -172,6 +201,8 @@ export function useListSelection({
     }
     leaveMode(entity);
     registration.current = null;
+    // So re-entering the mode registers afresh rather than trusting a session the cancel below drops.
+    registeredFilter.current = null;
     if (endpoint) void cancelMultiSelection(endpoint).catch(() => {});
   }, [leaveMode, entity, endpoint]);
 

@@ -12,6 +12,11 @@ import type { Page } from "@playwright/test";
  * the warning appeared to work only when the target was a legacy page — where the full page load makes
  * the *browser* ask (`beforeunload`), not this app.
  *
+ * The question is the app's own dialog now, not `window.confirm` (see UnsavedChangesDialogHost /
+ * ConfirmDialog, a Radix `role="alertdialog"`): its description is `question.leaveUnsavedChanges`, its
+ * buttons `unsavedChanges.confirm` ("leave") and `unsavedChanges.stay` ("stay"). So the cases drive the
+ * DOM dialog rather than a `page.on("dialog")` listener, which no longer fires.
+ *
  * The form's own ways out ask nothing on purpose: cancel, save and clone are decisions the user just
  * made, and asking again would say the button hadn't been understood (see the round trip spec).
  *
@@ -30,19 +35,19 @@ test.describe("unsaved changes warning", () => {
     await expect(title).toHaveValue(seededBook.title);
     await title.fill(`${seededBook.title} — unsaved`);
 
-    // Dismissed, so the answer is "stay" — the assertion is that the form is still there afterwards.
-    // Registered before the click: a confirm blocks the page until it is answered.
-    let asked = "";
-    page.once("dialog", (dialog) => {
-      asked = dialog.message();
-      void dialog.dismiss();
-    });
-
-    // The breadcrumb back to the list, the shortest link out of the form.
+    // The breadcrumb back to the list, the shortest link out of the form. The click no longer blocks:
+    // the app's own dialog appears in the DOM afterwards (see the file header).
     await page.getByRole("link", { name: t("book.title.list") }).click();
-    expect(asked, "leaving the form must be confirmed first").toBe(
-      t("question.leaveUnsavedChanges")
-    );
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog,
+      "leaving the form must be confirmed first"
+    ).toContainText(t("question.leaveUnsavedChanges"));
+
+    // Answer "stay" — the assertion is that the form is still there afterwards.
+    await page.getByRole("button", { name: t("unsavedChanges.stay") }).click();
+    await expect(dialog).toBeHidden();
     await expect(
       title,
       "a dismissed question must leave the form as it was"
@@ -60,8 +65,11 @@ test.describe("unsaved changes warning", () => {
     await expect(title).toHaveValue(seededBook.title);
     await title.fill(`${seededBook.title} — unsaved`);
 
-    page.once("dialog", (dialog) => void dialog.accept());
     await page.getByRole("link", { name: t("book.title.list") }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await page
+      .getByRole("button", { name: t("unsavedChanges.confirm") })
+      .click();
     await expect(
       page.getByRole("heading", { name: t("book.title.list") })
     ).toBeVisible();
@@ -78,16 +86,15 @@ test.describe("unsaved changes warning", () => {
       seededBook.title
     );
 
-    let asked = false;
-    page.on("dialog", (dialog) => {
-      asked = true;
-      void dialog.dismiss();
-    });
     await page.getByRole("link", { name: t("book.title.list") }).click();
+    // The heading first, so navigation has settled before the absence is asserted.
     await expect(
       page.getByRole("heading", { name: t("book.title.list") })
     ).toBeVisible();
-    expect(asked, "an untouched form must be left without a word").toBe(false);
+    await expect(
+      page.getByRole("alertdialog"),
+      "an untouched form must be left without a word"
+    ).toHaveCount(0);
   });
 
   test("asks before the quick access palette navigates away", async ({
@@ -116,15 +123,14 @@ test.describe("unsaved changes warning", () => {
     const option = page.getByRole("option", { name: entry, exact: true });
     await expect(option.first()).toBeVisible();
 
-    let asked = "";
-    page.once("dialog", (dialog) => {
-      asked = dialog.message();
-      void dialog.dismiss();
-    });
     await option.first().click();
-    expect(asked, "the palette must ask as a link does").toBe(
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog, "the palette must ask as a link does").toContainText(
       t("question.leaveUnsavedChanges")
     );
+    await page.getByRole("button", { name: t("unsavedChanges.stay") }).click();
+    await expect(dialog).toBeHidden();
     await expect(title).toHaveValue(`${seededBook.title} — unsaved`);
   });
 });

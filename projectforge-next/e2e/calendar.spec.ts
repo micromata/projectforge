@@ -190,6 +190,11 @@ test.describe("calendar", () => {
     loggedInPage: page,
     seededTask,
   }) => {
+    // The heaviest case of the file: it seeds a timesheet and then compiles two routes on demand
+    // (`/calendar` and, on the click, the nested `/calendar/[...edit]`), on top of the up-to-15s
+    // tooltip retry below. Late in a serial full run against a loaded dev server that does not fit
+    // the describe's 120s, so this one case is given the same 180s ceiling the task tree's are.
+    test.setTimeout(180_000);
     const userId = await ownUserId(page);
     // The account may not show its own timesheets by default; make sure it does for this case.
     const init = await readInit(page);
@@ -243,12 +248,17 @@ test.describe("calendar", () => {
   test("opens a prefilled edit route from the create button", async ({
     loggedInPage: page,
   }) => {
+    const format = await userFormat(page);
     await goto(page, "/calendar");
     await expect(page.locator(".pf-calendar")).toBeVisible();
 
-    // The "+" create button and an empty-slot select share the /action endpoint; the button is the
+    // The create button and an empty-slot select share the /action endpoint; the button is the
     // deterministic way to reach the nested add route with a preset start time (new-route regression).
-    await page.locator(".fc-addEvent-button").click();
+    // It is the shared AddEntryButton in the page header now, not a FullCalendar toolbar button (see
+    // CalendarPage / view-config.ts) — reached by its accessible name.
+    await page
+      .getByRole("button", { name: format.t("menu.addNewEntry") })
+      .click();
     await expect(page).toHaveURL(
       /\/next\/calendar\/(timesheet|teamEvent)\/new\?.*startDate=/
     );

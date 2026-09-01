@@ -78,18 +78,20 @@ test.describe("task tree", () => {
       "no task with booked or planned effort among the open nodes"
     );
 
-    // The target is the point of the bar: Wicket's ConsumptionBarPanel opens the time sheets behind
-    // the number, filtered to the task — still Wicket's list (see MIGRATION.md), with the three
-    // parameters that panel sets, so the id has to be the row's own.
+    // The target is the point of the bar: it opens the time sheets behind the number, filtered to the
+    // task. The list is the migrated next one now (`/next/timesheet`, see the consumption cell), not
+    // Wicket's — so the id has to be the row's own, carried as the `taskId` parameter. The task name
+    // rides along as `taskName` for the list's header, but the test picks "any row with a bar" and so
+    // does not know that row's title; the pathname and the id are what identify the target.
     const link = bar.first().locator("xpath=ancestor::a[1]");
     const rowId = await bar
       .first()
       .locator("xpath=ancestor::tr[1]")
       .getAttribute("data-row-id");
-    await expect(link).toHaveAttribute(
-      "href",
-      `/wa/timesheetList?taskId=${rowId}&clear=true&storeFilter=false`
-    );
+    const href = await link.getAttribute("href");
+    const url = new URL(href!, page.url());
+    expect(url.pathname).toBe("/next/timesheet");
+    expect(url.searchParams.get("taskId")).toBe(rowId);
     // A link with no text of its own needs a name; and the row's own click must not fire.
     await expect(link).toHaveAttribute("aria-label", /\S/);
     expect(await rows.count()).toBeGreaterThan(0);
