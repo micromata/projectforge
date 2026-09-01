@@ -31,6 +31,7 @@ export function TaskTreePanel({
   rootSelectable,
   selectMode,
   rootNavigable,
+  initialRootTaskId,
   pageMode,
   tree,
   className,
@@ -44,6 +45,7 @@ export function TaskTreePanel({
     showRootForAdmins,
     selectMode,
     rootNavigable,
+    initialRootTaskId,
   });
   const {
     nodes,

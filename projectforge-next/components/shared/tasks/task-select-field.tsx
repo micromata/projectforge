@@ -54,6 +54,11 @@ export function TaskSelectField({
   const ids = useFieldIds();
   const { required } = useFieldMetadata(name);
   const [open, setOpen] = useState(false);
+  // Where the tree opens rooted. A drill-down click on an ancestor re-roots it there, so that node sits
+  // in the breadcrumb above the tree rather than as a row (it is the current parent) and only its
+  // children are listed. Null re-roots at the selection's parent, the plain open. Either way the
+  // selection itself only moves once a task is picked inside the tree. Reset when the dialog closes.
+  const [rootAtId, setRootAtId] = useState<number | null>(null);
 
   return (
     <form.Field name={name as never}>
@@ -90,15 +95,26 @@ export function TaskSelectField({
               taskId={taskId}
               ariaLabel={label}
               disabled={disabled}
-              onOpen={() => setOpen(true)}
+              onOpen={() => {
+                setRootAtId(null);
+                setOpen(true);
+              }}
               onSelect={change}
               openTreeOnAncestorClick={openTreeOnAncestorClick}
+              onDrillDown={(task) => {
+                setRootAtId(task.id);
+                setOpen(true);
+              }}
             />
             <TaskSelectModal
               value={taskId}
+              rootTaskId={rootAtId}
               onChange={change}
               open={open}
-              onOpenChange={setOpen}
+              onOpenChange={(next) => {
+                setOpen(next);
+                if (!next) setRootAtId(null);
+              }}
             />
           </FieldShell>
         );

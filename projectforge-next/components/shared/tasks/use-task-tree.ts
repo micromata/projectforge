@@ -34,6 +34,13 @@ interface UseTaskTreeOptions {
    * tree; the breadcrumb then climbs back up. Off for the plain tree page, which always starts at the root.
    */
   rootNavigable?: boolean;
+  /**
+   * Root the tree at this node from the start instead of at the selection's parent — the drill-down a
+   * click on an ancestor triggers, which re-roots the tree there so the node itself sits in the
+   * breadcrumb above and only its children are rows (see TaskSelectField). Falls back to [autoRootTaskId]
+   * when null. Only seeds the very first render; the breadcrumb's back/forward take over from there.
+   */
+  initialRootTaskId?: number | null;
 }
 
 /** The visited pseudo-roots, so the breadcrumb's back/forward can step through them (`null` = whole tree). */
@@ -73,6 +80,7 @@ export function useTaskTree({
   showRootForAdmins,
   selectMode,
   rootNavigable,
+  initialRootTaskId,
 }: UseTaskTreeOptions) {
   // null while the session's filter is in effect: only the initial answer knows what that is, and
   // overriding it with a default here would drop a filter set on the legacy page.
@@ -110,7 +118,11 @@ export function useTaskTree({
 
   // null until the user navigates: until then the effective root simply follows [autoRootTaskId]. Once the
   // user clicks a breadcrumb, this history takes over so back/forward can step through the visited roots.
-  const [rootHistory, setRootHistory] = useState<RootHistory | null>(null);
+  // A drill-down seeds it, so the tree opens already rooted at the clicked node rather than at the
+  // selection's parent — the initializer runs once, and the panel remounts on each dialog open.
+  const [rootHistory, setRootHistory] = useState<RootHistory | null>(() =>
+    initialRootTaskId != null ? { stack: [initialRootTaskId], index: 0 } : null
+  );
   const rootTaskId = rootHistory
     ? (rootHistory.stack[rootHistory.index] ?? null)
     : autoRootTaskId;

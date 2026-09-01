@@ -1957,6 +1957,7 @@
     "parentTask": "Parent structure element",
     "path": {
       "_": "Structure element path",
+      "openInTree": "Open in structure tree",
       "pleaseSelectTask": "Please select structure element",
       "rootTask": "Top level"
     },

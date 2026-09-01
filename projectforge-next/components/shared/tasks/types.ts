@@ -40,6 +40,12 @@ export interface TaskTreePanelProps {
    */
   rootNavigable?: boolean;
   /**
+   * Root the tree at this node from the start (see useTaskTree). Set when a click on an ancestor drills
+   * the select field into that node: the tree opens rooted there, the node itself sitting in the
+   * breadcrumb rather than as a row. Only meaningful together with [rootNavigable].
+   */
+  initialRootTaskId?: number | null;
+  /**
    * Render the tree as its own *page*: the action bar above it, "add a subtask" per row, the handbook
    * link beside the search field, and the page's hint (`task.tree.info`) instead of the select
    * panel's.
