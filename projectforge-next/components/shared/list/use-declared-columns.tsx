@@ -106,6 +106,9 @@ export function useDeclaredColumns<
                 format,
                 t: translate,
                 className: declaration.className,
+                // The active search term, off the table meta (see useDataTable): every default text
+                // cell highlights the match, without this builder knowing the term itself.
+                highlight: ctx.table.options.meta?.highlight,
               });
           const tooltip = declaration.tooltip?.(ctx.row.original);
           if (!tooltip) return rendered;

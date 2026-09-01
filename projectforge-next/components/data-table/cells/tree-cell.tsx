@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { getByPath } from "@/lib/dynamic/path";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { CellRenderProps } from "./cell-types";
 
 /** TaskNode.treeStatus as the backend sends it alongside the row's `indent`. */
@@ -24,6 +25,7 @@ export function TreeCell({
   value,
   row,
   t,
+  highlight,
   onToggle,
   action,
 }: CellRenderProps & { onToggle?: () => void; action?: React.ReactNode }) {
@@ -59,7 +61,7 @@ export function TreeCell({
       {/* The declared tooltip where the column has one (the task's description), otherwise none: the
           delegated tooltip shows the title itself as soon as the cell clips it. */}
       <span className="min-w-0 flex-1 truncate" data-tooltip={tooltip}>
-        {String(value ?? "")}
+        <HighlightedText text={String(value ?? "")} query={highlight} />
       </span>
       {action ? (
         // Revealed on hover of the row, whose <tr> is the `group` (see DataTableRow) — the same

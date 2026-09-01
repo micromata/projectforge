@@ -9,6 +9,7 @@ import {
   type FormatContext,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { FieldMetadata } from "@/lib/metadata/types";
 
 export interface DeclaredCellContext {
@@ -16,6 +17,8 @@ export interface DeclaredCellContext {
   /** Translator without a namespace, for the constants of an enum field. */
   t: (key: string) => string;
   className?: string;
+  /** The active search term, highlighted wherever it matched the cell text (see HighlightedText). */
+  highlight?: string;
 }
 
 /**
@@ -29,15 +32,21 @@ export interface DeclaredCellContext {
 export function declaredCell(
   value: unknown,
   field: FieldMetadata,
-  { format, t, className }: DeclaredCellContext
+  { format, t, className, highlight }: DeclaredCellContext
 ): ReactNode {
   if (value == null || value === "") return null;
+
+  // Highlights the search match in the cell text, in every branch (see HighlightedText). Renders the
+  // text untouched when there is no term, so it can wrap unconditionally.
+  const mark = (text: string) => (
+    <HighlightedText text={text} query={highlight} />
+  );
 
   const enumValue = field.enumValues?.find((v) => v.value === value);
   if (enumValue) {
     return (
       <span className={className}>
-        {enumValue.i18nKey ? t(enumValue.i18nKey) : enumValue.value}
+        {mark(enumValue.i18nKey ? t(enumValue.i18nKey) : enumValue.value)}
       </span>
     );
   }
@@ -46,13 +55,13 @@ export function declaredCell(
     case "TIMESTAMP":
       return (
         <span className={cn("text-muted-foreground tabular-nums", className)}>
-          {formatTimestampMinutes(value, format)}
+          {mark(formatTimestampMinutes(value, format))}
         </span>
       );
     case "DATE":
       return (
         <span className={cn("text-muted-foreground tabular-nums", className)}>
-          {formatDate(value, format)}
+          {mark(formatDate(value, format))}
         </span>
       );
     // An AMOUNT is money and carries the user's currency; a DECIMAL is a plain quantity (person days),
@@ -60,13 +69,13 @@ export function declaredCell(
     case "AMOUNT":
       return (
         <span className={cn("font-mono tabular-nums", className)}>
-          {formatCurrency(value, format)}
+          {mark(formatCurrency(value, format))}
         </span>
       );
     case "DECIMAL":
       return (
         <span className={cn("font-mono tabular-nums", className)}>
-          {formatNumber(value, format, 2)}
+          {mark(formatNumber(value, format, 2))}
         </span>
       );
     // Whole numbers line up in their column like the decimals do; only the digit grouping differs.
@@ -74,10 +83,10 @@ export function declaredCell(
     case "LONG":
       return (
         <span className={cn("font-mono tabular-nums", className)}>
-          {String(value)}
+          {mark(String(value))}
         </span>
       );
     default:
-      return <span className={className}>{String(value)}</span>;
+      return <span className={className}>{mark(String(value))}</span>;
   }
 }

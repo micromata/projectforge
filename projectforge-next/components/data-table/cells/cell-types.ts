@@ -56,4 +56,11 @@ export interface CellRenderProps {
    * Default: on, as on the tree page and in the task list.
    */
   linkEnabled?: boolean;
+  /**
+   * The active search term, to highlight where it matched in the cell's text (see HighlightedText).
+   * Only set where the client knows the term matched this text as a plain substring — the task tree,
+   * whose backend filters with `containsIgnoreCase`. Left unset on the MagicFilter list pages, whose
+   * query syntax (`field:value`, quotes, `*`, `-`) a substring highlight would mismark.
+   */
+  highlight?: string;
 }

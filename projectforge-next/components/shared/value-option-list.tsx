@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Command,
@@ -8,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import { cn } from "@/lib/utils";
 
 export interface ValueOption {
@@ -47,10 +49,17 @@ export function ValueOptionList({
   className,
 }: ValueOptionListProps) {
   const t = useTranslations("select");
+  // Controlled only to highlight the match in the options; cmdk still does the filtering itself.
+  const [search, setSearch] = useState("");
 
   return (
     <Command className={cn("bg-transparent", className)} label={ariaLabel}>
-      <CommandInput placeholder={t("search")} autoFocus={autoFocus} />
+      <CommandInput
+        placeholder={t("search")}
+        autoFocus={autoFocus}
+        value={search}
+        onValueChange={setSearch}
+      />
       <CommandList>
         <CommandEmpty>{t("noOptions")}</CommandEmpty>
         {options.map((option) => (
@@ -61,7 +70,7 @@ export function ValueOptionList({
             data-checked={selected.includes(option.value)}
             onSelect={() => toggle(option.value)}
           >
-            {option.label}
+            <HighlightedText text={option.label} query={search} />
           </CommandItem>
         ))}
       </CommandList>

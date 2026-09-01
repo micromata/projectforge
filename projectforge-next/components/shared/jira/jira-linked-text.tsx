@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import { buildJiraIssueUrl, splitJiraSegments } from "@/lib/jira";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +16,12 @@ import { cn } from "@/lib/utils";
 export function JiraLinkedText({
   text,
   className,
+  highlight,
 }: {
   text: string | null | undefined;
   className?: string;
+  /** The active search term, highlighted in the text and the link labels (see HighlightedText). */
+  highlight?: string;
 }) {
   const { jira } = useAuth();
   const segments = splitJiraSegments(text);
@@ -26,9 +30,12 @@ export function JiraLinkedText({
   return (
     <span className={className}>
       {segments.map((segment, index) => {
-        if (segment.type === "text") return segment.value;
+        const marked = (
+          <HighlightedText text={segment.value} query={highlight} />
+        );
+        if (segment.type === "text") return <span key={index}>{marked}</span>;
         const url = buildJiraIssueUrl(segment.value, jira);
-        if (!url) return segment.value;
+        if (!url) return <span key={index}>{marked}</span>;
         return (
           <a
             key={index}
@@ -38,7 +45,7 @@ export function JiraLinkedText({
             className={cn("text-primary hover:underline")}
             onClick={(event) => event.stopPropagation()}
           >
-            {segment.value}
+            {marked}
           </a>
         );
       })}

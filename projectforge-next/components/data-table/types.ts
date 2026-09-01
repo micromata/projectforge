@@ -4,6 +4,16 @@ import type { CellSpec } from "./cells/cell-types";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- required by the module's signature
+  interface TableMeta<TData extends RowData> {
+    /**
+     * The active search term, highlighted wherever it matched in a cell's text (see HighlightedText
+     * and renderCell). Set once on the table (see useDataTable), so every cell of every DataTable
+     * reads the same term without each column builder threading it through.
+     */
+    highlight?: string;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- required by the module's signature
   interface ColumnMeta<TData extends RowData, TValue> {
     /**
      * Plain-text column name. `header` renders a component (sort button, filter

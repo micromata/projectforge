@@ -51,7 +51,7 @@ export function useDynamicGridColumns(
               <span data-tooltip={tooltip}>{label || tooltip}</span>
             </DataTableColumnHeader>
           ),
-          cell: ({ getValue, row }) =>
+          cell: ({ getValue, row, table }) =>
             spec
               ? renderCell({
                   spec,
@@ -59,6 +59,9 @@ export function useDynamicGridColumns(
                   row: row.original,
                   ctx: formatCtx,
                   t,
+                  // The active search term, off the table meta (see useDataTable), so every list
+                  // cell highlights the match without this builder knowing the term itself.
+                  highlight: table.options.meta?.highlight,
                 })
               : null,
         } satisfies ColumnDef<DataObject, unknown>;

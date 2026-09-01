@@ -21,6 +21,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 
 /** The full-text search over the business data, i.e. the entry MenuItemDefId.SEARCH points at. */
 const DATA_SEARCH_URL = "wa/search";
@@ -110,6 +111,7 @@ export function QuickAccessResults({
               key={entry.key}
               group={RECENT_GROUP}
               entry={entry}
+              term={term}
               onSelect={go}
             />
           ))}
@@ -122,6 +124,7 @@ export function QuickAccessResults({
               key={entry.key}
               group={group.category}
               entry={entry}
+              term={term}
               onSelect={go}
             />
           ))}
@@ -153,11 +156,14 @@ export function QuickAccessResults({
 function QuickAccessItem({
   group,
   entry,
+  term,
   onSelect,
 }: {
   /** Which group renders it — see the `value` below. */
   group: string;
   entry: MenuEntry;
+  /** The typed term, highlighted in the title (empty for the term-less recents). */
+  term: string;
   onSelect: (url: string, menuKey?: string) => void;
 }) {
   return (
@@ -168,7 +174,9 @@ function QuickAccessItem({
       value={`${group}:${entry.key}`}
       onSelect={() => onSelect(entry.url, entry.menuKey)}
     >
-      <span className="truncate">{entry.title}</span>
+      <span className="truncate">
+        <HighlightedText text={entry.title} query={term} />
+      </span>
       {entry.badgeCounter ? (
         <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs text-primary-foreground">
           {entry.badgeCounter}
