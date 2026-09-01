@@ -25,12 +25,19 @@ export type EntityRefDto = {
 /**
  * A cost unit as the DTO carries it (`rest/dto/Kost2`): the id every reference is written back by, and
  * the number as the backend formatted it ("5.100.01.02") — which is what a cost unit is *called* and
- * therefore its display name here. Its project and customer come along on a recent entry and are not
- * read by the form.
+ * therefore its display name here. Its project (and the project's customer) come along on a recent entry
+ * (`getRecentList` populates both) so the recent list can show a Kunde and a Projekt column; the form
+ * itself reads neither.
  */
 export type Kost2Ref = EntityRefDto & {
   formattedNumber?: string | null;
   description?: string | null;
+  /** The project the cost unit belongs to, with its customer — set on recent entries only. */
+  project?: {
+    id?: number | null;
+    name?: string | null;
+    customer?: { id?: number | null; name?: string | null } | null;
+  } | null;
 };
 
 /**
