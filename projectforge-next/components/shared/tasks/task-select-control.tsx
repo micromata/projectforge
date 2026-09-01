@@ -21,6 +21,8 @@ export interface TaskSelectControlProps {
   onOpen: () => void;
   /** An ancestor was picked from the path, or the selection was cleared. */
   onSelect: (task: TaskNode | null) => void;
+  /** Make a path-segment click open the tree scoped to that node, not just select it — see [TaskPath]. */
+  openTreeOnAncestorClick?: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export function TaskSelectControl({
   disabled,
   onOpen,
   onSelect,
+  openTreeOnAncestorClick,
 }: TaskSelectControlProps) {
   const t = useTranslations();
 
@@ -56,6 +59,7 @@ export function TaskSelectControl({
           task={(taskId != null && task) || null}
           onSelect={(node) => onSelect(node)}
           onOpen={onOpen}
+          openTreeOnAncestorClick={openTreeOnAncestorClick}
           disabled={disabled}
         />
       </div>

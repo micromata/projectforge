@@ -20,6 +20,13 @@ interface TaskPathProps {
    * itself — it is the widest thing on the row and the first place a pointer goes.
    */
   onOpen?: () => void;
+  /**
+   * Make an ancestor click open the tree scoped to that node as well as select it — the one-click
+   * drill-down the legacy panel had, where clicking a segment led straight to the booking points
+   * beneath it. Off by default: without it a segment click only replaces the selection (see
+   * [onSelect]). Only takes effect together with [onOpen].
+   */
+  openTreeOnAncestorClick?: boolean;
   /** The path may be read but not changed — the shortcuts stop being buttons. */
   disabled?: boolean;
   /** Accessible name of the whole breadcrumb. Defaults to the "please select a task" prompt. */
@@ -53,6 +60,7 @@ export function TaskPath({
   task,
   onSelect,
   onOpen,
+  openTreeOnAncestorClick = false,
   disabled,
   label,
   homeTooltip,
@@ -64,8 +72,13 @@ export function TaskPath({
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
   const ancestors = task?.path ?? [];
   const homeText = homeTooltip ?? t("task.tree.rootNode");
+  // With the drill-down on, clicking a segment leads into the tree, so the hint says that rather than
+  // the plain "replace by this parent" shortcut.
   const ancestorText =
-    ancestorTooltip ?? t("task.selectPanel.selectAncestorTask.tooltip");
+    ancestorTooltip ??
+    (openTreeOnAncestorClick && onOpen
+      ? t("task.tree.title.select")
+      : t("task.selectPanel.selectAncestorTask.tooltip"));
 
   return (
     <nav
@@ -89,7 +102,10 @@ export function TaskPath({
           <HintTooltip text={ancestorText}>
             <button
               type="button"
-              onClick={() => onSelect(ancestor)}
+              onClick={() => {
+                onSelect(ancestor);
+                if (openTreeOnAncestorClick) onOpen?.();
+              }}
               disabled={disabled}
               className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline"
             >

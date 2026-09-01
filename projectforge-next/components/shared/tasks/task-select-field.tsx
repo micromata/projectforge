@@ -30,9 +30,15 @@ export function TaskSelectField({
   className,
   disabled,
   onPicked,
+  openTreeOnAncestorClick,
 }: BaseFieldProps & {
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * Make a path-segment click open the tree scoped to that node, not just select it — the legacy
+   * one-click drill-down to the booking points beneath it (see [TaskPath]). Off by default.
+   */
+  openTreeOnAncestorClick?: boolean;
   /**
    * What else changing the task means for the form — a time sheet's cost unit belongs to the task it was
    * chosen under, so picking another one drops it (see TaskKost2Section).
@@ -86,6 +92,7 @@ export function TaskSelectField({
               disabled={disabled}
               onOpen={() => setOpen(true)}
               onSelect={change}
+              openTreeOnAncestorClick={openTreeOnAncestorClick}
             />
             <TaskSelectModal
               value={taskId}
