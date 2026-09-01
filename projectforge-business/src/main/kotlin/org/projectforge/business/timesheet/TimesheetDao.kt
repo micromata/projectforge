@@ -58,6 +58,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -130,6 +131,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
+
+    /**
+     * Newest sheets first, as [TimesheetFilter.orderType] defaults to [OrderDirection.DESC]. Only used when the
+     * caller asks for no order of its own (see [BaseDao.select]/[org.projectforge.framework.persistence.api.impl.DBQuery]):
+     * the Wicket list page adds the same order explicitly ([buildQueryFilter]), while the REST list has no default
+     * of its own, so without this it would come back unordered.
+     */
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
 
     /**
      * The data the list statistics need for the given time sheets, as a lean projection instead of the whole
@@ -803,6 +813,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
          */
         const val MAXIMUM_DURATION = (1000 * 3600 * 14).toLong()
         const val HIDDEN_FIELD_MARKER = "[...]"
+
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(desc("startTime"))
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.id",
