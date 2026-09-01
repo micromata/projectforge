@@ -37,7 +37,7 @@ import { CalendarEventContent } from "./calendar-event-content";
 import { useAllDayResizer } from "./use-allday-resizer";
 import { useCalendarAction } from "./use-calendar-action";
 import { useViewButtons } from "./use-view-buttons";
-import { clampVisibleEnd } from "./view-config";
+import { clampVisibleEnd, EVENT_ORDER } from "./view-config";
 import type { CalendarRange } from "./types";
 
 interface FullCalendarPanelProps {
@@ -192,6 +192,8 @@ export function FullCalendarPanel({
         customButtons={customButtons}
         views={views}
         events={events as unknown as EventInput[]}
+        // All-day row order: calendar weeks, birthdays, holidays, vacations, then the rest (see view-config).
+        eventOrder={EVENT_ORDER}
         eventContent={(arg) => <CalendarEventContent arg={arg} />}
         eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12 }}
         locale={locale}
