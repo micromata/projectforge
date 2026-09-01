@@ -23,9 +23,12 @@ const MARGIN = 8;
 export function CalendarEventTooltip({
   props,
   anchor,
+  timeRange,
 }: {
   props: CalendarEventExtendedProps;
   anchor: { x: number; y: number };
+  /** The event's booked span (`10:30 – 12:00`), shown in the footer before the duration; null when it has none. */
+  timeRange?: string | null;
 }) {
   const rows = useMemo(
     () => (props.tooltip ? parseTooltipHtml(props.tooltip.text) : []),
@@ -82,9 +85,10 @@ export function CalendarEventTooltip({
           </div>
         ))}
       </dl>
-      {props.duration && (
-        <p className="mt-2 text-right text-xs text-muted-foreground">
-          {props.duration}
+      {(timeRange || props.duration) && (
+        <p className="mt-2 flex justify-end gap-2 text-xs text-muted-foreground">
+          {timeRange && <span>{timeRange}</span>}
+          {props.duration && <span>{props.duration}</span>}
         </p>
       )}
     </div>,
