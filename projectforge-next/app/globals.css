@@ -705,6 +705,80 @@ span.row-grey {
   background: var(--pf-alt-bg);
 }
 
+/*
+ * Order forecast analysis (OrderForecastPanel). The markup is the backend's own HtmlDocument, injected
+ * verbatim with its embedded <style> — a self-contained light document (HtmlDocument.kt hardcodes
+ * #f2f2f2 label headers, a #d9edf7 info box, #ccc borders, and inline color: blue/green/red). That is
+ * correct for the standalone export, but in the app's dark theme the light backgrounds carry the app's
+ * light text and the label column turns invisible. The backend uses `prefers-color-scheme` nowhere and
+ * could not track this app's class-based toggle if it did, so the remap lives here — same approach as
+ * the FullCalendar block above: rebind the injected colours to the shadcn tokens under `.dark`. Element
+ * and inline styles are low-specificity / need !important respectively; the values come from tokens so
+ * they flip with the theme.
+ */
+/* Headings carry the backend's dark greys (#222 on h2, #555 on h3/h4) which vanish on the dark
+   background — the "angelegt: …" subheading is an h2. Give them the muted-foreground token. */
+.dark .order-forecast h2,
+.dark .order-forecast h3,
+.dark .order-forecast h4 {
+  color: var(--muted-foreground);
+}
+.dark .order-forecast th,
+.dark .order-forecast td {
+  border-color: var(--border);
+}
+.dark .order-forecast thead,
+.dark .order-forecast th {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+/* Alert boxes (legend, variant hints): dark, tinted panels instead of the pastel bootstrap fills. */
+.dark .order-forecast .alert {
+  color: var(--foreground);
+}
+.dark .order-forecast .alert-info {
+  background-color: color-mix(in oklab, oklch(0.62 0.13 240) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.62 0.13 240) 55%, transparent);
+}
+.dark .order-forecast .alert-success {
+  background-color: color-mix(in oklab, oklch(0.7 0.16 150) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.7 0.16 150) 55%, transparent);
+}
+.dark .order-forecast .alert-warning {
+  background-color: color-mix(in oklab, oklch(0.8 0.15 85) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.8 0.15 85) 55%, transparent);
+}
+.dark .order-forecast .alert-danger {
+  background-color: color-mix(in oklab, var(--destructive) 16%, var(--card));
+  border-color: color-mix(in oklab, var(--destructive) 55%, transparent);
+}
+/* Status-tinted cells (success/warning/error): keep the hue, drop the light fill for a dark tint. */
+.dark .order-forecast .success {
+  background-color: color-mix(in oklab, oklch(0.7 0.16 150) 20%, transparent);
+  color: var(--foreground);
+}
+.dark .order-forecast .warning,
+.dark .order-forecast .warning a {
+  background-color: color-mix(in oklab, oklch(0.8 0.15 85) 20%, transparent);
+  color: var(--foreground);
+}
+.dark .order-forecast .error,
+.dark .order-forecast .error a {
+  background-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  color: var(--foreground);
+}
+/* Inline forecast/invoiced legend colours (see ForecastOrderAnalysis): lift the pure blue/green/red off
+   the near-black background to a legible tint. Inline styles win without !important. */
+.dark .order-forecast [style*="color: blue"] {
+  color: oklch(0.72 0.16 250) !important;
+}
+.dark .order-forecast [style*="color: green"] {
+  color: oklch(0.75 0.18 150) !important;
+}
+.dark .order-forecast [style*="color: red"] {
+  color: var(--destructive) !important;
+}
+
 /* ProjectForge wordmark (see ProjectForgeLogo): Archivo Narrow, with Roboto Condensed as the
    documented fallback. Both faces are loaded as bold italic via next/font in app/layout.tsx. */
 .wordmark-font {
