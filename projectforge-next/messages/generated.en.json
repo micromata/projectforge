@@ -1193,7 +1193,8 @@
   },
   "goreact": {
     "menu": {
-      "classics": "Classic version"
+      "classics": "Classic version",
+      "classicsInfo": "In case a function is missing here. The classic version will be removed shortly."
     }
   },
   "group": {

@@ -71,6 +71,13 @@ class ListMetaData(
      * (see `NextMigration.NextPage.legacyApp`).
      */
     val legacyListPage: String?,
+    /**
+     * Whether [legacyListPage] is offered as an entry of the list's gear menu instead of the prominent
+     * button (see `NextMigration.NextPage.legacyListInMenu`). The escape hatch stays loud while a new
+     * page still has gaps; a trusted page demotes it into the menu, per entity. Only meaningful with a
+     * non-null [legacyListPage] - a page with no way back offers nothing either way.
+     */
+    val legacyListInMenu: Boolean,
     /** The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, or null. */
     val legacyEditPage: String?,
     /**
