@@ -13,6 +13,7 @@ import {
   changeVacationUsers,
   refreshSubscriptions,
   setCalendarVisibility,
+  storeCalendarState,
 } from "@/lib/rs/calendar";
 import type {
   CalendarInit,
@@ -37,15 +38,26 @@ import { CALENDAR_INIT_KEY, useInitPatchRunner } from "./use-calendar-init";
  */
 export function useCalendarFilterMutations() {
   const queryClient = useQueryClient();
-  const { invalidateEvents, patchFilter, patchTimesheetUser, run } =
-    useInitPatchRunner();
+  const {
+    invalidateEvents,
+    patchFilter,
+    patchTimesheetUser,
+    setLocalVisibility,
+    run,
+  } = useInitPatchRunner();
 
-  /** Local add/remove/replace of the chosen calendars (the ± of the calendar select). Persisted via `storeState`. */
+  /**
+   * Add/remove/replace of the chosen calendars (the ± of the calendar select). Persisted at once — not
+   * only on the next range change: the server derives the `setVisibility` response and its own
+   * event/visibility filtering from the stored `calendarIds`, so a calendar added but not yet persisted
+   * would let a following hide wipe every pill. Only the membership is sent; date/view stay untouched.
+   */
   const setActiveCalendars = useCallback(
     (activeCalendars: StyledTeamCalendar[]) => {
       queryClient.setQueryData<CalendarInit>(CALENDAR_INIT_KEY, (prev) =>
         prev ? { ...prev, activeCalendars, isFilterModified: true } : prev
       );
+      void storeCalendarState({ activeCalendars }).catch(() => {});
     },
     [queryClient]
   );
@@ -54,8 +66,15 @@ export function useCalendarFilterMutations() {
     () => ({
       changeStyle: (calendarId: number, bgColor: string | undefined) =>
         run(changeCalendarStyle(calendarId, bgColor), { events: true }),
-      setVisibility: (calendarId: number, visible: boolean) =>
-        run(setCalendarVisibility(calendarId, visible), { events: true }),
+      setVisibility: (calendarId: number, visible: boolean) => {
+        // Flip the pill's flag at once and keep our own membership: the server's `activeCalendars` echo
+        // is built from the lazily-persisted `calendarIds` and could be short right after a local add.
+        setLocalVisibility(calendarId, visible);
+        return run(setCalendarVisibility(calendarId, visible), {
+          events: true,
+          keepActiveCalendars: true,
+        });
+      },
       changeGridSize: (size: number) => {
         patchFilter({ gridSize: size });
         return run(changeGridSize(size));
@@ -105,6 +124,7 @@ export function useCalendarFilterMutations() {
       run,
       patchFilter,
       patchTimesheetUser,
+      setLocalVisibility,
       setActiveCalendars,
       invalidateEvents,
       queryClient,
