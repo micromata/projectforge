@@ -113,8 +113,8 @@ export async function fetchOrderForecastAnalysis(
  * against what the exports produce.
  *
  * Development only: the endpoint is gated by `SystemStatus.isDevelopmentMode()` and answers 404
- * otherwise. It cannot be hidden beforehand — `UserStatus.systemData` carries no development flag — so
- * the caller reports the failure instead of the button being absent.
+ * otherwise. The caller hides the button outside development (the flag rides the system-status query,
+ * see OrderForecastPanel); the 404 handling here stays as a fallback for the timing gap.
  */
 export async function downloadOrderForecastJson(
   id: number,
