@@ -606,7 +606,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * true without further checking.
      *  1. Is the task or any of the ancestor tasks closed or deleted?
      *  1. Has the task or any of the ancestor tasks the TimesheetBookingStatus.TREE_CLOSED?
-     *  1. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
+     *  1. Is the task not a leaf node and is its effective booking status ONLY_LEAFS? The effective status
+     * is the one of the nearest explicitly configured node (walking up the ancestors while INHERIT), so an
+     * intermediate node with children can be re-enabled for booking by setting it explicitly to OPENED.
      *  1. Does any of the descendant task node has an assigned order position?
      *
      *
@@ -649,13 +651,16 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             }
             node = node.parent
         } while (node != null)
-        // 2. Has the task the booking status NO_BOOKING?
+        // 2. Determine the effective booking status: start with the task's own status and walk up the
+        // ancestors as long as the status is INHERIT. The first explicitly set status wins, so an
+        // explicit status on a nearer (descendant) node overrides the setting of a higher ancestor.
         var bookingStatus = taskNode!!.task.timesheetBookingStatus
         node = taskNode
         while (bookingStatus == TimesheetBookingStatus.INHERIT && node?.parent != null) {
             node = node.parent
             bookingStatus = node.task.timesheetBookingStatus
         }
+        // 2a. Has the effective booking status NO_BOOKING?
         if (bookingStatus == TimesheetBookingStatus.NO_BOOKING) {
             if (throwException) {
                 throw AccessException(
@@ -666,21 +671,19 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             return false
         }
         if (taskNode.hasChildren()) {
-            // 3. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
-            node = taskNode
-            do {
-                val task = node!!.task
-                if (task.timesheetBookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
-                    if (throwException) {
-                        throw AccessException(
-                            "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
-                            taskNode.task.title + " (#" + taskNode.id + ")"
-                        )
-                    }
-                    return false
+            // 3. Is the task not a leaf node and is its effective booking status ONLY_LEAFS?
+            // Because the effective status is inherited from the nearest explicitly configured node
+            // (see above), an intermediate node can be re-enabled for booking by explicitly setting it
+            // (e.g. to OPENED), even if a higher ancestor is set to ONLY_LEAFS.
+            if (bookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
+                if (throwException) {
+                    throw AccessException(
+                        "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
+                        taskNode.task.title + " (#" + taskNode.id + ")"
+                    )
                 }
-                node = node.parent
-            } while (node != null)
+                return false
+            }
             // 4. Does any of the descendant task node has an assigned order position?
             for (child in taskNode.children) {
                 if (taskTree.hasOrderPositions(child.id, true)) {

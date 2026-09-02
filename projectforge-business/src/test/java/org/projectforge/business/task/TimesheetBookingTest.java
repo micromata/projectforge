@@ -96,6 +96,14 @@ public class TimesheetBookingTest extends AbstractTestBase {
             initTestDB.addTask("TBT-3.1.2", "TBT-3.1");
             initTestDB.addTask("TBT-3.2", "TBT-3");
 
+            // TBT-3.3 explicitly overrides the inherited ONLY_LEAFS of TBT-3 by being OPENED, so booking on
+            // this non-leaf node (and its inheriting sub tree) is allowed again ("Regelmeetings" scenario).
+            task = initTestDB.addTask("TBT-3.3", "TBT-3");
+            task.setTimesheetBookingStatus(TimesheetBookingStatus.OPENED);
+            taskDao.update(task);
+            initTestDB.addTask("TBT-3.3.1", "TBT-3.3");
+            initTestDB.addTask("TBT-3.3.1.1", "TBT-3.3.1"); // "Nearshore" leaf.
+
             task = initTestDB.addTask("TBT-4", "TimesheetBookingTest");
             task.setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING);
             taskDao.update(task);
@@ -139,6 +147,15 @@ public class TimesheetBookingTest extends AbstractTestBase {
             timesheetDao.insert(sheet); // Leaf task node.
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-3.1.2"));
+            timesheetDao.insert(sheet); // Leaf task node.
+            sheet = createNewSheet();
+            sheet.setTask(getTask("TBT-3.3"));
+            timesheetDao.insert(sheet); // Non-leaf, but OPENED overrides the inherited ONLY_LEAFS.
+            sheet = createNewSheet();
+            sheet.setTask(getTask("TBT-3.3.1"));
+            timesheetDao.insert(sheet); // Non-leaf, inherits OPENED from TBT-3.3 (not ONLY_LEAFS).
+            sheet = createNewSheet();
+            sheet.setTask(getTask("TBT-3.3.1.1"));
             timesheetDao.insert(sheet); // Leaf task node.
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-4"));
