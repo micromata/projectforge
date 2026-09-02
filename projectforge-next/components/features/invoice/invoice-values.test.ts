@@ -3,10 +3,14 @@ import {
   emptyKostZuweisungValues,
   emptyPositionValues,
   nextKostZuweisungIndex,
+  referencedOrders,
   remainingNet,
   shareOfNetSum,
 } from "./invoice-values";
-import type { KostZuweisungValues } from "./invoice-schema";
+import type {
+  InvoicePositionValues,
+  KostZuweisungValues,
+} from "./invoice-schema";
 
 /** A row as the form holds it — only what the arithmetic looks at is given. */
 function assignment(values: Partial<KostZuweisungValues>): KostZuweisungValues {
@@ -106,6 +110,46 @@ describe("emptyPositionValues", () => {
     // No configured rate is no error: the field starts empty, as it did before there was a default.
     expect(emptyPositionValues(1, undefined, null).vat).toBeNull();
     expect(emptyPositionValues(1).vat).toBeNull();
+  });
+});
+
+describe("referencedOrders", () => {
+  /** A position as the form holds it — only the order reference and the deleted flag matter here. */
+  function position(
+    auftrag: {
+      auftragId?: number | null;
+      auftragNummer?: number | null;
+    } | null,
+    deleted = false
+  ): InvoicePositionValues {
+    const pos = emptyPositionValues(1);
+    pos.deleted = deleted;
+    pos.auftragsPosition = auftrag;
+    return pos;
+  }
+
+  it("reduces the positions to each order once, sorted by number", () => {
+    const orders = referencedOrders([
+      position({ auftragId: 5, auftragNummer: 200 }),
+      position({ auftragId: 3, auftragNummer: 100 }),
+      // A second position of the order already seen — the order appears once.
+      position({ auftragId: 5, auftragNummer: 200 }),
+    ]);
+    expect(orders).toEqual([
+      { id: 3, nummer: 100 },
+      { id: 5, nummer: 200 },
+    ]);
+  });
+
+  it("skips deleted positions and those without a resolved order id", () => {
+    expect(
+      referencedOrders([
+        position({ auftragId: 5, auftragNummer: 200 }, true),
+        position({ auftragId: null, auftragNummer: 200 }),
+        position(null),
+      ])
+    ).toEqual([]);
+    expect(referencedOrders(undefined)).toEqual([]);
   });
 });
 

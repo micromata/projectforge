@@ -36,7 +36,10 @@ export function CreditorInvoiceEditBanner() {
           {identifier}
         </span>
       )}
-      <InvoiceSumsLine entity="incomingInvoice" className="min-w-0 flex-1" />
+      <InvoiceSumsLine
+        entity="incomingInvoice"
+        className="ml-auto justify-end"
+      />
     </div>
   );
 }

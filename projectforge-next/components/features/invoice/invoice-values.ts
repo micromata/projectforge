@@ -10,7 +10,7 @@ import {
   shareOfNetSum,
 } from "@/components/shared/invoice/values";
 import type { InvoicePositionValues, InvoiceValues } from "./invoice-schema";
-import type { InvoiceDetail, InvoicePositionDto } from "./types";
+import type { InvoiceDetail, InvoicePositionDto, OrderRef } from "./types";
 
 // The cost-split arithmetic and the fresh-cost-assignment helper are identical on both invoices and now
 // live in components/shared/invoice; re-exported here so this feature's existing call sites and the
@@ -100,6 +100,34 @@ function toPositionValues(pos: InvoicePositionDto): InvoicePositionValues {
     auftragsPosition: pos.auftragsPosition ?? null,
     kostZuweisungen: (pos.kostZuweisungen ?? []).map(toKostZuweisungValues),
   };
+}
+
+/**
+ * The orders this invoice bills, each one once and by number — derived from the positions rather than
+ * carried by the DTO: the edit form holds the reference per position ([InvoicePositionValues.auftragsPosition],
+ * with the order's id and number), and this is the same distinct-and-sorted reduction the backend does
+ * for the list row (`Rechnung.copyFrom4ListRow`), so the banner can show the "Aufträge" links the list
+ * has without a second query or a new field.
+ *
+ * Deleted positions are skipped (their reference is on its way out), and a position without a resolved
+ * order id contributes nothing — a reference the reader may not follow arrives without one.
+ */
+export function referencedOrders(
+  positionen: InvoicePositionValues[] | undefined
+): OrderRef[] {
+  const byId = new Map<number, OrderRef>();
+  for (const pos of positionen ?? []) {
+    if (pos.deleted) continue;
+    const id = pos.auftragsPosition?.auftragId;
+    if (id == null) continue;
+    if (!byId.has(id)) {
+      byId.set(id, {
+        id,
+        nummer: pos.auftragsPosition?.auftragNummer ?? undefined,
+      });
+    }
+  }
+  return [...byId.values()].sort((a, b) => (a.nummer ?? 0) - (b.nummer ?? 0));
 }
 
 /**

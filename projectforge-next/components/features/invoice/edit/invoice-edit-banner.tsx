@@ -7,6 +7,7 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { InvoiceSumsLine } from "@/components/shared/invoice/invoice-sums-line";
+import { ReferencedOrders } from "./referenced-orders";
 import type { InvoiceValues } from "../invoice-schema";
 
 const m = fromMetadata(RECHNUNG_METADATA);
@@ -56,7 +57,11 @@ export function InvoiceEditBanner() {
           </Badge>
         )}
       </div>
-      <InvoiceSumsLine entity="outgoingInvoice" className="min-w-0 flex-1" />
+      <ReferencedOrders className="shrink-0" />
+      <InvoiceSumsLine
+        entity="outgoingInvoice"
+        className="ml-auto justify-end"
+      />
     </div>
   );
 }

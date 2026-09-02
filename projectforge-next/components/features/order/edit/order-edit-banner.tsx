@@ -62,7 +62,7 @@ export function OrderEditBanner() {
           </Badge>
         )}
       </div>
-      <OrderSumsLine className="min-w-0 flex-1" />
+      <OrderSumsLine className="ml-auto justify-end" />
     </div>
   );
 }
