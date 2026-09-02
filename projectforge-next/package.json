@@ -75,7 +75,7 @@
     "body-parser": "^2.3.0",
     "brace-expansion@<=1.1.17": "^1.1.18",
     "brace-expansion@>=3.0.0 <=5.0.8": "^5.0.9",
-    "fast-uri": "^3.1.5",
+    "fast-uri": "^3.1.7",
     "hono": "^4.13.3",
     "ip-address": "^10.5.0",
     "js-yaml@>=4.0.0 <=4.3.0": "^4.3.1",
