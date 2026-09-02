@@ -9,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { CollapsedOnly } from "@/components/shared/collapsed-only";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
 import { leafKeyOf } from "@/lib/leaf-key";
@@ -74,8 +75,16 @@ export function DeclaredSection<M extends EntityMetadata>({
       </SectionCard>
     );
   }
+  const summary = section.collapsedSummary ? (
+    <section.collapsedSummary id={id} />
+  ) : null;
   return (
-    <CollapsedSection title={title} active={active} trailing={actions}>
+    <CollapsedSection
+      title={title}
+      active={active}
+      trailing={actions}
+      summary={summary}
+    >
       {body}
     </CollapsedSection>
   );
@@ -90,11 +99,14 @@ function CollapsedSection({
   title,
   active,
   trailing,
+  summary,
   children,
 }: {
   title: string;
   active?: boolean;
   trailing?: ReactNode;
+  /** The chips shown below the heading while folded — see SectionDef.collapsedSummary. */
+  summary?: ReactNode;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -138,6 +150,15 @@ function CollapsedSection({
           </CollapsibleTrigger>
           {trailing}
         </div>
+        {/* Below the heading and only while folded ([CollapsedOnly], driven by the same `data-state` the
+            order rows read): the values the fields would show, so a closed card is not a blank line. Open,
+            the fields are directly below and the summary steps aside. Indented past the chevron to sit
+            under the title. */}
+        {summary && (
+          <CollapsedOnly className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 pl-[1.375rem] text-xs text-muted-foreground">
+            {summary}
+          </CollapsedOnly>
+        )}
         <CollapsibleContent>{children}</CollapsibleContent>
       </Collapsible>
     </SectionCard>

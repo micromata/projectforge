@@ -10,6 +10,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { FinanceSection } from "./edit/finance-section";
+import { FinanceSummary } from "./edit/finance-summary";
 import { TaskListActions } from "./task-list-actions";
 import {
   TaskConsumptionCell,
@@ -287,6 +288,9 @@ export const TASK_PAGE = definePage<
         // Hand-rendered: five fields whose writability is the user's access, and the cost unit block,
         // whose preview only the backend can compute (see FinanceSection).
         render: ({ id }) => <FinanceSection id={id} />,
+        // Folded, the same values as chips (see FinanceSummary): the cost prefix and booking status the
+        // element is effectively governed by, plus anything set that deviates from the default.
+        collapsedSummary: FinanceSummary,
       },
     ],
   },

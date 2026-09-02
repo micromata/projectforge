@@ -327,6 +327,19 @@ export interface SectionDef<M extends EntityMetadata> {
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
   /**
+   * Shown below the heading of a *collapsed* section, and only while it is folded — the chips that say
+   * what the section holds, so a folded card is not a value nobody reads back (the same double duty the
+   * order position rows do, see CollapsibleSummary / CollapsedOnly).
+   *
+   * Which values it shows is the summary's own decision, but the rule is "show only what deviates from
+   * the default": an unchanged field stays hidden folded too, exactly as it would be read as noise open.
+   * A component and not a function like [render], because it reads live form values through hooks.
+   *
+   * Ignored on a section that does not start folded ([collapsed]) — there is nothing to summarise when
+   * the fields are always in view.
+   */
+  collapsedSummary?: ComponentType<{ id: number | null }>;
+  /**
    * Below the declared fields, inside the same card — a section's own UI *in addition to* its fields:
    * the e-invoice checklist under the customer address the checklist is about.
    *
