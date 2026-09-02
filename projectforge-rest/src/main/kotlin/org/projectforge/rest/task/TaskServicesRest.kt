@@ -560,7 +560,23 @@ class TaskServicesRest {
     )
             : Result {
         val selectMode = select == true
-        val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>())
+        // The open task ids are stored per user (area "task"/name "openTasks") and round-trip through
+        // UserPrefCache's Jackson serializer. It restores the raw LinkedHashSet with Integer elements, but
+        // buildTree matches them against Long task ids — Integer(3) != Long(3) — so after a restart the
+        // reloaded set matched nothing and the whole tree rendered collapsed. Coerce the reloaded ids back
+        // to Long and put the normalized set into the cache, so the expansion survives a restart and the
+        // in-place mutations by openTask/closeTask below still reach the instance the cache flushes to the DB.
+        val storedOpenNodes = userPrefService.ensureEntry(
+            PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>()
+        ) as Collection<*>
+        val openNodes: MutableSet<Long> = if (storedOpenNodes.all { it is Long }) {
+            @Suppress("UNCHECKED_CAST")
+            storedOpenNodes as MutableSet<Long>
+        } else {
+            storedOpenNodes.mapNotNullTo(LinkedHashSet()) { (it as? Number)?.toLong() }.also {
+                userPrefService.putEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, it, true)
+            }
+        }
         // Its own stored filter per mode (see filterKeySuffix), as with the column state.
         val filter = listFilterService.getSearchFilter(
             request.getSession(false), TaskFilter::class.java, filterKeySuffix(selectMode)
@@ -594,7 +610,8 @@ class TaskServicesRest {
         if (initial == true) {
             openTask(ctx, highlightedTaskId) // Only open on initial call.
         }
-        //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
+        // openNodes is mutated in place above and is the instance held in UserPrefCache, so it is persisted
+        // to the DB on the next flush (periodic refresh or graceful shutdown) — no explicit putEntry here.
         filter.resetMatch() // taskFilter caches visibility, reset needed first.
         val indent = if (table == true) 0 else null
         // Re-rooting (the breadcrumb navigation of the select panel): seed the walk at a chosen node so the

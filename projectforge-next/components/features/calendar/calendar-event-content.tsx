@@ -6,6 +6,8 @@ import { AiMagicIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useFormatContext } from "@/hooks/use-format";
+import { formatTimeRange } from "@/lib/format";
 import { CalendarEventTooltip } from "./calendar-event-tooltip";
 import type { CalendarEventExtendedProps } from "@/lib/rs/calendar-types";
 
@@ -23,8 +25,15 @@ const OPEN_DELAY = 200;
  */
 export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   const t = useTranslations();
+  const format = useFormatContext();
   const props = arg.event.extendedProps as CalendarEventExtendedProps;
   const isMonth = arg.view.type.startsWith("dayGrid");
+  // The booked span for the tooltip footer (before the duration), only for a timed event with both
+  // ends — an all-day entry has no clock time to show. Same locale/time-notation as the grid times.
+  const timeRange =
+    !arg.event.allDay && arg.event.start && arg.event.end
+      ? formatTimeRange(arg.event.start, arg.event.end, format)
+      : null;
   // The viewport point the card is pinned to while open, null when closed. Set from where the pointer
   // entered the event, after the open delay.
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
@@ -104,7 +113,13 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
       onPointerLeave={close}
     >
       {body}
-      {anchor && <CalendarEventTooltip props={props} anchor={anchor} />}
+      {anchor && (
+        <CalendarEventTooltip
+          props={props}
+          anchor={anchor}
+          timeRange={timeRange}
+        />
+      )}
     </div>
   );
 }

@@ -43,6 +43,8 @@ interface TaskTreeTableProps {
   isLoading: boolean;
   isFetching: boolean;
   filter: TaskTreeFilter;
+  /** The term the visible rows were filtered by, highlighted in their text (see useTaskTree). */
+  searchTerm?: string;
   onFilterChange: (filter: TaskTreeFilter) => void;
   onToggle: (task: TaskNode) => void;
   onSelect?: (task: TaskNode) => void;
@@ -77,6 +79,7 @@ export function TaskTreeTable({
   isLoading,
   isFetching,
   filter,
+  searchTerm,
   onFilterChange,
   onToggle,
   onSelect,
@@ -98,7 +101,13 @@ export function TaskTreeTable({
         : undefined,
     [pageActions]
   );
-  const columns = useTaskTreeColumns(grid, onToggle, linkEnabled, rowAction);
+  const columns = useTaskTreeColumns(
+    grid,
+    onToggle,
+    linkEnabled,
+    rowAction,
+    searchTerm
+  );
 
   // The one select path, for mouse (onCellClick below) and keyboard alike, so both remember the row —
   // on the *page* only: opening a task there is what a Cancel or a browser-back returns to, so the

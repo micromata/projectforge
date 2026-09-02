@@ -79,6 +79,11 @@ export interface UseDataTableOptions<TData> {
 
   getRowId?: (row: TData, index: number) => string;
   initialPageSize?: number;
+  /**
+   * The active search term, exposed to every cell through the table meta so text cells can highlight
+   * where it matched (see TableMeta.highlight). Left unset where there is no term to highlight.
+   */
+  highlight?: string;
 }
 
 /**
@@ -118,6 +123,7 @@ export function useDataTable<TData>({
   manualFiltering = false,
   getRowId,
   initialPageSize = DEFAULT_PAGE_SIZE,
+  highlight,
 }: UseDataTableOptions<TData>): Table<TData> {
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [internalPagination, setInternalPagination] = useState<PaginationState>(
@@ -240,5 +246,6 @@ export function useDataTable<TData>({
     onColumnOrderChange: onColumnOrderChange ?? setInternalOrder,
     onRowSelectionChange,
     getRowId,
+    meta: { highlight },
   });
 }

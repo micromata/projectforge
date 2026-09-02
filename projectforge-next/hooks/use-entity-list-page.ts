@@ -238,6 +238,10 @@ export function useEntityListPage<Row extends ListRow>({
     manualSorting: true,
     manualPagination: pagedFromServer,
     getRowId: (row: Row) => String(row.id),
+    // The search string sent to Spring, so every text cell highlights where it matched (see
+    // TableMeta.highlight). Its MagicFilter syntax degrades safely — HighlightedText strips a word's
+    // `*`/quotes and a leftover operator just highlights nothing.
+    highlight: query.globalFilter,
   });
   useEffect(() => {
     tableRef.current = table;
@@ -316,6 +320,11 @@ export function useEntityListPage<Row extends ListRow>({
     selectionMode,
     /** The legacy list page this one replaces; undefined once it is gone (see ListMetaData). */
     legacyUrl: meta.data?.legacyListPage,
+    /**
+     * Whether that way back belongs in the gear menu instead of the prominent button — a per-entity
+     * choice the backend makes once the page is trusted (see ListMetaData.legacyListInMenu).
+     */
+    legacyInMenu: meta.data?.legacyListInMenu ?? false,
     data: query.data,
     /**
      * The result was capped by the backend's row limit, so more rows match than came back

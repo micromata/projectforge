@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { TimesheetDetail } from "../../types";
 
 export interface RecentTimesheetsPopoverProps {
@@ -36,7 +37,9 @@ export interface RecentTimesheetsPopoverProps {
  * chips had flattened to one truncated line each. A popover, not an inline unfold: the bar sits above
  * the fields in a height-bounded modal, where a table opening in place would push them off screen.
  *
- * Kunde/Projekt of the legacy table are dropped — the cost unit reference carries neither here.
+ * Kunde and Projekt sit beside the cost unit, on the same `cost2Visible` gate as the legacy table:
+ * `getRecentList` resolves both from the entry's cost unit, so a reader who books on cost units gets
+ * the same customer/project context they had in the classic form.
  */
 export function RecentTimesheetsPopover({
   entries,
@@ -54,34 +57,45 @@ export function RecentTimesheetsPopover({
     return entries.filter((entry) => searchText(entry).includes(needle));
   }, [entries, query]);
 
-  // The columns, in reading order — description before the tag, and kost2 only where the installation
-  // books on cost units. `width` is a share of the fixed-layout table, so every cell truncates to its
-  // column and the table never grows past the popover (no horizontal scroll, whatever the values are).
+  // The columns, in reading order — cost unit, its customer and project (all on the same `cost2Visible`
+  // gate as the legacy table, since all three only exist for a cost-unit booking), then task, location,
+  // description, tag and reference. `width` is a share of the fixed-layout table, so every cell truncates
+  // to its column and the table never grows past the popover (no horizontal scroll, whatever the values).
   const columns: RecentColumn[] = [
     cost2Visible && {
       head: t("fibu.kost2._"),
-      width: "w-[15%]",
+      width: "w-[11%]",
       cell: (e: TimesheetDetail) => e.kost2?.displayName ?? "",
     },
-    { head: t("task._"), width: "w-[23%]", cell: taskName },
+    cost2Visible && {
+      head: t("fibu.kunde._"),
+      width: "w-[12%]",
+      cell: (e: TimesheetDetail) => e.kost2?.project?.customer?.name ?? "",
+    },
+    cost2Visible && {
+      head: t("fibu.projekt._"),
+      width: "w-[12%]",
+      cell: (e: TimesheetDetail) => e.kost2?.project?.name ?? "",
+    },
+    { head: t("task._"), width: "w-[17%]", cell: taskName },
     {
       head: t("timesheet.location"),
-      width: "w-[14%]",
+      width: "w-[11%]",
       cell: (e: TimesheetDetail) => e.location ?? "",
     },
     {
       head: t("description"),
-      width: "w-[24%]",
+      width: "w-[16%]",
       cell: (e: TimesheetDetail) => e.description ?? "",
     },
     {
       head: t("timesheet.tag"),
-      width: "w-[10%]",
+      width: "w-[9%]",
       cell: (e: TimesheetDetail) => e.tag ?? "",
     },
     {
       head: t("timesheet.reference"),
-      width: "w-[14%]",
+      width: "w-[12%]",
       cell: (e: TimesheetDetail) => e.reference ?? "",
     },
   ].filter(Boolean) as RecentColumn[];
@@ -108,7 +122,7 @@ export function RecentTimesheetsPopover({
         align="start"
         // A fixed, viewport-bounded box with overflow-hidden so the table can't push it wider than
         // the screen; the scroll region below then scrolls both ways within it.
-        className="flex max-h-[min(28rem,70vh)] w-[92vw] flex-col gap-0 overflow-hidden p-0 sm:w-[42rem]"
+        className="flex max-h-[min(28rem,70vh)] w-[92vw] flex-col gap-0 overflow-hidden p-0 sm:w-[min(72rem,92vw)]"
       >
         <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
           <HugeiconsIcon
@@ -157,6 +171,7 @@ export function RecentTimesheetsPopover({
                     key={entry.counter ?? searchText(entry)}
                     entry={entry}
                     columns={columns}
+                    query={query}
                     onSelect={() => {
                       onSelect(entry);
                       setOpen(false);
@@ -183,10 +198,13 @@ interface RecentColumn {
 function RecentRow({
   entry,
   columns,
+  query,
   onSelect,
 }: {
   entry: TimesheetDetail;
   columns: RecentColumn[];
+  /** The search term, highlighted in each cell (see HighlightedText). */
+  query: string;
   onSelect: () => void;
 }) {
   return (
@@ -210,7 +228,7 @@ function RecentRow({
             className="truncate px-2 py-1"
             title={value || undefined}
           >
-            {value}
+            <HighlightedText text={value} query={query} />
           </TableCell>
         );
       })}
@@ -228,6 +246,8 @@ function searchText(entry: TimesheetDetail): string {
   return [
     entry.task?.displayName,
     entry.kost2?.displayName,
+    entry.kost2?.project?.customer?.name,
+    entry.kost2?.project?.name,
     entry.location,
     entry.tag,
     entry.reference,

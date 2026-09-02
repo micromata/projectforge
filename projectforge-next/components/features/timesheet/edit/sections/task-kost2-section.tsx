@@ -95,6 +95,9 @@ export function TaskKost2Section({ className }: { className?: string }) {
         name="task"
         label={t("task._")}
         className="md:col-span-3"
+        // Clicking a segment of the path opens the tree scoped there, so the booking points below a
+        // structure element are one click away — the drill-down the legacy timesheet form had.
+        openTreeOnAncestorClick
       />
       {/* Only where the task has cost units at all: on a task without them the select would be an empty
           dropdown next to a field the backend never asks for. */}

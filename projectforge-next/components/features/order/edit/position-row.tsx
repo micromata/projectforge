@@ -156,7 +156,6 @@ export function PositionRow({
           hint={t("fibu.auftrag.forecastType.pos.info")}
           options={p.enumOptions("forecastType", t)}
         />
-        <TaskSelectField name={name("task")} label={label("task")} />
         <SelectField
           name={name("periodOfPerformanceType")}
           label={label("periodOfPerformanceType")}
@@ -184,6 +183,13 @@ export function PositionRow({
             />
           </>
         )}
+        {/* The structure element runs across the whole row: its breadcrumb path can grow long, so it
+            reads better with the full width than squeezed into a single grid cell. */}
+        <TaskSelectField
+          name={name("task")}
+          label={label("task")}
+          className="md:col-span-3"
+        />
         <TextAreaField
           name={name("bemerkung")}
           label={label("bemerkung")}

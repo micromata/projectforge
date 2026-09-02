@@ -39,7 +39,9 @@ export function useTaskTreeColumns(
   /** Whether a cell may link away from the tree, see [CellRenderProps.linkEnabled]. */
   linkEnabled: boolean,
   /** What the row lets one do with the task, rendered behind its title (see [TreeCell]). */
-  rowAction?: (task: TaskNode) => React.ReactNode
+  rowAction?: (task: TaskNode) => React.ReactNode,
+  /** The search term the rows were filtered by, highlighted in the cell text (see [CellRenderProps.highlight]). */
+  highlight?: string
 ): ColumnDef<TaskNode, unknown>[] {
   const formatCtx = useFormatContext();
   const t = useTranslations();
@@ -72,7 +74,10 @@ export function useTaskTreeColumns(
           if (jiraLinked) {
             const value = getValue();
             return (
-              <JiraLinkedText text={typeof value === "string" ? value : null} />
+              <JiraLinkedText
+                text={typeof value === "string" ? value : null}
+                highlight={highlight}
+              />
             );
           }
           const props = {
@@ -82,6 +87,7 @@ export function useTaskTreeColumns(
             ctx: formatCtx,
             t,
             linkEnabled,
+            highlight,
           };
           return spec.kind === "tree" ? (
             <TreeCell
@@ -95,5 +101,5 @@ export function useTaskTreeColumns(
         },
       } satisfies ColumnDef<TaskNode, unknown>;
     });
-  }, [grid, formatCtx, t, onToggle, linkEnabled, rowAction]);
+  }, [grid, formatCtx, t, onToggle, linkEnabled, rowAction, highlight]);
 }

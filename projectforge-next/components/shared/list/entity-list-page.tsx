@@ -282,7 +282,8 @@ function DeclaredList<
             // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
             addHref={targets.canAdd ? targets.addHref : undefined}
             addIsLegacy={targets.legacy}
-            legacyUrl={list.legacyUrl}
+            // The button, unless this entity has demoted the way back into the gear menu below.
+            legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
             selectionToggle={
               page.massUpdate &&
               updateAccess !== false && (
@@ -297,6 +298,8 @@ function DeclaredList<
               <ListGearMenu
                 entity={page.entity}
                 onFilterReset={list.resetFilter}
+                // Present only for an entity that has moved its way back in here (see legacyInMenu).
+                legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
               />
             }
             // The result hit the backend's row cap, so it is incomplete — a prominent red warning

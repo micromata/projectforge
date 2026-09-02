@@ -93,6 +93,59 @@ export interface ViewLabels {
 }
 
 /**
+ * All-day event ordering by category (calendar weeks first, then birthdays, holidays, vacations, then
+ * the rest). Lower rank sorts higher in the all-day row. The categories are `FullCalendarEvent.Category`
+ * strings, carried in each event's `extendedProps.category`.
+ */
+const ALL_DAY_CATEGORY_RANK: Readonly<Record<string, number>> = {
+  "timesheet-stats": 0, // the "KW36: 40:00h" week header and the daily sums
+  address: 1, // birthdays
+  holiday: 2,
+  vacation: 3,
+};
+/** Categories not in {@link ALL_DAY_CATEGORY_RANK} (teamEvent, calEvent, timesheet) sort after the ranked ones. */
+const UNRANKED_CATEGORY = 100;
+
+/**
+ * The object FullCalendar's `eventOrder` comparator is actually handed: its internal seg-compare object,
+ * not an `EventApi`. The event's `extendedProps` are spread onto it (so `category` is top-level) and
+ * `allDay` arrives as a number (0/1). Typed loosely here because the public option types it as `EventApi`.
+ */
+interface EventOrderArg {
+  allDay?: number;
+  category?: string;
+}
+
+/**
+ * Orders all-day events by {@link ALL_DAY_CATEGORY_RANK}. Returns 0 for timed events so their
+ * chronological stacking in the time grid is untouched — used as the first `eventOrder` criterion,
+ * with FullCalendar's own defaults ("start,-duration,allDay,title") following as tie-breaks.
+ */
+export function compareAllDayByCategory(
+  a: EventOrderArg,
+  b: EventOrderArg
+): number {
+  if (!a.allDay || !b.allDay) return 0;
+  const rankA = ALL_DAY_CATEGORY_RANK[a.category ?? ""] ?? UNRANKED_CATEGORY;
+  const rankB = ALL_DAY_CATEGORY_RANK[b.category ?? ""] ?? UNRANKED_CATEGORY;
+  return rankA - rankB;
+}
+
+/**
+ * FullCalendar's `eventOrder`: the category rank first (all-day events only), then FullCalendar's own
+ * defaults as tie-breaks. Passing `eventOrder` replaces the built-in default entirely, so those fields
+ * are repeated here. The cast bridges the loose runtime object (see {@link EventOrderArg}) to the
+ * `EventApi`-typed public option.
+ */
+export const EVENT_ORDER = [
+  compareAllDayByCategory,
+  "start",
+  "-duration",
+  "allDay",
+  "title",
+] as unknown as CalendarOptions["eventOrder"];
+
+/**
  * The `views` map, including the two weekend-less "working" variants the backend can send and
  * FullCalendar does not know out of the box. Time-grid views get their slot size and scroll position
  * from the current filter, month views drop the trailing empty week.

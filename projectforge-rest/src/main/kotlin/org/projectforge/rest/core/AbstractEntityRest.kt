@@ -307,6 +307,8 @@ constructor(
             // Escape hatches ("way back" to the legacy page), marked so OrphanedLinkFilter lets them
             // reach it instead of bending them straight back to next (see NextMigration.withEscapeHatchMarker).
             legacyListPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyListUrl(category)),
+            // Whether that way back is offered in the gear menu instead of the prominent button, per entity.
+            legacyListInMenu = NextMigration.legacyListInMenu(category),
             legacyEditPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyEditPage(category)),
             legacyNewEntryPage = NextMigration.withEscapeHatchMarker(NextMigration.legacyNewEntryUrl(category)),
             userAccess = userAccess,

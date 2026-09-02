@@ -31,6 +31,7 @@ export function TaskTreePanel({
   rootSelectable,
   selectMode,
   rootNavigable,
+  initialRootTaskId,
   pageMode,
   tree,
   className,
@@ -44,11 +45,13 @@ export function TaskTreePanel({
     showRootForAdmins,
     selectMode,
     rootNavigable,
+    initialRootTaskId,
   });
   const {
     nodes,
     grid,
     filter,
+    searchTerm,
     setFilter,
     isLoading,
     isFetching,
@@ -91,6 +94,7 @@ export function TaskTreePanel({
           isLoading={isLoading}
           isFetching={isFetching}
           filter={filter}
+          searchTerm={searchTerm}
           onFilterChange={setFilter}
           onToggle={toggle}
           onSelect={select}

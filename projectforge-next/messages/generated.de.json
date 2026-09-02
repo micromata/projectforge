@@ -1193,7 +1193,8 @@
   },
   "goreact": {
     "menu": {
-      "classics": "Klassische Version"
+      "classics": "Klassische Version",
+      "classicsInfo": "Falls hier eine Funktion fehlen sollte. Die klassische Version wird in Kürze entfernt."
     }
   },
   "group": {
@@ -1960,6 +1961,7 @@
     "parentTask": "Übergeordnetes Strukturelement",
     "path": {
       "_": "Strukturhierarchie",
+      "openInTree": "Im Strukturbaum öffnen",
       "pleaseSelectTask": "Bitte Strukturelement wählen",
       "rootTask": "Toplevel"
     },

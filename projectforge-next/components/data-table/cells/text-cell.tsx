@@ -1,13 +1,20 @@
 import { formatValue } from "@/lib/format";
 import { getByPath } from "@/lib/dynamic/path";
 import { cn } from "@/lib/utils";
+import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { CellRenderProps } from "./cell-types";
 
 /**
  * The terminal case: the value as localised text. Every formatter that produces
  * a string ends up here; the icon/bar formatters have their own components.
  */
-export function TextCell({ spec, value, row, ctx }: CellRenderProps) {
+export function TextCell({
+  spec,
+  value,
+  row,
+  ctx,
+  highlight,
+}: CellRenderProps) {
   const text = formatValue(value, spec.format, ctx);
   if (!text) return null;
   const tooltip = spec.tooltipPath
@@ -21,7 +28,7 @@ export function TextCell({ spec, value, row, ctx }: CellRenderProps) {
         typeof tooltip === "string" && tooltip ? tooltip : undefined
       }
     >
-      {text}
+      <HighlightedText text={text} query={highlight} />
     </span>
   );
 }

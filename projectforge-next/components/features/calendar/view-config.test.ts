@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   clampVisibleEnd,
+  compareAllDayByCategory,
   MAX_EVENT_RANGE_DAYS,
   normalizeInitialDate,
   scrollTime,
@@ -71,5 +72,45 @@ describe("clampVisibleEnd", () => {
   it("leaves a range within the boundary unchanged", () => {
     const end = new Date("2026-02-01T00:00:00Z"); // 31 days
     expect(clampVisibleEnd(start, end)).toBe(end);
+  });
+});
+
+describe("compareAllDayByCategory", () => {
+  const allDay = (category: string) => ({ allDay: 1, category });
+
+  it("ranks calendar weeks, birthdays, holidays and vacations in that order", () => {
+    const order = [
+      "teamEvent",
+      "vacation",
+      "holiday",
+      "address",
+      "timesheet-stats",
+    ]
+      .map(allDay)
+      .sort(compareAllDayByCategory)
+      .map((e) => e.category);
+    expect(order).toEqual([
+      "timesheet-stats",
+      "address",
+      "holiday",
+      "vacation",
+      "teamEvent",
+    ]);
+  });
+
+  it("treats unranked categories as equal so their default order survives", () => {
+    expect(
+      compareAllDayByCategory(allDay("teamEvent"), allDay("calEvent"))
+    ).toBe(0);
+  });
+
+  it("leaves timed events untouched so the time grid stays chronological", () => {
+    const timedFirst = { allDay: 0, category: "teamEvent" };
+    expect(compareAllDayByCategory(timedFirst, allDay("timesheet-stats"))).toBe(
+      0
+    );
+    expect(compareAllDayByCategory(allDay("timesheet-stats"), timedFirst)).toBe(
+      0
+    );
   });
 });

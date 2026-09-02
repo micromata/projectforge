@@ -107,6 +107,12 @@ object NextMigration {
      * prefix. Only needed if the page doesn't follow the convention either.
      * @param legacyNewEntryRoute Route of the legacy page for creating an entry, without the app prefix.
      * Only needed if the page doesn't follow the convention.
+     * @param legacyListInMenu Whether the way back to the legacy *list* page is offered as an entry of
+     * the list's gear menu instead of the prominent button (see `LegacyPageLink` / `ListGearMenu` in
+     * projectforge-next). The escape hatch has to be loud while the new page still has gaps, so the
+     * default is the button; once a page has been in use long enough to be trusted, this demotes it into
+     * the menu per entity. Only the list page is affected - edit and other pages keep the button, so this
+     * is read only next to [legacyListUrl] (see `ListMetaData.legacyListInMenu`), not for the edit page.
      */
     class NextPage(
         val route: String,
@@ -117,6 +123,7 @@ object NextMigration {
         val legacyRoute: String? = null,
         val legacyEditRoute: String? = null,
         val legacyNewEntryRoute: String? = null,
+        val legacyListInMenu: Boolean = false,
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
@@ -180,6 +187,8 @@ object NextMigration {
             legacyRoute = "orderBookList",
             legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "orderBookEdit",
+            // In use long enough to trust the new list: the way back moves into the gear menu.
+            legacyListInMenu = true,
         ),
         // Migrated from Wicket, form included: the three document functions that used to be Wicket's alone
         // - the Word export, the XRechnung/ZUGFeRD export and the invoice PDF upload - are REST endpoints
@@ -195,6 +204,8 @@ object NextMigration {
             editRoute = "invoice/$ID_PLACEHOLDER",
             newEntryRoute = "invoice/new",
             legacyApp = LegacyApp.WICKET,
+            // In use long enough to trust the new list: the way back moves into the gear menu.
+            legacyListInMenu = true,
         ),
         // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice`
         // is the outgoing side, and this is the incoming (creditor) one - which side the category names is
@@ -207,6 +218,8 @@ object NextMigration {
             editRoute = "creditor-invoice/$ID_PLACEHOLDER",
             newEntryRoute = "creditor-invoice/new",
             legacyApp = LegacyApp.WICKET,
+            // In use long enough to trust the new list: the way back moves into the gear menu.
+            legacyListInMenu = true,
         ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
         // *list* perspective of the entity, /next/task, as for every other page - the structure tree is
@@ -425,6 +438,15 @@ object NextMigration {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
         return "${app.appPath}${page?.legacyRoute ?: app.listRoute(category)}"
+    }
+
+    /**
+     * Whether the way back to the legacy *list* page is offered in the list's gear menu instead of the
+     * prominent button (see [NextPage.legacyListInMenu]). False for a page that isn't migrated - it is
+     * served by the legacy app itself and has no such choice to make.
+     */
+    fun legacyListInMenu(category: String): Boolean {
+        return nextPage(category)?.legacyListInMenu == true
     }
 
     /**

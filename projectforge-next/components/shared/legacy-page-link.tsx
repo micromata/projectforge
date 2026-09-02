@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CircleArrowReload01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,20 @@ import { cn } from "@/lib/utils";
  * Rendered as a plain anchor, not `next/link`: the target belongs to another app and needs a full
  * page load — which is exactly what `resolveMenuUrl` decides.
  */
+/**
+ * The label and resolved target of the way back, so the prominent button ({@link LegacyPageLink}) and
+ * the demoted gear-menu entry ({@link LegacyMenuItem}) name and point at it the same way.
+ *
+ * Returns `null` when there is no legacy counterpart, so a caller renders nothing.
+ */
+export function useLegacyLink(
+  url?: string
+): { label: string; href: string } | null {
+  const t = useTranslations("goreact.menu");
+  if (!url) return null;
+  return { label: t("classics"), href: toAbsoluteUrl(resolveMenuUrl(url)) };
+}
+
 export function LegacyPageLink({
   url,
   className,
@@ -31,9 +46,9 @@ export function LegacyPageLink({
   url?: string;
   className?: string;
 }) {
-  const t = useTranslations("goreact.menu");
-  if (!url) return null;
-  const label = t("classics");
+  const link = useLegacyLink(url);
+  if (!link) return null;
+  const { label, href } = link;
 
   return (
     // No `HintTooltip`: its text would only repeat the label already spelled out beside the icon.
@@ -47,12 +62,42 @@ export function LegacyPageLink({
         className
       )}
     >
-      <a href={toAbsoluteUrl(resolveMenuUrl(url))}>
+      <a href={href}>
         <HugeiconsIcon icon={CircleArrowReload01Icon} size={13} />
         {/* Icon only where the row is tight: `sr-only`, not `hidden`, keeps the accessible
               name on the link itself. */}
         <span className="sr-only md:not-sr-only">{label}</span>
       </a>
     </Button>
+  );
+}
+
+/**
+ * The way back as an entry of a list's gear menu, the demoted form of {@link LegacyPageLink}: once a
+ * page is trusted enough (see `NextMigration.NextPage.legacyListInMenu`), the escape hatch no longer
+ * needs to compete with the page's own actions and moves in here.
+ *
+ * Two lines like the maintenance entries beside it (label over an explanation), so it reads as one of
+ * the menu rather than an odd link. A plain anchor all the same: the target is another app and needs a
+ * full page load, which `resolveMenuUrl` decides.
+ */
+export function LegacyMenuItem({ url }: { url?: string }) {
+  const t = useTranslations("goreact.menu");
+  const link = useLegacyLink(url);
+  if (!link) return null;
+
+  return (
+    <DropdownMenuItem asChild className="flex-col items-start gap-0.5">
+      <a href={link.href}>
+        <span className="flex items-center gap-1.5">
+          <HugeiconsIcon icon={CircleArrowReload01Icon} size={13} />
+          {link.label}
+        </span>
+        {/* `whitespace-normal`: the menu primitive keeps its items on one line otherwise. */}
+        <span className="text-[11px] whitespace-normal text-muted-foreground">
+          {t("classicsInfo")}
+        </span>
+      </a>
+    </DropdownMenuItem>
   );
 }

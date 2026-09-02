@@ -20,6 +20,23 @@ interface TaskPathProps {
    * itself — it is the widest thing on the row and the first place a pointer goes.
    */
   onOpen?: () => void;
+  /**
+   * Make an ancestor click open the tree focused on that node instead of selecting it — the one-click
+   * drill-down the legacy panel had, where clicking a segment led straight to the booking points
+   * beneath it. Off by default: without it a segment click replaces the selection (see [onSelect]).
+   * Only takes effect together with [onDrillDown].
+   *
+   * The ancestor is deliberately *not* selected here: an Oberelement is rarely the task one books
+   * against, so committing it just because the tree was opened there — and left again without picking
+   * a child — was wrong (a folder would stay selected after closing the tree). Drilling down opens the
+   * tree at it; the selection only changes once a task is picked inside.
+   */
+  openTreeOnAncestorClick?: boolean;
+  /**
+   * Open the tree focused on the given node — the drill-down [openTreeOnAncestorClick] triggers.
+   * Distinct from [onOpen], which opens at the current selection.
+   */
+  onDrillDown?: (task: TaskNode) => void;
   /** The path may be read but not changed — the shortcuts stop being buttons. */
   disabled?: boolean;
   /** Accessible name of the whole breadcrumb. Defaults to the "please select a task" prompt. */
@@ -53,6 +70,8 @@ export function TaskPath({
   task,
   onSelect,
   onOpen,
+  openTreeOnAncestorClick = false,
+  onDrillDown,
   disabled,
   label,
   homeTooltip,
@@ -64,8 +83,14 @@ export function TaskPath({
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
   const ancestors = task?.path ?? [];
   const homeText = homeTooltip ?? t("task.tree.rootNode");
+  // With the drill-down on, clicking a segment opens the tree focused on it rather than selecting it,
+  // so the hint says "open in the tree", not the plain "replace by this parent" shortcut.
+  const drillDown = openTreeOnAncestorClick && !!onDrillDown;
   const ancestorText =
-    ancestorTooltip ?? t("task.selectPanel.selectAncestorTask.tooltip");
+    ancestorTooltip ??
+    (drillDown
+      ? t("task.path.openInTree")
+      : t("task.selectPanel.selectAncestorTask.tooltip"));
 
   return (
     <nav
@@ -89,7 +114,10 @@ export function TaskPath({
           <HintTooltip text={ancestorText}>
             <button
               type="button"
-              onClick={() => onSelect(ancestor)}
+              onClick={() => {
+                if (drillDown) onDrillDown!(ancestor);
+                else onSelect(ancestor);
+              }}
               disabled={disabled}
               className="max-w-40 cursor-pointer truncate text-muted-foreground hover:text-foreground hover:underline disabled:cursor-default disabled:hover:text-muted-foreground disabled:hover:no-underline"
             >

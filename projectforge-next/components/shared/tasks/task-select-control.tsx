@@ -26,6 +26,10 @@ export interface TaskSelectControlProps {
   onOpen: () => void;
   /** An ancestor was picked from the path, or the selection was cleared. */
   onSelect: (task: TaskNode | null) => void;
+  /** Make a path-segment click open the tree focused on that node instead of selecting it — see [TaskPath]. */
+  openTreeOnAncestorClick?: boolean;
+  /** Open the tree focused on the given node — the drill-down [openTreeOnAncestorClick] triggers (see [TaskPath]). */
+  onDrillDown?: (task: TaskNode) => void;
 }
 
 /**
@@ -43,6 +47,8 @@ export function TaskSelectControl({
   showEditLink = true,
   onOpen,
   onSelect,
+  openTreeOnAncestorClick,
+  onDrillDown,
 }: TaskSelectControlProps) {
   const t = useTranslations();
 
@@ -62,6 +68,8 @@ export function TaskSelectControl({
           task={(taskId != null && task) || null}
           onSelect={(node) => onSelect(node)}
           onOpen={onOpen}
+          openTreeOnAncestorClick={openTreeOnAncestorClick}
+          onDrillDown={onDrillDown}
           disabled={disabled}
         />
       </div>

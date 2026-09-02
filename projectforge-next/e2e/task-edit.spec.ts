@@ -368,7 +368,7 @@ test.describe("task edit", () => {
     ).toHaveValue(changed, { timeout: 20_000 });
   });
 
-  test("the history is a tab of the form, and its old url still leads there", async ({
+  test("the history is a tab of the form", async ({
     loggedInPage: page,
     seededTask,
   }) => {
@@ -376,13 +376,10 @@ test.describe("task edit", () => {
     // The seeded task has a history because it was inserted — one attribute per property, written by
     // `HistoryBaseDaoAdapter` as a side effect of the save. So no task of the database is needed, and
     // none may be touched (see the note at the top).
-    await goto(page, `/task/${seededTask.id}/history`);
-
-    // The history used to be a route of its own; the url is in bookmarks and mails and redirects to
-    // the tab (see EntityTabRedirect). Substring rather than regexp: the path carries a `?`.
-    await expect
-      .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
-      .toContain(`/task/${seededTask.id}?tab=history`);
+    //
+    // The history is a tab of the edit page, reached by `?tab=history`; it is no longer a route of its
+    // own (the legacy `/{id}/history` deep-link was dropped, see history.spec.ts).
+    await goto(page, `/task/${seededTask.id}?tab=history`);
     await expect(
       page.getByRole("listitem").first().getByRole("button")
     ).toBeVisible({ timeout: 20_000 });

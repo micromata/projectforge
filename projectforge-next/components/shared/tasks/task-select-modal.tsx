@@ -15,6 +15,11 @@ export interface TaskSelectModalProps {
   onChange: (task: TaskNode | null) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Root the tree here on open instead of at the selection's parent — a drill-down click on an ancestor
+   * passes the ancestor, so the tree opens rooted there and the node sits in the breadcrumb, not as a row.
+   */
+  rootTaskId?: number | null;
 }
 
 export function TaskSelectModal({
@@ -22,6 +27,7 @@ export function TaskSelectModal({
   onChange,
   open,
   onOpenChange,
+  rootTaskId,
 }: TaskSelectModalProps) {
   const t = useTranslations();
 
@@ -50,6 +56,7 @@ export function TaskSelectModal({
         <div className="flex max-h-[65vh] flex-col overflow-hidden rounded-md border p-2">
           <TaskTreePanel
             highlightTaskId={value}
+            initialRootTaskId={rootTaskId}
             onSelect={handleSelect}
             selectMode
             rootNavigable

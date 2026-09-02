@@ -139,6 +139,25 @@ export function formatTimestampRange(
   );
 }
 
+/** Time only, to the minute, e.g. 14:33 — the day is context the caller already shows. */
+export function formatTime(value: unknown, ctx: FormatContext): string {
+  const date = toDate(value);
+  if (!date) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    ...hourOptions(ctx),
+    timeZone: ctx.timeZone,
+  }).format(date);
+}
+
+/** [formatTimeRange] for a same-day period, e.g. `10:30 – 12:00`. */
+export function formatTimeRange(
+  begin: unknown,
+  end: unknown,
+  ctx: FormatContext
+): string {
+  return joinRange(formatTime(begin, ctx), formatTime(end, ctx));
+}
+
 function joinRange(from: string, to: string): string {
   if (!from && !to) return "";
   if (from && to) return `${from} – ${to}`;
