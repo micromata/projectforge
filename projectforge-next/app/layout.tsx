@@ -59,7 +59,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         "h-full",
-        "antialiased",
         jakarta.variable,
         geistMono.variable,
         archivoNarrow.variable,
