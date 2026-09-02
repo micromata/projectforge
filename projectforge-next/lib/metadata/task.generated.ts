@@ -8,6 +8,11 @@ export const TASK_METADATA = {
   entity: "TaskDO",
   historizable: true,
   fields: {
+    allowTimeOverlap: {
+      dataType: "BOOLEAN",
+      i18nKey: "task.allowTimeOverlap",
+      required: false,
+    },
     created: {
       dataType: "TIMESTAMP",
       i18nKey: "created",

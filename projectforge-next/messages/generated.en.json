@@ -1908,6 +1908,10 @@
   },
   "task": {
     "_": "Structure element",
+    "allowTimeOverlap": {
+      "_": "Shared cost element",
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported."
+    },
     "assignedUser": "Responsible user",
     "consumption": "Consumption",
     "deleted": "deleted",

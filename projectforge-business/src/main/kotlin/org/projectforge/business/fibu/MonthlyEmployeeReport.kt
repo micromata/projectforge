@@ -33,6 +33,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskFormatter.Companion.getTaskPath
 import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.business.timesheet.TimesheetOverlapUtils
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.common.StringHelper
 import org.projectforge.common.extensions.formatFractionAsPercent
@@ -235,27 +236,45 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         } while (date.isBefore(toDateTime))
     }
 
+    /**
+     * Time sheets are buffered and only bucketed into weeks in [calculate], because the proportional overlap split
+     * (shared cost elements) needs to know all time sheets of the month first.
+     */
+    private val bufferedSheets = mutableListOf<Pair<TimesheetDO, Boolean>>()
+
     fun addTimesheet(sheet: TimesheetDO, hasSelectAccess: Boolean) {
         val day = from(sheet.startTime!!) // not null
         bookedDays.add(day.dayOfMonth)
-        for (week in weeks) {
-            if (week.matchWeek(sheet)) {
-                week.addEntry(sheet, hasSelectAccess)
-                return
-            }
-        }
-        log.info(
-            ("Ignoring time sheet which isn't inside current month: "
-                    + year
-                    + "-"
-                    + StringHelper.format2DigitNumber(month)
-                    + ": "
-                    + sheet)
-        )
+        bufferedSheets.add(sheet to hasSelectAccess)
     }
 
     fun calculate() {
         Validate.notEmpty<List<MonthlyEmployeeReportWeek>?>(weeks)
+        // Distribute overlapping time (shared cost elements) proportionally for attendance accounting: at any instant
+        // covered by n time sheets each of them gets 1/n. The sum of all split durations equals the union of the
+        // intervals (overlapping time counted once). Non-overlapping time sheets keep their full duration.
+        val splitDurations = TimesheetOverlapUtils.splitDurations(bufferedSheets.map { it.first })
+        for ((sheet, hasSelectAccess) in bufferedSheets) {
+            val attendanceDuration = sheet.id?.let { splitDurations[it] } ?: sheet.duration
+            var added = false
+            for (week in weeks) {
+                if (week.matchWeek(sheet)) {
+                    week.addEntry(sheet, hasSelectAccess, attendanceDuration)
+                    added = true
+                    break
+                }
+            }
+            if (!added) {
+                log.info(
+                    ("Ignoring time sheet which isn't inside current month: "
+                            + year
+                            + "-"
+                            + StringHelper.format2DigitNumber(month)
+                            + ": "
+                            + sheet)
+                )
+            }
+        }
         for (week in weeks) {
             if (MapUtils.isNotEmpty(week.kost2Entries)) {
                 for (entry in week.kost2Entries.values) {

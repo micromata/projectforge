@@ -86,7 +86,13 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         return !sheet.startTime!!.before(fromDate.utilDate) && sheet.startTime!!.before(toDate.utilDate)
     }
 
-    fun addEntry(timesheet: TimesheetDO, hasSelectAccess: Boolean) {
+    /**
+     * @param attendanceDuration The duration (in millis) attributed to this time sheet for attendance accounting. For
+     * shared cost elements with overlapping time sheets this is the proportionally split duration (see
+     * [org.projectforge.business.timesheet.TimesheetOverlapUtils]); for non-overlapping time sheets it equals
+     * [TimesheetDO.getDuration].
+     */
+    fun addEntry(timesheet: TimesheetDO, hasSelectAccess: Boolean, attendanceDuration: Long) {
         if (!matchWeek(timesheet)) {
             throw RuntimeException("Oups, given time sheet is not inside the week represented by this week object.")
         }
@@ -112,10 +118,14 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
                 }
             }
         }
-        val duration = timesheet.duration
+        // Use the (possibly overlap-split) attendance duration instead of the full time sheet duration.
+        val duration = attendanceDuration
         entry?.addMillis(timesheet, duration)
-        totalDuration += timesheet.workFractionDuration
-        if (timesheet.workFractionDuration > 0) {
+        // Net (working time fraction) duration derived from the entry's cost 2 (travelling times etc.), based on the
+        // split attendance duration.
+        val netDuration = entry?.let { it.workFraction.multiply(duration.toBigDecimal()).toLong() } ?: duration
+        totalDuration += netDuration
+        if (netDuration > 0) {
             // Don't add time sheets with zero working time fraction.
             totalGrossDuration += duration
         }

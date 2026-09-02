@@ -213,6 +213,24 @@ public class TaskNode implements IdObject<Long>, Serializable {
     return bookableForTimesheets;
   }
 
+  /**
+   * A structure element may be marked as a shared cost element ({@link TaskDO#getAllowTimeOverlap()}). Time sheets of
+   * such elements may overlap in time with time sheets of other (non same-project) tasks. The flag is inherited: it's
+   * true if this node itself or any ancestor node has it set.
+   *
+   * @return True if time sheet overlap is allowed for this node or any ancestor node.
+   * @see TaskDO#getAllowTimeOverlap()
+   */
+  public boolean isTimeOverlapAllowed() {
+    if (task.getAllowTimeOverlap()) {
+      return true;
+    }
+    if (parent != null) {
+      return parent.isTimeOverlapAllowed();
+    }
+    return false;
+  }
+
   public List<Long> getDescendantIds() {
     final List<Long> descendants = new ArrayList<>();
     getDescendantIds(descendants);

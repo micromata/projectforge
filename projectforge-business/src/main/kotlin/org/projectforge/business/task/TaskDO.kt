@@ -238,6 +238,21 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(name = "protectionOfPrivacy", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     open var protectionOfPrivacy: Boolean = false
 
+    /**
+     * Marks this structure element (and, by inheritance, its sub tasks) as a *shared cost element*.
+     *
+     * Normally two time sheets of the same user must not overlap in time. If this flag is set, time sheets booked on
+     * this task (or a descendant) may overlap in time with time sheets of other tasks, as long as they don't belong to
+     * the same project (no double booking inside a project).
+     *
+     * The purpose is cost sharing between projects/customers: a working time that benefits two projects/customers is
+     * booked on both (overlapping) and counted proportionally in attendance reports (e. g. 1h + overlapping 1h => 0.5h
+     * each), while for customer invoicing each booking still counts fully. See [org.projectforge.business.timesheet.TimesheetOverlapUtils].
+     */
+    @PropertyInfo(i18nKey = "task.allowTimeOverlap")
+    @get:Column(name = "allow_time_overlap", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
+    open var allowTimeOverlap: Boolean = false
+
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @FullTextField

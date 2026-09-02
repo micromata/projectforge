@@ -143,6 +143,16 @@ class TimesheetStats(fromDate: Date?, toDate: Date?) {
         }
 
     /**
+     * The real working time (attendance): overlapping time sheets (shared cost elements) are counted only once
+     * (length of the union of all intervals), whereas [totalMillis] sums every sheet fully (effort). For
+     * non-overlapping time sheets both values are equal.
+     *
+     * @return the union of all time sheet intervals in millis (not clipped to the period).
+     */
+    val totalWorkingTimeMillis: Long
+        get() = TimesheetOverlapUtils.unionDurationMillis(timesheets)
+
+    /**
      * @return the totalHours of time sheets inside given period.
      */
     @JvmOverloads
