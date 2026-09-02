@@ -737,6 +737,12 @@ span.row-grey {
  * and inline styles are low-specificity / need !important respectively; the values come from tokens so
  * they flip with the theme.
  */
+/* The backend HtmlDocument gives its <h1> title ("Forecast-Analyse des Auftrags …") a large default
+   top margin, which stacks on top of the frame's own padding and leaves a wide gap above the title.
+   Collapse it so the heading sits close to the frame's top edge (applies in both themes). */
+.order-forecast h1:first-of-type {
+  margin-top: 0;
+}
 /* Headings carry the backend's dark greys (#222 on h2, #555 on h3/h4) which vanish on the dark
    background — the "angelegt: …" subheading is an h2. Give them the muted-foreground token. */
 .dark .order-forecast h2,
