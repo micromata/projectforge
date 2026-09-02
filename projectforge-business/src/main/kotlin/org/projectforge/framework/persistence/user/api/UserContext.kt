@@ -134,7 +134,9 @@ class UserContext @JvmOverloads constructor(var user: PFUserDO?, nofresh: Boolea
          */
         @JvmStatic
         fun __internalCreateWithSpecialUser(user: PFUserDO): UserContext {
-            return UserContext(user)
+            // nofresh=true: the special/pseudo user (e.g. system admin) is synthetic and not in UserGroupCache;
+            // refreshing it would only log a misleading "Couldn't update user from UserCache" warning on startup/shutdown.
+            return UserContext(user, nofresh = true)
         }
 
         @JvmStatic
