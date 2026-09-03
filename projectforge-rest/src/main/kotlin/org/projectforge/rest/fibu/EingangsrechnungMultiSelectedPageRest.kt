@@ -86,6 +86,26 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   }
 
   /**
+   * The same fields [fillForm] lays out, for a client (the next frontend) that renders the form itself.
+   */
+  override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+    return listOf(
+      MassUpdateFieldDeclaration("kreditor"),
+      MassUpdateFieldDeclaration("receiver"),
+      MassUpdateFieldDeclaration("iban"),
+      MassUpdateFieldDeclaration("bic"),
+      MassUpdateFieldDeclaration("paymentType"),
+      MassUpdateFieldDeclaration("referenz"),
+      MassUpdateFieldDeclaration("bezahlDatum"),
+      MassUpdateFieldDeclaration("bemerkung", showAppendOption = true),
+    )
+  }
+
+  override fun infoMessageKey(): String {
+    return "fibu.rechnung.multiselected.info"
+  }
+
+  /**
    * The picked invoices summed up, as the values the hand built next mass-update page renders its
    * statistics line from — the counterpart of [getStatistics]'s markdown. See
    * [RechnungMultiSelectedPageRest.getStatisticsData].

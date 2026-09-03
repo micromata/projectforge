@@ -51,8 +51,17 @@ export function MassUpdateForm({
 }) {
   const t = useTranslations();
   const shortcutHint = useSubmitShortcutHint();
-  // One parameter per field, by field name — exactly the map the backend takes.
-  const [params, setParams] = useState<Record<string, MassUpdateParameter>>({});
+  // One parameter per field, by field name — exactly the map the backend takes. A field whose
+  // backend preset is "append" starts with the flag set, so text entered into it is added to the
+  // existing value rather than overwriting it — the legacy `UILayout` form did this server side (see
+  // `MassUpdateFieldMeta.appendPreset` / `createAndAddFields(showAppendOption = true)`).
+  const [params, setParams] = useState<Record<string, MassUpdateParameter>>(() =>
+    Object.fromEntries(
+      meta.fields
+        .filter((field) => field.appendPreset)
+        .map((field) => [field.field, { append: true }])
+    )
+  );
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [result, setResult] = useState<MassUpdateResult | null>(null);
   const [confirming, setConfirming] = useState(false);
