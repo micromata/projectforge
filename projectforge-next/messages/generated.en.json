@@ -1485,14 +1485,6 @@
       "download": "Excel file with all modifications"
     },
     "field": {
-      "checkbox4appending": {
-        "_": "Append?",
-        "info": "If checked, text will be appended (if not already part of the field). If not checked, the field will be replaced."
-      },
-      "checkbox4deletion": {
-        "_": "Delete?",
-        "info": "If chosen, for all entries this field will be deleted (or set to empty). If a text is given, only any occurrence of this text will be deleted."
-      },
       "replace": {
         "_": "Replace by?",
         "info": "All occurrences will be searched and replaced by this text."
@@ -1500,6 +1492,16 @@
     },
     "fields": {
       "changed": "Changed fields"
+    },
+    "mode": {
+      "append": "Append",
+      "delete": {
+        "_": "Delete",
+        "searchHint": "Leave empty to clear the whole field; enter a text to delete only its occurrences."
+      },
+      "label": "Action",
+      "replace": "Search & replace",
+      "set": "Set / overwrite"
     },
     "selectedEntries": "Selected entries"
   },

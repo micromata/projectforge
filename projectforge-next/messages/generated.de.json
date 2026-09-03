@@ -1485,14 +1485,6 @@
       "download": "Exceldatei mit allen Änderungen"
     },
     "field": {
-      "checkbox4appending": {
-        "_": "Anhängen?",
-        "info": "Wenn ausgewählt, wird der Text angehängt (wenn nicht bereits im Feld enthalten). Wenn nicht ausgewählt, wird das bestehende Feld ersetzt."
-      },
-      "checkbox4deletion": {
-        "_": "Löschen?",
-        "info": "Wenn diese Option ausgewählt ist, wird für alle Datensätze dieses Feld gelöscht (bzw. geleert). Wenn ein Text angegeben ist, wird nur der Text gelöscht, wenn vorhanden."
-      },
       "replace": {
         "_": "Ersetzen durch?",
         "info": "Wenn hier ein Text angegeben ist, werden alle gefundenen Vorkommnisse durch diesen Text ersetzt."
@@ -1500,6 +1492,16 @@
     },
     "fields": {
       "changed": "Geänderte Felder"
+    },
+    "mode": {
+      "append": "Anhängen",
+      "delete": {
+        "_": "Löschen",
+        "searchHint": "Leer lassen, um das ganze Feld zu leeren; einen Text angeben, um nur dessen Vorkommnisse zu löschen."
+      },
+      "label": "Aktion",
+      "replace": "Suchen & ersetzen",
+      "set": "Setzen / überschreiben"
     },
     "selectedEntries": "Ausgewählte Einträge"
   },
