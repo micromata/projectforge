@@ -10,7 +10,7 @@
  */
 
 import { request } from "./client";
-import { downloadPost } from "./download";
+import { downloadFile, downloadPost } from "./download";
 import { recalculateInvoiceSums, type InvoiceSums } from "./invoice-sums";
 import { downloadListExcel } from "./list-export";
 import type { MagicFilter } from "./types";
@@ -45,6 +45,43 @@ export function downloadCreditorInvoiceCostAssignmentsExcel(
   return downloadPost(
     `/rs/${ENTITY}/exportCostAssignmentsAsExcel`,
     filter,
+    signal
+  );
+}
+
+/**
+ * The SEPA bank transfer of one stored invoice as a pain.001.003.03 xml (`exportTransfer/{id}`), the
+ * single-invoice counterpart of Wicket's `EingangsrechnungEditPage` "Export bank transfers" button.
+ *
+ * A GET, so the invoice's registered session selection is irrelevant — it exports the invoice named by [id].
+ * The document is built from the **stored** invoice, so the caller offers it for a saved invoice only. A
+ * validation failure (missing IBAN/BIC/…) arrives as a downloadable `error.txt`, exactly as Wicket's does.
+ */
+export function downloadCreditorInvoiceTransfer(
+  id: number,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadFile(
+    `/rs/${ENTITY}/exportTransfer/${id}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The SEPA bank transfer of the mass-selected invoices as one pain.001.003.03 xml
+ * (`incomingInvoiceSelected/exportTransfers`).
+ *
+ * The selected ids are not passed: they live in the HTTP session, registered there by the selection mode
+ * (see multi-select.ts). A validation failure — no selection, a foreign-currency invoice, or missing fields —
+ * arrives as a downloadable `error.txt`.
+ */
+export function downloadCreditorInvoiceTransfers(
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadFile(
+    "/rs/incomingInvoiceSelected/exportTransfers",
+    { method: "GET" },
     signal
   );
 }

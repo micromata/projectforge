@@ -33,16 +33,20 @@ import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.RechnungInfo
+import org.projectforge.business.fibu.SEPATransferGenerator
+import org.projectforge.business.fibu.SEPATransferResult
 import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -57,6 +61,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -103,6 +108,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
 
     @Autowired
     private lateinit var invoiceConfig: InvoiceConfiguration
+
+    @Autowired
+    private lateinit var sepaTransferGenerator: SEPATransferGenerator
 
     /**
      * Builds a fresh [EingangsrechnungDO] instead of mutating the persisted one, for the reason
@@ -441,6 +449,31 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val filename = "ProjectForge-$creditor-${translate("menu.fibu.kost")}" +
                 "_${DateHelper.getDateAsFilenameSuffix(Date())}.xls"
         return RestUtils.downloadFile(filename, xls)
+    }
+
+    /**
+     * The SEPA bank transfer of a single invoice as a pain.001.003.03 xml, the single-invoice counterpart of
+     * [EingangsrechnungMultiSelectedPageRest.exportTransfers] and of Wicket's `EingangsrechnungEditPage`
+     * "Export bank transfers" button. A validation failure (missing IBAN/BIC/receiver/…) is returned as a
+     * downloadable `error.txt` listing the missing fields, exactly as the multi-select export does.
+     */
+    @GetMapping("exportTransfer/{id}")
+    fun exportTransfer(@PathVariable id: Long): ResponseEntity<*> {
+        val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
+        val result: SEPATransferResult = sepaTransferGenerator.format(invoice)
+        if (!result.isSuccessful) {
+            if (result.errors.isEmpty()) {
+                log.error("Oups, xml has zero size for invoice #$id.")
+                return RestUtils.downloadFile("error.txt", translate("fibu.rechnung.transferExport.error"))
+            }
+            val missingFields = SEPATransferResult.getMissingFields(result, invoice)
+            return RestUtils.downloadFile(
+                "error.txt",
+                translateMsg(SEPATransferResult.MISSING_FIELDS_ERROR_I18N_KEY, missingFields),
+            )
+        }
+        val filename = "transfer-$id-${PFDateTime.now().format4Filenames()}.xml"
+        return RestUtils.downloadFile(filename, result.xml ?: "internal error".toByteArray())
     }
 
     /**

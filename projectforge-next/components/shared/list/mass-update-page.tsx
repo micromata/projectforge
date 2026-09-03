@@ -26,6 +26,7 @@ export function MassUpdatePage({
   massUpdate: def,
   listRoute,
   selectedEntries,
+  actions,
 }: {
   /** REST category of the list this came from, so leaving can drop its selection mode. */
   entity: string;
@@ -40,6 +41,8 @@ export function MassUpdatePage({
    * makes the panel refetch after the selection changed in another tab.
    */
   selectedEntries?: (count: number) => ReactNode;
+  /** A page-specific action beside the title (see `MassUpdateForm.actions`), e.g. the SEPA export. */
+  actions?: ReactNode;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -91,6 +94,7 @@ export function MassUpdatePage({
         meta={meta.data}
         statisticsLine={def.statisticsLine}
         selectedEntries={selectedEntries?.(meta.data.selectedCount)}
+        actions={actions}
         // The form's own leave already told the backend to forget the selection (`{page}/cancel`), so
         // the list's mode has to go with it — otherwise it would come back showing ticks that only
         // this app still believes in.

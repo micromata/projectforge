@@ -3,6 +3,7 @@
 import { MassUpdatePage } from "@/components/shared/list/mass-update-page";
 import { SelectedEntriesPanel } from "@/components/shared/list/selected-entries-panel";
 import { CREDITOR_INVOICE_PAGE } from "@/components/features/creditor-invoice/creditor-invoice.page";
+import { CreditorInvoiceTransferButton } from "@/components/features/creditor-invoice/creditor-invoice-transfer-button";
 
 /**
  * Reached from the list, never linked directly: the selection this changes lives in the HTTP session,
@@ -15,6 +16,9 @@ export default function CreditorInvoiceMassUpdatePage() {
       entity={CREDITOR_INVOICE_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={CREDITOR_INVOICE_PAGE.route}
+      // The SEPA bank transfer of the whole selection, exactly as the Wicket multi-select page offers it.
+      // A page-specific action, so it is passed in rather than known to the generic page.
+      actions={<CreditorInvoiceTransferButton selection />}
       // Built here rather than inside the generic page, because it renders the invoice list's own
       // columns — and those are typed, so only the page that declares them can pass them on.
       selectedEntries={(count) => (

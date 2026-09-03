@@ -34,6 +34,7 @@ export function MassUpdateForm({
   meta,
   statisticsLine: StatisticsLine,
   selectedEntries,
+  actions,
   onLeave,
 }: {
   endpoint: string;
@@ -47,6 +48,11 @@ export function MassUpdateForm({
    * is the entity's business, and only the page that declares the list knows their types.
    */
   selectedEntries?: ReactNode;
+  /**
+   * A page-specific action beside the title, e.g. the incoming invoice's SEPA transfer export. A slot for
+   * the same reason as [selectedEntries]: it acts on the entity, which this generic form does not know.
+   */
+  actions?: ReactNode;
   onLeave: () => void;
 }) {
   const t = useTranslations();
@@ -99,11 +105,14 @@ export function MassUpdateForm({
       className="mx-auto w-full max-w-3xl space-y-4 p-4"
       onKeyDown={onKeyDown}
     >
-      <div>
-        <h1 className="text-lg font-bold tracking-tight">{meta.title}</h1>
-        <p className="text-xs text-muted-foreground">
-          {t("massUpdate.entriesFound", { arg0: meta.selectedCount })}
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-lg font-bold tracking-tight">{meta.title}</h1>
+          <p className="text-xs text-muted-foreground">
+            {t("massUpdate.entriesFound", { arg0: meta.selectedCount })}
+          </p>
+        </div>
+        {actions}
       </div>
 
       {/* What the picked entries add up to, by the entity's own statistics line — the same component the

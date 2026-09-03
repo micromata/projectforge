@@ -7,6 +7,7 @@ import { CreditorInvoiceEditBanner } from "./edit/creditor-invoice-edit-banner";
 import { PaymentFields } from "./edit/payment-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { CreditorInvoiceListActions } from "./creditor-invoice-list-actions";
+import { CreditorInvoiceTransferButton } from "./creditor-invoice-transfer-button";
 import {
   creditorInvoiceSchema,
   CREDITOR_INVOICE_ARRAY_FIELDS,
@@ -187,6 +188,10 @@ export const CREDITOR_INVOICE_PAGE = definePage<
     savedMessageKey: "message.successfullChanged",
     // The first thing a creditor invoice is written by — who it is from.
     autoFocus: "kreditor",
+    // The SEPA bank transfer of this invoice, as Wicket's edit page offers it beside the heading.
+    headerTrailing: (invoice) => (
+      <CreditorInvoiceTransferButton invoiceId={invoice?.id} />
+    ),
     sections: [
       {
         id: "head",
