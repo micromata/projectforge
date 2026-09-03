@@ -12,16 +12,19 @@ export const EINGANGSRECHNUNG_METADATA = {
       dataType: "STRING",
       i18nKey: "comment",
       required: false,
+      maxLength: 4000,
     },
     besonderheiten: {
       dataType: "STRING",
       i18nKey: "fibu.rechnung.besonderheiten",
       required: false,
+      maxLength: 4000,
     },
     betreff: {
       dataType: "STRING",
       i18nKey: "fibu.rechnung.betreff",
       required: false,
+      maxLength: 4000,
     },
     bezahlDatum: {
       dataType: "DATE",
@@ -43,6 +46,7 @@ export const EINGANGSRECHNUNG_METADATA = {
       dataType: "STRING",
       i18nKey: "fibu.rechnung.currency",
       required: false,
+      maxLength: 10,
     },
     customernr: {
       dataType: "STRING",
@@ -53,7 +57,7 @@ export const EINGANGSRECHNUNG_METADATA = {
     datum: {
       dataType: "DATE",
       i18nKey: "fibu.rechnung.datum",
-      required: false,
+      required: true,
     },
     deleted: {
       dataType: "BOOLEAN",

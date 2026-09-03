@@ -42,6 +42,7 @@ export const EINGANGSRECHNUNGS_POSITION_METADATA = {
       dataType: "STRING",
       i18nKey: "fibu.rechnung.text",
       required: false,
+      maxLength: 1000,
     },
     vat: {
       dataType: "DECIMAL",
