@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.jpa
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
+import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDO.Companion.TITLE_LENGTH
 
@@ -43,6 +44,12 @@ class EntityMetaDataTest {
                 Assertions.assertEquals(10000, columnMetaData.length)
                 Assertions.assertTrue(columnMetaData.nullable)
             }
+        }
+        // A column a `@MappedSuperclass` declares must be found through the concrete entity too:
+        // `bemerkung` is annotated on `AbstractRechnungDO`, not on `EingangsrechnungDO`.
+        EntityMetaDataRegistry.getColumnMetaData(EingangsrechnungDO::class.java, "bemerkung").let { columnMetaData ->
+            Assertions.assertEquals("bemerkung", columnMetaData!!.name)
+            Assertions.assertEquals(4000, columnMetaData.length)
         }
     }
 }
