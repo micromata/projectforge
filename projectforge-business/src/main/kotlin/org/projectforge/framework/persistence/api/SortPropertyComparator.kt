@@ -58,9 +58,16 @@ private val log = KotlinLogging.logger {}
  * every persisted column and every getter. Override it for a value reflection cannot reach as cheaply —
  * an order's net sum is a map lookup in `AuftragsCache`, which is what makes sorting 7000 rows a matter of
  * milliseconds. Return `null` to fall back to the reflective read.
+ * @param computedProperties The properties [valueOf] *owns*: for these a `null` it returns is a real "no
+ * value" (blank, ranks lowest), not the signal to fall back to reflection. A transient/computed column
+ * (an invoice's due-date-or-discount-maturity, a sum read from a cache) has no bean getter of that name, so
+ * reflecting it would throw — and, thrown for the blank rows only, would make the comparison intransitive
+ * ("Comparison method violates its general contract!"). Everything not named here keeps the default: a
+ * `null` from [valueOf] means "not mine", and reflection answers instead.
  */
 class SortPropertyComparator<T : Any>(
     private val sortProperties: List<SortProperty>,
+    private val computedProperties: Set<String> = emptySet(),
     private val valueOf: ((T, String) -> Any?)? = null,
 ) : Comparator<T> {
     private val collator = Collator.getInstance(ThreadLocalUserContext.locale)
@@ -123,6 +130,11 @@ class SortPropertyComparator<T : Any>(
 
     /** The caller's value if it has one for this property, the reflective read otherwise. */
     private fun read(obj: T, property: String): Any? {
+        if (property in computedProperties) {
+            // The caller owns this one: its null is a genuine blank, so no reflective fallback (there is no
+            // bean getter of this name to read, and reflecting it would throw).
+            return valueOf?.invoke(obj, property)
+        }
         valueOf?.let { it(obj, property) }?.let { return it }
         return BeanHelper.getNestedProperty(obj, property)
     }
@@ -137,12 +149,13 @@ class SortPropertyComparator<T : Any>(
         fun <T : Any> sort(
             list: List<T>,
             sortProperties: List<SortProperty>,
+            computedProperties: Set<String> = emptySet(),
             valueOf: ((T, String) -> Any?)? = null,
         ): List<T> {
             if (sortProperties.isEmpty()) {
                 return list
             }
-            return list.sortedWith(SortPropertyComparator(sortProperties, valueOf))
+            return list.sortedWith(SortPropertyComparator(sortProperties, computedProperties, valueOf))
         }
     }
 }

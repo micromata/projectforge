@@ -681,7 +681,10 @@ constructor(
         }
         return if (hasComputedSortById) {
             val sortProperties = computed + computedSortTieBreak
-            SortPropertyComparator.sort(ids.toList(), sortProperties) { id, property ->
+            // Every value comes from [computedSortValueById] here (T is a bare id, so reflection has nothing
+            // to read): each property is owned, and a null it returns ranks the id as blank.
+            val ownedProperties = sortProperties.map { it.property }.toSet()
+            SortPropertyComparator.sort(ids.toList(), sortProperties, ownedProperties) { id, property ->
                 computedSortValueById(id, property)
             }.toLongArray()
         } else {
@@ -786,7 +789,11 @@ constructor(
             return resultSet
         }
         val sortProperties = computed + computedSortTieBreak
-        return SortPropertyComparator.sort(resultSet, sortProperties) { obj, property -> props[property]?.invoke(obj) }
+        // The computed columns are owned by [props] (a null value is a real blank, not a getter to reflect);
+        // the tie-break is a real database column and stays reflective.
+        return SortPropertyComparator.sort(resultSet, sortProperties, props.keys) { obj, property ->
+            props[property]?.invoke(obj)
+        }
     }
 
     /**

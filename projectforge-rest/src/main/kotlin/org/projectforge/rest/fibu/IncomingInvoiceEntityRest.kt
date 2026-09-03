@@ -505,6 +505,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
          * Keyed by what `creditor-invoice.page.tsx` declares its columns as.
          */
         private val COMPUTED_SORT_PROPERTIES = mapOf<String, (EingangsrechnungDO) -> Comparable<*>?>(
+            // The due date, or the earlier discount maturity where it still applies — a transient of
+            // RechnungInfo, so no database column can order by it (see RechnungCalculator.calculate).
+            Eingangsrechnung::faelligkeitOrDiscountMaturity.name to { it.ensuredInfo.faelligkeitOrDiscountMaturity },
             Eingangsrechnung::netSum.name to { it.ensuredInfo.netSum },
             Eingangsrechnung::grossSumWithDiscount.name to { it.ensuredInfo.grossSumWithDiscount },
         )

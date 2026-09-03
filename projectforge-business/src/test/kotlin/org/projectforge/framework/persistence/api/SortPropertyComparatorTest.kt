@@ -34,9 +34,10 @@ class SortPropertyComparatorTest {
     private fun sort(
         rows: List<Row>,
         vararg sortProperties: SortProperty,
+        computedProperties: Set<String> = emptySet(),
         valueOf: ((Row, String) -> Any?)? = null,
     ): List<Int> {
-        return SortPropertyComparator.sort(rows, sortProperties.toList(), valueOf).map { it.id }
+        return SortPropertyComparator.sort(rows, sortProperties.toList(), computedProperties, valueOf).map { it.id }
     }
 
     @Test
@@ -115,6 +116,39 @@ class SortPropertyComparatorTest {
         Assertions.assertEquals(
             listOf(2, 1),
             sort(rows, SortProperty.asc("noSuchProperty"), SortProperty.asc("name")),
+        )
+    }
+
+    /**
+     * A computed column the caller owns (a transient value, no bean getter of that name) whose value is
+     * null for some rows: the null ranks as a blank, and the reflective fallback — which would throw for the
+     * blank rows only and so make the comparison intransitive ("Comparison method violates its general
+     * contract!") — must not fire. Regression for the creditor invoice list sorted by its due date, where an
+     * invoice without one crashed the whole list.
+     */
+    @Test
+    fun `an owned computed property that is null ranks blank instead of reflecting`() {
+        val rows = listOf(Row("a", 1), Row("b", 2), Row("c", 3), Row("d", 4))
+        // "dueDate" is no property of Row: reflecting it would throw, so the blank rows must never reach it.
+        val dueDate = mapOf(1 to 3, 2 to null, 3 to 1, 4 to null)
+        val valueOf: (Row, String) -> Any? = { row, property ->
+            if (property == "dueDate") dueDate[row.id] else null
+        }
+        // Ascending: the two blanks lead (id breaks their tie), then value 1, then value 3.
+        Assertions.assertEquals(
+            listOf(2, 4, 3, 1),
+            sort(
+                rows, SortProperty.asc("dueDate"), SortProperty.asc("id"),
+                computedProperties = setOf("dueDate"), valueOf = valueOf,
+            ),
+        )
+        // Descending: values first (3 before 1), then the blanks trail.
+        Assertions.assertEquals(
+            listOf(1, 3, 2, 4),
+            sort(
+                rows, SortProperty.desc("dueDate"), SortProperty.asc("id"),
+                computedProperties = setOf("dueDate"), valueOf = valueOf,
+            ),
         )
     }
 }
