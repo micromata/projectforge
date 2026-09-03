@@ -59,7 +59,7 @@ import java.time.LocalDate
   nestedEntities = [RechnungsPositionDO::class]
 )*/
 @NamedQueries(
-    NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
+    NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO where deleted = false"),
     NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {

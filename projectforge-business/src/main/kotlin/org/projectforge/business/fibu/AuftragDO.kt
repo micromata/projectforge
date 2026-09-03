@@ -78,7 +78,7 @@ import java.time.LocalDate
 @NamedQueries(
     NamedQuery(
         name = AuftragDO.SELECT_MIN_MAX_DATE,
-        query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"
+        query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO where deleted = false"
     ),
     NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
     NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id")
