@@ -81,6 +81,33 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         pagesRest = timesheetPagesRest
     }
 
+    /**
+     * The layout-free field set for a client (the next frontend) that renders the form itself - the
+     * counterpart of the `createAndAddFields` calls in [fillForm].
+     *
+     * The task/kost2 picker and the tag select are custom components ([UICustomized], a tag [UISelect])
+     * the hand built page renders on its own; only the plain text fields are declared here. The AI fields
+     * are only offered when the feature is enabled, exactly as [fillForm] adds them.
+     */
+    override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+        val declarations = mutableListOf(
+            // reference has length 1.000 and description 4.000, see [fillForm].
+            MassUpdateFieldDeclaration("location", minLengthOfTextArea = 1001),
+            MassUpdateFieldDeclaration("reference", minLengthOfTextArea = 1001),
+            MassUpdateFieldDeclaration("description", minLengthOfTextArea = 1001),
+        )
+        if (timesheetDao.timeSavingsByAIEnabled) {
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAI"))
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAIUnit"))
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAIDescription"))
+        }
+        return declarations
+    }
+
+    override fun infoMessageKey(): String? {
+        return if (Configuration.instance.isCostConfigured) "timesheet.massupdate.kost.info" else null
+    }
+
     override fun fillForm(
         request: HttpServletRequest,
         layout: UILayout,
