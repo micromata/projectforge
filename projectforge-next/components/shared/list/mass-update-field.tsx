@@ -114,14 +114,14 @@ export function MassUpdateField({
             }}
           >
             <SelectTrigger
-              className="w-40"
+              className="w-52"
               aria-label={t("massUpdate.mode.label")}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {modes.map((value) => (
-                <SelectItem key={value} value={value}>
+                <SelectItem key={value} value={value} className="pr-8">
                   {option(MODE_LABEL[value])}
                 </SelectItem>
               ))}
