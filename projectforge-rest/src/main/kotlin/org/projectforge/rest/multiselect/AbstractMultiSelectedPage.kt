@@ -342,7 +342,11 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             // The default of the `UILayout` path as well: a field the entity requires cannot be emptied.
             deleteOption = declaration.showDeleteOption ?: (elementInfo?.required != true),
             replaceOption = declaration.showReplaceOption != false && isString,
-            appendOption = el is UITextArea,
+            // A text area offers appending; so does any field a page explicitly presets it for
+            // (`showAppendOption`), even where the entity lost its length and the element fell back to a
+            // single line input (e. g. `bemerkung`, mapped on a superclass) - otherwise the preset would
+            // arm an action the form never offers.
+            appendOption = el is UITextArea || (isString && declaration.showAppendOption == true),
             appendPreset = declaration.showAppendOption == true,
         )
     }
