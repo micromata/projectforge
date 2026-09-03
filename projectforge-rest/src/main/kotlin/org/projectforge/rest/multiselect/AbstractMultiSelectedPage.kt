@@ -242,7 +242,14 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
      */
     private fun changedFieldsOf(massUpdateContext: MassUpdateContext<T>): List<String> {
         val params = massUpdateContext.massUpdateParams
-        return params.filter { checkParamHasAction(params, it.value, it.key) }.values.map { translate(it.displayName) }
+        return params.filter { checkParamHasAction(params, it.value, it.key) }
+            .map { (field, param) ->
+                // The `UILayout` path fills displayName (the field's i18n key) when it builds the row, so
+                // translating it yields the label. The layout free `update` endpoint receives the client's
+                // params, which carry no displayName - falling back to the field's own translation keeps
+                // the changed fields from rendering as "???" (see [getFieldTranslation]).
+                param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) } ?: getFieldTranslation(field)
+            }
     }
 
     /**

@@ -238,7 +238,9 @@ function replaceByInput(page: Page, format: UserFormat) {
 
 /** The action dropdown, matched by its label `massUpdate.mode.label` ("Action"). */
 function modeSelect(page: Page, format: UserFormat) {
-  return page.getByRole("combobox", { name: format.t("massUpdate.mode.label") });
+  return page.getByRole("combobox", {
+    name: format.t("massUpdate.mode.label"),
+  });
 }
 
 /** The translated option text of a mode, e.g. "Search & replace" — `delete` has a `._` leaf. */
