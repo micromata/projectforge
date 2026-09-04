@@ -206,10 +206,24 @@ App-seitiges loadHistory:
       `hibernate.default_batch_fetch_size` existiert nirgends; das wäre ein app-weiter Eingriff
       ohne Bezug zum History-Pfad und bleibt bewusst außen vor.
 
-Allgemein (Laufzeit-Verifikation, wie der Prod-Test nur am laufenden System möglich):
-- [ ] Hibernate-Statistik aktivieren (`spring.jpa.properties.hibernate.generate_statistics=true`)
-      und die Statement-Zahl beim Öffnen der History einer großen Rechnung/eines Auftrags
-      vor/nach der Umstellung gegenprüfen (Erwartung: von O(#Kinder) Querys auf O(#Kind-Klassen)).
+Allgemein:
+- [x] Statement-Zahl vor/nach der Umstellung gemessen (am Produktivabzug, PostgreSQL 16). Die
+      alte Zahl ist deterministisch aus den Kind-Zahlen ableitbar (ein `loadAndMergeHistory`-Call
+      je Kind-Instanz, jeder in eigenem `runReadOnly`), die neue ist ein Call je Kind-Klasse:
+
+      | Parent (dickster im Dump) | Kinder | alt (Child-Querys) | neu | + Parent = gesamt alt→neu |
+      |---|---|---|---|---|
+      | RechnungDO `1288095` | 28 Pos. + 69 KostZuw. | 97 | 2 | 98 → 3 |
+      | AuftragDO `32507562` | 84 Pos. + 0 Payment | 84 | 1 | 85 → 2 |
+
+      Server-Zeit ist dabei **nicht** der Engpass: die gebündelte Query über *alle* 28 Positionen
+      der Rechnung `1288095` läuft in **0,164 ms** — praktisch so teuer wie *eine* der alten
+      Einzel-Querys (0,115 ms, `ix_pf_history_ent`-Index-Scan). Der Gewinn ist also fast
+      vollständig das Wegfallen von ~95 JDBC-Round-Trips und ebenso vielen `runReadOnly`-
+      Transaktions-/EntityManager-Setups pro History-Aufruf.
+- [ ] Optional zur Bestätigung am laufenden System: `spring.jpa.properties.hibernate.generate_statistics=true`
+      setzen und die o.g. Rechnung/den Auftrag in der UI öffnen — die Query-Zählung von
+      Hibernate muss die Tabelle bestätigen (reproduziert nur die deterministischen Werte oben).
 
 ## Mögliche Maßnahmen (Ideen, noch nicht bewertet)
 
