@@ -639,11 +639,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         obj: AuftragDO,
         context: HistoryLoadContext
     ) {
-        obj.positionenIncludingDeleted?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context)
+        // Load the children's history batched (one query per child class) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...). The display prefix (pos#/payment#) is
+        // resolved post-hoc via getHistoryPropertyPrefix/findLoadedEntity, so batching preserves behavior.
+        obj.positionenIncludingDeleted?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(AuftragsPositionDO::class.java, ids, context)
         }
-        obj.paymentSchedules?.forEach { schedule ->
-            historyService.loadAndMergeHistory(schedule, context)
+        obj.paymentSchedules?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(PaymentScheduleDO::class.java, ids, context)
         }
     }
 

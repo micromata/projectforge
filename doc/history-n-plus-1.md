@@ -1,7 +1,15 @@
 # History-Laden: N+1-Thematik
 
 > Arbeitsnotiz zum Untersuchen und Optimieren des History-Ladens.
-> Status: **Entwurf** — später bearbeiten/ergänzen.
+> Status: Re-Index-Strang **umgesetzt** (siehe Abschnitt „Entscheidung" + „Empfehlung");
+> App-seitiges `loadHistory` als nachrangiges Backlog offen.
+
+> **Hinweis zum Ist-Stand (nach Umsetzung):** Die Abschnitte „Symptom", „Auslöser",
+> „Einordnung" und „Zwei getrennte Pfade" beschreiben den **ursprünglichen** Zustand
+> (`HistoryEntryDO`/`HistoryEntryAttrDO` waren `@Indexed`, stündlicher
+> `CronReindexingHourlyJob`). Beides ist inzwischen entfernt — der komplette
+> History-Reindex und damit der beschriebene Load-Sturm existieren nicht mehr. Sie bleiben
+> als Herleitung stehen; der Ist-Stand steht unter „Entscheidung" und „Empfehlung".
 
 ## Symptom
 
@@ -40,7 +48,7 @@ Relevante Stellen:
 - `DatabaseDao.kt:71` `reindex`, `:92` `reindexObjects`, `:110` `reindexSuspending`,
   `:129` `searchSession.massIndexer(clazz)`.
 - `IndexProgressMonitor.kt` — die `Starting indexing...`-Logmeldung.
-- `CronReindexingHourlyJob.java` — der stündliche Auslöser.
+- ~~`CronReindexingHourlyJob.java` — der stündliche Auslöser.~~ (inzwischen gelöscht, s.u.)
 
 ## Einordnung
 
@@ -153,10 +161,12 @@ kein Gegenstück-Migration nötig.
 
 ## Zwei getrennte Pfade — nicht verwechseln
 
-1. **Re-Index-Job (aktueller Auslöser):** MassIndexer lädt `HistoryEntryDO` &
-   `HistoryEntryAttrDO` batchweise per Id (`pk = any (?)`). Erwartetes Verhalten.
-   Optimierung höchstens über Batch-Größe / Notwendigkeit der Attribut-Ladung.
-2. **App-seitiges `loadHistory` (separates Thema):** nutzt die NamedQuery mit
+1. **Re-Index-Job (ursprünglicher Auslöser, inzwischen entfernt):** Der MassIndexer lud
+   `HistoryEntryDO` & `HistoryEntryAttrDO` batchweise per Id (`pk = any (?)`) — erwartetes
+   Verhalten, aber für einen Index, der nie durchsucht wurde. Da beide DOs nicht mehr
+   `@Indexed` sind, entfällt dieser Pfad komplett; der beschriebene Load-Sturm tritt nicht
+   mehr auf.
+2. **App-seitiges `loadHistory` (separates Thema, weiterhin relevant):** nutzt die NamedQuery mit
    `join fetch` und rekursiert über eingebettete `@OneToMany`-Objekte
    (`processAndMergeHistory:381`). Hier *kann* ein N+1 auf Objekt-/Rekursionsebene
    entstehen, wenn Aufrufer pro Entität statt gebündelt laden — **derzeit aber nicht
@@ -178,13 +188,28 @@ Re-Index:
 - [ ] Vor Prod-Rollout: prüfen, ob der Prod-DB-User `CREATE EXTENSION pg_trgm` darf
       (trusted extension seit PG13 → CREATE-Recht auf DB reicht; sonst DBA vorab).
 
-App-seitiges loadHistory (nachrangig):
-- [ ] Prüfen, ob `loadHistory` irgendwo pro Objekt in einer Schleife aufgerufen wird;
-      falls ja auf die `entityIds`-Variante (`loadAndMergeHistory`) umstellen.
-- [ ] `@BatchSize` auf `HistoryEntryAttrDO` / der `attributes`-Collection prüfen.
+App-seitiges loadHistory:
+- [x] Geprüft, ob `loadHistory` pro Objekt in einer Schleife aufgerufen wird → **ja**, in den
+      `addOwnHistoryEntries`-Overrides: je Kind-Instanz ein eigener Query (N+1). Auf die
+      Collection-Variante `loadAndMergeHistory(entityClass, entityIds, context)` umgestellt in
+      `AuftragDao`, `RechnungDao`, `EingangsrechnungDao`, `EmployeeDao`, `ProjektDao`,
+      `CurrencyPairDao` (je Kind-Klasse jetzt ein Query statt N; bei Rechnung/Eingangsrechnung
+      werden die `kostZuweisungen` aller Positionen zu einem Call aggregiert). → erledigt.
+      - Bewusst **nicht** umgestellt: `HRPlanningDao` und `TeamEventDao`. Beide setzen den
+        Anzeige-Präfix per **pro-Eintrag**-`customize`-Callback (`projektName`/`status` bzw.
+        `attendee.toString()`), den die Collection-Variante nicht ausdrücken kann. Ein Batchen
+        hier bräuchte erst eine per-Entity-Präfix-Zuordnung in `processAndMergeHistory`.
+- [x] `@BatchSize` auf `HistoryEntryAttrDO` / der `attributes`-Collection geprüft → **nicht
+      nötig.** Die History-NamedQueries (`SELECT_HISTORY_FOR_BASEDO`/`…_BY_ENTITY_IDS`) laden
+      die Attribute bereits per `left join fetch m.attributes`, d.h. innerhalb *eines* Querys —
+      es gibt hier keinen lazy-per-Attribut-N+1, den `@BatchSize` mildern würde. Ein globales
+      `hibernate.default_batch_fetch_size` existiert nirgends; das wäre ein app-weiter Eingriff
+      ohne Bezug zum History-Pfad und bleibt bewusst außen vor.
 
-Allgemein:
-- [ ] Hibernate-Statistik aktivieren und Statement-Zahl vor/nach messen.
+Allgemein (Laufzeit-Verifikation, wie der Prod-Test nur am laufenden System möglich):
+- [ ] Hibernate-Statistik aktivieren (`spring.jpa.properties.hibernate.generate_statistics=true`)
+      und die Statement-Zahl beim Öffnen der History einer großen Rechnung/eines Auftrags
+      vor/nach der Umstellung gegenprüfen (Erwartung: von O(#Kinder) Querys auf O(#Kind-Klassen)).
 
 ## Mögliche Maßnahmen (Ideen, noch nicht bewertet)
 

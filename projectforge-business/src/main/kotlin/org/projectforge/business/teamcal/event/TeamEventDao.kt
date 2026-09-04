@@ -630,6 +630,9 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
     override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
+        // Kept per-entry (not batched like the other DAOs): the display prefix depends on the individual attendee
+        // and is applied via the per-entry customize callback, which the batched
+        // loadAndMergeHistory(entityClass, entityIds, ...) variant cannot express.
         obj.attendees?.forEach { attendee ->
             historyService.loadAndMergeHistory(attendee, context) { entry ->
                 HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())

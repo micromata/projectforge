@@ -198,8 +198,10 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun addOwnHistoryEntries(obj: ProjektDO, context: HistoryLoadContext) {
-        kostCache.getKost2ForProjekt(obj.id).forEach { kost2 ->
-            historyService.loadAndMergeHistory(kost2, context)
+        // Batch the children's history (one query) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...).
+        kostCache.getKost2ForProjekt(obj.id).mapNotNull { it.id }.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(Kost2DO::class.java, ids, context)
         }
     }
 

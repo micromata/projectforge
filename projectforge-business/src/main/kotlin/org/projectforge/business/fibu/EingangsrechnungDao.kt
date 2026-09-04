@@ -190,12 +190,17 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
     override fun addOwnHistoryEntries(obj: EingangsrechnungDO, context: HistoryLoadContext) {
-        obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context)
-            position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context)
-            }
+        // Batch the children's history (one query per child class) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...). The kostZuweisungen of all positions are
+        // aggregated into a single call. Display prefixes are resolved post-hoc via getHistoryPropertyPrefix.
+        val positionen = obj.positionen
+        positionen?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(EingangsrechnungsPositionDO::class.java, ids, context)
         }
+        positionen?.flatMap { it.kostZuweisungen ?: emptyList() }?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }
+            ?.let { ids ->
+                historyService.loadAndMergeHistory(KostZuweisungDO::class.java, ids, context)
+            }
     }
 
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
