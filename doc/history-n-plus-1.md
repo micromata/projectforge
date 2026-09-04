@@ -144,12 +144,12 @@ kein Gegenstück-Migration nötig.
   `@Indexed` in der Liste.
 - **Umgesetzt:** SQL-Wertsuche per `pg_trgm`-GIN + `entity_name`-Btree beschleunigt (Migration
   V8.0.24), siehe Messungen oben.
-- **Zu prüfen:** Ob `@Indexed` auch von `HistoryEntryDO` entfernt werden kann. Die
-  History-Suche ist criteria-basiert, der Index scheint vestigial. Vorher sicherstellen,
-  dass kein anderer Pfad (Partial-Reindex-Job über `entityName`/`modifiedAt`,
-  `ReindexerStrategy`) darauf baut.
-- **Falls der Index bleiben soll:** Batch-Größe erhöhen (`batchSizeToLoadObjects(25)`,
-  `DatabaseDao.kt:131`) reduziert die Statement-Zahl deutlich.
+- **Umgesetzt:** `@Indexed` auch von `HistoryEntryDO` entfernt. Die History-Suche ist
+  criteria-/SQL-basiert (`DBHistoryQuery`), der Lucene-Index wurde nie durchsucht. Damit
+  entfällt der komplette History-Reindex. Mitgeräumt: `reindexClasses4NewestEntries`/
+  `reindexClasses` in `BaseDao` ohne `HistoryEntryDO`, `ReindexerRegistry`-Registrierung
+  entfernt (Fallback-Strategien bleiben), `HibernateSearchReindexer`-Sonderfall entfernt,
+  der dormant gewordene `CronReindexingHourlyJob` (einziger Zweck: History-Reindex) gelöscht.
 
 ## Zwei getrennte Pfade — nicht verwechseln
 
@@ -172,8 +172,9 @@ Re-Index:
 - [x] `@Indexed` von `HistoryEntryAttrDO` entfernen (leere Dokumente, nie durchsucht). → erledigt.
 - [x] SQL-Wertsuche für große History-Tabelle beschleunigen → `pg_trgm`-GIN + `entity_name`-Btree
       (Migration V8.0.24), gemessen 1,6–4,4 s → 5–450 ms für selektive Begriffe.
-- [ ] Prüfen, ob `@Indexed` auch von `HistoryEntryDO` entfernt werden kann (Suche ist
-      criteria-basiert); Abhängigkeiten von Partial-Reindex/`ReindexerStrategy` checken.
+- [x] `@Indexed` auch von `HistoryEntryDO` entfernt (Suche ist criteria-/SQL-basiert); die
+      Reindex-Plumbing (BaseDao-Listen, `ReindexerRegistry`, `HibernateSearchReindexer`-
+      Sonderfall, dormanter `CronReindexingHourlyJob`) mitentfernt. → erledigt.
 - [ ] Vor Prod-Rollout: prüfen, ob der Prod-DB-User `CREATE EXTENSION pg_trgm` darf
       (trusted extension seit PG13 → CREATE-Recht auf DB reicht; sonst DBA vorab).
 

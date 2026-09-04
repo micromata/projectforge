@@ -25,8 +25,6 @@ package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
@@ -76,7 +74,10 @@ import java.util.*
         Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT"),
     ],
 )
-@Indexed
+// Not @Indexed: the only indexed fields were entityName and userComment, but the history search never queries this
+// Lucene index. It runs SQL-based via DBHistoryQuery.searchHistoryEntryByCriteria (entity_name + modifiedBy/modifiedAt
+// + value LIKE on t_pf_history_attr), accelerated by the pg_trgm GIN and entity_name btree indexes (see V8.0.24
+// migration). Keeping @Indexed only forced the mass indexer to stream all 3.66M rows on every re-index for nothing.
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
 class HistoryEntryDO : HistoryEntry {
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
@@ -88,7 +89,6 @@ class HistoryEntryDO : HistoryEntry {
      * Full qualified class name, e. g. org.projectforge.business.task.TaskDO.
      */
     @get:Column(name = "entity_name", length = 255)
-    @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var entityName: String? = null
 
     @get:Column(name = "entity_id")
@@ -121,7 +121,6 @@ class HistoryEntryDO : HistoryEntry {
      * Optional comment by user (if supported by entity). This comment is stored in the history entry, for information only.
      */
     @get:Column(name = "user_comment", length = 10_000)
-    @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var userComment: String? = null
 
     @JsonManagedReference

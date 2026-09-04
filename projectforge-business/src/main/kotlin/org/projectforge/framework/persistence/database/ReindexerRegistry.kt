@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.database
 
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 
 /**
  * @author Kai Reinhard
@@ -36,12 +35,9 @@ object ReindexerRegistry {
     //private val standardStandardRecordStrategy = ReindexerStrategy("", "id", "modifiedAt")
     private val standardUnknownStrategy = ReindexerStrategy("", "id", null)
 
-    init {
-        add(
-            HistoryEntryDO::class.java,
-            ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt", "entityName"),
-        )
-    }
+    // HistoryEntryDO used to be registered here for its Lucene re-index. It is no longer @Indexed (its search is
+    // SQL-based, see HistoryEntryDO), so no explicit strategy is needed anymore; AbstractBaseDO entities keep using
+    // the standard strategy below.
 
     fun add(clazz: Class<*>, strategy: ReindexerStrategy) {
         registryMap[clazz] = strategy

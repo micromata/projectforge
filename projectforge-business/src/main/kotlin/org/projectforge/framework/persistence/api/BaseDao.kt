@@ -973,14 +973,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * The entities of a partial re-index (entries of the last day), [HistoryEntryDO] included: its index is rebuilt
-     * as a whole by CronNightlyJob, so only the entries created since then are missing — and those are few.
-     *
-     * [HistoryEntryDO] holds the changes of every entity, so the run passes [historyEntityNames] to the settings and
-     * only the history of this DAO's pages is touched (see DatabaseDao.createMassIndexer).
+     * The entities of a partial re-index (entries of the last day). [HistoryEntryDO] is no longer included: it is not
+     * @Indexed anymore, its search runs SQL-based (DBHistoryQuery + pg_trgm, see V8.0.24 migration), so there is no
+     * Lucene index left to rebuild for it.
      */
     open val reindexClasses4NewestEntries: List<Class<*>>
-        get() = listOf(doClass, HistoryEntryDO::class.java)
+        get() = listOf(doClass)
 
     /**
      * The child entities whose change history is shown on this DAO's pages, [doClass] excluded (see
@@ -1005,8 +1003,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         get() = listOf(doClass.name) + additionalHistoryEntityClasses.map { it.name }
 
     /**
-     * The entities of a full re-index. Without the history: it belongs to no single entity, so rebuilding it from a
-     * list page would purge the history index of the whole system, and CronNightlyJob does it every night anyway.
+     * The entities of a full re-index. Without the history: it is no longer @Indexed (its search is SQL-based, see
+     * [HistoryEntryDO]), so there is nothing to rebuild for it here.
      */
     open val reindexClasses: List<Class<*>>
         get() = listOf(doClass)
