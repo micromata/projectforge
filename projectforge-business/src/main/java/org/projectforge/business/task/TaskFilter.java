@@ -27,6 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -34,6 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.regex.Pattern;
 
 @XStreamAlias("TaskFilter")
 public class TaskFilter extends BaseSearchFilter {
@@ -61,6 +63,16 @@ public class TaskFilter extends BaseSearchFilter {
    * task node list! Key is the task id.
    */
   private transient HashSet<Long> tasksMatched;
+
+  /**
+   * Compiled Kost2 matcher for the current search string, cached to avoid recompiling per traversed task node.
+   */
+  private transient Pattern kost2Pattern;
+
+  /**
+   * The search string {@link #kost2Pattern} was compiled from, to detect when it has to be rebuilt.
+   */
+  private transient String kost2PatternSource;
 
   public TaskFilter() {
     setSearchString("");
@@ -182,7 +194,8 @@ public class TaskFilter extends BaseSearchFilter {
         || StringUtils.containsIgnoreCase(task.getDescription(), this.getSearchString())
         || StringUtils.containsIgnoreCase(task.getDisplayName(), this.getSearchString())
         || StringUtils.containsIgnoreCase(username, this.getSearchString())
-        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.getSearchString())) {
+        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.getSearchString())
+        || isVisibleByKost2(task)) {
       taskVisibility.put(task.getId(), true);
       tasksMatched.add(task.getId());
       return true;
@@ -197,6 +210,58 @@ public class TaskFilter extends BaseSearchFilter {
     }
     taskVisibility.put(task.getId(), false);
     return false;
+  }
+
+  /**
+   * Matches the search string against the Kost2 numbers assigned to the given task (only the task's own Kost2 entries,
+   * as displayed in the tree, not inherited ones). This allows filtering the task tree by Kost2, e. g. by entering a
+   * (partial) Kost2 number.
+   *
+   * @return true if any assigned Kost2 number matches the search string.
+   */
+  private boolean isVisibleByKost2(final TaskDO task) {
+    final java.util.List<Kost2DO> kost2List = TaskTree.getInstance().getKost2List(task.getId(), false);
+    if (kost2List == null) {
+      return false;
+    }
+    final Pattern pattern = getKost2Pattern();
+    for (final Kost2DO kost2 : kost2List) {
+      if (matchesKost2(pattern, kost2.getFormattedNumber())
+          || matchesKost2(pattern, kost2.getDisplayName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean matchesKost2(final Pattern pattern, final String value) {
+    return value != null && pattern.matcher(value).find();
+  }
+
+  /**
+   * Compiles the current search string into a Kost2 matcher, cached until the search string changes. A '*' in the
+   * search string is treated as a wildcard for any sequence of characters, so "5.110*" matches all Kost2 numbers
+   * starting with "5.110". Without a wildcard the search string matches as a case-insensitive substring, so "110" still
+   * finds "5.110.12.34". All other characters (including the '.' of a Kost2 number) are matched literally.
+   */
+  private Pattern getKost2Pattern() {
+    final String searchString = this.getSearchString();
+    if (kost2Pattern == null || !StringUtils.equals(kost2PatternSource, searchString)) {
+      final StringBuilder regex = new StringBuilder();
+      // Split on '*' keeping trailing empty segments, so each literal chunk is quoted and '*' becomes ".*".
+      final String[] parts = searchString.split("\\*", -1);
+      for (int i = 0; i < parts.length; i++) {
+        if (i > 0) {
+          regex.append(".*");
+        }
+        if (!parts[i].isEmpty()) {
+          regex.append(Pattern.quote(parts[i]));
+        }
+      }
+      kost2Pattern = Pattern.compile(regex.toString(), Pattern.CASE_INSENSITIVE);
+      kost2PatternSource = searchString;
+    }
+    return kost2Pattern;
   }
 
   private boolean isVisibleByStatus(final TaskNode node, final TaskDO task) {
