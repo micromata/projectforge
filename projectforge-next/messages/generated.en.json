@@ -1473,7 +1473,14 @@
   "markAsDeleted": "Delete",
   "massUpdate": {
     "button": "Mass update",
-    "confirmQuestion": "Do you really want to update all {arg0} objects now?",
+    "confirm": {
+      "append": "{arg0}: text \"{arg1}\" will be appended",
+      "delete": "{arg0}: will be deleted",
+      "deleteOccurrences": "{arg0}: occurrences of \"{arg1}\" will be deleted",
+      "intro": "The following changes will be applied to all {arg0} entries:",
+      "replace": "{arg0}: \"{arg1}\" will be replaced by \"{arg2}\"",
+      "set": "{arg0}: will be set to \"{arg1}\""
+    },
     "entriesFound": "There are {arg0} entries selected.",
     "error": {
       "table": {

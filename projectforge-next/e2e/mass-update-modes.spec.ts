@@ -156,6 +156,63 @@ test.describe("mass update replacement modes", () => {
       description: { append: true, textValue: "appended remark" },
     });
   });
+
+  test("the confirm dialog lists what the server would change", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await openForm(page, [TEXT_FIELD]);
+
+    // The dialog shows the server's preview, not the raw params: an enum's label, a formatted date —
+    // here the field's label and a plain value, both taken verbatim from the `preview` answer.
+    await page.route(`**/rs/${ENDPOINT}/preview`, (route: Route) =>
+      route.fulfill({
+        json: {
+          selectedCount: 3,
+          changes: [
+            {
+              field: "description",
+              label: TEXT_FIELD.label,
+              action: "REPLACE",
+              value: "old wording",
+              replaceValue: "new wording",
+            },
+          ],
+        },
+      })
+    );
+
+    await valueInput(page).fill("old wording");
+    await page.getByRole("button", { name: format.t("save") }).click();
+
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(String(TEXT_FIELD.label));
+    await expect(dialog).toContainText("old wording");
+    await expect(dialog).toContainText("new wording");
+  });
+
+  test("a rejected preview shows the error and keeps the dialog closed", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await openForm(page, [TEXT_FIELD]);
+
+    // The preview runs the same check the update does, so a combination it rejects (here a made-up
+    // one) surfaces before the write — in the alert, not the dialog.
+    await page.route(`**/rs/${ENDPOINT}/preview`, (route: Route) =>
+      route.fulfill({
+        status: 406,
+        json: { validationErrors: [{ message: "Conflicting actions chosen." }] },
+      })
+    );
+
+    await valueInput(page).fill("whatever");
+    await page.getByRole("button", { name: format.t("save") }).click();
+
+    await expect(page.getByText("Conflicting actions chosen.")).toBeVisible();
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  });
 });
 
 /**
@@ -195,6 +252,24 @@ async function runAndCapture(
   page: Page,
   format: UserFormat
 ): Promise<Record<string, MassUpdateParameter>> {
+  // Save now asks `{page}/preview` first — the server decides what the dialog lists (see preview()).
+  // Answered with one change so the confirm dialog opens; the posted `/update` body, which every case
+  // asserts on, comes from the form's own state and is untouched by this answer.
+  await page.route(`**/rs/${ENDPOINT}/preview`, (route: Route) =>
+    route.fulfill({
+      json: {
+        selectedCount: 3,
+        changes: [
+          {
+            field: TEXT_FIELD.field,
+            label: TEXT_FIELD.label,
+            action: "SET",
+            value: "preview",
+          },
+        ],
+      },
+    })
+  );
   await page.route(`**/rs/${ENDPOINT}/update`, (route: Route) =>
     route.fulfill({
       json: {

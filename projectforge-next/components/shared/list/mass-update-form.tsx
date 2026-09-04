@@ -17,7 +17,10 @@ import {
 import {
   cancelMultiSelection,
   massUpdate,
+  previewMassUpdate,
   type MassUpdateParameter,
+  type MassUpdatePreview,
+  type MassUpdatePreviewChange,
   type MassUpdateResult,
   type MultiSelectMeta,
 } from "@/lib/rs/multi-select";
@@ -72,6 +75,27 @@ export function MassUpdateForm({
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [result, setResult] = useState<MassUpdateResult | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [preview, setPreview] = useState<MassUpdatePreview | null>(null);
+
+  // The confirmation lists what the server would do, not what the client re-derived: "Save" asks the
+  // preview endpoint first (the same check the run uses), and only opens the dialog once that answered.
+  // A rejection the user can fix — two actions on one field, a missing replacement — comes back as
+  // validation errors here, shown in the alert instead of the dialog, exactly as the run answers them.
+  const previewRun = useMutation({
+    mutationFn: () => previewMassUpdate(endpoint, params),
+    onSuccess: (outcome) => {
+      if (outcome.kind === "validationErrors") {
+        setErrors(outcome.validationErrors);
+        setPreview(null);
+        return;
+      }
+      setErrors([]);
+      setPreview(outcome.preview);
+      setConfirming(true);
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : String(error)),
+  });
 
   const update = useMutation({
     mutationFn: () => massUpdate(endpoint, params),
@@ -97,8 +121,37 @@ export function MassUpdateForm({
 
   // Return asks the question the button asks, not the write itself — every picked entry changes at
   // once, and a keystroke must not be the way around the confirmation.
-  const canSubmit = !update.isPending && meta.selectedCount > 0;
-  const onKeyDown = useSubmitShortcut(() => setConfirming(true), canSubmit);
+  const busy = update.isPending || previewRun.isPending;
+  const canSubmit = !busy && meta.selectedCount > 0;
+  const onKeyDown = useSubmitShortcut(() => previewRun.mutate(), canSubmit);
+
+  // The value the dialog shows is the server's, only shortened here so a long text stays one line.
+  const abbreviate = (value: string | undefined) => {
+    const text = value ?? "";
+    return text.length > 40 ? `${text.slice(0, 40)}…` : text;
+  };
+  // The keys are spelled out per action, not composed, so `NextI18nKeyScanner` finds each one.
+  const describe = (change: MassUpdatePreviewChange) => {
+    const arg0 = change.label;
+    const arg1 = abbreviate(change.value);
+    switch (change.action) {
+      case "APPEND":
+        return t("massUpdate.confirm.append", { arg0, arg1 });
+      case "REPLACE":
+        return t("massUpdate.confirm.replace", {
+          arg0,
+          arg1,
+          arg2: abbreviate(change.replaceValue),
+        });
+      case "DELETE":
+        return t("massUpdate.confirm.delete", { arg0 });
+      case "DELETE_OCCURRENCES":
+        return t("massUpdate.confirm.deleteOccurrences", { arg0, arg1 });
+      case "SET":
+      default:
+        return t("massUpdate.confirm.set", { arg0, arg1 });
+    }
+  };
 
   return (
     <div
@@ -161,11 +214,9 @@ export function MassUpdateForm({
           <Button
             type="button"
             disabled={!canSubmit}
-            onClick={() => setConfirming(true)}
+            onClick={() => previewRun.mutate()}
           >
-            {update.isPending ? (
-              <Spinner className="h-3.5 w-3.5 border-2" />
-            ) : null}
+            {busy ? <Spinner className="h-3.5 w-3.5 border-2" /> : null}
             {t("save")}
           </Button>
         </HintTooltip>
@@ -180,9 +231,20 @@ export function MassUpdateForm({
         open={confirming}
         onOpenChange={setConfirming}
         title={meta.title}
-        description={t("massUpdate.confirmQuestion", {
-          arg0: meta.selectedCount,
-        })}
+        description={
+          <div className="space-y-2">
+            <p>
+              {t("massUpdate.confirm.intro", {
+                arg0: preview?.selectedCount ?? meta.selectedCount,
+              })}
+            </p>
+            <ul className="list-disc space-y-1 pl-5">
+              {(preview?.changes ?? []).map((change) => (
+                <li key={change.field}>{describe(change)}</li>
+              ))}
+            </ul>
+          </div>
+        }
         confirmLabel={t("save")}
         onConfirm={() => {
           setConfirming(false);

@@ -47,7 +47,11 @@ export function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          {/* asChild so the description renders as a `div`: a caller may pass block content (e.g. the
+              mass update's list of changes), which is invalid nested in the `p` the primitive renders. */}
+          <AlertDialogDescription asChild>
+            <div>{description}</div>
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel ?? t("cancel")}</AlertDialogCancel>

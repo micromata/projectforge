@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -210,6 +211,57 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
+     * Answers what an update *would* do, without writing anything - what the confirmation dialog lists
+     * before the user commits.
+     *
+     * Runs the same checks as [update] (nothing selected, too many, two actions on one field), so a
+     * combination the real run would reject stays an HTTP 406 with `validationErrors` here too, in the
+     * dialog rather than after the write. Read only: no [proceedMassUpdate], no protocol, no session
+     * change. See [MassUpdatePreview].
+     */
+    @PostMapping("preview")
+    fun preview(
+        request: HttpServletRequest,
+        @RequestBody params: Map<String, MassUpdateParameter>,
+    ): ResponseEntity<*> {
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        val massUpdateContext = object : MassUpdateContext<T>(params.toMutableMap()) {
+            override fun getId(obj: T): Long {
+                return this@AbstractMultiSelectedPage.getId(obj)
+            }
+        }
+        handleClientMassUpdateCall(request, massUpdateContext)
+        val massUpdateData = massUpdateContext.massUpdateParams
+        if (selectedIds.isNullOrEmpty()) {
+            return showNoEntriesValidationError()
+        }
+        if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+            return showValidationErrors(
+                ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE))
+            )
+        }
+        val validationErrors = mutableListOf<ValidationError>()
+        val activeParams = massUpdateData.filter { checkParamHasAction(massUpdateData, it.value, it.key, validationErrors) }
+        if (validationErrors.isNotEmpty()) {
+            return showValidationErrors(*validationErrors.toTypedArray())
+        }
+        if (activeParams.isEmpty()) {
+            return showNothingToDoValidationError()
+        }
+        val lc = layoutContext ?: LayoutContext(pagesRest.baseDao.doClass)
+        val declarations = fieldDeclarations()
+        val metaByField = declarations.associate { it.field to resolveFieldMeta(lc, it) }
+        val order = declarations.withIndex().associate { (i, d) -> d.field to i }
+        // In the order the fields are declared (the order the form shows them), not the order the client
+        // happened to post the map in. A field the page does not declare (a helper param a subclass adds,
+        // e. g. the invoice's `zahlBetrag`) has no meta and is appended after the declared ones.
+        val changes = activeParams.entries
+            .sortedBy { order[it.key] ?: Int.MAX_VALUE }
+            .map { (field, param) -> previewChangeOf(field, param, metaByField[field]) }
+        return ResponseEntity.ok(MassUpdatePreview(selectedCount = selectedIds.size, changes = changes))
+    }
+
+    /**
      * Stores the ticked subset of the registered ids and answers where the mass update page lives.
      *
      * The layout free counterpart of [selected], which answers the same url as a redirect
@@ -250,6 +302,61 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 // the changed fields from rendering as "???" (see [getFieldTranslation]).
                 param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) } ?: getFieldTranslation(field)
             }
+    }
+
+    /**
+     * Describes what one field's parameter would do, for the confirmation dialog (see [preview]).
+     *
+     * The action is read from the same flags [MassUpdateParameter] uses, in the order the run applies
+     * them; the value is formatted the way the field's type is shown (an enum's label, a localized date
+     * or amount) so the dialog reads what the user picked, not the raw id or ISO string that was posted.
+     */
+    private fun previewChangeOf(
+        field: String,
+        param: MassUpdateParameter,
+        meta: MassUpdateFieldMeta?,
+    ): MassUpdatePreviewChange {
+        val label = meta?.label?.takeIf { it.isNotBlank() }
+            ?: param.displayName?.takeIf { it.isNotBlank() }?.let { translate(it) }
+            ?: getFieldTranslation(field)
+        val value = formatPreviewValue(param, meta)
+        val action = when {
+            param.delete == true && !param.textValue.isNullOrBlank() -> MassUpdateAction.DELETE_OCCURRENCES
+            param.delete == true -> MassUpdateAction.DELETE
+            !param.replaceText.isNullOrEmpty() -> MassUpdateAction.REPLACE
+            param.append == true -> MassUpdateAction.APPEND
+            else -> MassUpdateAction.SET
+        }
+        return when (action) {
+            MassUpdateAction.DELETE -> MassUpdatePreviewChange(field, label, action)
+            MassUpdateAction.REPLACE ->
+                MassUpdatePreviewChange(field, label, action, value = value, replaceValue = param.replaceText)
+            else -> MassUpdatePreviewChange(field, label, action, value = value)
+        }
+    }
+
+    /**
+     * The value of a parameter as it is shown, not as it is posted: an enum's [UISelectValue.displayName]
+     * rather than its id, a date and an amount in the user's locale. Null when the field carries no value
+     * (a plain delete).
+     */
+    private fun formatPreviewValue(param: MassUpdateParameter, meta: MassUpdateFieldMeta?): String? {
+        meta?.values?.let { values ->
+            val id = param.textValue
+            return values.firstOrNull { it.id == id }?.displayName ?: id
+        }
+        return when (meta?.valueProperty) {
+            "localDateValue" -> param.localDateValue?.let { PFDay.from(it).format() }
+            "timestampValue" -> param.timestampValue?.let { PFDateTime.from(it).format() }
+            "decimalValue" -> param.decimalValue?.let { NumberFormatter.format(it) }
+            "longValue" -> param.longValue?.toString()
+            "timeValue" -> param.timeValue?.toString()
+            "booleanValue" -> param.booleanValue?.let { translate(if (it) "yes" else "no") }
+            "id" -> param.id?.let { id ->
+                if (meta.dataType == UIDataType.USER) userService.find(id, false)?.displayName ?: "#$id" else "#$id"
+            }
+            else -> param.textValue
+        }
     }
 
     /**

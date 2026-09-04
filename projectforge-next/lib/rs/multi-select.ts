@@ -143,6 +143,36 @@ export type MassUpdateOutcome =
   | { kind: "ok"; result: MassUpdateResult }
   | { kind: "validationErrors"; validationErrors: ValidationError[] };
 
+/** Which of the four actions a preview change describes — the backend's `MassUpdateAction`. */
+export type MassUpdateAction =
+  | "SET"
+  | "APPEND"
+  | "REPLACE"
+  | "DELETE"
+  | "DELETE_OCCURRENCES";
+
+/** One field a mass update would act on — the backend's `MassUpdatePreviewChange`. */
+export interface MassUpdatePreviewChange {
+  field: string;
+  label: string;
+  action: MassUpdateAction;
+  /** The value the action acts with (the searched text for `REPLACE`); absent for a plain delete. */
+  value?: string;
+  /** The replacement, for `REPLACE` only. */
+  replaceValue?: string;
+}
+
+/** What a mass update would do, before it is committed — the backend's `MassUpdatePreview`. */
+export interface MassUpdatePreview {
+  selectedCount: number;
+  changes: MassUpdatePreviewChange[];
+}
+
+/** Answer of a preview: what it would do, or the server rejected it with something to fix. */
+export type MassUpdatePreviewOutcome =
+  | { kind: "ok"; preview: MassUpdatePreview }
+  | { kind: "validationErrors"; validationErrors: ValidationError[] };
+
 /** Where the client goes next — the backend's `MultiSelectNavigation`. */
 export interface MultiSelectNavigation {
   url: string;
@@ -240,6 +270,40 @@ export async function massUpdate(
     throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
   }
   return { kind: "ok", result: (await res.json()) as MassUpdateResult };
+}
+
+/**
+ * Answers what the update would do, without writing anything — what the confirmation dialog lists.
+ *
+ * The server decides which fields have an action (the same check the run uses) and formats the values,
+ * so the dialog shows what the backend understood, not what a client re-derived. A 406 is a regular
+ * answer here as for [massUpdate]: two actions on one field or a missing replacement text are things
+ * the user fixes, shown before the write rather than after.
+ */
+export async function previewMassUpdate(
+  page: string,
+  params: Record<string, MassUpdateParameter>,
+  signal?: AbortSignal
+): Promise<MassUpdatePreviewOutcome> {
+  const path = `/rs/${page}/preview`;
+  const res = await rawRequest(
+    path,
+    { method: "POST", body: JSON.stringify(params) },
+    signal
+  );
+  if (res.status === NOT_ACCEPTABLE) {
+    const body = (await res.json().catch(() => null)) as {
+      validationErrors?: ValidationError[];
+    } | null;
+    return {
+      kind: "validationErrors",
+      validationErrors: body?.validationErrors ?? [],
+    };
+  }
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  return { kind: "ok", preview: (await res.json()) as MassUpdatePreview };
 }
 
 /** Drops the selection and answers where the user came from. */

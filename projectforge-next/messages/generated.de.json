@@ -1473,7 +1473,14 @@
   "markAsDeleted": "Löschen",
   "massUpdate": {
     "button": "Massenänderung",
-    "confirmQuestion": "Sollen nun alle {arg0} Objekte geändert werden?",
+    "confirm": {
+      "append": "{arg0}: Text „{arg1}“ wird angehängt",
+      "delete": "{arg0}: wird gelöscht",
+      "deleteOccurrences": "{arg0}: Vorkommen von „{arg1}“ werden gelöscht",
+      "intro": "Folgende Änderungen werden für alle {arg0} Einträge durchgeführt:",
+      "replace": "{arg0}: „{arg1}“ wird ersetzt durch „{arg2}“",
+      "set": "{arg0}: wird gesetzt auf „{arg1}“"
+    },
     "entriesFound": "Es sind {arg0} Einträge ausgewählt.",
     "error": {
       "table": {

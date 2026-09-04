@@ -177,3 +177,54 @@ class MassUpdateResult(
 
 /** One entry a mass update failed for: how it is identified, and why it failed. */
 class MassUpdateError(val identifier: String, val message: String)
+
+/**
+ * What a mass update *would* do, served by [AbstractMultiSelectedPage.preview] before anything is
+ * written.
+ *
+ * Answered by the server rather than composed in the frontend on purpose: the same
+ * `checkParamHasAction` the real run uses decides which fields have an action here, so the dialog shows
+ * exactly what the server understood from the posted params - a client that infers it itself could
+ * drift from the backend, and the invalid combinations the run rejects would only surface after the
+ * write instead of in the confirmation.
+ */
+class MassUpdatePreview(
+    /** How many entries the update would change - the same count [MultiSelectMetaData.selectedCount] holds. */
+    val selectedCount: Int,
+    /** One entry per field the update would act on, in the order the fields are declared. */
+    val changes: List<MassUpdatePreviewChange>,
+)
+
+/** Which of the four actions a field's preview describes - see [MassUpdateParameter]. */
+enum class MassUpdateAction {
+    /** Overwrite the field with [MassUpdatePreviewChange.value]. */
+    SET,
+
+    /** Append [MassUpdatePreviewChange.value] to the existing text. */
+    APPEND,
+
+    /** Replace [MassUpdatePreviewChange.value] with [MassUpdatePreviewChange.replaceValue]. */
+    REPLACE,
+
+    /** Clear the whole field. */
+    DELETE,
+
+    /** Delete only the occurrences of [MassUpdatePreviewChange.value]. */
+    DELETE_OCCURRENCES,
+}
+
+/**
+ * One field a mass update would act on: which action, and the value(s) it acts with, already formatted
+ * for display (an enum's label rather than its id, a date and an amount in the user's locale).
+ */
+class MassUpdatePreviewChange(
+    /** Name of the field, matching [MassUpdateFieldMeta.field]. */
+    val field: String,
+    /** Translated label of the field. */
+    val label: String,
+    val action: MassUpdateAction,
+    /** The value the action acts with (the searched text for [MassUpdateAction.REPLACE]); null for a plain delete. */
+    val value: String? = null,
+    /** The replacement, for [MassUpdateAction.REPLACE] only. */
+    val replaceValue: String? = null,
+)
