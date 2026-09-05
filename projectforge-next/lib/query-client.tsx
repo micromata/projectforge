@@ -13,6 +13,11 @@ function makeQueryClient() {
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
+        // Off by default on purpose: an edit form reads its entity through a query too, and a refetch on
+        // focus would overwrite what the user has begun to type (the "new" preset spells this out in
+        // useEntityDetail). Lists have the opposite need — pick up a write made in another tab or the
+        // legacy UI on return — and turn it on for themselves (refetchOnWindowFocus: "always" in
+        // useMagicFilterQuery). Kept narrow rather than global for that reason.
         refetchOnWindowFocus: false,
         // A refusal will not become an answer by asking again, and the three default attempts would
         // hold up what the page does about it — for a denied read that is a redirect, so the user
