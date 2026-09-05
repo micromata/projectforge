@@ -203,7 +203,9 @@ test.describe("mass update replacement modes", () => {
     await page.route(`**/rs/${ENDPOINT}/preview`, (route: Route) =>
       route.fulfill({
         status: 406,
-        json: { validationErrors: [{ message: "Conflicting actions chosen." }] },
+        json: {
+          validationErrors: [{ message: "Conflicting actions chosen." }],
+        },
       })
     );
 
