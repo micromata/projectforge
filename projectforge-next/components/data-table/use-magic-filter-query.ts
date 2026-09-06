@@ -209,6 +209,15 @@ export function useMagicFilterQuery<O>({
           )
         : fetchList<O>(entity, filter, signal),
     placeholderData: keepPreviousData,
+    // Refetch whenever the list's tab regains focus, regardless of staleTime: a list is exactly the view
+    // a user leaves open in one tab while creating or editing the entity in another (or in the legacy
+    // UI), and React Query's cache and invalidation are per-tab, so the open list otherwise never learns
+    // of that write and keeps showing the stale result — the reported "a new order only appears once I
+    // change the filter". The global default is `false` (an edit form must not refetch-overwrite a
+    // half-typed value, see lib/query-client.tsx); a list opts into "always" because its staleness is not
+    // about age but about a change made elsewhere, which no timer can see. One extra paged request per
+    // tab return.
+    refetchOnWindowFocus: "always",
     enabled,
   });
 
