@@ -98,7 +98,7 @@ export function FavoritesMenu({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-2">
+      <PopoverContent align="start" className="w-96 p-2">
         {header}
         <div className="flex items-center gap-1">
           <Input
@@ -132,7 +132,10 @@ export function FavoritesMenu({
               favorite={favorite}
               isCurrent={favorite.id === currentId}
               isModified={isModified}
-              onSelect={() => onSelect(favorite.id)}
+              onSelect={() => {
+                onSelect(favorite.id);
+                setOpen(false);
+              }}
               onRename={(name) => onRename(favorite.id, name)}
               onUpdate={onUpdate ? () => onUpdate(favorite.id) : undefined}
               onDelete={() => onDelete(favorite.id)}
