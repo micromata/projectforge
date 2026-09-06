@@ -128,7 +128,10 @@ open class DatabaseDao {
         val searchSession: SearchSession = Search.session(em)
         val indexer = searchSession.massIndexer(clazz)
             .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
-            .batchSizeToLoadObjects(25) // Batch-Größe
+            // Aligned with hibernate.default_batch_fetch_size (persistence.xml): a larger root batch lets Hibernate
+            // batch-load the LAZY @IndexedEmbedded associations (Kost2/Konto/Projekt/Kunde/Task/user/group) of a whole
+            // batch in one statement instead of one row at a time, removing the N+1 select storm during reindexing.
+            .batchSizeToLoadObjects(128) // Batch-Größe
             .idFetchSize(150) // Größe des ID-Fetch
             .monitor(monitor) // Fortschrittsmonitor hinzufügen
         val fromDate = settings.fromDate
