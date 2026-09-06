@@ -99,18 +99,27 @@ export function FieldShell({
       {/* `items-start`, so the ⓘ stays on the first line of a label that wrapped rather than centring
           itself against two lines of it. */}
       <div className="flex min-w-0 items-start gap-1">
-        <FieldLabel
-          id={ids.labelId}
-          htmlFor={ids.controlId}
-          className="min-w-0 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
-        >
-          {label}
+        {/* The label and its required marker share an inline box so the asterisk keeps hugging the
+            label while the ⓘ stays a `gap-1` apart. The marker sits *outside* the <label> on purpose:
+            inside it, it would join the control's accessible name ("Rechnungsdatum *"), which a screen
+            reader reads as "star" and which also breaks exact-label lookups. The control already
+            carries `required`, so the semantics are not lost. */}
+        <span className="flex min-w-0 items-baseline">
+          <FieldLabel
+            id={ids.labelId}
+            htmlFor={ids.controlId}
+            className="min-w-0 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+          >
+            {label}
+          </FieldLabel>
           {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
               number) is mandatory in the database but never the reader's obligation. */}
           {required && !readOnly && (
-            <span className="ml-0.5 text-primary">*</span>
+            <span className="ml-0.5 text-primary" aria-hidden="true">
+              *
+            </span>
           )}
-        </FieldLabel>
+        </span>
         {hint && <FieldHint hint={hint} label={label} />}
       </div>
       {children}
