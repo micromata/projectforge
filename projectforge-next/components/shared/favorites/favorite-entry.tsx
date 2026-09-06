@@ -99,8 +99,8 @@ export function FavoriteEntry({
         onClick={onSelect}
         aria-current={isCurrent}
         className={cn(
-          "min-w-0 flex-1 cursor-pointer truncate rounded px-2 py-1 text-left text-sm hover:bg-accent",
-          isCurrent && "font-semibold text-primary"
+          "min-w-0 flex-1 cursor-pointer truncate rounded px-2 py-0.5 text-left text-xs font-normal hover:bg-accent",
+          isCurrent && "font-medium text-primary"
         )}
       >
         {favorite.name}

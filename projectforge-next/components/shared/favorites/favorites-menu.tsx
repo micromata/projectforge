@@ -98,7 +98,10 @@ export function FavoritesMenu({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-96 p-2">
+      <PopoverContent
+        align="start"
+        className="flex max-h-[var(--radix-popover-content-available-height)] w-96 flex-col p-2"
+      >
         {header}
         <div className="flex items-center gap-1">
           <Input
@@ -120,12 +123,7 @@ export function FavoritesMenu({
           </Button>
         </div>
         {favorites.length > 0 && <Separator className="my-2" />}
-        <div
-          className={cn(
-            "flex flex-col",
-            favorites.length > 6 && "max-h-72 overflow-auto"
-          )}
-        >
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto">
           {favorites.map((favorite) => (
             <FavoriteEntry
               key={favorite.id}
