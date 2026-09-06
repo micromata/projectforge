@@ -7,6 +7,7 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   closestCenter,
   useSensor,
@@ -187,6 +188,12 @@ export function DataTableColumnPanel<TData>({
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
+          // The list scrolls in its own container (max-h-96 overflow-y-auto).
+          // The default WhileDragging strategy measures the rows once at drag
+          // start and caches them, so scrolling mid-drag leaves collision and
+          // the drop indicator offset from the cursor by the scroll delta.
+          // Always re-measures on scroll/layout changes and keeps them in sync.
+          measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
           onDragStart={({ active }: DragStartEvent) =>
             setDragId(String(active.id))
           }
@@ -307,6 +314,9 @@ function SortableColumnRow<TData>({
   } = useSortable({ id: column.id });
   const isPinned = !!column.getIsPinned();
 
+  // The whole row is the drag handle, so mouse users can grab it anywhere.
+  // The checkbox and pin button stop pointer-down from reaching these listeners
+  // so a click on them stays a click instead of starting a drag.
   return (
     <div
       ref={setNodeRef}
@@ -316,32 +326,52 @@ function SortableColumnRow<TData>({
       }}
       className={cn(
         "flex items-center gap-1.5 rounded-sm px-2 py-1.5",
+        "cursor-grab active:cursor-grabbing",
         // Dashed outline marks the slot the row will drop into, while the overlay
         // shows the row itself following the cursor.
         isDragging
           ? "bg-muted/50 outline-1 outline-dashed outline-primary"
           : "hover:bg-accent/60"
       )}
+      aria-label={`${label}: ${dragLabel}`}
+      {...attributes}
+      {...listeners}
     >
-      <button
-        type="button"
-        className="shrink-0 cursor-grab touch-none text-muted-foreground/60 active:cursor-grabbing"
-        aria-label={`${label}: ${dragLabel}`}
-        {...attributes}
-        {...listeners}
-      >
-        <HugeiconsIcon icon={UnfoldMoreIcon} size={13} />
-      </button>
-      <Checkbox
-        id={`col-${column.id}`}
-        checked={column.getIsVisible()}
-        disabled={isLastVisible}
-        onCheckedChange={(checked) => column.toggleVisibility(checked === true)}
+      {/* Grab affordance. Only the icon is touch-none so a touch drag started
+          here reorders reliably, while touch scrolling over the rest of the row
+          (the label) keeps working. */}
+      <HugeiconsIcon
+        icon={UnfoldMoreIcon}
+        size={13}
+        className="shrink-0 touch-none text-muted-foreground/60"
       />
+      <span
+        className="flex cursor-pointer"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <Checkbox
+          id={`col-${column.id}`}
+          // Drop the primitive's enlarged invisible hit area (after:-inset-*):
+          // in this dense row it bleeds into the grab surface, flipping the
+          // cursor before you reach the box and leaving a dead zone where no
+          // drag can start. The row and label are the generous target here.
+          className="cursor-pointer after:hidden"
+          checked={column.getIsVisible()}
+          disabled={isLastVisible}
+          onCheckedChange={(checked) =>
+            column.toggleVisibility(checked === true)
+          }
+        />
+      </span>
+      {/* No stopPropagation here: the name is part of the drag surface. A plain
+          click still toggles visibility (htmlFor), a drag past the 6px threshold
+          reorders. */}
       <label
         htmlFor={`col-${column.id}`}
         className={cn(
-          "flex-1 cursor-pointer truncate text-sm",
+          // Part of the drag surface: force the row's grab cursor, since a
+          // <label> gets its own cursor from the UA stylesheet and won't inherit.
+          "flex-1 cursor-grab truncate text-sm active:cursor-grabbing",
           isLastVisible && "text-muted-foreground"
         )}
       >
@@ -350,10 +380,11 @@ function SortableColumnRow<TData>({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 shrink-0"
+        className="h-6 w-6 shrink-0 cursor-pointer"
         aria-label={pinLabel}
         aria-pressed={isPinned}
         onClick={onTogglePin}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <HugeiconsIcon
           icon={PinIcon}
