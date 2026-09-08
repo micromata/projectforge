@@ -2128,6 +2128,9 @@
     "iCalSubscription": "Zeitberichte im iCal-Format für den/die angemeldete:n Benutzer:in exportieren (*.ics).",
     "icsExport": "ics-Export",
     "location": "Ort",
+    "massupdate": {
+      "updateTask": "Strukturelement für alle Zeitberichte ändern"
+    },
     "recent": "Zuletzt verwendet",
     "reference": "Referenz",
     "startTime": "Beginn",

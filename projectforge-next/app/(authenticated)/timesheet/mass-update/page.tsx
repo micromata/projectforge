@@ -18,8 +18,14 @@ export default function TimesheetMassUpdatePage() {
       listRoute={TIMESHEET_PAGE.route}
       // The task/cost-unit picker the generic renderer has no field for: the cost units follow the
       // task, which is a dependency a declared field cannot express (see MassUpdateForm.extraFields).
-      extraFields={(setParam) => (
-        <TaskKost2MassUpdateField setParam={setParam} />
+      // The shared task and cost unit come from the meta's `initialParams`, so the picker opens on what
+      // the selected sheets have in common (see TaskKost2MassUpdateField).
+      extraFields={(setParam, meta) => (
+        <TaskKost2MassUpdateField
+          setParam={setParam}
+          initialTaskId={meta.initialParams?.task?.id ?? null}
+          initialKost2Id={meta.initialParams?.kost2?.id ?? null}
+        />
       )}
       // Built here rather than inside the generic page, because it renders the timesheet list's own
       // columns — and those are typed, so only the page that declares them can pass them on.

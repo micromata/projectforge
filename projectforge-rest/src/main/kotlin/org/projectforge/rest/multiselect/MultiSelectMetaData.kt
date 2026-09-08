@@ -75,6 +75,13 @@ class MultiSelectMetaData(
      * and formats the amounts in the user's locale and currency.
      */
     val statisticsData: Any? = null,
+    /**
+     * Start values for the page's own controls, keyed by field name - a task and cost unit the selected
+     * time sheets have in common, say (see [AbstractMultiSelectedPage.initialParams]). Only a presentation
+     * preset: the generic renderer does not seed its declared fields from it, and a value the user leaves
+     * untouched must not be posted as a change. Null when the page computes none.
+     */
+    val initialParams: Map<String, MassUpdateParameter>? = null,
 )
 
 /**

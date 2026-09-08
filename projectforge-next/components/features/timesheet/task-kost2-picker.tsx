@@ -52,6 +52,7 @@ export function TaskKost2Picker({
   kost2Errors = [],
   showConsumption = false,
   disabled,
+  taskDisabled,
   className,
 }: {
   taskId: number | null;
@@ -64,7 +65,14 @@ export function TaskKost2Picker({
   kost2Errors?: string[];
   /** Show what is already booked on the task; off where a single figure carries no meaning (mass update). */
   showConsumption?: boolean;
+  /** Locks both controls; the whole widget is read-only. */
   disabled?: boolean;
+  /**
+   * Locks the task control alone, leaving the cost unit selectable. Defaults to [disabled]. The mass update
+   * uses this to gate changing the *task* behind an opt-in while a cost-unit-only change stays possible
+   * (see TaskKost2MassUpdateField).
+   */
+  taskDisabled?: boolean;
   className?: string;
 }) {
   const t = useTranslations();
@@ -126,7 +134,7 @@ export function TaskKost2Picker({
         <TaskSelectControl
           taskId={taskId}
           ariaLabel={t("task._")}
-          disabled={disabled}
+          disabled={taskDisabled ?? disabled}
           onOpen={() => {
             setRootAtId(null);
             setOpen(true);

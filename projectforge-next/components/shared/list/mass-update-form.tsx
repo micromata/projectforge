@@ -68,9 +68,11 @@ export function MassUpdateForm({
    * generic [MassUpdateField] does not model (the cost units follow the task). It is handed [setParam]
    * to contribute its own parameters to the posted map under the keys the backend expects (`task`,
    * `kost2`, `taskAndKost2`); passing `undefined` removes a key, so clearing the control drops its action.
+   * The [meta] is passed on too so a control can read its `initialParams` preset (see there).
    */
   extraFields?: (
-    setParam: (name: string, param: MassUpdateParameter | undefined) => void
+    setParam: (name: string, param: MassUpdateParameter | undefined) => void,
+    meta: MultiSelectMeta
   ) => ReactNode;
   onLeave: () => void;
 }) {
@@ -220,7 +222,9 @@ export function MassUpdateForm({
             }
           />
         ))}
-        {extraFields && <div className="py-3">{extraFields(setParam)}</div>}
+        {extraFields && (
+          <div className="py-3">{extraFields(setParam, meta)}</div>
+        )}
       </div>
 
       {meta.info && (

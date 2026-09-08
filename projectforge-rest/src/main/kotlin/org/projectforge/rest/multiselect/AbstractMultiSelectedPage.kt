@@ -153,7 +153,23 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             info = infoMessageKey()?.let { translate(it) },
             statistics = getStatistics(selectedIds),
             statisticsData = getStatisticsData(selectedIds),
+            initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
         )
+    }
+
+    /**
+     * Per-selection start values for a hand built client, keyed by field name - the layout free counterpart
+     * of the values [fillForm] writes into its `massUpdateData` map (a shared task/kost2 the selection has
+     * in common, say). Empty at default; a page computes them from the selected entries (which it can load
+     * here, the ids are the same [requestMeta] passes on). These are a *presentation* preset for the page's
+     * own controls, not an action - the generic renderer does not seed its declared fields from them, so a
+     * value left untouched contributes nothing to the run (see `TimesheetMultiSelectedPageRest`).
+     */
+    protected open fun initialParams(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>?,
+    ): Map<String, MassUpdateParameter> {
+        return emptyMap()
     }
 
     /**

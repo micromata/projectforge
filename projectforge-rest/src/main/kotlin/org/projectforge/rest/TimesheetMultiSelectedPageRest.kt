@@ -122,6 +122,80 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         return if (Configuration.instance.isCostConfigured) "timesheet.massupdate.kost.info" else null
     }
 
+    /**
+     * Start values for the hand built next page: the task and cost unit the selected time sheets have in
+     * common, so the picker opens on them and a change against them is what the run acts on (see
+     * [sharedTaskAndKost2]). The counterpart of what [fillForm] pre-computes for the legacy form.
+     *
+     * The cost unit is offered only when it is reachable from the shared task ([TaskTree.getKost2List]);
+     * otherwise the client would drop it on load (the picker keeps a value only while the task allows it),
+     * which would read as a change the user never made.
+     */
+    override fun initialParams(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>?,
+    ): Map<String, MassUpdateParameter> {
+        val (taskId, kost2Id) = sharedTaskAndKost2(timesheetDao.select(selectedIds))
+        val params = mutableMapOf<String, MassUpdateParameter>()
+        taskId?.let { params["task"] = MassUpdateParameter().also { p -> p.id = it } }
+        kost2Id?.takeIf { taskTree.getKost2List(taskId)?.any { k -> k.id == it } == true }?.let {
+            params["kost2"] = MassUpdateParameter().also { p -> p.id = it }
+        }
+        return params
+    }
+
+    /**
+     * The task and cost unit the given time sheets share, or null where they do not: the task is the
+     * deepest common ancestor of all their tasks, the cost unit the one they all book on (none if it
+     * differs). Extracted from [fillForm] so the legacy form and the layout-free [initialParams] compute
+     * the same preset the same way.
+     */
+    internal fun sharedTaskAndKost2(timesheets: List<TimesheetDO>?): Pair<Long?, Long?> {
+        if (timesheets.isNullOrEmpty()) {
+            return null to null
+        }
+        var taskNode: TaskNode? = null
+        loop@ for (timesheet in timesheets) {
+            val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
+            val current = taskNode
+            if (current == null) {
+                taskNode = node // First node
+            } else if (node.isParentOf(current)) {
+                taskNode = node
+            } else if (current == node || current.isParentOf(node)) {
+                // OK, node is on the same path.
+            } else {
+                // current and node aren't on the same path; climb to a shared ancestor.
+                var ancestor = current.parent
+                for (i in 0..1000) { // Paranoia loop for avoiding endless loops (instead of while(true))
+                    if (ancestor == node || ancestor.isParentOf(node)) {
+                        taskNode = ancestor
+                        continue@loop
+                    }
+                    ancestor = ancestor.parent
+                }
+                taskNode = null
+                break
+            }
+        }
+        // The cost unit only if all time sheets book on the very same one.
+        var kost2Id: Long? = null
+        for (timesheet in timesheets) {
+            if (timesheet.kost2Id == null) {
+                // No kost2Id found.
+                break
+            }
+            if (kost2Id == null) {
+                kost2Id = timesheet.kost2Id
+            } else if (kost2Id != timesheet.kost2Id) {
+                // Kost2-id differs, so terminate.
+                kost2Id = null
+                break
+            }
+        }
+        return taskNode?.id to kost2Id
+    }
+
     override fun fillForm(
         request: HttpServletRequest,
         layout: UILayout,
@@ -133,43 +207,10 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         var kost2Id: Long? = massUpdateData["kost2"]?.id
         val timesheets = timesheetDao.select(selectedIds)
         if (taskNode == null && timesheets != null) {
-            // Try to get a shared task of all time sheets.
-            loop@ for (timesheet in timesheets) {
-                val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
-                if (taskNode == null) {
-                    taskNode = node // First node
-                } else if (node.isParentOf(taskNode)) {
-                    taskNode = node
-                } else if (taskNode == node || taskNode.isParentOf(node)) {
-                    // OK
-                } else {
-                    // taskNode and node aren't in same path.
-                    // Try to check shared ancestor:
-                    var ancestor = taskNode.parent
-                    for (i in 0..1000) { // Paranoia loop for avoiding endless loops (instead of while(true))
-                        if (ancestor == node || ancestor.isParentOf(node)) {
-                            taskNode = ancestor
-                            continue@loop
-                        }
-                        ancestor = ancestor.parent
-                    }
-                    taskNode = null
-                    break
-                }
-            }
-            // Check if all time sheets uses the same kost2:
-            for (timesheet in timesheets) {
-                if (timesheet.kost2Id == null) {
-                    // No kost2Id found
-                    break
-                }
-                if (kost2Id == null) {
-                    kost2Id = timesheet.kost2Id
-                } else if (kost2Id != timesheet.kost2Id) {
-                    // Kost2-id differs, so terminate.
-                    kost2Id = null
-                    break
-                }
+            val (sharedTaskId, sharedKost2Id) = sharedTaskAndKost2(timesheets)
+            taskNode = taskTree.getTaskNodeById(sharedTaskId)
+            if (kost2Id == null) {
+                kost2Id = sharedKost2Id
             }
         }
         val duration = timesheetDao.select(selectedIds)?.sumOf { it.duration }
@@ -261,11 +302,16 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         val params = massUpdateContext.massUpdateParams
         val kost2Id = params["kost2"]?.id
         val taskId = params["task"]?.id
-        val availableKost2s = taskTree.getKost2List(taskId)
-        if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
-            // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
-            // was changed and kost2Id is invalid:
-            params["kost2"]?.id = null
+        if (taskId != null) {
+            // Only when the task is being changed: a cost unit reachable from the *old* task may not be
+            // reachable from the new one, so drop a now-invalid one (proceedMassUpdate then remaps by type).
+            // Without a task change the cost unit is applied as picked (it was offered from the shared task's
+            // list), so it must not be validated against a task that is not part of this update - doing so
+            // (getKost2List(null)) would wrongly null it and turn a cost-unit-only change into "nothing to do".
+            val availableKost2s = taskTree.getKost2List(taskId)
+            if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
+                params["kost2"]?.id = null
+            }
         }
         // The synthetic taskAndKost2 field carries only the `change` flag, so the confirmation dialog would
         // read "set <task> to <empty>". Give it the picked task (and cost unit, if still valid) as its value,
@@ -287,7 +333,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
      */
     override fun getFieldTranslation(field: String): String {
         if (field == "taskAndKost2") {
-            return translate("task")
+            // Both may change, and either alone, so the label names both rather than only the task.
+            return "${translate("task")} / ${translate("fibu.kost2")}"
         }
         return super.getFieldTranslation(field)
     }

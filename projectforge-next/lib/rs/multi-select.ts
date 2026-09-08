@@ -88,6 +88,13 @@ export interface MultiSelectMeta {
    * raw HTML spans.
    */
   statisticsData?: unknown;
+  /**
+   * Start values for the page's own custom controls, keyed by field name — the task and cost unit the
+   * selected time sheets share, say (see `AbstractMultiSelectedPage.initialParams`). Advisory prefill
+   * only: the declared fields above are not seeded from it, and a control must not post a value the user
+   * left at its preset (that would be a change they never made). Consumed by the `extraFields` slot.
+   */
+  initialParams?: Record<string, MassUpdateParameter>;
 }
 
 /**

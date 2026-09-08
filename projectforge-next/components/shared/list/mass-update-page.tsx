@@ -10,7 +10,10 @@ import { Spinner } from "@/components/shared/spinner";
 import { fetchMultiSelectMeta } from "@/lib/rs/multi-select";
 import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import { useSelectionStore } from "@/store/selection-store";
-import type { MassUpdateParameter } from "@/lib/rs/multi-select";
+import type {
+  MassUpdateParameter,
+  MultiSelectMeta,
+} from "@/lib/rs/multi-select";
 import type { MassUpdateDef } from "@/lib/page-def/types";
 import { MassUpdateForm } from "./mass-update-form";
 
@@ -47,7 +50,8 @@ export function MassUpdatePage({
   actions?: ReactNode;
   /** The page's own custom fields, e.g. the time sheet's task/cost-unit picker (see `MassUpdateForm.extraFields`). */
   extraFields?: (
-    setParam: (name: string, param: MassUpdateParameter | undefined) => void
+    setParam: (name: string, param: MassUpdateParameter | undefined) => void,
+    meta: MultiSelectMeta
   ) => ReactNode;
 }) {
   const t = useTranslations();
