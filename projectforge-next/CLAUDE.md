@@ -48,6 +48,12 @@ Cross-feature imports are forbidden. If two features need the same thing, it bel
 - **Server Components by default.** Add `"use client"` only when state, effects, or browser APIs are needed. Keep client islands small — push state down, not up.
 - **No barrel files** (`index.ts` re-exports) except at primitive boundaries like `components/data-table/`. Import direct paths.
 
+## Form action buttons
+
+- **The action bar is always visible.** Every form pins its buttons (Save / Cancel / Delete / …) in a footer that does not scroll away — a `shrink-0` sibling placed **after** the single `flex-1 overflow-y-auto` region inside a `flex flex-col overflow-hidden` column (no `position: sticky` / `fixed`). Use the shared **`FormActionBar`** (`components/shared/form-action-bar.tsx`) — never hand-roll a button row in the scrolling content. `EntityEditActions` (edit pages) and `MassUpdateForm` are the reference callers.
+- **One canonical order.** In page forms the bar is left-aligned: **Cancel first, then the primary/submit action** (Save); destructive actions (Delete) are pushed to the far right by a `flex-1` spacer. In dialogs (the right-aligned shadcn `DialogFooter` / `AlertDialogFooter`) Cancel sits immediately left of the primary/confirm button. **Cancel is always to the left of the primary button.**
+- **Variants:** Cancel is `variant="outline"`, the primary/submit is the default variant, Delete is `variant="destructive"`. Do not use `ghost` for Cancel.
+
 ## Naming
 
 - Files: `kebab-case.tsx` (e.g. `books-table.tsx`).
