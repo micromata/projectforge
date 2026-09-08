@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FormActionBar } from "@/components/shared/form-action-bar";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
@@ -154,62 +155,83 @@ export function MassUpdateForm({
   };
 
   return (
+    // A form column that pins its buttons: only the middle region scrolls, the action bar stays in
+    // view — the same flex pinning as an edit page (see EditPageShell / FormActionBar).
     <div
-      className="mx-auto w-full max-w-3xl space-y-4 p-4"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       onKeyDown={onKeyDown}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-bold tracking-tight">{meta.title}</h1>
-          <p className="text-xs text-muted-foreground">
-            {t("massUpdate.entriesFound", { arg0: meta.selectedCount })}
-          </p>
+      <div className="flex-1 overflow-y-auto">
+        <div className="space-y-4 p-4">
+          {/* Title and statistics stay in the readable centered column with the fields. */}
+          <div className="mx-auto w-full max-w-3xl space-y-4">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h1 className="text-lg font-bold tracking-tight">
+                  {meta.title}
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  {t("massUpdate.entriesFound", { arg0: meta.selectedCount })}
+                </p>
+              </div>
+              {actions}
+            </div>
+
+            {/* What the picked entries add up to, by the entity's own statistics line — the same
+            component the list shows above its table, so the numbers read identically on both pages. */}
+            {StatisticsLine && meta.statisticsData != null && (
+              <StatisticsLine statistics={meta.statisticsData} />
+            )}
+          </div>
+
+          {/* Above the fields, because it says what they are about to change — and closed, because the
+          count and the sums answer the question for most visits. Full width, not the centered column:
+          it is the list's own table and its columns need the room the list gives them. */}
+          {selectedEntries}
+
+          <div className="mx-auto w-full max-w-3xl space-y-4">
+            <div className="rounded-md border px-3">
+              {meta.fields.map((field) => (
+                <MassUpdateField
+                  key={field.field}
+                  meta={field}
+                  param={params[field.field] ?? {}}
+                  onChange={(param) =>
+                    setParams((previous) => ({
+                      ...previous,
+                      [field.field]: param,
+                    }))
+                  }
+                />
+              ))}
+            </div>
+
+            {meta.info && (
+              <Alert>
+                <AlertDescription>
+                  <MarkdownText text={meta.info} />
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {errors.map((error) => error.message).join(" ")}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {result && <MassUpdateResultPanel result={result} />}
+          </div>
         </div>
-        {actions}
       </div>
 
-      {/* What the picked entries add up to, by the entity's own statistics line — the same component the
-          list shows above its table, so the numbers read identically on both pages. */}
-      {StatisticsLine && meta.statisticsData != null && (
-        <StatisticsLine statistics={meta.statisticsData} />
-      )}
-
-      {/* Above the fields, because it says what they are about to change — and closed, because the
-          count and the sums answer the question for most visits. */}
-      {selectedEntries}
-
-      <div className="rounded-md border px-3">
-        {meta.fields.map((field) => (
-          <MassUpdateField
-            key={field.field}
-            meta={field}
-            param={params[field.field] ?? {}}
-            onChange={(param) =>
-              setParams((previous) => ({ ...previous, [field.field]: param }))
-            }
-          />
-        ))}
-      </div>
-
-      {meta.info && (
-        <Alert>
-          <AlertDescription>
-            <MarkdownText text={meta.info} />
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {errors.length > 0 && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {errors.map((error) => error.message).join(" ")}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {result && <MassUpdateResultPanel result={result} />}
-
-      <div className="flex items-center gap-2">
+      {/* Cancel left of save, as on every edit page (see FormActionBar / CLAUDE.md). */}
+      <FormActionBar className="mx-auto max-w-3xl">
+        <Button type="button" variant="outline" onClick={() => leave.mutate()}>
+          {t("cancel")}
+        </Button>
         <HintTooltip {...shortcutHint}>
           <Button
             type="button"
@@ -220,10 +242,7 @@ export function MassUpdateForm({
             {t("save")}
           </Button>
         </HintTooltip>
-        <Button type="button" variant="ghost" onClick={() => leave.mutate()}>
-          {t("cancel")}
-        </Button>
-      </div>
+      </FormActionBar>
 
       {/* Asked before the write, not after: it changes every picked entry at once and there is no undo
           beyond the Excel protocol. */}

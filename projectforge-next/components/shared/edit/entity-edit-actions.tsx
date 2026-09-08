@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { FormActionBar } from "@/components/shared/form-action-bar";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { useFormatContext } from "@/hooks/use-format";
@@ -94,7 +95,7 @@ export function EntityEditActions({
   const format = useFormatContext();
   const shortcutHint = useSubmitShortcutHint();
   return (
-    <div className="flex shrink-0 items-center gap-3 border-t border-border bg-background px-6 py-2.5 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
+    <FormActionBar>
       <Button
         type="button"
         variant="outline"
@@ -148,6 +149,6 @@ export function EntityEditActions({
       {forceDeleteAction}
       {deleteAction}
       {undeleteAction}
-    </div>
+    </FormActionBar>
   );
 }
