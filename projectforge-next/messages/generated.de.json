@@ -2129,6 +2129,7 @@
     "icsExport": "ics-Export",
     "location": "Ort",
     "massupdate": {
+      "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
     },
     "recent": "Zuletzt verwendet",

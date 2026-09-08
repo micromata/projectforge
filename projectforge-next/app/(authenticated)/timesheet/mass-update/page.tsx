@@ -16,17 +16,20 @@ export default function TimesheetMassUpdatePage() {
       entity={TIMESHEET_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={TIMESHEET_PAGE.route}
-      // The task/cost-unit picker the generic renderer has no field for: the cost units follow the
-      // task, which is a dependency a declared field cannot express (see MassUpdateForm.extraFields).
-      // The shared task and cost unit come from the meta's `initialParams`, so the picker opens on what
-      // the selected sheets have in common (see TaskKost2MassUpdateField).
-      extraFields={(setParam, meta) => (
-        <TaskKost2MassUpdateField
-          setParam={setParam}
-          initialTaskId={meta.initialParams?.task?.id ?? null}
-          initialKost2Id={meta.initialParams?.kost2?.id ?? null}
-        />
-      )}
+      // The task/cost-unit picker the generic renderer has no field for: the cost units follow the task,
+      // a dependency a declared field cannot express (see MassUpdateForm.customFields). The backend
+      // declares `taskAndKost2` as a custom field right below the activity report, so this renderer draws
+      // at that position. The shared task and cost unit come from the meta's `initialParams`, so the
+      // picker opens on what the selected sheets have in common (see TaskKost2MassUpdateField).
+      customFields={{
+        taskAndKost2: (setParam, meta) => (
+          <TaskKost2MassUpdateField
+            setParam={setParam}
+            initialTaskId={meta.initialParams?.task?.id ?? null}
+            initialKost2Id={meta.initialParams?.kost2?.id ?? null}
+          />
+        ),
+      }}
       // Built here rather than inside the generic page, because it renders the timesheet list's own
       // columns — and those are typed, so only the page that declares them can pass them on.
       selectedEntries={(count) => (

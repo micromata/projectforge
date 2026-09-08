@@ -2129,6 +2129,7 @@
     "icsExport": "ics export",
     "location": "Location",
     "massupdate": {
+      "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
       "updateTask": "Update structure element for all time sheets."
     },
     "recent": "Recent",

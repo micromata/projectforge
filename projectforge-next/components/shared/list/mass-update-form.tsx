@@ -43,7 +43,7 @@ export function MassUpdateForm({
   statisticsLine: StatisticsLine,
   selectedEntries,
   actions,
-  extraFields,
+  customFields,
   onLeave,
 }: {
   endpoint: string;
@@ -63,17 +63,21 @@ export function MassUpdateForm({
    */
   actions?: ReactNode;
   /**
-   * Controls the page's own custom fields render on their own, e.g. the time sheet's task/cost-unit
-   * picker — a slot rather than a declared field, because it is an entity picker with a dependency the
-   * generic [MassUpdateField] does not model (the cost units follow the task). It is handed [setParam]
-   * to contribute its own parameters to the posted map under the keys the backend expects (`task`,
-   * `kost2`, `taskAndKost2`); passing `undefined` removes a key, so clearing the control drops its action.
-   * The [meta] is passed on too so a control can read its `initialParams` preset (see there).
+   * The page's own controls for its `custom` fields, keyed by field name — e.g. the time sheet's
+   * task/cost-unit picker under `taskAndKost2`. A custom field carries no entity property the generic
+   * [MassUpdateField] could render (it is an entity picker with a dependency: the cost units follow the
+   * task), so the backend only gives it a *position* in `meta.fields` and the matching renderer here draws
+   * it there. It is handed [setParam] to contribute its parameters to the posted map under the keys the
+   * backend expects (`task`, `kost2`, `taskAndKost2`); passing `undefined` removes a key, so clearing the
+   * control drops its action. The [meta] is passed on too so a control can read its `initialParams` preset.
    */
-  extraFields?: (
-    setParam: (name: string, param: MassUpdateParameter | undefined) => void,
-    meta: MultiSelectMeta
-  ) => ReactNode;
+  customFields?: Record<
+    string,
+    (
+      setParam: (name: string, param: MassUpdateParameter | undefined) => void,
+      meta: MultiSelectMeta
+    ) => ReactNode
+  >;
   onLeave: () => void;
 }) {
   const t = useTranslations();
@@ -90,7 +94,7 @@ export function MassUpdateForm({
           .map((field) => [field.field, { append: true }])
       )
   );
-  // What the [extraFields] slot writes its parameters through — same map, same keys the backend takes;
+  // What a [customFields] control writes its parameters through — same map, same keys the backend takes;
   // `undefined` removes a key so a cleared control contributes no action (see the prop's doc).
   const setParam = useCallback(
     (name: string, param: MassUpdateParameter | undefined) =>
@@ -212,19 +216,31 @@ export function MassUpdateForm({
       {selectedEntries}
 
       <div className="rounded-md border px-3">
-        {meta.fields.map((field) => (
-          <MassUpdateField
-            key={field.field}
-            meta={field}
-            param={params[field.field] ?? {}}
-            onChange={(param) =>
-              setParams((previous) => ({ ...previous, [field.field]: param }))
-            }
-          />
-        ))}
-        {extraFields && (
-          <div className="py-3">{extraFields(setParam, meta)}</div>
-        )}
+        {meta.fields.map((field) => {
+          // A custom field has no entity property to render generically — the page draws its own control
+          // at this position (the border/padding matches the generic rows around it). Without a matching
+          // renderer it is skipped, so a declared-but-unhandled custom field shows nothing rather than break.
+          const renderCustom = field.custom
+            ? customFields?.[field.field]
+            : undefined;
+          if (field.custom) {
+            return renderCustom ? (
+              <div key={field.field} className="border-b py-3 last:border-b-0">
+                {renderCustom(setParam, meta)}
+              </div>
+            ) : null;
+          }
+          return (
+            <MassUpdateField
+              key={field.field}
+              meta={field}
+              param={params[field.field] ?? {}}
+              onChange={(param) =>
+                setParams((previous) => ({ ...previous, [field.field]: param }))
+              }
+            />
+          );
+        })}
       </div>
 
       {meta.info && (

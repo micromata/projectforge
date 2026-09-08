@@ -132,6 +132,12 @@ class MassUpdateFieldMeta(
     val appendOption: Boolean = false,
     /** Whether appending is the preset (`showAppendOption` of `createAndAddFields`). */
     val appendPreset: Boolean = false,
+    /**
+     * The field is not a property the entity metadata knows, but a control the client renders itself - the
+     * time sheet's task/cost-unit picker (`taskAndKost2`). It only carries a name and a label here; the
+     * generic renderer skips it and the page draws its own control at this field's position.
+     */
+    val custom: Boolean = false,
 )
 
 /**
@@ -158,6 +164,13 @@ class MassUpdateFieldDeclaration(
      * input; left null, everything is resolved from the [org.projectforge.ui.ElementsRegistry] as before.
      */
     val values: List<UISelectValue<String>>? = null,
+    /**
+     * The field has no entity property behind it and is rendered by the client itself - the time sheet's
+     * task/cost-unit picker (`taskAndKost2`). Declared here only to give it a position in the field order;
+     * [AbstractMultiSelectedPage.resolveFieldMeta] skips the registry lookup and emits a bare
+     * [MassUpdateFieldMeta] with `custom = true`.
+     */
+    val custom: Boolean = false,
 )
 
 /**

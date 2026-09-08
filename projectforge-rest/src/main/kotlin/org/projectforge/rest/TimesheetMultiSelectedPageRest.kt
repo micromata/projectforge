@@ -97,6 +97,10 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             MassUpdateFieldDeclaration("location", minLengthOfTextArea = 1001),
             MassUpdateFieldDeclaration("reference", minLengthOfTextArea = 1001),
             MassUpdateFieldDeclaration("description", minLengthOfTextArea = 1001),
+            // The task/cost-unit picker the next page renders itself (TaskKost2MassUpdateField); declared
+            // here only for its position - right below the activity report (description) - in the field
+            // order the client shows and the preview sorts by.
+            MassUpdateFieldDeclaration("taskAndKost2", custom = true),
         )
         // Only where tags are configured at all - no timesheet is known here, so the current tag of one
         // cannot be added (see [TimesheetDao.getTags]); an empty list means the field is left out entirely,

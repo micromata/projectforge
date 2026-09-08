@@ -452,6 +452,17 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
      */
     private fun resolveFieldMeta(lc: LayoutContext, declaration: MassUpdateFieldDeclaration): MassUpdateFieldMeta {
         val field = declaration.field
+        if (declaration.custom) {
+            // No entity property behind it (the task/cost-unit picker): the registry has nothing to resolve,
+            // so only name and label travel and the client renders its own control at this position.
+            return MassUpdateFieldMeta(
+                field = field,
+                valueProperty = "",
+                label = getFieldTranslation(field),
+                dataType = null,
+                custom = true,
+            )
+        }
         val el = LayoutUtils.buildLabelInputElement(lc, field, declaration.minLengthOfTextArea)
         val elementInfo = ElementsRegistry.getElementInfo(lc, field)
         val dataType = (el as? UIInput)?.dataType
