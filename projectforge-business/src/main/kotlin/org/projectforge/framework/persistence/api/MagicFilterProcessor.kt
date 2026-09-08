@@ -31,6 +31,7 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
@@ -132,19 +133,20 @@ object MagicFilterProcessor {
 
     /**
      * The one or more entity properties to `ORDER BY` for a column's sort id, [resolveSortProperty] plus a
-     * generic fix for cost-unit columns.
+     * generic fix for association columns whose displayed value no single database column holds.
      *
-     * A `kost1`/`kost2` column shows the formatted cost number, which no database column holds
-     * ([Kost1DO.formattedNumber] and [Kost2DO.formattedNumber] are getters over the number's parts). Ordering
-     * by the bare association would sort by its foreign key `kost*_id` — insertion order, meaningless to the
-     * reader — or fail in `addOrder` and drop the ORDER BY. So wherever a sort id resolves to a field of type
-     * [Kost1DO]/[Kost2DO] (a time sheet's `kost2`, an invoice position's, ...), it is expanded into the number's
-     * real columns behind that association, most significant first — reached through the LEFT join
-     * `DBCriteriaContext.getOrderField` builds for a nested path, so rows without a cost unit are kept, not
-     * filtered out. Each part is a fixed number of digits, so comparing them one after another yields the same
-     * order as comparing the formatted number.
+     * A `kost1`/`kost2` column shows the formatted cost number ([Kost1DO.formattedNumber] and
+     * [Kost2DO.formattedNumber] are getters over the number's parts); a `user` column shows the full name
+     * ([PFUserDO.displayName] is a getter over `firstname`/`lastname`). Ordering by the bare association would
+     * sort by its foreign key (`kost*_id`, `user_fk`) — insertion order, meaningless to the reader — or fail in
+     * `addOrder` and drop the ORDER BY. So wherever a sort id resolves to a field of such a type (a time sheet's
+     * `kost2` or `user`, an invoice position's, ...), it is expanded into the real columns behind that
+     * association, most significant first — reached through the LEFT join `DBCriteriaContext.getOrderField`
+     * builds for a nested path, so rows without the association are kept, not filtered out. For a cost number
+     * each part is a fixed number of digits, so comparing them one after another yields the same order as
+     * comparing the formatted number; for a user the columns match the displayed "firstname lastname" order.
      *
-     * This makes every list with a cost-unit column sortable by it, without each page wiring up its own sort
+     * This makes every list with such a column sortable by it, without each page wiring up its own sort
      * (as `Kost1PagesRest` still does for the *`Kost1DO` entity's own* `formattedNumber` column, a case this
      * association-field expansion does not cover).
      */
@@ -152,19 +154,22 @@ object MagicFilterProcessor {
         val resolved = resolveSortProperty(entityClass, property)
         // suppressWarning: a DTO-only wrapper / computed leaf is expected here, not a defect.
         val fieldType = PropUtils.getField(entityClass, resolved, true)?.type ?: return listOf(resolved)
-        val segments = KOST_NUMBER_SEGMENTS.entries.firstOrNull { it.key.isAssignableFrom(fieldType) }?.value
+        val segments = ASSOCIATION_SORT_SEGMENTS.entries.firstOrNull { it.key.isAssignableFrom(fieldType) }?.value
             ?: return listOf(resolved)
         return segments.map { "$resolved.$it" }
     }
 
     /**
-     * The parts of a cost number, most significant first, per cost-unit type — the real columns behind the
-     * formatted number ([Kost1DO]: `nummernkreis.bereich.teilbereich.endziffer`; [Kost2DO]: the same three
-     * plus `kost2Art.id` as the two-digit end cipher). See [expandSortProperty].
+     * The real columns behind an association whose displayed value no single column holds, most significant
+     * first, per association type — the parts of a cost number ([Kost1DO]: `nummernkreis.bereich.teilbereich.
+     * endziffer`; [Kost2DO]: the same three plus `kost2Art.id` as the two-digit end cipher), and a user's name
+     * ([PFUserDO]: `firstname.lastname.username`, matching the displayed "firstname lastname"). See
+     * [expandSortProperty].
      */
-    private val KOST_NUMBER_SEGMENTS: Map<Class<*>, List<String>> = mapOf(
+    private val ASSOCIATION_SORT_SEGMENTS: Map<Class<*>, List<String>> = mapOf(
         Kost1DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "endziffer"),
         Kost2DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "kost2Art.id"),
+        PFUserDO::class.java to listOf("firstname", "lastname", "username"),
     )
 
     internal fun createFieldSearchEntry(

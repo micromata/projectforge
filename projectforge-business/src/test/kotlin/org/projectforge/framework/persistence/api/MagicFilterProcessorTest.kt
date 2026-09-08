@@ -103,19 +103,23 @@ class MagicFilterProcessorTest {
     }
 
     /**
-     * A cost-unit column shows a formatted number no database column holds, so a sort by such a `kost1`/
-     * `kost2` association is expanded into the number's real parts, most significant first, for any entity
-     * that has the column (see [MagicFilterProcessor.expandSortProperty]).
+     * An association column whose displayed value no single database column holds is expanded into the real
+     * columns behind it, most significant first, for any entity that has the column: a `kost1`/`kost2` shows a
+     * formatted number, a `user` shows the full name (see [MagicFilterProcessor.expandSortProperty]).
      */
     @Test
-    fun kostSortExpansionTest() {
+    fun associationSortExpansionTest() {
         val kost2Parts = listOf("kost2.nummernkreis", "kost2.bereich", "kost2.teilbereich", "kost2.kost2Art.id")
         // A time sheet's `kost2` association, and the same reached through the DTO prefix the next list sends
         // (`timesheet.` is dropped by resolveSortProperty first, then the association is expanded).
         assertSortProperties(kost2Parts, TimesheetDO::class.java, "kost2")
         assertSortProperties(kost2Parts, TimesheetDO::class.java, "timesheet.kost2")
-        // A non-cost association stays a single sort property.
-        assertSortProperties(listOf("user"), TimesheetDO::class.java, "user")
+        // A user association is expanded into the name columns, matching the displayed "firstname lastname".
+        val userParts = listOf("user.firstname", "user.lastname", "user.username")
+        assertSortProperties(userParts, TimesheetDO::class.java, "user")
+        assertSortProperties(userParts, TimesheetDO::class.java, "timesheet.user")
+        // An association without an entry stays a single sort property.
+        assertSortProperties(listOf("task"), TimesheetDO::class.java, "task")
     }
 
     private fun assertSortProperties(expected: List<String>, entityClass: Class<*>, property: String) {
