@@ -24,6 +24,7 @@
 package org.projectforge.ui.filter
 
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIElement
 import org.projectforge.ui.UIElementType
@@ -86,6 +87,14 @@ open class UIFilterElement(
      * but not worth a place among the fields a user came for.
      */
     var technical: Boolean? = null
+
+    /**
+     * If set, this filter offers autocompletion (type-ahead suggestions from [AutoCompletion.url]). An
+     * [UIFilterObjectElement] always has one; a plain STRING filter may carry one too, so the client can
+     * show suggestions while still filtering by the free text the user types (e. g. the time sheet's
+     * `kost2.nummer`, which suggests concrete cost units but filters as a prefix on the number).
+     */
+    var autoCompletion: AutoCompletion<*>? = null
 
     init {
         key = id

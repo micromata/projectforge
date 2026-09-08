@@ -310,7 +310,10 @@ export interface FilterElement {
   values?: FilterListValue[];
   /** LIST: whether several values may be selected. */
   multi?: boolean;
-  /** OBJECT: endpoint for looking up entities while typing. */
+  /**
+   * Endpoint for looking up entities while typing. An OBJECT filter always has one; a STRING filter
+   * may carry one too and still filter by the free text (the cost unit filter, `type === "KOST2"`).
+   */
   autoCompletion?: {
     minChars?: number;
     type?: string;

@@ -59,7 +59,7 @@ import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
-import org.projectforge.ui.filter.LayoutListFilterUtils
+import org.projectforge.ui.filter.Kost2FilterUtils
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterObjectElement
@@ -764,16 +764,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        val element = UIFilterElement("kost2.nummer")
-        element.label = element.id // Default label if no translation will be found below.
-        element.label = LayoutListFilterUtils.getLabel(
-            ElementInfo(
-                "nummer",
-                i18nKey = "fibu.kost2.nummer",
-                parent = ElementInfo("kost2", i18nKey = "fibu.kost2")
-            )
-        )
-        elements.add(element)
+        // The cost unit filter: a STRING field whose free text filters the time sheets, enriched with a
+        // type-ahead against `cost2/autosearch`. Shared by every list that embeds a `kost2` — see
+        // Kost2FilterUtils, which also consumes it in preProcessMagicFilter below.
+        elements.add(Kost2FilterUtils.createFilterElement())
         // The three settings the legacy list form keeps always open (TimesheetListForm): the period the
         // sheets fall into, the user they belong to and the task they were booked on. All `defaultFilter`,
         // so they show without being added — the pills the user narrows a time sheet list by first.
@@ -883,6 +877,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 target.add(QueryFilter.eq("user.id", userId))
             }
         }
+        // The cost unit filter (see addMagicFilterElements): consumed here rather than left to the generic
+        // processor, which would send the free text as a leading-wildcard full-text term on the keyword number
+        // field — expensive and unreliable. Shared logic in Kost2FilterUtils (prefix / multi-field search).
+        Kost2FilterUtils.preProcess(target, source)
         source.entries.find { it.field == "onlyBillable" }?.let { entry ->
             entry.synthetic = true
             if (entry.value.value == "true") {

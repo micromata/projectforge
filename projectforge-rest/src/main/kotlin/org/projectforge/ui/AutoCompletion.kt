@@ -57,7 +57,7 @@ class AutoCompletion<T>(
   /**
    * Pre-defined types of autocompletion objects as information for the clients.
    */
-  enum class Type { USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT, TASK }
+  enum class Type { USER, EMPLOYEE, GROUP, CUSTOMER, PROJECT, TASK, KOST2 }
   class Entry<T>(
     val value: T,
     /**

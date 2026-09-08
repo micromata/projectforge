@@ -4,6 +4,7 @@ import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { BooleanField, TextField } from "./filter-field-inputs";
 import { ListField } from "./filter-list-field";
 import { RangeField } from "./filter-range-field";
+import { FilterKost2Field } from "./filter-kost2-field";
 import { FilterObjectField } from "./filter-object-field";
 import { TimestampRangeField } from "./filter-timestamp-field";
 
@@ -46,6 +47,14 @@ export function FilterField({
     label: label ?? element.label ?? element.id,
     id: element.id,
   };
+
+  // A STRING filter may carry an autocompletion too (unlike an OBJECT filter, it still filters by the
+  // free text): the cost unit filter suggests concrete Kost2 while filtering by number/description/project
+  // (see FilterKost2Field / Kost2FilterUtils). Checked before the filterType switch, which would otherwise
+  // route STRING to the plain text input.
+  if (element.autoCompletion?.type === "KOST2") {
+    return <FilterKost2Field element={element} {...props} />;
+  }
 
   switch (element.filterType) {
     case "LIST":
