@@ -7,6 +7,7 @@ import {
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { FinanceSection } from "./edit/finance-section";
@@ -192,8 +193,9 @@ export const TASK_PAGE = definePage<
     // access-gated groups (see TaskPagesRest.newBaseDO and useNewEntryParams).
     newEntryParams: TASK_NEW_ENTRY_PARAMS,
     // The top menu of the Wicket form (`TaskEditPage.addTopMenuPanel`), in its order and with its
-    // wording. Only the first target lives in this app; the other four are Wicket pages, and they
-    // turn into routes of this app with nothing but a changed href once they are migrated.
+    // wording. The task and timesheet targets live in this app now (both are migrated); the remaining
+    // two — Gantt and access rights — are Wicket pages, and turn into routes of this app with nothing
+    // but a changed href once they are migrated.
     crossLinks: [
       // The two that are worth a button of their own beside the heading (see CrossLinkDef.prominent):
       // structuring the tree and looking at what was booked on the element are what an open task is left
@@ -205,11 +207,14 @@ export const TASK_PAGE = definePage<
       },
       {
         labelKey: "task.menu.addTimesheet",
-        href: (task) => `wa/timesheetEdit?taskId=${task.id}`,
+        href: (task) => (task.id != null ? timesheetAddHref(task.id) : null),
       },
       {
         labelKey: "task.menu.showTimesheets",
-        href: (task) => `wa/timesheetList?taskId=${task.id}`,
+        href: (task) =>
+          task.id != null
+            ? timesheetListHref(task.id, task.title ?? undefined)
+            : null,
         prominent: true,
       },
       {

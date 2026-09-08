@@ -408,12 +408,22 @@ test.describe("task edit", () => {
     await expect(titleBox(page, format)).toHaveValue(seededTask.title);
 
     const header = page.getByRole("main");
+    // The time sheet targets are this app's own routes now (the timesheet is migrated): the list carries
+    // the task and its name for the filter pill, the add form the task to preset (see timesheetListHref /
+    // timesheetAddHref).
+    const showTimesheetsHref = `/timesheet?${new URLSearchParams({
+      taskId: String(seededTask.id),
+      taskName: seededTask.title,
+    }).toString()}`;
+    const addTimesheetHref = `/timesheet/new?${new URLSearchParams({
+      taskId: String(seededTask.id),
+    }).toString()}`;
     // Beside the heading without a click, on this viewport: the two an open task is left for
     // (`CrossLinkDef.prominent`). Below `md` they are menu entries like the rest, so this half of the
     // assertion belongs to the desktop viewport the suite runs in.
     for (const [key, href] of [
       ["task.menu.addSubTask", `/task/new?parentTaskId=${seededTask.id}`],
-      ["task.menu.showTimesheets", `/wa/timesheetList?taskId=${seededTask.id}`],
+      ["task.menu.showTimesheets", showTimesheetsHref],
     ] as const) {
       await expect(
         header.getByRole("link", { name: format.t(key) })
@@ -425,7 +435,7 @@ test.describe("task edit", () => {
     // The remaining entries and their order are `TaskEditPage.addTopMenuPanel`'s; every url names this
     // task, which is what makes them cross links and not menu items (see CrossLinkDef).
     for (const [key, href] of [
-      ["task.menu.addTimesheet", `/wa/timesheetEdit?taskId=${seededTask.id}`],
+      ["task.menu.addTimesheet", addTimesheetHref],
       ["gantt.title.add", `/wa/ganttEdit?task=${seededTask.id}`],
       ["task.menu.showAccessRights", `/wa/accessList?taskId=${seededTask.id}`],
     ] as const) {

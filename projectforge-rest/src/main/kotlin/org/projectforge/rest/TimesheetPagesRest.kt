@@ -206,9 +206,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         val userId = RestHelper.parseLong(request, "userId") // Optional parameter given to edit page
         sheet.user = User.getUser(userId)
+        // Optional: preset the task, as the task form's "add a time sheet" cross-link does (timesheetAddHref).
+        // A chosen task wins over the most-recent-sheet task below, and its cost unit is left for the form to
+        // resolve (task-kost2-section auto-selects the single matching one) — the recent kost2 may belong to
+        // another task.
+        val taskId = RestHelper.parseLong(request, "taskId")
         val recentEntry = timesheetRecentService.getRecentTimesheet()
         if (recentEntry != null) {
-            if (recentEntry.taskId != null) {
+            if (taskId == null && recentEntry.taskId != null) {
                 sheet.task = Task.getTask(recentEntry.taskId)
                 if (recentEntry.kost2Id != null) {
                     sheet.kost2 = Kost2.getkost2(recentEntry.kost2Id)
@@ -224,6 +229,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             if (sheet.user == null && recentEntry.userId != null) {
                 sheet.user = User.getUser(recentEntry.userId)
             }
+        }
+        if (taskId != null) {
+            sheet.task = Task.getTask(taskId)
         }
         if (sheet.user == null) {
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.

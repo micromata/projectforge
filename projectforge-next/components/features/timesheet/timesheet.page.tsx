@@ -27,12 +27,17 @@ import type { EntityRefDto, TimesheetDetail, TimesheetListRow } from "./types";
 export const TIMESHEET_ENTITY = "timesheet";
 /** React Query key of the list, so a write from the edit page refreshes it once the list is built. */
 export const TIMESHEET_LIST_QUERY_KEY = ["timesheet"] as const;
-/** Where the calendar's slot-select preset reads from (see TimesheetPagesRest.newBaseDTO). */
+/**
+ * Where the preset reads from (see TimesheetPagesRest.newBaseDTO): the calendar's slot select passes the
+ * period, user and first hour; the task form's "add a time sheet" cross-link passes `taskId` to preset the
+ * task (see timesheetAddHref).
+ */
 const NEW_ENTRY_PARAMS = [
   "startDate",
   "endDate",
   "userId",
   "firstHour",
+  "taskId",
 ] as const;
 
 /** JIRA issue links below the two free-text fields, as Wicket's `addJIRAField` shows them. */

@@ -1,4 +1,5 @@
 import { MenuLink } from "@/components/shared/menu-link";
+import { timesheetListHref } from "@/lib/timesheet-links";
 import { cn } from "@/lib/utils";
 import type { CellRenderProps } from "./cell-types";
 
@@ -12,15 +13,6 @@ interface Consumption {
   /** The task the effort was booked against — the bar's link target. */
   id?: number;
 }
-
-/**
- * Query parameters the bar's link carries into the time sheet list: the task to filter by, and its name
- * for the filter pill (the bar knows the id but not the display name the pill wants). The timesheet route
- * reads them back (see app/(authenticated)/timesheet/page.tsx) and seeds a transient, cleared filter — the
- * three things Wicket's `ConsumptionBarPanel` did with `taskId`/`clear`/`storeFilter`.
- */
-export const TIMESHEET_TASK_ID_PARAM = "taskId";
-export const TIMESHEET_TASK_NAME_PARAM = "taskName";
 
 /** Consumption.Status → the token pair driving the bar's track and fill. */
 const STATUS_CLASS: Record<string, string> = {
@@ -89,7 +81,7 @@ export function ConsumptionCell({
         // (with its name for the pill), not remembered afterwards, as Wicket's `ConsumptionBarPanel` set
         // `taskId`/`clear=true`/`storeFilter=false` (see app/(authenticated)/timesheet/page.tsx). An
         // internal `next/` url now, so the jump is a client-side navigation.
-        url={timesheetLinkUrl(id, taskName)}
+        url={timesheetListHref(id, taskName)}
         className="block"
         aria-label={`${t("timesheet.title.list")}: ${label}`}
         // The row itself is clickable (it selects the task), so a click on the bar must not count.
@@ -99,15 +91,4 @@ export function ConsumptionCell({
       </MenuLink>
     </span>
   );
-}
-
-/**
- * The time sheet list of one task, as a `next/` menu url (resolved to a client-side route by
- * [resolveMenuUrl]). Carries the task id and, when known, its name — the timesheet route turns them into
- * a transient, cleared filter (see the module doc on the two param names).
- */
-function timesheetLinkUrl(id: number, taskName: string | undefined): string {
-  const params = new URLSearchParams({ [TIMESHEET_TASK_ID_PARAM]: String(id) });
-  if (taskName) params.set(TIMESHEET_TASK_NAME_PARAM, taskName);
-  return `next/timesheet?${params.toString()}`;
 }

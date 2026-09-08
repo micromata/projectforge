@@ -6,7 +6,7 @@ import { EntityListPage } from "@/components/shared/list/entity-list-page";
 import {
   TIMESHEET_TASK_ID_PARAM,
   TIMESHEET_TASK_NAME_PARAM,
-} from "@/components/data-table/cells/consumption-cell";
+} from "@/lib/timesheet-links";
 import { TIMESHEET_PAGE } from "@/components/features/timesheet/timesheet.page";
 import type { MagicFilter } from "@/lib/rs/types";
 
