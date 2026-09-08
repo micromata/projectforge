@@ -86,7 +86,10 @@ export const TIMESHEET_PAGE = definePage<
   columns: [
     // Both are entity references the row carries as `{ id, displayName }`, not a plain value, so each
     // names the string it shows rather than letting the default cell stringify the object. The sort id
-    // stays the field name, which is what the backend orders the server-side pages by.
+    // stays the field name, which is what the backend orders the server-side pages by. No database column
+    // holds the user's full name, so ordering by the `user` association directly would sort by its foreign
+    // key; the backend expands a `user` sort into the name columns (firstname, lastname, username) for any
+    // entity with a user column (MagicFilterProcessor.expandSortProperty), matching the displayed name.
     {
       name: "user",
       size: 140,
