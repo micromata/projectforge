@@ -282,10 +282,11 @@ export function MassUpdateForm({
         </div>
       </div>
 
-      {/* Cancel left of save, as on every edit page (see FormActionBar / CLAUDE.md). */}
+      {/* Cancel left of save, as on every edit page (see FormActionBar / CLAUDE.md). Once the run has
+          happened there is nothing left to cancel — the button becomes "Close", since it only leaves. */}
       <FormActionBar className="mx-auto max-w-3xl">
         <Button type="button" variant="outline" onClick={() => leave.mutate()}>
-          {t("cancel")}
+          {result ? t("close") : t("cancel")}
         </Button>
         <HintTooltip {...shortcutHint}>
           <Button
