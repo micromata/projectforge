@@ -96,6 +96,10 @@ class RechnungJdbcService {
                     instance.also {
                         //  p.pk,p.number,p.menge,p.einzel_netto,p.vat
                         it.id = posId
+                        // Aliased as pos_deleted to avoid clashing with the invoice's r.deleted (read above).
+                        // Without it, RechnungCalculator can't skip deleted positions and their amounts are
+                        // summed into the cached net/gross of the invoice list.
+                        it.deleted = rs.getBoolean("pos_deleted")
                         it.number = rs.getShort("number")
                         it.menge = getBigDecimal(rs, "menge")
                         it.einzelNetto = getBigDecimal(rs, "einzel_netto")
@@ -161,7 +165,7 @@ class RechnungJdbcService {
 
         private val SELECT_RECHNUNG_WITH_KOST = """
             SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
-                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
+                   p.pk as pos_id,p.deleted as pos_deleted,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,p.auftrags_position_fk,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r
             LEFT JOIN t_fibu_rechnung_position p ON p.rechnung_fk = r.pk
@@ -169,7 +173,7 @@ class RechnungJdbcService {
         """.trimIndent()
         private val SELECT_EINGANGS_RECHNUNG_WITH_KOST = """
             SELECT r.pk as rechnung_id,r.deleted,r.datum,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
-                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
+                   p.pk as pos_id,p.deleted as pos_deleted,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
                    k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_eingangsrechnung r
             LEFT JOIN t_fibu_eingangsrechnung_position p ON p.eingangsrechnung_fk = r.pk
