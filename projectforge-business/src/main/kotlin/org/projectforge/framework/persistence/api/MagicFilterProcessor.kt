@@ -24,6 +24,8 @@
 package org.projectforge.framework.persistence.api
 
 import mu.KotlinLogging
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
@@ -62,8 +64,8 @@ object MagicFilterProcessor {
 
         queryFilter.searchHistory = magicFilter.searchHistory
         queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
-        queryFilter.sortProperties = magicFilter.sortProperties.map {
-            SortProperty(resolveSortProperty(entityClass, it.property), it.sortOrder)
+        queryFilter.sortProperties = magicFilter.sortProperties.flatMap { sortProperty ->
+            expandSortProperty(entityClass, sortProperty.property).map { SortProperty(it, sortProperty.sortOrder) }
         }.toMutableList()
         queryFilter.extended = magicFilter.extended
         val searchString = magicFilter.searchString;
@@ -127,6 +129,43 @@ object MagicFilterProcessor {
         }
         return result
     }
+
+    /**
+     * The one or more entity properties to `ORDER BY` for a column's sort id, [resolveSortProperty] plus a
+     * generic fix for cost-unit columns.
+     *
+     * A `kost1`/`kost2` column shows the formatted cost number, which no database column holds
+     * ([Kost1DO.formattedNumber] and [Kost2DO.formattedNumber] are getters over the number's parts). Ordering
+     * by the bare association would sort by its foreign key `kost*_id` — insertion order, meaningless to the
+     * reader — or fail in `addOrder` and drop the ORDER BY. So wherever a sort id resolves to a field of type
+     * [Kost1DO]/[Kost2DO] (a time sheet's `kost2`, an invoice position's, ...), it is expanded into the number's
+     * real columns behind that association, most significant first — reached through the LEFT join
+     * `DBCriteriaContext.getOrderField` builds for a nested path, so rows without a cost unit are kept, not
+     * filtered out. Each part is a fixed number of digits, so comparing them one after another yields the same
+     * order as comparing the formatted number.
+     *
+     * This makes every list with a cost-unit column sortable by it, without each page wiring up its own sort
+     * (as `Kost1PagesRest` still does for the *`Kost1DO` entity's own* `formattedNumber` column, a case this
+     * association-field expansion does not cover).
+     */
+    internal fun expandSortProperty(entityClass: Class<*>, property: String): List<String> {
+        val resolved = resolveSortProperty(entityClass, property)
+        // suppressWarning: a DTO-only wrapper / computed leaf is expected here, not a defect.
+        val fieldType = PropUtils.getField(entityClass, resolved, true)?.type ?: return listOf(resolved)
+        val segments = KOST_NUMBER_SEGMENTS.entries.firstOrNull { it.key.isAssignableFrom(fieldType) }?.value
+            ?: return listOf(resolved)
+        return segments.map { "$resolved.$it" }
+    }
+
+    /**
+     * The parts of a cost number, most significant first, per cost-unit type — the real columns behind the
+     * formatted number ([Kost1DO]: `nummernkreis.bereich.teilbereich.endziffer`; [Kost2DO]: the same three
+     * plus `kost2Art.id` as the two-digit end cipher). See [expandSortProperty].
+     */
+    private val KOST_NUMBER_SEGMENTS: Map<Class<*>, List<String>> = mapOf(
+        Kost1DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "endziffer"),
+        Kost2DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "kost2Art.id"),
+    )
 
     internal fun createFieldSearchEntry(
         entityClass: Class<*>,

@@ -95,11 +95,13 @@ export const TIMESHEET_PAGE = definePage<
     // The cost unit, shown only where cost accounting is configured — the Wicket column the list gates on
     // `Configuration.isCostConfigured` (the `kost2Configured` list variable, see
     // TimesheetPagesRest.addVariablesForListPage). Its formatted number is the label ("5.100.01.02"), the
-    // description the tooltip. Nothing single-property backs a formatted cost unit, so it does not sort.
+    // description the tooltip. No database column holds the formatted number, so ordering by the `kost2`
+    // association directly would sort by its foreign key; the backend expands a `kost2` sort into the
+    // number's real parts for any entity with a cost-unit column (MagicFilterProcessor.expandSortProperty),
+    // which sorts the same way the number reads.
     {
       name: "kost2",
       size: 110,
-      sortable: false,
       filterKind: null,
       visible: ({ variables }) => variables?.kost2Configured === true,
       cell: ({ row }) =>
