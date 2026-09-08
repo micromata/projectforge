@@ -17,9 +17,15 @@ export function DynamicActionGroup() {
   // spinner on every button at once; a save can take seconds (a mail sent along with it waits for the
   // SMTP server), and what the user needs to see is that the button they pressed is working.
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const actions = ui.actions;
 
-  if (!actions || actions.length === 0) return null;
+  if (!ui.actions || ui.actions.length === 0) return null;
+
+  // Cancel to the left, the default (submit) action to the right, everything else in between in its
+  // original order — e.g. Cancel, Clone, Save. The backend does not guarantee this order, so we sort
+  // by rank; Array.prototype.sort is stable, keeping the "between" buttons as the backend sent them.
+  const rankOf = (action: (typeof ui.actions)[number]): number =>
+    action.id === "cancel" ? 0 : action.id === defaultAction?.id ? 2 : 1;
+  const actions = [...ui.actions].sort((a, b) => rankOf(a) - rankOf(b));
 
   async function run(id: string, call: () => Promise<void>): Promise<void> {
     setPendingId(id);
