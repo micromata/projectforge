@@ -144,6 +144,13 @@ class MassUpdateFieldDeclaration(
     /** Set to false to hide the replace input a text field offers by default. */
     val showReplaceOption: Boolean? = null,
     val minLengthOfTextArea: Int = 4,
+    /**
+     * The select values of a field whose options are not an enum the entity metadata knows, but are built
+     * at runtime - the time sheet's tags (`TimesheetDao.getTags`) are configured, not a type. Given here,
+     * the field renders as a combobox of these values (posted as `textValue`) instead of a plain text
+     * input; left null, everything is resolved from the [org.projectforge.ui.ElementsRegistry] as before.
+     */
+    val values: List<UISelectValue<String>>? = null,
 )
 
 /**

@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, type ComponentType, type ReactNode } from "react";
+import {
+  useCallback,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
@@ -38,6 +43,7 @@ export function MassUpdateForm({
   statisticsLine: StatisticsLine,
   selectedEntries,
   actions,
+  extraFields,
   onLeave,
 }: {
   endpoint: string;
@@ -56,6 +62,16 @@ export function MassUpdateForm({
    * the same reason as [selectedEntries]: it acts on the entity, which this generic form does not know.
    */
   actions?: ReactNode;
+  /**
+   * Controls the page's own custom fields render on their own, e.g. the time sheet's task/cost-unit
+   * picker — a slot rather than a declared field, because it is an entity picker with a dependency the
+   * generic [MassUpdateField] does not model (the cost units follow the task). It is handed [setParam]
+   * to contribute its own parameters to the posted map under the keys the backend expects (`task`,
+   * `kost2`, `taskAndKost2`); passing `undefined` removes a key, so clearing the control drops its action.
+   */
+  extraFields?: (
+    setParam: (name: string, param: MassUpdateParameter | undefined) => void
+  ) => ReactNode;
   onLeave: () => void;
 }) {
   const t = useTranslations();
@@ -71,6 +87,21 @@ export function MassUpdateForm({
           .filter((field) => field.appendPreset)
           .map((field) => [field.field, { append: true }])
       )
+  );
+  // What the [extraFields] slot writes its parameters through — same map, same keys the backend takes;
+  // `undefined` removes a key so a cleared control contributes no action (see the prop's doc).
+  const setParam = useCallback(
+    (name: string, param: MassUpdateParameter | undefined) =>
+      setParams((previous) => {
+        if (param === undefined) {
+          if (!(name in previous)) return previous;
+          const next = { ...previous };
+          delete next[name];
+          return next;
+        }
+        return { ...previous, [name]: param };
+      }),
+    []
   );
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [result, setResult] = useState<MassUpdateResult | null>(null);
@@ -189,6 +220,7 @@ export function MassUpdateForm({
             }
           />
         ))}
+        {extraFields && <div className="py-3">{extraFields(setParam)}</div>}
       </div>
 
       {meta.info && (

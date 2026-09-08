@@ -10,6 +10,7 @@ import { Spinner } from "@/components/shared/spinner";
 import { fetchMultiSelectMeta } from "@/lib/rs/multi-select";
 import { useReadAccessGuard } from "@/hooks/use-read-access-guard";
 import { useSelectionStore } from "@/store/selection-store";
+import type { MassUpdateParameter } from "@/lib/rs/multi-select";
 import type { MassUpdateDef } from "@/lib/page-def/types";
 import { MassUpdateForm } from "./mass-update-form";
 
@@ -27,6 +28,7 @@ export function MassUpdatePage({
   listRoute,
   selectedEntries,
   actions,
+  extraFields,
 }: {
   /** REST category of the list this came from, so leaving can drop its selection mode. */
   entity: string;
@@ -43,6 +45,10 @@ export function MassUpdatePage({
   selectedEntries?: (count: number) => ReactNode;
   /** A page-specific action beside the title (see `MassUpdateForm.actions`), e.g. the SEPA export. */
   actions?: ReactNode;
+  /** The page's own custom fields, e.g. the time sheet's task/cost-unit picker (see `MassUpdateForm.extraFields`). */
+  extraFields?: (
+    setParam: (name: string, param: MassUpdateParameter | undefined) => void
+  ) => ReactNode;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -95,6 +101,7 @@ export function MassUpdatePage({
         statisticsLine={def.statisticsLine}
         selectedEntries={selectedEntries?.(meta.data.selectedCount)}
         actions={actions}
+        extraFields={extraFields}
         // The form's own leave already told the backend to forget the selection (`{page}/cancel`), so
         // the list's mode has to go with it — otherwise it would come back showing ticks that only
         // this app still believes in.

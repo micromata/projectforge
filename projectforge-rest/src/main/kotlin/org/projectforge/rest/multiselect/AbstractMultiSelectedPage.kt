@@ -441,10 +441,13 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val dataType = (el as? UIInput)?.dataType
         val isString = el is UITextArea || (el is UIInput && el.dataType == UIDataType.STRING)
         @Suppress("UNCHECKED_CAST")
-        val values = (el as? UISelect<String>)?.values
+        // Values a page supplies at runtime (the tag list) win over the element: the entity knows "tag"
+        // as a plain string, so the element is a text input, but the field is meant to be a select of
+        // those values - posted as `textValue`, exactly as a select's value goes (see [valuePropertyOf]).
+        val values = declaration.values ?: (el as? UISelect<String>)?.values
         return MassUpdateFieldMeta(
             field = field,
-            valueProperty = valuePropertyOf(el, dataType),
+            valueProperty = if (declaration.values != null) "textValue" else valuePropertyOf(el, dataType),
             // Translated here, not passed on: `LayoutUtils.setLabels` puts the *key* into `element.label`
             // and the `UILayout` path translates it on its way out (`processAllElements`) - which this
             // layout free answer does not go through, so an untranslated key would reach the client.

@@ -3,6 +3,7 @@
 import { MassUpdatePage } from "@/components/shared/list/mass-update-page";
 import { SelectedEntriesPanel } from "@/components/shared/list/selected-entries-panel";
 import { TIMESHEET_PAGE } from "@/components/features/timesheet/timesheet.page";
+import { TaskKost2MassUpdateField } from "@/components/features/timesheet/mass-update/task-kost2-mass-update-field";
 
 /**
  * Reached from the list, never linked directly: the selection this changes lives in the HTTP session,
@@ -15,6 +16,11 @@ export default function TimesheetMassUpdatePage() {
       entity={TIMESHEET_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={TIMESHEET_PAGE.route}
+      // The task/cost-unit picker the generic renderer has no field for: the cost units follow the
+      // task, which is a dependency a declared field cannot express (see MassUpdateForm.extraFields).
+      extraFields={(setParam) => (
+        <TaskKost2MassUpdateField setParam={setParam} />
+      )}
       // Built here rather than inside the generic page, because it renders the timesheet list's own
       // columns — and those are typed, so only the page that declares them can pass them on.
       selectedEntries={(count) => (

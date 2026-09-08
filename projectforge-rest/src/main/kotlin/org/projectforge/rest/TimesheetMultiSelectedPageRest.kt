@@ -85,9 +85,11 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
      * The layout-free field set for a client (the next frontend) that renders the form itself - the
      * counterpart of the `createAndAddFields` calls in [fillForm].
      *
-     * The task/kost2 picker and the tag select are custom components ([UICustomized], a tag [UISelect])
-     * the hand built page renders on its own; only the plain text fields are declared here. The AI fields
-     * are only offered when the feature is enabled, exactly as [fillForm] adds them.
+     * The task/kost2 picker is a custom component ([UICustomized]) the hand built page renders on its own;
+     * only the plain fields are declared here. The tag is declared as a select of the configured tags
+     * (built at runtime, hence [MassUpdateFieldDeclaration.values]), so the layout free frontend renders
+     * it as a combobox with a delete option - the same [UISelect] the [fillForm] path builds. The AI
+     * fields are only offered when the feature is enabled, exactly as [fillForm] adds them.
      */
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         val declarations = mutableListOf(
@@ -96,6 +98,18 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             MassUpdateFieldDeclaration("reference", minLengthOfTextArea = 1001),
             MassUpdateFieldDeclaration("description", minLengthOfTextArea = 1001),
         )
+        // Only where tags are configured at all - no timesheet is known here, so the current tag of one
+        // cannot be added (see [TimesheetDao.getTags]); an empty list means the field is left out entirely,
+        // exactly as [TimesheetPagesRest.createTagUISelect] returns null.
+        timesheetDao.getTags(null)?.takeIf { it.isNotEmpty() }?.let { tags ->
+            declarations.add(
+                MassUpdateFieldDeclaration(
+                    "tag",
+                    showDeleteOption = true,
+                    values = tags.map { UISelectValue(it, it) },
+                )
+            )
+        }
         if (timesheetDao.timeSavingsByAIEnabled) {
             declarations.add(MassUpdateFieldDeclaration("timeSavedByAI"))
             declarations.add(MassUpdateFieldDeclaration("timeSavedByAIUnit"))
@@ -253,6 +267,29 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             // was changed and kost2Id is invalid:
             params["kost2"]?.id = null
         }
+        // The synthetic taskAndKost2 field carries only the `change` flag, so the confirmation dialog would
+        // read "set <task> to <empty>". Give it the picked task (and cost unit, if still valid) as its value,
+        // which the preview shows as-is (proceedMassUpdate ignores it, it changes on task/kost2 instead).
+        params["taskAndKost2"]?.takeIf { it.change == true }?.let { param ->
+            val parts = mutableListOf<String>()
+            taskId?.let { id -> taskTree.getTaskById(id)?.title?.let { parts.add(it) } }
+            params["kost2"]?.id?.let { id ->
+                kost2Dao.find(id, checkAccess = false)?.formattedNumber?.let { parts.add(it) }
+            }
+            param.textValue = parts.joinToString(" / ").takeIf { it.isNotBlank() }
+        }
+    }
+
+    /**
+     * The synthetic taskAndKost2 field is no property of the entity, so the registry has no label for it and
+     * the default would capitalize the field name. Translate it as the task field, exactly as the [fillForm]
+     * path labels its row (`displayName = "task"`).
+     */
+    override fun getFieldTranslation(field: String): String {
+        if (field == "taskAndKost2") {
+            return translate("task")
+        }
+        return super.getFieldTranslation(field)
     }
 
     override fun proceedMassUpdate(
