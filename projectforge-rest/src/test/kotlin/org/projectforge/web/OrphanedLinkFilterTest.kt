@@ -25,6 +25,7 @@ package org.projectforge.web
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.NextMigration
 import org.springframework.mock.web.MockFilterChain
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -33,20 +34,24 @@ class OrphanedLinkFilterTest {
     private val filter = OrphanedLinkFilter()
 
     /**
-     * The React calendar is the "classic version" the calendar switch leads to, and it owns its whole
-     * subtree - the nested timesheet and team event editors open under react/calendar/... . None of it may
-     * be bent back to next, or the user would be bounced straight out of the app they just switched into.
+     * The React calendar is a migrated page like any other now: a bookmarked or emailed link to it is bent
+     * onto the next calendar. The "classic version" switch reaches it by carrying the escape-hatch marker
+     * (see calendar-page.tsx, legacyUrl "react/calendar?legacyEscape"), covered below.
      */
     @Test
-    fun `the whole react calendar subtree is left in the legacy app`() {
-        Assertions.assertNull(redirectOf("/react/calendar"), "The classic calendar switch must stay in React.")
+    fun `the react calendar is redirected to next`() {
+        Assertions.assertEquals("/next/calendar", redirectOf("/react/calendar"))
+    }
+
+    /**
+     * The escape hatch: a request carrying [NextMigration.ESCAPE_HATCH_PARAM] is let through to the legacy
+     * React calendar, which is how the "classic version" switch reaches it without being bounced back.
+     */
+    @Test
+    fun `the react calendar with the escape marker stays in the legacy app`() {
         Assertions.assertNull(
-            redirectOf("/react/calendar/teamEvent/edit/42"),
-            "The React calendar's nested team event editor must stay in React.",
-        )
-        Assertions.assertNull(
-            redirectOf("/react/calendar/timesheet/edit"),
-            "The React calendar's nested timesheet editor must stay in React.",
+            redirectOf("/react/calendar", NextMigration.ESCAPE_HATCH_PARAM),
+            "The classic calendar switch carries the escape marker and must stay in React.",
         )
     }
 
@@ -67,10 +72,12 @@ class OrphanedLinkFilterTest {
 
     /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
-     * request pass through to the chain untouched.
+     * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,
+     * so the escape-hatch marker can be exercised.
      */
-    private fun redirectOf(uri: String): String? {
+    private fun redirectOf(uri: String, vararg params: String): String? {
         val request = MockHttpServletRequest("GET", uri).also { it.requestURI = uri }
+        params.forEach { request.addParameter(it, "") }
         val response = MockHttpServletResponse()
         filter.doFilter(request, response, MockFilterChain())
         return response.redirectedUrl

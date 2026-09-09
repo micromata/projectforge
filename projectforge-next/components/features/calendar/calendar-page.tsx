@@ -130,7 +130,7 @@ export function CalendarPage() {
           flexible middle (a wrapping field that grows down as more are picked) to save a vertical line. */}
       <PageTitleRow
         title={t("calendar.title")}
-        legacyUrl="react/calendar"
+        legacyUrl="react/calendar?legacyEscape"
         center={
           <CalendarSelect
             teamCalendars={init.teamCalendars ?? []}
