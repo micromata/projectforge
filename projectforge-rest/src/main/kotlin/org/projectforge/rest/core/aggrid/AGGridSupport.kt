@@ -168,6 +168,15 @@ class AGGridSupport {
             )
         agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
         agGrid.resetGridStateUrl = RestResolver.getRestUrl(callerRest::class.java, "resetGridState")
+        // Translations used by the multi-selection action bar (selection count, show/deselect controls).
+        layout.addTranslations(
+            "cancel",
+            "multiselection.selectedCount",
+            "multiselection.showSelected",
+            "multiselection.deselectAll",
+            "multiselection.selected.title",
+            "multiselection.selected.empty",
+        )
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {
