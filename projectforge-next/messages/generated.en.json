@@ -1925,7 +1925,7 @@
     "consumption": "Consumption",
     "deleted": "deleted",
     "edit": {
-      "maxHoursIngoredDueToAssignedOrders": "This value may be ignored - There are order positions with given person days assigned to this node or any subnode. A zero value suppresses displaying a maximum value in the consumption bar."
+      "maxHoursIngoredDueToAssignedOrders": "Order positions are assigned to this node or a subnode. By default their person days sum is used; the entered maximum hours are only applied if the option \"Maximum hours take priority\" is set. A zero value suppresses displaying a maximum value in the consumption bar."
     },
     "error": {
       "couldNotDeleteRootTask": "Root structure element can't be deleted!",
@@ -1960,6 +1960,10 @@
     },
     "maxDuration": "Maximum duration",
     "maxHours": "Maximum hours",
+    "maxHoursHasPriority": {
+      "_": "Maximum hours take priority",
+      "tooltip": "If checked, the entered maximum hours (if greater than zero) take precedence over the person days calculated from assigned order positions. By default the ordered person days are used."
+    },
     "menu": {
       "addSubTask": "Add new child structure element",
       "addTimesheet": "Add time sheet",

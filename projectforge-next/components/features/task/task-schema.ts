@@ -41,6 +41,7 @@ export const taskSchema = z.object({
   kost2IsBlackList: m.booleanField("kost2IsBlackList"),
   protectionOfPrivacy: m.booleanField("protectionOfPrivacy"),
   allowTimeOverlap: m.booleanField("allowTimeOverlap"),
+  maxHoursHasPriority: m.booleanField("maxHoursHasPriority"),
   // No box of its own anywhere (see types.ts) — carried so a save doesn't erase what is stored.
   workpackageCode: m.nullableString("workpackageCode"),
   ganttPredecessorOffset: m.intField("ganttPredecessorOffset"),

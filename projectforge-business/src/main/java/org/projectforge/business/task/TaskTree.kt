@@ -751,20 +751,26 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
 
     /**
      * @param node
-     * @return The ordered person days or if not found the defined max hours. If both not found, the get the sum of all
-     * direct or null if both not found.
+     * @return If the task's maxHoursHasPriority flag is set and a positive max hours value is defined, the person days
+     * derived from that max hours value (it wins over ordered person days). Otherwise the ordered person days (if order
+     * positions are assigned), or else the defined max hours. If none of these apply, the sum of all direct children or
+     * null.
      */
     fun getPersonDays(node: TaskNode?): BigDecimal? {
         checkRefresh()
         if (node == null || node.isDeleted) {
             return null
         }
+        val maxHours = node.getTask().maxHours
+        // A manually entered, positive max hours value wins over ordered person days if the task's flag is set.
+        if (node.getTask().maxHoursHasPriority && greaterZero(maxHours)) {
+            return BigDecimal(maxHours!!).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
+        }
         if (hasOrderPositions(node.id, true)) {
             return getOrderedPersonDaysSum(node)
         }
-        val maxHours = node.getTask().maxHours
-        if (maxHours != null) {
-            return BigDecimal(maxHours).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
+        if (greaterZero(maxHours)) {
+            return BigDecimal(maxHours!!).divide(DateHelper.HOURS_PER_WORKING_DAY, 2, RoundingMode.HALF_UP)
         }
         if (!node.hasChildren()) {
             return null

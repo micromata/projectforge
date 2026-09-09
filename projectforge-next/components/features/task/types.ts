@@ -80,6 +80,11 @@ export interface TaskDetail {
   protectionOfPrivacy?: boolean | null;
   /** Inherited by the task's subtree — lets a user's time sheets here overlap those of other projects (shared costs). */
   allowTimeOverlap?: boolean | null;
+  /**
+   * When set, a manually entered (positive) `maxHours` takes precedence over the person days calculated
+   * from assigned order positions (see `TaskTree.getPersonDays`). Default false keeps the ordered sum.
+   */
+  maxHoursHasPriority?: boolean | null;
   ganttPredecessorOffset?: number | null;
   ganttRelationType?: GanttRelationType | null;
   ganttObjectType?: GanttObjectType | null;

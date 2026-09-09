@@ -25,6 +25,10 @@ package org.projectforge.business.task
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.fibu.AuftragsPositionDO
+import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2ArtDO
@@ -42,6 +46,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.ChronoUnit
@@ -65,6 +70,9 @@ class TaskTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
+
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
 
     @Test
     fun testTaskDO() {
@@ -136,6 +144,64 @@ class TaskTest : AbstractTestBase() {
             }
             null
         }
+    }
+
+    /**
+     * A task's maxHoursHasPriority flag controls whether a manually entered (positive) maxHours value takes precedence
+     * over the person days calculated from assigned order positions. See [TaskTree.getPersonDays].
+     */
+    @Test
+    fun maxHoursPriorityOverOrderedPersonDays() {
+        logon(TEST_FINANCE_USER)
+        val root = taskTree.rootTaskNode.getTask()
+        val task = TaskDO().also {
+            it.parentTask = root
+            it.title = "maxHoursPriorityTask"
+        }
+        taskDao.insert(task, checkAccess = false)
+
+        // Assign an order position with 20 person days to the task:
+        val order = AuftragDO().also {
+            it.nummer = auftragDao.nextNumber
+            it.status = AuftragsStatus.GELEGT
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 1"
+                pos.status = AuftragsStatus.GELEGT
+                pos.personDays = BigDecimal(20)
+                pos.task = task
+            })
+        }
+        auftragDao.insert(order, checkAccess = false)
+        taskTree.refreshOrderPositionReferences()
+
+        // No maxHours: ordered person days win (20).
+        assertPersonDays(20, task.id)
+
+        // maxHours set (80h / 8h = 10 person days) but flag off (default): ordered person days still win (20).
+        task.maxHours = 80
+        task.maxHoursHasPriority = false
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(20, task.id)
+
+        // Flag on: the manual maxHours (10 person days) wins over the ordered person days (20).
+        task.maxHoursHasPriority = true
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(10, task.id)
+
+        // maxHours zero with flag on: falls back to the ordered person days (20).
+        task.maxHours = 0
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(20, task.id)
+    }
+
+    private fun assertPersonDays(expected: Long, taskId: Long?) {
+        val node = taskTree.getTaskNodeById(taskId)
+        val personDays = taskTree.getPersonDays(node)
+        Assertions.assertNotNull(personDays, "getPersonDays should not be null.")
+        Assertions.assertEquals(
+            0, BigDecimal(expected).compareTo(personDays),
+            "Expected $expected person days but got $personDays."
+        )
     }
 
     @Test

@@ -253,6 +253,15 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(name = "allow_time_overlap", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     open var allowTimeOverlap: Boolean = false
 
+    /**
+     * If set, a manually entered (positive) [maxHours] value takes precedence over the person days calculated from
+     * assigned order positions (of this task or any sub task). By default (false) the ordered person days win and
+     * [maxHours] is ignored as soon as order positions are assigned. See [org.projectforge.business.task.TaskTree.getPersonDays].
+     */
+    @PropertyInfo(i18nKey = "task.maxHoursHasPriority")
+    @get:Column(name = "max_hours_has_priority", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
+    open var maxHoursHasPriority: Boolean = false
+
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @FullTextField

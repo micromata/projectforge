@@ -101,13 +101,20 @@ export function DeclaredFormField<M extends EntityMetadata>({
   }
 
   if ("group" in field) {
+    // A checkbox is a single line (box + label beside it), a label-topped field is label over input.
+    // Aligning the row at its end drops the box onto the inputs' line instead of the labels'; on wrap
+    // each line aligns on its own, so nothing but the normal row gap is left between them.
+    const hasCheckbox = field.group.some(
+      (member) => metadata.fields[member.name]?.dataType === "BOOLEAN"
+    );
     return (
       <div
         // Wrapping rather than a container query: every member is bounded to the width of its own
         // value (a digit count, a date's ten characters), so they fit side by side wherever that
         // width is there and drop to the next line only where it genuinely isn't.
         className={cn(
-          "flex min-w-0 flex-wrap items-start gap-x-4 gap-y-4",
+          "flex min-w-0 flex-wrap gap-x-4 gap-y-4",
+          hasCheckbox ? "items-end" : "items-start",
           className
         )}
       >

@@ -253,10 +253,21 @@ export const TASK_PAGE = definePage<
           { name: "status" },
           { name: "responsibleUser" },
           { name: "priority" },
+          // The max hours and, beside it in the same cell, the switch that lets a positive value win
+          // over the ordered person days (`TaskTree.getPersonDays`) — the checkbox comes from the
+          // field's BOOLEAN metadata.
           {
-            name: "maxHours",
-            maxDigits: 4,
-            hintKey: "task.edit.maxHoursIngoredDueToAssignedOrders",
+            group: [
+              {
+                name: "maxHours",
+                maxDigits: 4,
+                hintKey: "task.edit.maxHoursIngoredDueToAssignedOrders",
+              },
+              {
+                name: "maxHoursHasPriority",
+                hintKey: "task.maxHoursHasPriority.tooltip",
+              },
+            ],
           },
           { name: "shortDescription", span: 3, jiraHint: true },
           { custom: ShortDescriptionJiraLinks, span: 3 },
