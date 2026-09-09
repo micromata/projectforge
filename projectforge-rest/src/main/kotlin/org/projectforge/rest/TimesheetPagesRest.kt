@@ -28,6 +28,7 @@ import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
@@ -81,6 +82,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -768,6 +772,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         // type-ahead against `cost2/autosearch`. Shared by every list that embeds a `kost2` — see
         // Kost2FilterUtils, which also consumes it in preProcessMagicFilter below.
         elements.add(Kost2FilterUtils.createFilterElement())
+        // The cost unit type filter (Kost2Art): a multi-select LIST of the configured cost 2 types, each shown
+        // as "<number>: <name>", so the user can narrow the sheets to one or more types. Only where cost
+        // accounting is configured and any type exists — an empty list would offer nothing to pick.
+        if (Configuration.instance.isCostConfigured) {
+            val kost2Arts = kostCache.getKost2Arts()
+            if (kost2Arts.isNotEmpty()) {
+                elements.add(Kost2FilterUtils.createKost2ArtFilterElement(kost2Arts))
+            }
+        }
         // The three settings the legacy list form keeps always open (TimesheetListForm): the period the
         // sheets fall into, the user they belong to and the task they were booked on. All `defaultFilter`,
         // so they show without being added — the pills the user narrows a time sheet list by first.
@@ -881,6 +894,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         // processor, which would send the free text as a leading-wildcard full-text term on the keyword number
         // field — expensive and unreliable. Shared logic in Kost2FilterUtils (prefix / multi-field search).
         Kost2FilterUtils.preProcess(target, source)
+        // The cost unit type filter (see addMagicFilterElements): an IN on kost2.kost2Art.id over the picked
+        // type numbers. Shared logic in Kost2FilterUtils.
+        Kost2FilterUtils.preProcessKost2Art(target, source)
         source.entries.find { it.field == "onlyBillable" }?.let { entry ->
             entry.synthetic = true
             if (entry.value.value == "true") {

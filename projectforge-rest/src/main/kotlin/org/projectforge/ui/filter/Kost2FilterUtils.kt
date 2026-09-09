@@ -23,11 +23,15 @@
 
 package org.projectforge.ui.filter
 
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ElementInfo
+import org.projectforge.ui.UISelectValue
 
 /**
  * The cost unit (Kost2) list filter, shared by every list that embeds a `kost2` and wants to filter by
@@ -96,6 +100,47 @@ object Kost2FilterUtils {
             )
         }
         target.add(predicate)
+        return true
+    }
+
+    /** The id of the cost unit *type* (Kost2Art) filter element (and the entry consumed in [preProcessKost2Art]). */
+    fun kost2ArtFieldId(kost2Path: String = "kost2"): String = "$kost2Path.kost2Art.id"
+
+    /**
+     * The cost unit *type* (Kost2Art) filter element to add in `addMagicFilterElements`: a multi-select LIST
+     * field whose options are the given cost 2 types, each shown as "<two-digit number>: <name>" so the client's
+     * combobox suggests them by number *and* description and shows the picks as pills. The picked type numbers
+     * are consumed in [preProcessKost2Art].
+     *
+     * @param kost2Arts The cost 2 types to offer (typically all non-deleted ones, e.g. `KostCache.getKost2Arts()`).
+     */
+    fun createKost2ArtFilterElement(kost2Arts: List<Kost2ArtDO>, kost2Path: String = "kost2"): UIFilterListElement {
+        val values = kost2Arts.mapNotNull { art ->
+            val id = art.id ?: return@mapNotNull null
+            val number = StringHelper.format2DigitNumber(id)
+            val name = art.name
+            UISelectValue(id.toString(), if (name.isNullOrBlank()) number else "$number: $name")
+        }
+        return UIFilterListElement(
+            kost2ArtFieldId(kost2Path),
+            label = translate("fibu.kost2art.kost2arten"),
+            values = values,
+            multi = true,
+        )
+    }
+
+    /**
+     * Consumes the cost unit type entry in `preProcessMagicFilter` (marks it synthetic) and adds an `IN` search
+     * on the cost unit's type id to [target]. Does nothing if the entry is absent or holds no valid number.
+     * Returns true if an entry was consumed.
+     */
+    fun preProcessKost2Art(target: QueryFilter, source: MagicFilter, kost2Path: String = "kost2"): Boolean {
+        val entry = source.entries.find { it.field == kost2ArtFieldId(kost2Path) } ?: return false
+        entry.synthetic = true
+        val ids = entry.value.values?.mapNotNull { it?.toLongOrNull() } ?: emptyList()
+        if (ids.isNotEmpty()) {
+            target.add(QueryFilter.isIn("$kost2Path.kost2Art.id", ids))
+        }
         return true
     }
 
