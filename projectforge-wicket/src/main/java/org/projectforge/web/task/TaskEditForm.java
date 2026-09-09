@@ -198,6 +198,12 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
         WicketUtils.addTooltip(maxNumberField, getString("task.edit.maxHoursIngoredDueToAssignedOrders"));
       }
     }
+    {
+      // Max hours priority:
+      gridBuilder.newFieldset(getString("task.maxHoursHasPriority"))
+          .addCheckBox(new PropertyModel<>(data, "maxHoursHasPriority"), null)
+          .setTooltip(getString("task.maxHoursHasPriority.tooltip"));
+    }
     gridBuilder.newGridPanel();
     {
       // Short description:

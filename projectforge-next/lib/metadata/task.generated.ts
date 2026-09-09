@@ -121,6 +121,11 @@ export const TASK_METADATA = {
       min: 0,
       max: 9999,
     },
+    maxHoursHasPriority: {
+      dataType: "BOOLEAN",
+      i18nKey: "task.maxHoursHasPriority",
+      required: false,
+    },
     parentTask: {
       dataType: "TASK",
       i18nKey: "task.parentTask",
