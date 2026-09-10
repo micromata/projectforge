@@ -109,7 +109,7 @@ open class TimesheetListPdfExport {
         val cellFont = FontFactory.getFont(FontFactory.HELVETICA, 8f)
 
         ByteArrayOutputStream().use { baos ->
-            // Landscape, so the seven columns have room; the wide top margin leaves space for the per-page header.
+            // Landscape, so the eight columns have room; the wide top margin leaves space for the per-page header.
             val document = Document(PageSize.A4.rotate(), 36f, 36f, 56f, 36f)
             val writer = PdfWriter.getInstance(document, baos)
             writer.pageEvent = HeaderEvent(organization(), logoImage())
@@ -120,7 +120,7 @@ open class TimesheetListPdfExport {
 
             // Widths mirror the emphasis of the next list's columns (see timesheet.page.tsx): task path and
             // description are the wide ones, the timestamps and short fields the narrow ones.
-            val table = PdfPTable(floatArrayOf(1.4f, 2.6f, 1.3f, 1.3f, 1.1f, 1.1f, 3.2f))
+            val table = PdfPTable(floatArrayOf(1.4f, 2.6f, 1.3f, 1.3f, 0.8f, 1.1f, 1.1f, 3.2f))
             table.widthPercentage = 100f
             table.headerRows = 1
             HEADER_KEYS.forEach { key -> table.addCell(headerCell(translate(key), headerFont)) }
@@ -130,6 +130,8 @@ open class TimesheetListPdfExport {
                 table.addCell(dataCell(getTaskPath(timesheet.taskId, null, true, OutputType.PLAIN), cellFont))
                 table.addCell(dataCell(dateTimeFormatter.getFormattedDateTime(timesheet.startTime), cellFont))
                 table.addCell(dataCell(dateTimeFormatter.getFormattedDateTime(timesheet.stopTime), cellFont))
+                // Duration as h:mm, right-aligned like the numeric column it is (mirrors the Excel export).
+                table.addCell(dataCell(timesheet.durationAsString, cellFont, Element.ALIGN_RIGHT))
                 table.addCell(dataCell(timesheet.location, cellFont))
                 table.addCell(dataCell(timesheet.reference, cellFont))
                 table.addCell(dataCell(timesheet.description, cellFont))
@@ -233,10 +235,11 @@ open class TimesheetListPdfExport {
         return cell
     }
 
-    private fun dataCell(text: String?, font: Font): PdfPCell {
+    private fun dataCell(text: String?, font: Font, horizontalAlignment: Int = Element.ALIGN_LEFT): PdfPCell {
         val cell = PdfPCell(Phrase(text ?: "", font))
         cell.setPadding(3f)
         cell.verticalAlignment = Element.ALIGN_TOP
+        cell.horizontalAlignment = horizontalAlignment
         return cell
     }
 
@@ -266,7 +269,7 @@ open class TimesheetListPdfExport {
     companion object {
         /** Column headers, in the order of the next list's columns (see timesheet.page.tsx). */
         private val HEADER_KEYS = listOf(
-            "timesheet.user", "task", "timesheet.startTime", "timesheet.stopTime",
+            "timesheet.user", "task", "timesheet.startTime", "timesheet.stopTime", "timesheet.duration",
             "timesheet.location", "timesheet.reference", "description",
         )
         private val HEADER_BG = Color(230, 230, 230)
