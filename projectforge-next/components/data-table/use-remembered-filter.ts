@@ -14,10 +14,20 @@ import type { ListMetaData, MagicFilter } from "@/lib/rs/types";
  * `isPending` matters: the values seed React state, which can't be swapped in
  * later without overwriting what the user has typed meanwhile, so the caller has
  * to hold the list back until this has arrived.
+ *
+ * The fetch is forced fresh on every mount (`alwaysFresh`): the cache entry is
+ * held forever and kept alive across the edit round-trip, so a long-lived tab
+ * would otherwise re-seed a filter it loaded days ago instead of the one the
+ * backend last stored. `isFetching` is folded into the gate so that mount refetch
+ * settles before the list seeds — the caller shows its spinner meanwhile, exactly
+ * as on a first open.
  */
 export function useRememberedFilter(entity: string) {
-  const query = useListMeta(entity);
-  return { filter: query.data?.filter, isPending: query.isPending };
+  const query = useListMeta(entity, { alwaysFresh: true });
+  return {
+    filter: query.data?.filter,
+    isPending: query.isPending || query.isFetching,
+  };
 }
 
 /**
