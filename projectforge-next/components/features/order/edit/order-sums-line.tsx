@@ -120,6 +120,7 @@ function WeightedProbability({ value }: { value?: number | null }) {
   return (
     <div className="flex flex-col">
       <HintTooltip
+        openOnTap
         text={t("fibu.auftrag.probabilityOfOccurrence.weighted.info")}
       >
         <dt className="cursor-help text-[11px] text-primary opacity-70 decoration-dotted underline-offset-2 hover:underline">

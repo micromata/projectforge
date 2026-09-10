@@ -82,6 +82,7 @@ export function HistoryEntryHeader({ entry, open }: HistoryEntryHeaderProps) {
         />
       </CollapsibleTrigger>
       <HintTooltip
+        openOnTap
         plain
         side="left"
         text={formatTimestampMinutes(entry.modifiedAt, ctx)}

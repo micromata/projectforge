@@ -114,6 +114,7 @@ export function PositionRowHeader({
            */}
           {sums?.probabilityOfOccurrence != null && (
             <HintTooltip
+              openOnTap
               text={t("fibu.auftrag.probabilityOfOccurrence.effective.info")}
             >
               <span className="shrink-0 cursor-help text-xs font-semibold text-primary tabular-nums">
@@ -141,7 +142,7 @@ export function PositionRowHeader({
         )),
         ...textChips,
         position.bemerkung && (
-          <HintTooltip plain text={position.bemerkung}>
+          <HintTooltip openOnTap plain text={position.bemerkung}>
             <span className="block max-w-48 truncate italic">
               {position.bemerkung}
             </span>

@@ -55,7 +55,10 @@ export function PositionRowHeader({
             {position.text || t("fibu.rechnung.text")}
           </span>
           {fehlbetrag != null && fehlbetrag !== 0 && (
-            <HintTooltip text={t("fibu.rechnung.kostZuweisungFehlbetrag")}>
+            <HintTooltip
+              openOnTap
+              text={t("fibu.rechnung.kostZuweisungFehlbetrag")}
+            >
               <Badge
                 variant="destructive"
                 className="shrink-0 cursor-help font-normal tabular-nums"

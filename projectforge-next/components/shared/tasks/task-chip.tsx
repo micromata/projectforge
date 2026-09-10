@@ -30,7 +30,7 @@ export function TaskChip({ taskId, displayName }: TaskChipProps) {
       : null;
 
   return (
-    <HintTooltip plain text={pathLabel}>
+    <HintTooltip openOnTap plain text={pathLabel}>
       <span className="flex items-center gap-1">
         <HugeiconsIcon
           icon={HierarchyIcon}

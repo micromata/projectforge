@@ -68,7 +68,7 @@ export function FinanceSummary({ id }: { id: number | null }) {
   // cost units, with the resolved list as its tooltip — the same value and tooltip as the field above.
   if (costConfigured && projektKost) {
     chips.push(
-      <HintTooltip plain text={preview?.kost2ListAsLines ?? " - (-)"}>
+      <HintTooltip openOnTap plain text={preview?.kost2ListAsLines ?? " - (-)"}>
         <span className="font-mono">{`${projektKost}.*`}</span>
       </HintTooltip>
     );

@@ -2,13 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { EventContentArg } from "@fullcalendar/core";
-import { AiMagicIcon } from "@hugeicons/core-free-icons";
+import { AiMagicIcon, InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useFormatContext } from "@/hooks/use-format";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { formatTimeRange } from "@/lib/format";
-import { CalendarEventTooltip } from "./calendar-event-tooltip";
+import {
+  CalendarEventTooltip,
+  CalendarTooltipBody,
+} from "./calendar-event-tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { CalendarEventExtendedProps } from "@/lib/rs/calendar-types";
 
 /** Hover-open delay, matching the legacy tooltip's, so a glance across events does not flash cards. */
@@ -26,6 +35,9 @@ const OPEN_DELAY = 200;
 export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   const t = useTranslations();
   const format = useFormatContext();
+  // A touch device has no hover, so the card that hovering opens is unreachable; there the event carries
+  // an ⓘ that opens it on tap instead (see below). The hover path is left untouched for a mouse.
+  const coarsePointer = useCoarsePointer();
   const props = arg.event.extendedProps as CalendarEventExtendedProps;
   const isMonth = arg.view.type.startsWith("dayGrid");
   // The booked span for the tooltip footer (before the duration), only for a timed event with both
@@ -100,6 +112,36 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
   );
 
   if (!props.tooltip) return body;
+
+  // Touch: the same card behind an ⓘ in the event's corner, opened on tap as a popover (which dismisses
+  // on a tap outside). The button stops the tap from reaching FullCalendar's `eventClick` — otherwise it
+  // would navigate to the event's edit page instead of showing the details, and stops the pointer from
+  // starting a drag on an `editable` event.
+  if (coarsePointer) {
+    return (
+      <div
+        className={cn("relative h-full w-full", isMonth && "overflow-hidden")}
+      >
+        {body}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={`${t("info")}: ${arg.event.title}`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute right-0 top-0 flex items-center justify-center rounded-bl bg-black/10 p-0.5 text-current opacity-80 hover:opacity-100"
+            >
+              <HugeiconsIcon icon={InformationCircleIcon} size={12} />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto max-w-sm text-sm">
+            <CalendarTooltipBody props={props} timeRange={timeRange} />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
 
   return (
     <div

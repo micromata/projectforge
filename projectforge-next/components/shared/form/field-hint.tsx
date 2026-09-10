@@ -13,13 +13,14 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
  * under every field they belong to pushes the form apart until the fields themselves are the minority
  * of what is on the page. As a tooltip the sentence is one hover away and the row keeps its height.
  *
- * Also reachable by keyboard and by tap: the trigger is a `<button>`, which Radix opens on focus and
- * on press as well as on hover — an explanation only the mouse can read is no explanation on a phone.
+ * Also reachable by keyboard and by tap: the trigger is a `<button>` (focus- and press-openable), and
+ * `openOnTap` turns the hover tooltip into a tap-to-open popover on a phone — an explanation only the
+ * mouse can read is no explanation there.
  */
 export function FieldHint({ hint, label }: { hint: string; label: string }) {
   const t = useTranslations("form");
   return (
-    <HintTooltip text={hint}>
+    <HintTooltip text={hint} openOnTap>
       <button
         type="button"
         // `-m-1 p-1`: a target big enough to hit without making the label line taller or wider.

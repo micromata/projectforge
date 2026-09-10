@@ -78,7 +78,11 @@ export function Kost2Block({
         </FieldLabel>
         {/* The resolved cost units as the tooltip of the project's wild card, as in Wicket — the dash
             where the list matches none of them, so hovering says "none" instead of nothing. */}
-        <HintTooltip plain text={preview?.kost2ListAsLines ?? " - (-)"}>
+        <HintTooltip
+          openOnTap
+          plain
+          text={preview?.kost2ListAsLines ?? " - (-)"}
+        >
           <span className="w-fit font-mono text-sm">
             {projektKost ? `${projektKost}.*` : "—"}
           </span>

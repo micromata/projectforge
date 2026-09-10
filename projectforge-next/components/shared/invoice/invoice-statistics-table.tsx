@@ -121,6 +121,7 @@ export function InvoiceStatisticsTable({
               {t("fibu.rechnung.statistics.previousYear")}
               {previousPeriod && (
                 <HintTooltip
+                  openOnTap
                   title={t("fibu.rechnung.statistics.previousYearPeriod")}
                   text={formatDateRange(
                     previousPeriod.from,

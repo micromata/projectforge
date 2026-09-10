@@ -4,7 +4,7 @@ import type { DynamicComponentProps } from "../dynamic-renderer";
 import { useDynamicLayout } from "../dynamic-context";
 import { fieldDomId } from "./dynamic-field";
 import { Label } from "@/components/ui/label";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { FieldHint } from "@/components/shared/form/field-hint";
 import { getByPath } from "@/lib/dynamic/path";
 
 /**
@@ -23,27 +23,30 @@ export function DynamicRadioButton({ node }: DynamicComponentProps) {
   // The name groups the browser's radios; it defaults to the property (UIRadioButton.name).
   const name = (node.name as string | undefined) ?? id;
   const domId = `${fieldDomId(ui.uid, id)}-${value}`;
+  const tooltip = node.tooltip as string | undefined;
+  const labelText = label ? translate(label) : undefined;
 
   return (
-    <HintTooltip text={node.tooltip as string | undefined}>
-      <div className="flex items-center gap-2">
-        <input
-          type="radio"
-          id={domId}
-          name={fieldDomId(ui.uid, name)}
-          value={value}
-          checked={getByPath(data, id) === value}
-          className="size-4 accent-primary"
-          onChange={(e) => {
-            if (e.target.checked) setData({ [id]: value });
-          }}
-        />
-        {label && (
-          <Label htmlFor={domId} className="text-sm font-normal">
-            {translate(label)}
-          </Label>
-        )}
-      </div>
-    </HintTooltip>
+    <div className="flex items-center gap-2">
+      <input
+        type="radio"
+        id={domId}
+        name={fieldDomId(ui.uid, name)}
+        value={value}
+        checked={getByPath(data, id) === value}
+        className="size-4 accent-primary"
+        onChange={(e) => {
+          if (e.target.checked) setData({ [id]: value });
+        }}
+      />
+      {label && (
+        <Label htmlFor={domId} className="text-sm font-normal">
+          {translate(label)}
+        </Label>
+      )}
+      {/* The tooltip as a tap-openable ⓘ, not the whole row wrapped in a [HintTooltip]: a tooltip over
+          the radio would swallow the tap that should select it on a touch device. */}
+      {tooltip && labelText && <FieldHint hint={tooltip} label={labelText} />}
+    </div>
   );
 }

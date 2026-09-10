@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { parseTooltipHtml } from "./tooltip-html";
@@ -30,10 +30,6 @@ export function CalendarEventTooltip({
   /** The event's booked span (`10:30 – 12:00`), shown in the footer before the duration; null when it has none. */
   timeRange?: string | null;
 }) {
-  const rows = useMemo(
-    () => (props.tooltip ? parseTooltipHtml(props.tooltip.text) : []),
-    [props.tooltip]
-  );
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({
     left: anchor.x + OFFSET,
@@ -64,6 +60,27 @@ export function CalendarEventTooltip({
       style={{ left: pos.left, top: pos.top }}
       className="pointer-events-none fixed z-50 max-w-sm rounded-md border bg-popover px-4 py-3 text-sm text-popover-foreground shadow-md"
     >
+      <CalendarTooltipBody props={props} timeRange={timeRange} />
+    </div>,
+    document.body
+  );
+}
+
+/**
+ * The content of the card — the parsed tooltip rows with the duration footer — without the box around
+ * it. Shared so the hover card and the tap popover (an ⓘ inside the event, see `calendar-event-content.tsx`)
+ * read identically; only the container that positions and dismisses them differs.
+ */
+export function CalendarTooltipBody({
+  props,
+  timeRange,
+}: {
+  props: CalendarEventExtendedProps;
+  timeRange?: string | null;
+}) {
+  const rows = props.tooltip ? parseTooltipHtml(props.tooltip.text) : [];
+  return (
+    <>
       {props.tooltip?.title && (
         <p className="mb-2 font-semibold">{props.tooltip.title}</p>
       )}
@@ -91,7 +108,6 @@ export function CalendarEventTooltip({
           {props.duration && <span>{props.duration}</span>}
         </p>
       )}
-    </div>,
-    document.body
+    </>
   );
 }

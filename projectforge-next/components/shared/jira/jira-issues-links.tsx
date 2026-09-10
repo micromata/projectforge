@@ -40,6 +40,7 @@ export function JiraIssuesLinks({
       )}
     >
       <HintTooltip
+        openOnTap
         title="JIRA"
         text={t("tooltip.jiraSupport.field.content")}
         plain
