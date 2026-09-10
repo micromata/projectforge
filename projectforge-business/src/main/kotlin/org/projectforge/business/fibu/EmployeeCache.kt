@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -172,14 +173,22 @@ open class EmployeeCache : AbstractCache() {
         }
     }
 
+    /**
+     * Returns the currently valid entry per employee for the given attribute type, i.e. the entry with the latest
+     * [EmployeeValidSinceAttrDO.validSince] that is not in the future. Future-dated entries (e.g. a weekly-hours
+     * change that only takes effect next month) are ignored, so the list/Excel export shows the value in effect today.
+     */
     private fun getLatestValidSinceEntries(type: EmployeeValidSinceAttrType): Collection<EmployeeValidSinceAttrDO> {
+        val today = LocalDate.now()
         return persistenceService.executeQuery(
             queryAllValidSinceValues,
             EmployeeValidSinceAttrDO::class.java,
             Pair("type", type),
         ).groupBy { it.employee?.id } // Group by employee id
-            .mapValues { entry -> entry.value.first() } // Get the first record (latest) in each group
-            .values // Extract the results as a collection of latest records
+            // Entries are ordered by validSince DESC, so the first entry not in the future is the currently valid one.
+            .mapValues { entry -> entry.value.firstOrNull { (it.validSince ?: LocalDate.MIN) <= today } }
+            .values
+            .filterNotNull() // Skip employees whose only entries are future-dated.
     }
 
     companion object {
