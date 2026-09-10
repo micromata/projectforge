@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.apache.poi.ss.util.WorkbookUtil
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.KostCache
@@ -198,13 +199,22 @@ class EmployeePagesRest :
         // Ensure the transient, time-dependent attributes (status, weekly working hours) reflect the current values.
         employeeCache.setTimeDependentAttrs(list)
         ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
-            val sheet = workbook.createOrGetSheet(translate("fibu.employee.title.heading"))
+            // Excel sheet names must not contain the chars \ / ? * [ ] : (e.g. "Mitarbeiter:in"), so sanitize.
+            val sheetName = WorkbookUtil.createSafeSheetName(translate("fibu.employee.title.heading"))
+            val sheet = workbook.createOrGetSheet(sheetName)
             val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
             val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            // Use Excel's built-in "General" format for the numeric columns instead of merlin's default float format
+            // "#.#": "#.#" always renders the decimal separator, so whole numbers show as "35," in the German locale.
+            // General renders whole numbers as "35" and fractions as "37,5" and, unlike a custom format code, is
+            // displayed correctly by every viewer (Excel, LibreOffice, macOS Quick Look, Numbers).
+            val numberStyle = workbook.createOrGetCellStyle("number")
+            numberStyle.dataFormat = workbook.createDataFormat().getFormat("General")
             sheet.registerColumn(translate("name"), "lastname").withSize(20)
             sheet.registerColumn(translate("firstName"), "firstname").withSize(20)
             sheet.registerColumn(translate("user.username"), "username").withSize(20)
             sheet.registerColumn(translate("email"), "email").withSize(30)
+            sheet.registerColumn(translate("organization"), "organization").withSize(25)
             sheet.registerColumn(translate("fibu.employee.status"), "status").withSize(15)
             ExcelUtils.registerColumn(sheet, EmployeeDO::staffNumber, 15)
             sheet.registerColumn(translate("fibu.kost1"), "kost1").withSize(15)
@@ -212,8 +222,18 @@ class EmployeePagesRest :
             ExcelUtils.registerColumn(sheet, EmployeeDO::abteilung, 20)
             ExcelUtils.registerColumn(sheet, EmployeeDO::eintrittsDatum)
             ExcelUtils.registerColumn(sheet, EmployeeDO::austrittsDatum)
-            ExcelUtils.registerColumn(sheet, EmployeeDO::weeklyWorkingHours, 12)
+            // Use the class-based overload for these two: their setters are 'internal' (set by the cache), so the
+            // KProperty reference resolves to a read-only KProperty1 and the KProperty overload would silently drop
+            // the column instead of registering it.
+            ExcelUtils.registerColumn(sheet, EmployeeDO::class.java, "weeklyWorkingHours", 12)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::class.java, "annualLeave", 12)
+            sheet.registerColumn(translate("user.deactivated"), "deactivated").withSize(12)
             ExcelUtils.registerColumn(sheet, EmployeeDO::comment, 50)
+            // Register the number format at column level (before any cell is created): merlin then applies numberStyle
+            // to every cell of these columns on creation and setCellValue(BigDecimal) keeps it (protectCellStyle),
+            // so whole numbers render as "35" instead of merlin's default float format "#.#" ("35,").
+            sheet.setColumnStyle("weeklyWorkingHours", numberStyle)
+            sheet.setColumnStyle("annualLeave", numberStyle)
             ExcelUtils.addHeadRow(sheet, boldStyle)
             list.forEach { employeeDO ->
                 val row = sheet.createRow()
@@ -222,6 +242,7 @@ class EmployeePagesRest :
                 userDO?.firstname?.let { row.getCell("firstname")?.setCellValue(it) }
                 userDO?.username?.let { row.getCell("username")?.setCellValue(it) }
                 userDO?.email?.let { row.getCell("email")?.setCellValue(it) }
+                userDO?.organization?.let { row.getCell("organization")?.setCellValue(it) }
                 employeeDO.status?.let { row.getCell("status")?.setCellValue(translate(it.i18nKey)) }
                 employeeDO.staffNumber?.let { row.getCell("staffNumber")?.setCellValue(it) }
                 kostCache.getKost1(employeeDO.kost1?.id)?.formattedNumber
@@ -230,7 +251,9 @@ class EmployeePagesRest :
                 employeeDO.abteilung?.let { row.getCell("abteilung")?.setCellValue(it) }
                 employeeDO.eintrittsDatum?.let { row.getCell("eintrittsDatum")?.setCellValue(it) }
                 employeeDO.austrittsDatum?.let { row.getCell("austrittsDatum")?.setCellValue(it) }
-                employeeDO.weeklyWorkingHours?.let { row.getCell("weeklyWorkingHours")?.setCellValue(it) }
+                employeeDO.weeklyWorkingHours?.let { row.getCell("weeklyWorkingHours")?.setCellValue(it)?.setCellStyle(numberStyle) }
+                employeeDO.annualLeave?.let { row.getCell("annualLeave")?.setCellValue(it)?.setCellStyle(numberStyle) }
+                userDO?.let { row.getCell("deactivated")?.setCellValue(translate(if (it.deactivated) "yes" else "no")) }
                 employeeDO.comment?.let { row.getCell("comment")?.setCellValue(it) }
             }
             sheet.setAutoFilter()
