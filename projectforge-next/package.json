@@ -68,7 +68,7 @@
     "shadcn": "^4.21.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "@hono/node-server": "^1.19.17",
