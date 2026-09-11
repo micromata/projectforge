@@ -126,6 +126,28 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     /**
+     * The invoice statistics of the given ids, straight from [RechnungCache] - no entity is loaded and no
+     * position is touched, so it is cheap enough for a live-during-selection call (see
+     * `RechnungMultiSelectedPageRest`). Every value [AbstractRechnungsStatistik.add] reads is already in the
+     * cached [RechnungInfo], keyed by id.
+     */
+    fun buildStatistikByIds(ids: Collection<Serializable>?): RechnungsStatistik {
+        val stats = RechnungsStatistik()
+        if (ids.isNullOrEmpty()) {
+            return stats
+        }
+        // Initialize companion object services for currency conversion (as buildStatistik does).
+        AbstractRechnungsStatistik.currencyConversionService = currencyConversionService
+        AbstractRechnungsStatistik.configurationService = configurationService
+        ids.forEach { id ->
+            (id as? Number)?.toLong()?.let { longId ->
+                rechnungCache.getRechnungInfo(longId)?.let { info -> stats.add(info) }
+            }
+        }
+        return stats
+    }
+
+    /**
      * @param rechnung
      * @param days
      */

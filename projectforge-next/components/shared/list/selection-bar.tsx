@@ -22,6 +22,7 @@ export function SelectionBar({
   onClear,
   onLeave,
   actions,
+  statistics,
 }: {
   count: number;
   onSelectAll: () => void;
@@ -29,67 +30,78 @@ export function SelectionBar({
   onLeave: () => void;
   /** The mass update button, rendered right of the counts. */
   actions?: ReactNode;
+  /**
+   * The live statistics line of what is ticked (the entity's own `statisticsLine` component) — a
+   * second row under the toolbar, so the compact bar of counts and actions stays on one line. Absent
+   * for a list whose page serves no statistics, or before the first `select` answered them.
+   */
+  statistics?: ReactNode;
 }) {
   const t = useTranslations();
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b bg-primary/5 px-4 py-1.5 text-xs">
-      {/* The count is the whole heading: what mode the list is in is already said by the pressed
+    <div className="border-b bg-primary/5">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-1.5 text-xs">
+        {/* The count is the whole heading: what mode the list is in is already said by the pressed
           toggle above and by the checkbox column, so naming it a third time here only repeats it. */}
-      <span className="font-semibold">
-        {t("massUpdate.entriesFound", { arg0: count })}
-      </span>
-      {/* How to pick rows, as markdown from the bundle — the gestures it lists are the ones
+        <span className="font-semibold">
+          {t("massUpdate.entriesFound", { arg0: count })}
+        </span>
+        {/* How to pick rows, as markdown from the bundle — the gestures it lists are the ones
           `use-row-selection` implements, plus the shortcut that ticks the whole list. Behind an icon,
           because a reader needs it once. The key still names ag-grid, the legacy grid the text was
           written for; duplicating it under a nicer key would mean two translations to keep in step.
           `._`: the shortcut key has a child (.title), so it is nested under `_` in the catalog. */}
-      <HintTooltip
-        title={t("multiselection.aggrid.selection.info.title")}
-        text={`${t("multiselection.aggrid.selection.info.message")}\n\n* **${t(
-          "tooltip.shortcut.selectAll.title"
-        )}**: ${t("tooltip.shortcut.selectAll._")}`}
-      >
+        <HintTooltip
+          title={t("multiselection.aggrid.selection.info.title")}
+          text={`${t("multiselection.aggrid.selection.info.message")}\n\n* **${t(
+            "tooltip.shortcut.selectAll.title"
+          )}**: ${t("tooltip.shortcut.selectAll._")}`}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-6"
+            aria-label={t("multiselection.aggrid.selection.info.title")}
+          >
+            <HugeiconsIcon icon={HelpCircleIcon} size={14} aria-hidden />
+          </Button>
+        </HintTooltip>
+        <div className="flex-1" />
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          className="size-6"
-          aria-label={t("multiselection.aggrid.selection.info.title")}
+          size="sm"
+          className="h-6 px-2"
+          onClick={onSelectAll}
         >
-          <HugeiconsIcon icon={HelpCircleIcon} size={14} aria-hidden />
+          {t("selectAll")}
         </Button>
-      </HintTooltip>
-      <div className="flex-1" />
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-6 px-2"
-        onClick={onSelectAll}
-      >
-        {t("selectAll")}
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-6 px-2"
-        disabled={count === 0}
-        onClick={onClear}
-      >
-        {t("deselectAll")}
-      </Button>
-      {actions}
-      {/* The way out, last: leaving drops the selection, so it sits after everything that uses it. */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-6 px-2"
-        onClick={onLeave}
-      >
-        {t("cancel")}
-      </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-6 px-2"
+          disabled={count === 0}
+          onClick={onClear}
+        >
+          {t("deselectAll")}
+        </Button>
+        {actions}
+        {/* The way out, last: leaving drops the selection, so it sits after everything that uses it. */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-6 px-2"
+          onClick={onLeave}
+        >
+          {t("cancel")}
+        </Button>
+      </div>
+      {statistics != null && (
+        <div className="px-4 pb-1.5 text-xs">{statistics}</div>
+      )}
     </div>
   );
 }

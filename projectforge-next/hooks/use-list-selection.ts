@@ -22,6 +22,12 @@ export interface ListSelection {
   selection?: RowSelection;
   /** The ids the user ticked, also while the mode is off (they are remembered). */
   selectedIds: number[];
+  /**
+   * What the ticked entries add up to, as the backend last answered it (the entity's own statistics
+   * shape) — for a live statistics line under the selection bar. Undefined until the first `select`
+   * lands, and for a list whose page serves no statistics.
+   */
+  statistics?: unknown;
   enter: () => void;
   /** Leaves the mode, drops the ticks, and tells the backend to forget them. */
   leave: () => void;
@@ -58,9 +64,10 @@ export function useListSelection({
   restoredIds?: number[];
   displayedRowIds: () => string[];
 }): ListSelection {
-  const { active, rows } = useEntitySelection(entity);
+  const { active, rows, statistics } = useEntitySelection(entity);
   // Selected one by one: the actions are stable, so nothing here re-renders on another list's ticks.
   const setRows = useSelectionStore((state) => state.setRows);
+  const setStatistics = useSelectionStore((state) => state.setStatistics);
   const enterMode = useSelectionStore((state) => state.enter);
   const leaveMode = useSelectionStore((state) => state.leave);
   const restoreRows = useSelectionStore((state) => state.restore);
@@ -144,6 +151,9 @@ export function useListSelection({
       // the mode is on would silently drop what the user had picked — and the selection is meant to
       // hold across a filter change, entries outside the new result set included.
       .then(() => selectEntries(endpoint, latestIds.current))
+      // The statistics come back on the same answer, so the live line appears the moment the mode is
+      // entered rather than only after the first debounced change.
+      .then((nav) => setStatistics(entity, nav.statisticsData))
       .catch(() => {
         // A failed registration surfaces on the mass update page, which reports what it found; the
         // list itself must not throw a toast at a user who only ticked a row.
@@ -160,10 +170,12 @@ export function useListSelection({
     // The narrowing is only meaningful over a registered set, and `startSelection` replaces the whole
     // session context — so a `select` that overtook it would be thrown away again.
     await registration.current;
-    await selectEntries(endpoint, latestIds.current).catch(() => {
-      // Same as the registration: the mass update page is where a broken selection is reported.
-    });
-  }, [endpoint]);
+    const nav = await selectEntries(endpoint, latestIds.current).catch(
+      () => null
+    );
+    // Same as the registration: the mass update page is where a broken selection is reported.
+    if (nav) setStatistics(entity, nav.statisticsData);
+  }, [endpoint, entity, setStatistics]);
   // Read by the unmount flush below, which must not be re-registered on every render — that is what
   // would turn its cleanup into "post on every change" instead of "post when leaving".
   const postRef = useRef(post);
@@ -218,6 +230,7 @@ export function useListSelection({
     active,
     selection: active ? selection : undefined,
     selectedIds,
+    statistics,
     enter,
     leave,
     flush,

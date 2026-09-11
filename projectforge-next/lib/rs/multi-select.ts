@@ -190,6 +190,12 @@ export type MassUpdatePreviewOutcome =
 export interface MultiSelectNavigation {
   url: string;
   selectedCount: number;
+  /**
+   * What the ticked entries add up to, in the same shape `MultiSelectMeta.statisticsData` carries
+   * (the entity's own, e.g. `InvoiceStatistics`) — so a list can show the statistics live while the
+   * user is still selecting. Absent where the page serves no statistics or on a cancel.
+   */
+  statisticsData?: unknown;
 }
 
 /**

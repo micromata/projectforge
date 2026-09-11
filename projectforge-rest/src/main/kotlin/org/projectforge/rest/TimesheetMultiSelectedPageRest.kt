@@ -35,7 +35,6 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.*
@@ -53,9 +52,6 @@ import java.io.Serializable
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() {
-    @Autowired
-    private lateinit var dateTimeFormatter: DateTimeFormatter
-
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
 
@@ -124,6 +120,31 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
     override fun infoMessageKey(): String? {
         return if (Configuration.instance.isCostConfigured) "timesheet.massupdate.kost.info" else null
+    }
+
+    /**
+     * The selection's statistics as pre-rendered markdown for the legacy UILayout form (see [fillForm]): the
+     * same summed duration / AI-savings line the list footer shows, over the selected time sheets.
+     */
+    override fun getStatistics(selectedIds: Collection<Serializable>?): String {
+        return timesheetPagesRest.buildStatisticsMarkdown(buildStatistics(selectedIds))
+    }
+
+    /**
+     * The selection's statistics as typed values for the hand-built next page, which renders them with the
+     * same [org.projectforge.rest.dto.Timesheet] statistics line the list uses (reusing
+     * [TimesheetPagesRest.TimesheetListStatistics] so both pages show the identical line).
+     */
+    override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
+        return buildStatistics(selectedIds)
+    }
+
+    private fun buildStatistics(selectedIds: Collection<Serializable>?): TimesheetPagesRest.TimesheetListStatistics {
+        // Lean four-column projection, not a full select: this runs live on every debounced selection
+        // change, and buildStatistics reads only duration and the AI fields (see TimesheetPagesRest
+        // .aggregate, which sums the whole list the same way).
+        val ids = selectedIds?.mapNotNull { (it as? Number)?.toLong() }.orEmpty()
+        return timesheetPagesRest.buildStatistics(timesheetDao.selectStatisticsData(ids))
     }
 
     /**
@@ -217,15 +238,8 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
                 kost2Id = sharedKost2Id
             }
         }
-        val duration = timesheetDao.select(selectedIds)?.sumOf { it.duration }
-        val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
-        layout.add(
-            UIAlert(
-                "'${translate("timesheet.totalDuration")}: $durationAsString",
-                color = UIColor.LIGHT,
-                markdown = true
-            )
-        )
+        // The same duration / AI-savings summary the next page and the list footer show, as markdown.
+        layout.add(UIAlert("'${getStatistics(selectedIds)}", color = UIColor.LIGHT, markdown = true))
 
         kost2Id?.let {
             ensureMassUpdateParam(massUpdateData, "kost2", "fibu.kost2").id = it

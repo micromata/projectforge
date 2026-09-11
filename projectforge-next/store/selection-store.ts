@@ -10,6 +10,12 @@ interface EntitySelection {
   active: boolean;
   /** TanStack's row selection, keyed by row id, which is the entity's id (`getRowId`). */
   rows: RowSelectionState;
+  /**
+   * What the ticked entries add up to, as the backend last answered it on a `select` (the entity's
+   * own statistics shape, e.g. `InvoiceStatistics`) — rendered live under the selection bar. Undefined
+   * until the first `select` lands, and while the mode is off.
+   */
+  statistics?: unknown;
 }
 
 interface SelectionState {
@@ -27,6 +33,8 @@ interface SelectionState {
       | RowSelectionState
       | ((previous: RowSelectionState) => RowSelectionState)
   ) => void;
+  /** Stores the statistics the backend answered on the last `select` for this entity. */
+  setStatistics: (entity: string, statistics: unknown) => void;
   /**
    * Takes the selection the backend remembered for this entity (`listMeta.selectedIds`) — and only
    * while this app knows nothing about it yet.
@@ -60,6 +68,13 @@ export const useSelectionStore = create<SelectionState>((set) => ({
       const next = typeof rows === "function" ? rows(current.rows) : rows;
       return {
         byEntity: { ...state.byEntity, [entity]: { ...current, rows: next } },
+      };
+    }),
+  setStatistics: (entity, statistics) =>
+    set((state) => {
+      const current = state.byEntity[entity] ?? EMPTY;
+      return {
+        byEntity: { ...state.byEntity, [entity]: { ...current, statistics } },
       };
     }),
   restore: (entity, ids) =>

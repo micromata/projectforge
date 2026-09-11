@@ -32,6 +32,7 @@ export function ListSelectionSection<
   columns: ColumnDeclaration<Row, M>[];
   onSelectAll: () => void;
 }) {
+  const StatisticsLine = massUpdate.statisticsLine;
   return (
     <>
       <SelectionBar
@@ -45,6 +46,13 @@ export function ListSelectionSection<
             selectedIds={mode.selectedIds}
             flush={mode.flush}
           />
+        }
+        // The live summary of what is ticked, by the entity's own statistics line — the same component
+        // the mass update page shows, so the numbers read identically before and after "next".
+        statistics={
+          StatisticsLine && mode.statistics != null ? (
+            <StatisticsLine statistics={mode.statistics} />
+          ) : undefined
         }
       />
       {mode.selectedIds.length > 0 && (

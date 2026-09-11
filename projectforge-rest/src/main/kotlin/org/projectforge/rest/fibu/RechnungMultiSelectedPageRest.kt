@@ -109,11 +109,9 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   private fun buildStatistics(selectedIds: Collection<Serializable>?): RechnungsStatistik {
-    val stats = RechnungsStatistik()
-    rechnungDao.select(selectedIds)?.forEach { invoice ->
-      stats.add(invoice)
-    }
-    return stats
+    // Cache-based (RechnungCache), so this stays cheap when called live on every debounced selection
+    // change - no invoice is hydrated and no position is loaded (see RechnungDao.buildStatistikByIds).
+    return rechnungDao.buildStatistikByIds(selectedIds)
   }
 
   override fun fillForm(

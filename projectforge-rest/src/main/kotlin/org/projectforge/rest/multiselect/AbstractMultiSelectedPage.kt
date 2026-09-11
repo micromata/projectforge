@@ -290,6 +290,10 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         return MultiSelectNavigation(
             url = PagesResolver.getDynamicPageUrl(this::class.java, absolute = true),
             selectedCount = selection?.selectedIds?.size ?: 0,
+            // So the list can render the statistics live while the user selects - the same values the mass
+            // update page's `meta` serves, computed here over the ids just registered (null where the page
+            // has no statistics, see getStatisticsData).
+            statisticsData = getStatisticsData(selection?.selectedIds),
         )
     }
 

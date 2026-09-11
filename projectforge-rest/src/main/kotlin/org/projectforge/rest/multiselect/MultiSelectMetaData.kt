@@ -97,6 +97,13 @@ class MultiSelectNavigation(
     val url: String,
     /** How many entries the session holds after the call - zero after a cancel. */
     val selectedCount: Int = 0,
+    /**
+     * What the selected entries add up to, in the same shape [MultiSelectMetaData.statisticsData] carries
+     * (the entity's own, e.g. `InvoiceStatistics`) - so a list can show the statistics live while the user
+     * is still selecting, without opening the mass update page. Null where the page serves no statistics or
+     * on a cancel (see [AbstractMultiSelectedPage.getStatisticsData]).
+     */
+    val statisticsData: Any? = null,
 )
 
 /**

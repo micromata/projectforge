@@ -238,6 +238,14 @@ export const TIMESHEET_PAGE = definePage<
   massUpdate: {
     endpoint: "timesheetSelected",
     route: "/timesheet/mass-update",
+    // The same summed-duration / AI-savings line the list footer shows, over the selected sheets — fed by
+    // the typed statistics the backend attaches to the mass-update meta (TimesheetMultiSelectedPageRest
+    // .getStatisticsData). Reuses the list's statistics-line component so both read identically.
+    statisticsLine: ({ statistics }) => (
+      <TimesheetStatisticsLine
+        statistics={statistics as TimesheetStatistics | undefined}
+      />
+    ),
   },
   edit: {
     schema: timesheetEditSchema,

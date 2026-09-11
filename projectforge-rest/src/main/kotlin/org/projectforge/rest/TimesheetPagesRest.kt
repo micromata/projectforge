@@ -337,12 +337,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             val stats = buildStatistics(resultSet.resultSet)
             myResultSet.statistics = stats
             // The markdown footer the legacy React list reads, beside the typed statistics the next page reads.
-            val md = MarkdownBuilder()
-            md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
-            if (stats.aiEnabled) {
-                md.appendPipedValue("timesheet.ai.timeSavedByAI", stats.aiPercentage ?: "", MarkdownBuilder.Color.BLUE)
-            }
-            myResultSet.addResultInfo(md.toString())
+            myResultSet.addResultInfo(buildStatisticsMarkdown(stats))
         } else {
             // Server-side paged (the next client only): resultSet.resultSet is one page, so the whole-result
             // statistics were computed over the full id list in aggregate() and are carried through here.
@@ -369,7 +364,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * one pass so the footer's two numbers can never disagree (see [AITimeSavings.buildStats]). Reads only the
      * duration and AI fields of each sheet, so it needs no cache-populated task.
      */
-    private fun buildStatistics(list: List<TimesheetDO>): TimesheetListStatistics {
+    internal fun buildStatistics(list: List<TimesheetDO>): TimesheetListStatistics {
         val stats = AITimeSavings.buildStats(list)
         val aiEnabled = baseDao.timeSavingsByAIEnabled
         return TimesheetListStatistics(
@@ -378,6 +373,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             aiEnabled = aiEnabled,
             aiPercentage = if (aiEnabled) stats.percentageString else null,
         )
+    }
+
+    /**
+     * The footer markdown for a client that renders no typed statistics itself: the summed duration and —
+     * where the installation tracks it — the AI share of the given [stats], in the same two-column layout the
+     * legacy React list reads. Shared with the mass-update page ([TimesheetMultiSelectedPageRest.getStatistics])
+     * so both render the identical line.
+     */
+    internal fun buildStatisticsMarkdown(stats: TimesheetListStatistics): String {
+        val md = MarkdownBuilder()
+        md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
+        if (stats.aiEnabled) {
+            md.appendPipedValue("timesheet.ai.timeSavedByAI", stats.aiPercentage ?: "", MarkdownBuilder.Color.BLUE)
+        }
+        return md.toString()
     }
 
     override fun isAutocompletionPropertyEnabled(property: String): Boolean {
