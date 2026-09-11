@@ -71,8 +71,9 @@ test.describe("quick access", () => {
       new RegExp(`^${escape(term)}`, "i")
     );
     // Everything left over matches, and every entry that matches is left — the count follows from
-    // the same rule the search applies, plus the data-search row.
-    await expect(options).toHaveCount(matching(entries, term).length + 1);
+    // the same rule the search applies. The full-search row is no longer an option: it is pinned
+    // below the list as a footer button (see the next case), so it does not add to this count.
+    await expect(options).toHaveCount(matching(entries, term).length);
   });
 
   test("navigates into this app on Enter", async ({ loggedInPage: page }) => {
@@ -212,20 +213,18 @@ test.describe("quick access", () => {
     const field = await focusSearch(page, format);
     await field.fill(term);
 
-    // The one row left, so a term without a menu hit is no dead end.
-    const options = results(page).getByRole("option");
-    await expect(options).toHaveCount(1);
-    await expect(options).toHaveText(
-      format.t("menu.quickAccess.searchAllData", { arg0: term })
-    );
+    // A term without a menu hit is no dead end: the full search is pinned below the results as a
+    // footer button (not a cmdk option), so it stays on screen however many hits fill the list.
+    await expect(results(page).getByRole("option")).toHaveCount(0);
+    const dataSearch = page.getByRole("button", {
+      name: format.t("menu.quickAccess.searchAllData", { arg0: term }),
+    });
+    await expect(dataSearch).toBeVisible();
 
-    // Where it leads is checked on the request rather than by arriving: the Wicket search page is
-    // Spring's, and the term has to reach it as the parameter SearchPage reads.
-    const [request] = await Promise.all([
-      page.waitForRequest(/\/wa\/search/),
-      options.click(),
-    ]);
-    expect(new URL(request.url()).searchParams.get("searchString")).toBe(term);
+    // It opens the migrated search page inside this app — a client-side route now, not the Wicket
+    // page — carrying the term as the `q` parameter the page reads.
+    await dataSearch.click();
+    await expect(page).toHaveURL(/\/search\?q=zzqx$/);
   });
 });
 

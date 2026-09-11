@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -90,6 +91,12 @@ export function EntityListPage<
   // edits. Same for the filter the user last used, which the backend remembers per user.
   const stored = useStoredColumnState(page.entity);
   const remembered = useRememberedFilter(page.entity);
+  // A search term carried in from the global search (`?q=`), so a "more in <area>" jump from the
+  // magnifier lands here pre-filtered. It only seeds the initial search box (see
+  // useMagicFilterQuery.initialGlobalFilter) — clearing the box afterwards is the user's own state.
+  // `useSearchParams` is covered by the authenticated layout's Suspense boundary under `output: export`.
+  const seededSearch =
+    useSearchParams().get(LIST_SEARCH_PARAM)?.trim() || undefined;
   // Whether this user may see this entity at all. Blocking, and before everything else: a user without
   // the right must not get the page - not even its toolbar, its columns or its exports - around an
   // empty table (see useReadAccessGuard, which redirects).
@@ -111,15 +118,28 @@ export function EntityListPage<
   // A failed read is not worth blocking the page for — start from the defaults. A transient jump seeds
   // the list from its own filter (`filterOverride`) rather than the remembered one, and marks it so the
   // filter is not stored back (see DeclaredList).
+  const baseFilter = filterOverride ?? remembered.filter;
+  // A `?q=` overrides only the remembered search string, keeping whatever pill filters were remembered.
+  const restoredFilter: MagicFilter | undefined = seededSearch
+    ? {
+        entries: [],
+        sortProperties: [],
+        ...baseFilter,
+        searchString: seededSearch,
+      }
+    : baseFilter;
   return (
     <DeclaredList
       page={page}
       storedState={stored.data ?? {}}
-      restoredFilter={filterOverride ?? remembered.filter}
+      restoredFilter={restoredFilter}
       transient={transient}
     />
   );
 }
+
+/** The url search param that seeds a list's search box, set by the global search's "more in …" jump. */
+const LIST_SEARCH_PARAM = "q";
 
 /**
  * The checkbox column leads every row, whatever the user's stored layout says — constant, so the

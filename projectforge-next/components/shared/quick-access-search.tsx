@@ -94,7 +94,7 @@ export function QuickAccessSearch() {
           align="start"
           // The field keeps the focus: the user is still typing, and the list is driven from there.
           onOpenAutoFocus={(event) => event.preventDefault()}
-          className="max-h-[min(60vh,24rem)] w-80 overflow-y-auto p-0"
+          className="flex max-h-[min(60vh,24rem)] w-80 flex-col overflow-hidden p-0"
         >
           <QuickAccessResults term={term} onNavigate={close} />
         </PopoverContent>

@@ -581,7 +581,7 @@
         "_": "Titel",
         "add": "Neuer/s Auftrag/Angebot",
         "edit": "Auftrag/Angebot bearbeiten",
-        "heading": "Auftragsmanagement",
+        "heading": "Auftragsbuch",
         "list": "Auftrags- und Angebotsbuch"
       },
       "tooltip": {
@@ -1880,6 +1880,12 @@
       "expression": "Modifizierter Ausdruck für Suchmaschine:"
     },
     "maxRowsExceeded": "Die Maximalgröße {arg0} der Ergebnisliste ist überschritten und das Ergebnis enthält nicht alle gefundenen Elemente.",
+    "next": {
+      "moreInArea": "Weitere in {arg0}",
+      "noResults": "Keine passenden Datensätze gefunden.",
+      "scope": "Suchen in",
+      "searchMore": "In allen Bereichen suchen"
+    },
     "nextDays": "Nächste {arg0} Tage",
     "parseError": "Fehler beim Vearbeiten des Suchtexts: ''{arg0}''",
     "periodOfModification": "Änderungszeitraum",

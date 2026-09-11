@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
@@ -13,8 +12,7 @@ import {
   searchMenuEntries,
   type MenuEntry,
 } from "@/lib/menu-search";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
-import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning";
+import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import {
   CommandEmpty,
   CommandGroup,
@@ -22,9 +20,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { HighlightedText } from "@/components/shared/highlighted-text";
+import { QuickDataHits } from "@/components/shared/quick-data-hits";
 
-/** The full-text search over the business data, i.e. the entry MenuItemDefId.SEARCH points at. */
-const DATA_SEARCH_URL = "wa/search";
+/** The full-text search over the business data, i.e. the entry MenuItemDefId.SEARCH points at (now migrated to next). */
+const DATA_SEARCH_URL = "next/search";
 
 /** Only ever a cmdk item value, never shown: the recents render under a translated heading. */
 const RECENT_GROUP = "recent";
@@ -51,7 +50,7 @@ export function QuickAccessResults({
   // "Favoriten" is no menu text: the bundle has it as a term of its own (`favorites`), used
   // wherever a list offers its saved filters.
   const tRoot = useTranslations();
-  const router = useRouter();
+  const navigate = useNavigateMenuUrl();
   const { data: menu } = useMenu();
   const { recentKeys, remember } = useRecentMenuEntries();
 
@@ -79,77 +78,71 @@ export function QuickAccessResults({
         .filter((entry): entry is MenuEntry => entry !== undefined);
 
   function go(url: string, menuKey?: string) {
-    const target = resolveMenuUrl(url);
-    // The legacy React app and Wicket are served by Spring, not by this app: a client-side route
-    // would land on Next's own 404, and that is where most menu entries still point. A full page load,
-    // which `beforeunload` guards by itself — so it is not asked about here.
-    if (target.kind === "external") {
+    navigate(url, () => {
       remember(menuKey);
       onNavigate();
-      window.location.assign(toAbsoluteUrl(target));
-      return;
-    }
-    // A router.push is not a link, so nothing else would stop it (see useUnsavedChangesWarning): ask
-    // with the app's own dialog first and go through only on "leave".
-    void confirmLeaveUnsavedChanges().then((leave) => {
-      if (!leave) return;
-      remember(menuKey);
-      onNavigate();
-      router.push(target.href);
     });
   }
 
   return (
-    <CommandList>
-      {/* Reached while the menu is still being fetched; a term without a hit is answered by the
-          data search row below instead. */}
-      {found.length === 0 && !term.trim() && <CommandEmpty />}
-      {recent.length > 0 && (
-        <CommandGroup heading={t("quickAccess.recent")}>
-          {recent.map((entry) => (
-            <QuickAccessItem
-              key={entry.key}
-              group={RECENT_GROUP}
-              entry={entry}
-              term={term}
-              onSelect={go}
-            />
-          ))}
-        </CommandGroup>
-      )}
-      {groups.map((group) => (
-        <CommandGroup key={group.category} heading={group.category}>
-          {group.entries.map((entry) => (
-            <QuickAccessItem
-              key={entry.key}
-              group={group.category}
-              entry={entry}
-              term={term}
-              onSelect={go}
-            />
-          ))}
-        </CommandGroup>
-      ))}
+    <>
+      {/* Scrolls on its own (`flex-1 min-h-0`); the "search all data" row below is pinned outside it,
+          so it stays visible however many hits fill the list — see the footer after this. */}
+      <CommandList className="max-h-none min-h-0 flex-1">
+        {/* Reached while the menu is still being fetched; a term without a hit is answered by the
+            data search row below instead. */}
+        {found.length === 0 && !term.trim() && <CommandEmpty />}
+        {recent.length > 0 && (
+          <CommandGroup heading={t("quickAccess.recent")}>
+            {recent.map((entry) => (
+              <QuickAccessItem
+                key={entry.key}
+                group={RECENT_GROUP}
+                entry={entry}
+                term={term}
+                onSelect={go}
+              />
+            ))}
+          </CommandGroup>
+        )}
+        {groups.map((group) => (
+          <CommandGroup key={group.category} heading={group.category}>
+            {group.entries.map((entry) => (
+              <QuickAccessItem
+                key={entry.key}
+                group={group.category}
+                entry={entry}
+                term={term}
+                onSelect={go}
+              />
+            ))}
+          </CommandGroup>
+        ))}
+        {/* The live data hits sit below the menu: the menu is the primary answer, the data the next
+          best, and the full search (pinned below) the fallback. */}
+        {term.trim() && <QuickDataHits term={term} onNavigate={onNavigate} />}
+      </CommandList>
+      {/* Pinned below the scroll area, not the last row inside it: the way out of a dead end must stay
+          on screen even when the hits above fill the list and scroll it. What the user typed may well
+          be a customer's name rather than a menu entry. Outside the CommandList it is no cmdk item, so
+          arrow keys skip it — a click or Tab reaches it, as a footer action should. */}
       {term.trim() && (
-        <CommandGroup>
-          {/* The way out of a dead end: what the user typed may well be a customer's name rather
-              than a menu entry. */}
-          <CommandItem
-            value="__data-search__"
-            onSelect={() =>
-              go(
-                `${DATA_SEARCH_URL}?searchString=${encodeURIComponent(term.trim())}`
-              )
+        <div className="shrink-0 border-t p-1">
+          <button
+            type="button"
+            onClick={() =>
+              go(`${DATA_SEARCH_URL}?q=${encodeURIComponent(term.trim())}`)
             }
+            className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent"
           >
             <HugeiconsIcon icon={ArrowRight01Icon} />
             <span className="truncate">
               {t("quickAccess.searchAllData", { arg0: term.trim() })}
             </span>
-          </CommandItem>
-        </CommandGroup>
+          </button>
+        </div>
       )}
-    </CommandList>
+    </>
   );
 }
 
