@@ -35,7 +35,6 @@ import org.springframework.util.ClassUtils
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.TimeAgo
@@ -76,9 +75,6 @@ open class LoginService {
 
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
-
-    @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
     /**
      * If given then this login handler will be used instead of [LoginDefaultHandler]. For ldap please use e. g.
@@ -262,8 +258,6 @@ open class LoginService {
         cookieService.invalidateStayLoggedInToken(request)
         cookieService.clearAllCookies(request, response)
         user?.id?.let { userId ->
-            userXmlPreferencesCache.flushToDB(userId)
-            userXmlPreferencesCache.clear(userId)
             userPrefCache.flushToDB(userId)
             userPrefCache.clear(userId)
             log.info("User '${user.username}' (#$userId) logged out.")

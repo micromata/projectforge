@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
- * Extended by [UserPrefCache] and [UserXmlPreferencesCache].
+ * Extended by [UserPrefCache].
  *
  * @author Kai Reinhard
  */
@@ -68,12 +68,38 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     protected abstract fun remove(userId: Long, key: UserPrefCacheDataKey)
     protected abstract fun newEntry(): DBObj
 
+    /**
+     * Hook for lazily migrating a preference from a legacy store on a cache miss. Called by [resolve] when neither a
+     * persistent nor a volatile entry exists for the given key. The default implementation returns null (no migration).
+     *
+     * Overridden by [UserPrefCache] to read a possibly existing legacy XML preference. If it returns a non-null value,
+     * [resolve] stores it as a persistent entry (without an original hash code, so it is written as JSON on the next
+     * flush) and returns it. Implementations must never throw.
+     */
+    protected open fun migrateLegacyEntryOnCacheMiss(userId: Long, key: UserPrefCacheDataKey): Any? = null
+
+    /**
+     * Single read choke point: returns the cached entry or, on a miss, tries [migrateLegacyEntryOnCacheMiss] and caches
+     * its result as a persistent entry so it is persisted on the next flush.
+     */
+    private fun resolve(userId: Long, key: UserPrefCacheDataKey): Any? {
+        val data = ensureAndGetUserPreferencesData(userId)
+        data.getEntry(key)?.let { return it }
+        val migrated = migrateLegacyEntryOnCacheMiss(userId, key) ?: return null
+        synchronized(data) {
+            // Re-check to avoid a double put on concurrent access.
+            data.getEntry(key)?.let { return it }
+            data.putEntry(key, migrated, persistent = true)
+        }
+        return migrated
+    }
+
     @JvmOverloads
     fun getEntry(
         area: String?, identifier: String?, userId: Long? = null
     ): Any? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier)
+        return resolve(uid, UserPrefCacheDataKey(area, identifier))
     }
 
     @Suppress("UNCHECKED_CAST", "UNUSED_PARAMETER")
@@ -82,7 +108,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         area: String?, identifier: String, expectedType: Class<T>, userId: Long? = null
     ): T? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier) as? T?
+        return resolve(uid, UserPrefCacheDataKey(area, identifier)) as? T?
     }
 
     @JvmOverloads
@@ -125,8 +151,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * Gets an entry from the user preferences cache.
      */
     fun getEntry(userId: Long, key: UserPrefCacheDataKey): Any? {
-        val data = ensureAndGetUserPreferencesData(userId)
-        return data.getEntry(key)
+        return resolve(userId, key)
     }
 
     @JvmOverloads
@@ -307,7 +332,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
 
     override fun shutdown() {
         if (dontCallShutdownInTestMode) {
-            log.info("$title: It seems to be running in test mode. No sync to database in UserXmlPreferencesCache.")
+            log.info("$title: It seems to be running in test mode. No sync to database in $title.")
             return
         }
         flushAllToDB()

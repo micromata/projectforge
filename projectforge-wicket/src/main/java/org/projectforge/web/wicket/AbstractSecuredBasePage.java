@@ -25,8 +25,7 @@ package org.projectforge.web.wicket;
 
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.common.i18n.MessageParam;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessChecker;
@@ -72,22 +71,20 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
     }
 
     /**
-     * Stores the given value for the current user.
+     * Stores the given value for the current user. Entries are kept in the JSON user preferences store
+     * ({@link UserPrefService}) under the shared legacy area {@link UserPrefService#LEGACY_XML_AREA}; the given key is
+     * used as the entry name.
      *
      * @param key
      * @param value
      * @param persistent If true, the object will be persisted in the database.
      */
     public void putUserPrefEntry(final String key, final Object value, final boolean persistent) {
-        getUserPreferencesService().putEntry(key, value, persistent);
+        getUserPrefService().putEntry(UserPrefService.LEGACY_XML_AREA, key, value, persistent);
     }
 
-    protected UserXmlPreferencesService getUserPreferencesService() {
-        return WicketSupport.get(UserXmlPreferencesService.class);
-    }
-
-    protected UserXmlPreferencesCache getUserXmlPreferencesCache() {
-        return WicketSupport.get(UserXmlPreferencesCache.class);
+    protected UserPrefService getUserPrefService() {
+        return WicketSupport.get(UserPrefService.class);
     }
 
     /**
@@ -96,10 +93,10 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
      * @param key
      * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
      * existing, otherwise null;
-     * @see UserXmlPreferencesService#getEntry(String)
+     * @see UserPrefService#getEntry(String, String)
      */
     public Object getUserPrefEntry(final String key) {
-        return getUserPreferencesService().getEntry(key);
+        return getUserPrefService().getEntry(UserPrefService.LEGACY_XML_AREA, key);
     }
 
     /**
@@ -110,10 +107,10 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
      *                     from the expected type, otherwise null is returned.
      * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
      * existing, otherwise null;
-     * @see UserXmlPreferencesService#getEntry(String)
+     * @see UserPrefService#getEntry(String, String, Class)
      */
     public Object getUserPrefEntry(final Class<?> expectedType, final String key) {
-        return getUserPreferencesService().getEntry(expectedType, key);
+        return getUserPrefService().getEntry(UserPrefService.LEGACY_XML_AREA, key, expectedType);
     }
 
     /**
@@ -123,7 +120,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
      * @return The removed entry if found.
      */
     public void removeUserPrefEntry(final String key) {
-        getUserPreferencesService().removeEntry(key);
+        getUserPrefService().removeEntry(UserPrefService.LEGACY_XML_AREA, key);
     }
 
     /**

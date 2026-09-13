@@ -30,8 +30,8 @@ import org.dom4j.DocumentHelper
 import org.dom4j.Element
 import org.projectforge.business.user.UserXmlPreferencesDO
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.business.user.service.UserPreferencesHelper
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import java.util.*
@@ -54,8 +54,15 @@ class FavoritesMenuReaderWriter {
         }
 
         fun storeAsUserPref(menu: Menu?) {
+            val userPrefService =
+                ApplicationContextProvider.getApplicationContext().getBean(UserPrefService::class.java)
             if (menu == null || menu.menuItems.isNullOrEmpty()) {
-                UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
+                userPrefService.putEntry(
+                    UserPrefService.LEGACY_XML_AREA,
+                    FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY,
+                    "",
+                    true,
+                )
                 return
             }
             val document = DocumentHelper.createDocument()
@@ -67,7 +74,12 @@ class FavoritesMenuReaderWriter {
             if (xml.length > UserXmlPreferencesDO.MAX_SERIALIZED_LENGTH) {
                 throw UserException("menu.favorite.maxSizeExceeded")
             }
-            UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true)
+            userPrefService.putEntry(
+                UserPrefService.LEGACY_XML_AREA,
+                FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY,
+                xml,
+                true,
+            )
             log.info("Favorites menu stored: $xml")
         }
 
