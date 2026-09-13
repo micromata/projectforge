@@ -97,10 +97,52 @@ open class TimesheetListPdfExport {
     )
 
     /**
+     * What the export should contain, chosen by the user in the Next PDF-export dialog and remembered per
+     * user (see [org.projectforge.rest.TimesheetPagesRest]). [showFilterSettings] toggles the first-page
+     * filter-summary block; the column flags toggle the optional table columns. The User column is always
+     * printed and has no flag. Every flag defaults to true, so a caller that omits [Options] gets the full
+     * export the list produced before the dialog existed.
+     */
+    class Options(
+        var showFilterSettings: Boolean = true,
+        var task: Boolean = true,
+        var startTime: Boolean = true,
+        var stopTime: Boolean = true,
+        var duration: Boolean = true,
+        var location: Boolean = true,
+        var reference: Boolean = true,
+        var description: Boolean = true,
+    )
+
+    /** One selectable table column: its header key, relative width, cell value and alignment per row. */
+    private class Column(
+        val headerKey: String,
+        val width: Float,
+        val alignment: Int = Element.ALIGN_LEFT,
+        val value: (TimesheetDO) -> String?,
+    )
+
+    /**
+     * The optional columns in table order, mirroring the next list (see timesheet.page.tsx). The User
+     * column is added separately and always first; these are the ones the dialog can toggle. Widths reuse
+     * the original emphasis: task path and description are the wide ones, timestamps and short fields narrow.
+     */
+    private fun optionalColumns(options: Options): List<Column> = buildList {
+        if (options.task) add(Column("task", 2.6f) { getTaskPath(it.taskId, null, true, OutputType.PLAIN) })
+        if (options.startTime) add(Column("timesheet.startTime", 1.3f) { dateTimeFormatter.getFormattedDateTime(it.startTime) })
+        if (options.stopTime) add(Column("timesheet.stopTime", 1.3f) { dateTimeFormatter.getFormattedDateTime(it.stopTime) })
+        // Duration as h:mm, right-aligned like the numeric column it is (mirrors the Excel export).
+        if (options.duration) add(Column("timesheet.duration", 0.8f, Element.ALIGN_RIGHT) { it.durationAsString })
+        if (options.location) add(Column("timesheet.location", 1.1f) { it.location })
+        if (options.reference) add(Column("timesheet.reference", 1.1f) { it.reference })
+        if (options.description) add(Column("description", 3.2f) { it.description })
+    }
+
+    /**
      * Exports the filtered list as a PDF, returning its bytes. Always a valid document, header row
      * included even for an empty result — so the download never yields a file that reads as broken.
      */
-    open fun export(list: List<TimesheetDO>, context: Context = Context()): ByteArray {
+    open fun export(list: List<TimesheetDO>, context: Context = Context(), options: Options = Options()): ByteArray {
         log.info("Exporting timesheet list as PDF.")
         val titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15f, Color.WHITE)
         val labelFont = FontFactory.getFont(FontFactory.HELVETICA, 9f, Color.GRAY)
@@ -116,25 +158,23 @@ open class TimesheetListPdfExport {
             document.open()
 
             addTitleBar(document, titleFont)
-            addFilterSummary(document, context, list, labelFont, valueFont)
+            if (options.showFilterSettings) {
+                addFilterSummary(document, context, list, labelFont, valueFont)
+            }
 
-            // Widths mirror the emphasis of the next list's columns (see timesheet.page.tsx): task path and
-            // description are the wide ones, the timestamps and short fields the narrow ones.
-            val table = PdfPTable(floatArrayOf(1.4f, 2.6f, 1.3f, 1.3f, 0.8f, 1.1f, 1.1f, 3.2f))
+            // The User column is always present and first; the rest are what the dialog left selected.
+            val userColumn = Column("timesheet.user", 1.4f) { userGroupCache.getUser(it.userId)?.getFullname() }
+            val columns = listOf(userColumn) + optionalColumns(options)
+
+            val table = PdfPTable(columns.map { it.width }.toFloatArray())
             table.widthPercentage = 100f
             table.headerRows = 1
-            HEADER_KEYS.forEach { key -> table.addCell(headerCell(translate(key), headerFont)) }
+            columns.forEach { table.addCell(headerCell(translate(it.headerKey), headerFont)) }
 
             list.forEach { timesheet ->
-                table.addCell(dataCell(userGroupCache.getUser(timesheet.userId)?.getFullname(), cellFont))
-                table.addCell(dataCell(getTaskPath(timesheet.taskId, null, true, OutputType.PLAIN), cellFont))
-                table.addCell(dataCell(dateTimeFormatter.getFormattedDateTime(timesheet.startTime), cellFont))
-                table.addCell(dataCell(dateTimeFormatter.getFormattedDateTime(timesheet.stopTime), cellFont))
-                // Duration as h:mm, right-aligned like the numeric column it is (mirrors the Excel export).
-                table.addCell(dataCell(timesheet.durationAsString, cellFont, Element.ALIGN_RIGHT))
-                table.addCell(dataCell(timesheet.location, cellFont))
-                table.addCell(dataCell(timesheet.reference, cellFont))
-                table.addCell(dataCell(timesheet.description, cellFont))
+                columns.forEach { column ->
+                    table.addCell(dataCell(column.value(timesheet), cellFont, column.alignment))
+                }
             }
             document.add(table)
 
@@ -267,11 +307,6 @@ open class TimesheetListPdfExport {
     }
 
     companion object {
-        /** Column headers, in the order of the next list's columns (see timesheet.page.tsx). */
-        private val HEADER_KEYS = listOf(
-            "timesheet.user", "task", "timesheet.startTime", "timesheet.stopTime", "timesheet.duration",
-            "timesheet.location", "timesheet.reference", "description",
-        )
         private val HEADER_BG = Color(230, 230, 230)
 
         /** The ProjectForge blue of the on-screen list's title bar. */

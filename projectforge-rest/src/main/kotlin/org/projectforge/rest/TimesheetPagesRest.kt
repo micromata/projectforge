@@ -943,11 +943,39 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
+     * The PDF-export options the user last chose (or the all-on defaults for a user who never opened the
+     * dialog), so the Next dialog can prefill itself. Persisted per user by [exportAsPdf].
+     */
+    @GetMapping("pdfExportSettings")
+    fun getPdfExportSettings(): TimesheetPdfExportSettings {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val stored = userPrefService.getEntry(category, USER_PREF_PARAM_PDF_EXPORT, TimesheetPdfExportSettings::class.java)
+        // Read every flag as on unless explicitly turned off — a fresh user gets today's full export.
+        return TimesheetPdfExportSettings(
+            showFilterSettings = stored?.showFilterSettings ?: true,
+            task = stored?.task ?: true,
+            startTime = stored?.startTime ?: true,
+            stopTime = stored?.stopTime ?: true,
+            duration = stored?.duration ?: true,
+            location = stored?.location ?: true,
+            reference = stored?.reference ?: true,
+            description = stored?.description ?: true,
+        )
+    }
+
+    /**
      * Exports the filtered timesheets as a PDF, the "PDF export" of the legacy list — now built with OpenPDF
      * in the business layer ([TimesheetListPdfExport]) rather than the wicket-bound FOP path.
+     *
+     * The Next dialog sends the filter and the chosen [TimesheetPdfExportSettings] separately (so the filter
+     * never lands in the stored prefs); the settings are remembered per user and shape which columns and
+     * whether the filter-summary block are printed.
      */
     @PostMapping(RestPaths.REST_PDF_SUB_PATH)
-    fun exportAsPdf(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+    fun exportAsPdf(@RequestBody request: TimesheetPdfExportRequest): ResponseEntity<*> {
+        val settings = request.settings ?: TimesheetPdfExportSettings()
+        userPrefService.putEntry(category, USER_PREF_PARAM_PDF_EXPORT, settings, true)
+        val filter = request.filter ?: MagicFilter()
         // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
         // do the same, or its full-text search behaves differently and returns nothing where the list showed rows.
         filter.autoWildcardSearch = true
@@ -962,14 +990,47 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             searchString = filter.searchString,
             userName = userEntry?.value?.displayName,
         )
+        val options = TimesheetListPdfExport.Options(
+            showFilterSettings = settings.showFilterSettings ?: true,
+            task = settings.task ?: true,
+            startTime = settings.startTime ?: true,
+            stopTime = settings.stopTime ?: true,
+            duration = settings.duration ?: true,
+            location = settings.location ?: true,
+            reference = settings.reference ?: true,
+            description = settings.description ?: true,
+        )
         // Always a valid PDF, header row included even for an empty result (TimesheetListPdfExport.export).
-        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter), context)
+        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter), context, options)
         val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.pdf"
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
             .body(ByteArrayResource(pdf))
     }
+
+    /**
+     * The PDF-export options remembered per user. Every flag is nullable so Jackson (NON_DEFAULT) keeps the
+     * stored JSON compact and an added flag reads as its default for older stored values; callers read each
+     * with `?: true`. [showFilterSettings] toggles the first-page filter-summary block, the rest the optional
+     * table columns (the User column is always printed and has no flag).
+     */
+    class TimesheetPdfExportSettings(
+        var showFilterSettings: Boolean? = null,
+        var task: Boolean? = null,
+        var startTime: Boolean? = null,
+        var stopTime: Boolean? = null,
+        var duration: Boolean? = null,
+        var location: Boolean? = null,
+        var reference: Boolean? = null,
+        var description: Boolean? = null,
+    )
+
+    /** The body of [exportAsPdf]: the list filter and the chosen settings, kept apart so the filter is never stored. */
+    class TimesheetPdfExportRequest(
+        var filter: MagicFilter? = null,
+        var settings: TimesheetPdfExportSettings? = null,
+    )
 
     /**
      * The subscription URL of the timesheet calendar feed for the given user (the current one by default), the
@@ -1023,5 +1084,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     internal class TimesheetJiraFilter : CustomResultFilter<TimesheetDO> {
         override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean =
             JiraUtils.hasJiraIssues(element.description) || JiraUtils.hasJiraIssues(element.reference)
+    }
+
+    companion object {
+        /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
+        private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
     }
 }

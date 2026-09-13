@@ -488,9 +488,9 @@
       "forecastExport": {
         "startDate": {
           "_": "First month of the forecast",
-          "info": "The forecast starts with the month this date lies in.\n\nThe value is remembered for the next export."
+          "info": "The forecast starts with the month this date lies in."
         },
-        "tooltip": "Forecast export of the filtered orders.\n\nThe first month and the budget scenario are asked for."
+        "tooltip": "Forecast export of the filtered orders."
       },
       "forecastExportAsXls": {
         "_": "Forecast",
@@ -2142,6 +2142,12 @@
     "massupdate": {
       "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
       "updateTask": "Update structure element for all time sheets."
+    },
+    "pdfExport": {
+      "columns": "Columns",
+      "filterSettings": "Print filter settings",
+      "info": "Choose what the PDF should contain. Your selection is remembered.",
+      "title": "PDF export"
     },
     "recent": "Recent",
     "reference": "Reference",

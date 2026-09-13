@@ -28,15 +28,55 @@ export function downloadTimesheetExcel(
 }
 
 /**
+ * What the PDF export should contain, chosen in the PDF-export dialog and remembered per user by the
+ * backend (`TimesheetPagesRest.TimesheetPdfExportSettings`). `showFilterSettings` toggles the first-page
+ * filter-summary block; the rest toggle the optional table columns. The User column is always printed and
+ * has no flag. Mirrors the Kotlin DTO field for field.
+ */
+export interface TimesheetPdfExportSettings {
+  showFilterSettings: boolean;
+  task: boolean;
+  startTime: boolean;
+  stopTime: boolean;
+  duration: boolean;
+  location: boolean;
+  reference: boolean;
+  description: boolean;
+}
+
+/** React Query key of the remembered PDF-export settings (`TimesheetPagesRest.getPdfExportSettings`). */
+export const TIMESHEET_PDF_EXPORT_SETTINGS_QUERY_KEY = [
+  "timesheet",
+  "pdfExportSettings",
+] as const;
+
+/** The user's last PDF-export choice, or the all-on defaults for a user who never opened the dialog. */
+export function fetchTimesheetPdfExportSettings(
+  signal?: AbortSignal
+): Promise<TimesheetPdfExportSettings> {
+  return request<TimesheetPdfExportSettings>(
+    `/rs/${ENTITY}/pdfExportSettings`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
  * The filtered time sheets as the PDF of `TimesheetListPdfExport` — the legacy list's "PDF export", now
  * built with OpenPDF in the backend instead of the wicket-bound FOP path. Acts on the filter the list is
- * showing, exactly like the Excel export above.
+ * showing (exactly like the Excel export above) and on the chosen `settings`, which the backend also
+ * remembers for next time. Filter and settings are sent apart so the filter never lands in the stored prefs.
  */
 export function downloadTimesheetPdf(
   filter: MagicFilter,
+  settings: TimesheetPdfExportSettings,
   signal?: AbortSignal
 ): Promise<void> {
-  return downloadPost(`/rs/${ENTITY}/exportAsPdf`, filter, signal);
+  return downloadPost(
+    `/rs/${ENTITY}/exportAsPdf`,
+    { filter, settings },
+    signal
+  );
 }
 
 /**

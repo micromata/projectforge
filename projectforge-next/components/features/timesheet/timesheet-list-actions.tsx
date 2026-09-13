@@ -13,12 +13,10 @@ import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
 import { toast } from "@/lib/toast";
-import {
-  downloadTimesheetExcel,
-  downloadTimesheetPdf,
-} from "@/lib/rs/timesheet";
+import { downloadTimesheetExcel } from "@/lib/rs/timesheet";
 import type { MagicFilter } from "@/lib/rs/types";
 import { TimesheetIcsDialog } from "./timesheet-ics-dialog";
+import { TimesheetPdfExportDialog } from "./timesheet-pdf-export-dialog";
 
 /**
  * The three exports of the time sheet list the legacy list offers in its content menu: the filtered list
@@ -31,16 +29,12 @@ import { TimesheetIcsDialog } from "./timesheet-ics-dialog";
 export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
   const [icsOpen, setIcsOpen] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
-  // Both exports always answer with a valid file (header row even for an empty result, see
+  // The Excel export always answers with a valid file (header row even for an empty result, see
   // TimesheetPagesRest), so a failure here is a real one — an access refusal — and is reported as such.
   const excel = useMutation({
     mutationFn: () => downloadTimesheetExcel(filter),
-    onError: (error) =>
-      toast.error(error instanceof Error ? error.message : String(error)),
-  });
-  const pdf = useMutation({
-    mutationFn: () => downloadTimesheetPdf(filter),
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : String(error)),
   });
@@ -70,14 +64,9 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
           variant="ghost"
           size="sm"
           className="gap-1.5"
-          onClick={() => pdf.mutate()}
-          disabled={pdf.isPending}
+          onClick={() => setPdfOpen(true)}
         >
-          {pdf.isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={Pdf01Icon} size={14} aria-hidden />
-          )}
+          <HugeiconsIcon icon={Pdf01Icon} size={14} aria-hidden />
           {t("exportAsPdf")}
         </Button>
       </HintTooltip>
@@ -94,6 +83,15 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
         </Button>
       </HintTooltip>
       {icsOpen && <TimesheetIcsDialog onClose={() => setIcsOpen(false)} />}
+      {pdfOpen && (
+        <TimesheetPdfExportDialog
+          filter={filter}
+          onClose={() => setPdfOpen(false)}
+          onError={(error) =>
+            toast.error(error instanceof Error ? error.message : String(error))
+          }
+        />
+      )}
     </>
   );
 }

@@ -488,9 +488,9 @@
       "forecastExport": {
         "startDate": {
           "_": "Erster Monat des Forecasts",
-          "info": "Der Forecast beginnt mit dem Monat, in dem dieses Datum liegt.\n\nDer Wert wird für den nächsten Export gemerkt."
+          "info": "Der Forecast beginnt mit dem Monat, in dem dieses Datum liegt."
         },
-        "tooltip": "Export des Forecasts für die gefilterten Aufträge.\n\nDer erste Monat und das Budget-Szenario werden erfragt."
+        "tooltip": "Export des Forecasts für die gefilterten Aufträge."
       },
       "forecastExportAsXls": {
         "_": "Forecast",
@@ -2142,6 +2142,12 @@
     "massupdate": {
       "taskNotApplied": "Das Strukturelement ist nicht ausgewählt (Checkbox) und wird daher nicht geändert.",
       "updateTask": "Strukturelement für alle Zeitberichte ändern"
+    },
+    "pdfExport": {
+      "columns": "Spalten",
+      "filterSettings": "Filterangaben ausgeben",
+      "info": "Wählen Sie aus, was das PDF enthalten soll. Ihre Auswahl wird gemerkt.",
+      "title": "PDF-Export"
     },
     "recent": "Zuletzt verwendet",
     "reference": "Referenz",
