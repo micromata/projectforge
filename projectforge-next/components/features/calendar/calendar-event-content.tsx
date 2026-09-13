@@ -128,6 +128,10 @@ export function CalendarEventContent({ arg }: { arg: EventContentArg }) {
             <button
               type="button"
               aria-label={`${t("info")}: ${arg.event.title}`}
+              // FullCalendar catches the tap through its own native click delegation, which the React
+              // `stopPropagation` below cannot reach; this marker lets `handleEventClick` recognise the
+              // tap as the info button's and skip navigating to the edit page (see useCalendarAction).
+              data-cal-info=""
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               className="absolute right-0 top-0 flex items-center justify-center rounded-bl bg-black/10 p-0.5 text-current opacity-80 hover:opacity-100"

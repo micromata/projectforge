@@ -114,7 +114,15 @@ export function useCalendarAction() {
   );
 
   const handleEventClick = useCallback(
-    (arg: EventClickArg) => openTarget(eventClickUrl(arg.event)),
+    (arg: EventClickArg) => {
+      // A tap on the touch-only info button rides FullCalendar's own (native) click delegation, which
+      // the button's React `stopPropagation` cannot reach; skip navigation so the info popover — not
+      // the edit page — is what that tap opens (see CalendarEventContent's `data-cal-info` button).
+      const target = arg.jsEvent.target;
+      if (target instanceof Element && target.closest("[data-cal-info]"))
+        return;
+      openTarget(eventClickUrl(arg.event));
+    },
     [openTarget]
   );
 
