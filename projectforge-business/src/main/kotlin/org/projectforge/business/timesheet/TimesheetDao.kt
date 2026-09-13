@@ -256,6 +256,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 queryFilter.add(eq("task.id", filter.taskId))
             }
         }
+        if (filter.kost2Id != null) {
+            queryFilter.add(eq("kost2.id", filter.kost2Id))
+        }
         if (filter.orderType == OrderDirection.DESC) {
             queryFilter.addOrder(desc("startTime"))
         } else {

@@ -306,7 +306,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             }
             final Kost2Row kost2Row = rowEntry.getValue();
             final Kost2DO cost2 = kost2Row.kost2;
-            addLabelCols(row, cost2, null, "kost2.nummer:" + cost2.getFormattedNumber() + "*", report.user,
+            addLabelCols(row, cost2, null, null, cost2.getId(), report.user,
                     report.getFromDate().getTime(), report
                             .getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
@@ -329,7 +329,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 row.add(AttributeModifier.replace("class", "odd"));
             }
             final TaskDO task = rowEntry.getValue();
-            addLabelCols(row, null, task, null, report.user, report.getFromDate().getTime(),
+            addLabelCols(row, null, task, null, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime());
             final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
             row.add(colWeekRepeater);
@@ -345,7 +345,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             // Sum row.
             final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId());
             rowRepeater.add(row);
-            addLabelCols(row, null, null, null, report.user, report.getFromDate().getTime(),
+            addLabelCols(row, null, null, null, null, report.user, report.getFromDate().getTime(),
                     report.getToDate().getTime()).add(
                     AttributeModifier.replace("style", "text-align: right;"));
             final RepeatingView colWeekRepeater = prepareSumRow(row, rowCounter++);
@@ -416,7 +416,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
 
     @SuppressWarnings("serial")
     private WebMarkupContainer addLabelCols(final WebMarkupContainer row, final Kost2DO cost2, final TaskDO task,
-                                            final String searchString,
+                                            final String searchString, final Long kost2Id,
                                             final PFUserDO user, final long startTime, final long stopTime) {
         final WebMarkupContainer result = new WebMarkupContainer("cost2");
         row.add(result);
@@ -427,6 +427,12 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
                 params.add("userId", user.getId());
                 if (task != null) {
                     params.add("taskId", task.getId());
+                }
+                // The Kost2 row drills down by the cost center's exact id, so the timesheet list runs the
+                // same live DB query the report's total does. A full-text search on the number would miss
+                // bookings whose Kost2 number was recomposed (its search index is not refreshed then).
+                if (kost2Id != null) {
+                    params.add("kost2Id", kost2Id);
                 }
                 params.add("startTime", startTime);
                 params.add("stopTime", stopTime);

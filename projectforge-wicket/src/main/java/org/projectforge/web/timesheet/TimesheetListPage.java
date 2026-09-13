@@ -87,6 +87,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
      */
     public static final String PARAMETER_KEY_TASK_ID = "taskId";
 
+    /**
+     * Key for pre-setting the Kost2 id (exact match). Used by the monthly employee report drill-down.
+     */
+    public static final String PARAMETER_KEY_KOST2_ID = "kost2Id";
+
     public static final String PARAMETER_KEY_SEARCHSTRING = "searchString";
 
     public static final String PARAMETER_KEY_USER_ID = "userId";
@@ -119,6 +124,10 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         if (WicketUtils.contains(parameters, PARAMETER_KEY_TASK_ID) == true) {
             final Long id = WicketUtils.getAsLong(parameters, PARAMETER_KEY_TASK_ID);
             form.getSearchFilter().setTaskId(id);
+        }
+        if (WicketUtils.contains(parameters, PARAMETER_KEY_KOST2_ID) == true) {
+            final Long id = WicketUtils.getAsLong(parameters, PARAMETER_KEY_KOST2_ID);
+            form.getSearchFilter().setKost2Id(id);
         }
         if (WicketUtils.contains(parameters, PARAMETER_KEY_SEARCHSTRING) == true) {
             final String searchString = WicketUtils.getAsString(parameters, PARAMETER_KEY_SEARCHSTRING);

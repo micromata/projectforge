@@ -44,6 +44,8 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   private Long taskId;
 
+  private Long kost2Id;
+
   private boolean marked;
 
   @PropertyInfo(i18nKey = "longFormat")
@@ -69,6 +71,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
       this.timePeriod = tf.timePeriod;
       this.userId = tf.userId;
       this.taskId = tf.taskId;
+      this.kost2Id = tf.kost2Id;
       this.marked = tf.marked;
       this.longFormat = tf.longFormat;
       this.recursive = tf.recursive;
@@ -97,6 +100,21 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   public void setUserId(final Long userId)
   {
     this.userId = userId;
+  }
+
+  /**
+   * If set, only time sheets booked on exactly this Kost2 (by id) are selected. Used by the monthly
+   * employee report drill-down, which must match the report's live, id-based bucketing exactly (an
+   * indexed full-text search on the cost center number goes stale when the number is recomposed).
+   */
+  public Long getKost2Id()
+  {
+    return kost2Id;
+  }
+
+  public void setKost2Id(final Long kost2Id)
+  {
+    this.kost2Id = kost2Id;
   }
 
   /**
