@@ -105,7 +105,13 @@ class SearchRest {
    */
   @GetMapping("areas")
   fun availableAreas(): List<SearchArea> {
-    return accessibleAreas().map { SearchArea(it.id, translate(it.i18nTitleHeading)) }
+    return accessibleAreas().map { entry ->
+      // The area's native list page, so every tile on the search page — even one without hits — can link
+      // to it pre-filtered with the term. Keyed by the rest category (orderBook → order), same as the hit
+      // "more in …" url in [searchArea].
+      val rest = restByDoClass.getValue(entry.getDOClass())
+      SearchArea(entry.id, translate(entry.i18nTitleHeading), NextMigration.listUrl(rest.category))
+    }
   }
 
   /**
@@ -249,8 +255,11 @@ class SearchRest {
   }
 }
 
-/** One searchable area (a [RegistryEntry]) the current user may use. */
-class SearchArea(val areaId: String, val title: String)
+/**
+ * One searchable area (a [RegistryEntry]) the current user may use. [listUrl] is its native list page
+ * (`resolveMenuUrl`-ready), where a tile links to see the whole area pre-filtered with the term.
+ */
+class SearchArea(val areaId: String, val title: String, val listUrl: String)
 
 /** A single hit, ready for the frontend: [viewUrl] is `resolveMenuUrl`-ready (e.g. `next/book/17`, `react/konto/edit/5`). */
 class SearchHit(

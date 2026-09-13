@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Search01Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
 import { SearchInput } from "@/components/shared/list/search-input";
@@ -13,7 +16,6 @@ import {
   type SearchArea,
   type SearchResponse,
 } from "@/lib/rs/search";
-import { SearchScopePanel } from "@/components/features/search/search-scope-panel";
 import { SearchResults } from "@/components/features/search/search-results";
 
 /** Larger than the magnifier's few hits: the page has room to list a page's worth per area. */
@@ -55,8 +57,11 @@ export function SearchPage() {
   }, [term, router]);
 
   const areas = areasQuery.data ?? [];
-  // What the checkboxes show: the explicit set, or — in the default — every area ticked.
+  // Which tiles are expanded: the explicit set, or — in the default — every area open.
   const effectiveSelected = selected ?? new Set(areas.map((a) => a.areaId));
+  const allOpen =
+    selected === null ||
+    (areas.length > 0 && areas.every((a) => effectiveSelected.has(a.areaId)));
   // The query's scope: `undefined` (all) in the default, else the explicit ids.
   const scope = selected ? [...selected].sort() : undefined;
   const enabled = term.trim().length >= MIN_TERM_LENGTH;
@@ -82,25 +87,34 @@ export function SearchPage() {
           }
         />
       </div>
-      <div className="flex min-h-0 flex-1 gap-6 px-4 pb-6">
-        <SearchScopePanel
+      <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-6">
+        <div className="flex shrink-0 items-center justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            disabled={areasQuery.isLoading || allOpen}
+            onClick={() => setSelected(null)}
+          >
+            <HugeiconsIcon icon={Search01Icon} size={14} />
+            {t("next.searchMore")}
+          </Button>
+        </div>
+        <SearchResults
           areas={areas}
-          isLoading={areasQuery.isLoading}
-          selected={effectiveSelected}
-          onToggle={(areaId, checked) =>
+          results={enabled ? (searchQuery.data?.areas ?? []) : []}
+          term={term}
+          openIds={effectiveSelected}
+          onToggle={(areaId, open) =>
             setSelected((prev) => {
               const next = new Set(prev ?? areas.map((a) => a.areaId));
-              if (checked) next.add(areaId);
+              if (open) next.add(areaId);
               else next.delete(areaId);
               return next;
             })
           }
-          onSelectAll={() => setSelected(null)}
-        />
-        <SearchResults
-          data={enabled ? searchQuery.data : undefined}
-          term={term}
-          isLoading={searchQuery.isFetching && enabled}
+          isLoading={areasQuery.isLoading}
+          isFetching={searchQuery.isFetching && enabled}
         />
       </div>
     </PageShell>

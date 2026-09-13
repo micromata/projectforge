@@ -1884,7 +1884,8 @@
       "moreInArea": "More in {arg0}",
       "noResults": "No matching records found.",
       "scope": "Search in",
-      "searchMore": "Search all areas"
+      "searchMore": "Search all areas",
+      "showAll": "Show all in {arg0}"
     },
     "nextDays": "Next {arg0} days",
     "parseError": "Error while parsing search string: ''{arg0}''",

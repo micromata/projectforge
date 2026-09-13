@@ -31,10 +31,11 @@ export interface SearchAreaResult {
 }
 
 /**
- * The "more in <area>" target: the area's native list, pre-filled with the term. `resolveMenuUrl`-ready, so a
- * next list opens client-side and a React/Wicket one via a full load (see use-navigate-menu-url).
+ * The "more/show all in <area>" target: the area's native list, pre-filled with the term. `resolveMenuUrl`-ready,
+ * so a next list opens client-side and a React/Wicket one via a full load (see use-navigate-menu-url). Takes any
+ * area carrying a `listUrl` — both [SearchArea] and [SearchAreaResult] do.
  */
-export function areaMoreUrl(area: SearchAreaResult, term: string): string {
+export function areaMoreUrl(area: { listUrl: string }, term: string): string {
   return `${area.listUrl}?q=${encodeURIComponent(term.trim())}`;
 }
 
@@ -47,6 +48,8 @@ export interface SearchResponse {
 export interface SearchArea {
   areaId: string;
   title: string;
+  /** The area's native list page (`resolveMenuUrl`-ready), so a tile links to it via [areaMoreUrl]. */
+  listUrl: string;
 }
 
 /**

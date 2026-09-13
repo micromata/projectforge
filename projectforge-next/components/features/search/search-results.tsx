@@ -1,50 +1,59 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { SearchResponse } from "@/lib/rs/search";
-import { SearchResultGroup } from "@/components/features/search/search-result-group";
+import { SearchAreaTile } from "@/components/features/search/search-area-tile";
+import type { SearchArea, SearchAreaResult } from "@/lib/rs/search";
 
 /**
- * The grouped hits of the search page: one [SearchResultGroup] per area with matches, in the backend's
- * priority order (addresses first). While a query runs the previous result is kept (the page's
- * `placeholderData`), so the list doesn't blank out between keystrokes — the skeleton only shows on
- * the very first load, and the empty note only once a settled query came back with nothing.
+ * The responsive tile grid of the search page: one [SearchAreaTile] per accessible area, in the
+ * backend's priority order (addresses first). Every area gets a tile — a collapsed one must stay
+ * visible so it can be expanded — so the grid is driven by `areas`, not just the areas with hits.
+ * A tile's open state is the area's scope: open = searched (result shown), collapsed = out of query.
+ * While a query runs, the previous results are kept (the page's `placeholderData`), so tiles don't
+ * blank out between keystrokes.
  */
 export function SearchResults({
-  data,
+  areas,
+  results,
   term,
+  openIds,
+  onToggle,
   isLoading,
+  isFetching,
 }: {
-  data: SearchResponse | undefined;
+  areas: SearchArea[];
+  results: SearchAreaResult[];
   term: string;
+  /** The area ids currently in scope (expanded tiles). */
+  openIds: Set<string>;
+  onToggle: (areaId: string, open: boolean) => void;
+  /** The areas list is loading (first paint). */
   isLoading: boolean;
+  /** A search query is in flight. */
+  isFetching: boolean;
 }) {
-  const t = useTranslations("search");
-  const areas = data?.areas ?? [];
-
   if (isLoading && areas.length === 0) {
     return (
-      <div className="flex flex-1 flex-col gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
+      <div className="grid grid-cols-1 items-start gap-4 overflow-y-auto pb-6 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
     );
   }
 
-  if (term.trim() && areas.length === 0) {
-    return (
-      <p className="flex-1 py-8 text-center text-sm text-muted-foreground">
-        {t("next.noResults")}
-      </p>
-    );
-  }
-
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <div className="grid grid-cols-1 items-start gap-4 overflow-y-auto pb-6 sm:grid-cols-2 xl:grid-cols-3">
       {areas.map((area) => (
-        <SearchResultGroup key={area.areaId} area={area} term={term} />
+        <SearchAreaTile
+          key={area.areaId}
+          area={area}
+          result={results.find((r) => r.areaId === area.areaId)}
+          term={term}
+          open={openIds.has(area.areaId)}
+          onOpenChange={(open) => onToggle(area.areaId, open)}
+          isFetching={isFetching}
+        />
       ))}
     </div>
   );
