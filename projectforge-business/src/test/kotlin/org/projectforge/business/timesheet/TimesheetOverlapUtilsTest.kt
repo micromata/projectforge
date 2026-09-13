@@ -24,8 +24,13 @@
 package org.projectforge.business.timesheet
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.Constants
+import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2DO
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneId
@@ -76,11 +81,90 @@ class TimesheetOverlapUtilsTest {
         Assertions.assertEquals(90 * MINUTE, TimesheetOverlapUtils.unionDurationMillis(listOf(a, b)))
     }
 
-    private fun createTimesheet(id: Long, startOffsetMinutes: Long, durationMinutes: Long): TimesheetDO {
+    @Test
+    fun `gross working time counts every sheet with a positive work fraction in full`() {
+        // Two disjoint sheets (both full working time) each keep their whole hour.
+        val a = createTimesheet(1, 0, 60)
+        val b = createTimesheet(2, 120, 60)
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(a, b))
+        Assertions.assertEquals(HOUR, gross[1L])
+        Assertions.assertEquals(HOUR, gross[2L])
+        Assertions.assertEquals(2 * HOUR, gross.values.sum())
+    }
+
+    @Test
+    fun `gross working time counts overlapping working sheets only once`() {
+        // Two fully overlapping working sheets: the union is one hour, so the gross total is 1h, not 2h.
+        val a = createTimesheet(1, 0, 60)
+        val b = createTimesheet(2, 0, 60)
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(a, b))
+        Assertions.assertEquals(HOUR, gross.values.sum(), "Overlap counted once.")
+    }
+
+    @Test
+    fun `gross working time counts travel time (fraction 0_5) in full`() {
+        // Travel time has a work fraction of 0.5, but the gross figure still counts its full duration.
+        val travel = createTimesheet(1, 0, 60, workFraction = BigDecimal("0.5"))
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(travel))
+        Assertions.assertEquals(HOUR, gross[1L], "Travel time counts fully in gross working time.")
+    }
+
+    @Test
+    fun `gross working time excludes zero-fraction sheets (cost type 33)`() {
+        val cost33 = createTimesheet(1, 0, 60, workFraction = BigDecimal.ZERO)
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(cost33))
+        Assertions.assertNull(gross[1L], "A zero-fraction sheet does not contribute to gross working time.")
+        Assertions.assertEquals(0L, gross.values.sum())
+    }
+
+    @Test
+    fun `a zero-fraction sheet does not reduce an overlapping working sheet`() {
+        // A cost type "33" sheet (fraction 0) fully overlapping a working sheet: the working sheet keeps its
+        // full hour, because the zero-fraction sheet is removed before the overlap split.
+        val cost33 = createTimesheet(1, 0, 60, workFraction = BigDecimal.ZERO)
+        val work = createTimesheet(2, 0, 60)
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(cost33, work))
+        Assertions.assertNull(gross[1L])
+        Assertions.assertEquals(HOUR, gross[2L], "Working sheet keeps its full hour; the 33 sheet doesn't split it.")
+        Assertions.assertEquals(HOUR, gross.values.sum())
+    }
+
+    @Test
+    fun `gross working time resolves the work fraction through the Kost2-Art`() {
+        // The Kost2 has no own fraction, so it is taken from its Kost2-Art: 0 -> excluded, positive -> full.
+        val cost33 = createTimesheetWithKost2Art(1, 0, 60, artWorkFraction = BigDecimal.ZERO)
+        val travel = createTimesheetWithKost2Art(2, 120, 60, artWorkFraction = BigDecimal("0.5"))
+        val gross = TimesheetOverlapUtils.grossWorkingDurations(listOf(cost33, travel))
+        Assertions.assertNull(gross[1L], "Kost2-Art fraction 0 -> excluded.")
+        Assertions.assertEquals(HOUR, gross[2L], "Kost2-Art fraction 0.5 -> counts fully.")
+    }
+
+    private fun createTimesheet(
+        id: Long,
+        startOffsetMinutes: Long,
+        durationMinutes: Long,
+        workFraction: BigDecimal? = null,
+    ): TimesheetDO {
         return TimesheetDO().also {
             it.id = id
             it.startTime = Date(START_TIME.time + startOffsetMinutes * MINUTE)
             it.stopTime = Date(START_TIME.time + (startOffsetMinutes + durationMinutes) * MINUTE)
+            if (workFraction != null) {
+                it.kost2 = Kost2DO().also { kost2 -> kost2.workFraction = workFraction }
+            }
+        }
+    }
+
+    private fun createTimesheetWithKost2Art(
+        id: Long,
+        startOffsetMinutes: Long,
+        durationMinutes: Long,
+        artWorkFraction: BigDecimal,
+    ): TimesheetDO {
+        return createTimesheet(id, startOffsetMinutes, durationMinutes).also {
+            it.kost2 = Kost2DO().also { kost2 ->
+                kost2.kost2Art = Kost2ArtDO().also { art -> art.workFraction = artWorkFraction }
+            }
         }
     }
 
@@ -89,5 +173,14 @@ class TimesheetOverlapUtilsTest {
         private const val HOUR = Constants.MILLIS_PER_HOUR
         private val START_TIME =
             Date.from(LocalDateTime.of(2026, Month.JANUARY, 5, 8, 0).atZone(ZoneId.of("UTC")).toInstant())
+
+        @JvmStatic
+        @BeforeAll
+        fun setUp() {
+            // The gross-duration tests read TimesheetDO.workFraction, which resolves Kost2/Kost2-Art through
+            // PfCaches. Install cacheless test instances so that static access does not fail on an uninitialized
+            // lateinit; fully initialized Kost2/Kost2-Art objects are returned as-is (see getKost2IfNotInitialized).
+            PfCaches.internalSetupForTestCases()
+        }
     }
 }

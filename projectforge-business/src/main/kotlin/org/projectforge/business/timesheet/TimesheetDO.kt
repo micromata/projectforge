@@ -29,6 +29,7 @@ import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
@@ -198,23 +199,26 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
         get() = DurationUtils.getFormattedHoursAndMinutes(duration)
 
     /**
-     * If this entry has a kost2 with a working time fraction set or a kost2art with a working time fraction set then the
-     * fraction of millis will be returned.
+     * The effective working-time fraction of this time sheet's cost assignment: the Kost2's own
+     * [Kost2DO.workFraction] if set, otherwise its Kost2Art's `workFraction` (e.g. travel time 0.5, cost
+     * type "33" 0.0), otherwise 1 (full working time — this also covers a task-only sheet without a Kost2).
+     * The Kost2 and its Kost2Art are resolved through [PfCaches] in case they are still lazy stubs.
+     */
+    val workFraction: BigDecimal
+        @Transient
+        get() {
+            val useKost2 = PfCaches.instance.getKost2IfNotInitialized(kost2) ?: return BigDecimal.ONE
+            useKost2.workFraction?.let { return it }
+            return PfCaches.instance.getKost2ArtIfNotInitialized(useKost2.kost2Art)?.workFraction ?: BigDecimal.ONE
+        }
+
+    /**
+     * The time sheet's duration weighted by its [workFraction] (e.g. half for travel time). Equals the full
+     * duration when no fraction is set.
      */
     val workFractionDuration: Long
         @Transient
-        get() {
-            if (kost2 != null) {
-                if (kost2!!.workFraction != null) {
-                    return (kost2!!.workFraction!!.toDouble() * timePeriod.duration).toLong()
-                }
-                val kost2Art = kost2!!.kost2Art
-                if (kost2Art?.workFraction != null) {
-                    return (kost2Art.workFraction!!.toDouble() * timePeriod.duration).toLong()
-                }
-            }
-            return duration
-        }
+        get() = workFraction.multiply(duration.toBigDecimal()).toLong()
 
     /**
      * @return The abbreviated description (maximum length is 50 characters).

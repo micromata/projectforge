@@ -90,6 +90,28 @@ object TimesheetOverlapUtils {
     }
 
     /**
+     * The gross working time (Brutto-Arbeitszeit) per time sheet: overlapping time is counted once (see
+     * [splitDurations]) but the cost-type work fraction is NOT applied as a weight — every sheet whose work
+     * fraction is greater than zero counts in full (e.g. travel time counts fully), while sheets with a work
+     * fraction of zero (cost type "33") do not count at all.
+     *
+     * Zero-fraction sheets are removed *before* splitting, so the time they (and only they) cover does not
+     * reduce the shares of the remaining sheets. Consequently the sum over all returned values equals the
+     * length of the union of the counting sheets' intervals: overlaps between counting sheets are counted
+     * exactly once, while non-overlapping working time keeps its full duration.
+     *
+     * This is the "Arbeitszeit" figure shown in the calendar's daily/weekly statistics. Contrast with the raw
+     * effort ([TimesheetDO.duration]) and with the proportionally split attendance ([splitDurations]).
+     *
+     * @param sheets the time sheets of a single user (start/stop must be set; deleted sheets filtered out by the caller).
+     * @return map of `timesheet.id` -> gross working millis. Sheets with a zero (or negative) work fraction, and
+     *   sheets without an id or without start/stop, are ignored.
+     */
+    fun grossWorkingDurations(sheets: Collection<TimesheetDO>): Map<Long, Long> {
+        return splitDurations(sheets.filter { it.workFraction.signum() > 0 })
+    }
+
+    /**
      * @param sheets the time sheets of a single user.
      * @return the length of the union of all time sheet intervals in millis (overlapping time counted once). Equals
      *   the sum of [splitDurations].

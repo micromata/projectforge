@@ -37,6 +37,7 @@ import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
+import org.projectforge.business.timesheet.TimesheetOverlapUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
@@ -117,6 +118,10 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     filter.setStopTime(endDate.getUtilDate());
     filter.setOrderType(OrderDirection.ASC);
     timesheets = timesheetDao.select(filter);
+    // The daily/weekly statistics show gross working time (Brutto-Arbeitszeit), not raw effort: overlapping
+    // sheets are counted once, sheets whose cost-type work fraction is zero (cost type "33") are dropped, and
+    // every other sheet (travel time included) counts in full. Keyed by timesheet id.
+    final Map<Long, Long> grossWorkingDurations = TimesheetOverlapUtils.INSTANCE.grossWorkingDurations(timesheets);
     boolean longFormat = false;
     days = Days.daysBetween(start, end).getDays();
     if (days < 10) {
@@ -179,12 +184,15 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
           event.setTextColor("#222222").setBackgroundColor("#ACD9E8").setColor("#ACD9E8");
         }
         events.put(id, event);
+        // Statistics accumulate gross working time (see grossWorkingDurations above), not the sheet's full duration.
+        final long grossDuration = timesheet.getId() != null
+            ? grossWorkingDurations.getOrDefault(timesheet.getId(), 0L) : 0L;
         if (month == null || startTime.getMonth() == month) {
-          totalDuration += duration;
-          addDurationOfDay(startTime.getDayOfMonth(), duration);
+          totalDuration += grossDuration;
+          addDurationOfDay(startTime.getDayOfMonth(), grossDuration);
         }
         final int dayOfYear = startTime.getDayOfYear();
-        addDurationOfDayOfYear(dayOfYear, duration);
+        addDurationOfDayOfYear(dayOfYear, grossDuration);
         event.setTooltip(
             getString("timesheet"),
             new String[][]{
