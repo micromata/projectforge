@@ -79,6 +79,13 @@ constructor(
         const val GEAR_MENU = "GEAR"
         const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
+
+        /**
+         * The url parameter that pre-fills the list's search box on load (see [seedSearchStringFromUrl]), set
+         * by the global search's "more in <area>" jump. Matches the next `EntityListPage`'s own `?q=` param, so
+         * the same link works whether the list is served by next, the legacy React app or the generic renderer.
+         */
+        const val LIST_SEARCH_URL_PARAM = "q"
     }
 
     /**
@@ -217,6 +224,7 @@ constructor(
      */
     @GetMapping("initialList")
     fun requestInitialList(request: HttpServletRequest): InitialListData {
+        seedSearchStringFromUrl(request)
         val result = getInitialList(request)
         val additionalVariables = addVariablesForListPage()
         if (additionalVariables != null)
@@ -226,6 +234,26 @@ constructor(
 
     protected open fun getInitialList(request: HttpServletRequest): InitialListData {
         return getInitialList(request, getCurrentFilter())
+    }
+
+    /**
+     * Seeds the list's search box from a `?q=<term>` url parameter, so the global search's "more in <area>"
+     * jump (see [org.projectforge.rest.SearchRest]) opens this list pre-filtered - exactly as typing the term
+     * would. Only for a page still served by the legacy React app or the generic next renderer: a page migrated
+     * to projectforge-next seeds its own search box from `?q=` client-side (see the next `EntityListPage`), and
+     * its rows are fetched from `list`, not from the filter this seeds. Done before [getInitialList] reads the
+     * filter, and only when the term is non-blank, so a normal list request keeps the user's remembered filter.
+     */
+    private fun seedSearchStringFromUrl(request: HttpServletRequest) {
+        if (NextMigration.isMigrated(category)) {
+            return
+        }
+        val term = request.getParameter(LIST_SEARCH_URL_PARAM)?.trim()?.takeIf { it.isNotEmpty() } ?: return
+        val filter = getCurrentFilter()
+        if (filter.searchString != term) {
+            filter.searchString = term
+            saveCurrentFilter(filter)
+        }
     }
 
     /**

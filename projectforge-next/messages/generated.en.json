@@ -581,7 +581,7 @@
         "_": "Title",
         "add": "Create new order / tender",
         "edit": "Edit order / tender",
-        "heading": "Order and tender management",
+        "heading": "Order book",
         "list": "Orders and tenders"
       },
       "tooltip": {
@@ -1880,6 +1880,13 @@
       "expression": "Modified expression for search machine:"
     },
     "maxRowsExceeded": "Maximum number {arg0} of result size exceeded. Result list is truncated.",
+    "next": {
+      "moreInArea": "More in {arg0}",
+      "noResults": "No matching records found.",
+      "scope": "Search in",
+      "searchMore": "Search all areas",
+      "showAll": "Show all in {arg0}"
+    },
     "nextDays": "Next {arg0} days",
     "parseError": "Error while parsing search string: ''{arg0}''",
     "periodOfModification": "Period of modification",

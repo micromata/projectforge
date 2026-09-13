@@ -70,6 +70,12 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/calendar", redirectOf("/wa/calendar"))
     }
 
+    /** The Wicket global search has moved to projectforge-next; a bookmarked link is bent onto it. */
+    @Test
+    fun `the old wicket search is redirected to next`() {
+        Assertions.assertEquals("/next/search", redirectOf("/wa/search"))
+    }
+
     /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,
