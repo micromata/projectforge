@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.createPseudoTask
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Companion.getFormattedDuration
 import org.projectforge.business.timesheet.AITimeSavings
@@ -106,7 +107,10 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
         } else if (timesheet.kost2Id != null) {
             entry = kost2Entries[timesheet.kost2Id]
             if (entry == null) {
-                entry = MonthlyEmployeeReportEntry(timesheet.kost2)
+                // Resolve the cost element (incl. projekt and kost2Art) from the cache instead of storing the
+                // lazy Kost2 proxy. Otherwise later reads of kost2.displayName / kost2Art (Kost2Row,
+                // InvoicingQuotaService) trigger one Kost2 + one Kost2Art select per cost element (N+1).
+                entry = MonthlyEmployeeReportEntry(PfCaches.instance.getKost2(timesheet.kost2Id))
                 kost2Entries[timesheet.kost2Id!!] = entry
             }
         } else {
