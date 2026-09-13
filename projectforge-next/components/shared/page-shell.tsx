@@ -50,7 +50,7 @@ export function PageShell({ children }: PageShellProps) {
           every page, as in Wicket, and this shell is what every page of this app is built from. */}
       <SystemAlertBanner />
       <main
-        className="flex flex-1 flex-col overflow-auto"
+        className="flex min-h-0 flex-1 flex-col overflow-auto"
         onScroll={collapse.onScroll}
       >
         {children}

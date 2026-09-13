@@ -263,8 +263,10 @@ export function DataTable<TData>({
       className={cn(
         "flex flex-col",
         // A bounded table clips to its box and lets the inner div below scroll; an autoHeight one grows
-        // and hands the scrolling to the page (see [autoHeight]).
-        !autoHeight && "flex-1 overflow-hidden",
+        // and hands the scrolling to the page (see [autoHeight]). min-h-0/min-w-0 let this flex child
+        // shrink to its parent's box instead of to the (wide/tall) table's content, so the inner scroll
+        // container owns both axes rather than inflating the page.
+        !autoHeight && "min-h-0 min-w-0 flex-1 overflow-hidden",
         className
       )}
     >
@@ -274,7 +276,7 @@ export function DataTable<TData>({
       <div
         className={cn(
           "relative flex flex-col",
-          !autoHeight && "flex-1 overflow-hidden"
+          !autoHeight && "min-h-0 min-w-0 flex-1 overflow-hidden"
         )}
       >
         {/* Also over the skeleton, which is where the wait is longest: a first load of the order book
@@ -287,7 +289,8 @@ export function DataTable<TData>({
             "relative bg-background",
             // The scroll container of a bounded table; in autoHeight the div just holds the table and
             // the page scrolls, so the sticky header anchors to the page rather than to this box.
-            !autoHeight && "flex-1 overflow-auto"
+            // min-h-0/min-w-0 keep it bounded by its parent so it — not the page — scrolls both axes.
+            !autoHeight && "min-h-0 min-w-0 flex-1 overflow-auto"
           )}
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
