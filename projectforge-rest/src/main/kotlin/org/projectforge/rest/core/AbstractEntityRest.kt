@@ -402,6 +402,17 @@ constructor(
                     Favorites.PREF_NAME_LIST,
                     Favorites::class.java
                 ) as? Favorites<MagicFilter>
+            // Defensive: some entities historically shared this pref slot (area = category, name = PREF_NAME_LIST)
+            // with favorites of a different element type (e.g. timesheet template favorites, see
+            // TimesheetFavoritesService). Drop any entry whose type isn't MagicFilter so a poisoned slot doesn't
+            // crash a later cast. Not persisted here, so foreign entries survive in storage for their owner to adopt.
+            favorites?.let { favs ->
+                val foreignIds = favs.idTitleList.filter { (favs.get(it.id) as Any?) !is MagicFilter }.map { it.id }
+                if (foreignIds.isNotEmpty()) {
+                    log.warn("Ignoring ${foreignIds.size} favorite(s) of a foreign type in the '$category' pref slot (legacy shared favorites).")
+                    foreignIds.forEach { favs.remove(it) }
+                }
+            }
         } catch (ex: Exception) {
             log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
         }
