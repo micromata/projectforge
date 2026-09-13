@@ -29,10 +29,20 @@ export function ListPageShell({
 }: ListPageShellProps) {
   return (
     <>
-      {toolbar}
-      {banner}
-      {selectionBar}
-      <div className="flex flex-1 overflow-hidden">{children}</div>
+      {/* The header stays full-height and pinned above the table; grouped as one shrink-0 block so it
+          never gives up its rows to the flex-1 table row below. */}
+      <div className="flex shrink-0 flex-col">
+        {toolbar}
+        {banner}
+        {selectionBar}
+      </div>
+      {/* min-w-0 keeps the wide table from inflating the page (it scrolls inside its own box instead);
+          min-h-64 both overrides the default content-based min-height (so the row can shrink for the
+          inner vertical scroll) and floors it, so on a viewport too short for the header the table
+          stays reachable while <main> scrolls. */}
+      <div className="flex min-h-64 min-w-0 flex-1 overflow-hidden">
+        {children}
+      </div>
     </>
   );
 }

@@ -14,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
+import { useElementWidth } from "@/hooks/use-element-width";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
@@ -32,6 +33,11 @@ import { useOverflowTooltip } from "./use-overflow-tooltip";
 import type { RowSelection } from "./use-row-selection";
 
 const ROW_ACTIONS_WIDTH = 80;
+// Column pinning is suspended once the pinned columns would leave the scrollable ones less room than
+// this — at least 40% of the container and never below one default-ish column — so on a narrow screen
+// the non-pinned columns stay reachable instead of being stuck behind a full-width pinned block.
+const MIN_SCROLL_RATIO = 0.4;
+const MIN_SCROLL_WIDTH = 160;
 
 export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   /** Pass a table created by useDataTable to share it with a toolbar; otherwise
@@ -190,6 +196,16 @@ export function DataTable<TData>({
   const collapseLogo = useCollapseOnScroll(collapseLogoOnScroll);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Suspend the horizontal pinning stick when the pinned columns would fill the viewport and leave the
+  // scrollable ones no room (only for a bounded table — an autoHeight one lets the page scroll and has
+  // no inner box to measure). The pinning *state* is untouched, so this re-engages as the window widens.
+  const containerWidth = useElementWidth(scrollRef);
+  const pinnedWidth = table.getLeftTotalSize() + table.getRightTotalSize();
+  const pinningSuspended =
+    !autoHeight &&
+    containerWidth > 0 &&
+    containerWidth - pinnedWidth <
+      Math.max(MIN_SCROLL_WIDTH, containerWidth * MIN_SCROLL_RATIO);
   // In autoHeight the inner div does not scroll — the page does — so the scroll helpers below have to
   // act on that ancestor, not on `scrollRef`. Found once from the mounted table (a settled layout);
   // null otherwise, so the ordinary bounded table keeps using its own container.
@@ -263,8 +279,10 @@ export function DataTable<TData>({
       className={cn(
         "flex flex-col",
         // A bounded table clips to its box and lets the inner div below scroll; an autoHeight one grows
-        // and hands the scrolling to the page (see [autoHeight]).
-        !autoHeight && "flex-1 overflow-hidden",
+        // and hands the scrolling to the page (see [autoHeight]). min-h-0/min-w-0 let this flex child
+        // shrink to its parent's box instead of to the (wide/tall) table's content, so the inner scroll
+        // container owns both axes rather than inflating the page.
+        !autoHeight && "min-h-0 min-w-0 flex-1 overflow-hidden",
         className
       )}
     >
@@ -274,7 +292,7 @@ export function DataTable<TData>({
       <div
         className={cn(
           "relative flex flex-col",
-          !autoHeight && "flex-1 overflow-hidden"
+          !autoHeight && "min-h-0 min-w-0 flex-1 overflow-hidden"
         )}
       >
         {/* Also over the skeleton, which is where the wait is longest: a first load of the order book
@@ -287,7 +305,8 @@ export function DataTable<TData>({
             "relative bg-background",
             // The scroll container of a bounded table; in autoHeight the div just holds the table and
             // the page scrolls, so the sticky header anchors to the page rather than to this box.
-            !autoHeight && "flex-1 overflow-auto"
+            // min-h-0/min-w-0 keep it bounded by its parent so it — not the page — scrolls both axes.
+            !autoHeight && "min-h-0 min-w-0 flex-1 overflow-auto"
           )}
           aria-busy={isFetching}
           {...overflowTooltip.handlers}
@@ -329,7 +348,7 @@ export function DataTable<TData>({
                   {hg.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      style={pinnedStyle(header.column, true)}
+                      style={pinnedStyle(header.column, true, pinningSuspended)}
                       // The whole cell sorts, rather than a button around the label:
                       // such a button competes with the filter icon for space and
                       // pushes it out of a narrow column. Shift-click adds a column
@@ -347,7 +366,7 @@ export function DataTable<TData>({
                           "cursor-pointer select-none",
                         header.column.getIsSorted() &&
                           "before:pointer-events-none before:absolute before:inset-0 before:bg-primary/10",
-                        pinnedClass(header.column)
+                        pinnedClass(header.column, pinningSuspended)
                       )}
                     >
                       {header.isPlaceholder
@@ -443,6 +462,7 @@ export function DataTable<TData>({
                     onCellClick={onCellClick}
                     onSelectClick={selection?.onRowClick}
                     rowActions={rowActions}
+                    suspendPinning={pinningSuspended}
                     // The row's colour and the marker are two layers, so both classes apply — see
                     // `row-highlighted` in globals.css, which is why it is no background.
                     className={cn(
