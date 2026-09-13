@@ -14,10 +14,14 @@ import { cn } from "@/lib/utils";
  */
 export function pinnedStyle<TData>(
   column: Column<TData, unknown>,
-  isHeader = false
+  isHeader = false,
+  suspended = false
 ): React.CSSProperties {
   const pinned = column.getIsPinned();
-  if (!pinned) return {};
+  // When suspended (the pinned columns would fill a narrow viewport, see DataTable) drop the horizontal
+  // stick entirely so every column flows and scrolls — the header keeps its vertical stick from its own
+  // class, exactly as an unpinned column does.
+  if (!pinned || suspended) return {};
   return {
     position: "sticky",
     left: pinned === "left" ? column.getStart("left") : undefined,
@@ -30,10 +34,11 @@ export function pinnedStyle<TData>(
 
 /** Marks the boundary between pinned and scrolling columns. */
 export function pinnedClass<TData>(
-  column: Column<TData, unknown>
+  column: Column<TData, unknown>,
+  suspended = false
 ): string | undefined {
   const pinned = column.getIsPinned();
-  if (!pinned) return undefined;
+  if (!pinned || suspended) return undefined;
   return cn(
     pinned === "left" && column.getIsLastColumn("left") && "border-r",
     pinned === "right" && column.getIsFirstColumn("right") && "border-l"
@@ -57,6 +62,8 @@ interface DataTableRowProps<TData> {
   rowActions?: (row: TData) => React.ReactNode;
   /** Highlight class for the whole row, e.g. "row-red" (see globals.css). */
   className?: string;
+  /** Drop the horizontal pinning stick (pinned columns would fill a narrow viewport — see DataTable). */
+  suspendPinning?: boolean;
 }
 
 export function DataTableRow<TData>({
@@ -66,6 +73,7 @@ export function DataTableRow<TData>({
   onSelectClick,
   rowActions,
   className,
+  suspendPinning,
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
@@ -92,7 +100,7 @@ export function DataTableRow<TData>({
       {row.getVisibleCells().map((cell, index) => (
         <TableCell
           key={cell.id}
-          style={pinnedStyle(cell.column)}
+          style={pinnedStyle(cell.column, false, suspendPinning)}
           // stopPropagation, or a row-level handler would fire for the same click and both
           // meanings of the cell would happen at once.
           onClick={
@@ -125,7 +133,7 @@ export function DataTableRow<TData>({
             // On the cell rather than in each cell renderer: it is the column that is a column of
             // numbers, and both column paths write it (useDeclaredColumns, columnDefAdapter).
             cell.column.columnDef.meta?.align === "right" && "text-right",
-            pinnedClass(cell.column)
+            pinnedClass(cell.column, suspendPinning)
           )}
         >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
