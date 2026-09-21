@@ -331,9 +331,15 @@ constructor(
      * pref but that didn't exist.
      */
     protected open fun removeUnknownFilterEntries(filter: MagicFilter, filterEntries: Set<String>) {
-        filter.entries.removeIf {
-            val field = it.field
-            field != null && !filterEntries.contains(field)
+        // The filter is the user's shared, per-session MagicFilter instance (see getCurrentFilter), not a copy.
+        // Two concurrent listMeta requests for the same user would otherwise structurally modify filter.entries
+        // at the same time (here and in MagicFilter.init), throwing ConcurrentModificationException. Lock on the
+        // same monitor MagicFilter.init uses so those mutations can't interleave.
+        synchronized(filter) {
+            filter.entries.removeIf {
+                val field = it.field
+                field != null && !filterEntries.contains(field)
+            }
         }
     }
 
