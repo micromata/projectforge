@@ -68,7 +68,7 @@ class MagicFilter(
    * After deserialization from data base (prefs) this method should be called to rebuild some information needed by the
    * clients.
    */
-  fun init() {
+  fun init(): Unit = synchronized(this) {
     entries.forEach { entry ->
       if (entry.field == MagicFilterEntry.HistorySearch.MODIFIED_BY_USER.fieldName) {
         // If user id is saved as prop id (by React-client), then copy it to value property:

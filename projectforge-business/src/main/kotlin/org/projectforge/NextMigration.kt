@@ -113,6 +113,15 @@ object NextMigration {
      * default is the button; once a page has been in use long enough to be trusted, this demotes it into
      * the menu per entity. Only the list page is affected - edit and other pages keep the button, so this
      * is read only next to [legacyListUrl] (see `ListMetaData.legacyListInMenu`), not for the edit page.
+     * Moot once [offerLegacyLink] is false: with no way back offered, there is nothing to place.
+     * @param offerLegacyLink Whether the way back to the legacy page (the "classic version" link) is
+     * offered to the user at all - on the list *and* the edit page. The final step of a page's migration:
+     * once the new page is trusted enough that the escape hatch is no longer wanted, this turns it off and
+     * [legacyListUrl] / [legacyEditPage] / [legacyNewEntryUrl] answer null, so projectforge-next renders
+     * neither button nor menu entry. Deliberately separate from [legacyApp]: the page keeps its
+     * [legacyApp] so [orphanedLinks] still bends a bookmarked or emailed legacy url onto next - only the
+     * *offer* of the way back is withdrawn, not the redirect of stale links. Always effectively true for a
+     * page that isn't migrated - it is served by the legacy app itself.
      */
     class NextPage(
         val route: String,
@@ -124,6 +133,7 @@ object NextMigration {
         val legacyEditRoute: String? = null,
         val legacyNewEntryRoute: String? = null,
         val legacyListInMenu: Boolean = false,
+        val offerLegacyLink: Boolean = true,
     ) {
         val editRoute: String = editRoute ?: "$route/edit/$ID_PLACEHOLDER"
         val newEntryRoute: String = newEntryRoute ?: "$route/edit"
@@ -204,8 +214,9 @@ object NextMigration {
             editRoute = "invoice/$ID_PLACEHOLDER",
             newEntryRoute = "invoice/new",
             legacyApp = LegacyApp.WICKET,
-            // In use long enough to trust the new list: the way back moves into the gear menu.
-            legacyListInMenu = true,
+            // Trusted now: the way back is no longer offered (neither list menu nor edit button).
+            // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/outgoingInvoice* links.
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice`
         // is the outgoing side, and this is the incoming (creditor) one - which side the category names is
@@ -218,8 +229,9 @@ object NextMigration {
             editRoute = "creditor-invoice/$ID_PLACEHOLDER",
             newEntryRoute = "creditor-invoice/new",
             legacyApp = LegacyApp.WICKET,
-            // In use long enough to trust the new list: the way back moves into the gear menu.
-            legacyListInMenu = true,
+            // Trusted now: the way back is no longer offered (neither list menu nor edit button).
+            // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/incomingInvoice* links.
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
         // *list* perspective of the entity, /next/task, as for every other page - the structure tree is
@@ -353,8 +365,10 @@ object NextMigration {
     fun standardEditPage(category: String): String {
         val page = nextPage(category)
         if (page?.listOnly == true) {
-            // Not null: a listOnly page has a legacyApp (see NextPage.init).
-            return legacyEditPage(category)!!
+            // Raw, not the offer-gated one: a listOnly page's form is the legacy one, so this is a
+            // functional route (where a row click leads), not the escape hatch that [offerLegacyLink]
+            // may have withdrawn. Not null: a listOnly page has a legacyApp (see NextPage.init).
+            return legacyEditPageRaw(category)!!
         }
         val route = page?.editRoute ?: "$category/edit/$ID_PLACEHOLDER"
         return "${appPath(category)}$route"
@@ -384,7 +398,9 @@ object NextMigration {
     fun newEntryUrl(category: String): String {
         val page = nextPage(category)
         if (page?.listOnly == true) {
-            return legacyNewEntryUrl(category)!!
+            // Raw, not the offer-gated one: the add destination of a listOnly page is a functional route,
+            // not the escape hatch [offerLegacyLink] may have withdrawn (see standardEditPage).
+            return legacyNewEntryUrlRaw(category)!!
         }
         val route = page?.newEntryRoute ?: "$category/edit"
         return "${appPath(category)}$route"
@@ -435,6 +451,16 @@ object NextMigration {
      * `wa/cost1List`, or null if this page has no legacy counterpart any more.
      */
     fun legacyListUrl(category: String): String? {
+        if (!offersLegacyLink(category)) return null
+        return legacyListUrlRaw(category)
+    }
+
+    /**
+     * The legacy list url regardless of whether the way back is still offered to the user (see
+     * [offerLegacyLink]): the raw counterpart of [legacyListUrl], for [orphanedLinks], which must keep
+     * bending bookmarked legacy urls onto next even for a page whose escape hatch has been withdrawn.
+     */
+    private fun legacyListUrlRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
         return "${app.appPath}${page?.legacyRoute ?: app.listRoute(category)}"
@@ -443,10 +469,21 @@ object NextMigration {
     /**
      * Whether the way back to the legacy *list* page is offered in the list's gear menu instead of the
      * prominent button (see [NextPage.legacyListInMenu]). False for a page that isn't migrated - it is
-     * served by the legacy app itself and has no such choice to make.
+     * served by the legacy app itself and has no such choice to make - and for one that no longer offers
+     * the way back at all (see [offerLegacyLink]).
      */
     fun legacyListInMenu(category: String): Boolean {
-        return nextPage(category)?.legacyListInMenu == true
+        val page = nextPage(category) ?: return false
+        return page.offerLegacyLink && page.legacyListInMenu
+    }
+
+    /**
+     * Whether the way back to the legacy page is offered to the user for this category (see
+     * [NextPage.offerLegacyLink]). Always true for a page that isn't migrated - it is served by the
+     * legacy app itself.
+     */
+    private fun offersLegacyLink(category: String): Boolean {
+        return nextPage(category)?.offerLegacyLink != false
     }
 
     /**
@@ -467,6 +504,17 @@ object NextMigration {
      * counterpart any more.
      */
     fun legacyEditPage(category: String): String? {
+        if (!offersLegacyLink(category)) return null
+        return legacyEditPageRaw(category)
+    }
+
+    /**
+     * The legacy edit url regardless of whether the way back is still offered (see [offerLegacyLink]):
+     * the raw counterpart of [legacyEditPage], for [orphanedLinks] and for the row-click destination of a
+     * [NextPage.listOnly] page (whose form is the legacy one and must stay reachable even with the escape
+     * hatch withdrawn).
+     */
+    private fun legacyEditPageRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
         return "${app.appPath}${page?.legacyEditRoute ?: app.editRoute(category)}"
@@ -477,6 +525,16 @@ object NextMigration {
      * or `wa/cost1Edit`, or null if this page has no legacy counterpart any more.
      */
     fun legacyNewEntryUrl(category: String): String? {
+        if (!offersLegacyLink(category)) return null
+        return legacyNewEntryUrlRaw(category)
+    }
+
+    /**
+     * The legacy add url regardless of whether the way back is still offered (see [offerLegacyLink]): the
+     * raw counterpart of [legacyNewEntryUrl], for the add destination of a [NextPage.listOnly] page, whose
+     * form is the legacy one and must stay reachable even with the escape hatch withdrawn.
+     */
+    private fun legacyNewEntryUrlRaw(category: String): String? {
         val page = nextPage(category)
         val app = legacyApp(category) ?: return null
         return "${app.appPath}${page?.legacyNewEntryRoute ?: app.newEntryRoute(category)}"
@@ -546,11 +604,13 @@ object NextMigration {
             }
             OrphanedLink(
                 legacyApp = app,
-                // Non-null: legacyApp is set (see legacyListUrl / legacyEditPage).
-                legacyListPath = legacyListUrl(category)!!,
+                // Raw, not the offer-gated accessors: a bookmarked or emailed legacy url is redirected onto
+                // next whether or not the way back is still offered (see offerLegacyLink). Non-null:
+                // legacyApp is set (see legacyListUrlRaw / legacyEditPageRaw).
+                legacyListPath = legacyListUrlRaw(category)!!,
                 // The path only, no query: `wa/orderBookEdit?id=:id` -> `wa/orderBookEdit`, and
                 // `react/group/edit/:id` -> `react/group/edit`. A request URI carries no query string.
-                legacyEditPath = legacyEditPage(category)!!.substringBefore('?').substringBefore(ID_PLACEHOLDER).trimEnd('/'),
+                legacyEditPath = legacyEditPageRaw(category)!!.substringBefore('?').substringBefore(ID_PLACEHOLDER).trimEnd('/'),
                 nextListUrl = "/${listUrl(category)}",
                 nextEditUrl = "/${standardEditPage(category)}",
                 nextNewEntryUrl = "/${newEntryUrl(category)}",

@@ -7,10 +7,29 @@ import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
 import { InvoiceSumsLine } from "@/components/shared/invoice/invoice-sums-line";
+import { paidState } from "@/components/shared/invoice/paid-state";
+import { StatusPill, type StatusTone } from "@/components/shared/status-pill";
 import { ReferencedOrders } from "./referenced-orders";
 import type { InvoiceValues } from "../invoice-schema";
 
 const m = fromMetadata(RECHNUNG_METADATA);
+
+/**
+ * The traffic-light tone each invoice status reads as: paid is green, the reminders and the dunning red
+ * (money is late). Planned and cancelled carry no urgency, so they stay neutral. A status without an entry
+ * falls back to neutral rather than mis-colouring.
+ *
+ * GESTELLT is deliberately absent: an issued invoice is refined into its paid state (open / overdue / paid,
+ * see below), so it never reaches this map.
+ */
+const STATUS_TONE: Record<string, StatusTone> = {
+  BEZAHLT: "success",
+  ZAHLUNGSERINNERUNG1: "danger",
+  ZAHLUNGSERINNERUNG2: "danger",
+  GEMAHNT: "danger",
+  GEPLANT: "neutral",
+  STORNIERT: "neutral",
+};
 
 /**
  * Sticky banner between the tab strip and the scrollable sections — stays in view while the user scrolls
@@ -23,19 +42,33 @@ export function InvoiceEditBanner() {
   const t = useTranslations();
   const form = useEntityEditForm();
 
-  // Subscribe only to the three identifiers so the banner doesn't re-render on every keystroke.
-  const { nummer, status, typ } = useStore(
+  // Subscribe only to the fields the banner shows so it doesn't re-render on every keystroke; the payment
+  // dates feed the paid state an issued invoice is shown as.
+  const { nummer, status, typ, bezahlDatum, faelligkeit } = useStore(
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
       const v = state.values as InvoiceValues;
-      return { nummer: v.nummer, status: v.status, typ: v.typ };
+      return {
+        nummer: v.nummer,
+        status: v.status,
+        typ: v.typ,
+        bezahlDatum: v.bezahlDatum,
+        faelligkeit: v.faelligkeit,
+      };
     }
   );
 
-  const statusLabel = m
-    .enumOptions("status", t)
-    .find((o) => o.value === status)?.label;
+  // An issued invoice reads as its payment sub-state (unpaid / overdue / paid), derived from the dates like
+  // the list does; every other status keeps its enum text and mapped colour.
+  const isIssued = status === "GESTELLT";
+  const paid = isIssued ? paidState(bezahlDatum, faelligkeit) : null;
+  const statusLabel = paid
+    ? t(paid.labelKey)
+    : m.enumOptions("status", t).find((o) => o.value === status)?.label;
+  const statusTone = paid
+    ? paid.tone
+    : (STATUS_TONE[status ?? ""] ?? "neutral");
   const typLabel = m.enumOptions("typ", t).find((o) => o.value === typ)?.label;
 
   return (
@@ -46,11 +79,7 @@ export function InvoiceEditBanner() {
         {nummer != null && (
           <span className="text-sm font-semibold tabular-nums">#{nummer}</span>
         )}
-        {statusLabel && (
-          <Badge variant="secondary" className="font-normal">
-            {statusLabel}
-          </Badge>
-        )}
+        {statusLabel && <StatusPill tone={statusTone} label={statusLabel} />}
         {typLabel && (
           <Badge variant="outline" className="font-normal">
             {typLabel}

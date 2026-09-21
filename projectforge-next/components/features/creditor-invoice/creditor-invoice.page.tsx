@@ -3,6 +3,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { InvoiceStatisticsLine } from "@/components/shared/invoice/invoice-statistics-line";
 import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-statistics";
 import { AccountField } from "./edit/account-field";
+import { KreditorField } from "./edit/kreditor-field";
 import { CreditorInvoiceEditBanner } from "./edit/creditor-invoice-edit-banner";
 import { PaymentFields } from "./edit/payment-fields";
 import { PositionsSection } from "./edit/positions-section";
@@ -200,14 +201,16 @@ export const CREDITOR_INVOICE_PAGE = definePage<
           { name: "datum" },
           // Highlighted like the list's subject column, so both set the same focus.
           { name: "betreff", span: 2, emphasized: true },
-          { name: "kreditor" },
+          { custom: KreditorField },
           { name: "referenz" },
           { name: "customernr" },
           { custom: AccountField },
-          { name: "receiver", span: 2 },
+          // Payment type shares the account row at a third of its width, as the request asks.
+          { name: "paymentType" },
+          // Receiver, IBAN and BIC read as one bank-details line — a third each, on a row of their own.
+          { name: "receiver", startsRow: true },
           { name: "iban" },
           { name: "bic" },
-          { name: "paymentType" },
         ],
       },
       {

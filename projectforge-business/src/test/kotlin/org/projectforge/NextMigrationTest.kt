@@ -90,6 +90,22 @@ class NextMigrationTest {
     }
 
     /**
+     * The invoices no longer offer the way back (see NextPage.offerLegacyLink): neither the creditor nor
+     * the debtor page shows a "classic version" link, so every escape-hatch accessor answers null. The
+     * legacyApp stays all the same, so a bookmarked Wicket link is still redirected onto next - asserted in
+     * `orphaned links...` below.
+     */
+    @Test
+    fun `the invoices offer no way back`() {
+        for (category in listOf("outgoingInvoice", "incomingInvoice")) {
+            Assertions.assertNull(NextMigration.legacyListUrl(category), category)
+            Assertions.assertNull(NextMigration.legacyEditPage(category), category)
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
+            Assertions.assertFalse(NextMigration.legacyListInMenu(category), category)
+        }
+    }
+
+    /**
      * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
      * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
      * React app, which is where the escape hatch leads.
@@ -144,6 +160,13 @@ class NextMigrationTest {
         Assertions.assertEquals(NextMigration.LegacyApp.REACT, group!!.legacyApp)
         Assertions.assertEquals("react/group/edit", group.legacyEditPath) // Id is a path segment.
         Assertions.assertEquals("/next/group", group.nextListUrl)
+
+        // The invoices offer no way back any more (offerLegacyLink = false), but their legacyApp stays, so a
+        // bookmarked Wicket link is still bent onto next.
+        val incomingInvoice = byList["wa/incomingInvoiceList"]
+        Assertions.assertNotNull(incomingInvoice, "A bookmarked incoming invoice link must still be redirected.")
+        Assertions.assertEquals("/next/creditor-invoice", incomingInvoice!!.nextListUrl)
+        Assertions.assertEquals("wa/incomingInvoiceEdit", incomingInvoice.legacyEditPath)
 
         // The book's legacy form was removed (legacyApp == null), so there is no legacy link to bend.
         Assertions.assertTrue(

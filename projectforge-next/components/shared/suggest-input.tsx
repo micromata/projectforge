@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import type { KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -42,6 +43,12 @@ export interface SuggestInputProps {
   autoFocus?: boolean;
   placeholder?: string;
   onBlur?: () => void;
+  /**
+   * Called with the committed value when the user settles on one — picking a suggestion, or leaving the
+   * box. For a side effect that a mere keystroke should not trigger: the creditor invoice carries the
+   * bank details of the chosen creditor over into its other fields (see KreditorField).
+   */
+  onCommit?: (value: string) => void;
   "aria-label"?: string;
   className?: string;
 }
@@ -72,10 +79,15 @@ export function SuggestInput({
   autoFocus,
   placeholder,
   onBlur,
+  onCommit,
   "aria-label": ariaLabel,
   className,
 }: SuggestInputProps) {
   const [open, setOpen] = useState(false);
+  // Which suggestion the arrow keys have moved to, `-1` for none — the keyboard counterpart of the mouse
+  // hover. Reset to none whenever the list is re-typed or re-opened, so a stale row is never carried over
+  // an intervening query.
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const { data: completions = [] } = useQuery({
     queryKey: ["suggest", ...queryKey, value],
@@ -91,6 +103,44 @@ export function SuggestInput({
 
   // What the box already holds is no suggestion — offering it would be a click that changes nothing.
   const suggestions = completions.filter((entry) => entry !== value);
+  const listOpen = open && suggestions.length > 0;
+
+  const commit = (entry: string) => {
+    onChange(entry);
+    setOpen(false);
+    setActiveIndex(-1);
+    onCommit?.(entry);
+  };
+
+  // Arrow keys walk the list, Enter takes the highlighted row, Escape closes it — the keyboard peer of the
+  // mouse. Only the keys we act on are swallowed: Enter without a highlight, or any other key, falls through
+  // to the form (a plain Enter still submits, arrows still move the caret when the list is shut).
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpen(true);
+      if (listOpen) {
+        setActiveIndex((i) => (i + 1) % suggestions.length);
+      }
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      if (!listOpen) return;
+      event.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+      return;
+    }
+    if (event.key === "Enter" && listOpen && activeIndex >= 0) {
+      event.preventDefault();
+      commit(suggestions[activeIndex]);
+      return;
+    }
+    if (event.key === "Escape" && listOpen) {
+      event.preventDefault();
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  };
 
   return (
     // `open` follows the focus state alone, never the async list: gating Radix's open on
@@ -110,10 +160,17 @@ export function SuggestInput({
           // The suggestion list replaces the browser's own history dropdown.
           autoComplete="off"
           className={cn(invalid && "border-destructive", className)}
+          role="combobox"
+          aria-expanded={listOpen}
+          aria-autocomplete="list"
           onChange={(e) => {
             onChange(e.target.value);
             setOpen(true);
+            // Typing changes the list under the highlight — drop it rather than point at a row that has
+            // shifted or gone.
+            setActiveIndex(-1);
           }}
+          onKeyDown={onKeyDown}
           onFocus={() => setOpen(true)}
           // A click when the box is already focused (so onFocus won't fire again) reopens the list —
           // clicking the field is how a user asks to see the recent entries again after dismissing it.
@@ -123,7 +180,9 @@ export function SuggestInput({
           // still lands before this would tear the list down.
           onBlur={() => {
             setOpen(false);
+            setActiveIndex(-1);
             onBlur?.();
+            onCommit?.(value);
           }}
         />
       </PopoverAnchor>
@@ -131,6 +190,7 @@ export function SuggestInput({
         <PopoverContent
           align="start"
           className="w-(--radix-popover-trigger-width) p-1"
+          role="listbox"
           // Keep the caret in the input while the list is open.
           onOpenAutoFocus={(e) => e.preventDefault()}
           // The caret lives in the anchor input, which is *outside* this content — so the moment the
@@ -139,18 +199,25 @@ export function SuggestInput({
           // seen). Closing is our job here: the input's onBlur does it on a real leave.
           onFocusOutside={(e) => e.preventDefault()}
         >
-          {suggestions.map((entry) => (
+          {suggestions.map((entry, index) => (
             <button
               key={entry}
               type="button"
-              className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-muted"
+              role="option"
+              aria-selected={index === activeIndex}
+              className={cn(
+                "block w-full rounded px-2 py-1 text-left text-sm hover:bg-muted",
+                // The arrow-key highlight, shown the same way as hover so the two agree on which row is
+                // "current".
+                index === activeIndex && "bg-muted"
+              )}
               // Keep the focus in the input so its onBlur doesn't fire and close the list before this
               // click is delivered — the box stays open on pick and closes on a real focus leave.
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                onChange(entry);
-                setOpen(false);
-              }}
+              // A hovered row becomes the highlighted one, so moving from mouse to Enter picks what is
+              // under the pointer rather than wherever the arrows last were.
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => commit(entry)}
             >
               {entry}
             </button>

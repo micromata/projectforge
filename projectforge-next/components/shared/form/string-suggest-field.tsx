@@ -17,6 +17,8 @@ export interface StringSuggestFieldProps extends BaseFieldProps {
   queryKey: readonly unknown[];
   /** See [SuggestInputProps.minChars] — `0` offers the recent entries as soon as the box is focused. */
   minChars?: number;
+  /** See [SuggestInputProps.onCommit] — a side effect for the settled value, not for every keystroke. */
+  onCommit?: (value: string) => void;
   disabled?: boolean;
 }
 
@@ -37,6 +39,7 @@ export function StringSuggestField({
   suggest,
   queryKey,
   minChars,
+  onCommit,
   disabled,
 }: StringSuggestFieldProps) {
   const form = useEntityEditForm();
@@ -70,6 +73,7 @@ export function StringSuggestField({
                 field.handleChange(required ? next : next || null)
               }
               onBlur={field.handleBlur}
+              onCommit={onCommit}
               suggest={suggest}
               queryKey={queryKey}
               minChars={minChars}

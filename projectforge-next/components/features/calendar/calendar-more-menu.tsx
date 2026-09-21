@@ -12,9 +12,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
+import { LegacyMenuItem } from "@/components/shared/legacy-page-link";
 import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
 interface CalendarMoreMenuProps {
@@ -43,7 +45,7 @@ export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
           <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-72">
         <HintTooltip
           side="left"
           text={t("plugins.teamcal.calendar.refresh.tooltip")}
@@ -59,6 +61,10 @@ export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
             {t("menu.plugins.teamcal")}
           </a>
         </DropdownMenuItem>
+        {/* The way back to the legacy calendar, demoted from a prominent button into this menu now
+            that the new page is trusted (see LegacyMenuItem / NextMigration.legacyListInMenu). */}
+        <DropdownMenuSeparator />
+        <LegacyMenuItem url="react/calendar?legacyEscape" />
       </DropdownMenuContent>
     </DropdownMenu>
   );
