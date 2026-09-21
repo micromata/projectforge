@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { TaskTreePanel } from "./task-tree-panel";
 import type { TaskNode } from "@/lib/rs/task";
+import { useRecentTasks } from "./use-recent-tasks";
 
 export interface TaskSelectModalProps {
   value: number | null;
@@ -30,8 +31,12 @@ export function TaskSelectModal({
   rootTaskId,
 }: TaskSelectModalProps) {
   const t = useTranslations();
+  const { recordTask } = useRecentTasks();
 
   const handleSelect = (task: TaskNode) => {
+    // A pick from the tree, recorded like a pick from the search popover so the recent quick-picks
+    // stay current wherever the dialog is used (see useRecentTasks and TaskSelectControl).
+    recordTask(task.id);
     onChange(task);
     onOpenChange(false);
   };

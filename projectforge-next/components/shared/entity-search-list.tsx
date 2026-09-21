@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   Command,
   CommandEmpty,
+  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -37,6 +38,21 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
    * entries (see [EntityMultiAutocomplete]) rather than closing on the first one.
    */
   keepFocus?: boolean;
+  /**
+   * Quick-picks to offer *before* the user types — the recently used entries (see TaskSearchPopover).
+   * Shown as a labelled group above the backend results while the search term is empty, and hidden the
+   * moment a term is typed, where the backend's matches are the answer. A pick behaves like any other.
+   * Left empty by callers that have none (e.g. EntityAutocomplete), which then renders unchanged.
+   */
+  recentEntries?: T[];
+  /** Heading of the [recentEntries] group; required only when there are recent entries to show. */
+  recentLabel?: string;
+  /**
+   * Whether opening with an empty term asks the backend for a first slice of entries. Default on; the
+   * task search passes `false`, where the empty-term answer is a random, mostly useless part of the
+   * whole tree and the recents are the "before you type" content instead (see [useEntityLookup]).
+   */
+  emptyTermSearches?: boolean;
 }
 
 /**
@@ -55,6 +71,9 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   active,
   onPick,
   keepFocus,
+  recentEntries,
+  recentLabel,
+  emptyTermSearches = true,
 }: EntitySearchListProps<T>) {
   const t = useTranslations();
   const [search, setSearch] = useState("");
@@ -66,7 +85,21 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
     params,
     open: active,
     minChars,
+    emptyTermSearches,
   });
+
+  /** The recent quick-picks only make sense before a term narrows the list; typing takes over. */
+  const showRecent =
+    search.trim().length === 0 && (recentEntries?.length ?? 0) > 0;
+
+  const pick = (entry: T) => {
+    onPick(entry);
+    // The term goes either way: what was searched for has been found.
+    setSearch("");
+    // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item that was
+    // clicked, so the next term would go nowhere.
+    if (keepFocus) searchRef.current?.focus();
+  };
 
   return (
     // The backend does the filtering; cmdk must not filter the results again.
@@ -93,22 +126,43 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
               ? t("loading")
               : t("nothingFound")}
         </CommandEmpty>
-        {entries.map((entry) => (
-          <CommandItem
-            key={entry.id}
-            value={String(entry.id)}
-            onSelect={() => {
-              onPick(entry);
-              // The term goes either way: what was searched for has been found.
-              setSearch("");
-              // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item
-              // that was clicked, so the next term would go nowhere.
-              if (keepFocus) searchRef.current?.focus();
-            }}
+        {showRecent && (
+          // Own value prefix so a recent entry never collides with the same id in the backend results
+          // that also load for the empty term (cmdk keys items by their value). No own scroll container:
+          // cmdk gives `CommandList` the single scroller, and a nested `overflow-y-auto` here would
+          // swallow the wheel without scrolling reliably (its base class is `overflow-hidden`). The
+          // whole list scrolls as one; the heading only stays pinned to the list's top while its items
+          // pass under it.
+          <CommandGroup
+            heading={recentLabel}
+            className="**:[[cmdk-group-heading]]:sticky **:[[cmdk-group-heading]]:top-0 **:[[cmdk-group-heading]]:bg-popover"
           >
-            {entry.displayName}
-          </CommandItem>
-        ))}
+            {recentEntries!.map((entry) => (
+              <CommandItem
+                key={`recent-${entry.id}`}
+                value={`recent-${entry.id}`}
+                onSelect={() => pick(entry)}
+              >
+                {entry.displayName}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+        {/* While the recents are shown (empty term with recents to offer) they *are* the answer, so the
+            backend's empty-term dump — for the task lookup the whole tree — stays out: mixing the two
+            buried the few recents under it and put two differently-indented item styles in one list. A
+            typed term flips showRecent off and the matches take over. Callers without recents
+            (EntityAutocomplete) keep showing their entries on the empty term unchanged. */}
+        {!showRecent &&
+          entries.map((entry) => (
+            <CommandItem
+              key={entry.id}
+              value={String(entry.id)}
+              onSelect={() => pick(entry)}
+            >
+              {entry.displayName}
+            </CommandItem>
+          ))}
         {isLoadingMore && <LookupLoadingRow />}
       </CommandList>
     </Command>

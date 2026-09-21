@@ -9,6 +9,7 @@ import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
 import { TaskEditLink } from "./task-edit-link";
 import { TaskPath } from "./task-path";
 import { TaskSearchPopover } from "./task-search-popover";
+import { useRecentTasks } from "./use-recent-tasks";
 
 export interface TaskSelectControlProps {
   /** The picked task, or null while nothing is picked. */
@@ -51,6 +52,7 @@ export function TaskSelectControl({
   onDrillDown,
 }: TaskSelectControlProps) {
   const t = useTranslations();
+  const { recordTask } = useRecentTasks();
 
   const { data: task } = useQuery({
     queryKey: ["taskInfo", taskId],
@@ -59,6 +61,18 @@ export function TaskSelectControl({
     staleTime: Infinity,
   });
 
+  /**
+   * The one funnel for a pick from the search popover *and* from the breadcrumb: both feed [onSelect]
+   * here, so recording it once — for every consumer of this control (the form field, the timesheet
+   * kost2 picker, the filter row, the wizard) — keeps the recent quick-picks current. Clearing (null)
+   * is not a pick. The tree dialog records its own pick, since it is a sibling of this control, not a
+   * child (see TaskSelectModal).
+   */
+  const select = (node: TaskNode | null) => {
+    if (node != null) recordTask(node.id);
+    onSelect(node);
+  };
+
   return (
     <div className="flex min-w-0 items-center gap-2">
       {/* Only as wide as the path itself, so the buttons sit directly after it rather than at the row's
@@ -66,7 +80,7 @@ export function TaskSelectControl({
       <div className="min-w-0 shrink">
         <TaskPath
           task={(taskId != null && task) || null}
-          onSelect={(node) => onSelect(node)}
+          onSelect={select}
           onOpen={onOpen}
           openTreeOnAncestorClick={openTreeOnAncestorClick}
           onDrillDown={onDrillDown}
@@ -78,7 +92,7 @@ export function TaskSelectControl({
       <TaskSearchPopover
         ariaLabel={ariaLabel}
         disabled={disabled}
-        onSelect={onSelect}
+        onSelect={select}
       />
       <Button
         type="button"

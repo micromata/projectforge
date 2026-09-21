@@ -268,6 +268,39 @@ export interface TaskDisplayObject {
   displayName?: string;
 }
 
+/**
+ * The tasks the user picked most recently in the task select element, newest first, each as
+ * `{id, displayName: "A | B | C"}` — the quick-picks the search popover offers before anything is typed
+ * (`TaskServicesRest.getRecentList`). Backed by a persistent per-user preference, independent of the
+ * timesheet-derived recent tasks.
+ */
+export function fetchRecentTasks(
+  signal?: AbortSignal
+): Promise<TaskDisplayObject[]> {
+  return request<TaskDisplayObject[]>(
+    "/rs/task/recent/list",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Records a task as just picked and answers with the updated recent list (see [fetchRecentTasks]), so a
+ * caller refreshes its quick-picks from the one response. A POST because it changes user state and thus
+ * carries the CSRF token (`request` adds it). Fire-and-forget at the call site: a failed record must
+ * never block the pick it follows.
+ */
+export function recordRecentTask(
+  id: number,
+  signal?: AbortSignal
+): Promise<TaskDisplayObject[]> {
+  return request<TaskDisplayObject[]>(
+    `/rs/task/recent/select?id=${id}`,
+    { method: "POST" },
+    signal
+  );
+}
+
 /** What the client asks a preview for, `TaskServicesRest.Kost2PreviewRequest`. */
 export interface Kost2PreviewRequest {
   /** Id of the task being edited, null while it is being added. */

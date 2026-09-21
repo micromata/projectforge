@@ -418,6 +418,9 @@ class TaskServicesRest {
     @Autowired
     private lateinit var agGridSupport: AGGridSupport
 
+    @Autowired
+    private lateinit var recentTaskService: RecentTaskService
+
     /**
      * The columns of the task tree, in the order the Wicket page shows them.
      *
@@ -734,6 +737,35 @@ class TaskServicesRest {
     fun getRoot(): AbstractEntityRest.DisplayObject {
         val rootId = TaskTree.instance.rootTaskNode.id
         return AbstractEntityRest.DisplayObject(rootId, formatPath(rootId))
+    }
+
+    /**
+     * The tasks the user picked most recently in the task select element, newest first, as
+     * `{id, displayName}` with the whole path as the label — the same shape [autosearch] answers, so the
+     * client's shared picker offers them as quick-picks before anything is typed.
+     *
+     * A task that no longer resolves (deleted, or the tree does not know it) is dropped, so a stale id in
+     * the stored queue never reaches the client.
+     */
+    @GetMapping("recent/list")
+    fun getRecentList(): List<AbstractEntityRest.DisplayObject> {
+        return recentTaskService.getRecentTaskIds()
+            .filter { TaskTree.instance.getTaskNodeById(it) != null }
+            .map { AbstractEntityRest.DisplayObject(it, formatPath(it)) }
+    }
+
+    /**
+     * Records a task as just picked, moving it to the front of the user's recent list, and answers with the
+     * updated list (in the shape [getRecentList] returns) so the client refreshes its quick-picks from the
+     * one response rather than asking again.
+     *
+     * A POST although it stores only a user preference: it changes user state and so needs the CSRF token
+     * like every write.
+     */
+    @PostMapping("recent/select")
+    fun selectRecent(@RequestParam("id") id: Long): List<AbstractEntityRest.DisplayObject> {
+        recentTaskService.addRecentTaskId(id)
+        return getRecentList()
     }
 
     /**

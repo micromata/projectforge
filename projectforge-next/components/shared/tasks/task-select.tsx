@@ -11,6 +11,7 @@ import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
 import { cn } from "@/lib/utils";
 import { TaskPath } from "./task-path";
 import { TaskTreePanel } from "./task-tree-panel";
+import { useRecentTasks } from "./use-recent-tasks";
 
 export interface TaskSelectProps {
   /** Id of the selected task, null while nothing is selected. */
@@ -42,6 +43,7 @@ export function TaskSelect({
 }: TaskSelectProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  const { recordTask } = useRecentTasks();
 
   const { data: task } = useQuery({
     queryKey: ["taskInfo", value],
@@ -53,6 +55,9 @@ export function TaskSelect({
 
   const select = (selected: TaskNode | null) => {
     onChange(selected?.id ?? null);
+    // Every commit feeds the recent quick-picks the search popover offers (see useRecentTasks);
+    // clearing the selection is not a pick.
+    if (selected != null) recordTask(selected.id);
     setOpen(false);
   };
 

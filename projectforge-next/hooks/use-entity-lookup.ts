@@ -38,6 +38,13 @@ export interface EntityLookupOptions {
   open: boolean;
   /** Characters before a *typed* term is looked up; the backend defaults it to 2. */
   minChars?: number;
+  /**
+   * Whether opening with an *empty* term asks the backend for "the beginning of what there is". On by
+   * default (a user or cost-unit picker wants that head start). The task search turns it off: its
+   * empty-term answer is a random, mostly useless slice of the whole tree, and the recent quick-picks
+   * are the better "before you type" content there (see TaskSearchPopover).
+   */
+  emptyTermSearches?: boolean;
 }
 
 export interface EntityLookup<T> {
@@ -72,6 +79,7 @@ export function useEntityLookup<T>({
   params,
   open,
   minChars = 2,
+  emptyTermSearches = true,
 }: EntityLookupOptions): EntityLookup<T> {
   const term = search.trim();
   const [limit, setLimit] = useState(LOOKUP_PAGE_SIZE);
@@ -89,10 +97,12 @@ export function useEntityLookup<T>({
     queryKey: ["entity-lookup", url, term, params, limit],
     queryFn: ({ signal }) =>
       fetchAutoCompletion<T>(withMaxResults(url!, limit), term, params, signal),
-    // The empty term is a legitimate lookup now; a half-typed one still isn't, since it would search
-    // for a fragment the user is in the middle of writing.
+    // The empty term is a legitimate lookup where the caller wants that head start; a half-typed one
+    // still isn't, since it would search for a fragment the user is in the middle of writing.
     enabled:
-      open && url != null && (term.length === 0 || term.length >= minChars),
+      open &&
+      url != null &&
+      ((emptyTermSearches && term.length === 0) || term.length >= minChars),
     staleTime: STALE_MS,
     placeholderData: keepPreviousData,
     retry: false,
