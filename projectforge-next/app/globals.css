@@ -24,6 +24,9 @@
   --color-status-available: var(--status-available);
   --color-status-available-bg: var(--status-available-bg);
   --color-status-available-border: var(--status-available-border);
+  --color-status-info: var(--status-info);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-border: var(--status-info-border);
   --color-status-bar: var(--status-bar);
   --color-status-bar-foreground: var(--status-bar-foreground);
   --color-warning: var(--warning);
@@ -95,6 +98,10 @@
   --status-available: var(--brand-green);
   --status-available-bg: rgba(117, 190, 1, 0.1);
   --status-available-border: rgba(117, 190, 1, 0.3);
+  /* Teal "open/pending" tint, same hue as --row-blue — for a neutral, not-yet-done state. */
+  --status-info: rgb(0, 155, 163);
+  --status-info-bg: rgba(0, 155, 163, 0.1);
+  --status-info-border: rgba(0, 155, 163, 0.3);
 
   /* The Wicket-style footer strip: a dark bar with muted light text, the same in either theme. */
   --status-bar: oklch(0.28 0 0);
