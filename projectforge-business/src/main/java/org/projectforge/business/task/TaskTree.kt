@@ -841,6 +841,8 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 } else {
                     node.totalDuration = (res[0] as Long)
                 }
+                node.earliestTimesheetStartDate = res[2] as java.util.Date?
+                node.latestTimesheetStopDate = res[3] as java.util.Date?
             }
         }
     }
@@ -849,12 +851,14 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
      */
     fun readTotalDuration(taskId: Long) {
-        val duration = taskDao.readTotalDuration(taskId)
+        val info = taskDao.readTotalDurationInfo(taskId)
         val node = getTaskNodeById(taskId)
         if (node == null) {
             log.warn("Task not found: $taskId")
         } else {
-            node.totalDuration = duration
+            node.totalDuration = info.duration
+            node.earliestTimesheetStartDate = info.earliestStartTime
+            node.latestTimesheetStopDate = info.latestStopTime
         }
     }
 
