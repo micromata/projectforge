@@ -126,9 +126,8 @@ class TaskFavoritesRest {
      * only the task id, so the path is looked up per favorite (the list is a handful of entries).
      */
     private fun toInfoList(): List<TaskFavoriteInfo> {
-        return taskFavorites.getList().map { favorite ->
-            val taskId = favorite.id?.let { taskFavorites.selectTaskId(it) }
-            TaskFavoriteInfo(favorite.id, favorite.name, formatPath(taskId))
+        return taskFavorites.getListWithTaskId().map { favorite ->
+            TaskFavoriteInfo(favorite.id, favorite.name, formatPath(favorite.taskId))
         }
     }
 
