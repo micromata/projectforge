@@ -58,9 +58,13 @@ export function TaskSearchPopover({
           <HugeiconsIcon icon={Search01Icon} size={14} />
         </Button>
       </PopoverTrigger>
-      {/* Wider than the trigger, which is one icon: a hit is a whole path and would be unreadable
-          at the button's width. */}
-      <PopoverContent align="start" className="w-96 p-0">
+      {/* A hit is a whole task path, unreadable at the one-icon trigger's width: open wide so the
+          path reads on one or two lines, but clamp to the space Radix has toward the viewport edge
+          so it never runs off-screen when the field sits near the right border. */}
+      <PopoverContent
+        align="start"
+        className="w-[44rem] max-w-(--radix-popover-content-available-width) p-0"
+      >
         <EntitySearchList
           url={TASK_LOOKUP_URL}
           active={open}
