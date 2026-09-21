@@ -9,7 +9,8 @@
  * outgoing invoice's, under this category's path.
  */
 
-import { request } from "./client";
+import { rawRequest, request, RsError } from "./client";
+import { fetchAutoCompletion } from "./dynamic";
 import { downloadFile, downloadPost } from "./download";
 import { recalculateInvoiceSums, type InvoiceSums } from "./invoice-sums";
 import { downloadListExcel } from "./list-export";
@@ -120,4 +121,59 @@ export function fetchCreditorInvoiceFormDefaults(
     { method: "GET" },
     signal
   );
+}
+
+/**
+ * The creditors the backend has already seen, for the term typed so far — the generic property
+ * autocompletion the incoming invoice opts into for `kreditor`
+ * (`EingangsrechnungDao.ENABLED_AUTOCOMPLETION_PROPERTIES`), hence the `property` parameter.
+ *
+ * A free string, not a reference: the value is the creditor's name itself and any name is valid — the
+ * suggestions only save typing a name entered before (see StringSuggestField).
+ */
+export function fetchKreditorSuggestions(
+  search: string,
+  signal?: AbortSignal
+): Promise<string[]> {
+  return fetchAutoCompletion<string>(
+    `${ENTITY}/autocomplete?property=kreditor&search=:search`,
+    search,
+    undefined,
+    signal
+  );
+}
+
+/** What `IncomingInvoiceEntityRest.getNewestByKreditor` answers (`KreditorAutofill` there). */
+export interface KreditorAutofill {
+  /** The payee of the creditor's most recent invoice — null where it had none. */
+  receiver?: string | null;
+  iban?: string | null;
+  bic?: string | null;
+  customernr?: string | null;
+}
+
+/**
+ * The bank details of a creditor's most recent invoice, so the form can carry them over when the user picks
+ * a known creditor — the Wicket edit form did the same on the autocomplete field's change event
+ * (`autofillLatestKreditorInformations`).
+ *
+ * Answers `null` for a blank creditor or one with no stored invoice; the caller then leaves the fields as the
+ * user has them.
+ */
+export async function fetchNewestByKreditor(
+  kreditor: string,
+  signal?: AbortSignal
+): Promise<KreditorAutofill | null> {
+  const res = await rawRequest(
+    `/rs/${ENTITY}/newestByKreditor?kreditor=${encodeURIComponent(kreditor)}`,
+    { method: "GET" },
+    signal
+  );
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}`);
+  }
+  // A creditor with no stored invoice answers `null`, which Spring sends as an empty body — `res.json()`
+  // would choke on it, so an empty answer becomes `null` here (the caller then leaves the fields alone).
+  const body = await res.text();
+  return body ? (JSON.parse(body) as KreditorAutofill) : null;
 }

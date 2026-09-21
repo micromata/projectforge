@@ -65,6 +65,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -193,6 +194,40 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
          * Null where the installation configured none, in which case the field simply starts empty.
          */
         val defaultVat: BigDecimal?,
+    )
+
+    /**
+     * The bank details of the most recent invoice of a creditor, so the hand built form can offer them the
+     * moment the user picks a known creditor — exactly what Wicket's `EingangsrechnungEditForm`
+     * (`autofillLatestKreditorInformations`) did through the autocomplete field's change event.
+     *
+     * Read only, so the select access of the category is what is checked. A blank creditor or one with no
+     * stored invoice answers null, and the form then leaves its fields as the user has them.
+     */
+    @GetMapping("newestByKreditor")
+    fun getNewestByKreditor(@RequestParam("kreditor") kreditor: String?): KreditorAutofill? {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        if (kreditor.isNullOrBlank()) {
+            return null
+        }
+        val invoice = baseDao.findNewestByKreditor(kreditor) ?: return null
+        return KreditorAutofill(
+            receiver = invoice.receiver,
+            iban = invoice.iban,
+            bic = invoice.bic,
+            customernr = invoice.customernr,
+        )
+    }
+
+    /**
+     * The fields [getNewestByKreditor] carries over from the creditor's most recent invoice, mirroring the
+     * ones Wicket's edit form copied: the payee, the bank connection and the customer number.
+     */
+    class KreditorAutofill(
+        val receiver: String?,
+        val iban: String?,
+        val bic: String?,
+        val customernr: String?,
     )
 
     /**

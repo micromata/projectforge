@@ -3,6 +3,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { InvoiceStatisticsLine } from "@/components/shared/invoice/invoice-statistics-line";
 import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-statistics";
 import { AccountField } from "./edit/account-field";
+import { KreditorField } from "./edit/kreditor-field";
 import { CreditorInvoiceEditBanner } from "./edit/creditor-invoice-edit-banner";
 import { PaymentFields } from "./edit/payment-fields";
 import { PositionsSection } from "./edit/positions-section";
@@ -200,7 +201,7 @@ export const CREDITOR_INVOICE_PAGE = definePage<
           { name: "datum" },
           // Highlighted like the list's subject column, so both set the same focus.
           { name: "betreff", span: 2, emphasized: true },
-          { name: "kreditor" },
+          { custom: KreditorField },
           { name: "referenz" },
           { name: "customernr" },
           { custom: AccountField },
