@@ -1,5 +1,6 @@
 import type { AgGridNode } from "@/lib/dynamic/grid/ag-grid-types";
 import { request } from "./client";
+import type { FavoriteIdTitle } from "./types";
 
 /**
  * The structure tree (Strukturbaum), served by `TaskServicesRest` rather than by a list layout.
@@ -296,6 +297,89 @@ export function recordRecentTask(
 ): Promise<TaskDisplayObject[]> {
   return request<TaskDisplayObject[]>(
     `/rs/task/recent/select?id=${id}`,
+    { method: "POST" },
+    signal
+  );
+}
+
+/**
+ * One saved task favorite (Strukturelementfavorit), `TaskFavoritesRest.TaskFavoriteInfo`: a chosen task
+ * stored under a name for quick re-selection. Beyond the `{id, name}` a favorite shares with the list's
+ * filter favorites, it carries the whole path of the referenced task (root first, its own title last),
+ * which the picker shows as a tooltip behind the name.
+ */
+export interface TaskFavorite extends FavoriteIdTitle {
+  /** The referenced task's whole path, `"A | B | C"`, or null if the task no longer resolves. */
+  pathAsString?: string | null;
+}
+
+/**
+ * The user's saved task favorites (`TaskFavoritesRest`, backed by a per-user `UserPrefDO`, area
+ * `TASK_FAVORITE`). The same favorites the legacy frontend shows: they share the storage. The stored
+ * favorite keeps only the task id; the label and path are resolved server-side (and the id lazily on
+ * [selectTaskFavorite]).
+ */
+export function fetchTaskFavorites(
+  signal?: AbortSignal
+): Promise<TaskFavorite[]> {
+  return request<TaskFavorite[]>(
+    "/rs/task/favorites/list",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Saves the given task under a name and answers with the updated favorites list, so the caller
+ * refreshes from the one response. POST because it changes user state and thus carries the CSRF token
+ * (`request` adds it); the legacy GET mapping stays for the React frontend.
+ */
+export function createTaskFavorite(
+  name: string,
+  taskId: number,
+  signal?: AbortSignal
+): Promise<TaskFavorite[]> {
+  const query = new URLSearchParams({ name, taskId: String(taskId) });
+  return request<TaskFavorite[]>(
+    `/rs/task/favorites/create?${query}`,
+    { method: "POST" },
+    signal
+  );
+}
+
+/** Resolves a favorite to the task id it points at (or null if it has none). */
+export function selectTaskFavorite(
+  id: number,
+  signal?: AbortSignal
+): Promise<number | null> {
+  return request<number | null>(
+    `/rs/task/favorites/select?id=${id}`,
+    { method: "POST" },
+    signal
+  );
+}
+
+/** Deletes a favorite and answers with the updated list. */
+export function deleteTaskFavorite(
+  id: number,
+  signal?: AbortSignal
+): Promise<TaskFavorite[]> {
+  return request<TaskFavorite[]>(
+    `/rs/task/favorites/delete?id=${id}`,
+    { method: "POST" },
+    signal
+  );
+}
+
+/** Renames a favorite and answers with the updated list. */
+export function renameTaskFavorite(
+  id: number,
+  newName: string,
+  signal?: AbortSignal
+): Promise<TaskFavorite[]> {
+  const query = new URLSearchParams({ id: String(id), newName });
+  return request<TaskFavorite[]>(
+    `/rs/task/favorites/rename?${query}`,
     { method: "POST" },
     signal
   );

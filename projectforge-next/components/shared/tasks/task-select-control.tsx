@@ -7,6 +7,7 @@ import { Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { fetchTaskInfo, type TaskNode } from "@/lib/rs/task";
 import { TaskEditLink } from "./task-edit-link";
+import { TaskFavoritesMenu } from "./task-favorites-menu";
 import { TaskPath } from "./task-path";
 import { TaskSearchPopover } from "./task-search-popover";
 import { useRecentTasks } from "./use-recent-tasks";
@@ -91,6 +92,11 @@ export function TaskSelectControl({
           tree for when the name is not what the user knows. */}
       <TaskSearchPopover
         ariaLabel={ariaLabel}
+        disabled={disabled}
+        onSelect={select}
+      />
+      <TaskFavoritesMenu
+        taskId={taskId}
         disabled={disabled}
         onSelect={select}
       />

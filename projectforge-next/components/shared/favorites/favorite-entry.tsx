@@ -32,6 +32,12 @@ export interface FavoriteEntryProps {
    * values are not comparable can honestly say.
    */
   isModified?: boolean;
+  /**
+   * An explanation shown on hover over the name — the task favorites pass the whole path of the
+   * referenced structure element, so the name alone need not spell out where it sits (see
+   * TaskFavoritesMenu). Omitted, the name carries no tooltip.
+   */
+  tooltip?: string | null;
   onSelect: () => void;
   onRename: (newName: string) => void;
   /** Omitted where overwriting a favorite is not offered at all. */
@@ -50,6 +56,7 @@ export function FavoriteEntry({
   favorite,
   isCurrent,
   isModified,
+  tooltip,
   onSelect,
   onRename,
   onUpdate,
@@ -94,17 +101,19 @@ export function FavoriteEntry({
         isCurrent && "bg-primary/10"
       )}
     >
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-current={isCurrent}
-        className={cn(
-          "min-w-0 flex-1 cursor-pointer truncate rounded px-2 py-0.5 text-left text-xs font-normal hover:bg-accent",
-          isCurrent && "font-medium text-primary"
-        )}
-      >
-        {favorite.name}
-      </button>
+      <HintTooltip text={tooltip} plain>
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-current={isCurrent}
+          className={cn(
+            "min-w-0 flex-1 cursor-pointer truncate rounded px-2 py-0.5 text-left text-xs font-normal hover:bg-accent",
+            isCurrent && "font-medium text-primary"
+          )}
+        >
+          {favorite.name}
+        </button>
+      </HintTooltip>
       {onUpdate && (isModified === undefined || isCurrent) && (
         <EntryAction
           icon={
