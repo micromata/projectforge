@@ -74,6 +74,16 @@ public class TaskNode implements IdObject<Long>, Serializable {
   long totalDuration = 0;
 
   /**
+   * Earliest start time of all time sheets of this task (excluding the child tasks) or null if none exist.
+   */
+  java.util.Date earliestTimesheetStartDate;
+
+  /**
+   * Latest stop time of all time sheets of this task (excluding the child tasks) or null if none exist.
+   */
+  java.util.Date latestTimesheetStopDate;
+
+  /**
    * Sum of all ordered person days excluding descendant nodes. Ordered person days are defined by the sum of all
    * assigned order position's person days. Used and set by task tree.
    */
@@ -500,6 +510,50 @@ public class TaskNode implements IdObject<Long>, Serializable {
       duration += child.getDuration(taskTree, true);
     }
     return duration;
+  }
+
+  /**
+   * Gets the earliest start time of all time sheets of this task.
+   *
+   * @param recursive If true, then the time sheets of all sub tasks will be considered too.
+   * @return The earliest start time or null if no time sheet exists.
+   */
+  public java.util.Date getEarliestTimesheetStartDate(final TaskTree taskTree, final boolean recursive) {
+    if (totalDuration < 0) {
+      taskTree.readTotalDuration(this.getId());
+    }
+    java.util.Date result = earliestTimesheetStartDate;
+    if (recursive && children != null) {
+      for (final TaskNode child : children) {
+        final java.util.Date childDate = child.getEarliestTimesheetStartDate(taskTree, true);
+        if (childDate != null && (result == null || childDate.before(result))) {
+          result = childDate;
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Gets the latest stop time of all time sheets of this task.
+   *
+   * @param recursive If true, then the time sheets of all sub tasks will be considered too.
+   * @return The latest stop time or null if no time sheet exists.
+   */
+  public java.util.Date getLatestTimesheetStopDate(final TaskTree taskTree, final boolean recursive) {
+    if (totalDuration < 0) {
+      taskTree.readTotalDuration(this.getId());
+    }
+    java.util.Date result = latestTimesheetStopDate;
+    if (recursive && children != null) {
+      for (final TaskNode child : children) {
+        final java.util.Date childDate = child.getLatestTimesheetStopDate(taskTree, true);
+        if (childDate != null && (result == null || childDate.after(result))) {
+          result = childDate;
+        }
+      }
+    }
+    return result;
   }
 
   @Override
