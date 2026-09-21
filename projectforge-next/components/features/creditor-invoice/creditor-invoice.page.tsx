@@ -205,10 +205,12 @@ export const CREDITOR_INVOICE_PAGE = definePage<
           { name: "referenz" },
           { name: "customernr" },
           { custom: AccountField },
-          { name: "receiver", span: 2 },
+          // Payment type shares the account row at a third of its width, as the request asks.
+          { name: "paymentType" },
+          // Receiver, IBAN and BIC read as one bank-details line — a third each, on a row of their own.
+          { name: "receiver", startsRow: true },
           { name: "iban" },
           { name: "bic" },
-          { name: "paymentType" },
         ],
       },
       {
