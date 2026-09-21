@@ -26,7 +26,6 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.user.UserPrefCache
-import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.ui.ResponseAction

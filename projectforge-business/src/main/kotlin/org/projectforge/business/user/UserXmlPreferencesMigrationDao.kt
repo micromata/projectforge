@@ -49,9 +49,6 @@ open class UserXmlPreferencesMigrationDao {
     private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
 
     @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
-
-    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     open fun migrateAllUserPrefs(): String {
@@ -69,7 +66,6 @@ open class UserXmlPreferencesMigrationDao {
             }
         }
         migrate(versionNumber)
-        userXmlPreferencesCache.refresh()
         return buf.toString()
     }
 

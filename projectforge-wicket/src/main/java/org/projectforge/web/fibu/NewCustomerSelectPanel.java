@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
-import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -285,11 +285,11 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
     @SuppressWarnings("unchecked")
     private RecentQueue<String> getRecentCustomers() {
         if (this.recentCustomers == null) {
-            this.recentCustomers = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
+            this.recentCustomers = (RecentQueue<String>) WicketSupport.get(UserPrefService.class).getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_CUSTOMERS);
         }
         if (this.recentCustomers == null) {
             this.recentCustomers = new RecentQueue<String>();
-            WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
+            WicketSupport.get(UserPrefService.class).putEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
         }
         return this.recentCustomers;
     }

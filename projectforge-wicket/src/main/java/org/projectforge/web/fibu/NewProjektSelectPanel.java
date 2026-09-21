@@ -30,7 +30,7 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
-import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.RecentQueue;
@@ -275,11 +275,11 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
     @SuppressWarnings("unchecked")
     private RecentQueue<String> getRecentProjects() {
         if (this.recentProjects == null) {
-            this.recentProjects = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_PROJECTS);
+            this.recentProjects = (RecentQueue<String>) WicketSupport.get(UserPrefService.class).getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_PROJECTS);
         }
         if (this.recentProjects == null) {
             this.recentProjects = new RecentQueue<String>();
-            WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
+            WicketSupport.get(UserPrefService.class).putEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
         }
         return this.recentProjects;
     }

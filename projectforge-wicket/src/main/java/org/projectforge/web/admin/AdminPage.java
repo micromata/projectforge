@@ -33,7 +33,6 @@ import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.jobs.CronSanityCheckJob;
 import org.projectforge.business.system.SystemService;
-import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.ConfigXml;
@@ -348,8 +347,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: refresh of caches.");
     checkAccess();
     String refreshedCaches = WicketSupport.get(SystemService.class).refreshCaches();
-    WicketSupport.get(UserXmlPreferencesCache.class).forceReload();
-    refreshedCaches += ", UserXmlPreferencesCache";
     setResponsePage(new MessagePage("administration.refreshCachesDone", refreshedCaches));
   }
 

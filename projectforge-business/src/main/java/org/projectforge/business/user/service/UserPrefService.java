@@ -35,22 +35,16 @@ import org.springframework.stereotype.Service;
 public class UserPrefService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefService.class);
 
+  /**
+   * Area used for preferences migrated from the legacy XML store ({@code T_USER_XML_PREFS}), which only had a flat
+   * key per user (no area). Migrated entries are stored as {@code (area = LEGACY_XML_AREA, name = &lt;old key&gt;)}.
+   * The lazy XML-&gt;JSON migration ({@code UserPrefCache.migrateLegacyEntryOnCacheMiss}) looks up the legacy row by
+   * this name.
+   */
+  public static final String LEGACY_XML_AREA = "legacyXmlPrefs";
+
   @Autowired
   private UserPrefCache userPrefCache;
-
-  /**
-   * Needed for migrations.
-   */
-  @SuppressWarnings("deprecation")
-  @Autowired
-  private UserXmlPreferencesService userXmlPreferencesService;
-
-  /**
-   * Should only be used for migration issues.
-   */
-  public UserXmlPreferencesService getUserXmlPreferencesService() {
-    return userXmlPreferencesService;
-  }
 
   /**
    * Stores the given value for the current user as persistent value.
