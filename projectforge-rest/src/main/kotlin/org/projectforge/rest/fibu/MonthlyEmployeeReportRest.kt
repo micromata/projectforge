@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 import mu.KotlinLogging
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.EmployeeCache
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.InvoicingQuotaService
 import org.projectforge.business.fibu.MonthlyEmployeeReport
 import org.projectforge.business.fibu.MonthlyEmployeeReportDao
@@ -46,6 +47,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.renderer.PdfRenderer
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.MonthlyEmployeeReportData
@@ -60,6 +62,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.Date
 
@@ -94,6 +98,9 @@ class MonthlyEmployeeReportRest {
 
     @Autowired
     private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
 
     @Autowired
     private lateinit var kostCache: KostCache
@@ -284,6 +291,18 @@ class MonthlyEmployeeReportRest {
         val vacationAvailable = vacationService.hasAccessToVacationService(ThreadLocalUserContext.loggedInUser, false)
         val averageWorkingTimeStats = averageWorkingTimeStats(user, report.year, report.month)
         val fromDate = LocalDate.of(report.year, report.month, 1)
+        // Target ("Soll") working hours of the month = weekly hours × working days ÷ 5 (5 working days/week),
+        // the same formula the salary export uses (EmployeeSalaryExportDao).
+        val employee = employeeCache.getEmployeeByUserId(user.id)
+        val weeklyHours = employeeService.getWeeklyWorkingHours(employee, fromDate)
+        val numberOfWorkingDays = report.numberOfWorkingDays
+        val targetWorkingHours = if (weeklyHours != null && numberOfWorkingDays != null) {
+            NumberHelper.formatFraction2(
+                weeklyHours.multiply(numberOfWorkingDays).divide(BigDecimal(5), 2, RoundingMode.HALF_UP)
+            )
+        } else {
+            null
+        }
 
         return MonthlyEmployeeReportData(
             userId = user.id,
@@ -295,6 +314,7 @@ class MonthlyEmployeeReportRest {
             costConfigured = costConfigured,
             kost1 = if (costConfigured && kost1 != null) OldKostFormatter.format(kost1) else null,
             numberOfWorkingDays = report.numberOfWorkingDays?.toString(),
+            targetWorkingHours = targetWorkingHours,
             formattedUnbookedDays = report.formattedUnbookedDays,
             averageWorkingTimeStats = averageWorkingTimeStats,
             timeSavingsByAIEnabled = timeSavingsByAIEnabled,

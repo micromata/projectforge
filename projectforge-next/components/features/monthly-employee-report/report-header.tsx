@@ -2,31 +2,36 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import type { MonthlyReport } from "./types";
 
-/** One labeled statistic in the header block. */
+/**
+ * One labeled statistic in the header line: label above value, small and quiet, matching the app-wide
+ * statistics-line convention (see order-sums-line.tsx) rather than a heavy KPI tile.
+ */
 function Stat({
   label,
   children,
   title,
   danger,
+  className,
 }: {
   label: string;
   children: ReactNode;
   title?: string;
   danger?: boolean;
+  /** Extra classes on the pair wrapper, e.g. a max width so a long value wraps instead of widening the row. */
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-      <span
-        className={danger ? "text-sm text-destructive" : "text-sm"}
+    <div className={cn("flex flex-col", className)}>
+      <dt className="text-[11px] opacity-70">{label}</dt>
+      <dd
+        className={cn("text-sm tabular-nums", danger && "text-destructive")}
         title={title}
       >
         {children}
-      </span>
+      </dd>
     </div>
   );
 }
@@ -39,7 +44,7 @@ function Stat({
 export function ReportHeader({ report }: { report: MonthlyReport }) {
   const t = useTranslations();
   return (
-    <div className="grid grid-cols-2 gap-4 rounded-md border border-border bg-muted/30 p-4 sm:grid-cols-3 lg:grid-cols-4">
+    <dl className="flex flex-wrap gap-x-6 gap-y-2" aria-label={t("statistics")}>
       {!report.maySelectOtherUsers && (
         <Stat label={t("timesheet.user")}>{report.userName}</Stat>
       )}
@@ -57,7 +62,10 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
         </Stat>
       )}
       {report.averageWorkingTimeStats && (
-        <Stat label={t("statistics")}>{report.averageWorkingTimeStats}</Stat>
+        // Capped width so the backend's full sentence wraps onto a few lines instead of stretching the row.
+        <Stat label={t("statistics")} className="max-w-sm">
+          {report.averageWorkingTimeStats}
+        </Stat>
       )}
       {report.invoicingQuota && (
         <Stat
@@ -75,6 +83,6 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
           {report.vacationPlannedCount}
         </Stat>
       )}
-    </div>
+    </dl>
   );
 }

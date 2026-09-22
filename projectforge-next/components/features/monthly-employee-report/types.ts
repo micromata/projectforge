@@ -42,6 +42,8 @@ export interface MonthlyReport {
   costConfigured: boolean;
   kost1?: string | null;
   numberOfWorkingDays?: string | null;
+  /** Target working hours of the month (weekly hours × working days ÷ 5), formatted, or null. */
+  targetWorkingHours?: string | null;
   formattedUnbookedDays?: string | null;
   averageWorkingTimeStats?: string | null;
   timeSavingsByAIEnabled: boolean;

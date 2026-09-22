@@ -810,6 +810,7 @@
       }
     },
     "monthlyEmployeeReport": {
+      "targetWorkingHours": "Working hours",
       "totalSum": {
         "_": "Total sum",
         "tooltip": "The total sum may differ from the sum above due to cost types for which only a fraction of workhours are counting."

@@ -17,6 +17,7 @@ import {
 import { ReportFilterRow } from "./report-filter-row";
 import { ReportHeader } from "./report-header";
 import { ReportMatrix } from "./report-matrix";
+import { ReportTitleStats } from "./report-title-stats";
 import type { MonthlyReportQuery } from "./types";
 
 function initialNumber(
@@ -59,6 +60,7 @@ export function MonthlyEmployeeReportPage() {
       <PageTitleRow
         category={t("menu.monthlyEmployeeReport._")}
         title={t("menu.monthlyEmployeeReport._")}
+        center={data ? <ReportTitleStats report={data} /> : undefined}
       >
         <Button
           type="button"
@@ -72,7 +74,7 @@ export function MonthlyEmployeeReportPage() {
         </Button>
         <LegacyPageLink url="wa/monthlyEmployeeReport?legacyEscape" />
       </PageTitleRow>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-6">
+      <div className="flex flex-col gap-4 px-4 pb-6">
         <ReportFilterRow report={data} value={query} onChange={setQuery} />
         {report.isPending && (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>

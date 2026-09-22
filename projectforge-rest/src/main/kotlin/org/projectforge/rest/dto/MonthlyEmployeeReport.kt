@@ -51,6 +51,8 @@ class MonthlyEmployeeReportData(
     val kost1: String?,
     /** Number of working days in the month (formatted). */
     val numberOfWorkingDays: String?,
+    /** Target working hours of the month (weekly hours × working days ÷ 5), formatted, or null. */
+    val targetWorkingHours: String?,
     /** Working days without time sheets, e.g. "03.11., 08.11." or null. */
     val formattedUnbookedDays: String?,
     /** The localized average-working-time statistics line, or null. */

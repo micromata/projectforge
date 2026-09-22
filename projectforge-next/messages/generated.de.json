@@ -810,6 +810,7 @@
       }
     },
     "monthlyEmployeeReport": {
+      "targetWorkingHours": "Arbeitsstunden",
       "totalSum": {
         "_": "Bruttoarbeitszeit",
         "tooltip": "Die Bruttoarbeitszeit kann von der Summe abweichen, wenn für bestimmte Kostenarten nur ein Anteil als Arbeitszeit gerechnet wird."
