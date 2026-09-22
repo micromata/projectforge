@@ -109,6 +109,14 @@ export function formatDate(value: unknown, ctx: FormatContext): string {
   }).format(date);
 }
 
+/** The full month name in the user's language, e.g. 1 → "Januar". `month` is 1-based (1 = January). */
+export function formatMonthName(month: number, ctx: FormatContext): string {
+  // A fixed day/year: only the month part is read, and a mid-month day avoids any time-zone edge.
+  return new Intl.DateTimeFormat(ctx.locale, { month: "long" }).format(
+    new Date(2000, month - 1, 15)
+  );
+}
+
 /**
  * Both ends of a period as the one value it is, e.g. `01.01.2026 – 31.12.2026`.
  *

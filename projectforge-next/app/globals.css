@@ -29,6 +29,7 @@
   --color-status-info-border: var(--status-info-border);
   --color-status-bar: var(--status-bar);
   --color-status-bar-foreground: var(--status-bar-foreground);
+  --color-ai-savings: var(--ai-savings);
   --color-warning: var(--warning);
   --color-development: var(--development);
   --color-development-foreground: var(--development-foreground);
@@ -102,6 +103,10 @@
   --status-info: rgb(0, 155, 163);
   --status-info-bg: rgba(0, 155, 163, 0.1);
   --status-info-border: rgba(0, 155, 163, 0.3);
+
+  /* Time saved by AI, the purple emphasis of the monthly employee report's AI column/rows (the legacy
+     Wicket page used inline "color:purple"). Chosen for readable contrast on white. */
+  --ai-savings: #7c3aed;
 
   /* The Wicket-style footer strip: a dark bar with muted light text, the same in either theme. */
   --status-bar: oklch(0.28 0 0);
@@ -241,6 +246,8 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  /* A lighter purple on the dark background, matching --ai-savings' intent (see the light theme). */
+  --ai-savings: #a78bfa;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   /* Focus ring follows primary, as in the light theme */

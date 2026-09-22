@@ -62,6 +62,14 @@ class OrphanedLinkFilter : Filter {
             redirect(servletResponse, uri, "/${NextMigration.listUrl("calendar")}")
         } else if (uri.contains("/wa/search")) { // Old Wicket global search, migrated to projectforge-next.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}search")
+        } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to projectforge-next.
+            if (servletRequest.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
+                // The "classic version" escape hatch: let it reach the legacy Wicket page (see the next page's
+                // LegacyPageLink, url "wa/monthlyEmployeeReport?legacyEscape").
+                chain.doFilter(servletRequest, servletResponse)
+            } else {
+                redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
+            }
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is

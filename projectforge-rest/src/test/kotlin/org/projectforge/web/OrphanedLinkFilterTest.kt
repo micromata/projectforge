@@ -76,6 +76,27 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/search", redirectOf("/wa/search"))
     }
 
+    /** The Wicket monthly employee report has moved to projectforge-next; a bookmarked link is bent onto it. */
+    @Test
+    fun `the old wicket monthly employee report is redirected to next`() {
+        Assertions.assertEquals(
+            "/next/monthlyEmployeeReport",
+            redirectOf("/wa/monthlyEmployeeReport"),
+        )
+    }
+
+    /**
+     * The "classic version" escape hatch: a request to the Wicket report carrying the escape marker is let
+     * through to the legacy page instead of being bounced back to next (see the next page's LegacyPageLink).
+     */
+    @Test
+    fun `the wicket monthly employee report with the escape marker stays in the legacy app`() {
+        Assertions.assertNull(
+            redirectOf("/wa/monthlyEmployeeReport", NextMigration.ESCAPE_HATCH_PARAM),
+            "The classic report switch carries the escape marker and must stay in Wicket.",
+        )
+    }
+
     /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,

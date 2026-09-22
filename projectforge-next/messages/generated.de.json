@@ -608,11 +608,16 @@
       "customer": {
         "reference": "Kundenreferenz"
       },
+      "invoicingQuota": {
+        "_": "Fakturaquote",
+        "tooltip": "So errechnet sich die Fakturaquote dieses Monatsberichts:\n\nAbgerechnete Arbeitszeit: {arg0} h\n÷ Arbeitszeit: {arg1} h\n= {arg2}\n\nIgnorierte Kostenarten (z. B. Urlaub, Abwesenheiten) fließen nicht ein."
+      },
       "netto": "Netto",
       "reached": "erreicht",
       "reference": "Referenz",
       "vat": "Mwst.",
-      "vatAmount": "Mwst.-Betrag"
+      "vatAmount": "Mwst.-Betrag",
+      "workingDays": "Arbeitstage"
     },
     "currencyConversion": {
       "conversionRate": "Umrechnungskurs",
@@ -803,6 +808,13 @@
         "monthly": "monatlich",
         "quarterly": "quartalsweise"
       }
+    },
+    "monthlyEmployeeReport": {
+      "totalSum": {
+        "_": "Bruttoarbeitszeit",
+        "tooltip": "Die Bruttoarbeitszeit kann von der Summe abweichen, wenn für bestimmte Kostenarten nur ein Anteil als Arbeitszeit gerechnet wird."
+      },
+      "withoutTimesheets": "ohne Zeitberichte"
     },
     "notYetInvoiced": "noch nicht fakturiert",
     "payment": {
@@ -1551,6 +1563,10 @@
       "short": "Menü",
       "title": "Hauptmenü"
     },
+    "monthlyEmployeeReport": {
+      "_": "Monatsbericht",
+      "fileprefix": "Monatsbericht"
+    },
     "myAccount": "Mein Zugang",
     "plugins": {
       "teamcal": "Kalenderliste"
@@ -1920,6 +1936,7 @@
   "show": "Anzeigen",
   "statistics": "Statistik",
   "status": "Status",
+  "sum": "Summe",
   "system": {
     "developmentSystem": "Development-System"
   },
@@ -2297,6 +2314,7 @@
   },
   "username": "Benutzer:innenname",
   "vacation": {
+    "annualleave": "Anzahl Urlaubstage für Kalenderjahr",
     "employee": "Mitarbeiter",
     "enddate": "Enddatum",
     "halfDayBegin": {
@@ -2314,6 +2332,7 @@
     "manager": "Abstimmung",
     "other": "Anderer",
     "own": "Eigner:in",
+    "plandannualleave": "Anzahl geplanter Urlaubstage für restliches Kalenderjahr",
     "previousyearleave": "Resturlaub aus dem Vorjahr",
     "replacement": {
       "_": "Vertretung",

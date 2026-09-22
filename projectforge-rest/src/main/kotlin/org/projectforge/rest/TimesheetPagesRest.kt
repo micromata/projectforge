@@ -900,6 +900,17 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 target.add(QueryFilter.eq("user.id", userId))
             }
         }
+        // Exact cost unit drill-down (monthly employee report row → timesheet list): an equality on `kost2.id`,
+        // not the `kost2.nummer` full-text search below. Matches the legacy report's drill-down, which queries by
+        // the cost center's exact id so the list runs the same DB query the report total does — a number search
+        // would miss bookings whose Kost2 number was recomposed (its search index is not refreshed then).
+        source.entries.find { it.field == "kost2.id" }?.let { kost2Entry ->
+            kost2Entry.synthetic = true
+            val kost2Id = kost2Entry.value.id ?: kost2Entry.value.value?.toLongOrNull()
+            if (kost2Id != null) {
+                target.add(QueryFilter.eq("kost2.id", kost2Id))
+            }
+        }
         // The cost unit filter (see addMagicFilterElements): consumed here rather than left to the generic
         // processor, which would send the free text as a leading-wildcard full-text term on the keyword number
         // field — expensive and unreliable. Shared logic in Kost2FilterUtils (prefix / multi-field search).

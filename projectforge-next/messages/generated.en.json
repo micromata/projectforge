@@ -608,11 +608,16 @@
       "customer": {
         "reference": "Customer reference"
       },
+      "invoicingQuota": {
+        "_": "Invoicing Quota",
+        "tooltip": "How the invoicing quota of this monthly report is calculated:\n\nBilled work time: {arg0} h\n÷ Work time: {arg1} h\n= {arg2}\n\nIgnored cost types (e.g. vacation, absences) are not included."
+      },
       "netto": "Net",
       "reached": "reached",
       "reference": "Reference",
       "vat": "VAT",
-      "vatAmount": "VAT amount"
+      "vatAmount": "VAT amount",
+      "workingDays": "Workdays"
     },
     "currencyConversion": {
       "conversionRate": "Conversion rate",
@@ -803,6 +808,13 @@
         "monthly": "monthly",
         "quarterly": "quarterly"
       }
+    },
+    "monthlyEmployeeReport": {
+      "totalSum": {
+        "_": "Total sum",
+        "tooltip": "The total sum may differ from the sum above due to cost types for which only a fraction of workhours are counting."
+      },
+      "withoutTimesheets": "without time sheets"
     },
     "notYetInvoiced": "not yet invoiced",
     "payment": {
@@ -1551,6 +1563,10 @@
       "short": "Menu",
       "title": "Main menu"
     },
+    "monthlyEmployeeReport": {
+      "_": "Monthly employee report",
+      "fileprefix": "MonthlyEmployeeReport"
+    },
     "myAccount": "My account",
     "plugins": {
       "teamcal": "List of calendars"
@@ -1920,6 +1936,7 @@
   "show": "Show",
   "statistics": "Statistics",
   "status": "Status",
+  "sum": "Sum",
   "system": {
     "developmentSystem": "Development system"
   },
@@ -2297,6 +2314,7 @@
   },
   "username": "User name",
   "vacation": {
+    "annualleave": "Number of leave days for the year",
     "employee": "Employee",
     "enddate": "End date",
     "halfDayBegin": {
@@ -2314,6 +2332,7 @@
     "manager": "Manager",
     "other": "Other",
     "own": "Own",
+    "plandannualleave": "Number of planned leave days for the rest of the year",
     "previousyearleave": "Previous year leave",
     "replacement": {
       "_": "Substitution",
