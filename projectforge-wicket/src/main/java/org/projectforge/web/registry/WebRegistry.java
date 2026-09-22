@@ -36,7 +36,6 @@ import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.calendar.CalendarPage;
-import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
@@ -249,14 +248,14 @@ public class WebRegistry
     register(DaoConst.GROUP, GroupListPage.class);
     addMountPages(DaoConst.GROUP, GroupListPage.class, GroupEditPage.class);
 
-    register(DaoConst.ORDERBOOK, AuftragListPage.class);
-    addMountPages(DaoConst.ORDERBOOK, AuftragListPage.class, AuftragEditPage.class);
+    // The order book (Auftragsbuch) has been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/orderBook* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
     register(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class);
     addMountPages(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class, EingangsrechnungEditPage.class);
 
-    register(DaoConst.OUTGOING_INVOICE, RechnungListPage.class);
-    addMountPages(DaoConst.OUTGOING_INVOICE, RechnungListPage.class, RechnungEditPage.class);
+    // The outgoing invoice (Debitoren) has been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/outgoingInvoice* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
     register(DaoConst.ACCESS, AccessListPage.class);
     addMountPages(DaoConst.ACCESS, AccessListPage.class, AccessEditPage.class);
@@ -291,7 +290,8 @@ public class WebRegistry
     addMountPage("personalStatistics", PersonalStatisticsPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
-    addMountPage("search", SearchPage.class);
+    // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.
+    // Bookmarked /wa/search links are redirected by OrphanedLinkFilter.
     addMountPage("sendSms", SendSmsPage.class);
     addMountPage("setup", SetupPage.class);
     addMountPage("taskTree", TaskTreePage.class);

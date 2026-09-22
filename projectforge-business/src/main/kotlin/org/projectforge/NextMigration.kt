@@ -197,8 +197,9 @@ object NextMigration {
             legacyRoute = "orderBookList",
             legacyEditRoute = "orderBookEdit?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "orderBookEdit",
-            // In use long enough to trust the new list: the way back moves into the gear menu.
-            legacyListInMenu = true,
+            // Trusted now: the way back is no longer offered (neither list menu nor edit button).
+            // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/orderBook* links.
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket, form included: the three document functions that used to be Wicket's alone
         // - the Word export, the XRechnung/ZUGFeRD export and the invoice PDF upload - are REST endpoints

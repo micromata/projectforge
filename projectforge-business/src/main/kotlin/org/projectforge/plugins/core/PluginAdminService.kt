@@ -30,6 +30,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -230,6 +231,11 @@ open class PluginAdminService {
         factory.autowireBean(plugin)
         PluginsRegistry.instance().register(plugin)
         plugin.init()
+        // Register the plugin's i18n resource bundles globally, so plugin translations are resolved
+        // regardless of whether Wicket is active. Plugin initialization was moved from WicketApplication.init()
+        // to the Spring lifecycle (ApplicationReadyEvent), which runs after Wicket servlet init and is skipped
+        // entirely in gateway mode. Registering the bundles here ensures I18nHelper knows about them in all modes.
+        plugin.resourceBundleNames.forEach { I18nHelper.addBundleName(it) }
         for (callback in afterCreatedActivePluginsCallback) {
             callback.call(plugin)
         }

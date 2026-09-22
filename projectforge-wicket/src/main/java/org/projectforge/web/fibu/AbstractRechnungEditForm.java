@@ -37,7 +37,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
@@ -49,6 +49,8 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.fibu.OrderEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -393,11 +395,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
             @Override
             public void onClick() {
               if (rechnungsPosition.getAuftragsPosition() != null) {
-                final PageParameters parameters = new PageParameters();
-                parameters.add(AbstractEditPage.PARAMETER_KEY_ID, rechnungsPosition.getAuftragsPosition().getAuftrag().getId());
-                final AuftragEditPage auftragEditPage = new AuftragEditPage(parameters);
-                auftragEditPage.setReturnToPage(getParentPage());
-                setResponsePage(auftragEditPage);
+                // The order book lives in projectforge-next now (its Wicket page was removed), so the
+                // jump to the order leads there. PagesResolver answers NextMigration's route.
+                throw new RedirectToUrlException(PagesResolver.getEditPageUrl(
+                        OrderEntityRest.class, rechnungsPosition.getAuftragsPosition().getAuftrag().getId(), null, true, null));
               }
             }
 

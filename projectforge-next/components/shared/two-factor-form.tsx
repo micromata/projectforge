@@ -120,6 +120,11 @@ export function TwoFactorForm({
         />
       </div>
       <div className="flex flex-wrap gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {tb("cancel")}
+          </Button>
+        )}
         <Button type="submit" disabled={isSubmitting || !code}>
           {isSubmitting ? t("verifying") : tb("user.My2FACode.code.validate")}
         </Button>
@@ -148,11 +153,6 @@ export function TwoFactorForm({
             onSuccess={onSuccess}
             onError={setError}
           />
-        )}
-        {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            {tb("cancel")}
-          </Button>
         )}
       </div>
     </form>

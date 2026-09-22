@@ -29,11 +29,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.business.fibu.OrderPositionInfo;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.fibu.OrderEntityRest;
 import org.projectforge.web.wicket.WicketUtils;
 
 import java.math.BigDecimal;
@@ -83,11 +83,10 @@ public class OrderPositionsPanel extends Panel {
                     link = new Link<String>("link") {
                         @Override
                         public void onClick() {
-                            final PageParameters params = new PageParameters();
-                            params.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(orderPosition.getAuftragId()));
-                            final AuftragEditPage page = new AuftragEditPage(params);
-                            page.setReturnToPage((AbstractSecuredPage) getPage());
-                            setResponsePage(page);
+                            // The order book lives in projectforge-next now (its Wicket page was removed), so
+                            // the jump to the order leads there. PagesResolver answers NextMigration's route.
+                            throw new RedirectToUrlException(
+                                    PagesResolver.getEditPageUrl(OrderEntityRest.class, orderPosition.getAuftragId(), null, true, null));
                         }
                     };
                     item.add(link);
