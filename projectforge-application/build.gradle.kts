@@ -60,6 +60,8 @@ dependencies {
     implementation(project(":org.projectforge.plugins.todo"))
     testImplementation(project(":projectforge-commons-test"))
     testImplementation(libs.org.mockito.core)
+    testImplementation(libs.org.mockito.junit.jupiter)
+    testImplementation(libs.org.mockito.kotlin)
     // This module doesn't apply buildlogic.pf-module-conventions (that plugin's java-library,
     // group/version and resolutionStrategy would clash with the Spring Boot setup below), so the
     // JUnit 5 engine and launcher have to be declared here. Without them no test of this module
@@ -107,6 +109,8 @@ dependencies {
     implementation("org.springframework.security:spring-security-config:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-core:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-crypto:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-client:$springSecurityVersion")
+    implementation("org.springframework.security:spring-security-oauth2-jose:$springSecurityVersion")
     implementation("org.springframework.security:spring-security-web:$springSecurityVersion")
     implementation("org.springframework:spring-aop:$springVersion")
     implementation("org.springframework:spring-aspects:$springVersion")
@@ -236,6 +240,11 @@ sourceSets {
 }
 
 val kotlinCompilerDependencyFiles = kotlinCompilerDependency.map { it.name }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
     dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")

@@ -21,58 +21,62 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.security
+package org.projectforge.gateway
 
-import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.security.OAuth2UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.firewall.HttpFirewall
 import org.springframework.security.web.firewall.StrictHttpFirewall
 
-
 @Configuration
-@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true)
-open class SpringSecurityConfig {
+@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
+open class GatewaySecurityConfig {
 
     @Autowired(required = false)
     private var oAuth2UserService: OAuth2UserService? = null
-
-    @Autowired(required = false)
-    private var oAuth2LoginSuccessHandler: OAuth2LoginSuccessHandler? = null
 
     @Bean
     @Throws(Exception::class)
     open fun securityFilterChain(http: HttpSecurity, firewall: HttpFirewall): SecurityFilterChain {
         http
-            .authorizeHttpRequests(Customizer { authorize ->
+            .authorizeHttpRequests { authorize ->
                 authorize
-                    .anyRequest().permitAll()
-            } // Allow all requests without Authentication
-            )
-            .csrf({ csrf -> csrf.disable() }) // CSRF ist done by PF.
+                    // CardDAV endpoints (authenticated by CardDavFilter via Basic Auth + DAV_TOKEN)
+                    .requestMatchers("/carddav/**", "/.well-known/carddav").permitAll()
+                    // ICS calendar export (authenticated via URL token parameters)
+                    .requestMatchers("/export/ProjectForge.ics").permitAll()
+                    // DataTransfer public endpoints (token-based external access)
+                    .requestMatchers("/rsPublic/datatransfer/**").permitAll()
+                    // Gateway sync API (authenticated via X-Gateway-Secret header)
+                    .requestMatchers("/api/gateway/sync/**").permitAll()
+                    // Static resources
+                    .requestMatchers("/rsPublic/**", "/static/**", "/favicon.ico").permitAll()
+                    // DataTransfer UI and REST (requires OAuth2 login)
+                    .requestMatchers("/rs/datatransfer/**").authenticated()
+                    // Block everything else
+                    .anyRequest().denyAll()
+            }
+            .logout { logout ->
+                logout.logoutSuccessUrl("/")
+                logout.invalidateHttpSession(true)
+                logout.clearAuthentication(true)
+            }
+            .csrf { csrf -> csrf.disable() }
 
-        oAuth2UserService?.let { userService ->
+        if (oAuth2UserService != null) {
             http.oauth2Login { oauth2 ->
                 oauth2.userInfoEndpoint { userInfo ->
-                    userInfo.oidcUserService(userService)
+                    userInfo.oidcUserService(oAuth2UserService!!)
                 }
-                oAuth2LoginSuccessHandler?.let { successHandler ->
-                    oauth2.successHandler(successHandler)
-                }
+                oauth2.defaultSuccessUrl("/rs/datatransfer", true)
             }
         }
 
-        // Configure the firewall to allow WebDAV methods:
         http.setSharedObject(HttpFirewall::class.java, firewall)
         return http.build()
     }
@@ -80,36 +84,12 @@ open class SpringSecurityConfig {
     @Bean
     open fun allowWebDavMethodsFirewall(): HttpFirewall {
         val firewall = StrictHttpFirewall()
-        // HTTP-Methoden für WebDAV explizit erlauben
         firewall.setAllowedHttpMethods(
             listOf(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD",
-                "PROPFIND", "REPORT", //"PROPPATCH", "MKCOL", "COPY", "MOVE",
-                //"LOCK", "UNLOCK", "REPORT"
+                "PROPFIND", "REPORT",
             )
         )
         return firewall
-    }
-
-    @Bean
-    @Override
-    open fun userDetailsService(): UserDetailsService {
-        /**
-         * The password is generated randomly and is not stored in the database.
-         * Users aren't supported, random password is better than default password, just in case.
-         */
-        val manager = InMemoryUserDetailsManager();
-        manager.createUser(
-            User.withUsername("user")
-                .password(passwordEncoder().encode(NumberHelper.getSecureRandomAlphanumeric(20)))
-                .roles("USER")
-                .build()
-        );
-        return manager;
-    }
-
-    @Bean
-    open fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder();
     }
 }

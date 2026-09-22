@@ -33,7 +33,9 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -52,6 +54,12 @@ open class PluginAdminService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Value("\${projectforge.plugins.ensure-active:}")
+    private var ensureActivePluginsConfig: String = ""
+
+    val ensureActivePluginIds: List<String>
+        get() = ensureActivePluginsConfig.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
      * Comma separated list of plugin ids to activate, independent of the configuration stored in the database.
@@ -142,6 +150,13 @@ open class PluginAdminService {
             return plugins.split(",").map { it.trim { it <= ' ' } }.sorted().toMutableList()
         }
 
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationReady() {
+        log.info { "Initializing plugins on application ready..." }
+        WicketSupport.register(applicationContext)
+        initializeActivePlugins(true)
+    }
+
     /**
      * Will be active plugins
      */
@@ -187,11 +202,17 @@ open class PluginAdminService {
         val forced = forcedActivePlugins
         val activatedPluginsByConfig = if (forced != null) {
             log.info { "Plugins forced to be active by projectforge.plugins.active: ${forced.joinToString()}." }
-            forced
+            forced.toMutableList()
         } else if (isFirstStart()) {
-            INITIAL_ACTIVATED_PLUGINS
+            INITIAL_ACTIVATED_PLUGINS.toMutableList()
         } else {
             activatedPluginsFromConfiguration
+        }
+        for (pluginId in ensureActivePluginIds) {
+            if (!activatedPluginsByConfig.contains(pluginId)) {
+                activatedPluginsByConfig.add(pluginId)
+                log.info { "Ensuring plugin '$pluginId' is active (configured via projectforge.plugins.ensure-active)." }
+            }
         }
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
