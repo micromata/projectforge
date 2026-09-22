@@ -10,12 +10,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
+import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatMonthName } from "@/lib/format";
+import { periodKindOf } from "@/lib/date-period";
+import { isoOfParts, partsOf } from "@/lib/date-period-math";
 import type { MonthlyReport, MonthlyReportQuery } from "./types";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+// The report's month is a whole calendar month, the same art the list filters page — so the shared
+// PeriodStepper drives it (◀ previous / current 📅 / next ▶, Wicket's QuickSelectMonthPanel). Its
+// `currentButton` mode drops the art dropdown, redundant here next to the explicit month select.
+const MONTH_KIND = periodKindOf("month")!;
 
 /**
  * The report filter: the user (only when the account may read other users' time sheets), the year and the
@@ -98,6 +106,19 @@ export function ReportFilterRow({
           </SelectContent>
         </Select>
       </div>
+      <PeriodStepper
+        className="pb-0.5"
+        currentButton
+        kinds={[MONTH_KIND]}
+        current={{
+          kind: MONTH_KIND,
+          anchor: isoOfParts(report.year, report.month, 1),
+        }}
+        onSelect={(_, anchor) => {
+          const { year, month } = partsOf(anchor);
+          onChange({ ...value, year, month });
+        }}
+      />
     </div>
   );
 }

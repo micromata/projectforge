@@ -1,7 +1,11 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Calendar01Icon,
+} from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -51,6 +55,14 @@ export interface PeriodStepperProps {
    * [PeriodQuickSelect]. The form grid leaves it off and keeps the abbreviation.
    */
   longLabel?: boolean;
+  /**
+   * Render the middle as a single "jump to the current period" button instead of the art dropdown:
+   * `◀ [📅] ▶`. For a stepper of one fixed art, where the dropdown — a select of exactly one option — is
+   * only noise beside a control that already names the art (e.g. the monthly report's month select). The
+   * button sets the current period of the resolved kind, the same jump re-picking the art in the dropdown
+   * does, and is offered only where that kind has a "current" (see [PeriodKind.tooltipCurrentKey]).
+   */
+  currentButton?: boolean;
 }
 
 /**
@@ -87,6 +99,7 @@ export function PeriodStepper({
   disabled,
   className,
   longLabel = false,
+  currentButton = false,
 }: PeriodStepperProps) {
   const t = useTranslations();
   const ctx = useFormatContext();
@@ -135,24 +148,40 @@ export function PeriodStepper({
           ArrowLeft01Icon,
           kind?.tooltipPreviousKey ?? "duration.previous"
         )}
-      <PeriodQuickSelect
-        kinds={kinds}
-        value={current?.kind ?? null}
-        onSelect={(picked) =>
-          onSelect(
-            picked,
-            // The art in effect picked again: the current period of it, which is the jump this replaced
-            // the naming button with. Another art is read from the anchor already in play instead, so
-            // "3 Monate" beside a begin of 15.03. means that term and does not move the range.
-            picked === current?.kind && picked.tooltipCurrentKey
-              ? currentAnchorOf(picked, ctx)
-              : (current?.anchor ?? hint ?? currentAnchorOf(picked, ctx))
-          )
-        }
-        onClear={onClear}
-        disabled={disabled}
-        longLabel={longLabel}
-      />
+      {currentButton && kind?.tooltipCurrentKey ? (
+        // A stepper of one fixed art: the middle jumps straight to the current period of it, no dropdown.
+        <HintTooltip text={t(kind.tooltipCurrentKey)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t(kind.tooltipCurrentKey)}
+            disabled={disabled}
+            onClick={() => onSelect(kind, currentAnchorOf(kind, ctx))}
+          >
+            <HugeiconsIcon icon={Calendar01Icon} />
+          </Button>
+        </HintTooltip>
+      ) : (
+        <PeriodQuickSelect
+          kinds={kinds}
+          value={current?.kind ?? null}
+          onSelect={(picked) =>
+            onSelect(
+              picked,
+              // The art in effect picked again: the current period of it, which is the jump this replaced
+              // the naming button with. Another art is read from the anchor already in play instead, so
+              // "3 Monate" beside a begin of 15.03. means that term and does not move the range.
+              picked === current?.kind && picked.tooltipCurrentKey
+                ? currentAnchorOf(picked, ctx)
+                : (current?.anchor ?? hint ?? currentAnchorOf(picked, ctx))
+            )
+          }
+          onClear={onClear}
+          disabled={disabled}
+          longLabel={longLabel}
+        />
+      )}
       {paging &&
         arrow(1, ArrowRight01Icon, kind?.tooltipNextKey ?? "duration.next")}
     </div>
