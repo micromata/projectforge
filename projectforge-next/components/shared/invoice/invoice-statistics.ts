@@ -66,8 +66,10 @@ export interface InvoiceStatisticsEntry {
  * the ones the reader only looks for when there is something to look for: nothing overdue, no discount
  * taken, and a payment target of Ø 0 days, which means no invoice carried one.
  *
- * `bruttoWithDiscount` is left out where it equals the gross sum, exactly as the Wicket page shows it only
- * then: two identical amounts side by side read as an error.
+ * The gross-with-discount ("mit Skonto") figure the Wicket page shows is deliberately left out: it does
+ * not reconcile with the gross sum and the discount beside it (`RechnungCalculator.calculateGrossSumWithDiscount`
+ * mixes the paid amount, a never-taken hypothetical discount on still-open invoices, and the plain gross),
+ * so a reader cannot make the numbers add up — see AbstractRechnungsStatistik.
  */
 export function invoiceStatisticsEntries(
   statistics: InvoiceStatistics | undefined
@@ -80,19 +82,6 @@ export function invoiceStatisticsEntries(
       kind: "currency",
       tone: "plain",
     },
-  ];
-  if (
-    statistics.bruttoWithDiscount != null &&
-    statistics.bruttoWithDiscount !== statistics.brutto
-  ) {
-    entries.push({
-      labelKey: "fibu.rechnung.mitSkonto",
-      value: statistics.bruttoWithDiscount,
-      kind: "currency",
-      tone: "plain",
-    });
-  }
-  entries.push(
     {
       labelKey: "fibu.common.netto",
       value: statistics.netto,
@@ -104,8 +93,8 @@ export function invoiceStatisticsEntries(
       value: statistics.open,
       kind: "currency",
       tone: "open",
-    }
-  );
+    },
+  ];
   const optional: InvoiceStatisticsEntry[] = [
     {
       labelKey: "fibu.rechnung.filter.ueberfaellig",
@@ -160,8 +149,6 @@ function valueByLabelKey(
   switch (labelKey) {
     case "fibu.common.brutto":
       return statistics.brutto;
-    case "fibu.rechnung.mitSkonto":
-      return statistics.bruttoWithDiscount;
     case "fibu.common.netto":
       return statistics.netto;
     case "fibu.rechnung.offen":
