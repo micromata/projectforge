@@ -533,6 +533,7 @@ abstract class DBPredicate(
                     searchPredicateFactory,
                     boolCollector,
                     number,
+                    queryString,
                     searchClassInfo.numericFields,
                     useSearchFields,
                 )
@@ -566,10 +567,17 @@ abstract class DBPredicate(
             )
         }
 
+        /**
+         * @param value The parsed numeric value, used for the id and the numeric range predicates (exact match).
+         * @param stringQuery The (possibly wildcard-expanded) query string, used for the text fields so that e.g.
+         * a search for "9022355108" still finds a customer reference "9022355108C1" via the trailing "*". Using the
+         * bare number here would restrict the text fields to an exact term match and miss such references.
+         */
         private fun search(
             searchPredicateFactory: SearchPredicateFactory,
             boolCollector: BooleanPredicateOptionsCollector<*>,
             value: Number,
+            stringQuery: String,
             numericFields: Array<Pair<String, Class<*>>>,
             stringFields: Array<String>,
         ) {
@@ -581,7 +589,7 @@ abstract class DBPredicate(
             }.toTypedArray()
             logDebugFunCall(log) {
                 it.mtd("search(value, fields)")
-                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$value\")))")
+                    .msg("bool.must(or(f.id().matching(${value}), f.range()[${numericFields.joinToString { "${it.first}:${it.second}" }}], f.queryString().fields(${stringFields.joinToString()}).matching(\"$stringQuery\")))")
             }
             boolCollector.must(
                 searchPredicateFactory.or(
@@ -590,7 +598,7 @@ abstract class DBPredicate(
                         .matching(value.toLong()),
                     searchPredicateFactory.queryString()
                         .fields(*stringFields)
-                        .matching(value.toString()),
+                        .matching(stringQuery),
                     *predicates
                 )
             )
