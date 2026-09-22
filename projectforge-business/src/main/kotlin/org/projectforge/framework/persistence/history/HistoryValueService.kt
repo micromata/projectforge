@@ -72,8 +72,6 @@ class HistoryValueService private constructor() {
         UNKNOWN,
     }
 
-    private val defaultHandler = DefaultHistoryValueHandler()
-
     init {
         instance = this
     }
@@ -87,7 +85,7 @@ class HistoryValueService private constructor() {
             return valueString
         }
         return when (getValueType(propertyType)) {
-            ValueType.BASE_TYPE -> formatBaseType(valueString)
+            ValueType.BASE_TYPE -> formatBaseType(valueString, propertyType)
             ValueType.ENTITY -> formatEntity(valueString, propertyType)
             ValueType.ENUM -> formatEnum(valueString)
             ValueType.I18N_ENUM -> formatI18nEnum(valueString, propertyType)
@@ -203,16 +201,26 @@ class HistoryValueService private constructor() {
 
     /**
      * Formats the value for displaying.
+     *
+     * Time-of-day values are stored as UTC strings, so they must be converted to the logged-in user's time
+     * zone (and date format) for display via the type-specific [HistoryValueHandler]; otherwise a moved time
+     * sheet, for instance, shows its begin/end two hours off. Other base types (numbers, date-only, strings)
+     * are shown exactly as stored to avoid unrelated reformatting of legacy history.
      */
-    internal fun formatBaseType(valueString: String?): String {
+    internal fun formatBaseType(valueString: String?, propertyType: String? = null): String {
         if (valueString.isNullOrBlank()) {
             return ""
         }
-        try {
-            val value = defaultHandler.deserialize(valueString) ?: return ""
-            return defaultHandler.format(value)
-        } catch (_: Exception) {
+        if (propertyType !in timeZoneSensitiveTypes) {
             return valueString
+        }
+        @Suppress("UNCHECKED_CAST")
+        val handler = HistoryValueHandlerRegistry.getHandler(propertyType) as HistoryValueHandler<Any>
+        return try {
+            val value = handler.deserialize(valueString) ?: return ""
+            handler.format(value)
+        } catch (_: Exception) {
+            valueString
         }
     }
 
@@ -298,6 +306,17 @@ class HistoryValueService private constructor() {
             propertyType ?: return ""
             return propertyType.substringBefore("_$$").substringBefore("$")
         }
+
+        /**
+         * Base types carrying a time of day: stored as UTC and therefore reformatted into the user's time zone
+         * for display. Date-only types (java.sql.Date, java.time.LocalDate, net.fortuna.ical4j.model.Date) are
+         * excluded on purpose - they have no time zone and are shown as stored.
+         */
+        private val timeZoneSensitiveTypes = setOf(
+            "java.util.Date",
+            "java.sql.Timestamp",
+            "net.fortuna.ical4j.model.DateTime",
+        )
 
         private val baseTypes = arrayOf(
             "boolean",
