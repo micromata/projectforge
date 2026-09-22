@@ -79,7 +79,6 @@ export function SearchPage() {
         <PageTitleRow
           category={t("title")}
           title={t("search")}
-          legacyUrl="wa/search"
           center={
             <div className="relative max-w-md">
               <SearchInput value={term} onChange={setTerm} />
