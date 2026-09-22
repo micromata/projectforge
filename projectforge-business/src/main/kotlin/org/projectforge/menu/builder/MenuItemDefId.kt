@@ -108,7 +108,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
-    SEARCH("menu.search", "wa/search"), //
+    // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
+    // /wa/search is still redirected to next by OrphanedLinkFilter.
+    SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
     // Migrated to projectforge-next; wa/taskTree stays reachable through the escape hatch, see
     // NextMigration.legacyListUrl. Nothing waits on the task favourites (UserPrefArea.TASK_FAVORITE):
     // they are a Wicket affair, replaced in React and next by the quick access of the select fields

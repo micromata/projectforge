@@ -33,7 +33,6 @@ import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.PluginListPage;
-import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
@@ -85,7 +84,7 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
         register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
         // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
-        register(MenuItemDefId.SEARCH, SearchPage.class);
+        // SEARCH (Suche) migrated to projectforge-next; its Wicket page was removed and the menu points at next/search.
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
         register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
@@ -93,14 +92,12 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.HR_VIEW, HRListPage.class);
         register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
         register(MenuItemDefId.GANTT, GanttChartListPage.class);
-        register(MenuItemDefId.OUTGOING_INVOICE_LIST, RechnungListPage.class);
+        // OUTGOING_INVOICE_LIST (Debitoren) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
         register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
         //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
         register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
-        register(MenuItemDefId.ORDER_LIST, AuftragListPage.class);
-        // createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());
-        // createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip");
+        // ORDER_LIST (Auftragsbuch) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.ACCOUNT_LIST, KontoListPage.class);
         register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
         register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
