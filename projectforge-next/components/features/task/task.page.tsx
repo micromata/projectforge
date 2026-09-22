@@ -12,6 +12,7 @@ import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
+import { GanttSummary } from "./edit/gantt-summary";
 import { TaskListActions } from "./task-list-actions";
 import {
   TaskConsumptionCell,
@@ -283,6 +284,9 @@ export const TASK_PAGE = definePage<
         id: "gantt",
         titleKey: "task.gantt.settings",
         collapsed: true,
+        // Folded, the set Gantt values as chips (see GanttSummary) — a card that starts closed must say
+        // what it holds, or the values inside it are ones nobody reads back.
+        collapsedSummary: GanttSummary,
         fields: [
           { name: "ganttObjectType" },
           { name: "startDate" },
