@@ -46,7 +46,7 @@ import java.time.LocalDate
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -112,12 +112,12 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
-    @PropertyInfo(i18nKey = "task.progress")
+    @PropertyInfo(i18nKey = "task.progress", min = "0", max = "100")
     @get:Column
     open var progress: Int? = null
 
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
-    @PropertyInfo(i18nKey = "task.maxHours")
+    @PropertyInfo(i18nKey = "task.maxHours", min = "0", max = "9999")
     @get:Column(name = "max_hours")
     open var maxHours: Int? = null
 
@@ -145,7 +145,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * @see org.projectforge.business.gantt.GanttTask.getDuration
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "gantt.duration")
+    @PropertyInfo(i18nKey = "gantt.duration", min = "0", max = "10000")
     @get:Column(name = "duration", scale = 2, precision = 10)
     open var duration: BigDecimal? = null
 
@@ -226,6 +226,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(name = "kost2_black_white_list", length = 1024)
     open var kost2BlackWhiteList: String? = null
 
+    @PropertyInfo(i18nKey = "task.kost2list.type")
     @get:Column(name = "kost2_is_black_list", nullable = false)
     open var kost2IsBlackList: Boolean = false
 
@@ -237,10 +238,34 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(name = "protectionOfPrivacy", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
     open var protectionOfPrivacy: Boolean = false
 
+    /**
+     * Marks this structure element (and, by inheritance, its sub tasks) as a *shared cost element*.
+     *
+     * Normally two time sheets of the same user must not overlap in time. If this flag is set, time sheets booked on
+     * this task (or a descendant) may overlap in time with time sheets of other tasks, as long as they don't belong to
+     * the same project (no double booking inside a project).
+     *
+     * The purpose is cost sharing between projects/customers: a working time that benefits two projects/customers is
+     * booked on both (overlapping) and counted proportionally in attendance reports (e. g. 1h + overlapping 1h => 0.5h
+     * each), while for customer invoicing each booking still counts fully. See [org.projectforge.business.timesheet.TimesheetOverlapUtils].
+     */
+    @PropertyInfo(i18nKey = "task.allowTimeOverlap")
+    @get:Column(name = "allow_time_overlap", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
+    open var allowTimeOverlap: Boolean = false
+
+    /**
+     * If set, a manually entered (positive) [maxHours] value takes precedence over the person days calculated from
+     * assigned order positions (of this task or any sub task). By default (false) the ordered person days win and
+     * [maxHours] is ignored as soon as order positions are assigned. See [org.projectforge.business.task.TaskTree.getPersonDays].
+     */
+    @PropertyInfo(i18nKey = "task.maxHoursHasPriority")
+    @get:Column(name = "max_hours_has_priority", nullable = false, columnDefinition = "BOOLEAN DEFAULT 'false'")
+    open var maxHoursHasPriority: Boolean = false
+
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @FullTextField
-    @PropertyInfo(i18nKey = "task.parentTask")
+    @PropertyInfo(i18nKey = "task.workpackageCode")
     @get:Column(name = "workpackage_code", length = 100)
     open var workpackageCode: String? = null
 
@@ -248,20 +273,20 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * In days.
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "task.parentTask")
+    @PropertyInfo(i18nKey = "gantt.predecessorOffset")
     @get:Column(name = "gantt_predecessor_offset")
     open var ganttPredecessorOffset: Int? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "task.parentTask")
+    @PropertyInfo(i18nKey = "gantt.relationType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_rel_type", length = 15)
     open var ganttRelationType: GanttRelationType? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "task.parentTask")
+    @PropertyInfo(i18nKey = "gantt.objectType")
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "gantt_type", length = 10)
     open var ganttObjectType: GanttObjectType? = null
@@ -271,7 +296,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * depend-on-task and get the every-time up-to-date task from the task tree by this id.
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @PropertyInfo(i18nKey = "task.parentTask")
+    @PropertyInfo(i18nKey = "gantt.predecessor")
     @get:ManyToOne(
         cascade = [CascadeType.PERSIST, CascadeType.MERGE],
         targetEntity = TaskDO::class,

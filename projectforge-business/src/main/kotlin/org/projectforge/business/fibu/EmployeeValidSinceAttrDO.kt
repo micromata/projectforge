@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Represents timeable attributes of an employee (annual leave days and status).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")

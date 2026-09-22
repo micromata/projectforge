@@ -91,8 +91,18 @@ function DynamicAttachmentList({
         );
     }
 
+    // Only called for a 2xx answer (see SingleFileUploadWithProgress), so the body should be a
+    // ResponseAction. Guarded anyway: a parse error thrown here used to be the second place
+    // a failed upload went silent.
     const afterFileUpload = (response) => {
-        const json = JSON.parse(response);
+        let json;
+        try {
+            json = JSON.parse(response);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Upload succeeded, but the response was not parseable:', response, error);
+            return;
+        }
         callAction({ responseAction: json });
     };
 

@@ -33,7 +33,7 @@ import java.io.InputStream;
 
 /**
  * Needed for download files generated of byte arrays.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ByteArrayResourceStream extends AbstractResourceStream

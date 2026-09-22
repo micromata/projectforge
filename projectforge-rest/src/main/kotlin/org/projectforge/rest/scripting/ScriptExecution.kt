@@ -37,7 +37,7 @@ import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.projectforge.rest.core.DownloadFileSupport
 import org.projectforge.rest.dto.Script
 import org.projectforge.rest.task.TaskServicesRest
@@ -82,7 +82,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): String {
         val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
         return scriptDao.getEffectiveScript(
@@ -97,7 +97,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): List<String> {
         val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
         return scriptDao.getScriptVariableNames(
@@ -113,7 +113,7 @@ class ScriptExecution {
         script: Script,
         parameters: List<ScriptParameter>,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
         scriptLogger: ScriptLogger,
     ): ScriptExecutionResult {
         log.info {
@@ -176,7 +176,7 @@ class ScriptExecution {
     private fun prepareScriptInit(
         script: Script,
         scriptDao: AbstractScriptDao,
-        scriptPagesRest: AbstractPagesRest<*, *, *>,
+        scriptPagesRest: AbstractEntityRest<*, *, *>,
     ): ScriptInitData {
         val scriptDO: ScriptDO
         if (script.id != null) {

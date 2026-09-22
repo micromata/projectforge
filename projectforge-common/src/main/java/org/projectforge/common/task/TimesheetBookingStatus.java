@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Defines the status for time sheet booking for a task.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum TimesheetBookingStatus implements I18nEnum

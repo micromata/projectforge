@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Simple csv parser
  * 
- * @author K.Reinhard@micromata.com
+ * @author K. Reinhard
  * @author H.Spiewok@micromata.com (07/2005)
  */
 public class CSVParser

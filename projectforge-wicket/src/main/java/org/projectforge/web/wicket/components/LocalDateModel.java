@@ -32,7 +32,7 @@ import java.util.Date;
 
 /**
  * https://stackoverflow.com/questions/39162334/how-can-i-bring-wicket-7-to-work-with-java-time-from-java-8
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LocalDateModel implements IModel<Date> {
   private IModel<LocalDate> model;

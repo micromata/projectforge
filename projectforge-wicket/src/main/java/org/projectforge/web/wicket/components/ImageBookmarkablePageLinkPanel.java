@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.PresizedImage;
 
 /**
  * An image as bookmarkable link with an href and with a tooltip.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ImageBookmarkablePageLinkPanel extends Panel

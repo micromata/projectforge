@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Use-full super class for testing standard list pages (derived from AbstractListPage).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class ListAndEditPagesTestBase extends WicketPageTestBase {
   protected final String KEY_EDITPAGE_BUTTON_CREATE = "create";

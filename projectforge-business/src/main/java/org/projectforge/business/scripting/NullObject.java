@@ -25,7 +25,7 @@ package org.projectforge.business.scripting;
 
 /**
  * Object which represents a null. This is use-ful for adding a null value to an HashMap instead of having no entry.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class NullObject

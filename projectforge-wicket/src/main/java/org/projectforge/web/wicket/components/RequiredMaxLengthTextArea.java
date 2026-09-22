@@ -28,7 +28,7 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  * MaxLengthTextArea with required-validation.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class RequiredMaxLengthTextArea extends MaxLengthTextArea

@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.apache.commons.collections4.CollectionUtils
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.user.*
 import org.projectforge.business.user.UserGroupCache.Companion.getInstance
 import org.projectforge.framework.access.AccessException
@@ -38,7 +39,7 @@ import java.time.LocalDate
  * project manager groups). If you choose [UserRightValue.READWRITE] for such users, they'll have full read/write
  * access to all orders.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
     UserRightId.PM_ORDER_BOOK, UserRightCategory.PM,
@@ -89,29 +90,54 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
                 return false
             }
         }
-        if (obj != null && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)
-            && CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)
-        ) {
+        if (obj != null && !accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
             // Special field check for non finance administrative staff members:
-            if (operationType == OperationType.INSERT) {
-                for (position in obj.positionenExcludingDeleted) {
-                    if (position.vollstaendigFakturiert!!) {
-                        throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
-                    }
-                }
-            } else if (oldObj != null) {
-                for (number in 1..obj.positionenIncludingDeleted!!.size) {
-                    val position = obj.getPosition(number.toShort()) ?: continue
-                    val dbPosition = oldObj.getPosition(number.toShort())
-
-                    // check if deleted
-                    if (position.deleted == true) continue
-                    if (dbPosition == null) {
-                        if (position.vollstaendigFakturiert == true) {
+            if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
+                if (operationType == OperationType.INSERT) {
+                    for (position in obj.positionenExcludingDeleted) {
+                        if (position.vollstaendigFakturiert!!) {
                             throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
                         }
-                    } else if (position.vollstaendigFakturiert != dbPosition.vollstaendigFakturiert) {
-                        throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                    }
+                } else if (oldObj != null) {
+                    for (number in 1..obj.positionenIncludingDeleted!!.size) {
+                        val position = obj.getPosition(number.toShort()) ?: continue
+                        val dbPosition = oldObj.getPosition(number.toShort())
+
+                        // check if deleted
+                        if (position.deleted == true) continue
+                        if (dbPosition == null) {
+                            if (position.vollstaendigFakturiert == true) {
+                                throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                            }
+                        } else if (position.vollstaendigFakturiert != dbPosition.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
+                    }
+                }
+            }
+            // The same flag of the payment schedules, protected the same way: the column means the same
+            // thing ("wird manuell von der FiBu gesetzt", PaymentScheduleDO) and every frontend offers it
+            // next to the positions' one, so leaving it unchecked would let anybody with write access to
+            // the order mark an instalment as invoiced.
+            if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {
+                if (operationType == OperationType.INSERT) {
+                    for (schedule in obj.paymentSchedulesExcludingDeleted) {
+                        if (schedule.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
+                    }
+                } else if (oldObj != null) {
+                    for (schedule in obj.paymentSchedules!!) {
+                        if (schedule.deleted) continue
+                        val dbSchedule = oldObj.getPaymentSchedule(schedule.number)
+                        if (dbSchedule == null) {
+                            if (schedule.vollstaendigFakturiert) {
+                                throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                            }
+                        } else if (schedule.vollstaendigFakturiert != dbSchedule.vollstaendigFakturiert) {
+                            throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
+                        }
                     }
                 }
             }
@@ -126,7 +152,13 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
             if (accessChecker.userEquals(user, obj.contactPerson)) {
                 hasAccess = true
             }
-            obj.projekt?.let { projekt ->
+            obj.projekt?.let { projektRef ->
+                // The next/REST layer checks this against the posted order, whose projekt is a stub
+                // carrying only its id (Auftrag.copyTo), so its projektManagerGroup and the two managers
+                // are null there. Resolve the full project from the cache by id, or the project manager
+                // access path would silently fail in the next frontend while it works from Wicket's fully
+                // loaded entity (contact person still matches, as it is compared by id alone).
+                val projekt = ProjektCache.instance.getProjekt(projektRef.id) ?: projektRef
                 if (userGroupCache.isUserMemberOfGroup(user.id, projekt.projektManagerGroupId)
                     || projekt.headOfBusinessManagerId == user.id
                     || projekt.salesManagerId == user.id

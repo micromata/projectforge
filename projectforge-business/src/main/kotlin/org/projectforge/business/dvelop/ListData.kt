@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * For getting paginated lists.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 abstract class ListData<T> {
   var data: List<T>? = null

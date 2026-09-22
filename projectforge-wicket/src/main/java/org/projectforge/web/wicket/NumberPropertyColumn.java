@@ -39,7 +39,7 @@ import java.math.BigDecimal;
 /**
  * Formats given number (null values as empty strings) by using String.valueOf or NumberFormatter.format(BigDecimal). Sets the html
  * attribute style="text-align: right;".
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class NumberPropertyColumn<T> extends CellItemListenerPropertyColumn<T>

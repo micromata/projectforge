@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  * 
  */
 public enum RecurrencyChangeType implements I18nEnum

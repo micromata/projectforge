@@ -37,7 +37,7 @@ import java.time.LocalDate
 /**
  * Represents a single visit of a visitor.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(

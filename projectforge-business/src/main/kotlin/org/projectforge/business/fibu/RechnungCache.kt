@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 /**
  * Caches the order positions assigned to invoice positions.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
@@ -86,7 +86,12 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
 
     fun update(invoice: RechnungDO) {
         val rechnungInfo = synchronized(invoiceInfoMap) {
-            RechnungCalculator.calculate(invoice, useCaches = false).also {
+            // checkRefresh = false: this runs from RechnungDao.afterInsertOrModify, i.e. inside the still-open
+            // insert/update transaction. Letting AuftragsCache refresh here would run a JDBC SELECT on the
+            // invoice-position table this transaction has write-locked - a self-deadlock. The cache is read as
+            // is; the AuftragsRechnungCache invoice listener expires it right after, so the order links are
+            // recalculated on the next refresh anyway.
+            RechnungCalculator.calculate(invoice, useCaches = false, checkRefresh = false).also {
                 invoiceInfoMap[invoice.id!!] = it
             }
         }

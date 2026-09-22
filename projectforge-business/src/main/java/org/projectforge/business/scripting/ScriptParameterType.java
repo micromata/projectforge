@@ -30,7 +30,7 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  *
  * Type of input parameter for script.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  *         <ul>
  *         <li>INTEGER</li>

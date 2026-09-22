@@ -35,7 +35,6 @@ import org.springframework.util.ClassUtils
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.TimeAgo
@@ -76,9 +75,6 @@ open class LoginService {
 
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
-
-    @Autowired
-    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
     /**
      * If given then this login handler will be used instead of [LoginDefaultHandler]. For ldap please use e. g.
@@ -172,16 +168,41 @@ open class LoginService {
             return loginResult.loginResultStatus
         }
         log.info("User successfully logged in: " + user.userDisplayName)
-        if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService.find(user.id, false)
-            val stayLoggedInKey = userAuthenticationsService.internalGetToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
-            cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
-        }
         // Execute login:
         val userContext = UserContext(user)
         handle2FARequiredAfterLogin(request, userContext)
         internalLogin(request, userContext)
+        if (loginData.stayLoggedIn == true) {
+            if (userContext.new2FARequired) {
+                // The password alone doesn't earn a 30 day cookie: whoever aborts the second factor must not
+                // walk away with one. Park the wish and redeem it in onSecondFactorSucceeded.
+                // After internalLogin, because that one starts a new session (session fixation).
+                request.getSession(false)?.setAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED, true)
+                log.info { "Stay-logged-in requested by ${user.userDisplayName}, but 2FA is pending: the cookie is issued after the second factor." }
+            } else {
+                cookieService.addStayLoggedInCookie(request, response, userService.find(userId, false))
+            }
+        }
         return LoginResultStatus.SUCCESS
+    }
+
+    /**
+     * To be called whenever a second factor was checked successfully, right where the last2FA cookie is
+     * written ([org.projectforge.rest.my2fa.My2FAServicesRest] and the WebAuthn endpoints). Issues the
+     * stay-logged-in cookie the user asked for at login time, if any.
+     */
+    fun onSecondFactorSucceeded(request: HttpServletRequest, response: HttpServletResponse) {
+        val session = request.getSession(false) ?: return
+        // Consume it in any case: a later in-session 2FA check must not inherit a cookie the user asked for
+        // at login time.
+        val requested = session.getAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED) as? Boolean
+        session.removeAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED)
+        if (requested != true) {
+            return
+        }
+        val userId = getUserContext(request)?.user?.id ?: return
+        cookieService.addStayLoggedInCookie(request, response, userService.find(userId, false))
+        log.info { "Stay-logged-in cookie issued for user #$userId after a successful second factor." }
     }
 
     private fun authenticate(request: HttpServletRequest, loginData: LoginData): LoginResult {
@@ -227,12 +248,16 @@ open class LoginService {
         }
         request.getSession(false)?.let { session ->
             session.removeAttribute(SESSION_KEY_USER)
+            session.removeAttribute(SESSION_KEY_STAY_LOGGED_IN_REQUESTED)
             session.invalidate()
         }
+        // Before clearing the cookies: this needs the token from the request. Invalidates the token of *this*
+        // device only, the user's other devices stay logged in - that's the point of one token per device.
+        // Deleting the row as well as the cookie, because a copied cookie would otherwise stay valid for 30
+        // days.
+        cookieService.invalidateStayLoggedInToken(request)
         cookieService.clearAllCookies(request, response)
         user?.id?.let { userId ->
-            userXmlPreferencesCache.flushToDB(userId)
-            userXmlPreferencesCache.clear(userId)
             userPrefCache.flushToDB(userId)
             userPrefCache.clear(userId)
             log.info("User '${user.username}' (#$userId) logged out.")
@@ -319,6 +344,12 @@ open class LoginService {
     companion object {
         private const val SESSION_KEY_USER = "LoginService.user"
         private const val SESSION_KEY_LAST_2FA_AFTER_LOGIN_CHECK = "LoginService.last2FALoginCheck"
+
+        /**
+         * The user ticked "stay logged in" at login, but a second factor was still pending, see
+         * [LoginService.onSecondFactorSucceeded].
+         */
+        private const val SESSION_KEY_STAY_LOGGED_IN_REQUESTED = "LoginService.stayLoggedInRequested"
 
         // Check hourly
         private const val CHECK_2FA_AFTER_LOGIN_INTERVAL_MS = 3_600_000

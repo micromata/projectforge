@@ -50,6 +50,28 @@ class CalendarStyleTest {
         assertFalse(CalendarStyle.validateHexCode("#gff"))
     }
 
+    @Test
+    fun darkModeTextColorTest() {
+        // Transparent (STANDARD) scheme: light mode darkens the base colour, dark mode lightens it, so the
+        // dark-mode text is brighter than the light-mode text for the same calendar colour.
+        val base = "#2f65c8"
+        val light = CalendarStyle.getTextColor(base, CalendarEventColorScheme.STANDARD, darkMode = false)
+        val dark = CalendarStyle.getTextColor(base, CalendarEventColorScheme.STANDARD, darkMode = true)
+        assertNotEquals(light, dark)
+        assertTrue(brightness(dark) > brightness(light), "dark-mode text ($dark) should be brighter than light-mode text ($light)")
+
+        // Classic scheme is theme-independent (solid backgrounds), so dark mode changes nothing.
+        assertEquals(
+            CalendarStyle.getTextColor(base, CalendarEventColorScheme.CLASSIC, darkMode = false),
+            CalendarStyle.getTextColor(base, CalendarEventColorScheme.CLASSIC, darkMode = true),
+        )
+    }
+
+    private fun brightness(hexColor: String): Int {
+        val rgb = CalendarStyle.hexToRGB(hexColor)
+        return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+    }
+
     private fun checkRGB(r:Int, g:Int, b:Int, rgb: CalendarStyle.RGB) {
         assertEquals(r, rgb.r)
         assertEquals(g, rgb.g)

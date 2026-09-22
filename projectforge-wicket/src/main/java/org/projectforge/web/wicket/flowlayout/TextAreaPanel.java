@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.WicketRenderHeadUtils;
 
 /**
  * Represents an icon.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TextAreaPanel extends Panel implements ComponentWrapperPanel

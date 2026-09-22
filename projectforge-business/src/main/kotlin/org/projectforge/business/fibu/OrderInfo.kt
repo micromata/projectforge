@@ -95,6 +95,13 @@ class OrderInfo : Serializable {
         )
         set(value) {
             field = value
+
+
+
+
+
+
+
         }
 
     /**
@@ -122,10 +129,12 @@ class OrderInfo : Serializable {
         created = order.created
         erfassungsDatum = order.erfassungsDatum
         entscheidungsDatum = order.entscheidungsDatum
-        kundeId = order.kunde?.id
+        // Use nummer (the real @Id of KundeDO) instead of the transient id alias: reading id would call a
+        // non-identifier getter on the lazy proxy and force a per-order "where pk=?" load (N+1). See KundeDO.
+        kundeId = order.kunde?.nummer
         kundeAsString = order.kundeAsString
         projektId = order.projekt?.id
-        projektAsString = order.projekt?.name
+        projektAsString = order.projektAsString
         probabilityOfOccurrence = order.probabilityOfOccurrence
         forecastType = order.forecastType
         periodOfPerformanceBegin = order.periodOfPerformanceBegin
@@ -331,7 +340,12 @@ class OrderInfo : Serializable {
 
         fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {
             var result = BigDecimal.ZERO
-            positions?.filter { it.personDays != null }?.forEach { pos ->
+            // Deleted positions count nothing, as for every other sum (OrderPositionInfo
+            // .updateFieldsIfDeleted). Only a caller that builds the infos itself sees such a position at
+            // all — AuftragsCache holds the non-deleted ones — but the edit form does: it keeps a
+            // soft-deleted row in the posted collection, because leaving it out would remove it
+            // physically.
+            positions?.filter { it.personDays != null && !it.deleted }?.forEach { pos ->
                 if (pos.status != AuftragsStatus.ABGELEHNT && pos.status != AuftragsStatus.ERSETZT) {
                     result += pos.personDays!!
                 }

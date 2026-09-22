@@ -27,7 +27,7 @@ import org.projectforge.common.StringHelper;
 
 /**
  * Used for defining class attribute value for elements.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum GridType
 {

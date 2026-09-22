@@ -51,7 +51,7 @@ import java.time.LocalDate
  * Informationen enthalten, wie beispielsweise die Beauftragungshistorie: LOI am 05.03.08 durch Herrn Müller und
  * schriftlich am 04.04.08 durch Beschaffung.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -78,7 +78,7 @@ import java.time.LocalDate
 @NamedQueries(
     NamedQuery(
         name = AuftragDO.SELECT_MIN_MAX_DATE,
-        query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO"
+        query = "select min(angebotsDatum), max(angebotsDatum) from AuftragDO where deleted = false"
     ),
     NamedQuery(name = AuftragDO.FIND_BY_NUMMER, query = "from AuftragDO where nummer=:nummer"),
     NamedQuery(name = AuftragDO.FIND_OTHER_BY_NUMMER, query = "from AuftragDO where nummer=:nummer and id!=:id")
@@ -203,6 +203,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     /**
      * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
      */
+    @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsBeschreibung")
     @get:Column(name = "beauftragungs_beschreibung", length = 4000)
     open var beauftragungsBeschreibung: String? = null
 
@@ -211,6 +212,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * Datum der schriftlichen Beauftragung steht.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.beauftragungsdatum")
+    @GenericField // Indexed so the order book list filter offers it as a date range, like the sibling dates above.
     @get:Column(name = "beauftragungs_datum")
     open var beauftragungsDatum: LocalDate? = null
 
@@ -261,7 +263,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence")
+    @PropertyInfo(i18nKey = "fibu.probabilityOfOccurrence", min = "0", max = "100")
     @get:Column(name = "probability_of_occurrence")
     open var probabilityOfOccurrence: Int? = null
 

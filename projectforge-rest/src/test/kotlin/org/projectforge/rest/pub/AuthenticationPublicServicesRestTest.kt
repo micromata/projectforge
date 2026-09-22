@@ -23,14 +23,18 @@
 
 package org.projectforge.rest.pub
 
+import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import org.mockito.Mockito
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 
 class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     @Autowired
@@ -43,19 +47,62 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
     fun getAuthenticationCredentialsTest() {
         val user = logon(TEST_USER)
         val q = authenticationPublicServicesRest.createTemporaryToken()
-        val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q)
+        val response = authenticationPublicServicesRest.getAuthenticationCredentials(mockRequest(), q)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        val credentials = response.body as AuthenticationPublicServicesRest.Credentials
         assertEquals(user.username, credentials.username)
         assertEquals(user.id, credentials.uid)
         val token = userAuthenticationsDao.getToken(user.id!!, UserTokenType.REST_CLIENT)
         assertEquals(token, credentials.authenticationToken)
         assertEquals("http://localhost:8080", credentials.url)
 
+        // An invalid q must be answered with 400 and not with an exception: an IllegalArgumentException would be a
+        // 500 with a stack trace plus a mail to the developers, triggerable from the outside without any login.
+        val badResponse = authenticationPublicServicesRest.getAuthenticationCredentials(
+            mockRequest(), "OXn1Nq1T7qZUkOCHEdp3LB"
+        )
+        assertEquals(HttpStatus.BAD_REQUEST, badResponse.statusCode)
+    }
+
+    /**
+     * Failed attempts are throttled by [LoginProtection], keyed by the ip address of the client: the token handed
+     * out here is a full REST_CLIENT credential, so guessing it mustn't be free.
+     */
+    @Test
+    fun loginProtectionTest() {
+        val clientIp = "203.0.113.42"
+        val loginProtection = LoginProtection.instance()
         try {
-            authenticationPublicServicesRest.getAuthenticationCredentials("OXn1Nq1T7qZUkOCHEdp3LB")
-            fail("Failure expected, invalid q")
-        } catch (ex: Exception) {
-            // expected
+            logon(TEST_USER)
+            val request = mockRequest(clientIp)
+            assertEquals(
+                HttpStatus.BAD_REQUEST,
+                authenticationPublicServicesRest.getAuthenticationCredentials(request, "0123456789abcdefghij").statusCode
+            )
+            assertTrue(
+                loginProtection.getFailedLoginTimeOffsetIfExists(clientIp, null, "REST_CREDENTIALS") > 0,
+                "Failed attempt should be penalized."
+            )
+            // Now even a valid token is rejected as long as the penalty lasts:
+            val q = authenticationPublicServicesRest.createTemporaryToken()
+            assertEquals(
+                HttpStatus.BAD_REQUEST,
+                authenticationPublicServicesRest.getAuthenticationCredentials(request, q).statusCode
+            )
+            // ... but a client with another ip address isn't affected:
+            assertEquals(
+                HttpStatus.OK,
+                authenticationPublicServicesRest.getAuthenticationCredentials(mockRequest("203.0.113.43"), q).statusCode
+            )
+        } finally {
+            loginProtection.clearAll()
         }
+    }
+
+    private fun mockRequest(remoteAddr: String = "127.0.0.1"): HttpServletRequest {
+        val request = Mockito.mock(HttpServletRequest::class.java)
+        Mockito.`when`(request.remoteAddr).thenReturn(remoteAddr)
+        return request
     }
 
     @Test

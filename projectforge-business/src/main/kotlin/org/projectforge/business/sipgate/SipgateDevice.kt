@@ -26,7 +26,7 @@ package org.projectforge.business.sipgate
 import org.projectforge.framework.json.JsonUtils
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class SipgateDevice(
   var id: String? = null,

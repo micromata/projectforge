@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DataObjectSortableDataProvider<T extends IdObject<?>> extends SortableDataProvider<T, String>
 {

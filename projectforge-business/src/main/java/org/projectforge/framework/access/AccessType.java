@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  * TODO Designbug: Domains has to be explicit listed.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum AccessType implements I18nEnum

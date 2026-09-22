@@ -58,8 +58,3 @@ export const userLoginFailure: (error: string) => UserLoginFailureAction;
 
 // Thunk Action Creators
 export const loadUserStatus: () => ThunkAction;
-export const login: (
-    username: string,
-    password: string,
-    keepSignedIn: boolean
-) => ThunkAction;

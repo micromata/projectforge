@@ -31,7 +31,7 @@ import org.projectforge.reporting.Kost1;
 
 /**
  * Proxy for Kost1DO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see Kost1DO
  */
 public class Kost1Impl implements Kost1

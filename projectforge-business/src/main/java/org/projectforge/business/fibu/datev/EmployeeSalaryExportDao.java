@@ -52,7 +52,7 @@ import java.util.*;
 /**
  * For excel export of employee salaries for import in Datev.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class EmployeeSalaryExportDao {

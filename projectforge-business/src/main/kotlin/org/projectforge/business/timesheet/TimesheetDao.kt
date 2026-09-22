@@ -58,6 +58,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -76,7 +77,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
@@ -130,6 +131,48 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
+
+    /**
+     * Newest sheets first, as [TimesheetFilter.orderType] defaults to [OrderDirection.DESC]. Only used when the
+     * caller asks for no order of its own (see [BaseDao.select]/[org.projectforge.framework.persistence.api.impl.DBQuery]):
+     * the Wicket list page adds the same order explicitly ([buildQueryFilter]), while the REST list has no default
+     * of its own, so without this it would come back unordered.
+     */
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
+
+    /**
+     * The data the list statistics need for the given time sheets, as a lean projection instead of the whole
+     * entities: only the four columns [AITimeSavings.buildStats] reads — start and stop for the duration, the
+     * AI amount and its unit. Returned as detached [TimesheetDO] stubs (nothing else set) so the existing
+     * [AITimeSavings.buildStats] can consume them unchanged.
+     *
+     * One `SELECT` of four columns, no lazy relations and no row hydration: the id list of a server-side paged
+     * list can be thousands of sheets, and loading them whole (all columns, in `IN` batches) only to sum
+     * durations is exactly what this avoids (see `TimesheetPagesRest.aggregate`). Access is already checked -
+     * the ids come from the access-filtered id list of the paged result.
+     */
+    open fun selectStatisticsData(ids: Collection<Long>): List<TimesheetDO> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        // Batched IN query: the id list can hold up to the list row cap (100k), which a single IN clause
+        // would push past PostgreSQL's 65535 bind-parameter limit. buildStatistics sums the whole returned
+        // list afterwards, so batching is transparent to the caller (see executeQueryBatched).
+        return persistenceService.executeQueryBatched(
+            "SELECT t.startTime AS startTime, t.stopTime AS stopTime, t.timeSavedByAI AS timeSavedByAI, t.timeSavedByAIUnit AS timeSavedByAIUnit FROM TimesheetDO t WHERE t.id IN :ids",
+            Tuple::class.java,
+            batchParam = "ids",
+            batchValues = ids,
+        ).map { tuple ->
+            TimesheetDO().also {
+                it.startTime = tuple.get("startTime") as Date?
+                it.stopTime = tuple.get("stopTime") as Date?
+                it.timeSavedByAI = tuple.get("timeSavedByAI") as BigDecimal?
+                it.timeSavedByAIUnit = tuple.get("timeSavedByAIUnit") as TimesheetDO.TimeSavedByAIUnit?
+            }
+        }
+    }
 
     /**
      * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
@@ -212,6 +255,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             } else {
                 queryFilter.add(eq("task.id", filter.taskId))
             }
+        }
+        if (filter.kost2Id != null) {
+            queryFilter.add(eq("kost2.id", filter.kost2Id))
         }
         if (filter.orderType == OrderDirection.DESC) {
             queryFilter.addOrder(desc("startTime"))
@@ -394,7 +440,12 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
      * update (also undelete). For time collision detection deleted time sheets are ignored.
      *
-     * @return The existing time sheet with the time period collision.
+     * Overlaps are allowed (no collision) for a pair of time sheets if at least one of the two involved tasks is marked
+     * as a shared cost element ([TaskDO.allowTimeOverlap], inherited from ancestor tasks) AND the two time sheets don't
+     * belong to the same project (booking overlapping time twice inside the same project is always a forbidden double
+     * booking). See [TimesheetOverlapUtils] for the purpose (cost sharing between projects/customers).
+     *
+     * @return true, if at least one overlapping time sheet is a forbidden collision.
      */
     open fun hasTimeOverlap(timesheet: TimesheetDO, throwException: Boolean): Boolean {
         val begin = System.currentTimeMillis()
@@ -409,25 +460,45 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             queryFilter.add(ne("id", timesheet.id!!))
         }
         val list = select(queryFilter)
-        if (list.isNotEmpty()) {
-            val ts = list[0]
+        // Find the first overlapping time sheet that is a real (forbidden) collision. Overlaps with shared cost
+        // elements in other projects are allowed.
+        val collision = list.firstOrNull { !isOverlapAllowed(timesheet, it) }
+        val end = System.currentTimeMillis()
+        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
+        if (collision != null) {
             if (throwException) {
-                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $ts")
-                val startTime = DateHelper.formatIsoTimestamp(ts.startTime)
-                val stopTime = DateHelper.formatIsoTimestamp(ts.stopTime)
+                log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $collision")
+                val startTime = DateHelper.formatIsoTimestamp(collision.startTime)
+                val stopTime = DateHelper.formatIsoTimestamp(collision.stopTime)
                 throw UserException(
                     "timesheet.error.timeperiodOverlapDetection", MessageParam(
-                        ts.id
+                        collision.id
                     ), MessageParam(startTime), MessageParam(stopTime)
                 )
             }
-            val end = System.currentTimeMillis()
-            log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
             return true
         }
-        val end = System.currentTimeMillis()
-        log.info("TimesheetDao.hasTimeOverlap took: " + (end - begin) + " ms.")
         return false
+    }
+
+    /**
+     * @return true, if the two overlapping time sheets are allowed to overlap in time: at least one of the involved
+     * tasks is a shared cost element (inherited) and the two time sheets don't belong to the same project.
+     */
+    private fun isOverlapAllowed(timesheet: TimesheetDO, other: TimesheetDO): Boolean {
+        val released = taskTree.isTimeOverlapAllowed(timesheet.taskId) || taskTree.isTimeOverlapAllowed(other.taskId)
+        if (!released) {
+            return false
+        }
+        val projektId = getProjektId(timesheet)
+        val otherProjektId = getProjektId(other)
+        // Same project => forbidden double booking. Time sheets without project (internal tasks) never count as the
+        // same project.
+        return projektId == null || projektId != otherProjektId
+    }
+
+    private fun getProjektId(timesheet: TimesheetDO): Long? {
+        return taskTree.getProjekt(timesheet.taskId)?.id ?: timesheet.kost2?.projekt?.id
     }
 
     /**
@@ -563,7 +634,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * true without further checking.
      *  1. Is the task or any of the ancestor tasks closed or deleted?
      *  1. Has the task or any of the ancestor tasks the TimesheetBookingStatus.TREE_CLOSED?
-     *  1. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
+     *  1. Is the task not a leaf node and is its effective booking status ONLY_LEAFS? The effective status
+     * is the one of the nearest explicitly configured node (walking up the ancestors while INHERIT), so an
+     * intermediate node with children can be re-enabled for booking by setting it explicitly to OPENED.
      *  1. Does any of the descendant task node has an assigned order position?
      *
      *
@@ -606,13 +679,16 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             }
             node = node.parent
         } while (node != null)
-        // 2. Has the task the booking status NO_BOOKING?
+        // 2. Determine the effective booking status: start with the task's own status and walk up the
+        // ancestors as long as the status is INHERIT. The first explicitly set status wins, so an
+        // explicit status on a nearer (descendant) node overrides the setting of a higher ancestor.
         var bookingStatus = taskNode!!.task.timesheetBookingStatus
         node = taskNode
         while (bookingStatus == TimesheetBookingStatus.INHERIT && node?.parent != null) {
             node = node.parent
             bookingStatus = node.task.timesheetBookingStatus
         }
+        // 2a. Has the effective booking status NO_BOOKING?
         if (bookingStatus == TimesheetBookingStatus.NO_BOOKING) {
             if (throwException) {
                 throw AccessException(
@@ -623,21 +699,19 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             return false
         }
         if (taskNode.hasChildren()) {
-            // 3. Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?
-            node = taskNode
-            do {
-                val task = node!!.task
-                if (task.timesheetBookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
-                    if (throwException) {
-                        throw AccessException(
-                            "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
-                            taskNode.task.title + " (#" + taskNode.id + ")"
-                        )
-                    }
-                    return false
+            // 3. Is the task not a leaf node and is its effective booking status ONLY_LEAFS?
+            // Because the effective status is inherited from the nearest explicitly configured node
+            // (see above), an intermediate node can be re-enabled for booking by explicitly setting it
+            // (e.g. to OPENED), even if a higher ancestor is set to ONLY_LEAFS.
+            if (bookingStatus == TimesheetBookingStatus.ONLY_LEAFS) {
+                if (throwException) {
+                    throw AccessException(
+                        "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking",
+                        taskNode.task.title + " (#" + taskNode.id + ")"
+                    )
                 }
-                node = node.parent
-            } while (node != null)
+                return false
+            }
             // 4. Does any of the descendant task node has an assigned order position?
             for (child in taskNode.children) {
                 if (taskTree.hasOrderPositions(child.id, true)) {
@@ -770,6 +844,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
          */
         const val MAXIMUM_DURATION = (1000 * 3600 * 14).toLong()
         const val HIDDEN_FIELD_MARKER = "[...]"
+
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(desc("startTime"))
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.id",

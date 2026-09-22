@@ -30,7 +30,7 @@ import java.util.Locale;
 
 /**
  * For configuring translations e. g. in the config.xml file.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XmlObject(alias = "translation")
 public class Translation

@@ -125,7 +125,9 @@ class RechnungDaoTest : AbstractTestBase() {
             checkNoAccess(id, rechnung, "Other")
 
             logon(TEST_PROJECT_MANAGER_USER)
-            checkNoAccess(id, rechnung, "Project manager")
+            // The project manager has PM_ORDER_BOOK, so it may open the (per-row filtered) outgoing invoice
+            // list - but not this invoice, which is linked to no order (see RechnungDaoOrderBookAccessTest).
+            checkNoAccess(id, rechnung, "Project manager", mayOpenList = true)
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(id, rechnung, "Admin ")
@@ -133,13 +135,19 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
-    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String) {
-        try {
-            val filter = RechnungFilter()
+    private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String, mayOpenList: Boolean = false) {
+        val filter = RechnungFilter()
+        if (mayOpenList) {
+            // Order book users (PM_ORDER_BOOK) may open the per-row filtered list without an exception; the
+            // per-row grant itself is asserted in RechnungDaoOrderBookAccessTest.
             rechnungDao.select(filter)
-            Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
-        } catch (ex: AccessException) {
-            // OK
+        } else {
+            try {
+                rechnungDao.select(filter)
+                Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
+            } catch (ex: AccessException) {
+                // OK
+            }
         }
         try {
             rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
@@ -192,6 +200,40 @@ class RechnungDaoTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
         }
+    }
+
+    /**
+     * [RechnungDao.find] overrides its base to initialize the lazy positions and cost assignments. It used
+     * to dereference both with `!!`, so an id nobody has answered with an NPE - a 500 where the REST layer
+     * would have answered a 404.
+     */
+    @Test
+    fun `an unknown id answers null instead of throwing`() {
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            Assertions.assertNull(rechnungDao.find(-1L, checkAccess = false))
+            null
+        }
+    }
+
+    @Test
+    fun `the positions and their cost assignments are readable outside the transaction`() {
+        lateinit var id: Serializable
+        logon(TEST_FINANCE_USER)
+        persistenceService.runInTransaction<Any?> { _ ->
+            val rechnung = RechnungDO()
+            rechnung.nummer = rechnungDao.getNextNumber(rechnung)
+            rechnung.datum = LocalDate.now()
+            rechnung.faelligkeit = LocalDate.now()
+            rechnung.projekt = initTestDB.addProjekt(null, 42, "lazy init")
+            rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
+            id = rechnungDao.insert(rechnung)
+            null
+        }
+        // What the override is for: no LazyInitializationException here.
+        val fromDb = rechnungDao.find(id)
+        Assertions.assertEquals(1, fromDb!!.positionen!!.size)
+        Assertions.assertNotNull(fromDb.positionen!![0].kostZuweisungen)
     }
 
     private fun createPosition(

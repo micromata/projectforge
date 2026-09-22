@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
 /**
  * This component is a text field or a read-only label, dependent on the environment setting. Therefore you can create read-only and
  * edit-pages with the same markup and Java code.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TextFieldOrLabelPanel<T> extends Panel

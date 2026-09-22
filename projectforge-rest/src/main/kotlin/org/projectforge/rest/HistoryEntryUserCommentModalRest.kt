@@ -83,7 +83,9 @@ class HistoryEntryUserCommentModalRest {
     ): ResponseEntity<ResponseAction> {
         sessionCsrfService.validateCsrfToken(request, postData, "Upsert")?.let { return it }
         val dto = postData.data
-        if (dto.userComment.isNullOrBlank()) {
+        // appendComment carries the newly entered text; userComment is the read-only existing one and
+        // is empty for the first comment of an entry.
+        if (dto.appendComment.isNullOrBlank()) {
             return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
         }
         val id = dto.id ?: return ResponseEntity(HttpStatus.NOT_FOUND)

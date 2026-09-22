@@ -23,14 +23,19 @@
 
 package org.projectforge.rest.pub
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 import org.projectforge.messaging.SmsSender
 import org.projectforge.messaging.SmsSender.HttpResponseCode
 import org.projectforge.rest.config.Rest
+import org.projectforge.security.ConstantTimeCompare
+import org.projectforge.security.SecurityLogging
 import org.projectforge.sms.SmsSenderConfig
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,6 +48,10 @@ private val log = KotlinLogging.logger {}
 /**
  * This rest service is available without login credentials but with an access key and only if SMS functionality
  * is configured as well as authentication key.
+ *
+ * There is no user filter registered for [Rest.SMS_BASE_URI], so the access key is the only barrier: it is
+ * therefore compared in constant time and failed attempts are throttled by [LoginProtection] (own namespace, keyed
+ * by the ip address of the client).
  */
 @RestController
 @RequestMapping(Rest.SMS_BASE_URI)
@@ -56,7 +65,8 @@ class MessagingServiceRest {
     private lateinit var smsSenderConfig: SmsSenderConfig
 
     @GetMapping("send")
-    fun send(@RequestParam("phoneNumber") phoneNumber: String,
+    fun send(request: HttpServletRequest,
+             @RequestParam("phoneNumber") phoneNumber: String,
              @RequestParam("text") text: String,
              @RequestParam("authKey") authKey: String,
              @RequestParam("verboseLog") verboseLog: Boolean?)
@@ -66,11 +76,28 @@ class MessagingServiceRest {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Service not available.")
         }
-        if (messagingServiceConfig.authkey != authKey) {
-            log.warn { "Unautorized call of sms service (wrong key used)." }
+        val clientIp = WebUtils.getClientIp(request)
+        val loginProtection = LoginProtection.instance()
+        // The ip address is passed as the user key (and not as clientIpAddress) on purpose: only the user key
+        // honours AUTHENTICATION_TYPE as a namespace, and the ip map has a threshold of 1000 failed attempts.
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(clientIp, null, AUTHENTICATION_TYPE)
+        if (offset > 0) {
+            SecurityLogging.logSecurityWarn(
+                request, this::class.java, "SMS SERVICE ACCESS DENIED",
+                "Access denied for ${offset / 1000} seconds due to failed attempts with a wrong access key."
+            )
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Service not available.")
+        }
+        if (!ConstantTimeCompare.equals(messagingServiceConfig.authkey, authKey)) {
+            loginProtection.incrementFailedLoginTimeOffset(clientIp, null, AUTHENTICATION_TYPE)
+            SecurityLogging.logSecurityWarn(
+                request, this::class.java, "SMS SERVICE UNAUTHORIZED", "Wrong access key used."
+            )
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Service not available.") // Return same state (for less information for potential hackers.
         }
+        loginProtection.clearLoginTimeOffset(clientIp, null, null, AUTHENTICATION_TYPE)
         val number = extractPhonenumber(phoneNumber,
                 Configuration.instance.getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX))
 
@@ -114,8 +141,16 @@ class MessagingServiceRest {
     }
 
     @PostMapping("post")
-    fun post(@RequestBody postData: PostData)
+    fun post(request: HttpServletRequest, @RequestBody postData: PostData)
             : ResponseEntity<String> {
-        return send(postData.phoneNumber, postData.text, postData.authKey, postData.verboseLog)
+        return send(request, postData.phoneNumber, postData.text, postData.authKey, postData.verboseLog)
+    }
+
+    companion object {
+        /**
+         * Own namespace of [LoginProtection], so that failed attempts here neither lock out a user's login nor are
+         * lifted by one.
+         */
+        private const val AUTHENTICATION_TYPE = "SMS_SERVICE"
     }
 }

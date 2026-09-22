@@ -24,7 +24,7 @@
 package org.projectforge.web.wicket.components;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class DateTimePanelSettings extends DatePanelSettings

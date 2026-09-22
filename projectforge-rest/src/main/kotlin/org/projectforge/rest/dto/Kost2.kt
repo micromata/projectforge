@@ -27,6 +27,7 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.framework.configuration.ApplicationContextProvider
 
 class Kost2(
@@ -60,7 +61,10 @@ class Kost2(
     kostentraegerStatus = src.kostentraegerStatus
     effectiveKostentraegerStatus = src.effectiveKostentraegerStatus
     description = src.description
-    this.project = src.projekt?.let {
+    // Resolve the project through the cache: the Kost2DO handed out by KostCache is detached, so its
+    // lazy projekt (and the projekt's lazy kunde) cannot be initialized here - touching them throws
+    // "statement closed". The cache returns a fully initialized ProjektDO instead.
+    this.project = ProjektCache.instance.getProjektIfNotInitialized(src.projekt)?.let {
       val project = Project()
       project.copyFromMinimal(it)
       project

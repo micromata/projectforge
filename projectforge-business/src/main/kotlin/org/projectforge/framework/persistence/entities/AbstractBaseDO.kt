@@ -44,7 +44,7 @@ import java.lang.reflect.Modifier
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @MappedSuperclass
 abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializable {

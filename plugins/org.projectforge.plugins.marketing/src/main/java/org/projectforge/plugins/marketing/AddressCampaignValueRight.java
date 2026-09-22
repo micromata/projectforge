@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 public class AddressCampaignValueRight extends UserRightAccessCheck<AddressCampaignValueDO>
 {

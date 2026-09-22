@@ -46,7 +46,7 @@ import javax.xml.xpath.XPathFactory
 /**
  * Integration tests for SEPA transfer generation with realistic multi-invoice scenarios.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SEPATransferIntegrationTest : AbstractTestBase() {
 

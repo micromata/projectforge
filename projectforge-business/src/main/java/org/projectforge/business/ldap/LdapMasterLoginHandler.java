@@ -53,7 +53,7 @@ import java.util.*;
  * LDAP system directly. Such users need to log-in first at ProjectForge, otherwise their LDAP passwords aren't set (no
  * log-in at any other system connecting to the LDAP is possible until the first log-in at ProjectForge).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapMasterLoginHandler extends LdapLoginHandler {

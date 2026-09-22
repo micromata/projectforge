@@ -31,7 +31,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Represents a simple anchor link: &lt;a href="#"&gt;link&lt;/a&gt;.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TextLinkPanel extends Panel

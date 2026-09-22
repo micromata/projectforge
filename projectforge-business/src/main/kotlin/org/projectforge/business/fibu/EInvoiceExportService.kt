@@ -46,6 +46,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.RepoService
 import org.springframework.stereotype.Service
@@ -178,12 +180,12 @@ class EInvoiceExportService(
     }
 
     fun deleteUploadedInvoicePdf(invoiceId: Long) {
-        deleteUploadedInvoicePdfInternal(invoiceId)
-        updateAttachmentsCounter(invoiceId)
+        val deleted = deleteUploadedInvoicePdfInternal(invoiceId)
+        updateAttachmentsCounter(invoiceId, deleted?.let { "Invoice PDF '$it' deleted." })
     }
 
     fun uploadInvoicePdf(invoiceId: Long, fileName: String, pdfContent: ByteArray) {
-        deleteUploadedInvoicePdfInternal(invoiceId)
+        val replaced = deleteUploadedInvoicePdfInternal(invoiceId)
         val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
         repoService.ensureNode(null, nodePath)
         val fileInfo = org.projectforge.jcr.FileInfo(fileName = fileName, description = INVOICE_PDF_MARKER)
@@ -191,26 +193,49 @@ class EInvoiceExportService(
         fileObject.content = pdfContent
         repoService.storeFile(fileObject, InternalFileSizeChecker)
         log.info { "Uploaded invoice PDF '$fileName' (${pdfContent.size} bytes) for invoice id=$invoiceId" }
-        updateAttachmentsCounter(invoiceId)
+        // The replaced file is named too: an upload onto a stored PDF is one action of the user, and the
+        // history entry it leaves is the only place afterwards saying which file it took the place of.
+        updateAttachmentsCounter(
+            invoiceId,
+            if (replaced != null) {
+                "Invoice PDF uploaded: '$fileName' (replacing '$replaced')."
+            } else {
+                "Invoice PDF uploaded: '$fileName'."
+            },
+        )
     }
 
-    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long) {
+    /**
+     * @return the name of the file that was there, or null if this invoice had no invoice PDF.
+     */
+    private fun deleteUploadedInvoicePdfInternal(invoiceId: Long): String? {
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
-        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return
-        val fileId = pdfAttachment.fileId ?: return
+        val pdfAttachment = attachments.firstOrNull { it.description == INVOICE_PDF_MARKER } ?: return null
+        val fileId = pdfAttachment.fileId ?: return null
         val nodePath = attachmentsService.getPath(JCR_PATH, invoiceId)
         val fileObject = org.projectforge.jcr.FileObject(nodePath, AttachmentsService.DEFAULT_NODE, fileId = fileId)
         repoService.deleteFile(fileObject)
         log.info { "Deleted uploaded invoice PDF for invoice id=$invoiceId" }
+        return pdfAttachment.name
     }
 
-    private fun updateAttachmentsCounter(invoiceId: Long) {
+    /**
+     * Writes the invoice's attachment info after a write to its JCR node, as
+     * `AttachmentsService.updateAttachmentsInfo` does for every other attachment.
+     *
+     * [lastUserAction] is what makes the write appear in the invoice's change history: the four counter and
+     * name fields are `@NoHistory` (they exist for the search index), so a save that touches only them leaves
+     * no entry at all — `attachmentsLastUserAction` is the one historized field of the group, which is why
+     * `AttachmentsService` phrases a sentence into it for each of its own events.
+     */
+    private fun updateAttachmentsCounter(invoiceId: Long, lastUserAction: String? = null) {
         val invoice = rechnungDao.find(invoiceId, checkAccess = false) ?: return
         val attachments = attachmentsService.internalGetAttachments(JCR_PATH, invoiceId)
         invoice.attachmentsCounter = if (attachments.isNotEmpty()) attachments.size else null
         invoice.attachmentsSize = if (attachments.isNotEmpty()) attachments.sumOf { it.size ?: 0L } else null
         invoice.attachmentsNames = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.name ?: "" } else null
         invoice.attachmentsIds = if (attachments.isNotEmpty()) attachments.joinToString(" ") { it.fileId ?: "" } else null
+        lastUserAction?.let { invoice.attachmentsLastUserAction = it }
         rechnungDao.updateAny(invoice, checkAccess = false)
     }
 
@@ -243,44 +268,58 @@ class EInvoiceExportService(
         }
     }
 
+    /**
+     * What keeps this invoice from being exported, as sentences for the user.
+     *
+     * Translated here rather than answered as keys: every caller - Wicket's error line, the REST endpoint
+     * the next dialog reads - puts the list in front of a user unchanged, so a key would have to be
+     * resolved twice with the same bundle. The texts are the user's language
+     * ([org.projectforge.framework.i18n.translate] follows the logged-in user's locale), which they were
+     * not before: the list used to be English prose in every locale.
+     *
+     * @return One sentence per problem, empty if the invoice can be exported.
+     */
     fun validate(invoice: RechnungDO): List<String> {
         val errors = mutableListOf<String>()
 
         if (!sellerConfig.isConfigured()) {
-            errors.add("Seller configuration incomplete (projectforge.einvoice.seller.*)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.sellerNotConfigured"))
         }
         if (invoice.nummer == null) {
-            errors.add("Invoice number is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.numberMissing"))
         }
         if (invoice.datum == null) {
-            errors.add("Invoice date is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.dateMissing"))
         }
-        if (invoice.positionen.isNullOrEmpty()) {
-            errors.add("Invoice has no positions")
+        // Excluding deleted positions: an invoice whose only position was deleted has nothing to state.
+        if (invoice.positionenExcludingDeleted.isEmpty()) {
+            errors.add(translate("fibu.rechnung.eInvoice.error.noPositions"))
         }
 
         if (sellerConfig.bankAccounts.isEmpty()) {
-            errors.add("No bank accounts configured (projectforge.einvoice.seller.bankAccounts)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotConfigured"))
         } else if (invoice.sellerBankAccount.isNullOrBlank()) {
-            errors.add("No bank account selected for this invoice")
+            errors.add(translate("fibu.rechnung.eInvoice.error.bankAccountNotSelected"))
         } else if (sellerConfig.findBankAccount(invoice.sellerBankAccount) == null) {
-            errors.add("Selected bank account '${invoice.sellerBankAccount}' not found in configuration")
+            errors.add(
+                translateMsg("fibu.rechnung.eInvoice.error.bankAccountNotFound", invoice.sellerBankAccount)
+            )
         }
 
         val kunde = invoice.kunde
         val customerName = kunde?.name ?: invoice.kundeText
         if (customerName.isNullOrBlank()) {
-            errors.add("Customer name is missing (no customer assigned and no customer text)")
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerNameMissing"))
         }
         val konto = kunde?.konto
         val street = invoice.customerAddress ?: konto?.street
         val zip = invoice.customerZipCode ?: konto?.zipCode
         val city = invoice.customerCity ?: konto?.city
         if (street.isNullOrBlank()) {
-            errors.add("Customer address/street is missing")
+            errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressMissing"))
         } else if (zip.isNullOrBlank() || city.isNullOrBlank()) {
             if (!street.contains("\n") && !street.contains(",")) {
-                errors.add("Customer address incomplete (zip and city required)")
+                errors.add(translate("fibu.rechnung.eInvoice.error.customerAddressIncomplete"))
             }
         }
         val buyerEmail = invoice.customerEInvoiceEmail ?: konto?.eInvoiceEmail
@@ -340,8 +379,9 @@ class EInvoiceExportService(
             mustangInvoice.setPaymentTermDescription(paymentTerms)
         }
 
-        // Line items
-        invoice.positionen?.forEach { pos ->
+        // Line items, without the positions marked as deleted: they are no part of the invoice, and a line for
+        // one would state an amount that no sum of the invoice contains ([RechnungCalculator] skips them).
+        invoice.positionenExcludingDeleted.forEach { pos ->
             mustangInvoice.addItem(buildItem(pos, invoice))
         }
 

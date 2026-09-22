@@ -25,12 +25,9 @@ package org.projectforge.web.wicket;
 
 import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.util.string.Strings;
+import org.projectforge.web.WebUtils;
 
 import jakarta.servlet.ServletRequest;
-import jakarta.servlet.http.HttpServletRequest;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class ClientIpResolver extends WebClientInfo
 {
@@ -48,28 +45,13 @@ public class ClientIpResolver extends WebClientInfo
     return new ClientIpResolver(requestCycle).getRemoteAddr(requestCycle);
   }
 
+  /**
+   * @see WebUtils#getClientIp(ServletRequest) X-Forwarded-For is only used if the request came from a trusted
+   * proxy, see projectforge.security.trustedProxies.
+   */
   public static String getClientIp(final ServletRequest request)
   {
-    String remoteAddr = null;
-    if (request instanceof HttpServletRequest) {
-      remoteAddr = ((HttpServletRequest) request).getHeader("X-Forwarded-For");
-    }
-    if (remoteAddr != null) {
-      if (remoteAddr.contains(",")) {
-        // sometimes the header is of form client ip,proxy 1 ip,proxy 2 ip,...,proxy n ip,
-        // we just want the client
-        remoteAddr = Strings.split(remoteAddr, ',')[0].trim();
-      }
-      try {
-        // If ip4/6 address string handed over, simply does pattern validation.
-        InetAddress.getByName(remoteAddr);
-      } catch (final UnknownHostException e) {
-        remoteAddr = request.getRemoteAddr();
-      }
-    } else {
-      remoteAddr = request.getRemoteAddr();
-    }
-    return remoteAddr;
+    return WebUtils.getClientIp(request);
   }
 
   /**

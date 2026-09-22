@@ -39,7 +39,7 @@ import java.time.LocalDate;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @EditPage(defaultReturnPage = HRPlanningListPage.class)
 public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlanningEditForm, HRPlanningDao> implements ISelectCallerPage {

@@ -38,7 +38,7 @@ import java.util.TreeSet;
  * Text field contains a ajax autocompletion text field for choosing and displaying a language (stored as locale). The
  * favorite list is configurable.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class LanguageField extends PFAutoCompleteTextField<Locale>

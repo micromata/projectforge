@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Purges old backup file by keeping e. g. monthly backups and removing daily ones.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object BackupFilesPurging {
     /**

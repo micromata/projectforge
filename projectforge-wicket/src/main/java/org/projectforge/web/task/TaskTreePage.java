@@ -43,7 +43,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 /**
  * Shows the task tree for selection.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskTreePage extends AbstractSecuredPage {
     private static final long serialVersionUID = -8406452960003792763L;

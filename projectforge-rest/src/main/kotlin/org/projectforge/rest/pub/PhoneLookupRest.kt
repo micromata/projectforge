@@ -26,7 +26,11 @@ package org.projectforge.rest.pub
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.rest.config.Rest
+import org.projectforge.security.ConstantTimeCompare
+import org.projectforge.security.SecurityLogging
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -60,12 +64,31 @@ class PhoneLookupRest {
      */
     @GetMapping("phoneLookup")
     fun phoneLookup(req: HttpServletRequest, @RequestParam("nr") number: String?, @RequestParam("key") key: String?): ResponseEntity<Any> {
-        log.info("From: " + req.remoteAddr + ", request-URL: " + req.requestURL)
+        val clientIp = WebUtils.getClientIp(req)
+        log.info("From: $clientIp, request-URL: ${req.requestURL}")
         val expectedKey = configurationService.phoneLookupKey
-        if (expectedKey.isNullOrBlank() || expectedKey != key) {
-            log.warn("Servlet call for receiving phone lookups ignored because phoneLookupKey is not given or doesn't match the configured one in file projectforge.properties (projectforge.phoneLookupKey).")
+        if (expectedKey.isNullOrBlank()) {
+            log.warn("Servlet call for receiving phone lookups ignored because phoneLookupKey isn't configured in file projectforge.properties (projectforge.phoneLookupKey).")
             return ResponseEntity(HttpStatus.FORBIDDEN)
         }
+        val loginProtection = LoginProtection.instance()
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(clientIp, null, AUTHENTICATION_TYPE)
+        if (offset > 0) {
+            SecurityLogging.logSecurityWarn(
+                req, this::class.java, "PHONE LOOKUP ACCESS DENIED",
+                "Access denied for ${offset / 1000} seconds due to failed attempts with a wrong key."
+            )
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+        if (!ConstantTimeCompare.equals(expectedKey, key)) {
+            loginProtection.incrementFailedLoginTimeOffset(clientIp, null, AUTHENTICATION_TYPE)
+            SecurityLogging.logSecurityWarn(
+                req, this::class.java, "PHONE LOOKUP UNAUTHORIZED",
+                "Given key doesn't match the configured one (projectforge.phoneLookupKey)."
+            )
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+        loginProtection.clearLoginTimeOffset(clientIp, null, null, AUTHENTICATION_TYPE)
         if (StringUtils.isBlank(number) || !StringUtils.containsOnly(number, "+1234567890 -/")) {
             log.warn("Bad request, request parameter nr not given or contains invalid characters (only +0123456789 -/ are allowed): $number")
             return ResponseEntity(HttpStatus.BAD_REQUEST)
@@ -82,5 +105,13 @@ class PhoneLookupRest {
                     .contentType(MediaType.TEXT_PLAIN)
                     .body("")
         }
+    }
+
+    companion object {
+        /**
+         * Own namespace of [LoginProtection], so that failed attempts here neither lock out a user's login nor are
+         * lifted by one.
+         */
+        private const val AUTHENTICATION_TYPE = "PHONE_LOOKUP"
     }
 }

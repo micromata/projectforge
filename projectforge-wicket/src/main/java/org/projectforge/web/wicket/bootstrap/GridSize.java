@@ -34,7 +34,7 @@ package org.projectforge.web.wicket.bootstrap;
  * <li>COL100 is an alias for SPAN12</li>
  * </ul>
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum GridSize
 {

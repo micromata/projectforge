@@ -29,7 +29,7 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  * Date formats.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum TimeNotation implements I18nEnum

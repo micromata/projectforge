@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  *
  * You may add your predicates (independent of which strategy is used behind). The query strategy is automatically done.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     private val predicates = mutableListOf<DBPredicate>()
@@ -260,8 +260,13 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
         /**
          * If no maximum number of results is defined, MAX_ROWS is used as max value.
+         *
+         * 100_000 to match the cap the Wicket lists effectively used: the legacy `getList(BaseSearchFilter)`
+         * path raised it to 100_000 for some entities (time sheets for finance/controlling staff, accounting
+         * records), but the REST/next path builds its query straight from the [MagicFilter] and never ran
+         * that override — so those lists were silently capped at the old 50_000 there (see MagicFilterProcessor).
          */
-        const val QUERY_FILTER_MAX_ROWS: Int = 50_000
+        const val QUERY_FILTER_MAX_ROWS: Int = 100_000
 
         @JvmStatic
         fun isNull(field: String): DBPredicate.IsNull {

@@ -25,7 +25,7 @@ package org.projectforge.framework.configuration;
 
 /**
  * Register your ConfigurationListener in Configuration class for get any required notification.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public interface ConfigurationListener

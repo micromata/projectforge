@@ -39,6 +39,21 @@ private val log = KotlinLogging.logger {}
 
 /**
  * For single dynamic React pages. Use this class especially for CSRF protection.
+ *
+ * **Every subclass has to check the access rights itself.** Unlike [AbstractEntityRest] there is no DAO
+ * behind such a page, so nothing below the handler method authorizes the call: this base class provides
+ * the session's CSRF token, which proves the request comes from the user's own session, and nothing about
+ * what that user is allowed to see. Hiding the menu entry (`MenuCreator`) is not a substitute either —
+ * projectforge-next builds its menu itself, so an entry it doesn't show is still reachable.
+ *
+ * The pattern is a group or right check as the first statement of each endpoint, see
+ * `BirthdayButlerPageRest` or `EInvoiceCheckerPageRest`:
+ * ```
+ * accessChecker.checkIsLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_GROUPS)
+ * ```
+ * The `accessChecker` is autowired per subclass on purpose: several subclasses already declare it
+ * privately, and a page whose data is the caller's own (e.g. `ChangePasswordPageRest`) needs no group at
+ * all — what it needs is a deliberate decision, not an inherited field.
  */
 abstract class AbstractDynamicPageRest {
   @Autowired

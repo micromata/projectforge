@@ -28,7 +28,7 @@ import org.apache.wicket.behavior.Behavior;
 
 /**
  * Styles as behavior for TextPanels.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TextStyle

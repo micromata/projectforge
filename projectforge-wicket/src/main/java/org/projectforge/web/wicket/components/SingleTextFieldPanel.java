@@ -34,7 +34,7 @@ import java.math.BigDecimal;
  * Panel containing only one text input field. Can be used for creating dynamic elements (e. g. inside a repeating view). <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class SingleTextFieldPanel extends Panel
 {

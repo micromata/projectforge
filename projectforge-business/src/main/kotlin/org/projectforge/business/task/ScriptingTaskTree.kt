@@ -30,7 +30,7 @@ import java.math.BigDecimal
 
 /**
  * Proxy of TaskTree for scripting.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class ScriptingTaskTree {
   private val __baseDao: TaskTree = TaskTree.instance

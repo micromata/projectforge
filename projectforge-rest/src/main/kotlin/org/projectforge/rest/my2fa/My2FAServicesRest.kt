@@ -35,14 +35,13 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.login.LoginService
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.pub.LoginServiceRest
-import org.projectforge.rest.pub.My2FAPublicServicesRest
-import org.projectforge.rest.pub.PasswordResetPageRest
 import org.projectforge.security.My2FAData
 import org.projectforge.security.My2FAService
 import org.projectforge.security.OTPCheckResult
@@ -71,6 +70,9 @@ class My2FAServicesRest {
     private lateinit var cookieService: CookieService
 
     @Autowired
+    private lateinit var loginService: LoginService
+
+    @Autowired
     private lateinit var my2FAService: My2FAService
 
     @Autowired
@@ -83,16 +85,14 @@ class My2FAServicesRest {
     private lateinit var webAuthnServicesRest: WebAuthnServicesRest
 
     /**
-     * For validating the Authenticator's OTP, or OTP sent by sms or e-mail.
-     * @param afterLogin Used by [org.projectforge.rest.pub.My2FAPublicServicesRest]. If true, no toast should be
-     *                   created, a CHECK_AUTHENTICATION should be returned.
+     * For validating the Authenticator's OTP, or OTP sent by sms or e-mail. Only for users already logged in
+     * (the 2FA of the login itself is handled by [org.projectforge.rest.pub.next.TwoFactorLoginNextRest]).
      */
     @PostMapping("checkOTP")
     fun checkOTP(
         request: HttpServletRequest,
         response: HttpServletResponse,
         @Valid @RequestBody postData: PostData<out My2FAData>,
-        afterLogin: Boolean = false,
     ): ResponseEntity<ResponseAction> {
         // Not needed (no replay attack possible)
         // sessionCsrfService.validateCsrfToken(request, postData)?.let { return it }
@@ -104,7 +104,7 @@ class My2FAServicesRest {
             return UIToast.createToastResponseEntity(translate("user.My2FA.setup.check.fail"), color = UIColor.DANGER)
         }
         if (otpCheck == OTPCheckResult.SUCCESS) {
-            return after2FASuccess(request, postData, afterLogin)
+            return after2FASuccess(postData)
         }
         // otp check wasn't successful:
         otpCheck.userMessage?.let { msg ->
@@ -154,6 +154,9 @@ class My2FAServicesRest {
             // Store it also in the user's session, e. g. used by public password reset service.
             request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
         }
+        // A stay-logged-in cookie the user asked for at login time is only issued now, after the second
+        // factor. Every 2FA path (OTP as well as WebAuthn) passes through here.
+        loginService.onSecondFactorSucceeded(request, response)
     }
 
     /**
@@ -195,7 +198,6 @@ class My2FAServicesRest {
         request: HttpServletRequest,
         httpResponse: HttpServletResponse,
         @RequestBody postData: PostData<My2FAWebAuthnData>,
-        afterLogin: Boolean = false,
     ): ResponseEntity<ResponseAction> {
         val webAuthnFinishRequest = postData.data.webAuthnFinishRequest
         // Not needed (no replay attack possible)
@@ -203,7 +205,7 @@ class My2FAServicesRest {
         requireNotNull(webAuthnFinishRequest)
         val result = webAuthnServicesRest.doWebAuthnFinish(request, httpResponse, webAuthnFinishRequest)
         if (result.success) {
-            return after2FASuccess(request, postData, afterLogin)
+            return after2FASuccess(postData)
         }
         // Authentication wasn't successful:
         result.errorMessage!!.let { msg ->
@@ -214,18 +216,7 @@ class My2FAServicesRest {
         }
     }
 
-    fun after2FASuccess(
-        request: HttpServletRequest,
-        postData: PostData<out My2FAData>,
-        afterLogin: Boolean,
-    ): ResponseEntity<ResponseAction> {
-        if (afterLogin) {
-            val redirectUrl = LoginServiceRest.getRedirectUrl(request, postData.serverData)
-            return ResponseEntity(
-                ResponseAction(targetType = TargetType.CHECK_AUTHENTICATION, url = redirectUrl),
-                HttpStatus.OK
-            )
-        }
+    fun after2FASuccess(postData: PostData<out My2FAData>): ResponseEntity<ResponseAction> {
         val data = postData.data
         if (data.modal == true) {
             // 2FA request was handled by modal dialog, so close the modal only:
@@ -234,15 +225,12 @@ class My2FAServicesRest {
                 HttpStatus.OK
             )
         }
-        if (data.target != null) {
-            // 2FA request was handled by an extra page, so redirect to origin:
-            val redirectUrl = String(Base64.decodeBase64(data.target), StandardCharsets.UTF_8)
-            if (redirectUrl.isNotBlank()) {
-                return ResponseEntity(
-                    ResponseAction(targetType = TargetType.REDIRECT, url = replaceRestByReactUrl(redirectUrl)),
-                    HttpStatus.OK
-                )
-            }
+        // 2FA request was handled by an extra page, so redirect to origin:
+        redirectUrlFromTarget(data.target)?.let { redirectUrl ->
+            return ResponseEntity(
+                ResponseAction(targetType = TargetType.REDIRECT, url = redirectUrl),
+                HttpStatus.OK
+            )
         }
         data.code = ""
         data.lastSuccessful2FA = My2FAService.getLastSuccessful2FAAsTimeAgo()
@@ -303,53 +291,15 @@ class My2FAServicesRest {
     }
 
     /**
-     * A 2FA is needed for any public page (login or password reset).
-     * @param mailOTPDisabled Should be disabled for password reset (the reset link was also sent by mail, so it's not really a 2FA.
      * @param restServiceClass Class with services such as checkOTP, mailCode (if configured) and sendSmsCode.
-     */
-    fun fillLayout4PublicPage(
-        layout: UILayout,
-        userContext: UserContext,
-        restServiceClass: Class<*> = My2FAPublicServicesRest::class.java,
-        redirectUrl: String? = null,
-        mailOTPDisabled: Boolean = false,
-    ) {
-        val fieldset = UIFieldset(12, title = "user.My2FACode.title")
-        layout.add(fieldset)
-        fieldset.add(
-            UIAlert(
-                message = "user.My2FACode.authentification.info",
-                markdown = true,
-                color = UIColor.INFO
-            )
-        )
-        fillCodeCol(
-            layout,
-            fieldset,
-            redirectUrl,
-            userContext.user?.mobilePhone,
-            showCancelButton = true,
-            mailOTPDisabled,
-            restServiceClass,
-            userContext,
-        )
-    }
-
-    /**
-     * @param showCancelButton Only true for login process (the private services aren't yet available) and password reset
-     * @param mailOTPDisabled True, if no mail button should be displayed (especially for password reset).
-     * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
      */
     private fun fillCodeCol(
         layout: UILayout,
         codeCol: UICol,
         redirectUrl: String? = null,
-        mobilePhone: String? = ThreadLocalUserContext.loggedInUser?.mobilePhone,
-        showCancelButton: Boolean = false,
-        mailOTPDisabled: Boolean = false,
         restServiceClass: Class<*>,
-        userContext: UserContext? = null,
     ) {
+        val mobilePhone = ThreadLocalUserContext.loggedInUser?.mobilePhone
         val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
         codeCol
             .add(
@@ -361,16 +311,6 @@ class My2FAServicesRest {
                     pattern = "\\d*"
                 )
             )
-        if (showCancelButton) {
-            codeCol.add(
-                UIButton.createCancelButton(
-                    responseAction = ResponseAction(
-                        RestResolver.getRestUrl(restServiceClass, "cancel"),
-                        targetType = TargetType.GET
-                    ),
-                )
-            )
-        }
         codeCol.add(
             UIButton.createDefaultButton(
                 "validate",
@@ -381,21 +321,13 @@ class My2FAServicesRest {
                 ),
             )
         )
-        if (webAuthnSupport.isAvailableForUser(userContext?.user?.id)) {
-            val variables =
-                mutableMapOf<String, Any>(
-                    "authenticateFinishUrl" to RestResolver.getRestUrl(
-                        restServiceClass,
-                        "webAuthnFinish"
-                    )
-                )
-            if (restServiceClass == My2FAPublicServicesRest::class.java || restServiceClass == PasswordResetPageRest::class.java) {
-                variables["authenticateUrl"] = RestResolver.getRestUrl(restServiceClass, "webAuthn")
-            }
+        if (webAuthnSupport.isAvailableForUser(ThreadLocalUserContext.loggedInUser?.id)) {
             codeCol.add(
                 UICustomized(
                     "webauthn.authenticate",
-                    variables,
+                    mutableMapOf(
+                        "authenticateFinishUrl" to RestResolver.getRestUrl(restServiceClass, "webAuthnFinish")
+                    ),
                 )
             )
             WebAuthnServicesRest.addAuthenticateTranslations(layout)
@@ -403,7 +335,7 @@ class My2FAServicesRest {
         if (smsAvailable) {
             codeCol.add(createSendButton(My2FAType.SMS, restServiceClass))
         }
-        if (!mailOTPDisabled && !my2FAService.isMail2FADisabledForUser(userContext)) {
+        if (!my2FAService.isMail2FADisabledForUser()) {
             codeCol.add(createSendButton(My2FAType.MAIL, restServiceClass))
         }
     }
@@ -436,6 +368,23 @@ class My2FAServicesRest {
          */
         fun getLastSuccessful2FAFromSession(request: HttpServletRequest): Long? {
             return request.getSession(false)?.getAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA) as? Long
+        }
+
+        /**
+         * The url to redirect to after a successful 2FA, taken from the base64 encoded `target` of the request.
+         *
+         * The value is client supplied (base64 is an encoding, not a protection), so it goes through the same
+         * check as the redirect url of the login, see [LoginServiceRest.sanitizeRedirectUrl]: without it a
+         * successful 2FA would be an open redirect - and a convincing phishing hop, because the victim really
+         * did authenticate against ProjectForge.
+         *
+         * @return The sanitized url, or null if there is none to redirect to.
+         */
+        internal fun redirectUrlFromTarget(target: String?): String? {
+            target ?: return null
+            val decoded = String(Base64.decodeBase64(target), StandardCharsets.UTF_8)
+            val sanitized = LoginServiceRest.sanitizeRedirectUrl(decoded) ?: return null
+            return replaceRestByReactUrl(sanitized)
         }
 
         /**

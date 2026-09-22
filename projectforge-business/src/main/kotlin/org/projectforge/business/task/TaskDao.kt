@@ -53,7 +53,16 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * Result of a time sheet duration aggregation for a single task (excluding child tasks).
+ *
+ * @param duration Total duration of all time sheets in seconds.
+ * @param earliestStartTime Earliest start time of all time sheets or null if none exist.
+ * @param latestStopTime Latest stop time of all time sheets or null if none exist.
+ */
+data class TaskDurationInfo(val duration: Long, val earliestStartTime: Date?, val latestStopTime: Date?)
+
+/**
+ * @author Kai Reinhard
  */
 @Suppress("DEPRECATION")
 @Service
@@ -120,19 +129,22 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
 
     /**
      * Gets the total duration of all time sheets of all tasks (group by task.id).
+     *
+     * Each entry is an array: `[duration (seconds), taskId, earliestStartTime, latestStopTime]`. The date entries
+     * (indices 2 and 3) may be null if no time sheet exists (should not happen for a returned group).
      */
-    internal fun readTotalDurations(): List<Array<Any>> {
+    internal fun readTotalDurations(): List<Array<Any?>> {
         log.debug("Calculating duration for all tasks")
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
             val result = persistenceService.executeQuery(
-                "select $intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id",
+                "select $intervalInSeconds, task.id, min(startTime), max(stopTime) from TimesheetDO where deleted=false group by task.id",
                 Tuple::class.java,
             )
-            // select intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id
-            val list = mutableListOf<Array<Any>>()
+            // select intervalInSeconds, task.id, min(startTime), max(stopTime) from TimesheetDO where deleted=false group by task.id
+            val list = mutableListOf<Array<Any?>>()
             for (tuple in result) {
-                list.add(arrayOf(tuple[0], tuple[1]))
+                list.add(arrayOf(tuple[0], tuple[1], tuple[2], tuple[3]))
             }
             return list
         }
@@ -142,10 +154,12 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             Tuple::class.java,
         )
         // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
-        val list = mutableListOf<Array<Any>>()
+        val list = mutableListOf<Array<Any?>>()
         if (!CollectionUtils.isEmpty(result)) {
             var currentTaskId: Long? = null
             var totalDuration: Long = 0
+            var earliestStart: Date? = null
+            var latestStop: Date? = null
             for (oa in result) {
                 val startTime = oa[0] as Date
                 val stopTime = oa[1] as Date
@@ -153,16 +167,24 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                 val duration = (stopTime.time - startTime.time) / 1000
                 if (currentTaskId == null || currentTaskId != taskId) {
                     if (currentTaskId != null) {
-                        list.add(arrayOf(totalDuration, currentTaskId))
+                        list.add(arrayOf(totalDuration, currentTaskId, earliestStart, latestStop))
                     }
                     // New row.
                     currentTaskId = taskId
                     totalDuration = 0
+                    earliestStart = null
+                    latestStop = null
                 }
                 totalDuration += duration
+                if (earliestStart == null || startTime.before(earliestStart)) {
+                    earliestStart = startTime
+                }
+                if (latestStop == null || stopTime.after(latestStop)) {
+                    latestStop = stopTime
+                }
             }
             if (currentTaskId != null) {
-                list.add(arrayOf(totalDuration, currentTaskId))
+                list.add(arrayOf(totalDuration, currentTaskId, earliestStart, latestStop))
             }
         }
         return list
@@ -173,17 +195,25 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @return Duration in seconds.
      */
     fun readTotalDuration(taskId: Long?): Long {
+        return readTotalDurationInfo(taskId).duration
+    }
+
+    /**
+     * Gets the total duration as well as the earliest start and latest stop time of all time sheets of the given task
+     * (excluding the child tasks).
+     */
+    fun readTotalDurationInfo(taskId: Long?): TaskDurationInfo {
         log.debug { "Calculating duration for task $taskId" }
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
-            // Expected type is Integer or Long.
-            val value = persistenceService.selectSingleResult(
-                "select $intervalInSeconds from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
-                Number::class.java,
+            val tuple = persistenceService.selectSingleResult(
+                "select $intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
+                Tuple::class.java,
                 Pair("taskId", taskId),
             )
-            // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
-            return value?.toLong() ?: 0L
+            // select intervalInSeconds, min(startTime), max(stopTime) from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id
+                ?: return TaskDurationInfo(0L, null, null)
+            return TaskDurationInfo((tuple[0] as Number).toLong(), tuple[1] as Date?, tuple[2] as Date?)
         }
         val result = persistenceService.executeNamedQuery(
             TimesheetDO.FIND_START_STOP_BY_TASKID,
@@ -191,16 +221,23 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             Pair("taskId", taskId),
         )
         if (CollectionUtils.isEmpty(result)) {
-            return 0L
+            return TaskDurationInfo(0L, null, null)
         }
         var totalDuration: Long = 0
+        var earliestStart: Date? = null
+        var latestStop: Date? = null
         for (oa in result) {
             val startTime = oa[0] as Date
             val stopTime = oa[1] as Date
-            val duration = stopTime.time - startTime.time
-            totalDuration += duration
+            totalDuration += stopTime.time - startTime.time
+            if (earliestStart == null || startTime.before(earliestStart)) {
+                earliestStart = startTime
+            }
+            if (latestStop == null || stopTime.after(latestStop)) {
+                latestStop = stopTime
+            }
         }
-        return totalDuration / 1000
+        return TaskDurationInfo(totalDuration / 1000, earliestStart, latestStop)
     }
 
     @Throws(AccessException::class)
@@ -371,19 +408,22 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         super.checkInsertAccess(user, obj)
         if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
             if (obj.protectTimesheetsUntil != null) {
-                throw AccessException("task.error.protectTimesheetsUntilReadonly")
+                throw AccessException("task.error.protectTimesheetsUntilReadonly").setCausedByField("protectTimesheetsUntil")
             }
             if (obj.protectionOfPrivacy) {
-                throw AccessException("task.error.protectionOfPrivacyReadonly")
+                throw AccessException("task.error.protectionOfPrivacyReadonly").setCausedByField("protectionOfPrivacy")
             }
         }
         if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
             // Non project managers are not able to manipulate the following fields:
-            if (StringUtils.isNotBlank(obj.kost2BlackWhiteList) || obj.kost2IsBlackList) {
-                throw AccessException("task.error.kost2Readonly")
+            if (StringUtils.isNotBlank(obj.kost2BlackWhiteList)) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2BlackWhiteList")
+            }
+            if (obj.kost2IsBlackList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2IsBlackList")
             }
             if (obj.timesheetBookingStatus != TimesheetBookingStatus.DEFAULT) {
-                throw AccessException("task.error.timesheetBookingStatus2Readonly")
+                throw AccessException("task.error.timesheetBookingStatus2Readonly").setCausedByField("timesheetBookingStatus")
             }
         }
     }
@@ -401,19 +441,22 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                 ts2 = dbObj.protectTimesheetsUntil!!.toEpochDay()
             }
             if (ts1 != ts2) {
-                throw AccessException("task.error.protectTimesheetsUntilReadonly")
+                throw AccessException("task.error.protectTimesheetsUntilReadonly").setCausedByField("protectTimesheetsUntil")
             }
             if (obj.protectionOfPrivacy != dbObj.protectionOfPrivacy) {
-                throw AccessException("task.error.protectionOfPrivacyReadonly")
+                throw AccessException("task.error.protectionOfPrivacyReadonly").setCausedByField("protectionOfPrivacy")
             }
         }
         if (!hasAccessForKost2AndTimesheetBookingStatus(user, obj)) {
             // Non project managers are not able to manipulate the following fields:
-            if (obj.kost2BlackWhiteList != dbObj.kost2BlackWhiteList || obj.kost2IsBlackList != dbObj.kost2IsBlackList) {
-                throw AccessException("task.error.kost2Readonly")
+            if (obj.kost2BlackWhiteList != dbObj.kost2BlackWhiteList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2BlackWhiteList")
+            }
+            if (obj.kost2IsBlackList != dbObj.kost2IsBlackList) {
+                throw AccessException("task.error.kost2Readonly").setCausedByField("kost2IsBlackList")
             }
             if (obj.timesheetBookingStatus != dbObj.timesheetBookingStatus) {
-                throw AccessException("task.error.timesheetBookingStatus2Readonly")
+                throw AccessException("task.error.timesheetBookingStatus2Readonly").setCausedByField("timesheetBookingStatus")
             }
         }
     }

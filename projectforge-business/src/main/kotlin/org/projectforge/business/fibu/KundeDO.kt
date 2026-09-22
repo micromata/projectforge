@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
  * Jeder Kunde bei Micromata hat eine Kundennummer. Die Kundennummer ist Bestandteil von KOST2 (2.-4. Ziffer). Aufträge
  * aus dem Auftragsbuch, sowie Rechnungen etc. werden Kunden zugeordnet.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

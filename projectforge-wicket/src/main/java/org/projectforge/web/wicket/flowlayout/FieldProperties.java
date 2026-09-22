@@ -28,7 +28,7 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  * For sharing functionality (refer {@link org.projectforge.web.address.AddressPageSupport} as an example).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class FieldProperties<T>

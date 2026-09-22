@@ -29,7 +29,7 @@ import java.util.ArrayList;
 
 /**
  * Stores messages in an array. Used by methods as return value.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ResultHolder

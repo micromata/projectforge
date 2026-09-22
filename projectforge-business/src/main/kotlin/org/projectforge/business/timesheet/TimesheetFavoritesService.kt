@@ -104,7 +104,7 @@ class TimesheetFavoritesService {
     migrationCache.refresh(userId)
   }
 
-  // Ensures filter list (stored one, restored from legacy filter or a empty new one).
+  // Ensures filter list (stored one, adopted from the formerly shared slot, restored from legacy filter or a empty new one).
   fun getFavorites(): Favorites<TimesheetFavorite> {
     var favorites: Favorites<TimesheetFavorite>? = null
     try {
@@ -114,6 +114,7 @@ class TimesheetFavoritesService {
         Favorites.PREF_NAME_LIST,
         Favorites::class.java
       ) as Favorites<TimesheetFavorite>?
+        ?: adoptFromCollidingArea()
         ?: migrateFromLegacyFavorites(Favorites())
     } catch (ex: Exception) {
       log.error("Exception while getting user preferred favorites: ${ex.message}. This might be OK for new releases. Ignoring filter.")
@@ -124,6 +125,47 @@ class TimesheetFavoritesService {
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, favorites)
     }
     return favorites
+  }
+
+  /**
+   * Historically, timesheet template favorites were stored under the same `(area, name)` slot as the react list's
+   * filter favorites ([org.projectforge.rest.core.AbstractEntityRest.getFilterFavorites] uses the entity category
+   * `"timesheet"` as area and [Favorites.PREF_NAME_LIST] as name). Both wrote a [Favorites] object into that single
+   * row, so whichever list was saved last overwrote the other, and reading the slot with the wrong element type threw
+   * a `ClassCastException` (`TimesheetFavorite` vs. `MagicFilter`). Template favorites now live in their own area
+   * ([PREF_AREA]); this best-effort adoption salvages any [TimesheetFavorite] entries still present in the old shared
+   * slot. Filter favorites (`MagicFilter`) stored there are ignored and left untouched.
+   */
+  private fun adoptFromCollidingArea(): Favorites<TimesheetFavorite>? {
+    val legacy = try {
+      userPrefService.getEntry(
+        LEGACY_SHARED_AREA,
+        Favorites.PREF_NAME_LIST,
+        Favorites::class.java
+      ) as? Favorites<*>
+    } catch (ex: Exception) {
+      log.error("Exception while reading legacy shared timesheet favorites: ${ex.message}. Ignoring.")
+      null
+    } ?: return null
+    val adopted = Favorites<TimesheetFavorite>()
+    var count = 0
+    // Only public accessors are used, so MagicFilter entries are simply filtered out by the type check.
+    legacy.idTitleList.forEach { idTitle ->
+      (legacy.get(idTitle.id) as? TimesheetFavorite)?.let {
+        adopted.add(it)
+        count++
+      }
+    }
+    if (count == 0) {
+      // The old slot held only filter favorites (MagicFilter) -> nothing to adopt.
+      return null
+    }
+    userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, adopted)
+    // The old shared slot held template favorites only (no MagicFilter filter favorites, otherwise count would be 0),
+    // so clear it. This stops the react list from repeatedly filtering these foreign entries out.
+    userPrefService.putEntry(LEGACY_SHARED_AREA, Favorites.PREF_NAME_LIST, Favorites<TimesheetFavorite>())
+    log.info("Adopted $count legacy timesheet template favorite(s) from the shared '$LEGACY_SHARED_AREA' pref slot into '$PREF_AREA'.")
+    return adopted
   }
 
   /**
@@ -170,6 +212,16 @@ class TimesheetFavoritesService {
   }
 
   companion object {
-    private const val PREF_AREA = "timesheet"
+    /**
+     * Dedicated pref area for the timesheet edit-form template favorites. Formerly `"timesheet"`, which collided with
+     * the react list's filter favorites (see [adoptFromCollidingArea]).
+     */
+    private const val PREF_AREA = "timesheetTemplateFavorites"
+
+    /**
+     * The area the template favorites historically shared with the react list's filter favorites (the entity category
+     * of [org.projectforge.rest.TimesheetPagesRest]). Read-only, for one-time adoption of orphaned template favorites.
+     */
+    private const val LEGACY_SHARED_AREA = "timesheet"
   }
 }

@@ -45,7 +45,7 @@ import java.util.Map;
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business
  * assessment.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class BusinessAssessmentRow implements Serializable

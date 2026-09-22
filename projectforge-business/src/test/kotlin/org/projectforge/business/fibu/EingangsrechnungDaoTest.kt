@@ -59,6 +59,34 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         checkNoAccess(id, eingangsrechnung, "Admin ")
     }
 
+    /**
+     * A soft-deleted invoice with a far-future date must not widen the year range: the min/max-date query
+     * behind [EingangsrechnungDao.years] used to include deleted rows, so a leftover e2e import row dated
+     * 2099 (see `creditor-invoice-import.ts`) blew the 30-year guard in `SQLHelper.getYears` and crashed the
+     * Wicket list page. Regression test for the `where deleted = false` fix.
+     */
+    @Test
+    fun yearsIgnoresDeletedInvoices() {
+        logon(TEST_FINANCE_USER)
+        // A live invoice in the current year, so a min/max range actually exists.
+        val current = EingangsrechnungDO()
+        current.datum = LocalDate.now()
+        current.addPosition(EingangsrechnungsPositionDO())
+        eingangsrechnungDao.insert(current)
+
+        // A far-future invoice, then deleted: it must not be counted any more.
+        val farFuture = EingangsrechnungDO()
+        farFuture.datum = LocalDate.of(2099, 12, 31)
+        farFuture.addPosition(EingangsrechnungsPositionDO())
+        val farFutureId = eingangsrechnungDao.insert(farFuture)
+        eingangsrechnungDao.markAsDeleted(eingangsrechnungDao.find(farFutureId)!!)
+
+        // Must not throw the "Paranoia Exception" and must not report the deleted far-future year.
+        val years = eingangsrechnungDao.years
+        Assertions.assertFalse(years.contains(2099), "Deleted far-future invoice must not appear in years.")
+        Assertions.assertTrue(years.contains(LocalDate.now().year), "The current invoice's year must be listed.")
+    }
+
     private fun checkNoAccess(id: Serializable, eingangsrechnung: EingangsrechnungDO, who: String) {
         try {
             val filter = RechnungFilter()

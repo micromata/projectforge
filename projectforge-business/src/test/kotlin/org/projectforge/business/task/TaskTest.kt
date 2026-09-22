@@ -25,6 +25,10 @@ package org.projectforge.business.task
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragDao
+import org.projectforge.business.fibu.AuftragsPositionDO
+import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2ArtDO
@@ -42,6 +46,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.ChronoUnit
@@ -65,6 +70,9 @@ class TaskTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
+
+    @Autowired
+    private lateinit var auftragDao: AuftragDao
 
     @Test
     fun testTaskDO() {
@@ -138,6 +146,64 @@ class TaskTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * A task's maxHoursHasPriority flag controls whether a manually entered (positive) maxHours value takes precedence
+     * over the person days calculated from assigned order positions. See [TaskTree.getPersonDays].
+     */
+    @Test
+    fun maxHoursPriorityOverOrderedPersonDays() {
+        logon(TEST_FINANCE_USER)
+        val root = taskTree.rootTaskNode.getTask()
+        val task = TaskDO().also {
+            it.parentTask = root
+            it.title = "maxHoursPriorityTask"
+        }
+        taskDao.insert(task, checkAccess = false)
+
+        // Assign an order position with 20 person days to the task:
+        val order = AuftragDO().also {
+            it.nummer = auftragDao.nextNumber
+            it.status = AuftragsStatus.GELEGT
+            it.addPosition(AuftragsPositionDO().also { pos ->
+                pos.titel = "Pos 1"
+                pos.status = AuftragsStatus.GELEGT
+                pos.personDays = BigDecimal(20)
+                pos.task = task
+            })
+        }
+        auftragDao.insert(order, checkAccess = false)
+        taskTree.refreshOrderPositionReferences()
+
+        // No maxHours: ordered person days win (20).
+        assertPersonDays(20, task.id)
+
+        // maxHours set (80h / 8h = 10 person days) but flag off (default): ordered person days still win (20).
+        task.maxHours = 80
+        task.maxHoursHasPriority = false
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(20, task.id)
+
+        // Flag on: the manual maxHours (10 person days) wins over the ordered person days (20).
+        task.maxHoursHasPriority = true
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(10, task.id)
+
+        // maxHours zero with flag on: falls back to the ordered person days (20).
+        task.maxHours = 0
+        taskDao.update(task, checkAccess = false)
+        assertPersonDays(20, task.id)
+    }
+
+    private fun assertPersonDays(expected: Long, taskId: Long?) {
+        val node = taskTree.getTaskNodeById(taskId)
+        val personDays = taskTree.getPersonDays(node)
+        Assertions.assertNotNull(personDays, "getPersonDays should not be null.")
+        Assertions.assertEquals(
+            0, BigDecimal(expected).compareTo(personDays),
+            "Expected $expected person days but got $personDays."
+        )
+    }
+
     @Test
     fun testTaskDescendants() {
         persistenceService.runInTransaction { _ ->
@@ -157,6 +223,14 @@ class TaskTest : AbstractTestBase() {
             Assertions.assertTrue(ids.contains(getTask("d.1.2.1").id))
             Assertions.assertTrue(ids.contains(getTask("d.2").id))
             Assertions.assertFalse(ids.contains(getTask("d").id))
+
+            // The tree's own descendants have to be the node's, whole subtree and not only the children:
+            // TaskTree.getDescendants once lost its recursion and answered a single level.
+            val treeIds = taskTree.getDescendantTaskIds(d.id, false)
+            Assertions.assertEquals(ids.sorted(), treeIds.filterNotNull().sorted())
+            val withSelf = taskTree.getDescendantTaskIds(d.id, true)
+            Assertions.assertEquals(ids.size + 1, withSelf.size)
+            Assertions.assertTrue(withSelf.contains(d.id))
             null
         }
     }
@@ -334,7 +408,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2BlackWhiteList", ex.causedByField)
             }
             try {
                 task1.kost2BlackWhiteList = null
@@ -342,7 +417,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2IsBlackList", ex.causedByField)
             }
             try {
                 task1.kost2IsBlackList = false
@@ -350,7 +426,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey)
+                Assertions.assertEquals("timesheetBookingStatus", ex.causedByField)
             }
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2IsBlackList = true
@@ -362,7 +439,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2BlackWhiteList", ex.causedByField)
             }
             try {
                 task1.kost2BlackWhiteList = null
@@ -370,7 +448,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey)
+                Assertions.assertEquals("kost2IsBlackList", ex.causedByField)
             }
             try {
                 task1.kost2IsBlackList = true
@@ -378,7 +457,8 @@ class TaskTest : AbstractTestBase() {
                 taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
-                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
+                Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey)
+                Assertions.assertEquals("timesheetBookingStatus", ex.causedByField)
             }
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2BlackWhiteList = "123456"
@@ -402,6 +482,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectTimesheetsUntilReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectTimesheetsUntil", ex.causedByField)
         }
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
@@ -411,6 +492,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectionOfPrivacy", ex.causedByField)
         }
         taskDao.find(id)!!
         task = TaskDO()
@@ -422,6 +504,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectTimesheetsUntilReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectTimesheetsUntil", ex.causedByField)
         }
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
@@ -431,6 +514,7 @@ class TaskTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
+            Assertions.assertEquals("protectionOfPrivacy", ex.causedByField)
         }
         taskDao.find(id)!!
     }

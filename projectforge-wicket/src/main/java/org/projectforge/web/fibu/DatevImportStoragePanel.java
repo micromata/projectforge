@@ -43,7 +43,7 @@ import org.projectforge.web.core.importstorage.ImportFilter;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImportPage> {
     private static final long serialVersionUID = -5732520730823126042L;

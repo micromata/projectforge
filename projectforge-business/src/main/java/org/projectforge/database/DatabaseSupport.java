@@ -28,7 +28,7 @@ import org.projectforge.common.DatabaseDialect;
 /**
  * All database dialect specific implementations should be placed here.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DatabaseSupport
 {

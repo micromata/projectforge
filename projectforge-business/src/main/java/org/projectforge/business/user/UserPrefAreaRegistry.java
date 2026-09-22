@@ -32,7 +32,7 @@ import java.util.*;
 /**
  * All user pref areas. They will shown in the list of 'my settings'.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserPrefAreaRegistry
 {

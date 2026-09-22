@@ -35,7 +35,7 @@ import java.io.Serializable
 /**
  * Represents a single generic user preference entry.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(

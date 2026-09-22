@@ -102,15 +102,29 @@ open class InvoiceService {
     open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
         log.info { "Creating invoice document for invoice number ${data.nummer}." }
         return try {
-            var invoiceTemplate: Resource? = null
-            val isSkonto =
-                data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
-            if (!customInvoiceTemplateName.isNullOrEmpty()) {
-                val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
-                invoiceTemplate = configurationService.getOfficeTemplateFile(
-                    "$customInvoiceTemplateName$variantSuffix.docx",
-                    "InvoiceTemplate.docx"
-                )
+            // The stored fields alone, and not `discountZahlungsZielInTagen`: that one is transient and derived
+            // (see AbstractRechnungDO.recalculate), so an invoice just loaded from the database carries no
+            // discount term at all. Wicket happens to hold one because its edit page recalculates the invoice
+            // before building the form, and it is that accident the condition used to rest on - every other
+            // caller (the REST export, the ZUGFeRD conversion) printed an invoice whose discount text was
+            // silently dropped. Since the term is nothing but the days between the two dates, requiring the
+            // dates says the same thing for everybody.
+            val isSkonto = data.datum != null && data.discountMaturity != null && data.discountPercent != null
+            // The packaged template where the installation configured none: it is the fallback
+            // `getOfficeTemplateFile` is called with anyway, and the only variant of an unconfigured
+            // installation is the unnamed one (see getTemplateVariants). Without it the export threw an NPE
+            // on the line below instead of producing the default document.
+            val templateName = customInvoiceTemplateName?.takeIf { it.isNotEmpty() } ?: DEFAULT_TEMPLATE_NAME
+            val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
+            val invoiceTemplate = configurationService.getOfficeTemplateFile(
+                "$templateName$variantSuffix.docx",
+                "$DEFAULT_TEMPLATE_NAME.docx"
+            )
+            if (invoiceTemplate == null || !invoiceTemplate.exists()) {
+                // No document rather than a broken one: the caller answers 404, as it does for an unknown
+                // invoice - both mean "there is nothing to download".
+                log.error { "Invoice template '$templateName$variantSuffix.docx' not found." }
+                return null
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).
@@ -124,7 +138,7 @@ open class InvoiceService {
             variables.put("Typ", type)
             variables.put("Kundenreferenz", data.customerref1)
             variables.put(
-                "Auftragsnummer", data.positionen!!.stream()
+                "Auftragsnummer", data.positionenExcludingDeleted.stream()
                 .filter { pos: RechnungsPositionDO -> pos.auftragsPosition != null && pos.auftragsPosition!!.auftrag != null }
                 .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
                 .distinct()
@@ -151,7 +165,9 @@ open class InvoiceService {
                 variables.put("MwStSatz", "??????????")
             }
             variables.put("Gesamtbetrag", formatCurrencyAmount(data.info.grossSum))
-            WordDocument(invoiceTemplate!!.inputStream, invoiceTemplate.file.name).use { document ->
+            // `filename` and not `file.name`: the packaged fallback is a classpath resource, and asking a
+            // resource inside a jar for its file throws.
+            WordDocument(invoiceTemplate.inputStream, invoiceTemplate.filename).use { document ->
                 generatePosTableRows(document.document, data)
                 document.process(variables)
                 document.asByteArrayOutputStream
@@ -167,7 +183,9 @@ open class InvoiceService {
      */
     internal fun extractSharedVat(data: RechnungDO): BigDecimal? {
         var sharedVat: BigDecimal? = null // Will only be set, if vat of all positions are equal.
-        data.positionen?.let {
+        // Excluding deleted positions: they don't appear in the document, so their VAT must not decide the
+        // rate it prints (a deleted position without VAT used to turn the rate into '??????????').
+        data.positionenExcludingDeleted.let {
             for (pos in it) {
                 if (pos.vat == null) {
                     // At least one position has no VAT amount! Can't determine VAT.
@@ -255,7 +273,9 @@ open class InvoiceService {
             return null
         }
         var rowCounter = 2
-        for (position in invoice.positionen!!) {
+        // Excluding deleted positions: a deleted position is no line of the invoice, and its `info` (read for
+        // the amount of the row) is never filled by [RechnungCalculator] - it threw instead of printing a row.
+        for (position in invoice.positionenExcludingDeleted) {
             createInvoicePositionRow(posTbl, rowCounter++, invoice, position)
         }
         posTbl!!.removeRow(1)
@@ -313,5 +333,8 @@ open class InvoiceService {
 
     companion object {
         private const val FILENAME_MAXLENGTH = 100 // Higher values result in filename issues in Safari 13-
+
+        /** The template shipped in `resources/officeTemplates`, used where the installation configured none. */
+        private const val DEFAULT_TEMPLATE_NAME = "InvoiceTemplate"
     }
 }

@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
  * A cache for UserPrefDO, if preferences are modified and accessed very often by the user's normal work
  * (such as current filters in Calendar and list pages etc.)
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 @DependsOn("entityManagerFactory")
@@ -48,9 +48,26 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
     @Autowired
     private lateinit var userPrefDao: UserPrefDao
 
+    /**
+     * Read-only access to the legacy XML store for the lazy XML-&gt;JSON migration (see [migrateLegacyEntryOnCacheMiss]).
+     */
+    @Autowired
+    private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
+
     @PostConstruct
     private fun postConstruct() {
         shutdownService.registerListener(this)
+    }
+
+    /**
+     * On a cache miss, tries to read a possibly existing legacy XML preference (see [UserPrefService.LEGACY_XML_AREA]).
+     * The legacy row is looked up by its flat key, which equals the migrated entry's [UserPrefCacheDataKey.identifier].
+     * Never throws: any deserialization problem yields null so the load path is unaffected. The returned value is
+     * cached as a persistent entry by the caller and thus written as JSON on the next flush.
+     */
+    override fun migrateLegacyEntryOnCacheMiss(userId: Long, key: UserPrefCacheDataKey): Any? {
+        val legacyKey = key.identifier ?: return null
+        return userXmlPreferencesDao.internalGetDeserialized(userId, legacyKey)
     }
 
     override fun newEntry(): UserPrefDO {
@@ -88,7 +105,6 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
          * This is a static variable, because the preDestroy method is called by the Spring container and the test
          * In test cases the database connections may be closed before [preDestroy] is called.
          * This is a workaround for this problem.
-         * This variable is also used by [UserXmlPreferencesCache].
          */
         @JvmStatic
         var dontCallShutdownInTestMode = false

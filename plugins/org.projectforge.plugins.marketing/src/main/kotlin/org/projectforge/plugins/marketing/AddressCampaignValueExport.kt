@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
  * For excel export. export must be called with two params, the first is the AddressCampaignValue map and the second the
  * title of the address campaign.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service("addressCampaignValueExport")
 open class AddressCampaignValueExport : AddressExport() {

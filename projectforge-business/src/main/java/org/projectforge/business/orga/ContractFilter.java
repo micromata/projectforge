@@ -30,7 +30,7 @@ import java.io.Serializable;
 
 /**
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 @XStreamAlias("ContractFilter")

@@ -37,7 +37,7 @@ import java.util.List;
  * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts
  * call them in static context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ProjectUtils {
   private static ProjektDao projektDao;

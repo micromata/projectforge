@@ -27,7 +27,7 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum PaymentStatus implements I18nEnum

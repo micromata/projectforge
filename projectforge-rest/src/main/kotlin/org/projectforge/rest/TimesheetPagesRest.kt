@@ -28,20 +28,26 @@ import jakarta.validation.Valid
 import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
+import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
 import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.jira.JiraUtils
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
@@ -50,12 +56,19 @@ import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
-import org.projectforge.ui.filter.LayoutListFilterUtils
+import org.projectforge.ui.filter.Kost2FilterUtils
+import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -69,6 +82,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -91,6 +107,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
+    @Autowired
+    private lateinit var timesheetExport: TimesheetExport
+
+    @Autowired
+    private lateinit var timesheetListPdfExport: TimesheetListPdfExport
+
+    @Autowired
+    private lateinit var calendarFeedService: CalendarFeedService
+
     /**
      * For exporting list of timesheets.
      */
@@ -102,6 +127,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val dayName: String,
         val timePeriod: String,
         val duration: String,
+        /** Duration in millis, used by the client only for sorting the [duration] column. */
+        val durationMillis: Long,
         val aiTimeSavings: String,
         val deleted: Boolean? = null,
     )
@@ -115,10 +142,37 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         val cost2Visible: Boolean
     )
 
+    /**
+     * The aggregates of the whole timesheet list for a hand-built page that formats nothing itself: the summed
+     * duration (already formatted in the user's locale, taken as-is), its raw millis for a client that wants to
+     * add it up itself, and — only where the installation tracks it — the share of time saved by AI. The typed
+     * counterpart of the [resultInfo] markdown the legacy React list reads (see [ResultSet.statistics]).
+     */
+    @Suppress("unused")
+    class TimesheetListStatistics(
+        val totalDurationMillis: Long,
+        val totalDuration: String,
+        val aiEnabled: Boolean,
+        val aiPercentage: String?,
+    )
+
+    /**
+     * Returning a non-null DTO opts the next list into the lean row: [createListRow] then fills only the
+     * list's columns via [Timesheet.copyFrom4ListRow] instead of the whole [transformFromDB] DTO (see
+     * [org.projectforge.rest.core.AbstractDTOPagesRest.createListRow]). The React list still gets the full
+     * DTO against the kept [createListLayout], as [postProcessResultSet] keeps its own row shape for it.
+     */
+    override fun newDTO(): Timesheet {
+        return Timesheet()
+    }
+
     override fun transformFromDB(obj: TimesheetDO, editMode: Boolean): Timesheet {
         val timesheet = Timesheet()
         caches.initialize(obj)
         timesheet.copyFrom(obj)
+        timesheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        timesheet.timeSavingsByAINote = timeSavingsByAINote()
+        timesheet.tags = timesheetDao.getTags(timesheet.tag)
         // PFDay.fromOrNull(timesheet.startTime)
         return timesheet
     }
@@ -156,9 +210,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         }
         val userId = RestHelper.parseLong(request, "userId") // Optional parameter given to edit page
         sheet.user = User.getUser(userId)
+        // Optional: preset the task, as the task form's "add a time sheet" cross-link does (timesheetAddHref).
+        // A chosen task wins over the most-recent-sheet task below, and its cost unit is left for the form to
+        // resolve (task-kost2-section auto-selects the single matching one) — the recent kost2 may belong to
+        // another task.
+        val taskId = RestHelper.parseLong(request, "taskId")
         val recentEntry = timesheetRecentService.getRecentTimesheet()
         if (recentEntry != null) {
-            if (recentEntry.taskId != null) {
+            if (taskId == null && recentEntry.taskId != null) {
                 sheet.task = Task.getTask(recentEntry.taskId)
                 if (recentEntry.kost2Id != null) {
                     sheet.kost2 = Kost2.getkost2(recentEntry.kost2Id)
@@ -175,9 +234,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                 sheet.user = User.getUser(recentEntry.userId)
             }
         }
+        if (taskId != null) {
+            sheet.task = Task.getTask(taskId)
+        }
         if (sheet.user == null) {
             sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
         }
+        sheet.timeSavingsByAIEnabled = baseDao.timeSavingsByAIEnabled
+        sheet.timeSavingsByAINote = timeSavingsByAINote()
+        sheet.tags = timesheetDao.getTags(sheet.tag)
+        // The hand-built page reaches this preset through newEntry, which — unlike the UILayout edit
+        // endpoint — never runs onGetItemAndLayout. Apply the same start/stop preset here so a timesheet
+        // created from the calendar is snapped, defaulted to firstHour and rolled to the day's last sheet
+        // exactly as before (see presetStartStopTime). Idempotent, so the edit endpoint applying it again
+        // in onGetItemAndLayout does no harm.
+        request?.let { presetStartStopTime(it, sheet) }
         return sheet
     }
 
@@ -201,36 +272,122 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val list: List<Timesheet4ListExport> = resultSet.resultSet.map {
-            val timesheet = Timesheet()
-            timesheet.copyFrom(it)
-            val day = PFDay.fromOrNull(it.startTime)
-            Timesheet4ListExport(
-                timesheet,
-                id = it.id!!,
-                weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
-                dayName = day?.dayOfWeekAsShortString ?: "??",
-                timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
-                duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
-                aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
-                    AITimeSavings.getFormattedTimeSavedByAI(it)
-                } else "",
-                deleted = timesheet.deleted,
-            )
+        // Two clients, two row shapes: the hand-built next list reads a flat row (TimesheetListRow, with
+        // top-level task/user/times/texts), while the legacy React list reads the nested Timesheet4ListExport
+        // with its pre-formatted week/day/period/duration columns. useListRow is the framework's switch (next
+        // client of a migrated entity vs. the rest, see AbstractEntityRest.useListRow).
+        val leanRows = useListRow(request)
+        val list: List<Any> = resultSet.resultSet.map {
+            if (leanRows) {
+                // The flat row the hand-built next list reads: its plain columns via the shared lean-row
+                // path (newDTO + Timesheet.copyFrom4ListRow, task/user/kost2 from the caches, no N+1), plus
+                // the same pre-formatted week/day/period/duration/AI columns the legacy export below builds —
+                // here on the flat row instead of a nested one, formatted in the user's locale and working-day
+                // config so the hand-built page renders them as-is.
+                createListRow(it).also { row ->
+                    val day = PFDay.fromOrNull(it.startTime)
+                    row.weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime)
+                    row.dayName = day?.dayOfWeekAsShortString ?: "??"
+                    row.formattedTimePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod)
+                    row.formattedDuration = dateTimeFormatter.getFormattedDuration(it.timePeriod)
+                    row.durationMillis = it.duration
+                    if (baseDao.timeSavingsByAIEnabled) {
+                        row.aiTimeSavings = AITimeSavings.getFormattedTimeSavedByAI(it)
+                    }
+                }
+            } else {
+                // Populate task, user and kost2 from the in-memory caches by their FK ids (as transformFromDB
+                // does for the single entity) before copyFrom dereferences them: otherwise each row would lazy
+                // load its task from the DB, an N+1 over the page (getListByIds loads by IN(...), see getListPage).
+                caches.initialize(it)
+                val timesheet = Timesheet()
+                timesheet.copyFrom(it)
+                val day = PFDay.fromOrNull(it.startTime)
+                Timesheet4ListExport(
+                    timesheet,
+                    id = it.id!!,
+                    weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
+                    dayName = day?.dayOfWeekAsShortString ?: "??",
+                    timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
+                    duration = dateTimeFormatter.getFormattedDuration(it.timePeriod),
+                    durationMillis = it.duration,
+                    aiTimeSavings = if (baseDao.timeSavingsByAIEnabled) {
+                        AITimeSavings.getFormattedTimeSavedByAI(it)
+                    } else "",
+                    deleted = timesheet.deleted,
+                )
+            }
         }
-        var duration = 0L
-        resultSet.resultSet.forEach { timesheet ->
-            duration += timesheet.duration
-        }
-        val md = MarkdownBuilder()
-        md.appendPipedValue(
-            "timesheet.totalDuration",
-            dateTimeFormatter.getPrettyFormattedDuration(duration),
-            MarkdownBuilder.Color.BLUE
+        // Carry the paging fields through: for a server-side paged result (POST listPage) totalSize is the
+        // size of the whole result, not of this page, and offset being set is what tells the client it holds
+        // one page (see ResultSet, AbstractDTOPagesRest.postProcessResultSet). For the non-paged POST list
+        // offset stays null and totalSize is this page, which is the whole result.
+        val myResultSet = ResultSet(
+            list,
+            resultSet,
+            totalSize = resultSet.totalSize ?: list.size,
+            magicFilter = magicFilter,
+            offset = resultSet.offset,
+            limit = resultSet.limit,
+            totalSizeExact = resultSet.totalSizeExact,
         )
-        val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
-        myResultSet.addResultInfo(md.toString())
+        if (resultSet.offset == null) {
+            // Non-paged POST list (the legacy React list and the exports): the result set is the whole result,
+            // so its statistics are the whole result's, computed here in one pass.
+            val stats = buildStatistics(resultSet.resultSet)
+            myResultSet.statistics = stats
+            // The markdown footer the legacy React list reads, beside the typed statistics the next page reads.
+            myResultSet.addResultInfo(buildStatisticsMarkdown(stats))
+        } else {
+            // Server-side paged (the next client only): resultSet.resultSet is one page, so the whole-result
+            // statistics were computed over the full id list in aggregate() and are carried through here.
+            myResultSet.statistics = resultSet.statistics
+        }
         return myResultSet
+    }
+
+    /**
+     * The whole-result statistics of a server-side paged list (see [getListPage]): the summed duration and the
+     * AI share over the full id list, not over the single page [postProcessResultSet] returns. The paging
+     * counterpart of computing them there over the whole non-paged result.
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any {
+        // A lean four-column projection, not getListByIds: the whole id list can be thousands of sheets, and
+        // buildStatistics reads only the duration and the AI fields, so hydrating the entities (all columns, in
+        // IN batches) just to sum them is pure waste (see TimesheetDao.selectStatisticsData). The result is
+        // cached with the id list, so this runs once per filter, not per page (see getListPage).
+        return buildStatistics(timesheetDao.selectStatisticsData(ids.toList()))
+    }
+
+    /**
+     * The summed duration and — where the installation tracks it — the AI share over the given time sheets, in
+     * one pass so the footer's two numbers can never disagree (see [AITimeSavings.buildStats]). Reads only the
+     * duration and AI fields of each sheet, so it needs no cache-populated task.
+     */
+    internal fun buildStatistics(list: List<TimesheetDO>): TimesheetListStatistics {
+        val stats = AITimeSavings.buildStats(list)
+        val aiEnabled = baseDao.timeSavingsByAIEnabled
+        return TimesheetListStatistics(
+            totalDurationMillis = stats.totalDurationMillis,
+            totalDuration = dateTimeFormatter.getPrettyFormattedDuration(stats.totalDurationMillis),
+            aiEnabled = aiEnabled,
+            aiPercentage = if (aiEnabled) stats.percentageString else null,
+        )
+    }
+
+    /**
+     * The footer markdown for a client that renders no typed statistics itself: the summed duration and —
+     * where the installation tracks it — the AI share of the given [stats], in the same two-column layout the
+     * legacy React list reads. Shared with the mass-update page ([TimesheetMultiSelectedPageRest.getStatistics])
+     * so both render the identical line.
+     */
+    internal fun buildStatisticsMarkdown(stats: TimesheetListStatistics): String {
+        val md = MarkdownBuilder()
+        md.appendPipedValue("timesheet.totalDuration", stats.totalDuration, MarkdownBuilder.Color.BLUE)
+        if (stats.aiEnabled) {
+            md.appendPipedValue("timesheet.ai.timeSavedByAI", stats.aiPercentage ?: "", MarkdownBuilder.Color.BLUE)
+        }
+        return md.toString()
     }
 
     override fun isAutocompletionPropertyEnabled(property: String): Boolean {
@@ -274,6 +431,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
 
     /**
+     * The gates of the hand-built next list's optional columns, read by their `visible` callbacks (see
+     * `timesheet.page.tsx`): the cost unit only where cost accounting is configured, the AI time-savings
+     * only where the installation tracks it, the tag only where any tag is configured — the same three
+     * conditions the [createListLayout] UILayout guards its columns with, so the two clients cannot
+     * disagree about which columns the list has.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf(
+            "kost2Configured" to Configuration.instance.isCostConfigured,
+            "timeSavingsByAIEnabled" to baseDao.timeSavingsByAIEnabled,
+            "tagsConfigured" to !baseDao.getTags().isNullOrEmpty(),
+        )
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(
@@ -300,8 +472,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         table.add(lc, "task")
             .add("weekOfYear", headerName = "calendar.weekOfYearShortLabel", width = 30)
             .add("dayName", headerName = "calendar.dayOfWeekShortLabel", width = 30)
-            .add("timePeriod", headerName = "timePeriod", width = 140)
-            .add("duration", headerName = "timesheet.duration", width = 50)
+            .add("timePeriod", headerName = "timePeriod", width = 140, sortField = "timesheet.startTime")
+            .add("duration", headerName = "timesheet.duration", width = 50, sortField = "durationMillis")
         if (baseDao.timeSavingsByAIEnabled) {
             table.add("aiTimeSavings", headerName = "timesheet.ai.timeSavedByAI", width = 50)
         }
@@ -366,14 +538,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
                     .add(UICol(md = 6).add(lc, TimesheetDO::timeSavedByAIDescription))
             )
         }
-        if (baseDao.timeSavingsByAIEnabled) {
-            configurationService.timesheetNoteSavingsByAI?.let { hint ->
-                if (hint.isNotBlank()) {
-                    layout.layoutBelowActions.add(
-                        UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
-                    )
-                }
-            }
+        timeSavingsByAINote()?.let { hint ->
+            layout.layoutBelowActions.add(
+                UIAlert(hint, title = "timesheet.ai.timeSavedByAI", color = UIColor.SECONDARY, markdown = true)
+            )
         }
 
         JiraSupport.createJiraElement(dto.description, descriptionArea)
@@ -407,6 +575,19 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         )
         LayoutUtils.addTranslations4TaskSelection(layout)
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    /**
+     * The configured note to show below the edit form, or null when AI time-savings tracking is off or
+     * no note is configured. The single source both the UILayout ([createEditLayout], as a
+     * [UIAlert] in `layoutBelowActions`) and the hand-built page (via [Timesheet.timeSavingsByAINote])
+     * read, so the two can never drift.
+     */
+    private fun timeSavingsByAINote(): String? {
+        if (!baseDao.timeSavingsByAIEnabled) {
+            return null
+        }
+        return configurationService.timesheetNoteSavingsByAI?.takeIf { it.isNotBlank() }
     }
 
     /**
@@ -522,6 +703,21 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * @see PFDateTimeUtils.parse for supported date formats.
      */
     override fun onGetItemAndLayout(request: HttpServletRequest, dto: Timesheet, formLayoutData: FormLayoutData) {
+        presetStartStopTime(request, dto)
+        super.onGetItemAndLayout(request, dto, formLayoutData)
+    }
+
+    /**
+     * Presets [Timesheet.startTime]/[Timesheet.stopTime] from the request parameters `startDate`/`endDate`,
+     * shared by the UILayout edit page ([onGetItemAndLayout]) and the hand-built page's preset ([newBaseDTO]).
+     *
+     * Both parameters accept an epoch-seconds number or an ISO date-time including any zone offset
+     * (see [PFDateTimeUtils.parse]). When both fall on the begin of a day — a length-less sheet dropped
+     * from a month/agenda grid — the start rolls to `firstHour` (default 8) and, if the user already has
+     * sheets that day, to the end of the day's last one. Both ends are then snapped to five minutes. Does
+     * nothing when neither parameter is present, so a plain add is untouched.
+     */
+    private fun presetStartStopTime(request: HttpServletRequest, dto: Timesheet) {
         var startTime = PFDateTimeUtils.parseAndCreateDateTime(
             request.getParameter("startDate"),
             numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
@@ -530,6 +726,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             request.getParameter("endDate"),
             numberFormat = PFDateTime.NumberFormat.EPOCH_SECONDS
         )
+        if (startTime == null && stopTime == null) {
+            return
+        }
         if (startTime != null && startTime.isBeginOfDay && stopTime != null && stopTime.isBeginOfDay) {
             // Time sheet has no length (generated from grid view like month, agenda or overview).
             // Try to find a better startTime
@@ -563,7 +762,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         stopTime?.let {
             dto.stopTime = it.withPrecision(DatePrecision.MINUTE_5).sqlTimestamp
         }
-        super.onGetItemAndLayout(request, dto, formLayoutData)
     }
 
     /**
@@ -580,16 +778,269 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        val element = UIFilterElement("kost2.nummer")
-        element.label = element.id // Default label if no translation will be found below.
-        element.label = LayoutListFilterUtils.getLabel(
-            ElementInfo(
-                "nummer",
-                i18nKey = "fibu.kost2.nummer",
-                parent = ElementInfo("kost2", i18nKey = "fibu.kost2")
-            )
+        // The cost unit filter: a STRING field whose free text filters the time sheets, enriched with a
+        // type-ahead against `cost2/autosearch`. Shared by every list that embeds a `kost2` — see
+        // Kost2FilterUtils, which also consumes it in preProcessMagicFilter below.
+        elements.add(Kost2FilterUtils.createFilterElement())
+        // The cost unit type filter (Kost2Art): a multi-select LIST of the configured cost 2 types, each shown
+        // as "<number>: <name>", so the user can narrow the sheets to one or more types. Only where cost
+        // accounting is configured and any type exists — an empty list would offer nothing to pick.
+        if (Configuration.instance.isCostConfigured) {
+            val kost2Arts = kostCache.getKost2Arts()
+            if (kost2Arts.isNotEmpty()) {
+                elements.add(Kost2FilterUtils.createKost2ArtFilterElement(kost2Arts))
+            }
+        }
+        // The three settings the legacy list form keeps always open (TimesheetListForm): the period the
+        // sheets fall into, the user they belong to and the task they were booked on. All `defaultFilter`,
+        // so they show without being added — the pills the user narrows a time sheet list by first.
+        //
+        // `startTime` and `stopTime` are both `@GenericField`, so each is auto-generated above as a
+        // TIMESTAMP filter ("Beginn"/"Stopp", down to the time of day) — the two literal-bound filters a
+        // user can add to pin an exact start or end. The list's own default period is a *third*, distinct
+        // filter: a sticky date range whose overlap semantics differ from either bound (it catches a sheet
+        // that began before the window but runs into it, see preProcessMagicFilter). It gets its own id so
+        // it never collides with the `startTime`/`stopTime` pills — a shared id would open two at once.
+        elements.add(
+            // A synthetic field (no `period` property on TimesheetDO): consumed in preProcessMagicFilter,
+            // where its DATE from/to become the overlap predicate. DATE, so the picker sends day-only bounds.
+            UIFilterElement("period", filterType = UIFilterElement.FilterType.DATE, label = translate("timePeriod"))
+                .also { it.defaultFilter = true }
         )
-        elements.add(element)
+        elements.add(
+            // Consumed in preProcessMagicFilter, because the object picker sends the picked user as `value.id`
+            // and the generic BaseDO predicate reads `value.value` instead (see there).
+            UIFilterObjectElement(
+                "user",
+                label = translate("timesheet.user"),
+                autoCompletion = AutoCompletion.getAutoCompletion4Users(),
+            ).also { it.defaultFilter = true }
+        )
+        elements.add(
+            // The task's own type-ahead — `TaskServicesRest.autosearch` under `task/tree`, not the inherited
+            // `task/autosearch` of this class (which has no search fields and would error). Consumed in
+            // preProcessMagicFilter, both for the recursive toggle and for the `value.id` the picker sends.
+            UIFilterObjectElement(
+                "task",
+                label = translate("task"),
+                // Marked TASK so the next frontend swaps the plain type-ahead for the structure-tree
+                // picker and shows the task's path in the filter pill (FilterTaskField).
+                autoCompletion = AutoCompletion<Long>(
+                    url = AutoCompletion.getAutoCompletionUrl("task/tree"),
+                    type = AutoCompletion.Type.TASK.name,
+                ),
+            ).also { it.defaultFilter = true }
+        )
+        // The two options of the legacy list form (TimesheetListForm): search the picked task including its
+        // sub-tasks (on by default, see MagicFilterProcessor, and consumed in preProcessMagicFilter so the
+        // toggle can switch it off), and keep only sheets booked on a billable cost unit.
+        elements.add(UIFilterBooleanElement("recursive", label = translate("task.recursive"), defaultFilter = true))
+        elements.add(UIFilterBooleanElement("onlyBillable", label = translate("task.onlyBillable")))
+        // Keep only sheets whose description or reference names a JIRA issue — the fields the next list
+        // renders as JIRA links. Offered only where JIRA is configured (as IncompleteInvoiceFilter.isOffered
+        // gates its pill), so the option doesn't appear on an instance that has no JIRA to link to.
+        if (JiraUtils.isJiraConfigured) {
+            elements.add(UIFilterBooleanElement("hasJiraIssues", label = translate("timesheet.filter.hasJiraIssues")))
+        }
+    }
+
+    /**
+     * Consumes the list's sticky settings ([addMagicFilterElements]) before the generic processor turns the
+     * remaining entries into the query:
+     * - `period` (a `defaultFilter` date range): a synthetic field, turned into the overlap predicate
+     *   `stopTime >= from AND startTime <= to` — so a sheet that began before the window but runs into it is
+     *   kept (as `TimesheetDao.buildQueryFilter` does). The literal `startTime`/`stopTime` pills a user may
+     *   add stay with the generic processor as plain bounds on their columns.
+     * - `task` (a `defaultFilter` object picker): taken over here rather than left to the generic processor,
+     *   because the picker sends the task as `value.id` while the generic `TaskDO` predicate reads
+     *   `value.value` (null then, which would match sheets *without* a task). The `recursive` toggle decides
+     *   whether the sub-tasks are searched too (default true, as the legacy list).
+     * - `recursive` (default true): see above; only consumed so it doesn't fall through as an unknown field.
+     * - `user` (a `defaultFilter` object picker): same `value.id` reason, filtered by `user.id` as
+     *   `TimesheetDao.getList` does it.
+     * - `onlyBillable`: a post filter over the result, as `TimesheetDao.internalGetList` does it.
+     */
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<TimesheetDO>> {
+        val filters = mutableListOf<CustomResultFilter<TimesheetDO>>()
+        source.entries.find { it.field == "period" }?.let { periodEntry ->
+            periodEntry.synthetic = true
+            // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that
+            // began before the window but runs into it is kept — the same predicate TimesheetDao.buildQueryFilter
+            // builds. The DATE picker sends day-only bounds (`yyyy-MM-dd`, no time of day); widen them to the whole
+            // day in the user's zone (begin of the from-day, end of the to-day) so both edges are inclusive.
+            // Parsed via PFDayUtils.parseDate, not parseAndCreateDateTime: the latter parses to null for a string
+            // without a time of day (DateParser with parseLocalDateIfNoTimeOfDayGiven=false), which would drop both
+            // bounds and show every sheet.
+            val periodStart = PFDayUtils.parseDate(periodEntry.value.fromValue)?.let { PFDateTime.from(it).beginOfDay.utilDate }
+            val periodEnd = PFDayUtils.parseDate(periodEntry.value.toValue)?.let { PFDateTime.from(it).endOfDay.utilDate }
+            if (periodStart != null) {
+                target.add(QueryFilter.ge("stopTime", periodStart))
+            }
+            if (periodEnd != null) {
+                target.add(QueryFilter.le("startTime", periodEnd))
+            }
+        }
+        val recursiveEntry = source.entries.find { it.field == "recursive" }
+        recursiveEntry?.synthetic = true
+        val recursive = recursiveEntry?.value?.value != "false" // Default true, as the legacy list.
+        source.entries.find { it.field == "task" }?.let { taskEntry ->
+            taskEntry.synthetic = true
+            val taskId = taskEntry.value.id ?: taskEntry.value.value?.toLongOrNull()
+            if (taskId != null) {
+                // On `task.id`, not the `task` association: the recursive case is an `isIn` of the descendant
+                // ids, and comparing the TaskDO association to a list of Longs is a type error (as TimesheetDao
+                // does it too).
+                target.add(QueryFilter.taskSearch("task.id", taskId, recursive))
+            }
+        }
+        source.entries.find { it.field == "user" }?.let { userEntry ->
+            userEntry.synthetic = true
+            val userId = userEntry.value.id ?: userEntry.value.value?.toLongOrNull()
+            if (userId != null) {
+                target.add(QueryFilter.eq("user.id", userId))
+            }
+        }
+        // The cost unit filter (see addMagicFilterElements): consumed here rather than left to the generic
+        // processor, which would send the free text as a leading-wildcard full-text term on the keyword number
+        // field — expensive and unreliable. Shared logic in Kost2FilterUtils (prefix / multi-field search).
+        Kost2FilterUtils.preProcess(target, source)
+        // The cost unit type filter (see addMagicFilterElements): an IN on kost2.kost2Art.id over the picked
+        // type numbers. Shared logic in Kost2FilterUtils.
+        Kost2FilterUtils.preProcessKost2Art(target, source)
+        source.entries.find { it.field == "onlyBillable" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(TimesheetBillableFilter())
+            }
+        }
+        source.entries.find { it.field == "hasJiraIssues" }?.let { entry ->
+            entry.synthetic = true
+            if (entry.value.value == "true") {
+                filters.add(TimesheetJiraFilter())
+            }
+        }
+        return filters
+    }
+
+    /**
+     * Exports the filtered timesheets as an Excel file, the "Excel export" of the legacy list
+     * (`TimesheetListPage.exportExcel` → [TimesheetExport]).
+     */
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
+        // do the same, or its full-text search behaves differently and returns nothing where the list showed rows.
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        // Always a workbook, header row included even for an empty result (TimesheetExport.export) — so the
+        // download never yields an empty file that would read as a broken export.
+        val xls = timesheetExport.export(getObjectList(this, baseDao, filter))
+        val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/octet-stream"))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+            .body(ByteArrayResource(xls))
+    }
+
+    /**
+     * The PDF-export options the user last chose (or the all-on defaults for a user who never opened the
+     * dialog), so the Next dialog can prefill itself. Persisted per user by [exportAsPdf].
+     */
+    @GetMapping("pdfExportSettings")
+    fun getPdfExportSettings(): TimesheetPdfExportSettings {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val stored = userPrefService.getEntry(category, USER_PREF_PARAM_PDF_EXPORT, TimesheetPdfExportSettings::class.java)
+        // Read every flag as on unless explicitly turned off — a fresh user gets today's full export.
+        return TimesheetPdfExportSettings(
+            showFilterSettings = stored?.showFilterSettings ?: true,
+            task = stored?.task ?: true,
+            startTime = stored?.startTime ?: true,
+            stopTime = stored?.stopTime ?: true,
+            duration = stored?.duration ?: true,
+            location = stored?.location ?: true,
+            reference = stored?.reference ?: true,
+            description = stored?.description ?: true,
+        )
+    }
+
+    /**
+     * Exports the filtered timesheets as a PDF, the "PDF export" of the legacy list — now built with OpenPDF
+     * in the business layer ([TimesheetListPdfExport]) rather than the wicket-bound FOP path.
+     *
+     * The Next dialog sends the filter and the chosen [TimesheetPdfExportSettings] separately (so the filter
+     * never lands in the stored prefs); the settings are remembered per user and shape which columns and
+     * whether the filter-summary block are printed.
+     */
+    @PostMapping(RestPaths.REST_PDF_SUB_PATH)
+    fun exportAsPdf(@RequestBody request: TimesheetPdfExportRequest): ResponseEntity<*> {
+        val settings = request.settings ?: TimesheetPdfExportSettings()
+        userPrefService.putEntry(category, USER_PREF_PARAM_PDF_EXPORT, settings, true)
+        val filter = request.filter ?: MagicFilter()
+        // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
+        // do the same, or its full-text search behaves differently and returns nothing where the list showed rows.
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        // The filter summary shown on the PDF's first page: the sticky pills the list was narrowed by
+        // (see addMagicFilterElements) — the period, the free-text search and the picked user.
+        val periodEntry = filter.entries.find { it.field == "period" }
+        val userEntry = filter.entries.find { it.field == "user" }
+        val context = TimesheetListPdfExport.Context(
+            periodFrom = periodEntry?.value?.fromValue,
+            periodTo = periodEntry?.value?.toValue,
+            searchString = filter.searchString,
+            userName = userEntry?.value?.displayName,
+        )
+        val options = TimesheetListPdfExport.Options(
+            showFilterSettings = settings.showFilterSettings ?: true,
+            task = settings.task ?: true,
+            startTime = settings.startTime ?: true,
+            stopTime = settings.stopTime ?: true,
+            duration = settings.duration ?: true,
+            location = settings.location ?: true,
+            reference = settings.reference ?: true,
+            description = settings.description ?: true,
+        )
+        // Always a valid PDF, header row included even for an empty result (TimesheetListPdfExport.export).
+        val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter), context, options)
+        val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.pdf"
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+            .body(ByteArrayResource(pdf))
+    }
+
+    /**
+     * The PDF-export options remembered per user. Every flag is nullable so Jackson (NON_DEFAULT) keeps the
+     * stored JSON compact and an added flag reads as its default for older stored values; callers read each
+     * with `?: true`. [showFilterSettings] toggles the first-page filter-summary block, the rest the optional
+     * table columns (the User column is always printed and has no flag).
+     */
+    class TimesheetPdfExportSettings(
+        var showFilterSettings: Boolean? = null,
+        var task: Boolean? = null,
+        var startTime: Boolean? = null,
+        var stopTime: Boolean? = null,
+        var duration: Boolean? = null,
+        var location: Boolean? = null,
+        var reference: Boolean? = null,
+        var description: Boolean? = null,
+    )
+
+    /** The body of [exportAsPdf]: the list filter and the chosen settings, kept apart so the filter is never stored. */
+    class TimesheetPdfExportRequest(
+        var filter: MagicFilter? = null,
+        var settings: TimesheetPdfExportSettings? = null,
+    )
+
+    /**
+     * The subscription URL of the timesheet calendar feed for the given user (the current one by default), the
+     * "ics export" of the legacy list. Returns the URL rather than a stream: the client shows it for the user
+     * to subscribe to in their calendar (see [CalendarFeedService.getUrl4Timesheets]).
+     */
+    @GetMapping("icsExportUrl")
+    fun getIcsExportUrl(@RequestParam("userId", required = false) userId: Long?): Map<String, String> {
+        val id = userId ?: ThreadLocalUserContext.loggedInUserId
+        return mapOf("url" to calendarFeedService.getUrl4Timesheets(id))
     }
 
     /**
@@ -604,5 +1055,39 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
             return null
         }
         return UISelect(id, label = "timesheet.tag", required = false, values = tags.map { UISelectValue(it, it) })
+    }
+
+    /**
+     * Keeps only time sheets booked on a billable cost unit, the `onlyBillable` option of the legacy list
+     * (`TimesheetDao.internalGetList`). The cost unit and its type come from the cache, not from a lazy
+     * association on the detached result row.
+     */
+    private class TimesheetBillableFilter : CustomResultFilter<TimesheetDO> {
+        override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean {
+            val kost2Id = element.kost2?.id ?: return false
+            return caches.getKost2(kost2Id)?.kost2Art?.fakturiert == true
+        }
+
+        companion object {
+            private val caches =
+                ApplicationContextProvider.getApplicationContext().getBean(PfCaches::class.java)
+        }
+    }
+
+    /**
+     * Keeps only time sheets whose own text names a JIRA issue — its description or reference, the two
+     * fields the next list renders as JIRA links. The task's fields (title, short description, description)
+     * are deliberately not scanned: a key in a task title would otherwise match every sheet booked on it,
+     * which is not what „time sheets with JIRA issues" means. A pure text check (`JiraUtils.hasJiraIssues`)
+     * needs no cache and no DB — the availability of JIRA is already gated at the filter's registration.
+     */
+    internal class TimesheetJiraFilter : CustomResultFilter<TimesheetDO> {
+        override fun match(list: MutableList<TimesheetDO>, element: TimesheetDO): Boolean =
+            JiraUtils.hasJiraIssues(element.description) || JiraUtils.hasJiraIssues(element.reference)
+    }
+
+    companion object {
+        /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
+        private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
     }
 }

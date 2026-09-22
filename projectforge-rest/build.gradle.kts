@@ -24,6 +24,8 @@ dependencies {
     testImplementation(testFixtures(project(":projectforge-business")))
     testImplementation(libs.com.googlecode.gson)
     testImplementation(libs.org.mockito.core)
+    // MockMultipartFile, for the upload endpoints; projectforge-business declares it for the same reason.
+    testImplementation(libs.org.springframework.spring.test)
 }
 
 description = "projectforge-rest"

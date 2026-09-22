@@ -33,7 +33,7 @@ import java.util.Date
  * Base search filter supported by the DAO's for filtering the result lists. The search filter will be translated via
  * QueryFilter into hibernate query criteria.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class BaseSearchFilter : Serializable {
     var searchString: String? = null

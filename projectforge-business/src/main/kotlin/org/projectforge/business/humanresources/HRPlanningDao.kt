@@ -276,6 +276,9 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     override fun addOwnHistoryEntries(obj: HRPlanningDO, context: HistoryLoadContext) {
+        // Kept per-entry (not batched like the other DAOs): the display prefix depends on the individual entry
+        // (projektName/status) and is applied via the per-entry customize callback, which the batched
+        // loadAndMergeHistory(entityClass, entityIds, ...) variant cannot express.
         obj.entries?.forEach { position ->
             var prefix = if (position.projekt != null) position.projektName else position.status.toString()
             if (prefix == null) {
@@ -287,8 +290,7 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         }
     }
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(HRPlanningEntryDO::class.java)
 
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf<String>(
@@ -299,7 +301,5 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_HR_PLANNING
 
         private val log: Logger = LoggerFactory.getLogger(HRPlanningDao::class.java)
-
-        private val ADDITIONAL_SEARCH_DOS = arrayOf<Class<*>>(HRPlanningEntryDO::class.java)
     }
 }

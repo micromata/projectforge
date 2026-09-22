@@ -27,7 +27,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 /**
  * Represents an table element.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class TablePanel extends Panel

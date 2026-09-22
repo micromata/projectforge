@@ -29,7 +29,7 @@ import org.projectforge.reporting.Konto;
 
 /**
  * Proxy for KontoDO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see KontoDO
  */
 public class KontoImpl implements Konto

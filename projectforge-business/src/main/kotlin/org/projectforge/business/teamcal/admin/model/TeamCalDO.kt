@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Entity

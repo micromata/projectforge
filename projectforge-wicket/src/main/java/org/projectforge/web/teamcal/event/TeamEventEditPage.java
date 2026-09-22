@@ -56,7 +56,7 @@ import java.util.Set;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEditForm, TeamEventDao>
 {

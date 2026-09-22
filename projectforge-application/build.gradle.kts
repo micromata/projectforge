@@ -16,6 +16,15 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+// Spring Boot's BOM (io.spring.dependency-management, applied above and only in this module) pins
+// JUnit to its own version, which would mix junit-platform-engine 1.11.4 with the launcher 1.14.3
+// of our version catalog -> NoClassDefFoundError OutputDirectoryCreator. Let the catalog win.
+extra["junit-jupiter.version"] = libs.versions.org.junit.jupiter.get()
+
+tasks.withType<Test> {
+    useJUnitPlatform() // JUnit 5. Same as buildlogic.pf-module-conventions does for the other modules.
+}
+
 springBoot {
     mainClass.set("org.projectforge.start.ProjectForgeApplication")
 }
@@ -53,6 +62,12 @@ dependencies {
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
     testImplementation(libs.org.mockito.kotlin)
+    // This module doesn't apply buildlogic.pf-module-conventions (that plugin's java-library,
+    // group/version and resolutionStrategy would clash with the Spring Boot setup below), so the
+    // JUnit 5 engine and launcher have to be declared here. Without them no test of this module
+    // runs at all, see the useJUnitPlatform() call below.
+    testImplementation(libs.org.junit.jupiter.engine)
+    testImplementation(libs.org.junit.platform.launcher)
 
     // Kotlin jars for scripting, must be extracted in fat jar.
     kotlinCompilerDependencies.add("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -219,6 +234,7 @@ sourceSets {
     named("main") {
         resources {
             srcDir(project(":projectforge-webapp").layout.buildDirectory.dir("resources/main"))
+            srcDir(project(":projectforge-next").layout.buildDirectory.dir("resources/main"))
         }
     }
 }
@@ -231,14 +247,20 @@ tasks.withType<Test> {
 
 tasks.named("processResources") {
     dependsOn(":projectforge-webapp:npmBuild", ":projectforge-webapp:copyReactBuild")
+    dependsOn(":projectforge-next:npmBuild", ":projectforge-next:copyNextBuild")
 }
 
 tasks.named<BootJar>("bootJar") {
     dependsOn(":projectforge-webapp:webAppJar")
+    dependsOn(":projectforge-next:nextAppJar")
     dependsOn(tasks.named("jar")) // Ensure the plain JAR is built before bootJar
     val webAppJarProvider = project(":projectforge-webapp").layout.buildDirectory.file("libs/projectforge-webapp-${project.version}.jar")
     from(webAppJarProvider) {
         into("BOOT-INF/lib") // Insert the webapp jar into the boot jar.
+    }
+    val nextAppJarProvider = project(":projectforge-next").layout.buildDirectory.file("libs/projectforge-next-${project.version}.jar")
+    from(nextAppJarProvider) {
+        into("BOOT-INF/lib") // Insert the next.js app jar into the boot jar.
     }
     exclude(kotlinCompilerDependencyFiles.map { "**/$it" }) // Exclude these jar, they're already contained as extracted files.
 }
@@ -280,3 +302,11 @@ tasks.named("processResources") {
 }
 
 description = "projectforge-application"
+
+/** Runs DevelopmentMainForRelease (source headers, i18n sorting, next catalogs and metadata). */
+tasks.register<JavaExec>("developmentMainForRelease") {
+    group = "development"
+    mainClass.set("org.projectforge.development.DevelopmentMainForReleaseKt")
+    classpath = sourceSets["test"].runtimeClasspath
+    workingDir = rootDir
+}

@@ -24,6 +24,7 @@
 package org.projectforge.menu.builder
 
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 
 private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
 
@@ -48,14 +49,16 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
-    BOOK_LIST("menu.bookList", getReactListUrl("book")), //
-    CALENDAR("menu.calendar", getReactListUrl("calendar")), //
+    BOOK_LIST("menu.bookList", getListUrl("book")), //
+    CALENDAR("menu.calendar", getListUrl("calendar")), //
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
     CONFIGURATION("menu.configuration", "wa/configuration"), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
-    COST1_LIST("menu.fibu.kost1", "wa/cost1List"), // getReactListUrl("cost1")), //
+    // Migrated to projectforge-next; the Wicket page (wa/cost1List) stays reachable through the escape
+    // hatch next to the page title, see NextMigration.legacyListUrl.
+    COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
     COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
@@ -72,11 +75,15 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
     GANTT("menu.gantt", "wa/ganttList"), //
-    GROUP_LIST("menu.groupList", getReactListUrl("group")), //
+    // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
+    // see NextMigration.legacyListUrl.
+    GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
-    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", "wa/incomingInvoiceList"), //
+    // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the
+    // escape hatch, see NextMigration.legacyListUrl.
+    INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //
     LOGOUT("menu.logout", url = "logout"), //
@@ -87,9 +94,13 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
-    ORDER_LIST("menu.fibu.orderbook", "wa/orderBookList"), //
+    // Migrated to projectforge-next; wa/orderBookList stays reachable through the escape hatch, see
+    // NextMigration.legacyListUrl.
+    ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
-    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", "wa/outgoingInvoiceList"), //
+    // Migrated to projectforge-next, list and form; wa/outgoingInvoiceList stays reachable through the
+    // escape hatch, see NextMigration.legacyListUrl.
+    OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
     PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
@@ -98,8 +109,14 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEND_SMS("menu.sendSms", "wa/sendSms"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     SEARCH("menu.search", "wa/search"), //
-    TASK_TREE("menu.taskTree", "wa/taskTree"), //
-    TIMESHEET_LIST("menu.timesheetList", "wa/timesheetList"), //
+    // Migrated to projectforge-next; wa/taskTree stays reachable through the escape hatch, see
+    // NextMigration.legacyListUrl. Nothing waits on the task favourites (UserPrefArea.TASK_FAVORITE):
+    // they are a Wicket affair, replaced in React and next by the quick access of the select fields
+    // themselves (the tree with its search, EntityAutocomplete for a user).
+    // The tree and not the category's list, because the entity has two perspectives in
+    // projectforge-next (see NextMigration.nextRouteUrl).
+    TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //
+    TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
@@ -118,6 +135,19 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     companion object {
         const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV
     }
+}
+
+/**
+ * Url of a list page, pointing at whichever frontend currently serves it. [NextMigration] decides:
+ * migrated pages resolve to `next/<route>`, all others to `react/<category>`. Switching a page is
+ * therefore an entry in [NextMigration], not an edit here - that keeps the menu url and the server
+ * side redirect targets (see `PagesResolver`) from drifting apart.
+ *
+ * @param category The REST category (derived from the `@RequestMapping` of the `*PagesRest` class),
+ * e.g. `book` - *not* the route of the next page, which may differ.
+ */
+private fun getListUrl(category: String): String {
+    return NextMigration.listUrl(category)
 }
 
 private fun getReactListUrl(name: String): String {

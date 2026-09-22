@@ -1,0 +1,22 @@
+= Design sources
+
+Not shipped: nothing in this directory is served or bundled. Only `public/` reaches
+`dist/` and from there `static/`.
+
+== projectforge-flames.svg
+
+The three flames of the logo as vector paths, in the brand red `#E0082B`.
+
+Traced (potrace, via a saturation mask that drops the grey bevel) from the 512x512 icon of
+the old standalone build, `projectforge-standalone/MacOSX/ProjectForge.app/Contents/Resources/ProjectForge.icns`
+in the pre-8.0 repository — the highest resolution the logo exists in as a raster. The red
+was measured on `projectforge-standalone/launch4j/ProjectForge.ico`, whose 128x128 frame
+carries the flames flat, without the bevel of the `.icns`.
+
+It is deliberately *not* linked from `index.html`. A `<link rel="icon" type="image/svg+xml">`
+takes precedence over `favicon.ico` and `favicon.png` in Chrome and Firefox, and at 16x16
+the three thin ribbons blur into one blot — the tab icon would come out worse than the
+P-and-flames mark of `favicon.ico` it would replace. Linking it needs a mark drawn for small
+sizes first (fewer or thicker ribbons), which is a design decision, not a conversion.
+
+Useful above roughly 64x64: print, slides, and as the source for large raster icons.

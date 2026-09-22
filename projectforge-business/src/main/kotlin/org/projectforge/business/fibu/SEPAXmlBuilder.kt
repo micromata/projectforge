@@ -38,7 +38,7 @@ import javax.xml.transform.stream.StreamResult
  * Manual XML builder for SEPA pain.001.003.03 format.
  * Replaces JAXB marshalling with standard javax.xml APIs.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object SEPAXmlBuilder {
 

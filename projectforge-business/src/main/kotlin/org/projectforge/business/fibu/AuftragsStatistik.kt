@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import org.projectforge.framework.utils.NumberHelper.add
-import org.projectforge.web.WicketSupport
 import java.io.Serializable
 import java.math.BigDecimal
 
@@ -98,7 +97,17 @@ class AuftragsStatistik() : Serializable {
     }
 
     fun add(auftrag: AuftragDO) {
-        val info = WicketSupport.get(AuftragsCache::class.java).getOrderInfo(auftrag)
+        // From the cache singleton rather than through WicketSupport: the statistics are built for the
+        // rest list as well (see OrderEntityRest.postProcessResultSet), where no Wicket page is involved.
+        add(AuftragsCache.instance.getOrderInfo(auftrag))
+    }
+
+    /**
+     * Adds an order to the statistics from its cached [OrderInfo] — the same computation as [add], but for a
+     * caller that already holds the info (server-side paging aggregates over the id list without loading the
+     * orders, see `OrderEntityRest.aggregate`).
+     */
+    fun add(info: OrderInfo) {
         if (info.akquiseSum > BigDecimal.ZERO) {
             akquiseSum = add(akquiseSum, info.akquiseSum)
             counterAkquise++

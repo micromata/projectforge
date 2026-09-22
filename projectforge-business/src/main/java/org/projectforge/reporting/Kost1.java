@@ -27,7 +27,7 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus;
 
 /**
  * Interface for reporting. Repräsentiert den Kostenträger Kost1.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see org.projectforge.business.fibu.kost.Kost1DO
  */
 public interface Kost1

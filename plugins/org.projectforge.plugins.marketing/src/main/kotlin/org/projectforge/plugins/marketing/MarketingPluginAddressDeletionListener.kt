@@ -30,7 +30,7 @@ import org.projectforge.business.address.AddressDeletionListener
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCampaignDao) : AddressDeletionListener {
     override fun onDelete(address: AddressDO) {

@@ -36,7 +36,7 @@ import java.util.Objects;
  * Define the access rights. In this example every user has access to memo functionality but only read and write access
  * to own memos.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 public class MemoRight extends UserRightAccessCheck<MemoDO>
 {

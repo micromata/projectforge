@@ -24,7 +24,7 @@
 package org.projectforge.mail;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class MailFilter

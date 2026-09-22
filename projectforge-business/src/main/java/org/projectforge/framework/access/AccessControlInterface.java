@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * All methods of this interface should be implemented by every DOAccessControl class needed by every DO class in access-type="restricted"
  * application mode (productive mode).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface AccessControlInterface
 {

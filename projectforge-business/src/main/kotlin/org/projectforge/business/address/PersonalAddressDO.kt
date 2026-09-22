@@ -40,7 +40,7 @@ import org.projectforge.framework.json.IdOnlySerializer
  * Every user has his own address book (a subset of all addresses). For every address a user can define which phone
  * numbers he wants to add to his address book and/or the whole address.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

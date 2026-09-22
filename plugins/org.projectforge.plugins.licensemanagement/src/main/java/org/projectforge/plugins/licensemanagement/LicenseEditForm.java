@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * This is the edit formular page.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage>
 {

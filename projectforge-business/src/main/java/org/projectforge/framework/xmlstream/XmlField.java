@@ -31,7 +31,7 @@ import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * Annotation for properties which should be (de-)serialized from and to xml attributes.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target( { FIELD})
 @Retention(RetentionPolicy.RUNTIME)

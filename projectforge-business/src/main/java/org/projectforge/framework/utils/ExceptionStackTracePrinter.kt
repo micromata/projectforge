@@ -25,7 +25,7 @@ package org.projectforge.framework.utils
 
 /**
  * Prints stack-trace without foreign packages in much shorter form than log.error(ex.message, ex) does.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ExceptionStackTracePrinter {
 

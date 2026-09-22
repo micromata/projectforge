@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Represents an icon.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 
 public class LabelPanel extends Panel

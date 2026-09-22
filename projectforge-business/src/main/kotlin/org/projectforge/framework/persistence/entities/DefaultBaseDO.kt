@@ -27,7 +27,7 @@ import jakarta.persistence.*
 import org.projectforge.common.anots.PropertyInfo
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @MappedSuperclass
 //@Analyzer(impl = ClassicAnalyzer::class)

@@ -33,9 +33,8 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.user.UserAuthenticationsService;
+import org.projectforge.business.user.StayLoggedInTokenDao;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.GroupTaskAccessDO;
@@ -71,7 +70,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
   private BookDao bookDao;
 
   @Autowired
-  private UserAuthenticationsService userAuthenticationsService;
+  private StayLoggedInTokenDao stayLoggedInTokenDao;
 
   @Autowired
   private TaskDao taskDao;
@@ -106,7 +105,9 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     final List<PFUserDO> userList = userService.selectAll(false);
     assertTrue(userList.size() > 0);
     for (final PFUserDO user : userList) {
-      assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
+      // For security reasons no device of an imported user may stay logged in (one row per device, see
+      // StayLoggedInTokenDO).
+      assertTrue(stayLoggedInTokenDao.getEntries(user.getId()).isEmpty(), "No stay-logged-in token expected.");
     }
 
     final List<GroupTaskAccessDO> accessList = accessDao.selectAll(false);

@@ -24,8 +24,13 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
+import org.hibernate.query.NullPrecedence
+import org.hibernate.query.SortDirection
+import org.hibernate.query.criteria.HibernateCriteriaBuilder
+import org.hibernate.query.criteria.JpaExpression
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -69,19 +74,41 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
         )
     }
 
+    /**
+     * Adds an order by clause that treats entries without a value as the smallest value, so they
+     * lead an ascending sort and trail a descending one — reversing the sort brings them into view.
+     *
+     * Text columns hold two representations of "no value": historically `null`, in some records an
+     * empty string. Left alone the two behave differently — ascending leads with the empty strings
+     * (the smallest value), descending leads with the nulls (PostgreSQL's default) — so which blank
+     * entries surface depends on the record. Mapping empty strings to null makes them
+     * interchangeable, and the null precedence follows the sort direction.
+     */
     fun addOrder(sortProperty: SortProperty) {
         try {
-            order.add(
-                if (sortProperty.ascending) {
-                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property}.")
-                    ctx.cb.asc(ctx.getField<Any>(sortProperty.property))
-                } else {
-                    if (log.isDebugEnabled) log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} desc.")
-                    ctx.cb.desc(ctx.getField<Any>(sortProperty.property))
-                }
-            )
+            // Hibernate's criteria builder: JPA 3.1 has no null precedence of its own.
+            val cb = ctx.cb as HibernateCriteriaBuilder
+            val field = ctx.getOrderField<Any>(sortProperty.property)
+            val expression: JpaExpression<*> = if (field.javaType == String::class.java) {
+                @Suppress("UNCHECKED_CAST")
+                cb.nullif(field as Path<String>, "") as JpaExpression<*>
+            } else {
+                field as JpaExpression<*>
+            }
+            val direction = if (sortProperty.ascending) SortDirection.ASCENDING else SortDirection.DESCENDING
+            // Nulls count as the smallest value, so they flip with the direction.
+            val nulls = if (sortProperty.ascending) NullPrecedence.FIRST else NullPrecedence.LAST
+            if (log.isDebugEnabled) {
+                log.debug("Adding criteria orderBy (${ctx.entityName}): order by ${sortProperty.property} $direction nulls ${nulls.name.lowercase()}.")
+            }
+            order.add(cb.sort(expression, direction, nulls))
         } catch (ex: Exception) {
-            log.error("Can't add order for property '${ctx.entityName}.${sortProperty.property}: ${ex.message}")
+            log.error(
+                "Can't add order for property '${ctx.entityName}.${sortProperty.property}': ${ex.message}. " +
+                        "The query goes out without this ORDER BY. If this is a computed/transient column (no " +
+                        "database column to sort on), declare it in AbstractEntityRest.computedSortProperties " +
+                        "so filterList/sortIds sort by it instead."
+            )
         }
     }
 }

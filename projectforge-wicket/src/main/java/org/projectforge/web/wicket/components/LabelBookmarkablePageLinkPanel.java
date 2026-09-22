@@ -32,7 +32,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * An image as bookmarkable link with an href and with a tooltip.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class LabelBookmarkablePageLinkPanel extends Panel

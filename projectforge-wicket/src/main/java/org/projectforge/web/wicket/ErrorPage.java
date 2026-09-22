@@ -55,7 +55,7 @@ import java.util.Date;
 /**
  * Standard error page should be shown in production mode.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ErrorPage extends AbstractSecuredPage {
     private static final long serialVersionUID = -637809894879133209L;

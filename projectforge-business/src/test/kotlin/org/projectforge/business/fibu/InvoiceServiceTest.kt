@@ -23,8 +23,11 @@
 
 package org.projectforge.business.fibu
 
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor
+import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDay.Companion.today
 import org.projectforge.business.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -126,6 +129,116 @@ class InvoiceServiceTest : AbstractTestBase() {
       BigDecimal.TEN,
       invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, BigDecimal.TEN, BigDecimal.TEN))
     )
+  }
+
+  /**
+   * A deleted position doesn't appear in the document, so its VAT must not decide the rate the document prints.
+   */
+  @Test
+  fun extractSharedVatIgnoresDeletedPositionsTest() {
+    val invoice = createInvoice(BigDecimal.TEN, null)
+    invoice.positionen!![1].deleted = true
+    Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(invoice))
+  }
+
+  /**
+   * The document of an invoice with a deleted position: it used to throw instead, because
+   * [RechnungCalculator] skips a deleted position and so never fills the `info` whose net sum the position
+   * row reads.
+   */
+  @Test
+  fun invoiceWordDocumentWithDeletedPositionTest() {
+    val invoice = RechnungDO()
+    invoice.nummer = 12345
+    invoice.datum = LocalDate.of(2024, Month.JUNE, 15)
+    invoice.typ = RechnungTyp.RECHNUNG
+    invoice.addPosition(RechnungsPositionDO().also { pos ->
+      pos.text = "Softwareentwicklung"
+      pos.menge = BigDecimal.TEN
+      pos.einzelNetto = BigDecimal("150.00")
+      pos.vat = BigDecimal("0.19")
+    })
+    invoice.addPosition(RechnungsPositionDO().also { pos ->
+      pos.text = "Gelöschte Position"
+      pos.menge = BigDecimal.ONE
+      pos.einzelNetto = BigDecimal("100.00")
+      pos.vat = BigDecimal("0.19")
+      pos.deleted = true
+    })
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val document = invoiceService.getInvoiceWordDocument(invoice, null)
+    Assertions.assertNotNull(document, "The document is created, deleted position or not.")
+    Assertions.assertTrue(document!!.size() > 0)
+  }
+
+  /**
+   * The discount text of the document: the template states it inside `{if isSkonto=true}`, and whether that
+   * condition holds must follow from the invoice alone — not from whether the caller happened to call
+   * [AbstractRechnungDO.recalculate] first, which fills the transient payment terms in days. Wicket's edit page
+   * does (so its export always showed the text), the REST export and the ZUGFeRD conversion don't.
+   */
+  @Test
+  fun invoiceWordDocumentStatesTheDiscountTest() {
+    val invoice = discountInvoice()
+    Assertions.assertNull(
+      invoice.discountZahlungsZielInTagen,
+      "No recalculate() here - exactly the state an invoice loaded from the database is in.",
+    )
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(invoice, null))
+    // The dates as [DateTimeFormatter] renders them in the locale of the test user, not as a literal: what is
+    // asserted here is that percentage and maturity reach the document at all.
+    val maturity = DateTimeFormatter.instance().getFormattedDate(invoice.discountMaturity)
+    Assertions.assertTrue(
+      text.contains("abzüglich 3% Skonto bis zum $maturity"),
+      "The discount sentence of the template, with percentage and maturity: $text",
+    )
+    Assertions.assertFalse(
+      text.contains("isSkonto"),
+      "The condition itself is resolved and gone from the document: $text",
+    )
+  }
+
+  /**
+   * Without a discount the template states its other sentence, i.e. `isSkonto=false` reaches Merlin as well.
+   */
+  @Test
+  fun invoiceWordDocumentWithoutDiscountTest() {
+    val invoice = discountInvoice().also {
+      it.discountPercent = null
+      it.discountMaturity = null
+    }
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(invoice, null))
+    val dueDate = DateTimeFormatter.instance().getFormattedDate(invoice.faelligkeit)
+    Assertions.assertFalse(text.contains("Skonto"), "No discount, no discount text: $text")
+    Assertions.assertTrue(text.contains("Überweisung des Gesamtbetrages bis zum $dueDate"), text)
+  }
+
+  private fun discountInvoice(): RechnungDO {
+    return RechnungDO().also { invoice ->
+      invoice.nummer = 12345
+      invoice.typ = RechnungTyp.RECHNUNG
+      invoice.datum = LocalDate.of(2024, Month.JUNE, 15)
+      invoice.faelligkeit = LocalDate.of(2024, Month.JULY, 15)
+      invoice.discountPercent = BigDecimal("3.00")
+      invoice.discountMaturity = LocalDate.of(2024, Month.JUNE, 22)
+      invoice.addPosition(RechnungsPositionDO().also { pos ->
+        pos.text = "Softwareentwicklung"
+        pos.menge = BigDecimal.TEN
+        pos.einzelNetto = BigDecimal("150.00")
+        pos.vat = BigDecimal("0.19")
+      })
+    }
+  }
+
+  private fun documentText(document: org.apache.commons.io.output.ByteArrayOutputStream?): String {
+    Assertions.assertNotNull(document, "The document is created.")
+    java.io.ByteArrayInputStream(document!!.toByteArray()).use { istream ->
+      XWPFDocument(istream).use { word ->
+        return XWPFWordExtractor(word).use { it.text }
+      }
+    }
   }
 
   private fun createInvoice(vararg vats: BigDecimal?): RechnungDO {

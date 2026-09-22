@@ -34,7 +34,7 @@ import java.time.LocalDate
 import java.util.*
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LiquidityForecast() : Serializable {
     private val entries = mutableListOf<LiquidityEntry>()

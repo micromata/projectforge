@@ -38,7 +38,13 @@ open class UIFilterObjectElement(
         /**
          * This filter option is an autocompletion field.
          */
-        var autoCompletion: AutoCompletion<*>? = null
+        autoCompletion: AutoCompletion<*>? = null
 ) :UIFilterElement(id, FilterType.OBJECT, label = label) {
+    init {
+        // The autocompletion lives on the base [UIFilterElement] now (a STRING filter may carry one too);
+        // an object filter always sets it.
+        this.autoCompletion = autoCompletion
+    }
+
     enum class Type { STRING, DATE, CHOICE }
 }

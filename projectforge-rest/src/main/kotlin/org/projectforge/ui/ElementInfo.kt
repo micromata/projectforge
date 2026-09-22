@@ -23,14 +23,23 @@
 
 package org.projectforge.ui
 
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
+import java.math.BigDecimal
 
 class ElementInfo(val propertyName: String,
                   propertyField: Field? = null,
                   propertyClass: Class<*>? = null,
                   var maxLength: Int? = null,
+                  /**
+                   * Bounds of a numeric property, from `@PropertyInfo(min = …, max = …)` — the rule a
+                   * `@Column` cannot express (see [PropertyInfo.min]). Null for everything unbounded,
+                   * which is most properties.
+                   */
+                  var min: BigDecimal? = null,
+                  var max: BigDecimal? = null,
                   var required: Boolean? = null,
                   /**
                    * Getter methods without fields are normally read-only fields.

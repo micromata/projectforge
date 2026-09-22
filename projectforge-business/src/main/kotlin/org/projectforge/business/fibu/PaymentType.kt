@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class PaymentType(val key: String) : I18nEnum {
     BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");

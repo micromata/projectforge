@@ -37,7 +37,7 @@ import java.time.LocalDate;
 
 /**
  * Proxy for BuchungssatzDO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see BuchungssatzDO
  */
 public class BuchungssatzImpl implements Buchungssatz

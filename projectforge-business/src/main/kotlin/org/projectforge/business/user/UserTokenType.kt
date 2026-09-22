@@ -26,6 +26,20 @@ package org.projectforge.business.user
 /**
  * Supported tokens
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
-enum class UserTokenType { CALENDAR_REST, DAV_TOKEN, REST_CLIENT, STAY_LOGGED_IN_KEY, AUTHENTICATOR_KEY }
+enum class UserTokenType {
+    CALENDAR_REST,
+    DAV_TOKEN,
+    REST_CLIENT,
+
+    /**
+     * **Not** stored in [org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO]
+     * anymore: there is one token per device now, see [StayLoggedInTokenDO]. The constant remains, because
+     * it names a login channel and is used as such outside of the authentications table: as the namespace of
+     * [org.projectforge.business.login.LoginProtection], in the user's access log (`UserAccessLogEntries`)
+     * and in the i18n keys. [UserAuthenticationsDao] rejects it.
+     */
+    STAY_LOGGED_IN_KEY,
+    AUTHENTICATOR_KEY,
+}

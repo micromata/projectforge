@@ -75,7 +75,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 @Scope("prototype")

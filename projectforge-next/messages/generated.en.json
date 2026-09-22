@@ -1,0 +1,2376 @@
+{
+  "_generated": "Generated from I18nResources by GenerateNextI18nMessagesMain (DevelopmentMainForRelease) — do not edit; hand-written texts belong in de.json/en.json.",
+  "access": {
+    "exception": {
+      "noAccess": "No access."
+    },
+    "permission": {
+      "denied": "not granted",
+      "granted": "granted"
+    },
+    "rights": "Rights",
+    "type": {
+      "_": "Access type",
+      "accessManagement": "Access management",
+      "delete": "Delete",
+      "group": "Group",
+      "insert": "Insert",
+      "ownTimesheets": "Own time sheets",
+      "select": "Select",
+      "tasks": "Structure elements",
+      "timesheets": "Time sheets",
+      "undelete": "Undelete",
+      "update": "Update"
+    }
+  },
+  "add": "Add",
+  "address": {
+    "addressStatus": {
+      "_": "Address status",
+      "leaved": "company left",
+      "outdated": "out-dated",
+      "uptodate": "up-to-date"
+    },
+    "addressText": "Address",
+    "addressText2": "Address 2",
+    "addressbooks": "Addressbooks",
+    "birthName": "Birth name",
+    "birthday": "Birthday",
+    "business": "business",
+    "city": "City",
+    "communicationLanguage": "Language of communication",
+    "contactStatus": {
+      "_": "Contact status",
+      "active": "active",
+      "departed": "departed",
+      "nonActive": "non-active",
+      "personaIngrata": "persona ingrata",
+      "uninteresting": "uninteresting"
+    },
+    "country": "Country",
+    "division": "Division",
+    "emails": "e-mails",
+    "fingerprint": "Finger print",
+    "form": {
+      "_": "Form",
+      "company": "Company",
+      "misc": "Misc",
+      "miss": "Miss",
+      "mister": "Mister",
+      "unknown": "unknown"
+    },
+    "phone": "Phone",
+    "phoneType": {
+      "fax": "Fax",
+      "mobile": "Cellular phone"
+    },
+    "positionText": "Position",
+    "postal": "postal",
+    "private": "private",
+    "publicKey": "Public key",
+    "state": "State",
+    "title": "Title",
+    "website": "Website",
+    "zipCode": "Zip code"
+  },
+  "addressbook": {
+    "description": "Description",
+    "owner": "Owner",
+    "title": "Title"
+  },
+  "akquise": "Acquisition",
+  "apply": "Apply",
+  "attachment": {
+    "_": "Attachment",
+    "checksum": "Checksum",
+    "downloadAll": "Download all",
+    "encrypt": {
+      "_": "Encrypt",
+      "question": "Do you really want to encrypt this file now? Please take care of your password."
+    },
+    "encryption": "Encryption",
+    "expires": "Expires",
+    "fileId": "File id",
+    "fileName": "Filename",
+    "fileSize": "File size",
+    "info": "Info",
+    "list": "List of attachments",
+    "onlyAvailableAfterSave": "Uploading of attachments is only available after saving this new object.",
+    "password": {
+      "info": "This password will only be used for encryption and will not be stored or logged anywhere in ProjectForge. Please remember this password on your own."
+    },
+    "showEncryptionOption": "Show encryption option",
+    "size": "File size",
+    "testDecryption": {
+      "_": "Test decryption",
+      "failed": "Decryption failed (wrong password or corrupted zip file)?",
+      "successful": "Decryption was successful."
+    },
+    "upload": {
+      "add": {
+        "_": "Add files",
+        "info": "Choose one or more files, or drag them anywhere into this section."
+      },
+      "dropHere": "Drop files here",
+      "title": "You may upload multiple files here by dropping in or clicking."
+    },
+    "zip": {
+      "encrypted": "Encrypted",
+      "encryptedStandard": "Encrypted (ZIP standard)",
+      "encryptionAlgorithm": "Encryption algorithm",
+      "encrytpedAes128": "Encrypted (AES-128)",
+      "encrytpedAes256": "Encrypted (AES-256, very secure)",
+      "standard": "No encryption"
+    }
+  },
+  "attachments": {
+    "_": "Attachments",
+    "short": "Att."
+  },
+  "attr": {
+    "validSince": "Valid since"
+  },
+  "back": "Back",
+  "book": {
+    "abstract": "Abstract",
+    "authors": "Authors",
+    "editor": "Editor",
+    "isbn": "ISBN",
+    "keywords": "Keywords",
+    "lendOut": "Lend out",
+    "lendOutBy": "Lend out by",
+    "lendOutNote": "Lending note (optional)",
+    "lending": "Lending",
+    "publisher": "Publisher",
+    "returnBook": "Return",
+    "signature": "Signature",
+    "status": {
+      "disposed": "disposed",
+      "missed": "missed",
+      "present": "present",
+      "unknown": "unknown"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add new book",
+      "list": "Book list"
+    },
+    "type": {
+      "_": "Type",
+      "article": "Article",
+      "audiobook": "audio book",
+      "book": "Book",
+      "ebook": "e-book",
+      "film": "Film (data medium)",
+      "magazine": "Magazine",
+      "misc": "Misc",
+      "newspaper": "Newspaper",
+      "periodical": "Periodical",
+      "software": "Software (data medium)",
+      "thesis": "Thesis"
+    },
+    "yearOfPublishing": {
+      "_": "Year of Publishing",
+      "short": "Year"
+    }
+  },
+  "calendar": {
+    "chooseDate": "Choose date",
+    "chooseTime": "Choose time",
+    "day": "day",
+    "dayOfWeekShortLabel": "D",
+    "defaultCalendar": "Default calendar",
+    "filter": {
+      "vacation": {
+        "groups": {
+          "_": "Vacation groups",
+          "tooltip": "For these groups any vacation of their users will be displayed."
+        },
+        "users": {
+          "_": "Vacation users",
+          "tooltip": "For these users any vacation will be displayed."
+        }
+      },
+      "visible": "visible"
+    },
+    "icsExport": {
+      "securityAdvice": "This url contains your personal login token of ProjectForge (it's encrypted and independent of your password), keep it secret. In case of doubt about secrecy of your data, please renew your authentication token under 'my account'. Otherwise a third party is able to download your calendar too."
+    },
+    "month": {
+      "_": "Month",
+      "april": "April",
+      "august": "August",
+      "december": "December",
+      "february": "February",
+      "january": "January",
+      "july": "July",
+      "june": "June",
+      "march": "March",
+      "may": "May",
+      "november": "November",
+      "october": "October",
+      "september": "September"
+    },
+    "option": {
+      "firstHour": "Begin of day",
+      "gridSize": "Grid size in minutes",
+      "showBreaks": "Breaks",
+      "timesheets": "time sheets"
+    },
+    "quickselect": {
+      "tooltip": {
+        "selectCurrentMonth": "Quick select - current month",
+        "selectCurrentWeek": "Quick select - current week",
+        "selectCurrentYearToDate": "Quick select - year to date",
+        "selectNextMonth": "Quick select - next month",
+        "selectNextWeek": "Quick select - next week",
+        "selectNextYearToDate": "Quick select - next year to date",
+        "selectPreviousMonth": "Quick select - previous month",
+        "selectPreviousWeek": "Quick select - previous week",
+        "selectPreviousYearToDate": "Quick select - previous year to date"
+      }
+    },
+    "settings": {
+      "_": "Settings (colors)",
+      "alternateHoursBackground": {
+        "_": "Alternate colors for hours",
+        "toolip": "The background colors of even and odd colors are different in the week and day view (reload of calendar required)."
+      },
+      "colors": {
+        "_": "Colors",
+        "scheme": {
+          "_": "Color scheme",
+          "classic": "Classic (more contrast)",
+          "standard": "Standard (transparent)"
+        },
+        "timesheetBreaks": "Breaks between timesheets",
+        "timesheetStats": "Timesheet statistics",
+        "timesheets": "Timesheets",
+        "vacations": {
+          "_": "Vacations",
+          "info": "This color is used for vacations chosen in view settings (gear).\n\nIf you wish different colors for different vacations of people and/or teams, please simply create a new vacation calendar with groups and people [here](/react/teamCal/edit)."
+        }
+      },
+      "intro": "Please note: You may customize the colors of other calendars by simply clicking one calendar pill in the calendar chooser at the top of the calendar page.",
+      "title": "Calendar settings"
+    },
+    "short": {
+      "yearToDate": "Y→"
+    },
+    "shortday": {
+      "friday": "Fr",
+      "monday": "Mo",
+      "thursday": "Th",
+      "tuesday": "Tu",
+      "wednesday": "We"
+    },
+    "title": "Calendar",
+    "today": "Today",
+    "view": {
+      "agenda": "agenda",
+      "overview": "overview",
+      "settings": {
+        "tooltip": "View settings"
+      },
+      "workDays": "Workdays"
+    },
+    "week": "Week",
+    "weekOfYearShortLabel": "CW",
+    "year": "Year",
+    "yearToDate": "Year to date"
+  },
+  "cancel": "Cancel",
+  "changes": "Changes",
+  "clone": "Clone",
+  "close": "Close",
+  "collapse": "Collapse",
+  "columns": {
+    "_": "Columns",
+    "dragToSort": "Drag to sort",
+    "manage": "Manage columns",
+    "pin": "Pin left",
+    "pinned": "Pinned",
+    "reset": "Reset columns",
+    "sort": "Sort (shift-click to sort by several columns)",
+    "sortAscending": "Sorted ascending",
+    "sortDescending": "Sorted descending",
+    "sortPosition": "Sort position {arg0}",
+    "unpin": "Unpin"
+  },
+  "comment": "Comment",
+  "common": {
+    "import": {
+      "action": {
+        "commit": "Commit",
+        "deselectAll": "Deselect all",
+        "reconcile": "Reconcile",
+        "selectAll": "Select all"
+      },
+      "clearStorage": "Clear"
+    },
+    "recurrence": {
+      "frequency": {
+        "daily": "Daily",
+        "label": "Frequency",
+        "monthly": "Monthly",
+        "none": "None",
+        "weekly": "Weekly",
+        "yearly": "Yearly"
+      }
+    }
+  },
+  "contactPerson": "Contact person",
+  "copy": "Copy",
+  "create": "Create",
+  "created": "created",
+  "createdBy": "created by",
+  "currencyConverter": {
+    "percentage": {
+      "help": "You can enter amounts as well as percent values (e.g. 10%)."
+    }
+  },
+  "datatable": {
+    "no-records-found": "No records were found."
+  },
+  "date": {
+    "_": "date",
+    "begin": "Start date",
+    "end": "End date",
+    "from": "from",
+    "month_year": "month / year",
+    "until": "until"
+  },
+  "dateFormat": {
+    "_": "Date format",
+    "xls": "Excel date format"
+  },
+  "day": "day(s)",
+  "days": "days",
+  "delete": "Delete",
+  "deleted": "deleted",
+  "description": "Description",
+  "deselectAll": "Deselect all",
+  "download": {
+    "_": "Download",
+    "expired": "Download expired. Please retry for a new download."
+  },
+  "dueDate": "Due date",
+  "duration": {
+    "choose": "Choose duration",
+    "months": "{arg0} months",
+    "next": "Next period",
+    "previous": "Previous period",
+    "short": {
+      "month": "M",
+      "months": "{arg0}M",
+      "week": "W",
+      "year": "Y"
+    }
+  },
+  "edit": "Edit",
+  "email": "E-mail",
+  "error": {
+    "_": "An error occurs: {arg0}",
+    "endDateBeforeBeginDate": "End date can't be before begin date.",
+    "posFromDateBeforeFromDate": "Start date of a position can't be before start date of order."
+  },
+  "errorpage": {
+    "title": "An error has occurred."
+  },
+  "expand": "Expand",
+  "exportAsPdf": "Pdf export",
+  "exportAsXls": "Excel export",
+  "favorite": {
+    "_": "Favorite",
+    "addNew": "New favorite",
+    "filter": {
+      "addNew": "New Filter",
+      "list": "Saved filters",
+      "none": "No saved filters yet",
+      "select": "Apply filter {arg0}"
+    },
+    "untitled": "untitled"
+  },
+  "favorites": {
+    "_": "Favorites",
+    "saveModification": "Save modification"
+  },
+  "fibu": {
+    "attachment": "Attachments",
+    "auftrag": {
+      "_": "Order",
+      "angebot": {
+        "datum": "Date of order"
+      },
+      "auftraege": "Orders",
+      "beauftragungsBeschreibung": "Description of assignment",
+      "beauftragungsdatum": "Date of assignment",
+      "bindungsFrist": "period of commitment",
+      "commissioned": "commissioned",
+      "datum": {
+        "_": "Date of order",
+        "short": "Date"
+      },
+      "entscheidung": {
+        "datum": "Date of decision"
+      },
+      "erfassung": {
+        "datum": "Date of entry"
+      },
+      "error": {
+        "amountsInPaymentScheduleAreGreaterThanNetSumOfPosition": "The sum of amounts of position {arg0} in the payment schedule is greater than the net sum of this position.",
+        "auftragHatKeinePositionen": "The order has no positions.",
+        "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "At least one date of the position(s) {arg0} is not within the period of performance (plus 3 months).",
+        "invalidPosition": "Invalid order position.",
+        "invalidStatus": "Please choose a status of the order; 'optional' is not supported.",
+        "nummerBereitsVergeben": "The order number does already exist.",
+        "nummerIstNichtFortlaufend": "Order number is not the successive (not continued).",
+        "nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein": "Only finished orders can be completely invoiced.",
+        "vollstaendigFakturiertProtection": "The flag 'completely invoiced' can only be modified by the account staff."
+      },
+      "ersetzen": "Replaced",
+      "exportAnalysis": "Analysis data",
+      "filter": {
+        "type": {
+          "all": "all",
+          "nochNichtVollstaendigFakturiert": "not completely invoiced",
+          "vollstaendigFakturiert": "completely invoiced",
+          "zuFakturieren": "to be invoiced"
+        }
+      },
+      "forecast": {
+        "_": "Forecast",
+        "analysis": {
+          "allPositions": "Forecast of all positions",
+          "distribution": {
+            "_": "Distribution of the forecast (monthly distribution)",
+            "fixedPrice": "scheduled at the end of the performance period.",
+            "monthly": "distributed monthly over the performance period.",
+            "paymentSchedule": "The payment schedule is used first, if available."
+          },
+          "error": {
+            "noPositions": "No order positions found for order #{arg0}.",
+            "orderNotFound": "Order with id {arg0} or its positions not found."
+          },
+          "legend": {
+            "blue": "blue,",
+            "forecast": "Forecast values are shown in",
+            "green": "green.",
+            "invoiced": "invoiced amounts in"
+          },
+          "lostBudget": {
+            "_": "Lost budget",
+            "warning": {
+              "_": "There is a lost-budget warning of {arg0} (see positions below).",
+              "position": "There is a lost-budget warning of {arg0}."
+            }
+          },
+          "snapshotDate": "Snapshot date",
+          "title": "Forecast order analysis of order #{arg0}",
+          "variants": {
+            "column": "Budget scenario",
+            "configuredDefault": "configured default",
+            "default": "Configured default of this ProjectForge instance: {arg0}",
+            "false": {
+              "_": "Time & materials positions are extrapolated by their run rate (invoiced sum per elapsed performance month, a partial first month counted proportionally). Unused budget is not part of the forecast, but shown as difference. Exception for the ramp-up phase: as long as less than {arg0} performance months have elapsed and less than half of the performance period is over, the invoicing is not yet representative (the project is ramping up); in this case the remaining budget is distributed evenly as in the optimistic scenario.",
+              "label": "Conservative (without distribution of unused budget)"
+            },
+            "info": "The two budget scenarios of this order differ (configuration parameter {arg0}) and are therefore both shown:",
+            "true": {
+              "_": "Unused budget is booked as future revenue in the last month of the performance period.",
+              "label": "Optimistic (with distribution of unused budget)"
+            }
+          }
+        },
+        "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
+        "withoutProject": "without project"
+      },
+      "forecastExport": {
+        "startDate": {
+          "_": "First month of the forecast",
+          "info": "The forecast starts with the month this date lies in."
+        },
+        "tooltip": "Forecast export of the filtered orders."
+      },
+      "forecastExportAsXls": {
+        "_": "Forecast",
+        "tooltip": "Forecast export for actual orderbook list. The start date will be taken from the period of performance begin. If not present it uses 01/01/[actual year]."
+      },
+      "forecastType": {
+        "_": "Forecast type",
+        "currentMonth": "Current month",
+        "followingMonth": "Following month (default)",
+        "info": "When will the sales be invoiced?\n\nDoes not apply to payment schedule.",
+        "pos": {
+          "info": "If empty, the value of the order is taken (see above)."
+        }
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Customer can be different to the customer of the project."
+      },
+      "invoice": {
+        "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
+      },
+      "mail": {
+        "intro": "the order #{arg0} was created or changed."
+      },
+      "nettoSumme": {
+        "_": "Net sum",
+        "weighted": "Weighted net sum"
+      },
+      "notification": {
+        "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
+      },
+      "nummer": {
+        "_": "Number",
+        "short": "No"
+      },
+      "paymentschedule": {
+        "_": "Payment schedule",
+        "number": "No"
+      },
+      "position": {
+        "_": "Position",
+        "art": {
+          "_": "Order type",
+          "change_request": "Change Request",
+          "dauernde_leistung": "Continued services",
+          "festpreispaket": "Fixed price package",
+          "hot_fix": "Hotfix",
+          "neuentwicklung": "New development",
+          "time_and_materials": "Time & materials",
+          "wartung": "Maintenance"
+        },
+        "error": {
+          "notFound": "Order position not found."
+        },
+        "noTaskGiven": "No structure element given!",
+        "paymenttype": {
+          "_": "Payment type",
+          "festpreispaket": "Fixed price package",
+          "pauschale": "Flat rate",
+          "time_and_materials": "Time & materials"
+        }
+      },
+      "positions": "Positions",
+      "probabilityOfOccurrence": {
+        "effective": {
+          "info": "The probability the forecast applies to this position.\n\nIt follows from the status of the order and of the position; the probability of occurrence entered for the order is only used where those leave it open."
+        },
+        "weighted": {
+          "_": "Effective probability",
+          "info": "The probability the forecast works with.\n\nIt follows from the status of the order and of each position; the given probability of occurrence is only used where the status leaves it open.\n\nShown weighted by the net sums of the positions: sum(net sum x probability) / net sum."
+        }
+      },
+      "showInactivePosition": "Show inactive positions",
+      "status": {
+        "abgelehnt": "declined",
+        "abgeschlossen": "completed",
+        "beauftragt": "commissioned",
+        "ersetzt": "replaced",
+        "eskalation": "Escalation",
+        "fakturiert": "invoiced",
+        "gelegt": "submitted",
+        "in_erstellung": "In progress",
+        "loi": "LOI",
+        "optional": "Optional position",
+        "potenzial": "Potential"
+      },
+      "statusBeschreibung": "Description of status",
+      "title": {
+        "_": "Title",
+        "add": "Create new order / tender",
+        "edit": "Edit order / tender",
+        "heading": "Order book",
+        "list": "Orders and tenders"
+      },
+      "tooltip": {
+        "addPaymentschedule": "Add payment schedule position",
+        "addPosition": "Add order position"
+      },
+      "type": "Type",
+      "vollstaendigFakturiert": "completely invoiced",
+      "zahlung": "Payment"
+    },
+    "buchungssatz": {
+      "beleg": "Receipt",
+      "gegenKonto": "Contra account",
+      "konto": "Account",
+      "menge": "Quantity",
+      "satznr": "Record number",
+      "text": "Text"
+    },
+    "common": {
+      "assignedPersons": "PM/HOB/KAM/CP",
+      "betrag": "Amount",
+      "brutto": "Gross",
+      "creditor": "Creditor",
+      "customer": {
+        "reference": "Customer reference"
+      },
+      "netto": "Net",
+      "reached": "reached",
+      "reference": "Reference",
+      "vat": "VAT",
+      "vatAmount": "VAT amount"
+    },
+    "currencyConversion": {
+      "conversionRate": "Conversion rate",
+      "inverseConversionRate": "Inverse conversion rate"
+    },
+    "currencyPair": {
+      "_": "Currency pair",
+      "currencyCode": {
+        "tooltip": "ISO currency code (3 letters) is recommended, e.g. USD, EUR, GBP.\n\nThese codes are also used when importing or creating currencies in the system."
+      },
+      "sourceCurrency": "Source currency",
+      "targetCurrency": "Target currency"
+    },
+    "customerref1": "Customer reference",
+    "eInvoiceChecker": {
+      "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
+    },
+    "eingangsrechnung": {
+      "import": {
+        "title": "Upload of creditor invoices"
+      }
+    },
+    "employee": {
+      "_": "Employee",
+      "austrittsdatum": "Leaving date",
+      "division": "Division",
+      "eintrittsdatum": "Entry date",
+      "salary": {
+        "bruttoMitAgAnteil": "Gross with employers' share",
+        "type": {
+          "_": "Payment method",
+          "gehalt": "Salary",
+          "praemie": "Bonus",
+          "sonderzahlung": "Special payment",
+          "tantieme": "Royalty",
+          "zielvereinbarung": "Target agreement"
+        }
+      },
+      "staffNumber": "Staff number",
+      "status": {
+        "_": "Employee Status",
+        "aushilfe": "Help",
+        "azubi": "Apprentice",
+        "befristetAngestellter": "Employee limited in time",
+        "festAngestellter": "Permanent employee",
+        "freelancer": "Freelancer",
+        "praktikant": "Trainee",
+        "studentischeAbschlussarbeit": "Student research",
+        "studentischeHilfskraft": "Student assistant"
+      },
+      "urlaubstage": "Annual leave days",
+      "user": "User",
+      "wochenstunden": "Hours per week"
+    },
+    "fakturiert": "invoiced",
+    "headOfBusinessManager": "Head of business manager",
+    "konto": {
+      "_": "Account",
+      "bezeichnung": "Identifier",
+      "city": "City",
+      "contactPerson": "Contact person",
+      "country": "Country",
+      "eInvoice": "E-Invoice",
+      "eInvoiceEmail": "E-invoice email",
+      "leitwegId": {
+        "_": "Leitweg-ID",
+        "tooltip": "Required for e-invoices to public sector recipients (e.g. 04011000-1234512345-12)"
+      },
+      "nummer": "Account number",
+      "sellerBankAccountName": "Default bank account",
+      "status": {
+        "active": "active",
+        "nonactive": "non-active"
+      },
+      "street": "Street",
+      "vatId": "VAT ID",
+      "zipCode": "Zip code"
+    },
+    "kost": {
+      "error": {
+        "collision": "Collision with already existing cost.",
+        "invalidKost": "Invalid cost.",
+        "kost2NotOfProject": "This cost unit doesn't belong to the project or customer of the invoice."
+      },
+      "kostentraeger": "Cost unit ids",
+      "status": {
+        "active": "active",
+        "ended": "ended",
+        "nonactive": "not active"
+      }
+    },
+    "kost1": {
+      "_": "Cost 1",
+      "art": "Type",
+      "bereich": "Area",
+      "endziffer": "Final digits",
+      "id": "Cost 1 id",
+      "kost1s": "Cost 1 ids",
+      "list": {
+        "select": {
+          "title": "Choose cost 1"
+        }
+      },
+      "number": "Cost1 number",
+      "nummernkreis": "Number range",
+      "teilbereich": "Sub-area",
+      "title": {
+        "add": "New cost 1",
+        "edit": "Edit cost 1",
+        "heading": "Cost 1 id",
+        "list": {
+          "_": "List of cost 1 ids",
+          "select": "Choose cost 1"
+        }
+      }
+    },
+    "kost2": {
+      "_": "Cost 2",
+      "art": "Type",
+      "error": {
+        "projektNeededForNummernkreis": "The project is required for number range 4 and 5."
+      },
+      "id": "Cost 2 id",
+      "kost2s": "cost 2 ids",
+      "number": "Cost2 number",
+      "title": {
+        "add": "New cost 2",
+        "edit": "Edit cost 2",
+        "heading": "Cost 2",
+        "list": {
+          "_": "List of cost 2 ids",
+          "select": "Choose cost 2"
+        }
+      },
+      "workFraction": "Work time fraction"
+    },
+    "kost2art": {
+      "nummer": "Cost 2 number",
+      "projektStandard": "Project standard",
+      "workFraction": "Work time fraction"
+    },
+    "kunde": {
+      "_": "Customer",
+      "division": "Division",
+      "identifier": "Identifier",
+      "konto": {
+        "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
+      },
+      "kunden": "Customers",
+      "list": {
+        "select": {
+          "title": "Select customer"
+        }
+      },
+      "name": "Customer's name",
+      "nummer": "Customer's number",
+      "pleaseSelectKunde": "Please select customer",
+      "select": "Customer select",
+      "status": {
+        "acquisition": "acquisition",
+        "active": "active",
+        "ended": "ended",
+        "nonactive": "non-active",
+        "nonexistent": "non-existent"
+      },
+      "text": "Customer free text",
+      "title": {
+        "add": "Add new customer",
+        "edit": "Edit customer",
+        "heading": "Customers",
+        "list": {
+          "_": "List of customers",
+          "select": "Choose customer"
+        }
+      },
+      "validation": {
+        "existingCustomerNr": "A customer with this customer number already exists"
+      },
+      "wizard": {
+        "notYetAvailable": "Wizard not yet available. Please note: You need only and only customer objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
+      }
+    },
+    "modeOfPayment": {
+      "_": "Mode of payment",
+      "type": {
+        "annual": "annually",
+        "fixed": "fixed",
+        "monthly": "monthly",
+        "quarterly": "quarterly"
+      }
+    },
+    "notYetInvoiced": "not yet invoiced",
+    "payment": {
+      "type": {
+        "_": "Payment type",
+        "bankTransfer": "bank transfer",
+        "cash": "cash",
+        "credit": "credit",
+        "creditCard": "credit card",
+        "debit": "debit",
+        "salary": "salary"
+      }
+    },
+    "periodOfPerformance": {
+      "_": "Period of performance",
+      "from": "Period of performance from",
+      "to": "Period of performance to",
+      "type": {
+        "own": "own",
+        "seeabove": "see above"
+      }
+    },
+    "probabilityOfOccurrence": "Probability of occurrence in %",
+    "projectManager": "Project manager",
+    "projekt": {
+      "_": "Project",
+      "edit": {
+        "kost2DoesAlreadyExists": "Cost2 does already exist."
+      },
+      "identifier": "Identifier",
+      "internKost2_4": "Internal: Koststellen 2-4",
+      "konto": {
+        "tooltip": "Is used for the export of invoices. If not given the account number of a assigned customer is used (if given)."
+      },
+      "leiter": "Project manager",
+      "list": {
+        "select": {
+          "title": "Select project"
+        }
+      },
+      "multiselected": {
+        "title": "Multiple selection projects"
+      },
+      "name": "Name",
+      "nummer": "Number",
+      "pleaseSelectProjekt": "Please choose project",
+      "projektManagerGroup": "Group of project managers",
+      "projekte": "Projects",
+      "status": {
+        "acquisition": "acquisition",
+        "build": "build phase",
+        "ended": "ended",
+        "maintenance": "maintenance",
+        "none": "none",
+        "onhold": "on hold",
+        "productive": "productive (without maintenance)"
+      },
+      "title": {
+        "add": "Add new project",
+        "edit": "Edit project",
+        "heading": "Projects",
+        "list": {
+          "_": "List of projects",
+          "select": "Choose project"
+        }
+      },
+      "validation": {
+        "numbernotfreeforcustomer": "Number already exists for other customer project"
+      },
+      "wizard": {
+        "notYetAvailable": "Wizard not yet available. Please note: You need only and only project objects if you want to do cost-unit accounting! Please refer to the documentation first. If you don't need it, please use the structure tree instead for defining a hierarchy of customers, projects etc."
+      }
+    },
+    "rechnung": {
+      "_": "Invoice",
+      "beschreibung": "Description",
+      "besonderheiten": "Specifics",
+      "betreff": "Subject",
+      "bezahlDatum": {
+        "_": "Payment date",
+        "short": "Paid"
+      },
+      "bic": "BIC",
+      "bruttoBetrag": "Gross amount",
+      "currency": "Currency",
+      "currencyConversion": {
+        "warnings": {
+          "_": "Currency Conversion Errors",
+          "header": "The following invoices could not be converted to the system currency."
+        }
+      },
+      "currencyConversionFailed": "Invoice {arg0}: {arg1} → {arg2} on {arg3}",
+      "customernr": "Customer no.",
+      "datum": {
+        "_": "Date of invoice",
+        "short": "Date"
+      },
+      "discount": "Discount (Date and %-value)",
+      "discountMaturity": "Discount maturity",
+      "discountPercent": "Discount percent",
+      "discountZahlungsZiel": "Discount payment target",
+      "eInvoice": {
+        "createAndOpen": "Create and e-invoice",
+        "error": {
+          "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
+          "bankAccountNotFound": "The bank account of this invoice ({arg0}) is not among the configured ones. Please select one of them.",
+          "bankAccountNotSelected": "No bank account is selected for this invoice.",
+          "customerAddressIncomplete": "The address of the customer is incomplete: zip code and city are required.",
+          "customerAddressMissing": "The address of the customer is missing.",
+          "customerNameMissing": "The name of the customer is missing: neither a customer nor a customer text is given.",
+          "dateMissing": "The date of the invoice is missing.",
+          "noPositions": "The invoice has no positions.",
+          "numberMissing": "The invoice number is missing. It is assigned as soon as the invoice leaves the status \"planned\".",
+          "sellerNotConfigured": "The seller of this installation is not configured completely (projectforge.einvoice.seller.*). An administrator has to complete it."
+        },
+        "saveAndOpen": "Save and e-invoice",
+        "saveAndXRechnung": "Save and XRechnung",
+        "saveAndZugferd": "Save and ZUGFeRD",
+        "validationErrors": "E-invoice cannot be exported"
+      },
+      "error": {
+        "bezahlDatumRequired": "If paid amount is given then the date of payment should be given.",
+        "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
+        "kundeTextOderProjektRequired": "Customer text or project required.",
+        "negativAmount": "It's not possible to have a negative gross value with bank transfer",
+        "rechnungHatKeinePositionen": "The invoice has no positions.",
+        "rechnungsNummerBereitsVergeben": "Invoice number does already exists.",
+        "rechnungsNummerIstNichtFortlaufend": "Invoice number is not continuously.",
+        "statusBezahltErfordertZahlBetrag": "If status is \"paid\" then a paid amount must be given.",
+        "unknownCurrency": "The currency '${currency}' is unknown. Please remove it to use the system default currency or add the currency using the currency conversion function.",
+        "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
+      },
+      "exportEInvoice": "Export XRechnung",
+      "exportInvoice": {
+        "_": "Export invoice",
+        "onlyStored": "Only a saved invoice can be exported; unsaved changes are not part of the document.",
+        "template": {
+          "default": "Default template"
+        }
+      },
+      "exportZUGFeRD": "Export ZUGFeRD",
+      "faelligkeit": {
+        "_": "Due date",
+        "short": "due"
+      },
+      "filter": {
+        "incomplete": "incomplete",
+        "paymentStatus": "Payment status",
+        "ueberfaellig": "delinquent",
+        "unbezahlt": "not paid"
+      },
+      "hint": {
+        "kannVonProjektKundenAbweichen": "Invoice receiver may differ from project's customer."
+      },
+      "iban": "IBAN",
+      "invoicePdf": {
+        "_": "Invoice PDF",
+        "hint": "Used as base PDF for ZUGFeRD export. If not uploaded, the PDF is generated from the Word template."
+      },
+      "konto": {
+        "tooltip": "Is used for the export of invoices. If not given the account number of a assigned project or customer is used (if given)."
+      },
+      "kostExcelExport": {
+        "_": "Export of cost assignments",
+        "tooltip": "Excel export of all invoices of the given time period including cost assignments."
+      },
+      "kostZuweisungFehlbetrag": "Cost id assignment difference",
+      "mehrwertSteuerSatz": "VAT",
+      "menge": "Quantity",
+      "mitSkonto": "with discount",
+      "multiselected": {
+        "info": "If you choose a date of payment all entries will be set to paid including the paid amount. If you choose to delete the payment date, also the payment amounts will be deleted.",
+        "title": "Multiple selection invoices"
+      },
+      "nummer": {
+        "_": "Number",
+        "short": "No"
+      },
+      "offen": "Open",
+      "paymentTerms": "Payment terms",
+      "position": {
+        "einzelNetto": "Unit net price"
+      },
+      "positions": "Positions",
+      "receiver": "Receiver",
+      "rechnungen": "Invoices",
+      "sellerBankAccount": "Bank account (seller)",
+      "showEditableKostZuweisungen": "Editable cost id assignments",
+      "showKostZuweisungen": "Cost id assignments",
+      "showKostZuweisungstatus": "Status of cost id assignments",
+      "showTextAreas": "Position texts",
+      "skonto": "Discount",
+      "statistics": {
+        "currentPeriod": "Current",
+        "previousYear": "Previous year",
+        "previousYearComparison": "Previous-year comparison (same period)",
+        "previousYearComparisonHint": "Only for a bounded invoice-date range.",
+        "previousYearPeriod": "Comparison period"
+      },
+      "status": {
+        "_": "Status of invoice",
+        "bezahlt": "paid",
+        "gemahnt": "commemorated",
+        "geplant": "intended",
+        "gestellt": "invoiced",
+        "storniert": "canceled",
+        "zahlungserinnerung1": "1st payment reminder",
+        "zahlungserinnerung2": "2nd payment reminder"
+      },
+      "text": "Text",
+      "title": {
+        "add": "Add new invoice",
+        "edit": "Edit invoice",
+        "heading": "Invoices",
+        "list": "List of invoices"
+      },
+      "tooltip": {
+        "addKostZuweisung": "Add cost id assignment",
+        "addPosition": "Add invoice position"
+      },
+      "transferExport": {
+        "_": "Export bank transfers",
+        "error": {
+          "_": "An error occurred during export of transfer.",
+          "entries": "Export of transfer not possible, missing or invalid values in following entries: {arg0}.",
+          "foreignCurrency": "SEPA export is only possible for invoices in the system currency ({arg0}). The following invoices have a different currency and must be removed from the selection:",
+          "missing": "Export of transfer not possible, missing or invalid values in: {arg0}."
+        },
+        "tooltip": "Export of transfer in pain.001.003.03 format."
+      },
+      "typ": {
+        "_": "Type",
+        "cancellation": "Cancellation",
+        "gutschriftsAnzeigeDurchKunden": "Credit advice from customer",
+        "rechnung": "Invoice"
+      },
+      "zahlBetrag": {
+        "_": "Paid amount",
+        "short": "Paid",
+        "warning": {
+          "deviation": "The paid amount differs by more than 10% from the gross amount ({arg0}). Please check."
+        }
+      },
+      "zahlungsZiel": {
+        "_": "Payment target",
+        "actual": "Actual payment target",
+        "actualShort": "Actual PT"
+      }
+    },
+    "rechnungen": "Invoices",
+    "salesManager": "Key account manager",
+    "toBeInvoiced": "to be invoiced",
+    "tooltip": {
+      "nummerWirdAutomatischVergeben": "Number will automatically set."
+    }
+  },
+  "file": {
+    "_": "file",
+    "upload": {
+      "audit": {
+        "action": {
+          "delete": "deleted",
+          "download": "downloaded",
+          "downloadAll": "downloaded all",
+          "downloadMulti": "downloaded multi",
+          "modification": "modified (name or description)",
+          "upload": "uploaded"
+        }
+      },
+      "choose": "Choose file",
+      "deleteSelected": {
+        "_": "Delete selected",
+        "confirm": "Do you really want to delete all selected files?"
+      },
+      "downloadSelected": "Download selected",
+      "downloadTemplate": "Download template as an example.",
+      "dropArea": "Select a file or drop it here.",
+      "error": {
+        "_": "Error while uploading the file.",
+        "fileAlreadyExists": "File ''{arg0}'' already exists.",
+        "maxSizeExceeded": "Can''t upload file ''{arg0}'', maximum configured file size is exceeded: {arg1}>{arg2}.",
+        "maxSizeOfExceeded": "File upload rejected: maximum size of {arg0} exceeded.",
+        "noFileSelected": "No file selected",
+        "tooManyFiles": "You tried to upload too many files at once.",
+        "unsupportedFormat": "The file format is not supported. Supported file formats: {arg0}"
+      }
+    }
+  },
+  "filing": "filing",
+  "filter": {
+    "_": "filter",
+    "activeCount": "Active filters: {arg0}",
+    "activeFilters": "Active filters",
+    "addField": "Add filter",
+    "after": "After",
+    "all": "all",
+    "allFilters": "All filters",
+    "apply": "Apply",
+    "before": "Before",
+    "between": "Between",
+    "blank": "Blank",
+    "chooseEntity": "Choose entry",
+    "clearAll": "Clear all",
+    "close": "Close",
+    "contains": "Contains",
+    "dateEquals": "On",
+    "dateFrom": "From (date)",
+    "dateNotEqual": "Not on",
+    "dateTo": "To (date)",
+    "editEntry": "Edit filter {arg0}",
+    "emptyValue": "empty value",
+    "endsWith": "Ends with",
+    "equals": "Equals",
+    "extendedSearch": "Extended search",
+    "faulty": "faulty",
+    "generalFields": "General",
+    "greaterThan": "Greater than",
+    "hide": "Hide filter",
+    "history": "Modified",
+    "lessThan": "Less than",
+    "moreFields": "Other fields",
+    "newest": "newest",
+    "noFields": "No filter fields available",
+    "noMatch": "No matching filter field",
+    "notBlank": "Not blank",
+    "notContains": "Does not contain",
+    "notEqual": "Not equal",
+    "period": "Period",
+    "periodChoose": "Choose period",
+    "removeEntry": "Remove filter {arg0}",
+    "reset": "Reset",
+    "search": "Search...",
+    "searchList": "Search list...",
+    "selectAll": "Select all",
+    "selection": "Selection",
+    "show": "Show filter",
+    "startsWith": "Starts with",
+    "timeFrom": "From (time)",
+    "timeTo": "To (time)",
+    "title": "Filter",
+    "value": "Value",
+    "valueNotSet": "(not set)",
+    "valueTo": "To"
+  },
+  "finance": {
+    "accountingRecord": {
+      "dc": {
+        "_": "DC",
+        "credit": "credit",
+        "debit": "debit"
+      }
+    }
+  },
+  "financeAdministration": "Finance administration",
+  "firstName": "First name",
+  "forceDelete": "Irrevocable deletion",
+  "gantt": {
+    "duration": "Duration",
+    "endDate": "End date",
+    "name": "Name",
+    "objectType": {
+      "_": "Gantt type",
+      "activity": "Activity (Standard)",
+      "milestone": "Milestone",
+      "summary": "Summary"
+    },
+    "owner": "Owner",
+    "predecessor": "Predecessor",
+    "predecessorOffset": "Offset",
+    "relationType": {
+      "_": "Relation type",
+      "finish_finish": "finish-finish",
+      "finish_start": "finish-start (default)",
+      "start_finish": "start-finish",
+      "start_start": "start-start"
+    },
+    "startDate": "Start date",
+    "title": {
+      "add": "Create Gantt diagram"
+    }
+  },
+  "gender": {
+    "_": "Gender",
+    "diverse": "diverse",
+    "female": "female",
+    "male": "male",
+    "unknown": "unknown"
+  },
+  "goreact": {
+    "menu": {
+      "classics": "Classic version",
+      "classicsInfo": "The classic version will be removed shortly."
+    }
+  },
+  "group": {
+    "_": "Group",
+    "assignedUsers": "Assigned users",
+    "error": {
+      "groupnameAlreadyExists": "Group name already exists."
+    },
+    "groups": "Groups",
+    "ldapValues": "LDAP",
+    "list": {
+      "select": {
+        "title": "Select group"
+      }
+    },
+    "localGroup": {
+      "_": "Local group",
+      "not": "Common group",
+      "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "nestedGroups": "Nested groups",
+    "nestedGroupsAllowed": {
+      "_": "Nested groups allowed?",
+      "tooltip": "This is a security feature, e.g. for administrator or controlling group no nested groups should be allowed."
+    },
+    "owner": "Group owner",
+    "pleaseSelectGroup": "Please select group",
+    "systemGroups": "System groups",
+    "title": {
+      "add": "Add new group",
+      "edit": "Edit group",
+      "heading": "Groups",
+      "list": {
+        "_": "List of groups",
+        "select": "Select group"
+      }
+    },
+    "unassignedUsers": "Unassigned users"
+  },
+  "history": {
+    "entry": "History entry",
+    "fields": "Fields",
+    "newValue": "New value",
+    "oldValue": "Old value",
+    "opType": "Action",
+    "propertyName": "Property",
+    "showMore": "Show more entries",
+    "userComment": {
+      "_": "Change comment",
+      "append": "Append comment",
+      "edit": "Edit change comment",
+      "info": "An optional comment can be entered here, e.g. why the change was made.\n\nThis comment will be displayed in the history."
+    },
+    "was": "was"
+  },
+  "hours": "Hours",
+  "hr": {
+    "planning": {
+      "description": "Activity report",
+      "priority": "Priority",
+      "probability": {
+        "short": "%"
+      },
+      "unassignedHours": "without assigned day",
+      "weekend": "Week-end"
+    }
+  },
+  "id": "Id",
+  "import": {
+    "_": "Import",
+    "confirmMessage": "Would you like to import the selected entries now? This operation cannot be undone.",
+    "display": {
+      "options": "Display options"
+    },
+    "entry": {
+      "error": "Error",
+      "status": {
+        "deleted": "Deleted",
+        "faulty": "Faulty",
+        "imported": "Imported",
+        "modified": "Modified",
+        "new": "New",
+        "unknown": "Unknown",
+        "unknown_modification": "Unknown",
+        "unmodified": "Unmodified"
+      }
+    },
+    "error": {
+      "noEntrySelected": "No entries select for import.",
+      "nothingToImport": "Nothing found to import. Please use another file or define the import settings."
+    },
+    "field": {
+      "mapping": "Feldzuordnung",
+      "name": "Feld"
+    },
+    "help": {
+      "settings": {
+        "info": "You may define import settings such as encoding and field mappings and formats. Below you will find an example for copy & paste.",
+        "title": "Tips"
+      }
+    },
+    "info": {
+      "detectedColumns": "Detected columns",
+      "unknownColumns": "Unknown columns"
+    },
+    "result": {
+      "numberOfCreated": "Number of created entries",
+      "numberOfDeleted": "Number of deleted entries",
+      "numberOfUnmodified": "Number of unmodified entries",
+      "numberOfUpdated": "Number of updated entries",
+      "title": "Result of import"
+    },
+    "stats": {
+      "deleted": "Number of to be deleted entries",
+      "faulty": "Number of faulty entries (see tooltip of status)",
+      "modified": "Number of to be modified entries",
+      "new": "Number of new entries",
+      "total": "Total number of entries",
+      "unknown": "Number of unknown entries",
+      "unmodified": "Number of unmodified entries"
+    },
+    "title": "Import tool"
+  },
+  "index": {
+    "development": "Website for developers",
+    "website": "Website",
+    "welcome": "Welcome to ProjectForge."
+  },
+  "jobs": {
+    "error": {
+      "refusedByAnotherRunningJob": "Job couldn't be started: Another job is already running in this queue.",
+      "waitingTimeExceeded": "Job couldn't be started due to a timeout: This job is blocked by other long-running job(s)."
+    },
+    "import": {
+      "action": {
+        "reconcile": {
+          "tooltip": "Compare all uploaded entries with already existing database entries."
+        }
+      }
+    },
+    "job": {
+      "cancel": {
+        "confirmationMessage": "Do you want to cancel this job now?"
+      },
+      "runtime": "Run-time",
+      "startedAt": "Started at",
+      "status": {
+        "cancelled": "Canelled",
+        "failed": "Failed",
+        "finished": "Finished",
+        "refused": "Refused",
+        "running": "Running",
+        "waiting": "Waiting"
+      },
+      "terminatedAt": "Terminated at",
+      "title": "Job title"
+    },
+    "monitor": {
+      "noJobsAvailable": "No current jobs",
+      "title": "Job monitor"
+    }
+  },
+  "label": {
+    "historyOfChanges": "History of changes",
+    "position": {
+      "short": "Pos"
+    },
+    "sendEMailNotification": "Send an e-mail notification?"
+  },
+  "lastUpdate": "last modification",
+  "ldap": {
+    "_": "LDAP",
+    "gidNumber": {
+      "_": "GID number",
+      "alreadyInUse": "GID number is already assigned to another group. The next free GID number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new GID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest GID number used by ProjectForge and increase it by one to get the next free GID number. ProjectForge starts with GID 1,000 for avoiding collisions with existing GID's of the operating systems (e.g. system groups)."
+    },
+    "homeDirectory": "Home directory",
+    "loginShell": "Login shell",
+    "posixAccount": "Posix account",
+    "sambaAccount": "Samba account",
+    "sambaNTPassword": {
+      "_": "Samba password",
+      "subtitle": "NT hashed password",
+      "tooltip": "The Samba password is set every time the user changes his password. If not set, the user has to log in again the next time he uses ProjectForge before any stay-logged-in mechanism works again."
+    },
+    "sambaPrimaryGroupSID": {
+      "_": "Primary group SID.",
+      "tooltip": "The Samba primary group SID is optional."
+    },
+    "sambaSID": {
+      "_": "Samba SID",
+      "alreadyInUse": "Samba SID is already assigned to another user. The next free Samba SID suffix number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new sambaSID (next free >= 1,000). PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "The Samba SID is a generated value out of the configure samba sid prefix in projectforge.properties and the UID number."
+    },
+    "uidNumber": {
+      "_": "UID number",
+      "alreadyInUse": "UID number is already assigned to another user. The next free UID number is {arg0}.",
+      "createDefault": {
+        "tooltip": "Creates a new UID (next free >= 1,000), sets default GID (configured in projectforge.properties), home directory and configured default login shell. PLEASE NOTE: ProjectForge doesn't delete LDAP any posix/samba accounts, if created!"
+      },
+      "tooltip": "ProjectForges tries to find the highest UID number used by ProjectForge and increase it by one to get the next free UID number. ProjectForge starts with UID 1,000 for avoiding collisions with existing UID's of the operating systems (e.g. system users)."
+    },
+    "user": {
+      "gidNumber": {
+        "tooltip": "The default value is configurable in projectforge.properties: projectforge.ldap.posixAccountsDefaultGidNumber"
+      }
+    },
+    "wlanSambaPassword": "WLAN/Samba Password"
+  },
+  "legalAffaires": {
+    "contract": {
+      "coContractorA": "co-contractor A",
+      "coContractorB": "co-contractor B",
+      "contractPersonA": "contract person A",
+      "contractPersonB": "contract person B",
+      "number": "Contract number",
+      "signerA": "signer A",
+      "signerB": "signer B",
+      "signing": "signing",
+      "status": {
+        "completed": "completed",
+        "escalated": "escalated",
+        "inCoordination": "in coordination",
+        "inProgress": "in progress",
+        "signed": "signed",
+        "suspended": "suspended",
+        "unknown": "unknown"
+      },
+      "type": "Type",
+      "validity": {
+        "from": "Validity from",
+        "until": "Validity until"
+      }
+    }
+  },
+  "loading": "Loading...",
+  "login": {
+    "_": "Login",
+    "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
+    "error": {
+      "loginExpired": "Login failed. Please contact an administrator because your log-in is expired.",
+      "loginFailed": "Login failed. Please check your login name and password (case sensitive!)."
+    },
+    "lastLogin": "Last login",
+    "loginFailures": "Login failures",
+    "passwordReset": {
+      "_": "Reset password",
+      "info": "A link for password reset will be sent by mail."
+    },
+    "stayLoggedIn": {
+      "_": "Remember my login on this computer.",
+      "devices": {
+        "_": "Devices staying logged in",
+        "lastAccess": "last access",
+        "none": "No device is staying logged in.",
+        "tooltip": "These devices may access ProjectForge without entering your password. Each of them holds its own marker (cookie), which expires 30 days after its last usage."
+      },
+      "invalidateAllStayLoggedInSessions": {
+        "_": "Log out all devices.",
+        "successfullDeleted": "All stay-logged-in sessions were successfully terminated.",
+        "tooltip": "Invalidates the marker (cookie) of every device, including the one you are using right now. Each of them will require your password again on its next visit."
+      },
+      "tooltip": "You can stay logged in on this computer. On log-out the marker (cookie) of this computer / browser is removed, your other devices stay logged in. If you change your password, all devices are logged out. Under my account you see all devices staying logged in and can log them out."
+    },
+    "successful": "You're successfully logged in. Enjoy ProjectForge!",
+    "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
+    "title": "Login"
+  },
+  "markAsDeleted": "Delete",
+  "massUpdate": {
+    "button": "Mass update",
+    "confirm": {
+      "append": "{arg0}: text \"{arg1}\" will be appended",
+      "delete": "{arg0}: will be deleted",
+      "deleteOccurrences": "{arg0}: occurrences of \"{arg1}\" will be deleted",
+      "intro": "The following changes will be applied to all {arg0} entries:",
+      "replace": "{arg0}: \"{arg1}\" will be replaced by \"{arg2}\"",
+      "set": "{arg0}: will be set to \"{arg1}\""
+    },
+    "entriesFound": "There are {arg0} entries selected.",
+    "error": {
+      "table": {
+        "title": "Error messages"
+      },
+      "unspecifiedError": "An error occurred."
+    },
+    "excel": {
+      "download": "Excel file with all modifications"
+    },
+    "field": {
+      "replace": {
+        "_": "Replace by?",
+        "info": "All occurrences will be searched and replaced by this text."
+      }
+    },
+    "fields": {
+      "changed": "Changed fields"
+    },
+    "mode": {
+      "append": "Append",
+      "delete": {
+        "_": "Delete",
+        "searchHint": "Leave empty to clear the whole field; enter a text to delete only its occurrences."
+      },
+      "label": "Action",
+      "replace": "Search & replace",
+      "set": "Set / overwrite"
+    },
+    "selectedEntries": "Selected entries"
+  },
+  "menu": {
+    "addNewEntry": "New entry",
+    "administration": "Administration",
+    "calendar": "Calendar",
+    "common": "Common",
+    "favorites": {
+      "more": "More favorites"
+    },
+    "fibu": {
+      "_": "Finance",
+      "buchungssaetze": "Accounting records",
+      "currencyPair": "Currency conversion",
+      "datevImport": "Datev import",
+      "eInvoiceChecker": "E-Invoice Checker",
+      "eingangsrechnungen": "Incoming invoices",
+      "employeeSalaries": "Salaries",
+      "employeeSalariesImport": "Import of salaries",
+      "employees": "Employees",
+      "konten": "Accounts",
+      "kost": "Cost",
+      "kost1": "Cost 1 ids",
+      "kost2": "Cost 2 ids",
+      "kost2arten": "Cost 2 types",
+      "kostSearch": "Cost search",
+      "kunden": "Customers",
+      "orderbook": {
+        "_": "Order book",
+        "htmlSuffixTooltip": "Finished but not fully invoiced orders."
+      },
+      "projekte": "Projects",
+      "rechnungen": "Invoices",
+      "reporting": {
+        "reportObjectives": "Report Objectives"
+      }
+    },
+    "main": {
+      "title": "Main menu"
+    },
+    "myAccount": "My account",
+    "plugins": {
+      "teamcal": "List of calendars"
+    },
+    "projectmanagement": "Project management",
+    "quickAccess": {
+      "_": "Quick access",
+      "placeholder": "Search menu",
+      "recent": "Recently used",
+      "searchAllData": "Search \"{arg0}\" in all data"
+    },
+    "reindexAllDatabaseEntries": {
+      "_": "Re-build whole search index",
+      "tooltip": {
+        "content": "The whole index will be rebuilt. This may take a while (several minute for e.g. 100.000 entries) and the system performance is affected. Therefore this feature is only enabled for administrators."
+      }
+    },
+    "reindexNewestDatabaseEntries": {
+      "_": "Re-build search index",
+      "tooltip": {
+        "content": "All entries created or modified since yesterday will be re-indexed, their change history included. Usually a matter of seconds."
+      }
+    },
+    "resetFilter": {
+      "_": "Reset filter",
+      "info": "Resets the current filter if you have any trouble with the given search function."
+    },
+    "taskTree": "Structure tree",
+    "timesheetList": "Time sheets"
+  },
+  "message": {
+    "successfullChanged": "Successfully changed.",
+    "successfullCompleted": "Successfully completed: {arg0}"
+  },
+  "modificationTime": "Time of modification",
+  "modified": "modified",
+  "modifiedBy": "modified by",
+  "modifiedHistoryValue": "history value of modification",
+  "more": "More",
+  "multiselection": {
+    "aggrid": {
+      "selection": {
+        "info": {
+          "message": "* **Click** a row to select it (clears previous selection).\n* **Ctrl+Click** (Mac: Cmd+Click) adds or removes individual rows from the selection.\n* **Shift+Click** selects all rows between the last clicked row and the current one.\n* **Arrow keys** ↑↓ navigate rows, **Shift+Arrow** extends the selection, **Space** toggles the focused row.\n* The checkbox in the table header selects or deselects all rows.",
+          "title": "Multi selection of rows"
+        }
+      }
+    },
+    "button": "Multi selection"
+  },
+  "name": "Name",
+  "nickname": "Nickname",
+  "no": "No",
+  "nothingFound": "Nothing found.",
+  "operation": {
+    "deleted": "deleted",
+    "inserted": "inserted",
+    "markAsDeleted": "marked as deleted",
+    "undefined": "undefined",
+    "undeleted": "undeleted",
+    "updated": "updated"
+  },
+  "orga": {
+    "post": {
+      "inhalt": "Content",
+      "type": {
+        "_": "Type",
+        "brief": "Letter",
+        "e-mail": "E-mail",
+        "einschreiben": "Registered letter",
+        "einschreibenMitRueckschein": "Registered letter with return receipt",
+        "fax": "Fax",
+        "lieferung": "Shipment",
+        "paeckchen": "Small parcel",
+        "paket": "Parcel"
+      }
+    },
+    "postausgang": {
+      "empfaenger": "Receiver",
+      "person": "FAO"
+    },
+    "posteingang": {
+      "absender": "Sender",
+      "person": "Person"
+    },
+    "visitorbook": {
+      "company": "Company",
+      "contactPersons": "Contact persons",
+      "firstname": "Firstname",
+      "lastname": "Lastname",
+      "timeofvisit": {
+        "arrive": "Arrivaltime (HH:MM)",
+        "depart": "Departuretime (HH:MM)"
+      },
+      "visitortype": {
+        "_": "Visitor type",
+        "extended": "Extended",
+        "family": "Family",
+        "normal": "Normal",
+        "supplier": "Supplier",
+        "workman": "Workman"
+      }
+    }
+  },
+  "organization": "Organization",
+  "password": {
+    "_": "Password",
+    "forgotten": {
+      "link": "Forgotten credentials?",
+      "mail": {
+        "subject": "Password reset ProjectForge®"
+      },
+      "mailSentTo": "Mail with reset link mailed to ''{arg0}''. Please check also Your spam folder and check, if Your username or e-mail is correct.",
+      "request": "Request reset",
+      "title": "Forgotten password"
+    },
+    "reset": {
+      "error": "No valid password reset session found. The session is already used, expired, or non-existing. Please retry.",
+      "mail": {
+        "link": "Please use this link to reset Your password: {arg0}",
+        "message": {
+          "1": "Please note: You will need a second authentification factor to reset Your password.",
+          "2": "If you haven't configured a second factor, such as Authenticator-App or mobile phone, You have to contact Your ProjectForge administrator."
+        }
+      },
+      "title": "Reset password",
+      "username_email": "Username/e-mail"
+    }
+  },
+  "passwordRepeat": "Repeat password",
+  "percent": "Percent",
+  "percentage": "Percentage",
+  "plugins": {
+    "teamcal": {
+      "calendar": {
+        "_": "Calendar",
+        "refresh": {
+          "tooltip": "Reload calendar events and refresh any external subscribed calendar if displayed."
+        }
+      },
+      "description": "Description",
+      "event": {
+        "allDay": "Whole day",
+        "beginDate": "Begin",
+        "endDate": "End",
+        "location": "Location",
+        "note": "Note",
+        "recurrence": {
+          "_": "Recurrence",
+          "atthe": "at the",
+          "change": {
+            "all": "All events",
+            "content": "Do you want to change all events, all future events, or only this event?",
+            "future": "All future events",
+            "single": "Only this event",
+            "text": {
+              "_": "Any modification regards:",
+              "all": "all events.",
+              "allFuture": "all future events.",
+              "onlyCurrent": "only the current event."
+            },
+            "title": "You are going to change a recurring event."
+          },
+          "changed": "Recurrence changed",
+          "customized": {
+            "_": "customized",
+            "all": "All",
+            "day": "day(s)",
+            "month": "month(s)",
+            "week": "week(s)",
+            "year": "year(s)"
+          },
+          "day": "Day",
+          "each": "each",
+          "end": {
+            "_": "End",
+            "after": "After",
+            "never": "Never",
+            "onDate": "On date",
+            "times": "time(s)"
+          },
+          "exDate": {
+            "_": "Exclude days",
+            "tooltip": "Exclude these days from the recurrence. Please don't edit this field manually because a specific format is required."
+          },
+          "fifth": "fifth",
+          "first": "first",
+          "fourth": "fourth",
+          "friday": "Friday",
+          "in": "in",
+          "last": "last",
+          "monday": "Monday",
+          "none": "---",
+          "ofmonth": "of month",
+          "oftheyear": "of the year",
+          "on": "on",
+          "onDay": "on day",
+          "onThe": "on the",
+          "saturday": "Saturday",
+          "second": "second",
+          "show": "show recurrence ...",
+          "sunday": "Sunday",
+          "third": "third",
+          "thursday": "Thursday",
+          "tuesday": "Tuesday",
+          "until": "Until",
+          "wednesday": "Wednesday",
+          "weekday": "Weekday",
+          "weekend": "Weekend"
+        },
+        "reminder": {
+          "DAYS_BEFORE": "Days before",
+          "HOURS_BEFORE": "Hours before",
+          "MESSAGE": "Message",
+          "MESSAGE_SOUND": "Message with sound",
+          "MINUTES_BEFORE": "Minutes before",
+          "NONE": "None",
+          "options": "Reminder options",
+          "title": "Reminder"
+        },
+        "subject": "Subject",
+        "teamCal": "Calendar",
+        "title": {
+          "add": "Create team event",
+          "heading": "Event",
+          "list": "List of team events"
+        }
+      },
+      "externalsubscription": {
+        "label": "External subscription",
+        "updateInterval": "Update interval",
+        "url": "Calendar URL"
+      },
+      "owner": "Owner",
+      "switchToTeamEventButton": "Switch to events",
+      "switchToTimesheetButton": "Switch to time sheet",
+      "title": "Title"
+    }
+  },
+  "poll": {
+    "attendees": "Attendees",
+    "deadline": "Deadline",
+    "description": "Description",
+    "location": "Location",
+    "owner": "Owner",
+    "state": "State",
+    "title": "Title"
+  },
+  "priority": {
+    "_": "Priority",
+    "high": "high",
+    "highest": "highest",
+    "least": "least",
+    "low": "low",
+    "middle": "middle"
+  },
+  "projectmanagement": {
+    "personDays": {
+      "_": "Person days",
+      "short": "pd"
+    }
+  },
+  "question": {
+    "deleteQuestion": "Do your really want to delete this object finally?",
+    "deleteRowQuestion": "Do you really want to remove this entry? It is deleted when the form is saved.",
+    "forceDeleteQuestion": "ATTENTION!!! Do you really want to destroy this object including all history entries? This option is irrevocable!!!!!",
+    "leaveUnsavedChanges": "There are unsaved changes. Do you really want to leave this page?",
+    "markAsDeletedQuestion": "Do you want to mark this object as deleted?"
+  },
+  "rating": "Rating",
+  "recursive": "recursive",
+  "reload": "reload",
+  "rename": "rename",
+  "reset": "Reset",
+  "resubmissionOnDate": "Resubmission on",
+  "save": "Save",
+  "scripting": {
+    "script": {
+      "description": {
+        "tooltip": "Markdown format is supported."
+      },
+      "editForm": {
+        "file": {
+          "tooltip": "Within the script the file is available through 'script.file' and the name of the file through 'script.filename'.\n\nThis is only for backward compatibility for older scripts, generated by classical version."
+        }
+      },
+      "executableByGroups": {
+        "_": "Allowed groups",
+        "info": "Users of these groups are allowed to execute this script (but they can't see or modify the sources of this script)."
+      },
+      "executableByUsers": {
+        "_": "Allowed users",
+        "info": "These users are allowed to execute this script (but they can't see or modify the sources of this script)."
+      },
+      "executeAsUser": {
+        "_": "Execute as user",
+        "info": "The script is executed with all rights of the given user. Be careful!\n\nThe execute-as functionality must be enabled inside the script as well to avoid mis-configurations."
+      },
+      "includes": "Embedded scripts",
+      "name": "Name",
+      "parameterName": "Parameter",
+      "parameterType": {
+        "_": "Parameter type",
+        "boolean": "Boolean value",
+        "date": "Date",
+        "decimal": "Decimal number",
+        "integer": "Integer number",
+        "string": "Text",
+        "task": "Structure element",
+        "timePeriod": "Time period",
+        "user": "User"
+      },
+      "type": "Type"
+    }
+  },
+  "search": {
+    "_": "Search",
+    "area": "Area",
+    "durationOfSearch": "duration of search",
+    "error": "Unfortunately an internal error occurred.",
+    "lastDay": "Last day.",
+    "lastDays": "Last {arg0} days.",
+    "lastHour": "Last hour",
+    "lastHours": "Last {arg0} hours",
+    "lastMinute": "Last minute",
+    "lastMinutes": "Last {arg0} minutes",
+    "lucene": {
+      "expression": "Modified expression for search machine:"
+    },
+    "maxRowsExceeded": "Maximum number {arg0} of result size exceeded. Result list is truncated.",
+    "next": {
+      "moreInArea": "More in {arg0}",
+      "noResults": "No matching records found.",
+      "scope": "Search in",
+      "searchMore": "Search all areas",
+      "showAll": "Show all in {arg0}"
+    },
+    "nextDays": "Next {arg0} days",
+    "parseError": "Error while parsing search string: ''{arg0}''",
+    "periodOfModification": "Period of modification",
+    "search": "Search",
+    "searchHistory": {
+      "_": "History",
+      "additional": {
+        "tooltip": "If enabled all history entries will be searched for the given search string too."
+      }
+    },
+    "sinceYesterday": "Since yesterday",
+    "string": {
+      "info": {
+        "_": "Use ''*'' for wild cards (automatically appended if token contains only alphanumeric characters, white spaces or \"@._-\"), ''-string'' for negation, ''fieldname:string'' for searching in fields, for further information see help pages (lucene is used as search engine).\nSearch in fields: {arg0}.",
+        "title": "Full text search"
+      }
+    },
+    "title": "Search",
+    "toDetailedSearch": "To detailed search",
+    "today": "Today",
+    "withoutTimePeriod": "Without time period"
+  },
+  "select": {
+    "_": "Select",
+    "placeholder": "Select..."
+  },
+  "selectAll": "Select all",
+  "settings": "Settings",
+  "shortDescription": "Short description",
+  "show": "Show",
+  "statistics": "Statistics",
+  "status": "Status",
+  "system": {
+    "developmentSystem": "Development system"
+  },
+  "task": {
+    "_": "Structure element",
+    "allowTimeOverlap": {
+      "_": "Shared cost element",
+      "tooltip": "If checked (also inherited by sub elements) time sheets booked here may overlap in time with time sheets of other projects (shared costs). Overlapping time is counted proportionally in attendance and monthly reports (e.g. 1h + overlapping 1h = 0.5h each). Overlapping time sheets within the same project remain unsupported."
+    },
+    "assignedUser": "Responsible user",
+    "consumption": "Consumption",
+    "deleted": "deleted",
+    "edit": {
+      "maxHoursIngoredDueToAssignedOrders": "Order positions are assigned to this node or a subnode. By default their person days sum is used; the entered maximum hours are only applied if the option \"Maximum hours take priority\" is set. A zero value suppresses displaying a maximum value in the consumption bar."
+    },
+    "error": {
+      "couldNotDeleteRootTask": "Root structure element can't be deleted!",
+      "cyclicReference": "Cyclic structure element path detected because parent structure element is the element itself or a descendant element.",
+      "duplicateChildTasks": "Duplicate structure element titles for sister elements detected.",
+      "kost2Readonly": "Kost2 is read-only for non accounting staff members.",
+      "parentTaskNotFound": "Parent structure element is required but not found.",
+      "parentTaskNotGiven": "Parent structure element is required but not given.",
+      "protectTimesheetsUntilReadonly": "The time sheet protection is read-only for non accounting staff members.",
+      "protectionOfPrivacyReadonly": "The flag privacy of protection is read-only for non accounting staff members.",
+      "timesheetBookingStatus2Readonly": "The status of time sheet booking is read-only for non accounting staff members and non project managers."
+    },
+    "favorite": {
+      "new": {
+        "_": "New favorite of structure element",
+        "tooltip": "You may save the chosen structure element as favorite here."
+      }
+    },
+    "favorites": {
+      "tooltip": "Organize here your structure elements as favorites."
+    },
+    "gantt": {
+      "settings": "Gantt settings"
+    },
+    "kost2list": {
+      "blackList": "Black list",
+      "type": "Type of Kost2 list",
+      "whiteList": "White list"
+    },
+    "list": {
+      "perspective": "List view"
+    },
+    "maxDuration": "Maximum duration",
+    "maxHours": "Maximum hours",
+    "maxHoursHasPriority": {
+      "_": "Maximum hours take priority",
+      "tooltip": "If checked, the entered maximum hours (if greater than zero) take precedence over the person days calculated from assigned order positions. By default the ordered person days are used."
+    },
+    "menu": {
+      "addSubTask": "Add new child structure element",
+      "addTimesheet": "Add time sheet",
+      "showAccessRights": "Access rights",
+      "showTimesheets": "Show time sheets"
+    },
+    "onlyBillable": "only billable elements",
+    "parentTask": "Parent structure element",
+    "path": {
+      "_": "Structure element path",
+      "openInTree": "Open in structure tree",
+      "pleaseSelectTask": "Please select structure element",
+      "rootTask": "Top level"
+    },
+    "progress": "Progress",
+    "protectTimesheetsUntil": {
+      "_": "Protect time sheets until",
+      "short": "Protect until"
+    },
+    "protectionOfPrivacy": {
+      "_": "Protection of privacy",
+      "tooltip": "If checked then users don't have access to the time sheets of other users assigned to this structure element or any sub element."
+    },
+    "recursive": "incl. all structure sub elements",
+    "reference": "Reference",
+    "selectPanel": {
+      "displayTask": {
+        "tooltip": "Display structure element."
+      },
+      "info": "You may select folders by clicking in other columns of the row than the first.\\\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
+      "noTasksFound": "No structure elements found.",
+      "selectAncestorTask": {
+        "tooltip": "Replace task by this ancestor structure element."
+      }
+    },
+    "status": {
+      "_": "Status of structure element",
+      "closed": "closed",
+      "notOpened": "not opened",
+      "opened": "opened"
+    },
+    "tasks": "Structure elements",
+    "timesheetBooking": {
+      "_": "Time sheet booking",
+      "inherit": "inherit",
+      "noBooking": "no booking",
+      "onlyLeafs": "only leaf nodes",
+      "opened": "opened",
+      "treeClosed": "completely closed"
+    },
+    "title": {
+      "_": "Title",
+      "add": "Add new structure element",
+      "edit": "Edit structure element",
+      "heading": "Structure elements",
+      "list": {
+        "_": "Structure elements",
+        "select": "Select structure element"
+      }
+    },
+    "tree": {
+      "close": "Close structure element",
+      "explore": "Close/open all structure sub elements",
+      "info": "Expand or collapse a structure element by clicking its folder icon or title; click anywhere else in the row to select the element.\n\n**Keyboard**\n\n- **↑ / ↓** – move between the elements\n- **→ / ←** – expand and collapse the focused element\n- **Enter** – open the focused element",
+      "open": "Open structure element",
+      "perspective": "Tree view",
+      "rootNode": "Root node",
+      "title": {
+        "_": "structure tree",
+        "select": "Select structure element"
+      }
+    },
+    "wizard": {
+      "action": {
+        "_": "Action",
+        "noactionRequired": "Nothing will be further done because you haven't defined any group, therefore no access rights will be created.",
+        "taskAndgroupsGiven": "The required access rights of the group(s) defined above will be set if you click on the create button. You can change these access rights via the menu item access management whenever needed."
+      },
+      "button": {
+        "createGroup": {
+          "_": "create group",
+          "tooltip": "You can choose an existing group or create a new group by using this button."
+        },
+        "createTask": {
+          "_": "create structure element",
+          "tooltip": "You can choose an existing structure element or create a new element by using this button."
+        }
+      },
+      "externalGroup": {
+        "_": "External stuff (optional)",
+        "groupNameSuffix": "external",
+        "intro": "The external users have guest rights, so they can only see their own time reports."
+      },
+      "finish": "Finish",
+      "intro": "Use this wizard to add a new structure element which represents e.g. a project with assigned groups and users. The assigned users will have access rights to this structure element (e.g. for booking time sheet etc.).",
+      "managerGroup": {
+        "_": "Managing users (optional)",
+        "groupNameSuffix": "pm",
+        "intro": "The managing users have more rights. They're able to modify the time sheets of other team members. If they're also project managers they've the right to do HR planning etc."
+      },
+      "pageTitle": "Access wizard",
+      "preview": {
+        "element": "Structure element",
+        "intro": "Every element of the path with the right each group would get on it. Nothing is written before you click finish.",
+        "picked": "picked",
+        "recursive": "incl. sub elements",
+        "title": "What the wizard would do"
+      },
+      "result": {
+        "again": "Configure another element",
+        "ancestors": "Read access on {arg0} ancestor element(s)",
+        "created": "new",
+        "role": {
+          "external": "External staff",
+          "manager": "Managing users",
+          "team": "Team"
+        },
+        "summary": "Access rights for {arg0}: {arg1} new, {arg2} changed, {arg3} already correct.",
+        "title": "What the wizard did",
+        "toTree": "To the structure tree",
+        "unchanged": "unchanged",
+        "updated": "changed"
+      },
+      "task": {
+        "intro": "For this structure element the rights for the given groups will be configured: For all ancestor elements a minimal read access will be configured for the groups, but all other elements in the upper hierarchy will not be accessible without further grants."
+      },
+      "team": {
+        "_": "Team users (optional)",
+        "intro": "The team members are able to create and modify structure sub elements and to book their time sheets."
+      }
+    },
+    "workpackageCode": "Work package code"
+  },
+  "text": "Text",
+  "timeNotation": {
+    "_": "Time notation",
+    "12": "12-hour notation",
+    "24": "24-hour notation"
+  },
+  "timePeriod": "Time period",
+  "timePeriodPanel": {
+    "startTimeAfterStopTime": "Start time should not be after stop time."
+  },
+  "timesheet": {
+    "_": "Time-sheet",
+    "ai": {
+      "timeSavedByAI": {
+        "_": "Time savings AI",
+        "error": {
+          "invalidPercentage": "The percentage is invalid. It must be between 0 and 99.",
+          "unitMissing": "Please specify unit for AI savings."
+        },
+        "info": "Savings in hours through AI or in percent (example percent: I needed 9 hours and would have needed 10 hours without AI, then I saved 10%).\n\nThis information is used in evaluations and reports."
+      },
+      "timeSavedByAIDescription": {
+        "_": "AI description",
+        "info": "Optional description of which AI technology or methods were used to achieve the time saving."
+      },
+      "timeSavedByAIUnit": {
+        "_": "Unit",
+        "info": "Percentage time savings in percent in this time report (e.g. 10% of 10 hours is 1 hour) or in hours:\n\nNote: A time report of one hour can also save many hours or days of effort."
+      }
+    },
+    "description": "Activity report",
+    "duration": "Duration",
+    "iCalSubscription": "Subscribe time sheets in iCal format (*.ics) for the logged-in user.",
+    "icsExport": "ics export",
+    "location": "Location",
+    "massupdate": {
+      "taskNotApplied": "The structure element is not selected (checkbox) and will therefore not be changed.",
+      "updateTask": "Update structure element for all time sheets."
+    },
+    "pdfExport": {
+      "columns": "Columns",
+      "filterSettings": "Print filter settings",
+      "info": "Choose what the PDF should contain. Your selection is remembered.",
+      "title": "PDF export"
+    },
+    "recent": "Recent",
+    "reference": "Reference",
+    "startTime": "Start time",
+    "stopTime": "Stop time",
+    "tag": "Tag",
+    "templates": "Templates",
+    "title": {
+      "add": "New time sheet",
+      "list": "List of time sheets"
+    },
+    "totalDuration": "Total duration",
+    "user": "Employee"
+  },
+  "timezone": "Time zone",
+  "title": "Title",
+  "tooltip": {
+    "export": {
+      "excel": "Export as Excel file",
+      "pdf": "Export as pdf"
+    },
+    "jiraSupport": {
+      "field": {
+        "content": "JIRA issues are supported by this field, therefore JIRA issues such as PROJECTFORGE-123 will be displayed as a link to JIRA."
+      }
+    },
+    "lucene": {
+      "link": "Link to howto of lucene queries."
+    },
+    "selectMe": "You are great!",
+    "shortcut": {
+      "addEntry": {
+        "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
+        "title": "Keyboard shortcut N or +"
+      },
+      "selectAll": {
+        "_": "Press CTRL-A (macOS: CMD-A) to select all entries of the list while the selection mode is on.",
+        "title": "Keyboard shortcut CTRL-A"
+      },
+      "submitForm": {
+        "_": "Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).",
+        "title": "Keyboard shortcut Return"
+      }
+    }
+  },
+  "undelete": "Undelete",
+  "update": "Update",
+  "uptodate": "up-to-date",
+  "user": {
+    "_": "User",
+    "My2FACode": {
+      "authentification": {
+        "info": "A second factor is required for proceeding.\n\nPlease enter any 2nd factor (e.g. OTP) you have (requested): from Your Authenticator-App or received by SMS or mail or you may use any WebAuthn token you have registered."
+      },
+      "code": {
+        "_": "Code",
+        "info": "Code from your authenticator app or the one time password (OTP) you received by e-mail of text message.",
+        "validate": "Validate"
+      },
+      "error": {
+        "timePenalty": {
+          "message": "You have been blocked until {arg0} ({arg1}) after {arg2} failed code checks. Please note, that your account might be deactivated after {arg3} failed OTP checks."
+        },
+        "validation": "Code not correct or two-factor authentication not configured."
+      },
+      "lastSuccessful2FA": "Last successful 2 FA",
+      "password": {
+        "info": "The password is only needed as an additional factor if you received the code via e-mail.",
+        "wrong": "Password check failed."
+      },
+      "sendCode": {
+        "mail": {
+          "_": "Request mail code",
+          "info": "Send code as e-mail. The code will be valid up to 2 minutes and your password is required when validating the sent code.",
+          "message": "Your code is: {arg0}",
+          "sentSuccessfully": "Mail was successfully sent to Your e-mail address at {arg0}",
+          "title": "Message from ProjectForge"
+        },
+        "sms": {
+          "_": "Request SMS code",
+          "info": "Request code as text message to your mobile phone. The code will be valid up to 2 minutes.",
+          "sentSuccessfully": "Message successfully sent to Your mobile phone at {arg0}."
+        }
+      },
+      "title": "Two-factor authentication"
+    },
+    "authenticationToken": {
+      "authenticator_key": {
+        "_": "2FA authenticator key",
+        "tooltip": "This authentication token is usable for Authenticator clients for Two-factor-authentication with e.g. Microsoft-, Google-authenticator app, or Fortitoken."
+      },
+      "calendar_rest": {
+        "_": "Authentication token for calendars",
+        "tooltip": "This authentication token is usable ical exports of calendars and the user's time sheets."
+      },
+      "dav_token": {
+        "_": "Authentication token for CalDav/CardDAV",
+        "tooltip": "This authentication token is usable the CalDAV/CardDAV functionality of ProjectForge."
+      },
+      "rest_client": {
+        "_": "Authentication token for rest clients",
+        "tooltip": "This authentication token is usable for rest clients if ProjectForge's password shouldn't be used there."
+      }
+    },
+    "changePassword": {
+      "msg": {
+        "passwordSuccessfullyChanged": "Password successfully changed."
+      },
+      "newPassword": "New password",
+      "password": {
+        "lastChange": "Last change of password"
+      }
+    },
+    "changeWlanPassword": {
+      "lastChange": "Last change of WLAN/Samba password"
+    },
+    "deactivated": "deactivated",
+    "gpgPublicKey": "GPG public key",
+    "hrPlanningEnabled": "HR planning",
+    "jiraUsername": {
+      "_": "JIRA user name",
+      "tooltip": "Only needed, if the ProjectForge user name differs from the JIRA user name and the user want to work with JIRA inside ProjectForge."
+    },
+    "ldapValues": "LDAP",
+    "localUser": {
+      "_": "Local user",
+      "tooltip": "Local users will not be synchronized with an external user management system (such as LDAP)."
+    },
+    "locale": "Language",
+    "mobilePhone": {
+      "_": "Mobile phone",
+      "info": "Mobile phone usable as a 2nd factor (required e.g. for password reset or other services).\n\nYou may configure this field by any admin or by configuring your two-factor-authentication."
+    },
+    "personalPhoneIdentifiers": {
+      "_": "Phone ids",
+      "tooltip": {
+        "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
+      }
+    },
+    "restrictedUser": {
+      "_": "Restricted user",
+      "tooltip": "A restricted user has only the ability to log-in and to change his password, but the user is synchronized with the external user management system."
+    },
+    "sshPublicKey": "SSH public key",
+    "username": "User name"
+  },
+  "username": "User name",
+  "vacation": {
+    "employee": "Employee",
+    "enddate": "End date",
+    "halfDayBegin": {
+      "_": "Half leave day at first day",
+      "tooltip": "The first leave day should be treated as half leave day, if it is a workday."
+    },
+    "halfDayEnd": {
+      "_": "Half leave day at last day",
+      "tooltip": "The last leave day should be treated as half leave day, if it is a workday."
+    },
+    "hr": "HR",
+    "leaveAccountEntry": {
+      "amount": "Correction value"
+    },
+    "manager": "Manager",
+    "other": "Other",
+    "own": "Own",
+    "previousyearleave": "Previous year leave",
+    "replacement": {
+      "_": "Substitution",
+      "others": "Other substitutes"
+    },
+    "special": {
+      "_": "Special leave",
+      "tooltip": "Special leave days will be excluded from the vacation account."
+    },
+    "startdate": "Start date",
+    "status": {
+      "_": "Status",
+      "approved": "Approved",
+      "inProgress": "In progress",
+      "rejected": "Rejected"
+    },
+    "vacationmode": "Assignment"
+  },
+  "validation": {
+    "error": {
+      "fieldRequired": "Field ''{arg0}'' is required.",
+      "format": {
+        "integer": "Unsupported integer format."
+      },
+      "generic": "Your input is invalid.",
+      "maxLength": "Field ''{arg0}'' must not be longer than {arg1} characters.",
+      "nothingToExport": "Nothing to export.",
+      "range": {
+        "integerOutOfRange": "Value out of range {arg0}-{arg1}.",
+        "integerToHigh": "Value must not be higher than {arg0}.",
+        "integerToLow": "Value must not be lower than {arg0}."
+      }
+    }
+  },
+  "value": "Value",
+  "values": "Values",
+  "webauthn": {
+    "entry": {
+      "displayName": "Display name",
+      "signCount": {
+        "_": "Sign count",
+        "info": "Counter of authentications (will be incremented on every token usage)"
+      }
+    },
+    "error": {
+      "process": "Error while processing authentication.",
+      "userNotOwnerOrEntryDoesnotExist": "The user has no access to this foreign webauthn entry or no such entry exists.",
+      "validate": "Error while validating authentication."
+    },
+    "registration": {
+      "button": {
+        "authenticate": {
+          "_": "WebAuthn",
+          "info": "You may use any of your registered WebAuthn tokens here (for example Yubikey)."
+        },
+        "register": "Register"
+      }
+    }
+  },
+  "yes": "Yes"
+}

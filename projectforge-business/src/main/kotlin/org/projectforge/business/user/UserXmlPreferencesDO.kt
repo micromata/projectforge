@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
  * For persistency of UserPreferencesData (stores them serialized).
  * The data are stored as xml.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])

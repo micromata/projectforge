@@ -42,7 +42,7 @@ import org.projectforge.web.wicket.components.JiraIssuesPanel;
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 {

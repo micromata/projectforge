@@ -50,7 +50,7 @@ import java.util.Objects;
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskNode implements IdObject<Long>, Serializable {
   @Serial
@@ -72,6 +72,16 @@ public class TaskNode implements IdObject<Long>, Serializable {
    * Total duration of all time sheets of this task (excluding the child tasks) in seconds.
    */
   long totalDuration = 0;
+
+  /**
+   * Earliest start time of all time sheets of this task (excluding the child tasks) or null if none exist.
+   */
+  java.util.Date earliestTimesheetStartDate;
+
+  /**
+   * Latest stop time of all time sheets of this task (excluding the child tasks) or null if none exist.
+   */
+  java.util.Date latestTimesheetStopDate;
 
   /**
    * Sum of all ordered person days excluding descendant nodes. Ordered person days are defined by the sum of all
@@ -211,6 +221,24 @@ public class TaskNode implements IdObject<Long>, Serializable {
    */
   public boolean isBookableForTimesheets() {
     return bookableForTimesheets;
+  }
+
+  /**
+   * A structure element may be marked as a shared cost element ({@link TaskDO#getAllowTimeOverlap()}). Time sheets of
+   * such elements may overlap in time with time sheets of other (non same-project) tasks. The flag is inherited: it's
+   * true if this node itself or any ancestor node has it set.
+   *
+   * @return True if time sheet overlap is allowed for this node or any ancestor node.
+   * @see TaskDO#getAllowTimeOverlap()
+   */
+  public boolean isTimeOverlapAllowed() {
+    if (task.getAllowTimeOverlap()) {
+      return true;
+    }
+    if (parent != null) {
+      return parent.isTimeOverlapAllowed();
+    }
+    return false;
   }
 
   public List<Long> getDescendantIds() {
@@ -482,6 +510,50 @@ public class TaskNode implements IdObject<Long>, Serializable {
       duration += child.getDuration(taskTree, true);
     }
     return duration;
+  }
+
+  /**
+   * Gets the earliest start time of all time sheets of this task.
+   *
+   * @param recursive If true, then the time sheets of all sub tasks will be considered too.
+   * @return The earliest start time or null if no time sheet exists.
+   */
+  public java.util.Date getEarliestTimesheetStartDate(final TaskTree taskTree, final boolean recursive) {
+    if (totalDuration < 0) {
+      taskTree.readTotalDuration(this.getId());
+    }
+    java.util.Date result = earliestTimesheetStartDate;
+    if (recursive && children != null) {
+      for (final TaskNode child : children) {
+        final java.util.Date childDate = child.getEarliestTimesheetStartDate(taskTree, true);
+        if (childDate != null && (result == null || childDate.before(result))) {
+          result = childDate;
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Gets the latest stop time of all time sheets of this task.
+   *
+   * @param recursive If true, then the time sheets of all sub tasks will be considered too.
+   * @return The latest stop time or null if no time sheet exists.
+   */
+  public java.util.Date getLatestTimesheetStopDate(final TaskTree taskTree, final boolean recursive) {
+    if (totalDuration < 0) {
+      taskTree.readTotalDuration(this.getId());
+    }
+    java.util.Date result = latestTimesheetStopDate;
+    if (recursive && children != null) {
+      for (final TaskNode child : children) {
+        final java.util.Date childDate = child.getLatestTimesheetStopDate(taskTree, true);
+        if (childDate != null && (result == null || childDate.after(result))) {
+          result = childDate;
+        }
+      }
+    }
+    return result;
   }
 
   @Override

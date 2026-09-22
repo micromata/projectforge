@@ -35,7 +35,7 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * Panel for date selection.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class JodaDatePanel extends Panel implements ComponentWrapperPanel

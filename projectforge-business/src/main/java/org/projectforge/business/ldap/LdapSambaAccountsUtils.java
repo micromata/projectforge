@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapSambaAccountsUtils {

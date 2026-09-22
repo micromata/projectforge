@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service
 
 /**
  * Used by AddressDao if addresses are forced to be deleted.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class SipgateDeleteContactService {

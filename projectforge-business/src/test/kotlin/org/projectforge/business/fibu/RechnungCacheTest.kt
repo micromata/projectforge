@@ -122,6 +122,50 @@ class RechnungCacheTest : AbstractTestBase() {
         Assertions.assertEquals(0, BigDecimal("300").compareTo(getNettoSumme(posInfos)))
     }
 
+    /**
+     * A deleted invoice position must not be counted in the cached net/gross sums of the invoice list.
+     * Regression test for the JDBC cache-refresh path ([RechnungJdbcService.selectRechnungInfos]), which
+     * used to drop the position's `deleted` flag so [RechnungCalculator] summed deleted positions anyway.
+     */
+    @Test
+    fun deletedPositionExcludedFromCachedSums() {
+        logon(getUser(TEST_FINANCE_USER))
+        val today = now()
+        lateinit var rechnung: RechnungDO
+        rechnung = RechnungDO().also {
+            RechnungsPositionDO().let { pos ->
+                pos.einzelNetto = BigDecimal("100")
+                pos.vat = BigDecimal("0.19")
+                pos.text = "keep"
+                it.addPosition(pos)
+            }
+            RechnungsPositionDO().let { pos ->
+                pos.einzelNetto = BigDecimal("200")
+                pos.vat = BigDecimal("0.19")
+                pos.text = "delete"
+                it.addPosition(pos)
+            }
+            it.nummer = rechnungDao.getNextNumber(it)
+            it.datum = today.localDate
+            it.faelligkeit = LocalDate.now()
+            it.projekt = initTestDB.addProjekt(null, 1, "delTest")
+        }
+        rechnungDao.insert(rechnung)
+
+        // Soft-delete the second position (100 stays, 200 must drop out of the sums).
+        persistenceService.runInTransaction {
+            val loaded = rechnungDao.find(rechnung.id)!!
+            loaded.positionen!!.first { it.text == "delete" }.deleted = true
+            rechnungDao.update(loaded)
+        }
+
+        // Force a full JDBC-based cache refresh, exercising the list path (not the incremental update()).
+        rechnungCache.forceReload()
+        val info = rechnungCache.getRechnungInfo(rechnung.id)!!
+        Assertions.assertEquals(0, BigDecimal("100").compareTo(info.netSum), "Deleted position must not be in netSum.")
+        Assertions.assertEquals(0, BigDecimal("119").compareTo(info.grossSum), "Deleted position must not be in grossSum.")
+    }
+
     private fun createOrder(): AuftragDO {
         return AuftragDO().also {
             it.status = AuftragsStatus.GELEGT

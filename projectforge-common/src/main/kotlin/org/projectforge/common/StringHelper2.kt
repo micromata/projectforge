@@ -24,7 +24,7 @@
 package org.projectforge.common
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object StringHelper2 {
     @JvmStatic

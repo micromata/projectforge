@@ -111,7 +111,12 @@ class EmployeeService {
         } else {
             employeeDao.selectAll(checkAccess = false)
         }
-        return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
+        return employeeList
+            // Resolve the (lazy) user of every employee from the cache before it is touched. displayName is
+            // "${user?.getFullname()}", and both the sort below and the callers (e.g. the employee selects of
+            // an edit form) read it, so without this every employee would trigger its own T_PF_USER query.
+            .onEach { it.user = caches.getUserIfNotInitialized(it.user) }
+            .filter { employee -> isEmployeeActive(employee, showRecentLeft) }
             .sortedBy { it.displayName }
     }
 

@@ -38,7 +38,7 @@ import java.util.Date;
  * This panel show the buttons for selecting current, previous and following month inside an existing form. Calls
  * caller.select("selectMonth", offset): offset -1 for previous month, 0 for current month and +1 for following month.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class QuickSelectMonthPanel extends AbstractSelectPanel<LocalDate> {
   private static final long serialVersionUID = -3173096216643497466L;

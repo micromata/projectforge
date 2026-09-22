@@ -38,7 +38,7 @@ import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
 /**
  * Panel for using as content top menu entry (needed for css decoration).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ContentMenuEntryPanel extends Panel

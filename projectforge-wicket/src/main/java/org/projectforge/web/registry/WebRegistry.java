@@ -62,7 +62,7 @@ import java.util.*;
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge). This registry is
  * used e. g. by the general SearchPage.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class WebRegistry
 {

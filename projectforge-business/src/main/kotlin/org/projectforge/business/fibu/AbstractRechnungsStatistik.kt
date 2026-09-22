@@ -87,17 +87,29 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
             log.warn { "RechnungInfo not found for rechnungId=${rechnung?.id}." }
             return
         }
+        add(rechnungInfo)
+    }
 
+    /**
+     * Accumulates straight from the cached [RechnungInfo], without an [AbstractRechnungDO] - so a caller
+     * that only has the ids (the live-during-selection statistics, the mass update page) can sum over
+     * `RechnungCache` lookups instead of hydrating every invoice (see `RechnungDao.buildStatistikByIds`).
+     *
+     * Everything [add] once read from the entity now lives on the info: the money sums, the dates, and -
+     * carried through the JDBC cache - the [RechnungInfo.currency] the foreign-currency conversion needs.
+     */
+    fun add(rechnungInfo: RechnungInfo) {
         // Get system default currency
         val systemCurrency = configurationService.currency ?: "EUR"
-        val rechnungCurrency = rechnung.currency ?: systemCurrency
-        val validAtDate = rechnung.datum // Use invoice date for conversion
+        val rechnungCurrency = rechnungInfo.currency ?: systemCurrency
+        val validAtDate = rechnungInfo.date // Use invoice date for conversion
+        val invoiceRef = "${rechnungInfo.nummer ?: rechnungInfo.id} (${validAtDate?.formatForUser() ?: "?"})"
 
         // Convert amounts to system currency if needed
-        val netto = convertToSystemCurrency(rechnung, rechnungInfo.netSum, rechnungCurrency, systemCurrency, validAtDate) // Das dauert
-        val brutto = convertToSystemCurrency(rechnung, rechnungInfo.grossSum, rechnungCurrency, systemCurrency, validAtDate)
-        val bruttoMitSkonto = convertToSystemCurrency(rechnung, rechnungInfo.grossSumWithDiscount, rechnungCurrency, systemCurrency, validAtDate)
-        val gezahlt = convertToSystemCurrency(rechnung, rechnungInfo.zahlBetrag, rechnungCurrency, systemCurrency, validAtDate)
+        val netto = convertToSystemCurrency(invoiceRef, rechnungInfo.netSum, rechnungCurrency, systemCurrency, validAtDate) // Das dauert
+        val brutto = convertToSystemCurrency(invoiceRef, rechnungInfo.grossSum, rechnungCurrency, systemCurrency, validAtDate)
+        val bruttoMitSkonto = convertToSystemCurrency(invoiceRef, rechnungInfo.grossSumWithDiscount, rechnungCurrency, systemCurrency, validAtDate)
+        val gezahlt = convertToSystemCurrency(invoiceRef, rechnungInfo.zahlBetrag, rechnungCurrency, systemCurrency, validAtDate)
 
         this.netto = add(this.netto, netto)
         this.brutto = add(this.brutto, brutto)
@@ -113,11 +125,11 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
                 ueberfaellig = add(ueberfaellig, brutto)
             }
         }
-        val datum = fromOrNow(rechnung.datum)
-        val faelligDatum = fromOrNow(rechnung.faelligkeit)
+        val datum = fromOrNow(rechnungInfo.date)
+        val faelligDatum = fromOrNow(rechnungInfo.faelligkeit)
         zahlungsZielSum += datum.daysBetween(faelligDatum)
-        if (rechnung.bezahlDatum != null && brutto != null) {
-            val bezahlDatum = fromOrNow(rechnung.bezahlDatum)
+        if (rechnungInfo.bezahlDatum != null && brutto != null) {
+            val bezahlDatum = fromOrNow(rechnungInfo.bezahlDatum)
             tatsaechlichesZahlungsZiel.add(datum.daysBetween(bezahlDatum).toInt(), brutto.toInt())
             counterBezahlt++
         }
@@ -129,7 +141,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
      * Tracks conversion failures for display to user.
      * Returns the original amount if currencies are the same or conversion fails.
      *
-     * @param rechnung The invoice for error tracking
+     * @param invoiceRef The invoice reference for error tracking (number/id and date)
      * @param amount Amount to convert
      * @param fromCurrency Source currency (e.g. "USD")
      * @param toCurrency Target currency (e.g. "EUR")
@@ -137,7 +149,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
      * @return Converted amount, or original amount if conversion not possible
      */
     private fun convertToSystemCurrency(
-        rechnung: T,
+        invoiceRef: String,
         amount: BigDecimal?,
         fromCurrency: String,
         toCurrency: String,
@@ -161,7 +173,6 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
 
         if (converted == null) {
             // Track warning for display
-            val invoiceRef = "${rechnung?.displayName} (${rechnung?.datum?.formatForUser() ?: "?"})"
             currencyConversionWarnings.add("$invoiceRef: $fromCurrency → $toCurrency")
 
             log.warn { "$invoiceRef: $fromCurrency → $toCurrency. Could not convert $amount for date $validAtDate. Using original amount." }

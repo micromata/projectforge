@@ -37,7 +37,7 @@ import java.time.LocalDate;
  * This panel show the buttons for selecting current, previous and following week inside an existing form. Calls caller.select("selectWeek",
  * offset): offset -1 for previous week, 0 for current week and +1 for following week.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class QuickSelectWeekPanel extends AbstractSelectPanel<LocalDate> {
   private static final long serialVersionUID = -3173096216643497466L;

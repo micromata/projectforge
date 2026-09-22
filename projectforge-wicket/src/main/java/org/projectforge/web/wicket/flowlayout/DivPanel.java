@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.bootstrap.GridType;
 
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class DivPanel extends Panel

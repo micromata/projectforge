@@ -122,6 +122,28 @@ class RechnungCalculatorTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * The assigned order position is named by its id even when [AuftragsCache] cannot answer anything about it.
+     * That is the situation of every position while `RechnungCache.refresh` runs: it is called from the refresh of
+     * `AuftragsCache` (through `AuftragsRechnungCache`), so that cache answers nothing at all as long as its own
+     * refresh is underway - a nested refresh returns immediately. The id stayed null in the cached
+     * [RechnungPosInfo] then, and the invoice list, which resolves the orders of an invoice from it
+     * (`Rechnung.copyFrom4ListRow`), showed no order for any invoice.
+     */
+    @Test
+    fun `an assigned order position is named although the cache knows nothing about it`() {
+        val position = createPositionInfo("1", "100").also {
+            // An id no order position of the test database has, so AuftragsCache answers null for it - as it does
+            // for every position while it is refreshing itself.
+            it.auftragsPosition = AuftragsPositionDO().also { orderPos -> orderPos.id = 4711424242L }
+        }
+        val posInfo = calculateAndAssert(position, net = "100.00", gross = "100.00")
+        assertEquals(4711424242L, posInfo.auftragsPositionId, "auftragsPositionId")
+        // The order behind it is the cache's answer and stays open until it has been read.
+        assertNull(posInfo.auftragsId, "auftragsId")
+        assertNull(posInfo.auftragsPositionNummer, "auftragsPositionNummer")
+    }
+
     private fun calculateAndAssert(
         invoice: AbstractRechnungDO,
         net: String,

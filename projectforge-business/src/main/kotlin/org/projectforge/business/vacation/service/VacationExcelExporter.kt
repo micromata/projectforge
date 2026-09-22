@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Exports vacation entries of users.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 object VacationExcelExporter {
   private class Context(val workbook: ExcelWorkbook) {

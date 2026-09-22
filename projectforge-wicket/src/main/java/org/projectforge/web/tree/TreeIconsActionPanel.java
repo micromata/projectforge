@@ -49,7 +49,7 @@ import java.util.Optional;
 /**
  * Panel showing the icons of a tree list table.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("serial")
 public class TreeIconsActionPanel<T extends Serializable> extends Panel {

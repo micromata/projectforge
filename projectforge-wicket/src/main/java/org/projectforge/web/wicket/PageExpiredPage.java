@@ -28,7 +28,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 /**
  * Standard error page should be shown in production mode. Redirect for mobile user agents.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class PageExpiredPage extends MessagePage

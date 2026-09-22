@@ -71,7 +71,7 @@ class PasswordResetService {
 
     /**
      * @param Link in e-mail for password reset. "<token>" will be reset by the generated token.
-     *        E. g. projectforge.acme.com/react/public/passwordReset/dynamic/?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
+     *        E. g. projectforge.acme.com/next/password-reset?token=IBMwcF3b1f80OvH6bcbOcqWCaUtFr4
      */
     fun sendMail(usernameEmail: String, link: String) {
         /**

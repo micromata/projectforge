@@ -43,7 +43,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Service

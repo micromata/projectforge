@@ -27,13 +27,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.user.service.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPrefService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XStreamAlias("TaskTreeExpansion")
 public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
@@ -46,13 +48,19 @@ public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
   {
     final TaskTreeExpansion expansion = new TaskTreeExpansion();
     try {
-      @SuppressWarnings("unchecked")
-      final Set<Long> ids = (Set<Long>) UserPreferencesHelper.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS);
-      if (ids != null) {
+      final UserPrefService userPrefService = WicketSupport.get(UserPrefService.class);
+      final Set<?> rawIds = (Set<?>) userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS);
+      if (rawIds != null) {
+        // The JSON store doesn't preserve the element type of a raw Set, so small ids come back as Integer.
+        // Normalize to Long (the type TaskNode ids are compared against).
+        final Set<Long> ids = new HashSet<>();
+        for (final Object id : rawIds) {
+          ids.add(((Number) id).longValue());
+        }
         expansion.setIds(ids);
       } else {
         // Persist the open entries in the data-base.
-        UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true);
+        userPrefService.putEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true);
       }
     } catch (final Exception ex) {
       log.error(ex.getMessage(), ex);
@@ -62,7 +70,7 @@ public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
 
   /**
    * @return The expansion model. Any previous persisted state of open rows will be restored from
-   * {@link UserPreferencesHelper}.
+   * {@link UserPrefService}.
    */
   @SuppressWarnings("serial")
   public static IModel<Set<TaskNode>> getExpansionModel()

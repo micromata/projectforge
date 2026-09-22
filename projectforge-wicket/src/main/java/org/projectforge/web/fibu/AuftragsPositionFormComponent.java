@@ -43,7 +43,7 @@ import java.util.*;
 /**
  * For displaying and selecting an order position.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<AuftragsPositionDO> {
     private static final long serialVersionUID = -4741993589740783229L;

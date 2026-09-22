@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 /**
  * Utils for user and group based rights.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  */
 object BaseUserGroupRightUtils {
   fun isOwner(user: PFUserDO?, obj: BaseUserGroupRightsDO?): Boolean {

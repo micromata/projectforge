@@ -60,7 +60,7 @@ class I18nServiceImpl : I18nService {
      * with highest priority, allowing customers to override any translation without code changes.
      */
     private fun registerCustomerBundleIfPresent() {
-        val customerBundleName = "CustomerI18nResources"
+        val customerBundleName = CUSTOMER_BUNDLE_NAME
         val resourceDir = File(configurationService.resourceDirName)
 
         if (!resourceDir.exists() || !resourceDir.isDirectory) {
@@ -160,6 +160,29 @@ class I18nServiceImpl : I18nService {
         return null
     }
 
+    override fun getCustomerI18nOverrides(locale: Locale): Map<String, String> {
+        // Only this deployment's customer bundle, and only if it was actually detected in resourceDir
+        // (registerCustomerBundleIfPresent adds it to I18nHelper.bundleNames). Everything else stays in the
+        // static catalog projectforge-next already ships.
+        if (!I18nHelper.bundleNames.contains(CUSTOMER_BUNDLE_NAME)) {
+            return emptyMap()
+        }
+        val bundle = try {
+            getResourceBundleFor(CUSTOMER_BUNDLE_NAME, locale)
+        } catch (ex: MissingResourceException) {
+            return emptyMap()
+        }
+        val overrides = LinkedHashMap<String, String>()
+        for (key in bundle.keySet()) {
+            try {
+                overrides[key] = bundle.getString(key)
+            } catch (ignored: MissingResourceException) {
+                // A key seen in keySet() but not resolvable for this locale: skip it.
+            }
+        }
+        return overrides
+    }
+
     override fun getResourceBundleFor(name: String, locale: Locale): ResourceBundle {
         log.debug { "#### I18N SERVICE: getResourceBundleFor(name='$name', locale='$locale')" }
 
@@ -193,5 +216,10 @@ class I18nServiceImpl : I18nService {
             name,
             ""
         )
+    }
+
+    companion object {
+        /** The customer-specific bundle, auto-discovered in resourceDir and registered with highest priority. */
+        const val CUSTOMER_BUNDLE_NAME = "CustomerI18nResources"
     }
 }

@@ -29,7 +29,7 @@ import java.io.Serializable;
 
 /**
  * The table component which uses the TreeTable implementation should implement this interface for receiving events from the TreeIconsActionPanel.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public interface TreeTablePanel

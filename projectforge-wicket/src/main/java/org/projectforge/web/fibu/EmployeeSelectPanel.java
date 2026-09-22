@@ -33,7 +33,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
@@ -50,7 +50,7 @@ import java.util.Locale;
 /**
  * This panel shows the actual employee and buttons for select/unselect employee.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO> {
     private static final long serialVersionUID = -9161889503240264619L;
@@ -239,13 +239,13 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO> {
 
     @SuppressWarnings("unchecked")
     private RecentQueue<String> getRecentEmployees() {
-        var userPreferencesService = WicketSupport.get(UserXmlPreferencesService.class);
+        var userPrefService = WicketSupport.get(UserPrefService.class);
         if (this.recentEmployees == null) {
-            this.recentEmployees = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
+            this.recentEmployees = (RecentQueue<String>) userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_EMPLOYEES);
         }
         if (this.recentEmployees == null) {
             this.recentEmployees = new RecentQueue<String>();
-            userPreferencesService.putEntry(USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
+            userPrefService.putEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
         }
         return this.recentEmployees;
     }

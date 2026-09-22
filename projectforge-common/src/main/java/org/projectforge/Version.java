@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Represents a version number (major-release, minor-release, patch-level and build-number).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class Version implements Comparable<Version>, Serializable

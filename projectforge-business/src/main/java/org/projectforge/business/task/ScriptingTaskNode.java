@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Proxy of TaskNode for scripting.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ScriptingTaskNode {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingTaskNode.class);

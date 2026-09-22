@@ -27,7 +27,7 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.utils.NumberHelper;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AddressDOConverter
 {

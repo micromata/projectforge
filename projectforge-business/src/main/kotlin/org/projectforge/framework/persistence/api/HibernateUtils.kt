@@ -51,7 +51,7 @@ private val log = KotlinLogging.logger {}
  * Singleton holding the hibernate configuration. Should be configured by a servlet on initialization after hibernate
  * initialization.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object HibernateUtils {
     // key is entity name, value is ent.

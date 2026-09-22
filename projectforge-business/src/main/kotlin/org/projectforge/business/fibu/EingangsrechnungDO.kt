@@ -39,7 +39,7 @@ import org.projectforge.framework.utils.StringComparator
 /**
  * Eingehende Rechnungen.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -54,7 +54,7 @@ import org.projectforge.framework.utils.StringComparator
 @NamedQueries(
     NamedQuery(
         name = EingangsrechnungDO.SELECT_MIN_MAX_DATE,
-        query = "select min(datum), max(datum) from EingangsrechnungDO"
+        query = "select min(datum), max(datum) from EingangsrechnungDO where deleted = false"
     )
 )
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO> {

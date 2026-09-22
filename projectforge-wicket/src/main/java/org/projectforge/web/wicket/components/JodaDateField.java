@@ -31,7 +31,7 @@ import org.joda.time.DateMidnight;
 import org.projectforge.web.wicket.converter.JodaDateConverter;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class JodaDateField extends TextField<DateMidnight> implements ITextFormatProvider

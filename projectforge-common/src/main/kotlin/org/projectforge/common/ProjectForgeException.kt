@@ -26,6 +26,6 @@ package org.projectforge.common
 /**
  * All ProjectForge specific exception should be derived from this class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class ProjectForgeException(message: String) : RuntimeException(message)

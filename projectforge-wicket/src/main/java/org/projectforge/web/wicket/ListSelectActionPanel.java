@@ -39,7 +39,7 @@ import org.projectforge.web.wicket.components.PlainLabel;
 /**
  * Panel for selecting list page entries for editing and selecting for callers.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @SuppressWarnings("serial")
 public class ListSelectActionPanel extends Panel

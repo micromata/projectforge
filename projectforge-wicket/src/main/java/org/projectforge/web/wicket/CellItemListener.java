@@ -33,7 +33,7 @@ import java.io.Serializable;
  * Usable for data view objects for manipulating single cells. T is for example the do object.
  * 
  * @see CellItemListenerPropertyColumn
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public interface CellItemListener<T> extends Serializable
 {

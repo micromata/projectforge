@@ -28,11 +28,15 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.menu.RecentMenuEntriesService
 import org.projectforge.menu.builder.*
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.my2fa.My2FASetupMenuBadge
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -41,7 +45,19 @@ import org.springframework.web.bind.annotation.RestController
 class MenuRest {
   // favoritesMenu and myAccountMenu used by rest client.
   @Suppress("unused")
-  class Menus(val mainMenu: Menu, val favoritesMenu: Menu, val myAccountMenu: Menu)
+  class Menus(
+    val mainMenu: Menu,
+    val favoritesMenu: Menu,
+    val myAccountMenu: Menu,
+    /**
+     * The entries the user opened last, most recent first, see [RecentMenuEntriesService]. Used by the
+     * quick access search of projectforge-next.
+     */
+    val recentMenu: Menu,
+  )
+
+  /** Payload of [reportMenuUsage]: the [MenuItem.key] the client rendered the used entry with. */
+  class MenuUsage(var key: String? = null)
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
@@ -54,6 +70,9 @@ class MenuRest {
 
   @Autowired
   private lateinit var favoritesMenuCreator: FavoritesMenuCreator
+
+  @Autowired
+  private lateinit var recentMenuEntriesService: RecentMenuEntriesService
 
   @GetMapping
   fun getMenu(): Menus {
@@ -78,6 +97,22 @@ class MenuRest {
 
     userNameItem.add(MenuItem(MenuItemDefId.LOGOUT, type = MenuItemTargetType.RESTCALL))
     userNameItem.postProcess()
-    return Menus(mainMenu, favoritesMenu, myAccountMenu)
+    // The main menu first: an entry the user has as a favourite as well should appear under the category
+    // they know it by.
+    val recentMenu = recentMenuEntriesService.buildRecentMenu(mainMenu, favoritesMenu, myAccountMenu)
+    return Menus(mainMenu, favoritesMenu, myAccountMenu, recentMenu)
+  }
+
+  /**
+   * Reports a menu entry the user just opened, so it can be offered again by the quick access search.
+   * Called by all three frontends, see [RecentMenuEntriesService].
+   *
+   * Answers 204 even for a key that is no menu entry: the callers report and forget, and none of them
+   * could act on an error.
+   */
+  @PostMapping("recent")
+  fun reportMenuUsage(@RequestBody usage: MenuUsage): ResponseEntity<Void> {
+    recentMenuEntriesService.append(usage.key)
+    return ResponseEntity.noContent().build()
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.model.rest;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class RestPaths
 {
@@ -34,6 +34,8 @@ public class RestPaths
 
   public static final String REST_EXCEL_SUB_PATH = "exportAsExcel";
 
+  public static final String REST_PDF_SUB_PATH = "exportAsPdf";
+
   public static final String REST_START_MULTI_SELECTION = "startMultiSelection";
 
   public static final String TASK = "task";
@@ -41,6 +43,8 @@ public class RestPaths
   public static final String TIMESHEET_TEMPLATE = "timesheetTemplate";
 
   public static final String LIST = "list";
+
+  public static final String LIST_PAGE = "listPage";
 
   public static final String CANCEL = "cancel";
 
@@ -64,7 +68,20 @@ public class RestPaths
 
   public static final String CLONE = "clone";
 
+  /**
+   * Layout free counterpart of {@link #CLONE}: answers the prepared clone as plain JSON, without a
+   * UILayout and without saving anything. A path of its own because {@link #CLONE} is mapped by
+   * AbstractPagesRest, which extends the class serving this one - the same path there would be
+   * ambiguous for every legacy page.
+   */
+  public static final String CLONE_DATA = "cloneData";
+
   public static final String SET_COLUMN_STATES = "setColumnStates";
+
+  /**
+   * Reads back what SET_COLUMN_STATES stored, for pages that aren't built from a UILayout.
+   */
+  public static final String COLUMN_STATES = "columnStates";
 
   public static final String WATCH_FIELDS = "watchFields";
 

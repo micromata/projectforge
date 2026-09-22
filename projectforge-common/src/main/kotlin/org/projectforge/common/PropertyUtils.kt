@@ -29,7 +29,7 @@ import kotlin.reflect.jvm.isAccessible
 class NestedNullException(message: String) : RuntimeException(message)
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object PropertyUtils {
     /**

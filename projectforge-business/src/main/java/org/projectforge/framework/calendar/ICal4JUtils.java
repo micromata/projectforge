@@ -41,7 +41,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ICal4JUtils {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICal4JUtils.class);

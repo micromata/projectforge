@@ -29,7 +29,7 @@ import org.apache.wicket.model.Model;
 
 /**
  * Represents HTML code. Please note that the code is not escaped!
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class HtmlCodePanel extends Panel

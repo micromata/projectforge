@@ -37,7 +37,6 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.excel.ExcelUtils
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -75,9 +74,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
 ) {
 
     @Autowired
-    private lateinit var accessChecker: AccessChecker
-
-    @Autowired
     private lateinit var groupDOConverter: GroupDOConverter
 
     @Autowired
@@ -94,6 +90,14 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
 
     override fun transformFromDB(obj: GroupDO, editMode: Boolean): Group {
         val group = Group()
+        // Resolve the lazy associations from the cache before copyFrom reads them. Otherwise every row of the
+        // list fires its own T_GROUP_USER join (the assignedUsers collection) plus a T_PF_USER select (the
+        // groupOwner proxy) - the N+1 the group list suffered from. UserGroupCache holds all groups fully
+        // hydrated (assignedUsers are initialized on refresh) and all users, so both lookups are O(1) and
+        // hit no database. The cached group's members replace obj's own uninitialized collection, so it is
+        // never touched.
+        obj.groupOwner = userGroupCache.getUserIfNotInitialized(obj.groupOwner)
+        userGroupCache.getGroup(obj.id)?.let { obj.assignedUsers = it.assignedUsers }
         group.copyFrom(obj)
         group.assignedUsers?.forEach {
             val user = userService.getUser(it.id)
@@ -103,12 +107,29 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 it.lastname = user.lastname
             }
         }
+        group.ldapPosixConfigured = useLdapStuff
         if (useLdapStuff) {
             groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
                 group.gidNumber = ldapGroupValues.gidNumber
             }
         }
+        if (editMode) {
+            // The read-only mail addresses of the members, which no GroupDO property holds: a hand built form
+            // (projectforge-next) reads the entity through GET {id} and never sees the server side layout, where
+            // this used to be filled. Edit mode only - no list column shows them, and it costs a cache lookup
+            // per assigned user of every row.
+            group.populateEmails()
+        }
         return group
+    }
+
+    /**
+     * Tells the list page whether the LDAP columns are worth showing, the same condition the edit page gets
+     * as [Group.ldapPosixConfigured]. A hand built list (projectforge-next) shows or hides its `ldapValues`
+     * column by it; the server side layout below decides it by simply not adding the column.
+     */
+    override fun addVariablesForListPage(): Map<String, Any> {
+        return mapOf("ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff))
     }
 
     override fun transformForDB(dto: Group): GroupDO {
@@ -132,6 +153,16 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         get() = "wa/groupList"
 
     /**
+     * Every user may read the groups (`GroupDao.hasUserSelectAccess`), only an administrator may change
+     * one (`GroupDao.hasAccess`) - so this is one of the few entities where the write access is a
+     * question about the entity and not about the single entry, and the list page may leave its rows
+     * unclickable for everyone else.
+     */
+    override fun listUpdateAccess(): Boolean {
+        return accessChecker.isLoggedInUserMemberOfAdminGroup
+    }
+
+    /**
      * LAYOUT List page
      */
     override fun createListLayout(
@@ -140,7 +171,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
-        userAccess.update = accessChecker.isLoggedInUserMemberOfAdminGroup
         val agGrid = agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
@@ -269,7 +299,8 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
             }
         }
-        dto.populateEmails()
+        // No populateEmails() here: the dto arrives from getById(editMode = true), i.e. already filled by
+        // transformFromDB - and a new entry has no members to collect addresses from.
         layout.add(UIReadOnlyField("emails", label = "address.emails"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }

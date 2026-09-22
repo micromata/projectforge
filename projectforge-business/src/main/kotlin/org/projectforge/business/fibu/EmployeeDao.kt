@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
@@ -208,10 +208,15 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun addOwnHistoryEntries(obj: EmployeeDO, context: HistoryLoadContext) {
-        employeeService.selectAllValidSinceAttrs(obj, deleted = null).forEach { validityAttr ->
-            historyService.loadAndMergeHistory(validityAttr, context)
-        }
+        // Batch the children's history (one query) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...).
+        employeeService.selectAllValidSinceAttrs(obj, deleted = null).mapNotNull { it.id }.takeIf { it.isNotEmpty() }
+            ?.let { ids ->
+                historyService.loadAndMergeHistory(EmployeeValidSinceAttrDO::class.java, ids, context)
+            }
     }
+
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(EmployeeValidSinceAttrDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID

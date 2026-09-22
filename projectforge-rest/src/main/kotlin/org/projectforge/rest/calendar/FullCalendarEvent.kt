@@ -79,6 +79,17 @@ class FullCalendarEvent(
      * If given, a tooltip will be displayed on mouse-over. Don't forget to add the content of the tooltip.
      */
     var tooltip: Tooltip? = null,
+    /**
+     * True for one occurrence of a recurring team event. The hand-built calendar reads it to carry the
+     * clicked occurrence's date into the edit, so a single/future modification knows which day it acts on
+     * (see TeamCalEventsProvider and the Next.js use-calendar-action).
+     */
+    var recurrence: Boolean? = null,
+    /**
+     * Preformatted AI time savings of a time sheet, e.g. "1:00h, 33 %". Only set when a saving is given
+     * and not zero (see TimesheetEventsProvider); shown as a compact line in the event block.
+     */
+    var timeSavedByAI: String? = null,
   ) {
     var category = category?.string
   }
@@ -123,7 +134,7 @@ class FullCalendarEvent(
    */
   fun withColor(calendarSettings: CalendarSettings, bgColor: String? = null, style: CalendarStyle? = null): FullCalendarEvent {
     val useStyle = style ?: CalendarStyle(bgColor)
-    textColor = useStyle.getTextColor(calendarSettings.colorScheme)
+    textColor = useStyle.getTextColor(calendarSettings.colorScheme, calendarSettings.darkMode)
     borderColor = useStyle.bgColor
     backgroundColor = useStyle.getBackgroundColor(calendarSettings.colorScheme)
     return this

@@ -39,7 +39,7 @@ import java.math.BigDecimal;
 
 /**
  * Shows a div layer with a colored percentage bar.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class ConsumptionBarPanel extends Panel

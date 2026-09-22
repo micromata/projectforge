@@ -36,7 +36,7 @@ import java.util.Locale;
 
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class CurrencyConverter extends BigDecimalConverter
 {

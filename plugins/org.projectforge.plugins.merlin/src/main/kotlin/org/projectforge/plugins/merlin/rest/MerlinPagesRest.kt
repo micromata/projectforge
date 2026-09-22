@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
@@ -57,7 +58,8 @@ import org.springframework.web.bind.annotation.RestController
 class MerlinPagesRest :
     AbstractDTOPagesRest<MerlinTemplateDO, MerlinTemplate, MerlinTemplateDao>(
         MerlinTemplateDao::class.java,
-        "plugins.merlin.title"
+        "plugins.merlin.title",
+        cloneSupport = CloneSupport.CLONE,
     ) {
     @Autowired
     private lateinit var groupService: GroupService
@@ -113,6 +115,23 @@ class MerlinPagesRest :
             dto.wordTemplateFileName = list?.find { it.fileExtension == "docx" }?.name
         }
         return dto
+    }
+
+    /**
+     * The attachments (Word template and Excel template definition) aren't cloned. The user has to upload them
+     * after saving the clone.
+     */
+    override fun prepareClone(dto: MerlinTemplate): MerlinTemplate {
+        val clone = super.prepareClone(dto)
+        clone.name = translateMsg("plugins.merlin.clone.name", dto.name ?: "")
+        // Attachments aren't cloned:
+        clone.attachments = null
+        clone.attachmentsCounter = null
+        clone.attachmentsSize = null
+        clone.wordTemplateFileName = null
+        clone.excelTemplateDefinitionFileName = null
+        clone.lastVariableUpdate = null
+        return clone
     }
 
     /**

@@ -34,7 +34,7 @@ import java.math.BigDecimal
 
 /**
  * Repräsentiert einen Eintrag innerhalb eines Wochenberichts eines Mitarbeiters zu einem Kostenträger (Anzahl Stunden).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MonthlyEmployeeReportEntry : Serializable {
     /**

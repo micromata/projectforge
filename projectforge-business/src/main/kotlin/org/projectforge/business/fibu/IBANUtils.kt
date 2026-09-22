@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object IBANUtils {
   @JvmStatic

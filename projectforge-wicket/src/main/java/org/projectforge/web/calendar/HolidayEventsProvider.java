@@ -34,7 +34,7 @@ import java.util.TimeZone;
 
 /**
  * Creates holiday events for FullCalendar.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class HolidayEventsProvider extends MyFullCalendarEventsProvider

@@ -32,7 +32,7 @@ import java.util.TimeZone;
 
 /**
  * Helper class for writing comma separated values.
- * @author K.Reinhard@micromata.com
+ * @author K. Reinhard
  * @author H.Spiewok@micromata.com (07/2005)
  */
 public class CSVWriter

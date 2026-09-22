@@ -80,7 +80,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Service
@@ -97,7 +97,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>> = arrayOf(TeamEventAttendeeDO::class.java)
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(TeamEventAttendeeDO::class.java)
 
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR_EVENT
@@ -630,6 +630,9 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
     override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
+        // Kept per-entry (not batched like the other DAOs): the display prefix depends on the individual attendee
+        // and is applied via the per-entry customize callback, which the batched
+        // loadAndMergeHistory(entityClass, entityIds, ...) variant cannot express.
         obj.attendees?.forEach { attendee ->
             historyService.loadAndMergeHistory(attendee, context) { entry ->
                 HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())

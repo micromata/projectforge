@@ -25,7 +25,7 @@ package org.projectforge.ui
 
 import com.fasterxml.jackson.annotation.JsonValue
 import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.rest.core.AbstractPagesRest
+import org.projectforge.rest.core.AbstractEntityRest
 import org.springframework.util.ClassUtils
 
 data class UIInput(
@@ -90,7 +90,7 @@ data class UIInput(
    * @return this for chaining.
    * @see BaseDao.isAutocompletionPropertyEnabled
    */
-  fun enableAutoCompletion(services: AbstractPagesRest<*, *, *>): UIInput {
+  fun enableAutoCompletion(services: AbstractEntityRest<*, *, *>): UIInput {
     if (!services.isAutocompletionPropertyEnabled(id)) {
       throw InternalErrorException(
         "Development error: You must enable autocompletion properties explicit in '${

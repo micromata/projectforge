@@ -32,7 +32,7 @@ import java.util.Date;
  * Displays from and to date as UTC time stamp. Use-ful for checking the correctness of the time zone of any date object
  * in the UI.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class DatesAsUTCModel extends Model<String>

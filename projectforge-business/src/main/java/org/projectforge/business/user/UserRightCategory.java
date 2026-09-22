@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  * The category is only used for sorting the user rights for editing in the gui.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum UserRightCategory implements I18nEnum

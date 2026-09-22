@@ -14,6 +14,25 @@ Most migrations (data base as well as data base content) will be done automatica
 
 But there are some really small changes e. g. in config files etc. which have to be done manually, as described below.
 
+=== Version 8.1 -> 8.2
+
+. Stricter validation of REST writes
+
+Saving an entity through the REST API (`AbstractPagesRest.saveOrUpdate` and everything built on it,
+i. e. the React and Next frontends as well as imports and mass updates) now validates *all* properties
+declared by `@PropertyInfo` / JPA `@Column`, and it validates the maximum length of string values too.
+
+Before, two things were only checked by accident: mandatory fields were validated against a cache that
+was filled while a page's layout was built, so which fields got checked depended on the pages the JVM
+had served since its start; and the maximum length of a string was not checked at all on this path,
+so an over-long value ran into the database unchecked. The Wicket pages have always validated both.
+
+Consequence: a write that used to be accepted silently may now be answered with HTTP 406 and a
+readable message naming the field. This is intended — the data was invalid before as well — but if an
+import or a script of yours suddenly reports a validation error, this is where it comes from. The rule
+itself is unchanged and lives in the entity: `@PropertyInfo(required = true)` and
+`@Column(length = …, nullable = …)`.
+
 === Version 7.2 -> 7.3
 
 . MEB plugin removed

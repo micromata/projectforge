@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration
  * - `5.___.99.*` = Regex-like: 5 + 3 arbitrary digits + .99 + anything
  * - `6.3*` = Starts with "6.3"
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Configuration
 @ConfigurationProperties(prefix = "projectforge.invoicing-quota")

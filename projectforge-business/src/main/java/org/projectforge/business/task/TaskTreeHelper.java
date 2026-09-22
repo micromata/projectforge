@@ -27,7 +27,7 @@ import org.projectforge.business.task.TaskTree;
 
 /**
  * For backward compatibility, please use TaskTree as autowired member instead.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskTreeHelper {
   public static TaskTree getTaskTree() {

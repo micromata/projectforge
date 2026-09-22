@@ -30,7 +30,7 @@ import org.projectforge.common.anots.PropertyInfo
 
 /**
  * For serializing/deserializing with only minimum properties editable by the user.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class MerlinVariableBase : Comparable<MerlinVariableBase> {
   @PropertyInfo(i18nKey = "plugins.merlin.variable.name")

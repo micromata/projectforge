@@ -49,6 +49,7 @@ import org.projectforge.rest.dto.Timesheet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -99,6 +100,32 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     if (dto.id != null && dto.hasRecurrence && dto.seriesModificationMode == null) {
       validationErrors.add(ValidationError.create("plugins.teamcal.event.recurrence.change.content"))
       validationErrors.add(ValidationError(fieldId = "seriesModificationMode"))
+    }
+  }
+
+  /**
+   * The hand-built React add page fetches `newEntry` (this method) instead of the UILayout `edit`
+   * route, so the startDate/endDate/calendar presets a caller passes from the calendar have to be
+   * read here too. [onBeforeGetItemAndLayout] already does exactly that for the `id == null` case,
+   * so it is reused rather than duplicated.
+   */
+  override fun newBaseDTO(request: HttpServletRequest?): TeamEvent {
+    val event = TeamEvent()
+    request?.let { onBeforeGetItemAndLayout(it, event, UILayout.UserAccess()) }
+    return event
+  }
+
+  /**
+   * The writable team calendars the calendar select of the hand-built React edit page offers — the
+   * same list [createEditLayout] embeds into the UILayout form. External subscriptions are
+   * read-only, so they are excluded.
+   */
+  @GetMapping("calendars")
+  fun getCalendars(): List<CalendarSelectValue> {
+    val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()
+    calendars.removeIf { it.externalSubscription }
+    return calendars.mapNotNull { cal ->
+      cal.id?.let { CalendarSelectValue(it, cal.title ?: "???") }
     }
   }
 
@@ -387,4 +414,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         .addVariable("ui", createEditLayout(dto, userAccess))
     )
   }
+
+  /** A writable team calendar as the calendar select of the hand-built React edit page needs it. */
+  data class CalendarSelectValue(val id: Long, val title: String)
 }

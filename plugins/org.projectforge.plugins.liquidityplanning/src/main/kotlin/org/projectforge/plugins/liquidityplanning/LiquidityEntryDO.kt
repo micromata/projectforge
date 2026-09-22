@@ -39,7 +39,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
  * Beside entries of debitors and creditors invoices additional entries (for accommodation, taxes, planned salaries,
  * assurance etc.) are important for a complete liquidity planning.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

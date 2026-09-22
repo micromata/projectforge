@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 /**
  * Some helper methods ...
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class StringHelper {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StringHelper.class);

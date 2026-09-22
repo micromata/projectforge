@@ -31,7 +31,14 @@ import org.projectforge.framework.utils.NumberFormatter
 
 private val log = KotlinLogging.logger {}
 
-class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
+/**
+ * @param listener Optional callback for reporting the progress to a caller (e. g. a job showing a progress bar).
+ * Hibernate Search calls the monitor from its own indexing threads, so the listener must be thread safe.
+ */
+class IndexProgressMonitor(
+    val entityClass: Class<*>,
+    private val listener: ((indexedEntities: Long, totalEntities: Long) -> Unit)? = null,
+) : MassIndexingMonitor {
     private var totalEntities: Long = 0
     private var indexedEntities: Long = 0
     private var lastReportedProgress = 0
@@ -47,6 +54,7 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
             indexedEntities += increment
         }
         printProgress()
+        notifyListener()
     }
 
     override fun entitiesLoaded(increment: Long) {
@@ -67,16 +75,30 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
             totalEntities > 100_000 -> 50     // 50% steps
             else -> 100                       // 100% steps
         }
+        // The total is only known now, so a progress bar can't show anything meaningful before.
+        notifyListener()
     }
 
     override fun indexingCompleted() {
         val duration = System.currentTimeMillis() - started
         val speed = totalEntities * 1000L / duration
         log.info { "${entityClass.simpleName}: Indexing completed (${duration.formatMillis()}, ${speed.format()}/s)." }
+        notifyListener()
     }
 
     override fun documentsBuilt(increment: Long) {
         // Diese Methode wird aufgerufen, wenn Dokumente für die Indizierung erstellt werden
+    }
+
+    private fun notifyListener() {
+        listener ?: return
+        val indexed: Long
+        val total: Long
+        synchronized(this) {
+            indexed = indexedEntities
+            total = totalEntities
+        }
+        listener.invoke(indexed, total)
     }
 
     private fun printProgress() {

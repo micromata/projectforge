@@ -26,7 +26,7 @@ package org.projectforge.rest.sipgate
 import org.projectforge.business.sipgate.*
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 abstract class ListData<T> {
   var items: List<T>? = null

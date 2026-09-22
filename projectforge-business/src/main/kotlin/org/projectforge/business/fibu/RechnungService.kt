@@ -71,6 +71,10 @@ class RechnungService {
                     pos.menge = getBigDecimal(tuple, "menge")
                     pos.einzelNetto = getBigDecimal(tuple, "einzelNetto")
                     pos.vat = getBigDecimal(tuple, "vat")
+                    // Carried over like every other field, and not to be forgotten: these objects replace the
+                    // positions of the invoice, so a lost flag turns a deleted position into a live one for
+                    // everybody working on them afterwards.
+                    pos.deleted = tuple.get("deleted") as Boolean
                     val rechnungId = getLong(tuple, "rechnungId")
                     invoices.find { it.id == rechnungId }?.let { rechnung ->
                         if (rechnung is RechnungDO) {
@@ -134,13 +138,13 @@ class RechnungService {
     companion object {
         private val SELECT_RECHNUNG_POSITIONEN = """
             SELECT p.id as id,p.number as number,p.menge as menge,p.einzelNetto as einzelNetto,p.vat as vat,
-                   p.rechnung.id as rechnungId
+                   p.deleted as deleted,p.rechnung.id as rechnungId
             FROM ${RechnungsPositionDO::class.simpleName} p
             WHERE p.rechnung.id IN :rechnungIds
         """.trimIndent()
         private val SELECT_EINGANGSRECHNUNG_POSITIONEN = """
             SELECT p.id as id,p.number as number,p.menge as menge,p.einzelNetto as einzelNetto,p.vat as vat,
-                   p.eingangsrechnung.id as rechnungId
+                   p.deleted as deleted,p.eingangsrechnung.id as rechnungId
             FROM ${EingangsrechnungsPositionDO::class.simpleName} p
             WHERE p.eingangsrechnung.id IN :rechnungIds
         """.trimIndent()

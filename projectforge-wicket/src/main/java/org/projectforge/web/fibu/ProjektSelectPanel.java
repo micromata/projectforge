@@ -45,7 +45,7 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 /**
  * This panel show the actual project and buttons for select/unselect projects.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel
 {

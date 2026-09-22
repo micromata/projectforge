@@ -32,7 +32,7 @@ import java.util.List;
 
 /**
  * For storing recent entries for selecting as templates by the user (recent time sheets, task etc.)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class RecentQueue<T> implements Serializable
 {

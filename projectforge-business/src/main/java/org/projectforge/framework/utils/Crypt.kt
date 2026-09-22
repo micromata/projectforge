@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * @author Wolfgang Jung (W.Jung@micromata.de)
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object Crypt {
   private const val CRYPTO_ALGORITHM = "AES/ECB/PKCS5Padding"

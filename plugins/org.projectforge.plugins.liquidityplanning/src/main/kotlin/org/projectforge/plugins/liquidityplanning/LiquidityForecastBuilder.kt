@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class LiquidityForecastBuilder {

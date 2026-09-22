@@ -33,7 +33,9 @@ function FormHistory({
             const data = await handleHTTPErrors(response);
             const json = await data.json();
 
-            setHistory(json);
+            // The endpoint answers { entries, supportsUserComments }; this frontend takes the
+            // comment capability from the layout's userAccess instead, so only the entries matter.
+            setHistory(json.entries || []);
         } catch (err) {
             setError(err);
         } finally {

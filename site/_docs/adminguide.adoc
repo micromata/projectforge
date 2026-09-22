@@ -182,6 +182,7 @@ The files must be located in the Resources/Images folder.
 ----
 ...
 projectforge.logoFile=
+projectforge.logoFileDark=
 projectforge.export.logoFile=
 ...
 ----

@@ -33,7 +33,7 @@ import org.projectforge.framework.utils.ILabelValueBean;
 import java.util.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 {

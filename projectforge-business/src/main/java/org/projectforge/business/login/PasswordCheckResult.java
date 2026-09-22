@@ -24,7 +24,7 @@
 package org.projectforge.business.login;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public enum PasswordCheckResult

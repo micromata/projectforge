@@ -13,7 +13,6 @@ target.tgz
 *.pydevproject
 .project
 .metadata
-/bin/
 tmp/
 test-output
 /work/
@@ -44,6 +43,7 @@ projectforge-caldav/src/main/resources/milton.license.sig
 derby.log
 projectforge-repository/jackrabbit
 projectforge-jcr/test/out
+projectforge-rest/test/out
 plugins/org.projectforge.plugins.datatransfer/test
 .DS_Store
 projectforge-application/src/main/kotlin/local
@@ -53,6 +53,11 @@ build
 projectforge-webapp/node
 projectforge-business/src/main/kotlin/testscripts
 .claude
+
+# graphify: generated knowledge graph and its local venv (rebuild with `graphify update .`)
+graphify-out
+venv
+.venv
 
 # MCP Server Configuration (contains secrets)
 .mcp.json
@@ -66,3 +71,8 @@ projectforge-business/src/main/kotlin/testscripts
 /projectforge-next/out
 /projectforge-next/next-env.d.ts
 /projectforge-next/tsconfig.tsbuildinfo
+
+# Playwright's output, when the e2e tests are started from the repository root rather than
+# from projectforge-next (whose own .gitignore covers the same directories).
+/test-results/
+/playwright-report/

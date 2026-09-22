@@ -43,7 +43,7 @@ import java.util.Date;
 
 /**
  * Builder class for building JFree charts.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class XYChartBuilder

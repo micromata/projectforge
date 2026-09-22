@@ -1,0 +1,124 @@
+{
+  "books": {
+    "title": "Books",
+    "edit": {
+      "tabs": {
+        "general": "General",
+        "loan": "Loan",
+        "notes": "Notes"
+      },
+      "sections": {
+        "general": "General information",
+        "notes": "Notes"
+      },
+      "fields": {
+        "keywordsHint": "Confirm keywords with Enter or comma"
+      },
+      "status": {
+        "available": "Available",
+        "loaned": "Lent out"
+      },
+      "saved": "Book saved",
+      "newTitle": "New book"
+    }
+  },
+  "duration": {
+    "custom": "Custom period"
+  },
+  "entityEdit": {
+    "lastSaved": "Last saved: {time}",
+    "notFound": "Entry not found.",
+    "deletedInfo": "This entry is marked as deleted. Restore it before editing."
+  },
+  "filter": {
+    "selectNone": "Select none",
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "blank": "(blank)"
+  },
+  "form": {
+    "hint": "Note"
+  },
+  "login": {
+    "submitting": "Signing in…",
+    "twoFactor": {
+      "verifying": "Verifying…",
+      "webAuthnRunning": "Waiting for token…",
+      "smsSent": "SMS code has been sent",
+      "mailSent": "Email code has been sent"
+    }
+  },
+  "logo": {
+    "projectforge": "ProjectForge",
+    "customer": "Company logo"
+  },
+  "order": {
+    "legend": {
+      "deleted": "Deleted / rejected / replaced",
+      "toBeInvoiced": "To be invoiced",
+      "commissioned": "Commissioned / LOI"
+    },
+    "forecast": {
+      "unavailable": "The forecast analysis could not be loaded.",
+      "jsonUnavailable": "The JSON export is only available in development mode.",
+      "savedOnlyHint": "Note: the forecast is computed from the saved order only; unsaved local changes are not taken into account."
+    }
+  },
+  "passwordForgotten": {
+    "submitting": "Sending…",
+    "mailSent": "If the account exists, a mail with a reset link has been sent. Please check your spam folder as well.",
+    "backToLogin": "Back to login",
+    "error": "The reset could not be requested"
+  },
+  "passwordReset": {
+    "submit": "Change password",
+    "submitting": "Changing…",
+    "requestNewLink": "Request a new link",
+    "backToLogin": "Back to login",
+    "error": "The password could not be changed"
+  },
+  "statusBar": {
+    "copyright": "©{years} by Micromata GmbH",
+    "company": "Micromata GmbH",
+    "version": "Version {version}, {buildDate}"
+  },
+  "select": {
+    "search": "Search…",
+    "noOptions": "No options",
+    "create": "Add \"{value}\"",
+    "remove": "Remove {label}",
+    "empty": "—"
+  },
+  "table": {
+    "resize": "Resize column",
+    "filter": "Filter column",
+    "empty": "No entries",
+    "range": "{from}–{to} of {total} entries",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "rowsPerPage": "Rows / page:",
+    "resetFailed": "The columns could not be reset",
+    "legend": {
+      "deleted": "Deleted"
+    }
+  },
+  "taskReRoot": {
+    "label": "Structure navigation",
+    "wholeTree": "Show the whole tree",
+    "ancestor": "Show this element's subtree",
+    "back": "Back",
+    "forward": "Forward"
+  },
+  "theme": {
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "unsavedChanges": {
+    "title": "Unsaved changes",
+    "confirm": "Leave page",
+    "stay": "Stay here"
+  }
+}

@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
@@ -34,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Caches the order positions assigned to invoice positions.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class AbstractRechnungCache(
     val entityClass: KClass<out AbstractRechnungDO>,
@@ -56,13 +57,49 @@ abstract class AbstractRechnungCache(
      * @return The RechnungInfo (from cache or calculated).
      */
     fun ensureRechnungInfo(rechnung: AbstractRechnungDO): RechnungInfo {
-        val info = getRechnungInfo(rechnung.id)
-        if (info != null) {
-            rechnung.info = info
-            return info
+        // Wait only for the initial fill (the startup window); afterwards serve the current cache data as is, even
+        // while a refresh is running. This is what avoids the SQL storm: this method runs once per row while building
+        // an invoice list (RechnungDao.afterLoad). On a not-yet-filled cache, every miss would fall through to
+        // RechnungCalculator.calculate below, lazily loading that invoice's positions and cost assignments - an N+1
+        // flood. Waiting once for the single bulk refresh instead is far cheaper.
+        //
+        // But NOT while this thread is inside a write transaction: the initial fill runs refresh() ->
+        // RechnungJdbcService on a *second* DB connection, whose SELECT on t_fibu_rechnung would block on the rows
+        // the open transaction has locked - and that transaction can never commit, because the same thread is blocked
+        // here waiting for the fill. A single-thread self-deadlock across two connections (it froze
+        // RechnungDaoTest.testNextNumber, and would freeze the first invoice load after a cache expiry inside a write
+        // transaction in production until the stuck-refresh watchdog interrupts it). Inside a transaction we skip the
+        // wait and fall through to the per-entity calculation below, which lazy-loads on the *same* connection - safe.
+        // A list load inside a write transaction is unusual, so the N+1 trade-off for that rare case is acceptable.
+        //
+        // NB: this is the JdbcTemplate variant of the same self-deadlock that
+        // [org.projectforge.framework.cache.AbstractCache.runReadOnlyForCacheMaintenance] solves for caches whose
+        // second connection is a persistence context (e.g. VacationCache). There the fix reuses the transaction's
+        // connection; here the second connection is RechnungJdbcService's own JdbcTemplate connection, which cannot
+        // be routed onto the transaction, so we must avoid triggering the refresh at all while a transaction is active.
+        if (PfPersistenceService.instance.isTransactionActive()) {
+            log.debug {
+                "ensureRechnungInfo ($entityName): inside a write transaction, skipping the cache initial-fill wait " +
+                        "to avoid a cross-connection self-deadlock; serving cached data or calculating per entity."
+            }
+        } else {
+            waitForInitialization()
+        }
+        rechnung.id?.let { id ->
+            invoiceInfoMap[id]?.let {
+                rechnung.info = it
+                return it
+            }
+        }
+        // Genuine miss on a filled cache (e.g. an invoice not yet persisted, or created after the last refresh):
+        // calculate it from the attached entity - a single invoice, not a list-wide N+1.
+        log.warn {
+            "ensureRechnungInfo cache MISS ($entityName): id=${rechnung.id}, deleted=${rechnung.deleted}, " +
+                    "initialized=$initialized, cacheSize=${invoiceInfoMap.size} - calculating (lazy-loads positions " +
+                    "and kostZuweisungen for this invoice)."
         }
         return RechnungCalculator.calculate(rechnung).also {
-            invoiceInfoMap[rechnung.id!!] = it
+            rechnung.id?.let { id -> invoiceInfoMap[id] = it }
             // rechnung.info = it // Set by RechnungsCalculator.
         }
     }

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service
 import kotlin.reflect.KMutableProperty
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 // Must be open for mocking in tests.
 @Service

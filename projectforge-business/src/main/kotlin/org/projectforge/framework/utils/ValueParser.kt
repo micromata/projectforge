@@ -30,7 +30,7 @@ import java.text.DecimalFormatSymbols
 /**
  * Some helper methods for parsing numbers
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ValueParser {
   /**

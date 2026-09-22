@@ -27,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -45,7 +44,7 @@ private val log = KotlinLogging.logger {}
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         getList(
     request: HttpServletRequest,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     baseDao: BaseDao<O>,
     magicFilter: MagicFilter
 )
@@ -64,18 +63,125 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
 
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
         getObjectList(
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     baseDao: BaseDao<O>,
     magicFilter: MagicFilter
 )
         : MutableList<O> {
+    val (queryFilter, customResultFilters) = buildQueryFilter(pagesRest, baseDao, magicFilter)
+    return baseDao.select(queryFilter, customResultFilters).toMutableList()
+}
+
+/**
+ * Builds the [QueryFilter] from a [MagicFilter] exactly as [getObjectList] does, returning it together with the
+ * custom result filters. Shared by [getObjectList] (non-paged `POST list`) and [getListPage] (server-side
+ * paging) so the two paths build the identical query — the invariant that lets a paged result be the same rows
+ * in the same order as the whole `POST list` result.
+ */
+private fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFilter(
+    pagesRest: AbstractEntityRest<O, DTO, B>,
+    baseDao: BaseDao<O>,
+    magicFilter: MagicFilter,
+): Pair<org.projectforge.framework.persistence.api.QueryFilter, List<org.projectforge.framework.persistence.api.impl.CustomResultFilter<O>>?> {
     magicFilter.sortAndLimitMaxRowsWhileSelect = true
     val queryFilter = baseDao.createQueryFilter()
     val customResultFilters = pagesRest.preProcessMagicFilter(queryFilter, magicFilter)
+    // Offered for every entity with attachment support (see LayoutListFilterUtils), so it is applied
+    // here rather than in each pages rest class.
+    AttachmentsFilterSupport.preProcessMagicFilter(queryFilter, magicFilter)
     magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
     MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
     pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-    return baseDao.select(queryFilter, customResultFilters).toMutableList()
+    // A computed column is no database column; DBQueryBuilderByCriteria.addOrder would swallow it and ship a
+    // query with no ORDER BY at all. Drop the computed sort properties from the QUERY here, once for every
+    // entity — never from magicFilter.sortProperties, which filterList/sortIds still read to sort by them.
+    queryFilter.sortProperties.removeIf { pagesRest.computedSortProperties.containsKey(it.property) }
+    return queryFilter to customResultFilters
+}
+
+/**
+ * Serves one page of a server-side paged list (Stage 2 of `MIGRATION-list-paging.md`).
+ *
+ * The whole ordered, access-checked id list is materialized once per (session, filter) and cached
+ * ([ListPageCache]); each page is then a slice of it, loaded with [AbstractEntityRest.getListByIds]. So the
+ * expensive per-row work of the pipeline — DTO mapping, currency formatting, Jackson — runs on 50 rows, not on
+ * every matching row, while the paged rows stay identical to the ones `POST list` would return (same query via
+ * [buildQueryFilter], same sort via [AbstractEntityRest.sortIds]).
+ *
+ * Correctness never rests on the cache: the served page always goes through `getListByIds` →
+ * `BaseDao.select(ids)` → per-row access check, so a stale id list (a row deleted or hidden since it was built)
+ * can at worst yield a short page, never a forbidden or wrong row.
+ *
+ * Caveat: [AbstractEntityRest.getListByIds] loads by `IN (…)`, which ignores `queryFilter.entityGraphName`, so a
+ * page of 50 rows may N+1 — acceptable at a page's size. Do not enable paging for a page that overrides
+ * `getListByIds` with id semantics of its own (e.g. `AddressCampaignValuePagesRest`'s synthetic negative ids).
+ *
+ * @param offset Index of the first row of the requested page within the whole result.
+ * @param limit Page size.
+ * @param refresh If true, the cached id list is ignored and rebuilt (used right after the client's own write).
+ */
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
+        getListPage(
+    request: HttpServletRequest,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
+    baseDao: BaseDao<O>,
+    listPageCache: ListPageCache,
+    magicFilter: MagicFilter,
+    offset: Int,
+    limit: Int,
+    refresh: Boolean,
+)
+        : ResultSet<O> {
+    if (pagesRest.isMultiSelectionMode(request, magicFilter)) {
+        // The registered ids already are the ordered id list; slice it directly, no query and no cache.
+        val entityIds = MultiSelectionSupport.getRegisteredEntityIds(request, pagesRest::class.java)?.toList() ?: listOf()
+        val selectedEntityIds =
+            MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java) ?: listOf()
+        val pageIds = entityIds.drop(offset).take(limit)
+        val page = restorePageOrder(pageIds, pagesRest.getListByIds(pageIds))
+        return ResultSet(
+            page, null, totalSize = entityIds.size, selectedEntityIds = selectedEntityIds, magicFilter = magicFilter,
+            offset = offset, limit = limit, totalSizeExact = true,
+        )
+    }
+    // Fingerprint the incoming filter (before buildQueryFilter mutates it): page 1 and page 2 of the same
+    // filter share it, so they reuse one materialized id list.
+    val fingerprint = magicFilter.resultFingerprint
+    val cached = if (refresh) null else listPageCache.get(request, pagesRest.category, baseDao.doClass, fingerprint)
+    val idList = cached ?: run {
+        val (queryFilter, customResultFilters) = buildQueryFilter(pagesRest, baseDao, magicFilter)
+        val idResult = baseDao.selectIds(queryFilter, customResultFilters)
+        val sortedIds = pagesRest.sortIds(idResult.ids, magicFilter)
+        listPageCache.put(request, pagesRest.category, baseDao.doClass, fingerprint, sortedIds, idResult.truncated)
+    }
+    val allIds = idList.ids
+    val pageIds = if (offset >= allIds.size) {
+        listOf()
+    } else {
+        allIds.copyOfRange(offset, minOf(offset + limit, allIds.size)).toList()
+    }
+    val page = restorePageOrder(pageIds, pagesRest.getListByIds(pageIds))
+    val resultSet = ResultSet(
+        page, null, totalSize = allIds.size, magicFilter = magicFilter,
+        offset = offset, limit = limit, totalSizeExact = !idList.truncated,
+    )
+    // Whole-result statistics are a property of the id list, not of the page: compute them once and cache them
+    // with the ids (invalidated together by the change counter), so paging through the same filter does not
+    // recompute them on every flip. For a list whose aggregate reloads the whole result set from the database
+    // (all invoices plus the previous-year set, all matching time sheets), that recompute was a full reload per
+    // page. `aggregate` may legitimately return null (no statistics); recomputing null costs nothing.
+    resultSet.statistics = idList.statistics ?: pagesRest.aggregate(allIds, magicFilter)?.also { idList.statistics = it }
+    return resultSet
+}
+
+/**
+ * Restores the order of [pageIds] on the objects [AbstractEntityRest.getListByIds] returned: `select(idList)`
+ * loads by `IN (…)`, whose row order is arbitrary. A row whose id is gone (deleted since the list was built)
+ * is dropped — a short page, not an error.
+ */
+private fun <O : ExtendedBaseDO<Long>> restorePageOrder(pageIds: List<*>, loaded: List<O>): List<O> {
+    val byId = loaded.associateBy { it.id }
+    return pageIds.mapNotNull { byId[it as? Long] }
 }
 
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
@@ -84,7 +190,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -126,7 +232,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -150,7 +256,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -177,7 +283,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>
+    pagesRest: AbstractEntityRest<O, DTO, B>
 )
         : ResponseEntity<ResponseAction> {
     try {
@@ -199,7 +305,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     baseDao: BaseDao<O>,
     obj: O,
     postData: PostData<DTO>,
-    pagesRest: AbstractPagesRest<O, DTO, B>,
+    pagesRest: AbstractEntityRest<O, DTO, B>,
     validationErrorsList: List<ValidationError>?
 )
         : ResponseEntity<ResponseAction> {
@@ -221,12 +327,9 @@ private fun handleException(msg: String, ex: Exception): ResponseEntity<Response
     if (ex is UserException) {
         val msgParams = ex.msgParams ?: ex.params
         log.error("$msg: message='${ex.i18nKey}', params='${msgParams?.joinToString() { it.toString() }}'")
-        val msg = if (msgParams != null) {
-            translateMsg(ex.i18nKey, *msgParams)
-        } else {
-            translate(ex.i18nKey)
-        }
-        val error = ValidationError(msg, messageId = ex.i18nKey)
+        // Through translateMsg(ex), not with the params as they are: a MessageParam may be an i18n key itself
+        // and has to be translated before it goes into the message, or the user reads the key.
+        val error = ValidationError(translateMsg(ex), messageId = ex.i18nKey)
         if (!ex.causedByField.isNullOrBlank()) error.fieldId = ex.causedByField
         val errors = listOf(error)
         return ResponseEntity(ResponseAction(validationErrors = errors), HttpStatus.NOT_ACCEPTABLE)

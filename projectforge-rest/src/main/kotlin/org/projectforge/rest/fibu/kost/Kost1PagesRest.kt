@@ -30,6 +30,8 @@ import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -46,7 +48,10 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     private lateinit var kostFormatter: KostFormatter
 
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
-        val kost1 = Kost1(obj)
+        val kost1 = Kost1()
+        // Not the Kost1DO constructor: that one copies the minimal set meant for embedded objects.
+        // The list and the edit page need every field, including the computed formattedNumber.
+        kost1.copyFrom(obj)
         return kost1
     }
 
@@ -69,6 +74,27 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
             UITable.createUIResultSetTable()
                 .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
                 .add(lc, "description", "kostentraegerStatus")
+        )
+    }
+
+    /**
+     * Sorts by the cost number the list shows, which no database column holds: [Kost1DO.formattedNumber]
+     * is a getter over the four number fields, so the criteria query can't order by it (it would log
+     * "Could not resolve attribute" and return the rows unordered).
+     *
+     * The four fields in their own order are exactly that sort: each part is a fixed number of digits,
+     * so comparing them one after the other yields the same order as comparing the formatted string.
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        val index = target.sortProperties.indexOfFirst { it.property == "formattedNumber" }
+        if (index < 0) {
+            return
+        }
+        val sortOrder = target.sortProperties[index].sortOrder
+        target.sortProperties.removeAt(index)
+        target.sortProperties.addAll(
+            index,
+            NUMBER_PROPERTIES.map { SortProperty(it, sortOrder) },
         )
     }
 
@@ -105,4 +131,9 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     }
 
     override val autoCompleteSearchFields = arrayOf("description", "nummer", "rawNumberString")
+
+    companion object {
+        /** The parts of the cost number, most significant first — [Kost1DO.formattedNumber] in columns. */
+        private val NUMBER_PROPERTIES = listOf("nummernkreis", "bereich", "teilbereich", "endziffer")
+    }
 }

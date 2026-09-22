@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service
 
 /**
  * For non financial and controlling users.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class MyScriptDao : AbstractScriptDao() {

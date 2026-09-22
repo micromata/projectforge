@@ -23,8 +23,10 @@
 
 package org.projectforge.rest.pub
 
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.configuration.DomainService
+import org.projectforge.business.login.LoginProtection
 import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
@@ -34,8 +36,11 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.UserObject
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.security.ConstantTimeCompare
 import org.projectforge.security.SecurityLogging
+import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -78,24 +83,51 @@ open class AuthenticationPublicServicesRest {
      * @return [UserObject]
      */
     @GetMapping(AUTHENTICATION_CREDENTIALS_PATH)
-    open fun getAuthenticationCredentials(@RequestParam("q") q: String): Credentials {
-        val temporaryToken = checkQuery(q)
+    open fun getAuthenticationCredentials(
+        request: HttpServletRequest,
+        @RequestParam("q") q: String
+    ): ResponseEntity<Any> {
+        // This endpoint hands out a REST_CLIENT token to anybody knowing q, and it is public (no user filter for
+        // /rsPublic). So guessing q must be throttled, and a failure must not be more expensive for us than for the
+        // caller: no exception (that would be a 500 with a stack trace plus a mail to the developers, see
+        // GlobalExceptionRegistry.sendMailToDevelopers), just a 400.
+        val clientIp = WebUtils.getClientIp(request)
+        val loginProtection = LoginProtection.instance()
+        // The ip address is passed as the user key (and not as clientIpAddress) on purpose: only the user key
+        // honours AUTHENTICATION_TYPE as a namespace, and the ip map has a threshold of 1000 failed attempts.
+        val offset = loginProtection.getFailedLoginTimeOffsetIfExists(clientIp, null, AUTHENTICATION_TYPE)
+        if (offset > 0) {
+            SecurityLogging.logSecurityWarn(
+                request, this::class.java, "REST AUTHENTICATION DENIED",
+                "Access denied for ${offset / 1000} seconds due to failed attempts with an invalid token q."
+            )
+            return ResponseEntity.badRequest().body("Invalid call.")
+        }
+        val temporaryToken = findTemporaryToken(q) ?: run {
+            loginProtection.incrementFailedLoginTimeOffset(clientIp, null, AUTHENTICATION_TYPE)
+            SecurityLogging.logSecurityWarn(
+                request, this::class.java, "REST AUTHENTICATION FAILED",
+                "Temporary token not found (expired or has never been existing)."
+            )
+            return ResponseEntity.badRequest().body("Invalid call.")
+        }
+        loginProtection.clearLoginTimeOffset(clientIp, null, null, AUTHENTICATION_TYPE)
         val uid = temporaryToken.uid
         val authenticationToken = userAuthenticationsDao.internalGetToken(uid, UserTokenType.REST_CLIENT)
         if (authenticationToken == null) {
             val msg = "Oups, no authentication token found for user with id $uid."
             log.error(msg)
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
-            throw IllegalArgumentException("Invalid call.")
+            return ResponseEntity.badRequest().body("Invalid call.")
         }
         val user = userDao.find(uid, checkAccess = false)
         if (user == null) {
             val msg = "Oups, no user with id $uid found."
             log.error(msg)
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
-            throw IllegalArgumentException("Invalid call.")
+            return ResponseEntity.badRequest().body("Invalid call.")
         }
-        return Credentials(user.username ?: "unknown", uid, authenticationToken, domainService.domain)
+        return ResponseEntity.ok(Credentials(user.username ?: "unknown", uid, authenticationToken, domainService.domain))
     }
 
     /**
@@ -132,17 +164,24 @@ open class AuthenticationPublicServicesRest {
      * @return The valid and not expired token.
      */
     internal fun checkQuery(q: String): TemporaryToken {
+        return findTemporaryToken(q) ?: throw IllegalArgumentException("Invalid call.")
+    }
+
+    /**
+     * Tries to get the temporary token.
+     *
+     * @return The valid and not expired token or null, if no such token exists. The token isn't part of the log
+     * message: it is a credential (whoever knows it gets a REST_CLIENT token), so it doesn't belong into a log file.
+     */
+    private fun findTemporaryToken(q: String): TemporaryToken? {
         cleanTemporaryToken()
-        val temporaryToken = temporaryTokenList.firstOrNull { it.token == q } ?: run {
-            val msg = "Temporary token '$q' not found (expired or has never been exist)."
-            log.error(msg)
-            SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
-            throw IllegalArgumentException("Invalid call.")
-        }
+        val temporaryToken = synchronized(temporaryTokenList) {
+            temporaryTokenList.firstOrNull { ConstantTimeCompare.equals(it.token, q) }
+        } ?: return null
         val delta = System.currentTimeMillis() - temporaryToken.systemTimeInMillis
         if (delta !in 0..EXPIRE_TIME_IN_MILLIS) {
-            log.error { "Request token q=$q expired: ${PFDateTime.from(temporaryToken.systemTimeInMillis).isoStringMilli}" }
-            throw IllegalArgumentException("Request is expired. Try to get a new token.")
+            log.warn { "Request token expired: ${PFDateTime.from(temporaryToken.systemTimeInMillis).isoStringMilli}" }
+            return null
         }
         return temporaryToken
     }
@@ -163,5 +202,11 @@ open class AuthenticationPublicServicesRest {
         private const val TEMPORARY_TOKEN_LENGTH = 20
 
         private const val AUTHENTICATION_CREDENTIALS_PATH = "authenticationCredentials"
+
+        /**
+         * Own namespace of [LoginProtection], so that failed attempts here neither lock out a user's login nor are
+         * lifted by one.
+         */
+        private const val AUTHENTICATION_TYPE = "REST_CREDENTIALS"
     }
 }

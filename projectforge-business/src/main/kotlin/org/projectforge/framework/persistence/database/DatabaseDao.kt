@@ -23,17 +23,19 @@
 
 package org.projectforge.framework.persistence.database
 
+import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
+import kotlinx.coroutines.future.await
 import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.mapper.orm.massindexing.MassIndexer
 import org.hibernate.search.mapper.orm.session.SearchSession
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
-import org.projectforge.framework.utils.NumberFormatter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -43,7 +45,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Creates index creation script and re-indexes data-base.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Check open connections in PostgreSQL:
 // SELECT backend_start, query_start, state_change, wait_event_type, state, query  FROM pg_stat_activity where state <> 'idle';
@@ -75,7 +77,7 @@ open class DatabaseDao {
             try {
                 currentReindexRun = Date()
                 sb.append(ClassUtils.getShortClassName(clazz))
-                reindex(clazz, settings)
+                reindexObjects(clazz, settings)
                 sb.append(", ")
             } finally {
                 currentReindexRun = null
@@ -84,28 +86,13 @@ open class DatabaseDao {
     }
 
     /**
-     * @param clazz
+     * Blocking re-index run, used by the classic clients (Wicket admin page, cron job, synchronous REST calls).
+     * For a cancellable run inside a coroutine use [reindexSuspending].
      */
-    private fun <T> reindex(clazz: Class<T>, settings: ReindexSettings) {
-        if (settings.lastNEntries != null || settings.fromDate != null) { // OK, only partly re-index required:
-            reindexObjects(clazz, settings)
-            return
-        }
-        reindexObjects(clazz, null)
-    }
-
-    private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
+    private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings) {
         entityManagerFactory.createEntityManager().use { em ->
-            // totalEntries are given by Hibernate search to MassIndexingMonitor.
-            // val totalEntries = em.createQuery("SELECT COUNT(u) FROM ${clazz.simpleName} u", Long::class.java).singleResult
-            val searchSession: SearchSession = Search.session(em)
             try {
-                // Starte den MassIndexer für eine bestimmte Entität (z.B. EmployeeDO)
-                searchSession.massIndexer(clazz)
-                    .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
-                    .batchSizeToLoadObjects(25) // Batch-Größe
-                    .idFetchSize(150) // Größe des ID-Fetch
-                    .monitor(IndexProgressMonitor(clazz)) // Fortschrittsmonitor hinzufügen
+                createMassIndexer(em, clazz, settings, IndexProgressMonitor(clazz))
                     .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
             } catch (ex: InterruptedException) {
                 log.error(ex.message, ex)
@@ -113,16 +100,82 @@ open class DatabaseDao {
         }
     }
 
+    /**
+     * Re-indexes the given class without blocking the calling thread and, unlike [rebuildDatabaseSearchIndices],
+     * abortable: [MassIndexer.startAndWait] can't be interrupted by a coroutine, while cancelling the future of
+     * [MassIndexer.start] really stops the indexing (see CancellableExecutionCompletableFuture of Hibernate Search).
+     *
+     * Serializing concurrent runs is up to the caller (jobs do it via their queue strategy).
+     */
+    suspend fun <T> reindexSuspending(
+        clazz: Class<T>,
+        settings: ReindexSettings,
+        monitor: MassIndexingMonitor = IndexProgressMonitor(clazz),
+    ) {
+        // The EntityManager has to stay open until the indexer is done, so await() happens inside use { }.
+        entityManagerFactory.createEntityManager().use { em ->
+            createMassIndexer(em, clazz, settings, monitor).start().await()
+        }
+    }
+
+    private fun <T> createMassIndexer(
+        em: EntityManager,
+        clazz: Class<T>,
+        settings: ReindexSettings,
+        monitor: MassIndexingMonitor,
+    ): MassIndexer {
+        // totalEntries are given by Hibernate search to MassIndexingMonitor.
+        val searchSession: SearchSession = Search.session(em)
+        val indexer = searchSession.massIndexer(clazz)
+            .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
+            // Aligned with hibernate.default_batch_fetch_size (persistence.xml): a larger root batch lets Hibernate
+            // batch-load the LAZY @IndexedEmbedded associations (Kost2/Konto/Projekt/Kunde/Task/user/group) of a whole
+            // batch in one statement instead of one row at a time, removing the N+1 select storm during reindexing.
+            .batchSizeToLoadObjects(128) // Batch-Größe
+            .idFetchSize(150) // Größe des ID-Fetch
+            .monitor(monitor) // Fortschrittsmonitor hinzufügen
+        val fromDate = settings.fromDate
+        val strategy = ReindexerRegistry.get(clazz)
+        val modifiedAtProperty = strategy.modifiedAtProperty
+        if (fromDate != null && modifiedAtProperty != null) {
+            // Only the recently modified entries: the rest of the index has to survive, so no purge. Without this
+            // (purgeAllOnStart defaults to true) a partial run would wipe every document not touched by it.
+            indexer.purgeAllOnStart(false)
+            val condition = StringBuilder("$modifiedAtProperty >= :fromDate")
+            // The change history holds the rows of all entities, so a run started for a list page has to say whose
+            // (otherwise re-indexing the book list would also re-index yesterday's history of every other entity).
+            // Several names, because history rows are written per entity instance: the order list needs the history
+            // of its positions and payment schedules, too. Never empty, see ReindexSettings.
+            val entityNames = settings.entityNames?.takeIf { strategy.entityNameProperty != null }
+            if (entityNames != null) {
+                condition.append(" and ${strategy.entityNameProperty} in :entityNames")
+            }
+            log.info { "${clazz.simpleName}: Re-indexing only where $condition, fromDate=$fromDate, entityNames=$entityNames" }
+            val step = indexer.type(clazz).reindexOnly(condition.toString()).param("fromDate", fromDate)
+            // Hibernate ORM's setParameter detects the collection of an in-parameter and binds it as a list.
+            entityNames?.let { step.param("entityNames", it) }
+        } else if (fromDate != null) {
+            log.info { "${clazz.simpleName}: No property of last modification known, so all entries are re-indexed." }
+        }
+        return indexer
+    }
+
     companion object {
         /**
-         * Since yesterday and 1,000 newest entries at maximum.
+         * Since yesterday. [ReindexSettings.getLastNEntries] is set for the classic clients displaying it, but has no
+         * effect on the indexing itself: reindexOnly of Hibernate Search takes a where condition without order or
+         * limit, and limitIndexedObjectsTo would cap arbitrary entries, not the newest ones.
+         *
+         * @param entityNames The entities the run was started for (see BaseDao.historyEntityNames), restricting the
+         *          change history to their rows. Null or empty for a system wide run, whose history isn't restricted.
          */
         @JvmStatic
-        fun createReindexSettings(onlyNewest: Boolean): ReindexSettings {
+        @JvmOverloads
+        fun createReindexSettings(onlyNewest: Boolean, entityNames: Collection<String>? = null): ReindexSettings {
             return if (onlyNewest) {
                 val day = DayHolder()
                 day.add(Calendar.DAY_OF_MONTH, -1) // Since yesterday:
-                ReindexSettings(day.utilDate, 1000) // Maximum 1,000 newest entries.
+                ReindexSettings(day.utilDate, 1000, entityNames) // Maximum 1,000 newest entries.
             } else {
                 ReindexSettings()
             }

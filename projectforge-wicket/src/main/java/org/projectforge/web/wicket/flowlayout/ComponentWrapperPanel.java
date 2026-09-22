@@ -28,7 +28,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 
 /**
  * Wrapper for using e. g. form components inside RepeatingViews.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public interface ComponentWrapperPanel

@@ -65,8 +65,12 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * Nummernkreis entspricht der ersten Ziffer.
      *
+     * Der erlaubte Wertebereich (0-9) wird von [Kost1Dao.verifyKost] geprüft, nicht hier: `@Column.length`
+     * ist eine Ziffernanzahl, kein Maximalwert.
+     *
      * @return
      */
+    @PropertyInfo(i18nKey = "fibu.kost1.nummernkreis", required = true)
     @get:Column(name = "nummernkreis", length = 1)
     open var nummernkreis: Int = 0
 
@@ -75,6 +79,7 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
      *
      * @return
      */
+    @PropertyInfo(i18nKey = "fibu.kost1.bereich", required = true)
     @get:Column(name = "bereich", length = 3)
     open var bereich: Int = 0
 
@@ -83,9 +88,14 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
      *
      * @return
      */
+    @PropertyInfo(i18nKey = "fibu.kost1.teilbereich", required = true)
     @get:Column(name = "teilbereich", length = 2)
     open var teilbereich: Int = 0
 
+    /**
+     * Endziffer entspricht der 7.-8. Ziffer.
+     */
+    @PropertyInfo(i18nKey = "fibu.kost1.endziffer", required = true)
     @get:Column(name = "endziffer", length = 2)
     open var endziffer: Int = 0
 

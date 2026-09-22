@@ -36,7 +36,7 @@ import org.apache.wicket.model.Model;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ToggleContainerPanel extends Panel
 {

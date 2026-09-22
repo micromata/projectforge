@@ -32,7 +32,7 @@ import java.util.Map;
 
 /**
  * The number of open to-do entries is cached. Accessible via ToDoDao.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ToDoCache extends AbstractCache
 {

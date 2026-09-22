@@ -339,13 +339,21 @@ open class MenuCreator {
         //
         val fibuMenu = menuItemDefHolder.add(
             MenuItemDef(MenuItemDefId.FIBU,
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) })
+                // Order book users (PM_ORDER_BOOK) also reach this submenu - only for the read-only,
+                // order-filtered outgoing invoice list below; every other entry keeps its own check.
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_GROUPS) ||
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
+                })
         )
             .add(
                 MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST,
                     checkAccess = {
                         hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP) ||
+                                // Read-only list of the invoices linked to orders the user may see
+                                // (see RechnungDao's per-row select access for order book users).
+                                hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
                     })
             )
             .add(
@@ -391,7 +399,12 @@ open class MenuCreator {
         )
         fibuMenu.add(
             MenuItemDef(MenuItemDefId.E_INVOICE_CHECKER,
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) })
+                // Also open to order-book users: the checker only parses an uploaded file and exposes
+                // no ProjectForge data (see EInvoiceCheckerPageRest.checkAccess).
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_GROUPS) ||
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE)
+                })
         )
 
         //////////////////////////////////////

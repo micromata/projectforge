@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 /**
  * Set class attribute of tag to error or appends " error" if class attribute does already exist.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ErrorHighlightBehavior extends Behavior
 {

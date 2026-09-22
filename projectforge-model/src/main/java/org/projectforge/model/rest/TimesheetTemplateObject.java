@@ -31,7 +31,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  * This object stores a user preference of ProjectForge used for adding new time-sheets. The user may choose this templates for pre-filling
  * fields.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TimesheetTemplateObject
 {

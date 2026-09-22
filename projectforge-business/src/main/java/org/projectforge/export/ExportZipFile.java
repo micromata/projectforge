@@ -26,7 +26,7 @@ package org.projectforge.export;
 /**
  * Represents an export object including the desired filename.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ExportZipFile

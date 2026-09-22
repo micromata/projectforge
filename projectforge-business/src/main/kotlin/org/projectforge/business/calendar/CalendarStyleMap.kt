@@ -30,7 +30,7 @@ import org.projectforge.business.calendar.TeamCalendar.Companion.BIRTHDAYS_FAVS_
  * Persist the styles of the calendarIds for the user.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class CalendarStyleMap {
     /**

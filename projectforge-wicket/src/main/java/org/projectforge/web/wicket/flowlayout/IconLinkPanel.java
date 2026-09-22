@@ -37,7 +37,7 @@ import java.io.Serializable;
 /**
  * Represents an icon.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class IconLinkPanel extends Panel
 {

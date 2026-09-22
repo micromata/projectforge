@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Helper class for rendering combo boxes: {"2007-2009"; "2009"; "2008"; "2007"} or {"2009"; "2008", "2007"}
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class YearListCoiceRenderer implements IChoiceRenderer<Integer>
 {

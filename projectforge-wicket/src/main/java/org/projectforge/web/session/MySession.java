@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.login.LoginService;
 import org.projectforge.security.SessionUserMismatchHandler;
+import org.projectforge.web.WebUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serializable;
@@ -141,7 +142,7 @@ public class MySession extends WebSession {
         try {
           final HttpServletRequest request = ((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest();
           sessionId = request.getSession(false) != null ? request.getSession(false).getId() : "no-session";
-          clientIp = request.getRemoteAddr();
+          clientIp = WebUtils.getClientIp(request);
           requestUri = request.getRequestURI();
         } catch (Exception ex) {
           // Ignore, best-effort request info gathering.

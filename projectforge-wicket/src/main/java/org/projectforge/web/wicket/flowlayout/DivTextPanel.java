@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Represents a simple text panel enclosed in a div element.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class DivTextPanel extends Panel

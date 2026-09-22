@@ -31,7 +31,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.AbstractPagesRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.datatable.DataTableStateRequest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
@@ -57,11 +56,19 @@ class AGGridSupport {
         request.columnPinning?.let { gridState.columnPinning = it }
         request.sorting?.let { gridState.sorting = it }
         request.columnFilters?.let { gridState.columnFilters = it }
+        request.paginationPageSize?.let { gridState.paginationPageSize = it }
 
         userPrefService.putEntry(category, USER_PREF_PARAM_GRID_STATE, gridState, true)
     }
 
-    private fun getGridState(category: String): GridState? {
+    /**
+     * The stored grid state, or null if the user has none yet.
+     *
+     * Pages built from a [UILayout] don't need this: [restoreColumnsFromUserPref] folds the state
+     * back into the column definitions for them. Hand-built frontend pages have no layout to fold
+     * it into and read the state directly instead (see AbstractPagesRest.getColumnStates).
+     */
+    fun getGridState(category: String): GridState? {
         return userPrefService.getEntry(category, USER_PREF_PARAM_GRID_STATE, GridState::class.java)
     }
 
@@ -90,13 +97,22 @@ class AGGridSupport {
         magicFilter.maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS
         agGrid.enablePagination()
         magicFilter.paginationPageSize?.let { agGrid.paginationPageSize = it }
+        // The page size the user selected last, stored along with the column state. Applied here and not
+        // in [restoreColumnsFromUserPref], because that runs after this method (LayoutUtils.processListPage)
+        // and would override the page size a multi selection deliberately remembered in the session below.
+        getGridState(pagesRest.category)?.paginationPageSize?.let { agGrid.paginationPageSize = it }
         layout.add(agGrid)
         if (MultiSelectionSupport.isMultiSelection(request, magicFilter)) {
             prepareUIGrid4MultiSelectionListPage(request, layout, agGrid, pagesRest, pageAfterMultiSelect)
         } else {
             if (userAccess.update == true) {
-                val redirectUrl =
-                    rowClickUrl ?: "${PagesResolver.getEditPageUrl(pagesRest::class.java, absolute = true)}/id"
+                // The edit page with the id placeholder, resolved per row by both frontends. Not the new-entry
+                // url with "/id" appended: that only happened to match for the generic React shape
+                // (react/<category>/edit + /id), while e.g. book uses next/book/new and next/book/:id, which
+                // turned a row click into next/book/new/<id> - the empty *new* form. Asking the pages rest also
+                // honours its getStandardEditPage() override (address, script, project, poll ...) and keeps a
+                // user who is looking at the legacy list of a migrated page in the legacy app.
+                val redirectUrl = rowClickUrl ?: "/${pagesRest.getEditPage(request)}"
                 agGrid.withRowClickRedirectUrl(redirectUrl, openModal = pagesRest.useModalEditDialog)
                 if (pageAfterMultiSelect != null) {
                     layout.multiSelectionSupported = true
@@ -152,6 +168,15 @@ class AGGridSupport {
             )
         agGrid.onColumnStatesChangedUrl = RestResolver.getRestUrl(callerRest::class.java, RestPaths.SET_COLUMN_STATES)
         agGrid.resetGridStateUrl = RestResolver.getRestUrl(callerRest::class.java, "resetGridState")
+        // Translations used by the multi-selection action bar (selection count, show/deselect controls).
+        layout.addTranslations(
+            "cancel",
+            "multiselection.selectedCount",
+            "multiselection.showSelected",
+            "multiselection.deselectAll",
+            "multiselection.selected.title",
+            "multiselection.selected.empty",
+        )
     }
 
     fun restoreColumnsFromUserPref(category: String, agGrid: UIAgGrid) {

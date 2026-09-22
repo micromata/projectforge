@@ -32,7 +32,7 @@ import static java.lang.annotation.ElementType.FIELD;
 /**
  * Annotation for marking fields of the ConfigXml as secret fields. Such fields will not be hidden in the export functionality of the
  * config.xml as well as in toString() methods. The value is displayed as "******" instead.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Target({ FIELD})
 @Retention(RetentionPolicy.RUNTIME)

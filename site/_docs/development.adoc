@@ -679,3 +679,41 @@ create user pf2 password 'secret';
 CREATE DATABASE pf2;
 GRANT ALL PRIVILEGES ON DATABASE pf2 TO pf2;
 ```
+
+=== Knowledge graph (graphify)
+
+Optional developer tooling: graphify builds a local knowledge graph of the code base in `graphify-out/`,
+which AI coding assistants query instead of grepping the whole tree. Both the tool and the graph are
+local and untracked -- without them the repository behaves exactly as before.
+
+Install it per checkout into a project-local virtual environment (never globally):
+```
+python3 -m venv venv
+./venv/bin/pip install -q graphifyy
+./venv/bin/graphify update .
+```
+
+Note the names: the PyPI package is `graphifyy`, the command line tool is `graphify`. Building the graph
+with `graphify update .` is purely AST based -- no LLM, no API key, no cost. If you prefer `uv` or `pipx`,
+those work as well, but plain venv plus pip is the documented default.
+
+The virtual environment must be created inside each checkout: `venv/bin/graphify` contains an absolute
+shebang path, so a venv from another ProjectForge working copy cannot be reused, and every checkout needs
+its own graph anyway.
+
+Everyday use:
+```
+./venv/bin/graphify query "How does the order book edit page load its data?"
+./venv/bin/graphify explain "AbstractEntityRest"
+./venv/bin/graphify path "AbstractEntityRest" "UILayout"
+./venv/bin/graphify update .          # after code changes
+```
+
+Optionally install a post-commit hook that re-extracts changed code files and rebuilds the graph after
+every commit. It appends to an existing post-commit hook instead of replacing it:
+```
+./venv/bin/graphify hook install
+```
+
+`graphify-out`, `venv` and `.venv` are already covered by `.gitignore`, and the root `CLAUDE.md` already
+contains the matching `## graphify` section, so `graphify claude install` is not needed.

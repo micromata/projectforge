@@ -51,12 +51,15 @@ private val log = KotlinLogging.logger {}
  * as for rest clients.
  * The tokens will be stored encrypted in the database by a key stored in ProjectForge's config file. Therefore a data base administrator isn't able to re-use
  * tokens without the knowledge of this key.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java) {
     @Autowired
     private lateinit var userAuthenticationsService: UserAuthenticationsService
+
+    @Autowired
+    private lateinit var stayLoggedInTokenDao: StayLoggedInTokenDao
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -171,7 +174,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
             user.lastPasswordChange = Date()
             if (user.id != null) {
                 // Renew token only for existing users.
-                userAuthenticationsService.renewToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
+                // Every device has to log in again with the new password (same meaning as renewing the one
+                // shared key had before, see StayLoggedInTokenDO).
+                stayLoggedInTokenDao.deleteAll(userId)
                 userAuthenticationsService.renewToken(userId, UserTokenType.REST_CLIENT)
             }
         } else {

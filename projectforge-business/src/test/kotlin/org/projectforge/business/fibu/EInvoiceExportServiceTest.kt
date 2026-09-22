@@ -24,14 +24,31 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.Constants
+import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.jcr.RepoService
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class EInvoiceExportServiceTest {
+
+    companion object {
+        /**
+         * [EInvoiceExportService.validate] answers translated sentences, and this test runs without Spring:
+         * without the bundle every key would resolve to itself, so the assertions below would compare keys
+         * against keys and pass for a service that translates nothing.
+         */
+        @JvmStatic
+        @BeforeAll
+        fun registerBundle() {
+            I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME)
+        }
+    }
 
     private val invoiceServiceMock: InvoiceService = Mockito.mock(InvoiceService::class.java)
     private val attachmentsServiceMock: AttachmentsService = Mockito.mock(AttachmentsService::class.java)
@@ -158,11 +175,14 @@ class EInvoiceExportServiceTest {
         }
 
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("number") }, "Should report missing invoice number")
-        assertTrue(errors.any { it.contains("date") }, "Should report missing date")
-        assertTrue(errors.any { it.contains("positions") }, "Should report missing positions")
-        assertTrue(errors.any { it.contains("customer") }, "Should report missing customer")
-        assertTrue(errors.any { it.contains("bank account") }, "Should report missing bank account")
+        // Compared to the translated texts and not to English substrings: the sentences are the user's
+        // language, so a substring of the English bundle would only ever hold for an English account.
+        assertTrue(errors.contains(eInvoiceError("numberMissing")), "Should report missing invoice number")
+        assertTrue(errors.contains(eInvoiceError("dateMissing")), "Should report missing date")
+        assertTrue(errors.contains(eInvoiceError("noPositions")), "Should report missing positions")
+        assertTrue(errors.contains(eInvoiceError("customerNameMissing")), "Should report missing customer")
+        // The accounts *are* configured here, the invoice just names none of them.
+        assertTrue(errors.contains(eInvoiceError("bankAccountNotSelected")), "Should report missing bank account")
     }
 
     @Test
@@ -184,7 +204,7 @@ class EInvoiceExportServiceTest {
         }
 
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("address") }, "Should report incomplete address")
+        assertTrue(errors.contains(eInvoiceError("customerAddressMissing")), "Should report incomplete address")
     }
 
     @Test
@@ -193,8 +213,11 @@ class EInvoiceExportServiceTest {
 
         val invoice = createTestInvoice().apply { sellerBankAccount = null }
         val errors = service.validate(invoice)
-        assertTrue(errors.any { it.contains("Seller") }, "Should report unconfigured seller")
+        assertTrue(errors.contains(eInvoiceError("sellerNotConfigured")), "Should report unconfigured seller")
     }
+
+    /** The sentence [EInvoiceExportService.validate] answers for one of its error keys. */
+    private fun eInvoiceError(key: String): String = translate("fibu.rechnung.eInvoice.error.$key")
 
     @Test
     fun getExportFilename() {
@@ -243,5 +266,30 @@ class EInvoiceExportServiceTest {
         val xml = service.exportAsXRechnung(invoice)
         assertNotNull(xml)
         assertTrue(xml.isNotEmpty())
+    }
+
+    /**
+     * A deleted position is no line of the e-invoice: it is not part of any sum of the invoice
+     * ([RechnungCalculator] skips it), so a line for it would state an amount the totals don't contain.
+     */
+    @Test
+    fun exportSkipsDeletedPositions() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val invoice = createTestInvoice()
+        invoice.positionen!![1].deleted = true
+
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        assertTrue(xmlString.contains("Softwareentwicklung"), "The remaining position is a line of the e-invoice")
+        assertFalse(xmlString.contains("Projektmanagement"), "The deleted position is not")
+    }
+
+    /** An invoice whose only position was deleted has nothing to state, and says so instead of exporting. */
+    @Test
+    fun validateAllPositionsDeleted() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val invoice = createTestInvoice()
+        invoice.positionen!!.forEach { it.deleted = true }
+
+        assertTrue(service.validate(invoice).contains(eInvoiceError("noPositions")), "Should report missing positions")
     }
 }

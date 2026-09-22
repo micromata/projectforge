@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.api.UserRightService;
 /**
  * Converts UserRightId from and to strings.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserRightIdSingleValueConverter implements SingleValueConverter
 {

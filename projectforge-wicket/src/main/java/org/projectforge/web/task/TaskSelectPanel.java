@@ -58,7 +58,7 @@ import java.util.Objects;
 /**
  * Panel for showing and selecting one task.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements ComponentWrapperPanel
 {

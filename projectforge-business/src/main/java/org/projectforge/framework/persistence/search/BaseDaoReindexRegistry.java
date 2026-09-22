@@ -34,7 +34,7 @@ import java.util.Set;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class BaseDaoReindexRegistry
 {

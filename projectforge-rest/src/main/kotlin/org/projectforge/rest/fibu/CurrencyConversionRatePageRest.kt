@@ -265,7 +265,7 @@ class CurrencyConversionRatePageRest : AbstractDynamicPageRest() {
     private fun validate(dto: CurrencyConversionRate): ResponseEntity<ResponseAction>? {
         // Validate required fields automatically
         val rateDO = dto.cloneAsDO()
-        val validationErrors = ValidationUtils.validateRequiredFields(rateDO)
+        val validationErrors = ValidationUtils.validateFields(rateDO)
 
         // Validate conversion rate (custom business logic)
         if (dto.conversionRate != null && dto.conversionRate!! <= BigDecimal.ZERO) {

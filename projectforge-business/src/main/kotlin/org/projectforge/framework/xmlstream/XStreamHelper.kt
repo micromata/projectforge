@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Some helpers for using XStream (with proper UTF-8 encoding).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object XStreamHelper {
   /**

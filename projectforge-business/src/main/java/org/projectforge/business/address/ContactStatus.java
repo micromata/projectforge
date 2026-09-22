@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  *         <ul>
  *         <li>ACTIVE - Contact is warm, working together, don't forget.</li>

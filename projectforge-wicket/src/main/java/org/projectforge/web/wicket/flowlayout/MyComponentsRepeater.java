@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * List of components which are built in the order of the list. The RepeatingView is generated after creating this list (is used e. g. for
  * abstract pages or forms for buttons, therefore the derived class can insert buttons in the list of the super class.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MyComponentsRepeater<T extends Component> implements Serializable
 {

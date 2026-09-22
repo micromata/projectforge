@@ -44,7 +44,7 @@ import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.rest.fibu.RechnungPagesRest;
+import org.projectforge.rest.fibu.OutgoingInvoiceEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -252,10 +252,10 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
                         public void onClick() {
                             exportExcelWithCostAssignments();
                         }
-                    }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
+                    }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tooltip"));
             addContentMenuEntry(exportExcelButton);
         }
-        addNewMassSelect(RechnungPagesRest.class);
+        addNewMassSelect(OutgoingInvoiceEntityRest.class);
     }
 
     /**

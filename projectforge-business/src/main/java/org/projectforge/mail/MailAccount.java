@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Connects to a mail server and receives mails.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class MailAccount
 {

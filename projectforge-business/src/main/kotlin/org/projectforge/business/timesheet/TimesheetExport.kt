@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
 /**
  * For excel export.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 open class TimesheetExport {

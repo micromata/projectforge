@@ -1,0 +1,330 @@
+import { TIMESHEET_METADATA } from "@/lib/metadata/timesheet.generated";
+import { definePage } from "@/lib/page-def/define-page";
+import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
+import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
+import { TimesheetListActions } from "./timesheet-list-actions";
+import { TimesheetStatisticsLine } from "./timesheet-statistics-line";
+import type { TimesheetStatistics } from "./timesheet-statistics";
+import { AiNoteFooter } from "./edit/sections/ai-note-footer";
+import { TaskKost2Section } from "./edit/sections/task-kost2-section";
+import { DayRangeSection } from "./edit/sections/day-range-section";
+import { LocationField } from "./edit/sections/location-field";
+import { ReferenceField } from "./edit/sections/reference-field";
+import { TagField } from "./edit/sections/tag-field";
+import { TemplatesRecentBar } from "./edit/sections/templates-recent-bar";
+import {
+  timesheetEditSchema,
+  TIMESHEET_EDIT_FIELDS,
+  type TimesheetEditValues,
+} from "./edit/timesheet-edit-schema";
+import {
+  emptyTimesheetValues,
+  toFormValues,
+} from "./edit/timesheet-edit-values";
+import type { EntityRefDto, TimesheetDetail, TimesheetListRow } from "./types";
+
+/** REST category of a time sheet — the entity name every shared hook is parameterised with. */
+export const TIMESHEET_ENTITY = "timesheet";
+/** React Query key of the list, so a write from the edit page refreshes it once the list is built. */
+export const TIMESHEET_LIST_QUERY_KEY = ["timesheet"] as const;
+/**
+ * Where the preset reads from (see TimesheetPagesRest.newBaseDTO): the calendar's slot select passes the
+ * period, user and first hour; the task form's "add a time sheet" cross-link passes `taskId` to preset the
+ * task (see timesheetAddHref).
+ */
+const NEW_ENTRY_PARAMS = [
+  "startDate",
+  "endDate",
+  "userId",
+  "firstHour",
+  "taskId",
+] as const;
+
+/** JIRA issue links below the two free-text fields, as Wicket's `addJIRAField` shows them. */
+const DescriptionJiraLinks = makeJiraFieldLinks("description");
+const ReferenceJiraLinks = makeJiraFieldLinks("reference");
+
+/**
+ * The whole time sheet page as data (see lib/page-def/types.ts).
+ *
+ * The list is live and routed at `next/timesheet` (`MenuItemDefId.TIMESHEET_LIST` resolves there via
+ * `listUrl`): the filter toggles recursive/onlyBillable, the summed-duration + AI-share footer
+ * (`statistics`), the Excel/PDF/ics exports (`listActions`) and the mass update (`massUpdate`) match the
+ * legacy list. Its Vorlagen (templates) live on the edit page, not the list — the templates/recent bar
+ * the calendar's edit form carries (see `editBanner` below), so nothing of the legacy list is left behind.
+ *
+ * The edit page the calendar opens (see toTimesheetRoute). Its fields follow
+ * the legacy form (`TimesheetPagesRest.createEditLayout`) — the task and its cost unit, the period, the
+ * texts — with the templates/recent bar above them and the AI-time-savings block only where the
+ * installation tracks it (`timeSavingsByAIEnabled`).
+ */
+export const TIMESHEET_PAGE = definePage<
+  TimesheetListRow,
+  TimesheetEditValues,
+  TimesheetDetail,
+  typeof TIMESHEET_METADATA
+>({
+  entity: TIMESHEET_ENTITY,
+  metadata: TIMESHEET_METADATA,
+  route: "/timesheet",
+  queryKey: TIMESHEET_LIST_QUERY_KEY,
+  // Served one page at a time (POST listPage): the list sorts only on DB columns and its onlyBillable option
+  // is a CustomResultFilter that runs inside the query pipeline, so nothing narrows or re-sorts after it — the
+  // page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
+  // aggregate hook over the full id list (see TimesheetPagesRest.aggregate, PageDef.serverPaging).
+  serverPaging: true,
+  // The period filter pages a week at a time as well — a sheet is read by its week (the list's KW
+  // column), so "Woche" leads the arts before the calendar month, the terms and "Jahr bis heute"
+  // (see FilterPeriodKindsProvider; the default omits the week).
+  filterPeriodKinds: [
+    "week",
+    "month",
+    "termThreeMonths",
+    "termYear",
+    "yearToDate",
+  ],
+  // Project management > Time sheets (MenuItemDefId.TIMESHEET_LIST under projectManagementMenu).
+  categoryKey: "menu.projectmanagement",
+  titleKey: "menu.timesheetList",
+  // The fields that identify a sheet, in the order the legacy list shows them
+  // (`TimesheetPagesRest.createListLayout`).
+  columns: [
+    // Both are entity references the row carries as `{ id, displayName }`, not a plain value, so each
+    // names the string it shows rather than letting the default cell stringify the object. The sort id
+    // stays the field name, which is what the backend orders the server-side pages by. No database column
+    // holds the user's full name, so ordering by the `user` association directly would sort by its foreign
+    // key; the backend expands a `user` sort into the name columns (firstname, lastname, username) for any
+    // entity with a user column (MagicFilterProcessor.expandSortProperty), matching the displayed name.
+    {
+      name: "user",
+      size: 140,
+      cell: ({ row }) => row.original.user?.displayName ?? null,
+    },
+    // The cost unit, shown only where cost accounting is configured — the Wicket column the list gates on
+    // `Configuration.isCostConfigured` (the `kost2Configured` list variable, see
+    // TimesheetPagesRest.addVariablesForListPage). Its formatted number is the label ("5.100.01.02"), the
+    // description the tooltip. No database column holds the formatted number, so ordering by the `kost2`
+    // association directly would sort by its foreign key; the backend expands a `kost2` sort into the
+    // number's real parts for any entity with a cost-unit column (MagicFilterProcessor.expandSortProperty),
+    // which sorts the same way the number reads.
+    {
+      name: "kost2",
+      size: 110,
+      filterKind: null,
+      visible: ({ variables }) => variables?.kost2Configured === true,
+      cell: ({ row }) =>
+        row.original.kost2?.formattedNumber ??
+        row.original.kost2?.displayName ??
+        null,
+      tooltip: (row) => row.kost2?.description ?? undefined,
+    },
+    {
+      name: "task",
+      size: 240,
+      // The plain task title (the backend drops the "(#id)" of its display name), with the path to the
+      // root as the tooltip — the Wicket column shows exactly this (`TaskPropertyColumn`).
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.task?.title ?? row.original.task?.displayName ?? null}
+        </span>
+      ),
+      tooltip: (row) => row.task?.path ?? undefined,
+    },
+    // The week of the year and the day-of-week name of the sheet's start, both pre-formatted by the
+    // backend (see TimesheetListRow) — the two narrow Wicket columns. Neither is a property the backend
+    // could order by, so both opt out of sorting and offer no filter.
+    {
+      id: "weekOfYear",
+      labelKey: "calendar.weekOfYearShortLabel",
+      accessor: (row) => row.weekOfYear ?? "",
+      size: 50,
+      sortable: false,
+      filterKind: null,
+    },
+    {
+      id: "dayName",
+      labelKey: "calendar.dayOfWeekShortLabel",
+      accessor: (row) => row.dayName ?? "",
+      size: 50,
+      sortable: false,
+      filterKind: null,
+    },
+    // The whole booked span as one "date fromTime-toTime" column, as the Wicket list shows it instead of
+    // separate start/stop columns — pre-formatted by the backend. Its id is `startTime` so the header
+    // sorts the server-side pages by the start (the legacy column's `sortField`); the period filter is a
+    // filter of its own (see TimesheetPagesRest), so this column offers none.
+    {
+      id: "startTime",
+      labelKey: "timePeriod",
+      accessor: (row) => row.formattedTimePeriod ?? "",
+      size: 170,
+      filterKind: null,
+      // Tabular figures so every digit has the same width: the fixed-format date then lines up column for
+      // column down the list and the start/end times sit flush under each other, which a proportional font
+      // (narrow "1", wide "0") would jitter row to row.
+      className: "tabular-nums",
+    },
+    // The duration, pre-formatted as "h:mm" (with days where the working-day config splits them). Backed
+    // by no orderable property (the DO computes it), so it does not sort and offers no filter.
+    {
+      id: "duration",
+      labelKey: "timesheet.duration",
+      accessor: (row) => row.formattedDuration ?? "",
+      size: 70,
+      align: "right",
+      sortable: false,
+      filterKind: null,
+      // Same tabular figures as the period, so the "h:mm" values align on the colon down the column.
+      className: "tabular-nums",
+    },
+    // The share of time saved by AI, only where the installation tracks it (the `timeSavingsByAIEnabled`
+    // list variable) — the Wicket column gated on `baseDao.timeSavingsByAIEnabled`. Pre-formatted
+    // ("1:30h, 25%"); nothing single-property backs it, so it neither sorts nor filters.
+    {
+      id: "aiTimeSavings",
+      labelKey: "timesheet.ai.timeSavedByAI",
+      accessor: (row) => row.aiTimeSavings ?? "",
+      size: 90,
+      sortable: false,
+      filterKind: null,
+      visible: ({ variables }) => variables?.timeSavingsByAIEnabled === true,
+    },
+    { name: "location", size: 140 },
+    // Both free-text fields can carry JIRA issue keys; linked as in the Wicket list, which links the
+    // description column (`JiraUtils.linkJiraIssues`) — here the reference too, since it commonly holds
+    // ticket numbers (see JiraLinkedText).
+    // Offered but off until switched on in the column panel — the reference is a niche column most readers
+    // do not need on screen.
+    {
+      name: "reference",
+      size: 140,
+      hiddenByDefault: true,
+      cell: ({ row }) => <JiraLinkedText text={row.original.reference} />,
+    },
+    // The tag, shown only where any tag is configured — the Wicket column gated on a non-empty tag list
+    // (the `tagsConfigured` list variable, see TimesheetPagesRest.addVariablesForListPage). Off by default
+    // like the reference; the two gates compose — the column exists only where tags are configured, and
+    // even then starts hidden until the user switches it on.
+    {
+      name: "tag",
+      size: 100,
+      hiddenByDefault: true,
+      visible: ({ variables }) => variables?.tagsConfigured === true,
+    },
+    {
+      name: "description",
+      size: 320,
+      wrap: true,
+      cell: ({ row }) => <JiraLinkedText text={row.original.description} />,
+    },
+  ],
+  // The list's footer between the toolbar and the table: the summed duration and, where the installation
+  // tracks it, the AI share — the two numbers the legacy list shows (TimesheetPagesRest.postProcessResultSet).
+  // The cast is where the untyped `ResultSet.statistics` becomes what the rest class sends (see
+  // PageDef.statistics for why this is the place for it).
+  statistics: ({ statistics, isFetching }) => (
+    <TimesheetStatisticsLine
+      statistics={statistics as TimesheetStatistics | undefined}
+      isFetching={isFetching}
+    />
+  ),
+  // The list's exports, in the toolbar: the filtered sheets as Excel or PDF, and the ics subscription url
+  // (see TimesheetListActions). The PDF is built with OpenPDF in the backend now, no longer the wicket FOP.
+  listActions: TimesheetListActions,
+  // "Mehrfachauswahl" — the legacy list's mass select and update, backed by TimesheetMultiSelectedPageRest
+  // (mounted under `timesheetSelected`, the entity's own name + URL_SUFFIX_SELECTED, not `${entity}Selected`).
+  // The selection column and mode toggle appear only for a user with update access; the mass-update form
+  // itself is the backend's UILayout, rendered by the generic MassUpdatePage under the route below.
+  massUpdate: {
+    endpoint: "timesheetSelected",
+    route: "/timesheet/mass-update",
+    // The same summed-duration / AI-savings line the list footer shows, over the selected sheets — fed by
+    // the typed statistics the backend attaches to the mass-update meta (TimesheetMultiSelectedPageRest
+    // .getStatisticsData). Reuses the list's statistics-line component so both read identically.
+    statisticsLine: ({ statistics }) => (
+      <TimesheetStatisticsLine
+        statistics={statistics as TimesheetStatistics | undefined}
+      />
+    ),
+  },
+  edit: {
+    schema: timesheetEditSchema,
+    fieldNames: TIMESHEET_EDIT_FIELDS,
+    defaultValues: emptyTimesheetValues,
+    toFormValues,
+    // The task the sheet is booked on, and the live one once another is picked — so the heading follows
+    // the select. Its `title` is the task's plain name, without the "(#id)" the backend appends to
+    // `displayName` to keep it unique in a flat list; the picker already stores that plain name (see
+    // TaskSelectField), so the fallback covers a freshly picked task too.
+    title: (timesheet, values) => {
+      const task = (values.task ?? timesheet.task) as EntityRefDto | null;
+      return task?.title ?? task?.displayName ?? "";
+    },
+    newTitleKey: "timesheet.title.add",
+    savedMessageKey: "message.successfullChanged",
+    // A new sheet opens in its description (the "Tätigkeitsbericht"), not in the first text control the
+    // form happens to have (the location) — that report is what the user came to write, and the task and
+    // period are usually preset from the calendar slot or a template (see useFocusFirstField).
+    autoFocus: "description",
+    newEntryParams: NEW_ENTRY_PARAMS,
+    // Offer the clone, as Wicket does (TimesheetPagesRest.cloneSupport = AUTOSAVE). The button saves a
+    // copy of the sheet on screen straight away (`/clone`, honouring AUTOSAVE) rather than opening it
+    // as a new entry: a sheet dragged onto another day and cloned persists there in one step, and the
+    // dialog closes back onto the calendar. Where the copy overlaps another sheet the backend can't
+    // save it and the form is simply left standing to adjust (see runClone / cloneAndSaveEntity).
+    clone: "autosave",
+    // "In Termin umwandeln" — build a calendar event from this sheet's span and texts and open it as a
+    // new event (TimesheetPagesRest.switch2CalendarEvent → TeamEventPagesRest.cloneFromTimesheet). The
+    // team event is named, not imported, so the two features don't depend on each other in a circle.
+    convert: {
+      action: "switch2CalendarEvent",
+      targetEntity: "teamEvent",
+      targetRoute: "/teamEvent",
+      labelKey: "plugins.teamcal.switchToTeamEventButton",
+    },
+    // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
+    // no timesheet list of this app to return to (see toTimesheetRoute).
+    returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],
+    // The templates/recent bar sits above the sections and stays visible while the user scrolls — the
+    // legacy form's `timesheet.edit.templatesAndRecent` widget, which is not a field of any section.
+    editBanner: TemplatesRecentBar,
+    // Below the form: the configured AI-time-savings note the legacy UILayout put in
+    // `layoutBelowActions`, shown only where the installation tracks AI savings and a text is
+    // configured (see AiNoteFooter, TimesheetPagesRest.timeSavingsByAINote).
+    editFooter: AiNoteFooter,
+    sections: [
+      {
+        id: "general",
+        titleKey: "timesheet",
+        fields: [
+          // Task, its cost unit and the task's consumption in one block — the task decides the other two
+          // (see TaskKost2Section). A full row, so its own three columns line up with the grid's.
+          { custom: TaskKost2Section, span: 3 },
+          // User, start, stop and the duration between them — who and when on one line (see
+          // DayRangeSection, which declares the user field for that reason).
+          { custom: DayRangeSection, span: 3 },
+          { custom: LocationField },
+          // A select of the configured tags, rendered only where any are configured (see TagField).
+          { custom: TagField },
+          { custom: ReferenceField },
+          { custom: ReferenceJiraLinks },
+          { name: "description", rows: 5, span: 3, jiraHint: true },
+          { custom: DescriptionJiraLinks, span: 3 },
+        ],
+      },
+      {
+        id: "ai",
+        // "Time savings AI" — the heading the legacy form gave the block (`timesheet.ai.timeSavedByAI`).
+        titleKey: "timesheet.ai.timeSavedByAI",
+        // Only where the installation tracks AI time savings, the backend's answer on the loaded (and on
+        // a new) entry — the form has no UILayout to leave the fields out of (see TimesheetDetail).
+        visible: ({ data }) => data?.timeSavingsByAIEnabled === true,
+        fields: [
+          { name: "timeSavedByAI" },
+          { name: "timeSavedByAIUnit" },
+          { name: "timeSavedByAIDescription" },
+        ],
+      },
+    ],
+  },
+});

@@ -35,7 +35,6 @@ import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.*
@@ -53,9 +52,6 @@ import java.io.Serializable
 @RestController
 @RequestMapping("${Rest.URL}/timesheet${AbstractMultiSelectedPage.URL_SUFFIX_SELECTED}")
 class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() {
-    @Autowired
-    private lateinit var dateTimeFormatter: DateTimeFormatter
-
     @Autowired
     private lateinit var kost2Dao: Kost2Dao
 
@@ -81,6 +77,150 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         pagesRest = timesheetPagesRest
     }
 
+    /**
+     * The layout-free field set for a client (the next frontend) that renders the form itself - the
+     * counterpart of the `createAndAddFields` calls in [fillForm].
+     *
+     * The task/kost2 picker is a custom component ([UICustomized]) the hand built page renders on its own;
+     * only the plain fields are declared here. The tag is declared as a select of the configured tags
+     * (built at runtime, hence [MassUpdateFieldDeclaration.values]), so the layout free frontend renders
+     * it as a combobox with a delete option - the same [UISelect] the [fillForm] path builds. The AI
+     * fields are only offered when the feature is enabled, exactly as [fillForm] adds them.
+     */
+    override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+        val declarations = mutableListOf(
+            // reference has length 1.000 and description 4.000, see [fillForm].
+            MassUpdateFieldDeclaration("location", minLengthOfTextArea = 1001),
+            MassUpdateFieldDeclaration("reference", minLengthOfTextArea = 1001),
+            MassUpdateFieldDeclaration("description", minLengthOfTextArea = 1001),
+            // The task/cost-unit picker the next page renders itself (TaskKost2MassUpdateField); declared
+            // here only for its position - right below the activity report (description) - in the field
+            // order the client shows and the preview sorts by.
+            MassUpdateFieldDeclaration("taskAndKost2", custom = true),
+        )
+        // Only where tags are configured at all - no timesheet is known here, so the current tag of one
+        // cannot be added (see [TimesheetDao.getTags]); an empty list means the field is left out entirely,
+        // exactly as [TimesheetPagesRest.createTagUISelect] returns null.
+        timesheetDao.getTags(null)?.takeIf { it.isNotEmpty() }?.let { tags ->
+            declarations.add(
+                MassUpdateFieldDeclaration(
+                    "tag",
+                    showDeleteOption = true,
+                    values = tags.map { UISelectValue(it, it) },
+                )
+            )
+        }
+        if (timesheetDao.timeSavingsByAIEnabled) {
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAI"))
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAIUnit"))
+            declarations.add(MassUpdateFieldDeclaration("timeSavedByAIDescription"))
+        }
+        return declarations
+    }
+
+    override fun infoMessageKey(): String? {
+        return if (Configuration.instance.isCostConfigured) "timesheet.massupdate.kost.info" else null
+    }
+
+    /**
+     * The selection's statistics as pre-rendered markdown for the legacy UILayout form (see [fillForm]): the
+     * same summed duration / AI-savings line the list footer shows, over the selected time sheets.
+     */
+    override fun getStatistics(selectedIds: Collection<Serializable>?): String {
+        return timesheetPagesRest.buildStatisticsMarkdown(buildStatistics(selectedIds))
+    }
+
+    /**
+     * The selection's statistics as typed values for the hand-built next page, which renders them with the
+     * same [org.projectforge.rest.dto.Timesheet] statistics line the list uses (reusing
+     * [TimesheetPagesRest.TimesheetListStatistics] so both pages show the identical line).
+     */
+    override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
+        return buildStatistics(selectedIds)
+    }
+
+    private fun buildStatistics(selectedIds: Collection<Serializable>?): TimesheetPagesRest.TimesheetListStatistics {
+        // Lean four-column projection, not a full select: this runs live on every debounced selection
+        // change, and buildStatistics reads only duration and the AI fields (see TimesheetPagesRest
+        // .aggregate, which sums the whole list the same way).
+        val ids = selectedIds?.mapNotNull { (it as? Number)?.toLong() }.orEmpty()
+        return timesheetPagesRest.buildStatistics(timesheetDao.selectStatisticsData(ids))
+    }
+
+    /**
+     * Start values for the hand built next page: the task and cost unit the selected time sheets have in
+     * common, so the picker opens on them and a change against them is what the run acts on (see
+     * [sharedTaskAndKost2]). The counterpart of what [fillForm] pre-computes for the legacy form.
+     *
+     * The cost unit is offered only when it is reachable from the shared task ([TaskTree.getKost2List]);
+     * otherwise the client would drop it on load (the picker keeps a value only while the task allows it),
+     * which would read as a change the user never made.
+     */
+    override fun initialParams(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>?,
+    ): Map<String, MassUpdateParameter> {
+        val (taskId, kost2Id) = sharedTaskAndKost2(timesheetDao.select(selectedIds))
+        val params = mutableMapOf<String, MassUpdateParameter>()
+        taskId?.let { params["task"] = MassUpdateParameter().also { p -> p.id = it } }
+        kost2Id?.takeIf { taskTree.getKost2List(taskId)?.any { k -> k.id == it } == true }?.let {
+            params["kost2"] = MassUpdateParameter().also { p -> p.id = it }
+        }
+        return params
+    }
+
+    /**
+     * The task and cost unit the given time sheets share, or null where they do not: the task is the
+     * deepest common ancestor of all their tasks, the cost unit the one they all book on (none if it
+     * differs). Extracted from [fillForm] so the legacy form and the layout-free [initialParams] compute
+     * the same preset the same way.
+     */
+    internal fun sharedTaskAndKost2(timesheets: List<TimesheetDO>?): Pair<Long?, Long?> {
+        if (timesheets.isNullOrEmpty()) {
+            return null to null
+        }
+        var taskNode: TaskNode? = null
+        loop@ for (timesheet in timesheets) {
+            val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
+            val current = taskNode
+            if (current == null) {
+                taskNode = node // First node
+            } else if (node.isParentOf(current)) {
+                taskNode = node
+            } else if (current == node || current.isParentOf(node)) {
+                // OK, node is on the same path.
+            } else {
+                // current and node aren't on the same path; climb to a shared ancestor.
+                var ancestor = current.parent
+                for (i in 0..1000) { // Paranoia loop for avoiding endless loops (instead of while(true))
+                    if (ancestor == node || ancestor.isParentOf(node)) {
+                        taskNode = ancestor
+                        continue@loop
+                    }
+                    ancestor = ancestor.parent
+                }
+                taskNode = null
+                break
+            }
+        }
+        // The cost unit only if all time sheets book on the very same one.
+        var kost2Id: Long? = null
+        for (timesheet in timesheets) {
+            if (timesheet.kost2Id == null) {
+                // No kost2Id found.
+                break
+            }
+            if (kost2Id == null) {
+                kost2Id = timesheet.kost2Id
+            } else if (kost2Id != timesheet.kost2Id) {
+                // Kost2-id differs, so terminate.
+                kost2Id = null
+                break
+            }
+        }
+        return taskNode?.id to kost2Id
+    }
+
     override fun fillForm(
         request: HttpServletRequest,
         layout: UILayout,
@@ -92,54 +232,14 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         var kost2Id: Long? = massUpdateData["kost2"]?.id
         val timesheets = timesheetDao.select(selectedIds)
         if (taskNode == null && timesheets != null) {
-            // Try to get a shared task of all time sheets.
-            loop@ for (timesheet in timesheets) {
-                val node = taskTree.getTaskNodeById(timesheet.taskId) ?: continue
-                if (taskNode == null) {
-                    taskNode = node // First node
-                } else if (node.isParentOf(taskNode)) {
-                    taskNode = node
-                } else if (taskNode == node || taskNode.isParentOf(node)) {
-                    // OK
-                } else {
-                    // taskNode and node aren't in same path.
-                    // Try to check shared ancestor:
-                    var ancestor = taskNode.parent
-                    for (i in 0..1000) { // Paranoia loop for avoiding endless loops (instead of while(true))
-                        if (ancestor == node || ancestor.isParentOf(node)) {
-                            taskNode = ancestor
-                            continue@loop
-                        }
-                        ancestor = ancestor.parent
-                    }
-                    taskNode = null
-                    break
-                }
-            }
-            // Check if all time sheets uses the same kost2:
-            for (timesheet in timesheets) {
-                if (timesheet.kost2Id == null) {
-                    // No kost2Id found
-                    break
-                }
-                if (kost2Id == null) {
-                    kost2Id = timesheet.kost2Id
-                } else if (kost2Id != timesheet.kost2Id) {
-                    // Kost2-id differs, so terminate.
-                    kost2Id = null
-                    break
-                }
+            val (sharedTaskId, sharedKost2Id) = sharedTaskAndKost2(timesheets)
+            taskNode = taskTree.getTaskNodeById(sharedTaskId)
+            if (kost2Id == null) {
+                kost2Id = sharedKost2Id
             }
         }
-        val duration = timesheetDao.select(selectedIds)?.sumOf { it.duration }
-        val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
-        layout.add(
-            UIAlert(
-                "'${translate("timesheet.totalDuration")}: $durationAsString",
-                color = UIColor.LIGHT,
-                markdown = true
-            )
-        )
+        // The same duration / AI-savings summary the next page and the list footer show, as markdown.
+        layout.add(UIAlert("'${getStatistics(selectedIds)}", color = UIColor.LIGHT, markdown = true))
 
         kost2Id?.let {
             ensureMassUpdateParam(massUpdateData, "kost2", "fibu.kost2").id = it
@@ -220,12 +320,41 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         val params = massUpdateContext.massUpdateParams
         val kost2Id = params["kost2"]?.id
         val taskId = params["task"]?.id
-        val availableKost2s = taskTree.getKost2List(taskId)
-        if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
-            // Due to a client bug, the kost2 id of the old project is sent, delete it, because, the project
-            // was changed and kost2Id is invalid:
-            params["kost2"]?.id = null
+        if (taskId != null) {
+            // Only when the task is being changed: a cost unit reachable from the *old* task may not be
+            // reachable from the new one, so drop a now-invalid one (proceedMassUpdate then remaps by type).
+            // Without a task change the cost unit is applied as picked (it was offered from the shared task's
+            // list), so it must not be validated against a task that is not part of this update - doing so
+            // (getKost2List(null)) would wrongly null it and turn a cost-unit-only change into "nothing to do".
+            val availableKost2s = taskTree.getKost2List(taskId)
+            if (kost2Id != null && availableKost2s?.any { it.id == kost2Id } != true) {
+                params["kost2"]?.id = null
+            }
         }
+        // The synthetic taskAndKost2 field carries only the `change` flag, so the confirmation dialog would
+        // read "set <task> to <empty>". Give it the picked task (and cost unit, if still valid) as its value,
+        // which the preview shows as-is (proceedMassUpdate ignores it, it changes on task/kost2 instead).
+        params["taskAndKost2"]?.takeIf { it.change == true }?.let { param ->
+            val parts = mutableListOf<String>()
+            taskId?.let { id -> taskTree.getTaskById(id)?.title?.let { parts.add(it) } }
+            params["kost2"]?.id?.let { id ->
+                kost2Dao.find(id, checkAccess = false)?.formattedNumber?.let { parts.add(it) }
+            }
+            param.textValue = parts.joinToString(" / ").takeIf { it.isNotBlank() }
+        }
+    }
+
+    /**
+     * The synthetic taskAndKost2 field is no property of the entity, so the registry has no label for it and
+     * the default would capitalize the field name. Translate it as the task field, exactly as the [fillForm]
+     * path labels its row (`displayName = "task"`).
+     */
+    override fun getFieldTranslation(field: String): String {
+        if (field == "taskAndKost2") {
+            // Both may change, and either alone, so the label names both rather than only the task.
+            return "${translate("task")} / ${translate("fibu.kost2")}"
+        }
+        return super.getFieldTranslation(field)
     }
 
     override fun proceedMassUpdate(

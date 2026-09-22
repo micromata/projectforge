@@ -69,6 +69,15 @@ class MagicFilterEntry(
              * Sent by client for history search: changed by user (displayName and id).
              */
             var id: Long? = null,
+
+            /**
+             * The kind of period the two bounds were given as, sent and used by the client only (e. g.
+             * "month" or "yearToDate"). Stored and returned unchanged: the search itself is always built
+             * from [fromValue]/[toValue] (see MagicFilterProcessor), but a period meaning "up to today"
+             * has to be recomputed by the client when the filter is restored, and its two dates alone
+             * don't say that it is one.
+             */
+            var periodKind: String? = null,
     )
 
     var value: Value
@@ -116,5 +125,17 @@ class MagicFilterEntry(
         if (this.field != other.field) return true
         if (this.value != other.value) return true
         return false
+    }
+
+    companion object {
+        /**
+         * The value a LIST filter sends for "no value is set": it selects the entries whose field is null,
+         * next to the values the field may have (see [MagicFilterProcessor.createFieldSearchEntry]).
+         *
+         * A pseudo value rather than a flag of its own, because that is what makes it one more option of
+         * the same combobox — client and stored filter treat it like any other. The name is no legal
+         * enum constant, so it cannot collide with one.
+         */
+        const val NULL_VALUE = "__NULL__"
     }
 }

@@ -25,60 +25,107 @@ package org.projectforge.rest.pub
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import mu.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.login.LoginService
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.ServerData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.net.URLDecoder
-import java.net.URLEncoder
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class LoginServiceRest {
     @Autowired
     private lateinit var loginService: LoginService
 
+    /**
+     * Logs the user out and sends him to the login page of projectforge-next - the only login page of the
+     * application, used by all three frontends.
+     */
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseAction {
-        val redirectUrl = getRedirectUrl(request, null).let {
-            if (it.isNullOrBlank() || it.contains(PasswordForgottenPageRest.REST_PATH)) {
-                // Don't redirect to password forgotten page:
-                null
-            } else {
-                mapOf("url" to URLEncoder.encode(it, "UTF-8"))
-            }
-        }
         loginService.logout(request, response)
         return ResponseAction(
-            PagesResolver.getDynamicPageUrl(
-                LoginPageRest::
-                class.java,
-                absolute = true,
-                params = redirectUrl,
-            ), targetType = TargetType.CHECK_AUTHENTICATION
+            Constants.NEXT_LOGIN_URL,
+            targetType = TargetType.CHECK_AUTHENTICATION,
         )
     }
 
     companion object {
-        private val ORIGIN_URL_SESSION_KEY = "${LoginPageRest::class.java.name}.originUrl"
+        /**
+         * Where a login without a requested target sends the user.
+         *
+         * Only the default: the requested target is the `returnUrl` of the login page, and the client keeps it
+         * (see `app/login/page.tsx`). It cannot be answered here, because a successful login rotates the http
+         * session (session fixation, [LoginService.internalLogin]) - anything this server put there before the
+         * login is gone by now. The legacy login form carried it through that rotation in
+         * [ServerData.returnToCaller]; a JSON client has no such round trip and doesn't need one.
+         *
+         * @param request Kept although unused: the caller has it, and where the user lands is exactly the kind of
+         * decision that grows a request-dependent case again.
+         */
+        @Suppress("UNUSED_PARAMETER")
+        fun getRedirectUrl(request: HttpServletRequest): String {
+            return DEFAULT_REDIRECT_URL
+        }
 
-        fun getRedirectUrl(request: HttpServletRequest, serverData: ServerData?): String? {
-            var redirect: String? = null
-            val returnToCaller =
-                serverData?.returnToCaller ?: request.getSession(false)?.getAttribute(ORIGIN_URL_SESSION_KEY) as String?
-            if (!returnToCaller.isNullOrBlank()) {
-                redirect = URLDecoder.decode(returnToCaller, "UTF-8")
-            } else if (request.getHeader("Referer")?.contains("/public/login") == true) {
-                redirect = "/${Constants.REACT_APP_PATH}calendar"
+        /**
+         * Where the user lands if there is nothing to return to: the calendar, the application's start page.
+         * Routed through [NextMigration] rather than hardcoded, so it follows the calendar wherever it is
+         * served - now projectforge-next ([NextMigration.listUrl] answers `next/calendar`), the legacy React
+         * app again should it ever be rolled back. Kept in step with [PagesResolver.getDefaultUrl].
+         */
+        private val DEFAULT_REDIRECT_URL = "/${NextMigration.listUrl("calendar")}"
+
+        /**
+         * A url the user is sent to after an authentication step, so an attacker-supplied one would be an open
+         * redirect (and a convincing phishing hop: the victim really did log in to ProjectForge). Only relative
+         * paths within this application are accepted - the same rule the client applies in
+         * `projectforge-next/lib/menu-url.ts`, but the client's copy protects nobody.
+         *
+         * @return The url, or null if it isn't a relative path of this application.
+         */
+        internal fun sanitizeRedirectUrl(url: String?): String? {
+            if (url.isNullOrBlank() || url == "null") {
+                return null
             }
-            // redirect might be "null" (string):
-            return if (redirect.isNullOrBlank() || redirect == "null") null else redirect
+            val reject = { reason: String ->
+                log.warn { "Rejecting redirect url '$url': $reason." }
+                null
+            }
+            // Browsers strip tabs and newlines from inside a url before parsing it, so `ja<TAB>vascript:`
+            // navigates as `javascript:` while a plain scheme check sees neither. Drop every C0 control
+            // (NUL included) first, and hand the stripped form back so nothing later sees them either.
+            val cleaned = url.filter { it.code > 0x1f && it.code != 0x7f }.trim()
+            // Backslashes: some browsers normalize \\host and /\host to //host, i. e. to a foreign host.
+            val normalized = cleaned.replace('\\', '/')
+            return when {
+                cleaned.isEmpty() -> reject("empty after removing control characters")
+                SCHEME_REGEX.containsMatchIn(normalized) -> reject("absolute url (scheme given)")
+                normalized.startsWith("//") -> reject("protocol relative url (foreign host)")
+                !normalized.startsWith("/") -> reject("not an absolute path of this application")
+                // `/next/../..//evil.com` is `//evil.com` once the browser normalizes it: every segment
+                // looked like a path, the result is a foreign host. The query is data, so only the path
+                // is examined.
+                TRAVERSAL_REGEX.containsMatchIn(normalized.substringBefore('?').substringBefore('#')) ->
+                    reject("path traversal (leaves this application)")
+
+                else -> cleaned
+            }
         }
 
-        internal fun storeOriginUrl(request: HttpServletRequest, url: String?) {
-            request.getSession(false)?.setAttribute(ORIGIN_URL_SESSION_KEY, url)
-        }
+        /**
+         * `http:`, `javascript:`, `data:`, … - anything that isn't a path of this application.
+         */
+        private val SCHEME_REGEX = Regex("^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+        /**
+         * A `..` path segment, which a browser resolves away before it navigates - so a url made only of
+         * path segments can still end up naming a foreign host.
+         */
+        private val TRAVERSAL_REGEX = Regex("(^|/)\\.\\.(/|$)")
     }
 }

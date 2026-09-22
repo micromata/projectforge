@@ -1,0 +1,124 @@
+{
+  "books": {
+    "title": "Bücherliste",
+    "edit": {
+      "tabs": {
+        "general": "Allgemein",
+        "loan": "Ausleihe",
+        "notes": "Notizen"
+      },
+      "sections": {
+        "general": "Allgemeine Informationen",
+        "notes": "Notizen"
+      },
+      "fields": {
+        "keywordsHint": "Einzelne Schlüsselworte mit Enter oder Komma bestätigen"
+      },
+      "status": {
+        "available": "Verfügbar",
+        "loaned": "Ausgeliehen"
+      },
+      "saved": "Buch gespeichert",
+      "newTitle": "Neues Buch"
+    }
+  },
+  "duration": {
+    "custom": "Eigener Zeitraum"
+  },
+  "entityEdit": {
+    "lastSaved": "Zuletzt gespeichert: {time}",
+    "notFound": "Eintrag nicht gefunden.",
+    "deletedInfo": "Dieser Eintrag ist als gelöscht markiert. Zum Bearbeiten zuerst wiederherstellen."
+  },
+  "filter": {
+    "selectNone": "Keine auswählen",
+    "text": "Text",
+    "number": "Zahl",
+    "date": "Datum",
+    "blank": "(leer)"
+  },
+  "form": {
+    "hint": "Hinweis"
+  },
+  "login": {
+    "submitting": "Anmelden…",
+    "twoFactor": {
+      "verifying": "Prüfe…",
+      "webAuthnRunning": "Warte auf Token…",
+      "smsSent": "SMS-Code wurde gesendet",
+      "mailSent": "E-Mail-Code wurde gesendet"
+    }
+  },
+  "logo": {
+    "projectforge": "ProjectForge",
+    "customer": "Firmenlogo"
+  },
+  "order": {
+    "legend": {
+      "deleted": "Gelöscht / abgelehnt / ersetzt",
+      "toBeInvoiced": "Zu fakturieren",
+      "commissioned": "Beauftragt / LOI"
+    },
+    "forecast": {
+      "unavailable": "Die Forecast-Analyse konnte nicht geladen werden.",
+      "jsonUnavailable": "Der JSON-Export steht nur im Entwicklungsmodus zur Verfügung.",
+      "savedOnlyHint": "Hinweis: Forecast rechnet nur auf der Grundlage des gespeicherten Auftrags, lokale Änderungen sind nicht berücksichtigt."
+    }
+  },
+  "passwordForgotten": {
+    "submitting": "Sende…",
+    "mailSent": "Sofern der Zugang existiert, wurde eine E-Mail mit einem Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Zurücksetzen konnte nicht angefordert werden"
+  },
+  "passwordReset": {
+    "submit": "Passwort ändern",
+    "submitting": "Ändere…",
+    "requestNewLink": "Neuen Link anfordern",
+    "backToLogin": "Zurück zur Anmeldung",
+    "error": "Das Passwort konnte nicht geändert werden"
+  },
+  "statusBar": {
+    "copyright": "©{years} by Micromata GmbH",
+    "company": "Micromata GmbH",
+    "version": "Version {version}, {buildDate}"
+  },
+  "select": {
+    "search": "Suchen…",
+    "noOptions": "Keine Auswahl",
+    "create": "„{value}“ hinzufügen",
+    "remove": "{label} entfernen",
+    "empty": "—"
+  },
+  "table": {
+    "resize": "Spaltenbreite ändern",
+    "filter": "Spalte filtern",
+    "empty": "Keine Einträge",
+    "range": "{from}–{to} von {total} Einträgen",
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "rowsPerPage": "Einträge / Seite:",
+    "resetFailed": "Die Spalten konnten nicht zurückgesetzt werden",
+    "legend": {
+      "deleted": "Gelöscht"
+    }
+  },
+  "taskReRoot": {
+    "label": "Strukturnavigation",
+    "wholeTree": "Ganzen Baum anzeigen",
+    "ancestor": "Unterbaum dieses Elements anzeigen",
+    "back": "Zurück",
+    "forward": "Vor"
+  },
+  "theme": {
+    "label": "Erscheinungsbild",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "unsavedChanges": {
+    "title": "Ungespeicherte Änderungen",
+    "confirm": "Verlassen",
+    "stay": "Hier bleiben"
+  }
+}

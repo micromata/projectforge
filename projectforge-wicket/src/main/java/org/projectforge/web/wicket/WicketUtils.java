@@ -119,7 +119,8 @@ public class WicketUtils {
         } catch (UnsupportedEncodingException ex) {
             log.warn("Error while trying to encode url string: " + ex.getMessage(), ex);
         }
-        throw new RedirectToUrlException("/react/public/login?url=" + encodedUrl);
+        throw new RedirectToUrlException(
+                Constants.NEXT_LOGIN_URL + "?" + Constants.NEXT_LOGIN_RETURN_URL_PARAM + "=" + encodedUrl);
     }
 
     public static HttpServletRequest getHttpServletRequest(final Request request) {

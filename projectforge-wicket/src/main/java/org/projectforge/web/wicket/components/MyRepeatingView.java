@@ -27,7 +27,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 
 /**
  * This repeating view is only visible if any child was added (detected by calling newChildId()).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class MyRepeatingView extends RepeatingView

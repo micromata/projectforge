@@ -25,6 +25,7 @@ package org.projectforge.business.user.filter
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
@@ -105,9 +106,12 @@ class WicketUserFilter : Filter {
         var url = request.requestURI
         val queryString = request.queryString
         if (StringUtils.isNotBlank(queryString)) {
-          url = "$url?${URLEncoder.encode(queryString, "UTF-8")}"
+          url = "$url?$queryString"
         }
-        response.sendRedirect("/react/public/login?url=$url")
+        // The whole url is the value of one query parameter, so it has to be encoded as a whole: an unencoded '?'
+        // or '&' would end up as a parameter of the login page instead of being part of the returnUrl.
+        val returnUrl = URLEncoder.encode(url, "UTF-8")
+        response.sendRedirect("${Constants.NEXT_LOGIN_URL}?${Constants.NEXT_LOGIN_RETURN_URL_PARAM}=$returnUrl")
       }
     } finally {
       ThreadLocalUserContext.userContext = null

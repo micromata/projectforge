@@ -23,10 +23,45 @@
 
 package org.projectforge.rest.my2fa
 
+import org.apache.commons.codec.binary.Base64
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.nio.charset.StandardCharsets
 
 class My2FAServicesRestTest {
+
+  /**
+   * The target comes from the client, so a successful 2FA must not redirect to a foreign host: that would be an
+   * open redirect on a page the victim demonstrably trusts (they just authenticated on it).
+   */
+  @Test
+  fun redirectUrlFromTargetTest() {
+    // Foreign hosts and other schemes are dropped, see LoginServiceRestTest for the full table:
+    assertRejected("http://evil.com")
+    assertRejected("//evil.com")
+    assertRejected("/\\evil.com")
+    assertRejected("javascript:alert(1)")
+    assertRejected("next/book/42") // Not an absolute path of this application.
+    assertRejected("")
+    Assertions.assertNull(My2FAServicesRest.redirectUrlFromTarget(null), "Nothing to redirect to.")
+
+    // The legitimate cases, with the rest url replaced as before:
+    assertRedirect("/react/calendar", "/react/calendar")
+    assertRedirect("/next/book/42", "/next/book/42")
+    assertRedirect("/react/user/edit/1", "/rs/user/edit?id=1")
+  }
+
+  private fun assertRejected(url: String) {
+    Assertions.assertNull(My2FAServicesRest.redirectUrlFromTarget(encode(url)), "Url '$url' has to be rejected.")
+  }
+
+  private fun assertRedirect(expected: String, url: String) {
+    Assertions.assertEquals(expected, My2FAServicesRest.redirectUrlFromTarget(encode(url)))
+  }
+
+  private fun encode(url: String): String {
+    return Base64.encodeBase64String(url.toByteArray(StandardCharsets.UTF_8))
+  }
 
   @Test
   fun replaceRestUrlByReactUrlTest() {

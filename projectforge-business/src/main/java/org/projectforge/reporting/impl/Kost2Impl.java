@@ -33,7 +33,7 @@ import org.projectforge.reporting.Projekt;
 
 /**
  * Proxy for Kost2DO;
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @see Kost2DO
  */
 public class Kost2Impl implements Kost2

@@ -35,7 +35,7 @@ import java.util.Date;
 /**
  * Represents a recurrence event (created by a master TeamEventDO with recurrence rules).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class TeamRecurrenceEvent implements ICalendarEvent, Serializable

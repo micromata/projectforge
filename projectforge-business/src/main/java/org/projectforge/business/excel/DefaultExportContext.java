@@ -28,7 +28,7 @@ import java.util.Locale;
 /**
  * This default context does nothing special, you may implement your own context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DefaultExportContext implements ExportContext
 {

@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.components.TooltipImage;
 /**
  * This panel show the actual group and buttons for select/unselect group.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
 {

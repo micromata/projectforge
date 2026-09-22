@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Dummy right which matches always to true.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class UserRightAlwaysTrue extends UserRight

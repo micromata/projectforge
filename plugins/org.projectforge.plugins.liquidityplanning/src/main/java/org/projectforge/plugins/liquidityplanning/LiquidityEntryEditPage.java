@@ -33,7 +33,7 @@ import org.slf4j.Logger;
  * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @EditPage(defaultReturnPage = LiquidityEntryListPage.class)
 public class LiquidityEntryEditPage

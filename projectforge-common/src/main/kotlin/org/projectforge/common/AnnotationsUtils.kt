@@ -37,7 +37,7 @@ import kotlin.reflect.jvm.javaSetter
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object AnnotationsUtils {
     fun getClassAnnotations(clazz: Class<*>): Array<Annotation> {

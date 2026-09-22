@@ -46,7 +46,7 @@ import java.util.List;
 
 /**
  * Represents an upload field of a form. If configured it also provides a delete button and the file name with download link.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class FileUploadPanel extends Panel implements ComponentWrapperPanel

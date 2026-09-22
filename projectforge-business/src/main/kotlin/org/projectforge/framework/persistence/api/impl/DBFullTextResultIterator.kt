@@ -27,14 +27,11 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
-import org.apache.commons.lang3.builder.CompareToBuilder
 import org.hibernate.search.mapper.orm.Search
-import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import java.text.Collator
+import org.projectforge.framework.persistence.api.SortPropertyComparator
 
 
 private val log = KotlinLogging.logger {}
@@ -79,49 +76,13 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         }
     }
 
+    /**
+     * A full text query answers in relevance order, so the sort happens here — with the semantics of the
+     * criteria search (see [SortPropertyComparator] and `DBQueryBuilderByCriteria.addOrder`), so that a
+     * list the user searched in and one they only filtered read the same.
+     */
     override fun sort(list: List<O>): List<O> {
-        val collator = Collator.getInstance(ThreadLocalUserContext.locale)
-        val errorProperties = mutableListOf<String>()
-        return list.sortedWith(object : Comparator<O> {
-            override fun compare(o1: O, o2: O): Int {
-                if (sortProperties.isEmpty()) {
-                    return 0
-                }
-                val ctb = CompareToBuilder()
-                for (sortProperty in sortProperties) {
-                    try {
-                        val val1 = BeanHelper.getNestedProperty(o1, sortProperty.property)
-                        val val2 = BeanHelper.getNestedProperty(o2, sortProperty.property)
-                        if (val1 is String) {
-                            // Strings should be compared by using locale dependent collator (especially for german Umlaute)
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2, collator)
-                            } else {
-                                ctb.append(val2, val1, collator)
-                            }
-                        } else if (val1 is Comparable<*>) {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1, val2)
-                            } else {
-                                ctb.append(val2, val1)
-                            }
-                        } else {
-                            if (sortProperty.ascending) {
-                                ctb.append(val1?.toString(), val2?.toString())
-                            } else {
-                                ctb.append(val2?.toString(), val1?.toString())
-                            }
-                        }
-                    } catch (ex: Exception) {
-                        if (!errorProperties.contains(ex.message)) {
-                            errorProperties.add("${ex.message}")
-                            log.warn("Ignore sort property (OK): ${ex.message}")
-                        }
-                    }
-                }
-                return ctb.toComparison()
-            }
-        })
+        return SortPropertyComparator.sort(list, sortProperties.toList())
     }
 
     private fun internalNext(): O? {

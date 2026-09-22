@@ -55,7 +55,7 @@ import kotlin.math.max
  * Time offsets for ip addresses should be much smaller (for avoiding penalties for normal usage by a lot of users behind the same NAT
  * system).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class LoginProtection private constructor() {
     /**

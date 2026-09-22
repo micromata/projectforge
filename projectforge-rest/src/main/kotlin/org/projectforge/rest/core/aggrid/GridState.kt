@@ -38,4 +38,10 @@ class GridState {
     var columnPinning: DataTableColumnPinning? = null
     var sorting: List<DataTableSortingEntry>? = null
     var columnFilters: List<DataTableColumnFilter>? = null
+
+    /**
+     * Number of rows per page the user selected. Null for pages the user never changed it on, meaning
+     * the page's own default applies.
+     */
+    var paginationPageSize: Int? = null
 }

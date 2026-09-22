@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router';
 import { DynamicLayoutContext } from '../../context';
 import { getServiceURL } from '../../../../../utilities/rest';
-import { buildColumnDefs, modifyRedirectUrl, DataTableColumnDef } from './tanstack/tableUtils';
+import { buildColumnDefs, createValueComparator, modifyRedirectUrl, DataTableColumnDef } from './tanstack/tableUtils';
 import TanStackPagination from './tanstack/TanStackPagination';
 import TanStackColumnPanel from './tanstack/TanStackColumnPanel';
 import TanStackColumnFilter from './tanstack/TanStackColumnFilter';
@@ -36,7 +36,13 @@ interface DynamicTanStackGridProps {
     filterModel?: Record<string, unknown>;
     rowSelection?: { mode?: string; enableClickSelection?: boolean };
     selectedEntities?: number[];
-    onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
+    // Reports the current selection. `ids` is the authoritative, complete set of selected entity
+    // ids (from the row-selection state, keyed by entity id — see getRowId below). `rowsById` holds
+    // the row data for those ids resolvable in the currently loaded rowData; ids selected under a
+    // previous filter run may be absent from rowsById but are still present in `ids`.
+    onSelectionChange?: (
+        selection: { ids: string[]; rowsById: Record<string, Record<string, unknown>> },
+    ) => void;
     rowClickRedirectUrl?: string;
     rowClickPostUrl?: string;
     rowClickOpenModal?: boolean;
@@ -192,6 +198,7 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         paginationPageSizeSelector,
         getRowClass,
         highlightId,
+        userLocale,
     } = props;
 
     const { data, variables, callAction } = React.useContext(DynamicLayoutContext);
@@ -210,7 +217,15 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
         || (id ? ((Object as any).getByString(data, id) || (Object as any).getByString(variables, id)) : undefined)
         || EMPTY_ROW_DATA;
 
-    const baseColumns = useMemo(() => buildColumnDefs(columnDefs || []), [columnDefs]);
+    const collator = useMemo(
+        () => new Intl.Collator(userLocale || undefined, { numeric: true }),
+        [userLocale],
+    );
+    const compareValues = useMemo(() => createValueComparator(collator), [collator]);
+    const baseColumns = useMemo(
+        () => buildColumnDefs(columnDefs || [], compareValues),
+        [columnDefs, compareValues],
+    );
 
     // Initialize sorting from sortModel
     const initialSorting: SortingState = useMemo(() => {
@@ -265,26 +280,33 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     // (open detail dialog / download) instead, and reserve selection to the checkbox column.
     // Such tables pass enableClickSelection: false.
     const enableClickSelection = rowSelection?.enableClickSelection !== false;
+    // Selection is keyed by the entity id (see getRowId in the table config), not the array index,
+    // so it stays correct when rowData is replaced (e.g. the server-side search filter changes
+    // while the grid stays mounted).
     const initialRowSelection: RowSelectionState = useMemo(() => {
         if (!enableSelection || !selectedEntities || selectedEntities.length === 0) return {};
         const sel: RowSelectionState = {};
-        rowData.forEach((row, idx) => {
-            if (selectedEntities.includes((row as any).id)) {
-                sel[idx] = true;
-            }
+        selectedEntities.forEach((entityId) => {
+            if (entityId != null) sel[String(entityId)] = true;
         });
         return sel;
-    }, [enableSelection, selectedEntities, rowData]);
+    }, [enableSelection, selectedEntities]);
     const [rowSelectionState, setRowSelectionState] = useState<RowSelectionState>(initialRowSelection);
 
-    // Notify parent of selection changes
+    // Notify parent of selection changes. rowSelectionState is keyed by entity id, so the selected
+    // ids are simply its truthy keys. We additionally resolve the row data for ids present in the
+    // currently loaded rowData; ids selected under a previous filter run may not resolve here, but
+    // the parent keeps their data across filter changes.
     useEffect(() => {
         if (!enableSelection || !onSelectionChange) return;
-        const selected = Object.keys(rowSelectionState)
-            .filter((key) => rowSelectionState[key])
-            .map((key) => rowData[parseInt(key, 10)])
-            .filter(Boolean);
-        onSelectionChange(selected);
+        const ids = Object.keys(rowSelectionState).filter((key) => rowSelectionState[key]);
+        const idSet = new Set(ids);
+        const rowsById: Record<string, Record<string, unknown>> = {};
+        rowData.forEach((row) => {
+            const rowId = (row as any).id;
+            if (rowId != null && idSet.has(String(rowId))) rowsById[String(rowId)] = row;
+        });
+        onSelectionChange({ ids, rowsById });
     }, [rowSelectionState, enableSelection, onSelectionChange, rowData]);
 
     // Sort columns by our own columnOrder state (TanStack's internal columnOrder has a memoization bug)
@@ -305,6 +327,10 @@ function DynamicTanStackGrid(props: DynamicTanStackGridProps) {
     const table = useReactTable({
         data: rowData,
         columns,
+        // Key rows (and thus the selection state) by the stable entity id rather than the array index,
+        // so a selection survives sorting/filtering and rowData replacement. Falls back to the index for
+        // generic grids whose rows have no id (e.g. attachment lists, task tree).
+        getRowId: (row: any, index: number) => (row?.id != null ? String(row.id) : String(index)),
         state: {
             sorting,
             columnFilters,

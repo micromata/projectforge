@@ -1,0 +1,821 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-pink-dark: var(--brand-pink-dark);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-yellow-dark: var(--brand-yellow-dark);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-dark: var(--brand-green-dark);
+  --color-status-loaned: var(--status-loaned);
+  --color-status-loaned-bg: var(--status-loaned-bg);
+  --color-status-loaned-border: var(--status-loaned-border);
+  --color-status-available: var(--status-available);
+  --color-status-available-bg: var(--status-available-bg);
+  --color-status-available-border: var(--status-available-border);
+  --color-status-info: var(--status-info);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-border: var(--status-info-border);
+  --color-status-bar: var(--status-bar);
+  --color-status-bar-foreground: var(--status-bar-foreground);
+  --color-warning: var(--warning);
+  --color-development: var(--development);
+  --color-development-foreground: var(--development-foreground);
+  --color-legacy: var(--legacy);
+  --color-legacy-hover: var(--legacy-hover);
+  --color-legacy-foreground: var(--legacy-foreground);
+  --color-history-insert: var(--history-insert);
+  --color-history-update: var(--history-update);
+  --color-history-delete: var(--history-delete);
+  --color-history-old-bg: var(--history-old-bg);
+  --color-history-new-bg: var(--history-new-bg);
+  --color-history-comment-bg: var(--history-comment-bg);
+  --color-history-comment-border: var(--history-comment-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Micromata brand palette */
+  --brand-teal: #009ba3;
+  --brand-teal-dark: #007480;
+  --brand-pink: #e10057;
+  --brand-pink-dark: #a70836;
+  --brand-yellow: #ffcb00;
+  --brand-yellow-dark: #ff9d01;
+  --brand-green: #75be01;
+  --brand-green-dark: #32912e;
+
+  /* Status tokens (book availability) */
+  --status-loaned: var(--brand-pink);
+  --status-loaned-bg: rgba(225, 0, 87, 0.09);
+  --status-loaned-border: rgba(225, 0, 87, 0.25);
+  --status-available: var(--brand-green);
+  --status-available-bg: rgba(117, 190, 1, 0.1);
+  --status-available-border: rgba(117, 190, 1, 0.3);
+  /* Teal "open/pending" tint, same hue as --row-blue — for a neutral, not-yet-done state. */
+  --status-info: rgb(0, 155, 163);
+  --status-info-bg: rgba(0, 155, 163, 0.1);
+  --status-info-border: rgba(0, 155, 163, 0.3);
+
+  /* The Wicket-style footer strip: a dark bar with muted light text, the same in either theme. */
+  --status-bar: oklch(0.28 0 0);
+  --status-bar-foreground: oklch(0.62 0 0);
+
+  /*
+   * Something is questionable but allowed - a cost unit outside the invoice's project, say (see
+   * Kost2Warning). Brand yellow darkened, because plain `--brand-yellow` on white is 1.6:1 and
+   * unreadable at icon size; `--destructive` is the wrong answer since nothing here is refused.
+   */
+  --warning: var(--brand-yellow-dark);
+
+  /*
+   * This instance runs in development mode, said in the logo row (see DevelopmentMarker). The same
+   * darkened brand yellow as `--warning`: nothing is refused here, the system must only not be taken
+   * for a productive one. Filled rather than tinted, because the marker has to catch the eye of
+   * someone who is looking at the page for another reason entirely.
+   */
+  --development: var(--brand-yellow-dark);
+  /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
+  --development-foreground: #3d2200;
+
+  /*
+   * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is
+   * visible without competing with the primary action of the page, which is teal.
+   */
+  --legacy: var(--brand-yellow-dark);
+  --legacy-hover: #e58a00;
+  /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
+  --legacy-foreground: #3d2200;
+
+  /* Change history: one colour per operation, plus the diff and comment backgrounds */
+  --history-insert: var(--brand-green-dark);
+  --history-update: var(--brand-teal);
+  --history-delete: var(--brand-pink);
+  --history-old-bg: rgba(225, 0, 87, 0.09);
+  --history-new-bg: rgba(117, 190, 1, 0.14);
+  --history-comment-bg: rgba(255, 203, 0, 0.14);
+  --history-comment-border: rgba(255, 157, 1, 0.35);
+
+  /*
+   * Highlighted list rows. The backend names the colour, not the meaning
+   * (UIAgGrid.getRowClass: 'row-red' for overdue, conflicting or faulty rows,
+   * 'row-blue' for pending ones, 'row-green' for new/positive, 'row-grey' for
+   * already imported), so the tokens keep those names.
+   */
+  --row-deleted: rgba(120, 120, 120, 0.12);
+  --row-red: rgba(225, 0, 87, 0.09);
+  --row-green: rgba(117, 190, 1, 0.11);
+  --row-blue: rgba(0, 155, 163, 0.09);
+  --row-grey: rgba(120, 120, 120, 0.07);
+
+  /*
+   * The row that was edited last (ResultSet.highlightRowId). Named after its
+   * meaning, unlike the ones above: this one is the app's own, not a colour the
+   * backend asked for.
+   */
+  --row-highlighted: rgba(255, 157, 1, 0.9);
+
+  /*
+   * The matched part of a search term, wrapped in <mark> (see HighlightedText). A tint behind the
+   * text rather than the browser's solid-yellow block, so the match reads as an emphasis on the
+   * text and keeps its own colour. Its own token, not --warning: nothing here is questionable.
+   */
+  --search-match-bg: rgba(255, 203, 0, 0.5);
+
+  /*
+   * A task's status, as the Wicket page paints it (projectforge-css.less:
+   * .taskStatus_opened / .taskStatus_closed). "Not opened" stays the row's colour.
+   */
+  --task-status-opened: #518732;
+  --task-status-closed: #386773;
+
+  /* Consumption bar (task lists): one fill colour per Consumption.Status */
+  --consumption-track: oklch(0.93 0 0);
+  --consumption-ok: var(--brand-green);
+  --consumption-warn: var(--brand-yellow);
+  --consumption-alert: var(--brand-yellow-dark);
+  --consumption-over: var(--brand-pink);
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: var(--brand-teal);
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: var(--brand-teal);
+  --chart-1: var(--brand-teal);
+  --chart-2: var(--brand-pink);
+  --chart-3: var(--brand-yellow);
+  --chart-4: var(--brand-green);
+  --chart-5: var(--brand-teal-dark);
+  --radius: 0.625rem;
+
+  /* Sidebar — light variant */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #374151;
+  --sidebar-primary: var(--brand-teal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 155, 163, 0.1);
+  --sidebar-accent-foreground: var(--brand-teal);
+  --sidebar-border: #eef0f4;
+  --sidebar-ring: var(--brand-teal);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  /*
+   * Primary stays the brand teal, not shadcn's near-white default: --primary is both the button
+   * background and every teal accent (text-primary title columns, emphasized form fields, badges,
+   * pagination). The near-white default silently dropped the brand highlight in dark mode. Plain
+   * --brand-teal reads at ~4.6:1 on the background and ~3.7:1 on the card — at or above the teal-on-
+   * white the light theme already ships. White foreground, as in the light theme.
+   */
+  --primary: var(--brand-teal);
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  /* Focus ring follows primary, as in the light theme */
+  --ring: var(--brand-teal);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Brightened: the darkened yellow of the light theme is 2.4:1 against the dark card */
+  --warning: var(--brand-yellow);
+
+  /* Brightened as well; the foreground stays dark, the marker is filled in either theme */
+  --development: var(--brand-yellow);
+
+  /* Change history: the tints need more opacity to stay visible on the dark card */
+  --history-insert: var(--brand-green);
+  --history-old-bg: rgba(225, 0, 87, 0.22);
+  --history-new-bg: rgba(117, 190, 1, 0.22);
+  --history-comment-bg: rgba(255, 203, 0, 0.16);
+  --history-comment-border: rgba(255, 203, 0, 0.3);
+
+  /* Row tints and the bar's track need more opacity on the dark card */
+  --row-deleted: rgba(255, 255, 255, 0.06);
+  --row-red: rgba(225, 0, 87, 0.2);
+  --row-green: rgba(117, 190, 1, 0.18);
+  --row-blue: rgba(0, 155, 163, 0.2);
+  --row-grey: rgba(255, 255, 255, 0.04);
+  /* Lightened, since the marker is drawn against the dark row rather than a white one */
+  --row-highlighted: rgba(255, 183, 77, 0.95);
+  /* Fainter over the dark card, where a translucent yellow reads brighter than on white */
+  --search-match-bg: rgba(255, 203, 0, 0.35);
+  --consumption-track: oklch(0.32 0 0);
+
+  /* Wicket's status colours are mixed for print; lightened to stay readable here */
+  --task-status-opened: #8dc46a;
+  --task-status-closed: #7fb3c2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-medium;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/*
+ * Highlighted list rows. The tint sits on the cells rather than on the row, because the cells carry
+ * their own opaque background so pinned columns cover the ones scrolling underneath.
+ *
+ * As a background *image* — a gradient of the one colour — not as `background-color`: every one of
+ * these tokens is translucent, and setting it as the colour would replace the cell's opaque
+ * `bg-background` instead of tinting it, which makes exactly the pinned cells transparent and lets
+ * the scrolling columns show through them. An image layers over the colour, so both hold: the tint
+ * is visible and the cell stays opaque. Hover changes the colour underneath and keeps the tint.
+ */
+.row-deleted > td {
+  background-image: linear-gradient(var(--row-deleted), var(--row-deleted));
+  text-decoration: line-through;
+}
+.row-red > td {
+  background-image: linear-gradient(var(--row-red), var(--row-red));
+}
+.row-green > td {
+  background-image: linear-gradient(var(--row-green), var(--row-green));
+}
+.row-blue > td {
+  background-image: linear-gradient(var(--row-blue), var(--row-blue));
+}
+.row-grey > td {
+  background-image: linear-gradient(var(--row-grey), var(--row-grey));
+}
+
+/*
+ * A row picked for a mass update (see useRowSelection).
+ *
+ * A pseudo element rather than a background, because both background layers of a cell are taken: the
+ * colour keeps it opaque and the image carries the row's own tint (above). The tint of a selection has
+ * to be visible on top of either, and on top of the hover colour, so it gets a layer of its own —
+ * transparent to the pointer, or the cell's click handlers would never fire.
+ */
+.row-selected > td {
+  /* The layer below is positioned against the cell; only the first one is `relative` already. */
+  position: relative;
+}
+.row-selected > td::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--primary);
+  opacity: 0.14;
+}
+
+/*
+ * The row the keyboard is on while picking rows. An outline, which nothing else on a cell uses: the
+ * focused row is usually also a selected one, and the two have to be told apart.
+ */
+.row-focused > td {
+  outline: 1px dashed var(--primary);
+  outline-offset: -1px;
+}
+
+/*
+ * The row edited last (see useHighlightedRow). An inset shadow rather than a tint, because the
+ * classes above already own `background-image` on the cell: a fill would replace the row's own
+ * colour, and the row a user just edited is quite often the one they just marked as deleted. Two
+ * properties, two layers — the marker and the colour both show.
+ *
+ * The bar on the first cell sits where the hover marker does (see DataTableRow), so while the
+ * pointer rests on the row the hover bar covers it. The rules above and below stay visible.
+ */
+.row-highlighted > td {
+  box-shadow:
+    inset 0 1px 0 var(--row-highlighted),
+    inset 0 -1px 0 var(--row-highlighted);
+}
+.row-highlighted > td:first-child {
+  box-shadow:
+    inset 3px 0 0 var(--row-highlighted),
+    inset 0 1px 0 var(--row-highlighted),
+    inset 0 -1px 0 var(--row-highlighted);
+}
+
+/*
+ * The matched part of a search term (see HighlightedText). A tint behind the text keeping the
+ * text's own colour, so the match is emphasised without the browser's solid-yellow <mark> block,
+ * which would fight the row and drop the foreground in dark mode.
+ */
+.text-match {
+  background-color: var(--search-match-bg);
+  color: inherit;
+  border-radius: 0.125rem;
+  padding: 0 0.05em;
+}
+
+/* Legend swatches — same tokens applied to arbitrary inline elements. */
+span.row-deleted {
+  background-color: var(--row-deleted);
+}
+span.row-red {
+  background-color: var(--row-red);
+}
+span.row-green {
+  background-color: var(--row-green);
+}
+span.row-blue {
+  background-color: var(--row-blue);
+}
+span.row-grey {
+  background-color: var(--row-grey);
+}
+
+/*
+ * A task's status (see TaskStatusCell). Semantic classes rather than utilities,
+ * because the colour is a token of its own and Tailwind has no arbitrary-value
+ * escape that keeps it out of the JSX.
+ */
+.task-status-opened {
+  color: var(--task-status-opened);
+}
+.task-status-closed {
+  color: var(--task-status-closed);
+}
+
+/* Consumption bar: a track with a fill whose width is the booked percentage. */
+.consumption-track {
+  display: block;
+  height: 0.5rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--consumption-track);
+}
+.consumption-bar {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--consumption-ok);
+}
+/* Nothing booked yet: an empty track. */
+.consumption-none > .consumption-bar {
+  background-color: transparent;
+}
+.consumption-80 > .consumption-bar {
+  background-color: var(--consumption-warn);
+}
+.consumption-90 > .consumption-bar {
+  background-color: var(--consumption-alert);
+}
+/*
+ * Overbooked: the track turns red and the bar shows how much of the budget the
+ * plan covers, i.e. the colours swap roles (see Consumption.barPercentage).
+ */
+.consumption-overbooked {
+  background-color: var(--consumption-over);
+}
+.consumption-overbooked > .consumption-bar {
+  background-color: var(--consumption-alert);
+}
+.consumption-overbooked-min {
+  background-color: var(--consumption-over);
+}
+.consumption-overbooked-min > .consumption-bar {
+  background-color: var(--consumption-track);
+}
+
+/*
+ * Upload progress: striped fill, moving while the file is going out, so a bar that sits at one
+ * percentage still shows the transfer is alive (the legacy app got this from Bootstrap's
+ * `progress-bar-animated`).
+ *
+ * Addressed through the primitive's `data-slot` because `components/ui/` must not be edited and the
+ * stripes belong to the fill, not the track. A gradient rather than an SVG or a spinner: it stays
+ * one painted element, and `prefers-reduced-motion` switches the movement off without touching the
+ * layout.
+ */
+.upload-progress > [data-slot="progress-indicator"] {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.35) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.35) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 0.6rem 0.6rem;
+}
+/* Only a running transfer animates: a queued file isn't moving, so its stripes shouldn't either. */
+.upload-progress-active > [data-slot="progress-indicator"] {
+  animation: upload-progress-stripes 0.8s linear infinite;
+}
+@keyframes upload-progress-stripes {
+  from {
+    background-position: 0.6rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-progress-active > [data-slot="progress-indicator"] {
+    animation: none;
+  }
+}
+
+/*
+ * A number box no wider than the digits it can hold (`NumberField`'s `digits`): an order's number is
+ * six digits, a percentage three, and a box stretched over the whole column of the form suggests room
+ * that isn't there.
+ *
+ * `ch` of the monospace font the numbers are typed in, plus the field's own horizontal padding, plus
+ * the room a suffix takes where there is one ("EUR" behind an amount) — hence variables per instance
+ * rather than a fixed set of Tailwind widths, which cannot be built from a prop. Still `max-width`, so
+ * a narrower column shrinks it further.
+ */
+.number-box-sized {
+  max-width: calc(
+    var(--number-box-digits) * 1ch + 1.75rem + var(--number-box-suffix, 0rem)
+  );
+}
+
+/*
+ * One slot of the pagination strip — a page number or the gap between two of them.
+ *
+ * As wide as the widest page number the list has, whatever this slot holds: `--pagination-digits` is
+ * the digit count of the last page (set once on the strip), and `ch` is the width of a digit in the
+ * font it is typed in. Plus the button's own horizontal padding.
+ *
+ * Why at all: the arrows sit left and right of the strip, and paging means clicking the same arrow
+ * again. A strip that widens when the numbers grow a digit moves them out from under the mouse — the
+ * same reason the count of slots is constant (see page-slots.ts). `tabular-nums` for the step from
+ * "11" to "18", which even at an equal digit count is not an equal width in a proportional font.
+ */
+.pagination-slot {
+  min-width: calc(var(--pagination-digits, 2) * 1ch + 1rem);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * FullCalendar v6, themed through its own CSS variables bound to the shadcn tokens rather than the
+ * Bootstrap theme the legacy app used. Dark mode needs almost no duplicate rules, because the tokens
+ * these point at already flip under `.dark`. Event colours are NOT set here — they arrive as inline
+ * styles on each event (contrast-computed by the backend, see CalendarStyle).
+ */
+.pf-calendar {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--muted);
+  --fc-neutral-text-color: var(--muted-foreground);
+  --fc-today-bg-color: color-mix(in oklab, var(--primary) 8%, transparent);
+  --fc-now-indicator-color: var(--destructive);
+  --fc-highlight-color: color-mix(in oklab, var(--primary) 14%, transparent);
+  --fc-list-event-hover-bg-color: var(--accent);
+  --fc-event-selected-overlay-color: color-mix(
+    in oklab,
+    var(--foreground) 12%,
+    transparent
+  );
+  color: var(--foreground);
+  /*
+   * The calendar inherited the browser default 16px while the rest of the app runs at 14px, so it read
+   * oversized. 13px both matches the app more closely and, because FullCalendar's time-grid slot heights
+   * are em-based, shortens the rows so more hours fit on screen.
+   */
+  font-size: 0.8125rem;
+}
+
+/* Toolbar buttons as quiet outline buttons; the active view reads as the primary. */
+.pf-calendar .fc .fc-button {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: none;
+  text-transform: none;
+  font-weight: 500;
+  /* Compact: match the smaller calendar text and reclaim vertical space in the header. */
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+}
+.pf-calendar .fc .fc-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.pf-calendar .fc .fc-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.pf-calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+.pf-calendar .fc .fc-button-primary:not(:disabled):active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.pf-calendar .fc .fc-button:disabled {
+  opacity: 0.5;
+}
+.pf-calendar .fc .fc-toolbar-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+/* Tighten the gap under the header toolbar so the compacted controls give the grid more room. */
+.pf-calendar .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.5rem;
+}
+/* Day/weekday column headers default to a larger, heavier link; bring them down to the grid's size. */
+.pf-calendar .fc .fc-col-header-cell-cushion {
+  padding: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/*
+ * All-day section in the time-grid views. FullCalendar renders it as a non-liquid body section, so on a
+ * day with many all-day entries (a full vacation column) it grows without bound and pushes the timed grid
+ * off screen — the lower hours become unreachable. Cap its height and let it scroll on its own. The
+ * all-day chunk is the only one inside `.fc-timegrid` that hosts a `.fc-daygrid-body`, so `:has()` targets
+ * it without touching the timed body or the pure day-grid views. The height is a variable so a future
+ * drag-to-resize splitter can override it inline. */
+.pf-calendar .fc-timegrid .fc-scroller-harness:has(.fc-daygrid-body) {
+  max-height: var(--pf-allday-max-height, 2.5rem);
+}
+.pf-calendar
+  .fc-timegrid
+  .fc-scroller-harness:has(.fc-daygrid-body)
+  > .fc-scroller {
+  max-height: var(--pf-allday-max-height, 2.5rem);
+  overflow-y: auto !important;
+}
+/* The all-day/timed divider doubles as the resize handle (see use-allday-resizer): a taller, row-resize
+   strip with a centred grip that brightens on hover. `touch-action: none` keeps a touch-drag from
+   scrolling the page instead of resizing. */
+.pf-calendar .fc .fc-timegrid-divider {
+  cursor: row-resize;
+  padding: 3px 0;
+  touch-action: none;
+  background-image: linear-gradient(var(--border), var(--border));
+  background-size: 2rem 2px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.pf-calendar .fc .fc-timegrid-divider:hover {
+  background-image: linear-gradient(var(--primary), var(--primary));
+}
+
+/*
+ * Legacy readability patches ported verbatim, since they make the semi-transparent event colours
+ * legible: a little event padding, a slight blur behind stacked events, and bold time-grid titles.
+ */
+.pf-calendar .fc-event {
+  padding: 1px 2px;
+}
+.pf-calendar .fc-timegrid-event {
+  backdrop-filter: blur(1px);
+}
+.pf-calendar .fc-timegrid-event .fc-event-title {
+  font-weight: 600;
+}
+
+/* Weekend/holiday background events shade the whole day column/cell. */
+.pf-calendar .fc-holiday-weekend,
+.pf-calendar .fc-bg-event.fc-holiday-weekend {
+  background: color-mix(in oklab, var(--muted-foreground) 12%, transparent);
+  opacity: 1;
+}
+
+/*
+ * Alternate-hours banding in the time-grid views. `nth-of-type` cannot take a custom property, so the
+ * rhythm is one explicit rule set per grid size (rows per hour = 60 / gridSize): shade the first hour
+ * of every two-hour band. The colour is `--foreground`-derived, not the legacy `#00000007`, which is
+ * invisible on a dark grid.
+ */
+.pf-calendar-alt .fc-timegrid-slots tr {
+  --pf-alt-bg: color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+.pf-calendar-alt[data-grid-size="60"]
+  .fc-timegrid-slots
+  tr:nth-of-type(2n + 1) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="30"] .fc-timegrid-slots tr:nth-of-type(4n + 1),
+.pf-calendar-alt[data-grid-size="30"]
+  .fc-timegrid-slots
+  tr:nth-of-type(4n + 2) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 1),
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 2),
+.pf-calendar-alt[data-grid-size="15"] .fc-timegrid-slots tr:nth-of-type(8n + 3),
+.pf-calendar-alt[data-grid-size="15"]
+  .fc-timegrid-slots
+  tr:nth-of-type(8n + 4) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 1),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 2),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 3),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 4),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 5),
+.pf-calendar-alt[data-grid-size="10"]
+  .fc-timegrid-slots
+  tr:nth-of-type(12n + 6) {
+  background: var(--pf-alt-bg);
+}
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 1),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 2),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 3),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 4),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 5),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 6),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 7),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 8),
+.pf-calendar-alt[data-grid-size="5"] .fc-timegrid-slots tr:nth-of-type(24n + 9),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 10),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 11),
+.pf-calendar-alt[data-grid-size="5"]
+  .fc-timegrid-slots
+  tr:nth-of-type(24n + 12) {
+  background: var(--pf-alt-bg);
+}
+
+/*
+ * Order forecast analysis (OrderForecastPanel). The markup is the backend's own HtmlDocument, injected
+ * verbatim with its embedded <style> — a self-contained light document (HtmlDocument.kt hardcodes
+ * #f2f2f2 label headers, a #d9edf7 info box, #ccc borders, and inline color: blue/green/red). That is
+ * correct for the standalone export, but in the app's dark theme the light backgrounds carry the app's
+ * light text and the label column turns invisible. The backend uses `prefers-color-scheme` nowhere and
+ * could not track this app's class-based toggle if it did, so the remap lives here — same approach as
+ * the FullCalendar block above: rebind the injected colours to the shadcn tokens under `.dark`. Element
+ * and inline styles are low-specificity / need !important respectively; the values come from tokens so
+ * they flip with the theme.
+ */
+/* The backend HtmlDocument gives its <h1> title ("Forecast-Analyse des Auftrags …") a large default
+   top margin, which stacks on top of the frame's own padding and leaves a wide gap above the title.
+   Collapse it so the heading sits close to the frame's top edge (applies in both themes). */
+.order-forecast h1:first-of-type {
+  margin-top: 0;
+}
+/* Headings carry the backend's dark greys (#222 on h2, #555 on h3/h4) which vanish on the dark
+   background — the "angelegt: …" subheading is an h2. Give them the muted-foreground token. */
+.dark .order-forecast h2,
+.dark .order-forecast h3,
+.dark .order-forecast h4 {
+  color: var(--muted-foreground);
+}
+.dark .order-forecast th,
+.dark .order-forecast td {
+  border-color: var(--border);
+}
+.dark .order-forecast thead,
+.dark .order-forecast th {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+/* Alert boxes (legend, variant hints): dark, tinted panels instead of the pastel bootstrap fills. */
+.dark .order-forecast .alert {
+  color: var(--foreground);
+}
+.dark .order-forecast .alert-info {
+  background-color: color-mix(in oklab, oklch(0.62 0.13 240) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.62 0.13 240) 55%, transparent);
+}
+.dark .order-forecast .alert-success {
+  background-color: color-mix(in oklab, oklch(0.7 0.16 150) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.7 0.16 150) 55%, transparent);
+}
+.dark .order-forecast .alert-warning {
+  background-color: color-mix(in oklab, oklch(0.8 0.15 85) 16%, var(--card));
+  border-color: color-mix(in oklab, oklch(0.8 0.15 85) 55%, transparent);
+}
+.dark .order-forecast .alert-danger {
+  background-color: color-mix(in oklab, var(--destructive) 16%, var(--card));
+  border-color: color-mix(in oklab, var(--destructive) 55%, transparent);
+}
+/* Status-tinted cells (success/warning/error): keep the hue, drop the light fill for a dark tint. */
+.dark .order-forecast .success {
+  background-color: color-mix(in oklab, oklch(0.7 0.16 150) 20%, transparent);
+  color: var(--foreground);
+}
+.dark .order-forecast .warning,
+.dark .order-forecast .warning a {
+  background-color: color-mix(in oklab, oklch(0.8 0.15 85) 20%, transparent);
+  color: var(--foreground);
+}
+.dark .order-forecast .error,
+.dark .order-forecast .error a {
+  background-color: color-mix(in oklab, var(--destructive) 20%, transparent);
+  color: var(--foreground);
+}
+/* Inline forecast/invoiced legend colours (see ForecastOrderAnalysis): lift the pure blue/green/red off
+   the near-black background to a legible tint. Inline styles win without !important. */
+.dark .order-forecast [style*="color: blue"] {
+  color: oklch(0.72 0.16 250) !important;
+}
+.dark .order-forecast [style*="color: green"] {
+  color: oklch(0.75 0.18 150) !important;
+}
+.dark .order-forecast [style*="color: red"] {
+  color: var(--destructive) !important;
+}
+
+/* ProjectForge wordmark (see ProjectForgeLogo): Archivo Narrow, with Roboto Condensed as the
+   documented fallback. Both faces are loaded as bold italic via next/font in app/layout.tsx. */
+.wordmark-font {
+  font-family:
+    var(--font-condensed), var(--font-condensed-fallback), sans-serif;
+}

@@ -44,7 +44,7 @@ class UIDataTypeUtils {
             return getDataType(elementInfo) ?: UIDataType.STRING
         }
 
-        internal fun getDataType(elementInfo: ElementInfo?): UIDataType? {
+        fun getDataType(elementInfo: ElementInfo?): UIDataType? {
             elementInfo ?: return null
             return when (elementInfo.propertyClass) {
                 String::class.java -> UIDataType.STRING
@@ -57,8 +57,18 @@ class UIDataTypeUtils {
                 EmployeeDO::class.java -> UIDataType.EMPLOYEE
                 Kost1DO::class.java -> UIDataType.COST1
                 Kost2DO::class.java -> UIDataType.COST2
-                Integer::class.java -> UIDataType.INT
-                Long::class.java -> UIDataType.LONG
+                // Both the boxed and the primitive class, because Kotlin's `Int::class.java` is
+                // `int` while `Integer::class.java` is `java.lang.Integer` — and a nullable Kotlin
+                // property (`var year: Int?`) reflects as the boxed one, a Java `int` field as the
+                // primitive. Missing either half means the property falls back to STRING.
+                Integer::class.java, Int::class.java -> UIDataType.INT
+                // The row numbers of the nested collections (AuftragsPositionDO.number,
+                // PaymentScheduleDO.number/positionNumber) are stored as Short. Both halves again, for
+                // the reason above: `number: Short = 0` reflects as the primitive, `positionNumber:
+                // Short?` as the boxed class. Mapped to INT, since the frontend has no narrower type
+                // and 32767 is no limit a row count reaches.
+                java.lang.Short::class.java, Short::class.java -> UIDataType.INT
+                java.lang.Long::class.java, Long::class.java -> UIDataType.LONG
                 BigDecimal::class.java -> UIDataType.DECIMAL
                 TaskDO::class.java -> UIDataType.TASK
                 Locale::class.java -> UIDataType.LOCALE

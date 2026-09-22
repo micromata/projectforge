@@ -24,7 +24,7 @@
 package org.projectforge.mail
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 open class MailAttachment(
     override var filename: String? = null,

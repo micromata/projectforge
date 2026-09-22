@@ -13,3 +13,5 @@ dist
 */*/dist
 projectforge-webapp/node_modules
 projectforge-webapp/package-lock.json
+projectforge-next/node_modules
+projectforge-next/.next

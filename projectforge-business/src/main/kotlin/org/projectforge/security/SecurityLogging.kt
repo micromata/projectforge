@@ -25,6 +25,7 @@ package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.login.LoginService
+import org.projectforge.web.WebUtils
 import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -35,7 +36,7 @@ private val securityLog = KotlinLogging.logger("de.micromata.projectforge.securi
 object SecurityLogging {
   /**
    * Writes info message to accessLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @return The build message including request infos.
    */
@@ -46,7 +47,7 @@ object SecurityLogging {
 
   /**
    * Writes info message to accessLog and/or securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param logAccess If true, the log info message will be written to accessLog.
    * @param logSecurity If true, the log info message will be written to securityLog.
@@ -73,7 +74,7 @@ object SecurityLogging {
 
   /**
    * Writes warn message to securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
    * @param message Optional message attached to the end of the logging message.
@@ -106,7 +107,7 @@ object SecurityLogging {
 
   /**
    * Writes warn message to accessLog and/or securityLog.
-   * @param request Needed for logging client ip (remoteAddr), user-agent, username.
+   * @param request Needed for logging client ip, user-agent, username.
    * @param caller Source class
    * @param title The title of the message (start string encapsulated in *** <TITLE> ***.
    * @param logAccess If true, the log warn message will be written to accessLog.
@@ -146,7 +147,7 @@ object SecurityLogging {
     } else {
       ""
     }
-    return "ip=[${request.remoteAddr}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
+    return "ip=[${WebUtils.getClientIp(request)}], user=[${username ?: "???"}], url=[$url]$uriPart, method=[${request.method}], agent=[${
       request.getHeader(
         "User-Agent"
       )

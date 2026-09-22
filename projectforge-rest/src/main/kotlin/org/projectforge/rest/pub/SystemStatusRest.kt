@@ -52,6 +52,13 @@ class SystemStatusRest {
         var messageOfTheDay: String? = null,
         var copyRightYears: String,
         var logoUrl: String? = null,
+        /** Optional dark-mode variant of [logoUrl]; null when no dark logo is configured. */
+        var logoUrlDark: String? = null,
+        /**
+         * True if `projectforge.development.mode` is set, so that a client can show that this instance
+         * isn't a productive one (projectforge-next shows a marker in its logo row).
+         */
+        var developmentMode: Boolean = false,
         /**
          * If given, the client should redirect to this url.
          */
@@ -72,6 +79,8 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = systemStatus.copyRightYears,
             logoUrl = LogoServiceRest.logoUrl,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
+            developmentMode = systemStatus.developmentMode,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
             startTimeUTC = Date(systemStatus.startTimeMillis)
         )
@@ -79,6 +88,9 @@ class SystemStatusRest {
 
     /**
      * Contains only message of the day without detailed information of version, build-date etc. due to security reasons.
+     *
+     * [SystemData.developmentMode] is a deliberate exception to that redaction: the marker of a development
+     * instance is wanted on the login page as well, and a productive system answers false anyway.
      */
     val publicSystemData: SystemData by lazy {
         // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
@@ -93,6 +105,8 @@ class SystemStatusRest {
             messageOfTheDay = systemStatus.messageOfTheDay,
             copyRightYears = "2001-${Year.now()}",
             logoUrl = LogoServiceRest.logoUrl,
+            logoUrlDark = LogoServiceRest.logoUrlDark,
+            developmentMode = systemStatus.developmentMode,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
             startTimeUTC = Date(0L)
         )

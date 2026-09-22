@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
  * assigned to a task and the user has the task access.
  *
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Kai Reinhard
  *
  */
 public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>

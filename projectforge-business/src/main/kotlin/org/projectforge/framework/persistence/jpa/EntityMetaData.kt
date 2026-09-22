@@ -42,19 +42,28 @@ class EntityMetaData(val entityClass: Class<*>) {
             "Class $entityClass is not an entity."
         }
 
-        // Durch alle Felder der Klasse iterieren
-        for (field in entityClass.declaredFields) {
-            // Überprüfen, ob das Feld mit @Column annotiert ist
-            if (field.isAnnotationPresent(Column::class.java)) {
-                processColumnAnnotation(field.name, field.getAnnotation(Column::class.java), AnnoType.FIELD)
+        // Walk up the class hierarchy so columns a `@MappedSuperclass` declares (e. g.
+        // `AbstractRechnungDO.bemerkung`) are seen too - `declaredFields`/`declaredMethods` return only a
+        // class's own members. The most derived declaration wins, so a subclass may override a column: a
+        // property already collected from a subclass is not overwritten by its parent.
+        var clazz: Class<*>? = entityClass
+        while (clazz != null && clazz != Any::class.java) {
+            for (field in clazz.declaredFields) {
+                // Überprüfen, ob das Feld mit @Column annotiert ist
+                if (field.isAnnotationPresent(Column::class.java) && !columns.containsKey(field.name)) {
+                    processColumnAnnotation(field.name, field.getAnnotation(Column::class.java), AnnoType.FIELD)
+                }
             }
-        }
 
-        for (method in entityClass.declaredMethods) {
-            if (method.isAnnotationPresent(Column::class.java)) {
-                val fieldName = BeanHelper.determinePropertyName(method)
-                processColumnAnnotation(fieldName, method.getAnnotation(Column::class.java), AnnoType.METHOD)
+            for (method in clazz.declaredMethods) {
+                if (method.isAnnotationPresent(Column::class.java)) {
+                    val fieldName = BeanHelper.determinePropertyName(method)
+                    if (!columns.containsKey(fieldName)) {
+                        processColumnAnnotation(fieldName, method.getAnnotation(Column::class.java), AnnoType.METHOD)
+                    }
+                }
             }
+            clazz = clazz.superclass
         }
     }
 

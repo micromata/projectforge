@@ -64,7 +64,7 @@ import java.util.List;
  * </ul>
  * <h4>Users-groups mode</h4> Not yet supported. No groups will be synchronized.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapSlaveLoginHandler extends LdapLoginHandler {

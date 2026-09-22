@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 /**
  * For displaying yes/no questions.
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ModalQuestionDialog extends ModalDialog

@@ -102,7 +102,9 @@ open class DataTransferNotificationMailService {
       val mail = prepareMail(recipient, area, link, auditEntries, downloadAuditEntries)
       mail?.let {
         try {
-          if (sendMail.send(it)) {
+          // Synchronously, so the counter means what its name says: mails actually sent, not merely
+          // dispatched. This runs in a cron job (DatatransferAuditJob), nobody is waiting for it.
+          if (sendMail.send(it, null, null, false)) {
             ++counter
           }
         } catch (ex: Exception) {

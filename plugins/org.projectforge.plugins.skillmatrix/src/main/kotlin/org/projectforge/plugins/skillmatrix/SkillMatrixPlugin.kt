@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class SkillMatrixPlugin : AbstractPlugin(
     PluginAdminService.PLUGIN_SKILL_MATRIX_ID,

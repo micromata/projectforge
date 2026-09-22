@@ -30,7 +30,7 @@ import java.util.*
 
 /**
  * Uses [Collator] and the user's locale to compare string.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object StringComparator {
     private val germanCollator: Collator = Collator.getInstance(Locale.GERMAN).also {

@@ -57,6 +57,11 @@ class DataTableStateRequest {
      * Active column filters.
      */
     var columnFilters: List<DataTableColumnFilter>? = null
+
+    /**
+     * Selected number of rows per page.
+     */
+    var paginationPageSize: Int? = null
 }
 
 class DataTableColumnPinning {

@@ -33,7 +33,7 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.service.UserXmlPreferencesService;
+import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -55,7 +55,7 @@ import java.util.Objects;
 /**
  * This panel shows the actual user and buttons for select/unselect user.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements ComponentWrapperPanel
 {
@@ -310,13 +310,13 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   @SuppressWarnings("unchecked")
   private RecentQueue<String> getRecentUsers()
   {
-    var userPreferencesService = WicketSupport.get(UserXmlPreferencesService.class);
+    var userPrefService = WicketSupport.get(UserPrefService.class);
     if (this.recentUsers == null) {
-      this.recentUsers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_USERS);
+      this.recentUsers = (RecentQueue<String>) userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_USERS);
     }
     if (this.recentUsers == null) {
       this.recentUsers = new RecentQueue<String>();
-      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
+      userPrefService.putEntry(UserPrefService.LEGACY_XML_AREA, USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
     }
     return this.recentUsers;
   }

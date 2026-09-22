@@ -31,7 +31,7 @@ import java.awt.*;
 
 /**
  * For (de-)serializing web app's image dimensions. Used by PresizedImage and GetImageDimensionsTest.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 @XmlObject(alias = "image")

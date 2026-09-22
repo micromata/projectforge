@@ -41,7 +41,7 @@ import java.util.Map;
  * Serializes objects to xml. A simple solution for streaming xml objects and to prevent default values from the xml output (because this
  * feature isn't yet available in XStream). It's only fit the ProjectForge requirements and is not very useful as generic xml streaming
  * package.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class XmlObjectWriter

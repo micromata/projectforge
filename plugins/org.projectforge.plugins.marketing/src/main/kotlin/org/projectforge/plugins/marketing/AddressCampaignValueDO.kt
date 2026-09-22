@@ -38,7 +38,7 @@ import org.projectforge.framework.json.IdOnlySerializer
 /**
  * A marketing campaign.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

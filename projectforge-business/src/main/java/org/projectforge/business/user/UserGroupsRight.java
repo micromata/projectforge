@@ -36,7 +36,7 @@ import java.util.Map.Entry;
 /**
  * Right depending on the member-ship of at least one group.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class UserGroupsRight extends UserRight implements Serializable

@@ -55,7 +55,7 @@ private val log = KotlinLogging.logger {}
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as
  * xml (compressed (gzip and base64) for larger xml content).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class UserXmlPreferencesDao {
@@ -131,6 +131,28 @@ class UserXmlPreferencesDao {
         val userPref = selectUserPreferencesByUserId(userId, key, true) ?: return null
         @Suppress("UNCHECKED_CAST")
         return deserialize(userPref) as T?
+    }
+
+    /**
+     * Read-only access to a legacy XML preference without any access check, used for the lazy XML-&gt;JSON migration
+     * (see [UserPrefCache.migrateLegacyEntryOnCacheMiss]).
+     *
+     * Never throws: any deserialization problem (removed/incompatible legacy class) is logged and results in null,
+     * so the preferences load path is never broken by an undeserializable legacy row.
+     *
+     * @param userId The owner of the preference.
+     * @param key The flat legacy key (equals the JSON `name` of the migrated entry).
+     * @return The deserialized value, or null if no legacy row exists or it can't be deserialized.
+     */
+    fun internalGetDeserialized(userId: Long, key: String?): Any? {
+        key ?: return null
+        return try {
+            val userPref = selectUserPreferencesByUserId(userId, key, checkAccess = false) ?: return null
+            deserialize(userPref)
+        } catch (ex: Throwable) {
+            log.warn { "Can't deserialize legacy xml user preference for lazy migration (ignored): userId=$userId, key=$key: ${ex.message}" }
+            null
+        }
     }
 
     /**

@@ -31,7 +31,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class LdapOrganizationalUnitDao

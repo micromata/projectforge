@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 
 /**
  * Simple class for storing a customer favorite. It contains only a reference to one project.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class KundeFavorite

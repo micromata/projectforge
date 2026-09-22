@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.PresizedImage;
 
 /**
  * An image as link with an href and with a tooltip.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class ImageLinkPanel extends Panel

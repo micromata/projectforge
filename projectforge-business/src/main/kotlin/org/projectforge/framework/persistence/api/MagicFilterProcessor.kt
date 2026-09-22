@@ -24,11 +24,14 @@
 package org.projectforge.framework.persistence.api
 
 import mu.KotlinLogging
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
@@ -62,11 +65,8 @@ object MagicFilterProcessor {
 
         queryFilter.searchHistory = magicFilter.searchHistory
         queryFilter.sortAndLimitMaxRowsWhileSelect = magicFilter.sortAndLimitMaxRowsWhileSelect
-        queryFilter.sortProperties = magicFilter.sortProperties.map {
-            var property = it.property
-            if (property.indexOf('.') > 0)
-                property = property.substring(property.indexOf('.') + 1)
-            SortProperty(property, it.sortOrder)
+        queryFilter.sortProperties = magicFilter.sortProperties.flatMap { sortProperty ->
+            expandSortProperty(entityClass, sortProperty.property).map { SortProperty(it, sortProperty.sortOrder) }
         }.toMutableList()
         queryFilter.extended = magicFilter.extended
         val searchString = magicFilter.searchString;
@@ -97,6 +97,80 @@ object MagicFilterProcessor {
         }
         return queryFilter
     }
+
+    /**
+     * The entity property a column's sort id refers to.
+     *
+     * A dotted id can mean either of two things, and the leading segment tells them apart:
+     *
+     * - a **path through the entity**, `kunde.displayName` or `projekt.kunde.name` of an `AuftragDO` —
+     *   kept whole, because the criteria builder can join and order by it (see
+     *   [DBCriteriaContext.getOrderField]). It used to be shortened unconditionally, which turned
+     *   `kunde.displayName` into `displayName` — a property no `AuftragDO` has, so `addOrder` failed,
+     *   logged "Can't add order" and left the order book in whatever order the database returned.
+     * - a path through a **DTO** that names the wrapper the entity has no property for:
+     *   `fibu.employee.user.lastname` of an `EmployeeSalary`. Those leading segments are dropped until
+     *   one names a property of the entity.
+     *
+     * The last segment is deliberately not checked: `displayName` and the other computed values are
+     * getters without a backing field, which no reflection over fields can confirm. An unorderable
+     * segment is reported by `addOrder` — and a rest class may handle it in `postProcessMagicFilter`
+     * beforehand, either by mapping it onto a real column (`Kost1PagesRest`) or by taking it out of the
+     * query and sorting the loaded list instead (`OrderEntityRest`).
+     */
+    internal fun resolveSortProperty(entityClass: Class<*>, property: String): String {
+        var result = property
+        while (result.contains('.')) {
+            val head = result.substringBefore('.')
+            // suppressWarning: a DTO-only wrapper is the expected case here, not a defect.
+            if (PropUtils.getField(entityClass, head, true) != null) {
+                return result
+            }
+            result = result.substringAfter('.')
+        }
+        return result
+    }
+
+    /**
+     * The one or more entity properties to `ORDER BY` for a column's sort id, [resolveSortProperty] plus a
+     * generic fix for association columns whose displayed value no single database column holds.
+     *
+     * A `kost1`/`kost2` column shows the formatted cost number ([Kost1DO.formattedNumber] and
+     * [Kost2DO.formattedNumber] are getters over the number's parts); a `user` column shows the full name
+     * ([PFUserDO.displayName] is a getter over `firstname`/`lastname`). Ordering by the bare association would
+     * sort by its foreign key (`kost*_id`, `user_fk`) — insertion order, meaningless to the reader — or fail in
+     * `addOrder` and drop the ORDER BY. So wherever a sort id resolves to a field of such a type (a time sheet's
+     * `kost2` or `user`, an invoice position's, ...), it is expanded into the real columns behind that
+     * association, most significant first — reached through the LEFT join `DBCriteriaContext.getOrderField`
+     * builds for a nested path, so rows without the association are kept, not filtered out. For a cost number
+     * each part is a fixed number of digits, so comparing them one after another yields the same order as
+     * comparing the formatted number; for a user the columns match the displayed "firstname lastname" order.
+     *
+     * This makes every list with such a column sortable by it, without each page wiring up its own sort
+     * (as `Kost1PagesRest` still does for the *`Kost1DO` entity's own* `formattedNumber` column, a case this
+     * association-field expansion does not cover).
+     */
+    internal fun expandSortProperty(entityClass: Class<*>, property: String): List<String> {
+        val resolved = resolveSortProperty(entityClass, property)
+        // suppressWarning: a DTO-only wrapper / computed leaf is expected here, not a defect.
+        val fieldType = PropUtils.getField(entityClass, resolved, true)?.type ?: return listOf(resolved)
+        val segments = ASSOCIATION_SORT_SEGMENTS.entries.firstOrNull { it.key.isAssignableFrom(fieldType) }?.value
+            ?: return listOf(resolved)
+        return segments.map { "$resolved.$it" }
+    }
+
+    /**
+     * The real columns behind an association whose displayed value no single column holds, most significant
+     * first, per association type — the parts of a cost number ([Kost1DO]: `nummernkreis.bereich.teilbereich.
+     * endziffer`; [Kost2DO]: the same three plus `kost2Art.id` as the two-digit end cipher), and a user's name
+     * ([PFUserDO]: `firstname.lastname.username`, matching the displayed "firstname lastname"). See
+     * [expandSortProperty].
+     */
+    private val ASSOCIATION_SORT_SEGMENTS: Map<Class<*>, List<String>> = mapOf(
+        Kost1DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "endziffer"),
+        Kost2DO::class.java to listOf("nummernkreis", "bereich", "teilbereich", "kost2Art.id"),
+        PFUserDO::class.java to listOf("firstname", "lastname", "username"),
+    )
 
     internal fun createFieldSearchEntry(
         entityClass: Class<*>,
@@ -188,12 +262,19 @@ object MagicFilterProcessor {
         } else if (I18nEnum::class.java.isAssignableFrom(fieldType)) {
             val values = magicFilterEntry.value.values
             if (!values.isNullOrEmpty()) {
+                // "no value set" is one of the selectable values, so it may arrive alone or beside real ones.
+                val nullSelected = values.contains(MagicFilterEntry.NULL_VALUE)
                 @Suppress("UNCHECKED_CAST")
                 val enumConstants = fieldType.enumConstants as Array<Enum<*>>
-                val list = values.map { value ->
+                val list = values.filter { it != MagicFilterEntry.NULL_VALUE }.map { value ->
                     enumConstants.first { it.name == value }
                 }
-                val predicate = DBPredicate.IsIn(field, list)
+                val predicate = when {
+                    !nullSelected -> DBPredicate.IsIn(field, list)
+                    list.isEmpty() -> DBPredicate.IsNull(field)
+                    // Both: the field is null *or* one of the chosen values.
+                    else -> DBPredicate.Or(DBPredicate.IsNull(field), DBPredicate.IsIn(field, list))
+                }
                 queryFilter.add(predicate)
             }
         } else {

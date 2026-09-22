@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * For sharing functionality between mobile and normal edit pages.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class TimesheetPageSupport implements Serializable {
     private static final long serialVersionUID = 9008998607656697576L;

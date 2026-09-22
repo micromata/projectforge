@@ -135,6 +135,28 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(settings, layout, createServerData(request))
   }
 
+  /**
+   * Plain-JSON read of the current settings for the Next.js calendar's settings dialog (the gear),
+   * which merges the colours into its own modal instead of opening this dynamic form as a page.
+   * Returns the cloned settings with every colour filled by its default (see [getSettings]).
+   */
+  @GetMapping("settings")
+  fun getSettingsJson(): CalendarSettings {
+    return calendarSettingsRest.getSettings()
+  }
+
+  /**
+   * Plain-JSON persist counterpart of [getSettingsJson]. Runs the same colour validation as [save]
+   * (406 with the field errors on a bad hex code) and, like the sibling `change*` endpoints, relies on
+   * the `X-PF-CSRF-Token` header rather than a wrapped [PostData]. Answers with the canonical settings.
+   */
+  @PostMapping("settings")
+  fun saveSettingsJson(@RequestBody settings: CalendarSettings): ResponseEntity<*> {
+    validate(settings)?.let { return it }
+    calendarSettingsRest.persistSettings(settings)
+    return ResponseEntity.ok(calendarSettingsRest.getSettings())
+  }
+
   @PostMapping(RestPaths.WATCH_FIELDS)
   fun watchFields(@Valid @RequestBody postData: PostData<CalendarSettings>): ResponseEntity<*> {
     val data = postData.data

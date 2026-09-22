@@ -32,7 +32,7 @@ import java.util.Map;
 
 /**
  * Used for persisting the values of ReportScriptingAction.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class ReportScriptingStorage

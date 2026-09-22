@@ -24,8 +24,8 @@
 package org.projectforge.framework.persistence.search
 
 import org.apache.lucene.analysis.classic.ClassicTokenizerFactory
-import org.apache.lucene.analysis.core.KeywordTokenizerFactory
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory
+import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory
 import org.apache.lucene.analysis.synonym.SynonymGraphFilterFactory
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurationContext
 import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer
@@ -33,9 +33,15 @@ import org.hibernate.search.backend.lucene.analysis.LuceneAnalysisConfigurer
 class MyAnalysisConfigurer : LuceneAnalysisConfigurer {
 
     override fun configure(context: LuceneAnalysisConfigurationContext) {
+        // Splits only on whitespace, so every word of a name becomes its own term while special characters
+        // stay attached (e.g. "K+S Energy" -> "k+s", "energy"). This is what lets a search find a word *inside*
+        // a customer name ("post" finds "Deutsche Post AG", "+deutsche -post" excludes it) while still matching
+        // a name that holds a character the standard analyzer would strip. A KeywordTokenizer used to index the
+        // whole name as a single term, so only a prefix of the whole name matched and "post" missed "Deutsche
+        // Post" entirely. Prefix matching still works via the wildcard expansion in SearchStringTokenizer.
         context.analyzer("customAnalyzer")
             .custom()
-            .tokenizer(KeywordTokenizerFactory::class.java)  // KeywordTokenizer for entire character strings
+            .tokenizer(WhitespaceTokenizerFactory::class.java) // One term per word, keeping special characters.
             .tokenFilter(LowerCaseFilterFactory::class.java) // Optional for case-insensitive search
             .tokenFilter(SynonymGraphFilterFactory::class.java)
             .param("synonyms", "luceneSynonyms.txt")

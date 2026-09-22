@@ -29,10 +29,12 @@ import org.projectforge.business.common.OutputType
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.teamcal.CalendarHelper
+import org.projectforge.business.timesheet.AITimeSavings
 import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.business.timesheet.TimesheetOverlapUtils
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -73,6 +75,10 @@ class TimesheetEventsProvider {
         }
         val timesheetUser = UserGroupCache.getInstance().getUser(userId)
         val timesheets = timesheetDao.select(tsFilter)
+        // The daily/weekly statistics show gross working time (Brutto-Arbeitszeit), not raw effort: overlapping
+        // sheets are counted once, sheets whose cost-type work fraction is zero (cost type "33") are dropped, and
+        // every other sheet (travel time included) counts in full. Keyed by timesheet id.
+        val grossWorkingDurations = TimesheetOverlapUtils.grossWorkingDurations(timesheets)
 
         ctx.days = start.daysBetween(end)
         if (ctx.days < 10) {
@@ -161,10 +167,19 @@ class TimesheetEventsProvider {
                     )
                     .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
                     .addPropRow(translate("description"), timesheet.description, pre = true, abbreviate = true)
+                // AI time savings, only when given and non-zero: a labelled tooltip row and a compact line
+                // in the event block (see FullCalendarEvent.ExtendedProps.timeSavedByAI).
+                val aiMillis = AITimeSavings.getTimeSavedByAIMillisOrNull(timesheet)
+                if (AITimeSavings.timeSavingsByAIEnabled && aiMillis != null && aiMillis != 0L) {
+                    val formatted = AITimeSavings.getFormattedTimeSavedByAI(timesheet)
+                    tooltipBuilder.addPropRow(translate("timesheet.ai.timeSavedByAI"), formatted)
+                    event.ensureExtendedProps().timeSavedByAI = formatted
+                }
                 event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
             }
 
-            val duration = timesheet.duration
+            // Statistics accumulate gross working time (see grossWorkingDurations above), not the sheet's full duration.
+            val duration = timesheet.id?.let { grossWorkingDurations[it] } ?: 0L
             if (ctx.month == null || ctx.month == startTime.month) {
                 ctx.totalDuration += duration
                 ctx.addDurationOfDay(startTime.dayOfMonth, duration)
@@ -173,6 +188,9 @@ class TimesheetEventsProvider {
             ctx.addDurationOfDayOfYear(dayOfYear, duration)
         }
         if (showStatistics) { // Show statistics: duration of every day is shown as all day event.
+            // The all-day figures are gross working time, not raw effort (see grossWorkingDurations above); label
+            // them accordingly so users don't mistake them for the booked effort.
+            val workingTimeLabel = translate("calendar.workingTime")
             var day = start
             val numberOfDaysInYear = day.numberOfDaysInYear
             var paranoiaCounter = 0
@@ -201,14 +219,15 @@ class TimesheetEventsProvider {
                     val buf = StringBuilder()
                     buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
                     if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
-                        buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration, -1, -1))
+                        buf.append(" ").append(workingTimeLabel).append(": ")
+                            .append(FullCalendarEvent.formatDuration(weekDuration, -1, -1))
                     }
                     if (duration > 0) {
                         buf.append(", ").append(durationString)
                     }
                     buf.toString()
                 } else {
-                    durationString
+                    "$workingTimeLabel: $durationString"
                 }
                 val event = FullCalendarEvent.createAllDayEvent(
                     id = paranoiaCounter,

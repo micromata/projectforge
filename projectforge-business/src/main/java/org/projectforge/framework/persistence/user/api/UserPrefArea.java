@@ -38,7 +38,7 @@ import java.io.Serializable;
  * Will be replaced by {@link org.projectforge.favorites.AbstractFavorite}.
  * See {@link org.projectforge.business.task.TaskFavorite} as an example.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Deprecated
 public class UserPrefArea implements Serializable, Comparable<UserPrefArea>

@@ -35,7 +35,6 @@ import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -146,9 +145,7 @@ class HibernateSearchReindexer {
                 log.info { "Re-indexing ${it.format()} entries of class '${clazz.name}'." }
             }
         } catch (ex: Exception) {
-            if (HistoryEntryDO::class.java != clazz) {
-                log.info("Class '$clazz' not available (OK for non-active plugins and HistoryEntryDO).")
-            }
+            log.info("Class '$clazz' not available (OK for non-active plugins).")
             return
         }
         // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases

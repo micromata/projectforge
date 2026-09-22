@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.history
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KClass
@@ -71,7 +70,10 @@ import kotlin.reflect.KMutableProperty1
     //    columnList = "ENTITY_ID,ENTITY_NAME"
     //), Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT")]
 )
-@Indexed
+// Not @Indexed: this entity carried @Indexed but declared no indexed field, so the mass indexer built ~37M empty
+// Lucene documents on re-index (the observed t_pf_history_attr load storm) for an index that was never searched.
+// History value search runs SQL-based over both value and old_value (DBHistoryQuery.searchHistoryEntryByCriteria),
+// accelerated by the pg_trgm GIN indexes (see V8.0.24 migration), not by Hibernate Search.
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
 class HistoryEntryAttrDO : HistoryEntryAttr {
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")

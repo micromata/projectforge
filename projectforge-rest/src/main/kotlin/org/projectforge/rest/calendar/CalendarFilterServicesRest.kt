@@ -28,7 +28,9 @@ import org.projectforge.business.calendar.*
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.i18n.addTranslations
 import org.projectforge.framework.i18n.translate
@@ -90,7 +92,10 @@ class CalendarFilterServicesRest {
     }
 
     private fun migrateFromLegacyFilter(userPrefService: UserPrefService): CalendarLegacyFilter? {
-      val legacyFilter = CalendarLegacyFilter.migrate(userPrefService.userXmlPreferencesService) ?: return null
+      val userId = ThreadLocalUserContext.loggedInUserId ?: return null
+      val userXmlPreferencesDao =
+        ApplicationContextProvider.getApplicationContext().getBean(UserXmlPreferencesDao::class.java)
+      val legacyFilter = CalendarLegacyFilter.migrate(userXmlPreferencesDao, userId) ?: return null
       log.info("User's legacy calendar filter migrated.")
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, legacyFilter.list)
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, legacyFilter.current)
@@ -477,6 +482,9 @@ class CalendarFilterServicesRest {
     if (currentFilter == null) {
       // Creating empty filter (user has no filter list yet):
       currentFilter = CalendarFilter()
+      // Default the timesheet display to the logged-in user's own time sheets (checkbox on for a fresh filter).
+      // An explicit uncheck later persists timesheetUserId = null on the existing filter and is therefore respected.
+      currentFilter.timesheetUserId = ThreadLocalUserContext.loggedInUserId
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_CURRENT, currentFilter)
     }
     currentFilter.afterDeserialization()

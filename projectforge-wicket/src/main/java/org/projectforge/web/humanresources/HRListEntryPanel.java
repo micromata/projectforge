@@ -34,7 +34,7 @@ import java.math.BigDecimal;
 
 /**
  * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class HRListEntryPanel extends Panel

@@ -117,13 +117,24 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
+    /**
+     * @param request `onlyActiveEntries` (default true) and `projektId`: the latter narrows the answer to
+     * the cost units of one project, which the kost2 picker of the task form needs — the units offered
+     * there are the ones the task's project has (Wicket prefilters the picker with the search string
+     * `"nummer:" + projekt.kost + ".*"`, `TaskEditForm`; the id keeps the number format out of the url and
+     * needs no re-parsing here).
+     */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost2DO> {
         val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
+        val projektId = NumberHelper.parseLong(request.getParameter("projektId"))
         var list = super.queryAutocompleteObjects(request, filter)
         val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
         if (onlyActiveEntries && !NumberHelper.isDigitsAndDotsOnly(searchString)) {
             list =
                 list.filter { it.effectiveKostentraegerStatus == null || it.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE }
+        }
+        if (projektId != null) {
+            list = list.filter { it.projekt?.id == projektId }
         }
         list.forEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
         return list.sortedBy { it.displayName }

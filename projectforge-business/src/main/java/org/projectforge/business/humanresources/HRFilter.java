@@ -31,7 +31,7 @@ import java.time.LocalDate;
 
 /**
  * Is not synchronized.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class HRFilter extends BaseSearchFilter

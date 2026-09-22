@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.utils.CollectionDebugUtils
 /**
  * For debugging purposes of [UserGroupCache]
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object UserGroupCacheDebug {
     /**

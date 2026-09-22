@@ -34,7 +34,7 @@ import java.io.Serializable;
 /**
  * For registering a dao object and its scripting dao (optional).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class RegistryEntry implements Serializable

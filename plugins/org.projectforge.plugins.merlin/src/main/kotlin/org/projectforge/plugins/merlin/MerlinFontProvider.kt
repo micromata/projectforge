@@ -33,7 +33,7 @@ import java.awt.Color
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MerlinFontProvider(val fontService: MerlinFontService) : IFontProvider {
   override fun getFont(familyName: String?, encoding: String?, size: Float, style: Int, color: Color?): Font {

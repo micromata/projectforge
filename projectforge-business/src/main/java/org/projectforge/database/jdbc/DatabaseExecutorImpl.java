@@ -38,7 +38,7 @@ import java.util.List;
  * Using plain jdbc for executing jdbc commands. DON'T USE THIS CLASS FOR PRODUCTION! This class is only for
  * demonstration purposes, because there is no connection pooling and connections may loose!!!!!
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class DatabaseExecutorImpl implements DatabaseExecutor

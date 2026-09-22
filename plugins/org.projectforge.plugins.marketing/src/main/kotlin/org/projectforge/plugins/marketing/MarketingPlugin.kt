@@ -36,7 +36,7 @@ import org.projectforge.web.plugin.PluginWicketRegistrationService
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plugin for address campaigns.") {
     override fun initialize() {

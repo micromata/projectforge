@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 /**
  * ThreadLocal context.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 object ThreadLocalUserContext {
     private val threadLocalUserContext = ThreadLocal<UserContext?>()

@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router';
 import { loadUserStatus } from '../../../actions';
 import history from '../../../utilities/history';
+import reportMenuUsage from '../../../utilities/menuUsage';
 import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import { NavLink, UncontrolledTooltip } from '../../design';
 import MenuBadge from './categories-dropdown/MenuBadge';
@@ -112,6 +113,7 @@ function NavigationAction({
                         href={getServiceURL(url)}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => reportMenuUsage(entryKey || id)}
                     >
                         {content}
                     </NavLink>
@@ -137,6 +139,7 @@ function NavigationAction({
 
             const handleNavClick = (e) => {
                 e.preventDefault();
+                reportMenuUsage(entryKey || id);
                 navigate(fullPath, navigationOptions);
             };
 

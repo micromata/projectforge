@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed

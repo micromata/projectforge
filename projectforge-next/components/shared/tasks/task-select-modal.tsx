@@ -1,0 +1,73 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { TaskTreePanel } from "./task-tree-panel";
+import type { TaskNode } from "@/lib/rs/task";
+import { useRecentTasks } from "./use-recent-tasks";
+
+export interface TaskSelectModalProps {
+  value: number | null;
+  onChange: (task: TaskNode | null) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /**
+   * Root the tree here on open instead of at the selection's parent — a drill-down click on an ancestor
+   * passes the ancestor, so the tree opens rooted there and the node sits in the breadcrumb, not as a row.
+   */
+  rootTaskId?: number | null;
+}
+
+export function TaskSelectModal({
+  value,
+  onChange,
+  open,
+  onOpenChange,
+  rootTaskId,
+}: TaskSelectModalProps) {
+  const t = useTranslations();
+  const { recordTask } = useRecentTasks();
+
+  const handleSelect = (task: TaskNode) => {
+    // A pick from the tree, recorded like a pick from the search popover so the recent quick-picks
+    // stay current wherever the dialog is used (see useRecentTasks and TaskSelectControl).
+    recordTask(task.id);
+    onChange(task);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* Let the tree body take the focus (see DataTable.autoFocusKeyboard) instead of the dialog's
+          focus trap landing it on the close button or the filter input — so the arrow keys drive the
+          tree the moment it opens. */}
+      <DialogContent
+        className="w-[95vw] !max-w-[95vw]"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>{t("task.tree.title.select")}</DialogTitle>
+        </DialogHeader>
+        {/* A bounded flex column, not a scrolling block: the panel is built to scroll *inside* its own
+            table (flex-1 + min-h-0, like the list page's `flex flex-1 overflow-hidden` host), and that
+            inner scroller is the one the highlight jumps to (see useHighlightedRow). A wrapper that
+            scrolled itself would leave the table's scroller idle, so the current task never came into
+            view. */}
+        <div className="flex max-h-[65vh] flex-col overflow-hidden rounded-md border p-2">
+          <TaskTreePanel
+            highlightTaskId={value}
+            initialRootTaskId={rootTaskId}
+            onSelect={handleSelect}
+            selectMode
+            rootNavigable
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

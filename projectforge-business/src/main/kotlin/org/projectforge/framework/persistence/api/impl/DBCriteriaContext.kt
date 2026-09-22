@@ -42,6 +42,13 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Long>>(
     private val log = LoggerFactory.getLogger(DBCriteriaContext::class.java)
     private val joinMap = mutableMapOf<String, Join<Any, Any>>()
 
+    /**
+     * Joins created on demand for nested sort paths, keyed by the path they reach (`projekt`,
+     * `projekt.kunde`). Kept apart from [joinMap], which the query's own [DBJoin]s own: those are keyed
+     * by attribute name only, so writing a nested path into it could shadow one of them.
+     */
+    private val sortJoinMap = mutableMapOf<String, Join<Any, Any>>()
+
     val entityName
         get() = entityClass.simpleName
 
@@ -67,6 +74,36 @@ internal class DBCriteriaContext<O : ExtendedBaseDO<Long>>(
 
     fun <T> getField(field: String): Path<T> {
         return getField(root, field)
+    }
+
+    /**
+     * The path of a field to order by, joining what a nested path needs.
+     *
+     * [getField] cannot serve an `order by` over a nested path on its own: it walks the path with
+     * `get()`, and dereferencing an association that way makes Hibernate add an **inner** join. Ordering
+     * would then drop rows — sorting the order book by customer would hide every order that has no
+     * customer, which is a filter, not a sort. So each segment gets an explicit [JoinType.LEFT] join
+     * instead, reused across sort properties (`projekt.kunde.name` and `projekt.name` share the
+     * `projekt` join) and never mixed with the query's own joins in [joinMap].
+     *
+     * A path the query already joined keeps that join, so an `order by` over a filtered association
+     * orders by the same rows the filter matched.
+     */
+    fun <T> getOrderField(field: String): Path<T> {
+        if (!field.contains('.')) {
+            return root.get<T>(field)
+        }
+        val segments = field.split('.')
+        var from: From<Any, Any> = @Suppress("UNCHECKED_CAST") (root as From<Any, Any>)
+        // All but the last segment are associations to join; the last one is the property to order by.
+        segments.dropLast(1).forEachIndexed { index, segment ->
+            val path = segments.take(index + 1).joinToString(".")
+            // [joinMap] is keyed by attribute name alone, so it is only asked for the first segment —
+            // as [getField] does — where the key is unambiguous.
+            val existing = if (index == 0) joinMap[segment] else null
+            from = existing ?: sortJoinMap.getOrPut(path) { from.join(segment, JoinType.LEFT) }
+        }
+        return from.get<T>(segments.last())
     }
 
     private fun <T> getField(parent: Path<*>, field: String): Path<T> {

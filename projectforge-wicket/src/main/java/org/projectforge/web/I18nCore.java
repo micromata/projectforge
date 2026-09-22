@@ -34,7 +34,7 @@ import java.util.Locale;
 /**
  * Main class for administration ProjectForge's localization. If you want to add new translations, this class should be referred first.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class I18nCore
 {

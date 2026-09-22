@@ -32,7 +32,7 @@ import org.apache.wicket.model.Model;
 
 /**
  * Panel containing only one radio-button followed by one label (label with for attribute).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class RadioButtonLabelPanel<T> extends Panel

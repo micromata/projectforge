@@ -36,7 +36,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DatePickerUtils
 {

@@ -34,11 +34,15 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.Constants;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -49,6 +53,7 @@ import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.rest.ChangePasswordPageRest;
 import org.projectforge.rest.my2fa.My2FASetupPageRest;
 import org.projectforge.rest.MyAccountPageRest;
+import org.projectforge.rest.config.Rest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketMenuBuilder;
@@ -68,7 +73,7 @@ import java.util.Optional;
 /**
  * Displays the favorite menu.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class NavTopPanel extends NavAbstractPanel {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);
@@ -91,7 +96,10 @@ public class NavTopPanel extends NavAbstractPanel {
   public void init(final AbstractSecuredPage page) {
     getMenu();
     favoritesMenu = WicketSupport.get(WicketMenuBuilder.class).getFavoriteMenu();
-    add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
+    // The account dropdown is written by hand in NavTopPanel.html and does not go through
+    // getMenuEntryLink, so its entries carry data-menu-key one by one, see reportUsage. Deliberately
+    // not on logoutLink (a session action, no page) and not on showBookmarkLink (no menu entry).
+    add(reportUsage(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class), MenuItemDefId.FEEDBACK));
     {
       final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink") {
         /**
@@ -123,16 +131,19 @@ public class NavTopPanel extends NavAbstractPanel {
       if (WicketSupport.get(AccessChecker.class).isRestrictedUser() == true) {
         // Show ChangePasswordPage as my account for restricted users.
         final ExternalLink changePasswordLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(ChangePasswordPageRest.class));
+        // No data-menu-key: the change password page of a restricted user is no menu entry of its own,
+        // it merely takes the place of "my account" here.
         add(changePasswordLink);
         addVacationViewLink().setVisible(false);
         pluginPersonalMenuEntriesRepeater.setVisible(false);
       } else {
         final ExternalLink myAccountLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(MyAccountPageRest.class, null, null, true));
-        add(myAccountLink);
-        final ExternalLink customizeMenuLink = new ExternalLink("customizeMenuLink", "/" + PagesResolver.REACT_PATH + "/customizeMenu");
-        add(customizeMenuLink);
+        add(reportUsage(myAccountLink, MenuItemDefId.MY_ACCOUNT));
+        // customizeMenu is a React-only page (no rest category), so it is not part of NextMigration.
+        final ExternalLink customizeMenuLink = new ExternalLink("customizeMenuLink", "/" + Constants.REACT_APP_PATH + "customizeMenu");
+        add(reportUsage(customizeMenuLink, MenuItemDefId.CUSTOMIZE_MENU));
         final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
-        add(my2FactorAuthentificationLink);
+        add(reportUsage(my2FactorAuthentificationLink, MenuItemDefId.MY_2FA_SETUP));
         addVacationViewLink();
         for (MenuItemDef menu : WicketSupport.get(MenuCreator.class).getPersonalMenuPluginEntries()) {
           // Now we add a new menu area (title with sub menus):
@@ -144,6 +155,7 @@ public class NavTopPanel extends NavAbstractPanel {
           }
           String title = getString(menu.getI18nKey());
           final ExternalLink menuLink = new ExternalLink("menuLink", link);
+          menuLink.add(AttributeModifier.append("data-menu-key", menu.getId()));
           linkContainer.add(menuLink);
           menuLink.add(new Label("menuLabel", title));
         }
@@ -168,8 +180,29 @@ public class NavTopPanel extends NavAbstractPanel {
         return WicketSupport.get(VacationService.class).hasAccessToVacationService(ThreadLocalUserContext.getLoggedInUser(), false);
       }
     };
-    add(vacationViewLink);
+    add(reportUsage(vacationViewLink, MenuItemDefId.VACATION_ACCOUNT));
     return vacationViewLink;
+  }
+
+  /**
+   * Marks a link as a menu entry, so that clicking it is reported as usage and the quick access search
+   * offers the entry again. The same attribute {@link NavAbstractPanel#getMenuEntryLink} sets, here for
+   * the hand written links of the account dropdown.
+   */
+  private static <T extends AbstractLink> T reportUsage(final T link, final MenuItemDefId menuItemDefId) {
+    link.add(AttributeModifier.append("data-menu-key", menuItemDefId.getId()));
+    return link;
+  }
+
+  /**
+   * Installs the click handler that reports an opened menu entry, once per page: the menu is rendered
+   * anew with every request, so it is delegated on the body rather than bound per link.
+   */
+  @Override
+  public void renderHead(final IHeaderResponse response) {
+    super.renderHead(response);
+    final String url = WicketUtils.getUrl(RequestCycle.get(), Rest.URL + "/menu/recent", false);
+    response.render(OnDomReadyHeaderItem.forScript("pfInitMenuUsageReporting('" + url + "');"));
   }
 
   @SuppressWarnings("serial")

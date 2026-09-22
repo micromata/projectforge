@@ -30,7 +30,7 @@ import org.projectforge.common.i18n.I18nEnum
  * langjährigen Kunden, um mit den Arbeiten zu beginnen). GROB_KALKULATION: Es wird lediglich eine Schätzung oder eine Grobkalkulation dem
  * Kunden kommuniziert.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class AuftragsStatus(
     /**

@@ -61,8 +61,8 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override val additionalHistorySearchDOs: Array<Class<*>>
-        get() = ADDITIONAL_HISTORY_SEARCH_DOS
+    override val additionalHistoryEntityClasses: List<Class<*>> =
+        listOf(EingangsrechnungsPositionDO::class.java, KostZuweisungDO::class.java)
 
     init {
         userRightId = USER_RIGHT_ID
@@ -190,12 +190,17 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
     override fun addOwnHistoryEntries(obj: EingangsrechnungDO, context: HistoryLoadContext) {
-        obj.positionen?.forEach { position ->
-            historyService.loadAndMergeHistory(position, context)
-            position.kostZuweisungen?.forEach { zuweisung ->
-                historyService.loadAndMergeHistory(zuweisung, context)
-            }
+        // Batch the children's history (one query per child class) instead of once per instance, see
+        // HistoryService.loadAndMergeHistory(entityClass, entityIds, ...). The kostZuweisungen of all positions are
+        // aggregated into a single call. Display prefixes are resolved post-hoc via getHistoryPropertyPrefix.
+        val positionen = obj.positionen
+        positionen?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }?.let { ids ->
+            historyService.loadAndMergeHistory(EingangsrechnungsPositionDO::class.java, ids, context)
         }
+        positionen?.flatMap { it.kostZuweisungen ?: emptyList() }?.mapNotNull { it.id }?.takeIf { it.isNotEmpty() }
+            ?.let { ids ->
+                historyService.loadAndMergeHistory(KostZuweisungDO::class.java, ids, context)
+            }
     }
 
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
@@ -260,9 +265,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_EINGANGSRECHNUNGEN
-        private val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> =
-            arrayOf(EingangsrechnungsPositionDO::class.java)
-
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("positionen.text")
 
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("kreditor")

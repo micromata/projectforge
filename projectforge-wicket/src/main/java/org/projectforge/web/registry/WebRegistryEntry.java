@@ -37,7 +37,7 @@ import java.util.Objects;
 /**
  * Contains more information than a RegistryEntry. This is e. g. needed by general search page.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class WebRegistryEntry implements Serializable
 {

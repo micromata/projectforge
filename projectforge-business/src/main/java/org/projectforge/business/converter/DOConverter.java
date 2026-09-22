@@ -29,7 +29,7 @@ import org.projectforge.model.rest.AbstractBaseObject;
 /**
  * For conversion of DefaultBaseDO to base object.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DOConverter
 {

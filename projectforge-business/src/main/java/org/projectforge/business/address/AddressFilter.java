@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class AddressFilter extends BaseSearchFilter implements Serializable
 {

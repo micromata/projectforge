@@ -48,7 +48,7 @@ import java.util.Set;
 /**
  * For excel export.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 public class OrderExport {

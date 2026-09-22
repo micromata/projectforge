@@ -28,10 +28,13 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.SystemStatus;
+import org.projectforge.business.configuration.DomainService;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.fibu.OrderEntityRest;
 import org.projectforge.framework.json.JsonUtils;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.time.PFDay;
@@ -249,7 +252,12 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
     }
 
     private void sendNotificationIfRequired(final OperationType operationType) {
-        final String url = getPageAsLink(WicketUtils.getEditPageParameters(getData().getId()));
+        // The order lives in projectforge-next now (its page was migrated from Wicket), so the notification
+        // mail must link there and not back to this Wicket edit page. PagesResolver answers NextMigration's
+        // route for the order (as AuftragEditForm does for the attachment edit link); getDomain prepends the
+        // domain and context path, since a mail needs an absolute URL.
+        final String url = WicketSupport.get(DomainService.class).getDomain(
+                PagesResolver.getEditPageUrl(OrderEntityRest.class, getData().getId(), null, false, null));
         WicketSupport.get(AuftragDao.class).sendNotificationIfRequired(getData(), operationType, url);
     }
 

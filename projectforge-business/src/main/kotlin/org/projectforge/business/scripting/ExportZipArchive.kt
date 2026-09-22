@@ -40,7 +40,7 @@ import java.util.zip.ZipOutputStream
 /**
  * For exporting multiple objects by one script you may collect all objects within this zip archive.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * @param filename The filename of the zip archive (without extension), default is "archive".
  * @param encryptionPassword Password for encrypting the entire archive (null = no encryption)
  * @param encryptionMode Encryption mode (default: AES-256)

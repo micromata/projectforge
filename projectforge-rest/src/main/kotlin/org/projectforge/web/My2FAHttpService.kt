@@ -131,7 +131,16 @@ class My2FAHttpService {
     if (SystemStatus.isDevelopmentMode()) {
       log.info { "Development mode: Text message would be sent in production mode to '${mail.to}'. Code is $code" }
     }
-    val response = sendMail.send(mail)
+    // Synchronously: the user is waiting for this code and is told below that it was sent, so a failure
+    // has to be known before answering. SendMail's SMTP timeouts bound the wait. Its exceptions become the
+    // negative result here — the callers of this method answer a request with the Result and have nothing
+    // to do with an exception.
+    val response = try {
+      sendMail.send(mail, null, null, false)
+    } catch (ex: Exception) {
+      log.error(ex) { "Can't send the OTP mail to '${mail.to}': ${ex.message}" }
+      false
+    }
     if (response) {
       ExpiringSessionAttributes.setAttribute(request, SESSSION_ATTRIBUTE_MAIL_OTP, code, TTL_MINUTES)
       return Result(

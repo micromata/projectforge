@@ -37,7 +37,7 @@ import java.util.List;
 
 /**
  * Rows of access rights (without header).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class AccessTablePanel extends Panel

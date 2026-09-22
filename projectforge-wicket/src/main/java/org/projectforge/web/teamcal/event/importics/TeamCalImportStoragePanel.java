@@ -32,7 +32,7 @@ import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class TeamCalImportStoragePanel extends AbstractImportStoragePanel<TeamCalImportPage> {
   private static final long serialVersionUID = -2102550089275871727L;

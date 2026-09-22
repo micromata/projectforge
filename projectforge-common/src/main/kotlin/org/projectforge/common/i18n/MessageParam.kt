@@ -27,7 +27,7 @@ import java.lang.IllegalArgumentException
 
 /**
  * I18n params are params for localized message which will be localized itself, if paramType == VALUE (default).
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class MessageParam {
   /**

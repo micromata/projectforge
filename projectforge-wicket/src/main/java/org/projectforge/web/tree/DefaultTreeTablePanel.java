@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Panel implements TreeTablePanel
 {

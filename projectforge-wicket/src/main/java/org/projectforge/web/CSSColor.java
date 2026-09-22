@@ -27,7 +27,7 @@ import org.projectforge.web.wicket.flowlayout.IconPanel;
 
 /**
  * Some colors e. g. supported by icons, e. g. {@link IconPanel}.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum CSSColor
 {

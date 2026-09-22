@@ -28,11 +28,14 @@ import mu.KotlinLogging
 import org.projectforge.common.MaxFileSizeExceeded
 import org.projectforge.common.i18n.UserException
 import org.projectforge.common.logging.LogLevel
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.api.TechnicalException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.utils.ExceptionStackTracePrinter
+import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.ui.UIToast
+import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -62,6 +65,26 @@ internal class GlobalDefaultExceptionHandler {
                 )
             log.error("${translateMsg(userEx)} ${userEx.logHintMessage}")
             return ResponseEntity.badRequest().body(UIToast.createExceptionToast(userEx))
+        }
+        if (ex is AccessException && RestAuthenticationUtils.isNextClient(request)) {
+            // A denied read escapes the controller as an AccessException (BaseDao.select and friends check
+            // and throw). The UserException branch below would answer it with HTTP *200* and nothing but a
+            // toast - the shape the UILayout clients read - which a client fetching plain JSON cannot tell
+            // from a successful empty result: projectforge-next used to render the whole list page with an
+            // empty table (see useReadAccessGuard).
+            //
+            // Only for projectforge-next, because the legacy clients depend on that 200: the legacy React
+            // app throws away every non-ok answer of `{entity}/list` and displays the error nowhere
+            // (utilities/rest.js handleHTTPErrors -> fetchFailure), so an unconditional 403 would leave it
+            // with a blank list instead of today's toast. isNextClient is explicitly not a trust boundary,
+            // which is fine here: the request is denied either way, this only picks the shape of the answer.
+            //
+            // RestError rather than a toast: it is the body the other next-only denials use
+            // (RestAuthenticationUtils.sendError), and it carries neither twoFactorRequired nor
+            // csrfTokenRequired, so rawRequest finds no recovery flag and does not retry (lib/rs/client.ts).
+            log.info("Access denied: ${translateMsg(ex)} ${RequestLog.asJson(request)}")
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(RestError(status = HttpStatus.FORBIDDEN.value(), message = translateMsg(ex)))
         }
         if (ex is UserException) {
             if (ex.logHintMessage.isNullOrBlank()) {

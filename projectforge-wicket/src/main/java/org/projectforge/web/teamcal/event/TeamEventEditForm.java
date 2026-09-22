@@ -65,7 +65,7 @@ import java.util.List;
  * Form to edit team events.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author K. Reinhard (K.Reinhard@micromata.de)
+ * @author K. Reinhard
  */
 public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEditPage>
 {

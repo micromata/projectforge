@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The group user relations will be cached with this class.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 // Open for mocking in test cases.
 @Service

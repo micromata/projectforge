@@ -34,7 +34,7 @@ import java.time.LocalDate;
 
 /**
  * Represents entities of {@link LiquidityEntryDO}, {@link RechnungDO} and {@link EingangsrechnungDO}.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  * 
  */
 public class LiquidityEntry implements Serializable

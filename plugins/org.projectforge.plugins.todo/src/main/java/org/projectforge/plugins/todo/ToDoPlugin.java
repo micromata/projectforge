@@ -34,7 +34,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class ToDoPlugin extends AbstractPlugin {
     public static final String ID = "toDo";

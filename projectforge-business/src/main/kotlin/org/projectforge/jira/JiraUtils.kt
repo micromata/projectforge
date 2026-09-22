@@ -34,6 +34,49 @@ object JiraUtils {
     get() = ConfigXml.getInstance().isJIRAConfigured
 
   /**
+   * A single JIRA server as the client needs it to build browse links itself: the base url an issue key is
+   * appended to (see [buildJiraIssueBrowseLinkUrl]) and the project prefixes hosted on it.
+   */
+  data class JiraClientServer(val baseUrl: String, val projects: List<String>)
+
+  /**
+   * The JIRA configuration a client (projectforge-next) needs to turn issue keys into links on its own,
+   * mirroring [buildJiraIssueBrowseLinkUrl] / [getJiraBrowseBaseUrl]: pick the server whose [JiraClientServer.projects]
+   * the key starts with, otherwise fall back to [defaultBrowseBaseUrl]. Delivered once with the authenticated
+   * userStatus and never through the public, masked systemStatus, since it carries the internal server urls.
+   */
+  data class JiraClientConfig(
+    val configured: Boolean,
+    val defaultBrowseBaseUrl: String? = null,
+    val servers: List<JiraClientServer> = emptyList(),
+  )
+
+  /**
+   * Builds the [JiraClientConfig] from [ConfigXml], or an unconfigured one where JIRA is off.
+   */
+  @JvmStatic
+  fun getClientConfig(): JiraClientConfig {
+    val config = ConfigXml.getInstance()
+    if (!config.isJIRAConfigured) {
+      return JiraClientConfig(configured = false)
+    }
+    val servers = config.jiraServers?.mapNotNull { server ->
+      val baseUrl = server.baseUrl
+      val projects = server.projects?.toList()
+      if (baseUrl.isNullOrBlank() || projects.isNullOrEmpty()) {
+        null
+      } else {
+        JiraClientServer(baseUrl, projects)
+      }
+    } ?: emptyList()
+    return JiraClientConfig(
+      configured = true,
+      defaultBrowseBaseUrl = config.jiraBrowseBaseUrl?.takeIf { it.isNotBlank() },
+      servers = servers,
+    )
+  }
+
+  /**
    * PROJECTFORGE-222 -> https://jira.acme.com/jira/browse/PROJECTFORGE-222.
    *
    * @param jiraIssue

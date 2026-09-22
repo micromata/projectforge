@@ -59,7 +59,7 @@ import java.util.Map;
 /**
  * Do only derive from this page, if no login is required!
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public abstract class AbstractUnsecureBasePage extends WebPage {
   private static final long serialVersionUID = 7396310612549535899L;

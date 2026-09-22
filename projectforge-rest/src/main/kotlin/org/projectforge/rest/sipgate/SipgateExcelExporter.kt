@@ -38,7 +38,7 @@ import java.util.*
 
 /**
  * Exports Sipgate data (users, numbers, devices etc.) to Excel.
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 object SipgateExcelExporter {
   private class Context(val workbook: ExcelWorkbook, val storage: SipgateDataStorage) {

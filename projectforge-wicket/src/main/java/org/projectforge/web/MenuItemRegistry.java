@@ -56,7 +56,7 @@ import static org.projectforge.framework.persistence.api.UserRightService.READON
  * This menu item registry is the central instance for handling the order and common visibility of menu items. It
  * doesn't represent the individual user's menu (the individual user's menu is generated out of this registry).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 public class MenuItemRegistry implements Serializable {

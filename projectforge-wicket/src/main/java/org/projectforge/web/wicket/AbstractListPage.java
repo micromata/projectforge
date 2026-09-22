@@ -50,7 +50,7 @@ import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.framework.utils.ReflectionHelper;
-import org.projectforge.rest.core.AbstractPagesRest;
+import org.projectforge.rest.core.AbstractEntityRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.multiselect.MultiSelectionSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -684,23 +684,23 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     addContentMenuEntry(exportExcelButton);
   }
 
-  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+  public void addNewMassSelect(final Class<? extends AbstractEntityRest<?, ?, ?>> pagesRestClazz) {
     addNewMassSelect("multiselection.button", pagesRestClazz, null, null);
   }
 
-  public void addNewMassSelect(final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz, final Object data) {
+  public void addNewMassSelect(final Class<? extends AbstractEntityRest<?, ?, ?>> pagesRestClazz, final Object data) {
     addNewMassSelect("multiselection.button", pagesRestClazz, null, data);
   }
 
-  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClazz) {
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractEntityRest<?, ?, ?>> pagesRestClazz) {
     addNewMassSelect(buttonTitleKey, pagesRestClazz, null, null);
   }
 
-  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey) {
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractEntityRest<?, ?, ?>> pagesRestClass, final String toolTipKey) {
     addNewMassSelect(buttonTitleKey, pagesRestClass, toolTipKey, null);
   }
 
-  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractPagesRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
+  public void addNewMassSelect(final String buttonTitleKey, final Class<? extends AbstractEntityRest<?, ?, ?>> pagesRestClass, final String toolTipKey,
                                final Object data) {
     final String caller = ((String) urlFor(this.getClass(), new PageParameters())).replace("./", "/wa/");
     final ContentMenuEntryPanel button = new ContentMenuEntryPanel(getNewContentMenuChildId(),

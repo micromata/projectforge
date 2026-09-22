@@ -38,7 +38,7 @@ import java.util.*;
  * Persist the settings of one named filter entry.
  *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, Cloneable {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TemplateEntry.class);

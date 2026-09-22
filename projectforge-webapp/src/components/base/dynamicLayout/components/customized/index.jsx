@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import AddressImportDialogWrapper from './components/AddressImportDialogWrapper';
 import AddressImportReconciler from './components/AddressImportReconciler';
-import BookLendOut from './components/BookLendOut';
 import CalendarEventRecurrency from './components/CalendarEventRecurrence';
 import CustomizedAddressImage from './components/CustomizedAddressImage';
 import CustomizedAddressPhoneNumbers from './components/CustomizedAddressPhoneNumbers';
@@ -60,9 +59,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'color-chooser':
             Tag = CustomizedColorChooser;
-            break;
-        case 'book.lendOutComponent':
-            Tag = BookLendOut;
             break;
         case 'calendar.recurrency':
             Tag = CalendarEventRecurrency;

@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 class BankingPlugin : AbstractPlugin(
     PluginAdminService.PLUGIN_BANKING_ID,

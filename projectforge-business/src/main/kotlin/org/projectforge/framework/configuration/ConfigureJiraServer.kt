@@ -31,7 +31,7 @@ import org.projectforge.framework.xmlstream.XmlOmitField
 /**
  * Used in config.xml for defining jira server urls (by space names).
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @XmlObject(alias = "jiraServer")
 class ConfigureJiraServer {

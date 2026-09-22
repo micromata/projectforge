@@ -56,7 +56,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 abstract class BaseDao<O : ExtendedBaseDO<Long>>
 /**
@@ -340,6 +340,24 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         val list = dbQuery.select(this, filter, customResultFilters, checkAccess)
         baseDOChangedRegistry.afterLoad(list)
         return list
+    }
+
+    /**
+     * Like [select], but returns only the ordered ids of the matching objects (see [DBQuery.selectIds]).
+     * Used by server-side paging to materialize the id list without loading, mapping or serializing entities.
+     * No `afterLoad` is fired here — nothing is loaded.
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun selectIds(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
+    ): DBQuery.DBIdResult {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        return dbQuery.selectIds(this, filter, customResultFilters, checkAccess)
     }
 
     /**
@@ -955,14 +973,52 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Re-indexes the entries of the last day, 1,000 at max.
+     * The entities of a partial re-index (entries of the last day). [HistoryEntryDO] is no longer included: it is not
+     * @Indexed anymore, its search runs SQL-based (DBHistoryQuery + pg_trgm, see V8.0.24 migration), so there is no
+     * Lucene index left to rebuild for it.
+     */
+    open val reindexClasses4NewestEntries: List<Class<*>>
+        get() = listOf(doClass)
+
+    /**
+     * The child entities whose change history is shown on this DAO's pages, [doClass] excluded (see
+     * [historyEntityNames]). History rows are written per entity instance, so editing an order position writes
+     * entityName=AuftragsPositionDO, not AuftragDO — anything restricting the history to a list page has to name the
+     * children explicitly.
+     *
+     * Keep in sync with [addOwnHistoryEntries], which loads exactly these for the display. Not derivable from it:
+     * VisitorbookDO has no such override, its entries are picked up generically by HistoryService.
+     */
+    protected open val additionalHistoryEntityClasses: List<Class<*>> = emptyList()
+
+    /**
+     * [doClass] and [additionalHistoryEntityClasses] as entity names of t_pf_history: everything whose history
+     * belongs to this DAO's pages. Used to restrict a partial re-index, see DatabaseDao.createMassIndexer.
+     *
+     * Not used by the history search: DBQuery passes only doClass to DBHistoryQuery, so the list filter "modified
+     * since" still sees the parent's entries alone. Reusing this here needs a child-to-parent id mapping first,
+     * because DBQuery matches the found entityIds against the parent id via [contains].
+     */
+    open val historyEntityNames: List<String>
+        get() = listOf(doClass.name) + additionalHistoryEntityClasses.map { it.name }
+
+    /**
+     * The entities of a full re-index. Without the history: it is no longer @Indexed (its search is SQL-based, see
+     * [HistoryEntryDO]), so there is nothing to rebuild for it here.
+     */
+    open val reindexClasses: List<Class<*>>
+        get() = listOf(doClass)
+
+    /**
+     * Re-indexes the entries of the last day.
      *
      * @see DatabaseDao.createReindexSettings
      */
     open fun rebuildDatabaseIndex4NewestEntries() {
-        val settings = createReindexSettings(true)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
-        databaseDao.rebuildDatabaseSearchIndices(HistoryEntryDO::class.java, settings)
+        val settings = createReindexSettings(true, historyEntityNames)
+        reindexClasses4NewestEntries.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**
@@ -970,7 +1026,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     open fun rebuildDatabaseIndex() {
         val settings = createReindexSettings(false)
-        databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
+        reindexClasses.forEach { clazz ->
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings)
+        }
     }
 
     /**
@@ -979,8 +1037,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     open fun reindexDependentObjects(obj: O) {
         hibernateSearchDependentObjectsReindexer.reindexDependents(obj)
     }
-
-    protected open val additionalHistorySearchDOs: Array<Class<*>>? = null
 
     /**
      * @return Whether the data object (BaseDO) this dao is responsible for is from type Historizable or not.

@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 
 /**
  * Ein Report enthält unterliegende Buchungssätze, die gemäß Zeitraum und zugehörigem ReportObjective selektiert werden.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class Report implements Serializable

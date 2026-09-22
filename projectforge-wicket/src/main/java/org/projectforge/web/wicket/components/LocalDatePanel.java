@@ -48,7 +48,7 @@ import java.util.function.BooleanSupplier;
  * Panel for date selection. Works for java.util.Date and java.sql.Date. For java.sql.Date don't forget to call the constructor with
  * targetType java.sql.Date.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class LocalDatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel {
   private static final long serialVersionUID = 3785639935585959803L;

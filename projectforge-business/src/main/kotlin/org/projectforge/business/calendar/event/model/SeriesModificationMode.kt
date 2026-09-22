@@ -25,6 +25,6 @@ package org.projectforge.business.calendar.event.model
 
 /**
  * Which events of the series should be modified?
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 enum class SeriesModificationMode { ALL, FUTURE, SINGLE }

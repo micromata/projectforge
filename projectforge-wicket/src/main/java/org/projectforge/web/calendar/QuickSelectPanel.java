@@ -35,7 +35,7 @@ import java.util.Date;
 
 /**
  * This panel combines QuickSelectMonthPanel and QuickSelectWeekPanel.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class QuickSelectPanel extends AbstractSelectPanel<Date>

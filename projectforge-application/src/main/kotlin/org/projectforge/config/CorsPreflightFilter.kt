@@ -30,6 +30,11 @@ import org.projectforge.framework.configuration.PFSpringConfiguration
 import java.io.IOException
 
 
+/**
+ * For development only (`projectforge.web.development.enableCORSFilter`), see the check in
+ * [org.projectforge.config.WebXMLInitializer]: this filter sends `Access-Control-Allow-Credentials: true`, and it
+ * relaxes the first barrier of [org.projectforge.rest.core.RestCsrfProtection] (`Sec-Fetch-Site`) as a side effect.
+ */
 class CorsPreflightFilter : Filter {
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {

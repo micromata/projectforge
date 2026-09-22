@@ -24,7 +24,7 @@
 package org.projectforge.business.sipgate
 
 /**
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 class SipgateAddress {
   var addressId: String? = null

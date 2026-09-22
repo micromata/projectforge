@@ -40,7 +40,7 @@ import java.time.LocalDate
 /**
  * Geplante und gestellte Rechnungen.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Entity
 @Indexed
@@ -59,7 +59,7 @@ import java.time.LocalDate
   nestedEntities = [RechnungsPositionDO::class]
 )*/
 @NamedQueries(
-    NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
+    NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO where deleted = false"),
     NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {
@@ -185,6 +185,21 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?
         @Transient
         get() = positionen
+
+    /**
+     * The positions the invoice actually consists of, i.e. without the ones marked as deleted.
+     *
+     * What any document or sum of the invoice has to iterate: a deleted position stays in [positionen] (it is
+     * only flagged, so it can be restored and so its history survives), but it is no part of the invoice any
+     * more. [RechnungCalculator] skips it and therefore never fills its `info` — reading `position.info.netSum`
+     * of a deleted position throws, which is how a single deleted position used to make the Word and e-invoice
+     * exports fail altogether.
+     *
+     * @return The undeleted positions, empty if there are none.
+     */
+    val positionenExcludingDeleted: List<RechnungsPositionDO>
+        @Transient
+        get() = positionen?.filter { !it.deleted } ?: emptyList()
 
     /**
      *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT

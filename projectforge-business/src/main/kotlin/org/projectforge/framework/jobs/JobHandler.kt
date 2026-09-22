@@ -259,7 +259,12 @@ class JobHandler : ShutdownListener {
         val fullMessage =
             "Job scheduling might not be running (no backups, no e-mail notification etc.) You should restart ProjectForge. Reason: $message"
         log.error { fullMessage }
-        configService.pfSupportMailAddress?.let { receiver ->
+        val receiver = configService.pfSupportMailAddress
+        if (receiver.isNullOrBlank() || !configService.isSendMailConfigured) {
+            // No support address configured or mail not configured at all: nothing to notify (the error is logged above).
+            return
+        }
+        try {
             val data = mutableMapOf("description" to fullMessage)
             val params = mutableMapOf<String, Any?>("data" to data)
             val msg = Mail()
@@ -277,7 +282,9 @@ class JobHandler : ShutdownListener {
             msg.content = content
             msg.contentType = Mail.CONTENTTYPE_TEXT
             sendMail.send(msg, null, null)
-
+        } catch (ex: Exception) {
+            // A failing notification mail must never crash the caller thread (this runs in a background thread).
+            log.error(ex) { "Could not send job-scheduling error notification mail: ${ex.message}" }
         }
     }
 

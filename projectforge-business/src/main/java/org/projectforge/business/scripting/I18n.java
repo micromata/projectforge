@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * Helper for i18n.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  *
  */
 public class I18n

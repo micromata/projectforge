@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 /**
  * The kost2 entries will be cached.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class KostCache : AbstractCache() {
@@ -220,6 +220,15 @@ class KostCache : AbstractCache() {
         }
         checkRefresh()
         return kost2ArtMap[kost2ArtId]
+    }
+
+    /**
+     * All non-deleted cost 2 types (Kost2Art), ordered by their two-digit end number. Read from the cache,
+     * so no database round-trip — used e.g. to offer them as a list filter (see Kost2FilterUtils).
+     */
+    fun getKost2Arts(): List<Kost2ArtDO> {
+        checkRefresh()
+        return kost2ArtMap.values.filter { !it.deleted }.sortedBy { it.id }
     }
 
     /**

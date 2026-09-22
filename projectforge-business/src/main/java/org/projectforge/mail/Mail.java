@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Represents a mail. Mails can be received from a MailAccount or can be sent via SendMail.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class Mail implements Comparable<Mail>
 {

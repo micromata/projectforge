@@ -68,6 +68,13 @@ class VisitorbookDao protected constructor() : BaseDao<VisitorbookDO>(Visitorboo
         }
     }
 
+    /**
+     * There is no addOwnHistoryEntries here: the entries reach the display through the generic @OneToMany walk of
+     * HistoryService (see getHistoryPropertyPrefix below). Their history rows carry entityName=VisitorbookEntryDO all
+     * the same, so a partial re-index has to name them.
+     */
+    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(VisitorbookEntryDO::class.java)
+
     override fun getHistoryPropertyPrefix(context: HistoryLoadContext): String? {
         val entry = context.requiredHistoryEntry
         val item = context.findLoadedEntity(entry)

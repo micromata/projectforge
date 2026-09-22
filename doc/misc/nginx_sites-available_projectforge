@@ -29,6 +29,13 @@ server {
 
   #add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
 
+  # Largest file a user may upload (attachments, data transfer areas).
+  # nginx' default is 1 MB, and exceeding it is answered with 413 - so this must be at least
+  # spring.servlet.multipart.max-request-size, or ProjectForge never sees the request at all.
+  # Mind every proxy in front of this one (a load balancer, an SSO proxy such as Authentik):
+  # each enforces its own limit and the smallest one wins.
+  client_max_body_size 10G;
+
   location / {
     proxy_set_header        Host $host;
     proxy_set_header        X-Real-IP $remote_addr;
@@ -36,7 +43,18 @@ server {
     proxy_set_header        X-Forwarded-Proto $scheme;
 
     proxy_pass              http://localhost:8080;
-    proxy_read_timeout      90;
+
+    # Stream the body through instead of spooling the whole upload to client_body_temp_path
+    # first. Without this a large upload needs its size in free disk space before it starts.
+    proxy_request_buffering  off;
+
+    # Generous enough for a large upload over a slow line: the defaults (60s, and the 90s this
+    # template used to carry) cut the connection while the body is still on its way.
+    client_body_timeout     600s;
+    proxy_read_timeout      600s;
+    proxy_send_timeout      600s;
+    send_timeout            600s;
+
     proxy_redirect          http://localhost:8080 https://projectforge.example.com;
 
     # auth_basic            "Username and Password Required";

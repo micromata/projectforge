@@ -23,25 +23,42 @@
 
 package org.projectforge.rest.fibu
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import jakarta.servlet.http.HttpServletRequest
+import mu.KotlinLogging
+import org.apache.poi.ss.util.WorkbookUtil
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 @RestController
 @RequestMapping("${Rest.URL}/employee")
@@ -118,7 +135,7 @@ class EmployeePagesRest :
             this,
             userAccess = userAccess,
         )
-            // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Bemerkung
+            // Name	Vorname	Status	Personalnummer	Kost1	Position	Team	Eintrittsdatum	Austrittsdatum	Wochenstunden	Bemerkung
             .add(
                 lc,
                 "user.firstname",
@@ -130,8 +147,10 @@ class EmployeePagesRest :
                 "abteilung",
                 "eintrittsDatum",
                 "austrittsDatum",
+                "weeklyWorkingHours",
                 "comment"
             )
+        layout.excelExportSupported = true
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -167,6 +186,84 @@ class EmployeePagesRest :
             }
         }
         return filters
+    }
+
+    /**
+     * Exports the employee list as an Excel file. The given [filter] is the currently active list filter, so the
+     * exported rows match exactly the rows shown in the list view (e.g. "only active entries").
+     */
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        log.info("Exporting employees as Excel file.")
+        val list = getObjectList(this, baseDao, filter)
+        // Ensure the transient, time-dependent attributes (status, weekly working hours) reflect the current values.
+        employeeCache.setTimeDependentAttrs(list)
+        ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+            // Excel sheet names must not contain the chars \ / ? * [ ] : (e.g. "Mitarbeiter:in"), so sanitize.
+            val sheetName = WorkbookUtil.createSafeSheetName(translate("fibu.employee.title.heading"))
+            val sheet = workbook.createOrGetSheet(sheetName)
+            val boldFont = ExcelUtils.createFont(workbook, "bold", bold = true)
+            val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
+            // Use Excel's built-in "General" format for the numeric columns instead of merlin's default float format
+            // "#.#": "#.#" always renders the decimal separator, so whole numbers show as "35," in the German locale.
+            // General renders whole numbers as "35" and fractions as "37,5" and, unlike a custom format code, is
+            // displayed correctly by every viewer (Excel, LibreOffice, macOS Quick Look, Numbers).
+            val numberStyle = workbook.createOrGetCellStyle("number")
+            numberStyle.dataFormat = workbook.createDataFormat().getFormat("General")
+            sheet.registerColumn(translate("name"), "lastname").withSize(20)
+            sheet.registerColumn(translate("firstName"), "firstname").withSize(20)
+            sheet.registerColumn(translate("user.username"), "username").withSize(20)
+            sheet.registerColumn(translate("email"), "email").withSize(30)
+            sheet.registerColumn(translate("organization"), "organization").withSize(25)
+            sheet.registerColumn(translate("fibu.employee.status"), "status").withSize(15)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::staffNumber, 15)
+            sheet.registerColumn(translate("fibu.kost1"), "kost1").withSize(15)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::position, 20)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::abteilung, 20)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::eintrittsDatum)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::austrittsDatum)
+            // Use the class-based overload for these two: their setters are 'internal' (set by the cache), so the
+            // KProperty reference resolves to a read-only KProperty1 and the KProperty overload would silently drop
+            // the column instead of registering it.
+            ExcelUtils.registerColumn(sheet, EmployeeDO::class.java, "weeklyWorkingHours", 12)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::class.java, "annualLeave", 12)
+            sheet.registerColumn(translate("user.deactivated"), "deactivated").withSize(12)
+            ExcelUtils.registerColumn(sheet, EmployeeDO::comment, 50)
+            // Register the number format at column level (before any cell is created): merlin then applies numberStyle
+            // to every cell of these columns on creation and setCellValue(BigDecimal) keeps it (protectCellStyle),
+            // so whole numbers render as "35" instead of merlin's default float format "#.#" ("35,").
+            sheet.setColumnStyle("weeklyWorkingHours", numberStyle)
+            sheet.setColumnStyle("annualLeave", numberStyle)
+            ExcelUtils.addHeadRow(sheet, boldStyle)
+            list.forEach { employeeDO ->
+                val row = sheet.createRow()
+                val userDO = userGroupCache.getUser(employeeDO.user?.id)
+                userDO?.lastname?.let { row.getCell("lastname")?.setCellValue(it) }
+                userDO?.firstname?.let { row.getCell("firstname")?.setCellValue(it) }
+                userDO?.username?.let { row.getCell("username")?.setCellValue(it) }
+                userDO?.email?.let { row.getCell("email")?.setCellValue(it) }
+                userDO?.organization?.let { row.getCell("organization")?.setCellValue(it) }
+                employeeDO.status?.let { row.getCell("status")?.setCellValue(translate(it.i18nKey)) }
+                employeeDO.staffNumber?.let { row.getCell("staffNumber")?.setCellValue(it) }
+                kostCache.getKost1(employeeDO.kost1?.id)?.formattedNumber
+                    ?.let { row.getCell("kost1")?.setCellValue(it) }
+                employeeDO.position?.let { row.getCell("position")?.setCellValue(it) }
+                employeeDO.abteilung?.let { row.getCell("abteilung")?.setCellValue(it) }
+                employeeDO.eintrittsDatum?.let { row.getCell("eintrittsDatum")?.setCellValue(it) }
+                employeeDO.austrittsDatum?.let { row.getCell("austrittsDatum")?.setCellValue(it) }
+                employeeDO.weeklyWorkingHours?.let { row.getCell("weeklyWorkingHours")?.setCellValue(it)?.setCellStyle(numberStyle) }
+                employeeDO.annualLeave?.let { row.getCell("annualLeave")?.setCellValue(it)?.setCellStyle(numberStyle) }
+                userDO?.let { row.getCell("deactivated")?.setCellValue(translate(if (it.deactivated) "yes" else "no")) }
+                employeeDO.comment?.let { row.getCell("comment")?.setCellValue(it) }
+            }
+            sheet.setAutoFilter()
+            val filename = "EmployeeList_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            val resource = ByteArrayResource(workbook.asByteArrayOutputStream.toByteArray())
+            return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
+                .body(resource)
+        }
     }
 
     /**

@@ -24,7 +24,7 @@
 package org.projectforge.rest.calendar
 
 import jakarta.ws.rs.BadRequestException
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
 import org.projectforge.business.calendar.StyledTeamCalendar
@@ -265,7 +265,8 @@ class CalendarServicesRest {
             PFDateTime.fromOrNull(filter.end)
         )
         adjustRange(range)
-        val settings = calendarSettingsService.getSettings()
+        val darkMode = filter.darkMode == true
+        val settings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         timesheetsProvider.addTimesheetEvents(
             range.start,
             range.end!!,
@@ -289,7 +290,7 @@ class CalendarServicesRest {
         }
         val visibleTeamCalendarIds =
             visibleCalendarIds?.filter { it != null && it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
-        val calendarSettings = calendarSettingsService.getSettings()
+        val calendarSettings = calendarSettingsService.getSettings().also { it.darkMode = darkMode }
         teamCalEventsProvider.addEvents(
             range.start,
             range.end!!,
@@ -371,9 +372,9 @@ class CalendarServicesRest {
                 // Time sheet was modified, so reload page and goto date of timesheet (if modified):
                 val hash = NumberHelper.getSecureRandomAlphanumeric(4)
                 val gotoDate = PFDateTime.fromOrNow(date).localDate
-                return ResponseAction("/${Constants.REACT_APP_PATH}calendar?gotoDate=$gotoDate&hash=$hash")
+                return ResponseAction("/${NextMigration.listUrl("calendar")}?gotoDate=$gotoDate&hash=$hash")
             }
-            return ResponseAction("/${Constants.REACT_APP_PATH}calendar")
+            return ResponseAction("/${NextMigration.listUrl("calendar")}")
         }
     }
 }

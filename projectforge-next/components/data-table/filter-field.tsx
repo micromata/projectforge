@@ -1,0 +1,73 @@
+"use client";
+
+import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
+import { BooleanField, TextField } from "./filter-field-inputs";
+import { ListField } from "./filter-list-field";
+import { RangeField } from "./filter-range-field";
+import { FilterKost2Field } from "./filter-kost2-field";
+import { FilterObjectField } from "./filter-object-field";
+import { TimestampRangeField } from "./filter-timestamp-field";
+
+interface FilterFieldProps {
+  element: FilterElement;
+  value: MagicFilterEntryValue | undefined;
+  onChange: (value: MagicFilterEntryValue | undefined) => void;
+  /**
+   * Overrides the element's own label. Used where the context already says what the full label
+   * spells out — a group heading, see [fieldLabelInGroup].
+   */
+  label?: string;
+  /** Focus on mount, so a filter opened from the pill row is ready to type into. */
+  autoFocus?: boolean;
+  /** Enter in a single-line input; used by the pill popover to save and close. */
+  onSubmit?: (value?: MagicFilterEntryValue | undefined) => void;
+  /**
+   * Render inside a popover of the caller's, so a field must not open one of its own — it would
+   * land on top of the popover's buttons. Only LIST has that problem (see [ListField]).
+   */
+  inline?: boolean;
+}
+
+/**
+ * One input per backend filter field, chosen by its filterType. Shared by the
+ * pill popovers and the "all filters" dialog.
+ *
+ * DATE and TIMESTAMP are deliberately different components: a DATE compares two `yyyy-MM-dd`
+ * bounds, while a TIMESTAMP needs a time of day on each — sent without one, the backend parses it
+ * to null and drops the bound (see [TimestampRangeField]).
+ */
+export function FilterField({
+  element,
+  label,
+  inline,
+  ...rest
+}: FilterFieldProps) {
+  const props = {
+    ...rest,
+    label: label ?? element.label ?? element.id,
+    id: element.id,
+  };
+
+  // A STRING filter may carry an autocompletion too (unlike an OBJECT filter, it still filters by the
+  // free text): the cost unit filter suggests concrete Kost2 while filtering by number/description/project
+  // (see FilterKost2Field / Kost2FilterUtils). Checked before the filterType switch, which would otherwise
+  // route STRING to the plain text input.
+  if (element.autoCompletion?.type === "KOST2") {
+    return <FilterKost2Field element={element} {...props} />;
+  }
+
+  switch (element.filterType) {
+    case "LIST":
+      return <ListField element={element} inline={inline} {...props} />;
+    case "BOOLEAN":
+      return <BooleanField {...props} />;
+    case "OBJECT":
+      return <FilterObjectField element={element} {...props} />;
+    case "TIMESTAMP":
+      return <TimestampRangeField element={element} {...props} />;
+    case "DATE":
+      return <RangeField {...props} />;
+    default:
+      return <TextField {...props} />;
+  }
+}

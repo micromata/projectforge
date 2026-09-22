@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
  * Service for fetching current exchange rates from external API.
  * Uses Frankfurter API (https://www.frankfurter.app/) - free, open source, no API key required.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Service
 class ExchangeRateApiService {

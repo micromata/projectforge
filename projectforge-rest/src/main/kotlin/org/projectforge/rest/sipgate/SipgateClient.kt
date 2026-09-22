@@ -59,7 +59,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  *
- * @author K. Reinhard (k.reinhard@micromata.de)
+ * @author K. Reinhard
  */
 @Service
 class SipgateClient {

@@ -37,7 +37,7 @@ import java.util.TimeZone;
 
 /**
  * Please use PFDate instead.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public class DayHolder {
   private static final long serialVersionUID = 2646871164508930568L;

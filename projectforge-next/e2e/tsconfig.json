@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../*"],
+      // Playwright transpiles a spec and its imports to CommonJS, so a `require` of this package
+      // resolves to its CJS build — which is a `.js` file inside a `"type": "module"` package and
+      // therefore fails to load ("exports is not defined in ES module scope"). Pointing at the ESM
+      // build fixes the tests that reach a page declaration through an icon-bearing component
+      // (order.page.tsx → attachmentsColumn). Only tests see this; the app's own tsconfig is
+      // untouched, and Next resolves the package by its `exports` map as before.
+      "@hugeicons/core-free-icons": [
+        "../node_modules/@hugeicons/core-free-icons/dist/esm/index.js"
+      ]
+    }
+  }
+}

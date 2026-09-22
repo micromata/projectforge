@@ -26,7 +26,7 @@ package org.projectforge.web.wicket.flowlayout;
 
 /**
  * Used by IconPanels.
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 public enum IconType
 {

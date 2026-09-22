@@ -38,7 +38,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Provides some system information in a cache.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard
  */
 @Component
 class SystemInfoCache : AbstractCache() {
