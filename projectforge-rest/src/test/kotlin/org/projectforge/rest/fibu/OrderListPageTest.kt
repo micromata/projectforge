@@ -66,7 +66,9 @@ class OrderListPageTest : AbstractTestBase() {
         // (page 2 reusing page 1's list) be exercised as it is in production.
         val session = MockHttpSession()
         request = Mockito.mock(HttpServletRequest::class.java)
-        Mockito.`when`(request.getSession(false)).thenReturn(session)
+        // Both create=false (reads) and create=true (ListPageCache.put's getSession(true)) must hand back the
+        // same session, or the cache write NPEs on a null session.
+        Mockito.`when`(request.getSession(Mockito.anyBoolean())).thenReturn(session)
     }
 
     @Test

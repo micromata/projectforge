@@ -64,7 +64,9 @@ class IncomingInvoiceListPageTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val session = MockHttpSession()
         request = Mockito.mock(HttpServletRequest::class.java)
-        Mockito.`when`(request.getSession(false)).thenReturn(session)
+        // Both create=false (reads) and create=true (ListPageCache.put's getSession(true)) must hand back the
+        // same session, or the cache write NPEs on a null session.
+        Mockito.`when`(request.getSession(Mockito.anyBoolean())).thenReturn(session)
     }
 
     @Test
