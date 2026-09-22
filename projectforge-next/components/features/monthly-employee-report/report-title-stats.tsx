@@ -41,6 +41,11 @@ export function ReportTitleStats({ report }: { report: MonthlyReport }) {
       {report.showGrossRow && (
         <Stat label={t("fibu.common.brutto")}>{report.totalGrossDuration}</Stat>
       )}
+      {report.hasTimeSavingsByAI && (
+        <Stat label={t("timesheet.ai.timeSavedByAI._")}>
+          <span className="text-ai-savings">{report.totalTimeSavedByAI}</span>
+        </Stat>
+      )}
     </dl>
   );
 }

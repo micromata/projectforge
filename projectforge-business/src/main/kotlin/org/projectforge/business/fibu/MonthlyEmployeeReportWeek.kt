@@ -142,6 +142,14 @@ class MonthlyEmployeeReportWeek(date: PFDateTime) : Serializable {
     val formattedToDayOfMonth: String
         get() = StringHelper.format2DigitNumber(toDate.dayOfMonth)
 
+    /** First day of the week (clipped to the month) as an ISO date `yyyy-MM-dd`, for the drill-down window. */
+    val isoFromDate: String
+        get() = fromDate.localDate.toString()
+
+    /** Last day of the week (clipped to the month) as an ISO date `yyyy-MM-dd`, for the drill-down window. */
+    val isoToDate: String
+        get() = toDate.localDate.toString()
+
     val formattedTotalDuration: String
         get() = getFormattedDuration(totalDuration)
 

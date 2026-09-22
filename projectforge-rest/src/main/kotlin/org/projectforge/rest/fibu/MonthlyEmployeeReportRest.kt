@@ -244,6 +244,8 @@ class MonthlyEmployeeReportRest {
                 totalDuration = week.formattedTotalDuration,
                 grossDuration = week.formattedGrossDuration,
                 timeSavedByAI = week.formattedTotalTimeSavedByAI,
+                startDate = week.isoFromDate,
+                endDate = week.isoToDate,
             )
         }
         val rows = mutableListOf<MonthlyEmployeeReportRow>()
@@ -318,6 +320,7 @@ class MonthlyEmployeeReportRest {
             formattedUnbookedDays = report.formattedUnbookedDays,
             averageWorkingTimeStats = averageWorkingTimeStats,
             timeSavingsByAIEnabled = timeSavingsByAIEnabled,
+            hasTimeSavingsByAI = timeSavingsByAIEnabled && report.totalTimeSavedByAI > 0,
             hasKost2Rows = report.kost2Rows.isNotEmpty(),
             weeks = weeks,
             rows = rows,

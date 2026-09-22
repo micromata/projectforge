@@ -29,6 +29,9 @@ export interface MonthlyReportWeek {
   totalDuration: string;
   grossDuration: string;
   timeSavedByAI: string;
+  /** Drill-down week bounds as `yyyy-MM-dd` (clipped to the month). */
+  startDate: string;
+  endDate: string;
 }
 
 export interface MonthlyReport {
@@ -47,6 +50,8 @@ export interface MonthlyReport {
   formattedUnbookedDays?: string | null;
   averageWorkingTimeStats?: string | null;
   timeSavingsByAIEnabled: boolean;
+  /** True only when the AI feature is on AND some non-zero saving exists — gates the AI column/row and stat. */
+  hasTimeSavingsByAI: boolean;
   hasKost2Rows: boolean;
   weeks: MonthlyReportWeek[];
   rows: MonthlyReportRow[];

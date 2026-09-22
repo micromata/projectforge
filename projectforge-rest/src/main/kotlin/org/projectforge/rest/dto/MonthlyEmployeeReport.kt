@@ -57,8 +57,10 @@ class MonthlyEmployeeReportData(
     val formattedUnbookedDays: String?,
     /** The localized average-working-time statistics line, or null. */
     val averageWorkingTimeStats: String?,
-    /** Whether the "time saved by AI" column/rows are shown. */
+    /** Whether the "time saved by AI" feature is enabled at all. */
     val timeSavingsByAIEnabled: Boolean,
+    /** True only if the feature is enabled AND some non-zero AI time saving exists (drives showing the column/row). */
+    val hasTimeSavingsByAI: Boolean,
     /** True if at least one Kost2 row exists (drives the four-column head vs. the single task head). */
     val hasKost2Rows: Boolean,
     val weeks: List<MonthlyEmployeeReportWeekDto>,
@@ -97,6 +99,10 @@ class MonthlyEmployeeReportWeekDto(
     val grossDuration: String,
     /** Weekly time saved by AI (formatted). */
     val timeSavedByAI: String,
+    /** Drill-down window: first day of the week (clipped to the month) as `yyyy-MM-dd`. */
+    val startDate: String,
+    /** Drill-down window: last day of the week (clipped to the month) as `yyyy-MM-dd`. */
+    val endDate: String,
 )
 
 /** One matrix row: a Kost2 cost unit, a task, or the pseudo task ("******") for foreign, unreadable sheets. */
