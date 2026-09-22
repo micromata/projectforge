@@ -51,11 +51,18 @@ public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
       final UserPrefService userPrefService = WicketSupport.get(UserPrefService.class);
       final Set<?> rawIds = (Set<?>) userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS);
       if (rawIds != null) {
-        // The JSON store doesn't preserve the element type of a raw Set, so small ids come back as Integer.
-        // Normalize to Long (the type TaskNode ids are compared against).
+        // The JSON store doesn't preserve the element type of a raw Set, so ids may come back as
+        // Integer, Long or even String. Normalize to Long (the type TaskNode ids are compared against).
         final Set<Long> ids = new HashSet<>();
         for (final Object id : rawIds) {
-          ids.add(((Number) id).longValue());
+          if (id == null) {
+            continue;
+          }
+          try {
+            ids.add(id instanceof Number ? ((Number) id).longValue() : Long.parseLong(id.toString().trim()));
+          } catch (final NumberFormatException ex) {
+            log.warn("Ignoring non-numeric open-task id in user prefs: '" + id + "'");
+          }
         }
         expansion.setIds(ids);
       } else {
