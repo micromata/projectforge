@@ -26,7 +26,7 @@ import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 /** Shared by the real entries and the hidden measurement row, so both are exactly as wide. */
 const ENTRY_CLASS = cn(
   buttonVariants({ variant: "ghost", size: "sm" }),
-  "shrink-0 cursor-pointer"
+  "shrink-0 cursor-pointer px-1.5"
 );
 
 /**
@@ -50,7 +50,10 @@ export function FavoritesBar({ items }: { items: MenuItem[] }) {
   return (
     <div
       ref={containerRef}
-      className="relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
+      // `self-stretch` gives the row the bar's full height so `overflow-hidden` (there to hide the
+      // measurement row and clip horizontal overflow) doesn't cut the raised corner badge, which pokes
+      // above a box that is only as tall as the buttons.
+      className="relative flex min-w-0 flex-1 items-center gap-0 self-stretch overflow-hidden"
     >
       {/*
        * Off-screen reference row: keeps every entry's width known while it sits in the overflow.
@@ -60,15 +63,15 @@ export function FavoritesBar({ items }: { items: MenuItem[] }) {
       <div
         ref={measureRef}
         aria-hidden
-        className="pointer-events-none invisible absolute flex items-center gap-1"
+        className="pointer-events-none invisible absolute flex items-center gap-0"
       >
         {items.map((item) => (
           <span key={itemKey(item)} className={ENTRY_CLASS}>
             {item.title}
+            <MenuCounterBadge badge={item.badge} variant="corner" />
             {item.subMenu?.length ? (
               <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
             ) : null}
-            <MenuCounterBadge badge={item.badge} />
           </span>
         ))}
       </div>
@@ -108,7 +111,7 @@ function FavoriteEntry({ item }: { item: MenuItem }) {
         className={ENTRY_CLASS}
       >
         {item.title}
-        <MenuCounterBadge badge={item.badge} />
+        <MenuCounterBadge badge={item.badge} variant="corner" />
       </MenuLink>
     );
   }
@@ -117,8 +120,8 @@ function FavoriteEntry({ item }: { item: MenuItem }) {
     <MenubarMenu>
       <MenubarTrigger className={ENTRY_CLASS}>
         {item.title}
+        <MenuCounterBadge badge={item.badge} variant="corner" />
         <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
-        <MenuCounterBadge badge={item.badge} />
       </MenubarTrigger>
       <MenubarContent align="start">
         {item.subMenu.map((child) => (

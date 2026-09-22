@@ -31,7 +31,7 @@ export function TopNavigation() {
     // another one, instead of the first click only closing what was open.
     <Menubar
       asChild
-      className="h-12 shrink-0 gap-2 rounded-none border-x-0 border-t-0 bg-background px-4"
+      className="h-12 shrink-0 gap-0.5 rounded-none border-x-0 border-t-0 bg-background px-2"
     >
       <nav>
         <MainMenuDropdown
