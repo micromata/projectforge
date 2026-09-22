@@ -91,6 +91,13 @@ export function MonthlyEmployeeReportPage() {
           <>
             <ReportHeader report={data} />
             <ReportMatrix report={data} />
+            {/* The average-working-time sentence is low-priority context, so it sits quietly below the table. */}
+            {data.averageWorkingTimeStats && (
+              <p className="text-xs text-muted-foreground">
+                <span className="opacity-70">{t("statistics")}:</span>{" "}
+                {data.averageWorkingTimeStats}
+              </p>
+            )}
           </>
         )}
       </div>

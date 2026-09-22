@@ -61,12 +61,6 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
           {report.formattedUnbookedDays}
         </Stat>
       )}
-      {report.averageWorkingTimeStats && (
-        // Capped width so the backend's full sentence wraps onto a few lines instead of stretching the row.
-        <Stat label={t("statistics")} className="max-w-sm">
-          {report.averageWorkingTimeStats}
-        </Stat>
-      )}
       {report.invoicingQuota && (
         <Stat
           label={t("fibu.common.invoicingQuota._")}
