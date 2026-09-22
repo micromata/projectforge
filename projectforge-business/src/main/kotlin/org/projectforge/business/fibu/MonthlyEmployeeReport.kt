@@ -248,7 +248,14 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
         bufferedSheets.add(sheet to hasSelectAccess)
     }
 
-    fun calculate() {
+    /**
+     * @param calculateVacationStats If true (default), the (expensive) vacation statistics are computed and set as
+     * [vacationCount] / [vacationPlannedCount]. Callers that only need the working-time totals (e.g. the average
+     * working-time computation, which rebuilds a full report per month) should pass false to avoid the N+1 vacation
+     * queries per rebuilt month.
+     */
+    @JvmOverloads
+    fun calculate(calculateVacationStats: Boolean = true) {
         Validate.notEmpty<List<MonthlyEmployeeReportWeek>?>(weeks)
         // Distribute overlapping time (shared cost elements) proportionally for attendance accounting: at any instant
         // covered by n time sheets each of them gets 1/n. The sum of all split durations equals the union of the
@@ -341,14 +348,16 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
                 }
             }
         }
-        val vacationService = WicketSupport.get(VacationService::class.java)
-        if (vacationService != null && this.employee != null && employee!!.user != null) {
-            if (vacationService.hasAccessToVacationService(employee!!.user, false)) {
-                val stats = vacationService.getVacationStats(employee!!)
-                this.vacationCount =
-                    stats.vacationDaysLeftInYear // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
-                this.vacationPlannedCount =
-                    stats.vacationDaysInProgress // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+        if (calculateVacationStats) {
+            val vacationService = WicketSupport.get(VacationService::class.java)
+            if (vacationService != null && this.employee != null && employee!!.user != null) {
+                if (vacationService.hasAccessToVacationService(employee!!.user, false)) {
+                    val stats = vacationService.getVacationStats(employee!!)
+                    this.vacationCount =
+                        stats.vacationDaysLeftInYear // was vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+                    this.vacationPlannedCount =
+                        stats.vacationDaysInProgress // was vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate.getLocalDate());
+                }
             }
         }
         val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)

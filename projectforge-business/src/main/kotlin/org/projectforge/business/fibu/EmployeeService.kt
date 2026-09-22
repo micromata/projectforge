@@ -421,7 +421,17 @@ class EmployeeService {
         return employeeServiceSupport.undeleteValidSinceAttr(employee, attr, checkAccess = checkAccess)
     }
 
-    fun getReportOfMonth(year: Int, month: Int, user: PFUserDO): MonthlyEmployeeReport {
+    /**
+     * @param calculateVacationStats If true (default), the report also computes the vacation statistics. Pass false
+     * when only the working-time totals are needed (avoids the expensive per-report vacation queries).
+     */
+    @JvmOverloads
+    fun getReportOfMonth(
+        year: Int,
+        month: Int,
+        user: PFUserDO,
+        calculateVacationStats: Boolean = true,
+    ): MonthlyEmployeeReport {
         val monthlyEmployeeReport = MonthlyEmployeeReport(user, year, month)
         monthlyEmployeeReport.init()
         val filter = TimesheetFilter()
@@ -439,7 +449,7 @@ class EmployeeService {
                 )
             }
         }
-        monthlyEmployeeReport.calculate()
+        monthlyEmployeeReport.calculate(calculateVacationStats = calculateVacationStats)
         return monthlyEmployeeReport
     }
 

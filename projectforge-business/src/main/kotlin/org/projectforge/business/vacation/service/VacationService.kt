@@ -187,7 +187,8 @@ open class VacationService {
             stats.specialVacationDaysApproved =
                 sum(allVacationsOfYear, yearPeriod.begin, yearPeriod.end, true, VacationStatus.APPROVED)
 
-            stats.allocatedDaysInOverlapPeriod = getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year)
+            stats.allocatedDaysInOverlapPeriod =
+                getNumberValidVacationDaysInOverlapPeriod(allVacationsOfYear, year, stats.endOfVacationYear)
 
             stats.remainingLeaveFromPreviousYear =
                 remainingLeaveDao.getRemainingLeaveFromPreviousYear(employee.id, year)
@@ -337,7 +338,14 @@ open class VacationService {
         val result = AverageWorkingTime(fromMonth = fromMonth, toMonth = toMonth)
         var currentMonth = fromMonth
         for (paranoiaCounter in 0..3) { // Paranoia counter for avoiding endless loops.
-            val reportOfMonth = employeeService.getReportOfMonth(currentMonth.year, currentMonth.month.value, user)
+            // Only the working-time totals are read below, so skip the (expensive) vacation statistics to avoid
+            // rebuilding them for every month in this loop.
+            val reportOfMonth = employeeService.getReportOfMonth(
+                currentMonth.year,
+                currentMonth.month.value,
+                user,
+                calculateVacationStats = false,
+            )
             result.workingHours += BigDecimal(reportOfMonth.totalNetDuration).divide(
                 TimePeriod.MILLIS_PER_HOUR,
                 2,
@@ -537,9 +545,14 @@ open class VacationService {
     /**
      * Determine the vacation days (of the database) from 1.1. until 31.3. of the given year.
      */
-    private fun getNumberValidVacationDaysInOverlapPeriod(vacations: List<VacationDO>, year: Int): BigDecimal {
+    private fun getNumberValidVacationDaysInOverlapPeriod(
+        vacations: List<VacationDO>,
+        year: Int,
+        endOfCarryVacation: LocalDate? = null,
+    ): BigDecimal {
         val periodBegin = LocalDate.of(year, Month.JANUARY, 1)
-        val periodEnd = configService.getEndOfCarryVacationOfPreviousYear(year)
+        // Reuse the already-loaded end-of-carry date if the caller provides it (saves a redundant configuration read).
+        val periodEnd = endOfCarryVacation ?: configService.getEndOfCarryVacationOfPreviousYear(year)
         return sum(vacations, periodBegin, periodEnd, false, *DEFAULT_VACATION_STATUS_LIST)
     }
 
