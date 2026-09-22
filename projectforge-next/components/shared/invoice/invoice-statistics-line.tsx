@@ -26,9 +26,6 @@ import { InvoiceStatisticsTable } from "./invoice-statistics-table";
  */
 const DATE_FIELD = "datum";
 
-/** The gross-with-discount column is dropped from the comparison table — see [InvoiceStatisticsLine]. */
-const MIT_SKONTO = "fibu.rechnung.mitSkonto";
-
 /** The bounded Rechnungsdatum range of the filter, or null when either bound is missing. */
 function boundedDateRange(
   filter: MagicFilter | undefined
@@ -87,12 +84,12 @@ export function InvoiceStatisticsLine({
   if (entries.length === 0) return null;
 
   // The year-earlier figures, when the backend sent them (the toggle is on and the date filter is a
-  // bounded range); "mit Skonto" is dropped from the table, so the two rows compare the same columns.
+  // bounded range).
   const comparison = invoiceComparisonEntries(
     statistics,
     statistics?.previousYear
-  ).filter((entry) => entry.labelKey !== MIT_SKONTO);
-  const tableEntries = entries.filter((entry) => entry.labelKey !== MIT_SKONTO);
+  );
+  const tableEntries = entries;
   const expanded = !!previousYearComparison && comparison.length > 0;
 
   const dateRange = boundedDateRange(filter);

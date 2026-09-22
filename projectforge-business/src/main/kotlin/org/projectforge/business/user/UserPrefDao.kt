@@ -250,6 +250,25 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     /**
+     * Loads all user prefs of the given area for the given user in a single query, eagerly fetching the legacy
+     * [UserPrefDO.userPrefEntries]. Use this instead of loading the id/name list and then re-selecting each entry
+     * individually (which reads the lazy entries per row and causes an N+1, see [TaskFavoritesService]).
+     *
+     * @param userId If null, an empty list is returned.
+     * @param areaId The area to load (plain area id string, not necessarily a registered [UserPrefArea]).
+     */
+    fun selectUserPrefsWithEntries(userId: Long?, areaId: String): List<UserPrefDO> {
+        userId ?: return emptyList()
+        val list = persistenceService.executeNamedQuery(
+            UserPrefDO.FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES,
+            UserPrefDO::class.java,
+            Pair("userId", userId),
+            Pair("area", areaId)
+        )
+        return list.distinct()
+    }
+
+    /**
      * Adds the object fields as parameters to the given userPref. Fields without the annotation UserPrefParameter will be
      * ignored.
      *

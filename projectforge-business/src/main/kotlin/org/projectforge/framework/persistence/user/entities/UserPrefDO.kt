@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_IDS_AND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
@@ -73,6 +74,11 @@ private val log = KotlinLogging.logger {}
 //@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
     NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
+    NamedQuery(
+        name = FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES,
+        // Eagerly fetch the legacy userPrefEntries to avoid an N+1 when the caller reads entry values (see TaskFavoritesService).
+        query = "select distinct u from UserPrefDO u left join fetch u.userPrefEntries where u.user.id=:userId and u.area=:area order by u.name"
+    ),
     NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
     NamedQuery(
         name = FIND_BY_USER_AND_AREA_AND_NAME,
@@ -308,6 +314,8 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
         internal const val FIND_BY_USER_ID = "UserPrefDO_FindByUserId"
 
         internal const val FIND_BY_USER_ID_AND_AREA = "UserPrefDO_FindByUserIdAndArea"
+
+        internal const val FIND_BY_USER_ID_AND_AREA_WITH_ENTRIES = "UserPrefDO_FindByUserIdAndAreaWithEntries"
 
         internal const val FIND_BY_USER_AND_AREA_AND_ID = "UserPrefDO_FindByUserIdAndAreaAndId"
 

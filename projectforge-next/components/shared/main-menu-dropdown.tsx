@@ -64,13 +64,13 @@ export function MainMenuDropdown({
       <MenubarTrigger
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "shrink-0 cursor-pointer"
+          "shrink-0 cursor-pointer px-1.5"
         )}
         aria-label={t("main.title")}
       >
         <HugeiconsIcon icon={Menu01Icon} size={16} />
-        <span className="hidden sm:inline">{t("main.title")}</span>
-        <MenuCounterBadge badge={badge} />
+        <span className="hidden sm:inline">{t("main.short")}</span>
+        <MenuCounterBadge badge={badge} variant="corner" />
       </MenubarTrigger>
       <MenubarContent
         align="start"

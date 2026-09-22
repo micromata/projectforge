@@ -26,25 +26,15 @@ describe("invoiceStatisticsEntries", () => {
     expect(entries.map((entry) => entry.labelKey)).toEqual(ALWAYS);
   });
 
-  it("shows the discounted gross sum only where it differs from the gross sum", () => {
-    const same = invoiceStatisticsEntries({
-      brutto: 1190,
-      bruttoWithDiscount: 1190,
-      netto: 1000,
-    });
-    expect(same.map((entry) => entry.labelKey)).toEqual(ALWAYS);
-
+  it("never shows the gross-with-discount figure, even where it differs from the gross sum", () => {
+    // "mit Skonto" was removed: it mixes the paid amount, a never-taken hypothetical discount and the
+    // plain gross, so it does not reconcile with the gross and discount beside it — see the KDoc.
     const differing = invoiceStatisticsEntries({
       brutto: 1190,
       bruttoWithDiscount: 1150,
       netto: 1000,
     });
-    expect(differing.map((entry) => entry.labelKey)).toEqual([
-      "fibu.common.brutto",
-      "fibu.rechnung.mitSkonto",
-      "fibu.common.netto",
-      "fibu.rechnung.offen",
-    ]);
+    expect(differing.map((entry) => entry.labelKey)).toEqual(ALWAYS);
   });
 
   it("drops what is zero and only looked for when there is something to look for", () => {

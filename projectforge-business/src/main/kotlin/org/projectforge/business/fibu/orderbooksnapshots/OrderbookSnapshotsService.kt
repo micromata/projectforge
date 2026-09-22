@@ -85,6 +85,10 @@ class OrderbookSnapshotsService {
                 log.info { "Checking daily snapshots..." }
                 persistenceService.runInNewTransaction(recordCallStats = true) { context ->
                     val today = LocalDate.now()
+                    if (auftragDao.select(deleted = false, checkAccess = false).isEmpty()) {
+                        log.debug { "No orders exist. Skipping snapshot creation." }
+                        return@runInNewTransaction
+                    }
                     val entry = findEntry(today)
                     if (entry != null) {
                         log.info { "Order book snapshot for today ($today UTC) already exists. OK, nothing to do." }

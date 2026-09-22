@@ -1,5 +1,6 @@
-# Base image (openjdk:* is deprecated and its tags were removed from Docker Hub):
-ARG BASE_IMAGE=eclipse-temurin:17-jdk-jammy
+# Base image (openjdk:* is deprecated and its tags were removed from Docker Hub).
+# Defaults to the JRE image (running a prebuilt fat jar needs no JDK):
+ARG BASE_IMAGE=docker.io/eclipse-temurin:17-jre-jammy
 FROM ${BASE_IMAGE}
 
 # Argument for JAR file name to use in working directory:

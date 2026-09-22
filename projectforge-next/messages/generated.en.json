@@ -1548,6 +1548,7 @@
       }
     },
     "main": {
+      "short": "Menu",
       "title": "Main menu"
     },
     "myAccount": "My account",

@@ -16,8 +16,10 @@ import { cn } from "@/lib/utils";
 import type { FavoriteIdTitle } from "@/lib/rs/types";
 import { FavoriteEntry } from "./favorite-entry";
 
-export interface FavoritesMenuProps {
-  favorites: FavoriteIdTitle[];
+export interface FavoritesMenuProps<
+  T extends FavoriteIdTitle = FavoriteIdTitle,
+> {
+  favorites: T[];
   /** The favorite the values on screen came from, if the caller tracks it. */
   currentId?: number | null;
   /** Whether the current favorite has unsaved changes — a dot on the trigger, and per-entry (see FavoriteEntry). */
@@ -27,6 +29,11 @@ export interface FavoritesMenuProps {
   onRename: (id: number, newName: string) => void;
   onUpdate?: (id: number) => void;
   onDelete: (id: number) => void;
+  /**
+   * An explanation to show on hover over an entry's name — the task favorites give the whole path of
+   * the referenced structure element (see TaskFavoritesMenu). Left off, the names carry no tooltip.
+   */
+  tooltipFor?: (favorite: T) => string | null | undefined;
   /** Extra content above the list — the recent-entries block of the timesheet templates bar. */
   header?: ReactNode;
   /** The trigger's accessible name and, unless icon-only, its label. */
@@ -52,7 +59,7 @@ export interface FavoritesMenuProps {
  * endpoints over the same shape. A Popover, not a dropdown, so the create and rename inputs keep focus
  * instead of closing the menu on the first keystroke.
  */
-export function FavoritesMenu({
+export function FavoritesMenu<T extends FavoriteIdTitle = FavoriteIdTitle>({
   favorites,
   currentId,
   isModified,
@@ -61,12 +68,13 @@ export function FavoritesMenu({
   onRename,
   onUpdate,
   onDelete,
+  tooltipFor,
   header,
   label,
   showLabel,
   modal = false,
   className,
-}: FavoritesMenuProps) {
+}: FavoritesMenuProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
@@ -130,6 +138,7 @@ export function FavoritesMenu({
               favorite={favorite}
               isCurrent={favorite.id === currentId}
               isModified={isModified}
+              tooltip={tooltipFor?.(favorite)}
               onSelect={() => {
                 onSelect(favorite.id);
                 setOpen(false);

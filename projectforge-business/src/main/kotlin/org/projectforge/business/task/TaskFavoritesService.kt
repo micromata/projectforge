@@ -25,6 +25,7 @@ package org.projectforge.business.task
 
 import org.projectforge.business.user.UserPrefDao
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -35,14 +36,35 @@ class TaskFavoritesService {
     @Autowired
     private lateinit var userPrefDao: UserPrefDao
 
+    /**
+     * A task favorite together with its referenced task id.
+     */
+    class TaskFavoriteWithTaskId(val id: Long?, val name: String?, val taskId: Long?)
+
     fun getList(): List<TaskFavorite> {
         val userPrefs = userPrefDao.getListWithoutEntries(AREA_ID)
         return userPrefs.map { TaskFavorite(it.name!!, it.id!!) }
     }
 
+    /**
+     * The current user's task favorites with their referenced task id already resolved, loaded in a single query.
+     * Prefer this over calling [selectTaskId] per favorite, which re-selects each entry individually (N+1).
+     */
+    fun getListWithTaskId(): List<TaskFavoriteWithTaskId> {
+        val userId = ThreadLocalUserContext.loggedInUserId
+        @Suppress("DEPRECATION")
+        return userPrefDao.selectUserPrefsWithEntries(userId, AREA_ID).map { userPref ->
+            TaskFavoriteWithTaskId(userPref.id, userPref.name, parseTaskId(userPref.getUserPrefEntryAsString(PARAMETER), userPref.id))
+        }
+    }
+
     fun selectTaskId(id: Long): Long? {
         @Suppress("DEPRECATION")
         val taskIdString = userPrefDao.selectUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
+        return parseTaskId(taskIdString, id)
+    }
+
+    private fun parseTaskId(taskIdString: String?, id: Long?): Long? {
         try {
             return taskIdString?.toLong()
         } catch (ex: NumberFormatException) {
