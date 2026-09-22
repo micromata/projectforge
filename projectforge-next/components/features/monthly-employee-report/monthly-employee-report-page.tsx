@@ -60,7 +60,6 @@ export function MonthlyEmployeeReportPage() {
       <PageTitleRow
         category={t("menu.monthlyEmployeeReport._")}
         title={t("menu.monthlyEmployeeReport._")}
-        center={data ? <ReportTitleStats report={data} /> : undefined}
       >
         <Button
           type="button"
@@ -75,7 +74,11 @@ export function MonthlyEmployeeReportPage() {
         <LegacyPageLink url="wa/monthlyEmployeeReport?legacyEscape" />
       </PageTitleRow>
       <div className="flex flex-col gap-4 px-4 pb-6">
-        <ReportFilterRow report={data} value={query} onChange={setQuery} />
+        {/* Filter (user / year / month) on the left, the key figures right-aligned on the same line. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <ReportFilterRow report={data} value={query} onChange={setQuery} />
+          {data && <ReportTitleStats report={data} />}
+        </div>
         {report.isPending && (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
         )}
