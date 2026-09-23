@@ -11,9 +11,8 @@ server {
   server_name         projectforge.example.com;
   ssl_certificate     /etc/ssl/projectforge.crt;
   ssl_certificate_key /etc/ssl/projectforge.key;
-  ssl on;
 
-  ssl_protocols TLSv1.2;
+  ssl_protocols TLSv1.2 TLSv1.3;
   ssl_prefer_server_ciphers on;
   ssl_dhparam /etc/nginx/dhparam.pem;
   ssl_ciphers EECDH+AESGCM:EDH+AESGCM;

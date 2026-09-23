@@ -385,8 +385,140 @@ sudo sysctl net.ipv4.ip_unprivileged_port_start=80
 
 ---
 
+## Variant C: Native nginx + self-signed certificate with a `.priv` domain (test only)
+
+Use this variant when nginx runs natively on the Debian gateway server (no Podman/Docker
+for the reverse proxy) and the host is not publicly reachable, so Let's Encrypt is not an
+option. ProjectForge itself still runs as a Podman container or directly from the JAR.
+
+### 1. Install nginx
+
+```bash
+sudo apt update && sudo apt install -y nginx
+```
+
+### 2. Generate the certificate
+
+The certificate must carry a `subjectAltName`; modern browsers and Java's HTTPS client
+reject certificates that only set the hostname in the `CN` field.
+
+```bash
+sudo openssl req -x509 -nodes -days 825 \
+  -newkey rsa:2048 \
+  -keyout /etc/ssl/projectforge.key \
+  -out /etc/ssl/projectforge.crt \
+  -subj "/CN=gateway.priv" \
+  -addext "subjectAltName=DNS:gateway.priv"
+```
+
+### 3. DH parameters (for TLS 1.2 fallback)
+
+2048 bit is sufficient for a test installation and much faster to generate than 4096:
+
+```bash
+sudo openssl dhparam -out /etc/nginx/dhparam.pem 2048
+```
+
+### 4. Configure nginx
+
+Copy the template from the repository and replace the placeholder domain:
+
+```bash
+sudo cp doc/misc/nginx_sites-available_projectforge \
+  /etc/nginx/sites-available/projectforge
+sudo sed -i 's/projectforge.example.com/gateway.priv/g' \
+  /etc/nginx/sites-available/projectforge
+```
+
+The template already points to `proxy_pass http://localhost:8080` — adjust the port if
+ProjectForge listens elsewhere (e.g. 8090 for Variant A/B setups).
+
+Activate and reload:
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/projectforge \
+            /etc/nginx/sites-enabled/projectforge
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 5. DNS resolution for `.priv`
+
+`.priv` is not a public TLD, so every host that needs to reach the gateway must resolve it
+via `/etc/hosts`. Add the following on the gateway server itself, on the Authentik host,
+and on every developer machine:
+
+```
+<gateway-ip>  gateway.priv
+```
+
+### 6. Tell Authentik to trust the certificate
+
+Authentik verifies the TLS certificate when it contacts the gateway's OIDC endpoints
+(e.g. the token endpoint). A self-signed certificate is not trusted by default.
+
+**Option A — import the certificate into Authentik (recommended):**
+
+1. In the Authentik Admin UI go to *System → Certificates → Import*.
+2. Paste the contents of `/etc/ssl/projectforge.crt`.
+3. Open the provider that points to the gateway and select the imported certificate
+   under *Verification certificate*.
+
+**Option B — disable verification in Authentik (quick test only):**
+
+In `authentik.env` (or the Authentik compose environment block):
+
+```env
+AUTHENTIK_OUTPOSTS__DISABLE_EMBEDDED_OUTPOST_SSL_VERIFY=true
+```
+
+Restart Authentik after the change.
+
+### 7. Trust the Authentik certificate in the ProjectForge JVM
+
+ProjectForge calls Authentik's OIDC discovery endpoint on startup. If Authentik itself uses
+a self-signed or private-CA certificate, import it into the JVM truststore:
+
+```bash
+# Find the JDK in use, e.g.:
+JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+
+sudo keytool -import -alias authentik-priv \
+  -file /path/to/authentik.crt \
+  -keystore $JAVA_HOME/lib/security/cacerts \
+  -storepass changeit -noprompt
+```
+
+Alternatively, pass a JVM flag (test setups only — disables all hostname verification):
+
+```bash
+# In ~/ProjectForge/environment.sh or the service unit:
+export JAVA_ARGS="--spring.profiles.active=external-gateway \
+  -Djdk.internal.httpclient.disableHostnameVerification=true"
+```
+
+### 8. `projectforge.properties` for the `.priv` domain
+
+Same as Variant B step 4, with the host names replaced:
+
+```properties
+projectforge.domain=https://gateway.priv
+spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.priv/application/o/projectforge/
+```
+
+### 9. Register the redirect URI in Authentik
+
+In the Authentik provider settings set the allowed redirect URI to:
+
+```
+https://gateway.priv/login/oauth2/code/authentik
+```
+
+---
+
 ## OAuth/Authentik redirect URI
 
 Register the redirect URI in the Authentik provider:
 - Local: `http://localhost:8090/login/oauth2/code/authentik`
 - Remote: `https://gateway.example.com/login/oauth2/code/authentik`
+- `.priv` (self-signed): `https://gateway.priv/login/oauth2/code/authentik`
