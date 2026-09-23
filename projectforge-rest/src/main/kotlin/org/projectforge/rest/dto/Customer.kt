@@ -30,7 +30,7 @@ import org.projectforge.framework.i18n.translate
 
 class Customer(id: Long? = null,
                displayName: String? = null,
-               var nummer: Int? = null,
+               var nummer: Long? = null,
                var name: String? = null,
                var identifier: String? = null,
                var division: String? = null,

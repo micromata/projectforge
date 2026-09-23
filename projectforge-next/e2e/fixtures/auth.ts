@@ -10,11 +10,13 @@ import { BASE_PATH } from "../../lib/config";
 import {
   createBook,
   createCost1,
+  createCustomer,
   createGroup,
   createOrder,
   createTask,
   type SeededBook,
   type SeededCost1,
+  type SeededCustomer,
   type SeededGroup,
   type SeededOrder,
   type SeededTask,
@@ -46,6 +48,8 @@ export const test = base.extend<
     seededOrder: SeededOrder;
     /** A local group of the tests' own, for the specs that grant rights to one. */
     seededGroup: SeededGroup;
+    /** A customer of the tests' own, whose number is free. */
+    seededCustomer: SeededCustomer;
   }
 >({
   loggedInPage: async ({ page }, use) => {
@@ -115,6 +119,13 @@ export const test = base.extend<
   seededGroup: [
     async ({ seedRequest }, use) => {
       await use(await createGroup(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededCustomer: [
+    async ({ seedRequest }, use) => {
+      await use(await createCustomer(seedRequest));
     },
     { scope: "worker" },
   ],

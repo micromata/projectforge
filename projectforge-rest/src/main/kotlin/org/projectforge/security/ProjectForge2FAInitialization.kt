@@ -108,7 +108,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // a second factor before Wicket's form, but no longer before the migrated one.
       // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
       // dao ("auftrag"): the write access of Wicket's own form is gated by the url below, not by this entry.
-      "WRITE:order;WRITE:cost1;",
+      "WRITE:order;WRITE:cost1;WRITE:customer;",
       "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
       "/wa/projectEdit;/wa/orderBookEdit"
     )

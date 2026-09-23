@@ -23,27 +23,35 @@
 
 package org.projectforge.rest.fibu
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
+import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Customer
-import org.projectforge.rest.dto.Konto
-import org.projectforge.ui.*
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.annotation.PostConstruct
-import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The customer (Kunde) list and edit page, layout free — its list and form are hand built in
+ * projectforge-next (`/next/customer`), so this carries no `createListLayout` or `createEditLayout`
+ * any more. The counterpart of [OutgoingInvoiceEntityRest] and [OrderEntityRest]: only the read/write
+ * path, the filter and the validation are left for the server to answer. The Wicket customer page is
+ * still reachable and writes through the same [KundeDao].
+ *
+ * Customer favorites (`UserPrefArea.KUNDE_FAVORITE`) are deliberately not carried over — the next
+ * list offers the generic saved-filter favorites instead.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/customer")
 class CustomerPagesRest
-    : AbstractDTOPagesRest<KundeDO, Customer, KundeDao>(
+    : AbstractDTOEntityRest<KundeDO, Customer, KundeDao>(
         KundeDao::class.java,
         "fibu.kunde.title") {
 
@@ -51,7 +59,6 @@ class CustomerPagesRest
     private fun postConstruct() {
         JacksonConfiguration.registerAllowedUnknownProperties(Customer::class.java, "statusAsString")
     }
-
 
     override fun transformFromDB(obj: KundeDO, editMode: Boolean): Customer {
         val kunde = Customer()
@@ -66,56 +73,37 @@ class CustomerPagesRest
     }
 
     /**
-     * LAYOUT List page
+     * `status` is a real enum property of KundeDO, so the standard magic filter applies it by field name
+     * — no [preProcessMagicFilter] entry is needed (unlike the synthetic filters of the group or user
+     * list). `defaultFilter = true` puts its pill on the row without the user adding it first, the same
+     * way the vacation list pins its status. See VacationPagesRest for the pattern.
      */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-        layout.add(UITable.createUIResultSetTable()
-                        .add(UITableColumn("kost", title = "fibu.kunde.nummer"))
-                        .add(lc, "identifier", "name", "division", "konto", "statusAsString", "description"))
-        layout.getTableColumnById("konto").formatter = UITableColumn.Formatter.KONTO
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("status", label = translate("status"), defaultFilter = true)
+                .buildValues(KundeStatus::class.java)
+        )
     }
 
     /**
-     * LAYOUT Edit page
+     * The customer number is the entity's user-assigned id and must be free. This is the check
+     * [KundeDao.onInsert] makes (`fibu.kunde.validation.existingCustomerNr`), repeated here as a field
+     * error so the hand built form marks the number field instead of only toasting the exception. Used
+     * to be the `onWatchFieldsUpdate` of the removed edit layout.
+     *
+     * Only for a new customer: an existing one's number equals its id, so `doesNumberAlreadyExist` would
+     * always find the customer itself.
      */
-    override fun createEditLayout(dto: Customer, userAccess: UILayout.UserAccess): UILayout {
-        val nameField = UIInput("name", lc, focus = true)
-
-        val kontoField = UIInput("konto", lc, dataType = UIDataType.KONTO)
-        kontoField.autoCompletionUrl = "account/acDebitors?search=:search"
-
-        val numberField: UIElement = if (dto.nummer != null) {
-            UIReadOnlyField("nummer", lc)
-        } else {
-            UIInput("nummer", lc)
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Customer) {
+        super.validate(validationErrors, dto)
+        if (dto.id == null && dto.nummer != null && baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
+            validationErrors.add(
+                ValidationError(
+                    translate("fibu.kunde.validation.existingCustomerNr"),
+                    fieldId = KundeDO::nummer.name,
+                )
+            )
         }
-
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UILabel("'ToDo: Kontoselektion, Errors as return value of watchfields *************** (Status unfinished) ***************"))
-                                .add(numberField)
-                                .add(nameField)
-                                .add(kontoField)
-                                .add(lc, "identifier", "division", "description", "status")))
-
-        if (dto.nummer == null) {
-            layout.watchFields.addAll(arrayOf("nummer"))
-        }
-
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
-
-    override fun onWatchFieldsUpdate(request: HttpServletRequest, dto: Customer, watchFieldsTriggered: Array<String>?): ResponseEntity<ResponseAction> {
-        if (watchFieldsTriggered?.contains("nummer") == true) {
-            dto.nummer?.let {
-                if (baseDao.doesNumberAlreadyExist(transformForDB(dto))) {
-                    val error = ValidationError(translate("fibu.kunde.validation.existingCustomerNr"))
-                    return ResponseEntity(ResponseAction(validationErrors = listOf(error)), HttpStatus.NOT_ACCEPTABLE)
-                }
-            }
-        }
-        return super.onWatchFieldsUpdate(request, dto, watchFieldsTriggered)
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")

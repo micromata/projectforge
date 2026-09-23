@@ -268,8 +268,11 @@ public class WebRegistry
     addMountPages(DaoConst.COST2, Kost2ListPage.class, Kost2EditPage.class);
     register(DaoConst.COST2_Type, Kost2ArtListPage.class);
     addMountPages(DaoConst.COST2_Type, Kost2ArtListPage.class, Kost2ArtEditPage.class);
-    register(DaoConst.CUSTOMER, CustomerListPage.class);
-    addMountPages(DaoConst.CUSTOMER, CustomerListPage.class, CustomerEditPage.class);
+    // The customer (Kunde) list and edit have been migrated to projectforge-next; the Wicket pages are no
+    // longer mounted. Bookmarked wa/customer* links are redirected by OrphanedLinkFilter (see
+    // NextMigration.orphanedLinks). Unlike the order/invoice removals the CustomerListPage/CustomerEditPage
+    // classes are kept: CustomerSelectPanel and NewCustomerSelectPanel (used by the still-Wicket Projekt and
+    // UserPref edit forms) still open the list page in its ISelectCallerPage select mode.
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 

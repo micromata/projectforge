@@ -400,6 +400,54 @@ export async function createGroup(
   return { id, name, suffix };
 }
 
+/** A customer of the tests' own, with the fields the customer specs read set to a known value. */
+export interface SeededCustomer {
+  id: number;
+  /** The user-assigned number, which is also the entity's id (`Customer.copyFrom`). */
+  nummer: number;
+  name: string;
+  /** The run's own suffix, the one word of the name that hits this run only. */
+  suffix: string;
+  /** `KundeStatus`, chosen so it differs from the form's unset default. */
+  status: "ACTIVE";
+}
+
+/**
+ * Creates a customer whose number is free.
+ *
+ * The number is the entity's user-assigned id (`KundeDO.nummer`, 0..999 — `KundeDO.MAX_ID`), so a
+ * customer cannot be inserted without inventing one. Probed descending from 999: the high end of the
+ * range is the part a real chart of accounts is least likely to use, and an inserted number can never
+ * be released again (`KundeDO` is historizable — `markAsDeleted` keeps the row and its number). A
+ * taken number is answered by the next candidate; anything else fails at once.
+ */
+export async function createCustomer(
+  request: APIRequestContext,
+  suffix = uniqueSuffix()
+): Promise<SeededCustomer> {
+  const name = `${MARKER} customer ${suffix}`;
+  for (let nummer = 999; nummer >= 900; nummer--) {
+    try {
+      const id = await insert(request, "customer", {
+        nummer,
+        name,
+        status: "ACTIVE",
+        description: `${MARKER} customer ${suffix}`,
+      });
+      return { id, nummer, name, suffix, status: "ACTIVE" };
+    } catch (cause) {
+      // Only a taken number is worth another attempt; a missing right or a changed contract would
+      // fail a hundred times over and bury its own reason (see fibu.kunde.validation.existingCustomerNr).
+      if (!/existingCustomerNr|nummer|already|bereits/i.test(String(cause))) {
+        throw cause;
+      }
+    }
+  }
+  throw new Error(
+    "Could not find a free customer number in 900..999 — see KundeDao.onInsertOrModify."
+  );
+}
+
 /**
  * A project of the database that has a customer, for the order form's autocomplete.
  *

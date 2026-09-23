@@ -63,8 +63,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
 
-    CUSTOMER_LIST("menu.fibu.kunden", "wa/customerList"), //
-    //CUSTOMER_LIST("menu.fibu.kunden", getReactListUrl("customer")), // Doesn't work yet
+    // Migrated to projectforge-next; the Wicket page (wa/customerList) stays reachable through the escape
+    // hatch next to the page title, see NextMigration.legacyListUrl.
+    CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
 
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //

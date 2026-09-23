@@ -93,7 +93,10 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.GANTT, GanttChartListPage.class);
         // OUTGOING_INVOICE_LIST (Debitoren) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
-        register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
+        // CUSTOMER_LIST (Kunden) migrated to projectforge-next; the menu entry resolves to next/customer
+        // (MenuItemDefId.CUSTOMER_LIST). The CustomerListPage class is kept for the select panels, but is no
+        // longer registered as the menu's Wicket page.
+        //register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
         //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
         register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
         // ORDER_LIST (Auftragsbuch) migrated to projectforge-next; its Wicket page was removed.
