@@ -78,6 +78,22 @@
     "backToLogin": "Zurück zur Anmeldung",
     "error": "Das Passwort konnte nicht geändert werden"
   },
+  "setup": {
+    "title": "Erste Anmeldung — ProjectForge einrichten",
+    "target": {
+      "_": "Was möchtest du einrichten?",
+      "testdata": "Testsystem",
+      "testdata_description": "Legt eine Datenbank mit Beispieldaten an – Benutzer, Projekte, Rechnungen und mehr –, damit du ProjectForge sofort ausprobieren kannst. Nicht für den Produktivbetrieb geeignet.",
+      "emptyDatabase": "Produktivsystem",
+      "emptyDatabase_description": "Legt eine leere Datenbank an, die nur das hier eingerichtete Administrator-Konto enthält. Die richtige Wahl für den echten Produktivbetrieb."
+    },
+    "finish": "Abschließen",
+    "submitting": "Einrichten…",
+    "alreadyInitialized": "Das System wurde bereits eingerichtet.",
+    "loadError": "Die Setup-Seite konnte nicht geladen werden.",
+    "unknownError": "Ein unerwarteter Fehler ist aufgetreten. Bitte Serverlog prüfen.",
+    "backToLogin": "Zur Anmeldung"
+  },
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",
     "company": "Micromata GmbH",

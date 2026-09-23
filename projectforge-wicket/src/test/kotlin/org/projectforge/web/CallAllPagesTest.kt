@@ -31,9 +31,7 @@ import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.system.SystemInfoCache.Companion.internalInitialize
 import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
-import org.projectforge.web.admin.SetupPage
 import org.projectforge.web.registry.WebRegistry
-import org.projectforge.web.task.TaskTreePage
 import org.projectforge.web.wicket.WicketPageTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,8 +42,7 @@ class CallAllPagesTest : WicketPageTestBase() {
     private lateinit var systemInfoCache: SystemInfoCache
 
     private val skipPages: Array<Class<out WebPage>> = arrayOf(
-        // Not yet checked:
-        SetupPage::class.java,  // Tested separately (works only on empty database)
+        // The setup page has been migrated to projectforge-next (/next/setup).
     )
 
     override fun afterAll() {
@@ -64,11 +61,6 @@ class CallAllPagesTest : WicketPageTestBase() {
     fun testAllMountedPages() {
         testCase = true
         _testAllMountedPages()
-        suppressErrorLogs {
-            testPage(SetupPage::class.java, TaskTreePage::class.java) // Database isn't empty.
-        }
-        // clearDatabase();
-        // testPage(SetupPage.class); // Doesn't work (table t_pf_user exists).
     }
 
     private fun _testAllMountedPages() {

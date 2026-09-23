@@ -81,7 +81,7 @@ class SystemStatusRest {
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
-            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(systemStatus.startTimeMillis)
         )
     }
@@ -107,7 +107,7 @@ class SystemStatusRest {
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
-            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/wa/setup" else null,
+            setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(0L)
         )
     }

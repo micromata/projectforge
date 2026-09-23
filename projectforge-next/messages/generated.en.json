@@ -78,6 +78,28 @@
     "owner": "Owner",
     "title": "Title"
   },
+  "administration": {
+    "configuration": {
+      "param": {
+        "calendarDomain": {
+          "_": "Calendar domain",
+          "description": "The domain is needed by the team calendar module for building world-wide unique event id's. Please use strings such as 'projectforge.my-company.com' and try to avoid later changes."
+        },
+        "feedbackEMail": {
+          "description": "If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e.g. JIRA-system or help desk).",
+          "label": "Feed-back"
+        },
+        "systemAdministratorEMail": {
+          "description": "ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one or more (coma separated) addresses (RFC822).",
+          "label": "Administrators"
+        },
+        "timezone": {
+          "_": "Default time zone",
+          "description": "This default time zone is used, if no other time zone is set. This time zone is used as pre-set time zone for new users. If no value is configured then the system's default time zone (Java vm) is used. You can modify this value whenever you want, the time stamps in the database are always stored in the independent UTC format."
+        }
+      }
+    }
+  },
   "akquise": "Acquisition",
   "apply": "Apply",
   "attachment": {
@@ -1176,6 +1198,7 @@
     }
   },
   "financeAdministration": "Finance administration",
+  "finish": "Finish",
   "firstName": "First name",
   "forceDelete": "Irrevocable deletion",
   "gantt": {

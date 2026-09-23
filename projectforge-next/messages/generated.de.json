@@ -78,6 +78,28 @@
     "owner": "Eigner:in",
     "title": "Titel"
   },
+  "administration": {
+    "configuration": {
+      "param": {
+        "calendarDomain": {
+          "_": "Kalenderdomäne",
+          "description": "Die Domäne wird vom Teamkalender-Modul benötigt, um weltweit eindeutige Ereignis-IDs zu erzeugen. Verwenden Sie Zeichenketten der Art 'projectforge.my-company.com' und vermeiden Sie nachträgliche Änderungen."
+        },
+        "feedbackEMail": {
+          "description": "Wenn diese E-Mail-Adresse angegeben ist, wird ein Feedback-Panel angezeigt, wenn ein Fehler auftritt. Der oder die Anwender:in kann dann eine Feedback-Meldung auslösen (z. B. an ein JIRA-System oder Helpdesk).",
+          "label": "Feedback"
+        },
+        "systemAdministratorEMail": {
+          "description": "Im schwerwiegenderen Fehlerfalle versendet ProjectForge eine E-Mail an diese Adresse. Es können mehrere Adressen eingegeben werden, getrennt durch Leerzeichen und Kommata (RFC822).",
+          "label": "Administrator:innen"
+        },
+        "timezone": {
+          "_": "Standard-Zeitzone",
+          "description": "Diese Zeitzone wird standardmäßig verwendet, wenn nichts anderes angegeben ist. Sie wird auch für neue Nutzer:innen voreingestellt. Wenn nichts konfiguriert ist, wird die Zeitzone des Systems (Java VM) verwendet. Diese Zeitzone kann jederzeit geändert werden, da alle Zeitangaben in der Datenbank im unabhängigen UTC-Format gespeichert werden."
+        }
+      }
+    }
+  },
   "akquise": "Akquise",
   "apply": "Übernehmen",
   "attachment": {
@@ -1176,6 +1198,7 @@
     }
   },
   "financeAdministration": "Finanzbuchhaltung",
+  "finish": "Fertig",
   "firstName": "Vorname",
   "forceDelete": "Unwiderruflich löschen",
   "gantt": {

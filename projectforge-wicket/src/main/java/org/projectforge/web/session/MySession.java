@@ -283,7 +283,7 @@ public class MySession extends WebSession {
   }
 
   /**
-   * Only used by SetupPage.
+   * Only used by the Wicket test infrastructure (WicketPageTestBase).
    * @param userContext
    * @param request
    */
@@ -315,7 +315,7 @@ public class MySession extends WebSession {
   }
 
   /**
-   * Only used by SetupPage and on logout button in Wicket context.
+   * Used on the logout button in Wicket context.
    */
   public void internalLogout() {
     super.clear();

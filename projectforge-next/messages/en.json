@@ -78,6 +78,22 @@
     "backToLogin": "Back to login",
     "error": "The password could not be changed"
   },
+  "setup": {
+    "title": "First login — set up ProjectForge",
+    "target": {
+      "_": "What would you like to set up?",
+      "testdata": "Test system",
+      "testdata_description": "Creates a database preloaded with example data — users, projects, invoices and more — so you can explore ProjectForge right away. Not intended for production use.",
+      "emptyDatabase": "Productive system",
+      "emptyDatabase_description": "Creates an empty database containing only the administrator account you set up here. The right choice for real, productive use."
+    },
+    "finish": "Finish",
+    "submitting": "Setting up…",
+    "alreadyInitialized": "The system has already been set up.",
+    "loadError": "The setup page could not be loaded.",
+    "unknownError": "An unexpected error occurred. Please check the server log.",
+    "backToLogin": "Go to login"
+  },
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",
     "company": "Micromata GmbH",

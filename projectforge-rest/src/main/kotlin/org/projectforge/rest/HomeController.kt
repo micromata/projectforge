@@ -23,11 +23,32 @@
 
 package org.projectforge.rest
 
+import org.projectforge.Constants
+import org.projectforge.SystemStatus
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
 
+/**
+ * Handles the bare root url. Without this the request reaches the DispatcherServlet, finds no
+ * handler and fails with "No static resource" (there is no index.html at the static root since
+ * the React app moved to /react and the app to /next).
+ */
 @Controller
 class HomeController {
+    @Autowired
+    private lateinit var systemStatus: SystemStatus
+
+    /**
+     * Redirects to the setup page on a fresh installation (empty database), otherwise into the
+     * application. The Next.js app then forwards to the login if no user is logged in.
+     */
+    @GetMapping("/")
     fun redirect(): String {
-        return "forward:/index.html"
+        return if (systemStatus.setupRequiredFirst == true) {
+            "redirect:/${Constants.NEXT_APP_PATH}setup"
+        } else {
+            "redirect:/${Constants.NEXT_APP_PATH}"
+        }
     }
 }

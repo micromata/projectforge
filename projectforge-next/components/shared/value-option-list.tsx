@@ -70,7 +70,10 @@ export function ValueOptionList({
             data-checked={selected.includes(option.value)}
             onSelect={() => toggle(option.value)}
           >
-            <HighlightedText text={option.label} query={search} />
+            {/* One span so CommandItem's flex `gap` doesn't space out the highlight fragments. */}
+            <span>
+              <HighlightedText text={option.label} query={search} />
+            </span>
           </CommandItem>
         ))}
       </CommandList>

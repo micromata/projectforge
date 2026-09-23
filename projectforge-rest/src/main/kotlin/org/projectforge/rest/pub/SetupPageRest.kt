@@ -24,56 +24,133 @@
 package org.projectforge.rest.pub
 
 import mu.KotlinLogging
-import org.projectforge.framework.configuration.Configuration
-import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.Constants
+import org.projectforge.business.admin.SetupService
+import org.projectforge.business.admin.SetupTarget
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.ui.UILabel
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UINamedContainer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.TimeZone
 
 private val log = KotlinLogging.logger {}
 
 /**
- * This rest service should be available without login (public).
- * Under construction. Wicket version is used.
+ * Public REST endpoint for the initial database setup (first run).
+ * Replaces the legacy Wicket /wa/setup page.
+ * No authentication required — all endpoints under /rsPublic/ are public.
  */
 @RestController
 @RequestMapping("${Rest.PUBLIC_URL}/setup")
 open class SetupPageRest {
-  data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
-  @Autowired
-  private lateinit var applicationContext: ApplicationContext
+    /** A single timezone entry for the timezone picker. */
+    data class TimeZoneInfo(val id: String, val displayName: String)
 
-  @Autowired
-  private lateinit var databaseService: DatabaseService
-
-  @GetMapping("dynamic")
-  fun getForm(): FormLayoutData {
-    val layout = UILayout("administration.setup.title")
-    if (databaseService.databaseTablesWithEntriesExist()) {
-      log.error("Data-base isn't empty: SetupPage shouldn't be used...")
-      //throw IllegalArgumentException("Can't setup system, it's not empty.")
-    }
-    layout
-      .addTranslations("username", "password", "login.stayLoggedIn", "login.stayLoggedIn.tooltip")
-    //.addTranslation("messageOfTheDay")
-    layout.add(
-      UINamedContainer("messageOfTheDay").add(
-        UILabel(
-          label = Configuration.instance.getStringValue(
-            ConfigurationParam.MESSAGE_OF_THE_DAY
-          )
-        )
-      )
+    /** Response for GET /rsPublic/setup/status. */
+    data class SetupState(
+        /** True when the database already has data — show "already set up" message instead of the form. */
+        val alreadyInitialized: Boolean,
+        val defaultUsername: String = DatabaseService.DEFAULT_ADMIN_USER,
+        val defaultCalendarDomain: String = "local",
+        val defaultTimeZone: String = TimeZone.getDefault().id,
+        /** Sorted list of all available time zone IDs + display names for the timezone picker. */
+        val availableTimeZones: List<TimeZoneInfo> = emptyList(),
     )
-    return FormLayoutData(null, layout, null)
-  }
+
+    /** Request body for POST /rsPublic/setup. */
+    data class SetupRequest(
+        val setupTarget: String = "TEST_DATA",
+        val username: String = "",
+        val password: String = "",
+        val passwordRepeat: String = "",
+        val timeZone: String = "",
+        val calendarDomain: String = "",
+        val sysopEMail: String? = null,
+        val feedbackEMail: String? = null,
+    )
+
+    /** Response for POST /rsPublic/setup. */
+    data class SetupResult(
+        val success: Boolean,
+        /** Localised error message when [success] is false. */
+        val message: String? = null,
+        /** Form field the error belongs to (for per-field display), if applicable. */
+        val field: String? = null,
+        /** On success: the URL the client should navigate to after setup. */
+        val redirectUrl: String? = null,
+    )
+
+    @Autowired
+    private lateinit var databaseService: DatabaseService
+
+    @Autowired
+    private lateinit var setupService: SetupService
+
+    /**
+     * Returns the current setup state and the data needed to render the form.
+     * The client should check [SetupState.alreadyInitialized] first.
+     */
+    @GetMapping("status")
+    fun getStatus(): SetupState {
+        if (databaseService.databaseTablesWithEntriesExist()) {
+            return SetupState(alreadyInitialized = true)
+        }
+        val timeZones = TimeZone.getAvailableIDs()
+            .map { id -> TimeZoneInfo(id, TimeZone.getTimeZone(id).getDisplayName(false, TimeZone.LONG)) }
+            .sortedBy { it.id }
+        return SetupState(
+            alreadyInitialized = false,
+            defaultTimeZone = TimeZone.getDefault().id,
+            availableTimeZones = timeZones,
+        )
+    }
+
+    /**
+     * Performs the initial database setup. The setup logic lives in [SetupService] (formerly the
+     * Wicket SetupPage, now removed).
+     *
+     * No auto-login: the freshly initialised database changes caches, menus and user state that a
+     * running session would not pick up cleanly. The client is sent to the login page instead, so
+     * the admin signs in with the credentials just created and the app loads from a clean session.
+     */
+    @PostMapping
+    fun finish(@RequestBody body: SetupRequest): SetupResult {
+        if (databaseService.databaseTablesWithEntriesExist()) {
+            log.error("Setup POST called but the database is already initialised — rejected.")
+            return SetupResult(success = false, message = "Setup has already been completed.")
+        }
+
+        val errors = setupService.validate(
+            password = body.password,
+            passwordRepeat = body.passwordRepeat,
+            calendarDomain = body.calendarDomain.ifBlank { "local" },
+        )
+        if (errors.isNotEmpty()) {
+            val first = errors.first()
+            return SetupResult(success = false, message = first.message, field = first.field)
+        }
+
+        val target = if (body.setupTarget == "EMPTY_DATABASE") SetupTarget.EMPTY_DATABASE else SetupTarget.TEST_DATA
+        val timeZone = TimeZone.getTimeZone(body.timeZone.ifBlank { TimeZone.getDefault().id })
+
+        setupService.finish(
+            target = target,
+            adminUsername = body.username.ifBlank { DatabaseService.DEFAULT_ADMIN_USER },
+            password = body.password,
+            timeZone = timeZone,
+            calendarDomain = body.calendarDomain.ifBlank { "local" },
+            sysopEMail = body.sysopEMail?.takeIf { it.isNotBlank() },
+            feedbackEMail = body.feedbackEMail?.takeIf { it.isNotBlank() },
+        )
+
+        return SetupResult(
+            success = true,
+            redirectUrl = "/${Constants.NEXT_APP_PATH}login",
+        )
+    }
 }

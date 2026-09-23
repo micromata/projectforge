@@ -34,7 +34,6 @@ import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
-import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
@@ -293,7 +292,7 @@ public class WebRegistry
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.
     // Bookmarked /wa/search links are redirected by OrphanedLinkFilter.
     addMountPage("sendSms", SendSmsPage.class);
-    addMountPage("setup", SetupPage.class);
+    // The setup page (first-run installation) has been migrated to projectforge-next (/next/setup).
     addMountPage("taskTree", TaskTreePage.class);
 
     register("teamEvent", TeamEventListPage.class);
