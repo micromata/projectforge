@@ -36,7 +36,6 @@ import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPrefListPage;
@@ -87,7 +86,6 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
         register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
-        register(MenuItemDefId.PERSONAL_STATISTICS, PersonalStatisticsPage.class);
         register(MenuItemDefId.HR_VIEW, HRListPage.class);
         register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
         register(MenuItemDefId.GANTT, GanttChartListPage.class);

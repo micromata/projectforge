@@ -210,6 +210,11 @@
   --chart-3: var(--brand-yellow);
   --chart-4: var(--brand-green);
   --chart-5: var(--brand-teal-dark);
+  /* Personal statistics discipline charts: planned/target ("Soll", red) vs. actually booked ("Ist",
+     green), the same red/green as the former Wicket JFreeChart. Vivid enough to read on the dark
+     theme too, so they are not overridden under .dark. */
+  --chart-soll: #de1821;
+  --chart-ist: var(--brand-green);
   --radius: 0.625rem;
 
   /* Sidebar — light variant */

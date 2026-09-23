@@ -102,7 +102,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next, list and form; wa/outgoingInvoiceList stays reachable through the
     // escape hatch, see NextMigration.legacyListUrl.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
-    PERSONAL_STATISTICS("menu.personalStatistics", "wa/personalStatistics"), //
+    PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
     PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //

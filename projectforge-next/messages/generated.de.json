@@ -1605,6 +1605,7 @@
       "fileprefix": "Monatsbericht"
     },
     "myAccount": "Mein Zugang",
+    "personalStatistics": "Meine Statistiken",
     "plugins": {
       "teamcal": "Kalenderliste"
     },
@@ -1737,6 +1738,26 @@
   "passwordRepeat": "Passwort wiederholen",
   "percent": "Prozent",
   "percentage": "Prozentsatz",
+  "personal": {
+    "statistics": {
+      "chart": {
+        "averageLatency": "Ist (Durchschnitt)",
+        "bookedHours": "Erfasste Arbeitszeit",
+        "goal": "Soll (Zielgröße)",
+        "plannedHours": "Soll-Arbeitszeit"
+      },
+      "timesheetDisciplineChart": {
+        "title": "Zeitnahes Erfassen von Zeitberichten ist ein wichtiger Grundpfeiler erfolgreichen Projektmanagements!"
+      },
+      "timesheetDisciplineChart1": {
+        "legend": "Insgesamt sind <red>{arg1}</red> Arbeitszeitstunden in den letzten {arg0} Tagen angefallen. Bisher wurden für diesen Zeitraum <green>{arg2}</green> Stunden erfasst."
+      },
+      "timesheetDisciplineChart2": {
+        "legend": "In den letzten {arg0} Tagen wurden Zeitberichte nach durchschnittlich <red>{arg2}</red> Tagen erfasst. Die Zielgröße ist maximal <green>{arg1}</green> Tage."
+      },
+      "title": "Meine Statistiken"
+    }
+  },
   "plugins": {
     "teamcal": {
       "calendar": {

@@ -1605,6 +1605,7 @@
       "fileprefix": "MonthlyEmployeeReport"
     },
     "myAccount": "My account",
+    "personalStatistics": "My statistics",
     "plugins": {
       "teamcal": "List of calendars"
     },
@@ -1737,6 +1738,26 @@
   "passwordRepeat": "Repeat password",
   "percent": "Percent",
   "percentage": "Percentage",
+  "personal": {
+    "statistics": {
+      "chart": {
+        "averageLatency": "Actual (average)",
+        "bookedHours": "Booked working hours",
+        "goal": "Target (goal)",
+        "plannedHours": "Target working hours"
+      },
+      "timesheetDisciplineChart": {
+        "title": "Early booking of time sheets is essential for a successful project management!"
+      },
+      "timesheetDisciplineChart1": {
+        "legend": "The last {arg0} days results in <red>{arg1}</red> workhours. For this period <green>{arg2}</green> hours where already booked."
+      },
+      "timesheetDisciplineChart2": {
+        "legend": "In the last {arg0} days time sheets were booked after <red>{arg2}</red> days (average). The goal is to achieve <green>{arg1}</green> days at maximum."
+      },
+      "title": "My Statistics"
+    }
+  },
   "plugins": {
     "teamcal": {
       "calendar": {
