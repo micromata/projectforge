@@ -36,6 +36,12 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
   params?: Record<string, unknown>;
   id?: string;
   /**
+   * A value that must stay set: the reset (clear) button is left out, since clearing it to nothing is not
+   * a valid state (e.g. the monthly report always reports on *some* user). The picker still lets another
+   * entry replace the current one.
+   */
+  required?: boolean;
+  /**
    * An entry the control offers with one click, beside the search — the logged-in user for a field that
    * asks for a person (see [useCurrentUserRef]). Hidden while it is already the value: there is nothing
    * to pick then.
@@ -72,6 +78,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   autoFocus,
   selectMe,
   disabled,
+  required,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -103,7 +110,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
           </Button>
         </PopoverTrigger>
-        {value && !disabled && (
+        {value && !disabled && !required && (
           <button
             type="button"
             // On pointer down, not click: the button unmounts as soon as the value is gone, and a

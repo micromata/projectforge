@@ -96,6 +96,9 @@ export function EntityAutocompleteField({
               params={params}
               selectMe={selectMe}
               disabled={disabled}
+              // A required field cannot validly be cleared to nothing, so drop the reset button (a new
+              // pick still replaces the value); the "*" is already on the label via FieldShell.
+              required={required}
               onChange={(value) => {
                 field.handleChange(value);
                 // Blurring by hand: the picker is a popover, so nothing else ever marks the field

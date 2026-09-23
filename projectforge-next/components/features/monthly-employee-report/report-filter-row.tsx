@@ -63,6 +63,7 @@ export function ReportFilterRow({
                 : null
             }
             selectMe={currentUser}
+            required
             aria-label={t("timesheet.user")}
             onChange={(user) => onChange({ ...value, userId: user?.id })}
           />
