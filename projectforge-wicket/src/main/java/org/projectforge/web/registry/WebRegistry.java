@@ -292,7 +292,8 @@ public class WebRegistry
     addMountPage("reportObjectives", ReportObjectivesPage.class);
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.
     // Bookmarked /wa/search links are redirected by OrphanedLinkFilter.
-    addMountPage("sendSms", SendSmsPage.class);
+    // The "Send text message" page (SMS senden) has been migrated to projectforge-next
+    // (SendTextMessageRest, next/sendTextMessage); its Wicket page was removed.
     addMountPage("setup", SetupPage.class);
     addMountPage("taskTree", TaskTreePage.class);
 

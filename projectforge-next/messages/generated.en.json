@@ -68,6 +68,12 @@
     "postal": "postal",
     "private": "private",
     "publicKey": "Public key",
+    "sendSms": {
+      "message": "Message",
+      "phoneNumber": "Cellular number",
+      "sendMessageQuestion": "Send message now?",
+      "title": "Send text message"
+    },
     "state": "State",
     "title": "Title",
     "website": "Website",
@@ -281,6 +287,7 @@
   },
   "cancel": "Cancel",
   "changes": "Changes",
+  "charactersLeft": "characters left.",
   "clone": "Clone",
   "close": "Close",
   "collapse": "Collapse",
@@ -1601,6 +1608,7 @@
       "_": "Reset filter",
       "info": "Resets the current filter if you have any trouble with the given search function."
     },
+    "sendSms": "Send SMS",
     "taskTree": "Structure tree",
     "timesheetList": "Time sheets"
   },
@@ -1938,6 +1946,7 @@
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
+  "send": "Send",
   "settings": "Settings",
   "shortDescription": "Short description",
   "show": "Show",
