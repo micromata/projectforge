@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckListIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/shared/spinner";
+import { cn } from "@/lib/utils";
 import type { MassUpdateDef } from "@/lib/page-def/types";
 
 /**
@@ -44,7 +45,13 @@ export function MassUpdateButton({
       type="button"
       variant="default"
       size="sm"
-      className="h-6 gap-1.5 px-2"
+      // Orange while it is actionable (rows picked), matching the legacy app's warning-coloured
+      // mass-update button (--warning is brand orange in light mode, brand yellow in dark — black
+      // text reads on both). Disabled it keeps the plain default look, dimmed.
+      className={cn(
+        "h-6 gap-1.5 px-2",
+        !disabled && "bg-warning text-black hover:bg-warning/90"
+      )}
       disabled={disabled}
       onClick={() => start.mutate()}
     >
