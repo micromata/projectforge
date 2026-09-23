@@ -68,6 +68,12 @@
     "postal": "postalisch",
     "private": "privat",
     "publicKey": "Public key",
+    "sendSms": {
+      "message": "Nachricht",
+      "phoneNumber": "Mobilfunknummer",
+      "sendMessageQuestion": "Nachricht jetzt versenden?",
+      "title": "SMS senden"
+    },
     "state": "Bundesland",
     "title": "Titel",
     "website": "Webseite",
@@ -303,6 +309,7 @@
   },
   "cancel": "Abbrechen",
   "changes": "Änderungen",
+  "charactersLeft": "Zeichen übrig.",
   "clone": "Klonen",
   "close": "Schließen",
   "collapse": "Zuklappen",
@@ -1624,6 +1631,7 @@
       "_": "Filter zurücksetzen",
       "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
     },
+    "sendSms": "SMS senden",
     "taskTree": "Strukturbaum",
     "timesheetList": "Zeitberichte"
   },
@@ -1961,6 +1969,7 @@
     "placeholder": "Auswählen..."
   },
   "selectAll": "Alle auswählen",
+  "send": "Senden",
   "settings": "Einstellungen",
   "shortDescription": "Kurzbeschreibung",
   "show": "Anzeigen",

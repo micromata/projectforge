@@ -58,7 +58,7 @@ function PhoneNumber(
             {smsEnabled && sms ? (
                 <Link
                     onClick={stopPropagation}
-                    to={`/wa/sendSms?addressId=${addressId}&phoneType=${encodeURIComponent(phoneType)}`}
+                    to={`/next/sendTextMessage?addressId=${addressId}&phoneType=${encodeURIComponent(phoneType)}`}
                 >
                     <FontAwesomeIcon icon={faComment} className={styles.smsIcon} />
                 </Link>

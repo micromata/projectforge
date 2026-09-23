@@ -106,7 +106,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
-    SEND_SMS("menu.sendSms", "wa/sendSms"), //
+    // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
+    SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //
     // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
     // /wa/search is still redirected to next by OrphanedLinkFilter.

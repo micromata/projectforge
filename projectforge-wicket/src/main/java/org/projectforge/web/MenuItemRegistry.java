@@ -29,7 +29,6 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.PhoneCallPage;
-import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.PluginListPage;
@@ -82,7 +81,7 @@ public class MenuItemRegistry implements Serializable {
         // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
         register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
-        register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
+        // SEND_SMS (SMS senden) migrated to projectforge-next; its Wicket page was removed and the menu points at next/sendTextMessage.
         // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
         // SEARCH (Suche) migrated to projectforge-next; its Wicket page was removed and the menu points at next/search.
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
