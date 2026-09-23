@@ -810,6 +810,12 @@
       }
     },
     "monthlyEmployeeReport": {
+      "cell": {
+        "tooltip": {
+          "factor": "Faktor {arg0}: {arg1} von {arg2} Std. gerechnet.",
+          "sharedCosts": "Shared Costs → Faktor {arg0}: {arg1} von {arg2} Std. gerechnet."
+        }
+      },
       "targetWorkingHours": "Arbeitsstunden",
       "totalSum": {
         "_": "Bruttoarbeitszeit",

@@ -16,10 +16,27 @@ export interface MonthlyReportRow {
   /** Shown instead of customer/project when the cost unit has no project. */
   description?: string | null;
   kost2Art?: string | null;
-  /** Formatted duration per week, in `weeks` order ("" for an empty cell). */
-  perWeek: string[];
+  /** Per-week cell, in `weeks` order (an empty cell for a week without hours). */
+  perWeek: MonthlyReportCell[];
   sum: string;
   aiTimeSavings: string;
+}
+
+/**
+ * One week cell of a data row. Normally only `value` (the counted, net hours) is set. When the counted hours
+ * are reduced — a working time fraction below 1 and/or the shared-cost split of overlapping time sheets —
+ * `gross` carries the raw booked hours (shown in parentheses), `factor` the effective factor (`value / gross`)
+ * and `sharedCosts` whether the split was involved, which together drive the explaining tooltip.
+ */
+export interface MonthlyReportCell {
+  /** Counted (net) hours, formatted; "" for an empty cell or purely non-working (factor 0) time. */
+  value: string;
+  /** Raw booked (gross) hours, formatted; set only when it differs from `value`. */
+  gross?: string | null;
+  /** Effective factor `value / gross`, formatted (e.g. "0,5"); set together with `gross`. */
+  factor?: string | null;
+  /** True when the reduction involves the shared-cost overlap split (not only the working time fraction). */
+  sharedCosts: boolean;
 }
 
 /** One calendar week bucket of the month (a matrix column). */

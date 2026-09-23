@@ -810,6 +810,12 @@
       }
     },
     "monthlyEmployeeReport": {
+      "cell": {
+        "tooltip": {
+          "factor": "Factor {arg0}: {arg1} of {arg2} h counted.",
+          "sharedCosts": "Shared costs → factor {arg0}: {arg1} of {arg2} h counted."
+        }
+      },
       "targetWorkingHours": "Working hours",
       "totalSum": {
         "_": "Total sum",

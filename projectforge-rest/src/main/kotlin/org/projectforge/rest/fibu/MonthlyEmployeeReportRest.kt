@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.InvoicingQuotaService
 import org.projectforge.business.fibu.MonthlyEmployeeReport
 import org.projectforge.business.fibu.MonthlyEmployeeReportDao
+import org.projectforge.business.fibu.MonthlyEmployeeReportEntry
 import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.KostCache
@@ -50,6 +51,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.dto.MonthlyEmployeeReportCell
 import org.projectforge.rest.dto.MonthlyEmployeeReportData
 import org.projectforge.rest.dto.MonthlyEmployeeReportRow
 import org.projectforge.rest.dto.MonthlyEmployeeReportWeekDto
@@ -265,7 +267,7 @@ class MonthlyEmployeeReportRest {
                     project = if (project != null) project.name else null,
                     description = if (project == null) kost2.description else null,
                     kost2Art = kost2.kost2Art?.name,
-                    perWeek = report.weeks.map { it.kost2Entries[kost2Id]?.formattedDuration ?: "" },
+                    perWeek = report.weeks.map { toCell(it.kost2Entries[kost2Id]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
                 )
@@ -282,7 +284,7 @@ class MonthlyEmployeeReportRest {
                     taskId = if (pseudo) null else taskId,
                     label = if (pseudo) task.title ?: "******"
                     else TaskFormatter.getTaskPath(taskId, true, OutputType.PLAIN) ?: "",
-                    perWeek = report.weeks.map { it.taskEntries[taskId]?.formattedDuration ?: "" },
+                    perWeek = report.weeks.map { toCell(it.taskEntries[taskId]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
                 )
@@ -336,6 +338,37 @@ class MonthlyEmployeeReportRest {
             invoicingQuotaTooltip = if (invoicingQuotaService.isEnabled()) report.formattedInvoicingQuotaTooltip else null,
             startDate = fromDate.toString(),
             endDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth()).toString(),
+        )
+    }
+
+    /**
+     * Builds one week cell of a data row. Normally only the counted (net) hours are shown; when they are
+     * reduced — a working time fraction below 1 and/or the proportional shared-cost split of overlapping time
+     * sheets — the raw booked (gross) hours, the effective factor and whether the split was involved are added
+     * so the frontend can render `net (gross)` with an explaining tooltip (see MonthlyEmployeeReportCell).
+     */
+    private fun toCell(entry: MonthlyEmployeeReportEntry?): MonthlyEmployeeReportCell {
+        entry ?: return MonthlyEmployeeReportCell(value = "")
+        val grossMillis = entry.grossMillis
+        val netMillis = entry.workFractionMillis
+        val value = MonthlyEmployeeReport.getFormattedDuration(netMillis)
+        if (netMillis == grossMillis) {
+            // Fully counted (factor 1, no overlap split): nothing to explain.
+            return MonthlyEmployeeReportCell(value = value)
+        }
+        val factor = if (grossMillis > 0) {
+            NumberHelper.formatFraction2(
+                BigDecimal(netMillis).divide(BigDecimal(grossMillis), 2, RoundingMode.HALF_UP)
+            )
+        } else {
+            null
+        }
+        return MonthlyEmployeeReportCell(
+            value = value,
+            gross = MonthlyEmployeeReport.getFormattedDuration(grossMillis),
+            factor = factor,
+            // The attendance duration ([millis]) below the raw booking means overlapping sheets were split.
+            sharedCosts = entry.millis < grossMillis,
         )
     }
 

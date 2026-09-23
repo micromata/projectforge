@@ -9,11 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { monthlyReportDrillDownHref } from "@/lib/timesheet-links";
 import { ReportSumRows } from "./report-sum-rows";
 import type {
   MonthlyReport,
+  MonthlyReportCell,
   MonthlyReportRow,
   MonthlyReportWeek,
 } from "./types";
@@ -41,6 +43,21 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
         startDate: week?.startDate ?? report.startDate,
         endDate: week?.endDate ?? report.endDate,
       })
+    );
+  }
+
+  /**
+   * Tooltip explaining a reduced cell: how the counted hours were derived from the raw booking, via the
+   * effective factor and — when overlapping sheets were split — the shared-cost note. Undefined for a full
+   * (or empty) cell, which needs no explanation.
+   */
+  function cellTooltip(cell: MonthlyReportCell): string | undefined {
+    if (!cell.gross) return undefined;
+    return t(
+      cell.sharedCosts
+        ? "fibu.monthlyEmployeeReport.cell.tooltip.sharedCosts"
+        : "fibu.monthlyEmployeeReport.cell.tooltip.factor",
+      { arg0: cell.factor ?? "", arg1: cell.value, arg2: cell.gross }
     );
   }
 
@@ -90,7 +107,20 @@ export function ReportMatrix({ report }: { report: MonthlyReport }) {
                     drillDown(row, report.weeks[j]);
                   }}
                 >
-                  {cell}
+                  {/* The cell is itself actionable (drill-down), so the hover tooltip is a desktop
+                      bonus and openOnTap is left off (see HintTooltip). The raw booked gross is stacked
+                      below the counted net (smaller, muted) so the net values keep a common right edge
+                      across rows; the tooltip explains the reduction. */}
+                  <HintTooltip text={cellTooltip(cell)} plain>
+                    <span className="flex flex-col items-end leading-tight">
+                      {cell.value && <span>{cell.value}</span>}
+                      {cell.gross && (
+                        <span className="text-[11px] text-muted-foreground">
+                          {cell.gross}
+                        </span>
+                      )}
+                    </span>
+                  </HintTooltip>
                 </TableCell>
               ))}
               <TableCell className="text-right font-medium tabular-nums">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { monthlyReportDrillDownHref } from "@/lib/timesheet-links";
@@ -100,9 +101,12 @@ function SumRow({
       <TableCell
         colSpan={4}
         className={cn("text-right font-bold", accent && "text-ai-savings")}
-        title={titleTooltip}
       >
-        {title}
+        {/* A passive label (the row is not actionable), so openOnTap makes the explanation
+            reachable on touch too (see HintTooltip). */}
+        <HintTooltip text={titleTooltip} plain openOnTap>
+          <span>{title}</span>
+        </HintTooltip>
       </TableCell>
       {perWeek.map((cell, i) => (
         <TableCell

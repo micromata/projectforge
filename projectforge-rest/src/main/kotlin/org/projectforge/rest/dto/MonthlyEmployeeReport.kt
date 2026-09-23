@@ -118,10 +118,28 @@ class MonthlyEmployeeReportRow(
     /** Kost2 description shown instead of customer/project when the cost unit has no project. */
     val description: String? = null,
     val kost2Art: String? = null,
-    /** Formatted duration per week, in [MonthlyEmployeeReportData.weeks] order ("" for an empty cell). */
-    val perWeek: List<String>,
+    /** Per-week cell, in [MonthlyEmployeeReportData.weeks] order (an empty cell for a week without hours). */
+    val perWeek: List<MonthlyEmployeeReportCell>,
     /** Monthly sum for this row (formatted). */
     val sum: String,
     /** Monthly time saved by AI for this row (formatted). */
     val aiTimeSavings: String,
+)
+
+/**
+ * One week cell of a data row. Normally only [value] (the counted, net hours) is set. When the counted hours
+ * are reduced — a working time fraction below 1 and/or the proportional shared-cost split of overlapping time
+ * sheets — [gross] carries the raw booked hours (shown in parentheses), [factor] the effective factor
+ * (`value / gross`, formatted) and [sharedCosts] whether the split was involved, so the frontend can build the
+ * tooltip explaining the reduction.
+ */
+class MonthlyEmployeeReportCell(
+    /** Counted (net) hours, formatted; "" for an empty cell or purely non-working (factor 0) time. */
+    val value: String,
+    /** Raw booked (gross) hours, formatted; set only when it differs from [value]. */
+    val gross: String? = null,
+    /** Effective factor `value / gross`, formatted (e.g. "0,5"); set together with [gross]. */
+    val factor: String? = null,
+    /** True when the reduction involves the shared-cost overlap split (not only the working time fraction). */
+    val sharedCosts: Boolean = false,
 )
