@@ -136,6 +136,10 @@ object GenerateNextI18nMessagesMain {
     // "Keine Einträge gefunden" — reported when an export has nothing to write (see the order list's
     // export buttons). The hyphens put it outside the key shape [NextI18nKeyScanner] looks for.
     "datatable.no-records-found",
+    // Personal statistics page (components/features/personal-statistics/): the two chart legends and the
+    // series labels are passed to t()/t.rich() as variables (the message key is computed), so no scan
+    // finds them.
+    "personal.statistics.",
   )
 
   @JvmStatic

@@ -42,7 +42,6 @@ import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -287,7 +286,6 @@ public class WebRegistry
     addMountPage("error", ErrorPage.class);
     addMountPage("feedback", FeedbackPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
-    addMountPage("personalStatistics", PersonalStatisticsPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.

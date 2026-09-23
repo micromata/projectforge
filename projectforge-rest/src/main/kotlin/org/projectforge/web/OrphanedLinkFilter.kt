@@ -62,6 +62,9 @@ class OrphanedLinkFilter : Filter {
             redirect(servletResponse, uri, "/${NextMigration.listUrl("calendar")}")
         } else if (uri.contains("/wa/search")) { // Old Wicket global search, migrated to projectforge-next.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}search")
+        } else if (uri.contains("/wa/personalStatistics")) { // Old Wicket personal statistics, migrated to
+            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}personalStatistics")
         } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to projectforge-next.
             if (servletRequest.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
                 // The "classic version" escape hatch: let it reach the legacy Wicket page (see the next page's
