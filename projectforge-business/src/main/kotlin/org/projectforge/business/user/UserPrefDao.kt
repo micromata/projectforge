@@ -250,32 +250,6 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     /**
-     * Selects all JSON [UserPrefDO] rows that share their `(user, name)` with a legacy XML preference row
-     * ([UserXmlPreferencesDO.key]) but live in a modern area (`area != legacyArea`). These are the only possible
-     * "phantom" rows conjured by the former area-agnostic legacy XML migration (see
-     * [org.projectforge.business.user.LegacyXmlPrefPhantomCleanup]). The caller still has to confirm the phantom by a
-     * value comparison; this query only narrows the candidate set to a single join instead of scanning every user.
-     */
-    fun selectLegacyXmlPhantomCandidates(legacyArea: String): List<UserPrefDO> {
-        return persistenceService.executeQuery(
-            "select distinct p from UserPrefDO p, UserXmlPreferencesDO x "
-                    + "where p.user.id = x.user.id and p.name = x.key and p.area <> :legacyArea",
-            UserPrefDO::class.java,
-            Pair("legacyArea", legacyArea),
-        ).distinct()
-    }
-
-    /**
-     * Hard-deletes the [UserPrefDO] row with the given id directly (no history, no access check). Used only by the
-     * one-time repair of phantom rows (see [org.projectforge.business.user.LegacyXmlPrefPhantomCleanup]).
-     */
-    fun internalDelete(id: Long) {
-        persistenceService.runInTransaction { context ->
-            context.delete(UserPrefDO::class.java, id)
-        }
-    }
-
-    /**
      * Loads all user prefs of the given area for the given user in a single query, eagerly fetching the legacy
      * [UserPrefDO.userPrefEntries]. Use this instead of loading the id/name list and then re-selecting each entry
      * individually (which reads the lazy entries per row and causes an N+1, see [TaskFavoritesService]).
