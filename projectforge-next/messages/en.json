@@ -96,7 +96,7 @@
   },
   "statusBar": {
     "copyright": "©{years} by Micromata GmbH",
-    "company": "Micromata GmbH",
+    "company": "www.projectforge.org",
     "version": "Version {version}, {buildDate}"
   },
   "select": {
