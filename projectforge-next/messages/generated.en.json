@@ -1844,8 +1844,18 @@
       },
       "entry": {
         "_": "Liquidity entry",
+        "autoSetPaid": {
+          "_": "Automatically set to paid after the date of payment has passed",
+          "info": "If set, the entry counts as paid automatically once its date of payment has passed, unless the paid status is set manually."
+        },
         "dateOfPayment": "Date of payment",
         "expectedDateOfPayment": "Expected date of payment",
+        "paid": {
+          "automatic": "Automatic",
+          "info": "\"Automatic\" follows the auto-set-paid rule; \"Paid\"/\"Not paid\" force the status regardless of it.",
+          "paid": "Paid",
+          "unpaid": "Not paid"
+        },
         "subject": "Subject",
         "title": {
           "add": "Add new liquidity entry",

@@ -9,6 +9,7 @@ import {
   type LiquidityValues,
 } from "./liquidity-schema";
 import { emptyLiquidityValues, toFormValues } from "./liquidity-values";
+import { PaidFields } from "./edit/paid-fields";
 import type { LiquidityDetail, LiquidityListRow } from "./types";
 
 /** REST category of the liquidity plugin — `LiquidityEntityRest` is mapped to "liquidity". */
@@ -62,7 +63,16 @@ export const LIQUIDITY_PAGE = definePage<
       dataType: "AMOUNT",
       size: 140,
     },
-    { name: "paid", size: 90 },
+    {
+      // The paid status the entry is actually judged by: the manual override, or — while it is
+      // "automatic" — the autoSetPaid rule the backend applied (`effectivePaid`). A computed column so
+      // it reads the derived value rather than the raw `paid`, which may be null (= automatic).
+      id: "paid",
+      labelKey: "fibu.rechnung.status.bezahlt",
+      accessor: (row) => row.effectivePaid ?? false,
+      dataType: "BOOLEAN",
+      size: 90,
+    },
     {
       name: "subject",
       size: 320,
@@ -71,6 +81,8 @@ export const LIQUIDITY_PAGE = definePage<
       pinned: "left",
     },
     { name: "comment", size: 280 },
+    // Whether the paid status is derived after the date of payment; off by default, an occasional detail.
+    { name: "autoSetPaid", size: 110, hiddenByDefault: true },
   ],
   // Mirrors the Wicket list's row colours (`LiquidityEntryListPage`): an unpaid entry whose date of payment
   // is in the past (or missing) reads red (overdue), an unpaid future one blue.
@@ -79,7 +91,7 @@ export const LIQUIDITY_PAGE = definePage<
     { className: "row-blue", labelKey: "fibu.rechnung.offen" },
   ],
   rowClassName: (row) => {
-    if (row.paid) return undefined;
+    if (row.effectivePaid) return undefined;
     if (!row.dateOfPayment || row.dateOfPayment < isoToday()) return "row-red";
     return "row-blue";
   },
@@ -92,6 +104,18 @@ export const LIQUIDITY_PAGE = definePage<
     />
   ),
   listActions: LiquidityListActions,
+  // Served under `liquiditySelected` — the mass-update endpoint of this category (URL_SUFFIX_SELECTED =
+  // "Selected", no dash), the counterpart of the invoice's `invoiceSelected` (see
+  // LiquidityMultiSelectedPageRest). Its presence turns on the selection UI in the generic list.
+  massUpdate: {
+    endpoint: "liquiditySelected",
+    route: `${LIQUIDITY_ROUTE}/mass-update`,
+    statisticsLine: ({ statistics }) => (
+      <LiquidityStatisticsLine
+        statistics={statistics as LiquidityStatistics | undefined}
+      />
+    ),
+  },
   edit: {
     schema: liquiditySchema,
     fieldNames: LIQUIDITY_FIELDS,
@@ -112,7 +136,8 @@ export const LIQUIDITY_PAGE = definePage<
           { name: "dateOfPayment" },
           // The value a reader of the forecast looks for first.
           { name: "amount", emphasized: true, alignNumber: "right" },
-          { name: "paid" },
+          // The three-state paid override and the autoSetPaid rule, together — see PaidFields.
+          { custom: PaidFields },
           { name: "subject", span: 2 },
           { name: "comment", rows: 4, span: 3 },
         ],

@@ -30,6 +30,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.entities.ConfigurationDO
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
@@ -215,6 +216,7 @@ open class PluginAdminService {
                 log.info { "Ensuring plugin '$pluginId' is active (configured via projectforge.plugins.ensure-active)." }
             }
         }
+        var activatedCount = 0
         for (plugin in plugins) {
             if (onlyConfiguredActive && !activatedPluginsByConfig.contains(plugin.info.id)) {
                 log.info("Skipping not activated plugin '${plugin.info.name}'.")
@@ -222,6 +224,16 @@ open class PluginAdminService {
             }
             log.info("Processing activated plugin: '${plugin.info.name}'.")
             activatePlugin(plugin)
+            activatedCount++
+        }
+        if (activatedCount > 0) {
+            // Plugins register their user rights here (see registerRight -> UserRightService.addRight), on the
+            // ApplicationReadyEvent — after UserGroupCache did its initial refresh. That refresh drops any stored
+            // UserRightDO whose right isn't registered yet (UserGroupCache.refresh: userRightService.getRight(id)
+            // == null), so a user's plugin right (e.g. PLUGIN_LIQUIDITY_PLANNING = READWRITE) is left out of the
+            // rights cache and access is wrongly denied until the next scheduled refresh. Reload now that all
+            // plugin rights are known, so those rows are cached from the first request on.
+            WicketSupport.get(UserGroupCache::class.java).forceReload()
         }
     }
 

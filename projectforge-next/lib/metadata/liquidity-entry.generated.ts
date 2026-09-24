@@ -13,6 +13,11 @@ export const LIQUIDITY_ENTRY_METADATA = {
       i18nKey: "fibu.common.betrag",
       required: false,
     },
+    autoSetPaid: {
+      dataType: "BOOLEAN",
+      i18nKey: "plugins.liquidityplanning.entry.autoSetPaid",
+      required: false,
+    },
     comment: {
       dataType: "STRING",
       i18nKey: "comment",

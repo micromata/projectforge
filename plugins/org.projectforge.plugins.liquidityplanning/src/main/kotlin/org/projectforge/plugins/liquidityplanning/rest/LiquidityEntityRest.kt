@@ -119,7 +119,9 @@ class LiquidityEntityRest :
             UIFilterElement(
                 BASE_DATE_FILTER,
                 UIFilterElement.FilterType.DATE,
-                label = translate("plugins.liquidityplanning.forecast.baseDate"),
+                // In the list this date bounds the entries by their date of payment ("Bezahldatum"), not the
+                // forecast's reference date ("Bezugsdatum") — that label belongs only to the forecast tab.
+                label = translate("plugins.liquidityplanning.entry.dateOfPayment"),
                 defaultFilter = true,
             ),
         )
@@ -226,6 +228,7 @@ class LiquidityEntityRest :
             ExcelUtils.registerColumn(sheet, LiquidityEntryDO::dateOfPayment)
             ExcelUtils.registerColumn(sheet, LiquidityEntryDO::amount, 14)
             ExcelUtils.registerColumn(sheet, LiquidityEntryDO::paid)
+            ExcelUtils.registerColumn(sheet, LiquidityEntryDO::autoSetPaid)
             ExcelUtils.registerColumn(sheet, LiquidityEntryDO::subject, 40)
             ExcelUtils.registerColumn(sheet, LiquidityEntryDO::comment, 40)
             ExcelUtils.addHeadRow(sheet)
@@ -233,6 +236,9 @@ class LiquidityEntityRest :
                 val row = sheet.createRow()
                 row.autoFillFromObject(entry)
                 ExcelUtils.getCell(row, LiquidityEntryDO::amount)?.setCellStyle(currencyStyle)
+                // Export the effective paid status (derived from autoSetPaid + dateOfPayment) rather than the
+                // raw column value, so the export matches what the list and statistics show.
+                ExcelUtils.getCell(row, LiquidityEntryDO::paid)?.setCellValue(entry.effectivePaid)
             }
             sheet.setAutoFilter()
             val filename = "ProjectForge-${translate("plugins.liquidityplanning.entry.title.heading")}" +
@@ -362,8 +368,8 @@ class LiquidityEntityRest :
     private class PaymentStatusFilter(private val status: String) : CustomResultFilter<LiquidityEntryDO> {
         override fun match(list: MutableList<LiquidityEntryDO>, element: LiquidityEntryDO): Boolean {
             return when (status) {
-                PAYMENT_STATUS_PAID -> element.paid
-                PAYMENT_STATUS_UNPAID -> !element.paid
+                PAYMENT_STATUS_PAID -> element.effectivePaid
+                PAYMENT_STATUS_UNPAID -> !element.effectivePaid
                 else -> true
             }
         }
@@ -399,7 +405,7 @@ class LiquidityEntityRest :
             val payment = element.dateOfPayment ?: return true
             if (payment.isBefore(base.localDate)) {
                 // Past entries: keep only the unpaid (overdue) ones, drop what was already paid.
-                return !element.paid
+                return !element.effectivePaid
             }
             return base.daysBetween(payment) <= nextDays
         }

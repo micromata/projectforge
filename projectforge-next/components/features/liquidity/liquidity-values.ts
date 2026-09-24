@@ -15,7 +15,9 @@ export function toFormValues(entry: LiquidityDetail): LiquidityValues {
     id: entry.id ?? null,
     dateOfPayment: entry.dateOfPayment ?? null,
     amount: entry.amount ?? null,
-    paid: entry.paid ?? false,
+    // null is a value here, not a gap: it is the "automatic" state of the three-state override.
+    paid: entry.paid ?? null,
+    autoSetPaid: entry.autoSetPaid ?? false,
     subject: entry.subject ?? "",
     comment: entry.comment ?? null,
     created: entry.created ?? null,

@@ -20,7 +20,7 @@ Commands:
   gen              Prepare/generate: source headers, i18n sort, next message
                    catalogs + field metadata
                    (:projectforge-application:developmentMainForRelease)
-  bootRun          Build (skip tests), then run the app in dev mode
+  run              Build (skip tests), then run the app in dev mode
   dev              next dev (projectforge-next)
   build            next build (projectforge-next)
   e2e [args…]      Playwright e2e tests; args are forwarded
@@ -30,7 +30,7 @@ Commands:
   help             Show this help
 
 Env:
-  PROJECTFORGE_HOME  Base dir for bootRun (default: ~/ProjectForge)
+  PROJECTFORGE_HOME  Base dir for run (default: ~/ProjectForge)
 EOF
 }
 
@@ -41,7 +41,7 @@ case "$cmd" in
   gen)
     exec "$GRADLEW" :projectforge-application:developmentMainForRelease "$@"
     ;;
-  bootRun)
+  run)
     "$GRADLEW" build -x test
     JAVA_TOOL_OPTIONS="-XX:ReservedCodeCacheSize=256m -Dprojectforge.base.dir=${PROJECTFORGE_HOME:-$HOME/ProjectForge}" \
       exec "$GRADLEW" :projectforge-application:bootRun "$@"

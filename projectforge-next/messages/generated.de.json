@@ -1844,8 +1844,18 @@
       },
       "entry": {
         "_": "Liquiditätseintrag",
+        "autoSetPaid": {
+          "_": "Automatisch auf bezahlt setzen, sobald das Bezahldatum verstrichen ist",
+          "info": "Ist dies gesetzt, gilt der Eintrag automatisch als bezahlt, sobald das Bezahldatum verstrichen ist – sofern der Bezahlt-Status nicht manuell gesetzt wird."
+        },
         "dateOfPayment": "Bezahldatum",
         "expectedDateOfPayment": "Erwarteter Zahlungstermin",
+        "paid": {
+          "automatic": "Automatisch",
+          "info": "„Automatisch\" folgt der Auto-Bezahlt-Regel; „Bezahlt\"/„Nicht bezahlt\" legen den Status unabhängig davon fest.",
+          "paid": "Bezahlt",
+          "unpaid": "Nicht bezahlt"
+        },
         "subject": "Betreff",
         "title": {
           "add": "Liquiditätseintrag hinzufügen",

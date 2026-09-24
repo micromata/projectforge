@@ -22,7 +22,11 @@ export const liquiditySchema = z.object({
   // Required, unlike what the metadata reports (see the module comment): an entry without an amount plans
   // no cash flow, and the Wicket form never allowed one.
   amount: m.decimalField("amount").refine((v): boolean => v != null, REQUIRED),
-  paid: m.booleanField("paid"),
+  // Three-state override, unlike the metadata's plain BOOLEAN (see LiquidityEntryDO.paid): null follows
+  // the autoSetPaid rule, true/false force the status. `effectivePaid = paid ?? (autoSetPaid && …)`.
+  paid: m.booleanField("paid").nullable(),
+  // Once set, the entry counts as paid after its date of payment has passed — unless `paid` overrides it.
+  autoSetPaid: m.booleanField("autoSetPaid"),
   // Required for the same reason, and the DAO refuses a blank subject. `requiredString` keeps "" for an
   // emptied input (never null), the invariant the text field relies on — the customer's `name` does the same.
   subject: m.requiredString("subject"),

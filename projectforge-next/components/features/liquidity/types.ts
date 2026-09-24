@@ -15,7 +15,12 @@ export interface LiquidityDetail {
   dateOfPayment?: string | null;
   /** Signed amount: negative is a credit (money coming in), positive a debit (money going out). */
   amount?: number | null;
+  /** Three-state override: null follows the autoSetPaid rule, true/false force the paid status. */
   paid?: boolean | null;
+  /** When set, the entry counts as paid once its date of payment has passed, unless `paid` overrides it. */
+  autoSetPaid?: boolean | null;
+  /** Derived by the backend: `paid ?? (autoSetPaid && dateOfPayment < today)`. Read-only. */
+  effectivePaid?: boolean;
   subject?: string | null;
   comment?: string | null;
   created?: string | null;
@@ -27,6 +32,9 @@ export interface LiquidityListRow extends ListRow {
   dateOfPayment?: string;
   amount?: number;
   paid?: boolean;
+  autoSetPaid?: boolean;
+  /** Derived paid status the list highlights and shows, sent alongside `paid` by the backend. */
+  effectivePaid?: boolean;
   subject?: string;
   comment?: string;
   created?: string;
