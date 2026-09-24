@@ -317,6 +317,40 @@
   html {
     @apply font-sans;
   }
+
+  /*
+   * Tailwind v4 dropped Preflight's default `cursor: pointer` on buttons, so every button rendered
+   * with the plain arrow. Restore it for non-disabled buttons and role="button" elements (menu and
+   * dropdown triggers). Disabled controls keep the default cursor, matching the primitive's own
+   * `disabled:pointer-events-none` / `disabled:opacity-50`.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  /*
+   * A clearer hover on the Button primitive (components/ui/button.tsx must not be edited, so this is
+   * addressed through its `data-slot`, like the progress rules below). The per-variant background
+   * shift alone reads as subtle, so grow the button a touch on hover. A `transform` doesn't reflow, so
+   * it won't nudge its neighbours in a dense toolbar, and the primitive already carries `transition-all`
+   * so the change eases in. The active rule keeps the primitive's press-down (`translate-y-px`) while
+   * scaled — but not for `aria-haspopup` triggers, which the primitive deliberately does not press.
+   */
+  [data-slot="button"]:hover:not(:disabled) {
+    transform: scale(1.03);
+  }
+  [data-slot="button"]:not([aria-haspopup]):active:not(:disabled) {
+    transform: scale(1.03) translateY(1px);
+  }
+}
+
+/* Respect a user's reduced-motion preference: no grow/press, only the colour change stays. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"]:hover:not(:disabled),
+  [data-slot="button"]:not([aria-haspopup]):active:not(:disabled) {
+    transform: none;
+  }
 }
 
 /*
