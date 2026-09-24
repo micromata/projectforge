@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { KeyboardEvent } from "react";
+import type { HTMLAttributes, KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -42,6 +42,16 @@ export interface SuggestInputProps {
   maxLength?: number;
   autoFocus?: boolean;
   placeholder?: string;
+  /**
+   * The field's real semantic for the browser's own AutoFill. Defaults to `"off"`, because the
+   * suggestion list replaces the browser's history dropdown. Give it the true value (e.g. `"tel"`)
+   * when the box holds something the OS otherwise mis-classifies: Safari/Chrome ignore a bare `"off"`
+   * for contact/password/one-time-code AutoFill and pop their own overlay over the field. Declaring
+   * `"tel"` tells them it is a phone number, not a code to fill in.
+   */
+  autoComplete?: string;
+  /** The on-screen keyboard to bring up on touch (e.g. `"tel"` for a phone number). */
+  inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
   onBlur?: () => void;
   /**
    * Called with the committed value when the user settles on one — picking a suggestion, or leaving the
@@ -78,6 +88,8 @@ export function SuggestInput({
   maxLength,
   autoFocus,
   placeholder,
+  autoComplete = "off",
+  inputMode,
   onBlur,
   onCommit,
   "aria-label": ariaLabel,
@@ -157,8 +169,10 @@ export function SuggestInput({
           autoFocus={autoFocus}
           placeholder={placeholder}
           aria-label={ariaLabel}
-          // The suggestion list replaces the browser's own history dropdown.
-          autoComplete="off"
+          // Defaults to "off" so the suggestion list replaces the browser's own history dropdown; a
+          // caller may declare the field's real semantic (e.g. "tel") to steer the OS AutoFill.
+          autoComplete={autoComplete}
+          inputMode={inputMode}
           className={cn(invalid && "border-destructive", className)}
           role="combobox"
           aria-expanded={listOpen}

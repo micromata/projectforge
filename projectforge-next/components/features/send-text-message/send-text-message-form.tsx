@@ -68,6 +68,10 @@ export function SendTextMessageForm({
             queryKey={["sendTextMessage-ac"]}
             // 0 so focusing the empty field already offers the recently used numbers.
             minChars={0}
+            // Declare it as a phone field so the OS AutoFill doesn't offer a verification code /
+            // saved credential over this box (Safari/Chrome ignore a bare autoComplete="off").
+            autoComplete="tel"
+            inputMode="tel"
             required
             autoFocus
           />
