@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 
+const COMPANY_URL = "https://www.micromata.de";
 const WEBSITE_URL = "https://www.projectforge.org";
-const COMPANY_URL = "https://www.micromata.com";
 const NEWS_URL = "https://www.projectforge.org/changelog-posts/";
 
 /**
@@ -23,7 +23,7 @@ export function StatusBar() {
     <footer className="flex h-5 shrink-0 items-center justify-between gap-4 bg-status-bar px-4 text-[0.6875rem] leading-none text-status-bar-foreground">
       <div className="flex min-w-0 items-center gap-1.5 truncate">
         <a
-          href={WEBSITE_URL}
+          href={COMPANY_URL}
           target="_blank"
           rel="noreferrer"
           className="truncate hover:underline"
@@ -32,7 +32,7 @@ export function StatusBar() {
         </a>
         <span aria-hidden>|</span>
         <a
-          href={COMPANY_URL}
+          href={WEBSITE_URL}
           target="_blank"
           rel="noreferrer"
           className="hover:underline"
