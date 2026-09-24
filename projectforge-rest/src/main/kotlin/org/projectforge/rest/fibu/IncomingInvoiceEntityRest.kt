@@ -477,7 +477,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
             return ResponseEntity.notFound().build<Any>()
         }
         val creditor = translate("fibu.common.creditor")
-        val xls = kostZuweisungExport.exportRechnungen(invoices, creditor)
+        // Incoming invoices: cost assignments hang off eingangsrechnungsPosition (not rechnungsPosition), so the
+        // Eingangsrechnung-specific export must be used; exportRechnungen would find no assignments and export nothing.
+        val xls = kostZuweisungExport.exportEingangsRechnungen(invoices, creditor)
         if (xls == null || xls.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
         }
