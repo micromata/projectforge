@@ -298,7 +298,10 @@ class MonthlyEmployeeReportRest {
         // Target ("Soll") working hours of the month = weekly hours × working days ÷ 5 (5 working days/week),
         // the same formula the salary export uses (EmployeeSalaryExportDao).
         val employee = employeeCache.getEmployeeByUserId(user.id)
-        val weeklyHours = employeeService.getWeeklyWorkingHours(employee, fromDate)
+        // checkAccess = false: access to this report is already enforced by resolveUser (own user, or the right
+        // to read other users' time sheets). The employee's weekly hours are only needed to derive the target
+        // hours; requiring the HR_EMPLOYEE right here would 403 a normal user viewing their own report.
+        val weeklyHours = employeeService.getWeeklyWorkingHours(employee, fromDate, checkAccess = false)
         val numberOfWorkingDays = report.numberOfWorkingDays
         val targetWorkingHours = if (weeklyHours != null && numberOfWorkingDays != null) {
             NumberHelper.formatFraction2(
