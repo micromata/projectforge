@@ -67,9 +67,13 @@ public class PluginWicketRegistrationService {
   }
 
   public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
-    if (StringUtils.isEmpty(menuItemDef.getUrl())) {
-      String url = WebRegistry.getInstance().getMountPoint(pageClass);
-      menuItemDef.setUrl(url);
+    if (StringUtils.isEmpty(menuItemDef.getUrl()) && pageClass != null) {
+      // Use the bookmarkable Wicket link, not the mount point (e. g. wa/liquidplanningList): plugins are initialized
+      // via the Spring lifecycle (ApplicationReadyEvent), which runs after WicketApplication.init() has already
+      // mounted all pages from WebRegistry. A plugin's mount point is therefore never actually mounted, so a request
+      // to it falls through to Spring ("No static resource ..."). Bookmarkable links resolve for any page class
+      // without an explicit mount and thus work from the next.js menu as well.
+      menuItemDef.setUrl("wa/wicket/bookmarkable/" + pageClass.getName());
     }
     getMenuCreator().register(parentId, menuItemDef);
     if (pageClass != null)
