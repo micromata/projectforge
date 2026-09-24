@@ -73,6 +73,81 @@ export function parseNumberInput(
   return Number.isFinite(value) ? value : null;
 }
 
+/** The group and decimal separator of the user's locale — the same source [parseNumberInput] reads. */
+export function numberLayout(ctx: FormatContext): {
+  group: string;
+  decimal: string;
+} {
+  return layoutOf(ctx.locale);
+}
+
+/**
+ * The number a grouped box's text stands for, or null when it is not one yet — the reading mirror of
+ * [groupNumberInput], for a box that groups its thousands while it is being edited.
+ *
+ * Unlike [parseNumberInput], the locale's group separator is grouping and its decimal separator the only
+ * decimal point: there is no keypad-"." fallback, because a grouping box inserts the group separator itself
+ * ("1.234.567" in German is over a million, not 1234.567). Parsing the same way the box groups keeps the
+ * text on screen and the value it stands for from ever disagreeing.
+ */
+export function parseGroupedInput(
+  text: string,
+  ctx: FormatContext
+): number | null {
+  const { group, decimal } = layoutOf(ctx.locale);
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+  const normalized = trimmed
+    .replaceAll(group, "")
+    .replaceAll(decimal, ".")
+    .replace(/[^\d.+-]/g, "");
+  if (normalized === "" || !/^[+-]?(\d+\.?\d*|\.\d+)$/.test(normalized)) {
+    return null;
+  }
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
+/** Groups a run of digits from the right, using `group` as the separator: "1234567" → "1.234.567". */
+function groupDigits(digits: string, group: string): string {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, group);
+}
+
+/**
+ * The typed text with its integer part grouped, preserving the fractional part exactly as typed — a
+ * trailing separator ("1234," → "1.234,") and any decimals ("1234,50" → "1.234,50") are kept, so grouping
+ * can stay visible while a box is being edited rather than only at rest.
+ *
+ * Unlike [parseNumberInput], the locale's group separator is treated as grouping here, not as a possible
+ * decimal point: a box that groups its thousands inserts that separator itself, so re-reading it as a
+ * decimal would fight the auto-grouping (in German "1.234" would flip to "1,234" on the next keystroke).
+ * The decimal point while editing such a box is therefore the locale's decimal separator only.
+ *
+ * A text holding no digit at all (a lone sign, an emptied box) is returned unchanged.
+ */
+export function groupNumberInput(text: string, ctx: FormatContext): string {
+  const { group, decimal } = layoutOf(ctx.locale);
+  const trimmed = text.trim();
+  const sign = trimmed.startsWith("-")
+    ? "-"
+    : trimmed.startsWith("+")
+      ? "+"
+      : "";
+  const rest = sign ? trimmed.slice(1) : trimmed;
+  const at = rest.indexOf(decimal); // the first decimal separator; further ones collapse into it
+  const hasDecimal = at >= 0;
+  const intDigits = (hasDecimal ? rest.slice(0, at) : rest).replace(/\D/g, "");
+  const fracDigits = hasDecimal ? rest.slice(at + 1).replace(/\D/g, "") : null;
+  if (intDigits === "" && !fracDigits) {
+    // Nothing but a sign and/or a bare decimal separator so far — keep it as the user left it.
+    return hasDecimal ? `${sign}${decimal}` : sign;
+  }
+  const grouped = groupDigits(intDigits, group);
+  return hasDecimal
+    ? `${sign}${grouped}${decimal}${fracDigits}`
+    : `${sign}${grouped}`;
+}
+
 /**
  * The percentage a text asks for, or null when it asks for none — "50 %" is 50, "50" is null.
  *

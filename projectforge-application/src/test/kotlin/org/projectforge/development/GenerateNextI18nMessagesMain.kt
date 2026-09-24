@@ -34,9 +34,10 @@ import java.util.Properties
  * Generates the next-intl message catalogs of projectforge-next from the I18nResources bundle,
  * so translations aren't maintained twice.
  *
- * The bundle is the single source of truth: `I18nResources.properties` holds the English texts
- * (default), `I18nResources_de.properties` the German ones. Run [SortAndCheckI18nPropertiesMain]
- * first — that is what [DevelopmentMainForRelease] does.
+ * The bundles are the single source of truth: `I18nResources.properties` holds the English texts
+ * (default), `I18nResources_de.properties` the German ones, and each plugin its own bundle (the whole
+ * list is [SortAndCheckI18nPropertiesMain.FILES], all read and merged here — the main bundle wins a
+ * collision). Run [SortAndCheckI18nPropertiesMain] first — that is what [DevelopmentMainForRelease] does.
  *
  * Which keys are exported is *derived*, not listed. Exporting the whole bundle is no option — the
  * frontend ships its catalog to the browser — so three sources answer the question, and each of them
@@ -140,6 +141,10 @@ object GenerateNextI18nMessagesMain {
     // series labels are passed to t()/t.rich() as variables (the message key is computed), so no scan
     // finds them.
     "personal.statistics.",
+    // Liquidity-planning plugin (components/features/liquidity/): filter labels, statistics banner, the
+    // forecast tab and its two charts reference these; several keys are passed to t() as variables (chart
+    // series, forecast field labels), so no scan finds them.
+    "plugins.liquidityplanning.",
   )
 
   @JvmStatic
@@ -159,10 +164,10 @@ object GenerateNextI18nMessagesMain {
   }
 
   /**
-   * The keys the entity metadata and the sources of projectforge-next name that neither the bundle nor the
-   * hand-written catalogs know. Not an error: most of them are the keys of the plugins, which keep their own
-   * resource bundles this generator doesn't read (see `SortAndCheckI18nPropertiesMain.FILES`), and some are
-   * no keys at all (`ContractDO` declares `i18nKey = "'C-"`, a literal prefix).
+   * The keys the entity metadata and the sources of projectforge-next name that neither the bundles nor the
+   * hand-written catalogs know. Not an error: some are no keys at all (`ContractDO` declares
+   * `i18nKey = "'C-"`, a literal prefix), and a plugin whose bundle is not yet in
+   * `SortAndCheckI18nPropertiesMain.FILES` would surface here too.
    *
    * Worth a look nevertheless — a key of a page definition in here is a typo, and the page will show it
    * verbatim instead of its text.
@@ -264,11 +269,25 @@ object GenerateNextI18nMessagesMain {
   internal fun resolveRootDir(): File = SourcesUtils.getBasePath().toFile()
 
   private fun readProperties(rootDir: File, suffix: String): Properties {
-    val file = File(rootDir, "$BUNDLE$suffix.properties")
-    require(file.exists()) { "Properties file not found: ${file.absolutePath}" }
-    return Properties().apply {
-      file.inputStream().use { load(it.reader(ENCODING)) }
+    val main = File(rootDir, "$BUNDLE$suffix.properties")
+    require(main.exists()) { "Properties file not found: ${main.absolutePath}" }
+    // The main bundle and every plugin bundle ([SortAndCheckI18nPropertiesMain.FILES], the one list of all
+    // resource bundles). A plugin keeps its texts in its own bundle, which this generator used to skip — so
+    // a migrated plugin page (the liquidity planning list, its filters and its forecast) had to duplicate
+    // its keys into the main bundle to reach the frontend. Reading the plugin bundles here removes that
+    // second place: their keys are exported like the core ones, by the same three sources (metadata, scan,
+    // PREFIXES). Merged first-wins with the main bundle first (it heads FILES), so a key the core and a
+    // plugin both define keeps the core's text.
+    val merged = Properties()
+    SortAndCheckI18nPropertiesMain.FILES.forEach { basename ->
+      val file = File(rootDir, "$basename$suffix.properties")
+      if (!file.exists()) return@forEach
+      val props = Properties().apply { file.inputStream().use { load(it.reader(ENCODING)) } }
+      props.stringPropertyNames().forEach { key ->
+        if (!merged.containsKey(key)) merged.setProperty(key, props.getProperty(key))
+      }
     }
+    return merged
   }
 
   /**

@@ -219,7 +219,13 @@ export function formatNumber(
   }).format(numeric);
 }
 
-export function formatCurrency(value: unknown, ctx: FormatContext): string {
+export function formatCurrency(
+  value: unknown,
+  ctx: FormatContext,
+  /** Fixed number of decimals; the currency's own default (2 for €) when omitted. Pass 0 to drop
+   *  the cents, as a chart axis does where the label would otherwise be too wide. */
+  fractionDigits?: number
+): string {
   if (value == null || value === "") return "";
   const numeric = typeof value === "number" ? value : Number(value);
   if (Number.isNaN(numeric)) return "";
@@ -228,6 +234,8 @@ export function formatCurrency(value: unknown, ctx: FormatContext): string {
     // The backend may send a symbol ("€"); Intl needs an ISO code.
     currency:
       ctx.currency && /^[A-Z]{3}$/.test(ctx.currency) ? ctx.currency : "EUR",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(numeric);
 }
 

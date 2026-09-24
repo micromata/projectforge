@@ -64,7 +64,8 @@ open class LiquidityForecastBuilder {
         }
         val list: MutableList<LiquidityEntryDO> = liquidityEntryDao.select(filter).toMutableList()
         if (historicalForecast) {
-            list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment!!.isBefore(useBaseDate) }
+            // A manual entry without a payment date is not before the base date, so it stays in the list.
+            list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment?.isBefore(useBaseDate) == true }
         }
         forecast.set(list)
         forecast.build()

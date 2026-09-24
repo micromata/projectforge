@@ -195,6 +195,22 @@ object NextMigration {
             newEntryRoute = "group/new",
             legacyApp = LegacyApp.REACT,
         ),
+        // The liquidity-planning plugin, the first plugin migrated (from Wicket, list and forecast, form
+        // included). Hand built (LiquidityEntityRest, no layout). The legacy routes are the plugin's Wicket
+        // pages addressed by their Wicket-built-in bookmarkable url (`wicket/bookmarkable/<page class>`)
+        // rather than a mount alias: the plugin mounts its pages under its id `liquidplanning`
+        // (liquidplanningList / liquidplanningEdit, not the <category>List/<category>Edit convention), and
+        // the bookmarkable url resolves regardless of the mount, so the "classic version" escape hatch
+        // always lands on the page. The Wicket pages stay mounted only as that escape hatch.
+        "liquidity" to NextPage(
+            route = "liquidity",
+            editRoute = "liquidity/$ID_PLACEHOLDER",
+            newEntryRoute = "liquidity/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryEditPage",
+        ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit
         // (WebRegistry, DaoConst.ORDERBOOK), so the convention would build orderList and the way back

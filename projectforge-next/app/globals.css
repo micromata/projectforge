@@ -215,6 +215,10 @@
      theme too, so they are not overridden under .dark. */
   --chart-soll: #de1821;
   --chart-ist: var(--brand-green);
+  /* A muted black for a neutral chart series (the liquidity forecast's expected line) — darker than
+     --muted-foreground so it reads as black, but softened so it does not overpower the coloured
+     series. Overridden under .dark, where a muted white takes its place. */
+  --chart-neutral: oklch(0.32 0 0);
   --radius: 0.625rem;
 
   /* Sidebar — light variant */
@@ -262,6 +266,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  /* The neutral series' muted black becomes a muted white on the dark background (see the light theme). */
+  --chart-neutral: oklch(0.82 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);

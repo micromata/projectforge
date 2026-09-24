@@ -66,6 +66,11 @@ export interface EntityListPageProps<
    * useEntityListPage.transient).
    */
   transient?: boolean;
+  /**
+   * Render without the page chrome ({@link PageShell}), for a host that already provides it — the
+   * liquidity page shows this list in one tab and its forecast in another, under a single shell.
+   */
+  embedded?: boolean;
 }
 
 /**
@@ -84,6 +89,7 @@ export function EntityListPage<
   page,
   filterOverride,
   transient = false,
+  embedded = false,
 }: EntityListPageProps<Row, Values, Data, M>) {
   // Column layout is stored server-side per entity, so it follows the user across devices (see
   // AbstractPagesRest.columnStates). The table only mounts once it has arrived: the state seeds
@@ -103,13 +109,12 @@ export function EntityListPage<
   const access = useReadAccessGuard(page.entity);
 
   if (access.isPending || stored.isPending || remembered.isPending) {
-    return (
-      <PageShell>
-        <div className="flex flex-1 items-center justify-center">
-          <Spinner />
-        </div>
-      </PageShell>
+    const spinner = (
+      <div className="flex flex-1 items-center justify-center">
+        <Spinner />
+      </div>
     );
+    return embedded ? spinner : <PageShell>{spinner}</PageShell>;
   }
   if (access.denied) {
     return null;
@@ -134,6 +139,7 @@ export function EntityListPage<
       storedState={stored.data ?? {}}
       restoredFilter={restoredFilter}
       transient={transient}
+      embedded={embedded}
     />
   );
 }
@@ -172,11 +178,13 @@ function DeclaredList<
   storedState,
   restoredFilter,
   transient = false,
+  embedded = false,
 }: {
   page: PageDef<Row, Values, Data, M>;
   storedState: ColumnState;
   restoredFilter?: MagicFilter;
   transient?: boolean;
+  embedded?: boolean;
 }) {
   const t = useTranslations();
   // Where "add" and a row click lead: this app's form, or the legacy one for a page whose list is
@@ -287,138 +295,135 @@ function DeclaredList<
     return null;
   }
 
-  return (
-    <PageShell>
-      <ListPageShell
-        toolbar={
-          <ListToolbar
-            // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
-            // heading and the parent of `task.title.list.select`), and the bare key would throw.
-            title={t(leafKeyOf(page.titleKey, t.has))}
-            category={t(page.categoryKey)}
-            searchValue={list.globalFilter}
-            onSearchChange={list.setGlobalFilter}
-            // Only where this user may add one: without the right the button is left out, as the
-            // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
-            addHref={targets.canAdd ? targets.addHref : undefined}
-            addIsLegacy={targets.legacy}
-            // The button, unless this entity has demoted the way back into the gear menu below.
-            legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
-            selectionToggle={
-              page.massUpdate &&
-              updateAccess !== false && (
-                <SelectionModeToggle
-                  active={mode.active}
-                  onToggle={() => (mode.active ? mode.leave() : mode.enter())}
-                />
-              )
-            }
-            actions={ListActions && <ListActions filter={list.filter} />}
-            gearMenu={
-              <ListGearMenu
-                entity={page.entity}
-                onFilterReset={list.resetFilter}
-                // Present only for an entity that has moved its way back in here (see legacyInMenu).
-                legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
+  const content = (
+    <ListPageShell
+      toolbar={
+        <ListToolbar
+          // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
+          // heading and the parent of `task.title.list.select`), and the bare key would throw.
+          title={t(leafKeyOf(page.titleKey, t.has))}
+          category={t(page.categoryKey)}
+          searchValue={list.globalFilter}
+          onSearchChange={list.setGlobalFilter}
+          // Only where this user may add one: without the right the button is left out, as the
+          // legacy page leaves the create entry out of its menu (see useEditTargets.canAdd).
+          addHref={targets.canAdd ? targets.addHref : undefined}
+          addIsLegacy={targets.legacy}
+          // The button, unless this entity has demoted the way back into the gear menu below.
+          legacyUrl={list.legacyInMenu ? undefined : list.legacyUrl}
+          selectionToggle={
+            page.massUpdate &&
+            updateAccess !== false && (
+              <SelectionModeToggle
+                active={mode.active}
+                onToggle={() => (mode.active ? mode.leave() : mode.enter())}
               />
-            }
-            // The result hit the backend's row cap, so it is incomplete — a prominent red warning
-            // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
-            // that was reached (see useMagicFilterQuery.truncated).
-            notice={
-              list.truncated ? (
-                <ListTruncationNotice count={list.rowCount} />
-              ) : undefined
-            }
-            columnPanel={
-              <DataTableColumnPanel
-                table={list.table}
-                onReset={list.resetColumns}
-                className="h-6 rounded-full px-2.5 text-xs"
-              />
-            }
-            filterPills={
-              <FilterPills
-                elements={list.filters.elements}
-                values={list.filters.values}
-                onChange={list.applyValues}
-                periodKinds={page.filterPeriodKinds}
-                trailing={
-                  <FilterFavoritesMenu
-                    favorites={list.favorites}
-                    className="h-6 gap-1 rounded-full px-2.5 text-xs"
-                  />
-                }
-              />
-            }
-          />
-        }
-        banner={page.statistics?.({
-          statistics: list.statistics,
-          isFetching: list.isFetching,
-          // The filter as sent, so a slot can decide whether its view option even applies (the invoice
-          // line enables its comparison only for a bounded date range).
-          filter: list.filter,
-          previousYearComparison,
-          setPreviousYearComparison,
-        })}
-        selectionBar={
-          page.massUpdate &&
-          mode.active && (
-            <ListSelectionSection<Row, M>
-              massUpdate={page.massUpdate}
-              mode={mode}
-              metadata={page.metadata}
-              columns={declarations.columns}
-              onSelectAll={selectAll}
+            )
+          }
+          actions={ListActions && <ListActions filter={list.filter} />}
+          gearMenu={
+            <ListGearMenu
+              entity={page.entity}
+              onFilterReset={list.resetFilter}
+              // Present only for an entity that has moved its way back in here (see legacyInMenu).
+              legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
             />
-          )
-        }
-      >
-        <DataTable<Row>
-          table={list.table}
-          columns={columns}
-          data={list.data}
-          // The list's table is the page's scroll column, so it is what makes the logo row give way.
-          collapseLogoOnScroll
-          isLoading={list.isLoading}
-          isFetching={list.isFetching}
-          rowClassName={(row) =>
-            deletedRowClass(row) ?? page.rowClassName?.(row)
           }
-          // Coming back from the edit page: the backend remembers which entry that was, so the list
-          // marks it and brings it into view (see useHighlightedRow).
-          highlightRowId={list.highlightRowId}
-          highlightScope={page.entity}
-          // Leaving the list to look at an entry and coming back returns to the page and the offset it
-          // was left with (see useRememberScroll).
-          viewScope={page.entity}
-          // Only where an entry may be opened at all: without the right there is no handler and no
-          // pointer cursor, the way Wicket's list shows a plain label instead of a link (see
-          // useEditTargets.canOpen — it is the entity's answer, not the single entry's).
-          onRowClick={
-            targets.canOpen ? (row) => targets.openEntry(row.id) : undefined
+          // The result hit the backend's row cap, so it is incomplete — a prominent red warning
+          // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap
+          // that was reached (see useMagicFilterQuery.truncated).
+          notice={
+            list.truncated ? (
+              <ListTruncationNotice count={list.rowCount} />
+            ) : undefined
           }
-          // The mode decides what a click means: outside it every click opens the entry, inside it
-          // every click selects (`selection` is undefined outside, so nothing of it is wired up).
-          selection={mode.selection}
-          // Under the table, above the pagination: the colour legend, and the backend's result note
-          // where it sent one — for a hand built list that is the red truncation span (see
-          // ListResultInfo), the same note the legacy React list shows beneath its table.
-          footer={
-            <>
-              {list.resultInfo && (
-                <ListResultInfo
-                  info={list.resultInfo}
-                  className="border-t px-4 py-2"
+          columnPanel={
+            <DataTableColumnPanel
+              table={list.table}
+              onReset={list.resetColumns}
+              className="h-6 rounded-full px-2.5 text-xs"
+            />
+          }
+          filterPills={
+            <FilterPills
+              elements={list.filters.elements}
+              values={list.filters.values}
+              onChange={list.applyValues}
+              periodKinds={page.filterPeriodKinds}
+              trailing={
+                <FilterFavoritesMenu
+                  favorites={list.favorites}
+                  className="h-6 gap-1 rounded-full px-2.5 text-xs"
                 />
-              )}
-              <TableLegend entries={legendEntries(page)} />
-            </>
+              }
+            />
           }
-          className="flex-1"
         />
-      </ListPageShell>
-    </PageShell>
+      }
+      banner={page.statistics?.({
+        statistics: list.statistics,
+        isFetching: list.isFetching,
+        // The filter as sent, so a slot can decide whether its view option even applies (the invoice
+        // line enables its comparison only for a bounded date range).
+        filter: list.filter,
+        previousYearComparison,
+        setPreviousYearComparison,
+      })}
+      selectionBar={
+        page.massUpdate &&
+        mode.active && (
+          <ListSelectionSection<Row, M>
+            massUpdate={page.massUpdate}
+            mode={mode}
+            metadata={page.metadata}
+            columns={declarations.columns}
+            onSelectAll={selectAll}
+          />
+        )
+      }
+    >
+      <DataTable<Row>
+        table={list.table}
+        columns={columns}
+        data={list.data}
+        // The list's table is the page's scroll column, so it is what makes the logo row give way.
+        collapseLogoOnScroll
+        isLoading={list.isLoading}
+        isFetching={list.isFetching}
+        rowClassName={(row) => deletedRowClass(row) ?? page.rowClassName?.(row)}
+        // Coming back from the edit page: the backend remembers which entry that was, so the list
+        // marks it and brings it into view (see useHighlightedRow).
+        highlightRowId={list.highlightRowId}
+        highlightScope={page.entity}
+        // Leaving the list to look at an entry and coming back returns to the page and the offset it
+        // was left with (see useRememberScroll).
+        viewScope={page.entity}
+        // Only where an entry may be opened at all: without the right there is no handler and no
+        // pointer cursor, the way Wicket's list shows a plain label instead of a link (see
+        // useEditTargets.canOpen — it is the entity's answer, not the single entry's).
+        onRowClick={
+          targets.canOpen ? (row) => targets.openEntry(row.id) : undefined
+        }
+        // The mode decides what a click means: outside it every click opens the entry, inside it
+        // every click selects (`selection` is undefined outside, so nothing of it is wired up).
+        selection={mode.selection}
+        // Under the table, above the pagination: the colour legend, and the backend's result note
+        // where it sent one — for a hand built list that is the red truncation span (see
+        // ListResultInfo), the same note the legacy React list shows beneath its table.
+        footer={
+          <>
+            {list.resultInfo && (
+              <ListResultInfo
+                info={list.resultInfo}
+                className="border-t px-4 py-2"
+              />
+            )}
+            <TableLegend entries={legendEntries(page)} />
+          </>
+        }
+        className="flex-1"
+      />
+    </ListPageShell>
   );
+  return embedded ? content : <PageShell>{content}</PageShell>;
 }

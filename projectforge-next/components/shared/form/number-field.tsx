@@ -1,14 +1,5 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
-import { Input } from "@/components/ui/input";
-import { useFormatContext } from "@/hooks/use-format";
-import {
-  formatNumberInput,
-  parseNumberInput,
-  parsePercentInput,
-} from "@/lib/number-parse";
-import { cn } from "@/lib/utils";
 import {
   FieldShell,
   useFieldIds,
@@ -16,6 +7,7 @@ import {
   type FieldMetaState,
 } from "./field-shell";
 import { useEntityEditForm, useFieldMetadata } from "./form-context";
+import { NumberBox } from "./number-box";
 import { useFieldErrors } from "./use-field-errors";
 
 export interface NumberFieldProps extends BaseFieldProps {
@@ -218,154 +210,5 @@ export function NumberField({
         );
       }}
     </form.Field>
-  );
-}
-
-/**
- * The box itself, separated from the form binding so the number and the text it is being typed as can
- * live side by side — the same split [NumberSegmentInput] makes, and for the same reason: "1," is not
- * yet a number, and rewriting it into "1" would correct the field under the user's fingers.
- */
-function NumberBox({
-  id,
-  value,
-  onChange,
-  onBlur,
-  fractionDigits,
-  invalid,
-  disabled,
-  suffix,
-  maxDigits,
-  align,
-  grouped,
-  shareOf,
-}: {
-  id: string;
-  value: number | null;
-  onChange: (next: number | null) => void;
-  onBlur: () => void;
-  fractionDigits?: number;
-  invalid: boolean;
-  disabled?: boolean;
-  suffix?: string;
-  maxDigits?: number;
-  align?: "left" | "right";
-  /** Whether thousands are grouped while the box is at rest — see [groupsThousands]. */
-  grouped?: boolean;
-  /** Whether a share may be typed, and what of — see [NumberFieldProps.shareOf]. */
-  shareOf?: { amount: number | null | undefined };
-}) {
-  const ctx = useFormatContext();
-  // A box being typed in drops its group separators, so an inserted one cannot move the caret; the
-  // grouped form comes back on blur. See [formatNumberInput]'s `grouping`.
-  const [focused, setFocused] = useState(false);
-  const write = (n: number | null, withGrouping: boolean) =>
-    formatNumberInput(n, ctx, fractionDigits, grouped && withGrouping);
-  // `shows` is the number the text stands for: while it equals the value the text is ours and is left
-  // alone. Adjusted during render, not in an effect, because it follows a value the *form* set —
-  // loading an entity (form.reset) or the recalculated sums coming back.
-  const [own, setOwn] = useState(() => ({
-    text: write(value, true),
-    shows: value,
-  }));
-  if (value !== own.shows) {
-    setOwn({ text: write(value, !focused), shows: value });
-  }
-  const text = value === own.shows ? own.text : write(value, !focused);
-
-  /**
-   * What a typed text does to the value — an amount, the share of a base a trailing "%" asks for, or
-   * nothing yet. Not a pure "read the number" function on purpose: the three cases differ in what they
-   * do to the text as well, and the box's rule is that a text it cannot read is left as typed.
-   */
-  const take = (typed: string) => {
-    if (typed.trim() === "") {
-      // An emptied box becomes null, which is how the backend stores "no value".
-      setOwn({ text: typed, shows: null });
-      onChange(null);
-      return;
-    }
-    const share = shareOf ? parsePercentInput(typed, ctx) : null;
-    if (share !== null) {
-      const base = shareOf?.amount;
-      if (base == null) {
-        // A share of a base that isn't there yet is no more a number than a half-typed "1,": the text
-        // stands (`shows: value` keeps the render above from rewriting it) and the value is untouched,
-        // so a percentage never turns into the amount of bare digits nobody meant to enter.
-        setOwn({ text: typed, shows: value });
-        return;
-      }
-      // Rounded to the digits the box writes, so the amount that appears is the amount that is stored.
-      // Wicket rounds the same way, at the scale of the total it computes against.
-      const amount = round((base * share) / 100, fractionDigits ?? 2);
-      setOwn({ text: typed, shows: amount });
-      onChange(amount);
-      return;
-    }
-    // Not a number yet ("-", ",") keeps the text and the value it had, so nothing is lost while
-    // typing. `shows: value` rather than `shows: null` — the render above rewrites the text whenever
-    // the two disagree, which would put the deleted digit back under the caret: backspacing "-20" to
-    // "-" would read as "still -20" and reappear as "-20".
-    const parsed = parseNumberInput(typed, ctx);
-    if (parsed === null) {
-      setOwn({ text: typed, shows: value });
-      return;
-    }
-    setOwn({ text: typed, shows: parsed });
-    onChange(parsed);
-  };
-
-  return (
-    <div
-      className={cn("relative", maxDigits && "number-box-sized")}
-      // The one kind of inline style this project allows: a CSS variable driving a class from
-      // globals.css. A Tailwind arbitrary value cannot be built from a prop — the class would have to
-      // exist in the source for the compiler to emit it.
-      style={
-        maxDigits
-          ? ({
-              "--number-box-digits": maxDigits,
-              // The suffix sits inside the box, so it needs room of its own — the `pr-9` below.
-              "--number-box-suffix": suffix ? "2.25rem" : "0rem",
-            } as CSSProperties)
-          : undefined
-      }
-    >
-      <Input
-        id={id}
-        value={text}
-        inputMode="decimal"
-        autoComplete="off"
-        disabled={disabled}
-        aria-invalid={invalid || undefined}
-        className={cn(
-          "font-mono",
-          align === "right" && "text-right",
-          suffix && "pr-9"
-        )}
-        onChange={(e) => take(e.target.value)}
-        onFocus={() => {
-          setFocused(true);
-          // Ungrouped from the first keystroke on, not from the first edit: "2.394,00" with the caret
-          // in it would group and regroup as digits arrive.
-          setOwn({ text: write(value, false), shows: value });
-        }}
-        onBlur={() => {
-          setFocused(false);
-          // The grouping and the padding to `fractionDigits` become visible only now, so neither can
-          // fight what is being typed.
-          setOwn({ text: write(value, true), shows: value });
-          onBlur();
-        }}
-      />
-      {suffix && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs text-muted-foreground"
-        >
-          {suffix}
-        </span>
-      )}
-    </div>
   );
 }

@@ -1628,6 +1628,7 @@
         "content": "All entries created or modified since yesterday will be re-indexed, their change history included. Usually a matter of seconds."
       }
     },
+    "reporting": "Reporting",
     "resetFilter": {
       "_": "Reset filter",
       "info": "Resets the current filter if you have any trouble with the given search function."
@@ -1759,6 +1760,157 @@
     }
   },
   "plugins": {
+    "banking": {
+      "account": {
+        "_": "Bank account",
+        "bank": "Bank",
+        "bic": "BIC",
+        "iban": "IBAN",
+        "importSettings": "Settings for import of transactions",
+        "name": "Name",
+        "record": {
+          "amount": "Amount",
+          "checksum": {
+            "_": "Checksum",
+            "info": "The checksum is calculated while importing records for detecting any later manipulation of date, amount, iban of receiver/sender etc."
+          },
+          "collectionReference": "Collection reference",
+          "currency": "Currency",
+          "customerReference": "Customer reference",
+          "date": "Date",
+          "debteeId": "Debtee id",
+          "info": "Info",
+          "mandateReference": "Mandate reference",
+          "receiverSender": "Receiver/Payer",
+          "subject": "Subject",
+          "type": "Type",
+          "valueDate": "Value date"
+        }
+      }
+    },
+    "datatransfer": {
+      "areaName": "Area name",
+      "description": {
+        "_": "Description",
+        "info": "This description is also visible for external users with access via link/password."
+      },
+      "expiryDays": {
+        "_": "Files expiry [days]",
+        "info": "Each file will be deleted automatically after."
+      },
+      "external": {
+        "accessToken": {
+          "_": "Access token",
+          "info": "Access token as part of the external link for direct access for external users. Please renew if you assume that this token was leaked."
+        },
+        "download": {
+          "enabled": {
+            "_": "Enabled for external downloads",
+            "info": "If enabled, this area is accessible for external downloads via link (including access token) and password."
+          }
+        },
+        "password": {
+          "_": "Password",
+          "info": "This password improves security and is protected by brute-force protection."
+        },
+        "upload": {
+          "enabled": {
+            "_": "Enabled for external uploads",
+            "info": "If enabled, this area is accessible for external uploads via link (including access token) and password."
+          }
+        }
+      },
+      "maxUploadSize": {
+        "_": "Maximum upload size",
+        "info": "Maximum upload size of a single file. Max size of this area in total is this value doubled."
+      }
+    },
+    "licensemanagement": {
+      "device": "Device",
+      "key": "Key",
+      "licenseHolder": "License holder",
+      "numberOfLicenses": "Number",
+      "owner": "Owner",
+      "product": "Product",
+      "updateFromVersion": "Update from version",
+      "validSince": "Valid since",
+      "validUntil": "Valid until",
+      "version": "Version"
+    },
+    "liquidityplanning": {
+      "common": {
+        "credit": "Credit",
+        "debit": "Debit"
+      },
+      "entry": {
+        "_": "Liquidity entry",
+        "dateOfPayment": "Date of payment",
+        "expectedDateOfPayment": "Expected date of payment",
+        "subject": "Subject",
+        "title": {
+          "add": "Add new liquidity entry",
+          "edit": "Edit liquidity entry",
+          "heading": "Liquidity entries",
+          "list": "Liquidity"
+        },
+        "type": "Type"
+      },
+      "forecast": {
+        "_": "Liquidity forecast",
+        "balance": "balance",
+        "baseDate": {
+          "_": "Base date",
+          "tooltip": "The base date is normally not set (=today). You may choose a date in the past for comparisons. The paid status is then ignored."
+        },
+        "cashflow": "cash flow",
+        "dueDate": "due-date based",
+        "expected": "expected",
+        "nextDays": "Next days",
+        "paranoiaCase": "paranoia case",
+        "startAmount": "Start amount"
+      },
+      "menu": "Liquidity",
+      "title": {
+        "heading": "Liquidity planning"
+      },
+      "validate": {
+        "maxForecastDays": "The defined days count is bigger than the limit of 600."
+      }
+    },
+    "memo": {
+      "memo": "Memo",
+      "owner": "Owner",
+      "subject": "Subject"
+    },
+    "merlin": {
+      "fileNamePattern": {
+        "_": "File pattern",
+        "info": "File pattern of generated files (may contain variables such as ${user} or ${date}), e.g., '${date}-contract-${user}'."
+      },
+      "forceStrictFilenames": {
+        "_": "Force strict file names",
+        "info": "Merlin will ensure filenames without unallowed chars. If checked, Merlin will only use ASCII-chars and replace e. g. ä by ae (recommended)."
+      },
+      "format": {
+        "pdf": {
+          "_": "PDF format",
+          "info": "If selected, Word® documents will be converted to PDF. The layout and content of the resulting PDF file may differ, please check carefully!"
+        }
+      },
+      "name": "Template name",
+      "template": {
+        "dataTransferUsage": {
+          "_": "Enable personal box",
+          "info": "You may send the generated documents (serial execution) directly to the user's personal inboxes of the plugin DataTransfer. Please download the Excel template on the execution page for usage of #PersonalBox...."
+        }
+      }
+    },
+    "skillmatrix": {
+      "interest": "Interest",
+      "owner": "Owner",
+      "rating": "Self-rating",
+      "skill": "Skill"
+    },
     "teamcal": {
       "calendar": {
         "_": "Calendar",
@@ -1863,6 +2015,29 @@
       "switchToTeamEventButton": "Switch to events",
       "switchToTimesheetButton": "Switch to time sheet",
       "title": "Title"
+    },
+    "todo": {
+      "assignee": "Assignee",
+      "reporter": "Reporter",
+      "status": {
+        "_": "Status",
+        "closed": "closed",
+        "inprogress": "in progress",
+        "opened": "open",
+        "postponed": "postponed",
+        "reopened": "reopened"
+      },
+      "subject": "Subject",
+      "type": {
+        "_": "Type",
+        "bug": "Bug",
+        "hint": "Hint",
+        "idea": "Idea",
+        "improvement": "Improvement",
+        "requirement": "Requirement",
+        "task": "Task",
+        "wish": "Wish"
+      }
     }
   },
   "poll": {

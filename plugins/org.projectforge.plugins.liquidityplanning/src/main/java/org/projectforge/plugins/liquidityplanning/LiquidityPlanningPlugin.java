@@ -23,13 +23,14 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
+import org.projectforge.NextMigration;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntryPagesRest;
+import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntityRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.WicketSupport;
@@ -63,9 +64,11 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
     protected void initialize() {
         LiquidityEntryDao liquidityEntryDao = WicketSupport.get(LiquidityEntryDao.class);
         PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
-        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
+        // WRITE:liquidity is the category of the new LiquidityEntityRest (/rs/liquidity); the Wicket edit
+        // page stays gated as the escape hatch.
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidity;/wa/liquidityplanningEdit");
         registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
-        registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
+        registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntityRest.class);
         final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
                 "plugins.liquidityplanning");
         register(entry);
@@ -77,11 +80,15 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
 
         pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
 
-        // Register the menu entry as sub menu entry of the reporting menu:
+        // Register the menu entry as sub menu entry of the reporting menu. The page is migrated to
+        // projectforge-next, so the entry points at /next/liquidity (see NextMigration.MIGRATED); the Wicket
+        // pages stay mounted above only as the bookmarkable escape hatch. Passing null for the page class
+        // keeps the url we set here (the isEmpty guard in registerMenuItem leaves it untouched).
         MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
         menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
         menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
-        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
+        menuEntry.setUrl(NextMigration.INSTANCE.listUrl("liquidity"));
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, null);
 
         // Define the access management:
         registerRight(new LiquidityPlanningRight());

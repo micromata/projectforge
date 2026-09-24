@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { FormatContext } from "./format";
 import {
   formatNumberInput,
+  groupNumberInput,
+  parseGroupedInput,
   parseNumberInput,
   parsePercentInput,
 } from "./number-parse";
@@ -78,6 +80,65 @@ describe("parseNumberInput", () => {
 
   it("keeps a negative amount negative", () => {
     expect(parseNumberInput("-1.234,56", DE)).toBe(-1234.56);
+  });
+});
+
+describe("groupNumberInput", () => {
+  it("groups the integer part in the user's layout, so grouping stays visible while typing", () => {
+    expect(groupNumberInput("1234567", DE)).toBe("1.234.567");
+    expect(groupNumberInput("1234567", EN)).toBe("1,234,567");
+  });
+
+  it("keeps the fractional part exactly as typed, a trailing separator included", () => {
+    // "1234," is on its way to "1234,5" — regrouping it must not drop the separator under the caret.
+    expect(groupNumberInput("1234,", DE)).toBe("1.234,");
+    expect(groupNumberInput("1234,50", DE)).toBe("1.234,50");
+    expect(groupNumberInput("1234.5", EN)).toBe("1,234.5");
+  });
+
+  it("treats the locale's group separator as grouping, not a decimal point", () => {
+    // Re-reading "1.234" as a decimal would flip it to "1,234" on the next keystroke; it must not.
+    expect(groupNumberInput("1.234", DE)).toBe("1.234");
+    expect(groupNumberInput("1,234", EN)).toBe("1,234");
+  });
+
+  it("keeps a sign, and leaves a lone sign or bare separator as the user left it", () => {
+    expect(groupNumberInput("-1234", DE)).toBe("-1.234");
+    expect(groupNumberInput("-", DE)).toBe("-");
+    expect(groupNumberInput(",", DE)).toBe(",");
+    expect(groupNumberInput("", DE)).toBe("");
+  });
+
+  it("round-trips through parseGroupedInput, so display and value never disagree", () => {
+    // The box reads its own grouped text back with parseGroupedInput, so a German "1.234.567" is over a
+    // million, not 1234.567 the way parseNumberInput's keypad-"." rule would read it.
+    expect(parseGroupedInput(groupNumberInput("1234567", DE), DE)).toBe(
+      1234567
+    );
+    expect(parseGroupedInput(groupNumberInput("1234,56", DE), DE)).toBe(
+      1234.56
+    );
+    expect(parseGroupedInput(groupNumberInput("-1234,56", DE), DE)).toBe(
+      -1234.56
+    );
+    expect(parseGroupedInput(groupNumberInput("1234567", EN), EN)).toBe(
+      1234567
+    );
+  });
+});
+
+describe("parseGroupedInput", () => {
+  it("takes the group separator as grouping and the decimal as the only decimal point", () => {
+    expect(parseGroupedInput("1.234.567", DE)).toBe(1234567);
+    expect(parseGroupedInput("1.234,56", DE)).toBe(1234.56);
+    expect(parseGroupedInput("1,234,567", EN)).toBe(1234567);
+    expect(parseGroupedInput("1,234.56", EN)).toBe(1234.56);
+  });
+
+  it("is null for what is not a number yet, so nothing is lost while typing", () => {
+    expect(parseGroupedInput("", DE)).toBeNull();
+    expect(parseGroupedInput("-", DE)).toBeNull();
+    expect(parseGroupedInput("abc", DE)).toBeNull();
   });
 });
 

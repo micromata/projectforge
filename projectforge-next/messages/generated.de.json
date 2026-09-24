@@ -1628,6 +1628,7 @@
         "content": "Es werden alle Einträge, die seit gestern angelegt oder modifiziert wurden, re-indiziert, einschließlich ihrer Änderungshistorie. Dauert in der Regel wenige Sekunden."
       }
     },
+    "reporting": "Reporting",
     "resetFilter": {
       "_": "Filter zurücksetzen",
       "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
@@ -1759,6 +1760,157 @@
     }
   },
   "plugins": {
+    "banking": {
+      "account": {
+        "_": "Bankkonto",
+        "bank": "Bank",
+        "bic": "BIC",
+        "iban": "IBAN",
+        "importSettings": "Importeinstellungen",
+        "name": "Name",
+        "record": {
+          "amount": "Betrag",
+          "checksum": {
+            "_": "Checksumme",
+            "info": "Diese Checksumme wird beim Import berechnet und soll spätere Änderungen an Feldern, wie Datum, Betrag, IBAN, Empfänger etc. erkennbar machen."
+          },
+          "collectionReference": "Sammlerreferenz",
+          "currency": "Währung",
+          "customerReference": "Kundenreferenz",
+          "date": "Datum",
+          "debteeId": "Gläubiger-ID",
+          "info": "Info",
+          "mandateReference": "Mandatsreferenz",
+          "receiverSender": "Empfänger/Zahlungspflichtiger",
+          "subject": "Verwendungszweck",
+          "type": "Typ",
+          "valueDate": "Wertstellung"
+        }
+      }
+    },
+    "datatransfer": {
+      "areaName": "Bereich",
+      "description": {
+        "_": "Beschreibung",
+        "info": "Diese Beschreibung ist auch für externe Benutzer über Link/Passwort einsehbar."
+      },
+      "expiryDays": {
+        "_": "Löschfrist Dateien [Tage]",
+        "info": "Jede Datei dieses Bereichs wird automatisch gelöscht."
+      },
+      "external": {
+        "accessToken": {
+          "_": "Zugriffstoken",
+          "info": "Dieser Zugriffstoken ist Teil des Links für externe Personen. Bitte erneuern, falls dieser Zugriff in unbefugte Hände geraten sein könnte."
+        },
+        "download": {
+          "enabled": {
+            "_": "Externer Download freigegeben",
+            "info": "Wenn freigegeben, können externe Personen Dateien via Link und Zugriffstoken herunterladen."
+          }
+        },
+        "password": {
+          "_": "Passwort",
+          "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert."
+        },
+        "upload": {
+          "enabled": {
+            "_": "Externer Upload freigegeben",
+            "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen."
+          }
+        }
+      },
+      "maxUploadSize": {
+        "_": "Maximale Uploadgröße",
+        "info": "Maximale Uploadgröße einer Datei. Die maximale Größe dieses gesamten Bereichs beträgt den doppelten Wert."
+      }
+    },
+    "licensemanagement": {
+      "device": "Gerät",
+      "key": "Schlüssel",
+      "licenseHolder": "Lizenznehmer",
+      "numberOfLicenses": "Anzahl",
+      "owner": "Besitzer",
+      "product": "Produkt",
+      "updateFromVersion": "Update der Version",
+      "validSince": "Gültig seit",
+      "validUntil": "Gültig bis",
+      "version": "Version"
+    },
+    "liquidityplanning": {
+      "common": {
+        "credit": "Soll",
+        "debit": "Haben"
+      },
+      "entry": {
+        "_": "Liquiditätseintrag",
+        "dateOfPayment": "Bezahldatum",
+        "expectedDateOfPayment": "Erwarteter Zahlungstermin",
+        "subject": "Betreff",
+        "title": {
+          "add": "Liquiditätseintrag hinzufügen",
+          "edit": "Liquiditätseintrag editieren",
+          "heading": "Liquiditätseinträge",
+          "list": "Liquidität"
+        },
+        "type": "Typ"
+      },
+      "forecast": {
+        "_": "Liquiditätsvorschau",
+        "balance": "Kontostand",
+        "baseDate": {
+          "_": "Bezugsdatum",
+          "tooltip": "Das Bezugsdatum ist normalerweise nicht gesetzt. Es kann ein Datum aus der Vergangenheit zum Vergleich gewählt werden. Der Bezahlstatus wird dann ignoriert."
+        },
+        "cashflow": "Cash flow",
+        "dueDate": "nach Fälligkeit",
+        "expected": "erwartet",
+        "nextDays": "Nächste Tage",
+        "paranoiaCase": "Paranoia case",
+        "startAmount": "Anfangsbetrag"
+      },
+      "menu": "Liquidität",
+      "title": {
+        "heading": "Liquiditätsplanung"
+      },
+      "validate": {
+        "maxForecastDays": "Die angegebene Anzahl an Tagen überschreitet das Limit von 600."
+      }
+    },
+    "memo": {
+      "memo": "Memo",
+      "owner": "Eigner",
+      "subject": "Betreff"
+    },
+    "merlin": {
+      "fileNamePattern": {
+        "_": "Dateinamenmuster",
+        "info": "Dateinamenmuster generierter Dateien (kann Variablennamen enthalten, wie ${user} oder ${date}), z. B. '${date}-contract-${user}'."
+      },
+      "forceStrictFilenames": {
+        "_": "Strenge Dateinamen",
+        "info": "Merlin stellt sicher, dass keine Dateinamen mit unerlaubten Sonderzeichen erzeugt werden. Wenn ausgewählt, wird Merlin Standard-Zeichen verwenden und Sonderzeichen wie Umlaute etc. ersetzen (empfohlen)."
+      },
+      "format": {
+        "pdf": {
+          "_": "PDF-Format",
+          "info": "Das Format und der Inhalt der erzeugten PDF-Datei kann abweichen, bitte sorgfältig überprüfen!"
+        }
+      },
+      "name": "Name der Vorlage",
+      "template": {
+        "dataTransferUsage": {
+          "_": "Persönliche Boxen nutzen",
+          "info": "Die per Serienausführung generierten Dokumente können direkt in die persönlichen Boxen der Benutzer geschrieben werden (DataTransfer-Plugin). Bitte nach Auswahl die Excelvorlage für die Serienausführung auf der Ausführen-Seite herunterlagen, um die Variablen #PersonalBox... zu erhalten."
+        }
+      }
+    },
+    "skillmatrix": {
+      "interest": "Interesse",
+      "owner": "Eigner",
+      "rating": "Selbsteinschätzung",
+      "skill": "Skill"
+    },
     "teamcal": {
       "calendar": {
         "_": "Kalender",
@@ -1863,6 +2015,29 @@
       "switchToTeamEventButton": "In Termin umwandeln",
       "switchToTimesheetButton": "In Zeitbuchung umwandeln",
       "title": "Titel"
+    },
+    "todo": {
+      "assignee": "Bearbeiter",
+      "reporter": "Ersteller",
+      "status": {
+        "_": "Status",
+        "closed": "geschlossen",
+        "inprogress": "in Bearbeitung",
+        "opened": "geöffnet",
+        "postponed": "vertagt",
+        "reopened": "erneut geöffnet"
+      },
+      "subject": "Betreff",
+      "type": {
+        "_": "Art",
+        "bug": "Fehler",
+        "hint": "Hinweis",
+        "idea": "Idee",
+        "improvement": "Verbesserung",
+        "requirement": "Anforderung",
+        "task": "Aufgabe",
+        "wish": "Wunsch"
+      }
     }
   },
   "poll": {
