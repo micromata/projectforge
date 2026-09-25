@@ -48,6 +48,11 @@
       "uninteresting": "uninteressant"
     },
     "country": "Land",
+    "directCall": {
+      "call": "Anrufen",
+      "confirm": "Soll jetzt eine Telefonverbindung von Telefon ''{arg0}'' aus initiiert werden?",
+      "noPhoneDefined": "Es ist kein Telefon ausgewählt (bitte auswählen bzw. unter Mein Zugang festlegen)."
+    },
     "division": "Bereich",
     "emails": "E-Mails",
     "fingerprint": "Fingerprint",
@@ -59,10 +64,21 @@
       "mister": "Herr",
       "unknown": "unbekannt"
     },
+    "myCurrentCallerId": "Anruferkennung",
+    "myCurrentPhoneId": "Mein Telefon",
     "phone": "Telefon",
+    "phoneCall": {
+      "number": {
+        "label": "Telefonnummer"
+      },
+      "title": "Direktwahl Telefonanlage"
+    },
     "phoneType": {
+      "business": "Telefon geschäftlich",
       "fax": "Fax",
-      "mobile": "Telefon mobil"
+      "mobile": "Telefon mobil",
+      "private": "Telefon privat",
+      "privateMobile": "Privat mobil"
     },
     "positionText": "Position",
     "postal": "postalisch",
@@ -1602,6 +1618,7 @@
     },
     "myAccount": "Mein Zugang",
     "personalStatistics": "Meine Statistiken",
+    "phoneCall": "Direktwahl",
     "plugins": {
       "teamcal": "Kalenderliste"
     },
@@ -2532,6 +2549,7 @@
     },
     "personalPhoneIdentifiers": {
       "_": "Telefonkennungen",
+      "pleaseDefine": "Anschlüsse festlegen unter 'Mein Zugang'",
       "tooltip": {
         "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
       }

@@ -1073,7 +1073,7 @@ class AddressPagesRest
                 MenuItem(
                     "address.directCall",
                     i18nKey = "address.directCall.call",
-                    url = "wa/phoneCall?addressId=${dto.id}&callerPage=addressList",
+                    url = "next/phoneCall?addressId=${dto.id}&callerPage=addressList",
                     type = MenuItemTargetType.REDIRECT
                 )
             )

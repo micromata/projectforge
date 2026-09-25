@@ -50,7 +50,7 @@ function PhoneNumber(
             {phoneCallEnabled ? (
                 <Link
                     onClick={stopPropagation}
-                    to={`/wa/phoneCall?addressId=${addressId}&number=${encodeURIComponent(number)}&callerPage=${callerPage}`}
+                    to={`/next/phoneCall?addressId=${addressId}&number=${encodeURIComponent(number)}&callerPage=${callerPage}`}
                 >
                     {number}
                 </Link>

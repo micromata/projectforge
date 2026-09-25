@@ -48,6 +48,11 @@
       "uninteresting": "uninteresting"
     },
     "country": "Country",
+    "directCall": {
+      "call": "Call",
+      "confirm": "Would you like to initiate the phone call from ''{arg0}''?",
+      "noPhoneDefined": "No phone defined (please choose or define under My account)."
+    },
     "division": "Division",
     "emails": "e-mails",
     "fingerprint": "Finger print",
@@ -59,10 +64,21 @@
       "mister": "Mister",
       "unknown": "unknown"
     },
+    "myCurrentCallerId": "Caller id",
+    "myCurrentPhoneId": "My phone id",
     "phone": "Phone",
+    "phoneCall": {
+      "number": {
+        "label": "Phone number"
+      },
+      "title": "Direct calling telephone system"
+    },
     "phoneType": {
+      "business": "Business phone",
       "fax": "Fax",
-      "mobile": "Cellular phone"
+      "mobile": "Cellular phone",
+      "private": "Private phone",
+      "privateMobile": "Private cellular"
     },
     "positionText": "Position",
     "postal": "postal",
@@ -1602,6 +1618,7 @@
     },
     "myAccount": "My account",
     "personalStatistics": "My statistics",
+    "phoneCall": "Direct call",
     "plugins": {
       "teamcal": "List of calendars"
     },
@@ -2532,6 +2549,7 @@
     },
     "personalPhoneIdentifiers": {
       "_": "Phone ids",
+      "pleaseDefine": "Define phone numbers under 'My account'.",
       "tooltip": {
         "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
       }
