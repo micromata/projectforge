@@ -26,7 +26,21 @@ export function OrderSumsLine({ className }: { className?: string }) {
   const { sums, isLoading } = useOrderSums();
 
   const toBeInvoiced = sums?.toBeInvoicedSum;
-  const entries: { key: string; value: string; className?: string }[] = [
+  // More invoiced than commissioned: the „noch nicht fakturiert" figure is clamped at 0,00 € by the
+  // backend (`OrderInfo.calculateAll`), so an over-invoiced order looks settled — usually the trace of an
+  // invoice cloned with the wrong order still attached. Flagging „fakturiert" in red is what makes it
+  // visible again, the way the legacy list let the remaining sum run negative.
+  const commissioned = sums?.commissionedNetSum;
+  const invoiced = sums?.invoicedSum;
+  const overInvoiced =
+    invoiced != null && commissioned != null && invoiced > commissioned;
+  const entries: {
+    key: string;
+    value: string;
+    className?: string;
+    /** Explanatory hover text, e.g. why an amount is shown in red. */
+    hint?: string;
+  }[] = [
     // `._` because the key is a text of its own *and* the parent of `fibu.auftrag.nettoSumme.weighted`,
     // which the generator can only express as a nested object plus a `_` leaf.
     {
@@ -40,6 +54,13 @@ export function OrderSumsLine({ className }: { className?: string }) {
     {
       key: "fibu.fakturiert",
       value: formatCurrency(sums?.invoicedSum, format),
+      // Red — an error to hunt down, not the pink of the „zu fakturieren" to-do below. Uses the
+      // shared `destructive` token, which the app otherwise keeps for refusals; here it is the honest
+      // "something is wrong" signal the user asked for.
+      className: overInvoiced ? "text-destructive" : undefined,
+      hint: overInvoiced
+        ? t("fibu.auftrag.invoicedExceedsCommissioned")
+        : undefined,
     },
     // Two different things, kept apart as the list statistics do (see order-statistics.ts):
     // „noch nicht fakturiert" is the commissioned amount not yet billed — an information — while
@@ -88,13 +109,18 @@ export function OrderSumsLine({ className }: { className?: string }) {
         className
       )}
     >
-      {entries.map(({ key, value, className: entryClassName }) => (
+      {entries.map(({ key, value, className: entryClassName, hint }) => (
         <div key={key} className={cn("flex flex-col", entryClassName)}>
           {/* Neither bold nor upper case, and the same size as in the list statistics
               ([OrderStatisticsLine]): the two lines carry the same vocabulary, so a reader who knows
               „zu fakturieren" from the list should meet it here in the same shape — colour included. */}
           <dt className="text-[11px] opacity-70">{t(key)}</dt>
-          <dd className="text-sm tabular-nums">{value}</dd>
+          {/* HintTooltip renders nothing when there is no text, so a plain entry stays a plain <dd>. */}
+          <HintTooltip openOnTap text={hint}>
+            <dd className={cn("text-sm tabular-nums", hint && "cursor-help")}>
+              {value}
+            </dd>
+          </HintTooltip>
         </div>
       ))}
       <WeightedProbability value={sums?.weightedProbabilityOfOccurrence} />

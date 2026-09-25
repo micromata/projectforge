@@ -540,6 +540,7 @@
       "invoice": {
         "info": ", fakturiert: {arg0}, noch nicht fakturiert: {arg1}"
       },
+      "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
         "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
       },

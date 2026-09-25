@@ -540,6 +540,7 @@
       "invoice": {
         "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
       },
+      "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
         "intro": "the order #{arg0} was created or changed."
       },

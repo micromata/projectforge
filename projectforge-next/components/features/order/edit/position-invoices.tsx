@@ -4,8 +4,10 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Invoice01Icon } from "@hugeicons/core-free-icons";
 import { GuardedLink } from "@/components/shared/guarded-link";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { PositionInvoiceInfo } from "../types";
 
 export interface PositionInvoicesProps {
@@ -16,6 +18,13 @@ export interface PositionInvoicesProps {
    * it, exactly as Wicket's `InvoicePositionsPanel` gates its link.
    */
   canOpenInvoice: boolean;
+  /**
+   * True when this position was invoiced with more than its net sum — the „noch nicht fakturiert" figure
+   * is clamped at 0,00 € by the backend (`OrderPositionInfo.recalculateInvoicedSum`), so the invoiced sum
+   * is shown in red to surface the anomaly. Decided by the parent, which has the position's net sum
+   * ([PositionRow]).
+   */
+  overInvoiced?: boolean;
   className?: string;
 }
 
@@ -32,6 +41,7 @@ export interface PositionInvoicesProps {
 export function PositionInvoices({
   invoiceInfo,
   canOpenInvoice,
+  overInvoiced,
   className,
 }: PositionInvoicesProps) {
   const t = useTranslations();
@@ -44,7 +54,20 @@ export function PositionInvoices({
         {t("fibu.rechnungen")}
       </p>
       <p className="mt-1 text-sm tabular-nums">
-        {formatCurrency(invoiceInfo.invoicedSum, format)}
+        {/* Red when more was invoiced than the position holds — the same `destructive` signal the order's
+            sums line raises on „fakturiert" (order-sums-line.tsx), here on the position it comes from. */}
+        <HintTooltip
+          openOnTap
+          text={
+            overInvoiced
+              ? t("fibu.auftrag.invoicedExceedsCommissioned")
+              : undefined
+          }
+        >
+          <span className={cn(overInvoiced && "cursor-help text-destructive")}>
+            {formatCurrency(invoiceInfo.invoicedSum, format)}
+          </span>
+        </HintTooltip>
         {/* „noch nicht fakturiert", not „zu fakturieren": this is `OrderPositionInfo.notYetInvoiced` —
             the commissioned amount not yet billed (an information) — not the part of it that is due now
             (the to-do). See `AuftragsPosition.notInvoicedSum` and order-statistics.ts. */}
