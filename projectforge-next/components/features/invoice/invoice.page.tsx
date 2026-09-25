@@ -198,13 +198,18 @@ export const INVOICE_PAGE = definePage<
       tooltip: (row) => row.kost2Info,
     },
   ],
-  // Mirrors the legacy grid's `withGetRowClass` (first match wins): overdue and unpaid reads red,
-  // anything else not yet paid blue.
+  // Mirrors the legacy grid's `withGetRowClass` (first match wins): a cancelled invoice reads greyed and
+  // struck through — done and off the books, never overdue or open — overdue and unpaid reads red, anything
+  // else not yet paid blue.
+  // `row-deleted` here means "cancelled", not "deleted", so the always-present struck-through entry is
+  // relabelled via `deletedLabelKey` rather than listed a second time (which would duplicate its key).
+  deletedLabelKey: "fibu.rechnung.status.storniert",
   legend: [
     { className: "row-red", labelKey: "fibu.rechnung.filter.ueberfaellig" },
     { className: "row-blue", labelKey: "fibu.rechnung.offen" },
   ],
   rowClassName: (row) => {
+    if (row.status === "STORNIERT") return "row-deleted";
     if (row.ueberfaellig) return "row-red";
     if (row.status !== "BEZAHLT") return "row-blue";
     return undefined;
