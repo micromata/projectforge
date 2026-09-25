@@ -2011,7 +2011,7 @@
   {"i18nKey":"menu.projectDocumentation","bundleName":"I18nResources","translation":"Project docs","translationDE":"Project docs","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"menu.projectmanagement","bundleName":"I18nResources","translation":"Project management","translationDE":"Projektmanagement","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.quickAccess","bundleName":"I18nResources","translation":"Quick access","translationDE":"Schnellzugriff","usedInClasses":[],"usedInFiles":[]},
-  {"i18nKey":"menu.quickAccess.placeholder","bundleName":"I18nResources","translation":"Search menu","translationDE":"Menü durchsuchen","usedInClasses":[],"usedInFiles":[]},
+  {"i18nKey":"menu.quickAccess.placeholder","bundleName":"I18nResources","translation":"Search…","translationDE":"Suchen…","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"menu.quickAccess.recent","bundleName":"I18nResources","translation":"Recently used","translationDE":"Zuletzt verwendet","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"menu.quickAccess.searchAllData","bundleName":"I18nResources","translation":"Search \"{0}\" in all data","translationDE":"\"{0}\" in allen Daten suchen","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"menu.reindexAllDatabaseEntries","bundleName":"I18nResources","translation":"Re-build whole search index","translationDE":"Suchindex voll indizieren","usedInClasses":["org.projectforge.rest.core.AbstractPagesRest","org.projectforge.web.wicket.AbstractReindexTopRightMenu"],"usedInFiles":[]},

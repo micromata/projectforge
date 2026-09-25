@@ -13,7 +13,7 @@ import { confirmLeaveUnsavedChanges } from "@/hooks/use-unsaved-changes-warning"
  * `beforeunload` guards on its own). A `router.push` is not a link and nothing else would stop it, so an
  * internal navigation asks the app's own unsaved-changes dialog first.
  *
- * Cross-cutting (used by the menu results, the magnifier's live data hits and the search page), so it lives in
+ * Cross-cutting (used by the menu results, the menu search's live data hits and the search page), so it lives in
  * hooks/, not the search feature.
  */
 export function useNavigateMenuUrl() {

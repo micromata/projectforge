@@ -4,7 +4,8 @@ import { userFormat, type UserFormat } from "./fixtures/format";
 import type { MenuData, MenuItem } from "../lib/rs/types";
 
 /**
- * The quick access search of the top navigation, against the live backend.
+ * The main menu of the top navigation, against the live backend: it browses the tree and searches
+ * across the menu, the live data and the full-text search from one field.
  *
  * Its content is the menu the server sends (`/rs/menu`, access-filtered and translated per user), so
  * the entries a case searches for are read from that response rather than named here — which module
@@ -16,13 +17,14 @@ import type { MenuData, MenuItem } from "../lib/rs/types";
  * its 404.
  */
 test.describe("quick access", () => {
-  test("unfolds a focused field from the magnifier and folds back on Escape", async ({
+  test("opens a focused search field from the menu and closes on Escape", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
     await goto(page, "/book");
 
-    // Closed it is the magnifier alone: no placeholder is on screen until it is clicked.
+    // Closed it is the "≡ Menü" button alone: the field lives inside the panel and is not on screen
+    // until the menu is opened.
     await expect(searchField(page, format)).toHaveCount(0);
 
     const field = await focusSearch(page, format);
@@ -42,7 +44,7 @@ test.describe("quick access", () => {
     await goto(page, "/book");
 
     // Pressed with nothing focused, i.e. the case the shortcut is for: reaching the search from
-    // wherever the user happens to be, without aiming at the magnifier first.
+    // wherever the user happens to be, without aiming at the menu button first.
     await pressShortcut(page);
     await expect(searchField(page, format)).toBeFocused();
   });
@@ -98,8 +100,8 @@ test.describe("quick access", () => {
     await page.keyboard.press("Enter");
 
     await expect(results(page)).toHaveCount(0);
-    // And the slot folded back to the magnifier, rather than staying open with a term that answers a
-    // question already answered.
+    // And the panel closed, rather than staying open with a term that answers a question already
+    // answered.
     await expect(searchField(page, format)).toHaveCount(0);
     const path = entry.url.slice("next".length);
     await expect(page).toHaveURL(new RegExp(`${escape(path)}$`));
@@ -133,7 +135,7 @@ test.describe("quick access", () => {
     // ranking is the answer and the history would push a worse match above a better one.
     await focusSearch(page, format);
     await expect(
-      recentGroup(page, format).getByRole("option", {
+      recentGroup(page, format).getByRole("link", {
         name: entry.title,
         exact: true,
       })
@@ -154,12 +156,12 @@ test.describe("quick access", () => {
     }
 
     await goto(page, "/");
-    // The trigger is a Radix MenubarTrigger, i.e. a `menuitem` itself and not a `button`. Retried,
-    // for the same reason focusSearch retries: a click before hydration lands on nothing.
-    const trigger = page.getByRole("menuitem", {
+    // The trigger is the "≡ Menü" button that opens the panel. Retried, for the same reason
+    // focusSearch retries: a click before hydration lands on nothing.
+    const trigger = page.getByRole("button", {
       name: format.t("menu.main.title"),
     });
-    // A `link`, not a `menuitem`: the MenubarItems render `asChild`, so the role is the anchor's.
+    // A `link`: the browse columns render each entry as a plain anchor (MenuLink), not a cmdk option.
     const target = page.getByRole("link", { name: entry.title, exact: true });
     await expect(async () => {
       await trigger.click();
@@ -175,7 +177,7 @@ test.describe("quick access", () => {
 
     await focusSearch(page, format);
     await expect(
-      recentGroup(page, format).getByRole("option", {
+      recentGroup(page, format).getByRole("link", {
         name: entry.title,
         exact: true,
       })
@@ -229,16 +231,16 @@ test.describe("quick access", () => {
 });
 
 /**
- * Clicks the magnifier and answers with the field that unfolds in its place, already focused.
+ * Opens the menu panel from the "≡ Menü" button and answers with its search field, already focused.
  *
- * Retried rather than clicked once: the field replaces the button on React's `onClick`, and the
- * button is in the server-rendered markup already — a click before hydration lands on nothing, and
- * the test would then wait for a field no one is going to render.
+ * Retried rather than clicked once: the button is in the server-rendered markup already, but the
+ * panel only opens once React has hydrated — a click before that lands on nothing, and the test
+ * would then wait for a field no one is going to render.
  */
 async function focusSearch(page: Page, format: UserFormat): Promise<Locator> {
   const field = searchField(page, format);
   await expect(async () => {
-    await page.getByRole("button", { name: label(format) }).click();
+    await page.getByRole("button", { name: menuTrigger(format) }).click();
     await expect(field).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 30_000 });
   await expect(results(page)).toBeVisible();
@@ -257,9 +259,9 @@ function searchField(page: Page, format: UserFormat): Locator {
   return page.getByPlaceholder(format.t("menu.quickAccess.placeholder"));
 }
 
-/** The accessible name of both halves — the collapsed magnifier and the unfolded field. */
-function label(format: UserFormat): string {
-  return format.t("menu.quickAccess._");
+/** The accessible name of the "≡ Menü" button that opens the panel. */
+function menuTrigger(format: UserFormat): string {
+  return format.t("menu.main.title");
 }
 
 /** The "recently used" group of the open palette, shown only while the field is empty. */

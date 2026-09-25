@@ -26,7 +26,8 @@ import { useReportMenuUsage } from "@/hooks/use-report-menu-usage";
 /** Shared by the real entries and the hidden measurement row, so both are exactly as wide. */
 const ENTRY_CLASS = cn(
   buttonVariants({ variant: "ghost", size: "sm" }),
-  "shrink-0 cursor-pointer px-1.5"
+  // `relative`: anchors each entry's corner counter badge to its own top-right.
+  "relative shrink-0 cursor-pointer px-1.5"
 );
 
 /**

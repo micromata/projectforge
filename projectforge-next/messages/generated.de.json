@@ -1367,11 +1367,6 @@
     },
     "title": "Import-Tool"
   },
-  "index": {
-    "development": "Webseite für Entwicklung",
-    "website": "Webseite",
-    "welcome": "Willkommen bei ProjectForge."
-  },
   "jobs": {
     "error": {
       "refusedByAnotherRunningJob": "Job konnte nicht gestartet werden, weil bereits ein anderer Job für die gleiche Queue läuft.",
@@ -1612,7 +1607,7 @@
     "projectmanagement": "Projektmanagement",
     "quickAccess": {
       "_": "Schnellzugriff",
-      "placeholder": "Menü durchsuchen",
+      "placeholder": "Suchen…",
       "recent": "Zuletzt verwendet",
       "searchAllData": "\"{arg0}\" in allen Daten suchen"
     },

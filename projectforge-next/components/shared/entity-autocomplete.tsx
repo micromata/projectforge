@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -83,9 +83,38 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  // The term a keystroke on the (closed) trigger opens the picker with, so that first character is not
+  // lost: the search input lives inside the popover and only exists once it is open, so without this a
+  // user who tabs onto the trigger and starts typing would type into nothing until they clicked. Reset
+  // whenever the popover closes, so a later open by click starts empty again.
+  const [initialSearch, setInitialSearch] = useState("");
+
+  function openOnTyping(event: KeyboardEvent<HTMLButtonElement>) {
+    if (disabled) return;
+    // Only printable single characters — leave Space (the button's own "open"), Enter, Tab, arrows and
+    // any modifier combo (copy, browser shortcuts) alone.
+    if (
+      event.key.length !== 1 ||
+      event.key === " " ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    setInitialSearch(event.key);
+    setOpen(true);
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setInitialSearch("");
+        setOpen(next);
+      }}
+    >
       {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
           minimum size is its content, so the trigger would hold the width of the *whole* entity name
           however narrow its field is and push the reset button out of it — onto the field beside it,
@@ -102,6 +131,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-label={ariaLabel}
             autoFocus={autoFocus}
             disabled={disabled}
+            onKeyDown={openOnTyping}
             className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
@@ -138,6 +168,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           params={params}
           minChars={minChars}
           active={open}
+          initialSearch={initialSearch}
           onPick={(entry) => {
             onChange(entry);
             setOpen(false);

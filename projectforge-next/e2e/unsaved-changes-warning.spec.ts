@@ -116,7 +116,7 @@ test.describe("unsaved changes warning", () => {
     // Retried, as quick-access.spec.ts does: a click before hydration lands on nothing.
     const search = page.getByPlaceholder(t("menu.quickAccess.placeholder"));
     await expect(async () => {
-      await page.getByRole("button", { name: t("menu.quickAccess._") }).click();
+      await page.getByRole("button", { name: t("menu.main.title") }).click();
       await expect(search).toBeVisible({ timeout: 1000 });
     }).toPass({ timeout: 30_000 });
     await search.fill(entry);
