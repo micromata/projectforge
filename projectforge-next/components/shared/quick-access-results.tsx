@@ -36,7 +36,7 @@ const RECENT_GROUP = "recent";
  * user may not open.
  *
  * The ranking is [searchMenuEntries]'s. cmdk's own scoring is switched off by the `shouldFilter`
- * of the `Command` in QuickAccessSearch, which is also the context this list belongs to.
+ * of the `Command` in MainMenuDropdown, which is also the context this list belongs to.
  */
 export function QuickAccessResults({
   term,

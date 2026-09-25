@@ -10,7 +10,7 @@ import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";
 import { areaMoreUrl } from "@/lib/rs/search";
 
 /**
- * The live data hits under the magnifier: a few matches per area, addresses first, below the menu hits.
+ * The live data hits in the menu search: a few matches per area, addresses first, below the menu hits.
  *
  * Renders as `CommandGroup`s so it joins the same cmdk list — with `shouldFilter={false}` on the root the
  * arrow keys walk the items in DOM order, so the menu leads and the data follows. Each hit navigates to its
