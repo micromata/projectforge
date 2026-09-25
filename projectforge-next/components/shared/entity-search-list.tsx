@@ -53,6 +53,12 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
    * whole tree and the recents are the "before you type" content instead (see [useEntityLookup]).
    */
   emptyTermSearches?: boolean;
+  /**
+   * A term to start with, so a picker opened by typing (rather than clicking) keeps that first
+   * character instead of dropping it — see [EntityAutocomplete]. The list mounts fresh on each open, so
+   * this seeds the term once; the user types on from there.
+   */
+  initialSearch?: string;
 }
 
 /**
@@ -74,9 +80,10 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   recentEntries,
   recentLabel,
   emptyTermSearches = true,
+  initialSearch = "",
 }: EntitySearchListProps<T>) {
   const t = useTranslations();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const { entries, isFetching, isLoadingMore, loadMore } = useEntityLookup<T>({
