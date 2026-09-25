@@ -28,7 +28,7 @@ export function fieldKey<M extends EntityMetadata>(
   // function name but a unique displayName, so two of them in one section would otherwise collide.
   if ("custom" in field) return field.custom.displayName ?? field.custom.name;
   if ("begin" in field) return field.begin;
-  if ("group" in field) return field.group.map((f) => f.name).join("+");
+  if ("group" in field) return field.group.map((f) => fieldKey(f)).join("+");
   return field.name;
 }
 
@@ -105,7 +105,8 @@ export function DeclaredFormField<M extends EntityMetadata>({
     // Aligning the row at its end drops the box onto the inputs' line instead of the labels'; on wrap
     // each line aligns on its own, so nothing but the normal row gap is left between them.
     const hasCheckbox = field.group.some(
-      (member) => metadata.fields[member.name]?.dataType === "BOOLEAN"
+      (member) =>
+        "name" in member && metadata.fields[member.name]?.dataType === "BOOLEAN"
     );
     return (
       <div
@@ -118,21 +119,32 @@ export function DeclaredFormField<M extends EntityMetadata>({
           className
         )}
       >
-        {field.group.map((member) => (
-          <DeclaredFormField
-            key={member.name}
-            field={member}
-            metadata={metadata}
-            // `w-auto` against the `w-full` every field carries ([FieldShell]'s `Field`): in a row
-            // that would make each member take the whole cell and push the next one onto a line of
-            // its own. A field bounded to a digit count is as wide as its box (see NumberField's
-            // `maxDigits`) and stays that way; the others share what is left.
-            className={cn(
-              "min-w-0",
-              member.maxDigits ? "w-auto shrink-0" : "flex-1 basis-40"
-            )}
-          />
-        ))}
+        {field.group.map((member) => {
+          const isCheckbox =
+            "name" in member &&
+            metadata.fields[member.name]?.dataType === "BOOLEAN";
+          // A field bounded to a digit count is as wide as its box (see NumberField's `maxDigits`), and
+          // in a `packed` row every member sizes to its content so they sit together at the start — but
+          // a checkbox keeps growing, because its label is prose that should wrap rather than push the
+          // row wide. The rest share what is left.
+          const sized =
+            ("maxDigits" in member && member.maxDigits) ||
+            (field.packed && !isCheckbox);
+          return (
+            <DeclaredFormField
+              key={fieldKey(member)}
+              field={member}
+              metadata={metadata}
+              // `w-auto` against the `w-full` every field carries ([FieldShell]'s `Field`): in a row
+              // that would make each member take the whole cell and push the next one onto a line of
+              // its own.
+              className={cn(
+                "min-w-0",
+                sized ? "w-auto shrink-0" : "flex-1 basis-40"
+              )}
+            />
+          );
+        })}
       </div>
     );
   }

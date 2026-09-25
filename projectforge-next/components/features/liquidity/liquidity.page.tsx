@@ -9,7 +9,7 @@ import {
   type LiquidityValues,
 } from "./liquidity-schema";
 import { emptyLiquidityValues, toFormValues } from "./liquidity-values";
-import { PaidFields } from "./edit/paid-fields";
+import { PaidSelectField } from "./edit/paid-fields";
 import type { LiquidityDetail, LiquidityListRow } from "./types";
 
 /** REST category of the liquidity plugin — `LiquidityEntityRest` is mapped to "liquidity". */
@@ -133,11 +133,22 @@ export const LIQUIDITY_PAGE = definePage<
         id: "entry",
         titleKey: "plugins.liquidityplanning.entry.title.heading",
         fields: [
-          { name: "dateOfPayment" },
-          // The value a reader of the forecast looks for first.
-          { name: "amount", emphasized: true, alignNumber: "right" },
-          // The three-state paid override and the autoSetPaid rule, together — see PaidFields.
-          { custom: PaidFields },
+          // Date, amount, the three-state paid override and the autoSetPaid rule read as one line — when
+          // is it due, how much, is it paid, and should that be decided automatically. `maxDigits` keeps
+          // the amount box just wide enough for the value, so the four share the row.
+          {
+            span: 3,
+            packed: true,
+            group: [
+              { name: "dateOfPayment" },
+              { name: "amount", maxDigits: 10, alignNumber: "right" },
+              { custom: PaidSelectField },
+              {
+                name: "autoSetPaid",
+                hintKey: "plugins.liquidityplanning.entry.autoSetPaid.info",
+              },
+            ],
+          },
           { name: "subject", span: 2 },
           { name: "comment", rows: 4, span: 3 },
         ],

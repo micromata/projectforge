@@ -279,7 +279,19 @@ export interface CustomField extends FieldBase {
 export interface FieldGroupDeclaration<
   M extends EntityMetadata,
 > extends FieldBase {
-  group: DeclaredField<M>[];
+  /**
+   * A member is usually a plain field, but a [CustomField] is allowed too — a control the declaration
+   * cannot describe (the liquidity entry's three-state paid select) still belongs on the line with the
+   * date and amount it is read beside. The row renders each member through the same DeclaredFormField.
+   */
+  group: (DeclaredField<M> | CustomField)[];
+  /**
+   * Sizes every member to its content and packs them at the start of the row, rather than letting the
+   * label-topped members grow to share the width. For a row whose fields have a natural width — a date,
+   * a bounded amount, a short select — so they sit next to each other instead of drifting apart across
+   * the page. Off by default: most groups fill their cell.
+   */
+  packed?: boolean;
 }
 
 export type FieldDeclaration<M extends EntityMetadata> =
