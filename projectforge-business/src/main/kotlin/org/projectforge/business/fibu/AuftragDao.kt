@@ -355,6 +355,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     override fun onInsertOrModify(obj: AuftragDO, operationType: OperationType) {
+        resolveKundeAndProjekt(obj)
         if (obj.nummer == null) {
             throw UserException(
                 "validation.required.valueNotPresent",
@@ -596,17 +597,42 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * A stub whose id is unknown to the cache is left alone rather than nulled — the order was written
      * with it, so dropping it here would silently change what the mail says about the order.
      */
-    private fun resolveRelationsForNotification(auftrag: AuftragDO) {
+    /**
+     * Replaces the id-only kunde/projekt stubs the REST layer builds ([Auftrag.copyTo]) by the cached,
+     * fully populated entities before the order is written.
+     *
+     * The order's search document embeds kunde and projekt ([AuftragDO], `@IndexedEmbedded`), and
+     * Hibernate Search builds it from the entity state at flush time. A stub whose `name` is null would
+     * make it index an empty customer/project name, so a search by the project's name (e.g. "pricing")
+     * misses the freshly saved order until a later reindex writes the real name in — the reported "a new
+     * order only shows up minutes later when searching by its project". The cache also carries the
+     * project's own customer ([ProjektDO.kunde], indexed at depth 2), so nothing is read lazily off a
+     * detached stub during indexing.
+     *
+     * A stub whose id is unknown to the cache is left alone rather than nulled: the order is written with
+     * it either way, and dropping it here would change what is stored. Fully loaded relations (the Wicket
+     * path) are swapped for the identical cached instance, which changes nothing.
+     */
+    private fun resolveKundeAndProjekt(auftrag: AuftragDO) {
         val caches = PfCaches.instance
-        auftrag.contactPerson?.id?.let { id -> caches.getUser(id)?.let { auftrag.contactPerson = it } }
         // Use nummer (KundeDO's real @Id); reading the transient id alias would initialize the lazy proxy
         // with a DB load, defeating the purpose of swapping in the cached instance.
         auftrag.kunde?.nummer?.let { id -> caches.getKunde(id)?.let { auftrag.kunde = it } }
         auftrag.projekt?.id?.let { id ->
             caches.getProjekt(id)?.let { projekt ->
-                // The project prints its customer's name as well (see OldKostFormatter.formatProjekt).
+                // The project's customer is embedded too (projekt.kunde.name); populate it from the cache
+                // so indexing never touches a lazy association.
                 auftrag.projekt = projekt.also { it.kunde = caches.getKundeIfNotInitialized(it.kunde) }
             }
+        }
+    }
+
+    private fun resolveRelationsForNotification(auftrag: AuftragDO) {
+        // kunde/projekt are already resolved on save (see resolveKundeAndProjekt); the mail additionally
+        // needs the contact person's cached instance for its e-mail address.
+        resolveKundeAndProjekt(auftrag)
+        PfCaches.instance.let { caches ->
+            auftrag.contactPerson?.id?.let { id -> caches.getUser(id)?.let { auftrag.contactPerson = it } }
         }
     }
 

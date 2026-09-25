@@ -51,20 +51,30 @@ public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
       final UserPrefService userPrefService = WicketSupport.get(UserPrefService.class);
       final Set<?> rawIds = (Set<?>) userPrefService.getEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS);
       if (rawIds != null) {
-        // The JSON store doesn't preserve the element type of a raw Set, so ids may come back as
-        // Integer, Long or even String. Normalize to Long (the type TaskNode ids are compared against).
-        final Set<Long> ids = new HashSet<>();
-        for (final Object id : rawIds) {
-          if (id == null) {
-            continue;
+        if (isAllLong(rawIds)) {
+          // The set already holds Long ids. Wrap this very instance (the live reference held in the user-pref
+          // cache): Wicket mutates it via TableTreeExpansion.add()/remove() when a node is expanded/collapsed,
+          // and those mutations must survive across requests (and be persisted on flush).
+          @SuppressWarnings("unchecked") final Set<Long> ids = (Set<Long>) rawIds;
+          expansion.setIds(ids);
+        } else {
+          // The JSON/legacy store doesn't preserve the element type of a raw Set, so ids may come back as
+          // Integer, Long or even String. Normalize to Long (the type TaskNode ids are compared against) once,
+          // then write the clean Set back so subsequent reads return this same live reference (see above).
+          final Set<Long> ids = new HashSet<>();
+          for (final Object id : rawIds) {
+            if (id == null) {
+              continue;
+            }
+            try {
+              ids.add(id instanceof Number ? ((Number) id).longValue() : Long.parseLong(id.toString().trim()));
+            } catch (final NumberFormatException ex) {
+              log.warn("Ignoring non-numeric open-task id in user prefs: '" + id + "'");
+            }
           }
-          try {
-            ids.add(id instanceof Number ? ((Number) id).longValue() : Long.parseLong(id.toString().trim()));
-          } catch (final NumberFormatException ex) {
-            log.warn("Ignoring non-numeric open-task id in user prefs: '" + id + "'");
-          }
+          userPrefService.putEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, ids, true);
+          expansion.setIds(ids);
         }
-        expansion.setIds(ids);
       } else {
         // Persist the open entries in the data-base.
         userPrefService.putEntry(UserPrefService.LEGACY_XML_AREA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true);
@@ -73,6 +83,20 @@ public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
       log.error(ex.getMessage(), ex);
     }
     return expansion;
+  }
+
+  /**
+   * @return true if every element of the given set is a {@link Long} (an empty set counts as all-Long). Such a set can
+   * be reused as-is; a set containing Integer/String elements has to be normalized first (see {@link #get()}).
+   */
+  private static boolean isAllLong(final Set<?> ids)
+  {
+    for (final Object id : ids) {
+      if (!(id instanceof Long)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

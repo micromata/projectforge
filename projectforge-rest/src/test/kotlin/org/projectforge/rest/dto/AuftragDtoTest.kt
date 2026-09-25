@@ -246,6 +246,101 @@ class AuftragDtoTest : AbstractTestBase() {
         assertEquals(1.toShort(), order.paymentSchedules?.first()?.number)
     }
 
+    @Test
+    fun `a clone is a fresh draft, keeping the content and none of the original's own state`() {
+        val dto = clonedOrder()
+
+        assertNull(dto.id, "A clone is a new order.")
+        assertNull(dto.nummer, "A number is spent once handed out; AuftragDao assigns the next free one.")
+        // A fresh draft, dated today — not the original's status and progress dates.
+        assertEquals(AuftragsStatus.IN_ERSTELLUNG, dto.status)
+        assertEquals(TODAY, dto.erfassungsDatum)
+        assertEquals(TODAY, dto.angebotsDatum)
+        assertNull(dto.entscheidungsDatum)
+        assertNull(dto.beauftragungsDatum)
+        // The content is what a clone is for.
+        assertEquals("Test order", dto.titel)
+        assertEquals(11L, dto.customer?.id)
+    }
+
+    @Test
+    fun `a clone carries every live position, none with an id and none invoiced`() {
+        val dto = clonedOrder()
+
+        // The deleted position is left out: it is on its way out of the *old* order.
+        assertEquals(2, dto.positionen?.size)
+        assertEquals(listOf("Position 1", "Position 3"), dto.positionen?.map { it.titel })
+        // The number is kept so assignNumbersToNewRows can renumber by it and the schedules can follow.
+        assertEquals(listOf<Short>(1, 3), dto.positionen?.map { it.number })
+        dto.positionen?.forEach { position ->
+            assertNull(position.id, "Position ${position.titel} would be merged into the original's row.")
+            assertEquals(false, position.vollstaendigFakturiert, "A clone has invoiced nothing.")
+        }
+    }
+
+    @Test
+    fun `a clone carries every live payment schedule, none with an id and none reached`() {
+        val dto = clonedOrder()
+
+        assertEquals(1, dto.paymentSchedules?.size)
+        val schedule = dto.paymentSchedules!!.first()
+        assertNull(schedule.id, "The schedule would be merged into the original's row.")
+        assertEquals(false, schedule.reached, "A clone has reached no milestone yet.")
+        assertEquals(false, schedule.vollstaendigFakturiert, "A clone has invoiced nothing.")
+        // Number and the position it points at are kept, so the link survives the renumbering on save.
+        assertEquals(1.toShort(), schedule.number)
+        assertEquals(3.toShort(), schedule.positionNumber)
+    }
+
+    @Test
+    fun `a clone has no attachments, the files staying with the original`() {
+        // They live in JCR under the old order's id, so a counter naming them would promise files that
+        // aren't there.
+        val dto = clonedOrder()
+
+        assertNull(dto.attachments)
+        assertNull(dto.attachmentsCounter)
+        assertNull(dto.attachmentsSize)
+    }
+
+    @Test
+    fun `saving a clone renumbers its positions from 1 and the schedule follows`() {
+        val dto = clonedOrder()
+        val dest = AuftragDO()
+        dto.copyTo(dest)
+        OrderEntityRest.assignNumbersToNewRows(dest)
+
+        // No position is stored, so the two live ones are renumbered 1 and 2 (the clone kept 1 and 3).
+        assertEquals(listOf<Short>(1, 2), dest.positionen?.map { it.number })
+        // The schedule pointed at #3, which just became #2 — it has to follow, or it would point at the
+        // wrong position (or nothing).
+        assertEquals(2.toShort(), dest.paymentSchedules?.first()?.positionNumber)
+    }
+
+    /**
+     * The order of [createOrder] as the clone endpoint answers it: run through both steps of the clone —
+     * the generic stripping of `AbstractEntityRest.prepareClone` and the order's own rules.
+     */
+    private fun clonedOrder(): Auftrag {
+        val order = createOrder()
+        order.attachmentsCounter = 2
+        order.attachmentsSize = 4096L
+        order.entscheidungsDatum = LocalDate.of(2026, 2, 10)
+        order.beauftragungsDatum = LocalDate.of(2026, 2, 20)
+        order.positionen?.forEach { it.vollstaendigFakturiert = true }
+        order.paymentSchedules?.forEach {
+            it.reached = true
+            it.vollstaendigFakturiert = true
+        }
+        val dto = Auftrag()
+        dto.copyFromWithCollections(order)
+        // Both steps the endpoint runs: the generic stripping of AbstractEntityRest.prepareClone, then the
+        // order's own rules.
+        dto.id = null
+        dto.deleted = false
+        return OrderEntityRest.prepareOrderClone(dto, TODAY)
+    }
+
     private fun createOrder(): AuftragDO {
         val order = AuftragDO()
         order.id = 4711L
@@ -306,5 +401,10 @@ class AuftragDtoTest : AbstractTestBase() {
             it.nettoSumme = BigDecimal(netSum)
             it.deleted = deleted
         }
+    }
+
+    companion object {
+        /** Passed in rather than read from the clock, so the dates a clone is given are assertable at all. */
+        private val TODAY = LocalDate.of(2026, 6, 15)
     }
 }
