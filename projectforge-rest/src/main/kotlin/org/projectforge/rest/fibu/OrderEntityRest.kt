@@ -85,7 +85,13 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/order")
 open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
-  AbstractDTOEntityRest<AuftragDO, Auftrag, AuftragDao>(AuftragDao::class.java, "fibu.auftrag.title") {
+  AbstractDTOEntityRest<AuftragDO, Auftrag, AuftragDao>(
+    AuftragDao::class.java,
+    "fibu.auftrag.title",
+    // The clone is offered for editing and saved by the user (as the recurring invoice is,
+    // OutgoingInvoiceEntityRest), not saved right away — hence CLONE, not AUTOSAVE. See prepareClone.
+    cloneSupport = CloneSupport.CLONE,
+  ) {
 
   @Autowired
   private lateinit var orderAccessChecker: AccessChecker
@@ -212,6 +218,15 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       auftrag.sendEMailNotification = false
     }
     return auftrag
+  }
+
+  /**
+   * A new order built from this one, as the recurring invoice is built by `OutgoingInvoiceEntityRest`.
+   *
+   * @see prepareOrderClone for what a clone keeps and what it drops.
+   */
+  override fun prepareClone(dto: Auftrag): Auftrag {
+    return prepareOrderClone(super.prepareClone(dto), LocalDate.now())
   }
 
   /**
@@ -887,6 +902,61 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   )
 
   companion object {
+    /**
+     * A new order built from this one, as `OutgoingInvoiceEntityRest.prepareInvoiceClone` builds a new
+     * invoice — the clone is a fresh draft, not a copy of what the original earned:
+     * - No number: [AuftragDO.nummer] is handed out once and per order, so a clone gets a new one on its
+     *   first save ([OrderEntityRest.transformForDB] -> `AuftragDao.getNextNumber`).
+     * - A fresh draft: [AuftragsStatus.IN_ERSTELLUNG] and dated today (date of entry and of offer), with
+     *   the date of decision and the date of assignment cleared — those belong to the original's history.
+     * - No attachments: the files live in JCR under the old order's id and are not copied.
+     * - Every position and payment schedule loses its id, so the save writes new rows and
+     *   [assignNumbersToNewRows] numbers them from 1. Positions the user marked deleted are left out
+     *   entirely — they are on their way out of the *old* order and mean nothing in a new one. The `number`
+     *   is kept: it is the placeholder [assignNumbersToNewRows] renumbers by, and a payment schedule points
+     *   at its position by that number, so keeping both keeps the schedule pointing at the right position.
+     * - Nothing invoiced: the positions' and schedules' `vollstaendigFakturiert` flag is cleared (only the
+     *   accounting staff may set it, see [Auftrag.vollstaendigFakturiertWriteAccess]), a schedule is not
+     *   `reached`, and the read-only invoice references a position carries ([AuftragsPosition.invoicedSum]
+     *   & co.) are dropped — they are the *old* order's invoices, and the recalculate endpoint fills the
+     *   sums the form shows anyway.
+     *
+     * The read-only sums of the order are left as they are: the form asks the recalculate endpoint for them
+     * as soon as it is shown, and they are no part of what is saved.
+     *
+     * `internal` and in the companion object rather than a method, as [assignNumbersToNewRows]: it needs
+     * nothing of the instance, and [today] as a parameter is what makes it testable without a Spring
+     * context (`AuftragDtoTest`).
+     *
+     * @param dto The copy, already stripped of id, deleted flag and timestamps by
+     * `AbstractEntityRest.prepareClone`.
+     */
+    internal fun prepareOrderClone(dto: Auftrag, today: LocalDate): Auftrag {
+      dto.nummer = null
+      dto.status = AuftragsStatus.IN_ERSTELLUNG
+      dto.erfassungsDatum = today
+      dto.angebotsDatum = today
+      dto.entscheidungsDatum = null
+      dto.beauftragungsDatum = null
+      dto.attachments = null
+      dto.attachmentsCounter = null
+      dto.attachmentsSize = null
+      dto.positionen = dto.positionen?.filter { !it.deleted }?.onEach { position ->
+        position.id = null
+        position.vollstaendigFakturiert = false
+        position.invoicedSum = null
+        position.notInvoicedSum = null
+        position.invoices = null
+        position.invoicedElsewhere = false
+      }?.toMutableList()
+      dto.paymentSchedules = dto.paymentSchedules?.filter { !it.deleted }?.onEach { schedule ->
+        schedule.id = null
+        schedule.reached = false
+        schedule.vollstaendigFakturiert = false
+      }?.toMutableList()
+      return dto
+    }
+
     /**
      * What [positionAutosearch] matches a term against, the three fields of
      * `AuftragsPositionFormComponent`: the formatted number of the order, its project and its customer.

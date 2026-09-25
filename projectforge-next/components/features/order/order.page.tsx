@@ -232,6 +232,10 @@ export const ORDER_PAGE = definePage<
     title: (order) => order.titel ?? "",
     newTitleKey: "fibu.auftrag.title.add",
     savedMessageKey: "message.successfullChanged",
+    // A recurring or a nearly identical follow-up order is written by cloning an existing one; the copy is
+    // a fresh draft the user edits and saves (see OrderEntityRest.prepareOrderClone for what it keeps and
+    // what it drops).
+    clone: true,
     sections: [
       {
         id: "head",

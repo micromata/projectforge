@@ -20,15 +20,15 @@ export interface EntityEditActionsProps {
    */
   saveOption?: ReactNode;
   /**
-   * Clone button, left of the spacer with save and cancel: it acts on this entry rather than being a
-   * choice about the save. Omitted for an entity that offers no clone, and while the entry doesn't
-   * exist yet (see [EntityCloneButton]).
+   * Clone button, immediately left of the save button (and right of cancel): it acts on this entry
+   * rather than being a choice about the save. Omitted for an entity that offers no clone, and while
+   * the entry doesn't exist yet (see [EntityCloneButton]).
    */
   cloneAction?: ReactNode;
   /**
-   * Convert button, beside [cloneAction]: like it, an action on this entry rather than a choice about
-   * the save — it turns the entry into another entity (see [EntityConvertButton]). Omitted for an
-   * entity that offers no conversion.
+   * Convert button, right of the save button: an action on this entry rather than a choice about the
+   * save — it turns the entry into another entity (see [EntityConvertButton]). Omitted for an entity
+   * that offers no conversion.
    */
   convertAction?: ReactNode;
   /**
@@ -105,6 +105,10 @@ export function EntityEditActions({
       >
         {t("cancel")}
       </Button>
+      {/* Left of save, so the clone of the entry sits with the actions that write it rather than off by
+          the delete button. Shown even without write access: cloning needs insert access, not write, so a
+          user who may read-and-copy but not change this entry still gets it (see EntityEditBody). */}
+      {cloneAction}
       {/* Left out entirely without write access rather than disabled, as Wicket leaves it out
           (AbstractEditForm.updateButtonVisibility): a greyed-out save reads as "not yet", while there is
           nothing this user could do to enable it. Cancel stays — it is the way out. */}
@@ -136,7 +140,6 @@ export function EntityEditActions({
           {saveOption}
         </>
       )}
-      {cloneAction}
       {convertAction}
       <div className="flex-1" />
       {lastSaved && (
