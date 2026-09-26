@@ -12,7 +12,6 @@ import {
   downloadExportConfiguration,
   downloadExportSchema,
   downloadOptimizeAddressImages,
-  downloadUpdateUserPrefs,
   refreshCaches,
   rereadConfiguration,
   resetIdpPasswordSync,
@@ -117,12 +116,6 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
     {
       titleKey: "system.admin.group.title.databaseActions",
       actions: [
-        {
-          key: "updateUserPrefs",
-          labelKey: "system.admin.button.updateUserPrefs",
-          tooltipKey: "system.admin.button.updateUserPrefs.tooltip",
-          run: downloadUpdateUserPrefs,
-        },
         {
           key: "createMissingIndices",
           labelKey: "system.admin.button.createMissingDatabaseIndices",

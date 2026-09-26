@@ -2318,10 +2318,6 @@
         "testDatabase": {
           "_": "Datenbank testen",
           "tooltip": "Führt einen Datenbank-Lasttest aus (nur im Entwicklungsmodus, siehe Logdateien)."
-        },
-        "updateUserPrefs": {
-          "_": "Update all user prefs",
-          "tooltip": "All user xml preferences in the database are updated (read and saved). This is useful if the xml format of the user preferences was changed within a new ProjectForge release (if not done automatically by ProjectForge)."
         }
       },
       "development": {

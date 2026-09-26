@@ -36,7 +36,6 @@ import org.projectforge.business.jobs.CronSanityCheckJob
 import org.projectforge.business.system.SystemService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.user.UserXmlPreferencesMigrationDao
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.I18nKeysUsageInterface
 import org.projectforge.framework.i18n.translate
@@ -93,9 +92,6 @@ class SystemRest {
 
     @Autowired
     private lateinit var addressImageDao: AddressImageDao
-
-    @Autowired
-    private lateinit var userXmlPreferencesMigrationDao: UserXmlPreferencesMigrationDao
 
     @Autowired
     private lateinit var userDao: UserDao
@@ -228,14 +224,6 @@ class SystemRest {
     // ------------------------------------------------------------------------------------------
     // Database actions.
     // ------------------------------------------------------------------------------------------
-
-    @GetMapping("updateUserPrefs")
-    fun updateUserPrefs(): ResponseEntity<*> {
-        checkWriteAccess()
-        log.info("Administration: update all user prefs.")
-        val filename = "projectforge_updateUserPrefs_${DateHelper.getTimestampAsFilenameSuffix(Date())}.txt"
-        return RestUtils.downloadFile(filename, userXmlPreferencesMigrationDao.migrateAllUserPrefs())
-    }
 
     @PostMapping("createMissingIndices")
     fun createMissingIndices(): MessageResponse {

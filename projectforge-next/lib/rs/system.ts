@@ -54,8 +54,6 @@ export const downloadExport2FAConfiguration = () =>
   downloadFile("/rs/system/export2FAConfiguration");
 export const downloadCheckSystemIntegrity = () =>
   downloadFile("/rs/system/checkSystemIntegrity");
-export const downloadUpdateUserPrefs = () =>
-  downloadFile("/rs/system/updateUserPrefs");
 export const downloadExportSchema = () =>
   downloadFile("/rs/system/exportSchema");
 export const downloadOptimizeAddressImages = () =>
