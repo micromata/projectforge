@@ -47,6 +47,7 @@ export function RepeatFields({ className }: { className?: string }) {
             <NumberField
               name="repeat.intervalMonths"
               label={t("plugins.liquidityplanning.series.interval.months")}
+              hint={t("plugins.liquidityplanning.series.interval.info")}
               metadataLess
               maxDigits={3}
             />

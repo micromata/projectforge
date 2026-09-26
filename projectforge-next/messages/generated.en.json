@@ -1917,6 +1917,7 @@
         "editHint": "Changes to this series affect only future occurrences that have not been edited yet. Occurrences already edited or marked as paid are independent entries and stay unchanged.",
         "editLink": "Edit series",
         "interval": {
+          "info": "1 means every month, 2 every second month, 3 every third month, and so on.",
           "months": "Every N months"
         },
         "occurrenceHint": "Saving turns this occurrence into an independent entry that no longer follows later changes to the series. The date of payment can be changed freely; it stays the n-th occurrence of the series.",
