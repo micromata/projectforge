@@ -64,7 +64,7 @@ export const LIQUIDITY_SERIES_PAGE = definePage<
         titleKey: "plugins.liquidityplanning.series.title",
         fields: [
           // Up front: what a save here changes (future virtual occurrences) and what it leaves frozen.
-          { custom: SeriesEditHint },
+          { custom: SeriesEditHint, span: 3 },
           // The recurrence rule reads as one line: from when, every how many months, for how many
           // installments (empty = endless).
           {

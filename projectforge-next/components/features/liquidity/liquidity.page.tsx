@@ -196,7 +196,7 @@ export const LIQUIDITY_PAGE = definePage<
         titleKey: "plugins.liquidityplanning.series.title",
         visible: ({ data }) =>
           (data as unknown as LiquidityDetail | undefined)?.seriesId != null,
-        fields: [{ custom: SeriesLink }],
+        fields: [{ custom: SeriesLink, span: 3 }],
       },
     ],
   },
