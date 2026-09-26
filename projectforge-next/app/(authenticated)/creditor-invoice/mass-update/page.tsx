@@ -16,6 +16,7 @@ export default function CreditorInvoiceMassUpdatePage() {
       entity={CREDITOR_INVOICE_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={CREDITOR_INVOICE_PAGE.route}
+      listQueryKey={CREDITOR_INVOICE_PAGE.queryKey}
       // The SEPA bank transfer of the whole selection, exactly as the Wicket multi-select page offers it.
       // A page-specific action, so it is passed in rather than known to the generic page.
       actions={<CreditorInvoiceTransferButton selection />}

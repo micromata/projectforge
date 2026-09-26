@@ -15,6 +15,7 @@ export default function InvoiceMassUpdatePage() {
       entity={INVOICE_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={INVOICE_PAGE.route}
+      listQueryKey={INVOICE_PAGE.queryKey}
       // Built here rather than inside the generic page, because it renders the invoice list's own
       // columns — and those are typed, so only the page that declares them can pass them on.
       selectedEntries={(count) => (
