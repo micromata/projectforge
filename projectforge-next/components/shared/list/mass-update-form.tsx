@@ -22,8 +22,11 @@ import {
 } from "@/hooks/use-submit-shortcut";
 import {
   cancelMultiSelection,
+  deleteSelected,
   massUpdate,
   previewMassUpdate,
+  undeleteSelected,
+  type MassUpdateOutcome,
   type MassUpdateParameter,
   type MassUpdatePreview,
   type MassUpdatePreviewChange,
@@ -114,6 +117,20 @@ export function MassUpdateForm({
   const [result, setResult] = useState<MassUpdateResult | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [preview, setPreview] = useState<MassUpdatePreview | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingRestore, setConfirmingRestore] = useState(false);
+
+  // Delete and restore answer the same shape a field update does (counters, errors, protocol), so they
+  // land in the same `result`/`errors` state and render through the same panel.
+  const applyOutcome = useCallback((outcome: MassUpdateOutcome) => {
+    if (outcome.kind === "validationErrors") {
+      setErrors(outcome.validationErrors);
+      setResult(null);
+      return;
+    }
+    setErrors([]);
+    setResult(outcome.result);
+  }, []);
 
   // The confirmation lists what the server would do, not what the client re-derived: "Save" asks the
   // preview endpoint first (the same check the run uses), and only opens the dialog once that answered.
@@ -135,19 +152,30 @@ export function MassUpdateForm({
       toast.error(error instanceof Error ? error.message : String(error)),
   });
 
+  const onError = useCallback(
+    (error: unknown) =>
+      toast.error(error instanceof Error ? error.message : String(error)),
+    []
+  );
+
   const update = useMutation({
     mutationFn: () => massUpdate(endpoint, params),
-    onSuccess: (outcome) => {
-      if (outcome.kind === "validationErrors") {
-        setErrors(outcome.validationErrors);
-        setResult(null);
-        return;
-      }
-      setErrors([]);
-      setResult(outcome.result);
-    },
-    onError: (error) =>
-      toast.error(error instanceof Error ? error.message : String(error)),
+    onSuccess: applyOutcome,
+    onError,
+  });
+
+  // Delete and restore act on whole entries, not fields, so they skip the preview/"nothing to do" path
+  // and post straight to their own endpoints after a confirmation (see AbstractMultiSelectedPage).
+  const deleteRun = useMutation({
+    mutationFn: () => deleteSelected(endpoint),
+    onSuccess: applyOutcome,
+    onError,
+  });
+
+  const restoreRun = useMutation({
+    mutationFn: () => undeleteSelected(endpoint),
+    onSuccess: applyOutcome,
+    onError,
   });
 
   // Leaving drops the selection, so the next visit to the list starts clean rather than with what was
@@ -159,8 +187,14 @@ export function MassUpdateForm({
 
   // Return asks the question the button asks, not the write itself — every picked entry changes at
   // once, and a keystroke must not be the way around the confirmation.
-  const busy = update.isPending || previewRun.isPending;
+  const busy =
+    update.isPending ||
+    previewRun.isPending ||
+    deleteRun.isPending ||
+    restoreRun.isPending;
   const canSubmit = !busy && meta.selectedCount > 0;
+  // Delete/restore need only a non-empty selection — no field action, so no preview step.
+  const canActOnEntries = !busy && meta.selectedCount > 0 && !result;
   const onKeyDown = useSubmitShortcut(() => previewRun.mutate(), canSubmit);
 
   // The value the dialog shows is the server's, only shortened here so a long text stays one line.
@@ -298,6 +332,31 @@ export function MassUpdateForm({
             {t("save")}
           </Button>
         </HintTooltip>
+        {/* Restore is a non-destructive secondary action, so it sits with Save in the left group. */}
+        {meta.supportsRestore && (
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!canActOnEntries}
+            onClick={() => setConfirmingRestore(true)}
+          >
+            {t("massUpdate.restore")}
+          </Button>
+        )}
+        {/* Deleting whole entries is destructive: pushed to the far right by the spacer (see CLAUDE.md). */}
+        {meta.supportsDelete && (
+          <>
+            <div className="flex-1" />
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={!canActOnEntries}
+              onClick={() => setConfirmingDelete(true)}
+            >
+              {t("massUpdate.delete")}
+            </Button>
+          </>
+        )}
       </FormActionBar>
 
       {/* Asked before the write, not after: it changes every picked entry at once and there is no undo
@@ -324,6 +383,36 @@ export function MassUpdateForm({
         onConfirm={() => {
           setConfirming(false);
           update.mutate();
+        }}
+      />
+
+      {/* Deleting whole entries: soft delete, so the dialog says it can be undone. */}
+      <ConfirmDialog
+        open={confirmingDelete}
+        onOpenChange={setConfirmingDelete}
+        title={meta.title}
+        description={t("massUpdate.deleteConfirm", {
+          arg0: meta.selectedCount,
+        })}
+        confirmLabel={t("massUpdate.delete")}
+        destructive
+        onConfirm={() => {
+          setConfirmingDelete(false);
+          deleteRun.mutate();
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmingRestore}
+        onOpenChange={setConfirmingRestore}
+        title={meta.title}
+        description={t("massUpdate.restoreConfirm", {
+          arg0: meta.selectedCount,
+        })}
+        confirmLabel={t("massUpdate.restore")}
+        onConfirm={() => {
+          setConfirmingRestore(false);
+          restoreRun.mutate();
         }}
       />
     </div>

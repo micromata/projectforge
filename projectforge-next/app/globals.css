@@ -443,21 +443,23 @@
   padding: 0 0.05em;
 }
 
-/* Legend swatches — same tokens applied to arbitrary inline elements. */
-span.row-deleted {
-  background-color: var(--row-deleted);
+/*
+ * Legend swatches. The `--row-*` tokens are whole-row background *tints* (0.09–0.2 alpha) and read as
+ * near-blank at swatch size, so the chip shows the solid hue the tint is derived from instead — the same
+ * brand colours, at full strength, so a 12px dot is actually recognisable in both themes.
+ */
+span.row-deleted,
+span.row-grey {
+  background-color: rgb(120, 120, 120);
 }
 span.row-red {
-  background-color: var(--row-red);
+  background-color: var(--brand-pink);
 }
 span.row-green {
-  background-color: var(--row-green);
+  background-color: var(--brand-green);
 }
 span.row-blue {
-  background-color: var(--row-blue);
-}
-span.row-grey {
-  background-color: var(--row-grey);
+  background-color: var(--brand-teal);
 }
 
 /*

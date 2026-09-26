@@ -50,12 +50,15 @@ import java.io.Serializable
 /**
  * Mass update of liquidity entries after selection in the next list (`liquidity.page.tsx`), the counterpart
  * of the invoice mass update ([org.projectforge.rest.fibu.EingangsrechnungMultiSelectedPageRest]). Editable
- * fields: amount, subject, the paid override, [LiquidityEntryDO.autoSetPaid] and comment.
+ * fields: amount, subject, the paid status and comment.
  *
- * The paid override and autoSetPaid are booleans the metadata path does not carry natively (a boolean builds
- * a checkbox, for which no value property is resolved), so they are declared with explicit [values]: the
- * frontend then renders a combobox (empty = no change) and posts the choice as `textValue`. The paid override
- * is three-state (automatic / paid / unpaid), mirroring the nullable [LiquidityEntryDO.paid].
+ * The paid status is a boolean the metadata path does not carry natively (a boolean builds a checkbox, for
+ * which no value property is resolved), so it is declared with explicit [values]: the frontend then renders a
+ * combobox (empty = no change) and posts the choice as `textValue`. It is the single three-state control for
+ * the paid status (automatic / paid / unpaid) and folds in [LiquidityEntryDO.autoSetPaid]: "automatic" sets
+ * `paid = null`, `autoSetPaid = true`; "paid"/"unpaid" force `paid` and clear `autoSetPaid`. There is no
+ * separate autoSetPaid field, because `effectivePaid = paid ?? (autoSetPaid && dateOfPayment < today)` makes
+ * `paid = null` with `autoSetPaid = false` indistinguishable from "unpaid".
  *
  * @author Kai Reinhard
  */
@@ -86,8 +89,8 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
 
     /**
      * The layout free field set the next mass update page renders. `amount`/`subject` may only be set (no
-     * delete); `comment` is a full text field (set/append/replace/delete); `paid` and `autoSetPaid` are
-     * value-based comboboxes (empty = no change).
+     * delete); `comment` is a full text field (set/append/replace/delete); `paid` is the value-based
+     * three-state combobox (empty = no change) that also drives autoSetPaid (see class doc).
      */
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         return listOf(
@@ -100,14 +103,6 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
                     UISelectValue(PAID_AUTOMATIC, translate("plugins.liquidityplanning.entry.paid.automatic")),
                     UISelectValue("true", translate("plugins.liquidityplanning.entry.paid.paid")),
                     UISelectValue("false", translate("plugins.liquidityplanning.entry.paid.unpaid")),
-                ),
-            ),
-            MassUpdateFieldDeclaration(
-                field = "autoSetPaid",
-                showDeleteOption = false,
-                values = listOf(
-                    UISelectValue("true", translate("yes")),
-                    UISelectValue("false", translate("no")),
                 ),
             ),
             MassUpdateFieldDeclaration(field = "comment", showAppendOption = true),
@@ -128,7 +123,6 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
             "amount",
             "subject",
             "paid",
-            "autoSetPaid",
             showDeleteOption = false,
         )
         createAndAddFields(layoutContext, massUpdateData, layout, "comment", showAppendOption = true)
@@ -155,18 +149,20 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
             }
             TextFieldModification.processTextParameter(entry, "subject", params)
             TextFieldModification.processTextParameter(entry, "comment", params)
-            // Three-state paid override: "automatic" clears the override (null), "true"/"false" force it.
+            // Single three-state paid status, folding in autoSetPaid: "automatic" clears the manual override
+            // (null) and turns the auto rule on; "true"/"false" force the status and turn the auto rule off.
             params["paid"]?.let { param ->
                 if (param.hasAction) {
-                    entry.paid = when (param.textValue) {
-                        PAID_AUTOMATIC -> null
-                        else -> param.textValue?.toBoolean()
+                    when (param.textValue) {
+                        PAID_AUTOMATIC -> {
+                            entry.paid = null
+                            entry.autoSetPaid = true
+                        }
+                        else -> {
+                            entry.paid = param.textValue?.toBoolean()
+                            entry.autoSetPaid = false
+                        }
                     }
-                }
-            }
-            params["autoSetPaid"]?.let { param ->
-                if (param.hasAction) {
-                    param.textValue?.toBoolean()?.let { entry.autoSetPaid = it }
                 }
             }
             massUpdateContext.commitUpdate(
@@ -176,6 +172,55 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
             )
         }
         return null
+    }
+
+    /** Liquidity entries may be deleted and restored in bulk (soft delete via [LiquidityEntryDao]). */
+    override fun supportsMassDeletion(): Boolean = true
+
+    /**
+     * Soft-deletes the selected entries. Like [proceedMassUpdate] it first materializes selected virtual
+     * (recurring) occurrences into real rows via [resolveSelectedEntries]: a materialized, then deleted row
+     * suppresses its virtual occurrence anyway (the projector checks `(seriesId, seriesDate)` including
+     * soft-deleted rows), so deleting an occurrence stays consistent with the series model.
+     */
+    override fun proceedMassDelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<LiquidityEntryDO>,
+    ) {
+        resolveSelectedEntries(selectedIds).forEach { entry ->
+            massUpdateContext.startUpdate(entry)
+            entry.deleted = true
+            massUpdateContext.commitUpdate(
+                identifier4Message = entry.subject ?: "#${entry.id}",
+                entry,
+                update = { liquidityEntryDao.markAsDeleted(entry) },
+            )
+        }
+    }
+
+    /**
+     * Restores the selected, already deleted entries. Only real (positive) ids are undeleted; a virtual
+     * occurrence was never materialized, so it is not "deleted" and is ignored.
+     */
+    override fun proceedMassUndelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<LiquidityEntryDO>,
+    ) {
+        val (realIds, _) = partitionIds(selectedIds)
+        if (realIds.isEmpty()) {
+            return
+        }
+        liquidityEntryDao.select(realIds)?.forEach { entry ->
+            massUpdateContext.startUpdate(entry)
+            entry.deleted = false
+            massUpdateContext.commitUpdate(
+                identifier4Message = entry.subject ?: "#${entry.id}",
+                entry,
+                update = { liquidityEntryDao.undelete(entry) },
+            )
+        }
     }
 
     /**

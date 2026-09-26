@@ -101,6 +101,11 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
     final LabelValueChoiceRenderer<UserPrefArea> areaChoiceRenderer = new LabelValueChoiceRenderer<UserPrefArea>();
     for (final UserPrefArea area : UserPrefAreaRegistry.instance()
         .getOrderedEntries(ThreadLocalUserContext.getLocale())) {
+      // TIMESHEET_TEMPLATE and USER_FAVORITE are deprecated and no longer editable here (kept in the registry only for
+      // resolving legacy database entries).
+      if (area == UserPrefArea.TIMESHEET_TEMPLATE || area == UserPrefArea.USER_FAVORITE) {
+        continue;
+      }
       areaChoiceRenderer.addValue(area, parent.getString("userPref.area." + area.getKey()));
     }
     return areaChoiceRenderer;

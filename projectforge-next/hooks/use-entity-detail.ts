@@ -26,6 +26,14 @@ export interface EntityWithId {
 interface WriteOptions {
   /** Query key of the list page, so a write refreshes it. E.g. `["book"]`. */
   listQueryKey: readonly unknown[];
+  /**
+   * Further list query keys a write here must refresh, beside its own — for an entity whose save
+   * changes a list keyed under a *different* root. Editing a liquidity series (`["liquiditySeries"]`)
+   * changes the projected occurrences of the liquidity entry list (`["liquidity"]`), which would stay
+   * stale otherwise, since the two roots are disjoint and prefix invalidation never reaches across
+   * (see `PageDef.extraInvalidateKeys`). Empty for every ordinary entity.
+   */
+  extraInvalidateKeys?: readonly (readonly unknown[])[];
 }
 
 /** Query parameters of a preset — see [useEntityDetail]'s `newParams`. */
@@ -101,7 +109,7 @@ function nonEmpty(params?: NewEntryParams): NewEntryParams | undefined {
  */
 export function useSaveEntity<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
@@ -109,7 +117,13 @@ export function useSaveEntity<T extends EntityWithId>(
     onSuccess: (result, data) => {
       // A rejected entity is a regular answer here (HTTP 406), not an error - nothing changed.
       if (result.kind !== "ok") return;
-      invalidateEntity(qc, entity, result.id ?? data.id, listQueryKey);
+      invalidateEntity(
+        qc,
+        entity,
+        result.id ?? data.id,
+        listQueryKey,
+        extraInvalidateKeys
+      );
     },
   });
 }
@@ -126,14 +140,20 @@ export function useSaveEntity<T extends EntityWithId>(
  */
 export function useEntityAction<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, { action: string; data: T }>({
     mutationFn: ({ action, data }) => postEntityAction(entity, action, data),
     onSuccess: (result, { data }) => {
       if (result.kind !== "ok") return;
-      invalidateEntity(qc, entity, result.id ?? data.id, listQueryKey);
+      invalidateEntity(
+        qc,
+        entity,
+        result.id ?? data.id,
+        listQueryKey,
+        extraInvalidateKeys
+      );
     },
   });
 }
@@ -147,13 +167,15 @@ export function useEntityAction<T extends EntityWithId>(
  */
 export function useCancelEntityEdit<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => cancelEntityEdit(entity, data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: listQueryKey });
+      for (const key of extraInvalidateKeys ?? [])
+        void qc.invalidateQueries({ queryKey: key });
     },
   });
 }
@@ -164,14 +186,14 @@ export function useCancelEntityEdit<T extends EntityWithId>(
  */
 export function useDeleteEntity<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => markEntityAsDeleted(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
-      invalidateEntity(qc, entity, data.id, listQueryKey);
+      invalidateEntity(qc, entity, data.id, listQueryKey, extraInvalidateKeys);
     },
   });
 }
@@ -182,14 +204,14 @@ export function useDeleteEntity<T extends EntityWithId>(
  */
 export function useForceDeleteEntity<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => forceDeleteEntity(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
-      invalidateEntity(qc, entity, data.id, listQueryKey);
+      invalidateEntity(qc, entity, data.id, listQueryKey, extraInvalidateKeys);
     },
   });
 }
@@ -203,14 +225,14 @@ export function useForceDeleteEntity<T extends EntityWithId>(
  */
 export function useUndeleteEntity<T extends EntityWithId>(
   entity: string,
-  { listQueryKey }: WriteOptions
+  { listQueryKey, extraInvalidateKeys }: WriteOptions
 ) {
   const qc = useQueryClient();
   return useMutation<EntityWriteResult, Error, T>({
     mutationFn: (data) => undeleteEntity(entity, data),
     onSuccess: (result, data) => {
       if (result.kind !== "ok") return;
-      invalidateEntity(qc, entity, data.id, listQueryKey);
+      invalidateEntity(qc, entity, data.id, listQueryKey, extraInvalidateKeys);
     },
   });
 }
@@ -223,9 +245,12 @@ export function invalidateEntity(
   qc: QueryClient,
   entity: string,
   id: number | null,
-  listQueryKey?: readonly unknown[]
+  listQueryKey?: readonly unknown[],
+  extraInvalidateKeys?: readonly (readonly unknown[])[]
 ): void {
   if (listQueryKey) void qc.invalidateQueries({ queryKey: listQueryKey });
+  for (const key of extraInvalidateKeys ?? [])
+    void qc.invalidateQueries({ queryKey: key });
   if (id == null) return;
   void qc.invalidateQueries({ queryKey: [entity, id] });
   void qc.invalidateQueries({ queryKey: historyQueryKey(entity, id) });

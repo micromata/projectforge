@@ -118,7 +118,10 @@ export function EntityEditBody<
 }: EntityEditBodyProps<Row, Values, Data, M>) {
   const t = useTranslations();
   const { edit } = page;
-  const writeOptions = { listQueryKey: page.queryKey };
+  const writeOptions = {
+    listQueryKey: page.queryKey,
+    extraInvalidateKeys: page.extraInvalidateKeys,
+  };
 
   // A new entry has nothing to load — the hook stays disabled for id null.
   const {
