@@ -1914,10 +1914,12 @@
           "_": "Number of installments",
           "endless": "Endless (leave empty)"
         },
+        "editHint": "Changes to this series affect only future occurrences that have not been edited yet. Occurrences already edited or marked as paid are independent entries and stay unchanged.",
         "editLink": "Edit series",
         "interval": {
           "months": "Every N months"
         },
+        "occurrenceHint": "Saving turns this occurrence into an independent entry that no longer follows later changes to the series. The date of payment can be changed freely; it stays the n-th occurrence of the series.",
         "partOf": "Part of the series »{arg0}«",
         "repeat": {
           "_": "Repeat",

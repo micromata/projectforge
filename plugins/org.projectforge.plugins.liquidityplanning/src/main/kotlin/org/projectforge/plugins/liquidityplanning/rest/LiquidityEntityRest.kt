@@ -28,10 +28,12 @@ import mu.KotlinLogging
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.liquidityplanning.LiquidityEntriesStatistics
@@ -214,10 +216,11 @@ class LiquidityEntityRest :
             filters.add(AmountTypeFilter(amountType))
         }
 
-        val fromDateEntry = source.entries.find { it.field == BASE_DATE_FILTER }
-        fromDateEntry?.synthetic = true
-        parseFromDate(fromDateEntry?.value?.value)?.let { fromDate ->
-            filters.add(PaymentDateFromFilter(fromDate))
+        val dateEntry = source.entries.find { it.field == BASE_DATE_FILTER }
+        dateEntry?.synthetic = true
+        val (from, to) = paymentDateBounds(dateEntry)
+        if (from != null || to != null) {
+            filters.add(PaymentDateRangeFilter(from, to))
         }
 
         // A "next days" value left over from a previously stored filter (the list no longer offers it, only
@@ -245,7 +248,7 @@ class LiquidityEntityRest :
         }
         val result = super.postProcessResultSet(resultSet, request, magicFilter)
         if (resultSet.offset == null) {
-            val fromDate = parseFromDate(magicFilter.entries.find { it.field == BASE_DATE_FILTER }?.value?.value)
+            val fromDate = paymentDateBounds(magicFilter.entries.find { it.field == BASE_DATE_FILTER }).first
             result.statistics = LiquidityStatistics(baseDao.buildStatistics(resultSet.resultSet), fromDate)
         }
         return result
@@ -256,16 +259,20 @@ class LiquidityEntityRest :
      * and then narrowed by the same synthetic filters the real rows went through (the [CustomResultFilter]s
      * run before this method, so their predicates are reapplied here to the virtual rows).
      *
-     * The window is `[from, today + 24 months]`. Its lower bound `from` is the "Bezahldatum from" filter when
-     * set; otherwise it defaults to 24 months back so a series' recent occurrences (last month's rent, say)
-     * still show without an endless old series flooding the list with years of history — the user narrows it
-     * further with the from-date filter, which bounds real and virtual rows alike.
+     * The window is `[from, to]` from the "Bezahldatum" date-range filter. Its lower bound defaults to 24
+     * months back so a series' recent occurrences (last month's rent, say) still show without an endless old
+     * series flooding the list with years of history, and its upper bound to 24 months out; the user narrows
+     * both with the date-range filter, which bounds real and virtual rows alike.
      */
     private fun virtualRowsForList(magicFilter: MagicFilter): List<LiquidityEntryDO> {
         val today = LocalDate.now()
-        val fromDate = parseFromDate(magicFilter.entries.find { it.field == BASE_DATE_FILTER }?.value?.value)
-        val horizonStart = fromDate ?: today.minusMonths(LIST_HORIZON_MONTHS)
-        val virtual = liquiditySeriesProjector.project(horizonStart, today.plusMonths(LIST_HORIZON_MONTHS))
+        val (from, to) = paymentDateBounds(magicFilter.entries.find { it.field == BASE_DATE_FILTER })
+        val horizonStart = from ?: today.minusMonths(LIST_HORIZON_MONTHS)
+        val horizonEnd = to ?: today.plusMonths(LIST_HORIZON_MONTHS)
+        if (horizonEnd.isBefore(horizonStart)) {
+            return emptyList()
+        }
+        val virtual = liquiditySeriesProjector.project(horizonStart, horizonEnd)
         if (virtual.isEmpty()) {
             return virtual
         }
@@ -471,13 +478,16 @@ class LiquidityEntityRest :
     }
 
     /**
-     * The "Bezahldatum from" lower bound: keeps entries whose date of payment is on or after [fromDate]. An
-     * entry without a date of payment is kept (it sorts to the end of the list), the same way the forecast
-     * treats a missing date as not-yet-due rather than overdue.
+     * The "Bezahldatum" date range: keeps entries whose date of payment lies within [from]..[to] (each bound
+     * optional). An entry without a date of payment is kept (it sorts to the end of the list), the same way
+     * the forecast treats a missing date as not-yet-due rather than overdue.
      */
-    private class PaymentDateFromFilter(private val fromDate: LocalDate) : CustomResultFilter<LiquidityEntryDO> {
+    private class PaymentDateRangeFilter(
+        private val from: LocalDate?,
+        private val to: LocalDate?,
+    ) : CustomResultFilter<LiquidityEntryDO> {
         override fun match(list: MutableList<LiquidityEntryDO>, element: LiquidityEntryDO): Boolean {
-            return matchesFromDate(element, fromDate)
+            return matchesDateRange(element, from, to)
         }
     }
 
@@ -517,10 +527,18 @@ class LiquidityEntityRest :
             }
         }
 
-        /** "Bezahldatum from" predicate, shared by [PaymentDateFromFilter] and the projection. */
-        private fun matchesFromDate(entry: LiquidityEntryDO, fromDate: LocalDate): Boolean {
+        /** "Bezahldatum" range predicate, shared by [PaymentDateRangeFilter] and the projection. */
+        private fun matchesDateRange(entry: LiquidityEntryDO, from: LocalDate?, to: LocalDate?): Boolean {
             val payment = entry.dateOfPayment ?: return true
-            return !payment.isBefore(fromDate)
+            if (from != null && payment.isBefore(from)) {
+                return false
+            }
+            return to == null || !payment.isAfter(to)
+        }
+
+        /** The from/to bounds of the "Bezahldatum" date-range filter (each null when not set). */
+        private fun paymentDateBounds(entry: MagicFilterEntry?): Pair<LocalDate?, LocalDate?> {
+            return PFDayUtils.parseDate(entry?.value?.fromValue) to PFDayUtils.parseDate(entry?.value?.toValue)
         }
 
         private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"

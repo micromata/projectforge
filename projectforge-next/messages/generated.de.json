@@ -1914,10 +1914,12 @@
           "_": "Anzahl Raten",
           "endless": "Endlos (leer lassen)"
         },
+        "editHint": "Änderungen an dieser Serie wirken sich nur auf künftige, noch nicht bearbeitete Raten aus. Bereits bearbeitete oder bezahlte Raten sind eigenständige Einträge und bleiben unverändert.",
         "editLink": "Serie bearbeiten",
         "interval": {
           "months": "Alle N Monate"
         },
+        "occurrenceHint": "Beim Speichern wird diese Rate zu einem eigenständigen Eintrag und folgt späteren Änderungen an der Serie nicht mehr. Das Zahldatum ist frei änderbar; die Rate bleibt die n-te Rate der Serie.",
         "partOf": "Teil der Serie »{arg0}«",
         "repeat": {
           "_": "Wiederholen",
