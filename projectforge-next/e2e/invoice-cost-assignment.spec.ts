@@ -103,7 +103,7 @@ test.describe("invoice cost assignment", () => {
     await expect(header).toHaveCount(0);
   });
 
-  test("offers the completeness filter as a permanent checkbox", async ({
+  test("offers the completeness filter as a permanent toggle pill", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
@@ -128,14 +128,16 @@ test.describe("invoice cost assignment", () => {
 
     // A pill of its own rather than a field behind the picker: `defaultFilter` keeps it in the filter
     // bar, since whether anything is still missing is a standing question of whoever books the invoices.
-    const pill = page.getByRole("button", {
-      name: t("filter.editEntry", { arg0: label }),
-    });
+    // A boolean filter is a toggle: the pill flips it in place, with no popover and no checkbox step
+    // (see FilterPillShell.onToggle). Its accessible name is the label, its state is `aria-pressed`.
+    const pill = page.getByRole("button", { name: label, exact: true });
     await expect(pill).toBeVisible();
+    await expect(pill).toHaveAttribute("aria-pressed", "false");
     await pill.click();
-    await expect(page.locator(`#filter-${FILTER_ID}`)).toBeVisible();
-    // Not applied — the stored filter of the account stays untouched.
-    await page.keyboard.press("Escape");
+    await expect(pill).toHaveAttribute("aria-pressed", "true");
+    // Toggle back so the account's stored filter is left as it was found.
+    await pill.click();
+    await expect(pill).toHaveAttribute("aria-pressed", "false");
   });
 });
 

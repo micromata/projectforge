@@ -52,6 +52,11 @@ export function FilterPill({
   const isPeriod =
     element.filterType === "DATE" || element.filterType === "TIMESTAMP";
 
+  // A boolean is on or off: the pill toggles it in place rather than opening a popover with a lone
+  // checkbox (see [FilterPillShell] onToggle). Emptying it removes a normal pill and leaves a
+  // default-filter pill on the row, exactly as saving an emptied value does elsewhere.
+  const isBoolean = element.filterType === "BOOLEAN";
+
   // A period in effect: the pill offers arrows that page it without opening the popover, so the list —
   // and the statistics above it — step month by month while the popover stays closed.
   const kinds = useFilterPeriodKinds();
@@ -102,6 +107,12 @@ export function FilterPill({
       onCancel={cancel}
       onDelete={onDelete}
       contentClassName={isPeriod ? "w-80" : isTask ? "w-96" : undefined}
+      onToggle={
+        isBoolean
+          ? () =>
+              onSave(value?.value === "true" ? undefined : { value: "true" })
+          : undefined
+      }
     >
       <FilterField
         element={element}
