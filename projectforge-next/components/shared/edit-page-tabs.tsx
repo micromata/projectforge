@@ -35,15 +35,18 @@ export interface EditPageTabsProps {
   onSelectTab?: (tab: string) => void;
 }
 
+// A segmented control (mirrors the shadcn Tabs `default` variant): the whole bar is one rounded,
+// muted track, the selected tab a raised card inside it. Reads as one group even when it wraps to a
+// second row — an underline bar loses its shared baseline the moment it does (see EditPageTabs).
 const TAB_CLASS =
-  "-mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors";
+  "rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function tabClass(selected: boolean): string {
   return cn(
     TAB_CLASS,
     selected
-      ? "border-primary font-bold text-primary"
-      : "border-transparent text-foreground/70 hover:text-primary"
+      ? "bg-background font-semibold text-foreground shadow-sm"
+      : "text-foreground/60 hover:text-foreground"
   );
 }
 
@@ -62,53 +65,55 @@ export function EditPageTabs({
   const pathname = usePathname();
 
   return (
-    <div
-      role="tablist"
-      className="flex shrink-0 items-end border-b-[1.5px] border-border bg-background px-6"
-    >
-      {tabs.map((tab, i) => {
-        // activeId wins: while a tab beside the form is open, the form's scroll position says nothing
-        // about which tab that is.
-        const selected = activeId ? tab.id === activeId : i === activeIndex;
-        if (tab.tab) {
-          // Controlled: a modal has no shareable URL, so its side-tabs are buttons over local state.
-          const sideTab = tab.tab;
-          return onSelectTab ? (
+    <div className="shrink-0 border-b-[1.5px] border-border bg-background px-6 py-2">
+      <div
+        role="tablist"
+        className="flex w-fit max-w-full flex-wrap items-center gap-1 rounded-lg bg-muted p-1"
+      >
+        {tabs.map((tab, i) => {
+          // activeId wins: while a tab beside the form is open, the form's scroll position says nothing
+          // about which tab that is.
+          const selected = activeId ? tab.id === activeId : i === activeIndex;
+          if (tab.tab) {
+            // Controlled: a modal has no shareable URL, so its side-tabs are buttons over local state.
+            const sideTab = tab.tab;
+            return onSelectTab ? (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onSelectTab(sideTab)}
+                className={tabClass(selected)}
+              >
+                {tab.label}
+              </button>
+            ) : (
+              <Link
+                key={tab.id}
+                href={`${pathname}?${tabQuery(params, sideTab)}`}
+                role="tab"
+                aria-selected={selected}
+                className={tabClass(selected)}
+              >
+                {tab.label}
+              </Link>
+            );
+          }
+          return (
             <button
               key={tab.id}
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => onSelectTab(sideTab)}
+              onClick={() => onSelect?.(i)}
               className={tabClass(selected)}
             >
               {tab.label}
             </button>
-          ) : (
-            <Link
-              key={tab.id}
-              href={`${pathname}?${tabQuery(params, sideTab)}`}
-              role="tab"
-              aria-selected={selected}
-              className={tabClass(selected)}
-            >
-              {tab.label}
-            </Link>
           );
-        }
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            onClick={() => onSelect?.(i)}
-            className={tabClass(selected)}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
+        })}
+      </div>
     </div>
   );
 }

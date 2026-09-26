@@ -262,14 +262,9 @@ export const ORDER_PAGE = definePage<
           // lonely grid cell beside it (see makeJiraFieldLinks).
           { custom: ReferenzJiraLinks, span: 3 },
           { custom: CustomerProjectFields, span: 3 },
-          { name: "contactPerson" },
-          { name: "projectManager" },
-          { name: "headOfBusinessManager" },
-          { name: "salesManager" },
           // The three dates of the order's own progress — when it was entered, when it was decided, when
-          // it was assigned — as one line, which is how a reader compares them. `startsRow`, because the
-          // four managers above end mid-row and the line would otherwise begin in the last column.
-          { name: "erfassungsDatum", startsRow: true },
+          // it was assigned — as one line, which is how a reader compares them.
+          { name: "erfassungsDatum" },
           { name: "entscheidungsDatum" },
           { name: "beauftragungsDatum" },
           {
@@ -286,6 +281,19 @@ export const ORDER_PAGE = definePage<
           { name: "bindungsFrist" },
           // 0 to 100, so three digits are the most it ever shows.
           { name: "probabilityOfOccurrence", maxDigits: 3 },
+        ],
+      },
+      {
+        // The four people an order is assigned to (the "PM/HOB/KAM/CP" of the list column), gathered into
+        // one card of their own rather than trailing the head grid. A generic key, so any other form that
+        // groups the same fields can reuse it.
+        id: "contactPersons",
+        titleKey: "contactPersons",
+        fields: [
+          { name: "contactPerson" },
+          { name: "projectManager" },
+          { name: "headOfBusinessManager" },
+          { name: "salesManager" },
         ],
       },
       {
