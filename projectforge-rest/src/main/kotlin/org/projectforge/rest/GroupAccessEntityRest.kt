@@ -108,7 +108,10 @@ class GroupAccessEntityRest :
                 "user",
                 label = translate("user"),
                 autoCompletion = AutoCompletion.getAutoCompletion4Users(),
-            ).also { it.defaultFilter = true }
+            ).also {
+                it.defaultFilter = true
+                it.tooltip = translate("access.tooltip.filter.user")
+            }
         )
         elements.add(
             UIFilterObjectElement(
@@ -124,20 +127,24 @@ class GroupAccessEntityRest :
         )
         // The three options of the legacy list form (AccessListForm), all default off (see AccessFilter):
         // inherit ancestor rights, and additionally include the task's structure ancestors / descendants.
-        elements.add(UIFilterBooleanElement("inherit", label = translate("inherit"), defaultFilter = true))
+        // Tooltips carried over from the Wicket form (which explained each option via a help icon).
+        elements.add(
+            UIFilterBooleanElement("inherit", label = translate("inherit"), defaultFilter = true)
+                .also { it.tooltip = translate("access.tooltip.filter.inherit") }
+        )
         elements.add(
             UIFilterBooleanElement(
                 "includeAncestorTasks",
                 label = translate("access.filter.includeAncestorTasks"),
                 defaultFilter = true,
-            )
+            ).also { it.tooltip = translate("access.tooltip.filter.includeAncestorTasks") }
         )
         elements.add(
             UIFilterBooleanElement(
                 "includeDescendentTasks",
                 label = translate("access.filter.includeDescendentTasks"),
                 defaultFilter = true,
-            )
+            ).also { it.tooltip = translate("access.tooltip.filter.includeDescendentTasks") }
         )
     }
 

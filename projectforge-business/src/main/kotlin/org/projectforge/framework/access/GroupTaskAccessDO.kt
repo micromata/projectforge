@@ -65,6 +65,20 @@ import java.io.Serializable
         query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"
     )
 )
+@NamedEntityGraph(
+    // Fetch everything the list query needs in one shot, avoiding N+1 on the /access list
+    // (AccessDao.createQueryFilter -> BaseDao.select):
+    //  - accessEntries: else each row's GroupTaskAccess.copyFrom (orderedEntries) fires its own SELECT
+    //    on T_GROUP_TASK_ACCESS_ENTRY.
+    //  - group and task: both @ManyToOne default to EAGER, so without join-fetching them here Hibernate
+    //    issues a per-row secondary SELECT on T_GROUP and T_TASK.
+    name = GroupTaskAccessDO.ENTITY_GRAPH_WITH_ACCESS_ENTRIES,
+    attributeNodes = [
+        NamedAttributeNode(value = "accessEntries"),
+        NamedAttributeNode(value = "group"),
+        NamedAttributeNode(value = "task"),
+    ],
+)
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(includeDepth = 1)
@@ -325,5 +339,11 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
          * from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId
          */
         internal const val FIND_BY_TASK_AND_GROUP = "GroupTaskAccessDO_FindByTaskAndGroup"
+
+        /**
+         * Entity graph that fetches [accessEntries] together with the entity, avoiding the N+1 select on
+         * T_GROUP_TASK_ACCESS_ENTRY when the access list maps each row to its DTO. See [AccessDao.createQueryFilter].
+         */
+        const val ENTITY_GRAPH_WITH_ACCESS_ENTRIES = "GroupTaskAccessDO.accessEntries"
     }
 }
