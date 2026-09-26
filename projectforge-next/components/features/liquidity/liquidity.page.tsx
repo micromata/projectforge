@@ -186,7 +186,7 @@ export const LIQUIDITY_PAGE = definePage<
           const entry = data as unknown as LiquidityDetail | undefined;
           return entry != null && entry.id == null && entry.seriesId == null;
         },
-        fields: [{ custom: RepeatFields }],
+        fields: [{ custom: RepeatFields, span: 3 }],
       },
       // The read-only pointer back to the series, shown instead of the repeat block for any occurrence
       // (materialized, or being materialized with seriesId preset). See SeriesLink.
