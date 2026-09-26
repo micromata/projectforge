@@ -21,7 +21,7 @@ export interface SystemAction {
   run?: () => Promise<SystemMessageResponse | void>;
   /** i18n key of a yes/no question asked before [run] fires. */
   confirmKey?: string;
-  /** ICU values for [confirmKey] (the backend `{0}`/`{1}` placeholders become named args "0"/"1"). */
+  /** ICU values for [confirmKey] (the backend `{0}`/`{1}` placeholders become named args `arg0`/`arg1`). */
   confirmValues?: Record<string, string | number>;
   /** Rendered disabled (e.g. "Dump database", not yet migrated) with [disabledTooltipKey]. */
   disabled?: boolean;

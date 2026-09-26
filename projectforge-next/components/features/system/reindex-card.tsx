@@ -52,7 +52,7 @@ export function ReindexCard({ data }: { data: SystemAdminData }) {
                 text={t("system.admin.reindex.newestEntries.tooltip")}
                 openOnTap
               >
-                <span>{t("system.admin.reindex.newestEntries")}</span>
+                <span>{t("system.admin.reindex.newestEntries._")}</span>
               </HintTooltip>
             </Label>
             <Input
@@ -70,14 +70,14 @@ export function ReindexCard({ data }: { data: SystemAdminData }) {
                 text={t("system.admin.reindex.fromDate.tooltip")}
                 openOnTap
               >
-                <span>{t("system.admin.reindex.fromDate")}</span>
+                <span>{t("system.admin.reindex.fromDate._")}</span>
               </HintTooltip>
             </Label>
             <DateInput
               id="reindex-from-date"
               value={fromDate}
               onChange={setFromDate}
-              aria-label={t("system.admin.reindex.fromDate")}
+              aria-label={t("system.admin.reindex.fromDate._")}
             />
           </div>
           <Button size="sm" disabled={running} onClick={() => void onReindex()}>

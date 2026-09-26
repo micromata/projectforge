@@ -39,7 +39,7 @@ export function FormatLogEntriesCard() {
             size="sm"
             onClick={() => setFormatted(formatLogEntries(input))}
           >
-            {t("system.admin.button.formatLogEntries")}
+            {t("system.admin.button.formatLogEntries._")}
           </Button>
         </div>
         {formatted && (

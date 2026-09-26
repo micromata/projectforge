@@ -2275,7 +2275,9 @@
         },
         "dump": {
           "_": "Dump database",
-          "notMigrated": "Diese Funktion ist noch nicht in die neue Oberfläche migriert."
+          "notMigrated": "Diese Funktion ist noch nicht in die neue Oberfläche migriert.",
+          "question": "Do you really want to dump the whole database? On large systems this may result in a system failure.",
+          "tooltip": "Dumps the whole database to one xml file. You can use this as a manual backup method. You can import this dump into a new fresh ProjectForge installation via the set-up page. But note: On large systems this feature may slow down your system or may end up in a system failure. For large systems please use the dump methods of your database."
         },
         "export2FAConfiguration": {
           "_": "Export 2FA configuration",
@@ -2289,7 +2291,8 @@
           "_": "Format log entries",
           "textarea": {
             "tooltip": "Insert your log file snippets here."
-          }
+          },
+          "tooltip": "Use this feature to format log file outputs for better reading."
         },
         "optimizeAddressImages": {
           "_": "Adressbilder optimieren",
@@ -2345,6 +2348,7 @@
         },
         "newestEntries": {
           "_": "Number",
+          "subtitle": "Newest entries",
           "tooltip": "The number of the newest entries of each database entity to re-index (based on the date of the last modification) . If empty then no limit of maximal re-indexed entries for each entity is assumed."
         }
       },

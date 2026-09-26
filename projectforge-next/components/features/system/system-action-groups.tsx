@@ -29,6 +29,10 @@ interface ActionGroup {
  * All administration actions grouped as the classic page had them. Message actions toast their
  * translated result; export actions download a file; the mutating ones confirm first. "Dump database"
  * stays disabled (never migrated). The dev-only actions are appended only in development mode.
+ *
+ * The label keys carry the trailing `._`: each has a `.tooltip` (or `.question` / `.notMigrated`)
+ * sibling, so the bundle nests the base value under `_` (see the generator's `._` convention, as in
+ * `t("fibu.auftrag.position._")`). Without it `t()` would return the namespace object and show the key.
  */
 export function SystemActionGroups({ data }: { data: SystemAdminData }) {
   const t = useTranslations();
@@ -36,13 +40,13 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
   const development: SystemAction[] = [
     {
       key: "checkI18nProperties",
-      labelKey: "system.admin.button.checkI18nProperties",
+      labelKey: "system.admin.button.checkI18nProperties._",
       tooltipKey: "system.admin.button.checkI18nProperties.tooltip",
       run: downloadCheckI18nProperties,
     },
     {
       key: "debugUserGroupCache",
-      labelKey: "system.admin.button.debugUserGroupCache",
+      labelKey: "system.admin.button.debugUserGroupCache._",
       tooltipKey: "system.admin.button.debugUserGroupCache.tooltip",
       run: downloadDebugUserGroupCache,
     },
@@ -51,16 +55,16 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
     development.push(
       {
         key: "testDatabase",
-        labelKey: "system.admin.button.testDatabase",
+        labelKey: "system.admin.button.testDatabase._",
         tooltipKey: "system.admin.button.testDatabase.tooltip",
         run: testDatabase,
       },
       {
         key: "createTestBooks",
-        labelKey: "system.admin.button.createTestBooks",
+        labelKey: "system.admin.button.createTestBooks._",
         tooltipKey: "system.admin.button.createTestBooks.tooltip",
         confirmKey: "system.admin.development.testObjectsCreationQuestion",
-        confirmValues: { "0": 100, "1": "BookDO" },
+        confirmValues: { arg0: 100, arg1: "BookDO" },
         run: createTestBooks,
       }
     );
@@ -72,7 +76,7 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       actions: [
         {
           key: "refreshCaches",
-          labelKey: "system.admin.button.refreshCaches",
+          labelKey: "system.admin.button.refreshCaches._",
           tooltipKey: "system.admin.button.refreshCaches.tooltip",
           run: refreshCaches,
         },
@@ -84,19 +88,19 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       actions: [
         {
           key: "rereadConfiguration",
-          labelKey: "system.admin.button.rereadConfiguration",
+          labelKey: "system.admin.button.rereadConfiguration._",
           tooltipKey: "system.admin.button.rereadConfiguration.tooltip",
           run: rereadConfiguration,
         },
         {
           key: "exportConfiguration",
-          labelKey: "system.admin.button.exportConfiguration",
+          labelKey: "system.admin.button.exportConfiguration._",
           tooltipKey: "system.admin.button.exportConfiguration.tooltip",
           run: downloadExportConfiguration,
         },
         {
           key: "export2FAConfiguration",
-          labelKey: "system.admin.button.export2FAConfiguration",
+          labelKey: "system.admin.button.export2FAConfiguration._",
           tooltipKey: "system.admin.button.export2FAConfiguration.tooltip",
           run: downloadExport2FAConfiguration,
         },
@@ -107,7 +111,7 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       actions: [
         {
           key: "checkSystemIntegrity",
-          labelKey: "system.admin.button.checkSystemIntegrity",
+          labelKey: "system.admin.button.checkSystemIntegrity._",
           tooltipKey: "system.admin.button.checkSystemIntegrity.tooltip",
           run: downloadCheckSystemIntegrity,
         },
@@ -118,33 +122,33 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
       actions: [
         {
           key: "createMissingIndices",
-          labelKey: "system.admin.button.createMissingDatabaseIndices",
+          labelKey: "system.admin.button.createMissingDatabaseIndices._",
           tooltipKey:
             "system.admin.button.createMissingDatabaseIndices.tooltip",
           run: createMissingIndices,
         },
         {
           key: "dump",
-          labelKey: "system.admin.button.dump",
+          labelKey: "system.admin.button.dump._",
           disabled: true,
           disabledTooltipKey: "system.admin.button.dump.notMigrated",
         },
         {
           key: "exportSchema",
-          labelKey: "system.admin.button.schemaExport",
+          labelKey: "system.admin.button.schemaExport._",
           tooltipKey: "system.admin.button.schemaExport.tooltip",
           run: downloadExportSchema,
         },
         {
           key: "optimizeAddressImages",
-          labelKey: "system.admin.button.optimizeAddressImages",
+          labelKey: "system.admin.button.optimizeAddressImages._",
           tooltipKey: "system.admin.button.optimizeAddressImages.tooltip",
           confirmKey: "system.admin.button.optimizeAddressImages.question",
           run: downloadOptimizeAddressImages,
         },
         {
           key: "resetIdpPasswordSync",
-          labelKey: "system.admin.button.resetIdpPasswordSync",
+          labelKey: "system.admin.button.resetIdpPasswordSync._",
           tooltipKey: "system.admin.button.resetIdpPasswordSync.tooltip",
           confirmKey: "system.admin.button.resetIdpPasswordSync.question",
           run: resetIdpPasswordSync,
