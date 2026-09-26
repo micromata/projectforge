@@ -69,6 +69,14 @@ class HibernateSearchReindexer {
         indexedEntities = Search.mapping(entityManagerFactory).allIndexedEntities()
     }
 
+    /**
+     * All entity classes known to Hibernate Search, in the order used for a full re-index (same set the no-arg
+     * [rebuildDatabaseSearchIndices] iterates). Exposed so a full re-index can be handed to a [ReindexJob], which
+     * needs the explicit class list to report per-class progress.
+     */
+    val indexedEntityClasses: List<Class<*>>
+        get() = indexedEntities.map { it.javaClass() }
+
     fun execute() {
         log.info("Re-index job started.")
         /*if (databaseDao == null) {

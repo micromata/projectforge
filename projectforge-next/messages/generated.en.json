@@ -1666,6 +1666,7 @@
       "info": "Resets the current filter if you have any trouble with the given search function."
     },
     "sendSms": "Send SMS",
+    "system": "System",
     "taskTree": "Structure tree",
     "timesheetList": "Time sheets"
   },
@@ -2240,6 +2241,118 @@
   "status": "Status",
   "sum": "Sum",
   "system": {
+    "admin": {
+      "alertMessage": {
+        "copyAndPaste": {
+          "title": "For copy & paste"
+        }
+      },
+      "button": {
+        "checkI18nProperties": {
+          "_": "Check i18n properties",
+          "tooltip": "Check i18n properties for detecting missing translations in different languages."
+        },
+        "checkSystemIntegrity": {
+          "_": "Check system integrity",
+          "tooltip": "Runs some sanity checks (task tree, data transfer, etc.)."
+        },
+        "clearAlertMessage": "Clear alert message",
+        "createMissingDatabaseIndices": {
+          "_": "Create database indices",
+          "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
+        },
+        "createTestBooks": {
+          "_": "Create 100 test books",
+          "tooltip": "Creates 100 books of type BookDO for testing."
+        },
+        "debugUserGroupCache": {
+          "_": "Debug UserGroupCache",
+          "tooltip": "Downloads the current state of the UserGroupCache as a JSON file for debugging."
+        },
+        "dump": {
+          "_": "Dump database",
+          "notMigrated": "This function is not yet migrated to the new interface."
+        },
+        "export2FAConfiguration": {
+          "_": "Export 2FA configuration",
+          "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
+        },
+        "exportConfiguration": {
+          "_": "Export configuration",
+          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
+        },
+        "formatLogEntries": {
+          "_": "Format log entries",
+          "textarea": {
+            "tooltip": "Insert your log file snippets here."
+          }
+        },
+        "optimizeAddressImages": {
+          "_": "Optimize address images",
+          "question": "Do you really want to shrink and rebuild all address images? On large systems this may take a while.",
+          "tooltip": "Shrinks oversized address images if necessary and rebuilds all preview images."
+        },
+        "refreshCaches": {
+          "_": "Refresh all caches",
+          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
+        },
+        "reindex": "Reindex",
+        "rereadConfiguration": {
+          "_": "Reread configuration",
+          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
+        },
+        "resetIdpPasswordSync": {
+          "_": "Reset IdP password sync",
+          "question": "Do you really want to reset the IdP password sync flag for all users? Passwords will be re-synced on next login.",
+          "tooltip": "Resets the IdP password sync flag for all users. Passwords will be re-synced on the next login."
+        },
+        "schemaExport": {
+          "_": "Schema export",
+          "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
+        },
+        "setAlertMessage": "Set system alert message",
+        "testDatabase": {
+          "_": "Test database",
+          "tooltip": "Runs a database load test (development mode only, see the log files)."
+        },
+        "updateUserPrefs": {
+          "_": "Update all user prefs",
+          "tooltip": "All user xml preferences in the database are updated (read and saved). This is useful if the xml format of the user preferences was changed within a new ProjectForge release (if not done automatically by ProjectForge)."
+        }
+      },
+      "development": {
+        "testObjectsCreationQuestion": "Should you really want to create {arg0} test-objects of type {arg1}?"
+      },
+      "group": {
+        "title": {
+          "alertMessage": "Alert message",
+          "checks": "Checks",
+          "databaseActions": "Database actions",
+          "development": "Development",
+          "misc": {
+            "logEntries": "Format log entries"
+          },
+          "systemChecksAndFunctionality": {
+            "caches": "Caches",
+            "configuration": "Configuration"
+          }
+        }
+      },
+      "reindex": {
+        "fromDate": {
+          "_": "From date",
+          "tooltip": "Re-index only those entries with a date of last modification newer than the given date. This date setting is optional."
+        },
+        "newestEntries": {
+          "_": "Number",
+          "tooltip": "The number of the newest entries of each database entity to re-index (based on the date of the last modification) . If empty then no limit of maximal re-indexed entries for each entity is assumed."
+        }
+      },
+      "reindexNewestNEntries": {
+        "note": "(Based on the time of last modification of the entries.)"
+      },
+      "title": "Administration"
+    },
     "developmentSystem": "Development system"
   },
   "task": {
