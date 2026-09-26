@@ -27,6 +27,7 @@ import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 
 /**
@@ -61,7 +62,14 @@ class GroupTaskAccess(
         // with a display name).
         super.copyFrom(src)
         group = src.group?.let { Group().apply { copyFromMinimal(it) } }
-        task = src.task?.let { Task().apply { copyFromMinimal(it) } }
+        task = src.task?.let { taskDO ->
+            Task().apply {
+                copyFromMinimal(taskDO)
+                // The path to the root as the list column's tooltip, as the time sheet list shows it
+                // (Task.copyFrom4ListRow / TaskPropertyColumn) — kept consistent across every task column.
+                path = TaskFormatter.getTaskPath(taskDO.id)
+            }
+        }
         accessEntries = src.orderedEntries.map { AccessEntry(it) }.toMutableList()
     }
 

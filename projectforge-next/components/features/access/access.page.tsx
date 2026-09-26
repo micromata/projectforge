@@ -43,10 +43,12 @@ export const ACCESS_PAGE = definePage<
   columns: [
     {
       // The structure element the rights apply to. A computed column: the DTO carries the task as an
-      // id-only reference with a title, not a field the list could sort by that name.
+      // id-only reference with a title, not a field the list could sort by that name. The path to the
+      // root is the tooltip — the same as the time sheet list's task column, kept consistent.
       id: "task",
       labelKey: "task",
       accessor: (row) => row.task?.title ?? row.task?.displayName ?? null,
+      tooltip: (row) => row.task?.path ?? undefined,
       size: 320,
     },
     {

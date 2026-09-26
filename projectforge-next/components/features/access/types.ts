@@ -64,11 +64,15 @@ export type GroupRefDto = {
   name?: string;
 };
 
-/** A referenced task; `title` is its list column value, `displayName` its autocomplete label. */
+/**
+ * A referenced task; `title` is its list column value, `displayName` its autocomplete label, `path` the
+ * path to the root ("Micromata -> Business Unit -> ProjectForge") shown as the column's tooltip.
+ */
 export type TaskRefDto = {
   id: number;
   displayName?: string;
   title?: string;
+  path?: string;
 };
 
 /**
