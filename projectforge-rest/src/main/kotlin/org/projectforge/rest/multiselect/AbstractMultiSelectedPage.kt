@@ -35,6 +35,7 @@ import org.projectforge.datatransfer.DataTransferBridge
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
@@ -154,6 +155,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             statistics = getStatistics(selectedIds),
             statisticsData = getStatisticsData(selectedIds),
             initialParams = initialParams(request, selectedIds).takeIf { it.isNotEmpty() },
+            supportsDelete = supportsMassDeletion(),
+            supportsRestore = supportsMassDeletion(),
         )
     }
 
@@ -224,6 +227,144 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 changedFields = changedFields,
             )
         )
+    }
+
+    /**
+     * Whether this page also offers deleting whole selected entries (soft delete via
+     * [BaseDao.markAsDeleted]) and restoring them again ([BaseDao.undelete]) - the [deleteSelected] and
+     * [undeleteSelected] endpoints and, through the meta flags, the two buttons of the hand built page.
+     *
+     * Off by default: the generic infrastructure is available to every page, but each opts in explicitly
+     * (see [MultiSelectMetaData.supportsDelete]). Delete and restore are turned on together, since a soft
+     * delete only makes sense when it can be undone. A page that opts in either relies on the generic
+     * default over [pagesRest]'s [BaseDao] or overrides [proceedMassDelete]/[proceedMassUndelete].
+     */
+    protected open fun supportsMassDeletion(): Boolean = false
+
+    /**
+     * Soft-deletes the selected entries as one action - the entry level counterpart of [update], which
+     * only changes fields.
+     *
+     * Not routed through the field parameters (the "nothing to do" guard is about them, and there is no
+     * field here): it runs the same [MassUpdateContext] loop and writes the same Excel protocol as
+     * [update], but calls [BaseDao.markAsDeleted] instead of `update`. The result's [MassUpdateResult.changedFields]
+     * and the protocol name the *action* ("Deleted"), so both say what was done, not only how many.
+     */
+    @PostMapping("deleteSelected")
+    fun deleteSelected(request: HttpServletRequest): ResponseEntity<*> {
+        return massDeletion(request, delete = true)
+    }
+
+    /**
+     * Restores (undeletes) the selected, already soft-deleted entries - the counterpart of [deleteSelected].
+     * The user reaches the deleted rows by filtering the list on `deleted`, then picks them here.
+     */
+    @PostMapping("undeleteSelected")
+    fun undeleteSelected(request: HttpServletRequest): ResponseEntity<*> {
+        return massDeletion(request, delete = false)
+    }
+
+    /**
+     * The shared body of [deleteSelected]/[undeleteSelected]: the same selection, size and result handling
+     * as [update], but the run is a delete/restore rather than a field change.
+     */
+    private fun massDeletion(request: HttpServletRequest, delete: Boolean): ResponseEntity<*> {
+        if (!supportsMassDeletion()) {
+            return showValidationErrors(ValidationError(translate("massUpdate.error.deletionNotSupported")))
+        }
+        val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
+        if (selectedIds.isNullOrEmpty()) {
+            return showNoEntriesValidationError()
+        }
+        if (selectedIds.size > BaseDao.MAX_MASS_UPDATE) {
+            return showValidationErrors(
+                ValidationError(translateMsg(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, BaseDao.MAX_MASS_UPDATE))
+            )
+        }
+        // A synthetic "deleted" field so the run is tracked as a modification: this makes the result
+        // counters, the changed-fields line and the Excel protocol all name the delete/restore as the
+        // action taken (its displayName is the action's i18n key, translated by changedFieldsOf).
+        val actionKey = if (delete) "massUpdate.action.deleted" else "massUpdate.action.restored"
+        val param = MassUpdateParameter(name = "deleted", displayName = actionKey).apply { booleanValue = delete }
+        val massUpdateContext = object : MassUpdateContext<T>(mutableMapOf("deleted" to param)) {
+            override fun getId(obj: T): Long {
+                return this@AbstractMultiSelectedPage.getId(obj)
+            }
+        }
+        if (delete) {
+            proceedMassDelete(request, selectedIds, massUpdateContext)
+        } else {
+            proceedMassUndelete(request, selectedIds, massUpdateContext)
+        }
+        if (massUpdateContext.nothingDone) {
+            return showNoEntriesValidationError()
+        }
+        val changedFields = changedFieldsOf(massUpdateContext)
+        storeProtocol(request, massUpdateContext, changedFields)
+        return ResponseEntity.ok(
+            MassUpdateResult(
+                modifiedCounter = massUpdateContext.modifiedCounter,
+                unmodifiedCounter = massUpdateContext.unmodifiedCounter,
+                errorCounter = massUpdateContext.errorCounter,
+                resultMessage = massUpdateContext.resultMessage,
+                errors = massUpdateContext.errorMessages.map { MassUpdateError(it.identifier, it.message) },
+                downloadUrl = "${getRestPath()}/download",
+                changedFields = changedFields,
+            )
+        )
+    }
+
+    /**
+     * Soft-deletes the selected entries. Default over [pagesRest]'s [BaseDao.markAsDeleted]; a page
+     * overrides it when the ids need resolving first (e.g. the liquidity plugin materializes its virtual
+     * series rows). Access is checked per entry, so a missing right becomes a per-entry error in the
+     * result rather than a failed run.
+     */
+    protected open fun proceedMassDelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+    ) {
+        runMassDeletion(selectedIds, massUpdateContext, delete = true)
+    }
+
+    /**
+     * Restores the selected entries. Default over [pagesRest]'s [BaseDao.undelete]; overridable like
+     * [proceedMassDelete].
+     */
+    protected open fun proceedMassUndelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+    ) {
+        runMassDeletion(selectedIds, massUpdateContext, delete = false)
+    }
+
+    /**
+     * The generic delete/restore loop over [pagesRest]'s [BaseDao]. The cast is unchecked because `T` is
+     * unbounded here, but `BaseDao`'s type parameter is bounded to [ExtendedBaseDO], so every entry has a
+     * `deleted` flag and can be marked/undeleted.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun runMassDeletion(
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<T>,
+        delete: Boolean,
+    ) {
+        val dao = pagesRest.baseDao as BaseDao<ExtendedBaseDO<Long>>
+        val entries = dao.select(selectedIds) ?: return
+        entries.forEach { entry ->
+            val obj = entry as T
+            massUpdateContext.startUpdate(obj)
+            // Pre-set the flag so the modification snapshot (read before the persist lambda runs) already
+            // reflects the action; markAsDeleted/undelete set it again when they persist.
+            entry.deleted = delete
+            massUpdateContext.commitUpdate(
+                identifier4Message = "#${entry.id}",
+                modifiedObj = obj,
+                update = { if (delete) dao.markAsDeleted(entry) else dao.undelete(entry) },
+            )
+        }
     }
 
     /**

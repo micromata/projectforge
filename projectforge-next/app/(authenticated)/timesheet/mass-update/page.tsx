@@ -16,6 +16,7 @@ export default function TimesheetMassUpdatePage() {
       entity={TIMESHEET_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={TIMESHEET_PAGE.route}
+      listQueryKey={TIMESHEET_PAGE.queryKey}
       // The task/cost-unit picker the generic renderer has no field for: the cost units follow the task,
       // a dependency a declared field cannot express (see MassUpdateForm.customFields). The backend
       // declares `taskAndKost2` as a custom field right below the activity report, so this renderer draws

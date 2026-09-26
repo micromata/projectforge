@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useStore } from "@tanstack/react-form";
 import {
   Select,
   SelectContent,
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SelectItemWithHint } from "@/components/shared/form/select-item-with-hint";
 import {
   FieldShell,
   useFieldIds,
@@ -18,18 +20,26 @@ import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { LIQUIDITY_ENTRY_METADATA } from "@/lib/metadata/liquidity-entry.generated";
 
-/** The select value standing for the "automatic" (null) paid state — never a boolean string. */
+/** The select value standing for the "automatic" state — never a boolean string. */
 const PAID_AUTOMATIC = "auto";
 
 /**
- * The three-state paid override as a select, unlike the plain checkbox its BOOLEAN metadata would build:
- * "automatic" (null), "paid" (true) or "not paid" (false). Automatic follows the `autoSetPaid` rule
- * declared beside it — once set, the entry counts as paid the day after its date of payment — so a select
- * rather than a checkbox, which could only say true/false and never "leave it to the rule". The backend
- * computes the same, `effectivePaid = paid ?? (autoSetPaid && dateOfPayment < today)`.
+ * The paid status as a single three-state select — the only control for it, folding in what used to be a
+ * separate `autoSetPaid` checkbox beside it. Its three states are the only ones a user can meaningfully
+ * distinguish, because `effectivePaid = paid ?? (autoSetPaid && dateOfPayment < today)`:
  *
- * A custom field (not derivable from metadata) so it can sit on the same row as the date, amount and the
- * autoSetPaid checkbox (see liquidity.page.tsx).
+ * - "automatic" → `paid = null`, `autoSetPaid = true`: no manual override, counts as paid once its date of
+ *   payment has passed.
+ * - "paid" → `paid = true`: forced paid.
+ * - "not paid" → `paid = false`: forced unpaid.
+ *
+ * `paid = null` with `autoSetPaid = false` is effectively "not paid" (`effectivePaid` is always false), so it
+ * reads as "not paid" here and needs no fourth option — that redundant fourth combination was the confusing
+ * duplication of a `paid` select plus an `autoSetPaid` checkbox. Selecting a state writes both fields; the
+ * backend still stores and computes them independently.
+ *
+ * A custom field (not derivable from metadata) so it can sit on the same row as the date and amount and drive
+ * two form fields at once (see liquidity.page.tsx).
  */
 export function PaidSelectField({ className }: { className?: string }) {
   const t = useTranslations();
@@ -37,6 +47,13 @@ export function PaidSelectField({ className }: { className?: string }) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
+  // The select value derives from both fields, so it must re-render when the sibling autoSetPaid changes too.
+  const autoSetPaid = useStore(
+    form.store,
+    (state: unknown) =>
+      (state as { values: { autoSetPaid?: boolean | null } }).values
+        .autoSetPaid ?? false
+  );
   return (
     <form.Field name={"paid" as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -44,7 +61,13 @@ export function PaidSelectField({ className }: { className?: string }) {
         const meta = field.state.meta as FieldMetaState;
         const invalid = meta.isTouched && !meta.isValid;
         const value = field.state.value as boolean | null | undefined;
-        const raw = value == null ? PAID_AUTOMATIC : String(value);
+        // null + autoSetPaid = "automatic"; null without it is effectively unpaid, so it reads as "false".
+        const raw =
+          value == null
+            ? autoSetPaid
+              ? PAID_AUTOMATIC
+              : "false"
+            : String(value);
         return (
           <FieldShell
             name="paid"
@@ -57,9 +80,18 @@ export function PaidSelectField({ className }: { className?: string }) {
           >
             <Select
               value={raw}
-              onValueChange={(v) =>
-                field.handleChange(v === PAID_AUTOMATIC ? null : v === "true")
-              }
+              onValueChange={(v) => {
+                // A closed shadcn Select's hidden native input fires "" on any controlled value change —
+                // the form reset onto the loaded entity is one, and its <option>s exist only while the
+                // dropdown is open, so a closed one matches nothing and posts "". Ignoring it is what
+                // keeps a loaded status from being wiped to "not paid" (SelectField carries the same guard).
+                if (v === "") return;
+                field.handleChange(v === PAID_AUTOMATIC ? null : v === "true");
+                form.setFieldValue(
+                  "autoSetPaid" as never,
+                  (v === PAID_AUTOMATIC) as never
+                );
+              }}
             >
               <SelectTrigger
                 id={ids.controlId}
@@ -69,9 +101,14 @@ export function PaidSelectField({ className }: { className?: string }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={PAID_AUTOMATIC}>
+                {/* The hint explains what "automatic" does — the note the removed autoSetPaid checkbox
+                    used to carry — and is part of the clickable option (see SelectItemWithHint). */}
+                <SelectItemWithHint
+                  value={PAID_AUTOMATIC}
+                  hint={t("plugins.liquidityplanning.entry.autoSetPaid.info")}
+                >
                   {t("plugins.liquidityplanning.entry.paid.automatic")}
-                </SelectItem>
+                </SelectItemWithHint>
                 <SelectItem value="true">
                   {t("plugins.liquidityplanning.entry.paid.paid")}
                 </SelectItem>

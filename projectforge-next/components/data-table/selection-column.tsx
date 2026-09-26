@@ -84,7 +84,9 @@ function RowCheckbox({
         // `select._`: the bare key `select` has children in the bundle (`select.placeholder`), so the
         // generator nests it under the reserved "_".
         aria-label={label ?? t("select._")}
-        className="size-3.5"
+        // A stronger border than the form default (`border-input` is very pale): the box sits on the
+        // tinted mass-update rows, where the default all but disappears (see the light/dark `--input`).
+        className="size-3.5 border-muted-foreground/50"
       />
     </div>
   );

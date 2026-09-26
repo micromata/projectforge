@@ -623,6 +623,15 @@ export interface PageDef<
   /** React Query key of the list, e.g. `["cost1"]`. */
   queryKey: readonly unknown[];
   /**
+   * Further list query keys a write to this entity must refresh, beside its own [queryKey] — for a page
+   * whose save changes a list keyed under a *different* root. The series editor
+   * (`queryKey: ["liquiditySeries"]`) changes the projected occurrences the liquidity entry list
+   * (`["liquidity"]`) shows, so it names that key here; without it the list stays stale until a manual
+   * reload, because the two roots are disjoint and React Query's prefix invalidation never crosses
+   * between them. Absent for every ordinary entity, whose own list is the only one a write touches.
+   */
+  extraInvalidateKeys?: readonly (readonly unknown[])[];
+  /**
    * Fetch the list one server-side page at a time instead of shipping the whole result set and paging
    * it in the browser (the default). Off unless a page opts in — the generic paging stack is
    * unreachable without it, which keeps unmigrated and legacy list paths untouched.

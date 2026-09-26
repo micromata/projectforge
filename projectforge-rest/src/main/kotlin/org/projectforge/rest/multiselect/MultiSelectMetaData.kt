@@ -82,6 +82,16 @@ class MultiSelectMetaData(
      * untouched must not be posted as a change. Null when the page computes none.
      */
     val initialParams: Map<String, MassUpdateParameter>? = null,
+    /**
+     * Whether the page offers deleting whole selected entries as one action (soft delete) - the "delete
+     * selected" button. Off unless the page opts in (see [AbstractMultiSelectedPage.supportsMassDeletion]).
+     */
+    val supportsDelete: Boolean = false,
+    /**
+     * Whether the page offers restoring selected, already deleted entries - the "restore" button. Turned
+     * on together with [supportsDelete], since a soft delete is only offered where it can be undone.
+     */
+    val supportsRestore: Boolean = false,
 )
 
 /**

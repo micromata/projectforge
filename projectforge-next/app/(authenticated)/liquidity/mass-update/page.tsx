@@ -15,6 +15,8 @@ export default function LiquidityMassUpdatePage() {
       entity={LIQUIDITY_PAGE.entity}
       massUpdate={massUpdate}
       listRoute={LIQUIDITY_PAGE.route}
+      listQueryKey={LIQUIDITY_PAGE.queryKey}
+      extraInvalidateKeys={LIQUIDITY_PAGE.extraInvalidateKeys}
       // Built here rather than inside the generic page, because it renders the liquidity list's own
       // columns — and those are typed, so only the page that declares them can pass them on.
       selectedEntries={(count) => (

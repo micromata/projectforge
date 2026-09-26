@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageShell } from "@/components/shared/page-shell";
 import { Spinner } from "@/components/shared/spinner";
@@ -29,6 +29,8 @@ export function MassUpdatePage({
   entity,
   massUpdate: def,
   listRoute,
+  listQueryKey,
+  extraInvalidateKeys,
   selectedEntries,
   actions,
   customFields,
@@ -38,6 +40,18 @@ export function MassUpdatePage({
   massUpdate: MassUpdateDef;
   /** Where "back" leads — this app's list, not the legacy one the session remembers. */
   listRoute: string;
+  /**
+   * React Query key of that list (the route's `PageDef.queryKey`), so returning to it after a run
+   * refetches instead of showing the cache from before. A mass update / delete never touches the
+   * cache otherwise — it runs on the backend over the session's selection — so the list would keep
+   * the rows the run just changed until the entry went stale or the tab was reloaded.
+   */
+  listQueryKey: readonly unknown[];
+  /**
+   * Further list keys the run must refresh, beside [listQueryKey] — the entity's
+   * `PageDef.extraInvalidateKeys` (e.g. a liquidity change also moves the series-projected list).
+   */
+  extraInvalidateKeys?: readonly (readonly unknown[])[];
   /**
    * The collapsible list of the picked entries, as a function of how many those are.
    *
@@ -59,6 +73,7 @@ export function MassUpdatePage({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const qc = useQueryClient();
   const leaveSelection = useSelectionStore((state) => state.leave);
   const meta = useQuery({
     queryKey: ["massUpdateMeta", def.endpoint],
@@ -114,6 +129,11 @@ export function MassUpdatePage({
         // this app still believes in.
         onLeave={() => {
           leaveSelection(entity);
+          // A run changed rows on the backend without ever touching the query cache, so the list has
+          // to be marked stale before we route back — otherwise it serves what it held before the run.
+          void qc.invalidateQueries({ queryKey: listQueryKey });
+          for (const key of extraInvalidateKeys ?? [])
+            void qc.invalidateQueries({ queryKey: key });
           router.push(listRoute);
         }}
       />

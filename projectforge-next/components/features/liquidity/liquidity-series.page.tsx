@@ -10,7 +10,7 @@ import {
   emptyLiquiditySeriesValues,
   toSeriesFormValues,
 } from "./liquidity-series-values";
-import { LIQUIDITY_ROUTE } from "./liquidity.page";
+import { LIQUIDITY_LIST_QUERY_KEY, LIQUIDITY_ROUTE } from "./liquidity.page";
 import type { LiquidityListRow, LiquiditySeriesDetail } from "./types";
 
 /** REST category of the series editor — `LiquiditySeriesRest` is mapped to "liquiditySeries". */
@@ -38,6 +38,11 @@ export const LIQUIDITY_SERIES_PAGE = definePage<
   metadata: LIQUIDITY_SERIES_METADATA,
   route: LIQUIDITY_SERIES_ROUTE,
   queryKey: [LIQUIDITY_SERIES_ENTITY],
+  // A series save changes the projected (still-virtual) occurrences the entry list shows, so it must
+  // refresh that list too — its key is a disjoint root, which prefix invalidation would never reach
+  // (see PageDef.extraInvalidateKeys). Copy-on-write means materialized occurrences stay frozen; the
+  // list still re-reads, which is correct and cheap.
+  extraInvalidateKeys: [LIQUIDITY_LIST_QUERY_KEY],
   categoryKey: "menu.reporting",
   titleKey: "plugins.liquidityplanning.series.title",
   // No list: a series has none, and none of the list machinery reads this (see the module comment).

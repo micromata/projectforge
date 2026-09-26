@@ -1558,6 +1558,8 @@
       "replace": "{arg0}: „{arg1}“ wird ersetzt durch „{arg2}“",
       "set": "{arg0}: wird gesetzt auf „{arg1}“"
     },
+    "delete": "Ausgewählte löschen",
+    "deleteConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich gelöscht werden? Sie können anschließend wiederhergestellt werden.",
     "entriesFound": "Es sind {arg0} Einträge ausgewählt.",
     "error": {
       "table": {
@@ -1587,6 +1589,8 @@
       "replace": "Suchen & ersetzen",
       "set": "Setzen / überschreiben"
     },
+    "restore": "Ausgewählte wiederherstellen",
+    "restoreConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich wiederhergestellt werden?",
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {
@@ -1911,12 +1915,15 @@
       "menu": "Liquidität",
       "series": {
         "badge": "Serie",
+        "badgeInfo": "Dieser Eintrag ist eine Rate einer wiederkehrenden Serie.",
         "count": {
           "_": "Anzahl Raten",
           "endless": "Endlos (leer lassen)"
         },
         "editHint": "Änderungen an dieser Serie wirken sich nur auf künftige, noch nicht bearbeitete Raten aus. Bereits bearbeitete oder bezahlte Raten sind eigenständige Einträge und bleiben unverändert.",
         "editLink": "Serie bearbeiten",
+        "fixedBadge": "Fixiert",
+        "fixedBadgeInfo": "Eine fixierte Rate: ein gespeicherter Eintrag, der späteren Änderungen an der Serie nicht mehr folgt.",
         "interval": {
           "info": "1 bedeutet jeden Monat, 2 jeden zweiten Monat, 3 jeden dritten Monat usw.",
           "months": "Alle N Monate"
