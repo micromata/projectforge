@@ -181,8 +181,7 @@ export const LIQUIDITY_PAGE = definePage<
       // not an occurrence" (see RepeatFields).
       {
         id: "repeat",
-        titleKey: "plugins.liquidityplanning.series.repeat",
-        collapsed: true,
+        titleKey: "plugins.liquidityplanning.series.title",
         visible: ({ data }) => {
           const entry = data as unknown as LiquidityDetail | undefined;
           return entry != null && entry.id == null && entry.seriesId == null;

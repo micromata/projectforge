@@ -1923,7 +1923,8 @@
         "partOf": "Teil der Serie »{arg0}«",
         "repeat": {
           "_": "Wiederholen",
-          "enable": "Diesen Eintrag als Serie wiederholen"
+          "enable": "Diesen Eintrag als Serie wiederholen",
+          "info": "Eine Serie wiederholt diesen Eintrag in festem Abstand (z. B. monatliche Miete). Die Raten werden automatisch angezeigt, nicht gespeichert, und werden erst eigenständig, sobald eine geöffnet und gespeichert wird."
         },
         "startDate": "Startdatum",
         "title": "Liquiditätsserie"

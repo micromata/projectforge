@@ -1923,7 +1923,8 @@
         "partOf": "Part of the series »{arg0}«",
         "repeat": {
           "_": "Repeat",
-          "enable": "Repeat this entry as a series"
+          "enable": "Repeat this entry as a series",
+          "info": "A series repeats this entry at a fixed interval (e.g. monthly rent). The occurrences are shown automatically, not stored, and only become independent once you open and save one."
         },
         "startDate": "Start date",
         "title": "Liquidity series"

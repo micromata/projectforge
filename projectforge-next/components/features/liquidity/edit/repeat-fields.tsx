@@ -36,27 +36,34 @@ export function RepeatFields({ className }: { className?: string }) {
         label={t("plugins.liquidityplanning.series.repeat.enable")}
       />
       {enabled && (
-        <div className="flex flex-wrap items-start gap-4">
-          {/* Every N months, anchored on the entry's date of payment; only monthly is offered for now. */}
-          <NumberField
-            name="repeat.intervalMonths"
-            label={t("plugins.liquidityplanning.series.interval.months")}
-            metadataLess
-            maxDigits={3}
-          />
-          {/* Empty = endless; a number caps the series at that many installments (LiquiditySeriesDO.count). */}
-          <NumberField
-            name="repeat.count"
-            // `series.count` is both a label and the parent of `series.count.endless`, so the generator
-            // exports the text as `series.count._` — resolve it through leafKeyOf like every other key.
-            label={t(
-              leafKeyOf("plugins.liquidityplanning.series.count", t.has)
-            )}
-            hint={t("plugins.liquidityplanning.series.count.endless")}
-            metadataLess
-            maxDigits={4}
-          />
-        </div>
+        <>
+          {/* The one thing to know before turning it on: the occurrences are shown, not stored, and each is
+              only frozen once touched — so the series stays editable in one place. */}
+          <p className="text-sm text-muted-foreground">
+            {t("plugins.liquidityplanning.series.repeat.info")}
+          </p>
+          <div className="flex flex-wrap items-start gap-4">
+            {/* Every N months, anchored on the entry's date of payment; only monthly is offered for now. */}
+            <NumberField
+              name="repeat.intervalMonths"
+              label={t("plugins.liquidityplanning.series.interval.months")}
+              metadataLess
+              maxDigits={3}
+            />
+            {/* Empty = endless; a number caps the series at that many installments (LiquiditySeriesDO.count). */}
+            <NumberField
+              name="repeat.count"
+              // `series.count` is both a label and the parent of `series.count.endless`, so the generator
+              // exports the text as `series.count._` — resolve it through leafKeyOf like every other key.
+              label={t(
+                leafKeyOf("plugins.liquidityplanning.series.count", t.has)
+              )}
+              hint={t("plugins.liquidityplanning.series.count.endless")}
+              metadataLess
+              maxDigits={4}
+            />
+          </div>
+        </>
       )}
     </div>
   );
