@@ -10,7 +10,11 @@ import {
 } from "./liquidity-schema";
 import { emptyLiquidityValues, toFormValues } from "./liquidity-values";
 import { PaidSelectField } from "./edit/paid-fields";
+import { RepeatFields } from "./edit/repeat-fields";
+import { SeriesLink } from "./edit/series-link";
+import { LiquiditySubjectCell } from "./liquidity-subject-cell";
 import type { LiquidityDetail, LiquidityListRow } from "./types";
+import { isVirtualRow } from "./types";
 
 /** REST category of the liquidity plugin — `LiquidityEntityRest` is mapped to "liquidity". */
 export const LIQUIDITY_ENTITY = "liquidity";
@@ -79,6 +83,9 @@ export const LIQUIDITY_PAGE = definePage<
       minSize: 200,
       className: "font-semibold text-primary",
       pinned: "left",
+      // Marks the series entries with a "Series" badge — the projected virtual occurrences and the
+      // materialized ones alike (see LiquiditySubjectCell).
+      cell: (ctx) => <LiquiditySubjectCell row={ctx.row.original} />,
     },
     { name: "comment", size: 280 },
     // Whether the paid status is derived after the date of payment; off by default, an occasional detail.
@@ -94,6 +101,19 @@ export const LIQUIDITY_PAGE = definePage<
     if (row.effectivePaid) return undefined;
     if (!row.dateOfPayment || row.dateOfPayment < isoToday()) return "row-red";
     return "row-blue";
+  },
+  // A virtual (projected) occurrence has no stored row to open: clicking it opens the add form prefilled
+  // from the series (`newEntryParams` forwards the two to `newEntry`), and the first save materializes it.
+  // Every other row falls through to the normal edit page (returning undefined).
+  onRowClick: (row) => {
+    if (!isVirtualRow(row) || row.seriesId == null || !row.seriesDate) {
+      return undefined;
+    }
+    const params = new URLSearchParams({
+      seriesId: String(row.seriesId),
+      seriesDate: row.seriesDate,
+    });
+    return `${LIQUIDITY_ROUTE}/new?${params.toString()}`;
   },
   // The sums over the whole result set, above the table as the Wicket list shows them. The cast is where the
   // untyped `ResultSet.statistics` becomes what `LiquidityEntityRest` sends.
@@ -128,6 +148,9 @@ export const LIQUIDITY_PAGE = definePage<
     autoFocus: "dateOfPayment",
     // Built from the entry on screen and opened unsaved for the user to save (CloneSupport.CLONE).
     clone: true,
+    // Forwarded to `newEntry` so the add form can be prefilled from a series occurrence — the seam a
+    // click on a virtual row uses to materialize it (see onRowClick and LiquidityEntityRest.newBaseDO).
+    newEntryParams: ["seriesId", "seriesDate"],
     sections: [
       {
         id: "entry",
@@ -152,6 +175,28 @@ export const LIQUIDITY_PAGE = definePage<
           { name: "subject", span: 2 },
           { name: "comment", rows: 4, span: 3 },
         ],
+      },
+      // Turning a new entry into a recurring series — shown only for a new, series-free entry (a series
+      // can't spawn another). `data` is the loaded/preset entity: id null and no seriesId means "new and
+      // not an occurrence" (see RepeatFields).
+      {
+        id: "repeat",
+        titleKey: "plugins.liquidityplanning.series.repeat",
+        collapsed: true,
+        visible: ({ data }) => {
+          const entry = data as unknown as LiquidityDetail | undefined;
+          return entry != null && entry.id == null && entry.seriesId == null;
+        },
+        fields: [{ custom: RepeatFields }],
+      },
+      // The read-only pointer back to the series, shown instead of the repeat block for any occurrence
+      // (materialized, or being materialized with seriesId preset). See SeriesLink.
+      {
+        id: "series",
+        titleKey: "plugins.liquidityplanning.series.title",
+        visible: ({ data }) =>
+          (data as unknown as LiquidityDetail | undefined)?.seriesId != null,
+        fields: [{ custom: SeriesLink }],
       },
     ],
   },

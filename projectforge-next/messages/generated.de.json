@@ -340,6 +340,7 @@
     "recurrence": {
       "frequency": {
         "daily": "Täglich",
+        "hourly": "Stündlich",
         "label": "Häufigkeit",
         "monthly": "Monatlich",
         "none": "Ohne",
@@ -1875,6 +1876,24 @@
         "startAmount": "Anfangsbetrag"
       },
       "menu": "Liquidität",
+      "series": {
+        "badge": "Serie",
+        "count": {
+          "_": "Anzahl Raten",
+          "endless": "Endlos (leer lassen)"
+        },
+        "editLink": "Serie bearbeiten",
+        "interval": {
+          "months": "Alle N Monate"
+        },
+        "partOf": "Teil der Serie »{arg0}«",
+        "repeat": {
+          "_": "Wiederholen",
+          "enable": "Diesen Eintrag als Serie wiederholen"
+        },
+        "startDate": "Startdatum",
+        "title": "Liquiditätsserie"
+      },
       "title": {
         "heading": "Liquiditätsplanung"
       },

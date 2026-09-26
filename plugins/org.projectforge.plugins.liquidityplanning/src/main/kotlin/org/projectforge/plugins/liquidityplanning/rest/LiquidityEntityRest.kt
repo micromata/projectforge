@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.plugins.liquidityplanning.LiquidityEntriesStatistics
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
@@ -39,10 +40,15 @@ import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastBuilder
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastCashFlow
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastSettings
+import org.projectforge.plugins.liquidityplanning.LiquidityMaterializationService
+import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDO
+import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDao
+import org.projectforge.plugins.liquidityplanning.LiquiditySeriesProjector
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDOEntityRest
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.filter.UIFilterElement
@@ -82,11 +88,66 @@ class LiquidityEntityRest :
     @Autowired
     private lateinit var liquidityForecastBuilder: LiquidityForecastBuilder
 
+    @Autowired
+    private lateinit var liquiditySeriesProjector: LiquiditySeriesProjector
+
+    @Autowired
+    private lateinit var liquiditySeriesDao: LiquiditySeriesDao
+
+    @Autowired
+    private lateinit var liquidityMaterializationService: LiquidityMaterializationService
+
     /**
-     * The four filters the Wicket list (`LiquidityEntryListForm`) offers and no single property of
-     * [LiquidityEntryDO] answers: the payment state, the amount type, the base date and the "next days"
-     * window. All synthetic (see [preProcessMagicFilter]); the base date opens the window and is also read
-     * by the statistics banner to tell whether the figures are of a past date.
+     * Prefills the form for a virtual occurrence the user clicked (`/liquidity/new?seriesId=…&seriesDate=…`)
+     * with the series' template values and the occurrence's anchor day, so saving materializes exactly that
+     * occurrence (see [LiquidityMaterializationService.buildPrefill]). A plain "add" (no series parameters)
+     * falls through to the default empty entry.
+     */
+    override fun newBaseDO(request: HttpServletRequest?): LiquidityEntryDO {
+        val seriesId = request?.getParameter("seriesId")?.toLongOrNull()
+        val seriesDate = request?.getParameter("seriesDate")
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        if (seriesId != null && seriesDate != null) {
+            liquidityMaterializationService.buildPrefill(seriesId, seriesDate)?.let { return it }
+        }
+        return super.newBaseDO(request)
+    }
+
+    /**
+     * Turns a new entry into a recurring series when the form's "repeat" block is enabled: creates the
+     * [LiquiditySeriesDO] from this entry's template values (anchored at its date of payment) and links this
+     * entry as the series' first, materialized occurrence, so it is not also projected virtually. Runs only
+     * for a fresh, non-series entry — an occurrence already belonging to a series never carries an enabled
+     * repeat block (the frontend shows the section only when adding).
+     */
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: LiquidityEntryDO, postData: PostData<LiquidityEntryDO>) {
+        val repeat = postData.data.repeat
+        if (repeat?.enabled != true || obj.seriesId != null) {
+            return
+        }
+        val series = LiquiditySeriesDO()
+        series.startDate = obj.dateOfPayment
+        series.frequency = repeat.frequency ?: RecurrenceFrequency.MONTHLY
+        series.intervalMonths = repeat.intervalMonths.coerceAtLeast(1)
+        series.count = repeat.count?.takeIf { it > 0 }
+        series.amount = obj.amount
+        series.subject = obj.subject
+        series.comment = obj.comment
+        series.autoSetPaid = obj.autoSetPaid
+        liquiditySeriesDao.insert(series)
+        // Link the saved entry as the series' first (materialized) occurrence so the virtual occurrence 0 at
+        // the same anchor is suppressed and no duplicate appears.
+        obj.seriesId = series.id
+        obj.seriesDate = obj.dateOfPayment
+        baseDao.update(obj)
+    }
+
+    /**
+     * The synthetic list filters no single property of [LiquidityEntryDO] answers: the payment state, the
+     * amount type and the "date of payment from" date ("Bezahldatum"). All synthetic (see
+     * [preProcessMagicFilter]); the from date is a lower bound on the date of payment and is also read by the
+     * statistics banner to tell whether the figures are of a past date. (The Wicket list's "next days" window
+     * belongs to the forecast, not the list, and is offered there — see [getForecast].)
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(
@@ -119,23 +180,12 @@ class LiquidityEntityRest :
             UIFilterElement(
                 BASE_DATE_FILTER,
                 UIFilterElement.FilterType.DATE,
-                // In the list this date bounds the entries by their date of payment ("Bezahldatum"), not the
-                // forecast's reference date ("Bezugsdatum") — that label belongs only to the forecast tab.
+                // A lower bound on the entries' date of payment ("Bezahldatum from …"): entries paid before it
+                // are hidden. Not the forecast's reference date ("Bezugsdatum") — that belongs to the forecast
+                // tab, together with its "next days" window.
                 label = translate("plugins.liquidityplanning.entry.dateOfPayment"),
                 defaultFilter = true,
             ),
-        )
-        elements.add(
-            UIFilterListElement(
-                NEXT_DAYS_FILTER,
-                label = translate("plugins.liquidityplanning.forecast.nextDays"),
-                multi = false,
-                defaultFilter = true,
-            ).also { element ->
-                element.values = NEXT_DAYS_OPTIONS.map { days ->
-                    UISelectValue(days.toString(), "$days")
-                }
-            },
         )
     }
 
@@ -164,16 +214,16 @@ class LiquidityEntityRest :
             filters.add(AmountTypeFilter(amountType))
         }
 
-        val baseDateEntry = source.entries.find { it.field == BASE_DATE_FILTER }
-        baseDateEntry?.synthetic = true
-        val baseDate = parseBaseDate(baseDateEntry?.value?.value)
-
-        val nextDaysEntry = source.entries.find { it.field == NEXT_DAYS_FILTER }
-        nextDaysEntry?.synthetic = true
-        val nextDays = nextDaysEntry?.value?.values?.firstOrNull { it.isNotBlank() }?.toIntOrNull() ?: 0
-        if (nextDays > 0) {
-            filters.add(NextDaysFilter(baseDate, nextDays))
+        val fromDateEntry = source.entries.find { it.field == BASE_DATE_FILTER }
+        fromDateEntry?.synthetic = true
+        parseFromDate(fromDateEntry?.value?.value)?.let { fromDate ->
+            filters.add(PaymentDateFromFilter(fromDate))
         }
+
+        // A "next days" value left over from a previously stored filter (the list no longer offers it, only
+        // the forecast does): mark it synthetic so the query builder ignores it rather than matching it
+        // against a non-existent property.
+        source.entries.find { it.field == NEXT_DAYS_FILTER }?.synthetic = true
 
         return filters
     }
@@ -188,12 +238,48 @@ class LiquidityEntityRest :
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
+        val virtual = virtualRowsForList(magicFilter)
+        if (virtual.isNotEmpty()) {
+            resultSet.resultSet = (resultSet.resultSet + virtual)
+                .sortedWith(compareBy(nullsLast<LocalDate>()) { it.dateOfPayment })
+        }
         val result = super.postProcessResultSet(resultSet, request, magicFilter)
         if (resultSet.offset == null) {
-            val baseDate = parseBaseDate(magicFilter.entries.find { it.field == BASE_DATE_FILTER }?.value?.value)
-            result.statistics = LiquidityStatistics(baseDao.buildStatistics(resultSet.resultSet), baseDate)
+            val fromDate = parseFromDate(magicFilter.entries.find { it.field == BASE_DATE_FILTER }?.value?.value)
+            result.statistics = LiquidityStatistics(baseDao.buildStatistics(resultSet.resultSet), fromDate)
         }
         return result
+    }
+
+    /**
+     * The virtual occurrences of the recurring series that belong in the list: projected over the list window
+     * and then narrowed by the same synthetic filters the real rows went through (the [CustomResultFilter]s
+     * run before this method, so their predicates are reapplied here to the virtual rows).
+     *
+     * The window is `[from, today + 24 months]`. Its lower bound `from` is the "Bezahldatum from" filter when
+     * set; otherwise it defaults to 24 months back so a series' recent occurrences (last month's rent, say)
+     * still show without an endless old series flooding the list with years of history — the user narrows it
+     * further with the from-date filter, which bounds real and virtual rows alike.
+     */
+    private fun virtualRowsForList(magicFilter: MagicFilter): List<LiquidityEntryDO> {
+        val today = LocalDate.now()
+        val fromDate = parseFromDate(magicFilter.entries.find { it.field == BASE_DATE_FILTER }?.value?.value)
+        val horizonStart = fromDate ?: today.minusMonths(LIST_HORIZON_MONTHS)
+        val virtual = liquiditySeriesProjector.project(horizonStart, today.plusMonths(LIST_HORIZON_MONTHS))
+        if (virtual.isEmpty()) {
+            return virtual
+        }
+        val paymentStatus = listFilterValue(magicFilter, PAYMENT_STATUS_FILTER)
+        val amountType = listFilterValue(magicFilter, AMOUNT_TYPE_FILTER)
+        return virtual.filter { entry ->
+            (paymentStatus == null || matchesPaymentStatus(entry, paymentStatus)) &&
+                (amountType == null || matchesAmountType(entry, amountType))
+        }
+    }
+
+    /** The chosen value of a single-select list filter (empty = not set). */
+    private fun listFilterValue(magicFilter: MagicFilter, field: String): String? {
+        return magicFilter.entries.find { it.field == field }?.value?.values?.firstOrNull { it.isNotBlank() }
     }
 
     /**
@@ -217,7 +303,10 @@ class LiquidityEntityRest :
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting liquidity entries as Excel file.")
-        val entries = getResultList(filter)
+        // Include the virtual (recurring) occurrences the list also shows, sorted in with the real entries.
+        val virtual = virtualRowsForList(filter)
+        val entries = (getResultList(filter) + virtual)
+            .sortedWith(compareBy(nullsLast<LocalDate>()) { it.dateOfPayment })
         if (entries.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
         }
@@ -267,7 +356,7 @@ class LiquidityEntityRest :
         // so the user gets back exactly what they entered.
         saveSettings(request)
 
-        val forecast = liquidityForecastBuilder.build(baseDate)
+        val forecast = liquidityForecastBuilder.build(baseDate, nextDays)
         val cashFlow = LiquidityForecastCashFlow(forecast, nextDays)
         var dueDateBalance = startAmount
         var expectedBalance = startAmount
@@ -367,11 +456,7 @@ class LiquidityEntityRest :
     /** Keeps only paid or only unpaid entries — `LiquidityEntryListForm`'s payment-state radio. */
     private class PaymentStatusFilter(private val status: String) : CustomResultFilter<LiquidityEntryDO> {
         override fun match(list: MutableList<LiquidityEntryDO>, element: LiquidityEntryDO): Boolean {
-            return when (status) {
-                PAYMENT_STATUS_PAID -> element.effectivePaid
-                PAYMENT_STATUS_UNPAID -> !element.effectivePaid
-                else -> true
-            }
+            return matchesPaymentStatus(element, status)
         }
     }
 
@@ -381,33 +466,18 @@ class LiquidityEntityRest :
      */
     private class AmountTypeFilter(private val type: String) : CustomResultFilter<LiquidityEntryDO> {
         override fun match(list: MutableList<LiquidityEntryDO>, element: LiquidityEntryDO): Boolean {
-            val amount = element.amount ?: return false
-            return when (type) {
-                AMOUNT_TYPE_CREDIT -> amount.signum() < 0
-                AMOUNT_TYPE_DEBIT -> amount.signum() > 0
-                else -> true
-            }
+            return matchesAmountType(element, type)
         }
     }
 
     /**
-     * The "next days" window of `LiquidityEntryDao.select`: from the base date on, entries whose date of
-     * payment lies within [nextDays]; before the base date only unpaid (overdue) entries are kept. An entry
-     * without a date of payment is treated as of the base date (day 0), so it stays in the window.
+     * The "Bezahldatum from" lower bound: keeps entries whose date of payment is on or after [fromDate]. An
+     * entry without a date of payment is kept (it sorts to the end of the list), the same way the forecast
+     * treats a missing date as not-yet-due rather than overdue.
      */
-    private class NextDaysFilter(
-        baseDate: LocalDate?,
-        private val nextDays: Int,
-    ) : CustomResultFilter<LiquidityEntryDO> {
-        private val base = PFDay.fromOrNow(baseDate)
-
+    private class PaymentDateFromFilter(private val fromDate: LocalDate) : CustomResultFilter<LiquidityEntryDO> {
         override fun match(list: MutableList<LiquidityEntryDO>, element: LiquidityEntryDO): Boolean {
-            val payment = element.dateOfPayment ?: return true
-            if (payment.isBefore(base.localDate)) {
-                // Past entries: keep only the unpaid (overdue) ones, drop what was already paid.
-                return !element.effectivePaid
-            }
-            return base.daysBetween(payment) <= nextDays
+            return matchesFromDate(element, fromDate)
         }
     }
 
@@ -422,8 +492,36 @@ class LiquidityEntityRest :
 
         internal const val BASE_DATE_FILTER = "baseDate"
 
+        /** The name of the forecast-only "next days" filter, neutralized if left over in a stored list filter. */
         internal const val NEXT_DAYS_FILTER = "nextDays"
-        private val NEXT_DAYS_OPTIONS = listOf(7, 10, 14, 30, 60, 90)
+
+        /** The fixed list projection horizon: virtual occurrences up to two years out are shown. */
+        private const val LIST_HORIZON_MONTHS = 24L
+
+        /** Payment-state predicate, shared by [PaymentStatusFilter] and the virtual-row projection. */
+        private fun matchesPaymentStatus(entry: LiquidityEntryDO, status: String): Boolean {
+            return when (status) {
+                PAYMENT_STATUS_PAID -> entry.effectivePaid
+                PAYMENT_STATUS_UNPAID -> !entry.effectivePaid
+                else -> true
+            }
+        }
+
+        /** Amount-type predicate (credit < 0, debit > 0), shared by [AmountTypeFilter] and the projection. */
+        private fun matchesAmountType(entry: LiquidityEntryDO, type: String): Boolean {
+            val amount = entry.amount ?: return false
+            return when (type) {
+                AMOUNT_TYPE_CREDIT -> amount.signum() < 0
+                AMOUNT_TYPE_DEBIT -> amount.signum() > 0
+                else -> true
+            }
+        }
+
+        /** "Bezahldatum from" predicate, shared by [PaymentDateFromFilter] and the projection. */
+        private fun matchesFromDate(entry: LiquidityEntryDO, fromDate: LocalDate): Boolean {
+            val payment = entry.dateOfPayment ?: return true
+            return !payment.isBefore(fromDate)
+        }
 
         private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"
 
@@ -431,10 +529,21 @@ class LiquidityEntityRest :
         private const val USER_PREF_AREA = "liquidityForecast"
         private const val USER_PREF_NAME = "settings"
 
-        /** The base date is today unless a past date is given (`LiquidityFilter.baseDate`). */
+        /**
+         * The forecast's reference date: today unless a past date is given (`LiquidityFilter.baseDate`) — the
+         * forecast always looks forward from now, so a future reference date is ignored.
+         */
         private fun parseBaseDate(value: String?): LocalDate? {
-            val date = value?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            val date = parseFromDate(value)
             return date?.takeIf { it.isBefore(LocalDate.now()) }
+        }
+
+        /**
+         * The list's "Bezahldatum from" date, taken as entered — unlike the forecast's base date it is not
+         * clamped to the past, so a future lower bound (only upcoming payments) works too.
+         */
+        private fun parseFromDate(value: String?): LocalDate? {
+            return value?.takeIf { it.isNotBlank() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         }
     }
 }

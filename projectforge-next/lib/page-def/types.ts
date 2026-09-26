@@ -669,6 +669,17 @@ export interface PageDef<
    */
   rowClassName?: (row: Row) => string | undefined;
   /**
+   * Diverts a row click to a route of this app instead of the entity's own edit page — for a row that
+   * is not an ordinary editable entry: a liquidity list's *virtual* series occurrence (negative id) has
+   * no stored row to open, so its click leads to `/liquidity/new?seriesId=…&seriesDate=…`, which
+   * materializes it (see LIQUIDITY_PAGE).
+   *
+   * Returning `undefined` falls through to the normal `openEntry(row.id)`, so a page only names the
+   * rows it wants to treat specially. A pure function of the row, keeping the declaration a value: the
+   * shell owns the navigation (`router.push`), the page only says where to (see entity-list-page).
+   */
+  onRowClick?: (row: Row) => string | undefined;
+  /**
    * Renders what the backend aggregated over the whole result set, between the toolbar and the table —
    * the sums of the order book (`ResultSet.statistics`, see OrderStatisticsLine).
    *

@@ -42,10 +42,17 @@ open class LiquidityForecastBuilder {
     @Autowired
     private lateinit var rechnungDao: RechnungDao
 
+    @Autowired
+    private lateinit var liquiditySeriesProjector: LiquiditySeriesProjector
+
     /**
      * Calculates expected dates of payments inside the last year (-365 days).
+     *
+     * @param nextDays How far ahead of [baseDate] the virtual occurrences of recurring series are projected
+     *   into the forecast (the forecast window; 0 = no series projection).
      */
-    open fun build(baseDate: LocalDate?): LiquidityForecast {
+    @JvmOverloads
+    open fun build(baseDate: LocalDate?, nextDays: Int = 0): LiquidityForecast {
         val useBaseDate = baseDate ?: LocalDate.now()
         val forecast = LiquidityForecast()
         // Consider only invoices of the last year:
@@ -66,6 +73,12 @@ open class LiquidityForecastBuilder {
         if (historicalForecast) {
             // A manual entry without a payment date is not before the base date, so it stays in the list.
             list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment?.isBefore(useBaseDate) == true }
+        }
+        if (nextDays > 0) {
+            // Project the recurring series' virtual occurrences into the forecast window. The projector
+            // already suppresses occurrences that have been materialized (they are real entries selected
+            // above), so no occurrence is counted twice.
+            list.addAll(liquiditySeriesProjector.project(useBaseDate, useBaseDate.plusDays(nextDays.toLong())))
         }
         forecast.set(list)
         forecast.build()

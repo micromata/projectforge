@@ -31,6 +31,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
+import org.projectforge.plugins.liquidityplanning.LiquidityMaterializationService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
@@ -67,6 +68,9 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
 
     @Autowired
     private lateinit var liquidityEntityRest: LiquidityEntityRest
+
+    @Autowired
+    private lateinit var liquidityMaterializationService: LiquidityMaterializationService
 
     override val layoutContext: LayoutContext = LayoutContext(LiquidityEntryDO::class.java)
 
@@ -135,8 +139,10 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
         selectedIds: Collection<Serializable>,
         massUpdateContext: MassUpdateContext<LiquidityEntryDO>,
     ): ResponseEntity<*>? {
-        val entries = liquidityEntryDao.select(selectedIds)
-        if (entries.isNullOrEmpty()) {
+        // Virtual (recurring) occurrences are selected by their negative synthetic id; materialize them into
+        // real, frozen rows before the update loop so a mass change over a mixed selection works uniformly.
+        val entries = resolveSelectedEntries(selectedIds)
+        if (entries.isEmpty()) {
             return null
         }
         val params = massUpdateContext.massUpdateParams
@@ -177,8 +183,32 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
      * (`LIQUIDITY_PAGE.massUpdate.statisticsLine`).
      */
     override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any? {
-        val entries = selectedIds?.let { liquidityEntryDao.select(it) } ?: return null
+        selectedIds ?: return null
+        val (realIds, virtualIds) = partitionIds(selectedIds)
+        // The preview must not persist: virtual occurrences are built transiently, real ones are loaded.
+        val entries = ArrayList<LiquidityEntryDO>()
+        if (realIds.isNotEmpty()) {
+            liquidityEntryDao.select(realIds)?.let { entries.addAll(it) }
+        }
+        virtualIds.forEach { id -> liquidityMaterializationService.preview(id)?.let { entries.add(it) } }
         return LiquidityEntityRest.LiquidityStatistics(liquidityEntryDao.buildStatistics(entries), null)
+    }
+
+    /** Loads the selected real entries and materializes the selected virtual occurrences into real rows. */
+    private fun resolveSelectedEntries(selectedIds: Collection<Serializable>): List<LiquidityEntryDO> {
+        val (realIds, virtualIds) = partitionIds(selectedIds)
+        val entries = ArrayList<LiquidityEntryDO>()
+        if (realIds.isNotEmpty()) {
+            liquidityEntryDao.select(realIds)?.let { entries.addAll(it) }
+        }
+        virtualIds.forEach { id -> liquidityMaterializationService.materialize(id)?.let { entries.add(it) } }
+        return entries
+    }
+
+    /** Splits selected ids into real (positive) and virtual (negative) ids, ignoring anything unparsable. */
+    private fun partitionIds(selectedIds: Collection<Serializable>): Pair<List<Long>, List<Long>> {
+        val ids = selectedIds.mapNotNull { (it as? Number)?.toLong() ?: it.toString().toLongOrNull() }
+        return ids.filter { it >= 0 } to ids.filter { it < 0 }
     }
 
     override fun ensureUserLogSubscription(): LogSubscription {
