@@ -108,8 +108,13 @@ class SystemRest {
     @Autowired
     private lateinit var hibernateSearchReindexer: HibernateSearchReindexer
 
-    @Autowired
-    private lateinit var i18nKeysUsage: I18nKeysUsageInterface
+    /**
+     * The only implementation ([org.projectforge.i18n.I18nKeysUsage]) lives in projectforge-application, which is not
+     * on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test contexts can
+     * still start; the checkI18nProperties endpoint guards against a missing bean at runtime.
+     */
+    @Autowired(required = false)
+    private var i18nKeysUsage: I18nKeysUsageInterface? = null
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -117,8 +122,13 @@ class SystemRest {
     @Autowired
     private lateinit var databaseTester: DatabaseTester
 
-    @Autowired
-    private lateinit var systemDiagnosticsExport: SystemDiagnosticsExport
+    /**
+     * The only implementation ([org.projectforge.start.ProjectForgeEndpoints]) lives in projectforge-application, which
+     * is not on the classpath of every (plugin/wicket) test context. Autowire it optionally so those Spring test
+     * contexts can still start; the export2FAConfiguration endpoint guards against a missing bean at runtime.
+     */
+    @Autowired(required = false)
+    private var systemDiagnosticsExport: SystemDiagnosticsExport? = null
 
     /** The initial state of the page: the current alert message, the reindex default, and the dev-mode flag. */
     class SystemAdminData(
@@ -206,6 +216,9 @@ class SystemRest {
         checkWriteAccess()
         log.info("Administration: export 2FA configuration.")
         val filename = "config-2FA-${DateHelper.getDateAsFilenameSuffix(Date())}.txt"
+        val systemDiagnosticsExport = this.systemDiagnosticsExport
+            ?: return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("SystemDiagnosticsExport service is not available.")
         return RestUtils.downloadFile(filename, systemDiagnosticsExport.getInfo())
     }
 
@@ -287,6 +300,9 @@ class SystemRest {
     fun checkI18nProperties(): ResponseEntity<*> {
         checkWriteAccess()
         log.info("Administration: check i18n properties.")
+        val i18nKeysUsage = this.i18nKeysUsage
+            ?: return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("I18nKeysUsage service is not available.")
         val excelFile = i18nKeysUsage.createExcelFile()
         return RestUtils.downloadFile(excelFile.filename, excelFile.bytes)
     }
