@@ -101,6 +101,13 @@ export interface MultiSelectMeta {
    * left at its preset (that would be a change they never made). Consumed by a `customFields` control.
    */
   initialParams?: Record<string, MassUpdateParameter>;
+  /**
+   * Whether the page offers deleting whole selected entries as one action (soft delete) — the "delete
+   * selected" button. Off unless the backend page opts in (`AbstractMultiSelectedPage.supportsMassDeletion`).
+   */
+  supportsDelete?: boolean;
+  /** Whether the page offers restoring selected, already deleted entries — the "restore" button. */
+  supportsRestore?: boolean;
 }
 
 /**
@@ -270,19 +277,43 @@ export async function massUpdate(
   params: Record<string, MassUpdateParameter>,
   signal?: AbortSignal
 ): Promise<MassUpdateOutcome> {
-  const path = `/rs/${page}/update`;
-  const res = await rawRequest(
-    path,
-    { method: "POST", body: JSON.stringify(params) },
-    signal
-  );
+  return postMassAction(`/rs/${page}/update`, JSON.stringify(params), signal);
+}
+
+/**
+ * Soft-deletes the selected entries as one action — the entry level counterpart of [massUpdate], offered
+ * only when `MultiSelectMeta.supportsDelete` is set. The ids come from the session; nothing is posted.
+ * A 406 is a regular answer here too (nothing selected).
+ */
+export async function deleteSelected(
+  page: string,
+  signal?: AbortSignal
+): Promise<MassUpdateOutcome> {
+  return postMassAction(`/rs/${page}/deleteSelected`, undefined, signal);
+}
+
+/** Restores (undeletes) the selected, already deleted entries — the counterpart of [deleteSelected]. */
+export async function undeleteSelected(
+  page: string,
+  signal?: AbortSignal
+): Promise<MassUpdateOutcome> {
+  return postMassAction(`/rs/${page}/undeleteSelected`, undefined, signal);
+}
+
+/** Shared POST + 406-as-validation handling of the run endpoints ([massUpdate]/[deleteSelected]/[undeleteSelected]). */
+async function postMassAction(
+  path: string,
+  body: string | undefined,
+  signal?: AbortSignal
+): Promise<MassUpdateOutcome> {
+  const res = await rawRequest(path, { method: "POST", body }, signal);
   if (res.status === NOT_ACCEPTABLE) {
-    const body = (await res.json().catch(() => null)) as {
+    const errorBody = (await res.json().catch(() => null)) as {
       validationErrors?: ValidationError[];
     } | null;
     return {
       kind: "validationErrors",
-      validationErrors: body?.validationErrors ?? [],
+      validationErrors: errorBody?.validationErrors ?? [],
     };
   }
   if (!res.ok) {

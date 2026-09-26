@@ -1557,6 +1557,8 @@
       "replace": "{arg0}: „{arg1}“ wird ersetzt durch „{arg2}“",
       "set": "{arg0}: wird gesetzt auf „{arg1}“"
     },
+    "delete": "Ausgewählte löschen",
+    "deleteConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich gelöscht werden? Sie können anschließend wiederhergestellt werden.",
     "entriesFound": "Es sind {arg0} Einträge ausgewählt.",
     "error": {
       "table": {
@@ -1586,6 +1588,8 @@
       "replace": "Suchen & ersetzen",
       "set": "Setzen / überschreiben"
     },
+    "restore": "Ausgewählte wiederherstellen",
+    "restoreConfirm": "Sollen die {arg0} ausgewählten Einträge wirklich wiederhergestellt werden?",
     "selectedEntries": "Ausgewählte Einträge"
   },
   "menu": {

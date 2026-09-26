@@ -1557,6 +1557,8 @@
       "replace": "{arg0}: \"{arg1}\" will be replaced by \"{arg2}\"",
       "set": "{arg0}: will be set to \"{arg1}\""
     },
+    "delete": "Delete selected",
+    "deleteConfirm": "Do you really want to delete the {arg0} selected entries? They can be restored afterwards.",
     "entriesFound": "There are {arg0} entries selected.",
     "error": {
       "table": {
@@ -1586,6 +1588,8 @@
       "replace": "Search & replace",
       "set": "Set / overwrite"
     },
+    "restore": "Restore selected",
+    "restoreConfirm": "Do you really want to restore the {arg0} selected entries?",
     "selectedEntries": "Selected entries"
   },
   "menu": {

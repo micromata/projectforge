@@ -178,6 +178,55 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
         return null
     }
 
+    /** Liquidity entries may be deleted and restored in bulk (soft delete via [LiquidityEntryDao]). */
+    override fun supportsMassDeletion(): Boolean = true
+
+    /**
+     * Soft-deletes the selected entries. Like [proceedMassUpdate] it first materializes selected virtual
+     * (recurring) occurrences into real rows via [resolveSelectedEntries]: a materialized, then deleted row
+     * suppresses its virtual occurrence anyway (the projector checks `(seriesId, seriesDate)` including
+     * soft-deleted rows), so deleting an occurrence stays consistent with the series model.
+     */
+    override fun proceedMassDelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<LiquidityEntryDO>,
+    ) {
+        resolveSelectedEntries(selectedIds).forEach { entry ->
+            massUpdateContext.startUpdate(entry)
+            entry.deleted = true
+            massUpdateContext.commitUpdate(
+                identifier4Message = entry.subject ?: "#${entry.id}",
+                entry,
+                update = { liquidityEntryDao.markAsDeleted(entry) },
+            )
+        }
+    }
+
+    /**
+     * Restores the selected, already deleted entries. Only real (positive) ids are undeleted; a virtual
+     * occurrence was never materialized, so it is not "deleted" and is ignored.
+     */
+    override fun proceedMassUndelete(
+        request: HttpServletRequest,
+        selectedIds: Collection<Serializable>,
+        massUpdateContext: MassUpdateContext<LiquidityEntryDO>,
+    ) {
+        val (realIds, _) = partitionIds(selectedIds)
+        if (realIds.isEmpty()) {
+            return
+        }
+        liquidityEntryDao.select(realIds)?.forEach { entry ->
+            massUpdateContext.startUpdate(entry)
+            entry.deleted = false
+            massUpdateContext.commitUpdate(
+                identifier4Message = entry.subject ?: "#${entry.id}",
+                entry,
+                update = { liquidityEntryDao.undelete(entry) },
+            )
+        }
+    }
+
     /**
      * The same statistics line the list shows above its table, so the mass update page can repeat it
      * (`LIQUIDITY_PAGE.massUpdate.statisticsLine`).
