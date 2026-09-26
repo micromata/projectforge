@@ -10,15 +10,7 @@ import {
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { AccessValues } from "../schema";
-import { ACCESS_TYPES, ACCESS_TYPE_LABEL_KEY } from "../types";
-
-/** The four operation flags of a row, in the order the Wicket table shows the columns. */
-const OPERATIONS = [
-  { key: "accessSelect", labelKey: "access.type.select" },
-  { key: "accessInsert", labelKey: "access.type.insert" },
-  { key: "accessUpdate", labelKey: "access.type.update" },
-  { key: "accessDelete", labelKey: "access.type.delete" },
-] as const;
+import { ACCESS_TYPES, ACCESS_TYPE_LABEL_KEY, OPERATIONS } from "../types";
 
 /**
  * The permission matrix — four access types (rows) by four SQL operations (columns) of boolean
@@ -44,13 +36,13 @@ export function AccessMatrix({ className }: { className?: string }) {
       <table className="border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+            <th className="px-2 py-0.5 text-left font-medium text-muted-foreground">
               {t(leafKeyOf("access.type", t.has))}
             </th>
             {OPERATIONS.map((op) => (
               <th
                 key={op.key}
-                className="px-3 py-2 text-center font-medium text-muted-foreground"
+                className="px-1 py-0.5 text-center font-medium text-muted-foreground"
               >
                 {t(op.labelKey)}
               </th>
@@ -64,7 +56,7 @@ export function AccessMatrix({ className }: { className?: string }) {
               <tr key={type}>
                 <th
                   scope="row"
-                  className="px-3 py-2 text-left font-normal text-foreground"
+                  className="px-2 py-0.5 text-left font-normal text-foreground"
                 >
                   {rowLabel}
                 </th>
@@ -72,7 +64,7 @@ export function AccessMatrix({ className }: { className?: string }) {
                   const opLabel = t(op.labelKey);
                   const checked = entries[rowIndex]?.[op.key] === true;
                   return (
-                    <td key={op.key} className="px-3 py-2 text-center">
+                    <td key={op.key} className="px-1 py-0.5 text-center">
                       <Checkbox
                         checked={checked}
                         disabled={readOnly}

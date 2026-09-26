@@ -5,6 +5,8 @@ import { emptyAccessValues, toFormValues } from "./values";
 import { GroupTaskFields } from "./edit/group-task-fields";
 import { TemplateButtons } from "./edit/template-buttons";
 import { AccessMatrix } from "./edit/access-matrix";
+import { AccessMatrixCell } from "./list/access-matrix-cell";
+import { AccessListActions } from "./list/access-list-actions";
 import type { AccessDetail, AccessListRow } from "./types";
 
 /** REST category of the access-rights entity — `GroupAccessEntityRest` is mapped to "access". */
@@ -56,8 +58,24 @@ export const ACCESS_PAGE = definePage<
     },
     // Whether the rights also cover every sub structure element (GroupTaskAccessDO.recursive).
     { name: "recursive", size: 110 },
+    {
+      // The permission matrix per row, as the Wicket list drew it (AccessTablePanel). A computed
+      // column: `accessEntries` is a fixed-shape collection no single property backs, so it neither
+      // sorts nor filters (see ColumnBase.sortable/filterKind).
+      id: "accessEntries",
+      labelKey: "access.type",
+      accessor: (row) => row.accessEntries,
+      sortable: false,
+      filterKind: null,
+      size: 190,
+      cell: (ctx) => (
+        <AccessMatrixCell entries={ctx.row.original.accessEntries} />
+      ),
+    },
     { name: "description", size: 320, wrap: true },
   ],
+  // The task ("structure") wizard, for admins — the "Assistent" of the Wicket list.
+  listActions: AccessListActions,
   edit: {
     schema: accessSchema,
     fieldNames: ACCESS_FIELDS,

@@ -2,6 +2,13 @@
 // list of AccessEntry, one per AccessType; the group and task are carried as references the DO
 // serializes id-only.
 
+import {
+  Delete02Icon,
+  Download01Icon,
+  Edit02Icon,
+  File01Icon,
+} from "@hugeicons/core-free-icons";
+
 /**
  * The four access types of the permission matrix, in the order the Wicket page shows them
  * (`GroupTaskAccessDO.orderedEntries`). The enum is serialized as its name (`@Enumerated(STRING)`), so
@@ -23,6 +30,19 @@ export const ACCESS_TYPE_LABEL_KEY: Record<AccessType, string> = {
   TIMESHEETS: "access.type.timesheets",
   OWN_TIMESHEETS: "access.type.ownTimesheets",
 };
+
+/**
+ * The four SQL operations of a row, in the order the Wicket table shows the columns — with the
+ * Hugeicon each one is labelled by (document / download / edit / delete), which the list matrix cell
+ * draws as its column header and the edit matrix names its columns with. `key` is exactly the
+ * `AccessEntryDto` field it toggles, so a cell binds to it without a lookup table.
+ */
+export const OPERATIONS = [
+  { key: "accessSelect", labelKey: "access.type.select", icon: File01Icon },
+  { key: "accessInsert", labelKey: "access.type.insert", icon: Download01Icon },
+  { key: "accessUpdate", labelKey: "access.type.update", icon: Edit02Icon },
+  { key: "accessDelete", labelKey: "access.type.delete", icon: Delete02Icon },
+] as const;
 
 /** One row of the matrix: an access type with its four operation flags. */
 export interface AccessEntryDto {
