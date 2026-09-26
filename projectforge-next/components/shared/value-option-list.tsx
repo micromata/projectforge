@@ -17,6 +17,13 @@ export interface ValueOption {
   label: string;
 }
 
+/**
+ * Below this many options the search box is more noise than help — the whole list is on screen at a
+ * glance, so a filter over a handful of entries only confuses (see the list filter comboboxes). At or
+ * above it, typing beats scrolling.
+ */
+const SEARCH_MIN_OPTIONS = 8;
+
 export interface ValueOptionListProps {
   options: ValueOption[];
   /** The picked options by value. */
@@ -51,17 +58,21 @@ export function ValueOptionList({
   const t = useTranslations("select");
   // Controlled only to highlight the match in the options; cmdk still does the filtering itself.
   const [search, setSearch] = useState("");
+  // A short list needs no search — showing one over a few entries only confuses (see the constant).
+  const showSearch = options.length >= SEARCH_MIN_OPTIONS;
 
   return (
     <Command className={cn("bg-transparent", className)} label={ariaLabel}>
-      <CommandInput
-        placeholder={t("search")}
-        autoFocus={autoFocus}
-        value={search}
-        onValueChange={setSearch}
-      />
+      {showSearch && (
+        <CommandInput
+          placeholder={t("search")}
+          autoFocus={autoFocus}
+          value={search}
+          onValueChange={setSearch}
+        />
+      )}
       <CommandList>
-        <CommandEmpty>{t("noOptions")}</CommandEmpty>
+        {showSearch && <CommandEmpty>{t("noOptions")}</CommandEmpty>}
         {options.map((option) => (
           <CommandItem
             key={option.value}
