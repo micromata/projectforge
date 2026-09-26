@@ -1938,6 +1938,9 @@
         "startDate": "Startdatum",
         "title": "Liquiditätsserie"
       },
+      "statistics": {
+        "pastBaseDate": "Das gewählte Bezahldatum liegt in der Vergangenheit – die Beträge zeigen den historischen Stand zu diesem Zeitpunkt, nicht die aktuelle Liquidität."
+      },
       "title": {
         "heading": "Liquiditätsplanung"
       },
