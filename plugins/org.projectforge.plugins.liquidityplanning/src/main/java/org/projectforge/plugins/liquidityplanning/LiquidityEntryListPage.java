@@ -87,7 +87,7 @@ public class LiquidityEntryListPage
                 if (liquidityEntry.getDeleted()) {
                     // Do nothing further
                 } else {
-                    if (!liquidityEntry.getPaid()) {
+                    if (!liquidityEntry.getEffectivePaid()) {
                         if (liquidityEntry.getDateOfPayment() == null || liquidityEntry.getDateOfPayment().isBefore(today)) {
                             appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
                         } else {
@@ -126,7 +126,7 @@ public class LiquidityEntryListPage
             public void populateItem(final Item<ICellPopulator<LiquidityEntryDO>> item, final String componentId,
                                      final IModel<LiquidityEntryDO> rowModel) {
                 final LiquidityEntryDO entry = rowModel.getObject();
-                if (entry.getPaid()) {
+                if (entry.getEffectivePaid()) {
                     item.add(new IconPanel(componentId, IconType.ACCEPT));
                 } else {
                     item.add(createInvisibleDummyComponent(componentId));

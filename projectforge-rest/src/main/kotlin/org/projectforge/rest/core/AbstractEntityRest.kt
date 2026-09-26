@@ -961,21 +961,22 @@ constructor(
 
     protected fun checkUserAccess(obj: O?, userAccess: UILayout.UserAccess?) {
         if (userAccess != null) {
+            // Every flag here is a UI hint, not authorization - the DAO refuses the actual write or read
+            // regardless (see UILayout.UserAccess). So none of these probes may be the thing that breaks a
+            // layout or the list meta data: a DAO whose user right is not resolvable throws when asked -
+            // either UnsupportedOperationException (no userRightId and no override, BaseDao.hasAccess) or a
+            // NullPointerException on a right that isn't registered (yet), e.g. a plugin whose rights bind
+            // late on ApplicationReadyEvent, or whose REST endpoint is still mapped while it is inactive.
+            // Such an entity has no usable layout either way, so null - "not known" - is the honest answer,
+            // and the client then falls back to what the read itself reports.
             if (obj != null) {
-                userAccess.history = baseDao.hasLoggedInUserHistoryAccess(obj, false)
-                userAccess.update = baseDao.hasLoggedInUserUpdateAccess(obj, obj, false)
-                userAccess.delete = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
+                userAccess.history = runCatching { baseDao.hasLoggedInUserHistoryAccess(obj, false) }.getOrNull()
+                userAccess.update = runCatching { baseDao.hasLoggedInUserUpdateAccess(obj, obj, false) }.getOrNull()
+                userAccess.delete = runCatching { baseDao.hasLoggedInUserDeleteAccess(obj, obj, false) }.getOrNull()
             } else {
-                userAccess.history = baseDao.hasLoggedInUserHistoryAccess(false)
+                userAccess.history = runCatching { baseDao.hasLoggedInUserHistoryAccess(false) }.getOrNull()
             }
-            userAccess.insert = baseDao.hasLoggedInUserInsertAccess()
-            // Whether this user may see the entity's entries at all - the one flag here that isn't a mere
-            // UI hint (see UILayout.UserAccess.read).
-            //
-            // Caught, because this must not be the thing that breaks a layout or the list meta data: a DAO
-            // with neither a userRightId nor an override throws UnsupportedOperationException here
-            // (BaseDao.hasAccess). Such an entity has no readable list either way, so null - "not known" -
-            // is the honest answer, and the client then falls back to what the read itself reports.
+            userAccess.insert = runCatching { baseDao.hasLoggedInUserInsertAccess() }.getOrNull()
             userAccess.read = runCatching {
                 if (obj != null) baseDao.hasLoggedInUserSelectAccess(obj, false)
                 else baseDao.hasLoggedInUserSelectAccess(false)

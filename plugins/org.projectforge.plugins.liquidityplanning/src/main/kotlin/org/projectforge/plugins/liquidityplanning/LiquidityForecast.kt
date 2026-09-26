@@ -134,7 +134,7 @@ class LiquidityForecast() : Serializable {
             if (ignorePaidStatus) {
                 entry.isPaid = liquiEntry.dateOfPayment!!.isBefore(baseDate)
             } else {
-                entry.isPaid = liquiEntry.paid
+                entry.isPaid = liquiEntry.effectivePaid
             }
             entry.subject = liquiEntry.subject
             entry.type = LiquidityEntryType.LIQUIDITY

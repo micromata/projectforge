@@ -200,8 +200,10 @@ object NextMigration {
         // pages addressed by their Wicket-built-in bookmarkable url (`wicket/bookmarkable/<page class>`)
         // rather than a mount alias: the plugin mounts its pages under its id `liquidplanning`
         // (liquidplanningList / liquidplanningEdit, not the <category>List/<category>Edit convention), and
-        // the bookmarkable url resolves regardless of the mount, so the "classic version" escape hatch
-        // always lands on the page. The Wicket pages stay mounted only as that escape hatch.
+        // the bookmarkable url resolves regardless of the mount.
+        // The "classic version" link is no longer offered: Wicket is no longer supported for liquidity
+        // (the next page is the only one). legacyApp/legacyRoute stay so OrphanedLinkFilter still redirects
+        // bookmarked wicket/bookmarkable/...LiquidityEntry* links to the next page (as for `order`).
         "liquidity" to NextPage(
             route = "liquidity",
             editRoute = "liquidity/$ID_PLACEHOLDER",
@@ -210,6 +212,9 @@ object NextMigration {
             legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryListPage",
             legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryEditPage?id=$ID_PLACEHOLDER",
             legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.liquidityplanning.LiquidityEntryEditPage",
+            // The way back is no longer offered (Wicket unsupported for liquidity); legacyApp stays only so
+            // OrphanedLinkFilter keeps redirecting bookmarked Wicket links.
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket as well (MenuItemDefId.ORDER_LIST pointed at wa/orderBookList). Both legacy
         // routes have to be spelled out: the Wicket mount points are orderBookList / orderBookEdit

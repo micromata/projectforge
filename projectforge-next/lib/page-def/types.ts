@@ -279,7 +279,19 @@ export interface CustomField extends FieldBase {
 export interface FieldGroupDeclaration<
   M extends EntityMetadata,
 > extends FieldBase {
-  group: DeclaredField<M>[];
+  /**
+   * A member is usually a plain field, but a [CustomField] is allowed too — a control the declaration
+   * cannot describe (the liquidity entry's three-state paid select) still belongs on the line with the
+   * date and amount it is read beside. The row renders each member through the same DeclaredFormField.
+   */
+  group: (DeclaredField<M> | CustomField)[];
+  /**
+   * Sizes every member to its content and packs them at the start of the row, rather than letting the
+   * label-topped members grow to share the width. For a row whose fields have a natural width — a date,
+   * a bounded amount, a short select — so they sit next to each other instead of drifting apart across
+   * the page. Off by default: most groups fill their cell.
+   */
+  packed?: boolean;
 }
 
 export type FieldDeclaration<M extends EntityMetadata> =
@@ -656,6 +668,17 @@ export interface PageDef<
    * `DataTable` and uses the same CSS tokens (`row-deleted`, `row-red`, `row-green`, `row-blue`).
    */
   rowClassName?: (row: Row) => string | undefined;
+  /**
+   * Diverts a row click to a route of this app instead of the entity's own edit page — for a row that
+   * is not an ordinary editable entry: a liquidity list's *virtual* series occurrence (negative id) has
+   * no stored row to open, so its click leads to `/liquidity/new?seriesId=…&seriesDate=…`, which
+   * materializes it (see LIQUIDITY_PAGE).
+   *
+   * Returning `undefined` falls through to the normal `openEntry(row.id)`, so a page only names the
+   * rows it wants to treat specially. A pure function of the row, keeping the declaration a value: the
+   * shell owns the navigation (`router.push`), the page only says where to (see entity-list-page).
+   */
+  onRowClick?: (row: Row) => string | undefined;
   /**
    * Renders what the backend aggregated over the whole result set, between the toolbar and the table —
    * the sums of the order book (`ResultSet.statistics`, see OrderStatisticsLine).

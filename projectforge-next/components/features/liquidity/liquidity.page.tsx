@@ -9,7 +9,12 @@ import {
   type LiquidityValues,
 } from "./liquidity-schema";
 import { emptyLiquidityValues, toFormValues } from "./liquidity-values";
+import { PaidSelectField } from "./edit/paid-fields";
+import { RepeatFields } from "./edit/repeat-fields";
+import { SeriesLink } from "./edit/series-link";
+import { LiquiditySubjectCell } from "./liquidity-subject-cell";
 import type { LiquidityDetail, LiquidityListRow } from "./types";
+import { isVirtualRow } from "./types";
 
 /** REST category of the liquidity plugin — `LiquidityEntityRest` is mapped to "liquidity". */
 export const LIQUIDITY_ENTITY = "liquidity";
@@ -62,15 +67,29 @@ export const LIQUIDITY_PAGE = definePage<
       dataType: "AMOUNT",
       size: 140,
     },
-    { name: "paid", size: 90 },
+    {
+      // The paid status the entry is actually judged by: the manual override, or — while it is
+      // "automatic" — the autoSetPaid rule the backend applied (`effectivePaid`). A computed column so
+      // it reads the derived value rather than the raw `paid`, which may be null (= automatic).
+      id: "paid",
+      labelKey: "fibu.rechnung.status.bezahlt",
+      accessor: (row) => row.effectivePaid ?? false,
+      dataType: "BOOLEAN",
+      size: 90,
+    },
     {
       name: "subject",
       size: 320,
       minSize: 200,
       className: "font-semibold text-primary",
       pinned: "left",
+      // Marks the series entries with a "Series" badge — the projected virtual occurrences and the
+      // materialized ones alike (see LiquiditySubjectCell).
+      cell: (ctx) => <LiquiditySubjectCell row={ctx.row.original} />,
     },
     { name: "comment", size: 280 },
+    // Whether the paid status is derived after the date of payment; off by default, an occasional detail.
+    { name: "autoSetPaid", size: 110, hiddenByDefault: true },
   ],
   // Mirrors the Wicket list's row colours (`LiquidityEntryListPage`): an unpaid entry whose date of payment
   // is in the past (or missing) reads red (overdue), an unpaid future one blue.
@@ -79,9 +98,22 @@ export const LIQUIDITY_PAGE = definePage<
     { className: "row-blue", labelKey: "fibu.rechnung.offen" },
   ],
   rowClassName: (row) => {
-    if (row.paid) return undefined;
+    if (row.effectivePaid) return undefined;
     if (!row.dateOfPayment || row.dateOfPayment < isoToday()) return "row-red";
     return "row-blue";
+  },
+  // A virtual (projected) occurrence has no stored row to open: clicking it opens the add form prefilled
+  // from the series (`newEntryParams` forwards the two to `newEntry`), and the first save materializes it.
+  // Every other row falls through to the normal edit page (returning undefined).
+  onRowClick: (row) => {
+    if (!isVirtualRow(row) || row.seriesId == null || !row.seriesDate) {
+      return undefined;
+    }
+    const params = new URLSearchParams({
+      seriesId: String(row.seriesId),
+      seriesDate: row.seriesDate,
+    });
+    return `${LIQUIDITY_ROUTE}/new?${params.toString()}`;
   },
   // The sums over the whole result set, above the table as the Wicket list shows them. The cast is where the
   // untyped `ResultSet.statistics` becomes what `LiquidityEntityRest` sends.
@@ -92,6 +124,18 @@ export const LIQUIDITY_PAGE = definePage<
     />
   ),
   listActions: LiquidityListActions,
+  // Served under `liquiditySelected` — the mass-update endpoint of this category (URL_SUFFIX_SELECTED =
+  // "Selected", no dash), the counterpart of the invoice's `invoiceSelected` (see
+  // LiquidityMultiSelectedPageRest). Its presence turns on the selection UI in the generic list.
+  massUpdate: {
+    endpoint: "liquiditySelected",
+    route: `${LIQUIDITY_ROUTE}/mass-update`,
+    statisticsLine: ({ statistics }) => (
+      <LiquidityStatisticsLine
+        statistics={statistics as LiquidityStatistics | undefined}
+      />
+    ),
+  },
   edit: {
     schema: liquiditySchema,
     fieldNames: LIQUIDITY_FIELDS,
@@ -104,18 +148,54 @@ export const LIQUIDITY_PAGE = definePage<
     autoFocus: "dateOfPayment",
     // Built from the entry on screen and opened unsaved for the user to save (CloneSupport.CLONE).
     clone: true,
+    // Forwarded to `newEntry` so the add form can be prefilled from a series occurrence — the seam a
+    // click on a virtual row uses to materialize it (see onRowClick and LiquidityEntityRest.newBaseDO).
+    newEntryParams: ["seriesId", "seriesDate"],
     sections: [
       {
         id: "entry",
         titleKey: "plugins.liquidityplanning.entry.title.heading",
         fields: [
-          { name: "dateOfPayment" },
-          // The value a reader of the forecast looks for first.
-          { name: "amount", emphasized: true, alignNumber: "right" },
-          { name: "paid" },
+          // Date, amount, the three-state paid override and the autoSetPaid rule read as one line — when
+          // is it due, how much, is it paid, and should that be decided automatically. `maxDigits` keeps
+          // the amount box just wide enough for the value, so the four share the row.
+          {
+            span: 3,
+            packed: true,
+            group: [
+              { name: "dateOfPayment" },
+              { name: "amount", maxDigits: 10, alignNumber: "right" },
+              { custom: PaidSelectField },
+              {
+                name: "autoSetPaid",
+                hintKey: "plugins.liquidityplanning.entry.autoSetPaid.info",
+              },
+            ],
+          },
           { name: "subject", span: 2 },
           { name: "comment", rows: 4, span: 3 },
         ],
+      },
+      // Turning a new entry into a recurring series — shown only for a new, series-free entry (a series
+      // can't spawn another). `data` is the loaded/preset entity: id null and no seriesId means "new and
+      // not an occurrence" (see RepeatFields).
+      {
+        id: "repeat",
+        titleKey: "plugins.liquidityplanning.series.title",
+        visible: ({ data }) => {
+          const entry = data as unknown as LiquidityDetail | undefined;
+          return entry != null && entry.id == null && entry.seriesId == null;
+        },
+        fields: [{ custom: RepeatFields, span: 3 }],
+      },
+      // The read-only pointer back to the series, shown instead of the repeat block for any occurrence
+      // (materialized, or being materialized with seriesId preset). See SeriesLink.
+      {
+        id: "series",
+        titleKey: "plugins.liquidityplanning.series.title",
+        visible: ({ data }) =>
+          (data as unknown as LiquidityDetail | undefined)?.seriesId != null,
+        fields: [{ custom: SeriesLink, span: 3 }],
       },
     ],
   },

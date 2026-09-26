@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   DataTable,
@@ -197,6 +197,7 @@ function DeclaredList<
     !!page.edit,
     page.edit?.returnTargets
   );
+  const router = useRouter();
   // Which of the declared columns this installation and this user have at all — the backend's answer,
   // as `ListMetaData.variables` (see ColumnBase.visible). Already in the cache: the page loads the
   // list's meta data for its filter fields and its edit targets anyway.
@@ -402,7 +403,15 @@ function DeclaredList<
         // pointer cursor, the way Wicket's list shows a plain label instead of a link (see
         // useEditTargets.canOpen — it is the entity's answer, not the single entry's).
         onRowClick={
-          targets.canOpen ? (row) => targets.openEntry(row.id) : undefined
+          targets.canOpen
+            ? (row) => {
+                // A page may divert a row that is not an ordinary editable entry (a liquidity list's
+                // virtual series occurrence) to a route of its own; anything else opens the entry.
+                const to = page.onRowClick?.(row);
+                if (to) router.push(to);
+                else targets.openEntry(row.id);
+              }
+            : undefined
         }
         // The mode decides what a click means: outside it every click opens the entry, inside it
         // every click selects (`selection` is undefined outside, so nothing of it is wired up).

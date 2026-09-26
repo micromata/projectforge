@@ -370,6 +370,7 @@
     "recurrence": {
       "frequency": {
         "daily": "Täglich",
+        "hourly": "Stündlich",
         "label": "Häufigkeit",
         "monthly": "Monatlich",
         "none": "Ohne",
@@ -1872,8 +1873,18 @@
       },
       "entry": {
         "_": "Liquiditätseintrag",
+        "autoSetPaid": {
+          "_": "Automatisch auf bezahlt setzen, sobald das Bezahldatum verstrichen ist",
+          "info": "Ist dies gesetzt, gilt der Eintrag automatisch als bezahlt, sobald das Bezahldatum verstrichen ist – sofern der Bezahlt-Status nicht manuell gesetzt wird."
+        },
         "dateOfPayment": "Bezahldatum",
         "expectedDateOfPayment": "Erwarteter Zahlungstermin",
+        "paid": {
+          "automatic": "Automatisch",
+          "info": "„Automatisch\" folgt der Auto-Bezahlt-Regel; „Bezahlt\"/„Nicht bezahlt\" legen den Status unabhängig davon fest.",
+          "paid": "Bezahlt",
+          "unpaid": "Nicht bezahlt"
+        },
         "subject": "Betreff",
         "title": {
           "add": "Liquiditätseintrag hinzufügen",
@@ -1898,6 +1909,28 @@
         "startAmount": "Anfangsbetrag"
       },
       "menu": "Liquidität",
+      "series": {
+        "badge": "Serie",
+        "count": {
+          "_": "Anzahl Raten",
+          "endless": "Endlos (leer lassen)"
+        },
+        "editHint": "Änderungen an dieser Serie wirken sich nur auf künftige, noch nicht bearbeitete Raten aus. Bereits bearbeitete oder bezahlte Raten sind eigenständige Einträge und bleiben unverändert.",
+        "editLink": "Serie bearbeiten",
+        "interval": {
+          "info": "1 bedeutet jeden Monat, 2 jeden zweiten Monat, 3 jeden dritten Monat usw.",
+          "months": "Alle N Monate"
+        },
+        "occurrenceHint": "Beim Speichern wird diese Rate zu einem eigenständigen Eintrag und folgt späteren Änderungen an der Serie nicht mehr. Das Zahldatum ist frei änderbar; die Rate bleibt die n-te Rate der Serie.",
+        "partOf": "Teil der Serie »{arg0}«",
+        "repeat": {
+          "_": "Wiederholen",
+          "enable": "Diesen Eintrag als Serie wiederholen",
+          "info": "Eine Serie wiederholt diesen Eintrag in festem Abstand (z. B. monatliche Miete). Die Raten werden automatisch angezeigt, nicht gespeichert, und werden erst eigenständig, sobald eine geöffnet und gespeichert wird."
+        },
+        "startDate": "Startdatum",
+        "title": "Liquiditätsserie"
+      },
       "title": {
         "heading": "Liquiditätsplanung"
       },
