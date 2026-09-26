@@ -1914,6 +1914,7 @@
       "menu": "Liquidity",
       "series": {
         "badge": "Series",
+        "badgeInfo": "This entry is one occurrence of a recurring series.",
         "count": {
           "_": "Number of installments",
           "endless": "Endless (leave empty)"
@@ -1921,6 +1922,7 @@
         "editHint": "Changes to this series affect only future occurrences that have not been edited yet. Occurrences already edited or marked as paid are independent entries and stay unchanged.",
         "editLink": "Edit series",
         "fixedBadge": "Fixed",
+        "fixedBadgeInfo": "A fixed occurrence: a stored entry that no longer follows later changes to the series.",
         "interval": {
           "info": "1 means every month, 2 every second month, 3 every third month, and so on.",
           "months": "Every N months"

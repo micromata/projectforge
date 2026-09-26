@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 import type { LiquidityListRow } from "./types";
 import { isVirtualRow } from "./types";
@@ -24,17 +25,23 @@ export function LiquiditySubjectCell({ row }: { row: LiquidityListRow }) {
     <span className="flex min-w-0 items-center gap-2">
       <span className={cn("truncate", virtual && "italic")}>{row.subject}</span>
       {inSeries && (
-        <Badge
-          variant={virtual ? "outline" : "secondary"}
-          className="shrink-0 text-[10px]"
-        >
-          {t("plugins.liquidityplanning.series.badge")}
-        </Badge>
+        <HintTooltip text={t("plugins.liquidityplanning.series.badgeInfo")}>
+          <Badge
+            variant={virtual ? "outline" : "secondary"}
+            className="shrink-0 text-[10px]"
+          >
+            {t("plugins.liquidityplanning.series.badge")}
+          </Badge>
+        </HintTooltip>
       )}
       {inSeries && !virtual && (
-        <Badge variant="outline" className="shrink-0 text-[10px]">
-          {t("plugins.liquidityplanning.series.fixedBadge")}
-        </Badge>
+        <HintTooltip
+          text={t("plugins.liquidityplanning.series.fixedBadgeInfo")}
+        >
+          <Badge variant="outline" className="shrink-0 text-[10px]">
+            {t("plugins.liquidityplanning.series.fixedBadge")}
+          </Badge>
+        </HintTooltip>
       )}
     </span>
   );
