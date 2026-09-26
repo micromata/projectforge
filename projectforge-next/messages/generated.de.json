@@ -8,7 +8,23 @@
       "denied": "nicht erlaubt",
       "granted": "erlaubt"
     },
+    "recursive": {
+      "help": "Rekursiv gilt auch für alle Strukturunterelemente."
+    },
     "rights": "Rechte",
+    "templates": {
+      "_": "Zugriffsschablonen",
+      "administrator": "Administrator:in",
+      "clear": "Leeren",
+      "employee": "Mitarbeiter:in",
+      "guest": "Gast",
+      "leader": "Projektmanagement"
+    },
+    "title": {
+      "add": "Neues Zugriffsrecht",
+      "heading": "Zugriffsrechte",
+      "list": "Liste der Zugriffsrechte"
+    },
     "type": {
       "_": "Zugriffstyp",
       "accessManagement": "Zugriffsverwaltung",

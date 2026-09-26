@@ -150,6 +150,17 @@ object NextMigration {
      * projectforge-next, so the menu entry and all server side redirects point to `/next`.
      */
     private val MIGRATED = mapOf(
+        // The access-rights management (group/task permission matrix), migrated from Wicket
+        // (MenuItemDefId.ACCESS_LIST pointed at wa/accessList). Hand built (GroupAccessEntityRest, no
+        // layout) because the permission matrix is no field a generic UILayout page can render. Wicket's
+        // mount points follow the convention (DaoConst.ACCESS + List/Edit = accessList/accessEdit), so no
+        // legacy route has to be spelled out; the way back to the classic Wicket page stays offered.
+        "access" to NextPage(
+            route = "access",
+            editRoute = "access/$ID_PLACEHOLDER",
+            newEntryRoute = "access/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.

@@ -8,7 +8,23 @@
       "denied": "not granted",
       "granted": "granted"
     },
+    "recursive": {
+      "help": "Recursive includes all structure sub elements."
+    },
     "rights": "Rights",
+    "templates": {
+      "_": "Access templates",
+      "administrator": "Administrator",
+      "clear": "Clear",
+      "employee": "Employee",
+      "guest": "Guest",
+      "leader": "Leader"
+    },
+    "title": {
+      "add": "Add new group structure element access",
+      "heading": "Group structure element access",
+      "list": "List of group structure element access's"
+    },
     "type": {
       "_": "Access type",
       "accessManagement": "Access management",

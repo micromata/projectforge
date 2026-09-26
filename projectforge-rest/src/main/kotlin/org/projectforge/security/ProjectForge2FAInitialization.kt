@@ -78,7 +78,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       UserPagesRest::class.java,
       GroupPagesRest::class.java,
       AdminLogViewerPageRest::class.java,
-      GroupAccessPagesRest::class.java,
+      GroupAccessEntityRest::class.java,
     )
 
     registerShortCutValues(

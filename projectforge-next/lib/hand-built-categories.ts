@@ -13,6 +13,7 @@
  * `NextMigration.MIGRATED["outgoingInvoice"]`).
  */
 export const HAND_BUILT_CATEGORIES = [
+  "access",
   "book",
   "calendar",
   "cost1",
