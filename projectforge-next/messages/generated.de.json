@@ -1920,6 +1920,7 @@
         },
         "editHint": "Änderungen an dieser Serie wirken sich nur auf künftige, noch nicht bearbeitete Raten aus. Bereits bearbeitete oder bezahlte Raten sind eigenständige Einträge und bleiben unverändert.",
         "editLink": "Serie bearbeiten",
+        "fixedBadge": "Fixiert",
         "interval": {
           "info": "1 bedeutet jeden Monat, 2 jeden zweiten Monat, 3 jeden dritten Monat usw.",
           "months": "Alle N Monate"
