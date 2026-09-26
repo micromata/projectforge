@@ -87,6 +87,14 @@ export function PositionRow({
   // date fields and the mode of payment hers to fill in (`PeriodOfPerformanceType`, and Wicket's form
   // does the same).
   const ownPeriod = position.periodOfPerformanceType === "OWN";
+  // More invoiced than the position holds: `notInvoicedSum` is clamped at 0,00 € by the backend
+  // (`OrderPositionInfo.recalculateInvoicedSum`), so an over-billed position reads as settled. Compared
+  // against the live recalculated net sum, falling back to the stored one before the first answer.
+  const positionNet = sums?.netSum ?? position.nettoSumme;
+  const overInvoiced =
+    invoiceInfo?.invoicedSum != null &&
+    positionNet != null &&
+    invoiceInfo.invoicedSum > positionNet;
 
   return (
     <NestedFieldMetadata
@@ -219,6 +227,7 @@ export function PositionRow({
           <PositionInvoices
             invoiceInfo={invoiceInfo}
             canOpenInvoice={invoicesSelectAccess}
+            overInvoiced={overInvoiced}
             className="md:col-span-2"
           />
         )}

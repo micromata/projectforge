@@ -48,6 +48,14 @@
       "uninteresting": "uninteresting"
     },
     "country": "Country",
+    "directCall": {
+      "call": "Call",
+      "confirm": "Would you like to initiate the phone call from ''{arg0}''?",
+      "noPhoneDefined": "No phone defined (please choose or define under My account).",
+      "number": {
+        "tooltip": "Supports the input of first-, last names and organizations."
+      }
+    },
     "division": "Division",
     "emails": "e-mails",
     "fingerprint": "Finger print",
@@ -59,10 +67,32 @@
       "mister": "Mister",
       "unknown": "unknown"
     },
+    "myCurrentCallerId": {
+      "_": "Caller id",
+      "tooltip": {
+        "content": "This caller id is displayed to the callee."
+      }
+    },
+    "myCurrentPhoneId": {
+      "_": "My phone id",
+      "tooltip": {
+        "content": "Define your phone ids (internal phone number of the phone system). After you can make a direct phone call on the selected phone by simply clicking on the desired phone number below."
+      }
+    },
     "phone": "Phone",
+    "phoneCall": {
+      "number": {
+        "label": "Phone number",
+        "labeldescription": "Number to call"
+      },
+      "title": "Direct calling telephone system"
+    },
     "phoneType": {
+      "business": "Business phone",
       "fax": "Fax",
-      "mobile": "Cellular phone"
+      "mobile": "Cellular phone",
+      "private": "Private phone",
+      "privateMobile": "Private cellular"
     },
     "positionText": "Position",
     "postal": "postal",
@@ -541,6 +571,7 @@
       "invoice": {
         "info": ", invoiced: {arg0}, not yet invoiced: {arg1}"
       },
+      "invoicedExceedsCommissioned": "The invoiced amount exceeds the commissioned amount – please check for an incorrectly assigned invoice.",
       "mail": {
         "intro": "the order #{arg0} was created or changed."
       },
@@ -1602,6 +1633,7 @@
     },
     "myAccount": "My account",
     "personalStatistics": "My statistics",
+    "phoneCall": "Direct call",
     "plugins": {
       "teamcal": "List of calendars"
     },
@@ -2560,6 +2592,7 @@
     },
     "personalPhoneIdentifiers": {
       "_": "Phone ids",
+      "pleaseDefine": "Define phone numbers under 'My account'.",
       "tooltip": {
         "content": "Define here your personal phone id's in your company (id = internal phone number). Multiple values should be comma separated.\n\nIn address list you can choose your current phone for direct dialing by clicking on a phone number in the address list."
       }

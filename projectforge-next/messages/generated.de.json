@@ -48,6 +48,14 @@
       "uninteresting": "uninteressant"
     },
     "country": "Land",
+    "directCall": {
+      "call": "Anrufen",
+      "confirm": "Soll jetzt eine Telefonverbindung von Telefon ''{arg0}'' aus initiiert werden?",
+      "noPhoneDefined": "Es ist kein Telefon ausgewählt (bitte auswählen bzw. unter Mein Zugang festlegen).",
+      "number": {
+        "tooltip": "Anstelle einer Rufnummer können auch Vor- und Nachnamen sowie Firmennamen eingegeben werden oder aus der Adressliste eine Nummer angeklickt werden."
+      }
+    },
     "division": "Bereich",
     "emails": "E-Mails",
     "fingerprint": "Fingerprint",
@@ -59,10 +67,32 @@
       "mister": "Herr",
       "unknown": "unbekannt"
     },
+    "myCurrentCallerId": {
+      "_": "Anruferkennung",
+      "tooltip": {
+        "content": "Diese Anruferkennung wird dem/der Angerufenen angezeigt."
+      }
+    },
+    "myCurrentPhoneId": {
+      "_": "Mein Telefon",
+      "tooltip": {
+        "content": "Unter Mein Zugang können persönliche Zuordnungen zu firmen-internen Telefonen vorgenommen werden (interne Rufnummer). Wird auf eine Telefonnummer in der Adressliste geklickt, so kann eine Direktwahl für das hier angegebene Telefon initiiert werden."
+      }
+    },
     "phone": "Telefon",
+    "phoneCall": {
+      "number": {
+        "label": "Telefonnummer",
+        "labeldescription": "Zu wählen"
+      },
+      "title": "Direktwahl Telefonanlage"
+    },
     "phoneType": {
+      "business": "Telefon geschäftlich",
       "fax": "Fax",
-      "mobile": "Telefon mobil"
+      "mobile": "Telefon mobil",
+      "private": "Telefon privat",
+      "privateMobile": "Privat mobil"
     },
     "positionText": "Position",
     "postal": "postalisch",
@@ -541,6 +571,7 @@
       "invoice": {
         "info": ", fakturiert: {arg0}, noch nicht fakturiert: {arg1}"
       },
+      "invoicedExceedsCommissioned": "Der fakturierte Betrag übersteigt den beauftragten Betrag – bitte auf eine falsch zugeordnete Rechnung prüfen.",
       "mail": {
         "intro": "der Auftrag #{arg0} wurde ge&auml;ndert bzw. angelegt."
       },
@@ -1602,6 +1633,7 @@
     },
     "myAccount": "Mein Zugang",
     "personalStatistics": "Meine Statistiken",
+    "phoneCall": "Direktwahl",
     "plugins": {
       "teamcal": "Kalenderliste"
     },
@@ -2560,6 +2592,7 @@
     },
     "personalPhoneIdentifiers": {
       "_": "Telefonkennungen",
+      "pleaseDefine": "Anschlüsse festlegen unter 'Mein Zugang'",
       "tooltip": {
         "content": "Hier können benutzerspezifische Telefon-Ids (= interne Rufnummer) als kommaseparierte Werte angegeben werden.\n\nIn der Adressenliste kann somit eine Direktwahl von diesen Telefonen durch Klicken auf die gewünschte Rufnummer initiiert werden."
       }

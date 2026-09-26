@@ -103,7 +103,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // escape hatch, see NextMigration.legacyListUrl.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
-    PHONE_CALL("menu.phoneCall", "wa/phoneCall"), //
+    // Migrated to projectforge-next (PhoneCallRest); the Wicket page (wa/phoneCall) stays mounted as the
+    // "classic version" escape hatch, so only this menu entry points at next now.
+    PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
