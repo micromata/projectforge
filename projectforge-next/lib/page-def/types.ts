@@ -642,6 +642,16 @@ export interface PageDef<
    * is set the page falls back to fetching the whole result set, so that funnel keeps working.
    */
   serverPaging?: boolean;
+  /**
+   * The column the list sorts by until the user sorts it otherwise — its `id`, and whether descending
+   * (default ascending). The access list sorts by `task` so its rows arrive in tree order and read as an
+   * indented tree (see access.page.tsx). Absent means no default sort (the backend's own order).
+   *
+   * A starting point only, like `pinned`/`visible`: a per-user stored sort wins over it (see
+   * use-entity-list-page), and a reset returns here. For a column the backend cannot ORDER BY in SQL the
+   * rest class must declare a matching `computedSortProperties` entry keyed by this `id`.
+   */
+  defaultSort?: { id: string; desc?: boolean };
   /** The menu parent above the title, e.g. `menu.fibu`. */
   categoryKey: string;
   titleKey: string;

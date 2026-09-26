@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type {
   ColumnDef,
   ColumnPinningState,
+  SortingState,
   Table as TanstackTable,
   VisibilityState,
 } from "@tanstack/react-table";
@@ -86,6 +87,11 @@ export interface UseEntityListPageOptions<Row extends ListRow> {
    */
   serverPaging?: boolean;
   /**
+   * The column the list sorts by until the user sorts it otherwise (see `PageDef.defaultSort`). Seeds a
+   * list the user has never sorted; a stored per-user sort wins over it.
+   */
+  defaultSort?: { id: string; desc?: boolean };
+  /**
    * The list was opened by a transient jump into a pre-filtered view (the consumption bar → a task's
    * time sheets). Its filter must not stick as the user's remembered one — neither on the backend
    * (`ListPageRequest.doNotStore`) nor in the local `listMeta` cache (see useRememberFilter).
@@ -115,6 +121,7 @@ export function useEntityListPage<Row extends ListRow>({
   lockedColumnIds,
   buildFilter,
   serverPaging = false,
+  defaultSort,
   transient = false,
 }: UseEntityListPageOptions<Row>) {
   const ctx = useFormatContext();
@@ -122,9 +129,16 @@ export function useEntityListPage<Row extends ListRow>({
   // Same query as the one behind useListFilters (keyed per entity), so this is a cache read.
   const meta = useListMeta(entity);
 
+  // The user's stored sort wins; the page's declared default seeds a list the user has never sorted.
+  const initialSorting: SortingState = storedState.sorting?.length
+    ? storedState.sorting
+    : defaultSort
+      ? [{ id: defaultSort.id, desc: defaultSort.desc ?? false }]
+      : [];
+
   const columnState = useTableState({
     restoredState: storedState,
-    initialSorting: storedState.sorting,
+    initialSorting,
     // Only for a user who has never pinned anything: a stored `{}` means they unpinned every column,
     // and that decision has to survive a reload.
     initialPinning: defaultPinning,
@@ -149,8 +163,8 @@ export function useEntityListPage<Row extends ListRow>({
     // first one. Only for as long as the document lives, unlike the page size (see recallPageIndex).
     initialPageIndex: recallPageIndex(entity),
     // Sorting drives the backend query, so it lives with the query, not in the column state — the
-    // stored order seeds it here.
-    initialSorting: storedState.sorting,
+    // stored order (or the page's declared default) seeds it here.
+    initialSorting,
     // The search box belongs to the filter row, so it is restored with it.
     initialGlobalFilter: restoredFilter?.searchString,
     // The pill filters are applied server-side, unlike the header's column filters.

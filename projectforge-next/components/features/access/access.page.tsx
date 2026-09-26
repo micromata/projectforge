@@ -40,15 +40,34 @@ export const ACCESS_PAGE = definePage<
   // Administration > Access management (MenuCreator, ACCESS_LIST).
   categoryKey: "menu.administration",
   titleKey: "access.title.list",
+  // Sort by the structure element in task-tree order (GroupAccessEntityRest.computedSortProperties), so
+  // the rows arrive as a tree and the indented task column below reads as one.
+  defaultSort: { id: "task" },
   columns: [
     {
       // The structure element the rights apply to. A computed column: the DTO carries the task as an
       // id-only reference with a title, not a field the list could sort by that name. The path to the
       // root is the tooltip — the same as the time sheet list's task column, kept consistent.
+      //
+      // Indented by the task's depth in the tree (its path's segment count) so the list, sorted in tree
+      // order by default, reads as a tree — the 0.9rem step matches the /taskTree view (TreeCell). Only
+      // tasks that carry a grant appear, so an ancestor without one leaves a gap rather than a row.
       id: "task",
       labelKey: "task",
       accessor: (row) => row.task?.title ?? row.task?.displayName ?? null,
       tooltip: (row) => row.task?.path ?? undefined,
+      cell: (ctx) => {
+        const task = ctx.row.original.task;
+        const depth = task?.path ? task.path.split(" -> ").length - 1 : 0;
+        return (
+          <span
+            className="font-medium"
+            style={{ paddingLeft: `${depth * 0.9}rem` }}
+          >
+            {task?.title ?? task?.displayName ?? null}
+          </span>
+        );
+      },
       size: 320,
     },
     {

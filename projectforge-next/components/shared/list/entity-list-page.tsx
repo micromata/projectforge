@@ -273,6 +273,7 @@ function DeclaredList<
     lockedColumnIds: LOCKED_COLUMN_IDS,
     buildFilter,
     serverPaging: page.serverPaging,
+    defaultSort: page.defaultSort,
     transient,
   });
   // The shell's guard has already passed the meta data, so what is left for this one is a right the

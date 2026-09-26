@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.access.AccessDao
@@ -81,6 +82,18 @@ class GroupAccessEntityRest :
         dto.copyTo(obj)
         return obj
     }
+
+    /**
+     * Sorts the "task" list column in task-tree order rather than by anything SQL can express: the key is the
+     * task's path to the root ("Micromata -> Business Unit -> ProjectForge", see [TaskFormatter.getTaskPath]),
+     * so an ancestor precedes its descendants and siblings group together. This is what makes the list read as
+     * a tree — the frontend then indents each row by the task's depth (access.page.tsx). A row whose task is
+     * gone sorts last. Applied in memory over the whole (small) result set, see [computedSortProperties].
+     */
+    override val computedSortProperties: Map<String, (GroupTaskAccessDO) -> Comparable<*>?>
+        get() = mapOf(
+            "task" to { access -> TaskFormatter.getTaskPath(access.taskId) ?: "￿" }
+        )
 
     /**
      * The sticky filters of the Wicket `AccessListForm`: pick a group, a user or a structure element (task),
