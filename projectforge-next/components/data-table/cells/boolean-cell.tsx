@@ -8,12 +8,16 @@ import type { CellRenderProps } from "./cell-types";
  * reader doesn't read the cell as empty; a false cell says "no" for the same
  * reason.
  */
-export function BooleanCell({ value, t }: CellRenderProps) {
+export function BooleanCell({
+  value,
+  t,
+}: Pick<CellRenderProps, "value" | "t">) {
   if (!value) return <span className="sr-only">{t("no")}</span>;
   return (
     <HugeiconsIcon
       icon={Tick02Icon}
-      size={15}
+      size={17}
+      strokeWidth={2.5}
       className="text-primary"
       aria-label={t("yes")}
       role="img"

@@ -13,6 +13,7 @@ import { PaidSelectField } from "./edit/paid-fields";
 import { RepeatFields } from "./edit/repeat-fields";
 import { SeriesLink } from "./edit/series-link";
 import { LiquiditySubjectCell } from "./liquidity-subject-cell";
+import { LiquidityPaidCell } from "./liquidity-paid-cell";
 import type { LiquidityDetail, LiquidityListRow } from "./types";
 import { isVirtualRow } from "./types";
 
@@ -70,12 +71,15 @@ export const LIQUIDITY_PAGE = definePage<
     {
       // The paid status the entry is actually judged by: the manual override, or — while it is
       // "automatic" — the autoSetPaid rule the backend applied (`effectivePaid`). A computed column so
-      // it reads the derived value rather than the raw `paid`, which may be null (= automatic).
+      // it reads the derived value rather than the raw `paid`, which may be null (= automatic). The cell
+      // adds a muted "automatic" hint for an entry still open on the auto rule (see LiquidityPaidCell),
+      // a nuance the effective tick alone would hide.
       id: "paid",
       labelKey: "fibu.rechnung.status.bezahlt",
       accessor: (row) => row.effectivePaid ?? false,
       dataType: "BOOLEAN",
       size: 90,
+      cell: (ctx) => <LiquidityPaidCell row={ctx.row.original} />,
     },
     {
       name: "subject",
@@ -156,9 +160,10 @@ export const LIQUIDITY_PAGE = definePage<
         id: "entry",
         titleKey: "plugins.liquidityplanning.entry.title.heading",
         fields: [
-          // Date, amount, the three-state paid override and the autoSetPaid rule read as one line — when
-          // is it due, how much, is it paid, and should that be decided automatically. `maxDigits` keeps
-          // the amount box just wide enough for the value, so the four share the row.
+          // Date, amount and the paid status read as one line — when is it due, how much, and is it paid.
+          // The paid select is the single control for the status (it also drives autoSetPaid, see
+          // PaidSelectField). `maxDigits` keeps the amount box just wide enough for the value, so the three
+          // share the row.
           {
             span: 3,
             packed: true,
@@ -166,10 +171,6 @@ export const LIQUIDITY_PAGE = definePage<
               { name: "dateOfPayment" },
               { name: "amount", maxDigits: 10, alignNumber: "right" },
               { custom: PaidSelectField },
-              {
-                name: "autoSetPaid",
-                hintKey: "plugins.liquidityplanning.entry.autoSetPaid.info",
-              },
             ],
           },
           { name: "subject", span: 2 },

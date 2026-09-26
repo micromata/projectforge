@@ -10,6 +10,7 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { HighlightedText } from "@/components/shared/highlighted-text";
+import { BooleanCell } from "@/components/data-table/cells/boolean-cell";
 import type { FieldMetadata } from "@/lib/metadata/types";
 
 export interface DeclaredCellContext {
@@ -52,6 +53,14 @@ export function declaredCell(
   }
 
   switch (field.dataType) {
+    // A tick for true, nothing for false — the same visual language the dynamic grid's BooleanCell
+    // and the legacy Wicket lists use, rather than a raw "true"/"false" string.
+    case "BOOLEAN":
+      return (
+        <span className={className}>
+          <BooleanCell value={value} t={t} />
+        </span>
+      );
     case "TIMESTAMP":
       return (
         <span className={cn("text-muted-foreground tabular-nums", className)}>

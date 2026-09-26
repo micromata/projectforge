@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.Constants
@@ -121,9 +122,12 @@ open class LiquidityEntryDO : DefaultBaseDO() {
      * strictly before today. An entry without a date of payment is never auto-paid.
      *
      * Transient (computed, never persisted); serialized to the next frontend so the list can highlight and
-     * the statistics can count by the effective status.
+     * the statistics can count by the effective status. The global Jackson config serializes fields only
+     * (see JacksonConfiguration), so a computed getter needs `@JsonProperty` to reach the JSON at all;
+     * `READ_ONLY` keeps it serialize-out only (the frontend posts back `paid`, never this derived value).
      */
     val effectivePaid: Boolean
         @Transient
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         get() = paid ?: (autoSetPaid && dateOfPayment?.isBefore(LocalDate.now()) == true)
 }
