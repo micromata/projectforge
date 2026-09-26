@@ -380,6 +380,7 @@
     }
   },
   "contactPerson": "Contact person",
+  "contactPersons": "Contact persons",
   "copy": "Copy",
   "create": "Create",
   "created": "created",
@@ -1937,6 +1938,9 @@
         },
         "startDate": "Start date",
         "title": "Liquidity series"
+      },
+      "statistics": {
+        "pastBaseDate": "The selected payment date lies in the past, so these amounts show the historical figures as of that date, not the current liquidity."
       },
       "title": {
         "heading": "Liquidity planning"

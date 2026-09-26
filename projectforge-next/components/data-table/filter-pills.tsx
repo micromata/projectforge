@@ -54,6 +54,13 @@ export function FilterPills({
   const [openId, setOpenId] = useState<string | null>(null);
   // A field picked from the chip: shown as an empty pill until it is saved or dropped.
   const [pendingId, setPendingId] = useState<string | null>(null);
+  // Boolean fields the user has toggled this session. A boolean toggles off in place — its value is
+  // dropped, but its pill stays on the row (empty, dashed), unlike a text or list pill. The row is
+  // rebuilt from the stored filter on a reload or a return to the page, so the empty ones are then
+  // gone; "Clear all" and the pill's own remove (×) drop them at once.
+  const [keptBooleanIds, setKeptBooleanIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
   const activeCount = Object.keys(values).length;
   const history = historyFilterGroupOf(elements);
   const showHistory =
@@ -63,13 +70,27 @@ export function FilterPills({
   // Derived, and in backend order, so pills don't jump around as values come and go.
   const shown = withoutHistoryFilters(elements).filter(
     (element) =>
-      element.defaultFilter || element.id in values || element.id === pendingId
+      element.defaultFilter ||
+      element.id in values ||
+      element.id === pendingId ||
+      keptBooleanIds.has(element.id)
   );
 
   function close() {
     setOpenId(null);
     setPendingId(null);
   }
+
+  const keepBoolean = (id: string) =>
+    setKeptBooleanIds((prev) => (prev.has(id) ? prev : new Set([...prev, id])));
+
+  const dropBoolean = (id: string) =>
+    setKeptBooleanIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
 
   return (
     // Around the whole row, so the fields of the pills and the ones the "all filters" dialog repeats
@@ -99,10 +120,14 @@ export function FilterPills({
             open={openId === element.id}
             onOpenChange={(open) => (open ? setOpenId(element.id) : close())}
             removable={!element.defaultFilter}
-            onSave={(value) =>
-              onChange(withFilterValue(values, element.id, value))
-            }
+            onSave={(value) => {
+              // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
+              if (element.filterType === "BOOLEAN") keepBoolean(element.id);
+              onChange(withFilterValue(values, element.id, value));
+            }}
             onDelete={() => {
+              // The pill's × is the real removal: drop the value and stop keeping the empty pill.
+              dropBoolean(element.id);
               onChange(withFilterValue(values, element.id, undefined));
               close();
             }}
@@ -128,6 +153,13 @@ export function FilterPills({
             ...shown.map((element) => element.id),
           ]}
           onSelect={(id) => {
+            // A boolean has one meaningful state; picking it is the same as ticking it, so it
+            // becomes an active pill straight away instead of opening a popover with one checkbox.
+            const element = elements.find((e) => e.id === id);
+            if (element?.filterType === "BOOLEAN") {
+              onChange(withFilterValue(values, id, { value: "true" }));
+              return;
+            }
             // Keyed by id, so a pending pill mounts with its popover already open.
             if (!(id in values)) setPendingId(id);
             setOpenId(id);
@@ -141,6 +173,7 @@ export function FilterPills({
             type="button"
             onClick={() => {
               close();
+              setKeptBooleanIds(new Set());
               onChange({});
             }}
             className="cursor-pointer px-1 text-xs font-medium text-muted-foreground hover:text-foreground"

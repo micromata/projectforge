@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 import { useFormatContext } from "@/hooks/use-format";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { formatCurrency } from "@/lib/format";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
@@ -42,6 +45,21 @@ export function LiquidityStatisticsLine({
         statistics?.pastBaseDate && "bg-brand-pink/10"
       )}
     >
+      {statistics?.pastBaseDate && (
+        // Says why the line is tinted: the chosen payment date is in the past, so the sums are the
+        // historical state as of that date rather than the current liquidity.
+        <HintTooltip
+          text={t("plugins.liquidityplanning.statistics.pastBaseDate")}
+          openOnTap
+        >
+          <span
+            className="flex items-center text-brand-pink"
+            aria-label={t("plugins.liquidityplanning.statistics.pastBaseDate")}
+          >
+            <HugeiconsIcon icon={AlertCircleIcon} size={15} />
+          </span>
+        </HintTooltip>
+      )}
       {entries.map((entry) => (
         <div
           key={entry.labelKey}

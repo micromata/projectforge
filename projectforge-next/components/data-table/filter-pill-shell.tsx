@@ -33,6 +33,13 @@ interface FilterPillShellProps {
   /** Wider than the default for a pill holding more than one field. */
   contentClassName?: string;
   /**
+   * A pill with a single on/off state (a BOOLEAN filter): the trigger toggles the value in place
+   * instead of opening a popover, so there is no checkbox step. When set, the popover, its children
+   * and the cancel/delete footer are not rendered — the trailing remove X (for a non-default filter)
+   * and any step arrows stay as they are. See [FilterPill].
+   */
+  onToggle?: () => void;
+  /**
    * Pages the pill's period without opening the popover — set only for a period filter with something to
    * page (see [FilterPill]). Then two arrows flank the label, so the statistics above the list stay in
    * view while the user steps month by month.
@@ -66,6 +73,7 @@ export function FilterPillShell({
   onStep,
   stepPreviousLabel,
   stepNextLabel,
+  onToggle,
   children,
 }: FilterPillShellProps) {
   const t = useTranslations("filter");
@@ -107,69 +115,85 @@ export function FilterPillShell({
           {stepButton(-1, ArrowLeft01Icon, stepPreviousLabel)}
         </span>
       )}
-      <Popover open={open} onOpenChange={onOpenChange}>
-        {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+      {onToggle ? (
+        // A single on/off filter: the trigger flips the value in place — no popover, no checkbox.
         <HintTooltip text={tooltip}>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              aria-label={t("editEntry", { arg0: label })}
-              className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
-            >
-              {label}
-              {text && `: ${text}`}
-            </button>
-          </PopoverTrigger>
-        </HintTooltip>
-        <PopoverContent
-          align="start"
-          className={cn("relative w-72 space-y-2 p-3", contentClassName)}
-          // Radix would focus the first tabbable child on open, whatever the field asked for. Which
-          // field takes the cursor — if any — is the field's decision: it is the one that knows that
-          // focusing a [DateInput] opens a calendar over the rest of this popover ([RangeField] opts
-          // out). The fields carry `autoFocus` themselves, so overriding this loses nothing.
-          //
-          // The popover *itself* takes it instead of nothing at all: with the focus left outside, the
-          // trigger keeps it, and every re-render of the pill's draft then moves the focused element —
-          // which makes the buttons in here unclickable (Playwright: "element is not stable"), and by
-          // keyboard the popover would not be where Tab and Escape go.
-          onOpenAutoFocus={(event) => {
-            event.preventDefault();
-            (event.currentTarget as HTMLElement | null)?.focus();
-          }}
-        >
-          {/* A close cross top-right, on every filter's popover: edits apply live, so closing simply
-              leaves the panel with what is applied (unlike "Abbrechen", which restores what it opened
-              with). Room is kept for it with the label's own padding, so it never sits on the content. */}
           <button
             type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label={t("close")}
-            className="absolute right-2 top-2 flex size-5 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-primary/20 hover:text-foreground"
+            aria-label={label}
+            aria-pressed={active}
+            onClick={onToggle}
+            className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+            {label}
+            {text && `: ${text}`}
           </button>
-          <div className="pr-6">{children}</div>
-          <div className="flex justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={onDelete}
+        </HintTooltip>
+      ) : (
+        <Popover open={open} onOpenChange={onOpenChange}>
+          {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
+          <HintTooltip text={tooltip}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label={t("editEntry", { arg0: label })}
+                className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
+              >
+                {label}
+                {text && `: ${text}`}
+              </button>
+            </PopoverTrigger>
+          </HintTooltip>
+          <PopoverContent
+            align="start"
+            className={cn("relative w-72 space-y-2 p-3", contentClassName)}
+            // Radix would focus the first tabbable child on open, whatever the field asked for. Which
+            // field takes the cursor — if any — is the field's decision: it is the one that knows that
+            // focusing a [DateInput] opens a calendar over the rest of this popover ([RangeField] opts
+            // out). The fields carry `autoFocus` themselves, so overriding this loses nothing.
+            //
+            // The popover *itself* takes it instead of nothing at all: with the focus left outside, the
+            // trigger keeps it, and every re-render of the pill's draft then moves the focused element —
+            // which makes the buttons in here unclickable (Playwright: "element is not stable"), and by
+            // keyboard the popover would not be where Tab and Escape go.
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              (event.currentTarget as HTMLElement | null)?.focus();
+            }}
+          >
+            {/* A close cross top-right, on every filter's popover: edits apply live, so closing simply
+              leaves the panel with what is applied (unlike "Abbrechen", which restores what it opened
+              with). Room is kept for it with the label's own padding, so it never sits on the content. */}
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label={t("close")}
+              className="absolute right-2 top-2 flex size-5 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-primary/20 hover:text-foreground"
             >
-              {tAction("delete")}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={onCancel}
-            >
-              {tAction("cancel")}
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
+              <HugeiconsIcon icon={Cancel01Icon} size={12} />
+            </button>
+            <div className="pr-6">{children}</div>
+            <div className="flex justify-end gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={onDelete}
+              >
+                {tAction("delete")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={onCancel}
+              >
+                {tAction("cancel")}
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
       {stepping && (
         <span className={cn(!removable && "pr-1")}>
           {stepButton(1, ArrowRight01Icon, stepNextLabel)}

@@ -35,6 +35,8 @@ export interface EditPageTabsProps {
   onSelectTab?: (tab: string) => void;
 }
 
+// Underline tabs: plain text with a primary rule under the selected one. `-mb-px` sits each tab on the
+// bar's bottom border so the active rule and that border share a line.
 const TAB_CLASS =
   "-mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-sm transition-colors";
 
@@ -64,7 +66,7 @@ export function EditPageTabs({
   return (
     <div
       role="tablist"
-      className="flex shrink-0 items-end border-b-[1.5px] border-border bg-background px-6"
+      className="flex shrink-0 flex-wrap items-end border-b-[1.5px] border-border bg-background px-6"
     >
       {tabs.map((tab, i) => {
         // activeId wins: while a tab beside the form is open, the form's scroll position says nothing
