@@ -40,6 +40,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.RecentQueue
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.sipgate.SipgateDirectCallService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -101,6 +102,8 @@ class PhoneCallRest {
         val id: Long,
         val fullName: String,
         val numbers: List<AddressPhoneNumber>,
+        /** The address' view page, so the panel name links to it (address is not migrated to next yet). */
+        val viewUrl: String,
     )
 
     /** Initial form data (deep-link via `addressId`, or a raw `number`). */
@@ -113,6 +116,8 @@ class PhoneCallRest {
         val recentMyCallerId: String? = null,
         val sipgateConfigured: Boolean = false,
         val callerPage: String? = null,
+        /** Where the "back" link leads (the address list or view the user came from); null when opened plain. */
+        val backUrl: String? = null,
     )
 
     /**
@@ -175,7 +180,21 @@ class PhoneCallRest {
             recentMyCallerId = userPrefService.getEntry(PREF_AREA, PREF_RECENT_CALLER_ID, String::class.java),
             sipgateConfigured = sipgateConfigured,
             callerPage = callerPage,
+            backUrl = backUrl(callerPage, address),
         )
+    }
+
+    /**
+     * The "back" link the [PhoneCallForm] offers, mirroring the Wicket page's `backToCaller`: to the address'
+     * view page when the user came from there, else to the address list; null when opened plain (no caller).
+     * Address is not migrated to next yet, so both targets are the legacy React app (see [PagesResolver]).
+     */
+    private fun backUrl(callerPage: String?, address: AddressDO?): String? {
+        return when (callerPage) {
+            "addressView" -> address?.id?.let { AddressViewPageRest.getPageUrl(it) }
+            "addressList" -> PagesResolver.getListPageUrl(AddressPagesRest::class.java, absolute = true)
+            else -> null
+        }
     }
 
     /**
@@ -278,7 +297,7 @@ class PhoneCallRest {
         // fullName joins name, first name and organization, so an entry with only an organization (a company
         // support line) shows the organization instead of a bare salutation ("Frau") from fullNameWithTitleAndForm.
         val displayName = address.fullName?.takeIf { it.isNotBlank() } ?: address.fullNameWithTitleAndForm.trim()
-        return AddressInfo(address.id!!, displayName, numbers)
+        return AddressInfo(address.id!!, displayName, numbers, AddressViewPageRest.getPageUrl(address.id))
     }
 
     private fun addNumber(list: MutableList<AddressPhoneNumber>, number: String?, phoneType: PhoneType) {

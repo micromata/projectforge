@@ -51,7 +51,10 @@
     "directCall": {
       "call": "Call",
       "confirm": "Would you like to initiate the phone call from ''{arg0}''?",
-      "noPhoneDefined": "No phone defined (please choose or define under My account)."
+      "noPhoneDefined": "No phone defined (please choose or define under My account).",
+      "number": {
+        "tooltip": "Supports the input of first-, last names and organizations."
+      }
     },
     "division": "Division",
     "emails": "e-mails",
@@ -64,12 +67,23 @@
       "mister": "Mister",
       "unknown": "unknown"
     },
-    "myCurrentCallerId": "Caller id",
-    "myCurrentPhoneId": "My phone id",
+    "myCurrentCallerId": {
+      "_": "Caller id",
+      "tooltip": {
+        "content": "This caller id is displayed to the callee."
+      }
+    },
+    "myCurrentPhoneId": {
+      "_": "My phone id",
+      "tooltip": {
+        "content": "Define your phone ids (internal phone number of the phone system). After you can make a direct phone call on the selected phone by simply clicking on the desired phone number below."
+      }
+    },
     "phone": "Phone",
     "phoneCall": {
       "number": {
-        "label": "Phone number"
+        "label": "Phone number",
+        "labeldescription": "Number to call"
       },
       "title": "Direct calling telephone system"
     },

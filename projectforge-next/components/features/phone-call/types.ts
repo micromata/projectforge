@@ -18,6 +18,8 @@ export interface AddressInfo {
   id: number;
   fullName: string;
   numbers: AddressPhoneNumber[];
+  /** The address' view page (legacy React app), so the panel name links to it. */
+  viewUrl: string;
 }
 
 /** Initial form data: PhoneCallRest.InitialData. */
@@ -30,6 +32,8 @@ export interface PhoneCallInitialData {
   recentMyCallerId?: string | null;
   sipgateConfigured: boolean;
   callerPage?: string | null;
+  /** Where the "back" link leads (address list/view the user came from); null when opened plain. */
+  backUrl?: string | null;
 }
 
 /**

@@ -3,8 +3,12 @@
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
+import { Button } from "@/components/ui/button";
+import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import { fetchPhoneCallData } from "@/lib/rs/phone-call";
 import { PhoneCallForm } from "./phone-call-form";
 import type { PhoneCallParams } from "./types";
@@ -55,7 +59,18 @@ export function PhoneCallPage() {
         category={t("menu.phoneCall")}
         title={t("address.phoneCall.title")}
         legacyUrl={legacyUrl(query)}
-      />
+      >
+        {/* Back to the address list/view the user came from (Wicket's `backToCaller`); the target is the
+            legacy React app, so a plain anchor with a full page load. */}
+        {data.data?.backUrl && (
+          <Button asChild size="sm" variant="outline" className="gap-1.5">
+            <a href={toAbsoluteUrl(resolveMenuUrl(data.data.backUrl))}>
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={13} />
+              {t("back")}
+            </a>
+          </Button>
+        )}
+      </PageTitleRow>
       <div className="flex flex-col gap-4 px-4 pb-6 pt-2">
         {data.isPending && (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>

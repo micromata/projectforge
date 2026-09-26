@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { FieldHint } from "@/components/shared/form/field-hint";
 import {
   Select,
   SelectContent,
@@ -71,9 +72,15 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
       <SectionCard className="min-w-0 flex-1">
         <div className="flex flex-col gap-4">
           <Field>
-            <FieldLabel htmlFor="phone-call-number">
-              {t("address.phoneCall.number.label")}
-            </FieldLabel>
+            <div className="flex items-start gap-1">
+              <FieldLabel htmlFor="phone-call-number">
+                {t("address.phoneCall.number.label")}
+              </FieldLabel>
+              <FieldHint
+                hint={t("address.directCall.number.tooltip")}
+                label={t("address.phoneCall.number.label")}
+              />
+            </div>
             <SuggestInput
               id="phone-call-number"
               value={phoneNumber}
@@ -88,11 +95,20 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
               required
               autoFocus
             />
+            <FieldDescription>
+              {t("address.phoneCall.number.labeldescription")}
+            </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="phone-call-my-phone">
-              {t("address.myCurrentPhoneId")}
-            </FieldLabel>
+            <div className="flex items-start gap-1">
+              <FieldLabel htmlFor="phone-call-my-phone">
+                {t("address.myCurrentPhoneId")}
+              </FieldLabel>
+              <FieldHint
+                hint={t("address.myCurrentPhoneId.tooltip.content")}
+                label={t("address.myCurrentPhoneId")}
+              />
+            </div>
             <Select value={myPhoneId} onValueChange={setMyPhoneId}>
               <SelectTrigger id="phone-call-my-phone">
                 <SelectValue
@@ -109,9 +125,15 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
             </Select>
           </Field>
           <Field>
-            <FieldLabel htmlFor="phone-call-caller-id">
-              {t("address.myCurrentCallerId")}
-            </FieldLabel>
+            <div className="flex items-start gap-1">
+              <FieldLabel htmlFor="phone-call-caller-id">
+                {t("address.myCurrentCallerId")}
+              </FieldLabel>
+              <FieldHint
+                hint={t("address.myCurrentCallerId.tooltip.content")}
+                label={t("address.myCurrentCallerId")}
+              />
+            </div>
             <Select value={myCallerId} onValueChange={setMyCallerId}>
               <SelectTrigger id="phone-call-caller-id">
                 <SelectValue />

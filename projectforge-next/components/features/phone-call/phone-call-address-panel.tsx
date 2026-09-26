@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { SmartPhone01Icon, TelephoneIcon } from "@hugeicons/core-free-icons";
 import { SectionCard } from "@/components/shared/section-card";
 import { Button } from "@/components/ui/button";
+import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 import type { AddressInfo, AddressPhoneNumber } from "./types";
 
 type Translate = ReturnType<typeof useTranslations>;
@@ -46,9 +47,13 @@ export function PhoneCallAddressPanel({
   onPick: (number: string) => void;
 }) {
   const t = useTranslations();
+  // The address view still lives in the legacy React app; a plain anchor leaves this app with a full load.
+  const viewHref = toAbsoluteUrl(resolveMenuUrl(address.viewUrl));
   return (
     <SectionCard className="w-full md:w-96 md:shrink-0">
-      <p className="mb-3 font-medium">{address.fullName}</p>
+      <a href={viewHref} className="mb-3 block font-medium hover:underline">
+        {address.fullName}
+      </a>
       <ul className="flex flex-col gap-1">
         {address.numbers.map((entry) => (
           <li key={`${entry.phoneType}-${entry.number}`}>
