@@ -41,7 +41,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORTING("menu.reporting"), //
 
     // Sub menus in alphabetical order:
-    ACCESS_LIST("menu.accessList", "wa/accessList"), //
+    // Migrated to projectforge-next (hand built, GroupAccessEntityRest); the Wicket page (wa/accessList)
+    // stays reachable through the escape hatch, see NextMigration.legacyListUrl.
+    ACCESS_LIST("menu.accessList", getListUrl("access")), //
     ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", "wa/accountingRecordList"), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
