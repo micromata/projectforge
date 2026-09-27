@@ -91,7 +91,11 @@ class ProjektCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing ProjektCache ...")
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+        // runReadOnlyForCacheMaintenance (not runIsolatedReadOnly): the refresh can be triggered from within an open
+        // write transaction (e.g. AuftragDao.onInsertOrModify -> resolveKundeAndProjekt). Opening a second, isolated
+        // connection there would self-deadlock on a lock-based DB such as HSQLDB (also the default embedded production
+        // DB); reusing the transaction's connection avoids it. See AbstractCache.runReadOnlyForCacheMaintenance.
+        runReadOnlyForCacheMaintenance { context ->
             this.projektMap = context
                 .executeQuery("from ProjektDO t", ProjektDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
