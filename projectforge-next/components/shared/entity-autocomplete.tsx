@@ -52,6 +52,13 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
   className?: string;
   autoFocus?: boolean;
   /**
+   * Opens the picker straight away on mount, so its search input — not the closed trigger — takes the
+   * focus and the user can start typing at once. Used when the control appears in response to a
+   * deliberate act (a freshly added filter row); a form field that merely wants the caret uses
+   * `autoFocus` instead, which leaves the dropdown closed.
+   */
+  autoOpen?: boolean;
+  /**
    * Shown but not changeable — a value this user may read and not set, or a whole form that is only
    * being looked at (a deleted entry, see useFormReadOnly). The trigger cannot be opened and the two
    * buttons beside it are left out: both are ways of changing the value.
@@ -76,13 +83,18 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   id,
   className,
   autoFocus,
+  autoOpen,
   selectMe,
   disabled,
   required,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
-  const [open, setOpen] = useState(false);
+  // `autoOpen` seeds the initial state only: the picker mounts open when asked to, and Radix moves the
+  // focus onto its search input. A later change of the prop must not reopen it — that is the user's to
+  // do — so it is read once, not watched. Skipped when a value is already set: a restored filter or a
+  // field with a pick should show it, not drop the user straight into a search to replace it.
+  const [open, setOpen] = useState(() => !!autoOpen && !disabled && !value);
   // The term a keystroke on the (closed) trigger opens the picker with, so that first character is not
   // lost: the search input lives inside the popover and only exists once it is open, so without this a
   // user who tabs onto the trigger and starts typing would type into nothing until they clicked. Reset

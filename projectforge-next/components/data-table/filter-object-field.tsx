@@ -76,6 +76,9 @@ export function FilterObjectField({
         url={url}
         minChars={element.autoCompletion?.minChars}
         autoFocus={autoFocus}
+        // A freshly added filter (user, group, …) should open its picker at once, with the search
+        // input focused, so the user types the entry to look for without a further click.
+        autoOpen={autoFocus}
         aria-label={label}
         selectMe={selectMe}
         value={entityRefOf(value)}
