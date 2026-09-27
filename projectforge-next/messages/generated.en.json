@@ -1939,6 +1939,7 @@
         },
         "editHint": "Changes to this series affect only future occurrences that have not been edited yet. Occurrences already edited or marked as paid are independent entries and stay unchanged.",
         "editLink": "Edit series",
+        "effectiveFrom": "Valid from",
         "fixedBadge": "Fixed",
         "fixedBadgeInfo": "A fixed occurrence: a stored entry that no longer follows later changes to the series.",
         "interval": {
@@ -1951,6 +1952,14 @@
           "_": "Repeat",
           "enable": "Repeat this entry as a series",
           "info": "A series repeats this entry at a fixed interval (e.g. monthly rent). The occurrences are shown automatically, not stored, and only become independent once you open and save one."
+        },
+        "scope": {
+          "fromDate": "Change from a date on",
+          "fromDateHint": "Occurrences before this date keep their current values; the change applies from here on. The interval stays unchanged in this mode.",
+          "required": "Please choose which occurrences this change applies to.",
+          "text": "Change applies to",
+          "whole": "Whole series (from the beginning)",
+          "wholePastWarning": "This also changes past occurrences retroactively."
         },
         "startDate": "Start date",
         "title": "Liquidity series"

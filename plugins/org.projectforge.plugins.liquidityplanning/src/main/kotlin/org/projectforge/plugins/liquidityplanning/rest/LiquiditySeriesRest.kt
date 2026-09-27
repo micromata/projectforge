@@ -23,10 +23,20 @@
 
 package org.projectforge.plugins.liquidityplanning.rest
 
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDO
 import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDao
+import org.projectforge.plugins.liquidityplanning.LiquiditySeriesSplitService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOEntityRest
+import org.projectforge.rest.core.saveOrUpdate
+import org.projectforge.rest.dto.PostData
+import org.projectforge.ui.ResponseAction
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -48,4 +58,53 @@ class LiquiditySeriesRest :
     AbstractDOEntityRest<LiquiditySeriesDO, LiquiditySeriesDao>(
         LiquiditySeriesDao::class.java,
         "plugins.liquidityplanning.series.title",
-    )
+    ) {
+
+    @Autowired
+    private lateinit var splitService: LiquiditySeriesSplitService
+
+    /**
+     * The "valid from a date on" save of the series editor (see [LiquiditySeriesDO.effectiveFrom]). Instead of
+     * the plain in-place update the standard `saveorupdate` route does — which would retroactively rewrite
+     * every still-virtual past occurrence too — this cuts the series at the effective date: a continuation
+     * series carries the edited rule and template from the cut on, the original keeps its values and is ended
+     * just before it (`count = N`). Because occurrences are suppressed per `(seriesId, seriesDate)`, the two
+     * series coexist cleanly and the history stays correct.
+     *
+     * Falls back to the ordinary upsert when there is nothing to split: no effective date, an unsaved series,
+     * or an effective date on or before the start (which would leave an empty `count = 0` history series). The
+     * continuation insert and the migration of already-materialized future occurrences run in one transaction
+     * ([LiquiditySeriesSplitService.createContinuationAndMigrate]); ending the old series is the separate
+     * write that follows — the same two-step shape the entry form's `repeat` block has.
+     */
+    @PostMapping("split")
+    fun split(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<LiquiditySeriesDO>,
+    ): ResponseEntity<ResponseAction> {
+        sessionCsrfService.validateCsrfToken(request, postData, "Split series")?.let { return it }
+        val edited = transformForDB(postData.data)
+        val effectiveFrom = edited.effectiveFrom
+        val oldId = edited.id
+        val original = oldId?.let { baseDao.find(it) }
+        val originalStart = original?.startDate
+        // Nothing to split — a whole-series edit, a still-unsaved series, or a cut at/before the start:
+        // let the standard upsert write the edited values in place (the historic behaviour).
+        if (original == null || originalStart == null || effectiveFrom == null || !effectiveFrom.isAfter(originalStart)) {
+            return saveOrUpdate(request, baseDao, edited, postData, this, validate(edited))
+        }
+        val n = splitService.countBefore(original, effectiveFrom)
+        splitService.createContinuationAndMigrate(
+            oldId!!,
+            LiquiditySeriesSplitService.EditedTemplate(edited),
+            original,
+            n,
+        )
+        // End the old series just before the cut, keeping its original template values (reloaded fresh, so
+        // the edited values the client posted do not leak into it). The standard upsert gives the ordinary
+        // ResponseAction that redirects to the entry list.
+        val oldSeries = baseDao.find(oldId)!!
+        oldSeries.count = splitService.cappedOldCount(original, n)
+        return saveOrUpdate(request, baseDao, oldSeries, postData, this, validate(oldSeries))
+    }
+}

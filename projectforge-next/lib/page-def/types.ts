@@ -484,6 +484,19 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   actions?: readonly string[];
   /**
+   * Redirects the plain Save to one of the declared {@link actions}, chosen from the form values.
+   *
+   * The Save button always submits `action: "save"` (SAVE_META); when this hook returns an action name
+   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `saveorupdate`,
+   * while still navigating away the way a save does (the further-action branch that stays on the page is
+   * only for a button carrying its own meta). Returning `undefined` — or omitting the hook — keeps the
+   * ordinary save.
+   *
+   * The liquidity series editor is the case: a "valid from a date on" edit is a `split`, an ordinary one
+   * a save, told apart by whether the form holds an effective date — one Save button, two endpoints.
+   */
+  submitAction?: (values: Values) => string | undefined;
+  /**
    * Whether the edit page offers a clone — a new entry built from the one on screen — and how it ends.
    *
    * The counterpart of `cloneSupport` in the entity's REST class, which is where the *semantics* live

@@ -196,9 +196,16 @@ export function EntityEditBody<
           ? { deleted: true }
           : {}),
       } as unknown as Data;
+      // The Save button always submits `action: "save"`; a page may redirect that to one of its
+      // declared actions, chosen from the values (a series' "valid from a date" edit becomes `split`).
+      // A button carrying its own action name is taken as it is.
+      const action =
+        meta.action === "save"
+          ? (edit.submitAction?.(values) ?? "save")
+          : meta.action;
       // A declared action posts to `/rs/{entity}/{action}`; anything else is a save.
-      return edit.actions?.includes(meta.action)
-        ? actionMutation.mutateAsync({ action: meta.action, data: posted })
+      return edit.actions?.includes(action)
+        ? actionMutation.mutateAsync({ action, data: posted })
         : saveMutation.mutateAsync(posted);
     },
   });

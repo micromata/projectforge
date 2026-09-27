@@ -77,9 +77,27 @@ open class LiquidityMaterializationService {
     open fun materialize(virtualId: Long): LiquidityEntryDO? {
         val (series, seriesDate) = resolve(virtualId) ?: return null
         val seriesId = series.id ?: return null
+        // Persist and reindex through the shared anchor path: the freshly materialized row must be findable by
+        // full-text search at once (its virtual twin is suppressed the moment the real row exists, so without an
+        // immediate re-index it would drop out of a search-filtered list until the periodic re-index runs — see
+        // LiquidityEntityRest.virtualRowsForList).
+        return materializeAnchor(seriesId, seriesDate)
+    }
+
+    /**
+     * Materializes a given `(seriesId, seriesDate)` anchor and returns the persisted (and immediately
+     * reindexed) row, or the existing row if the anchor is already materialized. Unlike [materialize] this
+     * takes the anchor directly rather than a virtual id, for callers that already hold the series (e.g. the
+     * split, which materializes a continuation's occurrence 0 so a series that would otherwise have no real
+     * row is still findable by full-text search — see LiquidityEntityRest.virtualRowsForList). Returns `null`
+     * if the series is gone.
+     */
+    open fun materializeAnchor(seriesId: Long, seriesDate: LocalDate): LiquidityEntryDO? {
+        val series = liquiditySeriesDao.find(seriesId, checkAccess = false) ?: return null
         findMaterialized(seriesId, seriesDate)?.let { return it }
         val entry = buildOccurrence(series, seriesId, seriesDate)
         liquidityEntryDao.insert(entry, checkAccess = false)
+        liquidityEntryDao.reindex(entry)
         return entry
     }
 

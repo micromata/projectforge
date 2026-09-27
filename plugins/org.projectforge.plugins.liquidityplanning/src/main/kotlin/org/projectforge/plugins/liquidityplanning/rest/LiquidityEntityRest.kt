@@ -124,24 +124,27 @@ class LiquidityEntityRest :
      */
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: LiquidityEntryDO, postData: PostData<LiquidityEntryDO>) {
         val repeat = postData.data.repeat
-        if (repeat?.enabled != true || obj.seriesId != null) {
-            return
+        if (repeat?.enabled == true && obj.seriesId == null) {
+            val series = LiquiditySeriesDO()
+            series.startDate = obj.dateOfPayment
+            series.frequency = repeat.frequency ?: RecurrenceFrequency.MONTHLY
+            series.intervalMonths = repeat.intervalMonths.coerceAtLeast(1)
+            series.count = repeat.count?.takeIf { it > 0 }
+            series.amount = obj.amount
+            series.subject = obj.subject
+            series.comment = obj.comment
+            series.autoSetPaid = obj.autoSetPaid
+            liquiditySeriesDao.insert(series)
+            // Link the saved entry as the series' first (materialized) occurrence so the virtual occurrence 0 at
+            // the same anchor is suppressed and no duplicate appears.
+            obj.seriesId = series.id
+            obj.seriesDate = obj.dateOfPayment
+            baseDao.update(obj)
         }
-        val series = LiquiditySeriesDO()
-        series.startDate = obj.dateOfPayment
-        series.frequency = repeat.frequency ?: RecurrenceFrequency.MONTHLY
-        series.intervalMonths = repeat.intervalMonths.coerceAtLeast(1)
-        series.count = repeat.count?.takeIf { it > 0 }
-        series.amount = obj.amount
-        series.subject = obj.subject
-        series.comment = obj.comment
-        series.autoSetPaid = obj.autoSetPaid
-        liquiditySeriesDao.insert(series)
-        // Link the saved entry as the series' first (materialized) occurrence so the virtual occurrence 0 at
-        // the same anchor is suppressed and no duplicate appears.
-        obj.seriesId = series.id
-        obj.seriesDate = obj.dateOfPayment
-        baseDao.update(obj)
+        // Index the saved row synchronously: the insert/update path does not flush the indexing plan
+        // (LUCENE_FLUSH_ALWAYS is off), so a materialized occurrence would drop out of a full-text-filtered list
+        // (its virtual twin is already suppressed) until the periodic re-index runs. See virtualRowsForList.
+        baseDao.reindex(obj)
     }
 
     /**
@@ -241,7 +244,7 @@ class LiquidityEntityRest :
         request: HttpServletRequest,
         magicFilter: MagicFilter,
     ): ResultSet<*> {
-        val virtual = virtualRowsForList(magicFilter)
+        val virtual = virtualRowsForList(magicFilter, resultSet.resultSet)
         if (virtual.isNotEmpty()) {
             resultSet.resultSet = (resultSet.resultSet + virtual)
                 .sortedWith(compareBy(nullsLast<LocalDate>()) { it.dateOfPayment })
@@ -263,8 +266,15 @@ class LiquidityEntityRest :
      * months back so a series' recent occurrences (last month's rent, say) still show without an endless old
      * series flooding the list with years of history, and its upper bound to 24 months out; the user narrows
      * both with the date-range filter, which bounds real and virtual rows alike.
+     *
+     * When a full-text search is active, projected occurrences are restricted to the series that the search
+     * matched. We do not re-run the query's text matching on the virtual rows (a virtual occurrence shares its
+     * series' subject/comment, so "series matches ⇒ its occurrences match"); instead we read the matching series
+     * off [realRows], the already Lucene-filtered real result set. Every series keeps its occurrence 0
+     * materialized, so a matching series is represented there unless all of its real rows fell outside the date
+     * range — an acceptable edge for a search that is itself narrowing the list.
      */
-    private fun virtualRowsForList(magicFilter: MagicFilter): List<LiquidityEntryDO> {
+    private fun virtualRowsForList(magicFilter: MagicFilter, realRows: List<LiquidityEntryDO>): List<LiquidityEntryDO> {
         val today = LocalDate.now()
         val (from, to) = paymentDateBounds(magicFilter.entries.find { it.field == BASE_DATE_FILTER })
         val horizonStart = from ?: today.minusMonths(LIST_HORIZON_MONTHS)
@@ -278,8 +288,14 @@ class LiquidityEntityRest :
         }
         val paymentStatus = listFilterValue(magicFilter, PAYMENT_STATUS_FILTER)
         val amountType = listFilterValue(magicFilter, AMOUNT_TYPE_FILTER)
+        val matchedSeriesIds = if (magicFilter.searchString.isNullOrBlank()) {
+            null
+        } else {
+            realRows.mapNotNullTo(HashSet()) { it.seriesId }
+        }
         return virtual.filter { entry ->
-            (paymentStatus == null || matchesPaymentStatus(entry, paymentStatus)) &&
+            (matchedSeriesIds == null || entry.seriesId in matchedSeriesIds) &&
+                (paymentStatus == null || matchesPaymentStatus(entry, paymentStatus)) &&
                 (amountType == null || matchesAmountType(entry, amountType))
         }
     }
@@ -311,8 +327,9 @@ class LiquidityEntityRest :
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting liquidity entries as Excel file.")
         // Include the virtual (recurring) occurrences the list also shows, sorted in with the real entries.
-        val virtual = virtualRowsForList(filter)
-        val entries = (getResultList(filter) + virtual)
+        val realRows = getResultList(filter)
+        val virtual = virtualRowsForList(filter, realRows)
+        val entries = (realRows + virtual)
             .sortedWith(compareBy(nullsLast<LocalDate>()) { it.dateOfPayment })
         if (entries.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()

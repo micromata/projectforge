@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.api
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
+import org.hibernate.search.mapper.orm.Search
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
@@ -513,6 +514,27 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         }
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.INSERT)
         return baseDOPersistenceService.insert(this, obj, checkAccess = checkAccess)!!
+    }
+
+    /**
+     * Adds or updates a single object in the full-text index right now, instead of waiting for the periodic
+     * re-index of the newest entries (LUCENE_FLUSH_ALWAYS is off, so neither [insert] nor [update] flushes the
+     * indexing plan synchronously). Needed when a freshly persisted row must be findable by search at once — e.g.
+     * a liquidity occurrence materialized on the fly, whose virtual projection is suppressed the moment the real
+     * row exists, so a not-yet-indexed row would otherwise disappear from a full-text-filtered list. Failures are
+     * logged, not propagated: an index that lags is recoverable by a re-index, a failed transaction is not.
+     */
+    open fun reindex(obj: O) {
+        val id = obj.id ?: return
+        try {
+            persistenceService.runInTransaction { context ->
+                val em = context.em
+                em.flush()
+                Search.session(em).indexingPlan().addOrUpdate(em.find(doClass, id))
+            }
+        } catch (ex: Exception) {
+            log.error(ex) { "Failed to re-index ${doClass.simpleName}#$id: ${ex.message}" }
+        }
     }
 
     @JvmOverloads
