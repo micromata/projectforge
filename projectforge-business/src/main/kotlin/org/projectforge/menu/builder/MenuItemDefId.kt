@@ -129,7 +129,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
-    SYSTEM("menu.system", "wa/admin"), //
+    SYSTEM("menu.system", "next/system"), //
     SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));
 
     /**

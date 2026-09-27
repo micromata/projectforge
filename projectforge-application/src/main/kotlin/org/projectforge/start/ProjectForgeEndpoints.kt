@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.wicket.Page
 import org.apache.wicket.markup.html.WebPage
 import org.projectforge.SystemStatus
+import org.projectforge.business.admin.SystemDiagnosticsExport
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.web.admin.AdminPage
 import org.projectforge.web.admin.IProjectForgeEndpoints
@@ -50,7 +51,7 @@ import jakarta.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 @Service
-class ProjectForgeEndpoints : IProjectForgeEndpoints {
+class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
   private lateinit var restEndPointsMap: Map<RequestMappingInfo, HandlerMethod>
   private lateinit var wicketPagesMap: Map<String, Class<out WebPage>>
   private var initialized = false

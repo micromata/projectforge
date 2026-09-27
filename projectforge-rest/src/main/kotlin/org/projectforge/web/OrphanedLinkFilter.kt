@@ -73,6 +73,16 @@ class OrphanedLinkFilter : Filter {
             } else {
                 redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
             }
+        } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
+            // Old Wicket System (administration) page, migrated to projectforge-next. The precise segment match
+            // keeps this from catching sibling pages like /wa/adminLogViewer.
+            if (servletRequest.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
+                // The "classic version" escape hatch: let it reach the legacy Wicket AdminPage (see the next
+                // page's LegacyPageLink, url "wa/admin?legacyEscape").
+                chain.doFilter(servletRequest, servletResponse)
+            } else {
+                redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
+            }
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is

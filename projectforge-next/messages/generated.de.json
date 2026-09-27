@@ -1683,6 +1683,7 @@
       "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
     },
     "sendSms": "SMS senden",
+    "system": "System",
     "taskTree": "Strukturbaum",
     "timesheetList": "Zeitberichte"
   },
@@ -2260,6 +2261,118 @@
   "status": "Status",
   "sum": "Summe",
   "system": {
+    "admin": {
+      "alertMessage": {
+        "copyAndPaste": {
+          "title": "For copy & paste"
+        }
+      },
+      "button": {
+        "checkI18nProperties": {
+          "_": "Check i18n properties",
+          "tooltip": "Check i18n properties for detecting missing translations in different languages."
+        },
+        "checkSystemIntegrity": {
+          "_": "Check system integrity",
+          "tooltip": "Runs some sanity checks (task tree, data transfer, etc.)."
+        },
+        "clearAlertMessage": "Clear alert message",
+        "createMissingDatabaseIndices": {
+          "_": "Create database indices",
+          "tooltip": "Creates missing database indices. You can call this script time by time to ensure that there is now missing database indice which may decrease the system's performance. Usually the database indices are created automatically after any update."
+        },
+        "createTestBooks": {
+          "_": "100 Testbücher anlegen",
+          "tooltip": "Legt 100 Bücher vom Typ BookDO zu Testzwecken an."
+        },
+        "debugUserGroupCache": {
+          "_": "UserGroupCache debuggen",
+          "tooltip": "Lädt den aktuellen Zustand des UserGroupCache als JSON-Datei zum Debuggen herunter."
+        },
+        "dump": {
+          "_": "Dump database",
+          "notMigrated": "Diese Funktion ist noch nicht in die neue Oberfläche migriert.",
+          "question": "Do you really want to dump the whole database? On large systems this may result in a system failure.",
+          "tooltip": "Dumps the whole database to one xml file. You can use this as a manual backup method. You can import this dump into a new fresh ProjectForge installation via the set-up page. But note: On large systems this feature may slow down your system or may end up in a system failure. For large systems please use the dump methods of your database."
+        },
+        "export2FAConfiguration": {
+          "_": "Export 2FA configuration",
+          "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
+        },
+        "exportConfiguration": {
+          "_": "Export configuration",
+          "tooltip": "Exports the config.xml which represents the currently used configuration of ProjectForge. The exported file may differ from the config.xml."
+        },
+        "formatLogEntries": {
+          "_": "Format log entries",
+          "textarea": {
+            "tooltip": "Insert your log file snippets here."
+          },
+          "tooltip": "Use this feature to format log file outputs for better reading."
+        },
+        "optimizeAddressImages": {
+          "_": "Adressbilder optimieren",
+          "question": "Sollen wirklich alle Adressbilder verkleinert und neu erzeugt werden? Auf großen Systemen kann dies eine Weile dauern.",
+          "tooltip": "Verkleinert bei Bedarf zu große Adressbilder und erzeugt alle Vorschaubilder neu."
+        },
+        "refreshCaches": {
+          "_": "Refresh all caches",
+          "tooltip": "The caches expire automatically and should be refreshed after any modifications of any data represented by a cache. You can call this manually to be sure that ProjectForge refreshes all caches and will be up-to-date"
+        },
+        "reindex": "Reindex",
+        "rereadConfiguration": {
+          "_": "Reread configuration",
+          "tooltip": "Rereads the config.xml configuration. You can use this to tell ProjectForge that you've modified the config.xml file. ProjectForge reads the config.xml during the start-up phase."
+        },
+        "resetIdpPasswordSync": {
+          "_": "IdP-Passwort-Sync zurücksetzen",
+          "question": "Soll das IdP-Passwort-Sync-Flag wirklich für alle Benutzer zurückgesetzt werden? Die Passwörter werden bei der nächsten Anmeldung erneut synchronisiert.",
+          "tooltip": "Setzt das IdP-Passwort-Sync-Flag für alle Benutzer zurück. Die Passwörter werden bei der nächsten Anmeldung erneut synchronisiert."
+        },
+        "schemaExport": {
+          "_": "Schema export",
+          "tooltip": "Export the database schema (tables, constraints etc.). The database dialect of the currently used database is used."
+        },
+        "setAlertMessage": "Set system alert message",
+        "testDatabase": {
+          "_": "Datenbank testen",
+          "tooltip": "Führt einen Datenbank-Lasttest aus (nur im Entwicklungsmodus, siehe Logdateien)."
+        }
+      },
+      "development": {
+        "testObjectsCreationQuestion": "Sollen wirklich {arg0} Testobjekte vom Typ {arg1} angelegt werden?"
+      },
+      "group": {
+        "title": {
+          "alertMessage": "Alert message",
+          "checks": "Prüfungen",
+          "databaseActions": "Database actions",
+          "development": "Entwicklung",
+          "misc": {
+            "logEntries": "Format log entries"
+          },
+          "systemChecksAndFunctionality": {
+            "caches": "Caches",
+            "configuration": "Configuration"
+          }
+        }
+      },
+      "reindex": {
+        "fromDate": {
+          "_": "From date",
+          "tooltip": "Re-index only those entries with a date of last modification newer than the given date. This date setting is optional."
+        },
+        "newestEntries": {
+          "_": "Number",
+          "subtitle": "Newest entries",
+          "tooltip": "The number of the newest entries of each database entity to re-index (based on the date of the last modification) . If empty then no limit of maximal re-indexed entries for each entity is assumed."
+        }
+      },
+      "reindexNewestNEntries": {
+        "note": "(Based on the time of last modification of the entries.)"
+      },
+      "title": "Administration"
+    },
     "developmentSystem": "Development-System"
   },
   "task": {
