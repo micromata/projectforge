@@ -124,9 +124,31 @@ object LayoutListFilterUtils {
         }
         pagesRest.addMagicFilterElements(elements)
 
+        // A page may pin (or otherwise refine) a filter field that is also an indexed search field of
+        // the entity: an enum property such as KundeDO.status is derived above from searchFields and then
+        // added again, with defaultFilter = true, by addMagicFilterElements. Two elements of the same id
+        // reach the client as two pills for one field (see CustomerPagesRest). Keep the last one per id,
+        // so the page's explicit element wins over the auto-derived one.
+        dedupById(elements)
+
         elements.sortWith(compareBy(ThreadLocalUserContext.localeComparator) { it.label })
         elements.forEach { container.add(it as UIElement) }
         return container
+    }
+
+    /**
+     * Removes filter elements whose id already occurs earlier in the list, keeping the last one (the
+     * element a page added via [AbstractEntityRest.addMagicFilterElements] wins over the one derived
+     * from the entity's search fields). Elements without an id (none of the current UIFilterElement
+     * subclasses) are left untouched.
+     */
+    private fun dedupById(elements: MutableList<UILabelledElement>) {
+        val seen = HashSet<String>()
+        // Walk from the end so the last element of a duplicated id is the one kept.
+        for (i in elements.indices.reversed()) {
+            val id = (elements[i] as? UIFilterElement)?.id ?: continue
+            if (!seen.add(id)) elements.removeAt(i)
+        }
     }
 
     /**

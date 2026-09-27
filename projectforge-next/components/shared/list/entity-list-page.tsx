@@ -304,7 +304,8 @@ function DeclaredList<
           // Through leafKeyOf: a title key may be a namespace as well (`task.title.list` is both the
           // heading and the parent of `task.title.list.select`), and the bare key would throw.
           title={t(leafKeyOf(page.titleKey, t.has))}
-          category={t(page.categoryKey)}
+          // Through leafKeyOf too: `menu.fibu` is a label and the parent of the finance menu entries.
+          category={t(leafKeyOf(page.categoryKey, t.has))}
           searchValue={list.globalFilter}
           onSearchChange={list.setGlobalFilter}
           // Only where this user may add one: without the right the button is left out, as the
