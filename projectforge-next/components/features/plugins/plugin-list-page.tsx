@@ -14,7 +14,7 @@ import { PluginRow } from "./plugin-row";
  * standalone, admin-only action page: it lists every available plugin with an activate/deactivate
  * button; a toggle only takes effect after a restart. Plugins forced active via
  * `projectforge.plugins.ensure-active` cannot be deactivated here. Admin-group only — every endpoint
- * self-checks, and the classic Wicket page stays reachable via the "classic version" link.
+ * self-checks. The classic Wicket page has been removed; this is the only Plugins page now.
  */
 export function PluginListPage() {
   const t = useTranslations();
@@ -33,7 +33,6 @@ export function PluginListPage() {
       <PageTitleRow
         category={t("menu.pluginAdmin")}
         title={t("system.pluginAdmin.title")}
-        legacyUrl="wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage?legacyEscape"
       />
       <div className="flex flex-col gap-4 px-4 pb-8 pt-2">
         {!isLoading && !isAdmin && (

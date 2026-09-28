@@ -31,7 +31,6 @@ import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
-import org.projectforge.web.admin.PluginListPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
@@ -113,7 +112,7 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
         register(MenuItemDefId.SYSTEM, AdminPage.class);
         register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
-        register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
+        // PLUGIN_ADMIN (Plugins) migrated to projectforge-next (next/plugins); its Wicket page was removed.
     }
 
     public void register(MenuItemDefId defId, Class<? extends Page> pageClass) {
