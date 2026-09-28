@@ -30,12 +30,14 @@ import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
 import mu.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.*
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.scripting.ScriptLogger
 import org.projectforge.business.scripting.ThreadLocalScriptingContext
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.FilenameUtils
 import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.formatCurrency
@@ -88,6 +90,12 @@ open class ForecastExport { // open needed by Wicket.
 
     @Autowired
     private lateinit var projectCache: ProjektCache
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @Autowired
     private lateinit var rechnungCache: RechnungCache
@@ -453,6 +461,10 @@ open class ForecastExport { // open needed by Wicket.
             fillPlanningForecast(planningDate, ctx)
             fillProjectOverviewSheet(ctx)
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
+            // Also let Excel/LibreOffice recompute on open: the invoice visible column is a nested cross-sheet
+            // COUNTIF/IF(AND(SUBTOTAL())) chain that POI evaluates unreliably, so a stale cached FALSE could otherwise
+            // drop invoices from the IST sums until a manual full recalc.
+            workbook.pOIWorkbook.setForceFormulaRecalculation(true)
             return workbook.asByteArrayOutputStream.toByteArray()
         }
     }
@@ -531,7 +543,16 @@ open class ForecastExport { // open needed by Wicket.
             }
             if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                 orderInfo.infoPositions?.forEach { pos ->
-                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
+                    // An invoiced project must never be dropped by the position-status gate: auftragsStatusToShow
+                    // allows ABGESCHLOSSEN on order level while auftragsPositionsStatusToShow does not, so a completed
+                    // but invoiced position would otherwise be skipped before isRelevant can keep it. Writing a real
+                    // (zero remaining forecast) row for it puts the project into forecastRowProjectIds/visibleID, so its
+                    // invoices stay visible=TRUE and the autofilter can still narrow them by unit/customer.
+                    val invoicedProject =
+                        orderInfo.projektId?.let { ctx.invoicedProjectIds.contains(it) } == true
+                    if (isRelevant(ctx, orderInfo, pos) &&
+                        (pos.status in ForecastUtils.auftragsPositionsStatusToShow || invoicedProject)
+                    ) {
                         addOrderPosition(
                             ctx,
                             sheet,
@@ -570,7 +591,7 @@ open class ForecastExport { // open needed by Wicket.
                     }
                 }
             }
-            val missedProjectIds = ctx.invoicedProjectIds - ctx.orderProjectIds
+            val missedProjectIds = ctx.invoicedProjectIds - ctx.forecastRowProjectIds
             missedProjectIds.forEach { projectId ->
                 // For all projects that have been invoiced but for which no
                 // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
@@ -582,7 +603,11 @@ open class ForecastExport { // open needed by Wicket.
                     orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
                     orderInfo.angebotsDatum = baseDate
                     orderInfo.titel = "Pseudo order for project $projectId, because this project was invoiced."
-                    orderInfo.kundeAsString = project?.kundeAsString
+                    // project is a shared cached ProjektDO with a lazy kunde proxy; resolve it via the KundeCache
+                    // (identifier read is free) instead of reading project.kundeAsString, which would lazy-load
+                    // T_FIBU_KUNDE. Format locally to avoid mutating the shared cached instance.
+                    val kunde = kundeCache.getKundeIfNotInitialized(project?.kunde)
+                    orderInfo.kundeAsString = KundeFormatter.formatKundeAsString(kunde)
                     orderInfo.projektAsString = project?.name
                     OrderPositionInfo().let { posInfo ->
                         posInfo.auftrag = orderInfo
@@ -678,8 +703,12 @@ open class ForecastExport { // open needed by Wicket.
         baseDate: LocalDate?,
         useAuftragsCache: Boolean,
     ) {
-        order.projektId?.let { ctx.orderProjectIds.add(it) }
         val isPlanningSheet = ctx.planningSheet == sheet
+        if (!isPlanningSheet) {
+            // Only real forecast-sheet rows carry a visibleID; feeding this from the planning sheet would wrongly
+            // exclude invoiced projects from missedProjectIds without giving them a visible row.
+            order.projektId?.let { ctx.forecastRowProjectIds.add(it) }
+        }
         sheet.setIntValue(row, ForecastCol.ORDER_NR.header, order.nummer)
         sheet.setStringValue(row, ForecastCol.POS_NR.header, "#${pos.number}")
         ExcelUtils.setLongValue(sheet, row, ForecastCol.PROJECT_ID.header, order.projektId)
@@ -841,7 +870,11 @@ open class ForecastExport { // open needed by Wicket.
         ).cellStyle =
             ctx.currencyCellStyle
 
-        sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
+        // order.contactPerson is a lazy PFUserDO proxy; calling getFullname() directly would lazy-load T_PF_USER
+        // once per position (n+1). The id read is free (PFUserDO.id is the @Id), and UserGroupCache holds all users
+        // in memory.
+        val contactPerson = order.contactPerson?.id?.let { userGroupCache.getUser(it) }
+        sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, contactPerson?.getFullname())
         val node = TaskTree.instance.getTaskNodeById(pos.taskId)
         sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
         sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
@@ -988,7 +1021,11 @@ open class ForecastExport { // open needed by Wicket.
             if (id != Context.PROJECT_ID_NONE && (agg.customer.isNullOrBlank() || agg.project.isNullOrBlank())) {
                 projectCache.getProjekt(id)?.let { projekt ->
                     if (agg.project.isNullOrBlank()) agg.project = projekt.name
-                    if (agg.customer.isNullOrBlank()) agg.customer = projekt.kunde?.name
+                    if (agg.customer.isNullOrBlank()) {
+                        // projekt.kunde is a lazy proxy on the shared cached instance; resolve via KundeCache
+                        // (identifier read is free) instead of projekt.kunde?.name, which would lazy-load T_FIBU_KUNDE.
+                        agg.customer = kundeCache.getKundeIfNotInitialized(projekt.kunde)?.name
+                    }
                 }
             }
         }

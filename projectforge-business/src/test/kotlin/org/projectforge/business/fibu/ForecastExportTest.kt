@@ -315,6 +315,97 @@ class ForecastExportTest : AbstractTestBase() {
         }
     }
 
+    /**
+     * A completed (ABGESCHLOSSEN) but invoiced order position must not drop out of the IST sums. auftragsStatusToShow
+     * allows ABGESCHLOSSEN on order level while auftragsPositionsStatusToShow does not, so before the fix such a
+     * position was skipped and its project only appeared as an anonymous pseudo order row (ORDER_NR 0). It must now
+     * get a real forecast row so its project id enters visibleID and the invoice stays visible = TRUE (part of the
+     * unfiltered "Ist" sums of the chart).
+     */
+    @Test
+    fun completedOrderInvoiceStaysVisibleTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+
+        val projekt = ProjektDO()
+        projekt.nummer = 2
+        projekt.name = "ForecastExportTest - completed project"
+        val projektId = projektDao.insert(projekt, checkAccess = false)
+
+        // Completed order with a completed position, invoiced. The position status (ABGESCHLOSSEN) is not in
+        // auftragsPositionsStatusToShow, so only the invoiced-project rescue keeps it in the sheet.
+        val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(4))
+        order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+        addPosition(order, 1, AuftragsStatus.ABGESCHLOSSEN, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+        val orderId = auftragDao.insert(order)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        val orderNummer = auftragDao.find(orderId)!!.nummer!!
+
+        val invoice = createInvoice(baseDate.plusMonths(1))
+        addPosition(invoice, 1234.0, auftragDao.find(orderId)!!.getPosition(1))
+        rechnungDao.insert(invoice)
+
+        // No search string and no project list -> showAll (unfiltered total) for a finance user:
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val ba = forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        Assertions.assertNotNull(ba, "Export expected.")
+
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val forecastHeadRow = findHeadRow(forecastSheet, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val projectIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.PROJECT_ID.header)
+            val orderNrCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.ORDER_NR.header)
+
+            // The completed, invoiced position must be written as a REAL forecast row (real order number), not just as
+            // an anonymous pseudo row (ORDER_NR 0). This is the deterministic effect of the fix.
+            var realRowFound = false
+            for (rowNum in forecastHeadRow.rowNum + 1..forecastSheet.lastRowNum) {
+                val row = forecastSheet.getRow(rowNum) ?: continue
+                val projectCell = row.getCell(projectIdCol) ?: continue
+                if (projectCell.cellType != CellType.NUMERIC || projectCell.numericCellValue.toLong() != projektId) {
+                    continue
+                }
+                val orderNrCell = row.getCell(orderNrCol)
+                if (orderNrCell?.cellType == CellType.NUMERIC && orderNrCell.numericCellValue.toInt() == orderNummer) {
+                    realRowFound = true
+                }
+            }
+            Assertions.assertTrue(
+                realRowFound,
+                "The completed but invoiced position must get a real forecast row (order $orderNummer) for project $projektId."
+            )
+
+            // End-to-end: the invoice's visible column (COUNTIF against visibleID) must evaluate to TRUE, so it is part
+            // of the IST sums.
+            val evaluator = workbook.creationHelper.createFormulaEvaluator()
+            evaluator.evaluateAll()
+            val invoicesSheet = workbook.getSheet(ForecastExportContext.Sheet.INVOICES.title)!!
+            val invoicesHeadRow = findHeadRow(invoicesSheet, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+            val invProjectIdCol = findColumn(invoicesHeadRow, ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+            val invVisibleCol = findColumn(invoicesHeadRow, ForecastExportContext.InvoicesCol.VISIBLE.header)
+            var visibleTrueFound = false
+            for (rowNum in invoicesHeadRow.rowNum + 1..invoicesSheet.lastRowNum) {
+                val row = invoicesSheet.getRow(rowNum) ?: continue
+                val projectCell = row.getCell(invProjectIdCol) ?: continue
+                if (projectCell.cellType != CellType.NUMERIC || projectCell.numericCellValue.toLong() != projektId) {
+                    continue
+                }
+                val visibleCell = row.getCell(invVisibleCol) ?: continue
+                val evaluated = evaluator.evaluate(visibleCell)
+                if (evaluated?.cellType == CellType.BOOLEAN && evaluated.booleanValue) {
+                    visibleTrueFound = true
+                }
+            }
+            Assertions.assertTrue(
+                visibleTrueFound,
+                "The invoice of the completed order (project $projektId) must evaluate visible = TRUE."
+            )
+        }
+    }
+
     private fun findHeadRow(sheet: Sheet, header: String): Row {
         for (rowNum in 0..sheet.lastRowNum) {
             val row = sheet.getRow(rowNum) ?: continue
