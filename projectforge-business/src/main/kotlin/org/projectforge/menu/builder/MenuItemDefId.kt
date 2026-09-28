@@ -56,7 +56,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     CALENDAR_LIST("menu.plugins.teamcal", getReactListUrl("teamCal")), //
     CHANGE_PASSWORD("menu.changePassword", getReactDynamicPageUrl("changePassword")), //
     CHANGE_WLAN_PASSWORD("menu.changeWlanPassword", getReactDynamicPageUrl("changeWlanPassword")), //
-    CONFIGURATION("menu.configuration", "wa/configuration"), //
+    CONFIGURATION("menu.configuration", getListUrl("configuration")), //
     CONTRACTS("menu.contracts", getReactListUrl("contract")), //
     // Migrated to projectforge-next; the Wicket page (wa/cost1List) stays reachable through the escape
     // hatch next to the page title, see NextMigration.legacyListUrl.

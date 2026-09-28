@@ -20,6 +20,12 @@ export interface StringSuggestFieldProps extends BaseFieldProps {
   /** See [SuggestInputProps.onCommit] — a side effect for the settled value, not for every keystroke. */
   onCommit?: (value: string) => void;
   disabled?: boolean;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a DTO-only value like a
+   * configuration parameter's `stringValue` (a time-zone id) is no `@PropertyInfo` field of its DO
+   * (see [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
 }
 
 /**
@@ -41,11 +47,12 @@ export function StringSuggestField({
   minChars,
   onCommit,
   disabled,
+  metadataLess,
 }: StringSuggestFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, maxLength } = useFieldMetadata(name);
+  const { required, maxLength } = useFieldMetadata(name, metadataLess);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

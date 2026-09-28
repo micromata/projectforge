@@ -14,6 +14,12 @@ export interface TextAreaFieldProps extends BaseFieldProps {
   rows?: number;
   /** Shown but not editable — a value this user may read and not change (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a DTO-only value like a
+   * configuration parameter's `stringValue` is no `@PropertyInfo` field of its DO (see
+   * [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
 }
 
 export function TextAreaField({
@@ -23,11 +29,12 @@ export function TextAreaField({
   className,
   rows = 4,
   disabled,
+  metadataLess,
 }: TextAreaFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required, maxLength } = useFieldMetadata(name);
+  const { required, maxLength } = useFieldMetadata(name, metadataLess);
   return (
     <form.Field name={name as never}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
