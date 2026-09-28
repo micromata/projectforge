@@ -132,24 +132,120 @@
   },
   "administration": {
     "configuration": {
+      "_": "Configuration",
       "param": {
         "calendarDomain": {
           "_": "Calendar domain",
           "description": "The domain is needed by the team calendar module for building world-wide unique event id's. Please use strings such as 'projectforge.my-company.com' and try to avoid later changes."
         },
+        "countryPhonePrefix": {
+          "_": "Default country phone prefix",
+          "description": "Used for converting phone numbers. Default value: \"+49\". For all phone number beginning with this country code, the prefix will be replaced by 0 otherwise by 00 and the country code itself (+49 123 -> 0123; +31 123 -> 0031123)."
+        },
+        "dateFormats": {
+          "_": "Date formats",
+          "description": "These date formats are supported. You can choose one of these coma-separated formats for a single user. The first entry is the default format for new users."
+        },
+        "defaultTask4Books": {
+          "_": "Default structure element (id) for books",
+          "description": "Not used anymore."
+        },
+        "excelDateFormats": {
+          "_": "Excel date formats",
+          "description": "These excel date formats are supported by Excel exports. You can choose one of these coma-separated formats for a single user. The first entry is the default format for new users."
+        },
         "feedbackEMail": {
+          "_": "E-mail for feed-back",
           "description": "If this e-mail is given then a feedback panel will be shown if an error occurs. The user has the possibility to send an e-mail feedback (e.g. JIRA-system or help desk).",
           "label": "Feed-back"
         },
+        "fibu": {
+          "costConfigured": {
+            "_": "Cost-unit accounting configured?",
+            "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
+          },
+          "defaultVAT": {
+            "_": "Default VAT (in %)",
+            "description": "Will be used for pre-filling forms (e.g. for editing invoices)."
+          }
+        },
+        "hr": {
+          "emailaddress": {
+            "_": "HR-Emailaddress",
+            "description": "Mailaddress of HR for request of leave"
+          }
+        },
+        "messageOfTheDay": {
+          "_": "Message of the day",
+          "description": "This message will be displayed on the user's login screen. Please note: This message is also visible for unauthorized users!"
+        },
+        "minPasswordLength": {
+          "_": "Minimal Password Length",
+          "description": "The minimal length of the user passwords."
+        },
+        "organization": {
+          "_": "Organization",
+          "description": "The name of the organization is placed e.g. at pdf export files (such as timesheets or monthly employee reports) as title."
+        },
+        "password": {
+          "flag": {
+            "checkChange": {
+              "_": "Password has to change",
+              "description": "Password has to change each time it is redefined."
+            }
+          }
+        },
+        "pluginsActivated": {
+          "_": "Activated Plugins",
+          "description": "List of activated plugins. Please do not edit this directly."
+        },
         "systemAdministratorEMail": {
+          "_": "E-mail of administrators",
           "description": "ProjectForge sends e-mails to this address(es) in the case of special errors. You can specify one or more (coma separated) addresses (RFC822).",
           "label": "Administrators"
+        },
+        "timesheet": {
+          "noteSavingsByAI": {
+            "_": "Note regarding AI savings",
+            "description": "Note in the time reports regarding AI savings (markdown is supported, only visible if: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          }
+        },
+        "timesheetTags": {
+          "_": "Time sheet tags",
+          "description": "If defined, a semicolon separated list of tags (strings). On each time sheet the user may add one of these tags."
         },
         "timezone": {
           "_": "Default time zone",
           "description": "This default time zone is used, if no other time zone is set. This time zone is used as pre-set time zone for new users. If no value is configured then the system's default time zone (Java vm) is used. You can modify this value whenever you want, the time stamps in the database are always stored in the independent UTC format."
+        },
+        "vacation": {
+          "cal": {
+            "id": {
+              "_": "Vacation calendar",
+              "description": "The vacation calender for application for leave"
+            }
+          },
+          "lastyear": {
+            "enddate": {
+              "_": "End for vacation from previous year",
+              "description": "End for vacation from previous year (Format: DD.MM.)"
+            }
+          }
         }
-      }
+      },
+      "parameter": {
+        "_": "Parameter",
+        "pluginsActivated": {
+          "_": "Activated Plugins",
+          "description": "List of activated Plugins. Please don't edit directly."
+        }
+      },
+      "title": {
+        "edit": "Edit configuration parameter",
+        "heading": "Configuration parameter",
+        "list": "List of configuration parameters"
+      },
+      "value": "Value"
     }
   },
   "akquise": "Acquisition",
@@ -1299,6 +1395,7 @@
     "_": "Group",
     "assignedUsers": "Assigned users",
     "error": {
+      "couldNotDeleteSystemGroup": "The system group ''{arg0}'' can''t be deleted.",
       "groupnameAlreadyExists": "Group name already exists."
     },
     "groups": "Groups",

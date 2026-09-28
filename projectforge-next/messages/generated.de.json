@@ -132,24 +132,120 @@
   },
   "administration": {
     "configuration": {
+      "_": "Konfiguration",
       "param": {
         "calendarDomain": {
           "_": "Kalenderdomäne",
           "description": "Die Domäne wird vom Teamkalender-Modul benötigt, um weltweit eindeutige Ereignis-IDs zu erzeugen. Verwenden Sie Zeichenketten der Art 'projectforge.my-company.com' und vermeiden Sie nachträgliche Änderungen."
         },
+        "countryPhonePrefix": {
+          "_": "Standardländervorwahl",
+          "description": "Wird für die Konvertierung von Telefonnummern genutzt (Standardwert ist +49). Für alle Telefonnummern, die mit diesem Ländercode beginnen wird dieser Prefix durch eine 0 ersetzt (z. B. bei der Funktion Direktwahl). Für alle andere Telefonnummern wird der Ländercode durch 00 und Ländercode ersetzt (+49 123 -> 0123; +31 123 -> 0031123)."
+        },
+        "dateFormats": {
+          "_": "Datumsformate",
+          "description": "Diese Datumsformate werden unterstützt. Für jede:n Benutzer:in kann ein Format aus dieser komma-separierten Liste ausgewählt werden. Bei der Anlage neue:r Benutzer:in wird der erste Eintrag vorgewählt."
+        },
+        "defaultTask4Books": {
+          "_": "Standardstrukturelement (Id) für Bücher",
+          "description": "Nicht mehr benutzt."
+        },
+        "excelDateFormats": {
+          "_": "Datumsformate für Excel",
+          "description": "Diese Datumsformate werden in Excel-Exporten unterstützt. Für jede:n Benutzer:in kann ein Format aus dieser komma-separierten Liste ausgewählt werden. Bei der Anlage neue:r Benutzer:innen wird der erste Eintrag vorgewählt."
+        },
         "feedbackEMail": {
+          "_": "E-Mail für Feedback",
           "description": "Wenn diese E-Mail-Adresse angegeben ist, wird ein Feedback-Panel angezeigt, wenn ein Fehler auftritt. Der oder die Anwender:in kann dann eine Feedback-Meldung auslösen (z. B. an ein JIRA-System oder Helpdesk).",
           "label": "Feedback"
         },
+        "fibu": {
+          "costConfigured": {
+            "_": "Kostenkalkulation freigeschaltet?",
+            "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
+          },
+          "defaultVAT": {
+            "_": "Standardsteuersatz (in %)",
+            "description": "Wird für die Vorbelegung in Formularen verwendet (z. B. Rechnungseingabe)."
+          }
+        },
+        "hr": {
+          "emailaddress": {
+            "_": "E-Mailadresse HR",
+            "description": "Mailadresse von HR für Urlaubseinträge"
+          }
+        },
+        "messageOfTheDay": {
+          "_": "Meldung des Tages",
+          "description": "Diese Meldung wird im Logindialog angezeigt. Achtung, sie ist auch für nicht autorisierte Besucher sichtbar!"
+        },
+        "minPasswordLength": {
+          "_": "Passwortmindestlänge",
+          "description": "Die Mindestlänge der Benutzer:innenpasswörter."
+        },
+        "organization": {
+          "_": "Organisation",
+          "description": "Der Name der Organisation wird auf PDF-Exports (Zeitberichte oder Monatsberichte) als Titel platziert."
+        },
+        "password": {
+          "flag": {
+            "checkChange": {
+              "_": "Keine Passwortwiederholung",
+              "description": "Ein neues Passwort muss sich vom vorherigen unterscheiden."
+            }
+          }
+        },
+        "pluginsActivated": {
+          "_": "Aktivierte Plugins",
+          "description": "Liste der aktivierten Plugins. Bitte nicht direkt editieren."
+        },
         "systemAdministratorEMail": {
+          "_": "E-Mail-Adressen der Systemadministratoren",
           "description": "Im schwerwiegenderen Fehlerfalle versendet ProjectForge eine E-Mail an diese Adresse. Es können mehrere Adressen eingegeben werden, getrennt durch Leerzeichen und Kommata (RFC822).",
           "label": "Administrator:innen"
+        },
+        "timesheet": {
+          "noteSavingsByAI": {
+            "_": "Hinweis KI-Einsparungen",
+            "description": "Hinweis in den Zeitberichten hinsichtlich KI-Einsparungen (Markdown wird unterstützt, nur sichtbar bei: projectforge.timesheets.timeSavingsByAI.enabled=true)"
+          }
+        },
+        "timesheetTags": {
+          "_": "Tags für Zeitberichte",
+          "description": "Hier können Semikolon-separierte Tags für die Verwendung in Zeitberichten angegeben werden. Diese Tags gelten global."
         },
         "timezone": {
           "_": "Standard-Zeitzone",
           "description": "Diese Zeitzone wird standardmäßig verwendet, wenn nichts anderes angegeben ist. Sie wird auch für neue Nutzer:innen voreingestellt. Wenn nichts konfiguriert ist, wird die Zeitzone des Systems (Java VM) verwendet. Diese Zeitzone kann jederzeit geändert werden, da alle Zeitangaben in der Datenbank im unabhängigen UTC-Format gespeichert werden."
+        },
+        "vacation": {
+          "cal": {
+            "id": {
+              "_": "Abwesenheitskalender",
+              "description": "Der Abwesenheitskalender für Urlaubseinträge"
+            }
+          },
+          "lastyear": {
+            "enddate": {
+              "_": "Endezeitpunkt Vorjahresurlaub",
+              "description": "Endezeitpunkt für Urlaub aus Vorjahr (Format: DD.MM.)"
+            }
+          }
         }
-      }
+      },
+      "parameter": {
+        "_": "Parameter",
+        "pluginsActivated": {
+          "_": "Activated Plugins",
+          "description": "List of activated Plugins. Please don't edit directly."
+        }
+      },
+      "title": {
+        "edit": "Konfigurationsparameter ändern",
+        "heading": "Configuration parameter",
+        "list": "Konfigurationsparameter"
+      },
+      "value": "Wert"
     }
   },
   "akquise": "Akquise",
@@ -1299,6 +1395,7 @@
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",
     "error": {
+      "couldNotDeleteSystemGroup": "Die Systemgruppe ''{arg0}'' kann nicht gelöscht werden.",
       "groupnameAlreadyExists": "Gruppenname ist bereits vergeben."
     },
     "groups": "Gruppen",

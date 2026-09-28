@@ -170,6 +170,27 @@ object NextMigration {
             newEntryRoute = "book/new",
             legacyApp = null,
         ),
+        // The system-configuration page, migrated from Wicket (MenuItemDefId.CONFIGURATION pointed at
+        // wa/configuration). Hand built (ConfigurationEntityRest, no layout): the value of a parameter is
+        // polymorphic per ConfigurationType, so its edit field is rendered per type, which no generic
+        // UILayout page can do. The parameter set is fixed - there is no add and no delete. Both legacy
+        // routes have to be spelled out: the Wicket list mount was `configuration` (singular, WebRegistry),
+        // not the <category>List convention, and the edit page had no mount alias at all - it was reached by
+        // its built-in bookmarkable url. The newEntryRoute is never asked for (insert is denied) but is kept
+        // for the contract.
+        // The Wicket pages have been removed (WebRegistry / MenuItemRegistry): the way back is no longer
+        // offered, and legacyApp/legacyRoute stay only so OrphanedLinkFilter still redirects bookmarked
+        // wa/configuration links onto the next page (as for `order`).
+        "configuration" to NextPage(
+            route = "configuration",
+            editRoute = "configuration/$ID_PLACEHOLDER",
+            newEntryRoute = "configuration/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "configuration",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.web.admin.ConfigurationEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.web.admin.ConfigurationEditPage",
+            offerLegacyLink = false,
+        ),
         // Hand built calendar (the default page after login), migrated from the React app, which is where
         // the way back leads (react/calendar). It has no edit page of its own - a new or clicked entry
         // opens a timesheet or team event through their own dynamic routes - so the inherited editRoute /

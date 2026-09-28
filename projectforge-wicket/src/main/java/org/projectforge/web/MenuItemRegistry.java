@@ -30,7 +30,6 @@ import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.admin.AdminPage;
-import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.PluginListPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
@@ -112,7 +111,7 @@ public class MenuItemRegistry implements Serializable {
         //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
         register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
         register(MenuItemDefId.SYSTEM, AdminPage.class);
-        register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
+        // CONFIGURATION (system configuration) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
     }
 
