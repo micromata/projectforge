@@ -29,8 +29,8 @@ import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminLogViewerPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
-import org.projectforge.rest.fibu.kost.Kost1PagesRest
-import org.projectforge.rest.fibu.kost.Kost2PagesRest
+import org.projectforge.rest.fibu.kost.Kost1EntityRest
+import org.projectforge.rest.fibu.kost.Kost2EntityRest
 import org.projectforge.rest.hr.HRPlanningListPagesRest
 import org.projectforge.rest.hr.HRPlanningPagesRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
@@ -127,8 +127,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.FINANCE,
       AccountingRecordPagesRest::class.java,
-      Kost1PagesRest::class.java,
-      Kost2PagesRest::class.java,
+      Kost1EntityRest::class.java,
+      Kost2EntityRest::class.java,
       KontoPagesRest::class.java,
       IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,

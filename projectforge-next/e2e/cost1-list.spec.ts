@@ -87,7 +87,7 @@ test.describe("cost 1 list", () => {
 
     // Every part of the number is a fixed count of digits, so the formatted numbers as shown sort
     // like plain strings — which is what the four columns the backend orders by have to produce
-    // (Kost1PagesRest.postProcessMagicFilter). `formattedNumber` is a getter without a column of its
+    // (Kost1EntityRest.postProcessMagicFilter). `formattedNumber` is a getter without a column of its
     // own, so before that mapping the criteria query dropped the order and the list came back
     // unsorted.
     await expect

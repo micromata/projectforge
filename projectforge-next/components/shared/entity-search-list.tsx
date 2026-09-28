@@ -19,7 +19,7 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
   url: string;
   /**
    * Further request parameters the endpoint reads besides the search term — `{projektId}` narrows
-   * `cost2/autosearch` to the cost units of one project (`Kost2PagesRest.queryAutocompleteObjects`).
+   * `cost2/autosearch` to the cost units of one project (`Kost2EntityRest.queryAutocompleteObjects`).
    *
    * Part of the query key, so a changed value asks again instead of serving the previous answer.
    */

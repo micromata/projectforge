@@ -128,6 +128,17 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
     }
 
+    /**
+     * Eager-fetch [Kost2DO.kost2Art] (and the projekt with its kunde) with the list query. kost2Art is a
+     * @ManyToOne with a non-null foreign key, so Hibernate would otherwise fire a per-row secondary SELECT
+     * on T_FIBU_KOST2ART - the N+1 seen on the cost 2 list (see [Kost2DO.ENTITY_GRAPH_KOST2ART_AND_PROJEKT]).
+     */
+    override fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
+        return super.createQueryFilter(filter).also {
+            it.entityGraphName = Kost2DO.ENTITY_GRAPH_KOST2ART_AND_PROJEKT
+        }
+    }
+
     override fun select(filter: BaseSearchFilter): List<Kost2DO> {
         val myFilter = if (filter is KostFilter) {
             filter

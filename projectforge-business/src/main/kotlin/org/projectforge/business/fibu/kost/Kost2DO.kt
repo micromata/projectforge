@@ -65,6 +65,23 @@ import java.math.BigDecimal
         query = "from Kost2DO k where k.nummernkreis=:nummernkreis and k.bereich=:bereich and k.teilbereich=:teilbereich order by k.kost2Art.id"
     )
 )
+@NamedEntityGraph(
+    // Fetch everything a list row reads in one query, avoiding the N+1 on the cost 2 list
+    // (Kost2Dao.createQueryFilter -> BaseDao.select):
+    //  - kost2Art: a @ManyToOne with a non-null foreign key (JoinColumn nullable = false), so Hibernate
+    //    fetches it eagerly with a per-row secondary SELECT on T_FIBU_KOST2ART - the wall of identical
+    //    "where pk=?" queries seen on the list. Join-fetching it here collapses that into the list query.
+    //  - projekt (and its kunde): read by transformFromDB for the project/customer columns; fetched here
+    //    too so a caller that does not resolve them from the caches does not N+1 either.
+    name = Kost2DO.ENTITY_GRAPH_KOST2ART_AND_PROJEKT,
+    attributeNodes = [
+        NamedAttributeNode(value = "kost2Art"),
+        NamedAttributeNode(value = "projekt", subgraph = "projektKunde"),
+    ],
+    subgraphs = [
+        NamedSubgraph(name = "projektKunde", attributeNodes = [NamedAttributeNode("kunde")]),
+    ],
+)
 open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
 
     companion object {
@@ -80,6 +97,9 @@ open class Kost2DO : DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         internal const val FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART =
             "Kost2DO_FindOtherByNKBereichTeilbereichKost2Art"
         internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
+
+        /** Fetch graph that join-fetches [kost2Art], [projekt] and the project's kunde for the list query. */
+        const val ENTITY_GRAPH_KOST2ART_AND_PROJEKT = "Kost2DO.kost2ArtAndProjekt"
     }
 
     override var displayName: String? = null

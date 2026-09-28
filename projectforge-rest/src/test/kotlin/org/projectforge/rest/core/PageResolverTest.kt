@@ -36,7 +36,7 @@ import org.projectforge.NextMigration
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
-import org.projectforge.rest.fibu.kost.Kost1PagesRest
+import org.projectforge.rest.task.TaskPagesRest
 import org.projectforge.web.rest.RestAuthenticationUtils
 
 class PageResolverTest {
@@ -111,22 +111,23 @@ class PageResolverTest {
 
     /**
      * As long as a page's layout is still served to the legacy React app (bookmark, browser history),
-     * the row click url follows the frontend that asked - a user on `/react/cost1` must not be thrown
-     * into projectforge-next by clicking a row. `book` no longer takes part: it extends
-     * AbstractDTOEntityRest, which serves no layout at all, so there is no React page to stay on.
+     * the row click url follows the frontend that asked - a user on `/react/task` must not be thrown
+     * into projectforge-next by clicking a row. `book`, `cost1` and `cost2` no longer take part: they
+     * extend AbstractDTOEntityRest, which serves no layout at all, so there is no React page to stay on.
      */
     @Test
     fun editPagePerFrontendTest() {
-        // Migrated from Wicket: the caller is still the React app, so it gets the React page - the
-        // Wicket page renders server side and never asks here for a layout.
-        val kost1PagesRest = Kost1PagesRest()
-        assertEquals("react/cost1/edit/:id", kost1PagesRest.getEditPage(requestOf(null)))
-        assertEquals("next/cost1/:id", kost1PagesRest.getEditPage(requestOf(Constants.NEXT)))
+        // Migrated from Wicket, still a PagesRest serving a React layout: the caller is still the React
+        // app, so it gets the React page - the Wicket page renders server side and never asks here for a
+        // layout.
+        val taskPagesRest = TaskPagesRest()
+        assertEquals("react/task/edit/:id", taskPagesRest.getEditPage(requestOf(null)))
+        assertEquals("next/task/:id", taskPagesRest.getEditPage(requestOf(Constants.NEXT)))
         // The Referer is the fallback of RestAuthenticationUtils.isNextClient (the static export is
         // served under /next/).
         assertEquals(
-            "next/cost1/:id",
-            kost1PagesRest.getEditPage(requestOf(null, referer = "https://pf/next/cost1")),
+            "next/task/:id",
+            taskPagesRest.getEditPage(requestOf(null, referer = "https://pf/next/task")),
         )
         // Not migrated: there is only one frontend, so the caller makes no difference.
         val addressPagesRest = AddressPagesRest()

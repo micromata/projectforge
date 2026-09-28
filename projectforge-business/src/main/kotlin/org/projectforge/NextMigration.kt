@@ -179,12 +179,21 @@ object NextMigration {
             legacyApp = LegacyApp.REACT,
         ),
         // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
-        // which pointed at wa/cost1List): the way back leads to Wicket, not to the React page - that one
-        // exists as a layout (Kost1PagesRest) but was never mounted in the menu.
+        // which pointed at wa/cost1List): the way back leads to Wicket. Kost1EntityRest serves no layout,
+        // so there is no React page - only the hand built projectforge-next one and Wicket.
         "cost1" to NextPage(
             route = "cost1",
             editRoute = "cost1/$ID_PLACEHOLDER",
             newEntryRoute = "cost1/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
+        // Migrated from Wicket (MenuItemDefId.COST2_LIST pointed at wa/cost2List): the way back leads to
+        // Wicket. Kost2EntityRest serves no layout, so there is no React page - only the hand built
+        // projectforge-next one and Wicket.
+        "cost2" to NextPage(
+            route = "cost2",
+            editRoute = "cost2/$ID_PLACEHOLDER",
+            newEntryRoute = "cost2/new",
             legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from Wicket (MenuItemDefId.CUSTOMER_LIST pointed at wa/customerList; the React page exists

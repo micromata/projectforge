@@ -125,7 +125,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
         }
 
         // A column of the list may be made of several database columns — a cost number is four (see
-        // Kost1PagesRest.postProcessMagicFilter) — so one requested sort can be more than one order.
+        // Kost1EntityRest.postProcessMagicFilter) — so one requested sort can be more than one order.
         var maxOrder = MAX_ORDERS
         for (sortProperty in dbFilter.sortProperties) {
             addOrder(sortProperty)

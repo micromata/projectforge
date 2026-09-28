@@ -32,18 +32,20 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Kost1
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.filter.KostStatusFilterUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("${Rest.URL}/cost1")
-class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
+class Kost1EntityRest : AbstractDTOEntityRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
     @Autowired
     private lateinit var kostFormatter: KostFormatter
 
@@ -62,19 +64,21 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
     }
 
     /**
-     * LAYOUT List page
+     * Adds the status ("list type") filter (all / active / nonactive / notEnded / ended). This was missing
+     * from the cost 1 list and is retrofitted here. See [KostStatusFilterUtils].
      */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        layout.add(
-            UITable.createUIResultSetTable()
-                .add(UITableColumn("formattedNumber", title = "fibu.kost1"))
-                .add(lc, "description", "kostentraegerStatus")
-        )
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        KostStatusFilterUtils.addFilterElement(elements)
+    }
+
+    /**
+     * The picked status filters on the real [Kost1DO.kostentraegerStatus] column, so it becomes an in-DB
+     * predicate (mirrors `Kost1Dao.select`). Note cost 1's "active" excludes a null status, unlike cost 2.
+     */
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<Kost1DO>>? {
+        val listTypes = KostStatusFilterUtils.consumeListTypes(source)
+        KostStatusFilterUtils.applyKost1(target, listTypes)
+        return null
     }
 
     /**
@@ -96,25 +100,6 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
             index,
             NUMBER_PROPERTIES.map { SortProperty(it, sortOrder) },
         )
-    }
-
-    override val classicsLinkListUrl: String?
-        get() = "wa/cost1List"
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Kost1, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(
-                UIRow()
-                    .add(
-                        UICol()
-                            .add(UICustomized("cost.number"))
-                            .add(lc, "description", "kostentraegerStatus")
-                    )
-            )
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost1DO> {

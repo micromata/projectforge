@@ -61,7 +61,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next; the Wicket page (wa/cost1List) stays reachable through the escape
     // hatch next to the page title, see NextMigration.legacyListUrl.
     COST1_LIST("menu.fibu.kost1", getListUrl("cost1")), //
-    COST2_LIST("menu.fibu.kost2", "wa/cost2List"), //
+    COST2_LIST("menu.fibu.kost2", getListUrl("cost2")), //
     COST2_TYPE_LIST("menu.fibu.kost2arten", "wa/cost2TypeList"), //
     COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
 

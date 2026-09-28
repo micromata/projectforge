@@ -115,7 +115,7 @@ object MagicFilterProcessor {
      * The last segment is deliberately not checked: `displayName` and the other computed values are
      * getters without a backing field, which no reflection over fields can confirm. An unorderable
      * segment is reported by `addOrder` — and a rest class may handle it in `postProcessMagicFilter`
-     * beforehand, either by mapping it onto a real column (`Kost1PagesRest`) or by taking it out of the
+     * beforehand, either by mapping it onto a real column (`Kost1EntityRest`) or by taking it out of the
      * query and sorting the loaded list instead (`OrderEntityRest`).
      */
     internal fun resolveSortProperty(entityClass: Class<*>, property: String): String {
@@ -147,7 +147,7 @@ object MagicFilterProcessor {
      * comparing the formatted number; for a user the columns match the displayed "firstname lastname" order.
      *
      * This makes every list with such a column sortable by it, without each page wiring up its own sort
-     * (as `Kost1PagesRest` still does for the *`Kost1DO` entity's own* `formattedNumber` column, a case this
+     * (as `Kost1EntityRest` still does for the *`Kost1DO` entity's own* `formattedNumber` column, a case this
      * association-field expansion does not cover).
      */
     internal fun expandSortProperty(entityClass: Class<*>, property: String): List<String> {

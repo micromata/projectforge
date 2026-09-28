@@ -31,21 +31,23 @@ import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 
 /**
- * The sort mapping of the cost 1 list. No database and no Spring context: what is under test is the
+ * The sort mapping of the cost 2 list. No database and no Spring context: what is under test is the
  * rewriting of the sort properties, which is plain logic.
  */
-class Kost1PagesRestTest {
+class Kost2EntityRestTest {
     /**
-     * `formattedNumber` is a getter of Kost1DO without a column of its own, so ordering by it makes the
-     * criteria query fail ("Could not resolve attribute") and return the rows unordered. It has to
-     * become the four number columns it is made of, in their significance.
+     * `formattedNumber` is a getter of Kost2DO without a column of its own. For cost 2 the last part is
+     * the Kost2Art (its id), not a plain `endziffer` — hence the join, mirroring `Kost2Dao.select`.
      */
     @Test
-    fun `sorting by the formatted number becomes its four columns`() {
+    fun `sorting by the formatted number becomes its columns incl the kost2Art id`() {
+        val queryFilter = process(SortProperty("formattedNumber"))
         assertEquals(
-            listOf("nummernkreis", "bereich", "teilbereich", "endziffer"),
-            sortedProperties(SortProperty("formattedNumber")),
+            listOf("nummernkreis", "bereich", "teilbereich", "kost2Art.id"),
+            queryFilter.sortProperties.map { it.property },
         )
+        // The order by kost2Art.id needs the join Kost2Dao.select creates.
+        assertEquals(1, queryFilter.joinList.count { it.attribute == "kost2Art" }, "join on kost2Art")
     }
 
     @Test
@@ -57,39 +59,21 @@ class Kost1PagesRestTest {
         }
     }
 
-    /**
-     * The parts take the place of the column they replace, not the end of the list: a second sort
-     * criterion stays the less significant one.
-     */
     @Test
-    fun `the parts keep the place of the column they replace`() {
-        assertEquals(
-            listOf("kostentraegerStatus", "nummernkreis", "bereich", "teilbereich", "endziffer", "description"),
-            sortedProperties(
-                SortProperty("kostentraegerStatus"),
-                SortProperty("formattedNumber"),
-                SortProperty("description"),
-            ),
-        )
-    }
-
-    @Test
-    fun `a sort by real columns is left alone`() {
+    fun `a sort by real columns is left alone and adds no join`() {
+        val queryFilter = process(SortProperty("description"), SortProperty("kostentraegerStatus"))
         assertEquals(
             listOf("description", "kostentraegerStatus"),
-            sortedProperties(SortProperty("description"), SortProperty("kostentraegerStatus")),
+            queryFilter.sortProperties.map { it.property },
         )
-    }
-
-    private fun sortedProperties(vararg sortProperties: SortProperty): List<String> {
-        return process(*sortProperties).sortProperties.map { it.property }
+        assertEquals(0, queryFilter.joinList.count { it.attribute == "kost2Art" }, "no join without the number sort")
     }
 
     private fun process(vararg sortProperties: SortProperty): QueryFilter {
         val queryFilter = QueryFilter()
         queryFilter.sortProperties = sortProperties.toMutableList()
         // The filter the client sent isn't read by the mapping — only the QueryFilter built from it is.
-        Kost1PagesRest().postProcessMagicFilter(queryFilter, MagicFilter())
+        Kost2EntityRest().postProcessMagicFilter(queryFilter, MagicFilter())
         return queryFilter
     }
 }

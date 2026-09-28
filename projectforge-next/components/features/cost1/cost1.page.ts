@@ -11,7 +11,7 @@ export const COST1_LIST_QUERY_KEY = ["cost1"] as const;
 /**
  * The whole cost 1 page — list and edit — as data (see lib/page-def/types.ts).
  *
- * The columns are the three of `Kost1PagesRest.createListLayout`, in its order; their labels, the
+ * The columns are the three the legacy Wicket `Kost1ListPage` shows, in its order; their labels, the
  * status texts and every rule come from Kost1DO through the generated metadata. What is declared here
  * is nothing but order, width and the one field the declaration cannot describe: the number, whose
  * four parts are one control (see CostNumberField).
@@ -36,7 +36,7 @@ export const COST1_PAGE = definePage<
   columns: [
     // Filtered as text: the formatted number reads as one ("6.100.01.02"), not as four values.
     // Sorting is the backend's, which maps this property onto the four number columns it is made of
-    // (Kost1PagesRest.postProcessMagicFilter) — no column of its own holds it.
+    // (Kost1EntityRest.postProcessMagicFilter) — no column of its own holds it.
     {
       name: "formattedNumber",
       size: 120,

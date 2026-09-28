@@ -284,7 +284,7 @@ shortens only one that doesn't (the legacy DTO paths this was written for), and 
 creates the `LEFT` joins such a path needs — an implicit inner join would drop every order without a
 customer as soon as the list is sorted by one. `OrderEntityRest.postProcessMagicFilter` maps the two
 DTO-only paths onto columns (`kunde.displayName` → `kunde.name`, `projekt.displayName` →
-`projekt.name`), the way `Kost1PagesRest` does for `formattedNumber`.
+`projekt.name`), the way `Kost1EntityRest` does for `formattedNumber`.
 
 **3b. Sort the loaded list in Kotlin for the computed columns. — done, ahead of paging.** 6 of the 19
 order columns cannot be an `ORDER BY` at all — `nettoSumme`, `beauftragtNettoSumme`, `fakturiertSum`,

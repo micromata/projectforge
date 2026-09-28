@@ -342,7 +342,7 @@ function percentInput(format: UserFormat, factor: number): string {
  * The part of a cost unit's name that is its number — the term the autocomplete is given.
  *
  * `KostFormatter` writes "4.400.99.00: <project> - <customer>" (FormatType.LONG), and the number alone
- * is both selective, being unique, and free of the business content that follows it. `Kost2PagesRest`
+ * is both selective, being unique, and free of the business content that follows it. `Kost2EntityRest`
  * searches it as `rawNumberString`, so the dots do no harm.
  */
 function searchTerm(displayName: string): string {

@@ -7,7 +7,7 @@ reaches (see [page-declarations.md](page-declarations.md)) and where the escape 
 | Entity  | Backend                              | Migrated from        | Proves                                                           |
 | ------- | ------------------------------------ | -------------------- | ---------------------------------------------------------------- |
 | `book`  | `BookEntityRest`, `BookServicesRest` | React (page removed) | attachments, entity-specific writes, custom fields               |
-| `cost1` | `Kost1PagesRest`                     | Wicket               | the minimum: what a page looks like with nothing special         |
+| `cost1` | `Kost1EntityRest`                    | Wicket               | the minimum: what a page looks like with nothing special         |
 | `order` | `OrderEntityRest`                    | Wicket               | the hard case: nested collections, server-computed sums, exports |
 
 All three are registered in `NextMigration.MIGRATED` (backend) and in
@@ -21,8 +21,8 @@ Files: `components/features/cost1/` — `cost1.page.ts`, `cost1-schema.ts`, `cos
 `types.ts`, `cost-number-field.tsx`, `cost-number-segments.ts`.
 Routes: `/cost1`, `/cost1/new`, `/cost1/[id]`, `/cost1/[id]/history`.
 
-The whole page is 78 lines of declaration. Three columns (the three of
-`Kost1PagesRest.createListLayout`, in its order) plus the two audit timestamps, and one section with
+The whole page is 78 lines of declaration. Three columns (the three the legacy Wicket
+`Kost1ListPage` shows, in its order) plus the two audit timestamps, and one section with
 three entries. Every label, the status texts and every rule come from `Kost1DO` through the generated
 metadata.
 
@@ -35,7 +35,7 @@ What it shows about the concept:
   renders them as four boxes with separators (`SegmentedNumberField`). The list, by contrast, shows the
   entity's computed `formattedNumber` and filters it as text, because that is what a reader sees; the
   backend maps sorting on that property onto the four real columns
-  (`Kost1PagesRest.postProcessMagicFilter`).
+  (`Kost1EntityRest.postProcessMagicFilter`).
 - **The one rule the metadata cannot carry is declared once, next to the field.** The range of each
   part (`min`/`max`) is not in the metadata — `@Column(length = 3)` is a digit count, not a `max = 999`
   — so `cost-number-segments.ts` holds it and both the input boxes and the Zod schema read it from
