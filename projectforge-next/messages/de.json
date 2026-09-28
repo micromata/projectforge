@@ -63,6 +63,14 @@
       "unavailable": "Die Forecast-Analyse konnte nicht geladen werden.",
       "jsonUnavailable": "Der JSON-Export steht nur im Entwicklungsmodus zur Verfügung.",
       "savedOnlyHint": "Hinweis: Forecast rechnet nur auf der Grundlage des gespeicherten Auftrags, lokale Änderungen sind nicht berücksichtigt."
+    },
+    "calculator": {
+      "title": "Nettosummen-Rechner",
+      "role": "Rolle",
+      "dayRate": "Tagessatz",
+      "addRow": "Zeile hinzufügen",
+      "removeRow": "Zeile entfernen",
+      "apply": "Übernehmen"
     }
   },
   "passwordForgotten": {
