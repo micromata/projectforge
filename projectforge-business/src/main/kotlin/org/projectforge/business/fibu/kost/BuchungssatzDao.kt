@@ -71,11 +71,11 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         )
     }
 
-    private fun validateTimeperiod(myFilter: BuchungssatzFilter): Boolean {
-        val fromMonth = myFilter.fromMonth
-        val fromYear = myFilter.fromYear
-        val toMonth = myFilter.toMonth
-        val toYear = myFilter.toYear
+    /**
+     * Checks that the given year/month time period is consistent: no month without its year, and the from
+     * date not after the to date.
+     */
+    fun validateTimeperiod(fromYear: Int?, fromMonth: Int?, toYear: Int?, toMonth: Int?): Boolean {
         if (fromMonth != null && fromYear == null || toMonth != null && toYear == null) {
             // No month should be given without year.
             return false
@@ -89,26 +89,22 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         // No year or one year is given.
     }
 
-    override fun select(filter: BaseSearchFilter): List<BuchungssatzDO> {
-        accessChecker.checkIsLoggedInUserMemberOfGroup(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP
-        )
-        val myFilter: BuchungssatzFilter
-        myFilter = if (filter is BuchungssatzFilter) {
-            filter
-        } else {
-            BuchungssatzFilter(filter)
-        }
-        val queryFilter = QueryFilter(filter)
-        if (!validateTimeperiod(myFilter)) {
+    /**
+     * Translates the year/month time period into query predicates and adds them to the given [queryFilter].
+     * Reused by both the legacy [select] path and the hand-built next REST filter.
+     *
+     * @throws UserException fibu.buchungssatz.error.invalidTimeperiod if the period is inconsistent.
+     */
+    fun addTimePeriodPredicates(
+        queryFilter: QueryFilter,
+        fromYear: Int?,
+        fromMonth: Int?,
+        toYear: Int?,
+        toMonth: Int?,
+    ) {
+        if (!validateTimeperiod(fromYear, fromMonth, toYear, toMonth)) {
             throw UserException("fibu.buchungssatz.error.invalidTimeperiod")
         }
-        queryFilter.maxRows = QUERY_FILTER_MAX_ROWS
-        val fromMonth = myFilter.fromMonth
-        val fromYear = myFilter.fromYear
-        val toMonth = myFilter.toMonth
-        val toYear = myFilter.toYear
         // Same year:
         if (fromYear != null && toYear != null) {
             // Both years are given
@@ -200,6 +196,21 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
                 queryFilter.add(le("year", toYear))
             }
         } // else: nothing given: no time period range.
+    }
+
+    override fun select(filter: BaseSearchFilter): List<BuchungssatzDO> {
+        accessChecker.checkIsLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        )
+        val myFilter: BuchungssatzFilter = if (filter is BuchungssatzFilter) {
+            filter
+        } else {
+            BuchungssatzFilter(filter)
+        }
+        val queryFilter = QueryFilter(filter)
+        queryFilter.maxRows = QUERY_FILTER_MAX_ROWS
+        addTimePeriodPredicates(queryFilter, myFilter.fromYear, myFilter.fromMonth, myFilter.toYear, myFilter.toMonth)
         queryFilter.addOrder(asc("year")).addOrder(asc("month")).addOrder(asc("satznr"))
         return select(queryFilter)
     }

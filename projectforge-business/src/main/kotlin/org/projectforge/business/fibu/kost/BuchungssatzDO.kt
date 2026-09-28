@@ -72,6 +72,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
+    @PropertyInfo(i18nKey = "calendar.year")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var year: Int? = null
@@ -82,6 +83,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
+    @PropertyInfo(i18nKey = "calendar.month")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var month: Int? = null
@@ -126,6 +128,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var gegenKonto: KontoDO? = null
 
+    @PropertyInfo(i18nKey = "date")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null

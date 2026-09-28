@@ -25,9 +25,15 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.SHType
+import java.math.BigDecimal
+import java.time.LocalDate
 
 class Buchungssatz(
         var satznr: String? = null,
+        var year: Int? = null,
+        var month: Int? = null,
+        var datum: LocalDate? = null,
+        var betrag: BigDecimal? = null,
         var menge: String? = null,
         var beleg: String? = null,
         var sh: SHType? = null,

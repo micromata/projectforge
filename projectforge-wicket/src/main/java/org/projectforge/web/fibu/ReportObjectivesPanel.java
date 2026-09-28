@@ -32,6 +32,8 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.projectforge.Constants;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.fibu.kost.BusinessAssessmentRow;
 import org.projectforge.business.fibu.kost.BusinessAssessmentTable;
@@ -45,6 +47,8 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.components.PlainLabel;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class ReportObjectivesPanel extends Panel
@@ -97,7 +101,7 @@ public class ReportObjectivesPanel extends Panel
       @Override
       public void onSubmit()
       {
-        setResponsePage(new AccountingRecordListPage(AccountingRecordListPage.getPageParameters(currentReport.getId())));
+        throw new RedirectToUrlException(nextAccountingRecordUrl(currentReport.getId(), null));
       }
     });
     add(rowRepeater = new RepeatingView("rowRepeater"));
@@ -153,7 +157,7 @@ public class ReportObjectivesPanel extends Panel
           @Override
           public void onSubmit()
           {
-            setResponsePage(new AccountingRecordListPage(AccountingRecordListPage.getPageParameters(childReport.getId())));
+            throw new RedirectToUrlException(nextAccountingRecordUrl(childReport.getId(), null));
           }
         });
       }
@@ -205,8 +209,7 @@ public class ReportObjectivesPanel extends Panel
           @Override
           public void onSubmit()
           {
-            setResponsePage(new AccountingRecordListPage(
-                AccountingRecordListPage.getPageParameters(reportId, businessAssessmentRow.getNo())));
+            throw new RedirectToUrlException(nextAccountingRecordUrl(reportId, businessAssessmentRow.getNo()));
           }
         });
       }
@@ -223,5 +226,23 @@ public class ReportObjectivesPanel extends Panel
         parentPage.getReportStorage().setCurrentReport(reportId);
       }
     }.add(new PlainLabel("label", reportId));
+  }
+
+  /**
+   * The accounting-record list is migrated to projectforge-next; its report drill-down is entered by URL
+   * (see {@code AccountingRecordEntityRest.getReportRecords}). The report id and the optional BWA row are
+   * passed as query parameters rather than through {@code OrphanedLinkFilter}, which keeps only {@code id}.
+   *
+   * @param businessAssessmentRowNo The BWA row to drill into, or {@code null} for the report's full set.
+   */
+  private static String nextAccountingRecordUrl(final String reportId, final String businessAssessmentRowNo)
+  {
+    final StringBuilder url = new StringBuilder("/").append(Constants.NEXT_APP_PATH)
+        .append("accounting-record?reportId=")
+        .append(URLEncoder.encode(reportId, StandardCharsets.UTF_8));
+    if (businessAssessmentRowNo != null) {
+      url.append("&businessAssessmentRowId=").append(URLEncoder.encode(businessAssessmentRowNo, StandardCharsets.UTF_8));
+    }
+    return url.toString();
   }
 }

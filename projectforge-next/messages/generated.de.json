@@ -770,12 +770,28 @@
       "zahlung": "Zahlung"
     },
     "buchungssatz": {
+      "_": "Buchungssatz",
       "beleg": "Beleg",
+      "error": {
+        "invalidTimeperiod": "Ungültige Zeitraumangabe"
+      },
       "gegenKonto": "Gegenkonto",
       "konto": "Konto",
       "menge": "Menge",
       "satznr": "Satznummer",
-      "text": "Text"
+      "text": "Text",
+      "title": {
+        "add": "Neuer Buchungssatz",
+        "edit": "Buchungssatz bearbeiten",
+        "heading": "Buchungssätze",
+        "list": "Liste der Buchungssätze"
+      }
+    },
+    "businessAssessment": {
+      "_": "BWA",
+      "merchandisePurchase": "Mat./Wareneinkauf",
+      "overallPerformance": "Gesamtleistung",
+      "preliminaryResult": "Vorläufiges Ergebnis"
     },
     "common": {
       "assignedPersons": "PL/BUL/KAM/AP",
