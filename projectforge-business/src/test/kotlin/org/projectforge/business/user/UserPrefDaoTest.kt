@@ -26,10 +26,21 @@ package org.projectforge.business.user
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.json.JsonTestUtils
+import org.projectforge.framework.utils.NumberHelper
+import org.springframework.beans.factory.annotation.Autowired
 
 class UserPrefDaoTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var userPrefCache: UserPrefCache
+
+    @Autowired
+    private lateinit var userPrefDao: UserPrefDao
+
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
     @Test
     fun `test deserialization of vacation`() {
         val json = """{
@@ -50,6 +61,35 @@ class UserPrefDaoTest : AbstractTestBase() {
             Assertions.assertEquals(2, vacation.manager?.id)
 
         }
+    }
+
+    @Test
+    fun `test remove of user pref`() {
+        logon(TEST_USER)
+        val userId = getUserId(TEST_USER)
+        val area = "UserPrefRemoveTest"
+        val name = NumberHelper.getSecureRandomAlphanumeric(20)
+        // Create and persist a user pref:
+        userPrefService.putEntry(area, name, "Hurzel")
+        userPrefCache.flushToDB(userId)
+        userPrefCache.setExpired()
+        Assertions.assertEquals("Hurzel", userPrefService.getEntry(area, name, String::class.java))
+        Assertions.assertNotNull(
+            userPrefDao.selectUserPrefs(userId).find { it.area == area && it.name == name },
+            "User pref should be persisted before removal."
+        )
+        // Remove the user pref (this used to throw UnsupportedOperationException):
+        userPrefService.removeEntry(area, name)
+        Assertions.assertNull(
+            userPrefService.getEntry(area, name, String::class.java),
+            "User pref should be gone from cache after removal."
+        )
+        Assertions.assertNull(
+            userPrefDao.selectUserPrefs(userId).find { it.area == area && it.name == name },
+            "User pref should be deleted from database after removal."
+        )
+        // Removing a non-existing entry must not fail:
+        userPrefService.removeEntry(area, name)
     }
 
     @Test

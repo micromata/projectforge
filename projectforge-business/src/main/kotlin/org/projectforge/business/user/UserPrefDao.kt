@@ -674,6 +674,28 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
     }
 
+    /**
+     * Deletes the user pref identified by user id, area and identifier from the database (if it exists). The id of any
+     * given obj is ignored; the row is looked up by user id, area and name. Does nothing for the demo user or if no
+     * matching row exists.
+     */
+    fun delete(userId: Long, key: UserPrefCacheDataKey, checkAccess: Boolean) {
+        if (accessChecker.isDemoUser(userId)) {
+            // Do nothing.
+            return
+        }
+        if (checkAccess) {
+            if (userId != loggedInUserId) {
+                throw AccessException("User '$loggedInUserId' has no access to delete user preferences of other user '$userId'.")
+            }
+        }
+        synchronized(this) {
+            // Avoid parallel insert, update, delete operations.
+            val dbUserPref = internalQuery(userId, key.area, key.identifier) ?: return
+            super.delete(dbUserPref, checkAccess = checkAccess)
+        }
+    }
+
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.username", "user.firstname",
