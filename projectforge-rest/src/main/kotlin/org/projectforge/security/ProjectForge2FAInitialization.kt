@@ -112,13 +112,13 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.FINANCE_WRITE,
       "WRITE:incomingInvoice;WRITE:outgoingInvoice;WRITE:project;",
       // The REST counterparts of /wa/orderBookEdit and /wa/cost.*Edit below: the forms of the order and of the
-      // cost1 are pages of projectforge-next now, and a page of that app is a static file served by a resource
+      // cost1/cost2 are pages of projectforge-next now, and a page of that app is a static file served by a resource
       // handler (see WebApplicationConfig), so no filter ever sees its url - only the rest calls of the form are
-      // left to gate. Without these two, an installation configuring FINANCE_WRITE but not FINANCE would ask for
+      // left to gate. Without these, an installation configuring FINANCE_WRITE but not FINANCE would ask for
       // a second factor before Wicket's form, but no longer before the migrated one.
       // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
       // dao ("auftrag"): the write access of Wicket's own form is gated by the url below, not by this entry.
-      "WRITE:order;WRITE:cost1;WRITE:customer;",
+      "WRITE:order;WRITE:cost1;WRITE:cost2;WRITE:customer;",
       "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
       "/wa/projectEdit;/wa/orderBookEdit"
     )
