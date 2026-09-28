@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import {
+  activeFilterFields,
   alignFor,
   columnHeaderKeyOf,
   columnIdOf,
@@ -8,10 +9,12 @@ import {
   defineListPage,
   filterKindFor,
   labelKeyFor,
+  revealedColumnsOf,
   visibleColumnsOf,
 } from "./define-page";
 import type { ColumnDeclaration } from "./types";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import type { MagicFilter } from "@/lib/rs/types";
 
 const METADATA: EntityMetadata = {
   entity: "kost1",
@@ -277,6 +280,76 @@ describe("visibleColumnsOf", () => {
     expect(defaultPinningOf(visibleColumnsOf(columns, undefined))).toEqual({
       left: ["description"],
     });
+  });
+});
+
+describe("activeFilterFields", () => {
+  const filter = (entries: MagicFilter["entries"]): MagicFilter => ({
+    entries,
+    sortProperties: [],
+  });
+
+  it("counts a field with a value, a value list, a reference or a range bound", () => {
+    const fields = activeFilterFields(
+      filter([
+        { field: "analysisCheck", value: { value: "FOREIGN_PROJECT_GROUP" } },
+        { field: "type", value: { values: ["A"] } },
+        { field: "user", value: { id: 7 } },
+        { field: "created", value: { from: "2026-01-01" } },
+        { field: "search", search: "abc" },
+      ])
+    );
+    expect([...fields].sort()).toEqual([
+      "analysisCheck",
+      "created",
+      "search",
+      "type",
+      "user",
+    ]);
+  });
+
+  it("ignores an entry the toolbar left behind empty and one with no field", () => {
+    expect(
+      activeFilterFields(
+        filter([
+          { field: "analysisCheck", value: { value: "" } },
+          { field: "type", value: { values: [] } },
+          { value: { value: "x" } },
+        ])
+      ).size
+    ).toBe(0);
+    expect(activeFilterFields(undefined).size).toBe(0);
+  });
+});
+
+describe("revealedColumnsOf", () => {
+  const COLUMNS: ColumnDeclaration<ListRow, typeof METADATA>[] = [
+    { name: "description" },
+    {
+      id: "analysisReason",
+      labelKey: "x",
+      accessor: () => null,
+      revealedByFilter: "analysisCheck",
+    },
+  ];
+
+  it("drops the revealed column while its filter is not set", () => {
+    expect(revealedColumnsOf(COLUMNS, new Set()).map(columnIdOf)).toEqual([
+      "description",
+    ]);
+  });
+
+  it("keeps it once its filter is active", () => {
+    expect(
+      revealedColumnsOf(COLUMNS, new Set(["analysisCheck"])).map(columnIdOf)
+    ).toEqual(["description", "analysisReason"]);
+  });
+
+  it("answers the very same array where nothing was dropped, so the columns keep their identity", () => {
+    const plain: ColumnDeclaration<ListRow, typeof METADATA>[] = [
+      { name: "description" },
+    ];
+    expect(revealedColumnsOf(plain, new Set())).toBe(plain);
   });
 });
 

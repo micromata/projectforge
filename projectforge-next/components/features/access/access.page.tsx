@@ -95,6 +95,19 @@ export const ACCESS_PAGE = definePage<
       ),
     },
     { name: "description", size: 320, wrap: true },
+    {
+      // Why the row was flagged. Shown only while the "analysisCheck" analysis filter is active — the
+      // column that explains that filter and would be an empty stripe the rest of the time (see
+      // ColumnBase.revealedByFilter). A computed, non-sortable/non-filterable column.
+      id: "analysisReason",
+      labelKey: "access.analysis.reason",
+      accessor: (row) => row.analysisReason ?? null,
+      revealedByFilter: "analysisCheck",
+      sortable: false,
+      filterKind: null,
+      size: 360,
+      wrap: true,
+    },
   ],
   // The task ("structure") wizard, for admins — the "Assistent" of the Wicket list.
   listActions: AccessListActions,

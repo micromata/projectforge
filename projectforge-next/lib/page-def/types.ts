@@ -118,6 +118,18 @@ interface ColumnBase<Row> {
    * because group membership and the installation's configuration are not the client's to know.
    */
   visible?: (ctx: { variables?: Record<string, unknown> }) => boolean;
+  /**
+   * Shown only while a given pill filter is active — for a column that explains the very filter that
+   * produced it and is noise the rest of the time: the access list's flag reason, revealed by its
+   * "analysisCheck" analysis filter. The value is the filter's field name (the `field` of its
+   * `MagicFilterEntry`).
+   *
+   * Reactive, unlike [visible]: it follows the *live* filter, so the column appears the moment the
+   * filter is picked and is gone again when it is cleared. Like [visible] it drops the column from the
+   * page entirely when off — not into the column panel — so it is the filter's to show and never the
+   * user's to toggle (the remembered filter is read above the column derivation, see EntityListPage).
+   */
+  revealedByFilter?: string;
 }
 
 /** A column showing one property of the entity, labelled from its metadata. */
