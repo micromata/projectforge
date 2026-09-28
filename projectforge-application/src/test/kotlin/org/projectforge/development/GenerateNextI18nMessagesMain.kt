@@ -145,6 +145,11 @@ object GenerateNextI18nMessagesMain {
     // forecast tab and its two charts reference these; several keys are passed to t() as variables (chart
     // series, forecast field labels), so no scan finds them.
     "plugins.liquidityplanning.",
+    // System configuration (components/features/configuration/): the label and description of every
+    // parameter are keyed by its name, "administration.configuration.param.<parameter>[.description]",
+    // built at runtime from the DTO's i18nKey/descriptionI18nKey, so no scan finds them. Includes the page
+    // title (administration.configuration) and the parameter-value column header.
+    "administration.configuration",
   )
 
   @JvmStatic

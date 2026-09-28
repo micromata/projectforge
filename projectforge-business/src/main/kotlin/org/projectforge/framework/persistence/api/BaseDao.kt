@@ -271,25 +271,34 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
+        // Load in chunks so the `pk IN (…)` clause never exceeds PostgreSQL's 65,535 bind-parameter limit.
+        // A whole result set can be loaded by id (server-side paging via getListByIds, "select all" in a
+        // multi-selection) and reach tens of thousands of ids; the `distinct` criteria shape can also double
+        // the bind count. IN_CLAUSE_CHUNK_SIZE stays well under the ceiling. Each chunk is its own query;
+        // the ids are unique, so concatenating the chunk results yields the same rows a single query would
+        // (order is not guaranteed by the IN query anyway — callers restore it, see restorePageOrder).
         val list = persistenceService.runReadOnly { context ->
             val em = context.em
-            val cr = em.criteriaBuilder.createQuery(doClass)
-            val root = cr.from(doClass)
-            cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
-            context.logAndAdd(
-                PersistenceCallsRecorder.CallType.QUERY,
-                doClass.simpleName,
-                "select by ids=${idList.joinToString()}"
-            )
-            val query = em.createQuery(cr)
-            // Load with the same entity graph the list query uses (createQueryFilter.entityGraphName), so this
-            // id-based load — server-side paging and multi-selection go through it (getListByIds) — does not
-            // N+1 on the collections/associations the graph fetch-joins, e.g. GroupTaskAccessDO.accessEntries.
-            // DAOs that declare no graph are unaffected (the hint is only set when a name is present).
-            createQueryFilter().entityGraphName?.let { entityGraphName ->
-                query.setHint("jakarta.persistence.loadgraph", em.getEntityGraph(entityGraphName))
+            idList.chunked(IN_CLAUSE_CHUNK_SIZE).flatMap { chunk ->
+                val cr = em.criteriaBuilder.createQuery(doClass)
+                val root = cr.from(doClass)
+                cr.select(root).where(root.get<Any>(idProperty).`in`(chunk)).distinct(true)
+                context.logAndAdd(
+                    PersistenceCallsRecorder.CallType.QUERY,
+                    doClass.simpleName,
+                    "select by ids=${chunk.joinToString()}"
+                )
+                val query = em.createQuery(cr)
+                // Load with the same entity graph the list query uses (createQueryFilter.entityGraphName), so
+                // this id-based load — server-side paging and multi-selection go through it (getListByIds) —
+                // does not N+1 on the collections/associations the graph fetch-joins, e.g.
+                // GroupTaskAccessDO.accessEntries. DAOs that declare no graph are unaffected (the hint is only
+                // set when a name is present).
+                createQueryFilter().entityGraphName?.let { entityGraphName ->
+                    query.setHint("jakarta.persistence.loadgraph", em.getEntityGraph(entityGraphName))
+                }
+                query.resultList
             }
-            query.resultList
         }
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
@@ -1100,5 +1109,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         const val MAX_MASS_UPDATE: Int = 100
         const val MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N: String =
             "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded"
+
+        /**
+         * Maximum number of ids per `pk IN (…)` query in [select] by idList. Kept well under PostgreSQL's
+         * 65,535 bind-parameter limit (the `distinct` criteria shape can double the effective bind count),
+         * so loading a whole result set by id (server-side paging, "select all" in a multi-selection) never
+         * blows past it.
+         */
+        const val IN_CLAUSE_CHUNK_SIZE: Int = 1000
     }
 }

@@ -28,6 +28,13 @@ import java.util.Set;
 
 public class ReportStorage
 {
+  /**
+   * User-pref key (area {@link org.projectforge.business.user.service.UserPrefService#LEGACY_XML_AREA}) under
+   * which the per-user report storage is kept. Shared by the (still Wicket) reporting page that creates it and
+   * the next accounting-record REST that reads it for the report drill-down.
+   */
+  public static final String USER_PREF_KEY = "ReportObjectivesPage:storage";
+
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportStorage.class);
 
   private Report root;

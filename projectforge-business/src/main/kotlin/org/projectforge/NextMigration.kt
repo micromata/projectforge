@@ -161,6 +161,18 @@ object NextMigration {
             newEntryRoute = "access/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // The DATEV accounting-record list ("Buchungssätze", MenuItemDefId.ACCOUNTING_RECORD_LIST pointed at
+        // wa/accountingRecordList), migrated from Wicket with its filter, its BWA (business assessment) and
+        // the report drill-down. Hand built (AccountingRecordEntityRest, no layout) so the list keeps the
+        // invoice-style date-period filter and the BWA summary above the table. Wicket's mount points follow
+        // the convention (DaoConst.ACCOUNTING_RECORD + List/Edit = accountingRecordList/accountingRecordEdit),
+        // so no legacy route has to be spelled out; the way back to the classic Wicket edit page stays offered.
+        "accountingRecord" to NextPage(
+            route = "accounting-record",
+            editRoute = "accounting-record/$ID_PLACEHOLDER",
+            newEntryRoute = "accounting-record/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.
@@ -169,6 +181,27 @@ object NextMigration {
             editRoute = "book/$ID_PLACEHOLDER",
             newEntryRoute = "book/new",
             legacyApp = null,
+        ),
+        // The system-configuration page, migrated from Wicket (MenuItemDefId.CONFIGURATION pointed at
+        // wa/configuration). Hand built (ConfigurationEntityRest, no layout): the value of a parameter is
+        // polymorphic per ConfigurationType, so its edit field is rendered per type, which no generic
+        // UILayout page can do. The parameter set is fixed - there is no add and no delete. Both legacy
+        // routes have to be spelled out: the Wicket list mount was `configuration` (singular, WebRegistry),
+        // not the <category>List convention, and the edit page had no mount alias at all - it was reached by
+        // its built-in bookmarkable url. The newEntryRoute is never asked for (insert is denied) but is kept
+        // for the contract.
+        // The Wicket pages have been removed (WebRegistry / MenuItemRegistry): the way back is no longer
+        // offered, and legacyApp/legacyRoute stay only so OrphanedLinkFilter still redirects bookmarked
+        // wa/configuration links onto the next page (as for `order`).
+        "configuration" to NextPage(
+            route = "configuration",
+            editRoute = "configuration/$ID_PLACEHOLDER",
+            newEntryRoute = "configuration/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "configuration",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.web.admin.ConfigurationEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.web.admin.ConfigurationEditPage",
+            offerLegacyLink = false,
         ),
         // Hand built calendar (the default page after login), migrated from the React app, which is where
         // the way back leads (react/calendar). It has no edit page of its own - a new or clicked entry

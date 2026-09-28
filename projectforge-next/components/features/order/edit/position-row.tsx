@@ -8,7 +8,10 @@ import { TaskSelectField } from "@/components/shared/tasks/task-select-field";
 import { JiraIssuesLinks } from "@/components/shared/jira/jira-issues-links";
 import { useJiraFieldHint } from "@/components/shared/jira/use-jira-field-hint";
 import { InputField } from "@/components/shared/form/input-field";
-import { NestedFieldMetadata } from "@/components/shared/form/form-context";
+import {
+  NestedFieldMetadata,
+  useFormReadOnly,
+} from "@/components/shared/form/form-context";
 import { NumberField } from "@/components/shared/form/number-field";
 import { RepeatableRow } from "@/components/shared/form/repeatable-row";
 import { SelectField } from "@/components/shared/form/select-field";
@@ -17,6 +20,7 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { fromMetadata } from "@/lib/validation/from-metadata";
+import { NetSumCalculator } from "./net-sum-calculator";
 import { PositionInvoices } from "./position-invoices";
 import { PositionRowHeader } from "./position-row-header";
 import type { OrderPositionValues } from "../order-schema";
@@ -79,6 +83,7 @@ export function PositionRow({
   const t = useTranslations();
   const label = useFieldLabels(AUFTRAGS_POSITION_METADATA);
   const format = useFormatContext();
+  const readOnly = useFormReadOnly();
   const name = (field: string) => `${prefix}${field}`;
   // The position's comment is scanned for JIRA keys like the order's own note fields, so it carries the
   // same "supports JIRA" hint (see useJiraFieldHint).
@@ -135,14 +140,25 @@ export function PositionRow({
           options={p.enumOptions("status", t)}
           emphasized
         />
-        <NumberField
-          name={name("nettoSumme")}
-          label={label("nettoSumme")}
-          // DECIMAL, not AMOUNT: `AuftragsPositionDO.nettoSumme` is a plain `BigDecimal`, so the
-          // currency and the two digits are passed explicitly rather than derived from the data type.
-          fractionDigits={2}
-          suffix={format.currency}
-        />
+        {/* The net sum and its fold-out calculator side by side — the calculator writes into this very
+            field (and the person days below), so it belongs at the field, not off in the header. */}
+        <div className="flex items-end gap-1.5">
+          <NumberField
+            name={name("nettoSumme")}
+            label={label("nettoSumme")}
+            // DECIMAL, not AMOUNT: `AuftragsPositionDO.nettoSumme` is a plain `BigDecimal`, so the
+            // currency and the two digits are passed explicitly rather than derived from the data type.
+            fractionDigits={2}
+            suffix={format.currency}
+            className="flex-1"
+          />
+          <NetSumCalculator
+            netSumName={name("nettoSumme")}
+            personDaysName={name("personDays")}
+            currency={format.currency}
+            disabled={readOnly}
+          />
+        </div>
         <NumberField
           name={name("personDays")}
           label={label("personDays")}

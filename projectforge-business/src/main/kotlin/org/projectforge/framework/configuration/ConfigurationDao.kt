@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.configuration
 
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.entities.ConfigurationDO
@@ -69,7 +70,9 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                 checkAndUpdateDatabaseEntry(param, list, params)
             }
             for (entry in list) {
-                if (!params.contains(entry.parameter)) {
+                // selectAll returns the deleted rows too, so guard on !deleted: an obsolete parameter is
+                // marked (and logged) once on the transition, not again on every list load that re-runs this.
+                if (!params.contains(entry.parameter) && !entry.deleted) {
                     log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
                     markAsDeleted(entry, checkAccess = false)
                 }
@@ -131,12 +134,35 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         throw UnsupportedOperationException("Type unsupported: " + parameter.type)
     }
 
+    /**
+     * The set of configuration parameters is fixed (see [checkAndUpdateDatabaseEntries] and
+     * [newInstance], which throws): a parameter is only ever read or updated through the UI, never inserted
+     * or deleted. INSERT and DELETE are therefore denied even for an admin, so the migrated next page
+     * ([org.projectforge.rest.ConfigurationEntityRest]) offers no add and no delete and both are refused
+     * server-side too. SELECT and UPDATE keep the admin-group check. [checkAndUpdateDatabaseEntries] is
+     * unaffected: it runs with `checkAccess = false`, bypassing this method.
+     */
     override fun hasAccess(
         user: PFUserDO, obj: ConfigurationDO?, oldObj: ConfigurationDO?,
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
+        if (operationType == OperationType.INSERT || operationType == OperationType.DELETE) {
+            if (throwException) {
+                throw AccessException(user, "access.exception.noAccess")
+            }
+            return false
+        }
         return accessChecker.isUserMemberOfAdminGroup(user, throwException)
+    }
+
+    /**
+     * The add button of the next list ([org.projectforge.rest.ConfigurationEntityRest]) routes through
+     * [BaseDao.hasInsertAccess], which bypasses [hasAccess] and would otherwise grant an admin insert via
+     * `@AUserRightId("ADMIN_CORE")`. The parameter set is fixed, so insert is always denied.
+     */
+    override fun hasInsertAccess(user: PFUserDO): Boolean {
+        return false
     }
 
     override fun newInstance(): ConfigurationDO {

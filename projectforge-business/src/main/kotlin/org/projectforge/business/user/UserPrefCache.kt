@@ -93,7 +93,7 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
     }
 
     override fun remove(userId: Long, key: UserPrefCacheDataKey) {
-        throw UnsupportedOperationException("Not implemented yet.")
+        userPrefDao.delete(userId, key, checkAccess = false)
     }
 
     override fun deserialize(userPref: UserPrefDO): Any? {

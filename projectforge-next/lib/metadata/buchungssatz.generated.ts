@@ -30,6 +30,11 @@ export const BUCHUNGSSATZ_METADATA = {
       i18nKey: "created",
       required: false,
     },
+    datum: {
+      dataType: "DATE",
+      i18nKey: "date",
+      required: true,
+    },
     deleted: {
       dataType: "BOOLEAN",
       i18nKey: "deleted",
@@ -61,6 +66,11 @@ export const BUCHUNGSSATZ_METADATA = {
       required: false,
       maxLength: 255,
     },
+    month: {
+      dataType: "INT",
+      i18nKey: "calendar.month",
+      required: true,
+    },
     satznr: {
       dataType: "INT",
       i18nKey: "fibu.buchungssatz.satznr",
@@ -86,6 +96,11 @@ export const BUCHUNGSSATZ_METADATA = {
       i18nKey: "fibu.buchungssatz.text",
       required: false,
       maxLength: 255,
+    },
+    year: {
+      dataType: "INT",
+      i18nKey: "calendar.year",
+      required: true,
     },
   },
 } as const satisfies EntityMetadata;

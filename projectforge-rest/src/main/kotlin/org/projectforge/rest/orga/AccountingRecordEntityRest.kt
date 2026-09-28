@@ -1,0 +1,195 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2026 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
+package org.projectforge.rest.orga
+
+import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.kost.BuchungssatzDO
+import org.projectforge.business.fibu.kost.BuchungssatzDao
+import org.projectforge.business.fibu.kost.reporting.ReportStorage
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.Buchungssatz
+import org.projectforge.rest.dto.BwaStatistics
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+
+/**
+ * Hand-built REST backend for the DATEV accounting-record list ("Buchungssätze"), migrated from the Wicket
+ * `AccountingRecordListPage`. The next frontend declares its own columns and edit form (definePage), so this is
+ * a layout-free [AbstractDTOEntityRest] (no createListLayout/createEditLayout).
+ *
+ * The list carries an invoice-style booking-period filter (mapped to the fiscal year/month columns, see
+ * [BuchungssatzDao.addTimePeriodPredicates]) and the BWA (business assessment) computed over the whole result
+ * set. A report drill-down ([getReportRecords]) shows a fixed set of records from the per-user in-memory
+ * [ReportStorage] the (still Wicket) reporting page creates.
+ */
+@RestController
+@RequestMapping("${Rest.URL}/accountingRecord")
+class AccountingRecordEntityRest :
+    AbstractDTOEntityRest<BuchungssatzDO, Buchungssatz, BuchungssatzDao>(
+        BuchungssatzDao::class.java,
+        "fibu.buchungssatz.title",
+    ) {
+
+    /**
+     * The DATEV-import right the Wicket `AccountingRecordListPage`/`AccountingRecordEditPage` gate on — kept
+     * here so the migrated page is no more permissive than the pages it replaces. The DAO's group-only
+     * select access (FINANCE/CONTROLLING) is intentionally *not* enough: the reporting page reads the same
+     * records through that group access and must keep working without this right, so the gate lives at these
+     * endpoints, not in [BuchungssatzDao]. Called from every read/write/meta choke point below.
+     */
+    private fun checkDatevImportAccess() {
+        accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE)
+    }
+
+    override fun transformForDB(dto: Buchungssatz): BuchungssatzDO {
+        checkDatevImportAccess() // choke point for every write (save/update/delete all go through transformForDB).
+        val buchungssatzDO = BuchungssatzDO()
+        dto.copyTo(buchungssatzDO)
+        return buchungssatzDO
+    }
+
+    override fun transformFromDB(obj: BuchungssatzDO, editMode: Boolean): Buchungssatz {
+        checkDatevImportAccess() // choke point for every read (list rows, edit read, report drill-down).
+        val buchungssatz = Buchungssatz()
+        buchungssatz.copyFrom(obj)
+        return buchungssatz
+    }
+
+    override fun newDTO(): Buchungssatz {
+        checkDatevImportAccess()
+        return Buchungssatz()
+    }
+
+    /**
+     * The single booking-period range filter (invoice-style date picker), default-visible. Its picked from/to
+     * dates are translated to fiscal year/month predicates in [preProcessMagicFilter].
+     */
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        checkDatevImportAccess() // gates listMeta, which returns before any row is transformed.
+        elements.add(
+            UIFilterElement(
+                PERIOD_FILTER,
+                UIFilterElement.FilterType.DATE,
+                label = translate("timePeriod"),
+                defaultFilter = true,
+            )
+        )
+    }
+
+    override fun preProcessMagicFilter(
+        target: QueryFilter,
+        source: MagicFilter,
+    ): List<CustomResultFilter<BuchungssatzDO>>? {
+        checkDatevImportAccess() // gates list/listPage even when the result set is empty (no row transformed).
+        val entry = source.entries.find { it.field == PERIOD_FILTER }
+        if (entry != null) {
+            entry.synthetic = true
+            val from = PFDayUtils.parseDate(entry.value.fromValue)
+            val to = PFDayUtils.parseDate(entry.value.toValue)
+            // Map the picked from/to dates to the fiscal year/month columns to keep the Wicket list's semantics.
+            baseDao.addTimePeriodPredicates(target, from?.year, from?.monthValue, to?.year, to?.monthValue)
+        }
+        return null
+    }
+
+    /**
+     * BWA over the whole (non-paged) result set. For server paging the frontend asks for it separately via
+     * [aggregate].
+     */
+    override fun postProcessResultSet(
+        resultSet: ResultSet<BuchungssatzDO>,
+        request: HttpServletRequest,
+        magicFilter: MagicFilter,
+    ): ResultSet<*> {
+        val result = super.postProcessResultSet(resultSet, request, magicFilter)
+        if (resultSet.offset == null) {
+            result.statistics = BwaStatistics.from(resultSet.resultSet)
+        }
+        return result
+    }
+
+    /**
+     * BWA over the full result set identified by [ids] (server-paging counterpart of [postProcessResultSet]).
+     */
+    override fun aggregate(ids: LongArray, filter: MagicFilter): Any? {
+        return BwaStatistics.from(getListByIds(ids.toList()))
+    }
+
+    /**
+     * Report drill-down: the fixed set of accounting records of a report (optionally of one business-assessment
+     * row) plus that set's BWA, read from the per-user in-memory [ReportStorage] created by the (still Wicket)
+     * reporting page. An absent storage / report (e.g. after a restart, or if the reporting UI was never opened)
+     * yields an empty result — the same limitation the Wicket list has.
+     */
+    @GetMapping("reportRecords")
+    fun getReportRecords(
+        @RequestParam("reportId") reportId: String?,
+        @RequestParam("businessAssessmentRowId", required = false) businessAssessmentRowId: String?,
+    ): ReportRecordsResult {
+        checkDatevImportAccess() // the Wicket drill-down opened the (import-right-gated) record list; keep parity.
+        val result = ReportRecordsResult()
+        if (reportId.isNullOrBlank()) {
+            return result
+        }
+        val storage = userPrefService.getEntry(
+            UserPrefService.LEGACY_XML_AREA,
+            ReportStorage.USER_PREF_KEY,
+            ReportStorage::class.java,
+        ) ?: return result
+        val report = storage.findById(reportId) ?: return result
+        val records = if (!businessAssessmentRowId.isNullOrBlank()) {
+            report.businessAssessment?.getRow(businessAssessmentRowId)?.accountRecords ?: emptyList()
+        } else {
+            report.buchungssaetze ?: emptyList()
+        }
+        result.records = records.map { transformFromDB(it, false) }
+        result.statistics = BwaStatistics.from(records)
+        return result
+    }
+
+    /** Response of [getReportRecords]: the records to list plus their BWA. */
+    class ReportRecordsResult(
+        var records: List<Buchungssatz> = emptyList(),
+        var statistics: BwaStatistics? = null,
+    )
+
+    companion object {
+        /** Filter field id of the booking-period range (invoice-style date picker). */
+        internal const val PERIOD_FILTER = "timePeriod"
+    }
+}

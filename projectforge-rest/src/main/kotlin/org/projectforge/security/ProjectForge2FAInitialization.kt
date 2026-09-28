@@ -62,21 +62,21 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // page is a static file of projectforge-next served by a resource handler (see WebApplicationConfig), so no
       // filter sees its url - only the rest call is left to gate. Without it, an installation configuring
       // ADMIN_WRITE but not ADMIN would ask for a second factor before Wicket's /wa/accessEdit but no longer
-      // before the migrated one.
-      "WRITE:user;WRITE:group;WRITE:access;",
+      // before the migrated one. WRITE:configuration is the same case for the migrated system-configuration
+      // form (ConfigurationEntityRest, /rs/configuration): its Wicket form was removed, so the /wa gate is
+      // gone and the rest call is all there is left to gate.
+      "WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;",
       "/wa/userEdit;/wa/groupEdit;/wa/admin",
       "/wa/accessEdit",
       // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin",
-      "/wa/configurationEdit"
+      "/wa/wicket/bookmarkable/org.projectforge.web.admin"
     )
     registerShortCutValues(
       My2FAShortCut.ADMIN,
       "/wa/user;/wa/group;/wa/admin",
       "/wa/access",
       // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin",
-      "/wa/configuration"
+      "/wa/wicket/bookmarkable/org.projectforge.web.admin"
     )
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
@@ -84,6 +84,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       GroupPagesRest::class.java,
       AdminLogViewerPageRest::class.java,
       GroupAccessEntityRest::class.java,
+      // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a
+      // resource handler, so no filter sees its url - only the REST call is left to gate. The classic Wicket page sat
+      // behind the org.projectforge.web.admin admin 2FA prefix, so its successor keeps the admin second factor here.
+      PluginAdminRest::class.java,
+      ConfigurationEntityRest::class.java,
     )
 
     registerShortCutValues(
@@ -126,7 +131,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     )
     registerShortCutClasses(
       My2FAShortCut.FINANCE,
-      AccountingRecordPagesRest::class.java,
+      AccountingRecordEntityRest::class.java,
       Kost1EntityRest::class.java,
       Kost2EntityRest::class.java,
       KontoPagesRest::class.java,
