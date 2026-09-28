@@ -32,6 +32,7 @@ import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.GroupTaskAccessDO
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.business.test.AbstractTestBase
@@ -49,6 +50,9 @@ class AccessDaoTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var taskTree: TaskTree
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     @Test
     fun testAddUserWithHistory() {
@@ -93,6 +97,53 @@ class AccessDaoTest : AbstractTestBase() {
         hist.recentEntries!!.find { it.entry.entityOpType == EntityOpType.Insert }!!.let { holder ->
             Assertions.assertEquals(AccessEntryDO::class.qualifiedName, holder.entry.entityName)
         }
+    }
+
+    /**
+     * The group-task access rights of a deleted group must no longer be accepted: as soon as the referenced group is
+     * deleted, the access is treated as if the [GroupTaskAccessDO] itself was deleted. Undeleting the group makes the
+     * access effective again.
+     */
+    @Test
+    fun testDeletedGroupAccessIsIgnored() {
+        logon(ADMIN_USER)
+        val username = "$PREFIX-DeletedAccessUser"
+        val user = initTestDB.addUser(username)
+        lateinit var group: GroupDO
+        lateinit var task: TaskDO
+        persistenceService.runInTransaction { _ ->
+            group = initTestDB.addGroup("$PREFIX-DeletedAccessGroup", username)
+            task = initTestDB.addTask("$PREFIX-DeletedAccessTask", "root")
+            initTestDB.createGroupTaskAccess(
+                group, task, AccessType.TASKS,
+                accessSelect = true, accessInsert = false, accessUpdate = false, accessDelete = false,
+            )
+        }
+        userGroupCache.forceReload()
+        Assertions.assertTrue(
+            accessChecker.hasPermission(user, task.id, AccessType.TASKS, OperationType.SELECT, false),
+            "User should have select access to the task via its group.",
+        )
+
+        // Delete the group: its access rights must no longer be accepted.
+        persistenceService.runInTransaction { _ ->
+            groupDao.markAsDeleted(group, checkAccess = false)
+        }
+        userGroupCache.forceReload()
+        Assertions.assertFalse(
+            accessChecker.hasPermission(user, task.id, AccessType.TASKS, OperationType.SELECT, false),
+            "Access rights of a deleted group must be treated as deleted.",
+        )
+
+        // Undelete the group: its access rights become effective again.
+        persistenceService.runInTransaction { _ ->
+            groupDao.undelete(group, checkAccess = false)
+        }
+        userGroupCache.forceReload()
+        Assertions.assertTrue(
+            accessChecker.hasPermission(user, task.id, AccessType.TASKS, OperationType.SELECT, false),
+            "Access rights must be effective again after the group has been undeleted.",
+        )
     }
 
     private fun createAccessEntry(
