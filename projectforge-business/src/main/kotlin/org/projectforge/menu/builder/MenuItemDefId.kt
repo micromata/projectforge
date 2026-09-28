@@ -130,7 +130,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     VACATION_ACCOUNT("menu.vacation.leaveaccount", getReactDynamicPageUrl("vacationAccount")), //
     VISITORBOOK("menu.orga.visitorbook", getReactListUrl("visitorbook")), //
 
-    PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
+    PLUGIN_ADMIN("menu.pluginAdmin", "next/plugins"), //
     SYSTEM("menu.system", "next/system"), //
     SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));
 

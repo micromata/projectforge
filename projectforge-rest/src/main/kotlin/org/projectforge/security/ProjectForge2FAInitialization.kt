@@ -84,6 +84,10 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       GroupPagesRest::class.java,
       AdminLogViewerPageRest::class.java,
       GroupAccessEntityRest::class.java,
+      // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a
+      // resource handler, so no filter sees its url - only the REST call is left to gate. The classic Wicket page sat
+      // behind the org.projectforge.web.admin admin 2FA prefix, so its successor keeps the admin second factor here.
+      PluginAdminRest::class.java,
     )
 
     registerShortCutValues(

@@ -1299,6 +1299,7 @@
     "_": "Gruppe",
     "assignedUsers": "Assoziierte Benutzer:in",
     "error": {
+      "couldNotDeleteSystemGroup": "Die Systemgruppe ''{arg0}'' kann nicht gelöscht werden.",
       "groupnameAlreadyExists": "Gruppenname ist bereits vergeben."
     },
     "groups": "Gruppen",
@@ -1655,6 +1656,7 @@
     "myAccount": "Mein Zugang",
     "personalStatistics": "Meine Statistiken",
     "phoneCall": "Direktwahl",
+    "pluginAdmin": "Plugins",
     "plugins": {
       "teamcal": "Kalenderliste"
     },
@@ -2382,7 +2384,17 @@
       },
       "title": "Administration"
     },
-    "developmentSystem": "Development-System"
+    "developmentSystem": "Development-System",
+    "pluginAdmin": {
+      "button": {
+        "activate": "Activate",
+        "deactivate": "Deactivate"
+      },
+      "ensureActive": "Die folgenden Plugins sind über projectforge.properties aktiviert und können hier nicht deaktiviert werden: {arg0}",
+      "ensureActiveHint": "Über projectforge.properties (ensure-active) aktiviert und kann hier nicht deaktiviert werden.",
+      "restartRequired": "Bitte beachten: Die (De-)Aktivierung von Plugins wird erst nach einem Neustart wirksam!",
+      "title": "Plugins"
+    }
   },
   "task": {
     "_": "Strukturelement",
