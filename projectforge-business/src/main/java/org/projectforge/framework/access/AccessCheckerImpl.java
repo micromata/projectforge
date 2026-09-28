@@ -103,12 +103,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             return false;
         }
         for (final Long groupId : groupIds) {
-            final GroupDO group = userGroupCache.getGroup(groupId);
-            if (group != null && group.getDeleted()) {
-                // Access rights of deleted groups are no longer accepted: they are treated as if the
-                // GroupTaskAccessDO itself was deleted.
-                continue;
-            }
             if (node.hasPermission(groupId, accessType, operationType)) {
                 return true;
             }

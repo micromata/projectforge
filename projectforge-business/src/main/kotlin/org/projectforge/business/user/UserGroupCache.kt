@@ -442,6 +442,12 @@ open class UserGroupCache : AbstractCache() {
             for (group in groups) {
                 val groupId = group.id ?: continue
                 gMap[groupId] = group
+                if (group.deleted) {
+                    // Deleted groups must never grant access anywhere: keep them in groupMap (for display and
+                    // lookup), but don't index their memberships (userGroupIdMap and the ProjectForge system-group
+                    // sets), so no membership check can test positively for a deleted group.
+                    continue
+                }
                 group.assignedUsers?.forEach { user ->
                     val userId = user.id ?: return@forEach
                     val groupIdSet = ugIdMap.getOrPut(userId) { mutableSetOf() }
