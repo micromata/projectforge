@@ -365,7 +365,11 @@
  */
 .row-deleted > td {
   background-image: linear-gradient(var(--row-deleted), var(--row-deleted));
-  text-decoration: line-through;
+  /* The same red-pencil strike a struck reference cell uses (line-through decoration-destructive
+   * decoration-2 in use-declared-columns), so a deleted row and a deleted reference read alike. */
+  text-decoration-line: line-through;
+  text-decoration-color: var(--destructive);
+  text-decoration-thickness: 2px;
 }
 .row-red > td {
   background-image: linear-gradient(var(--row-red), var(--row-red));

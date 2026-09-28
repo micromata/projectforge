@@ -93,6 +93,11 @@ export interface AccessDetail {
   recursive?: boolean | null;
   description?: string | null;
   accessEntries?: AccessEntryDto[] | null;
+  /**
+   * Set only in the access-management analysis mode (the "analysisCheck" list filter): a short,
+   * already-translated reason why this row was flagged. Absent (NON_NULL) for the normal list.
+   */
+  analysisReason?: string | null;
   /** Whether the logged-in user may save this entry (EntityAccessSupport); absent means allowed. */
   writeAccess?: boolean | null;
   deleteAccess?: boolean | null;

@@ -11,6 +11,7 @@ import { leafKeyOf } from "@/lib/leaf-key";
 import type { EntityMetadata, UIDataTypeName } from "@/lib/metadata/types";
 import type { EntityWithId } from "@/hooks/use-entity-detail";
 import type { ListRow } from "@/hooks/use-entity-list-page";
+import type { MagicFilter } from "@/lib/rs/types";
 import type { ColumnDeclaration, EditablePageDef, PageDef } from "./types";
 
 /**
@@ -119,6 +120,50 @@ export function visibleColumnsOf<Row, M extends EntityMetadata>(
   );
   // The same array where nothing was dropped: the columns feed a memo whose identity decides whether
   // TanStack rebuilds every column instance (see useDeclaredColumns).
+  return kept.length === columns.length ? columns : kept;
+}
+
+/**
+ * The field names of the filter entries the user has actually set a value on — a `MagicFilterEntry`
+ * with a `field` and something to match by (a value, a value list, a referenced entity, a range bound,
+ * or a free-text search). An entry the toolbar left behind empty is not counted, so a column
+ * [ColumnBase.revealedByFilter] hangs on does not flicker in on a cleared filter.
+ */
+export function activeFilterFields(
+  filter: MagicFilter | undefined
+): Set<string> {
+  const fields = new Set<string>();
+  for (const entry of filter?.entries ?? []) {
+    if (!entry.field) continue;
+    const value = entry.value;
+    const hasValue =
+      !!entry.search ||
+      (value != null &&
+        (!!value.value ||
+          (value.values?.length ?? 0) > 0 ||
+          value.id != null ||
+          value.from != null ||
+          value.to != null));
+    if (hasValue) fields.add(entry.field);
+  }
+  return fields;
+}
+
+/**
+ * Drops every column whose [ColumnBase.revealedByFilter] names a filter that is not currently set —
+ * the reactive counterpart of [visibleColumnsOf], run on the same set right after it. A column without
+ * the marker is always kept; identity is preserved when nothing is dropped, for the same memo reason.
+ */
+export function revealedColumnsOf<Row, M extends EntityMetadata>(
+  columns: ColumnDeclaration<Row, M>[],
+  activeFields: Set<string>
+): ColumnDeclaration<Row, M>[] {
+  const kept = columns.filter(
+    (declaration) =>
+      !("revealedByFilter" in declaration) ||
+      !declaration.revealedByFilter ||
+      activeFields.has(declaration.revealedByFilter)
+  );
   return kept.length === columns.length ? columns : kept;
 }
 

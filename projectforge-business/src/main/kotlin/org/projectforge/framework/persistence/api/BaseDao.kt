@@ -281,7 +281,15 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
                 doClass.simpleName,
                 "select by ids=${idList.joinToString()}"
             )
-            em.createQuery(cr).resultList
+            val query = em.createQuery(cr)
+            // Load with the same entity graph the list query uses (createQueryFilter.entityGraphName), so this
+            // id-based load — server-side paging and multi-selection go through it (getListByIds) — does not
+            // N+1 on the collections/associations the graph fetch-joins, e.g. GroupTaskAccessDO.accessEntries.
+            // DAOs that declare no graph are unaffected (the hint is only set when a name is present).
+            createQueryFilter().entityGraphName?.let { entityGraphName ->
+                query.setHint("jakarta.persistence.loadgraph", em.getEntityGraph(entityGraphName))
+            }
+            query.resultList
         }
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }

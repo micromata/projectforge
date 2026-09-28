@@ -24,6 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.task.TaskAccessAnalysisService
 import org.projectforge.business.task.TaskFormatter
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.UserGroupCache
@@ -40,6 +41,7 @@ import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -67,6 +69,17 @@ class GroupAccessEntityRest :
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
 
+    @Autowired
+    private lateinit var taskAccessAnalysisService: TaskAccessAnalysisService
+
+    /**
+     * The analysis reasons of the current request (analysis mode only), stashed by [preProcessMagicFilter]
+     * and read per row by [transformFromDB]: this bean is a singleton, so the per-request map cannot live in
+     * an instance field. Both callbacks run on the same request thread during list assembly; cleared
+     * whenever no analysis check is selected so it never leaks to a later request on a pooled thread.
+     */
+    private val analysisReasonHolder = ThreadLocal<Map<Long, String>>()
+
     override fun transformFromDB(obj: GroupTaskAccessDO, editMode: Boolean): GroupTaskAccess {
         // Resolve the id-only group and task from the caches so the DTO carries their display names for the
         // list columns and the autocompletes (the DO serializes both id-only, see GroupTaskAccessDO).
@@ -74,6 +87,7 @@ class GroupAccessEntityRest :
         obj.task = caches.getTask(obj.taskId) ?: obj.task
         val dto = GroupTaskAccess()
         dto.copyFrom(obj)
+        dto.analysisReason = obj.id?.let { analysisReasonHolder.get()?.get(it) }
         return dto
     }
 
@@ -159,6 +173,13 @@ class GroupAccessEntityRest :
                 defaultFilter = true,
             ).also { it.tooltip = translate("access.tooltip.filter.includeDescendentTasks") }
         )
+        // Anomaly inspection: pick one check to narrow the list to the likely-erroneous entries, each shown
+        // with a reason (TaskAccessAnalysisService). Single-select, off by default.
+        elements.add(
+            UIFilterListElement("analysisCheck", label = translate("access.analysis.filter"), multi = false)
+                .buildValues(TaskAccessAnalysisService.AnalysisCheck::class.java)
+                .also { it.tooltip = translate("access.tooltip.filter.analysisCheck") }
+        )
     }
 
     /**
@@ -171,6 +192,27 @@ class GroupAccessEntityRest :
         source: MagicFilter,
     ): List<CustomResultFilter<GroupTaskAccessDO>> {
         val filters = mutableListOf<CustomResultFilter<GroupTaskAccessDO>>()
+
+        // Analysis mode: run the picked check once over the whole table, keep only the flagged rows, and
+        // stash the id -> reason map for transformFromDB. Cleared first so a request without a check (or
+        // with an unknown value) never sees a previous request's reasons on this pooled thread.
+        analysisReasonHolder.remove()
+        source.entries.find { it.field == "analysisCheck" }?.let { analysisEntry ->
+            analysisEntry.synthetic = true
+            val value = analysisEntry.value.value ?: analysisEntry.value.values?.singleOrNull()
+            val check = value?.let {
+                runCatching { TaskAccessAnalysisService.AnalysisCheck.valueOf(it) }.getOrNull()
+            }
+            if (check != null) {
+                val reasons = taskAccessAnalysisService.analyze(check)
+                analysisReasonHolder.set(reasons)
+                filters.add(object : CustomResultFilter<GroupTaskAccessDO> {
+                    override fun match(list: MutableList<GroupTaskAccessDO>, element: GroupTaskAccessDO): Boolean {
+                        return reasons.containsKey(element.id)
+                    }
+                })
+            }
+        }
 
         val inheritEntry = source.entries.find { it.field == "inherit" }
         inheritEntry?.synthetic = true

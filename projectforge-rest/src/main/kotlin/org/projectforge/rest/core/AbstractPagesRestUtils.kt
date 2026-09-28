@@ -112,9 +112,10 @@ private fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFilt
  * `BaseDao.select(ids)` → per-row access check, so a stale id list (a row deleted or hidden since it was built)
  * can at worst yield a short page, never a forbidden or wrong row.
  *
- * Caveat: [AbstractEntityRest.getListByIds] loads by `IN (…)`, which ignores `queryFilter.entityGraphName`, so a
- * page of 50 rows may N+1 — acceptable at a page's size. Do not enable paging for a page that overrides
- * `getListByIds` with id semantics of its own (e.g. `AddressCampaignValuePagesRest`'s synthetic negative ids).
+ * [AbstractEntityRest.getListByIds] loads by `IN (…)` via [BaseDao.select]; that path applies the DAO's list
+ * entity graph (`createQueryFilter().entityGraphName`), so a page of a graph-fetching entity (e.g.
+ * GroupTaskAccessDO.accessEntries) does not N+1. Do not enable paging for a page that overrides `getListByIds`
+ * with id semantics of its own (e.g. `AddressCampaignValuePagesRest`'s synthetic negative ids).
  *
  * @param offset Index of the first row of the requested page within the whole result.
  * @param limit Page size.

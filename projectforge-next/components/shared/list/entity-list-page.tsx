@@ -36,7 +36,12 @@ import {
   auditColumnsFor,
   defaultVisibilityOf,
 } from "@/lib/page-def/audit-columns";
-import { defaultPinningOf, visibleColumnsOf } from "@/lib/page-def/define-page";
+import {
+  activeFilterFields,
+  defaultPinningOf,
+  revealedColumnsOf,
+  visibleColumnsOf,
+} from "@/lib/page-def/define-page";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { LegendEntry, PageDef } from "@/lib/page-def/types";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -207,18 +212,34 @@ function DeclaredList<
   // rest class reports `update: false` (see useUpdateAccess). Only entities overriding
   // `listUpdateAccess()` answer anything but `true`, so this changes nothing elsewhere.
   const updateAccess = useUpdateAccess(page.entity);
+  // The filter fields the user currently has a value set on, as a stable key — so a column that only
+  // belongs to one of them (ColumnBase.revealedByFilter) appears with it and is gone once it is
+  // cleared. Read from the remembered filter, which the list keeps live in the meta cache as the
+  // toolbar changes it (see useRememberFilter), so the columns track the filter without waiting on the
+  // very query they help build.
+  const activeFilterKey = useMemo(
+    () => [...activeFilterFields(restoredFilter)].sort().join(" "),
+    [restoredFilter]
+  );
   // Every list offers `created` and `lastUpdate`, hidden until the user asks for them — appended here
   // rather than declared per page (see auditColumnsFor).
   const declarations = useMemo(() => {
     // Dropped before the audit pair is appended and before the pinning is derived, so both see the
-    // set the table actually gets.
-    const kept = visibleColumnsOf(page.columns, variables);
+    // set the table actually gets: what this installation and user have (visibleColumnsOf), narrowed
+    // to what the current filter reveals (revealedColumnsOf).
+    const activeFields = new Set(
+      activeFilterKey ? activeFilterKey.split(" ") : []
+    );
+    const kept = revealedColumnsOf(
+      visibleColumnsOf(page.columns, variables),
+      activeFields
+    );
     const appended = auditColumnsFor(kept, page.metadata);
     const columns = appended.length ? [...kept, ...appended] : kept;
     // Over all of them, appended and declared alike: a page may hide a column of its own at first too
     // (see ColumnBase.hiddenByDefault).
     return { columns, defaultVisibility: defaultVisibilityOf(columns) };
-  }, [page.columns, page.metadata, variables]);
+  }, [page.columns, page.metadata, variables, activeFilterKey]);
   const declared = useDeclaredColumns<Row, M>(
     page.metadata,
     declarations.columns

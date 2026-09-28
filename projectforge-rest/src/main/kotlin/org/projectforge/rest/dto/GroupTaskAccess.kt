@@ -56,6 +56,13 @@ class GroupTaskAccess(
     override var writeAccess: Boolean? = null
     override var deleteAccess: Boolean? = null
 
+    /**
+     * Set only in the access-management analysis mode (see `GroupAccessEntityRest`): a short, already
+     * translated explanation of why this row was flagged. Not part of the entity — never copied from or to
+     * the DO — so it stays null for the normal list and the edit page.
+     */
+    var analysisReason: String? = null
+
     override fun copyFrom(src: GroupTaskAccessDO) {
         // super copies id, deleted, recursive, description and the audit fields by name; the collection and
         // the two references are copied here (BaseDTO.copy skips collections and cannot map GroupDO -> Group
