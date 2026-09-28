@@ -25,9 +25,11 @@ export type PeriodOfPerformanceType = EnumOf<
   typeof RECHNUNGS_POSITION_METADATA.fields.periodOfPerformanceType
 >;
 
-/** A referenced entity as the lean row carries it: the name to show, nothing else. */
+/** A referenced entity as the lean row carries it: the name to show, and whether it is deleted. */
 export interface DisplayRef {
   displayName?: string;
+  /** Whether the referenced entity is soft-deleted — its cell is struck through when it is. */
+  deleted?: boolean;
 }
 
 /**

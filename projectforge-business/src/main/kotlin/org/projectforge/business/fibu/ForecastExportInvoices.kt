@@ -26,6 +26,7 @@ package org.projectforge.business.fibu
 import de.micromata.merlin.excel.ExcelSheet
 import mu.KotlinLogging
 import org.projectforge.business.fibu.ForecastExportContext.ForecastCol
+import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.time.PFDay
@@ -49,6 +50,9 @@ internal class ForecastExportInvoices { // open needed by Wicket.
     private lateinit var projektCache: ProjektCache
 
     @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     internal fun fillInvoices(ctx: ForecastExportContext) {
@@ -57,6 +61,11 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT) {
                 continue // Ignoriere stornierte oder geplante Rechnungen.
             }
+            // Resolve the lazy kunde/projekt proxies from the caches once per invoice (avoids an n+1: reading
+            // invoice.kundeAsString below would otherwise trigger one SELECT on T_FIBU_KUNDE per invoice). The
+            // identifier read inside getXIfNotInitialized is free (KundeDO.nummer/ProjektDO.id are the @Id).
+            invoice.kunde = kundeCache.getKundeIfNotInitialized(invoice.kunde)
+            invoice.projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
             rechnungCache.getRechnungInfo(invoice.id)?.positions?.forEach { pos ->
                 val orderPosInfo = rechnungCache.getOrderPositionInfoOfInvoicePos(pos.id)
                 val orderPosId = orderPosInfo?.id
@@ -173,13 +182,13 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             PFDay(invoice.datum!!).localDate,
             ctx.excelDateFormat
         )
-        val projekt = projektCache.getProjektIfNotInitialized(invoice.projekt)
+        // kunde and projekt were already resolved from the caches in fillInvoices, so these reads don't lazy-load.
         sheet.setStringValue(
             rowNumber,
             ForecastExportContext.InvoicesCol.CUSTOMER.header,
             invoice.kundeAsString
         )
-        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, projekt?.name)
+        sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.PROJECT.header, invoice.projekt?.name)
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.SUBJECT.header, invoice.betreff)
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_TEXT.header, pos.text)
         invoice.bezahlDatum?.let {

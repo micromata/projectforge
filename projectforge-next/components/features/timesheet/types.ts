@@ -20,6 +20,10 @@ export type EntityRefDto = {
   title?: string;
   /** The task's path to the root ("A -> B -> C"), shown as the tooltip of the structure element column. */
   path?: string;
+  /** Whether the referenced entity is soft-deleted — its cell is struck through when it is. */
+  deleted?: boolean;
+  /** A deactivated user (its own flag, not deleted) — likewise struck through wherever shown. */
+  deactivated?: boolean;
 };
 
 /**

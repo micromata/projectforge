@@ -184,6 +184,15 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
             return true
         }
 
+    /**
+     * The uniform inactivity flag (see [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]):
+     * an employee is deactivated once more than three months have passed since the leaving date, so a recently
+     * left employee still reads as active. Mirrors [EmployeeService.isEmployeeActive] with showRecentlyLeavers.
+     */
+    override val deactivated: Boolean
+        @Transient
+        get() = austrittsDatum?.let { LocalDate.now().minusMonths(3).isAfter(it) } ?: false
+
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         val modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
         // val src = source as EmployeeDO

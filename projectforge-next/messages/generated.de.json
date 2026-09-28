@@ -1942,6 +1942,7 @@
         },
         "editHint": "Änderungen an dieser Serie wirken sich nur auf künftige, noch nicht bearbeitete Raten aus. Bereits bearbeitete oder bezahlte Raten sind eigenständige Einträge und bleiben unverändert.",
         "editLink": "Serie bearbeiten",
+        "effectiveFrom": "Gültig ab",
         "fixedBadge": "Fixiert",
         "fixedBadgeInfo": "Eine fixierte Rate: ein gespeicherter Eintrag, der späteren Änderungen an der Serie nicht mehr folgt.",
         "interval": {
@@ -1954,6 +1955,14 @@
           "_": "Wiederholen",
           "enable": "Diesen Eintrag als Serie wiederholen",
           "info": "Eine Serie wiederholt diesen Eintrag in festem Abstand (z. B. monatliche Miete). Die Raten werden automatisch angezeigt, nicht gespeichert, und werden erst eigenständig, sobald eine geöffnet und gespeichert wird."
+        },
+        "scope": {
+          "fromDate": "Ab einem Datum ändern",
+          "fromDateHint": "Raten vor diesem Datum behalten ihre bisherigen Werte; die Änderung gilt erst ab hier. Das Intervall bleibt in diesem Modus unverändert.",
+          "required": "Bitte wählen, für welche Raten die Änderung gilt.",
+          "text": "Änderung gilt für",
+          "whole": "Gesamte Serie (ab Beginn)",
+          "wholePastWarning": "Ändert auch bereits vergangene Raten rückwirkend."
         },
         "startDate": "Startdatum",
         "title": "Liquiditätsserie"

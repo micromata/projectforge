@@ -60,6 +60,20 @@ interface ColumnBase<Row> {
   /** Renders the cell itself, instead of the default for the field's data type. */
   cell?: (ctx: CellContext<Row, unknown>) => ReactNode;
   /**
+   * A column showing a **referenced** object (the group of an access entry, the user of a time sheet, a
+   * cost unit, ...) is struck through when that reference is deleted or otherwise inactive — the row
+   * stays untouched, only this cell reads as stale. This happens **automatically**, in every list, with
+   * no per-column wiring: the reference is found on the row under the column's own key (its field name,
+   * or a computed column's `id`) and checked with `isInactiveRef`. It works with the default cell and a
+   * custom `cell` alike, and needs only that the referenced DTO carries the flags — every DTO does via
+   * `BaseDTO.copyFromMinimal`/`copyFrom` (`deleted`, and the uniform `deactivated`).
+   *
+   * `referenceKey` is the sole escape hatch, for the column whose key is not the row property: a computed
+   * column sorted by a backend path (`id: "kunde.displayName"`) points at the actual row field with
+   * `referenceKey: "customer"`.
+   */
+  referenceKey?: string;
+  /**
    * Frozen to that edge of the table until the user unpins it — for the columns that identify the row
    * and have to stay readable while the rest is scrolled sideways (an order's number, customer,
    * project and title).
@@ -172,7 +186,13 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<
   ColumnBase<never>,
-  "cell" | "filterKind" | "align" | "labelKey" | "tooltip" | "sortable"
+  | "cell"
+  | "filterKind"
+  | "align"
+  | "labelKey"
+  | "tooltip"
+  | "sortable"
+  | "referenceKey"
 > {
   /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
   periodLabelKey: string;
@@ -495,6 +515,19 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    * the entity's own business: a section's `render` puts the buttons where they belong.
    */
   actions?: readonly string[];
+  /**
+   * Redirects the plain Save to one of the declared {@link actions}, chosen from the form values.
+   *
+   * The Save button always submits `action: "save"` (SAVE_META); when this hook returns an action name
+   * that {@link actions} lists, that submit posts to `/rs/{entity}/{action}` instead of `saveorupdate`,
+   * while still navigating away the way a save does (the further-action branch that stays on the page is
+   * only for a button carrying its own meta). Returning `undefined` — or omitting the hook — keeps the
+   * ordinary save.
+   *
+   * The liquidity series editor is the case: a "valid from a date on" edit is a `split`, an ordinary one
+   * a save, told apart by whether the form holds an effective date — one Save button, two endpoints.
+   */
+  submitAction?: (values: Values) => string | undefined;
   /**
    * Whether the edit page offers a clone — a new entry built from the one on screen — and how it ends.
    *

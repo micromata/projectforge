@@ -1,6 +1,7 @@
 import { LIQUIDITY_SERIES_METADATA } from "@/lib/metadata/liquidity-series.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { SeriesEditHint } from "./edit/series-edit-hint";
+import { SeriesEffectiveFrom } from "./edit/series-effective-from";
 import {
   liquiditySeriesSchema,
   LIQUIDITY_SERIES_FIELDS,
@@ -55,7 +56,12 @@ export const LIQUIDITY_SERIES_PAGE = definePage<
     title: (series) => series.subject ?? "",
     newTitleKey: "plugins.liquidityplanning.series.title",
     savedMessageKey: "message.successfullChanged",
-    autoFocus: "startDate",
+    autoFocus: "amount",
+    // The "valid from a date on" edit is a split, not an in-place update — one Save button, routed to the
+    // `split` endpoint whenever the user chose that scope (see SeriesEffectiveFrom, submitAction).
+    actions: ["split"],
+    submitAction: (values) =>
+      values.changeScope === "SPLIT" ? "split" : undefined,
     // Cancel and a successful save return to the entry list — the series has no list to go back to.
     returnTargets: [
       {
@@ -70,13 +76,18 @@ export const LIQUIDITY_SERIES_PAGE = definePage<
         fields: [
           // Up front: what a save here changes (future virtual occurrences) and what it leaves frozen.
           { custom: SeriesEditHint, span: 3 },
+          // The "valid from" scope — whole series (in place) vs. from a date on (split).
+          { custom: SeriesEffectiveFrom, span: 3 },
           // The recurrence rule reads as one line: from when, every how many months, for how many
           // installments (empty = endless).
           {
             span: 3,
             packed: true,
             group: [
-              { name: "startDate" },
+              // Read-only: moving the series start silently rewrites every occurrence's date and drops the
+              // ones before the new start; the scope control (SeriesEffectiveFrom) is the deliberate way to
+              // change a running series.
+              { name: "startDate", readOnly: true },
               { name: "intervalMonths", maxDigits: 3, alignNumber: "right" },
               {
                 name: "count",

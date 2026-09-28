@@ -28,6 +28,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
@@ -89,4 +90,24 @@ open class LiquiditySeriesDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "plugins.liquidityplanning.entry.autoSetPaid")
     @get:Column(name = "auto_set_paid")
     open var autoSetPaid: Boolean = false
+
+    /**
+     * Not persisted: the "valid from" effective date the series editor posts. `null` means edit the whole
+     * series in place (the historic behaviour — every still-virtual occurrence, past and future, follows the
+     * new template). A date means split the series at that anchor: keep the history unchanged and apply the
+     * edited rule and template only from this date on. Consumed by the dedicated `split` endpoint
+     * ([org.projectforge.plugins.liquidityplanning.rest.LiquiditySeriesRest.split]) via
+     * [LiquiditySeriesSplitService], mirroring the transient `repeat` block of [LiquidityEntryDO].
+     */
+    @get:Transient
+    open var effectiveFrom: LocalDate? = null
+
+    /**
+     * Not persisted: the scope the series editor chose for the change ("WHOLE" or "SPLIT"). Only a frontend
+     * routing hint — the backend acts on [effectiveFrom] (a "SPLIT" carries a date and reaches the `split`
+     * endpoint, a "WHOLE" a plain in-place update). Declared here so the posted value deserializes cleanly
+     * on either path.
+     */
+    @get:Transient
+    open var changeScope: String? = null
 }

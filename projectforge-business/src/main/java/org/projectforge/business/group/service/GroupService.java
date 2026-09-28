@@ -151,7 +151,9 @@ public class GroupService {
         }
         for (long groupId : groupIds) {
             final GroupDO group = getGroup(groupId);
-            if (group != null) {
+            // Deleted groups must never grant access: skip their assigned users (getGroup still returns
+            // deleted groups for display/lookup).
+            if (group != null && !group.getDeleted()) {
                 final Set<PFUserDO> users = group.getAssignedUsers();
                 if (users != null) {
                     sortedUsers.addAll(users);

@@ -194,8 +194,9 @@ class Rechnung(
         nummer = src.nummer
         // The name only, and the free text as the fallback of an invoice naming no customer of the list -
         // the same fallback `KundeFormatter` makes for the Wicket list.
-        customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText)
-        project = src.projekt?.let { Project(displayName = it.displayName) }
+        // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
+        customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         // The account of the invoice itself, not the one inherited from customer or project: that is what
         // the Wicket list's column shows too (`RechnungDO.konto`), while `KontoCache.getKonto(invoice)`
         // falls back through the project - a fallback the export uses and the column doesn't.

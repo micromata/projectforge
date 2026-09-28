@@ -131,11 +131,13 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable, HistoryUserCommentSup
     open var restrictedUser: Boolean = false
 
     /**
-     * A deactivated user has no more system access.
+     * A deactivated user has no more system access. Also the uniform inactivity flag every DO carries
+     * (see [org.projectforge.framework.persistence.api.ExtendedBaseDO.deactivated]): a user shown as a
+     * reference in a next list cell is struck through while this is set.
      */
     @PropertyInfo(i18nKey = "user.deactivated")
     @get:Column(nullable = false)
-    open var deactivated: Boolean = false
+    override var deactivated: Boolean = false
 
     @PropertyInfo(i18nKey = "firstName")
     @FullTextField

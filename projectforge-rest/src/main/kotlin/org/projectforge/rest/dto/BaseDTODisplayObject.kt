@@ -40,9 +40,10 @@ open class BaseDTODisplayObject<T : ExtendedBaseDO<Long>>(
    */
   override var displayName: String? = null,
   deleted: Boolean = false,
+  deactivated: Boolean = false,
   created: Date? = null,
   lastUpdate: Date? = null
-) : BaseDTO<T>(id, deleted, created, lastUpdate), DisplayNameCapable {
+) : BaseDTO<T>(id, deleted, deactivated, created, lastUpdate), DisplayNameCapable {
   override fun copyFromMinimal(src: T) {
     super.copyFromMinimal(src)
     if (src is DisplayNameCapable)

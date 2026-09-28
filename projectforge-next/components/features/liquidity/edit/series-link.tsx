@@ -31,6 +31,12 @@ export function SeriesLink({ className }: { className?: string }) {
     form.store,
     (s: unknown) => (s as FormState).values.subject
   );
+  // The anchor of the clicked occurrence — seeds the series editor's "valid from" date, so the split
+  // defaults to cutting exactly here (see SeriesEffectiveFrom).
+  const seriesDate = useStore(
+    form.store,
+    (s: unknown) => (s as FormState).values.seriesDate
+  );
   // A still-virtual occurrence being materialized has no id yet; an already-materialized one does.
   const isNew = useStore(
     form.store,
@@ -44,7 +50,9 @@ export function SeriesLink({ className }: { className?: string }) {
         {t("plugins.liquidityplanning.series.partOf", { arg0: subject ?? "" })}{" "}
         {/* next/link prepends the app's basePath (/next) itself — see menu-url.ts. */}
         <Link
-          href={`${LIQUIDITY_ROUTE}/series/${seriesId}`}
+          href={`${LIQUIDITY_ROUTE}/series/${seriesId}${
+            seriesDate ? `?from=${seriesDate}` : ""
+          }`}
           className="font-medium text-primary underline underline-offset-2"
         >
           {t("plugins.liquidityplanning.series.editLink")}
@@ -62,5 +70,5 @@ export function SeriesLink({ className }: { className?: string }) {
 
 /** The slice of the form store read here; the context is deliberately untyped (form-context). */
 interface FormState {
-  values: Pick<LiquidityValues, "id" | "seriesId" | "subject">;
+  values: Pick<LiquidityValues, "id" | "seriesId" | "subject" | "seriesDate">;
 }

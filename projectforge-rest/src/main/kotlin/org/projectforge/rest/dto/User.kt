@@ -54,7 +54,7 @@ class User(
     var description: String? = null,
     var organization: String? = null,
     var email: String? = null,
-    var deactivated: Boolean = false,
+    override var deactivated: Boolean = false,
     var timeZone: String? = null,
     var locale: Locale? = null,
     var dateFormat: String? = null,

@@ -85,12 +85,12 @@ class Group(
     }
 
     override fun copyFromMinimal(src: GroupDO) {
+        // super copies id and deleted, neither sensitive: every user needs the deletion state so the
+        // frontend can strike through a deleted group wherever it is shown as a reference (e.g. the
+        // group column of the access list).
+        super.copyFromMinimal(src)
         name = src.name
         displayName = src.displayName
-        id = src.id
-        if (userGroupCache.isUserMemberOfAdminGroup) {
-            super.copyFromMinimal(src)
-        }
     }
 
     override fun copyFrom(src: GroupDO) {

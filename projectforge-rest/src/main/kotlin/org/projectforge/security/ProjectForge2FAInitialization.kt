@@ -58,7 +58,12 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   internal fun init() {
     registerShortCutValues(
       My2FAShortCut.ADMIN_WRITE,
-      "WRITE:user;WRITE:group;",
+      // WRITE:access gates the save of the migrated access-rights form (GroupAccessEntityRest, /rs/access): its
+      // page is a static file of projectforge-next served by a resource handler (see WebApplicationConfig), so no
+      // filter sees its url - only the rest call is left to gate. Without it, an installation configuring
+      // ADMIN_WRITE but not ADMIN would ask for a second factor before Wicket's /wa/accessEdit but no longer
+      // before the migrated one.
+      "WRITE:user;WRITE:group;WRITE:access;",
       "/wa/userEdit;/wa/groupEdit;/wa/admin",
       "/wa/accessEdit",
       // LuceneConsole, GroovyConsole, SQLConsole:

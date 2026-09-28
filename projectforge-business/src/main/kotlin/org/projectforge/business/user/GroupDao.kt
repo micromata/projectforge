@@ -25,6 +25,7 @@ package org.projectforge.business.user
 
 import mu.KotlinLogging
 import org.projectforge.business.login.Login
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
@@ -276,6 +277,19 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                     obj.name = group.getName()
                 }
                 break
+            }
+        }
+    }
+
+    /**
+     * Prevents deleting (and marking as deleted) ProjectForge system groups (ADMIN, FINANCE, ...). Since deleted
+     * groups no longer grant any access (see [UserGroupCache]), deleting a system group would silently strip its
+     * system rights (e.g. admin or finance) from all its members.
+     */
+    override fun onDelete(obj: GroupDO) {
+        for (group in ProjectForgeGroup.entries) {
+            if (group.getName() == obj.name) {
+                throw UserException("group.error.couldNotDeleteSystemGroup", obj.name)
             }
         }
     }

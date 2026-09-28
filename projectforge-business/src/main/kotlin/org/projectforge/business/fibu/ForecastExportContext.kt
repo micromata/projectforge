@@ -172,11 +172,13 @@ internal class ForecastExportContext(
     val projectIds = mutableSetOf<Long>()
     // All projects for which invoices have been issued.
     val invoicedProjectIds = mutableSetOf<Long>()
-    // All projects with orders in the forecast.
-    // For all projects that have been invoiced but for which no
-    // order is included in the forecast, pseudo orders are entered in the forecast in order to have all projects
-    // visible in the forecast.
-    val orderProjectIds = mutableSetOf<Long>()
+    // All projects that actually got a real row on the forecast sheet (Forecast_Data), i.e. carry a visibleID entry.
+    // For all projects that have been invoiced but for which no such forecast row exists, pseudo orders are entered
+    // in the forecast in order to have all projects visible in the forecast (see missedProjectIds). This set must be
+    // fed from the forecast sheet only (never from the planning sheet, which writes no visibleID), otherwise an
+    // invoiced project could be excluded from missedProjectIds without having a visible row, dropping all its
+    // invoices from the IST sums.
+    val forecastRowProjectIds = mutableSetOf<Long>()
     var showAll: Boolean =
         false // showAll is true, if no filter is given and for financial and controlling staff only.
     val orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()

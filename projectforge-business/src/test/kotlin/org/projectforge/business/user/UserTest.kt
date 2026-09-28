@@ -104,6 +104,24 @@ class UserTest : AbstractTestBase() {
     }
 
     @Test
+    fun testDeactivatedPersists() {
+        // Guards the `override var deactivated` on the mapped @Entity: making PFUserDO.deactivated the
+        // uniform inactivity flag (ExtendedBaseDO.deactivated, a transient default on AbstractBaseDO) must
+        // not change that it is still a real column that round-trips through the database.
+        logon(TEST_ADMIN_USER)
+        var user = PFUserDO()
+        user.username = "UserTest-Deactivated"
+        user.deactivated = true
+        val id = userService.insert(user, false)
+        user = userService.find(id, false)
+        Assertions.assertTrue(user.deactivated, "deactivated must round-trip through the database")
+        user.deactivated = false
+        userService.update(user)
+        user = userService.find(id, false)
+        Assertions.assertFalse(user.deactivated, "deactivated update must round-trip through the database")
+    }
+
+    @Test
     fun testPasswordHandling() {
         val user = PFUserDO()
         user.username = "UserTest-Passwords"

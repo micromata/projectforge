@@ -62,6 +62,8 @@ export type GroupRefDto = {
   id: number;
   displayName?: string;
   name?: string;
+  /** Whether the referenced group is soft-deleted — the group column strikes it through when it is. */
+  deleted?: boolean;
 };
 
 /**
@@ -73,6 +75,8 @@ export type TaskRefDto = {
   displayName?: string;
   title?: string;
   path?: string;
+  /** Whether the referenced task is soft-deleted — the task column strikes it through when it is. */
+  deleted?: boolean;
 };
 
 /**

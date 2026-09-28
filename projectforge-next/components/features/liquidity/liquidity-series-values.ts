@@ -20,6 +20,11 @@ export function toSeriesFormValues(
     comment: series.comment ?? null,
     autoSetPaid: series.autoSetPaid ?? false,
     created: series.created ?? null,
+    // Defaults to a whole-series edit; SeriesEffectiveFrom sets a date when the user picks "valid from".
+    effectiveFrom: null,
+    // No scope chosen yet; SeriesEffectiveFrom sets it. A started series requires a choice (see schema),
+    // a future-only series treats null as "WHOLE".
+    changeScope: null,
   };
 }
 
