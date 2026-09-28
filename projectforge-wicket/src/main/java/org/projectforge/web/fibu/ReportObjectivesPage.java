@@ -42,7 +42,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportObjectivesPage.class);
 
-  public static final String KEY_REPORT_STORAGE = "ReportObjectivesPage:storage";
+  public static final String KEY_REPORT_STORAGE = ReportStorage.USER_PREF_KEY;
 
   private final ReportObjectivesForm form;
 

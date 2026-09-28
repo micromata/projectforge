@@ -674,12 +674,28 @@
       "zahlung": "Payment"
     },
     "buchungssatz": {
+      "_": "Accounting record",
       "beleg": "Receipt",
+      "error": {
+        "invalidTimeperiod": "Invalid time-period"
+      },
       "gegenKonto": "Contra account",
       "konto": "Account",
       "menge": "Quantity",
       "satznr": "Record number",
-      "text": "Text"
+      "text": "Text",
+      "title": {
+        "add": "New accounting record",
+        "edit": "Edit accounting record",
+        "heading": "Accounting records",
+        "list": "Accounting records"
+      }
+    },
+    "businessAssessment": {
+      "_": "Business assessment",
+      "merchandisePurchase": "merchandise purchase",
+      "overallPerformance": "over all performance",
+      "preliminaryResult": "preliminary result"
     },
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",
