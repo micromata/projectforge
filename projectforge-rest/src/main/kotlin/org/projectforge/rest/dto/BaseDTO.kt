@@ -42,6 +42,12 @@ private val log = KotlinLogging.logger {}
 open class BaseDTO<T : ExtendedBaseDO<Long>>(
     override var id: Long? = null,
     var deleted: Boolean = false,
+    /**
+     * The uniform inactivity flag mirrored from [ExtendedBaseDO.deactivated] (a computed getter for some DOs,
+     * so it is copied explicitly below rather than by the reflective, field-name based [copy]). Drives the
+     * struck-through rendering of a referenced object shown in a next list cell.
+     */
+    open var deactivated: Boolean = false,
     var created: Date? = null,
     var lastUpdate: Date? = null,
     /**
@@ -60,6 +66,8 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
      */
     open fun copyFrom(src: T) {
         copy(src, this)
+        // Not copied by [copy]: it is field-name based and skips the (sometimes computed) deactivated getter.
+        this.deactivated = src.deactivated
     }
 
     /**
@@ -82,6 +90,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
     open fun copyFromMinimal(src: T) {
         id = src.id
         deleted = src.deleted
+        deactivated = src.deactivated
     }
 
     /**

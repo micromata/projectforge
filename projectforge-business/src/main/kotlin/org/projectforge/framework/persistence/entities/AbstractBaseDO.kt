@@ -75,6 +75,14 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
     override var isMinorChange: Boolean = false
 
     /**
+     * Default value is false; a DO with an inactivity rule overrides this (see [ExtendedBaseDO.deactivated]).
+     * Transient: no DO persists the base default, and an override that reads persistent fields is itself transient.
+     */
+    @get:jakarta.persistence.Transient
+    override val deactivated: Boolean
+        get() = false
+
+    /**
      * If any re-calculations have to be done before displaying, indexing etc. This method have an implementation if a
      * data object has transient fields which are calculated by other fields. This default implementation does nothing.
      */

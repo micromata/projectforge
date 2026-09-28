@@ -45,6 +45,8 @@ export type ForecastType = EnumOf<typeof AUFTRAG_METADATA.fields.forecastType>;
 export type EntityRefDto = {
   id: number;
   displayName?: string;
+  /** Whether the referenced entity is soft-deleted — its cell is struck through when it is. */
+  deleted?: boolean;
 };
 
 /** One invoice a position was billed with — read-only, from `RechnungCache`. */
@@ -169,10 +171,10 @@ export interface OrderListRow {
   id: number;
   deleted?: boolean;
   nummer?: number | null;
-  /** Only `displayName` — of the customer, or the free text one of an order without a customer. */
-  customer?: Pick<EntityRefDto, "displayName"> | null;
-  /** Only `displayName`, see [customer]. */
-  project?: Pick<EntityRefDto, "displayName"> | null;
+  /** `displayName` — of the customer, or the free text one of an order without a customer — plus `deleted`. */
+  customer?: Pick<EntityRefDto, "displayName" | "deleted"> | null;
+  /** `displayName` and `deleted`, see [customer]. */
+  project?: Pick<EntityRefDto, "displayName" | "deleted"> | null;
   titel?: string | null;
   /** `#3`, the count of the order's positions (`AuftragDO.pos`, transient). */
   pos?: string | null;

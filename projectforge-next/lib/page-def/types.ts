@@ -60,6 +60,20 @@ interface ColumnBase<Row> {
   /** Renders the cell itself, instead of the default for the field's data type. */
   cell?: (ctx: CellContext<Row, unknown>) => ReactNode;
   /**
+   * A column showing a **referenced** object (the group of an access entry, the user of a time sheet, a
+   * cost unit, ...) is struck through when that reference is deleted or otherwise inactive — the row
+   * stays untouched, only this cell reads as stale. This happens **automatically**, in every list, with
+   * no per-column wiring: the reference is found on the row under the column's own key (its field name,
+   * or a computed column's `id`) and checked with `isInactiveRef`. It works with the default cell and a
+   * custom `cell` alike, and needs only that the referenced DTO carries the flags — every DTO does via
+   * `BaseDTO.copyFromMinimal`/`copyFrom` (`deleted`, and the uniform `deactivated`).
+   *
+   * `referenceKey` is the sole escape hatch, for the column whose key is not the row property: a computed
+   * column sorted by a backend path (`id: "kunde.displayName"`) points at the actual row field with
+   * `referenceKey: "customer"`.
+   */
+  referenceKey?: string;
+  /**
    * Frozen to that edge of the table until the user unpins it — for the columns that identify the row
    * and have to stay readable while the rest is scrolled sideways (an order's number, customer,
    * project and title).
@@ -160,7 +174,13 @@ export interface ComputedColumn<Row> extends ColumnBase<Row> {
  */
 export interface PeriodColumn<M extends EntityMetadata> extends Omit<
   ColumnBase<never>,
-  "cell" | "filterKind" | "align" | "labelKey" | "tooltip" | "sortable"
+  | "cell"
+  | "filterKind"
+  | "align"
+  | "labelKey"
+  | "tooltip"
+  | "sortable"
+  | "referenceKey"
 > {
   /** Label of the period as a whole, e.g. `fibu.periodOfPerformance`. */
   periodLabelKey: string;

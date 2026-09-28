@@ -71,7 +71,9 @@ export const ACCESS_PAGE = definePage<
       size: 320,
     },
     {
-      // The group the rights are granted to — likewise a reference carried on the DTO.
+      // The group the rights are granted to — a reference carried on the DTO under the row key `group`,
+      // so it is struck through automatically when the group is deleted or deactivated (the accessor
+      // still feeds sort/filter/search; see ColumnBase.referenceKey).
       id: "group",
       labelKey: "group",
       accessor: (row) => row.group?.name ?? row.group?.displayName ?? null,

@@ -43,6 +43,13 @@ interface ExtendedBaseDO<I : Serializable> : BaseDO<I>, MarkDeletableRecord<I> {
 
     override var deleted: Boolean
 
+    /**
+     * A referenced object that is deactivated reads as stale wherever it is shown (e.g. struck through in a
+     * next list cell), without being deleted. Each DO defines its own rule; the default is never deactivated.
+     * A user is deactivated when its account is (see PFUserDO), an employee three months after leaving.
+     */
+    val deactivated: Boolean get() = false
+
     var created: Date?
 
     fun setCreated() {

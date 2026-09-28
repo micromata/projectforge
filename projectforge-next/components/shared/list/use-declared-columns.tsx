@@ -13,6 +13,7 @@ import {
   labelKeyFor,
 } from "@/lib/page-def/define-page";
 import type { ColumnDeclaration } from "@/lib/page-def/types";
+import { isInactiveRef, type InactiveFlags } from "@/lib/page-def/reference";
 import { declaredCell } from "./declared-cell";
 import { periodColumnDef } from "./declared-period-column";
 
@@ -110,14 +111,33 @@ export function useDeclaredColumns<
                 // cell highlights the match, without this builder knowing the term itself.
                 highlight: ctx.table.options.meta?.highlight,
               });
+          // A cell showing a referenced object reads as stale when that object is deleted or deactivated
+          // — struck through wherever the reference is shown, in any list, with no per-column wiring: the
+          // reference sits on the row under the column's own key (its field name / computed id) unless
+          // `referenceKey` redirects it (a column sorted by a backend path, see ColumnBase.referenceKey).
+          // Self-limiting: only a nested object that actually carries the flags is struck, so a
+          // primitive-valued column is never touched. Wraps the rendered value, so it holds for the
+          // default cell and a custom `cell` alike.
+          const ref =
+            ctx.row.original[(declaration.referenceKey ?? name) as keyof Row];
+          const body =
+            ref &&
+            typeof ref === "object" &&
+            isInactiveRef(ref as InactiveFlags) ? (
+              <span className="line-through decoration-destructive decoration-2">
+                {rendered}
+              </span>
+            ) : (
+              rendered
+            );
           const tooltip = declaration.tooltip?.(ctx.row.original);
-          if (!tooltip) return rendered;
+          if (!tooltip) return body;
           // A wrapper rather than an attribute on the rendered element: the cell may be the
           // declaration's own JSX, which this must not reach into. The table's one delegated tooltip
           // finds it by `closest` and prefers it over the clipped text (see useOverflowTooltip).
           return (
             <span className="block truncate" data-tooltip={tooltip}>
-              {rendered}
+              {body}
             </span>
           );
         },

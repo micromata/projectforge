@@ -221,8 +221,9 @@ class Auftrag(
         // The display name only — a Customer/Project carrying its id and name, not the whole entity. The
         // free text customer is the fallback of an order naming a customer that is not in the list, as
         // `KundeFormatter` does it for the Wicket list.
-        customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText)
-        project = src.projekt?.let { Project(displayName = it.displayName) }
+        // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
+        customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         erfassungsDatum = src.erfassungsDatum
         entscheidungsDatum = src.entscheidungsDatum
         periodOfPerformanceBegin = src.periodOfPerformanceBegin

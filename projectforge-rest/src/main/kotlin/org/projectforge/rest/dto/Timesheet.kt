@@ -137,9 +137,13 @@ class Timesheet(
         src.task?.let {
             task = Task(id = it.id, displayName = it.displayName, title = it.title).apply {
                 path = TaskFormatter.getTaskPath(it.id, showCurrentTask = false)
+                // So the frontend strikes the task through when it is deleted (see the group/task columns).
+                deleted = it.deleted
             }
         }
-        src.user?.let { user = User(id = it.id, displayName = it.displayName) }
+        // deleted and deactivated so the frontend strikes a removed or deactivated user through: neither is
+        // copied by User.copyFromMinimal (deactivated is never, deleted only for admins), so set both here.
+        src.user?.let { user = User(id = it.id, displayName = it.displayName).also { dto -> dto.deleted = it.deleted; dto.deactivated = it.deactivated } }
         src.kost2?.let { kost2 = Kost2().also { dto -> dto.copyFromMinimal(it) } }
     }
 }
