@@ -139,6 +139,30 @@ internal class ForecastExportInvoices { // open needed by Wicket.
         }
     }
 
+    /**
+     * Writes the visible-column COUNTIF formula for every invoice row collected by [fillInvoices]/[insertIntoSheet].
+     * Must be called after [ForecastExport.fillOrderPositions], because the formula references the forecast sheet's
+     * visibleID range whose upper bound ([ForecastExportContext.forecastDataLastExcelRow]) is only known then. Bounding
+     * the range to the actual last forecast row (instead of a fixed 100000) keeps the formula cheap to evaluate.
+     */
+    internal fun fillInvoiceVisibleColumn(ctx: ForecastExportContext) {
+        val visibleProjectIdCol =
+            ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
+        val lastRow = ctx.forecastDataLastExcelRow
+        // The PROJECT_ID column letter is identical across all invoice sheets (same template layout), so resolve it once.
+        val projectIdCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)
+            ?.columnNumberAsLetters
+        ctx.invoiceVisibleCells.forEach { (sheet, rowNumber) ->
+            val excelRowNumber = rowNumber + 1 // Excel row numbers start with 1.
+            ExcelUtils.setCellFormula(
+                sheet,
+                rowNumber,
+                ForecastExportContext.InvoicesCol.VISIBLE.header,
+                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$lastRow, $projectIdCol$excelRowNumber) > 0"
+            )
+        }
+    }
+
     private fun insertIntoSheet(
         ctx: ForecastExportContext, sheet: ExcelSheet, invoice: RechnungDO, pos: RechnungPosInfo,
         order: OrderInfo?, orderPosId: Long?, firstMonthCol: Int, monthIndex: Int,
@@ -150,7 +174,6 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.invoicedProjectIds.add(it)
         }
         val rowNumber = sheet.createRow().rowNum
-        val excelRowNumber = rowNumber + 1  // Excel row numbers start with 1.
         sheet.setIntValue(rowNumber, ForecastExportContext.InvoicesCol.INVOICE_NR.header, invoice.nummer)
         // Fall back to the project of the order: the filter selection of the forecast sheet is propagated by project
         // id only, so every invoice row needs one. Invoices without any project get PROJECT_ID_NONE (see the
@@ -166,16 +189,10 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             projectId ?: ForecastExportContext.PROJECT_ID_NONE
         )
         sheet.setStringValue(rowNumber, ForecastExportContext.InvoicesCol.POS_NR.header, "#${pos.number}")
-        val visibleProjectIdCol =
-            ctx.forecastSheet.getColumnDef(ForecastCol.VISIBLE_PROJECT_ID.header)?.columnNumberAsLetters
-        val projectIdCol =
-            sheet.getColumnDef(ForecastExportContext.InvoicesCol.PROJECT_ID.header)?.columnNumberAsLetters
-        ExcelUtils.setCellFormula(
-            sheet,
-            rowNumber,
-            ForecastExportContext.InvoicesCol.VISIBLE.header,
-            "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRowNumber) > 0"
-        )
+        // The visible-column COUNTIF references the forecast sheet's visibleID range, which only exists after
+        // fillOrderPositions has written its rows. Remember this cell and write the formula later in
+        // fillInvoiceVisibleColumn, so the range can be bounded to the actual last forecast row.
+        ctx.invoiceVisibleCells.add(sheet to rowNumber)
         sheet.setDateValue(
             rowNumber,
             ForecastExportContext.InvoicesCol.DATE.header,

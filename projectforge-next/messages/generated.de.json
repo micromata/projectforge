@@ -658,6 +658,7 @@
             }
           }
         },
+        "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
         "withoutProject": "ohne Projekt"
       },

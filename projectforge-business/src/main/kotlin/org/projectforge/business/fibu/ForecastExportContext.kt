@@ -186,6 +186,17 @@ internal class ForecastExportContext(
 
     var hasUnitColEntries = false
 
+    // Excel row (1-based) of the last data row written to the forecast sheet, set by ForecastExport.fillOrderPositions.
+    // The visible-column COUNTIF formulas of the invoice and planning sheets bound their Forecast_Data!visibleID range
+    // to this row (instead of a fixed 100000), so POI/Excel only scan the rows that actually exist. Defaults to the
+    // first data row so an unset value still yields a valid (empty) range.
+    var forecastDataLastExcelRow = 11
+
+    // Cells (sheet + 0-based row number) of the invoice sheets whose visible-column COUNTIF formula must be written
+    // once the forecast sheet is complete (see ForecastExportInvoices.fillInvoiceVisibleColumn). Collected during
+    // fillInvoices, because the range they reference only exists after fillOrderPositions has run.
+    val invoiceVisibleCells = mutableListOf<Pair<ExcelSheet, Int>>()
+
     /**
      * True, if at least one invoice was exported for which neither the invoice itself nor its order references a
      * project. Such invoices get [PROJECT_ID_NONE] as project id and are represented by a single pseudo order row

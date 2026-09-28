@@ -334,7 +334,8 @@ class ForecastExportTest : AbstractTestBase() {
         val projektId = projektDao.insert(projekt, checkAccess = false)
 
         // Completed order with a completed position, invoiced. The position status (ABGESCHLOSSEN) is not in
-        // auftragsPositionsStatusToShow, so only the invoiced-project rescue keeps it in the sheet.
+        // auftragsPositionsStatusToShow, so it gets no real forecast row; the project's IST visibility is instead
+        // ensured by a single pseudo row (see missedProjectIds in ForecastExport).
         val order = createOrder(baseDate, AuftragsStatus.ABGESCHLOSSEN, baseDate, baseDate.plusMonths(4))
         order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
         addPosition(order, 1, AuftragsStatus.ABGESCHLOSSEN, 5000.0, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
@@ -359,8 +360,10 @@ class ForecastExportTest : AbstractTestBase() {
             val projectIdCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.PROJECT_ID.header)
             val orderNrCol = findColumn(forecastHeadRow, ForecastExportContext.ForecastCol.ORDER_NR.header)
 
-            // The completed, invoiced position must be written as a REAL forecast row (real order number), not just as
-            // an anonymous pseudo row (ORDER_NR 0). This is the deterministic effect of the fix.
+            // The completed position must NOT create a real forecast row (that would bloat the sheet with a near-empty
+            // row per completed position). Instead the invoiced project gets exactly one pseudo row (ORDER_NR 0), which
+            // still carries the project id so the invoice's visibleID lookup matches.
+            var pseudoRowFound = false
             var realRowFound = false
             for (rowNum in forecastHeadRow.rowNum + 1..forecastSheet.lastRowNum) {
                 val row = forecastSheet.getRow(rowNum) ?: continue
@@ -369,13 +372,20 @@ class ForecastExportTest : AbstractTestBase() {
                     continue
                 }
                 val orderNrCell = row.getCell(orderNrCol)
-                if (orderNrCell?.cellType == CellType.NUMERIC && orderNrCell.numericCellValue.toInt() == orderNummer) {
+                val orderNr = if (orderNrCell?.cellType == CellType.NUMERIC) orderNrCell.numericCellValue.toInt() else null
+                if (orderNr == orderNummer) {
                     realRowFound = true
+                } else if (orderNr == 0) {
+                    pseudoRowFound = true
                 }
             }
             Assertions.assertTrue(
+                pseudoRowFound,
+                "The invoiced project $projektId must get a single pseudo forecast row (order number 0) for IST visibility."
+            )
+            Assertions.assertFalse(
                 realRowFound,
-                "The completed but invoiced position must get a real forecast row (order $orderNummer) for project $projektId."
+                "The completed position must not get a real forecast row (order $orderNummer); the pseudo row suffices."
             )
 
             // End-to-end: the invoice's visible column (COUNTIF against visibleID) must evaluate to TRUE, so it is part

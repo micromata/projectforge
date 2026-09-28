@@ -427,14 +427,16 @@ open class ForecastExport { // open needed by Wicket.
             analyzeOrderPositions(orderList, ctx, planningData = false)
             analyzePlanningForecast(planningDate, auftragFilter, ctx)
             forecastExportInvoices.fillInvoices(ctx)
-            val orderPositionsFound =
-                fillOrderPositions(
-                    orderList,
-                    ctx,
-                    ctx.forecastSheet,
-                    baseDate = snapshotDate,
-                    useAuftragsCache,
-                )
+            val orderPositionsFound = fillOrderPositions(
+                orderList,
+                ctx,
+                ctx.forecastSheet,
+                baseDate = snapshotDate,
+                useAuftragsCache,
+            )
+            // The invoice sheets' visible formulas reference the forecast sheet's visibleID range, which only exists
+            // after fillOrderPositions has written all its rows. Fill them now with the exact last forecast row.
+            forecastExportInvoices.fillInvoiceVisibleColumn(ctx)
             if (!orderPositionsFound && ctx.invoicedProjectIds.isEmpty()) {
                 val msg = "Neither orders positions nor invoices found for export."
                 scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
@@ -460,10 +462,12 @@ open class ForecastExport { // open needed by Wicket.
 
             fillPlanningForecast(planningDate, ctx)
             fillProjectOverviewSheet(ctx)
+            // Evaluate all formulas so the delivered file carries ready-made cached values (charts and sums are
+            // correct immediately, even in tools that don't recompute). This is cheap now that the visibleID COUNTIF
+            // range is bounded to the actual last forecast row (see fillInvoiceVisibleColumn) instead of a fixed
+            // 100000 rows. setForceFormulaRecalculation(true) additionally makes Excel/LibreOffice recompute on open,
+            // which is what keeps the SUBTOTAL-based visible column correct once the user applies a filter.
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
-            // Also let Excel/LibreOffice recompute on open: the invoice visible column is a nested cross-sheet
-            // COUNTIF/IF(AND(SUBTOTAL())) chain that POI evaluates unreliably, so a stale cached FALSE could otherwise
-            // drop invoices from the IST sums until a manual full recalc.
             workbook.pOIWorkbook.setForceFormulaRecalculation(true)
             return workbook.asByteArrayOutputStream.toByteArray()
         }
@@ -543,16 +547,11 @@ open class ForecastExport { // open needed by Wicket.
             }
             if (ForecastUtils.auftragsStatusToShow.contains(auftragDO.status)) {
                 orderInfo.infoPositions?.forEach { pos ->
-                    // An invoiced project must never be dropped by the position-status gate: auftragsStatusToShow
-                    // allows ABGESCHLOSSEN on order level while auftragsPositionsStatusToShow does not, so a completed
-                    // but invoiced position would otherwise be skipped before isRelevant can keep it. Writing a real
-                    // (zero remaining forecast) row for it puts the project into forecastRowProjectIds/visibleID, so its
-                    // invoices stay visible=TRUE and the autofilter can still narrow them by unit/customer.
-                    val invoicedProject =
-                        orderInfo.projektId?.let { ctx.invoicedProjectIds.contains(it) } == true
-                    if (isRelevant(ctx, orderInfo, pos) &&
-                        (pos.status in ForecastUtils.auftragsPositionsStatusToShow || invoicedProject)
-                    ) {
+                    // Completed positions (status not in auftragsPositionsStatusToShow) do not get a real forecast row,
+                    // even when their project was invoiced: that would write one (near-empty, zero-remaining) row per
+                    // completed position and bloat the sheet. Their project's IST visibility is instead ensured by the
+                    // single enriched pseudo row per invoiced project (see missedProjectIds below).
+                    if (pos.status in ForecastUtils.auftragsPositionsStatusToShow && isRelevant(ctx, orderInfo, pos)) {
                         addOrderPosition(
                             ctx,
                             sheet,
@@ -602,7 +601,9 @@ open class ForecastExport { // open needed by Wicket.
                     orderInfo.projektId = projectId
                     orderInfo.status = AuftragsStatus.IN_ERSTELLUNG
                     orderInfo.angebotsDatum = baseDate
-                    orderInfo.titel = "Pseudo order for project $projectId, because this project was invoiced."
+                    // User-facing title: this pseudo row is the only representation of an invoiced project that has no
+                    // active order position in the forecast (its completed positions get no row of their own).
+                    orderInfo.titel = translate("fibu.auftrag.forecast.invoicedProjectWithoutOrder")
                     // project is a shared cached ProjektDO with a lazy kunde proxy; resolve it via the KundeCache
                     // (identifier read is free) instead of reading project.kundeAsString, which would lazy-load
                     // T_FIBU_KUNDE. Format locally to avoid mutating the shared cached instance.
@@ -621,6 +622,11 @@ open class ForecastExport { // open needed by Wicket.
                     }
                 }
             }
+            // Remember the Excel row (1-based) of the last forecast data row (currentRow is the next free 0-based row,
+            // which equals the 1-based number of the last written row). The invoice and planning visible COUNTIF
+            // formulas bound their visibleID range to this row instead of a fixed 100000, so POI/Excel only scan the
+            // rows that actually exist. Guard against an empty sheet so the range stays valid ($11:$11).
+            ctx.forecastDataLastExcelRow = maxOf(currentRow, FORECAST_FISRT_ORDER_ROW + 1)
         }
         return orderPositionFound
     }
@@ -722,7 +728,7 @@ open class ForecastExport { // open needed by Wicket.
                 sheet,
                 row,
                 ForecastCol.VISIBLE.header,
-                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol$100000, $projectIdCol$excelRow) > 0"
+                "COUNTIF(Forecast_Data!$visibleProjectIdCol$11:$visibleProjectIdCol${ctx.forecastDataLastExcelRow}, $projectIdCol$excelRow) > 0"
             )
         } else {
             // Visible cell is 1, if row is visible (by filter), otherwise, 0.
@@ -967,8 +973,8 @@ open class ForecastExport { // open needed by Wicket.
     /**
      * Fills the optional [Sheet.PROJECT_OVERVIEW] sheet with one row per project. This is a pure re-presentation of the
      * data already written to the detail sheets — no new calculation. All values are aggregated per project id from the
-     * literal month cells of the detail sheets (read before [org.apache.poi.ss.usermodel.FormulaEvaluator.evaluateAll]
-     * is fine, because those cells are literal numbers, not formulas).
+     * literal month cells of the detail sheets (those cells are literal numbers, not formulas, so no formula
+     * evaluation is required to read them).
      *
      * Column mapping (sum per project id over the detail rows):
      * - Plan       = Σ Planning_Data months + Σ Planning_Invoices months

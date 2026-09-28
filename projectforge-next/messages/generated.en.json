@@ -658,6 +658,7 @@
             }
           }
         },
+        "invoicedProjectWithoutOrder": "invoiced project without open positions",
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
         "withoutProject": "without project"
       },
