@@ -237,12 +237,25 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     override fun afterLoad(obj: VacationDO) {
         if (StringUtils.isNotBlank(obj.comment)) {
-            val user = ThreadLocalUserContext.loggedInUser!!
-            if (!isOwnEntry(user, obj) && !hasUpdateAccess(user, obj, obj, false)) {
+            // No logged-in user means this runs during background cache maintenance (VacationCache.refresh), where no
+            // per-user privacy decision can be made. Keep the raw comment in the shared cache; consumers that serve
+            // cached entries (VacationProvider / calendar) apply isCommentVisibleFor per logged-in user themselves.
+            // The per-request DAO path (list/edit) still hides the comment here, as loggedInUser is present then.
+            val user = ThreadLocalUserContext.loggedInUser ?: return
+            if (!isCommentVisibleFor(user, obj)) {
                 // Entry is not own entry and user has no update access to it, so hide comment due to data privacy.
                 obj.comment = "..."
             }
         }
+    }
+
+    /**
+     * The comment of a vacation entry is personal data: it is only visible to the owner and to users with update
+     * access (HR / manager). Callers that serve entries from the shared [VacationCache] (e.g. the calendar) must
+     * apply this check per logged-in user, because the cached comment is intentionally kept raw (see [afterLoad]).
+     */
+    open fun isCommentVisibleFor(user: PFUserDO, obj: VacationDO): Boolean {
+        return isOwnEntry(user, obj) || hasUpdateAccess(user, obj, obj, false)
     }
 
     override fun hasDeleteAccess(
