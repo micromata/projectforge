@@ -10,9 +10,15 @@ import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
  * {@link monthlyRows} and {@link cumulativeRows} produce. The month-axis label helpers live here too.
  */
 
-/** The keys of every series present, in order — what both charts map over to place their bars and lines. */
+/**
+ * The keys of every series present — what both charts map over to place their bars and lines. Reversed
+ * against `data.series` (which arrives newest year first) so the marks read oldest first: in the grouped
+ * bars the oldest year sits at the front of each month's group and the current year at the back, and the
+ * legend follows the same order. Each key still carries its own year's colour and label (both are looked
+ * up by key, not by position), so only the drawing order changes.
+ */
 export function seriesKeys(data: InvoiceNetSumChartData): string[] {
-  return data.series.map((_, index) => seriesKey(index));
+  return data.series.map((_, index) => seriesKey(index)).reverse();
 }
 
 /** A row per month, each year's net sum of that month under its series key — the bars' data. */

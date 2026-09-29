@@ -975,6 +975,11 @@
     "kost2art": {
       "nummer": "Cost 2 number",
       "projektStandard": "Project standard",
+      "title": {
+        "add": "New cost 2 type",
+        "heading": "Cost 2 types",
+        "list": "List of cost 2 types"
+      },
       "workFraction": "Work time fraction"
     },
     "kunde": {

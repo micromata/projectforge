@@ -22,8 +22,8 @@ import {
 } from "./invoice-net-sum-series";
 
 /**
- * The monthly net sums as grouped bars — one bar per year in each month, this year beside its three
- * predecessors. The bar counterpart of the cumulative curves ({@link InvoiceCumulativeNetSumChart}); the
+ * The monthly net sums as grouped bars — one bar per year in each month, oldest at the front of the group
+ * and this year at the back. The bar counterpart of the cumulative curves ({@link InvoiceCumulativeNetSumChart}); the
  * two share their colours and their year labels (see `invoice-net-sum-series.ts`).
  */
 export function InvoiceMonthlyNetSumChart({
