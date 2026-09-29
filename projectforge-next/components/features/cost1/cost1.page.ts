@@ -49,6 +49,11 @@ export const COST1_PAGE = definePage<
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
   ],
+  // Mass update of a selection: status and description (Kost1MultiSelectedPageRest, /cost1Selected).
+  massUpdate: {
+    endpoint: "cost1Selected",
+    route: "/cost1/mass-update",
+  },
   edit: {
     schema: cost1Schema,
     fieldNames: COST1_FIELDS,
