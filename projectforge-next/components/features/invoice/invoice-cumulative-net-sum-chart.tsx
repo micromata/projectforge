@@ -3,12 +3,9 @@
 import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useTranslations } from "next-intl";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart";
+import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
+import { ReversedChartLegendContent } from "@/components/shared/chart/reversed-chart-legend";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
@@ -77,7 +74,7 @@ export function InvoiceCumulativeNetSumChart({
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ReversedChartLegendContent />} />
         {keys.map((key) => (
           <Line
             key={key}

@@ -21,6 +21,7 @@ import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { niceDateTicks, niceScale } from "@/lib/chart-scale";
 import { CHART_ROLE } from "@/lib/charts/roles";
+import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { LiquidityForecastDay } from "@/lib/rs/liquidity";
 
 /**
@@ -103,12 +104,18 @@ export function LiquidityForecastCashflowChart({
         <ChartLegend content={<ChartLegendContent />} />
         <Bar
           dataKey="creditExpected"
+          stroke="var(--color-creditExpected)"
+          strokeWidth={1.5}
           fill="var(--color-creditExpected)"
+          fillOpacity={CHART_BAR_FILL_OPACITY}
           isAnimationActive={false}
         />
         <Bar
           dataKey="debitExpected"
+          stroke="var(--color-debitExpected)"
+          strokeWidth={1.5}
           fill="var(--color-debitExpected)"
+          fillOpacity={CHART_BAR_FILL_OPACITY}
           isAnimationActive={false}
         />
         <Line
