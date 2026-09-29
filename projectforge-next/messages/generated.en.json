@@ -846,6 +846,9 @@
       "austrittsdatum": "Leaving date",
       "division": "Division",
       "eintrittsdatum": "Entry date",
+      "salaries": {
+        "import": "Import of salaries"
+      },
       "salary": {
         "bruttoMitAgAnteil": "Gross with employers' share",
         "exportXls": {

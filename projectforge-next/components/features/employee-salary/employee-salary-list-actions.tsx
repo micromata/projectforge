@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FileImportIcon } from "@hugeicons/core-free-icons";
 import { toast } from "@/lib/toast";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { RsError } from "@/lib/rs/client";
@@ -10,6 +13,8 @@ import {
   downloadEmployeeSalaryExcel,
 } from "@/lib/rs/employee-salary";
 import type { MagicFilter } from "@/lib/rs/types";
+import { useUpdateAccess } from "@/hooks/use-update-access";
+import { Button } from "@/components/ui/button";
 import { ExportButton } from "@/components/shared/export-button";
 
 /**
@@ -19,6 +24,10 @@ import { ExportButton } from "@/components/shared/export-button";
  */
 export function EmployeeSalaryListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
+  const router = useRouter();
+  // The salary import writes salaries, so its button appears only for a user who may change them
+  // (HR_EMPLOYEE_SALARY write, reported as listMeta.userAccess.update). The endpoint enforces it too.
+  const canImport = useUpdateAccess("employeeSalary");
 
   /**
    * A 404 is no error here: the filter matched nothing, so there is nothing to export. Everything else -
@@ -44,6 +53,16 @@ export function EmployeeSalaryListActions({ filter }: { filter: MagicFilter }) {
 
   return (
     <>
+      {canImport && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push("/employeeSalary/import")}
+        >
+          <HugeiconsIcon icon={FileImportIcon} />
+          {t("import._")}
+        </Button>
+      )}
       <ExportButton
         tooltip={t("tooltip.export.excel")}
         label={t("exportAsXls")}

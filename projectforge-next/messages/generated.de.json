@@ -846,6 +846,9 @@
       "austrittsdatum": "Austrittsdatum",
       "division": "Team",
       "eintrittsdatum": "Eintrittsdatum",
+      "salaries": {
+        "import": "Gehälterimport"
+      },
       "salary": {
         "bruttoMitAgAnteil": "Brutto mit AG-Anteil",
         "exportXls": {

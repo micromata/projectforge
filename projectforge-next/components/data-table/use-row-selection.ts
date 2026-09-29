@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RowSelectionState } from "@tanstack/react-table";
 
 /** What a click on a row means, as the modifier keys say it. */
@@ -55,12 +55,32 @@ export function useRowSelection(
   external?: {
     state: RowSelectionState;
     setState: React.Dispatch<React.SetStateAction<RowSelectionState>>;
+  },
+  options?: {
+    /**
+     * Whether a given row may be selected at all. The keyboard and the click still *reach* every row —
+     * the focus is a cursor that visits all of them — but a plain/Ctrl/Shift selection, a Shift+Arrow
+     * extension and Space only take on rows this allows. Defaults to every row, so the list's mass
+     * update (where all rows qualify) is unchanged; the import preview passes it so a FAULTY row cannot
+     * be ticked and then committed. Read through a ref so the handlers stay stable.
+     */
+    canSelect?: (rowId: string) => boolean;
   }
 ): RowSelection {
   const [internalState, setInternalState] = useState<RowSelectionState>({});
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   /** Where a Shift range starts: the row last clicked or toggled, as an id. */
   const anchorRowId = useRef<string | null>(null);
+  // The predicate is rebuilt every render (it closes over the current rows); a ref keeps the handlers
+  // below stable while still reading the latest one.
+  const canSelectRef = useRef(options?.canSelect);
+  useEffect(() => {
+    canSelectRef.current = options?.canSelect;
+  }, [options?.canSelect]);
+  const canSelect = useCallback(
+    (rowId: string) => canSelectRef.current?.(rowId) ?? true,
+    []
+  );
 
   const state = external?.state ?? internalState;
   const setExternalState = external?.setState;
@@ -99,13 +119,17 @@ export function useRowSelection(
         if (from < 0 || to < 0) return true;
         const range: RowSelectionState = {};
         for (let i = Math.min(from, to); i <= Math.max(from, to); i++) {
-          range[rowIds[i]] = true;
+          // Non-selectable rows in the swept span (a FAULTY import row) are stepped over.
+          if (canSelect(rowIds[i])) range[rowIds[i]] = true;
         }
         // Replaces the selection rather than adding to it, as a range select does everywhere: the
         // anchor stays, so the user can widen and narrow the same range by clicking around.
         setState(range);
         return true;
       }
+      // A click on a row that may not be selected still counts as taken (so it does not open the
+      // entry), but leaves the selection and the anchor as they were.
+      if (!canSelect(rowId)) return true;
       anchorRowId.current = rowId;
       if (modifiers.ctrlKey || modifiers.metaKey) {
         setState((previous) => toggled(previous, rowId));
@@ -114,7 +138,7 @@ export function useRowSelection(
       setState({ [rowId]: true });
       return true;
     },
-    [displayedRowIds, setState]
+    [displayedRowIds, setState, canSelect]
   );
 
   const onKeyDown = useCallback(
@@ -136,20 +160,22 @@ export function useRowSelection(
         const nextId = rowIds[next];
         setFocusedRowId(nextId);
         if (event.shiftKey) {
-          setState((previous) => ({ ...previous, [nextId]: true }));
+          if (canSelect(nextId)) {
+            setState((previous) => ({ ...previous, [nextId]: true }));
+          }
         } else {
           anchorRowId.current = nextId;
         }
         return;
       }
 
-      if (event.key === " " && focusedRowId) {
+      if (event.key === " " && focusedRowId && canSelect(focusedRowId)) {
         event.preventDefault();
         setState((previous) => toggled(previous, focusedRowId));
         anchorRowId.current = focusedRowId;
       }
     },
-    [displayedRowIds, focusedRowId, setState]
+    [displayedRowIds, focusedRowId, setState, canSelect]
   );
 
   return {

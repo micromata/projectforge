@@ -103,7 +103,9 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
         register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
         register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
-        register(MenuItemDefId.EMPLOYEE_SALARY_IMPORT, EmployeeSalaryImportPage.class);
+        // The employee-salary import (Gehaltsimport) is now reached as a button in the migrated Next.js
+        // salary list (EmployeeSalaryImportRest / employee-salary-import), so its menu entry is gone.
+        // The Wicket page (EmployeeSalaryImportPage) stays registered nowhere but is kept in the code base.
 
         register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
         //register(MenuItemDefId.USER_LIST, UserListPage.class);
