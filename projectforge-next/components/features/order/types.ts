@@ -88,6 +88,8 @@ export interface OrderPositionDto extends PositionInvoiceInfo {
   periodOfPerformanceEnd?: string | null;
   modeOfPaymentType?: ModeOfPaymentType | null;
   task?: EntityRefDto | null;
+  /** The net-sum calculator's breakdown as JSON, persisted so the calculation can be reopened. */
+  calculationData?: string | null;
 }
 
 export interface PaymentScheduleDto {

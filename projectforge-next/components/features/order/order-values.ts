@@ -76,6 +76,7 @@ function toPositionValues(pos: OrderPositionDto): OrderPositionValues {
     periodOfPerformanceEnd: pos.periodOfPerformanceEnd ?? null,
     modeOfPaymentType: pos.modeOfPaymentType ?? null,
     task: pos.task ?? null,
+    calculationData: pos.calculationData ?? null,
   };
 }
 

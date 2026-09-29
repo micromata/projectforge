@@ -19,6 +19,11 @@
     <div wicket:id="alertMessageContainer" class="global-alert-message">
       <i class="glyphicon glyphicon-bell glyphicon-white"></i> <span wicket:id="alertMessage">This is an Alert!</span>
     </div>
+    <div wicket:id="legacyWarningContainer" class="alert alert-warning legacy-warning-message" role="alert">
+      <i class="glyphicon glyphicon-info-sign"></i> <span wicket:id="legacyWarningText">You are using the old version.</span>
+      <br/>
+      <a wicket:id="legacyFeedbackLink"><span wicket:id="legacyFeedbackLabel">Give feedback</span></a>
+    </div>
     <div class="main container-fluid">
       <wicket:child>
         <h2>This is the content!</h2>

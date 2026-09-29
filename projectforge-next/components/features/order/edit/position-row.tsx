@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AUFTRAGS_POSITION_METADATA } from "@/lib/metadata/auftrags-position.generated";
 import { CheckboxField } from "@/components/shared/form/checkbox-field";
@@ -85,6 +86,11 @@ export function PositionRow({
   const format = useFormatContext();
   const readOnly = useFormReadOnly();
   const name = (field: string) => `${prefix}${field}`;
+  // A row just added is there to be filled in; a stored one stays folded, which is what makes an order
+  // of a dozen positions readable at all. Controlled here (not left to RepeatableRow) so the header's
+  // calculator link can expand the row while opening the calculator.
+  const [open, setOpen] = useState(position.id == null);
+  const [calcOpen, setCalcOpen] = useState(false);
   // The position's comment is scanned for JIRA keys like the order's own note fields, so it carries the
   // same "supports JIRA" hint (see useJiraFieldHint).
   const jiraHint = useJiraFieldHint(true);
@@ -113,11 +119,15 @@ export function PositionRow({
             sums={sums}
             invoiceInfo={invoiceInfo}
             canOpenInvoice={invoicesSelectAccess}
+            hasCalculation={!!position.calculationData}
+            onOpenCalculator={() => {
+              setOpen(true);
+              setCalcOpen(true);
+            }}
           />
         }
-        // A row just added is there to be filled in; a stored one stays folded, which is what makes an
-        // order of a dozen positions readable at all.
-        defaultOpen={position.id == null}
+        open={open}
+        onOpenChange={setOpen}
         deleted={position.deleted}
         onRemove={onRemove}
         onRestore={onRestore}
@@ -155,8 +165,11 @@ export function PositionRow({
           <NetSumCalculator
             netSumName={name("nettoSumme")}
             personDaysName={name("personDays")}
+            calculationDataName={name("calculationData")}
             currency={format.currency}
             disabled={readOnly}
+            open={calcOpen}
+            onOpenChange={setCalcOpen}
           />
         </div>
         <NumberField

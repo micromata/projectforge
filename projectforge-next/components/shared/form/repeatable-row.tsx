@@ -21,8 +21,15 @@ export interface RepeatableRowProps {
   /** What the collapsed row says — the position's number, title and sum. */
   header: ReactNode;
   children: ReactNode;
-  /** Open by default: a row just added is there to be filled in. */
+  /** Open by default: a row just added is there to be filled in. Ignored when `open` is controlled. */
   defaultOpen?: boolean;
+  /**
+   * Controlled open state, together with `onOpenChange` — for a caller that opens the row from
+   * outside its header (the order position's title link opening its calculator). Omit both to let the
+   * row manage its own state from `defaultOpen`.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   /**
    * Absent when the row must not be removed (an order position already invoiced elsewhere). Runs only
    * after the user confirmed — the row asks for itself.
@@ -57,6 +64,8 @@ export function RepeatableRow({
   header,
   children,
   defaultOpen,
+  open: controlledOpen,
+  onOpenChange,
   onRemove,
   removeLabel,
   highlighted,
@@ -64,7 +73,9 @@ export function RepeatableRow({
   onRestore,
 }: RepeatableRowProps) {
   const t = useTranslations();
-  const [open, setOpen] = useState(defaultOpen ?? false);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [confirming, setConfirming] = useState(false);
 
   if (deleted) {

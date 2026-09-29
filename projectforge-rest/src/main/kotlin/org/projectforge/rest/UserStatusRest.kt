@@ -25,11 +25,13 @@ package org.projectforge.rest
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.SystemAlertMessage
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.user.UserLocale
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translate
 import org.projectforge.jira.JiraUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats
@@ -136,6 +138,24 @@ open class UserStatusRest {
      * there the server emits the finished links (see JiraSupport / JiraIssuesPanel).
      */
     val jira: JiraUtils.JiraClientConfig? = null,
+    /**
+     * Text of the persistent warning banner shown on every page of the old React web app (see
+     * AuthorizedRoutes), pointing the user to the new version and asking for feedback on what's still
+     * missing there. Translated server-side into the user's locale. projectforge-next doesn't render it
+     * (it is the new version); the old Wicket pages take the same text directly via I18nResources.
+     */
+    val legacyBannerText: String? = null,
+    /**
+     * Link text of the feedback link in the old-version warning banner (target: /wa/feedback).
+     */
+    val legacyBannerFeedbackText: String? = null,
+    /**
+     * The REST categories that have a projectforge-next version ([NextMigration.categories]). The old
+     * React web app shows the warning banner only on a page whose category is in this set - a page that
+     * hasn't been migrated has no new version to point to. The React route's first path segment is the
+     * category (the legacy app mounts pages under `<category>`), so the client matches on it.
+     */
+    val migratedCategories: Set<String> = emptySet(),
   )
 
   @GetMapping
@@ -184,6 +204,9 @@ open class UserStatusRest {
         csrfToken,
         accessChecker.isLoggedInUserMemberOfAdminGroup,
         JiraUtils.getClientConfig().takeIf { it.configured },
+        legacyBannerText = translate("legacyVersion.banner.text"),
+        legacyBannerFeedbackText = translate("legacyVersion.banner.feedback"),
+        migratedCategories = NextMigration.categories,
       ),
       HttpStatus.OK
     )

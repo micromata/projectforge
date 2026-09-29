@@ -8,13 +8,24 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = (user, version, buildTimestamp, alertMessage) => ({
+export const userLoginSuccess = (
+    user,
+    version,
+    buildTimestamp,
+    alertMessage,
+    legacyBannerText,
+    legacyBannerFeedbackText,
+    migratedCategories,
+) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         user,
         version,
         buildTimestamp,
         alertMessage,
+        legacyBannerText,
+        legacyBannerFeedbackText,
+        migratedCategories,
     },
 });
 
@@ -39,12 +50,22 @@ export const loadUserStatus = () => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then((response) => response.json())
-        .then(({ userData, systemData, alertMessage }) => {
+        .then(({
+            userData,
+            systemData,
+            alertMessage,
+            legacyBannerText,
+            legacyBannerFeedbackText,
+            migratedCategories,
+        }) => {
             dispatch(userLoginSuccess(
                 userData,
                 systemData.version,
                 systemData.buildTimestamp,
                 alertMessage,
+                legacyBannerText,
+                legacyBannerFeedbackText,
+                migratedCategories,
             ));
         })
         .catch(() => {

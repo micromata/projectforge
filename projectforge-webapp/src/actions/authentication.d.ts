@@ -26,6 +26,9 @@ interface UserLoginSuccessAction {
         version: string;
         buildTimestamp: string;
         alertMessage?: string;
+        legacyBannerText?: string;
+        legacyBannerFeedbackText?: string;
+        migratedCategories?: string[];
     };
 }
 
@@ -52,7 +55,10 @@ export const userLoginSuccess: (
     user: UserData,
     version: string,
     buildTimestamp: string,
-    alertMessage?: string
+    alertMessage?: string,
+    legacyBannerText?: string,
+    legacyBannerFeedbackText?: string,
+    migratedCategories?: string[]
 ) => UserLoginSuccessAction;
 export const userLoginFailure: (error: string) => UserLoginFailureAction;
 

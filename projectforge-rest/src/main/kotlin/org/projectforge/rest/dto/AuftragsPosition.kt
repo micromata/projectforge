@@ -75,6 +75,12 @@ class AuftragsPosition(
     var periodOfPerformanceEnd: LocalDate? = null,
     var modeOfPaymentType: ModeOfPaymentType? = null,
     var task: Task? = null,
+    /**
+     * The net-sum calculator's breakdown as JSON, persisted so the calculation behind [nettoSumme] can
+     * be reopened and edited (see [AuftragsPositionDO.calculationData]). Opaque to the backend — copied
+     * verbatim in both directions by [BaseDTO].
+     */
+    var calculationData: String? = null,
 ) : BaseDTO<AuftragsPositionDO>() {
 
     /**

@@ -3,7 +3,7 @@
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Invoice01Icon } from "@hugeicons/core-free-icons";
+import { Calculator01Icon, Invoice01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { CollapsibleSummary } from "@/components/shared/collapsible-summary";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -34,6 +34,10 @@ export interface PositionRowHeaderProps {
    * False shows it as plain text, as Wicket's `InvoicePositionsPanel` does for a non-finance reader.
    */
   canOpenInvoice: boolean;
+  /** The position holds a persisted net-sum calculation — show the calculator link in the title. */
+  hasCalculation: boolean;
+  /** Expand the row and open its net-sum calculator, preloaded with the stored breakdown. */
+  onOpenCalculator: () => void;
 }
 
 /**
@@ -45,6 +49,8 @@ export function PositionRowHeader({
   sums,
   invoiceInfo,
   canOpenInvoice,
+  hasCalculation,
+  onOpenCalculator,
 }: PositionRowHeaderProps) {
   const t = useTranslations();
   const format = useFormatContext();
@@ -119,6 +125,33 @@ export function PositionRowHeader({
             >
               <span className="shrink-0 cursor-help text-xs font-semibold text-primary tabular-nums">
                 {formatPercentageDecimal(sums.probabilityOfOccurrence, format)}
+              </span>
+            </HintTooltip>
+          )}
+          {/* Present whenever the position holds a persisted calculation — collapsed and expanded
+              alike, since it is the marker for both states. A span with a button role, not a nested
+              <button>: the header is itself a CollapsibleTrigger button, so — like the invoice links
+              below — it stops the click from toggling the row and opens the calculator instead. */}
+          {hasCalculation && (
+            <HintTooltip openOnTap text={t("order.calculator.title")}>
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label={t("order.calculator.title")}
+                className="shrink-0 cursor-pointer text-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenCalculator();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenCalculator();
+                  }
+                }}
+              >
+                <HugeiconsIcon icon={Calculator01Icon} size={14} aria-hidden />
               </span>
             </HintTooltip>
           )}

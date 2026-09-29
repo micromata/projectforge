@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useLocation } from 'react-router';
 import GlobalNavigation from '../components/base/navigation/GlobalNavigation';
 import { Alert, Container } from '../components/design';
 import prefix from '../utilities/prefix';
@@ -41,12 +41,27 @@ export const publicRoute = (
 function AuthorizedRoutes(
     {
         alertMessage,
+        legacyBannerText,
+        legacyBannerFeedbackText,
+        migratedCategories,
         locale = 'en',
     },
 ) {
+    const { pathname } = useLocation();
+
     useEffect(() => {
         document.documentElement.lang = locale;
     }, [locale]);
+
+    // Show the old-version hint only where there is a new version to point to: the first
+    // path segment after /react/ is the page's category (the legacy app mounts pages under
+    // <category>), so it is migrated exactly when that segment is in the set the server sent.
+    const category = pathname.startsWith(prefix)
+        ? pathname.substring(prefix.length).split('/')[0]
+        : undefined;
+    const showLegacyBanner = Boolean(
+        legacyBannerText && category && migratedCategories?.includes(category),
+    );
 
     const getRoutesWithLocation = (location) => (
         <Routes location={location}>
@@ -89,6 +104,21 @@ function AuthorizedRoutes(
     return (
         <>
             <GlobalNavigation />
+            {showLegacyBanner ? (
+                <Container fluid>
+                    <Alert color="warning">
+                        {legacyBannerText}
+                        {legacyBannerFeedbackText ? (
+                            <>
+                                <br />
+                                <a className="alert-link" href="/wa/feedback">
+                                    {legacyBannerFeedbackText}
+                                </a>
+                            </>
+                        ) : undefined}
+                    </Alert>
+                </Container>
+            ) : undefined}
             {alertMessage ? (
                 <Container fluid>
                     <Alert color="danger">
@@ -103,11 +133,17 @@ function AuthorizedRoutes(
 
 AuthorizedRoutes.propTypes = {
     alertMessage: PropTypes.string,
+    legacyBannerText: PropTypes.string,
+    legacyBannerFeedbackText: PropTypes.string,
+    migratedCategories: PropTypes.arrayOf(PropTypes.string),
     locale: PropTypes.string,
 };
 
 const mapStateToProps = ({ authentication }) => ({
     alertMessage: authentication.alertMessage,
+    legacyBannerText: authentication.legacyBannerText,
+    legacyBannerFeedbackText: authentication.legacyBannerFeedbackText,
+    migratedCategories: authentication.migratedCategories,
     locale: authentication.user?.locale,
 });
 
