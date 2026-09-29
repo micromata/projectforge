@@ -239,6 +239,16 @@ object NextMigration {
             newEntryRoute = "customer/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
+        // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only
+        // the hand built projectforge-next one and Wicket. The DATEV import page (EMPLOYEE_SALARY_IMPORT)
+        // stays on Wicket as a separate menu item.
+        "employeeSalary" to NextPage(
+            route = "employeeSalary",
+            editRoute = "employeeSalary/$ID_PLACEHOLDER",
+            newEntryRoute = "employeeSalary/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
         // way back leads. Hand built rather than generic because the React list has a filter of its own
         // (the group type) and an Excel export, neither of which the generic UILayout route renders.

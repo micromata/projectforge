@@ -848,6 +848,14 @@
       "eintrittsdatum": "Eintrittsdatum",
       "salary": {
         "bruttoMitAgAnteil": "Brutto mit AG-Anteil",
+        "exportXls": {
+          "tooltip": "Gehaltsexport mit Kostenträgerzuweisungen gemäß der Zeitberichtsbuchungen."
+        },
+        "title": {
+          "add": "Neue Gehaltszahlung",
+          "heading": "Gehaltszahlungen",
+          "list": "Gehaltsliste"
+        },
         "type": {
           "_": "Zahlungstyp",
           "gehalt": "Gehalt",

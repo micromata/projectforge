@@ -49,6 +49,21 @@ public class MonthlyEmployeeReportDao {
      * @return
      */
     public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user) {
+        return getReport(year, month, user, true);
+    }
+
+    /**
+     * @param year
+     * @param month                 1-based: 1 - January, ..., 12 - December
+     * @param user
+     * @param calculateVacationStats If true (default), the report also computes the (expensive) vacation
+     *                               statistics. Callers that only need the working-time totals (e.g. the
+     *                               salary Excel export) should pass false to avoid the per-report vacation,
+     *                               remaining-leave, leave-account and annual-leave queries (an N+1 over the
+     *                               employees).
+     * @return
+     */
+    public MonthlyEmployeeReport getReport(Integer year, Integer month, PFUserDO user, boolean calculateVacationStats) {
         if (user == null || year == null || month == null) {
             return null;
         }
@@ -66,7 +81,7 @@ public class MonthlyEmployeeReportDao {
                 report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));
             }
         }
-        report.calculate();
+        report.calculate(calculateVacationStats);
         return report;
     }
 

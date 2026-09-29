@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.datev;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.MonthlyEmployeeReport.Kost2Row;
@@ -66,6 +67,8 @@ public class EmployeeSalaryExportDao {
   private EmployeeDao employeeDao;
   @Autowired
   private UserGroupCache userGroupCache;
+  @Autowired
+  private PfCaches caches;
 
   /**
    * Exports the filtered list as table with almost all fields.
@@ -73,6 +76,12 @@ public class EmployeeSalaryExportDao {
   public byte[] export(final List<EmployeeSalaryDO> list) {
     log.info("Exporting employee salary list.");
     Validate.notEmpty(list);
+    // Resolve each row's lazy employee (with its user and kost1) from the caches once up front. Every
+    // salary is read by its employee below (sort, kost1, user), which would otherwise be one select for
+    // the employee and one for its user per row. Both callers land here (Next EntityRest, Wicket).
+    for (final EmployeeSalaryDO salary : list) {
+      salary.setEmployee(caches.getEmployeeIfNotInitialized(salary.getEmployee()));
+    }
     list.sort(Comparator.comparing(o2 -> (o2.getEmployee().getUser().getFullname())));
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
@@ -92,7 +101,12 @@ public class EmployeeSalaryExportDao {
       }
     }
     if (CollectionUtils.isNotEmpty(missedEmployees)) {
-      missedEmployees.sort(Comparator.comparing(o -> (o.getUser().getFullname())));
+      // Sort by the cached user, not the lazy association: sorting the whole active-employee list by
+      // getUser().getFullname() would load every user from the database, one select per employee.
+      missedEmployees.sort(Comparator.comparing(o -> {
+        final PFUserDO user = userGroupCache.getUser(o.getUser().getId());
+        return user != null ? user.getFullname() : "";
+      }));
     }
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -174,7 +188,9 @@ public class EmployeeSalaryExportDao {
       final PFUserDO user = userGroupCache.getUser(salary.getEmployee().getUser().getId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
+      // No vacation statistics needed for the export (only working-time totals and unbooked days are used):
+      // pass false to skip the per-employee vacation/remaining-leave/leave-account/annual-leave queries.
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user, false);
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       final Kost1DO kost1 = salary.getEmployee().getKost1();
       final BigDecimal bruttoMitAGAnteil = salary.getBruttoMitAgAnteil();
@@ -229,7 +245,7 @@ public class EmployeeSalaryExportDao {
       mapping.add(ExcelColumn.SUMME, "***");
       mapping.add(ExcelColumn.BEZEICHNUNG, "*** FEHLT! ***");
       sheet.addRow(mapping.getMapping(), 0);
-      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
+      final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user, false);
       final BigDecimal netDuration = new BigDecimal(report.getTotalNetDuration());
       addEmployeeRow(employeeSheet, employee, numberOfWorkingDays, netDuration, report);
     }

@@ -422,10 +422,13 @@ open class ConfigurationService {
   open fun getEndOfCarryVacationOfPreviousYear(year: Int): LocalDate {
     var day = 31
     var month = 3 // March, 1 based, 1-January, ..., 12-December.
-    val configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
-    if (configDO != null) {
-      val dayMonthString = configDO.stringValue
-      val dayMonthParts = dayMonthString!!.split("\\.".toRegex()).toTypedArray()
+    // Read from the (hourly-refreshed) Configuration cache, not directly via ConfigurationDao: this method
+    // is called once per employee while calculating vacation stats (e.g. the salary Excel export builds one
+    // MonthlyEmployeeReport per employee), so a direct DB read is an N+1 select (T_CONFIGURATION by parameter
+    // per row). The cache already holds every ConfigurationParam value.
+    val dayMonthString = Configuration.instance.getStringValue(ConfigurationParam.END_DATE_VACATION_LAST_YEAR)
+    if (!dayMonthString.isNullOrBlank()) {
+      val dayMonthParts = dayMonthString.split("\\.".toRegex()).toTypedArray()
       try {
         month = dayMonthParts[1].toInt()
         day = dayMonthParts[0].toInt()
