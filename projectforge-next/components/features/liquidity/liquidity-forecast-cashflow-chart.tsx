@@ -14,13 +14,13 @@ import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { niceDateTicks, niceScale } from "@/lib/chart-scale";
+import { CHART_ROLE } from "@/lib/charts/roles";
 import type { LiquidityForecastDay } from "@/lib/rs/liquidity";
 
 /**
@@ -36,11 +36,11 @@ export function LiquidityForecastCashflowChart({
   const t = useTranslations("plugins.liquidityplanning");
   const ctx = useFormatContext();
   const config: ChartConfig = {
-    creditExpected: { label: t("common.credit"), color: "var(--brand-green)" },
-    debitExpected: { label: t("common.debit"), color: "var(--brand-pink)" },
+    creditExpected: { label: t("common.credit"), color: CHART_ROLE.positive },
+    debitExpected: { label: t("common.debit"), color: CHART_ROLE.negative },
     expectedBalance: {
       label: t("forecast.expected"),
-      color: "var(--chart-neutral)",
+      color: CHART_ROLE.neutral,
     },
   };
   const scale = useMemo(
@@ -95,22 +95,10 @@ export function LiquidityForecastCashflowChart({
           ticks={scale.ticks}
           tickFormatter={(value) => formatCurrency(value, ctx, 0)}
         />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              labelFormatter={(value) => formatDate(value, ctx)}
-              formatter={(value, name) => (
-                <span className="flex w-full justify-between gap-2">
-                  <span className="text-muted-foreground">
-                    {config[String(name)]?.label ?? String(name)}
-                  </span>
-                  <span className="font-mono font-medium tabular-nums">
-                    {formatCurrency(value as number, ctx, 0)}
-                  </span>
-                </span>
-              )}
-            />
-          }
+        <ChartValueTooltip
+          config={config}
+          formatValue={(value) => formatCurrency(value, ctx, 0)}
+          formatLabel={(label) => formatDate(label, ctx)}
         />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { CHART_ROLE } from "@/lib/charts/roles";
 
 /**
  * One chart's legend sentence, e.g. "The last 45 days results in 320 workhours. …". The figures fill the
@@ -23,12 +24,12 @@ export function DisciplineLegend({
       {t.rich(messageKey, {
         ...values,
         red: (chunks: ReactNode) => (
-          <span className="font-medium" style={{ color: "var(--chart-soll)" }}>
+          <span className="font-medium" style={{ color: CHART_ROLE.target }}>
             {chunks}
           </span>
         ),
         green: (chunks: ReactNode) => (
-          <span className="font-medium" style={{ color: "var(--chart-ist)" }}>
+          <span className="font-medium" style={{ color: CHART_ROLE.actual }}>
             {chunks}
           </span>
         ),

@@ -7,13 +7,14 @@ import { PageTitleRow } from "@/components/shared/page-title-row";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber } from "@/lib/format";
 import { fetchPersonalStatistics } from "@/lib/rs/personal-statistics";
+import { CHART_ROLE } from "@/lib/charts/roles";
 import { DisciplineChart } from "./discipline-chart";
 import { DisciplineLegend } from "./discipline-legend";
 import type { PersonalStatistics } from "./types";
 
-/** The two chart series colours, the CSS tokens defined in globals.css (Soll/target red, Ist/actual green). */
-const RED = "var(--chart-soll)";
-const GREEN = "var(--chart-ist)";
+/** The two chart series colours from the shared role palette (Soll/target red, Ist/actual green). */
+const RED = CHART_ROLE.target;
+const GREEN = CHART_ROLE.actual;
 
 /**
  * The personal statistics page ("My statistics", `/next/personalStatistics`), successor of Wicket's

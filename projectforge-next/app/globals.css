@@ -210,11 +210,16 @@
   --chart-3: var(--brand-yellow);
   --chart-4: var(--brand-green);
   --chart-5: var(--brand-teal-dark);
+  /* Role palette — series that carry a fixed meaning rather than being N-of-a-kind. Consumed through
+     lib/charts/roles.ts. Vivid enough for the dark theme, so (like the categorical palette below) not
+     overridden under .dark; only --chart-neutral flips there. */
   /* Personal statistics discipline charts: planned/target ("Soll", red) vs. actually booked ("Ist",
-     green), the same red/green as the former Wicket JFreeChart. Vivid enough to read on the dark
-     theme too, so they are not overridden under .dark. */
+     green), the same red/green as the former Wicket JFreeChart. */
   --chart-soll: #de1821;
   --chart-ist: var(--brand-green);
+  /* Money in vs. money out (the liquidity forecast's due-date balance and credit/debit). */
+  --chart-positive: var(--brand-green);
+  --chart-negative: var(--brand-pink);
   /* Categorical series palette — up to four distinguishable series for comparing N things (e.g. the
      Debitoren "Grafiken" tab: current year red, then blue, green, yellow). Shared across charts via
      lib/charts/series.ts. Vivid enough for the dark theme too, so not overridden under .dark (like
