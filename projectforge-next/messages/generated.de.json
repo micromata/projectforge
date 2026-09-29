@@ -571,6 +571,13 @@
     "_": "Favoriten",
     "saveModification": "Änderungen speichern"
   },
+  "feedback": {
+    "receiver": "Empfänger:in",
+    "send": {
+      "title": "Feedback senden"
+    },
+    "sender": "Sender:in"
+  },
   "fibu": {
     "attachment": "Anlagen",
     "auftrag": {
@@ -915,6 +922,9 @@
           "title": "Kost1 wählen"
         }
       },
+      "multiselected": {
+        "title": "Mehrfachauswahl Kost1"
+      },
       "number": "Kost1-Nummer",
       "nummernkreis": "Nummernkreis",
       "teilbereich": "Teilbereich",
@@ -936,6 +946,9 @@
       },
       "id": "Kost2-ID",
       "kost2s": "Kost2s",
+      "multiselected": {
+        "title": "Mehrfachauswahl Kost2"
+      },
       "number": "Kost2-Nummer",
       "title": {
         "add": "Neue Kost2",
@@ -1760,6 +1773,9 @@
       "reporting": {
         "reportObjectives": "Report-Objectives"
       }
+    },
+    "gear": {
+      "feedback": "Feedback senden"
     },
     "main": {
       "short": "Menü",

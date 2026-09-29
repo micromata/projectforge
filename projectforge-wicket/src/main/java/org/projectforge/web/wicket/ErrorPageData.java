@@ -23,7 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import org.projectforge.web.SendFeedbackData;
+import org.projectforge.business.feedback.SendFeedbackData;
 
 /**
  * Data of feedback panel in error page.

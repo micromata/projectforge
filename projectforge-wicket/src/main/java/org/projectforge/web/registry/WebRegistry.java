@@ -49,7 +49,6 @@ import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
 import org.projectforge.web.wicket.ErrorPage;
-import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
 import java.util.*;
@@ -286,7 +285,6 @@ public class WebRegistry
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPage("datevImport", DatevImportPage.class);
     addMountPage("error", ErrorPage.class);
-    addMountPage("feedback", FeedbackPage.class);
     addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);

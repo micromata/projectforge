@@ -76,6 +76,12 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/search", redirectOf("/wa/search"))
     }
 
+    /** The Wicket feedback page has moved to projectforge-next; a bookmarked or emailed link is bent onto it. */
+    @Test
+    fun `the old wicket feedback page is redirected to next`() {
+        Assertions.assertEquals("/next/feedback", redirectOf("/wa/feedback"))
+    }
+
     /** The Wicket monthly employee report has moved to projectforge-next; a bookmarked link is bent onto it. */
     @Test
     fun `the old wicket monthly employee report is redirected to next`() {

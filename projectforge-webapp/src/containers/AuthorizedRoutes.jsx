@@ -111,7 +111,7 @@ function AuthorizedRoutes(
                         {legacyBannerFeedbackText ? (
                             <>
                                 <br />
-                                <a className="alert-link" href="/wa/feedback">
+                                <a className="alert-link" href="/next/feedback">
                                     {legacyBannerFeedbackText}
                                 </a>
                             </>

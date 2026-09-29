@@ -146,7 +146,7 @@ open class UserStatusRest {
      */
     val legacyBannerText: String? = null,
     /**
-     * Link text of the feedback link in the old-version warning banner (target: /wa/feedback).
+     * Link text of the feedback link in the old-version warning banner (target: /next/feedback).
      */
     val legacyBannerFeedbackText: String? = null,
     /**

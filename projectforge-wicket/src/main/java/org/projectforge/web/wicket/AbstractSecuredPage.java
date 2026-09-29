@@ -26,7 +26,7 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
@@ -116,7 +116,8 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
     };
     body.add(legacyWarningContainer);
     legacyWarningContainer.add(new Label("legacyWarningText", getString("legacyVersion.banner.text")).setRenderBodyOnly(true));
-    final BookmarkablePageLink<Void> feedbackLink = new BookmarkablePageLink<>("legacyFeedbackLink", FeedbackPage.class);
+    // Feedback was migrated to projectforge-next (FeedbackPageRest); the Wicket page was removed.
+    final ExternalLink feedbackLink = new ExternalLink("legacyFeedbackLink", "/" + Constants.NEXT_APP_PATH + "feedback");
     legacyWarningContainer.add(feedbackLink);
     feedbackLink.add(new Label("legacyFeedbackLabel", getString("legacyVersion.banner.feedback")).setRenderBodyOnly(true));
   }

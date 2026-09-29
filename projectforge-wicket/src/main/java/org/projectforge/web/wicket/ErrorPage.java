@@ -43,8 +43,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.mail.SendMail;
 import org.projectforge.rest.core.GlobalExceptionRegistry;
-import org.projectforge.web.SendFeedback;
-import org.projectforge.web.SendFeedbackData;
+import org.projectforge.business.feedback.SendFeedback;
+import org.projectforge.business.feedback.SendFeedbackData;
 import org.projectforge.web.WicketSupport;
 
 import java.net.ConnectException;

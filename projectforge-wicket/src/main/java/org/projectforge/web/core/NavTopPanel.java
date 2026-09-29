@@ -31,7 +31,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -63,7 +62,6 @@ import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
-import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
@@ -99,7 +97,8 @@ public class NavTopPanel extends NavAbstractPanel {
     // The account dropdown is written by hand in NavTopPanel.html and does not go through
     // getMenuEntryLink, so its entries carry data-menu-key one by one, see reportUsage. Deliberately
     // not on logoutLink (a session action, no page) and not on showBookmarkLink (no menu entry).
-    add(reportUsage(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class), MenuItemDefId.FEEDBACK));
+    // Feedback was migrated to projectforge-next (FeedbackPageRest); the Wicket page was removed.
+    add(reportUsage(new ExternalLink("feedbackLink", "/" + Constants.NEXT_APP_PATH + "feedback"), MenuItemDefId.FEEDBACK));
     {
       final AjaxLink<Void> showBookmarkLink = new AjaxLink<Void>("showBookmarkLink") {
         /**

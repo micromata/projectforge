@@ -21,60 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web;
+package org.projectforge.business.feedback
 
-import java.io.Serializable;
+import java.io.Serializable
 
+/**
+ * The data of a feedback mail sent through [SendFeedback]. Moved here from the (removed) Wicket feedback
+ * page so [org.projectforge.rest.FeedbackPageRest] can reuse it; the groovy template `mail/feedback.txt`
+ * references `data.description`. Open because Wicket's `ErrorPageData` still extends it.
+ */
+open class SendFeedbackData : Serializable {
+    var description: String? = null
+    var receiver: String? = null
+    var sender: String? = null
+    var subject: String? = null
 
-public class SendFeedbackData  implements Serializable
-{
-  private static final long serialVersionUID = -1798940124320349936L;
-
-  private String description;
-
-  private String receiver;
-
-  private String sender;
-
-  private String subject;
-
-  public String getDescription()
-  {
-    return description;
-  }
-
-  public void setDescription(String description)
-  {
-    this.description = description;
-  }
-
-  public String getReceiver()
-  {
-    return receiver;
-  }
-
-  public void setReceiver(String receiver)
-  {
-    this.receiver = receiver;
-  }
-
-  public String getSender()
-  {
-    return sender;
-  }
-
-  public void setSender(String sender)
-  {
-    this.sender = sender;
-  }
-
-  public String getSubject()
-  {
-    return subject;
-  }
-  
-  public void setSubject(String subject)
-  {
-    this.subject = subject;
-  }
+    companion object {
+        private const val serialVersionUID = -1798940124320349936L
+    }
 }
