@@ -1407,8 +1407,8 @@
   },
   "goreact": {
     "menu": {
-      "classics": "Classic version",
-      "classicsInfo": "The classic version will be removed shortly."
+      "classics": "Old version",
+      "classicsInfo": "The old version will be removed shortly."
     }
   },
   "group": {

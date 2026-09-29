@@ -380,6 +380,28 @@ object NextMigration {
     }
 
     /**
+     * Whether the legacy page reachable at [path] has a projectforge-next version, i.e. whether the old
+     * frontends should point the user to the new version from it. The old frontends ([LegacyApp.WICKET]
+     * and [LegacyApp.REACT]) show the "use the new version" hint only where there actually is one.
+     *
+     * [path] is the request path of the legacy page without the app prefix and without query, e.g.
+     * `cost1List`, `orderBookEdit`, `group` or `group/edit/42`. It is matched against the legacy list,
+     * edit and add routes of every migrated page of [legacyApp] (the same routes [orphanedLinks] bends
+     * onto next), so both the list and the edit/add page of a migrated entity count.
+     */
+    @JvmStatic
+    fun hasNextVersion(legacyApp: LegacyApp, path: String): Boolean {
+        val normalized = path.removePrefix("/").removePrefix(legacyApp.appPath).substringBefore('?').trimEnd('/')
+        return MIGRATED.any { (category, page) ->
+            if (page.legacyApp != legacyApp) return@any false
+            val listRoute = (page.legacyRoute ?: legacyApp.listRoute(category)).trimEnd('/')
+            val editRoute = (page.legacyEditRoute ?: legacyApp.editRoute(category))
+                .substringBefore('?').substringBefore(ID_PLACEHOLDER).trimEnd('/')
+            normalized == listRoute || normalized == editRoute || normalized.startsWith("$editRoute/")
+        }
+    }
+
+    /**
      * Whether a frontend url points into projectforge-next, no matter which category produced it.
      *
      * Needed where only the url is left and the category isn't known any more - the menu is built from

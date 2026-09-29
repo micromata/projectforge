@@ -24,6 +24,9 @@ const reducer = (state = initialState, { type, payload } = {}) => {
                 version: payload.version,
                 buildTimestamp: payload.buildTimestamp,
                 alertMessage: payload.alertMessage,
+                legacyBannerText: payload.legacyBannerText,
+                legacyBannerFeedbackText: payload.legacyBannerFeedbackText,
+                migratedCategories: payload.migratedCategories,
             };
         case USER_LOGIN_FAILURE:
             return {

@@ -26,6 +26,7 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
@@ -33,6 +34,7 @@ import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.Constants;
+import org.projectforge.NextMigration;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -99,6 +101,24 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
     body.add(alertMessageContainer);
     final Label alertMessageLabel = new Label("alertMessage", alertMessageModel);
     alertMessageContainer.add(alertMessageLabel.setRenderBodyOnly(true));
+
+    // Persistent hint pointing the user to the new version, with a link to the feedback page. Shown
+    // only where there is a new version of this very page (see NextMigration.hasNextVersion): on a page
+    // that hasn't been migrated yet there is nothing to switch to, so no hint.
+    final String requestPath = getRequest().getUrl().getPath();
+    final boolean legacyWarningVisible =
+        NextMigration.hasNextVersion(NextMigration.LegacyApp.WICKET, requestPath);
+    final WebMarkupContainer legacyWarningContainer = new WebMarkupContainer("legacyWarningContainer") {
+      @Override
+      public boolean isVisible() {
+        return legacyWarningVisible;
+      }
+    };
+    body.add(legacyWarningContainer);
+    legacyWarningContainer.add(new Label("legacyWarningText", getString("legacyVersion.banner.text")).setRenderBodyOnly(true));
+    final BookmarkablePageLink<Void> feedbackLink = new BookmarkablePageLink<>("legacyFeedbackLink", FeedbackPage.class);
+    legacyWarningContainer.add(feedbackLink);
+    feedbackLink.add(new Label("legacyFeedbackLabel", getString("legacyVersion.banner.feedback")).setRenderBodyOnly(true));
   }
 
   /**
