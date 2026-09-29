@@ -70,7 +70,9 @@ export function useEntityDetail<T>(
       isNew
         ? fetchNew<T>(entity, params, signal)
         : fetchOne<T>(entity, id, signal),
-    enabled: isNew || (Number.isFinite(id) && id > 0),
+    // `id >= 0`, not `> 0`: a user-assigned key may be 0 (a cost-2 type numbered "00"). A new entry is
+    // told apart by `id == null`, never by a zero id, so loading id 0 is a real read.
+    enabled: isNew || (Number.isFinite(id) && id >= 0),
     // A preset is a starting point, not shared state. While the add dialog is open the query keeps a
     // continuous observer, so `staleTime: Infinity` (+ the two `refetch*: false`) hold it stable and
     // stop a refetch from overwriting a form the user has already begun to fill in. `gcTime: 0` drops

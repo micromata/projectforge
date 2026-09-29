@@ -972,6 +972,11 @@
     "kost2art": {
       "nummer": "Nummer",
       "projektStandard": "Projektstandard",
+      "title": {
+        "add": "Neue Kost2-Art",
+        "heading": "Kost2-Arten",
+        "list": "Liste der Kost2-Arten"
+      },
       "workFraction": "Arbeitszeitanteil"
     },
     "kunde": {
