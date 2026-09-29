@@ -1100,6 +1100,12 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Gross amount",
+      "chart": {
+        "_": "Charts",
+        "boundedRangeHint": "Please restrict the invoice date to a period (from and to) to compare it with the three preceding years.",
+        "cumulative": "Cumulative net revenue",
+        "monthly": "Monthly net revenue"
+      },
       "currency": "Currency",
       "currencyConversion": {
         "warnings": {

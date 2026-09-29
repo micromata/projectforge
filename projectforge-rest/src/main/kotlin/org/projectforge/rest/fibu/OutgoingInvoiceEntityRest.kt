@@ -96,6 +96,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.Date
 
 private val log = KotlinLogging.logger {}
@@ -954,6 +955,85 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
+     * The monthly net sums of the filtered invoices, this year and the three years before it, for the
+     * "Grafiken" tab of `/next/invoice`.
+     *
+     * The four years are the same period shifted zero, one, two and three years back ([shiftYearsFilter]),
+     * every other criterion of the list's filter kept - a generalization of the previous-year comparison the
+     * statistics line shows, so the series of offset one equals that comparison and the offset-zero sum equals
+     * the list's own `netto`. Each year's invoices are read through the very pipeline the list uses
+     * ([getResultList]), so the chart counts the invoices the list shows and no others.
+     *
+     * Requires a bounded invoice-date range, as the comparison does: without a start and an end "the same
+     * period n years earlier" is undefined. Without one the answer is empty and the client shows a hint
+     * instead of a chart.
+     *
+     * The net sum is each invoice's own ([RechnungInfo.netSum]), summed by the calendar month of its
+     * [AbstractRechnungDO.datum]; a shifted invoice's month is moved forward by its offset so it lands on the
+     * reference period's month. The cumulative curves the chart also draws are the running sums of these, built
+     * on the client from the same numbers (one source of truth).
+     */
+    @PostMapping("netSumChart")
+    fun netSumChart(@RequestBody filter: MagicFilter): NetSumChartData {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        // Offset zero validates the bounded range and yields the reference period the other years align to.
+        val reference = shiftYearsFilter(filter, 0) ?: return NetSumChartData()
+        val from = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.fromValue)
+            ?: return NetSumChartData()
+        val to = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.toValue)
+            ?: return NetSumChartData()
+        // The months of the reference period, in order, as "yyyy-MM" - the x-axis every year's bars sit on.
+        val months = mutableListOf<YearMonth>()
+        var cursor = YearMonth.from(from)
+        val last = YearMonth.from(to)
+        while (!cursor.isAfter(last)) {
+            months.add(cursor)
+            cursor = cursor.plusMonths(1)
+        }
+        val index = months.withIndex().associate { (i, ym) -> ym to i }
+        val series = (0 until NET_SUM_CHART_YEARS).map { offset ->
+            val shifted = shiftYearsFilter(filter, offset)!! // Not null: the bounded range was asserted above.
+            val monthly = Array(months.size) { BigDecimal.ZERO }
+            getResultList(shifted).forEach { invoice ->
+                val datum = invoice.datum ?: return@forEach
+                // Move the shifted invoice's month forward by its offset, so all four years share one axis.
+                val slot = index[YearMonth.from(datum).plusYears(offset.toLong())] ?: return@forEach
+                monthly[slot] = monthly[slot].add(invoice.ensuredInfo.netSum)
+            }
+            NetSumYearSeries(
+                offset = offset,
+                label = if (from.year == to.year) {
+                    (from.year - offset).toString()
+                } else {
+                    "${from.year - offset}–${to.year - offset}"
+                },
+                monthly = monthly.toList(),
+            )
+        }
+        return NetSumChartData(months = months.map { it.toString() }, series = series)
+    }
+
+    /**
+     * The answer of [netSumChart]: the reference period's months and one net-sum series per year. Empty when
+     * the invoice-date filter is not a bounded range.
+     */
+    class NetSumChartData(
+        /** The months of the reference period as "yyyy-MM", in order - the shared x-axis of every series. */
+        val months: List<String> = emptyList(),
+        /** One entry per year, newest ([offset] 0) first. */
+        val series: List<NetSumYearSeries> = emptyList(),
+    )
+
+    class NetSumYearSeries(
+        /** Years back from the reference period: 0 is the filtered period itself, 1 the previous year, and so on. */
+        val offset: Int,
+        /** The year of this series (or "2024–2025" when the reference period spans a year boundary). */
+        val label: String,
+        /** The net sum per month, aligned to [NetSumChartData.months]. */
+        val monthly: List<BigDecimal>,
+    )
+
+    /**
      * Adds the three filters the Wicket list has and no property of [RechnungDO] yields.
      *
      * The payment state ([LIST_TYPE_FILTER]) is Wicket's radio group over `RechnungFilter.listType`, and
@@ -1316,6 +1396,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         /** [MagicFilter.extended] flag by which the client asks for the previous-year comparison. */
         internal const val PREVIOUS_YEAR_COMPARISON = "previousYearComparison"
 
+        /** How many years the net-sum chart shows: this year and the three before it (see [netSumChart]). */
+        private const val NET_SUM_CHART_YEARS = 4
+
         /**
          * The filter of the previous-year comparison - the same one shifted twelve months back - or null when
          * it does not apply.
@@ -1334,14 +1417,31 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             if (!requested) {
                 return null
             }
+            return shiftYearsFilter(magicFilter, 1)
+        }
+
+        /**
+         * The given filter with its invoice-date range ([DATE_FIELD]) moved [years] years back, or null when it
+         * has no bounded range - "the same period n years earlier" has no meaning without both a start and an end.
+         *
+         * The building block of [previousYearFilter] and of the multi-year chart ([netSumChart]): a shift of one
+         * year is the previous-year comparison the statistics line shows, of two and three years the older years
+         * the chart adds. Every other criterion stays, so two shifted filters answer the same question n years
+         * apart. [years] `== 0` returns the filter unchanged (the reference period itself).
+         *
+         * The [MagicFilterEntry.Value.periodKind] is dropped on the clone: a range shifted by hand is no longer
+         * "this year", and the previous-year flag is removed so a re-select cannot recurse. Static and [internal]
+         * so the shift can be asserted without a Spring context (see OutgoingInvoicePreviousYearFilterTest).
+         */
+        internal fun shiftYearsFilter(magicFilter: MagicFilter, years: Int): MagicFilter? {
             val datum = magicFilter.entries.find { it.field == DATE_FIELD }
             val from = parseIsoDate(datum?.value?.fromValue) ?: return null
             val to = parseIsoDate(datum?.value?.toValue) ?: return null
             return magicFilter.clone().also { clone ->
                 clone.extended.remove(PREVIOUS_YEAR_COMPARISON)
                 clone.entries.find { it.field == DATE_FIELD }?.value?.let { value ->
-                    value.fromValue = from.minusYears(1).toString()
-                    value.toValue = to.minusYears(1).toString()
+                    value.fromValue = from.minusYears(years.toLong()).toString()
+                    value.toValue = to.minusYears(years.toLong()).toString()
                     value.periodKind = null
                 }
             }

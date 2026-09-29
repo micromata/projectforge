@@ -215,6 +215,14 @@
      theme too, so they are not overridden under .dark. */
   --chart-soll: #de1821;
   --chart-ist: var(--brand-green);
+  /* Categorical series palette — up to four distinguishable series for comparing N things (e.g. the
+     Debitoren "Grafiken" tab: current year red, then blue, green, yellow). Shared across charts via
+     lib/charts/series.ts. Vivid enough for the dark theme too, so not overridden under .dark (like
+     --chart-soll/--chart-ist). */
+  --chart-series-1: #de1821;
+  --chart-series-2: #1e6fd6;
+  --chart-series-3: var(--brand-green);
+  --chart-series-4: var(--brand-yellow);
   /* A muted black for a neutral chart series (the liquidity forecast's expected line) — darker than
      --muted-foreground so it reads as black, but softened so it does not overpower the coloured
      series. Overridden under .dark, where a muted white takes its place. */
