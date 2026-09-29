@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDO
 import org.projectforge.business.fibu.EmployeeSalaryDao
 import org.projectforge.business.fibu.datev.EmployeeSalaryExportDao
 import org.projectforge.common.StringHelper
+import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
@@ -135,21 +136,69 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
     }
 
     /**
-     * The whole filtered list as the Excel file Wicket's "Excel export" produces
-     * ([EmployeeSalaryExportDao]). The rows come from [getResultList], i.e. through the same pipeline the
-     * list uses (the year/month predicates of [preProcessMagicFilter]).
-     *
-     * A month must be picked, as in Wicket ([EmployeeSalaryListPage]): a whole-year export is not offered.
-     * An empty result answers 404 rather than a file, so a filter matching nothing does not look like a
-     * successful export in the download folder.
+     * The generic list export - one row per salary, the columns the list shows (`year-MM`, employee last
+     * and first name, staff number, type, gross with employer's share, comment). This is Wicket's plain
+     * "Excel export" content-menu entry ([EmployeeSalaryListPage], `DOListExcelExporter`), as opposed to
+     * the cost-assignment export below. The rows come from [getResultList], i.e. through the same pipeline
+     * the list uses. An empty result answers 404 rather than a file.
      */
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        log.info("Exporting employee salaries as Excel file (one row per salary).")
+        val salaries = getResultList(filter).map { transformFromDB(it, false) }
+        if (salaries.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
+        ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("fibu.employee.salaries"))
+            val currencyStyle = workbook.createOrGetCellStyle("currency")
+            currencyStyle.dataFormat = workbook.createDataFormat().getFormat(CURRENCY_FORMAT)
+            sheet.registerColumn(translate("calendar.month"), COL_YEAR_MONTH).withSize(10)
+            sheet.registerColumn(translate("name"), COL_LAST_NAME).withSize(20)
+            sheet.registerColumn(translate("firstName"), COL_FIRST_NAME).withSize(20)
+            sheet.registerColumn(translate("fibu.employee.staffNumber"), COL_STAFF_NUMBER).withSize(14)
+            sheet.registerColumn(translate("fibu.employee.salary.type"), COL_TYPE).withSize(16)
+            sheet.registerColumn(translate("fibu.employee.salary.bruttoMitAgAnteil"), COL_BRUTTO).withSize(16)
+            sheet.registerColumn(translate("comment"), COL_COMMENT).withSize(40)
+            ExcelUtils.addHeadRow(sheet)
+            salaries.forEach { salary ->
+                val row = sheet.createRow()
+                row.getCell(COL_YEAR_MONTH)?.setCellValue(salary.formattedYearAndMonth)
+                row.getCell(COL_LAST_NAME)?.setCellValue(salary.lastName)
+                row.getCell(COL_FIRST_NAME)?.setCellValue(salary.firstName)
+                row.getCell(COL_STAFF_NUMBER)?.setCellValue(salary.staffNumber)
+                salary.type?.let { row.getCell(COL_TYPE)?.setCellValue(translate(it.i18nKey)) }
+                salary.bruttoMitAgAnteil?.let {
+                    row.getCell(COL_BRUTTO)?.setCellValue(it)?.setCellStyle(currencyStyle)
+                }
+                row.getCell(COL_COMMENT)?.setCellValue(salary.comment)
+            }
+            sheet.setAutoFilter()
+            val filename =
+                "ProjectForge-${translate("fibu.employee.salaries")}_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            return RestUtils.downloadFile(filename, workbook.asByteArrayOutputStream.toByteArray())
+        }
+    }
+
+    /**
+     * The cost-assignment export ([EmployeeSalaryExportDao]) - the DATEV sheet with one row per Kost2, the
+     * gross split over the employee's time-sheet bookings. Wicket's "Kostenzuweisungen exportieren"
+     * content-menu entry ([EmployeeSalaryListPage], `fibu.rechnung.kostExcelExport`).
+     *
+     * A month must be picked, as in Wicket: a whole-year export is not offered (400 with the reason as its
+     * body). An empty result answers 404 rather than a file, so a filter matching nothing does not look
+     * like a successful export in the download folder.
+     */
+    @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
+    fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         val year = readInt(filter, FILTER_YEAR)
         val month = readInt(filter, FILTER_MONTH)
             ?: return ResponseEntity.badRequest().body(translate("fibu.employee.salary.error.monthNotGiven"))
-        log.info("Exporting employee salaries as Excel file for ${DateHelper.formatMonth(year ?: 0, month)}.")
+        log.info("Exporting employee salary cost assignments as Excel file for ${DateHelper.formatMonth(year ?: 0, month)}.")
         val list = getResultList(filter)
+        if (list.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
         val xls = employeeSalaryExportDao.export(list)
         if (xls == null || xls.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
@@ -183,5 +232,19 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
         /** Ids of the synthetic year/month filter elements (see [addMagicFilterElements]). */
         private const val FILTER_YEAR = "year"
         private const val FILTER_MONTH = "month"
+
+        /** Path of the cost-assignment export, next to the generic list export at [RestPaths.REST_EXCEL_SUB_PATH]. */
+        internal const val EXPORT_COST_ASSIGNMENTS_PATH = "exportCostAssignmentsAsExcel"
+
+        private const val CURRENCY_FORMAT = "#,##0.00;[Red]-#,##0.00"
+
+        // Column aliases of the generic list export.
+        private const val COL_YEAR_MONTH = "yearMonth"
+        private const val COL_LAST_NAME = "lastName"
+        private const val COL_FIRST_NAME = "firstName"
+        private const val COL_STAFF_NUMBER = "staffNumber"
+        private const val COL_TYPE = "type"
+        private const val COL_BRUTTO = "bruttoMitAgAnteil"
+        private const val COL_COMMENT = "comment"
     }
 }
