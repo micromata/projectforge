@@ -109,6 +109,25 @@ export function formatDate(value: unknown, ctx: FormatContext): string {
   }).format(date);
 }
 
+/**
+ * A 1-based month as its two-digit number, e.g. 9 → "09". Locale-independent by design (a bare number,
+ * not a name): the accounting month is written the way the payroll files spell it. Empty for a non-number.
+ */
+export function formatMonthNumber(value: unknown): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "";
+  return String(value).padStart(2, "0");
+}
+
+/**
+ * A whole number as its bare digits, without a thousands separator — for values that are an identifier or
+ * a year rather than a quantity (2026 → "2026", not the grouped "2.026"; a staff number likewise). Empty
+ * for a non-number.
+ */
+export function formatInteger(value: unknown): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "";
+  return String(value);
+}
+
 /** The full month name in the user's language, e.g. 1 → "Januar". `month` is 1-based (1 = January). */
 export function formatMonthName(month: number, ctx: FormatContext): string {
   // A fixed day/year: only the month part is read, and a mid-month day avoids any time-zone edge.

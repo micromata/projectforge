@@ -87,7 +87,11 @@ export type ImportColumnKind =
   | "date"
   | "currency"
   | "percentage"
-  | "number";
+  | "number"
+  /** A whole number without a thousands separator — an identifier or a year (2026, not "2.026"). */
+  | "integer"
+  /** A 1-based month rendered as its two-digit number (9 → "09"). */
+  | "month";
 
 /** One column of the preview table, entity-agnostic. */
 export interface ImportColumn {

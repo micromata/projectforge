@@ -48,7 +48,11 @@ export function ImportFeature({ config }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <SectionCard className="flex flex-col gap-3">
-        <ImportStatisticsLine info={view?.info} />
+        <ImportStatisticsLine
+          info={view?.info}
+          hiddenKeys={imp.hiddenStatusKeys}
+          onToggleKey={imp.toggleStatusKey}
+        />
         <ImportControls
           hasBeenReconciled={view?.hasBeenReconciled ?? false}
           selectedCount={imp.selectedIds.length}
@@ -65,7 +69,7 @@ export function ImportFeature({ config }: Props) {
         <div className="flex max-h-[70vh] flex-col">
           <ImportPreviewTable
             config={config}
-            entries={view?.entries ?? []}
+            entries={imp.filteredEntries}
             meta={meta}
             selection={imp.selection}
             onSelectionChange={imp.setSelection}

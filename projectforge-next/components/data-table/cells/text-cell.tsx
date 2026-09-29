@@ -22,7 +22,11 @@ export function TextCell({
     : undefined;
   return (
     <span
-      className={cn("block truncate", spec.align === "right" && "text-right")}
+      // Right-aligned columns are the numeric ones (amounts, counts): monospaced digits so they line up.
+      className={cn(
+        "block truncate",
+        spec.align === "right" && "text-right tabular-nums"
+      )}
       // Shown by the table's one delegated tooltip, see useOverflowTooltip.
       data-tooltip={
         typeof tooltip === "string" && tooltip ? tooltip : undefined

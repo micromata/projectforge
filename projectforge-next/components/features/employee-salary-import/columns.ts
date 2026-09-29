@@ -10,7 +10,7 @@ export const EMPLOYEE_SALARY_IMPORT_COLUMNS: ImportColumn[] = [
   {
     field: "staffNumber",
     headerKey: "fibu.employee.staffNumber",
-    kind: "number",
+    kind: "integer",
     width: 110,
   },
   {
@@ -22,13 +22,13 @@ export const EMPLOYEE_SALARY_IMPORT_COLUMNS: ImportColumn[] = [
   {
     field: "year",
     headerKey: "calendar.year",
-    kind: "number",
+    kind: "integer",
     width: 80,
   },
   {
     field: "month",
     headerKey: "calendar.month",
-    kind: "number",
+    kind: "month",
     width: 80,
   },
   {

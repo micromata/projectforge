@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useFormatContext } from "@/hooks/use-format";
-import { diffOf, formatByKind } from "./import-model";
+import { diffOf, formatByKind, isNumericKind } from "./import-model";
 import type { ImportColumn, ImportEntry } from "./import-types";
 
 interface Props {
@@ -22,18 +22,36 @@ export function ImportDiffCell({ entry, column }: Props) {
   const ctx = useFormatContext();
   const { current, old, hasDiff } = diffOf(entry, column);
   const currentText = formatByKind(current, column.kind, ctx);
+  // Amounts, year and month read as monospaced digits, as they do in the invoice lists (see isNumericKind).
+  const numeric = isNumericKind(column.kind);
 
   if (!column.diff || !hasDiff) {
-    return <span className="block truncate">{currentText}</span>;
+    return (
+      <span className={cn("block truncate", numeric && "tabular-nums")}>
+        {currentText}
+      </span>
+    );
   }
 
   const oldText = formatByKind(old, column.kind, ctx);
   return (
     <span className="flex flex-col leading-tight">
-      <span className={cn("truncate text-brand-pink line-through")}>
+      <span
+        className={cn(
+          "truncate text-brand-pink line-through",
+          numeric && "tabular-nums"
+        )}
+      >
         {oldText}
       </span>
-      <span className="truncate text-brand-green-dark">{currentText}</span>
+      <span
+        className={cn(
+          "truncate text-brand-green-dark",
+          numeric && "tabular-nums"
+        )}
+      >
+        {currentText}
+      </span>
     </span>
   );
 }

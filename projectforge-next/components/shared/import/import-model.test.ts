@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import { formatCurrency, formatDate, type FormatContext } from "@/lib/format";
 import {
   diffOf,
+  filterEntriesByStatus,
   formatByKind,
   isSelectable,
   IMPORTABLE_STATUSES,
   rowClassForStatus,
   selectableIds,
   statisticsEntries,
+  STATUS_GROUP_OF,
   visibleColumns,
 } from "./import-model";
 import type {
@@ -164,6 +166,16 @@ describe("formatByKind", () => {
     );
     expect(formatByKind("ACME GmbH", "text", ctx)).toBe("ACME GmbH");
   });
+
+  it("renders a month as its two-digit number, locale-independent", () => {
+    expect(formatByKind(9, "month", ctx)).toBe("09");
+    expect(formatByKind(12, "month", ctx)).toBe("12");
+  });
+
+  it("renders an integer without a thousands separator (a year or an id, not a quantity)", () => {
+    expect(formatByKind(2026, "integer", ctx)).toBe("2026");
+    expect(formatByKind(1001, "integer", ctx)).toBe("1001");
+  });
 });
 
 describe("statisticsEntries", () => {
@@ -183,6 +195,54 @@ describe("statisticsEntries", () => {
     };
     const keys = statisticsEntries(info).map((e) => e.key);
     expect(keys).toEqual(["total", "new", "modified"]);
+  });
+});
+
+describe("STATUS_GROUP_OF", () => {
+  it("maps every status to a chip group, folding both unknown states into one", () => {
+    expect(STATUS_GROUP_OF.NEW).toBe("new");
+    expect(STATUS_GROUP_OF.MODIFIED).toBe("modified");
+    expect(STATUS_GROUP_OF.DELETED).toBe("deleted");
+    expect(STATUS_GROUP_OF.UNMODIFIED).toBe("unmodified");
+    expect(STATUS_GROUP_OF.IMPORTED).toBe("imported");
+    expect(STATUS_GROUP_OF.FAULTY).toBe("faulty");
+    expect(STATUS_GROUP_OF.UNKNOWN).toBe("unknown");
+    expect(STATUS_GROUP_OF.UNKNOWN_MODIFICATION).toBe("unknown");
+  });
+});
+
+describe("filterEntriesByStatus", () => {
+  const entries: ImportEntry[] = [
+    entry("NEW", { id: 1 }),
+    entry("UNMODIFIED", { id: 2 }),
+    entry("MODIFIED", { id: 3 }),
+    entry("FAULTY", { id: 4 }),
+  ];
+
+  it("returns the entries untouched when nothing is hidden", () => {
+    expect(filterEntriesByStatus(entries, new Set())).toBe(entries);
+  });
+
+  it("drops the rows whose group key is hidden", () => {
+    expect(
+      filterEntriesByStatus(entries, new Set(["unmodified"])).map((e) => e.id)
+    ).toEqual([1, 3, 4]);
+    expect(
+      filterEntriesByStatus(entries, new Set(["unmodified", "faulty"])).map(
+        (e) => e.id
+      )
+    ).toEqual([1, 3]);
+  });
+
+  it("folds both unknown states into the one 'unknown' key", () => {
+    const withUnknowns: ImportEntry[] = [
+      entry("UNKNOWN", { id: 5 }),
+      entry("UNKNOWN_MODIFICATION", { id: 6 }),
+      entry("NEW", { id: 7 }),
+    ];
+    expect(
+      filterEntriesByStatus(withUnknowns, new Set(["unknown"])).map((e) => e.id)
+    ).toEqual([7]);
   });
 });
 

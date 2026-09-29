@@ -15,8 +15,31 @@ import {
 } from "@/lib/rs/import";
 import type { UploadProgress } from "@/lib/rs/upload";
 import { useJobStore } from "@/store/job-store";
-import { selectableIds } from "./import-model";
+import {
+  filterEntriesByStatus,
+  selectableIds,
+  STATUS_GROUP_OF,
+} from "./import-model";
 import type { ImportConfig, ImportView } from "./import-types";
+
+/**
+ * The reconcile always asks the backend for every status — including the unmodified rows the default
+ * options would drop — so the whole row set is on the client and the status chips can show/hide it
+ * without a server round-trip. The aggregate counts are computed over all rows regardless (see
+ * `AbstractImportRest.buildView`), so this does not change them.
+ */
+const ALL_STATUSES = {
+  new: true,
+  modified: true,
+  unmodified: true,
+  imported: true,
+  deleted: true,
+  faulty: true,
+  unknown: true,
+} as const;
+
+/** Hidden by default, so the unmodified rows we now fetch stay out of sight until the chip is toggled. */
+const DEFAULT_HIDDEN_STATUS_KEYS = ["unmodified"] as const;
 
 /**
  * The whole state of one import route: the current [ImportView] (React-Query owned, so a reconcile or a
@@ -33,6 +56,9 @@ export function useImport(config: ImportConfig) {
 
   const stateKey = useMemo(() => ["import", base, "state"] as const, [base]);
   const [selection, setSelection] = useState<RowSelectionState>({});
+  const [hiddenStatusKeys, setHiddenStatusKeys] = useState<Set<string>>(
+    () => new Set(DEFAULT_HIDDEN_STATUS_KEYS)
+  );
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const query = useQuery({
@@ -58,6 +84,7 @@ export function useImport(config: ImportConfig) {
     onSuccess: (result) => {
       if (result.kind === "ok") {
         setSelection({});
+        setHiddenStatusKeys(new Set(DEFAULT_HIDDEN_STATUS_KEYS));
         setView(result.view);
       } else {
         toast.error(result.error);
@@ -68,7 +95,7 @@ export function useImport(config: ImportConfig) {
   });
 
   const reconcile = useMutation({
-    mutationFn: () => reconcileImport(base),
+    mutationFn: () => reconcileImport(base, ALL_STATUSES),
     onSuccess: (view) => setView(view),
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : String(error)),
@@ -89,6 +116,7 @@ export function useImport(config: ImportConfig) {
     mutationFn: () => cancelImport(base),
     onSuccess: () => {
       setSelection({});
+      setHiddenStatusKeys(new Set(DEFAULT_HIDDEN_STATUS_KEYS));
       setView({ hasBeenReconciled: false, entries: [] });
     },
     onError: (error) =>
@@ -110,6 +138,43 @@ export function useImport(config: ImportConfig) {
     setSelection(Object.fromEntries(ids.map((id) => [String(id), true])));
   }, [view, config.selectableStatuses]);
 
+  const filteredEntries = useMemo(
+    () => filterEntriesByStatus(view?.entries ?? [], hiddenStatusKeys),
+    [view, hiddenStatusKeys]
+  );
+
+  /**
+   * Show/hide a status group. When a group is newly hidden, its rows are dropped from the selection too —
+   * otherwise a hidden row could still be committed, which the user can no longer see to deselect.
+   */
+  const toggleStatusKey = useCallback(
+    (key: string) => {
+      setHiddenStatusKeys((previous) => {
+        const next = new Set(previous);
+        if (next.has(key)) {
+          next.delete(key);
+        } else {
+          next.add(key);
+          const hiddenIds = new Set(
+            (view?.entries ?? [])
+              .filter((entry) => STATUS_GROUP_OF[entry.status] === key)
+              .map((entry) => String(entry.id))
+          );
+          if (hiddenIds.size > 0) {
+            setSelection((current) => {
+              const pruned = Object.fromEntries(
+                Object.entries(current).filter(([id]) => !hiddenIds.has(id))
+              );
+              return pruned;
+            });
+          }
+        }
+        return next;
+      });
+    },
+    [view]
+  );
+
   return {
     query,
     view,
@@ -120,6 +185,9 @@ export function useImport(config: ImportConfig) {
     selectedIds,
     selectAll,
     clearSelection: () => setSelection({}),
+    hiddenStatusKeys,
+    toggleStatusKey,
+    filteredEntries,
     uploadProgress,
     upload,
     reconcile,

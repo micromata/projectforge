@@ -13,6 +13,7 @@ import {
 import { ImportDiffCell } from "./import-diff-cell";
 import { ImportStatusCell } from "./import-status-cell";
 import {
+  isNumericKind,
   isSelectable,
   rowClassForStatus,
   visibleColumns,
@@ -100,12 +101,15 @@ export function ImportPreviewTable({
         // A backend key that is both a text and a namespace (e.g. calendar.month, parent of
         // calendar.month.april) is exported as `<key>._`; ask next-intl for the leaf, not the object.
         const label = t(leafKeyOf(column.headerKey, t.has));
+        const numeric = isNumericKind(column.kind);
         return {
           id: column.field,
           header: label,
           size: column.width ?? 140,
           enableSorting: false,
-          meta: { label, wrap: true },
+          // Numeric columns (amounts, year, month) read right-aligned as they do in the invoice lists;
+          // text columns wrap.
+          meta: { label, wrap: !numeric, align: numeric ? "right" : undefined },
           cell: ({ row }) => (
             <ImportDiffCell entry={row.original} column={column} />
           ),

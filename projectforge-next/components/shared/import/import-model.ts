@@ -10,6 +10,8 @@ import {
   formatCurrency,
   formatDate,
   formatDisplayName,
+  formatInteger,
+  formatMonthNumber,
   formatNumber,
   formatPercentage,
   type FormatContext,
@@ -88,6 +90,20 @@ export function diffOf(entry: ImportEntry, column: ImportColumn): DiffValues {
   return { current, old, hasDiff };
 }
 
+/**
+ * Whether a column kind is a number — the amounts, counts, years and months. Those read right-aligned and
+ * `tabular-nums` in the preview, so digits line up column-wise as they do in the invoice lists.
+ */
+export function isNumericKind(kind: ImportColumnKind): boolean {
+  return (
+    kind === "currency" ||
+    kind === "number" ||
+    kind === "percentage" ||
+    kind === "integer" ||
+    kind === "month"
+  );
+}
+
 /** Formats a cell value the way its column kind asks for, through the user's locale (see lib/format). */
 export function formatByKind(
   value: unknown,
@@ -103,6 +119,10 @@ export function formatByKind(
       return formatPercentage(value, ctx);
     case "number":
       return formatNumber(value, ctx);
+    case "integer":
+      return formatInteger(value);
+    case "month":
+      return formatMonthNumber(value);
     default:
       return formatDisplayName(value);
   }
@@ -167,6 +187,38 @@ export function statisticsEntries(
     "faulty"
   );
   return entries;
+}
+
+/**
+ * The chip/statistics group each status counts towards — the key `statisticsEntries` emits and the
+ * status-filter chips toggle. Mirrors the `ImportStorageInfo` counters: the two UNKNOWN states share the
+ * `unknown` chip, and IMPORTED maps to its own `imported` group even though the current statistics line
+ * carries no such counter (so an IMPORTED row is simply never hidden).
+ */
+export const STATUS_GROUP_OF: Record<ImportStatus, string> = {
+  NEW: "new",
+  MODIFIED: "modified",
+  DELETED: "deleted",
+  UNMODIFIED: "unmodified",
+  IMPORTED: "imported",
+  UNKNOWN: "unknown",
+  UNKNOWN_MODIFICATION: "unknown",
+  FAULTY: "faulty",
+};
+
+/**
+ * The entries to show given the set of hidden status-group keys: an entry is kept when its group (see
+ * [STATUS_GROUP_OF]) is not hidden. Filtering here rather than at the backend keeps the toggle instant —
+ * the reconcile already fetched every status — and leaves the aggregate counts (over all rows) untouched.
+ */
+export function filterEntriesByStatus(
+  entries: ImportEntry<ImportRead>[],
+  hiddenKeys: Set<string>
+): ImportEntry<ImportRead>[] {
+  if (hiddenKeys.size === 0) return entries;
+  return entries.filter(
+    (entry) => !hiddenKeys.has(STATUS_GROUP_OF[entry.status])
+  );
 }
 
 /** The ids of the entries a user may still tick, out of a full view — used to gate "select all". */
