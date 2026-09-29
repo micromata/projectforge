@@ -141,6 +141,10 @@ object GenerateNextI18nMessagesMain {
     // series labels are passed to t()/t.rich() as variables (the message key is computed), so no scan
     // finds them.
     "personal.statistics.",
+    // Outgoing-invoice charts tab (components/features/invoice/invoice-charts-view.tsx): the tab label and
+    // the two chart headings are read under the "fibu.rechnung.chart" namespace, which the key scan of a
+    // namespaced t() call does not reconstruct.
+    "fibu.rechnung.chart.",
     // Liquidity-planning plugin (components/features/liquidity/): filter labels, statistics banner, the
     // forecast tab and its two charts reference these; several keys are passed to t() as variables (chart
     // series, forecast field labels), so no scan finds them.

@@ -5,14 +5,14 @@ import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate, formatNumber } from "@/lib/format";
+import { CHART_AREA_FILL_OPACITY } from "@/lib/charts/roles";
 
-/** One of the two plotted series ("Soll" / "Ist"); `color` is a CSS variable, e.g. `var(--chart-soll)`. */
+/** One of the two plotted series ("Soll" / "Ist"); `color` is a role colour from `lib/charts/roles.ts`. */
 export interface DisciplineSeries {
   key: string;
   label: string;
@@ -74,22 +74,10 @@ export function DisciplineChart({
           label={{ value: unitLabel, angle: -90, position: "insideLeft" }}
           tickFormatter={(value) => formatNumber(value, ctx, fractionDigits)}
         />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              labelFormatter={(value) => formatDate(value, ctx)}
-              formatter={(value, name) => (
-                <span className="flex w-full justify-between gap-2">
-                  <span className="text-muted-foreground">
-                    {config[String(name)]?.label ?? String(name)}
-                  </span>
-                  <span className="font-mono font-medium tabular-nums">
-                    {formatNumber(value as number, ctx, fractionDigits)}
-                  </span>
-                </span>
-              )}
-            />
-          }
+        <ChartValueTooltip
+          config={config}
+          formatValue={(value) => formatNumber(value, ctx, fractionDigits)}
+          formatLabel={(label) => formatDate(label, ctx)}
         />
         <ChartLegend content={<ChartLegendContent />} />
         {series.map((s) => (
@@ -99,7 +87,7 @@ export function DisciplineChart({
             type="linear"
             stroke={`var(--color-${s.key})`}
             fill={`var(--color-${s.key})`}
-            fillOpacity={0.12}
+            fillOpacity={CHART_AREA_FILL_OPACITY}
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}

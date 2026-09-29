@@ -94,6 +94,47 @@ export function recalculateInvoice(
   return recalculateInvoiceSums("outgoingInvoice", data, signal);
 }
 
+/** One year of the net-sum chart — see `OutgoingInvoiceEntityRest.NetSumYearSeries`. */
+export interface InvoiceNetSumYearSeries {
+  /** Years back from the filtered period: 0 is that period itself, 1 the previous year, and so on. */
+  offset: number;
+  /** The year of this series (or "2024–2025" when the period spans a year boundary). */
+  label: string;
+  /** The net sum per month, aligned to `InvoiceNetSumChartData.months`. */
+  monthly: number[];
+}
+
+/**
+ * What `OutgoingInvoiceEntityRest.netSumChart` answers — the reference period's months and one net-sum
+ * series per year. Both empty when the invoice-date filter is not a bounded range (the chart tab shows a
+ * hint then).
+ */
+export interface InvoiceNetSumChartData {
+  /** The months of the reference period as "yyyy-MM", in order — the shared x-axis of every series. */
+  months: string[];
+  /** One entry per year, newest (offset 0) first. */
+  series: InvoiceNetSumYearSeries[];
+}
+
+/**
+ * The monthly net sums of the filtered invoices, this year and the three before it — the data of the
+ * "Grafiken" tab (`POST /rs/outgoingInvoice/netSumChart`).
+ *
+ * Takes the same `MagicFilter` the list is showing, so the chart counts the invoices the list shows. The
+ * four years are that filter's invoice-date range shifted zero to three years back, every other criterion
+ * kept — the same shift the previous-year comparison of the statistics line uses (see `netSumChart`).
+ */
+export function fetchInvoiceNetSumChart(
+  filter: MagicFilter,
+  signal?: AbortSignal
+): Promise<InvoiceNetSumChartData> {
+  return request<InvoiceNetSumChartData>(
+    "/rs/outgoingInvoice/netSumChart",
+    { method: "POST", body: JSON.stringify(filter) },
+    signal
+  );
+}
+
 /** One entry of the `sellerBankAccount` select — the value is the IBAN, which is what the column holds. */
 export interface InvoiceBankAccount {
   value: string;

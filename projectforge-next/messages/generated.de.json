@@ -1113,6 +1113,12 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Bruttobetrag",
+      "chart": {
+        "_": "Grafiken",
+        "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
+        "cumulative": "Kumulierter Nettoumsatz",
+        "monthly": "Monatlicher Nettoumsatz"
+      },
       "currency": "Währung",
       "currencyConversion": {
         "warnings": {
