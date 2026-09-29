@@ -132,6 +132,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.FINANCE,
       AccountingRecordEntityRest::class.java,
+      EmployeeSalaryEntityRest::class.java,
       Kost1EntityRest::class.java,
       Kost2EntityRest::class.java,
       KontoPagesRest::class.java,

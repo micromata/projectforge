@@ -841,6 +841,14 @@
       "eintrittsdatum": "Entry date",
       "salary": {
         "bruttoMitAgAnteil": "Gross with employers' share",
+        "exportXls": {
+          "tooltip": "Excel export of the salaries. The cost id assignments are included and calculated from the time sheet bookings."
+        },
+        "title": {
+          "add": "Add salary",
+          "heading": "Salaries",
+          "list": "List of salaries"
+        },
         "type": {
           "_": "Payment method",
           "gehalt": "Salary",
