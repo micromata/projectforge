@@ -57,6 +57,10 @@ export const orderPositionSchema = z.object({
   periodOfPerformanceEnd: p.nullableString("periodOfPerformanceEnd"),
   modeOfPaymentType: p.enumField("modeOfPaymentType"),
   task: p.entityField("task"),
+  // The net-sum calculator's breakdown as JSON — persisted so the calculation can be reopened and
+  // edited. A plain field, not from metadata (an opaque blob, `AuftragsPositionDO.calculationData`
+  // carries no @PropertyInfo), like `id`/`deleted` above.
+  calculationData: z.string().nullable(),
 });
 
 /** One instalment of the payment schedule. `positionNumber` refers to a position's number, not its id. */

@@ -168,6 +168,14 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null
 
+  /**
+   * The net-sum calculator's breakdown as JSON (a list of role/dayRate/personDays lines). Internal
+   * persistence of the frontend scratchpad behind [nettoSumme]/[personDays]; not a labelled user field,
+   * so intentionally without @PropertyInfo (kept out of the generated metadata and the search index).
+   */
+  @get:Column(name = "calculation_data", length = 10000)
+  open var calculationData: String? = null
+
   val isEmpty: Boolean
     @Transient
     get() {

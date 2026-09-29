@@ -33,14 +33,45 @@ const emptyRow = (): CalcRow => ({
   personDays: null,
 });
 
+/** A row carries data worth keeping the moment any of its three inputs is filled in. */
+const isMeaningful = (row: CalcRow) =>
+  row.label.trim() !== "" || row.dayRate != null || row.personDays != null;
+
+/**
+ * Parse the persisted breakdown JSON back into rows. Tolerant on purpose — a blob that predates a
+ * field or was hand-edited must not throw, it falls back to a single empty line.
+ */
+const parseRows = (json: string | null | undefined): CalcRow[] => {
+  if (!json) return [emptyRow()];
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed) || parsed.length === 0) return [emptyRow()];
+    return parsed.map((row) => ({
+      label: typeof row?.label === "string" ? row.label : "",
+      dayRate: typeof row?.dayRate === "number" ? row.dayRate : null,
+      personDays: typeof row?.personDays === "number" ? row.personDays : null,
+    }));
+  } catch {
+    return [emptyRow()];
+  }
+};
+
 export interface NetSumCalculatorProps {
   /** Full form-field name of the position's net sum, e.g. `positionen[2].nettoSumme`. */
   netSumName: string;
   /** Full form-field name of the position's person days, e.g. `positionen[2].personDays`. */
   personDaysName: string;
+  /** Full form-field name of the position's stored breakdown JSON, e.g. `positionen[2].calculationData`. */
+  calculationDataName: string;
   /** The currency behind the daily-rate boxes — the user's, never spelled out (see NumberBox). */
   currency?: string;
   disabled?: boolean;
+  /**
+   * Controlled open state, so the row's header can open the calculator from its title link. Falls back
+   * to internal state when both are omitted (the icon button beside the net sum opens it on its own).
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -49,22 +80,30 @@ export interface NetSumCalculatorProps {
  * and the total person days into its `personDays` field — the numbers the user would otherwise reach
  * for on a side calculator before typing the result into the form.
  *
- * Ephemeral on purpose: the breakdown is a means to a number, not part of the order (there is no
- * daily-rate model on `AuftragsPositionDO`), so it lives in local state and is gone once the sum is
- * taken. Setting the two form fields is all it leaves behind, which the debounced `useOrderSums` then
- * folds into the order's shown total like any other edit.
+ * The breakdown itself is persisted too, as JSON in the position's `calculationData` field, so the
+ * calculation behind the net sum survives save and can be reopened and edited (the header shows a
+ * calculator icon whenever it holds data). Applying an emptied calculator clears that field again.
  */
 export function NetSumCalculator({
   netSumName,
   personDaysName,
+  calculationDataName,
   currency,
   disabled,
+  open: controlledOpen,
+  onOpenChange,
 }: NetSumCalculatorProps) {
   const t = useTranslations();
   const form = useEntityEditForm();
   const format = useFormatContext();
-  const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState<CalcRow[]>(() => [emptyRow()]);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  // Seeded from the persisted breakdown. The row is unmounted while its position is collapsed, so this
+  // initializer runs fresh on each expand and picks up whatever was last applied.
+  const [rows, setRows] = useState<CalcRow[]>(() =>
+    parseRows(form.getFieldValue(calculationDataName as never) as never)
+  );
 
   const totals = useMemo(() => {
     let netSum = 0;
@@ -97,6 +136,13 @@ export function NetSumCalculator({
       personDaysName as never,
       Number(totals.personDays.toFixed(2)) as never
     );
+    // Persist the breakdown behind the sum — or clear it, so an emptied calculator drops the header
+    // marker instead of leaving a stale "[]" behind.
+    const meaningful = rows.filter(isMeaningful);
+    form.setFieldValue(
+      calculationDataName as never,
+      (meaningful.length > 0 ? JSON.stringify(meaningful) : null) as never
+    );
     setOpen(false);
   };
 
@@ -127,8 +173,22 @@ export function NetSumCalculator({
                 aria-label={t("order.calculator.role")}
                 className="h-7 w-16 shrink-0"
               />
-              {/* NumberBox forwards its `className` to the inner input, not its wrapper — so the
-                  column widths are set on wrappers around it, not on the boxes themselves. */}
+              {/* Quantity × rate: the person days first, then the daily rate — read as "3 days at
+                  1.200 €". NumberBox forwards its `className` to the inner input, not its wrapper, so
+                  the column widths are set on wrappers around it, not on the boxes themselves. */}
+              <div className="w-20 shrink-0">
+                <NumberBox
+                  value={row.personDays}
+                  onChange={(next) => update(index, { personDays: next })}
+                  fractionDigits={2}
+                  grouped
+                  aria-label={t("projectmanagement.personDays._")}
+                  className="h-7"
+                />
+              </div>
+              <span aria-hidden className="text-muted-foreground">
+                ×
+              </span>
               <div className="min-w-0 flex-1">
                 <NumberBox
                   value={row.dayRate}
@@ -137,19 +197,6 @@ export function NetSumCalculator({
                   suffix={currency}
                   grouped
                   aria-label={t("order.calculator.dayRate")}
-                  className="h-7"
-                />
-              </div>
-              <span aria-hidden className="text-muted-foreground">
-                ×
-              </span>
-              <div className="w-20 shrink-0">
-                <NumberBox
-                  value={row.personDays}
-                  onChange={(next) => update(index, { personDays: next })}
-                  fractionDigits={2}
-                  grouped
-                  aria-label={t("projectmanagement.personDays._")}
                   className="h-7"
                 />
               </div>
