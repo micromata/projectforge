@@ -69,7 +69,11 @@ export function FeedbackForm({ initial }: { initial: FeedbackInitialData }) {
           />
         </Field>
         <div className="flex items-center gap-3">
-          <Button type="button" variant="outline" onClick={() => router.push("/")}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/")}
+          >
             {t("cancel")}
           </Button>
           <Button

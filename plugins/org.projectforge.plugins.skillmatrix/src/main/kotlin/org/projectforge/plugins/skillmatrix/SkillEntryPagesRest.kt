@@ -65,11 +65,14 @@ class SkillEntryPagesRest() : AbstractDTOPagesRest<SkillEntryDO, SkillEntry, Ski
     }
 
     override fun transformFromDB(obj: SkillEntryDO, editMode: Boolean): SkillEntry {
+        // Resolve the owner from the user cache before copyFrom: the reflective copy reads the DO's owner
+        // field and its copyFromMinimal touches deleted/deactivated, which would initialize the lazy proxy
+        // and fire one T_PF_USER select per row (N+1). Swapping in the cached, fully-initialized user (by
+        // id only, see UserGroupCache.getUserIfNotInitialized) avoids the load. Same pattern as PfCaches.
+        obj.owner = caches.getUserIfNotInitialized(obj.owner)
         val entry = SkillEntry()
         entry.copyFrom(obj)
-        caches.getUser(obj.owner?.id)?.let { userDO ->
-            entry.owner = User(userDO)
-        }
+        obj.owner?.let { entry.owner = User(it) }
         return entry
     }
 

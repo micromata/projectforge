@@ -229,6 +229,16 @@ object NextMigration {
             newEntryRoute = "cost2/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // The cost-2 types ("Kost2-Arten"), migrated from Wicket (MenuItemDefId.COST2_TYPE_LIST pointed at
+        // wa/cost2TypeList): the way back leads to Wicket. Kost2ArtEntityRest serves no layout, so there is
+        // no React page - only the hand built projectforge-next one and Wicket. Wicket's mount points follow
+        // the convention (cost2TypeList / cost2TypeEdit), so no legacy route has to be spelled out.
+        "cost2Type" to NextPage(
+            route = "cost2Type",
+            editRoute = "cost2Type/$ID_PLACEHOLDER",
+            newEntryRoute = "cost2Type/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Migrated from Wicket (MenuItemDefId.CUSTOMER_LIST pointed at wa/customerList; the React page exists
         // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"), so the way
         // back leads to Wicket. Hand built rather than generic so the list keeps its filter row, saved
