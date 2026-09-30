@@ -172,14 +172,9 @@ open class ForecastExport { // open needed by Wicket.
                 }"
             }
         }
-        val showAll = accessChecker.isLoggedInUserMemberOfGroup(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP
-        ) &&
-                filter.searchString.isNullOrBlank() &&
-                filter.projectList.isNullOrEmpty()
+        val showAll = isShowAll(filter)
         try {
-            return xlsExport(
+            return export(
                 orderList,
                 startDate = startDate,
                 planningDate = closestPlanningDate,
@@ -189,11 +184,55 @@ open class ForecastExport { // open needed by Wicket.
                 scriptLogger = scriptLogger,
                 distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
                 fillUnitCol = fillUnitCol,
-            )
+                chartsOnly = false,
+            )?.xls
         } catch (ex: Exception) {
             log.error(ex) { "Error exporting forecast: $ex" }
             throw ex
         }
+    }
+
+    /**
+     * The monthly totals of the forecast charts (sheet 'Grafiken 1' of the Excel export) for the web frontend.
+     * Runs the same pipeline as [xlsExport] (same order selection, relevance, invoice and planning rules), so the
+     * values are those the Excel shows without any autofilter set, but skips everything only needed for the file
+     * (project overview, formula evaluation, serialization).
+     * @param origFilter The filter for the orders, all criteria are applied (see copyAllFilterCriteria of [xlsExport]).
+     * The start month is taken from its period of performance start date (begin of the year, if not given).
+     * @param planningDate If given, the plan is calculated from the closest order book snapshot.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun chartData(
+        origFilter: AuftragFilter,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ForecastChartData? {
+        val startDate = getStartDate(origFilter)
+        val filter = buildQueryFilter(origFilter, startDate, copyAllFilterCriteria = true)
+        val closestPlanningDate = getClosestSnapshotDate(planningDate, null, "planning")
+        val orderList = orderDao.select(filter)
+        return export(
+            orderList,
+            startDate = startDate,
+            planningDate = closestPlanningDate,
+            snapshotDate = null,
+            showAll = isShowAll(filter),
+            auftragFilter = filter,
+            scriptLogger = null,
+            distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            fillUnitCol = null,
+            chartsOnly = true,
+        )?.chartData
+    }
+
+    /** True, if no filter is given, for financial and controlling staff only. */
+    private fun isShowAll(filter: AuftragFilter): Boolean {
+        return accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        ) &&
+                filter.searchString.isNullOrBlank() &&
+                filter.projectList.isNullOrEmpty()
     }
 
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
@@ -315,10 +354,12 @@ open class ForecastExport { // open needed by Wicket.
      * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
      *              If the date is in the past, the forecast will be simulated with the specified date.
      *              If date is given, no caches will be used.
-     * @return The byte array of the Excel file.
+     * @param chartsOnly If true, only the month totals for the charts are calculated: the Excel file itself isn't
+     *              finished (no project overview, no formula evaluation) and not serialized.
+     * @return The byte array of the Excel file (unless [chartsOnly]) and the month totals for the charts.
      */
     @Throws(IOException::class)
-    private fun xlsExport(
+    private fun export(
         orderList: Collection<AuftragDO>,
         startDate: PFDay,
         showAll: Boolean,
@@ -328,7 +369,8 @@ open class ForecastExport { // open needed by Wicket.
         scriptLogger: ScriptLogger?,
         distributeUnusedBudget: Boolean,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)?,
-    ): ByteArray? {
+        chartsOnly: Boolean,
+    ): ExportResult? {
         if (orderList.isEmpty()) {
             val msg = "No orders found for export."
             scriptLogger?.info { msg } ?: log.info { msg } // scriptLogger does also log.info
@@ -434,6 +476,16 @@ open class ForecastExport { // open needed by Wicket.
                 baseDate = snapshotDate,
                 useAuftragsCache,
             )
+            if (chartsOnly) {
+                if (!orderPositionsFound && ctx.invoicedProjectIds.isEmpty()) {
+                    return null
+                }
+                fillPlanningForecast(planningDate, ctx)
+                return ExportResult(
+                    xls = null,
+                    chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+                )
+            }
             // The invoice sheets' visible formulas reference the forecast sheet's visibleID range, which only exists
             // after fillOrderPositions has written all its rows. Fill them now with the exact last forecast row.
             forecastExportInvoices.fillInvoiceVisibleColumn(ctx)
@@ -469,9 +521,14 @@ open class ForecastExport { // open needed by Wicket.
             // which is what keeps the SUBTOTAL-based visible column correct once the user applies a filter.
             workbook.pOIWorkbook.creationHelper.createFormulaEvaluator().evaluateAll()
             workbook.pOIWorkbook.setForceFormulaRecalculation(true)
-            return workbook.asByteArrayOutputStream.toByteArray()
+            return ExportResult(
+                xls = workbook.asByteArrayOutputStream.toByteArray(),
+                chartData = ctx.chartTotals.build(startDate, ctx.forecastRowProjectIds, planningDate),
+            )
         }
     }
+
+    private class ExportResult(val xls: ByteArray?, val chartData: ForecastChartData)
 
     private fun analyzeOrderPositions(
         orderList: Collection<AuftragDO>,
@@ -933,6 +990,12 @@ open class ForecastExport { // open needed by Wicket.
                     monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP),
                 )
             cell.cellStyle = ctx.currencyCellStyle
+            val chartValue = monthEntry.toBeInvoicedSum.setScale(2, RoundingMode.HALF_UP)
+            if (isPlanningSheet) {
+                ctx.chartTotals.addPlanningForecast(pos.status, order.projektId, offset, chartValue)
+            } else {
+                ctx.chartTotals.addForecast(pos.status, offset, chartValue)
+            }
             if (monthEntry.lostBudgetWarning) {
                 val errorStyle = when {
                     monthEntry.lostBudget > NumberHelper.HUNDRED_THOUSAND -> ctx.hugeErrorCellStyle
