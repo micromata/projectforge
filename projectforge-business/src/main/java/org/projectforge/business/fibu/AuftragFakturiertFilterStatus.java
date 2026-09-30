@@ -41,7 +41,12 @@ public enum AuftragFakturiertFilterStatus implements I18nEnum
    */
   ZU_FAKTURIEREN_FOLGEMONATE("zuFakturierenFolgemonate"),
   /** The order isn't fully invoiced. */
-  NICHT_FAKTURIERT("nochNichtVollstaendigFakturiert");
+  NICHT_FAKTURIERT("nochNichtVollstaendigFakturiert"),
+  /**
+   * Positions or payment schedules are marked as fully invoiced, but an amount is still remaining (e.g. an invoice was
+   * cancelled afterwards). See {@link OrderInfo#getVollstaendigFakturiertMitRestbetrag()}.
+   */
+  FAKTURIERT_MIT_RESTBETRAG("vollstaendigFakturiertMitRestbetrag");
 
   private final String i18nKey;
 

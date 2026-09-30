@@ -197,6 +197,14 @@ class OrderInfo : Serializable {
     var isVollstaendigFakturiert: Boolean = false
 
     /**
+     * True if positions or payment schedules are marked as fully invoiced, but the remaining amount not invoiced is
+     * at least [MIN_REMAINING_AMOUNT], e.g. because an invoice was cancelled afterwards. Such orders have to be checked,
+     * because the remaining amount isn't shown as to be invoiced anywhere.
+     * @see calculateVollstaendigFakturiertMitRestbetrag
+     */
+    var vollstaendigFakturiertMitRestbetrag: Boolean = false
+
+    /**
      * @return The sum of person days of all positions.
      */
     var personDays = BigDecimal.ZERO
@@ -343,6 +351,7 @@ class OrderInfo : Serializable {
             notYetInvoicedSum = BigDecimal.ZERO
         }
         isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(this, positionInfos, paymentScheduleEntries)
+        vollstaendigFakturiertMitRestbetrag = calculateVollstaendigFakturiertMitRestbetrag(this, positionInfos, paymentScheduleEntries)
         paymentSchedulesReached = paymentScheduleEntries?.any { it.toBeInvoiced } ?: false
         toBeInvoiced = false
         if (paymentSchedulesReached) {
@@ -392,12 +401,20 @@ class OrderInfo : Serializable {
             toBeInvoicedImmediatelySum = BigDecimal.ZERO
             datedToBeInvoicedSchedules = emptyList()
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false
+            vollstaendigFakturiertMitRestbetrag = false
             notYetInvoicedSum = BigDecimal.ZERO
             paymentSchedulesReached = false
         }
     }
 
     companion object {
+        /**
+         * Minimum amount not invoiced of positions or payment schedules marked as fully invoiced, from which on the
+         * order is marked as [vollstaendigFakturiertMitRestbetrag]. Smaller remaining amounts (e.g. roundings) are
+         * ignored.
+         */
+        val MIN_REMAINING_AMOUNT: BigDecimal = BigDecimal.ONE
+
         /**
          * The cutoff for due payment schedules: the last day of the current month, because invoicing is done
          * monthly.
@@ -452,6 +469,34 @@ class OrderInfo : Serializable {
                 return false
             }
             return true
+        }
+
+        /**
+         * Invoices are assigned to positions, not to payment schedules. So the payment schedules marked as fully
+         * invoiced are compared with the invoiced sum of their position, and unassigned ones with the invoiced sum of
+         * the whole order.
+         * @see vollstaendigFakturiertMitRestbetrag
+         */
+        private fun calculateVollstaendigFakturiertMitRestbetrag(
+            orderInfo: OrderInfo,
+            positions: Collection<OrderPositionInfo>?,
+            paymentSchedules: Collection<PaymentScheduleInfo>?
+        ): Boolean {
+            if (positions?.any { it.vollstaendigFakturiertMitRestbetrag } == true) {
+                return true
+            }
+            val invoicedSchedules = paymentSchedules?.filter { it.valid && it.vollstaendigFakturiert } ?: return false
+            invoicedSchedules.groupBy { it.positionNumber }.forEach { (positionNumber, schedules) ->
+                val invoicedSum = if (positionNumber == null) {
+                    orderInfo.invoicedSum
+                } else {
+                    positions?.find { it.number == positionNumber && !it.deleted }?.invoicedSum ?: BigDecimal.ZERO
+                }
+                if (schedules.sumOf { it.amount!! } - invoicedSum >= MIN_REMAINING_AMOUNT) {
+                    return true
+                }
+            }
+            return false
         }
 
         private fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {

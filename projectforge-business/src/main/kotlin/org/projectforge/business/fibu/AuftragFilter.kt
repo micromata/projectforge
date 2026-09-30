@@ -196,6 +196,9 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.NICHT_FAKTURIERT) {
             return orderInfo.notYetInvoicedSum > BigDecimal.ZERO
         }
+        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.FAKTURIERT_MIT_RESTBETRAG) {
+            return orderInfo.vollstaendigFakturiertMitRestbetrag
+        }
         return true
     }
 }

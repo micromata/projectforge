@@ -42,6 +42,7 @@ class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) :
                 AuftragFakturiertFilterStatus.ZU_FAKTURIEREN -> orderInfo.isToBeInvoicedBy(cutoff)
                 AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE -> orderInfo.isToBeInvoicedAfter(cutoff)
                 AuftragFakturiertFilterStatus.NICHT_FAKTURIERT -> !orderInfo.isVollstaendigFakturiert
+                AuftragFakturiertFilterStatus.FAKTURIERT_MIT_RESTBETRAG -> orderInfo.vollstaendigFakturiertMitRestbetrag
                 AuftragFakturiertFilterStatus.ALL -> true
             }
         }
