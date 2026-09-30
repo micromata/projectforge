@@ -620,7 +620,9 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
-          "zuFakturieren": "zu fakturieren"
+          "vollstaendigFakturiertMitRestbetrag": "als vollständig fakturiert markiert, aber Restbetrag offen",
+          "zuFakturieren": "diesen Monat zu fakturieren",
+          "zuFakturierenFolgemonate": "in Folgemonaten zu fakturieren"
         }
       },
       "forecast": {
@@ -726,6 +728,10 @@
         "_": "Nettosumme",
         "weighted": "Gewichtete Nettosumme"
       },
+      "nextInvoice": {
+        "_": "Nächste Rechnung",
+        "immediately": "sofort"
+      },
       "notification": {
         "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
       },
@@ -751,6 +757,10 @@
         },
         "error": {
           "notFound": "Auftragsposition nicht gefunden."
+        },
+        "fehlbetrag": {
+          "_": "Fehlbetrag",
+          "info": "Die Position ist als vollständig fakturiert markiert, aber ihre gültigen Rechnungen (ohne geplante und stornierte) ergeben weniger als ihr Nettowert bzw. als ihre als vollständig fakturiert markierten Zahlungsmeilensteine."
         },
         "noTaskGiven": "Keinem Strukturelement zugeordnet.",
         "paymenttype": {

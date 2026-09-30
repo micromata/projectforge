@@ -48,7 +48,15 @@ export interface OrderSums {
    */
   weightedProbabilityOfOccurrence?: number | null;
   vollstaendigFakturiert: boolean;
+  /** Something is due until the end of the current month (`OrderInfo.isToBeInvoicedBy`). */
   toBeInvoiced: boolean;
+  /**
+   * ISO date of the earliest reached payment schedule not yet invoiced — possibly in a following month.
+   * Absent if nothing is to be invoiced.
+   */
+  nextInvoiceDate?: string | null;
+  /** Something is to be invoiced right now, e.g. a finished position (`OrderInfo.toBeInvoicedImmediately`). */
+  toBeInvoicedImmediately: boolean;
   /**
    * The period of performance over *all* positions, as ISO dates: the earliest begin and the latest end
    * any position effectively has. Computed by the backend, because which of the two dates a position

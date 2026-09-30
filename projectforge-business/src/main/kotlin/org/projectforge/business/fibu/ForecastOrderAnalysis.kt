@@ -569,7 +569,9 @@ class ForecastOrderAnalysis {
         posInfo: OrderPositionInfo,
         snapshotDate: LocalDate?
     ): Collection<RechnungPosInfo>? {
+        // Planned or cancelled invoices neither count as invoiced nor cover forecast months:
         val invoicePositions = auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(posInfo.id)
+            ?.filter { it.isInvoiced }
         return if (snapshotDate == null) {
             invoicePositions
         } else {

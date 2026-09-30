@@ -64,6 +64,11 @@ export interface InvoiceRef {
 export interface PositionInvoiceInfo {
   invoicedSum?: number | null;
   notInvoicedSum?: number | null;
+  /**
+   * Amount not invoiced, although the position (or its payment schedules) is marked as fully invoiced — e.g. an
+   * invoice was cancelled afterwards. Absent if there is none (`OrderInfo.getFehlbetrag`).
+   */
+  fehlbetrag?: number | null;
   invoices?: InvoiceRef[] | null;
   /** True when an invoice references this position — then it must not be deleted. */
   invoicedElsewhere?: boolean;
@@ -190,12 +195,21 @@ export interface OrderListRow {
   beauftragtNettoSumme?: number | null;
   fakturiertSum?: number | null;
   zuFakturierenSum?: number | null;
+  /** Not invoiced, although marked as fully invoiced (`OrderInfo.fehlbetrag`); absent if none. */
+  fehlbetrag?: number | null;
   periodOfPerformanceBegin?: string | null;
   periodOfPerformanceEnd?: string | null;
   probabilityOfOccurrence?: number | null;
   status?: AuftragsStatus | null;
-  /** True when at least one position/schedule is due to be invoiced — drives row highlighting. */
+  /**
+   * True when at least one position/schedule is due to be invoiced until the end of the current month —
+   * drives row highlighting. A payment schedule reached early, dated in a following month, isn't due yet.
+   */
   toBeInvoiced?: boolean | null;
+  /** ISO date of the earliest reached payment schedule not yet invoiced (`OrderInfo.nextInvoiceDate`). */
+  nextInvoiceDate?: string | null;
+  /** Something is to be invoiced right now, e.g. a finished position (`OrderInfo.toBeInvoicedImmediately`). */
+  toBeInvoicedImmediately?: boolean | null;
   attachmentsCounter?: number | null;
   attachmentsSizeFormatted?: string | null;
   /** Every list offers both as a column, `lastUpdate` shown from the start (see lib/page-def/audit-columns.ts). */

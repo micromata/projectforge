@@ -620,7 +620,9 @@
           "all": "all",
           "nochNichtVollstaendigFakturiert": "not completely invoiced",
           "vollstaendigFakturiert": "completely invoiced",
-          "zuFakturieren": "to be invoiced"
+          "vollstaendigFakturiertMitRestbetrag": "marked as completely invoiced, but amount remaining",
+          "zuFakturieren": "to be invoiced this month",
+          "zuFakturierenFolgemonate": "to be invoiced in following months"
         }
       },
       "forecast": {
@@ -726,6 +728,10 @@
         "_": "Net sum",
         "weighted": "Weighted net sum"
       },
+      "nextInvoice": {
+        "_": "Next invoice",
+        "immediately": "immediately"
+      },
       "notification": {
         "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
       },
@@ -751,6 +757,10 @@
         },
         "error": {
           "notFound": "Order position not found."
+        },
+        "fehlbetrag": {
+          "_": "Shortfall",
+          "info": "The position is marked as completely invoiced, but its valid invoices (without planned or cancelled ones) sum up to less than its net sum or its payment schedules marked as completely invoiced."
         },
         "noTaskGiven": "No structure element given!",
         "paymenttype": {

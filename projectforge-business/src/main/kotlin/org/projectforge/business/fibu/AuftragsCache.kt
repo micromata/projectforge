@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -55,6 +56,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     private var orderPositionMapByPosId = mapOf<Long, OrderPositionInfo>()
 
     private var toBeInvoicedCounter: Int? = null
+
+    /** The cutoff [toBeInvoicedCounter] was counted for: it is out of date with the next month. */
+    private var toBeInvoicedCounterCutoff: LocalDate? = null
 
     @PostConstruct
     private fun init() {
@@ -109,19 +113,24 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     }
 
     /**
-     * Number of all orders (finished, signed or escalated) which has to be invoiced.
+     * Number of all orders (finished, signed or escalated) which has to be invoiced until the end of the current
+     * month (see [OrderInfo.isToBeInvoicedBy]).
      */
     fun getToBeInvoicedCounter(): Int {
-        if (toBeInvoicedCounter != null) {
-            return toBeInvoicedCounter!!
+        val cutoff = OrderInfo.invoiceCutoff()
+        toBeInvoicedCounter?.let { counter ->
+            if (toBeInvoicedCounterCutoff == cutoff) {
+                return counter
+            }
         }
         // No sync, immutable map.
-        val counter = orderInfoMap.values.count { it.toBeInvoiced }
+        val counter = orderInfoMap.values.count { it.isToBeInvoicedBy(cutoff) }
         log.debug {
             "To be invoiced counter=$counter: ${
-                orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+                orderInfoMap.values.filter { it.isToBeInvoicedBy(cutoff) }.joinToString { it.nummer.toString() }
             }"
         }
+        toBeInvoicedCounterCutoff = cutoff
         toBeInvoicedCounter = counter
         return counter
     }
