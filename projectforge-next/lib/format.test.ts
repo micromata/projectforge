@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDateRange,
+  formatMonthRange,
   formatPercentageDecimal,
   formatTimestampRange,
   type FormatContext,
@@ -54,5 +55,25 @@ describe("formatPercentageDecimal", () => {
     expect(formatPercentageDecimal(1, CTX, 0)).toBe(percent("100 %"));
     // Signed: a row of the wrong sign against a positive net sum reads as one.
     expect(formatPercentageDecimal(-0.2, CTX, 0)).toBe(percent("-20 %"));
+  });
+});
+
+describe("formatMonthRange", () => {
+  it("names the months of both ends, whatever day of them the bounds are", () => {
+    expect(formatMonthRange("2026-01-01", "2026-07-31", CTX)).toBe(
+      "Januar 2026 – Juli 2026"
+    );
+    expect(formatMonthRange("2026-01-15", "2026-07-01", CTX)).toBe(
+      "Januar 2026 – Juli 2026"
+    );
+  });
+
+  it("names a single month once", () => {
+    expect(formatMonthRange("2026-03-01", "2026-03-31", CTX)).toBe("März 2026");
+  });
+
+  it("is half-open and empty as a date range is", () => {
+    expect(formatMonthRange("2026-03-01", null, CTX)).toBe("März 2026 – …");
+    expect(formatMonthRange(null, undefined, CTX)).toBe("");
   });
 });

@@ -136,6 +136,43 @@ export function formatMonthName(month: number, ctx: FormatContext): string {
   );
 }
 
+/** The abbreviated month name in the user's language, e.g. 1 → "Jan." — for a grid of twelve months. */
+export function formatMonthShortName(
+  month: number,
+  ctx: FormatContext
+): string {
+  return new Intl.DateTimeFormat(ctx.locale, { month: "short" }).format(
+    new Date(2000, month - 1, 15)
+  );
+}
+
+/**
+ * The month an ISO date lies in, with its year, e.g. `2026-03-17` → "März 2026". Only the date part is
+ * read (no time zone applies to a calendar month); empty for anything that is no ISO date.
+ */
+export function formatYearMonth(iso: unknown, ctx: FormatContext): string {
+  const match = typeof iso === "string" ? /^(\d{4})-(\d{2})/.exec(iso) : null;
+  if (!match) return "";
+  return new Intl.DateTimeFormat(ctx.locale, {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(+match[1], +match[2] - 1, 15));
+}
+
+/**
+ * A range of whole months, e.g. "Januar 2026 – Juli 2026"; a single month once ("März 2026"). Half-open
+ * and empty as [formatDateRange].
+ */
+export function formatMonthRange(
+  begin: unknown,
+  end: unknown,
+  ctx: FormatContext
+): string {
+  const from = formatYearMonth(begin, ctx);
+  const to = formatYearMonth(end, ctx);
+  return from && from === to ? from : joinRange(from, to);
+}
+
 /**
  * Both ends of a period as the one value it is, e.g. `01.01.2026 – 31.12.2026`.
  *

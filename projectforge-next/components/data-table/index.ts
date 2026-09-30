@@ -21,7 +21,13 @@ export type { FilterValues } from "./filter-value";
 export { filterEntriesOf, filterValuesFromEntries } from "./filter-value";
 export { refreshedPeriodValues } from "./filter-period";
 export { DataTablePagination } from "./data-table-pagination";
-export { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "./page-size-options";
+export {
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+  TRANSIENT_PAGE_SIZE,
+  storablePageSize,
+  useStorablePageSize,
+} from "./page-size-options";
 export { ColumnFilter } from "./column-filter";
 export type { ColumnFilterValue, FilterKind } from "./column-filter-types";
 export { universalFilterFn, toFilterText, toDateString } from "./filter-fns";

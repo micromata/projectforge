@@ -96,6 +96,13 @@ class AuftragsPosition(
     var notInvoicedSum: BigDecimal? = null
 
     /**
+     * Amount not invoiced, although the position (or its payment schedules) is marked as fully invoiced, e.g.
+     * because an invoice was cancelled afterwards; null if none (see
+     * [org.projectforge.business.fibu.OrderInfo.getFehlbetrag]). Read-only.
+     */
+    var fehlbetrag: BigDecimal? = null
+
+    /**
      * The invoices this position was invoiced with, one entry per invoice (an invoice may hold several
      * positions pointing here, their net sums summed up). Read-only, shown as links.
      */

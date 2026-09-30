@@ -112,6 +112,18 @@ export function PositionRowHeader({
               {status.label}
             </Badge>
           )}
+          {/* Marked as fully invoiced, but not covered by valid invoices (e.g. one was cancelled afterwards):
+              nothing else shows this amount as to be invoiced, so it stands out in the title, folded or not. */}
+          {invoiceInfo?.fehlbetrag != null && (
+            <HintTooltip
+              openOnTap
+              text={t("fibu.auftrag.position.fehlbetrag.info")}
+            >
+              <span className="shrink-0 cursor-help font-bold text-destructive tabular-nums">
+                {`${t("fibu.auftrag.position.fehlbetrag._")}: ${formatCurrency(invoiceInfo.fehlbetrag, format)}`}
+              </span>
+            </HintTooltip>
+          )}
           {/*
            * The probability the forecast applies to this position, next to the sum it weighs — the same number
            * the sums line shows for the order, but here per position, which is where it is actually defined

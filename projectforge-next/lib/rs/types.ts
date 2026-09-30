@@ -290,6 +290,7 @@ export interface DynamicLayoutNode {
 export type FilterType =
   | "STRING"
   | "DATE"
+  | "MONTH"
   | "TIMESTAMP"
   | "BOOLEAN"
   | "OBJECT"

@@ -71,6 +71,15 @@ class OrderFilterTest {
         assertEquals(LocalDate.of(2025, 9, 30), filter.endDate)
     }
 
+    @Test
+    fun `to be invoiced in following months reaches the legacy filter`() {
+        val magicFilter = MagicFilter()
+        magicFilter.entries.add(entry("fakturiert", values = arrayOf("ZU_FAKTURIEREN_FOLGEMONATE")))
+
+        val filter = OrderEntityRest.toAuftragFilter(magicFilter)
+        assertEquals(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE, filter.auftragFakturiertFilterStatus)
+    }
+
     /**
      * Every value of the filter panel is a string from the client, so an unknown one must be dropped
      * rather than throwing: a stored favorite of an enum value that has since been renamed would

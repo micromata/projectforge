@@ -60,7 +60,11 @@ open class UIFilterElement(
          */
         var defaultFilter: Boolean? = null
 ) : UIElement(UIElementType.FILTER_ELEMENT), UILabelledElement {
-    enum class FilterType { STRING, DATE, TIMESTAMP, BOOLEAN, OBJECT, LIST }
+    /**
+     * MONTH is a DATE range of whole calendar months (the values are still `yyyy-MM-dd`: the first day of the
+     * begin month, the last day of the end month) — for a field the query reads by year and month only.
+     */
+    enum class FilterType { STRING, DATE, MONTH, TIMESTAMP, BOOLEAN, OBJECT, LIST }
 
     /**
      * Translated label of the group this field belongs to, taken from the parent chain of its

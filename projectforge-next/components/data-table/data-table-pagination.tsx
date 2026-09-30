@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
 import { useFormatContext } from "@/hooks/use-format";
-import { PAGE_SIZE_OPTIONS } from "./page-size-options";
+import { PAGE_SIZE_OPTIONS, TRANSIENT_PAGE_SIZE } from "./page-size-options";
 import { PAGE_GAP, pageSlots } from "./page-slots";
 
 interface DataTablePaginationProps<TData> {
@@ -37,9 +37,10 @@ export function DataTablePagination<TData>({
   });
   // A page can set a size of its own (the address import uses 500), and a size stored for the user may
   // predate the current list - so the active one is always offered, or the select would show blank.
-  const sizes = pageSizeOptions.includes(pageSize)
-    ? pageSizeOptions
-    : [...pageSizeOptions, pageSize].sort((a, b) => a - b);
+  // TRANSIENT_PAGE_SIZE is always offered too; it is never stored as the user's size (see storablePageSize).
+  const sizes = [
+    ...new Set([...pageSizeOptions, TRANSIENT_PAGE_SIZE, pageSize]),
+  ].sort((a, b) => a - b);
 
   return (
     // Three columns rather than `justify-between`: the two outer ones are equally wide whatever they
@@ -121,7 +122,7 @@ export function DataTablePagination<TData>({
         >
           {sizes.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {formatNumber(s, formatCtx)}
             </option>
           ))}
         </select>

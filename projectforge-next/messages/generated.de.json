@@ -384,12 +384,14 @@
       "october": "Oktober",
       "september": "September"
     },
+    "nextYear": "Nächstes Jahr",
     "option": {
       "firstHour": "Tagesbeginn",
       "gridSize": "Raster in Minuten",
       "showBreaks": "Pausen",
       "timesheets": "Zeitberichte"
     },
+    "previousYear": "Vorheriges Jahr",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quickselect - aktueller Monat",
@@ -618,7 +620,9 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
-          "zuFakturieren": "zu fakturieren"
+          "vollstaendigFakturiertMitRestbetrag": "als vollständig fakturiert markiert, aber Restbetrag offen",
+          "zuFakturieren": "diesen Monat zu fakturieren",
+          "zuFakturierenFolgemonate": "in Folgemonaten zu fakturieren"
         }
       },
       "forecast": {
@@ -724,6 +728,10 @@
         "_": "Nettosumme",
         "weighted": "Gewichtete Nettosumme"
       },
+      "nextInvoice": {
+        "_": "Nächste Rechnung",
+        "immediately": "sofort"
+      },
       "notification": {
         "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
       },
@@ -750,6 +758,10 @@
         "error": {
           "notFound": "Auftragsposition nicht gefunden."
         },
+        "fehlbetrag": {
+          "_": "Fehlbetrag",
+          "info": "Die Position ist als vollständig fakturiert markiert, aber ihre gültigen Rechnungen (ohne geplante und stornierte) ergeben weniger als ihr Nettowert bzw. als ihre als vollständig fakturiert markierten Zahlungsmeilensteine."
+        },
         "noTaskGiven": "Keinem Strukturelement zugeordnet.",
         "paymenttype": {
           "_": "Abrechnungsart",
@@ -767,6 +779,11 @@
           "_": "Tats. Eintrittswahrsch.",
           "info": "Die Wahrscheinlichkeit, mit der der Forecast rechnet.\n\nSie ergibt sich aus dem Status des Auftrags und dem jeder Position; die eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo der Status sie offen lässt.\n\nAngezeigt wird sie mit den Nettosummen der Positionen gewichtet: Summe(Nettosumme x Wahrscheinlichkeit) / Nettosumme."
         }
+      },
+      "refreshCache": {
+        "_": "Auftragscache erneuern",
+        "done": "Auftrags- und Rechnungscache erneuert.",
+        "tooltip": "Berechnet die fakturierten Summen und Rechnungsverknüpfungen aller Aufträge anhand der aktuellen Rechnungen neu."
       },
       "showInactivePosition": "Inaktive Positionen anzeigen",
       "status": {
@@ -801,6 +818,7 @@
     "buchungssatz": {
       "_": "Buchungssatz",
       "beleg": "Beleg",
+      "bookingMonth": "Buchungsmonat",
       "error": {
         "invalidTimeperiod": "Ungültige Zeitraumangabe"
       },
@@ -1439,6 +1457,8 @@
     "hide": "Filter ausblenden",
     "history": "Geändert",
     "lessThan": "Kleiner als",
+    "monthFrom": "Von (Monat)",
+    "monthTo": "Bis (Monat)",
     "moreFields": "Weitere Felder",
     "newest": "die neuesten",
     "noFields": "Keine Filterfelder verfügbar",

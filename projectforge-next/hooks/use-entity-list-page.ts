@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  DEFAULT_PAGE_SIZE,
   filterValuesFromEntries,
   useColumnStatePersistence,
   useDataTable,
@@ -12,6 +11,7 @@ import {
   useRememberPageIndex,
   recallPageIndex,
   refreshedPeriodValues,
+  storablePageSize,
   useTableState,
   type ColumnState,
   type FilterValues,
@@ -158,7 +158,7 @@ export function useEntityListPage<Row extends ListRow>({
     serverPaging,
     columnFilterActive,
     // Stored per entity along with the column state, so the size the user picked survives a reload.
-    initialPageSize: storedState.paginationPageSize ?? DEFAULT_PAGE_SIZE,
+    initialPageSize: storablePageSize(storedState.paginationPageSize),
     // The page the list was left on, so opening an entry and coming back does not start over at the
     // first one. Only for as long as the document lives, unlike the page size (see recallPageIndex).
     initialPageIndex: recallPageIndex(entity),
@@ -282,7 +282,8 @@ export function useEntityListPage<Row extends ListRow>({
     columnPinning: columnState.columnPinning,
     columnSizing: columnState.columnSizing,
     columnOrder: columnState.columnOrder,
-    paginationPageSize: query.pagination.pageSize,
+    // TRANSIENT_PAGE_SIZE is not stored: the size chosen before it is what survives a reload.
+    paginationPageSize: query.storablePageSize,
   });
 
   /**

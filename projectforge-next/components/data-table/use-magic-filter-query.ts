@@ -10,7 +10,7 @@ import type {
 import { fetchList, fetchListPage } from "@/lib/rs/client";
 import { paginationPageSizeEntry } from "@/lib/rs/types";
 import type { MagicFilter, MagicFilterEntry, ResultSet } from "@/lib/rs/types";
-import { DEFAULT_PAGE_SIZE } from "./page-size-options";
+import { DEFAULT_PAGE_SIZE, useStorablePageSize } from "./page-size-options";
 
 interface UseMagicFilterQueryOptions {
   /** Backend entity, e.g. "book" — maps to POST /rs/{entity}/list. */
@@ -97,6 +97,11 @@ interface UseMagicFilterQueryResult<O> {
   highlightRowId?: number;
   /** The filter as sent, so it can be stored as a favorite. */
   filter: MagicFilter;
+  /**
+   * The page size to store for the user: the shown one, or the one chosen before while the transient
+   * TRANSIENT_PAGE_SIZE is selected.
+   */
+  storablePageSize: number;
   isLoading: boolean;
   isFetching: boolean;
   isError: boolean;
@@ -138,6 +143,12 @@ export function useMagicFilterQuery<O>({
     pageSize: initialPageSize,
   });
   const [globalFilter, setGlobalFilterState] = useState(initialGlobalFilter);
+  // What the filter carries instead of TRANSIENT_PAGE_SIZE: the backend stores the filter as the user's
+  // current one (and as a favorite), and the transient size must not stay behind in either.
+  const storablePageSize = useStorablePageSize(
+    pagination.pageSize,
+    initialPageSize
+  );
 
   const setGlobalFilter = (v: string) => {
     setGlobalFilterState(v);
@@ -164,7 +175,7 @@ export function useMagicFilterQuery<O>({
   const filter: MagicFilter = useMemo(() => {
     const base: MagicFilter = {
       entries: [
-        paginationPageSizeEntry(pagination.pageSize),
+        paginationPageSizeEntry(storablePageSize),
         ...(JSON.parse(serializedEntries) as MagicFilterEntry[]),
       ],
       sortProperties: sorting.map((s) => ({
@@ -178,7 +189,7 @@ export function useMagicFilterQuery<O>({
     return buildFilter ? buildFilter(base) : base;
   }, [
     sorting,
-    pagination.pageSize,
+    storablePageSize,
     globalFilter,
     serializedEntries,
     favoriteId,
@@ -233,6 +244,7 @@ export function useMagicFilterQuery<O>({
     statistics: query.data?.statistics,
     highlightRowId: query.data?.highlightRowId,
     filter,
+    storablePageSize,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,

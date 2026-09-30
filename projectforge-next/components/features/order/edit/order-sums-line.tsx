@@ -5,6 +5,7 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";
 import {
   formatCurrency,
+  formatDate,
   formatDateRange,
   formatNumber,
   formatPercentageDecimal,
@@ -78,6 +79,18 @@ export function OrderSumsLine({ className }: { className?: string }) {
             key: "fibu.toBeInvoiced",
             value: formatCurrency(toBeInvoiced, format),
             className: "text-brand-pink",
+          },
+        ]
+      : []),
+    // When the next invoice is to be written — only if there is anything to invoice at all, the future
+    // included (a payment schedule reached early, dated in a following month).
+    ...(sums?.toBeInvoicedImmediately || sums?.nextInvoiceDate
+      ? [
+          {
+            key: "fibu.auftrag.nextInvoice._",
+            value: sums.toBeInvoicedImmediately
+              ? t("fibu.auftrag.nextInvoice.immediately")
+              : formatDate(sums.nextInvoiceDate, format),
           },
         ]
       : []),

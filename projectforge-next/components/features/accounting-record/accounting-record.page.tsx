@@ -32,11 +32,12 @@ export const ACCOUNTING_RECORD_ROUTE = "/accounting-record";
 /**
  * The DATEV accounting-record page ("Buchungssätze") — list and edit — as data (see lib/page-def/types.ts).
  *
- * The columns are the ten of the Wicket `AccountingRecordListPage.createColumns`, in its order: the record
- * number (pinned), the amount, the voucher, the two cost units, the two accounts, debit/credit, and the two
- * free texts. `satznr` (the formatted number `yyyy-mm-#####`) and the four references (kost1/kost2/konto/
- * gegenKonto) are computed columns — the number is derived and does not round-trip, the references are
- * entities of their own with no `UIDataType` and carry only a `{id, displayName}`.
+ * The columns are the ten of the Wicket `AccountingRecordListPage.createColumns`, in its order, plus the
+ * booking date after the record number: the record number (pinned), the date, the amount, the voucher, the
+ * two cost units, the two accounts, debit/credit, and the two free texts. `satznr` (the formatted number
+ * `yyyy-mm-#####`) and the four references (kost1/kost2/konto/gegenKonto) are computed columns — the number
+ * is derived and does not round-trip, the references are entities of their own with no `UIDataType` and
+ * carry only a `{id, displayName}`.
  *
  * Above the table sits the BWA (Betriebswirtschaftliche Auswertung), the analog of the invoice statistics
  * line: `AccountingRecordEntityRest` computes it over the whole result set (server paging) and sends it on
@@ -74,6 +75,8 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
       className: "font-mono font-semibold",
       pinned: "left",
     },
+    // The booking date — its month may differ from the booking period the record number names.
+    { name: "datum", size: 110 },
     { name: "betrag", size: 120 },
     { name: "beleg", size: 110 },
     // The cost units and accounts are entities of their own with no `UIDataType`; the row carries only

@@ -48,7 +48,25 @@ abstract class AbstractRechnungCache(
     protected var invoicePosInfoMap = ConcurrentHashMap<Long, RechnungPosInfo>()
 
     open fun update(invoice: AbstractRechnungDO) {
-        invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
+        // useCaches = false: a cached RechnungPosInfo still references the outdated RechnungInfo (it's a val).
+        val rechnungInfo = RechnungCalculator.calculate(invoice, useCaches = false)
+        invoiceInfoMap[invoice.id!!] = rechnungInfo
+        updatePositions(rechnungInfo)
+    }
+
+    /**
+     * Replaces the cached position infos of the given (freshly calculated) invoice, keyed by position id, and drops
+     * the entries of positions no longer part of it. Otherwise [getRechnungPosInfo] (and all consumers such as
+     * [AuftragsRechnungCache]) would serve the outdated position infos, whose [RechnungPosInfo.rechnungInfo] still
+     * holds the old invoice state (e.g. status GEPLANT without number after the invoice was issued).
+     */
+    protected fun updatePositions(rechnungInfo: RechnungInfo) {
+        val invoiceId = rechnungInfo.id
+        val posIds = rechnungInfo.positions?.mapNotNull { it.id }?.toSet() ?: emptySet()
+        invoicePosInfoMap.values.removeIf { it.rechnungInfo?.id == invoiceId && it.id !in posIds }
+        rechnungInfo.positions?.forEach { posInfo ->
+            posInfo.id?.let { invoicePosInfoMap[it] = posInfo }
+        }
     }
 
     /**
