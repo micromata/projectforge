@@ -49,6 +49,15 @@ class RechnungPosInfo(@JsonIgnore val rechnungInfo: RechnungInfo?, position: Abs
 
     var kostZuweisungen: List<KostZuweisungInfo>? = null
 
+    /**
+     * False if the invoice of this position is planned (GEPLANT) or cancelled (STORNIERT), same as
+     * [RechnungDO.isValid]. Such an invoice stays linked to its order positions, but its amounts must not count as
+     * invoiced.
+     */
+    @get:JsonIgnore
+    val isInvoiced: Boolean
+        get() = rechnungInfo?.status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) != true
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is RechnungPosInfo) return false

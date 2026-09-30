@@ -37,6 +37,9 @@ class RechnungCacheTest : AbstractTestBase() {
     private lateinit var auftragDao: AuftragDao
 
     @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
@@ -212,6 +215,71 @@ class RechnungCacheTest : AbstractTestBase() {
             posInfos!!.first().rechnungInfo?.nummer,
             "The position info must reference the issued invoice with its number.",
         )
+    }
+
+    /**
+     * A cancelled invoice stays assigned to its order position, but its net sum must not count as invoiced.
+     */
+    @Test
+    fun cancelledInvoiceNotInvoiced() {
+        logon(getUser(TEST_FINANCE_USER))
+        val auftrag = createOrder().also {
+            it.addPosition(createOrderPos().also { pos -> pos.titel = "Pos 1" })
+            it.nummer = auftragDao.getNextNumber(it)
+        }
+        auftragDao.insert(auftrag)
+        val auftragsPosId = auftrag.getPosition(1.toShort())!!.id
+        val invoices = listOf("100", "400").map { amount ->
+            RechnungDO().also {
+                it.addPosition(RechnungsPositionDO().also { pos ->
+                    pos.auftragsPosition = auftrag.getPosition(1.toShort())
+                    pos.einzelNetto = BigDecimal(amount)
+                    pos.text = amount
+                })
+                it.nummer = rechnungDao.getNextNumber(it)
+                it.datum = now().localDate
+                it.faelligkeit = LocalDate.now()
+                it.projekt = initTestDB.addProjekt(null, 1, "cancelTest")
+                rechnungDao.insert(it)
+            }
+        }
+        Assertions.assertEquals(0, BigDecimal("500").compareTo(auftragsCache.getOrderPositionInfo(auftragsPosId)!!.invoicedSum))
+
+        persistenceService.runInTransaction {
+            val loaded = rechnungDao.find(invoices[1].id)!!
+            loaded.status = RechnungStatus.STORNIERT
+            rechnungDao.update(loaded)
+        }
+        val posInfos = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPosId)
+        Assertions.assertEquals(2, posInfos?.size, "The cancelled invoice stays assigned to the order position.")
+        Assertions.assertEquals(0, BigDecimal("100").compareTo(getNettoSumme(posInfos)))
+        Assertions.assertEquals(
+            0,
+            BigDecimal("100").compareTo(auftragsCache.getOrderPositionInfo(auftragsPosId)!!.invoicedSum),
+            "The cancelled invoice must not count as invoiced.",
+        )
+    }
+
+    /**
+     * Planned and cancelled invoices must not be summed up as invoiced, even if they have a number.
+     */
+    @Test
+    fun plannedAndCancelledNotSummedUp() {
+        val posInfos = listOf(
+            RechnungStatus.GESTELLT to "100",
+            RechnungStatus.BEZAHLT to "200",
+            RechnungStatus.GEPLANT to "400",
+            RechnungStatus.STORNIERT to "800",
+        ).mapIndexed { index, (status, amount) ->
+            val invoice = RechnungDO().also {
+                it.id = 1000L + index
+                it.nummer = 1000 + index
+                it.status = status
+            }
+            val position = RechnungsPositionDO().also { it.id = 2000L + index }
+            RechnungPosInfo(RechnungInfo(invoice), position).also { it.netSum = BigDecimal(amount) }
+        }
+        Assertions.assertEquals(0, BigDecimal("300").compareTo(getNettoSumme(posInfos)))
     }
 
     private fun createOrder(): AuftragDO {

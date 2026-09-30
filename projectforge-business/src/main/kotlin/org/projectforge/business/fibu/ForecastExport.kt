@@ -851,7 +851,7 @@ open class ForecastExport { // open needed by Wicket.
         forecastInfo.distributeUnusedBudget = ctx.distributeUnusedBudget
         // Distribution must not re-forecast months already covered by actual invoices (respecting baseDate):
         forecastInfo.lastInvoiceMonth = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(pos.id)
-            ?.filter { baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate }
+            ?.filter { it.isInvoiced && (baseDate == null || (it.rechnungInfo?.date ?: LocalDate.MAX) <= baseDate) }
             ?.mapNotNull { it.rechnungInfo?.date }
             ?.maxOrNull()
             ?.let { PFDay.from(it).beginOfMonth }
