@@ -6,10 +6,11 @@ import type { PaginationState } from "@tanstack/react-table";
 import {
   DataTable,
   DataTableColumnPanel,
-  DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
+  storablePageSize,
   useColumnStatePersistenceByUrl,
   useDataTable,
+  useStorablePageSize,
   useTableState,
 } from "@/components/data-table";
 import type { DataObject } from "@/lib/dynamic/path";
@@ -59,8 +60,12 @@ function Grid({ grid }: { grid: AgGridNode }) {
   // The layout already carries the user's size (AGGridSupport.prepareUIGrid4ListPage).
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: grid.paginationPageSize ?? DEFAULT_PAGE_SIZE,
+    pageSize: storablePageSize(grid.paginationPageSize),
   });
+  const pageSizeToStore = useStorablePageSize(
+    pagination.pageSize,
+    grid.paginationPageSize
+  );
   const table = useDataTable<DataObject>({
     columns,
     data: rows,
@@ -95,7 +100,8 @@ function Grid({ grid }: { grid: AgGridNode }) {
       columnPinning: state.columnPinning,
       columnSizing: state.columnSizing,
       columnOrder: state.columnOrder,
-      paginationPageSize: pagination.pageSize,
+      // TRANSIENT_PAGE_SIZE is not stored: the size chosen before it is what survives a reload.
+      paginationPageSize: pageSizeToStore,
     }
   );
 
