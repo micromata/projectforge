@@ -59,7 +59,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * PDF export of the filtered timesheet list — the "PDF export" of the legacy list, reimplemented for the
- * REST/Next stack with OpenPDF instead of the wicket-bound Apache FOP path (`TimesheetListPage.exportPDF`).
+ * REST/Next stack with iText 2 (com.lowagie, as xdocreport brings it) instead of the wicket-bound Apache FOP path (`TimesheetListPage.exportPDF`).
  *
  * Same rows as [TimesheetExport] (the Excel export), plus the filter the list was narrowed by ([Context]).
  * The layout follows the old FOP PDF without copying it: a slim per-page header carrying the configured

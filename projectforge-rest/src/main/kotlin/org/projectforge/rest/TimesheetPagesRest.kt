@@ -975,7 +975,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     }
 
     /**
-     * Exports the filtered timesheets as a PDF, the "PDF export" of the legacy list — now built with OpenPDF
+     * Exports the filtered timesheets as a PDF, the "PDF export" of the legacy list — now built with iText 2 (com.lowagie)
      * in the business layer ([TimesheetListPdfExport]) rather than the wicket-bound FOP path.
      *
      * The Next dialog sends the filter and the chosen [TimesheetPdfExportSettings] separately (so the filter

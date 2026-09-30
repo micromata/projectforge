@@ -215,6 +215,30 @@ class InvoiceServiceTest : AbstractTestBase() {
     Assertions.assertTrue(text.contains("Überweisung des Gesamtbetrages bis zum $dueDate"), text)
   }
 
+  /**
+   * The Word-to-PDF conversion the ZUGFeRD export relies on (see EInvoiceExportService.generateInvoicePdf).
+   * xdocreport is compiled against com.lowagie:itext:2.1.7; a different com.lowagie.text implementation on the
+   * classpath (OpenPDF, whose PdfPTable.addCell returns PdfPCell instead of void) fails here with a
+   * NoSuchMethodError.
+   */
+  @Test
+  fun invoiceWordDocumentConvertsToPdfTest() {
+    val invoice = discountInvoice()
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val docx = invoiceService.getInvoiceWordDocument(invoice, null)
+    Assertions.assertNotNull(docx, "The document is created.")
+    val pdf = java.io.ByteArrayInputStream(docx!!.toByteArray()).use { istream ->
+      de.micromata.merlin.word.WordDocument(istream, "invoice.docx").use { word ->
+        java.io.ByteArrayOutputStream().use { baos ->
+          fr.opensagres.poi.xwpf.converter.pdf.PdfConverter.getInstance()
+            .convert(word.document, baos, fr.opensagres.poi.xwpf.converter.pdf.PdfOptions.create())
+          baos.toByteArray()
+        }
+      }
+    }
+    Assertions.assertTrue(pdf.size > 4 && String(pdf, 0, 4, Charsets.US_ASCII) == "%PDF", "A PDF is produced.")
+  }
+
   private fun discountInvoice(): RechnungDO {
     return RechnungDO().also { invoice ->
       invoice.nummer = 12345
