@@ -847,7 +847,18 @@
       "division": "Division",
       "eintrittsdatum": "Entry date",
       "salaries": {
-        "import": "Import of salaries"
+        "import": {
+          "_": "Import of salaries",
+          "format": {
+            "also": "also",
+            "brutto": "Full employer cost (gross plus all employer contributions), imported into \"Brutto mit AG-Anteil\".",
+            "columns": "Required columns (the column order is arbitrary):",
+            "intro": "Excel file (.xlsx / .xls). The sheet is detected automatically: any sheet whose header row contains the required columns is read, regardless of its name.",
+            "month": "Accounting year and month as text in the format {arg0}, e. g. {arg1}.",
+            "staffNumber": "Staff number of an existing employee. Rows whose staff number matches no employee (e. g. an aggregate/total row) are marked faulty and skipped.",
+            "title": "File format of the import file"
+          }
+        }
       },
       "salary": {
         "bruttoMitAgAnteil": "Gross with employers' share",

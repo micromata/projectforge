@@ -847,7 +847,18 @@
       "division": "Team",
       "eintrittsdatum": "Eintrittsdatum",
       "salaries": {
-        "import": "Gehälterimport"
+        "import": {
+          "_": "Gehälterimport",
+          "format": {
+            "also": "auch",
+            "brutto": "Gesamte Arbeitgeberkosten (Brutto zzgl. aller Arbeitgeberanteile), wird als \"Brutto mit AG-Anteil\" importiert.",
+            "columns": "Benötigte Spalten (Reihenfolge beliebig):",
+            "intro": "Excel-Datei (.xlsx / .xls). Das Tabellenblatt wird automatisch erkannt: Gelesen wird jedes Blatt, dessen Kopfzeile die benötigten Spalten enthält, unabhängig vom Namen.",
+            "month": "Abrechnungsjahr und -monat als Text im Format {arg0}, z. B. {arg1}.",
+            "staffNumber": "Personalnummer einer vorhandenen Person. Zeilen, deren Personalnummer keiner Person zugeordnet werden kann (z. B. eine Summenzeile), werden als fehlerhaft markiert und übersprungen.",
+            "title": "Dateiformat der Importdatei"
+          }
+        }
       },
       "salary": {
         "bruttoMitAgAnteil": "Brutto mit AG-Anteil",

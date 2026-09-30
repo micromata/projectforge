@@ -15,7 +15,9 @@ export function EmployeeSalaryImport() {
   const config = useMemo<ImportConfig>(
     () => ({
       endpoints: { base: ENTITY },
-      titleKey: "fibu.employee.salaries.import",
+      // Both a leaf value ("Gehälterimport") and a branch (…import.format.*), so the generator nests the
+      // value under the reserved "_" — read it as such (see chart._, login._).
+      titleKey: "fibu.employee.salaries.import._",
       columns: EMPLOYEE_SALARY_IMPORT_COLUMNS,
       fileAccept: ".xlsx,.xls",
       returnRoute: "/employeeSalary",
