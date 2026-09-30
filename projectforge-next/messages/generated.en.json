@@ -384,12 +384,14 @@
       "october": "October",
       "september": "September"
     },
+    "nextYear": "Next year",
     "option": {
       "firstHour": "Begin of day",
       "gridSize": "Grid size in minutes",
       "showBreaks": "Breaks",
       "timesheets": "time sheets"
     },
+    "previousYear": "Previous year",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
@@ -618,7 +620,9 @@
           "all": "all",
           "nochNichtVollstaendigFakturiert": "not completely invoiced",
           "vollstaendigFakturiert": "completely invoiced",
-          "zuFakturieren": "to be invoiced"
+          "vollstaendigFakturiertMitRestbetrag": "marked as completely invoiced, but amount remaining",
+          "zuFakturieren": "to be invoiced this month",
+          "zuFakturierenFolgemonate": "to be invoiced in following months"
         }
       },
       "forecast": {
@@ -724,6 +728,10 @@
         "_": "Net sum",
         "weighted": "Weighted net sum"
       },
+      "nextInvoice": {
+        "_": "Next invoice",
+        "immediately": "immediately"
+      },
       "notification": {
         "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
       },
@@ -750,6 +758,10 @@
         "error": {
           "notFound": "Order position not found."
         },
+        "fehlbetrag": {
+          "_": "Shortfall",
+          "info": "The position is marked as completely invoiced, but its valid invoices (without planned or cancelled ones) sum up to less than its net sum or its payment schedules marked as completely invoiced."
+        },
         "noTaskGiven": "No structure element given!",
         "paymenttype": {
           "_": "Payment type",
@@ -767,6 +779,11 @@
           "_": "Effective probability",
           "info": "The probability the forecast works with.\n\nIt follows from the status of the order and of each position; the given probability of occurrence is only used where the status leaves it open.\n\nShown weighted by the net sums of the positions: sum(net sum x probability) / net sum."
         }
+      },
+      "refreshCache": {
+        "_": "Refresh order cache",
+        "done": "Order and invoice caches refreshed.",
+        "tooltip": "Recalculates the invoiced sums and invoice links of all orders from the current invoices."
       },
       "showInactivePosition": "Show inactive positions",
       "status": {
@@ -801,6 +818,7 @@
     "buchungssatz": {
       "_": "Accounting record",
       "beleg": "Receipt",
+      "bookingMonth": "Booking month",
       "error": {
         "invalidTimeperiod": "Invalid time-period"
       },
@@ -1426,6 +1444,8 @@
     "hide": "Hide filter",
     "history": "Modified",
     "lessThan": "Less than",
+    "monthFrom": "From (month)",
+    "monthTo": "To (month)",
     "moreFields": "Other fields",
     "newest": "newest",
     "noFields": "No filter fields available",

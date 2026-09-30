@@ -1,5 +1,6 @@
 import {
   formatDate,
+  formatMonthRange,
   formatTimestampMinutes,
   type FormatContext,
 } from "@/lib/format";
@@ -117,6 +118,9 @@ export function describeFilterValue(
     return value.values
       .map((id) => element?.values?.find((v) => v.id === id)?.displayName ?? id)
       .join(", ");
+  }
+  if ((value.from || value.to) && element?.filterType === "MONTH") {
+    return formatMonthRange(value.from, value.to, ctx);
   }
   if (value.from || value.to) {
     const bound = (iso: string | undefined) =>

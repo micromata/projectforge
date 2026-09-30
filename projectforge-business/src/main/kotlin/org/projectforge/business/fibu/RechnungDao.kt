@@ -575,6 +575,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             var nettoSumme = BigDecimal.ZERO
             if (col != null && col.size > 0) {
                 for (pos in col) {
+                    if (!pos.isInvoiced) {
+                        // Planned or cancelled invoices don't count as invoiced.
+                        continue
+                    }
                     nettoSumme = nettoSumme.add(pos.netSum)
                 }
             }

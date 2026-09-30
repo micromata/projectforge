@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.Transient
 import mu.KotlinLogging
@@ -31,6 +32,7 @@ import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.json.IdOnlySerializer
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDay
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -195,20 +197,127 @@ class OrderInfo : Serializable {
     var isVollstaendigFakturiert: Boolean = false
 
     /**
+     * True if positions or payment schedules are marked as fully invoiced, but the remaining amount not invoiced is
+     * at least [MIN_REMAINING_AMOUNT], e.g. because an invoice was cancelled afterwards. Such orders have to be checked,
+     * because the remaining amount isn't shown as to be invoiced anywhere.
+     * @see fehlbetrag
+     */
+    val vollstaendigFakturiertMitRestbetrag: Boolean
+        @JsonIgnore
+        get() = fehlbetrag != null
+
+    /**
+     * The amount not invoiced, although marked as fully invoiced: the sum of [getFehlbetrag] of all positions plus
+     * the one of payment schedules not assigned to a position. Null if less than [MIN_REMAINING_AMOUNT].
+     * @see calculateFehlbetrag
+     */
+    var fehlbetrag: BigDecimal? = null
+
+    /**
      * @return The sum of person days of all positions.
      */
     var personDays = BigDecimal.ZERO
 
     /**
      * True for finished orders or order positions not marked as invoiced or reached payment milestones.
+     * Including reached payment milestones dated in the future: use [toBeInvoicedDue] for what has to be
+     * invoiced now.
      */
     var toBeInvoiced: Boolean = false
+
+    /**
+     * True if something has to be invoiced right now, regardless of any date: a finished position (or a
+     * commissioned position of a finished order) not yet fully invoiced, or a reached payment schedule
+     * without a date.
+     */
+    var toBeInvoicedImmediately: Boolean = false
+
+    /**
+     * The earliest date of all reached payment schedules not yet invoiced, or null if there is none.
+     * Payment schedules may be marked as reached early, with a date in a following month.
+     */
+    var nextInvoiceDate: LocalDate? = null
+
+    /**
+     * The part of [toBeInvoicedSum] due immediately (see [toBeInvoicedImmediately]). The dated rest is
+     * held in [datedToBeInvoicedSchedules] and added by [toBeInvoicedSumBy] depending on the cutoff date.
+     * Both are date-independent, so they may be cached.
+     */
+    private var toBeInvoicedImmediatelySum = BigDecimal.ZERO
+
+    @JsonIgnore
+    private var datedToBeInvoicedSchedules: List<PaymentScheduleInfo> = emptyList()
+
+    /**
+     * True if something has to be invoiced until the end of the current month.
+     * @see isToBeInvoicedBy
+     */
+    val toBeInvoicedDue: Boolean
+        @JsonIgnore
+        get() = isToBeInvoicedBy(invoiceCutoff())
+
+    /**
+     * @param cutoff Reached payment schedules dated after this day aren't due yet.
+     * @return true if something is to be invoiced now ([toBeInvoicedImmediately]) or reached payment schedules
+     * are dated until the given cutoff. Orders loaded from a snapshot have no dates, so [toBeInvoiced] is returned.
+     */
+    fun isToBeInvoicedBy(cutoff: LocalDate): Boolean {
+        if (snapshotDate != null) {
+            return toBeInvoiced
+        }
+        return toBeInvoiced && (toBeInvoicedImmediately || nextInvoiceDate?.let { !it.isAfter(cutoff) } == true)
+    }
+
+    /**
+     * @param cutoff Reached payment schedules dated after this day are to be invoiced in following months.
+     * @return true if a reached payment schedule not yet invoiced is dated after the given cutoff (a schedule of a
+     * finished position doesn't count, it's due immediately). An order may also be [isToBeInvoicedBy] the same
+     * cutoff, if other amounts are due already. False for orders loaded from a snapshot, which have no dates.
+     */
+    fun isToBeInvoicedAfter(cutoff: LocalDate): Boolean {
+        if (snapshotDate != null) {
+            return false
+        }
+        return toBeInvoiced && datedToBeInvoicedSchedules.any { it.scheduleDate!!.isAfter(cutoff) }
+    }
+
+    /**
+     * Like [toBeInvoicedSum], but without reached payment schedules dated after the given cutoff.
+     */
+    fun toBeInvoicedSumBy(cutoff: LocalDate): BigDecimal {
+        if (snapshotDate != null) {
+            return toBeInvoicedSum
+        }
+        return toBeInvoicedImmediatelySum + datedToBeInvoicedSchedules
+            .filter { !it.scheduleDate!!.isAfter(cutoff) }
+            .sumOf { it.amount ?: BigDecimal.ZERO }
+    }
+
+    /**
+     * @return true if the given position is to be invoiced until the given cutoff: it is finished (see
+     * [OrderPositionInfo.toBeInvoicedByStatus]) or has a reached payment schedule dated until the cutoff (or undated).
+     */
+    fun isPositionToBeInvoicedBy(pos: OrderPositionInfo, cutoff: LocalDate): Boolean {
+        if (!pos.toBeInvoiced) {
+            return false
+        }
+        return pos.toBeInvoicedByStatus || paymentScheduleEntries?.any {
+            it.positionNumber == pos.number && it.toBeInvoiced && it.scheduleDate?.isAfter(cutoff) != true
+        } == true
+    }
 
     var notYetInvoicedSum = BigDecimal.ZERO
 
     var positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean = false
 
     var paymentSchedulesReached: Boolean = false
+
+    /**
+     * The amount not invoiced of the given position, although it (or its payment schedules) is marked as fully
+     * invoiced, or null if there is none of at least [MIN_REMAINING_AMOUNT].
+     * @see vollstaendigFakturiertMitRestbetrag
+     */
+    fun getFehlbetrag(pos: OrderPositionInfo): BigDecimal? = calculateFehlbetrag(pos, paymentScheduleEntries)
 
     fun getInfoPosition(id: Long?): OrderPositionInfo? {
         id ?: return null
@@ -258,7 +367,9 @@ class OrderInfo : Serializable {
             notYetInvoicedSum = BigDecimal.ZERO
         }
         isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(this, positionInfos, paymentScheduleEntries)
+        fehlbetrag = calculateFehlbetrag(this, positionInfos, paymentScheduleEntries)
         paymentSchedulesReached = paymentScheduleEntries?.any { it.toBeInvoiced } ?: false
+        toBeInvoiced = false
         if (paymentSchedulesReached) {
             log.debug("Payment schedules reached for order: $id")
             toBeInvoiced = true
@@ -270,7 +381,28 @@ class OrderInfo : Serializable {
                 }
             }
         }
+        calculateInvoiceDates(positionInfos)
         updateFieldsIfDeleted()
+    }
+
+    /**
+     * Splits the to-be-invoiced amounts into the immediately due ones and the dated payment schedules, the
+     * same way [calculateToBeInvoicedSum] sums them: a payment schedule of a finished position is due
+     * immediately, whatever date it has.
+     */
+    private fun calculateInvoiceDates(positionInfos: Collection<OrderPositionInfo>?) {
+        val reachedSchedules = paymentScheduleEntries?.filter { it.toBeInvoiced } ?: emptyList()
+        val finishedPositions = positionInfos?.filter { it.toBeInvoicedByStatus }?.map { it.number }?.toSet() ?: emptySet()
+        val (immediate, dated) = reachedSchedules.partition {
+            it.scheduleDate == null || finishedPositions.contains(it.positionNumber)
+        }
+        toBeInvoicedImmediately = toBeInvoiced && (finishedPositions.isNotEmpty() || immediate.isNotEmpty())
+        nextInvoiceDate = if (toBeInvoiced) reachedSchedules.mapNotNull { it.scheduleDate }.minOrNull() else null
+        datedToBeInvoicedSchedules = dated
+        val posWithPaymentReached = reachedSchedules.map { it.positionNumber }.toSet()
+        toBeInvoicedImmediatelySum = immediate.sumOf { it.amount ?: BigDecimal.ZERO } +
+                (positionInfos?.filter { !posWithPaymentReached.contains(it.number) }?.sumOf { it.toBeInvoicedSum }
+                    ?: BigDecimal.ZERO)
     }
 
     private fun updateFieldsIfDeleted() {
@@ -280,13 +412,30 @@ class OrderInfo : Serializable {
             commissionedNetSum = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO
             toBeInvoicedSum = BigDecimal.ZERO
+            toBeInvoicedImmediately = false
+            nextInvoiceDate = null
+            toBeInvoicedImmediatelySum = BigDecimal.ZERO
+            datedToBeInvoicedSchedules = emptyList()
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false
+            fehlbetrag = null
             notYetInvoicedSum = BigDecimal.ZERO
             paymentSchedulesReached = false
         }
     }
 
-    private companion object {
+    companion object {
+        /**
+         * Minimum amount not invoiced of positions or payment schedules marked as fully invoiced, from which on the
+         * order is marked as [vollstaendigFakturiertMitRestbetrag]. Smaller remaining amounts (e.g. roundings) are
+         * ignored.
+         */
+        val MIN_REMAINING_AMOUNT: BigDecimal = BigDecimal.ONE
+
+        /**
+         * The cutoff for due payment schedules: the last day of the current month, because invoicing is done
+         * monthly.
+         */
+        fun invoiceCutoff(): LocalDate = PFDay.now().endOfMonth.localDate
 
         /**
          * Sums all to be invoiced amounts of the positions and payment schedules.
@@ -294,7 +443,7 @@ class OrderInfo : Serializable {
          * A payment schedule may also be unassigned to a position.
          * The to-be-invoiced amount of a position will only be added, if not already reached by a payment schedule assigned to this position.
          */
-        fun calculateToBeInvoicedSum(
+        private fun calculateToBeInvoicedSum(
             positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleInfo>?
         ): BigDecimal {
@@ -318,7 +467,7 @@ class OrderInfo : Serializable {
          * @param positions The positions of the order.
          * @param paymentSchedules The payment schedules of the order.
          */
-        fun calculateIsVollstaendigFakturiert(
+        private fun calculateIsVollstaendigFakturiert(
             orderInfo: OrderInfo,
             positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleInfo>?
@@ -338,7 +487,55 @@ class OrderInfo : Serializable {
             return true
         }
 
-        fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {
+        /**
+         * Invoices are assigned to positions, not to payment schedules. So the payment schedules marked as fully
+         * invoiced are compared with the invoiced sum of their position, and unassigned ones with the invoiced sum of
+         * the whole order.
+         * @see fehlbetrag
+         */
+        private fun calculateFehlbetrag(
+            orderInfo: OrderInfo,
+            positions: Collection<OrderPositionInfo>?,
+            paymentSchedules: Collection<PaymentScheduleInfo>?
+        ): BigDecimal? {
+            var sum = positions?.mapNotNull { calculateFehlbetrag(it, paymentSchedules) }?.sumOf { it }
+                ?: BigDecimal.ZERO
+            val unassignedSum = paymentSchedules
+                ?.filter { it.positionNumber == null && it.valid && it.vollstaendigFakturiert }
+                ?.sumOf { it.amount!! } ?: BigDecimal.ZERO
+            val unassignedFehlbetrag = unassignedSum - orderInfo.invoicedSum
+            if (unassignedFehlbetrag >= MIN_REMAINING_AMOUNT) {
+                sum += unassignedFehlbetrag
+            }
+            return if (sum >= MIN_REMAINING_AMOUNT) sum else null
+        }
+
+        /**
+         * @return The amount not invoiced of the given position, if it is marked as fully invoiced or its payment
+         * schedules marked as fully invoiced sum up to more than invoiced, and if at least [MIN_REMAINING_AMOUNT].
+         * Otherwise, null.
+         */
+        private fun calculateFehlbetrag(
+            pos: OrderPositionInfo,
+            paymentSchedules: Collection<PaymentScheduleInfo>?,
+        ): BigDecimal? {
+            if (pos.deleted) {
+                return null
+            }
+            val positionFehlbetrag = if (pos.vollstaendigFakturiertMitRestbetrag) {
+                pos.netSum - pos.invoicedSum
+            } else {
+                BigDecimal.ZERO
+            }
+            val scheduleFehlbetrag = paymentSchedules
+                ?.filter { it.positionNumber == pos.number && it.valid && it.vollstaendigFakturiert }
+                ?.sumOf { it.amount!! }
+                ?.minus(pos.invoicedSum) ?: BigDecimal.ZERO
+            val fehlbetrag = positionFehlbetrag.max(scheduleFehlbetrag)
+            return if (fehlbetrag >= MIN_REMAINING_AMOUNT) fehlbetrag else null
+        }
+
+        private fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {
             var result = BigDecimal.ZERO
             // Deleted positions count nothing, as for every other sum (OrderPositionInfo
             // .updateFieldsIfDeleted). Only a caller that builds the infos itself sees such a position at

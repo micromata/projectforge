@@ -76,6 +76,7 @@ export function controlRankOf(element: FilterElement): number {
     case "BOOLEAN":
       return 0;
     case "DATE":
+    case "MONTH":
       return 2;
     case "TIMESTAMP":
       return 3;
