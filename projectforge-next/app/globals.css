@@ -232,6 +232,18 @@
      --muted-foreground so it reads as black, but softened so it does not overpower the coloured
      series. Overridden under .dark, where a muted white takes its place. */
   --chart-neutral: oklch(0.32 0 0);
+  /* The order book forecast charts, in the colours of the forecast Excel export's charts (theme "Office"
+     of the template), so the web and the Excel charts read alike. Not overridden under .dark. */
+  --chart-forecast-beauftragt: #9bbb59;
+  --chart-forecast-loi: #8064a2;
+  --chart-forecast-gelegt: #4bacc6;
+  --chart-forecast-potenzial: #f79646;
+  --chart-forecast-in-erstellung: #2c4d75;
+  --chart-forecast-ist: #bfbfbf;
+  --chart-forecast-total: #4f81bd;
+  --chart-forecast-plan: #c0504d;
+  --chart-forecast-prev-year: #9bbb59;
+  --chart-forecast-prev-prev-year: #bfbfbf;
   --radius: 0.625rem;
 
   /* Sidebar — light variant */

@@ -665,6 +665,27 @@
             }
           }
         },
+        "chart": {
+          "_": "Grafiken",
+          "cumulative": "Umsatzprognose kumuliert",
+          "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
+          "ist": "IST",
+          "monthly": "Umsatzprognose Monatswerte",
+          "plan": "Plan",
+          "planningDate": {
+            "_": "Plandatum",
+            "tooltip": "Optional: Der Forecast des Auftragsbuch-Snapshots dieses Tages (bzw. des nächstgelegenen) wird als Plan angezeigt. Leer lassen, um den Plan auszublenden."
+          },
+          "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
+          "prevPrevYear": "Vorvorjahr",
+          "prevYear": "Vorjahr",
+          "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
+          "startDate": {
+            "_": "Erster Monat des Forecasts",
+            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, sein Leistungszeitraum durch dieses Datum ersetzt."
+          },
+          "total": "Forecast"
+        },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
         "withoutProject": "ohne Projekt"
@@ -849,6 +870,12 @@
       "salaries": {
         "import": {
           "_": "Gehälterimport",
+          "error": {
+            "employeeNotFound": "Kein:e Mitarbeiter:in mit Personalnummer ''{arg0}'' gefunden.",
+            "month": "Ungültiger oder fehlender Abrechnungsmonat: ''{arg0}'' (erwartet z. B. ''2026/08'').",
+            "noBrutto": "Fehlender Bruttobetrag (Spalte ''Gesamtkosten'').",
+            "noSheet": "Kein Blatt mit den benötigten Spalten (Personalnummer und Bruttobetrag) gefunden."
+          },
           "format": {
             "also": "auch",
             "brutto": "Gesamte Arbeitgeberkosten (Brutto zzgl. aller Arbeitgeberanteile), wird als \"Brutto mit AG-Anteil\" importiert.",
@@ -857,7 +884,11 @@
             "month": "Abrechnungsjahr und -monat als Text im Format {arg0}, z. B. {arg1}.",
             "staffNumber": "Personalnummer einer vorhandenen Person. Zeilen, deren Personalnummer keiner Person zugeordnet werden kann (z. B. eine Summenzeile), werden als fehlerhaft markiert und übersprungen.",
             "title": "Dateiformat der Importdatei"
-          }
+          },
+          "job": {
+            "title": "Import von {arg0} Gehältern"
+          },
+          "success": "Gehälter erfolgreich importiert."
         }
       },
       "salary": {

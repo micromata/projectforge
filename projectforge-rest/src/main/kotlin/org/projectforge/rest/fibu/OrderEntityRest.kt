@@ -901,6 +901,56 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var settings: ForecastExportSettings? = null,
   )
 
+  /**
+   * The parameters of the forecast charts tab of `/next/order`, remembered per user, as the liquidity
+   * forecast tab does. Returns the defaults (begin of the current year, no plan) if never used.
+   */
+  @GetMapping("forecastChart/settings")
+  fun getForecastChartSettings(): ForecastChartSettings {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val stored = userPrefService.getEntry(category, USER_PREF_PARAM_FORECAST_CHART, ForecastChartSettings::class.java)
+    return ForecastChartSettings(
+      startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = stored?.planningDate,
+    )
+  }
+
+  /**
+   * The monthly totals of the forecast charts ('Grafiken 1' of the forecast Excel export) of the filtered
+   * orders ([ForecastExport.chartData]). The start date replaces the filter's period of performance, as
+   * for [exportForecast]. The parameters are remembered for the next time. The months are empty if
+   * neither order positions nor invoices were found.
+   */
+  @PostMapping("forecastChart")
+  fun forecastChart(@RequestBody request: ForecastChartRequest): ForecastChartData {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val settings = ForecastChartSettings(
+      startDate = request.startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = request.planningDate,
+    )
+    userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_CHART, settings, true)
+    val filter = toAuftragFilter(request.filter ?: MagicFilter())
+    filter.periodOfPerformanceStartDate = settings.startDate
+    filter.periodOfPerformanceEndDate = null
+    // Empty months (instead of no body) if neither order positions nor invoices were found:
+    return forecastExport.chartData(filter, planningDate = settings.planningDate)
+      ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+  }
+
+  /** What the forecast charts tab asks for, and what is remembered of it per user. */
+  class ForecastChartSettings(
+    /** The month the forecast starts with (any day of it). */
+    var startDate: LocalDate? = null,
+    /** The date of the order book snapshot to take as plan (the closest one is used), or null for no plan. */
+    var planningDate: LocalDate? = null,
+  )
+
+  class ForecastChartRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+    var planningDate: LocalDate? = null,
+  )
+
   companion object {
     /**
      * A new order built from this one, as `OutgoingInvoiceEntityRest.prepareInvoiceClone` builds a new
@@ -1146,5 +1196,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
+    private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
   }
 }

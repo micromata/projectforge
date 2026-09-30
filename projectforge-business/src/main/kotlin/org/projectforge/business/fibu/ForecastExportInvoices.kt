@@ -244,6 +244,13 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.currencyCellStyle
         sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle =
             ctx.currencyCellStyle
+        val chartKind = when (sheet) {
+            ctx.invoicesSheet -> ForecastChartTotals.InvoiceKind.IST
+            ctx.planningInvoicesSheet -> ForecastChartTotals.InvoiceKind.PLANNING
+            ctx.invoicesPrevYearSheet -> ForecastChartTotals.InvoiceKind.PREV_YEAR
+            else -> ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR
+        }
+        ctx.chartTotals.addInvoice(chartKind, projectId ?: ForecastExportContext.PROJECT_ID_NONE, monthIndex, pos.netSum)
 
     }
 

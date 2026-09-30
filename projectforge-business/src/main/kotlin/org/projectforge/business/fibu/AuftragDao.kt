@@ -336,7 +336,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (auftragsStatuses.isEmpty()) {
             return list
         }
-        return list.filter { auftrag -> auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) } }
+        return list.filter { auftrag ->
+            auftragsCache.anyPositionMatches(auftrag) { status, _, _ -> auftragsStatuses.contains(status) }
+        }
     }
 
     private fun filterPositionsPaymentTypes(myFilter: AuftragFilter, list: List<AuftragDO>) {

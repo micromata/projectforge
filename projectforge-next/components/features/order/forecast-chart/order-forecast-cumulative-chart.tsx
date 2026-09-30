@@ -9,30 +9,31 @@ import { SeriesLegendContent } from "@/components/shared/chart/series-legend-con
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
-import { buildChartConfig } from "@/lib/charts/series";
-import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
+import type { ForecastChartData } from "@/lib/rs/order";
 import {
+  buildForecastChartConfig,
+  cumulativeLineKeys,
   cumulativeRows,
   formatChartMonth,
-  seriesKeys,
+  lineDashArray,
   spansMultipleYears,
-} from "./invoice-net-sum-series";
+} from "./order-forecast-series";
 
 /**
- * The year-to-date net sums as curves — each year's running total across the months, so the four years'
- * trajectories can be compared at a glance. The cumulative counterpart of the monthly bars
- * ({@link InvoiceMonthlyNetSumChart}); the two share their colours and their year labels.
+ * The cumulated forecast ('Umsatzprognose kumuliert' of the Excel export): the running totals of the
+ * forecast (per month the max of invoiced and remaining forecast), the plan (if a planning date is set) and
+ * the invoiced sums of the two previous years. The counterpart of {@link OrderForecastMonthlyChart}.
  */
-export function InvoiceCumulativeNetSumChart({
+export function OrderForecastCumulativeChart({
   data,
 }: {
-  data: InvoiceNetSumChartData;
+  data: ForecastChartData;
 }) {
-  const t = useTranslations("fibu.rechnung.chart");
+  const t = useTranslations();
   const ctx = useFormatContext();
-  const config = useMemo(() => buildChartConfig(data.series), [data]);
+  const config = useMemo(() => buildForecastChartConfig(t), [t]);
   const rows = useMemo(() => cumulativeRows(data), [data]);
-  const keys = useMemo(() => seriesKeys(data), [data]);
+  const keys = useMemo(() => cumulativeLineKeys(data), [data]);
   const showYear = spansMultipleYears(data);
   const scale = useMemo(
     () =>
@@ -44,7 +45,7 @@ export function InvoiceCumulativeNetSumChart({
       config={config}
       className="h-[27rem] w-full"
       role="img"
-      aria-label={t("cumulative")}
+      aria-label={t("fibu.auftrag.forecast.chart.cumulative")}
     >
       <LineChart data={rows} margin={{ left: 4, right: 12, top: 8 }}>
         <CartesianGrid
@@ -84,6 +85,7 @@ export function InvoiceCumulativeNetSumChart({
             type="linear"
             stroke={`var(--color-${key})`}
             strokeWidth={2}
+            strokeDasharray={lineDashArray(key)}
             dot={false}
             isAnimationActive={false}
           />

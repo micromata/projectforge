@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useTranslations } from "next-intl";
 import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
@@ -9,44 +16,59 @@ import { SeriesLegendContent } from "@/components/shared/chart/series-legend-con
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
-import { buildChartConfig, CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
-import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
+import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
+import type { ForecastChartData } from "@/lib/rs/order";
 import {
+  buildForecastChartConfig,
   formatChartMonth,
+  lineDashArray,
+  monthlyBarKeys,
+  monthlyLineKeys,
   monthlyRows,
-  seriesKeys,
   spansMultipleYears,
-} from "./invoice-net-sum-series";
+} from "./order-forecast-series";
 
 /**
- * The monthly net sums as grouped bars — one bar per year in each month, oldest at the front of the group
- * and this year at the back. The bar counterpart of the cumulative curves ({@link InvoiceCumulativeNetSumChart}); the
- * two share their colours and their year labels (see `invoice-net-sum-series.ts`).
+ * The monthly forecast ('Umsatzprognose Monatswerte' of the Excel export, in its colours): the remaining
+ * forecast of each position status and the invoiced sums (IST) as stacked, outlined bars, with the plan (if
+ * a planning date is set) and the invoiced sums of the two previous years as lines.
  */
-export function InvoiceMonthlyNetSumChart({
+export function OrderForecastMonthlyChart({
   data,
 }: {
-  data: InvoiceNetSumChartData;
+  data: ForecastChartData;
 }) {
-  const t = useTranslations("fibu.rechnung.chart");
+  const t = useTranslations();
   const ctx = useFormatContext();
-  const config = useMemo(() => buildChartConfig(data.series), [data]);
+  const config = useMemo(() => buildForecastChartConfig(t), [t]);
   const rows = useMemo(() => monthlyRows(data), [data]);
-  const keys = useMemo(() => seriesKeys(data), [data]);
+  const bars = useMemo(() => monthlyBarKeys(data), [data]);
+  const lines = useMemo(() => monthlyLineKeys(data), [data]);
   const showYear = spansMultipleYears(data);
+  // The stacked bars reach up to their monthly sum, so the axis is scaled on that sum next to the lines.
   const scale = useMemo(
     () =>
-      niceScale(rows.flatMap((row) => keys.map((key) => row[key] as number))),
-    [rows, keys]
+      niceScale(
+        rows.flatMap((row) => [
+          bars.reduce((sum, key) => sum + ((row[key] as number) ?? 0), 0),
+          ...lines.map((key) => row[key] as number),
+        ])
+      ),
+    [rows, bars, lines]
   );
   return (
     <ChartContainer
       config={config}
       className="h-[27rem] w-full"
       role="img"
-      aria-label={t("monthly")}
+      aria-label={t("fibu.auftrag.forecast.chart.monthly")}
     >
-      <BarChart data={rows} margin={{ left: 4, right: 12, top: 8 }} barGap={0}>
+      <ComposedChart
+        data={rows}
+        margin={{ left: 4, right: 12, top: 8 }}
+        // Half of recharts' default bar width: a 30% gap on each side of a month leaves 40% for the bar.
+        barCategoryGap="30%"
+      >
         <CartesianGrid
           vertical={false}
           stroke="var(--muted-foreground)"
@@ -77,10 +99,11 @@ export function InvoiceMonthlyNetSumChart({
         <ChartLegend
           content={<SeriesLegendContent config={config} reversed />}
         />
-        {keys.map((key) => (
+        {bars.map((key) => (
           <Bar
             key={key}
             dataKey={key}
+            stackId="forecast"
             stroke={`var(--color-${key})`}
             strokeWidth={1.5}
             fill={`var(--color-${key})`}
@@ -88,7 +111,19 @@ export function InvoiceMonthlyNetSumChart({
             isAnimationActive={false}
           />
         ))}
-      </BarChart>
+        {lines.map((key) => (
+          <Line
+            key={key}
+            dataKey={key}
+            type="linear"
+            stroke={`var(--color-${key})`}
+            strokeWidth={2}
+            strokeDasharray={lineDashArray(key)}
+            dot={false}
+            isAnimationActive={false}
+          />
+        ))}
+      </ComposedChart>
     </ChartContainer>
   );
 }

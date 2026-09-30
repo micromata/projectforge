@@ -205,6 +205,9 @@ internal class ForecastExportContext(
      */
     var hasInvoicesWithoutProject = false
 
+    // Month totals for the web charts (see ForecastExport.chartData), summed up while the sheets are filled.
+    val chartTotals = ForecastChartTotals()
+
     companion object {
         /**
          * Pseudo project id for invoices without any assignable project. Needed because the filter selection of the

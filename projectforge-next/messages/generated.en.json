@@ -665,6 +665,27 @@
             }
           }
         },
+        "chart": {
+          "_": "Charts",
+          "cumulative": "Revenue forecast cumulated",
+          "empty": "Neither order positions nor invoices found for the forecast.",
+          "ist": "Invoiced",
+          "monthly": "Revenue forecast monthly",
+          "plan": "Plan",
+          "planningDate": {
+            "_": "Planning date",
+            "tooltip": "Optional: the forecast of the order book snapshot of this day (the closest available one) is shown as plan. Leave empty to hide the plan."
+          },
+          "planningDateUsed": "Plan of order book snapshot {arg0}",
+          "prevPrevYear": "Year before previous year",
+          "prevYear": "Previous year",
+          "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
+          "startDate": {
+            "_": "First month of the forecast",
+            "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied, its period of performance is replaced by this date."
+          },
+          "total": "Forecast"
+        },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
         "withoutProject": "without project"
@@ -849,6 +870,12 @@
       "salaries": {
         "import": {
           "_": "Import of salaries",
+          "error": {
+            "employeeNotFound": "No employee found with staff number ''{arg0}''.",
+            "month": "Invalid or missing accounting month: ''{arg0}'' (expected e. g. ''2026/08'').",
+            "noBrutto": "Missing gross amount (column ''Gesamtkosten'').",
+            "noSheet": "No sheet with the required columns (staff number and gross amount) found."
+          },
           "format": {
             "also": "also",
             "brutto": "Full employer cost (gross plus all employer contributions), imported into \"Brutto mit AG-Anteil\".",
@@ -857,7 +884,11 @@
             "month": "Accounting year and month as text in the format {arg0}, e. g. {arg1}.",
             "staffNumber": "Staff number of an existing employee. Rows whose staff number matches no employee (e. g. an aggregate/total row) are marked faulty and skipped.",
             "title": "File format of the import file"
-          }
+          },
+          "job": {
+            "title": "Import of {arg0} salaries"
+          },
+          "success": "Salaries imported successfully."
         }
       },
       "salary": {
