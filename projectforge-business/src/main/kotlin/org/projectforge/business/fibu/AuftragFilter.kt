@@ -148,7 +148,7 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
                 return true
             }
         }
-        return auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) }
+        return AuftragsCache.instance.anyPositionMatches(auftrag) { status, _, _ -> auftragsStatuses.contains(status) }
     }
 
     /**
@@ -156,11 +156,8 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
      *              If this filter setting is empty, true is returned.
      */
     fun matchAuftragsPositionsArten(auftrag: AuftragDO): Boolean {
-        return auftragsPositionsArten.isEmpty() || auftrag.positionenExcludingDeleted.any { pos ->
-            auftragsPositionsArten.contains(
-                pos.art
-            )
-        }
+        return auftragsPositionsArten.isEmpty() ||
+                AuftragsCache.instance.anyPositionMatches(auftrag) { _, art, _ -> auftragsPositionsArten.contains(art) }
     }
 
     override fun reset(): AuftragFilter {

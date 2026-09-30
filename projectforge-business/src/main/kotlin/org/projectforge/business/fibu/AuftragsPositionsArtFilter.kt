@@ -33,12 +33,7 @@ class AuftragsPositionsArtFilter(val values: List<AuftragsPositionsArt>) : Custo
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach { pos ->
-            if (values.contains(pos.art)) {
-                return true
-            }
-        }
-        return false
+        return AuftragsCache.instance.anyPositionMatches(element) { _, art, _ -> values.contains(art) }
     }
 
     companion object {

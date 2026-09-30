@@ -33,12 +33,7 @@ class AuftragsPositionsStatusFilter(val values: List<AuftragsStatus>) : CustomRe
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach { pos ->
-            if (values.contains(pos.status)) {
-                return true
-            }
-        }
-        return false
+        return AuftragsCache.instance.anyPositionMatches(element) { status, _, _ -> values.contains(status) }
     }
 
     companion object {
