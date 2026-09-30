@@ -1125,7 +1125,8 @@
     "projekt": {
       "_": "Project",
       "edit": {
-        "kost2DoesAlreadyExists": "Cost2 does already exist."
+        "kost2DoesAlreadyExists": "Cost2 does already exist.",
+        "selectStandardKost2Arts": "Select all standard cost types"
       },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",

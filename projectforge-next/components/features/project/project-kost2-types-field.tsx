@@ -2,6 +2,7 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
@@ -19,7 +20,8 @@ import type { Kost2ArtSelection } from "./types";
  * (`ProjectEntityRest.onAfterSaveOrUpdate`).
  *
  * The project standard types are coloured as in Wicket: green when the project has them, red while it
- * is still missing one. A type whose costs are not invoiced says so (Wicket's "(nf)").
+ * is still missing one. A type whose costs are not invoiced says so (Wicket's "(nf)"). A button picks
+ * all missing project standard types at once; it is hidden once none is left to pick.
  *
  * A custom field because `kost2Arts` is a list of the DTO only (see project-schema.ts); each box binds
  * to `kost2Arts[i].selected` in form state.
@@ -33,11 +35,33 @@ export function ProjectKost2TypesField({ className }: { className?: string }) {
     (s: unknown) => (s as FormState).values.kost2Arts
   ) as Kost2ArtSelection[];
   const legend = t("fibu.kost2art.kost2arten");
+  // The project standard types the project has no cost 2 unit for yet and that aren't picked yet.
+  const missingStandards = arts.filter(
+    (art) => art.projektStandard && !art.existsAlready && !art.selected
+  );
+
+  const selectStandards = () =>
+    arts.forEach((art, index) => {
+      if (art.projektStandard && !art.existsAlready) {
+        form.setFieldValue(`kost2Arts[${index}].selected`, true);
+      }
+    });
 
   return (
     <fieldset className={cn("flex flex-col gap-1.5", className)}>
-      <legend className="text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {legend}
+      <legend className="flex w-full items-center justify-between gap-2 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <span>{legend}</span>
+        {!readOnly && missingStandards.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="normal-case tracking-normal"
+            onClick={selectStandards}
+          >
+            {t("fibu.projekt.edit.selectStandardKost2Arts")}
+          </Button>
+        )}
       </legend>
       <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
         {arts.map((art, index) => {
