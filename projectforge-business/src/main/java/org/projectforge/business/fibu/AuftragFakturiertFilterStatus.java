@@ -30,8 +30,13 @@ public enum AuftragFakturiertFilterStatus implements I18nEnum
   ALL("all"),
   /** Everything is fully invoiced. */
   FAKTURIERT("vollstaendigFakturiert"),
-  /** At least one position has to be invoiced (because it is finished or one position of the payment schedule is reached). */
+  /**
+   * At least one position has to be invoiced now: it is finished or a payment schedule is reached, dated until the end
+   * of the current month (or undated).
+   */
   ZU_FAKTURIEREN("zuFakturieren"),
+  /** Like {@link #ZU_FAKTURIEREN}, but including reached payment schedules dated in the following months. */
+  ZU_FAKTURIEREN_INKL_KUENFTIGE("zuFakturierenInklKuenftige"),
   /** The order isn't fully invoiced. */
   NICHT_FAKTURIERT("nochNichtVollstaendigFakturiert");
 

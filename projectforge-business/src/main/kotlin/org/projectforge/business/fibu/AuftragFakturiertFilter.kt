@@ -29,6 +29,8 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 private val log = KotlinLogging.logger {}
 
 class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) : CustomResultFilter<AuftragDO> {
+    private val cutoff = OrderInfo.invoiceCutoff()
+
     override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
         if (values.isEmpty() || values.contains(AuftragFakturiertFilterStatus.ALL)) {
             return true
@@ -37,7 +39,8 @@ class AuftragFakturiertFilter(val values: List<AuftragFakturiertFilterStatus>) :
         return values.any { status ->
             when (status) {
                 AuftragFakturiertFilterStatus.FAKTURIERT -> orderInfo.isVollstaendigFakturiert
-                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN -> orderInfo.toBeInvoiced
+                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN -> orderInfo.isToBeInvoicedBy(cutoff)
+                AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_INKL_KUENFTIGE -> orderInfo.toBeInvoiced
                 AuftragFakturiertFilterStatus.NICHT_FAKTURIERT -> !orderInfo.isVollstaendigFakturiert
                 AuftragFakturiertFilterStatus.ALL -> true
             }

@@ -71,8 +71,18 @@ class Auftrag(
     var beauftragtNettoSumme: BigDecimal? = null,
     var fakturiertSum: BigDecimal? = null,
     var zuFakturierenSum: BigDecimal? = null,
-    /** True when at least one position or payment schedule is due to be invoiced — used for list row highlighting. */
+    /**
+     * True when at least one position or payment schedule is due to be invoiced until the end of the current month
+     * (see [OrderInfo.toBeInvoicedDue]) — used for list row highlighting.
+     */
     var toBeInvoiced: Boolean? = null,
+    /**
+     * The earliest date of the reached payment schedules not yet invoiced (see [OrderInfo.nextInvoiceDate]),
+     * given only if anything is to be invoiced, the future included.
+     */
+    var nextInvoiceDate: LocalDate? = null,
+    /** True if an invoice is to be written right now, e.g. for a finished position (see [OrderInfo.toBeInvoicedImmediately]). */
+    var toBeInvoicedImmediately: Boolean? = null,
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
     var probabilityOfOccurrence: Int? = null,
@@ -164,7 +174,9 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
-        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
+        toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
+        nextInvoiceDate = orderInfo.nextInvoiceDate
+        toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
         formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
         formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
@@ -242,7 +254,9 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
-        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
+        toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
+        nextInvoiceDate = orderInfo.nextInvoiceDate
+        toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
         pos = "#" + (orderInfo.infoPositions?.count { !it.deleted } ?: 0)
     }
 

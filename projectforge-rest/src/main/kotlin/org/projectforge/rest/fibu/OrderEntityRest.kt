@@ -423,6 +423,15 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       UIFilterListElement("fakturiert", label = translate("fibu.auftrag.status.fakturiert"), defaultFilter = true)
         .buildValues(AuftragFakturiertFilterStatus::class.java)
     )
+    // When the next invoice is due: the date of the earliest reached payment schedule, or today if something is
+    // to be invoiced immediately. Consumed in preProcessMagicFilter.
+    elements.add(
+      UIFilterElement(
+        NEXT_INVOICE_DATE_FILTER,
+        UIFilterElement.FilterType.DATE,
+        label = translate("fibu.auftrag.nextInvoice"),
+      )
+    )
     val statusFilter = elements.find { it is UIFilterElement && it.id == "status" } as UIFilterElement
     statusFilter.defaultFilter = true
     // The two ends of the period of performance are one question, as the edit form asks it: one label,
@@ -497,6 +506,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         if (userId != null) {
           target.add(QueryFilter.eq("$property.id", userId))
         }
+      }
+    }
+    source.entries.find { it.field == NEXT_INVOICE_DATE_FILTER }?.let { entry ->
+      entry.synthetic = true // No property of AuftragDO, but calculated by OrderInfo.
+      val from = PFDayUtils.parseDate(entry.value.fromValue)
+      val until = PFDayUtils.parseDate(entry.value.toValue)
+      if (from != null || until != null) {
+        filters.add(AuftragNextInvoiceDateFilter(from, until))
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
@@ -591,17 +608,21 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     postData.data.copyTo(order)
     val info = Auftrag.calculateOrderInfo(order)
     val period = effectivePeriodOfPerformance(info)
+    val cutoff = OrderInfo.invoiceCutoff()
     return OrderSums(
       netSum = info.netSum,
       commissionedNetSum = info.commissionedNetSum,
       akquiseSum = info.akquiseSum,
       invoicedSum = info.invoicedSum,
       notYetInvoicedSum = info.notYetInvoicedSum,
-      toBeInvoicedSum = info.toBeInvoicedSum,
+      // Due until the end of the month, as the list statistics count it (AuftragsStatistik).
+      toBeInvoicedSum = info.toBeInvoicedSumBy(cutoff),
       personDays = info.personDays,
       weightedProbabilityOfOccurrence = ForecastUtils.getWeightedProbabilityOfAccurence(info),
       vollstaendigFakturiert = info.isVollstaendigFakturiert,
-      toBeInvoiced = info.toBeInvoiced,
+      toBeInvoiced = info.isToBeInvoicedBy(cutoff),
+      nextInvoiceDate = if (info.toBeInvoiced) info.nextInvoiceDate else null,
+      toBeInvoicedImmediately = info.toBeInvoicedImmediately,
       periodOfPerformanceBegin = period.first,
       periodOfPerformanceEnd = period.second,
       positions = info.infoPositions?.map { position ->
@@ -610,7 +631,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
           netSum = position.netSum,
           invoicedSum = position.invoicedSum,
           notYetInvoicedSum = position.notYetInvoiced,
-          toBeInvoiced = position.toBeInvoiced,
+          toBeInvoiced = info.isPositionToBeInvoicedBy(position, cutoff),
           probabilityOfOccurrence = ForecastUtils.getProbabilityOfAccurence(info, position),
         )
       },
@@ -661,7 +682,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      */
     val weightedProbabilityOfOccurrence: BigDecimal?,
     val vollstaendigFakturiert: Boolean,
+    /** Something is to be invoiced until the end of the current month, see [OrderInfo.isToBeInvoicedBy]. */
     val toBeInvoiced: Boolean,
+    /** See [OrderInfo.nextInvoiceDate]; null if nothing is to be invoiced. */
+    val nextInvoiceDate: LocalDate?,
+    /** See [OrderInfo.toBeInvoicedImmediately]. */
+    val toBeInvoicedImmediately: Boolean,
     /**
      * Begin of the period of performance over all positions, i.e. the earliest one any of them
      * effectively has - see [effectivePeriodOfPerformance]. Null where neither the order nor a position
@@ -682,7 +708,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * Whether this position is due to be invoiced - see [OrderPositionInfo.recalculateAll]. Unlike
      * [notYetInvoicedSum], which is positive for every commissioned position that is not fully invoiced,
      * this is what marks a position as overdue: the position or its order is closed, or a payment schedule
-     * entry of this position has been reached.
+     * entry of this position has been reached, dated until the end of the current month (see
+     * [OrderInfo.isPositionToBeInvoicedBy]).
      */
     val toBeInvoiced: Boolean,
     /**
@@ -1194,6 +1221,10 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       Auftrag::fakturiertSum.name to { it.invoicedSum },
       Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
       Auftrag::personDays.name to { it.personDays },
+      // Immediately due orders first, then by date; orders with nothing to invoice have no value.
+      Auftrag::nextInvoiceDate.name to { info ->
+        if (info.toBeInvoiced) (if (info.toBeInvoicedImmediately) LocalDate.MIN else info.nextInvoiceDate) else null
+      },
       Auftrag::pos.name to { info ->
         info.infoPositions?.count { !it.deleted } ?: 0
       },
@@ -1214,6 +1245,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [PERIOD_OF_PERFORMANCE_FIELDS] (see [addPeriodOfPerformanceCriterion]).
      */
     internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
+
+    /** Id of the next-invoice-date filter, see [AuftragNextInvoiceDateFilter]. */
+    internal const val NEXT_INVOICE_DATE_FILTER = "nextInvoiceDate"
 
     /** The two date properties the combined filter replaces in the filter field list. */
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")

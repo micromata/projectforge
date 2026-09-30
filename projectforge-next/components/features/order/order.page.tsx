@@ -17,6 +17,7 @@ import {
   ORDER_ARRAY_FIELDS,
   type OrderValues,
 } from "./order-schema";
+import { NextInvoiceCell } from "./next-invoice-cell";
 import { OrderListActions } from "./order-list-actions";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
@@ -142,6 +143,18 @@ export const ORDER_PAGE = definePage<
       accessor: (row) => row.zuFakturierenSum ?? null,
       dataType: "AMOUNT",
       size: 120,
+    },
+    // When the next invoice is to be written: right now for a finished position, otherwise the date of the
+    // earliest reached payment schedule. Sorted by the backend (immediately due first, see
+    // OrderEntityRest.COMPUTED_SORT_PROPERTIES) and filtered by its own date pill (AuftragNextInvoiceDateFilter),
+    // so no header filter over the rendered text.
+    {
+      id: "nextInvoiceDate",
+      labelKey: "fibu.auftrag.nextInvoice._",
+      accessor: (row) => row.nextInvoiceDate ?? null,
+      size: 120,
+      filterKind: null,
+      cell: ({ row }) => <NextInvoiceCell row={row.original} />,
     },
     { name: "probabilityOfOccurrence", size: 80 },
     // The one value a reader looks for first — where the order stands.

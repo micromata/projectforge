@@ -185,6 +185,9 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
     private fun checkFakturiert(auftrag: AuftragDO): Boolean {
         val orderInfo = AuftragsCache.instance.getOrderInfo(auftrag)
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+            return orderInfo.toBeInvoicedDue
+        }
+        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_INKL_KUENFTIGE) {
             return orderInfo.toBeInvoiced
         }
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.FAKTURIERT) {

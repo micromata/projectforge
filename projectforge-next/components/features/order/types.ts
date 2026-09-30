@@ -194,8 +194,15 @@ export interface OrderListRow {
   periodOfPerformanceEnd?: string | null;
   probabilityOfOccurrence?: number | null;
   status?: AuftragsStatus | null;
-  /** True when at least one position/schedule is due to be invoiced — drives row highlighting. */
+  /**
+   * True when at least one position/schedule is due to be invoiced until the end of the current month —
+   * drives row highlighting. A payment schedule reached early, dated in a following month, isn't due yet.
+   */
   toBeInvoiced?: boolean | null;
+  /** ISO date of the earliest reached payment schedule not yet invoiced (`OrderInfo.nextInvoiceDate`). */
+  nextInvoiceDate?: string | null;
+  /** Something is to be invoiced right now, e.g. a finished position (`OrderInfo.toBeInvoicedImmediately`). */
+  toBeInvoicedImmediately?: boolean | null;
   attachmentsCounter?: number | null;
   attachmentsSizeFormatted?: string | null;
   /** Every list offers both as a column, `lastUpdate` shown from the start (see lib/page-def/audit-columns.ts). */

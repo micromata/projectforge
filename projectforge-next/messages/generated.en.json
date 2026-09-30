@@ -620,7 +620,8 @@
           "all": "all",
           "nochNichtVollstaendigFakturiert": "not completely invoiced",
           "vollstaendigFakturiert": "completely invoiced",
-          "zuFakturieren": "to be invoiced"
+          "zuFakturieren": "to be invoiced",
+          "zuFakturierenInklKuenftige": "to be invoiced (incl. future payment milestones)"
         }
       },
       "forecast": {
@@ -725,6 +726,10 @@
       "nettoSumme": {
         "_": "Net sum",
         "weighted": "Weighted net sum"
+      },
+      "nextInvoice": {
+        "_": "Next invoice",
+        "immediately": "immediately"
       },
       "notification": {
         "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"

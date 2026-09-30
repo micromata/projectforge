@@ -620,7 +620,8 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
-          "zuFakturieren": "zu fakturieren"
+          "zuFakturieren": "zu fakturieren",
+          "zuFakturierenInklKuenftige": "zu fakturieren (inkl. künftiger Zahlpläne)"
         }
       },
       "forecast": {
@@ -725,6 +726,10 @@
       "nettoSumme": {
         "_": "Nettosumme",
         "weighted": "Gewichtete Nettosumme"
+      },
+      "nextInvoice": {
+        "_": "Nächste Rechnung",
+        "immediately": "sofort"
       },
       "notification": {
         "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
