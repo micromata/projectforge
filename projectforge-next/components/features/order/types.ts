@@ -64,6 +64,11 @@ export interface InvoiceRef {
 export interface PositionInvoiceInfo {
   invoicedSum?: number | null;
   notInvoicedSum?: number | null;
+  /**
+   * Amount not invoiced, although the position (or its payment schedules) is marked as fully invoiced — e.g. an
+   * invoice was cancelled afterwards. Absent if there is none (`OrderInfo.getFehlbetrag`).
+   */
+  fehlbetrag?: number | null;
   invoices?: InvoiceRef[] | null;
   /** True when an invoice references this position — then it must not be deleted. */
   invoicedElsewhere?: boolean;
@@ -190,6 +195,8 @@ export interface OrderListRow {
   beauftragtNettoSumme?: number | null;
   fakturiertSum?: number | null;
   zuFakturierenSum?: number | null;
+  /** Not invoiced, although marked as fully invoiced (`OrderInfo.fehlbetrag`); absent if none. */
+  fehlbetrag?: number | null;
   periodOfPerformanceBegin?: string | null;
   periodOfPerformanceEnd?: string | null;
   probabilityOfOccurrence?: number | null;

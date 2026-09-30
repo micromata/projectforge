@@ -144,6 +144,17 @@ export const ORDER_PAGE = definePage<
       dataType: "AMOUNT",
       size: 120,
     },
+    // Not invoiced, although marked as fully invoiced — e.g. an invoice was cancelled afterwards. Nothing else
+    // shows this amount as to be invoiced, so it is shown by default (with the matching "fakturiert" filter it is
+    // the list to work through). Sorted by the backend (OrderEntityRest.COMPUTED_SORT_PROPERTIES).
+    {
+      id: "fehlbetrag",
+      labelKey: "fibu.auftrag.position.fehlbetrag._",
+      accessor: (row) => row.fehlbetrag ?? null,
+      dataType: "AMOUNT",
+      size: 120,
+      className: "font-bold text-destructive",
+    },
     // When the next invoice is to be written: right now for a finished position, otherwise the date of the
     // earliest reached payment schedule. Sorted by the backend (immediately due first, see
     // OrderEntityRest.COMPUTED_SORT_PROPERTIES) and filtered by its own date pill (AuftragNextInvoiceDateFilter),

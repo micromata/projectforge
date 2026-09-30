@@ -200,9 +200,18 @@ class OrderInfo : Serializable {
      * True if positions or payment schedules are marked as fully invoiced, but the remaining amount not invoiced is
      * at least [MIN_REMAINING_AMOUNT], e.g. because an invoice was cancelled afterwards. Such orders have to be checked,
      * because the remaining amount isn't shown as to be invoiced anywhere.
-     * @see calculateVollstaendigFakturiertMitRestbetrag
+     * @see fehlbetrag
      */
-    var vollstaendigFakturiertMitRestbetrag: Boolean = false
+    val vollstaendigFakturiertMitRestbetrag: Boolean
+        @JsonIgnore
+        get() = fehlbetrag != null
+
+    /**
+     * The amount not invoiced, although marked as fully invoiced: the sum of [getFehlbetrag] of all positions plus
+     * the one of payment schedules not assigned to a position. Null if less than [MIN_REMAINING_AMOUNT].
+     * @see calculateFehlbetrag
+     */
+    var fehlbetrag: BigDecimal? = null
 
     /**
      * @return The sum of person days of all positions.
@@ -303,6 +312,13 @@ class OrderInfo : Serializable {
 
     var paymentSchedulesReached: Boolean = false
 
+    /**
+     * The amount not invoiced of the given position, although it (or its payment schedules) is marked as fully
+     * invoiced, or null if there is none of at least [MIN_REMAINING_AMOUNT].
+     * @see vollstaendigFakturiertMitRestbetrag
+     */
+    fun getFehlbetrag(pos: OrderPositionInfo): BigDecimal? = calculateFehlbetrag(pos, paymentScheduleEntries)
+
     fun getInfoPosition(id: Long?): OrderPositionInfo? {
         id ?: return null
         return infoPositions?.find { it.id == id }
@@ -351,7 +367,7 @@ class OrderInfo : Serializable {
             notYetInvoicedSum = BigDecimal.ZERO
         }
         isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(this, positionInfos, paymentScheduleEntries)
-        vollstaendigFakturiertMitRestbetrag = calculateVollstaendigFakturiertMitRestbetrag(this, positionInfos, paymentScheduleEntries)
+        fehlbetrag = calculateFehlbetrag(this, positionInfos, paymentScheduleEntries)
         paymentSchedulesReached = paymentScheduleEntries?.any { it.toBeInvoiced } ?: false
         toBeInvoiced = false
         if (paymentSchedulesReached) {
@@ -401,7 +417,7 @@ class OrderInfo : Serializable {
             toBeInvoicedImmediatelySum = BigDecimal.ZERO
             datedToBeInvoicedSchedules = emptyList()
             positionAbgeschlossenUndNichtVollstaendigFakturiert = false
-            vollstaendigFakturiertMitRestbetrag = false
+            fehlbetrag = null
             notYetInvoicedSum = BigDecimal.ZERO
             paymentSchedulesReached = false
         }
@@ -475,28 +491,48 @@ class OrderInfo : Serializable {
          * Invoices are assigned to positions, not to payment schedules. So the payment schedules marked as fully
          * invoiced are compared with the invoiced sum of their position, and unassigned ones with the invoiced sum of
          * the whole order.
-         * @see vollstaendigFakturiertMitRestbetrag
+         * @see fehlbetrag
          */
-        private fun calculateVollstaendigFakturiertMitRestbetrag(
+        private fun calculateFehlbetrag(
             orderInfo: OrderInfo,
             positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleInfo>?
-        ): Boolean {
-            if (positions?.any { it.vollstaendigFakturiertMitRestbetrag } == true) {
-                return true
+        ): BigDecimal? {
+            var sum = positions?.mapNotNull { calculateFehlbetrag(it, paymentSchedules) }?.sumOf { it }
+                ?: BigDecimal.ZERO
+            val unassignedSum = paymentSchedules
+                ?.filter { it.positionNumber == null && it.valid && it.vollstaendigFakturiert }
+                ?.sumOf { it.amount!! } ?: BigDecimal.ZERO
+            val unassignedFehlbetrag = unassignedSum - orderInfo.invoicedSum
+            if (unassignedFehlbetrag >= MIN_REMAINING_AMOUNT) {
+                sum += unassignedFehlbetrag
             }
-            val invoicedSchedules = paymentSchedules?.filter { it.valid && it.vollstaendigFakturiert } ?: return false
-            invoicedSchedules.groupBy { it.positionNumber }.forEach { (positionNumber, schedules) ->
-                val invoicedSum = if (positionNumber == null) {
-                    orderInfo.invoicedSum
-                } else {
-                    positions?.find { it.number == positionNumber && !it.deleted }?.invoicedSum ?: BigDecimal.ZERO
-                }
-                if (schedules.sumOf { it.amount!! } - invoicedSum >= MIN_REMAINING_AMOUNT) {
-                    return true
-                }
+            return if (sum >= MIN_REMAINING_AMOUNT) sum else null
+        }
+
+        /**
+         * @return The amount not invoiced of the given position, if it is marked as fully invoiced or its payment
+         * schedules marked as fully invoiced sum up to more than invoiced, and if at least [MIN_REMAINING_AMOUNT].
+         * Otherwise, null.
+         */
+        private fun calculateFehlbetrag(
+            pos: OrderPositionInfo,
+            paymentSchedules: Collection<PaymentScheduleInfo>?,
+        ): BigDecimal? {
+            if (pos.deleted) {
+                return null
             }
-            return false
+            val positionFehlbetrag = if (pos.vollstaendigFakturiertMitRestbetrag) {
+                pos.netSum - pos.invoicedSum
+            } else {
+                BigDecimal.ZERO
+            }
+            val scheduleFehlbetrag = paymentSchedules
+                ?.filter { it.positionNumber == pos.number && it.valid && it.vollstaendigFakturiert }
+                ?.sumOf { it.amount!! }
+                ?.minus(pos.invoicedSum) ?: BigDecimal.ZERO
+            val fehlbetrag = positionFehlbetrag.max(scheduleFehlbetrag)
+            return if (fehlbetrag >= MIN_REMAINING_AMOUNT) fehlbetrag else null
         }
 
         private fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {

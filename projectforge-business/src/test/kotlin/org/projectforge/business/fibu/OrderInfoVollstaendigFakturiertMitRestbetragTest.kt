@@ -23,7 +23,9 @@
 
 package org.projectforge.business.fibu
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.test.AbstractTestBase
@@ -63,6 +65,7 @@ class OrderInfoVollstaendigFakturiertMitRestbetragTest : AbstractTestBase() {
         }
         assertTrue(orderInfo(order).vollstaendigFakturiertMitRestbetrag, "The cancelled invoice doesn't count.")
         assertTrue(filter.match(mutableListOf(), order))
+        assertFehlbetrag("100", order)
     }
 
     @Test
@@ -71,10 +74,12 @@ class OrderInfoVollstaendigFakturiertMitRestbetragTest : AbstractTestBase() {
         insertOrder(fullyInvoiced = true).let { order ->
             insertInvoice(order, "99.01")
             assertFalse(orderInfo(order).vollstaendigFakturiertMitRestbetrag, "0.99 remaining is ignored.")
+            assertFehlbetrag(null, order)
         }
         insertOrder(fullyInvoiced = true).let { order ->
             insertInvoice(order, "99")
             assertTrue(orderInfo(order).vollstaendigFakturiertMitRestbetrag, "1.00 remaining counts.")
+            assertFehlbetrag("1", order)
         }
         insertOrder(fullyInvoiced = false).let { order ->
             assertFalse(orderInfo(order).vollstaendigFakturiertMitRestbetrag, "Not marked as fully invoiced.")
@@ -93,11 +98,25 @@ class OrderInfoVollstaendigFakturiertMitRestbetragTest : AbstractTestBase() {
             })
         }
         assertTrue(orderInfo(order).vollstaendigFakturiertMitRestbetrag)
+        assertFehlbetrag("40", order)
         insertInvoice(order, "40")
         assertFalse(orderInfo(order).vollstaendigFakturiertMitRestbetrag)
+        assertFehlbetrag(null, order)
     }
 
     private fun orderInfo(order: AuftragDO): OrderInfo = auftragsCache.getOrderInfo(order.id)!!
+
+    private fun assertFehlbetrag(expected: String?, order: AuftragDO) {
+        val info = orderInfo(order)
+        // The order has a single position, so the order's shortfall is the one of its position.
+        listOf(info.getFehlbetrag(info.infoPositions!!.single()), info.fehlbetrag).forEach { fehlbetrag ->
+            if (expected == null) {
+                assertNull(fehlbetrag)
+            } else {
+                assertEquals(0, BigDecimal(expected).compareTo(fehlbetrag), "Expected $expected, got $fehlbetrag.")
+            }
+        }
+    }
 
     private fun insertOrder(
         fullyInvoiced: Boolean,

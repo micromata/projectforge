@@ -72,6 +72,11 @@ class Auftrag(
     var fakturiertSum: BigDecimal? = null,
     var zuFakturierenSum: BigDecimal? = null,
     /**
+     * Amount not invoiced, although positions or payment schedules are marked as fully invoiced (see
+     * [OrderInfo.fehlbetrag]); null if none.
+     */
+    var fehlbetrag: BigDecimal? = null,
+    /**
      * True when at least one position or payment schedule is due to be invoiced until the end of the current month
      * (see [OrderInfo.toBeInvoicedDue]) — used for list row highlighting.
      */
@@ -174,6 +179,7 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
+        fehlbetrag = orderInfo.fehlbetrag
         toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
         nextInvoiceDate = orderInfo.nextInvoiceDate
         toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
@@ -254,6 +260,7 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
+        fehlbetrag = orderInfo.fehlbetrag
         toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
         nextInvoiceDate = orderInfo.nextInvoiceDate
         toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
@@ -278,9 +285,12 @@ class Auftrag(
         }?.toMutableList()
         // Matched by number, not by id: a snapshot's position infos may carry no id, and number is the
         // key of a position inside its order anyway.
-        val positionInfos = orderInfo(src).infoPositions
+        val orderInfo = orderInfo(src)
+        val positionInfos = orderInfo.infoPositions
         positionen?.forEach { position ->
-            position.notInvoicedSum = positionInfos?.find { it.number == position.number }?.notYetInvoiced
+            val positionInfo = positionInfos?.find { it.number == position.number }
+            position.notInvoicedSum = positionInfo?.notYetInvoiced
+            position.fehlbetrag = positionInfo?.let { orderInfo.getFehlbetrag(it) }
         }
     }
 

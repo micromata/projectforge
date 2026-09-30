@@ -1057,6 +1057,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         position.vollstaendigFakturiert = false
         position.invoicedSum = null
         position.notInvoicedSum = null
+        position.fehlbetrag = null
         position.invoices = null
         position.invoicedElsewhere = false
       }?.toMutableList()
@@ -1220,6 +1221,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       Auftrag::beauftragtNettoSumme.name to { it.commissionedNetSum },
       Auftrag::fakturiertSum.name to { it.invoicedSum },
       Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
+      Auftrag::fehlbetrag.name to { it.fehlbetrag },
       Auftrag::personDays.name to { it.personDays },
       // Immediately due orders first, then by date; orders with nothing to invoice have no value.
       Auftrag::nextInvoiceDate.name to { info ->

@@ -620,6 +620,7 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
+          "vollstaendigFakturiertMitRestbetrag": "als vollständig fakturiert markiert, aber Restbetrag offen",
           "zuFakturieren": "diesen Monat zu fakturieren",
           "zuFakturierenFolgemonate": "in Folgemonaten zu fakturieren"
         }
@@ -756,6 +757,10 @@
         },
         "error": {
           "notFound": "Auftragsposition nicht gefunden."
+        },
+        "fehlbetrag": {
+          "_": "Fehlbetrag",
+          "info": "Die Position ist als vollständig fakturiert markiert, aber ihre gültigen Rechnungen (ohne geplante und stornierte) ergeben weniger als ihr Nettowert bzw. als ihre als vollständig fakturiert markierten Zahlungsmeilensteine."
         },
         "noTaskGiven": "Keinem Strukturelement zugeordnet.",
         "paymenttype": {
