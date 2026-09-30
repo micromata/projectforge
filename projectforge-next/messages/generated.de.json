@@ -1081,6 +1081,15 @@
           "sharedCosts": "Shared Costs → Faktor {arg0}: {arg1} von {arg2} Std. gerechnet."
         }
       },
+      "invoicingQuotaChart": {
+        "billed": "{arg0} h von {arg1} h fakturiert",
+        "noData": "Im Zeitraum gibt es keine Arbeitszeit, aus der sich eine Fakturaquote berechnen ließe.",
+        "title": "Fakturaquote der letzten 12 Monate"
+      },
+      "showInvoicingQuota": "Fakturaquote anzeigen",
+      "tab": {
+        "report": "Monatsbericht"
+      },
       "targetWorkingHours": "Arbeitsstunden",
       "totalSum": {
         "_": "Bruttoarbeitszeit",

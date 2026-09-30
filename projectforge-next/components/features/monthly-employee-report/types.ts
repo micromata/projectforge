@@ -80,17 +80,40 @@ export interface MonthlyReport {
   vacationAvailable: boolean;
   vacationCount?: string | null;
   vacationPlannedCount?: string | null;
-  /** Fakturaquote (invoicing quota), formatted as a percentage, or null if not enabled. */
+  /** Whether the invoicing quota is enabled by configuration (drives showing the user's switch). */
+  invoicingQuotaAvailable: boolean;
+  /** The user's persisted choice whether to see the invoicing quota (default off). */
+  showInvoicingQuota: boolean;
+  /** Fakturaquote (invoicing quota), formatted as a percentage, or null if not enabled or not shown. */
   invoicingQuota?: string | null;
+  /** How the quota was computed (plain lines, single `\n` line breaks). */
   invoicingQuotaTooltip?: string | null;
+  /** Configured explanation why the quota is shown and why it matters (markdown). */
+  invoicingQuotaInfo?: string | null;
   /** Drill-down month bounds as `yyyy-MM-dd`. */
   startDate: string;
   endDate: string;
 }
 
-/** The three parameters that select a report; `undefined` lets the backend default them. */
+/** The parameters that select a report; `undefined` lets the backend default them (last choice). */
 export interface MonthlyReportQuery {
   userId?: number;
   year?: number;
   month?: number;
+  showInvoicingQuota?: boolean;
+}
+
+/** The invoicing quota of one month, for the chart tab (`InvoicingQuotaHistoryMonth`). */
+export interface InvoicingQuotaHistoryMonth {
+  /** `yyyy-MM`. */
+  month: string;
+  /** Fraction 0..1, or null for a month without (non-ignored) work time — a gap in the line. */
+  quota: number | null;
+  billedHours: string | null;
+  totalHours: string | null;
+}
+
+/** The invoicing quota of the 12 months ending with the selected report month, oldest first. */
+export interface InvoicingQuotaHistory {
+  months: InvoicingQuotaHistoryMonth[];
 }

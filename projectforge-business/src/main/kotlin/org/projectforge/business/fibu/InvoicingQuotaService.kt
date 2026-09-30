@@ -23,9 +23,12 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Locale
 
 /**
  * Service for calculating invoicing quota (Fakturaquote) in monthly employee reports.
@@ -37,12 +40,37 @@ import java.math.RoundingMode
  */
 @Service
 class InvoicingQuotaService(
-    private val config: InvoicingQuotaConfiguration
+    private val config: InvoicingQuotaConfiguration,
+    private val accessChecker: AccessChecker,
 ) {
     /**
      * Check if invoicing quota calculation is enabled.
      */
     fun isEnabled(): Boolean = config.enabled && config.billedPatterns.isNotEmpty()
+
+    /**
+     * May the logged-in user see the invoicing quota of the given user? Always for the own quota, for other
+     * users only as member of one of the configured [InvoicingQuotaConfiguration.foreignUserGroups].
+     */
+    fun mayViewQuotaOf(userId: Long?): Boolean = mayViewQuotaOf(userId, ThreadLocalUserContext.loggedInUserId)
+
+    internal fun mayViewQuotaOf(userId: Long?, loggedInUserId: Long?): Boolean {
+        loggedInUserId ?: return false
+        if (userId == loggedInUserId) {
+            return true
+        }
+        val groups = config.foreignUserGroups
+        return groups.isNotEmpty() && accessChecker.isLoggedInUserMemberOfGroup(*groups.toTypedArray())
+    }
+
+    /**
+     * The configured explanation of the invoicing quota in the language of [locale], falling back to English.
+     *
+     * @return The markdown text, or null if none is configured.
+     */
+    fun getInfo(locale: Locale): String? {
+        return (config.info[locale.language] ?: config.info["en"])?.takeIf { it.isNotBlank() }
+    }
 
     /**
      * Check if the given Kost2 display name is considered as billed work.

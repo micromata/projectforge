@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
@@ -26,8 +27,8 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const MONTH_KIND = periodKindOf("month")!;
 
 /**
- * The report filter: the user (only when the account may read other users' time sheets), the year and the
- * month. The year list is the years that have time sheets for the user; the selects show the resolved
+ * The report filter: the user (only when the account may read other users' time sheets), the year, the
+ * month and — when the invoicing quota is configured — the user's switch whether to see it. The year list is the years that have time sheets for the user; the selects show the resolved
  * year/month of the report, so they stay in sync with what is displayed even when the query defaulted them.
  */
 export function ReportFilterRow({
@@ -120,6 +121,20 @@ export function ReportFilterRow({
           onChange({ ...value, year, month });
         }}
       />
+      {report.invoicingQuotaAvailable && (
+        <div className="flex items-center gap-2 pb-2">
+          <Switch
+            id="report-show-invoicing-quota"
+            checked={report.showInvoicingQuota}
+            onCheckedChange={(checked) =>
+              onChange({ ...value, showInvoicingQuota: checked })
+            }
+          />
+          <Label htmlFor="report-show-invoicing-quota">
+            {t("fibu.monthlyEmployeeReport.showInvoicingQuota")}
+          </Label>
+        </div>
+      )}
     </div>
   );
 }

@@ -153,9 +153,13 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var invoicingQuota: BigDecimal? = null
         private set
 
-    private var invoicingQuotaBilledMillis: Long = 0
+    /** Billed work time in ms the [invoicingQuota] is based on (numerator). */
+    var invoicingQuotaBilledMillis: Long = 0
+        private set
 
-    private var invoicingQuotaTotalMillis: Long = 0
+    /** Non-ignored work time in ms the [invoicingQuota] is based on (denominator). */
+    var invoicingQuotaTotalMillis: Long = 0
+        private set
 
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
 
@@ -361,7 +365,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
             }
         }
         val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
-        if (invoicingQuotaService?.isEnabled() == true) {
+        // Computed only if the logged-in user may see it: the own quota, the quota of others only as member of a
+        // configured group. So no page (Wicket, REST) can show it to anybody else.
+        if (invoicingQuotaService?.isEnabled() == true && invoicingQuotaService.mayViewQuotaOf(user?.id)) {
             invoicingQuotaService.calculateQuotaResult(kost2Durations)?.let { result ->
                 this.invoicingQuota = result.quota
                 this.invoicingQuotaBilledMillis = result.billedDurationMillis
