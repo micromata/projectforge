@@ -94,7 +94,10 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:OrderColumn(name = "index")
+    // Sorted by KostZuweisungDO.index, not an @OrderColumn on it: the column is a mapped property of the
+    // assignment as well, and as an order column Hibernate rewrote it from the list position on merge
+    // (0 became 1, 0/1 became 2/3), leaving null holes in the loaded list.
+    @get:OrderBy("index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 
