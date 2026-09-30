@@ -13,10 +13,10 @@ import { useTranslations } from "next-intl";
 import {
   ChartContainer,
   ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
+import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { niceDateTicks, niceScale } from "@/lib/chart-scale";
@@ -101,7 +101,7 @@ export function LiquidityForecastCashflowChart({
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatDate(label, ctx)}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<SeriesLegendContent config={config} />} />
         <Bar
           dataKey="creditExpected"
           stroke="var(--color-creditExpected)"

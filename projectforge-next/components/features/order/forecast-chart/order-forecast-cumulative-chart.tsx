@@ -5,7 +5,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useTranslations } from "next-intl";
 import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
-import { ReversedChartLegendContent } from "@/components/shared/chart/reversed-chart-legend";
+import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
@@ -75,7 +75,9 @@ export function OrderForecastCumulativeChart({
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
-        <ChartLegend content={<ReversedChartLegendContent />} />
+        <ChartLegend
+          content={<SeriesLegendContent config={config} reversed />}
+        />
         {keys.map((key) => (
           <Line
             key={key}
