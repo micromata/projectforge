@@ -6,6 +6,7 @@ import { ListField } from "./filter-list-field";
 import { RangeField } from "./filter-range-field";
 import { FilterKost2Field } from "./filter-kost2-field";
 import { FilterObjectField } from "./filter-object-field";
+import { MonthRangeField } from "./filter-month-field";
 import { TimestampRangeField } from "./filter-timestamp-field";
 
 interface FilterFieldProps {
@@ -67,6 +68,8 @@ export function FilterField({
       return <TimestampRangeField element={element} {...props} />;
     case "DATE":
       return <RangeField {...props} />;
+    case "MONTH":
+      return <MonthRangeField {...props} />;
     default:
       return <TextField {...props} />;
   }

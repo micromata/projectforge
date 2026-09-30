@@ -384,12 +384,14 @@
       "october": "October",
       "september": "September"
     },
+    "nextYear": "Next year",
     "option": {
       "firstHour": "Begin of day",
       "gridSize": "Grid size in minutes",
       "showBreaks": "Breaks",
       "timesheets": "time sheets"
     },
+    "previousYear": "Previous year",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
@@ -801,6 +803,7 @@
     "buchungssatz": {
       "_": "Accounting record",
       "beleg": "Receipt",
+      "bookingMonth": "Booking month",
       "error": {
         "invalidTimeperiod": "Invalid time-period"
       },
@@ -1422,6 +1425,8 @@
     "hide": "Hide filter",
     "history": "Modified",
     "lessThan": "Less than",
+    "monthFrom": "From (month)",
+    "monthTo": "To (month)",
     "moreFields": "Other fields",
     "newest": "newest",
     "noFields": "No filter fields available",

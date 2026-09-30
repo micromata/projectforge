@@ -384,12 +384,14 @@
       "october": "Oktober",
       "september": "September"
     },
+    "nextYear": "Nächstes Jahr",
     "option": {
       "firstHour": "Tagesbeginn",
       "gridSize": "Raster in Minuten",
       "showBreaks": "Pausen",
       "timesheets": "Zeitberichte"
     },
+    "previousYear": "Vorheriges Jahr",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quickselect - aktueller Monat",
@@ -801,6 +803,7 @@
     "buchungssatz": {
       "_": "Buchungssatz",
       "beleg": "Beleg",
+      "bookingMonth": "Buchungsmonat",
       "error": {
         "invalidTimeperiod": "Ungültige Zeitraumangabe"
       },
@@ -1422,6 +1425,8 @@
     "hide": "Filter ausblenden",
     "history": "Geändert",
     "lessThan": "Kleiner als",
+    "monthFrom": "Von (Monat)",
+    "monthTo": "Bis (Monat)",
     "moreFields": "Weitere Felder",
     "newest": "die neuesten",
     "noFields": "Keine Filterfelder verfügbar",

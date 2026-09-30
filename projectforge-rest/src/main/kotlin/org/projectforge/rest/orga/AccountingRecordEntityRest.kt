@@ -24,6 +24,8 @@
 package org.projectforge.rest.orga
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.reporting.ReportStorage
@@ -33,6 +35,7 @@ import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.rest.config.Rest
@@ -42,6 +45,7 @@ import org.projectforge.rest.dto.Buchungssatz
 import org.projectforge.rest.dto.BwaStatistics
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -64,6 +68,9 @@ class AccountingRecordEntityRest :
         BuchungssatzDao::class.java,
         "fibu.buchungssatz.title",
     ) {
+
+    @Autowired
+    private lateinit var kontoCache: KontoCache
 
     /**
      * The DATEV-import right the Wicket `AccountingRecordListPage`/`AccountingRecordEditPage` gate on — kept
@@ -96,16 +103,17 @@ class AccountingRecordEntityRest :
     }
 
     /**
-     * The single booking-period range filter (invoice-style date picker), default-visible. Its picked from/to
-     * dates are translated to fiscal year/month predicates in [preProcessMagicFilter].
+     * The single booking-period range filter, default-visible: a range of whole months (Wicket's from/to
+     * year/month selects), as the booking period is a year and a month and nothing finer. Its from/to dates
+     * are translated to fiscal year/month predicates in [preProcessMagicFilter].
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         checkDatevImportAccess() // gates listMeta, which returns before any row is transformed.
         elements.add(
             UIFilterElement(
                 PERIOD_FILTER,
-                UIFilterElement.FilterType.DATE,
-                label = translate("timePeriod"),
+                UIFilterElement.FilterType.MONTH,
+                label = translate("fibu.buchungssatz.bookingMonth"),
                 defaultFilter = true,
             )
         )
@@ -126,6 +134,43 @@ class AccountingRecordEntityRest :
         }
         return null
     }
+
+    /**
+     * The record number column (`satznr`, shown as `yyyy-mm-#####`) sorts by year, month and number, as Wicket's
+     * `formattedSatzNummer` did. The entity's `satznr` column alone is the number within a month only, so an
+     * `ORDER BY satznr` interleaves the months (all `…-00001` first) — which, paged, looks as if only the
+     * visible page were sorted.
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        val index = target.sortProperties.indexOfFirst { it.property == SATZNR }
+        if (index < 0) {
+            return
+        }
+        val sortOrder = target.sortProperties[index].sortOrder
+        target.sortProperties.removeAt(index)
+        target.sortProperties.addAll(
+            index,
+            SATZNR_SORT_COLUMNS.map { SortProperty(it, sortOrder) },
+        )
+    }
+
+    /**
+     * The four reference columns show the cost unit's/account's display name, which no `ORDER BY` can express.
+     * Resolved via the caches (as the formatters do): the references are lazy, and sorting touches every row.
+     */
+    override val computedSortProperties: Map<String, (BuchungssatzDO) -> Comparable<*>?>
+        get() = mapOf(
+            "kost1.displayName" to { obj: BuchungssatzDO ->
+                KostFormatter.instance.formatKost1(obj.kost1, KostFormatter.FormatType.TEXT)
+            },
+            "kost2.displayName" to { obj: BuchungssatzDO ->
+                KostFormatter.instance.formatKost2(obj.kost2, KostFormatter.FormatType.TEXT)
+            },
+            "konto.displayName" to { obj: BuchungssatzDO -> kontoCache.getKontoIfNotInitialized(obj.konto)?.displayName },
+            "gegenKonto.displayName" to { obj: BuchungssatzDO ->
+                kontoCache.getKontoIfNotInitialized(obj.gegenKonto)?.displayName
+            },
+        )
 
     /**
      * BWA over the whole (non-paged) result set. For server paging the frontend asks for it separately via
@@ -191,5 +236,11 @@ class AccountingRecordEntityRest :
     companion object {
         /** Filter field id of the booking-period range (invoice-style date picker). */
         internal const val PERIOD_FILTER = "timePeriod"
+
+        /** Sort property of the record number column (the column id the next list sends). */
+        private const val SATZNR = "satznr"
+
+        /** The database columns the record number column sorts by, in this order. */
+        private val SATZNR_SORT_COLUMNS = listOf("year", "month", SATZNR)
     }
 }
