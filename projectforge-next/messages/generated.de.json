@@ -770,6 +770,11 @@
           "info": "Die Wahrscheinlichkeit, mit der der Forecast rechnet.\n\nSie ergibt sich aus dem Status des Auftrags und dem jeder Position; die eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo der Status sie offen lässt.\n\nAngezeigt wird sie mit den Nettosummen der Positionen gewichtet: Summe(Nettosumme x Wahrscheinlichkeit) / Nettosumme."
         }
       },
+      "refreshCache": {
+        "_": "Auftragscache erneuern",
+        "done": "Auftrags- und Rechnungscache erneuert.",
+        "tooltip": "Berechnet die fakturierten Summen und Rechnungsverknüpfungen aller Aufträge anhand der aktuellen Rechnungen neu."
+      },
       "showInactivePosition": "Inaktive Positionen anzeigen",
       "status": {
         "abgelehnt": "abgelehnt",

@@ -166,6 +166,54 @@ class RechnungCacheTest : AbstractTestBase() {
         Assertions.assertEquals(0, BigDecimal("119").compareTo(info.grossSum), "Deleted position must not be in grossSum.")
     }
 
+    /**
+     * An invoice switched from planned to issued must show up in its order right after saving, with its number.
+     * Regression test: [RechnungCache.update] stored the fresh position infos under the invoice id instead of the
+     * position ids, so [AuftragsRechnungCache] kept serving the outdated ones (still without number, which the order
+     * page filters out) until the next full refresh of the caches.
+     */
+    @Test
+    fun plannedInvoiceIssuedIsVisibleInOrder() {
+        logon(getUser(TEST_FINANCE_USER))
+        val auftrag = createOrder().also {
+            it.addPosition(createOrderPos().also { pos -> pos.titel = "Pos 1" })
+            it.nummer = auftragDao.getNextNumber(it)
+        }
+        auftragDao.insert(auftrag)
+        val auftragsPosId = auftrag.getPosition(1.toShort())!!.id
+        val rechnung = RechnungDO().also {
+            it.addPosition(RechnungsPositionDO().also { pos ->
+                pos.auftragsPosition = auftrag.getPosition(1.toShort())
+                pos.einzelNetto = BigDecimal("100")
+                pos.text = "planned"
+            })
+            it.status = RechnungStatus.GEPLANT
+            it.typ = RechnungTyp.RECHNUNG // Only then issuing assigns the next number.
+            it.datum = now().localDate
+            it.projekt = initTestDB.addProjekt(null, 1, "plannedTest")
+        }
+        rechnungDao.insert(rechnung)
+        // As in production: the caches were filled while the invoice was still planned.
+        rechnungCache.forceReload()
+        Assertions.assertTrue(
+            rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPosId).isNullOrEmpty(),
+            "A planned invoice (without number) isn't assigned to the order.",
+        )
+
+        persistenceService.runInTransaction {
+            val loaded = rechnungDao.find(rechnung.id)!!
+            loaded.status = RechnungStatus.GESTELLT
+            rechnungDao.update(loaded)
+        }
+
+        val posInfos = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPosId)
+        Assertions.assertEquals(1, posInfos?.size, "The issued invoice must be assigned to the order position.")
+        Assertions.assertNotNull(
+            posInfos!!.first().rechnungInfo?.nummer,
+            "The position info must reference the issued invoice with its number.",
+        )
+    }
+
     private fun createOrder(): AuftragDO {
         return AuftragDO().also {
             it.status = AuftragsStatus.GELEGT

@@ -770,6 +770,11 @@
           "info": "The probability the forecast works with.\n\nIt follows from the status of the order and of each position; the given probability of occurrence is only used where the status leaves it open.\n\nShown weighted by the net sums of the positions: sum(net sum x probability) / net sum."
         }
       },
+      "refreshCache": {
+        "_": "Refresh order cache",
+        "done": "Order and invoice caches refreshed.",
+        "tooltip": "Recalculates the invoiced sums and invoice links of all orders from the current invoices."
+      },
       "showInactivePosition": "Show inactive positions",
       "status": {
         "abgelehnt": "declined",

@@ -257,3 +257,30 @@ export function fetchForecastChart(
     signal
   );
 }
+
+/** React Query key of whether the logged-in user may refresh the order caches. */
+export const REFRESH_CACHE_ACCESS_QUERY_KEY = [
+  "order",
+  "refreshCacheAccess",
+] as const;
+
+/** Whether the logged-in user may use {@link refreshOrderCache}: the finance staff only. */
+export function fetchRefreshCacheAccess(
+  signal?: AbortSignal
+): Promise<{ access: boolean }> {
+  return request<{ access: boolean }>(
+    "/rs/order/refreshCacheAccess",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Rebuilds the invoice and order caches, so the invoiced sums and invoice links of the orders reflect the
+ * current invoices at once. Answers the translated confirmation.
+ */
+export function refreshOrderCache(): Promise<{ message: string }> {
+  return request<{ message: string }>("/rs/order/refreshCache", {
+    method: "POST",
+  });
+}
