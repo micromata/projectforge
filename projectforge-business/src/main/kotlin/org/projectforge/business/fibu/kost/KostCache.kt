@@ -126,11 +126,16 @@ class KostCache : AbstractCache() {
         }
     }
 
+    /**
+     * The bookable cost 2 units of a project (e.g. for time sheets, see TaskTree.getKost2List): not deleted
+     * and effectively active.
+     */
     fun getActiveKost2(nummernkreis: Int, bereich: Int, teilbereich: Int): List<Kost2DO> {
         checkRefresh()
         synchronized(kost2Map) {
             return kost2Map.values.filter { kost2 ->
                 kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich
+                        && !kost2.deleted
                         && (kost2.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE || kost2.effectiveKostentraegerStatus == null)
             }
         }

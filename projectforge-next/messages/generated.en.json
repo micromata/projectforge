@@ -1143,7 +1143,9 @@
     "projekt": {
       "_": "Project",
       "edit": {
+        "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
         "kost2DoesAlreadyExists": "Cost2 does already exist.",
+        "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
       "identifier": "Identifier",

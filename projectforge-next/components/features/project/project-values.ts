@@ -1,7 +1,7 @@
 import type { ProjectValues } from "./project-schema";
 import type { Kost2ArtSelection, ProjectDetail } from "./types";
 
-/** A cost 2 type with both flags set, whatever the JSON left out (NON_NULL drops nothing here, but a false is cheap to be sure of). */
+/** A cost 2 type with all flags set, whatever the JSON left out (NON_NULL drops nothing here, but a false is cheap to be sure of). */
 function toKost2Art(
   art: Kost2ArtSelection
 ): ProjectValues["kost2Arts"][number] {
@@ -9,6 +9,7 @@ function toKost2Art(
     ...art,
     selected: art.selected ?? false,
     existsAlready: art.existsAlready ?? false,
+    active: art.active ?? false,
   };
 }
 

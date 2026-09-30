@@ -32,6 +32,7 @@ import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -65,9 +66,9 @@ import org.springframework.web.bind.annotation.RestController
  * more. The list used to be the generic React page, the form the Wicket `ProjektEditPage`; that one is
  * still reachable as the way back and writes through the same [ProjektDao].
  *
- * The form offers the cost 2 types (Kost2-Arten) of the project: the ones not yet existing may be picked,
- * and a [Kost2DO] is created for each picked one after the save ([onAfterSaveOrUpdate]), as the Wicket
- * page does. Existing cost 2 units are never removed here.
+ * The form offers the cost 2 types (Kost2-Arten) of the project: a [Kost2DO] is created for each newly
+ * checked one after the save ([onAfterSaveOrUpdate]), as the Wicket page does. Unlike there, an existing
+ * one may be unchecked, which sets its cost 2 unit non-active (never deleted), and checked again.
  *
  * Project favorites (`UserPrefArea.PROJEKT_FAVORITE`) are deliberately not carried over — the next list
  * offers the generic saved-filter favorites instead.
@@ -97,13 +98,19 @@ class ProjectEntityRest
 
     /**
      * The edit form (and a new entry) also gets all cost 2 types, the ones the project already has marked
-     * [Kost2Art.existsAlready]. Not for a list row: the list shows [Project.kost2ArtsAsString] instead.
+     * [Kost2Art.existsAlready]. The ones with an active cost 2 unit are [Kost2Art.active] and start
+     * [Kost2Art.selected] — the checkbox, unchecked deactivates it on save (see [onAfterSaveOrUpdate]).
+     * Not for a list row: the list shows [Project.kost2ArtsAsString] instead.
      */
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
         val projekt = Project()
         caches.initialize(obj)
         projekt.copyFrom(obj)
         if (editMode || obj.id == null) {
+            val activeArtIds = kostCache.getKost2ForProjekt(obj.id)
+                .filter { isActive(it) }
+                .mapNotNull { it.kost2Art?.id }
+                .toSet()
             projekt.kost2Arts = kostCache.getAllKost2ArtsForProjekt(obj.id).map { art ->
                 Kost2Art(
                     id = art.id,
@@ -111,7 +118,11 @@ class ProjectEntityRest
                     fakturiert = art.isFakturiert,
                     projektStandard = art.isProjektStandard,
                     description = art.description,
-                ).also { it.existsAlready = art.isExistsAlready }
+                ).also {
+                    it.existsAlready = art.isExistsAlready
+                    it.active = art.isExistsAlready && art.id in activeArtIds
+                    it.selected = it.active
+                }
             }.sortedBy { it.id }
             projekt.numberLocked = baseDao.isNumberLocked(obj.id)
         }
@@ -255,22 +266,62 @@ class ProjectEntityRest
     }
 
     /**
-     * Creates a cost 2 unit for every cost 2 type picked in the form that the project doesn't have yet
-     * (see `ProjektEditPage.afterSaveOrUpdate`).
+     * Brings the project's cost 2 units in line with the cost 2 types checked in the form:
+     * - a checked type gets an active cost 2 unit: a new one (see `ProjektEditPage.afterSaveOrUpdate`), a
+     *   deleted one is undeleted (inserting would collide with its number), a non-active or ended one is
+     *   activated again;
+     * - an unchecked type with an active cost 2 unit is set non-active. It is never deleted: the time sheets
+     *   and invoices booked on it keep it, only new time sheets can't be booked on it any more
+     *   ([KostCache.getActiveKost2]).
+     *
+     * Read from the cache but written through [Kost2Dao] on a freshly loaded object (rights, history, cache).
+     *
+     * Nothing is changed for an ended project (the status as saved, also if it was ended with this save): its
+     * cost 2 units are ended anyway, the form shows them read-only.
      */
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: ProjektDO, postData: PostData<Project>) {
         super.onAfterSaveOrUpdate(request, obj, postData)
+        if (obj.status == ProjektStatus.ENDED) {
+            return
+        }
         val projektId = obj.id ?: return
-        val existing = kostCache.getKost2ArtsForProjekt(projektId).mapNotNull { it.id }.toSet()
-        postData.data.kost2Arts
-            ?.filter { it.selected && !it.existsAlready && it.id != null && it.id !in existing }
-            ?.forEach { art ->
-                val kost2 = Kost2DO()
-                kost2Dao.setProjekt(kost2, projektId)
-                kost2Dao.setKost2Art(kost2, art.id!!)
-                kost2Dao.insert(kost2)
+        val kost2ByArtId = kostCache.getKost2ForProjekt(projektId, includeDeleted = true)
+            .filter { it.kost2Art?.id != null }
+            // A deleted unit only counts if there is no other one of the same type (there shouldn't be).
+            .sortedBy { !it.deleted }
+            .associateBy { it.kost2Art!!.id!! }
+        postData.data.kost2Arts?.forEach { art ->
+            val artId = art.id ?: return@forEach
+            val cached = kost2ByArtId[artId]
+            if (art.selected) {
+                if (cached == null) {
+                    val kost2 = Kost2DO()
+                    kost2Dao.setProjekt(kost2, projektId)
+                    kost2Dao.setKost2Art(kost2, artId)
+                    kost2Dao.insert(kost2)
+                    return@forEach
+                }
+                val kost2 = kost2Dao.find(cached.id) ?: return@forEach
+                val activate = !isActive(kost2)
+                if (activate) {
+                    kost2.kostentraegerStatus = KostentraegerStatus.ACTIVE
+                }
+                if (kost2.deleted) {
+                    kost2Dao.undelete(kost2) // Takes the status change along.
+                } else if (activate) {
+                    kost2Dao.update(kost2)
+                }
+            } else if (cached != null && !cached.deleted && isActive(cached)) {
+                val kost2 = kost2Dao.find(cached.id) ?: return@forEach
+                kost2.kostentraegerStatus = KostentraegerStatus.NONACTIVE
+                kost2Dao.update(kost2)
             }
+        }
     }
+
+    /** The cost 2 unit's own status, not the effective one (an ended project ends all its units anyway). */
+    private fun isActive(kost2: Kost2DO): Boolean =
+        kost2.kostentraegerStatus == null || kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
 

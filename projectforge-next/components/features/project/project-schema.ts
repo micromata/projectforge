@@ -21,6 +21,7 @@ const kost2Art = z.looseObject({
   id: z.number(),
   selected: z.boolean(),
   existsAlready: z.boolean(),
+  active: z.boolean(),
 });
 
 /**

@@ -1143,7 +1143,9 @@
     "projekt": {
       "_": "Projekt",
       "edit": {
+        "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
         "kost2DoesAlreadyExists": "Kost2 existiert bereits.",
+        "kost2LockedEnded": "Das Projekt ist beendet: Seine Kostenarten sind nicht mehr änderbar.",
         "selectStandardKost2Arts": "Alle Standard-Kostenarten auswählen"
       },
       "identifier": "Kurzbezeichner",

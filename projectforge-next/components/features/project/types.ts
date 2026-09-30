@@ -29,8 +29,9 @@ export type ProjectTaskDto = RefDto & {
 
 /**
  * One cost 2 type (org.projectforge.rest.dto.Kost2Art) as the edit form offers it: the ones the project
- * already has a cost 2 unit for are `existsAlready`, the ones picked for creation `selected` —
- * `ProjectEntityRest.onAfterSaveOrUpdate` creates a cost 2 unit for each of those after the save.
+ * already has a cost 2 unit for are `existsAlready`, those with an active one also `active`. `selected` is
+ * the checkbox, starting as `active` — `ProjectEntityRest.onAfterSaveOrUpdate` creates or reactivates a
+ * cost 2 unit for each selected one after the save, and sets an unselected active one non-active.
  */
 export interface Kost2ArtSelection {
   id: number;
@@ -40,6 +41,7 @@ export interface Kost2ArtSelection {
   description?: string | null;
   selected: boolean;
   existsAlready: boolean;
+  active: boolean;
 }
 
 /**

@@ -141,6 +141,43 @@ test.describe("project page", () => {
     expect(after.name).toBe(project.name);
   });
 
+  test("deactivates a cost 2 unit when unchecked and reactivates it", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    const before = await storedProject(page.request, project.id);
+    const candidate = before.kost2Arts?.find((art) => art.active);
+    test.skip(candidate == null, "The project has no active cost 2 unit.");
+    const toggleAndSave = async () => {
+      await goto(page, `/project/${project.id}`);
+      await expect(nameField(page, format)).toHaveValue(project.name, {
+        timeout: 30_000,
+      });
+      await page
+        .locator(`[data-kost2-art="${candidate!.id}"]`)
+        .getByRole("checkbox")
+        .click();
+      await page
+        .getByRole("button", { name: format.t("save"), exact: true })
+        .click();
+      await expect(
+        page.getByText(format.t("message.successfullChanged"))
+      ).toBeVisible();
+      return (await storedProject(page.request, project.id)).kost2Arts?.find(
+        (art) => art.id === candidate!.id
+      );
+    };
+
+    // Unchecked: the cost 2 unit is kept, but non-active (ProjectEntityRest.onAfterSaveOrUpdate).
+    const deactivated = await toggleAndSave();
+    expect(deactivated?.existsAlready).toBe(true);
+    expect(deactivated?.active).toBe(false);
+    // Checked again: the same cost 2 unit is active again.
+    const reactivated = await toggleAndSave();
+    expect(reactivated?.existsAlready).toBe(true);
+    expect(reactivated?.active).toBe(true);
+  });
+
   test("rejects a number the customer already has for another project", async ({
     seedRequest,
   }) => {
@@ -178,7 +215,7 @@ test.describe("project page", () => {
 interface StoredProject {
   name?: string;
   nummer?: number;
-  kost2Arts?: { id: number; existsAlready?: boolean }[];
+  kost2Arts?: { id: number; existsAlready?: boolean; active?: boolean }[];
 }
 
 /** The project as its edit page's DTO, cost 2 types included. */
