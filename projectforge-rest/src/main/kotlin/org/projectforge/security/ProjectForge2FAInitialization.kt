@@ -139,7 +139,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
-      ProjectPagesRest::class.java,
+      ProjectEntityRest::class.java, ProjectMultiSelectedPageRest::class.java,
       OrderEntityRest::class.java,
       EingangsrechnungMultiSelectedPageRest::class.java,
       RechnungMultiSelectedPageRest::class.java,

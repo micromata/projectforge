@@ -338,6 +338,19 @@ object NextMigration {
             // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/incomingInvoice* links.
             offerLegacyLink = false,
         ),
+        // The project list was the generic React page (ProjectPagesRest's layout), its form the Wicket
+        // ProjektEditPage - the React form never got past "Not yet implemented". Both halves are hand built in
+        // projectforge-next now and ProjectEntityRest serves no layout any more, so the React page is gone and
+        // the way back leads to Wicket, whose list and form follow the mount convention (projectList /
+        // projectEdit, DaoConst.PROJECT). An old react/project bookmark is bent onto next by an explicit rule of
+        // OrphanedLinkFilter, as the generic redirects stay within a page's legacyApp. Project favorites (UserPrefArea.PROJEKT_FAVORITE) are not
+        // migrated.
+        "project" to NextPage(
+            route = "project",
+            editRoute = "project/$ID_PLACEHOLDER",
+            newEntryRoute = "project/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
         // *list* perspective of the entity, /next/task, as for every other page - the structure tree is
         // a second next page of the same entity, under a route of its own (/next/taskTree, served by

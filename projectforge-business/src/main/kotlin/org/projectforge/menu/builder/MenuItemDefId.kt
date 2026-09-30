@@ -114,7 +114,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // "classic version" escape hatch, so only this menu entry points at next now.
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
-    PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //
+    PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //

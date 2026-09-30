@@ -64,6 +64,19 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/group", redirectOf("/react/group"))
     }
 
+    /**
+     * The old React project list is gone, although the project's legacy app is Wicket: a bookmarked link to
+     * it, list or form, is bent onto next. A sibling path isn't caught.
+     */
+    @Test
+    fun `the old react project pages are redirected to next`() {
+        Assertions.assertEquals("/next/project", redirectOf("/react/project"))
+        Assertions.assertEquals("/next/project", redirectOf("/react/project/"))
+        Assertions.assertEquals("/next/project/42", redirectOf("/react/project/edit/42"))
+        Assertions.assertEquals("/next/project/new", redirectOf("/react/project/edit"))
+        Assertions.assertNull(redirectOf("/react/projectXyz"))
+    }
+
     /** Old Wicket calendars, bookmarked by some users, still lead to the next calendar. */
     @Test
     fun `the old wicket calendar is redirected to next`() {

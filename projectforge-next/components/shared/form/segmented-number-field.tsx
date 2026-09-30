@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
 import { useStore } from "@tanstack/react-form";
 import { FieldError } from "@/components/ui/field";
 import {
@@ -19,7 +19,15 @@ export interface SegmentedNumberFieldProps {
   segments: NumberSegment[];
   /** Rendered between the boxes, e.g. "." for a cost number. Decorative, hence `aria-hidden`. */
   separator?: string;
+  /**
+   * Fixed parts shown before and after the boxes, e.g. a project's "5.123." and ".##": the number reads
+   * as a whole although only some of its parts are the user's to type. Decorative, hence `aria-hidden`.
+   */
+  prefix?: ReactNode;
+  suffix?: ReactNode;
   hint?: string;
+  /** Shown but not changeable, e.g. a project number its cost 2 units already carry. */
+  disabled?: boolean;
   className?: string;
 }
 
@@ -38,7 +46,10 @@ export function SegmentedNumberField({
   label,
   segments,
   separator,
+  prefix,
+  suffix,
   hint,
+  disabled,
   className,
 }: SegmentedNumberFieldProps) {
   const form = useEntityEditForm();
@@ -91,6 +102,11 @@ export function SegmentedNumberField({
         {hint && <FieldHint hint={hint} label={label} />}
       </legend>
       <div className="flex items-center gap-1">
+        {prefix != null && (
+          <span aria-hidden className="font-mono text-muted-foreground">
+            {prefix}
+          </span>
+        )}
         {segments.map((segment, index) => (
           <div key={segment.name} className="flex items-center gap-1">
             {index > 0 && separator && (
@@ -102,6 +118,7 @@ export function SegmentedNumberField({
               segment={segment}
               ariaLabel={`${label}: ${segment.label}`}
               invalid={invalid}
+              disabled={disabled}
               onFilled={() => focus(index + 1)}
               onLeave={(direction) =>
                 focus(direction === "prev" ? index - 1 : index + 1)
@@ -113,6 +130,11 @@ export function SegmentedNumberField({
             />
           </div>
         ))}
+        {suffix != null && (
+          <span aria-hidden className="font-mono text-muted-foreground">
+            {suffix}
+          </span>
+        )}
       </div>
       {invalid && errors.length > 0 && (
         <FieldError>{errors.join(". ")}</FieldError>

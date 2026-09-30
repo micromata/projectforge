@@ -1015,6 +1015,8 @@
       "workFraction": "Work time fraction"
     },
     "kost2art": {
+      "kost2arten": "Cost 2 types",
+      "notInvoiced": "not invoiced",
       "nummer": "Cost 2 number",
       "projektStandard": "Project standard",
       "title": {
@@ -1163,6 +1165,7 @@
         }
       },
       "validation": {
+        "numberLocked": "Number and customer can no longer be changed: the project already has cost units (Kost2), which carry this number.",
         "numbernotfreeforcustomer": "Number already exists for other customer project"
       },
       "wizard": {

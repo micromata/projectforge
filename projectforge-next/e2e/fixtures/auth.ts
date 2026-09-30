@@ -13,12 +13,14 @@ import {
   createCustomer,
   createGroup,
   createOrder,
+  createProject,
   createTask,
   type SeededBook,
   type SeededCost1,
   type SeededCustomer,
   type SeededGroup,
   type SeededOrder,
+  type SeededProject,
   type SeededTask,
 } from "./seed";
 
@@ -50,6 +52,8 @@ export const test = base.extend<
     seededGroup: SeededGroup;
     /** A customer of the tests' own, whose number is free. */
     seededCustomer: SeededCustomer;
+    /** A project of the seeded customer, whose number is free within it. */
+    seededProject: SeededProject;
   }
 >({
   loggedInPage: async ({ page }, use) => {
@@ -126,6 +130,13 @@ export const test = base.extend<
   seededCustomer: [
     async ({ seedRequest }, use) => {
       await use(await createCustomer(seedRequest));
+    },
+    { scope: "worker" },
+  ],
+
+  seededProject: [
+    async ({ seedRequest, seededCustomer }, use) => {
+      await use(await createProject(seedRequest, seededCustomer));
     },
     { scope: "worker" },
   ],

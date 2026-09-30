@@ -97,6 +97,20 @@ class OrphanedLinkFilter : Filter {
             } else {
                 redirect(servletResponse, uri, VacationSendMailService.getLinkToVacationEntry(id))
             }
+        } else if (uri.endsWith("/react/project") || uri.contains("/react/project/")) {
+            // The old React project list (and its never finished form), migrated to projectforge-next. Not covered
+            // by redirectMigratedPage: the project's legacy app is Wicket, the way back. The React page is gone
+            // (ProjectEntityRest serves no layout), so there is no escape hatch to let through. The precise
+            // segment match keeps this from catching sibling pages like react/projectXyz.
+            // react/project/edit/<id>; no id means the add page.
+            val isEdit = uri.endsWith("/react/project/edit") || uri.contains("/react/project/edit/")
+            val id = uri.substringAfter("/react/project/edit/", "").substringBefore('/').toLongOrNull()
+            val target = when {
+                id != null -> NextMigration.nextEditPage(PROJECT_CATEGORY)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                isEdit -> NextMigration.newEntryUrl(PROJECT_CATEGORY)
+                else -> NextMigration.listUrl(PROJECT_CATEGORY)
+            }
+            redirect(servletResponse, uri, "/$target")
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else {
@@ -165,5 +179,7 @@ class OrphanedLinkFilter : Filter {
 
     companion object {
         private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
+
+        private const val PROJECT_CATEGORY = "project"
     }
 }

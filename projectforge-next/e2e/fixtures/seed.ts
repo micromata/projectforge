@@ -41,7 +41,7 @@ export function uniqueSuffix(): string {
 }
 
 /** The headers a state changing call needs; the CSRF token is read per call rather than cached. */
-async function writeHeaders(
+export async function writeHeaders(
   request: APIRequestContext
 ): Promise<Record<string, string>> {
   const status = await request.get("/rs/userStatus", {
@@ -445,6 +445,50 @@ export async function createCustomer(
   }
   throw new Error(
     "Could not find a free customer number in 900..999 — see KundeDao.onInsertOrModify."
+  );
+}
+
+export interface SeededProject {
+  id: number;
+  /** The project's two digits, unique within its customer. */
+  nummer: number;
+  name: string;
+  /** The run's own suffix, the one word of the name that hits this run only. */
+  suffix: string;
+  customer: SeededCustomer;
+}
+
+/**
+ * Creates a project of the given (seeded) customer whose number is free.
+ *
+ * The number is unique within the customer (`fibu.projekt.validation.numbernotfreeforcustomer`, checked
+ * by `ProjectEntityRest.validate`), so it is probed descending from 99 like the customer's own. The
+ * customer is the run's seeded one, so the first candidate is free unless an earlier test of the same
+ * worker took it. The status stays unset (NONE), so the project is in the default "not ended" list.
+ */
+export async function createProject(
+  request: APIRequestContext,
+  customer: SeededCustomer,
+  suffix = uniqueSuffix()
+): Promise<SeededProject> {
+  const name = `${MARKER} project ${suffix}`;
+  for (let nummer = 99; nummer >= 0; nummer--) {
+    try {
+      const id = await insert(request, "project", {
+        nummer,
+        name,
+        customer: { id: customer.id },
+        description: `${MARKER} project ${suffix}`,
+      });
+      return { id, nummer, name, suffix, customer };
+    } catch (cause) {
+      if (!/Number already exists|Nummer bereits/i.test(String(cause))) {
+        throw cause;
+      }
+    }
+  }
+  throw new Error(
+    `Could not find a free project number for customer ${customer.nummer}.`
   );
 }
 

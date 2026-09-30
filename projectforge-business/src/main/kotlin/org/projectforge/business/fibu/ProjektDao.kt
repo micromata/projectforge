@@ -31,6 +31,7 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightId
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -181,6 +182,32 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
     }
 
+    /**
+     * The number of a project (nummernkreis, bereich, teilbereich, i.e. customer or internal range and
+     * [ProjektDO.nummer]) is fixed once it has cost 2 units: each [Kost2DO] got a copy of it when it was
+     * created ([org.projectforge.business.fibu.kost.Kost2Dao.setProjekt]), and nothing renumbers them, so
+     * the project and its cost 2 units would part ways — and so would everything booked on them.
+     */
+    override fun onUpdate(obj: ProjektDO, dbObj: ProjektDO) {
+        if (isNumberLocked(obj.id) && isNumberChanged(obj, dbObj)) {
+            throw UserException(NUMBER_LOCKED_I18N_KEY)
+        }
+    }
+
+    /**
+     * True if the project has cost 2 units, deleted ones included (they may be undeleted). Its number and
+     * customer can't be changed then, see [onUpdate].
+     */
+    open fun isNumberLocked(projektId: Long?): Boolean {
+        projektId ?: return false
+        return kostCache.getKost2ForProjekt(projektId, includeDeleted = true).isNotEmpty()
+    }
+
+    private fun isNumberChanged(obj: ProjektDO, dbObj: ProjektDO): Boolean {
+        return obj.nummernkreis != dbObj.nummernkreis || obj.bereich != dbObj.bereich ||
+                obj.teilbereich != dbObj.teilbereich
+    }
+
     override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {
         obj.task?.id?.let { taskId ->
             taskTree.internalSetProject(taskId, obj)
@@ -225,6 +252,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_PROJECT
+
+        const val NUMBER_LOCKED_I18N_KEY = "fibu.projekt.validation.numberLocked"
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
             "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",

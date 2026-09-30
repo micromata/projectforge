@@ -23,40 +23,98 @@
 
 package org.projectforge.rest.fibu
 
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.ProjektStatus
+import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.dto.Kost2Art
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Project
-import org.projectforge.ui.*
+import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.UISelectValue
+import org.projectforge.ui.ValidationError
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * The project (Projekt) list and edit page, layout free — its list and form are hand built in
+ * projectforge-next (`/next/project`), so this carries no `createListLayout` or `createEditLayout` any
+ * more. The list used to be the generic React page, the form the Wicket `ProjektEditPage`; that one is
+ * still reachable as the way back and writes through the same [ProjektDao].
+ *
+ * The form offers the cost 2 types (Kost2-Arten) of the project: the ones not yet existing may be picked,
+ * and a [Kost2DO] is created for each picked one after the save ([onAfterSaveOrUpdate]), as the Wicket
+ * page does. Existing cost 2 units are never removed here.
+ *
+ * Project favorites (`UserPrefArea.PROJEKT_FAVORITE`) are deliberately not carried over — the next list
+ * offers the generic saved-filter favorites instead.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/project")
-class ProjectPagesRest
-    : AbstractDTOPagesRest<ProjektDO, Project, ProjektDao>(
+class ProjectEntityRest
+    : AbstractDTOEntityRest<ProjektDO, Project, ProjektDao>(
     ProjektDao::class.java,
     "fibu.projekt.title"
 ) {
     @Autowired
     private lateinit var caches: PfCaches
 
-    override val addNewEntryUrl = "wa/projectEdit"
+    @Autowired
+    private lateinit var kostCache: KostCache
 
-    override fun getStandardEditPage(): String {
-        return "wa/projectEdit?id=:id"
+    @Autowired
+    private lateinit var kost2Dao: Kost2Dao
+
+    @PostConstruct
+    private fun postConstruct() {
+        // Read-only getters the form posts back unchanged.
+        JacksonConfiguration.registerAllowedUnknownProperties(Project::class.java, "statusAsString")
+        JacksonConfiguration.registerAllowedUnknownProperties(Kost2Art::class.java, "formattedId")
     }
 
+    /**
+     * The edit form (and a new entry) also gets all cost 2 types, the ones the project already has marked
+     * [Kost2Art.existsAlready]. Not for a list row: the list shows [Project.kost2ArtsAsString] instead.
+     */
     override fun transformFromDB(obj: ProjektDO, editMode: Boolean): Project {
         val projekt = Project()
         caches.initialize(obj)
         projekt.copyFrom(obj)
+        if (editMode || obj.id == null) {
+            projekt.kost2Arts = kostCache.getAllKost2ArtsForProjekt(obj.id).map { art ->
+                Kost2Art(
+                    id = art.id,
+                    name = art.name,
+                    fakturiert = art.isFakturiert,
+                    projektStandard = art.isProjektStandard,
+                    description = art.description,
+                ).also { it.existsAlready = art.isExistsAlready }
+            }.sortedBy { it.id }
+            projekt.numberLocked = baseDao.isNumberLocked(obj.id)
+        }
         return projekt
     }
 
@@ -66,104 +124,162 @@ class ProjectPagesRest
         return projektDO
     }
 
-    override val classicsLinkListUrl: String?
-        get() = "wa/projectList"
-
     /**
-     * LAYOUT List page
+     * The cost 2 types column: the two-digit ids of the project's existing cost 2 units, read from the
+     * [KostCache] (no query per row).
      */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        val agGrid = agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            userAccess = userAccess,
-            pageAfterMultiSelect = ProjectMultiSelectedPageRest::class.java,
-            rowClickUrl = "/wa/projectEdit?id={id}"
-        )
-        agGrid.add(Project::kostFormatted.name, headerName = "fibu.projekt.nummer")
-        agGrid.add(Project::identifier.name, headerName = "fibu.projekt.identifier")
-        agGrid.add("customer", headerName = "fibu.kunde.name", formatter = UIAgGridColumnDef.Formatter.CUSTOMER)
-        agGrid.add("customer.division", headerName = "fibu.kunde.division")
-        agGrid.add(Project::name.name, headerName = "fibu.projekt.name")
-        agGrid.add(Project::task.name, headerName = "task", formatter = UIAgGridColumnDef.Formatter.TASK_PATH)
-        agGrid.add(Project::statusAsString.name, headerName = "status")
-        agGrid.add(
-            Project::headOfBusinessManager.name,
-            headerName = "fibu.headOfBusinessManager",
-            formatter = UIAgGridColumnDef.Formatter.USER
-        )
-        agGrid.add(
-            Project::salesManager.name,
-            headerName = "fibu.salesManager",
-            formatter = UIAgGridColumnDef.Formatter.USER
-        )
-        agGrid.add(
-            Project::projectManager.name,
-            headerName = "fibu.projectManager",
-            formatter = UIAgGridColumnDef.Formatter.USER
-        )
-        agGrid.add(
-            Project::projektManagerGroup.name,
-            headerName = "fibu.projekt.projektManagerGroup",
-            formatter = UIAgGridColumnDef.Formatter.GROUP,
-        )
-        agGrid.add(Project::description.name, headerName = "description")
-        agGrid.add(
-            Project::kost2Arts.name,
-            headerName = "fibu.kost2art.kost2arten",
-            formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES,
-        )
-        agGrid.withMultiRowSelection(request, magicFilter)
-
-        // layout.excelExportSupported = true
+    override fun createListRow(obj: ProjektDO): Project {
+        val dto = transformFromDB(obj, false)
+        dto.kost2ArtsAsString = kostCache.getKost2ArtsForProjekt(obj.id)
+            .mapNotNull { it.id }
+            .sorted()
+            .joinToString { StringHelper.format2DigitNumber(it) }
+        return dto
     }
 
     /**
-     * LAYOUT Edit page
+     * Replaces the auto-detected `status` filter by the list type the Wicket list offered: "not ended"
+     * (the default, see [newMagicFilter]) plus every single status. A plain status filter couldn't say "not
+     * ended", because most projects have no status at all (`NONE` is persisted as null, see
+     * [ProjektDao.onInsertOrModify]). Several values are OR-combined; an empty selection means "all".
      */
-    override fun createEditLayout(dto: Project, userAccess: UILayout.UserAccess): UILayout {
-        /*
-        val konto = UIInput("konto", lc, tooltip = "fibu.projekt.konto.tooltip")
-
-        val layout = super.createEditLayout(dto, userAccess)
-          .add(
-            UIRow()
-              .add(
-                UICol()
-                  .add(UICustomized("cost.number24"))
-                  .add(UISelect.createCustomerSelect(lc, "kunde", false, "fibu.kunde"))
-                  .add(konto)
-                  .add(lc, "name", "identifier", "task")
-                  .add(UISelect.createGroupSelect(lc, "projektManagerGroup", false, "fibu.projekt.projektManagerGroup"))
-                  .add(lc, "projectManager", "headOfBusinessManager", "description")
-              )
-          )
-
-        dto.kost2Arts?.forEach {
-          var label = it.getFormattedId() + " " + it.name
-          if (!it.fakturiert) {
-            label += " (nf)"
-          }
-          val uiCheckbox = UICheckbox("" + it.getFormattedId(), label = label)
-          layout.add(UIRow().add(UICol().add(uiCheckbox)))
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.removeIf { it is UIFilterElement && it.id == STATUS_FIELD }
+        val values = mutableListOf(UISelectValue(FILTER_NOT_ENDED, translate("notEnded")))
+        ProjektStatus.entries.forEach { status ->
+            values.add(UISelectValue(status.name, translate(status.i18nKey)))
         }
-        */
-        val layout = super.createEditLayout(dto, userAccess)
-        layout.add(UIAlert("Not yet implemented.", color = UIColor.DANGER))
-
-        return LayoutUtils.processEditPage(layout, dto, this)
+        elements.add(
+            UIFilterListElement(
+                LIST_TYPE_FIELD,
+                label = translate("status"),
+                values = values,
+                multi = true,
+                defaultFilter = true,
+            )
+        )
     }
 
-    override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: ProjektDO, postData: PostData<Project>) {
-        throw IllegalArgumentException("Not yet implemented")
+    /**
+     * A user without a stored filter starts with the projects not ended, as the Wicket list did
+     * (`ProjektListFilter.reset`).
+     */
+    override fun newMagicFilter(): MagicFilter {
+        val filter = super.newMagicFilter()
+        val entry = MagicFilterEntry(LIST_TYPE_FIELD)
+        entry.value.values = arrayOf(FILTER_NOT_ENDED)
+        filter.entries.add(entry)
+        return filter
+    }
+
+    /**
+     * Mirrors `ProjektDao.select`: "not ended" matches a null status too, and so does `NONE`.
+     */
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
+        val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
+        entry.synthetic = true
+        val listTypes = entry.value.values?.filter { it.isNotBlank() }.orEmpty()
+        val predicates = listTypes.mapNotNull { predicateFor(it) }
+        when (predicates.size) {
+            0 -> {} // "all": no predicate.
+            1 -> target.add(predicates.first())
+            else -> target.add(or(*predicates.toTypedArray()))
+        }
+        return null
+    }
+
+    private fun predicateFor(listType: String): DBPredicate? {
+        if (listType == FILTER_NOT_ENDED) {
+            return or(ne(STATUS_FIELD, ProjektStatus.ENDED), isNull(STATUS_FIELD))
+        }
+        val status = ProjektStatus.entries.find { it.name == listType } ?: return null
+        return if (status == ProjektStatus.NONE) isNull(STATUS_FIELD) else eq(STATUS_FIELD, status)
+    }
+
+    /**
+     * The number of a project must be free within its customer, or within its internal range (4.xxx) for a
+     * project without customer — both are unique constraints of [ProjektDO]. Checked here as a field error,
+     * so the hand built form marks the number instead of failing with the database's exception. Wicket's
+     * `ProjektEditForm` checks the customer case only.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Project) {
+        super.validate(validationErrors, dto)
+        val kundeId = dto.customer?.id
+        // The form shows number and customer read-only then; this catches a stale form or a direct REST
+        // call as a field error rather than ProjektDao.onUpdate's exception.
+        val stored = dto.id?.let { caches.getProjekt(it) }
+        if (stored != null && baseDao.isNumberLocked(stored.id) && isNumberChanged(dto, stored)) {
+            validationErrors.add(
+                ValidationError(
+                    translate(ProjektDao.NUMBER_LOCKED_I18N_KEY),
+                    fieldId = ProjektDO::nummer.name,
+                )
+            )
+            return
+        }
+        val other = if (kundeId != null) {
+            caches.getKunde(kundeId)?.let { baseDao.getProjekt(it, dto.nummer.toLong()) }
+        } else {
+            dto.internKost2_4?.let { baseDao.getProjekt(it, dto.nummer) }
+        }
+        if (other != null && other.id != dto.id) {
+            validationErrors.add(
+                ValidationError(
+                    translate("fibu.projekt.validation.numbernotfreeforcustomer"),
+                    fieldId = ProjektDO::nummer.name,
+                )
+            )
+        }
+        // A cost 2 unit takes its range (bereich) from the project: the customer's number, or the internal
+        // range. Without either, no cost 2 unit can be created (Kost2Dao.setProjekt).
+        if (kundeId == null && dto.internKost2_4 == null && dto.kost2Arts?.any { it.selected && !it.existsAlready } == true) {
+            validationErrors.add(
+                ValidationError(
+                    translateMsg("validation.error.fieldRequired", translate("fibu.projekt.internKost2_4")),
+                    fieldId = ProjektDO::internKost2_4.name,
+                )
+            )
+        }
+    }
+
+    /**
+     * Customer (or the internal range of a project without one) and number, as they make up the cost 2
+     * numbers. `internKost2_4` of a customer project is dropped on save (ProjektDao.onInsertOrModify).
+     */
+    private fun isNumberChanged(dto: Project, stored: ProjektDO): Boolean {
+        val kundeId = dto.customer?.id
+        // Via the cache: the kunde of a cached ProjektDO may be a lazy proxy (see Project.copyFromMinimal).
+        val storedKundeId = caches.getKundeIfNotInitialized(stored.kunde)?.nummer
+        return kundeId != storedKundeId || dto.nummer != stored.nummer ||
+                (kundeId == null && dto.internKost2_4 != stored.internKost2_4)
+    }
+
+    /**
+     * Creates a cost 2 unit for every cost 2 type picked in the form that the project doesn't have yet
+     * (see `ProjektEditPage.afterSaveOrUpdate`).
+     */
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: ProjektDO, postData: PostData<Project>) {
+        super.onAfterSaveOrUpdate(request, obj, postData)
+        val projektId = obj.id ?: return
+        val existing = kostCache.getKost2ArtsForProjekt(projektId).mapNotNull { it.id }.toSet()
+        postData.data.kost2Arts
+            ?.filter { it.selected && !it.existsAlready && it.id != null && it.id !in existing }
+            ?.forEach { art ->
+                val kost2 = Kost2DO()
+                kost2Dao.setProjekt(kost2, projektId)
+                kost2Dao.setKost2Art(kost2, art.id!!)
+                kost2Dao.insert(kost2)
+            }
     }
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
+
+    companion object {
+        private const val STATUS_FIELD = "status"
+
+        /** The id of the synthetic status filter element, consumed in [preProcessMagicFilter]. */
+        const val LIST_TYPE_FIELD = "listType"
+
+        private const val FILTER_NOT_ENDED = "notEnded"
+    }
 }

@@ -29,8 +29,10 @@ import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
+import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
@@ -56,7 +58,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
   private lateinit var projektDao: ProjektDao
 
   @Autowired
-  private lateinit var projectPagesRest: ProjectPagesRest
+  private lateinit var projectEntityRest: ProjectEntityRest
 
   override val layoutContext: LayoutContext = LayoutContext(ProjektDO::class.java)
 
@@ -64,9 +66,23 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     return "fibu.projekt.multiselected.title"
   }
 
+  override val listPageUrl: String = "/${MenuItemDefId.PROJECT_LIST.url}"
+
   @PostConstruct
   private fun postConstruct() {
-    pagesRest = projectPagesRest
+    pagesRest = projectEntityRest
+  }
+
+  /**
+   * The same fields [fillForm] lays out, for a client (the next frontend) that renders the form itself.
+   */
+  override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
+    return listOf(
+      MassUpdateFieldDeclaration("headOfBusinessManager"),
+      MassUpdateFieldDeclaration("projectManager"),
+      MassUpdateFieldDeclaration("salesManager"),
+      MassUpdateFieldDeclaration("description", showAppendOption = true, minLengthOfTextArea = 1001),
+    )
   }
 
   override fun fillForm(

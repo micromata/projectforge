@@ -17,6 +17,8 @@ export interface NumberSegmentInputProps {
   /** Accessible name of the box, e.g. "Kostenträger: Bereich" — the group's label plus its own. */
   ariaLabel: string;
   invalid: boolean;
+  /** Shown but not changeable, see SegmentedNumberField. */
+  disabled?: boolean;
   /** The box is full — the group moves the focus on. */
   onFilled: () => void;
   /** Backspace or an arrow at an edge — the group focuses the box before or after this one. */
@@ -47,6 +49,7 @@ function SegmentBox({
   segment,
   ariaLabel,
   invalid,
+  disabled,
   value,
   onChange,
   onBlurField,
@@ -119,6 +122,7 @@ function SegmentBox({
       maxLength={segment.digits}
       aria-label={ariaLabel}
       aria-invalid={invalid || undefined}
+      disabled={disabled}
       onChange={(e) => commit(e.target.value)}
       onKeyDown={onKeyDown}
       onPaste={(e) => {
