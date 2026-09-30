@@ -187,8 +187,8 @@ class AuftragFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) 
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
             return orderInfo.toBeInvoicedDue
         }
-        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_INKL_KUENFTIGE) {
-            return orderInfo.toBeInvoiced
+        if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE) {
+            return orderInfo.isToBeInvoicedAfter(OrderInfo.invoiceCutoff())
         }
         if (auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.FAKTURIERT) {
             return orderInfo.isVollstaendigFakturiert

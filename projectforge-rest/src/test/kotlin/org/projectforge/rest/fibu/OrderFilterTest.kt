@@ -72,12 +72,12 @@ class OrderFilterTest {
     }
 
     @Test
-    fun `to be invoiced including future payment schedules reaches the legacy filter`() {
+    fun `to be invoiced in following months reaches the legacy filter`() {
         val magicFilter = MagicFilter()
-        magicFilter.entries.add(entry("fakturiert", values = arrayOf("ZU_FAKTURIEREN_INKL_KUENFTIGE")))
+        magicFilter.entries.add(entry("fakturiert", values = arrayOf("ZU_FAKTURIEREN_FOLGEMONATE")))
 
         val filter = OrderEntityRest.toAuftragFilter(magicFilter)
-        assertEquals(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_INKL_KUENFTIGE, filter.auftragFakturiertFilterStatus)
+        assertEquals(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE, filter.auftragFakturiertFilterStatus)
     }
 
     /**

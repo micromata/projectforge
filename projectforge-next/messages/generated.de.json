@@ -620,8 +620,8 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
-          "zuFakturieren": "zu fakturieren",
-          "zuFakturierenInklKuenftige": "zu fakturieren (inkl. künftiger Zahlpläne)"
+          "zuFakturieren": "diesen Monat zu fakturieren",
+          "zuFakturierenFolgemonate": "in Folgemonaten zu fakturieren"
         }
       },
       "forecast": {

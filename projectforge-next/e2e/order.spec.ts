@@ -91,7 +91,7 @@ test.describe("order book", () => {
       "fibu.auftrag.filter.type.all",
       "fibu.auftrag.filter.type.vollstaendigFakturiert",
       "fibu.auftrag.filter.type.zuFakturieren",
-      "fibu.auftrag.filter.type.zuFakturierenInklKuenftige",
+      "fibu.auftrag.filter.type.zuFakturierenFolgemonate",
       "fibu.auftrag.filter.type.nochNichtVollstaendigFakturiert",
     ]) {
       await expect(

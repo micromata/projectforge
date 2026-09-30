@@ -56,7 +56,9 @@ class OrderInfoToBeInvoicedDueTest : AbstractTestBase() {
         assertFalse(info.toBeInvoicedImmediately)
         assertEquals(octoberDate, info.nextInvoiceDate)
         assertFalse(info.isToBeInvoicedBy(cutoff))
+        assertTrue(info.isToBeInvoicedAfter(cutoff), "To be invoiced in following months.")
         assertTrue(info.isToBeInvoicedBy(LocalDate.of(2026, 10, 31)))
+        assertFalse(info.isToBeInvoicedAfter(LocalDate.of(2026, 10, 31)))
         assertSum(40, info.toBeInvoicedSum)
         assertSum(0, info.toBeInvoicedSumBy(cutoff))
         assertSum(40, info.toBeInvoicedSumBy(LocalDate.of(2026, 10, 31)))
@@ -75,6 +77,8 @@ class OrderInfoToBeInvoicedDueTest : AbstractTestBase() {
         }
         assertEquals(septemberDate, info.nextInvoiceDate)
         assertTrue(info.isToBeInvoicedBy(cutoff))
+        // Due this month and in following months as well.
+        assertTrue(info.isToBeInvoicedAfter(cutoff))
         assertSum(40, info.toBeInvoicedSumBy(cutoff))
         assertSum(70, info.toBeInvoicedSum)
     }
@@ -87,6 +91,7 @@ class OrderInfoToBeInvoicedDueTest : AbstractTestBase() {
         assertTrue(info.toBeInvoicedImmediately)
         assertNull(info.nextInvoiceDate)
         assertTrue(info.isToBeInvoicedBy(cutoff))
+        assertFalse(info.isToBeInvoicedAfter(cutoff))
         assertSum(40, info.toBeInvoicedSumBy(cutoff))
         assertEquals(septemberDate, AuftragNextInvoiceDateFilter.effectiveDate(info, septemberDate))
     }
@@ -103,6 +108,8 @@ class OrderInfoToBeInvoicedDueTest : AbstractTestBase() {
         assertTrue(info.isToBeInvoicedBy(cutoff))
         assertSum(110, info.toBeInvoicedSum)
         assertSum(80, info.toBeInvoicedSumBy(cutoff))
+        // Only the schedule of the running position is left for following months.
+        assertTrue(info.isToBeInvoicedAfter(cutoff))
         val (pos1, pos2) = info.infoPositions!!.sortedBy { it.number }
         assertTrue(info.isPositionToBeInvoicedBy(pos1, cutoff))
         assertFalse(info.isPositionToBeInvoicedBy(pos2, cutoff))

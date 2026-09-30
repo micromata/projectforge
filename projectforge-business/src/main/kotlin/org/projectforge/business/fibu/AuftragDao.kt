@@ -243,7 +243,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         var positionStatusAlreadyFilterd = false
         queryFilter.createJoin("positionen")
         val toBeInvoicedFilter = myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN ||
-                myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_INKL_KUENFTIGE
+                myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE
         if (toBeInvoicedFilter) {
             // Show all orders to be invoiced (ignore status values on orders and their positions).
             queryFilter.createJoin("paymentSchedules", JoinType.LEFT)

@@ -35,8 +35,11 @@ public enum AuftragFakturiertFilterStatus implements I18nEnum
    * of the current month (or undated).
    */
   ZU_FAKTURIEREN("zuFakturieren"),
-  /** Like {@link #ZU_FAKTURIEREN}, but including reached payment schedules dated in the following months. */
-  ZU_FAKTURIEREN_INKL_KUENFTIGE("zuFakturierenInklKuenftige"),
+  /**
+   * A payment schedule is reached, but dated in a following month (marked as reached early). Together with
+   * {@link #ZU_FAKTURIEREN} (multiple selection) all orders to be invoiced are shown.
+   */
+  ZU_FAKTURIEREN_FOLGEMONATE("zuFakturierenFolgemonate"),
   /** The order isn't fully invoiced. */
   NICHT_FAKTURIERT("nochNichtVollstaendigFakturiert");
 

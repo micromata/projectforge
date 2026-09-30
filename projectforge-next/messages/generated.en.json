@@ -620,8 +620,8 @@
           "all": "all",
           "nochNichtVollstaendigFakturiert": "not completely invoiced",
           "vollstaendigFakturiert": "completely invoiced",
-          "zuFakturieren": "to be invoiced",
-          "zuFakturierenInklKuenftige": "to be invoiced (incl. future payment milestones)"
+          "zuFakturieren": "to be invoiced this month",
+          "zuFakturierenFolgemonate": "to be invoiced in following months"
         }
       },
       "forecast": {

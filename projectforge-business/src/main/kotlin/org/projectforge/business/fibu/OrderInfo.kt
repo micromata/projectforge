@@ -252,6 +252,19 @@ class OrderInfo : Serializable {
     }
 
     /**
+     * @param cutoff Reached payment schedules dated after this day are to be invoiced in following months.
+     * @return true if a reached payment schedule not yet invoiced is dated after the given cutoff (a schedule of a
+     * finished position doesn't count, it's due immediately). An order may also be [isToBeInvoicedBy] the same
+     * cutoff, if other amounts are due already. False for orders loaded from a snapshot, which have no dates.
+     */
+    fun isToBeInvoicedAfter(cutoff: LocalDate): Boolean {
+        if (snapshotDate != null) {
+            return false
+        }
+        return toBeInvoiced && datedToBeInvoicedSchedules.any { it.scheduleDate!!.isAfter(cutoff) }
+    }
+
+    /**
      * Like [toBeInvoicedSum], but without reached payment schedules dated after the given cutoff.
      */
     fun toBeInvoicedSumBy(cutoff: LocalDate): BigDecimal {
