@@ -813,13 +813,16 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val invoice = RechnungDO()
         postData.data.copyTo(invoice)
         val info = Rechnung.calculateInvoiceInfo(invoice)
+        // Without cost accounting no invoice has a single assignment, so every net sum would read as a
+        // Fehlbetrag. Null keeps it off the wire, and the form shows none (as Wicket's form does).
+        val costConfigured = Configuration.instance.isCostConfigured
         return InvoiceSums(
             netSum = info.netSum,
             vatAmount = info.vatAmount,
             grossSum = info.grossSum,
             grossSumWithDiscount = info.grossSumWithDiscount,
             kostZuweisungenNetSum = info.kostZuweisungenNetSum,
-            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag,
+            kostZuweisungenFehlbetrag = if (costConfigured) info.kostZuweisungenFehlbetrag else null,
             bezahlt = info.isBezahlt,
             ueberfaellig = info.isUeberfaellig,
             positions = info.positions?.map { position ->
@@ -829,7 +832,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                     vatAmount = position.vatAmount,
                     grossSum = position.grossSum,
                     kostZuweisungNetSum = position.kostZuweisungNetSum,
-                    kostZuweisungNetFehlbetrag = position.kostZuweisungNetFehlbetrag,
+                    kostZuweisungNetFehlbetrag = if (costConfigured) position.kostZuweisungNetFehlbetrag else null,
                 )
             },
         )
@@ -847,8 +850,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         /**
          * How much of [netSum] is not assigned to a cost unit yet. A hint for the user only: `RechnungDao`
          * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+         * Null where cost accounting is not configured at all (`Configuration.isCostConfigured`).
          */
-        val kostZuweisungenFehlbetrag: BigDecimal,
+        val kostZuweisungenFehlbetrag: BigDecimal?,
         val bezahlt: Boolean,
         val ueberfaellig: Boolean,
         val positions: List<PositionSums>?,
@@ -861,7 +865,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val grossSum: BigDecimal,
         val kostZuweisungNetSum: BigDecimal,
         /** The per position counterpart of [InvoiceSums.kostZuweisungenFehlbetrag], which Wicket paints red. */
-        val kostZuweisungNetFehlbetrag: BigDecimal,
+        val kostZuweisungNetFehlbetrag: BigDecimal?,
     )
 
     /**
