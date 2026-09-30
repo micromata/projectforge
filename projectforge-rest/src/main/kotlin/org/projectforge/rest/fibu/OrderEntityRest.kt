@@ -114,6 +114,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   @Autowired
   private lateinit var auftragsCache: AuftragsCache
 
+  @Autowired
+  private lateinit var auftragsRechnungCache: AuftragsRechnungCache
+
+  @Autowired
+  private lateinit var rechnungCache: RechnungCache
+
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
    * [onAfterEdit] within one request. A thread local because this rest service is a singleton serving
@@ -830,6 +836,34 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     val filename = "ProjectForge-OrderExport_${DateHelper.getDateAsFilenameSuffix(Date())}.xls"
     return RestUtils.downloadFile(filename, xls)
   }
+
+  /**
+   * Whether the logged-in user may use [refreshCache]: the order book offers the button to the finance staff only.
+   */
+  @GetMapping("refreshCacheAccess")
+  fun getRefreshCacheAccess(): RefreshCacheAccess {
+    return RefreshCacheAccess(orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
+  }
+
+  /**
+   * Rebuilds the invoice and order caches, so the invoiced sums and invoice links of the orders reflect the current
+   * invoices at once. A manual fallback for the finance staff, who close order positions only after everything
+   * invoiced shows up in the order; normally saving an invoice updates the caches by itself.
+   *
+   * [AuftragsRechnungCache.forceReload] triggers the coupled reload of [AuftragsCache].
+   */
+  @PostMapping("refreshCache")
+  fun refreshCache(): RefreshCacheResult {
+    orderAccessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+    log.info { "Refreshing order and invoice caches on user request." }
+    rechnungCache.forceReload()
+    auftragsRechnungCache.forceReload()
+    return RefreshCacheResult(translate("fibu.auftrag.refreshCache.done"))
+  }
+
+  class RefreshCacheAccess(val access: Boolean)
+
+  class RefreshCacheResult(val message: String)
 
   /**
    * What the forecast export dialog of the next frontend is preset with, remembered per user.
