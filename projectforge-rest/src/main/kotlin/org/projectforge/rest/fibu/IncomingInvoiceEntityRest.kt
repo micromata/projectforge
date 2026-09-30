@@ -240,13 +240,16 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val invoice = EingangsrechnungDO()
         postData.data.copyTo(invoice)
         val info = Eingangsrechnung.calculateInvoiceInfo(invoice)
+        // Without cost accounting no invoice has a single assignment, so every net sum would read as a
+        // Fehlbetrag. Null keeps it off the wire, and the form shows none (as Wicket's form does).
+        val costConfigured = Configuration.instance.isCostConfigured
         return InvoiceSums(
             netSum = info.netSum,
             vatAmount = info.vatAmount,
             grossSum = info.grossSum,
             grossSumWithDiscount = info.grossSumWithDiscount,
             kostZuweisungenNetSum = info.kostZuweisungenNetSum,
-            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag,
+            kostZuweisungenFehlbetrag = if (costConfigured) info.kostZuweisungenFehlbetrag else null,
             bezahlt = info.isBezahlt,
             ueberfaellig = info.isUeberfaellig,
             positions = info.positions?.map { position ->
@@ -256,7 +259,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
                     vatAmount = position.vatAmount,
                     grossSum = position.grossSum,
                     kostZuweisungNetSum = position.kostZuweisungNetSum,
-                    kostZuweisungNetFehlbetrag = position.kostZuweisungNetFehlbetrag,
+                    kostZuweisungNetFehlbetrag = if (costConfigured) position.kostZuweisungNetFehlbetrag else null,
                 )
             },
         )
@@ -272,7 +275,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val grossSum: BigDecimal,
         val grossSumWithDiscount: BigDecimal,
         val kostZuweisungenNetSum: BigDecimal,
-        val kostZuweisungenFehlbetrag: BigDecimal,
+        val kostZuweisungenFehlbetrag: BigDecimal?,
         val bezahlt: Boolean,
         val ueberfaellig: Boolean,
         val positions: List<PositionSums>?,
@@ -284,7 +287,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         val vatAmount: BigDecimal,
         val grossSum: BigDecimal,
         val kostZuweisungNetSum: BigDecimal,
-        val kostZuweisungNetFehlbetrag: BigDecimal,
+        val kostZuweisungNetFehlbetrag: BigDecimal?,
     )
 
     /**
