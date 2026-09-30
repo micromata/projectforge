@@ -52,7 +52,8 @@ import java.time.LocalDate
     indexes = [
         jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"),
         jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"),
-        jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id")]
+        jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id"),
+        jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_original_rechnung", columnList = "original_rechnung_fk")]
 )
 /*@WithHistory(
   noHistoryProperties = ["lastUpdate", "created"],
@@ -60,17 +61,61 @@ import java.time.LocalDate
 )*/
 @NamedQueries(
     NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO where deleted = false"),
-    NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")
+    NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id"),
+    NamedQuery(name = RechnungDO.FIND_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and deleted=false"),
+    NamedQuery(
+        name = RechnungDO.FIND_CANCELLATIONS_OF,
+        query = "from RechnungDO where originalRechnung.id=:originalId and deleted=false"
+    ),
+    NamedQuery(
+        name = RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
+        query = "select r.typ as typ, o.id as originalId from RechnungDO r left join r.originalRechnung o where r.id=:id"
+    ),
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {
     override val displayName: String
         @Transient
-        get() = "$nummer"
+        get() = "${belegNummer ?: nummer}"
 
     @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
     @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(nullable = true)
     open var nummer: Int? = null
+
+    /**
+     * The invoice a cancellation invoice ([RechnungTyp.CANCELLATION]) cancels, null for every other type.
+     *
+     * Eager, not lazy: [belegNummer] (and with it [displayName]) is derived from the number of the original,
+     * and is read outside a session as well (history, lists, exports), where a lazy proxy would throw. The
+     * reference is one level deep only - an original is a [RechnungTyp.RECHNUNG] and references nothing
+     * itself (see `RechnungDao.validateCancellation`).
+     */
+    @PropertyInfo(i18nKey = "fibu.rechnung.originalRechnung")
+    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:JoinColumn(name = "original_rechnung_fk", nullable = true)
+    @JsonSerialize(using = IdOnlySerializer::class)
+    open var originalRechnung: RechnungDO? = null
+
+    /**
+     * Whether this invoice can be cancelled by a cancellation invoice: a stored, undeleted invoice with a
+     * number. A missing type is an invoice, too (as in the e-invoice export): old rows may have none.
+     */
+    val isCancellable: Boolean
+        @Transient
+        get() = id != null && !deleted && nummer != null && (typ == null || typ == RechnungTyp.RECHNUNG)
+
+    /**
+     * The number of the document as printed on it and written into the e-invoice (BT-1): [nummer] for an
+     * invoice, and the number of the original with the suffix [CANCELLATION_SUFFIX] for a cancellation
+     * invoice (e.g. `16956-S`), which has no number of its own.
+     */
+    val belegNummer: String?
+        @Transient
+        get() = if (typ == RechnungTyp.CANCELLATION) {
+            originalRechnung?.nummer?.let { "$it$CANCELLATION_SUFFIX" }
+        } else {
+            nummer?.toString()
+        }
 
     /**
      * Rechnungsempfänger. Dieser Kunde kann vom Kunden, der mit dem Projekt verbunden ist abweichen.
@@ -202,11 +247,15 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         get() = positionen?.filter { !it.deleted } ?: emptyList()
 
     /**
-     *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT
+     *  @return true if the invoice is valid: isn't deleted, status is not GEPLANT or STORNIERT and it is no
+     *  cancellation. A cancellation is left out wherever the cancelled invoice (status STORNIERT) is, so both
+     *  together count 0 there - as they do everywhere else, where the cancellation's negative amounts balance
+     *  the original's.
      */
     override val isValid: Boolean
         @Transient
-        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false
+        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false &&
+                typ != RechnungTyp.CANCELLATION
 
     override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
         if (this.positionen == null) {
@@ -273,5 +322,11 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
     companion object {
         internal const val SELECT_MIN_MAX_DATE = "RechnungDO_SelectMinMaxDate"
         internal const val FIND_OTHER_BY_NUMMER = "RechnungDO_FindOtherByNummer"
+        internal const val FIND_BY_NUMMER = "RechnungDO_FindByNummer"
+        internal const val FIND_CANCELLATIONS_OF = "RechnungDO_FindCancellationsOf"
+        internal const val SELECT_TYP_AND_ORIGINAL_ID = "RechnungDO_SelectTypAndOriginalId"
+
+        /** Appended to the number of the original to form the number of a cancellation invoice. */
+        const val CANCELLATION_SUFFIX = "-S"
     }
 }

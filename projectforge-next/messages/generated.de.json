@@ -1204,6 +1204,12 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Bruttobetrag",
+      "cancellation": {
+        "alreadyExists": "Diese Rechnung ist bereits durch {arg0} storniert.",
+        "cancelledBy": "Storniert durch {arg0}",
+        "create": "Storno erzeugen",
+        "of": "Storno zu Rechnung {arg0}"
+      },
       "chart": {
         "_": "Grafiken",
         "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
@@ -1233,6 +1239,8 @@
           "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
           "bankAccountNotFound": "Das Bankkonto dieser Rechnung ({arg0}) ist keines der konfigurierten. Bitte eines davon auswählen.",
           "bankAccountNotSelected": "Für diese Rechnung ist kein Bankkonto ausgewählt.",
+          "cancellationNotNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein: Sie kehrt die Beträge der stornierten Rechnung um.",
+          "cancellationOriginalMissing": "Die Storno-Rechnung verweist auf keine stornierte Rechnung mit Rechnungsnummer.",
           "customerAddressIncomplete": "Die Adresse des Kunden ist unvollständig: Postleitzahl und Ort sind erforderlich.",
           "customerAddressMissing": "Die Adresse des Kunden fehlt.",
           "customerNameMissing": "Der Name des Kunden fehlt: es ist weder ein Kunde noch ein Kundentext angegeben.",
@@ -1248,6 +1256,14 @@
       },
       "error": {
         "bezahlDatumRequired": "Wenn der Zahlbetrag gegeben ist muss auch das zugehörige Bezahldatum eingegeben sein.",
+        "cancellation": {
+          "alreadyCancelled": "Die Rechnung {arg0} ist bereits durch eine andere Storno-Rechnung storniert.",
+          "mustBeNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein (die Beträge der stornierten Rechnung mit negativem Vorzeichen).",
+          "noOwnNumber": "Eine Storno-Rechnung hat keine eigene Rechnungsnummer: Ihre Nummer ist die der stornierten Rechnung mit dem Zusatz „-S“.",
+          "originalInvalid": "Die stornierte Rechnung muss eine vorhandene Rechnung vom Typ „Rechnung“ mit Rechnungsnummer sein.",
+          "originalRequired": "Eine Storno-Rechnung erfordert die Angabe der stornierten Rechnung.",
+          "unchangeable": "Typ und stornierte Rechnung einer gespeicherten Storno-Rechnung können nicht geändert werden. Bitte stattdessen die Storno-Rechnung löschen (die stornierte Rechnung wird dann wieder auf gestellt bzw. bezahlt gesetzt)."
+        },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "Eine Gutschriftsanzeige durch den Kunden hat keine Rechnungsnummer.",
         "kundeTextOderProjektRequired": "Ein Kundentext oder ein Projekt müssen angegeben sein.",
         "negativAmount": "Bei Überweisung kann kein negativer Brutto-Betrag existieren",
@@ -1305,6 +1321,7 @@
         "short": "Nr."
       },
       "offen": "Offen",
+      "originalRechnung": "Stornierte Rechnung",
       "paymentTerms": "Zahlungsbedingungen",
       "position": {
         "einzelNetto": "Einzelnettopreis"

@@ -10,6 +10,8 @@ import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { EInvoiceSection } from "./edit/e-invoice-section";
 import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
+import { InvoiceNumberField } from "./edit/invoice-number-field";
+import { OriginalInvoiceField } from "./edit/original-invoice-field";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { SellerBankAccountField } from "./edit/seller-bank-account-field";
@@ -81,7 +83,19 @@ export const INVOICE_PAGE = definePage<
   columns: [
     // The four columns that say which invoice this is stay in view while the sums, the dates and the
     // cost units are scrolled sideways.
-    { name: "nummer", size: 120, className: "font-semibold", pinned: "left" },
+    {
+      name: "nummer",
+      size: 120,
+      pinned: "left",
+      // Shown as the document is known: a cancellation has none of its own and reads as the cancelled
+      // invoice's plus "-S" (`RechnungDO.belegNummer`). Sorted the same way, right behind its original
+      // (`OutgoingInvoiceEntityRest.numberSortKey`).
+      cell: ({ row }) => (
+        <span className="font-semibold">
+          {row.original.belegNummer ?? row.original.nummer}
+        </span>
+      ),
+    },
     {
       // The sort id is the entity's property path (`kunde`), while the row carries the DTO's name — the
       // two differ here (see Rechnung.copyFrom4ListRow). The cell falls back to `kundeText`, the free
@@ -122,6 +136,7 @@ export const INVOICE_PAGE = definePage<
       accessor: (row) => row.statusAsString ?? "",
       size: 100,
     },
+    { name: "typ", size: 130 },
     {
       id: "netSum",
       labelKey: "fibu.common.netto",
@@ -269,6 +284,17 @@ export const INVOICE_PAGE = definePage<
     // buttons, which saves and then *stays* on the page, unlike the save — the export that follows it is
     // built from what it wrote (see lib/rs/submit-meta.ts, EInvoiceActions).
     actions: ["saveAndCheckEInvoice"],
+    // "Create cancellation": a new invoice of type CANCELLATION, prefilled from this one with its amounts
+    // negated and a reference to it (`OutgoingInvoiceEntityRest.createCancellation`), opened as a new
+    // entry like a clone. Only for an invoice that may still be cancelled — `cancellable` is the backend's
+    // (a stored, numbered invoice without a cancellation yet).
+    convert: {
+      action: "createCancellation",
+      targetEntity: "outgoingInvoice",
+      targetRoute: "/invoice",
+      labelKey: "fibu.rechnung.cancellation.create",
+      visible: (invoice?: InvoiceDetail) => invoice?.cancellable === true,
+    },
     // The Word export, beside the heading: it acts on the stored invoice, and `headerTrailing` is the one
     // slot of an edit page that is handed exactly that (see InvoiceExportMenu).
     headerTrailing: (invoice) => <InvoiceExportMenu invoiceId={invoice?.id} />,
@@ -281,23 +307,16 @@ export const INVOICE_PAGE = definePage<
           // two together are what identifies the invoice on paper.
           {
             group: [
-              // Assigned by `RechnungDao.onInsertOrModify` on the transition out of GEPLANT, and absent
-              // from a credit note the customer announced — but editable, as in Wicket: an invoice
-              // issued by mistake is set back to planned, and then its number has to go as well, or it
-              // still names an invoice that no longer claims to be issued. Leaving it empty on a new
-              // invoice is the normal case and what the hint says; a number that isn't the next free one
-              // is `RechnungDao`'s to refuse (`rechnungsNummerIstNichtFortlaufend`,
-              // `rechnungsNummerBereitsVergeben`).
-              {
-                name: "nummer",
-                maxDigits: 8,
-                hintKey: "fibu.tooltip.nummerWirdAutomatischVergeben",
-              },
+              // Editable except on a cancellation, whose number is the synthetic "<original>-S"
+              // (see InvoiceNumberField).
+              { custom: InvoiceNumberField },
               { name: "datum" },
             ],
           },
           { name: "status", emphasized: true },
           { name: "typ" },
+          // Only on a cancellation: the invoice it cancels (see OriginalInvoiceField).
+          { custom: OriginalInvoiceField },
           // Highlighted like the list's subject column, so both set the same focus.
           { name: "betreff", span: 2, emphasized: true },
           { custom: AccountField },

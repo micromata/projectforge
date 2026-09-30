@@ -1204,6 +1204,12 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Gross amount",
+      "cancellation": {
+        "alreadyExists": "This invoice is already cancelled by {arg0}.",
+        "cancelledBy": "Cancelled by {arg0}",
+        "create": "Create cancellation",
+        "of": "Cancellation of invoice {arg0}"
+      },
       "chart": {
         "_": "Charts",
         "boundedRangeHint": "Please restrict the invoice date to a period (from and to) to compare it with the three preceding years.",
@@ -1233,6 +1239,8 @@
           "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
           "bankAccountNotFound": "The bank account of this invoice ({arg0}) is not among the configured ones. Please select one of them.",
           "bankAccountNotSelected": "No bank account is selected for this invoice.",
+          "cancellationNotNegative": "The net sum of a cancellation invoice has to be negative: it reverses the amounts of the cancelled invoice.",
+          "cancellationOriginalMissing": "The cancellation invoice references no cancelled invoice with a number.",
           "customerAddressIncomplete": "The address of the customer is incomplete: zip code and city are required.",
           "customerAddressMissing": "The address of the customer is missing.",
           "customerNameMissing": "The name of the customer is missing: neither a customer nor a customer text is given.",
@@ -1248,6 +1256,14 @@
       },
       "error": {
         "bezahlDatumRequired": "If paid amount is given then the date of payment should be given.",
+        "cancellation": {
+          "alreadyCancelled": "The invoice {arg0} is already cancelled by another cancellation invoice.",
+          "mustBeNegative": "The net sum of a cancellation invoice has to be negative (the amounts of the cancelled invoice with a negative sign).",
+          "noOwnNumber": "A cancellation invoice has no number of its own: its number is the one of the cancelled invoice with the suffix \"-S\".",
+          "originalInvalid": "The cancelled invoice has to be an existing invoice of type \"invoice\" with an invoice number.",
+          "originalRequired": "A cancellation invoice requires the invoice it cancels.",
+          "unchangeable": "The type and the cancelled invoice of a stored cancellation cannot be changed. Please delete the cancellation instead (the cancelled invoice is reset to issued/paid then)."
+        },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
         "kundeTextOderProjektRequired": "Customer text or project required.",
         "negativAmount": "It's not possible to have a negative gross value with bank transfer",
@@ -1305,6 +1321,7 @@
         "short": "No"
       },
       "offen": "Open",
+      "originalRechnung": "Cancelled invoice",
       "paymentTerms": "Payment terms",
       "position": {
         "einzelNetto": "Unit net price"

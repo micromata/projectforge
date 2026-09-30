@@ -13,7 +13,7 @@ Fertig und verdrahtet:
   Filter-Favoriten, Einstellungen, Tooltips, Drag&Drop/Resize, Slot-Auswahl).
 - **Timesheet** – Edit **und** Liste (Filter-Toggles, Footer/KI-Anteil, Export
   Excel/PDF/ics, Mehrfachauswahl/massUpdate). PDF-Export neu als Kotlin-Service
-  `TimesheetListPdfExport` auf **OpenPDF** statt Apache-FOP.
+  `TimesheetListPdfExport` auf **iText 2 (com.lowagie)** statt Apache-FOP.
 - **TeamEvent** – Edit in den Phasen A (Grundgerüst), B (Reminder) und
   D (Recurrence/Serientermine); Drag/Resize öffnet den Termin verschoben.
 - Menü-Umschaltung auf `next/calendar` bzw. `next/timesheet`, Backend-Rückweg

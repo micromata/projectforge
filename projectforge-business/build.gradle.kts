@@ -94,13 +94,10 @@ dependencies {
     api(libs.se.sawano.java.alphanumeric.comparator)
     api(libs.com.webauthn4j.core)
     api(libs.org.mustangproject.library)
-    api(libs.com.github.librepdf.openpdf)
-    // xdocreport drags in the ancient com.lowagie:itext:2.1.7, which shares the com.lowagie.text
-    // namespace with OpenPDF above — having both would duplicate those classes. OpenPDF is a
-    // maintained, API-compatible descendant of that itext, so it provides them instead.
-    api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf) {
-        exclude(group = "com.lowagie", module = "itext")
-    }
+    // Brings com.lowagie:itext:2.1.7, which also serves TimesheetListPdfExport. Don't replace it by OpenPDF:
+    // it shares the com.lowagie.text namespace but isn't binary compatible (e.g. PdfPTable.addCell returns
+    // PdfPCell instead of void), so xdocreport's Word-to-PDF conversion fails with a NoSuchMethodError.
+    api(libs.fr.opensagres.xdocrepor.poi.xwpf.converter.pdf)
     /*api(libs.com.webauthn4j.spring.security.core) {
         exclude("org.springframework")
         exclude("org.springframework.security")

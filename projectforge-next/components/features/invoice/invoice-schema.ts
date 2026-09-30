@@ -90,6 +90,20 @@ export const invoiceSchema = z.object({
    * back, which is why the field is editable (see invoice.page.tsx).
    */
   nummer: z.number().nullable(),
+  /**
+   * The invoice a cancellation cancels (`typ = CANCELLATION`), otherwise null — the backend clears it on
+   * every other type. Written back by `id`, or, for a cancellation typed by hand, by the original's
+   * `nummer` (see OriginalInvoiceField). Whether it names an invoice that may be cancelled is
+   * `RechnungDao`'s to check.
+   */
+  originalInvoice: z
+    .looseObject({
+      id: z.number().nullable().optional(),
+      nummer: z.number().nullable().optional(),
+      belegNummer: z.string().nullable().optional(),
+      datum: z.string().nullable().optional(),
+    })
+    .nullable(),
   datum: m.nullableString("datum"),
   status: m.enumField("status"),
   typ: m.enumField("typ"),

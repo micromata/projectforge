@@ -77,6 +77,11 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
     var status: RechnungStatus? = if (invoice is RechnungDO) invoice.status else null
 
     /**
+     * The type of the invoice. Only available for [RechnungDO].
+     */
+    val typ: RechnungTyp? = (invoice as? RechnungDO)?.typ
+
+    /**
      * @return The total sum of all cost assignment net amounts of all positions.
      */
     var kostZuweisungenNetSum = BigDecimal.ZERO
