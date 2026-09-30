@@ -30,6 +30,7 @@ import org.junit.jupiter.api.assertThrows
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostentraegerStatus
@@ -47,7 +48,8 @@ import java.util.*
 /**
  * A deactivated (non-active) cost 2 unit can't be booked any more, but the time sheets already booked on it
  * stay editable and deletable: [TimesheetDao] checks the cost 2 unit of a new time sheet and of a changed task
- * or cost 2 unit only. A deleted cost 2 unit isn't bookable either ([KostCache.getActiveKost2]).
+ * or cost 2 unit only. A deleted cost 2 unit isn't bookable either ([KostCache.getActiveKost2]). The same
+ * holds for an ended project, whose task takes no new time sheet at all, not even one without cost 2 unit.
  */
 class TimesheetKost2StatusTest : AbstractTestBase() {
     @Autowired
@@ -142,6 +144,58 @@ class TimesheetKost2StatusTest : AbstractTestBase() {
             Assertions.assertTrue(kostCache.getActiveKost2(5, 74, 74).any { it.id == kost2B.id })
             kost2Dao.markAsDeleted(kost2B)
             Assertions.assertFalse(kostCache.getActiveKost2(5, 74, 74).any { it.id == kost2B.id })
+            null
+        }
+    }
+
+    @Test
+    fun endedProjectTakesNoNewBookings() {
+        persistenceService.runInTransaction { _ ->
+            logon(AbstractTestBase.TEST_FINANCE_USER)
+            val kunde = KundeDO().also {
+                it.name = "Kost2-Ended-Kunde"
+                it.id = 75
+                kundeDao.insert(it)
+            }
+            val projekt = initTestDB.addProjekt(kunde, 75, "Kost2-Ended-Projekt", 0)
+            val task = initTestDB.addTask("kost2-ended", "root")
+            projektDao.setTask(projekt, task.id)
+            projektDao.update(projekt)
+            val kost2 = kost2Dao.getKost2(5, 75, 75, 0)!!
+            val user = initTestDB.addUser("kost2-ended-user")
+
+            val sheet = TimesheetDO().also {
+                it.task = task
+                it.kost2 = kost2
+                it.user = user
+                it.startTime = date(8)
+                it.stopTime = date(9)
+                it.description = "booked while running"
+            }
+            timesheetDao.insert(sheet, checkAccess = false)
+
+            val ended = projektDao.find(projekt.id)!!
+            ended.status = ProjektStatus.ENDED
+            projektDao.update(ended)
+
+            // The stored booking stays editable and deletable.
+            sheet.description = "edited after the project ended"
+            timesheetDao.update(sheet, checkAccess = false)
+            timesheetDao.markAsDeleted(sheet, checkAccess = false)
+            timesheetDao.undelete(sheet, checkAccess = false)
+
+            // No new booking, neither on its cost 2 unit nor without one (the task has no bookable one left).
+            listOf(kost2, null).forEachIndexed { index, newKost2 ->
+                val newSheet = TimesheetDO().also {
+                    it.task = task
+                    it.kost2 = newKost2
+                    it.user = user
+                    it.startTime = date(10 + 2 * index)
+                    it.stopTime = date(11 + 2 * index)
+                }
+                val ex = assertThrows<UserException> { timesheetDao.insert(newSheet, checkAccess = false) }
+                Assertions.assertEquals("timesheet.error.projectEnded", ex.i18nKey)
+            }
             null
         }
     }
