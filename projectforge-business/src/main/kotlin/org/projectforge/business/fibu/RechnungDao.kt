@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
@@ -193,6 +194,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            // Its status was changed along with this cancellation (see [updateOriginalStatus]).
+            obj.originalRechnung?.let { rechnungCache.update(it) }
+        }
     }
 
     /**
@@ -202,6 +207,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wird.
      */
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+        if (operationType == OperationType.UPDATE && obj.id != null) {
+            checkStoredCancellationUnchanged(obj)
+        }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
             val originValue = find(obj.id, checkAccess = false)
             if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
@@ -223,7 +231,18 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         validate(obj)
 
         if (obj.typ == RechnungTyp.CANCELLATION) {
-            validateCancellation(obj)
+            if (operationType == OperationType.DELETE) {
+                // No validation: a cancellation has to be deletable even if its original is not cancellable
+                // anymore. The original is no longer cancelled then.
+                obj.originalRechnung?.id?.let { persistenceService.find(RechnungDO::class.java, it, attached = true) }
+                    ?.let { original ->
+                        obj.originalRechnung = original
+                        updateOriginalStatus(original, cancelled = false)
+                    }
+            } else {
+                validateCancellation(obj)
+                updateOriginalStatus(obj.originalRechnung!!, cancelled = true)
+            }
         } else {
             // Only a cancellation references an original, and a stale one left over from a type change would
             // derive nothing but confusion.
@@ -345,6 +364,61 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         if (netSum > BigDecimal.ZERO) {
             throw UserException("fibu.rechnung.error.cancellation.mustBeNegative")
         }
+    }
+
+    /**
+     * A stored cancellation keeps its type and its original: the original's status was set to STORNIERT for
+     * it, and a cancellation turned into an invoice or moved to another original would leave that status
+     * behind. Deleting the cancellation (and creating a new one) is the way to go instead.
+     */
+    private fun checkStoredCancellationUnchanged(obj: RechnungDO) {
+        val stored = persistenceService.selectNamedSingleResult(
+            RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
+            Tuple::class.java,
+            Pair("id", obj.id),
+        ) ?: return
+        if (stored.get("typ") != RechnungTyp.CANCELLATION) {
+            return
+        }
+        if (obj.typ != RechnungTyp.CANCELLATION || obj.originalRechnung?.id != stored.get("originalId")) {
+            throw UserException("fibu.rechnung.error.cancellation.unchangeable")
+        }
+    }
+
+    /**
+     * Sets the status of the cancelled invoice: STORNIERT while a cancellation exists, and back to BEZAHLT or
+     * GESTELLT (by its payment) once the cancellation is deleted. A status the user has changed by hand in the
+     * meantime is left alone on the way back.
+     *
+     * Written to the (attached) original directly, in the transaction of the cancellation, with a history entry
+     * of its own: a regular [update] of the original would copy it onto itself and detect no change.
+     */
+    private fun updateOriginalStatus(original: RechnungDO, cancelled: Boolean) {
+        val oldStatus = original.status
+        val newStatus = if (cancelled) {
+            RechnungStatus.STORNIERT
+        } else {
+            if (oldStatus != RechnungStatus.STORNIERT) {
+                return
+            }
+            if (original.bezahlDatum != null && original.zahlBetrag != null) RechnungStatus.BEZAHLT else RechnungStatus.GESTELLT
+        }
+        if (oldStatus == newStatus) {
+            return
+        }
+        persistenceService.runInTransaction { context ->
+            original.status = newStatus
+            original.setLastUpdate()
+            HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
+                entity = original,
+                propertyName = "status",
+                propertyTypeClass = RechnungStatus::class.java,
+                oldValue = oldStatus,
+                newValue = newStatus,
+                context = context,
+            )
+        }
+        log.info { "Status of invoice #${original.nummer} changed from $oldStatus to $newStatus (cancellation)." }
     }
 
     /**

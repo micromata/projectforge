@@ -105,6 +105,7 @@ class RechnungDaoTest : AbstractTestBase() {
             original.faelligkeit = LocalDate.now()
             original.projekt = initTestDB.addProjekt(null, 1, "foo")
             original.nummer = rechnungDao.getNextNumber(original)
+            original.status = RechnungStatus.GESTELLT
             original.addPosition(createPosition(2, "50.00", "0.19", "test"))
             val originalId = rechnungDao.insert(original)
             val originalNummer = original.nummer!!
@@ -148,6 +149,23 @@ class RechnungDaoTest : AbstractTestBase() {
                     it.originalRechnung = RechnungDO().also { ref -> ref.id = cancellationId }
                 })
             }
+
+            // The original is cancelled by it.
+            Assertions.assertEquals(RechnungStatus.STORNIERT, rechnungDao.find(originalId, attached = true)!!.status)
+            Assertions.assertFalse(cancellation.isValid, "Left out where the STORNIERT original is left out.")
+
+            // A stored cancellation keeps its type and its original.
+            assertUserException("fibu.rechnung.error.cancellation.unchangeable") {
+                rechnungDao.update(RechnungDO().also {
+                    it.id = cancellationId
+                    it.typ = RechnungTyp.RECHNUNG
+                })
+            }
+
+            // Deleting the cancellation reverts the original.
+            rechnungDao.markAsDeleted(cancellation)
+            Assertions.assertEquals(RechnungStatus.GESTELLT, rechnungDao.find(originalId, attached = true)!!.status)
+            Assertions.assertNull(rechnungDao.findCancellationOf(originalId))
         }
     }
 

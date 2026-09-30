@@ -1237,7 +1237,8 @@
           "mustBeNegative": "The net sum of a cancellation invoice has to be negative (the amounts of the cancelled invoice with a negative sign).",
           "noOwnNumber": "A cancellation invoice has no number of its own: its number is the one of the cancelled invoice with the suffix \"-S\".",
           "originalInvalid": "The cancelled invoice has to be an existing invoice of type \"invoice\" with an invoice number.",
-          "originalRequired": "A cancellation invoice requires the invoice it cancels."
+          "originalRequired": "A cancellation invoice requires the invoice it cancels.",
+          "unchangeable": "The type and the cancelled invoice of a stored cancellation cannot be changed. Please delete the cancellation instead (the cancelled invoice is reset to issued/paid then)."
         },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
         "kundeTextOderProjektRequired": "Customer text or project required.",

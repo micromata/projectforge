@@ -10,6 +10,7 @@ import { CustomerProjectFields } from "./edit/customer-project-fields";
 import { EInvoiceSection } from "./edit/e-invoice-section";
 import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
+import { InvoiceNumberField } from "./edit/invoice-number-field";
 import { OriginalInvoiceField } from "./edit/original-invoice-field";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
@@ -86,8 +87,9 @@ export const INVOICE_PAGE = definePage<
       name: "nummer",
       size: 120,
       pinned: "left",
-      // Sorted by the number, shown as the document is known: a cancellation has none of its own and reads
-      // as the cancelled invoice's plus "-S" (`RechnungDO.belegNummer`).
+      // Shown as the document is known: a cancellation has none of its own and reads as the cancelled
+      // invoice's plus "-S" (`RechnungDO.belegNummer`). Sorted the same way, right behind its original
+      // (`OutgoingInvoiceEntityRest.numberSortKey`).
       cell: ({ row }) => (
         <span className="font-semibold">
           {row.original.belegNummer ?? row.original.nummer}
@@ -134,6 +136,7 @@ export const INVOICE_PAGE = definePage<
       accessor: (row) => row.statusAsString ?? "",
       size: 100,
     },
+    { name: "typ", size: 130 },
     {
       id: "netSum",
       labelKey: "fibu.common.netto",
@@ -304,18 +307,9 @@ export const INVOICE_PAGE = definePage<
           // two together are what identifies the invoice on paper.
           {
             group: [
-              // Assigned by `RechnungDao.onInsertOrModify` on the transition out of GEPLANT, and absent
-              // from a credit note the customer announced — but editable, as in Wicket: an invoice
-              // issued by mistake is set back to planned, and then its number has to go as well, or it
-              // still names an invoice that no longer claims to be issued. Leaving it empty on a new
-              // invoice is the normal case and what the hint says; a number that isn't the next free one
-              // is `RechnungDao`'s to refuse (`rechnungsNummerIstNichtFortlaufend`,
-              // `rechnungsNummerBereitsVergeben`).
-              {
-                name: "nummer",
-                maxDigits: 8,
-                hintKey: "fibu.tooltip.nummerWirdAutomatischVergeben",
-              },
+              // Editable except on a cancellation, whose number is the synthetic "<original>-S"
+              // (see InvoiceNumberField).
+              { custom: InvoiceNumberField },
               { name: "datum" },
             ],
           },

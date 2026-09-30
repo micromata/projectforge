@@ -219,6 +219,7 @@ export interface InvoiceListRow extends ListRow, RowWithAttachments {
   betreff?: string;
   bemerkung?: string;
   status?: RechnungStatus;
+  typ?: RechnungTyp;
   /** The status translated by the backend — what the column shows and sorts by. */
   statusAsString?: string;
   datum?: string;

@@ -1579,12 +1579,29 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         private const val PROJECT_SORT_PROPERTY = "projekt.displayName"
 
         /**
+         * What the number column sorts by: the number the cell shows ([RechnungDO.belegNummer]), numerically.
+         * A cancellation has no number of its own, so `ORDER BY nummer` would gather all of them at one end;
+         * it sorts right behind the invoice it cancels instead (`16956`, `16956-S`, `16957`). Doubled, so the
+         * cancellation's key fits between its original's and the next number's. Not the string itself, which
+         * would sort `9999` behind `10000`. Null (a planned invoice, a credit note announced by the customer)
+         * ranks as blank.
+         */
+        internal fun numberSortKey(invoice: RechnungDO): Long? {
+            return if (invoice.typ == RechnungTyp.CANCELLATION) {
+                invoice.originalRechnung?.nummer?.let { 2L * it + 1 }
+            } else {
+                invoice.nummer?.let { 2L * it }
+            }
+        }
+
+        /**
          * The sort ids no database column can answer, and the value each one sorts by (see [filterList]).
          *
          * Keyed by what `invoice.page.tsx` declares its columns as, which for the three DTO fields is the
          * DTO's property name.
          */
         private val COMPUTED_SORT_PROPERTIES = mapOf<String, (RechnungDO) -> Comparable<*>?>(
+            RechnungDO::nummer.name to { numberSortKey(it) },
             Rechnung::netSum.name to { it.ensuredInfo.netSum },
             Rechnung::grossSumWithDiscount.name to { it.ensuredInfo.grossSumWithDiscount },
             Rechnung::kostZuweisungenFehlbetrag.name to { it.ensuredInfo.kostZuweisungenFehlbetrag },

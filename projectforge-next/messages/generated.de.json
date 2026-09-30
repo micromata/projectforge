@@ -1237,7 +1237,8 @@
           "mustBeNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein (die Beträge der stornierten Rechnung mit negativem Vorzeichen).",
           "noOwnNumber": "Eine Storno-Rechnung hat keine eigene Rechnungsnummer: Ihre Nummer ist die der stornierten Rechnung mit dem Zusatz „-S“.",
           "originalInvalid": "Die stornierte Rechnung muss eine vorhandene Rechnung vom Typ „Rechnung“ mit Rechnungsnummer sein.",
-          "originalRequired": "Eine Storno-Rechnung erfordert die Angabe der stornierten Rechnung."
+          "originalRequired": "Eine Storno-Rechnung erfordert die Angabe der stornierten Rechnung.",
+          "unchangeable": "Typ und stornierte Rechnung einer gespeicherten Storno-Rechnung können nicht geändert werden. Bitte stattdessen die Storno-Rechnung löschen (die stornierte Rechnung wird dann wieder auf gestellt bzw. bezahlt gesetzt)."
         },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "Eine Gutschriftsanzeige durch den Kunden hat keine Rechnungsnummer.",
         "kundeTextOderProjektRequired": "Ein Kundentext oder ein Projekt müssen angegeben sein.",

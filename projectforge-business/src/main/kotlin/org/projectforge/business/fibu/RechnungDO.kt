@@ -67,6 +67,10 @@ import java.time.LocalDate
         name = RechnungDO.FIND_CANCELLATIONS_OF,
         query = "from RechnungDO where originalRechnung.id=:originalId and deleted=false"
     ),
+    NamedQuery(
+        name = RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
+        query = "select r.typ as typ, o.id as originalId from RechnungDO r left join r.originalRechnung o where r.id=:id"
+    ),
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {
     override val displayName: String
@@ -243,11 +247,15 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         get() = positionen?.filter { !it.deleted } ?: emptyList()
 
     /**
-     *  @return true if the invoice is valid: isn't deleted and status is not GEPLANT or STORNIERT
+     *  @return true if the invoice is valid: isn't deleted, status is not GEPLANT or STORNIERT and it is no
+     *  cancellation. A cancellation is left out wherever the cancelled invoice (status STORNIERT) is, so both
+     *  together count 0 there - as they do everywhere else, where the cancellation's negative amounts balance
+     *  the original's.
      */
     override val isValid: Boolean
         @Transient
-        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false
+        get() = !deleted && status?.isIn(RechnungStatus.GEPLANT, RechnungStatus.STORNIERT) == false &&
+                typ != RechnungTyp.CANCELLATION
 
     override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
         if (this.positionen == null) {
@@ -316,6 +324,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         internal const val FIND_OTHER_BY_NUMMER = "RechnungDO_FindOtherByNummer"
         internal const val FIND_BY_NUMMER = "RechnungDO_FindByNummer"
         internal const val FIND_CANCELLATIONS_OF = "RechnungDO_FindCancellationsOf"
+        internal const val SELECT_TYP_AND_ORIGINAL_ID = "RechnungDO_SelectTypAndOriginalId"
 
         /** Appended to the number of the original to form the number of a cancellation invoice. */
         const val CANCELLATION_SUFFIX = "-S"

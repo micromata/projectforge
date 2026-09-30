@@ -67,8 +67,9 @@ export function InvoiceEditBanner() {
     );
 
   // An issued invoice reads as its payment sub-state (unpaid / overdue / paid), derived from the dates like
-  // the list does; every other status keeps its enum text and mapped colour.
-  const isIssued = status === "GESTELLT";
+  // the list does; every other status keeps its enum text and mapped colour. A cancellation is settled by
+  // the invoice it cancels, so it is never unpaid or overdue.
+  const isIssued = status === "GESTELLT" && typ !== "CANCELLATION";
   const paid = isIssued ? paidState(bezahlDatum, faelligkeit) : null;
   const statusLabel = paid
     ? t(paid.labelKey)
