@@ -97,6 +97,66 @@ class RechnungDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun testCancellation() {
+        persistenceService.runInTransaction { _ ->
+            logon(TEST_FINANCE_USER)
+            val original = RechnungDO()
+            original.datum = LocalDate.now()
+            original.faelligkeit = LocalDate.now()
+            original.projekt = initTestDB.addProjekt(null, 1, "foo")
+            original.nummer = rechnungDao.getNextNumber(original)
+            original.addPosition(createPosition(2, "50.00", "0.19", "test"))
+            val originalId = rechnungDao.insert(original)
+            val originalNummer = original.nummer!!
+            Assertions.assertNull(rechnungDao.findCancellationOf(originalId))
+
+            fun newCancellation(): RechnungDO {
+                val cancellation = RechnungDO()
+                cancellation.typ = RechnungTyp.CANCELLATION
+                cancellation.datum = LocalDate.now()
+                cancellation.faelligkeit = LocalDate.now()
+                cancellation.projekt = original.projekt
+                cancellation.originalRechnung = RechnungDO().also { it.id = originalId }
+                cancellation.addPosition(createPosition(2, "-50.00", "0.19", "test"))
+                return cancellation
+            }
+            assertUserException("fibu.rechnung.error.cancellation.noOwnNumber") {
+                rechnungDao.insert(newCancellation().also { it.nummer = rechnungDao.nextNumber })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.originalRequired") {
+                rechnungDao.insert(newCancellation().also { it.originalRechnung = null })
+            }
+            assertUserException("fibu.rechnung.error.cancellation.mustBeNegative") {
+                rechnungDao.insert(newCancellation().also { it.positionen!![0].einzelNetto = BigDecimal("50.00") })
+            }
+
+            val nextNumberBefore = rechnungDao.nextNumber
+            val cancellationId = rechnungDao.insert(newCancellation())
+            val cancellation = rechnungDao.find(cancellationId, attached = true)!!
+            Assertions.assertNull(cancellation.nummer, "A cancellation has no number of its own.")
+            Assertions.assertEquals("$originalNummer-S", cancellation.belegNummer)
+            Assertions.assertEquals("$originalNummer-S", cancellation.displayName)
+            Assertions.assertEquals(nextNumberBefore, rechnungDao.nextNumber, "No number is spent on a cancellation.")
+            Assertions.assertEquals(cancellationId, rechnungDao.findCancellationOf(originalId)?.id)
+
+            // An invoice is cancelled once at most, and a cancellation can't be cancelled.
+            assertUserException("fibu.rechnung.error.cancellation.alreadyCancelled") {
+                rechnungDao.insert(newCancellation())
+            }
+            assertUserException("fibu.rechnung.error.cancellation.originalInvalid") {
+                rechnungDao.insert(newCancellation().also {
+                    it.originalRechnung = RechnungDO().also { ref -> ref.id = cancellationId }
+                })
+            }
+        }
+    }
+
+    private fun assertUserException(i18nKey: String, block: () -> Unit) {
+        val ex = Assertions.assertThrows(UserException::class.java) { block() }
+        Assertions.assertEquals(i18nKey, ex.i18nKey)
+    }
+
+    @Test
     fun checkAccess() {
         lateinit var rechnung: RechnungDO
         lateinit var id: Serializable

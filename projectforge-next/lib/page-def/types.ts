@@ -467,6 +467,14 @@ export interface EditConvert {
   targetRoute: string;
   /** i18n key of the button label, the backend's own, e.g. `plugins.teamcal.switchToTeamEventButton`. */
   labelKey: string;
+  /**
+   * Whether the conversion applies to the loaded entry — offered everywhere when absent. Given the loaded
+   * row (undefined while it loads), so a conversion only some entries allow is not offered on the others,
+   * e.g. the invoice's cancellation only on a stored invoice not cancelled yet (`Rechnung.cancellable`).
+   * Courtesy only: the endpoint refuses what this hides anyway.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  visible?: (data: any) => boolean;
 }
 
 export interface EditDef<Values, Data, M extends EntityMetadata> {

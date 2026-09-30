@@ -222,10 +222,20 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
         validate(obj)
 
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            validateCancellation(obj)
+        } else {
+            // Only a cancellation references an original, and a stale one left over from a type change would
+            // derive nothing but confusion.
+            obj.originalRechnung = null
+        }
         if (obj.typ == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
             if (obj.nummer != null) {
                 throw UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben")
             }
+        } else if (obj.typ == RechnungTyp.CANCELLATION) {
+            // No number of its own: the number of a cancellation is derived from the original's
+            // ([RechnungDO.belegNummer]), so there is no sequence to keep and nothing that could collide.
         } else {
             if (RechnungStatus.GEPLANT != obj.status && obj.nummer == null) {
                 throw UserException(
@@ -293,6 +303,73 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         if (projektId == null && kundeId == null && kundeText.isNullOrEmpty()) {
             throw UserException("fibu.rechnung.error.kundeTextOderProjektRequired")
         }
+    }
+
+    /**
+     * The rules of a cancellation invoice ([RechnungTyp.CANCELLATION]):
+     * - it has no number of its own, its number is derived from the original ([RechnungDO.belegNummer]),
+     * - it references the invoice it cancels, which has to be cancellable ([RechnungDO.isCancellable]: a
+     *   cancellation of a cancellation or of an invoice without number makes no sense),
+     * - an invoice is cancelled once at most, otherwise two documents would carry the same number,
+     * - its net sum is negative (or zero), so an invoice and its cancellation cancel each other out in every
+     *   sum of the Rechnungsbuch.
+     *
+     * Replaces the given reference (usually an id-only stub from the REST layer) by the original loaded from the
+     * database, so [RechnungDO.belegNummer] is right for the rest of the request (caches, index, history).
+     */
+    private fun validateCancellation(obj: RechnungDO) {
+        if (obj.nummer != null) {
+            throw UserException("fibu.rechnung.error.cancellation.noOwnNumber")
+        }
+        val originalId = obj.originalRechnung?.id
+            ?: throw UserException("fibu.rechnung.error.cancellation.originalRequired")
+        // Loaded attached, in the session of the running insert/update, and without the positions (which
+        // [find] initializes): a detached copy lazy-loads them through a temporary session on a second
+        // connection, which a table-locking database (HSQLDB in the tests) blocks behind this transaction.
+        val original = persistenceService.find(RechnungDO::class.java, originalId, attached = true)
+        if (original == null || original.id == obj.id || !original.isCancellable) {
+            throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
+        }
+        obj.originalRechnung = original
+        val otherCancellation = persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).any { it.id != obj.id && it.typ == RechnungTyp.CANCELLATION }
+        if (otherCancellation) {
+            throw UserException("fibu.rechnung.error.cancellation.alreadyCancelled", original.nummer.toString())
+        }
+        val netSum = obj.positionenExcludingDeleted.fold(BigDecimal.ZERO) { sum, pos ->
+            sum + (pos.menge ?: BigDecimal.ONE) * (pos.einzelNetto ?: BigDecimal.ZERO)
+        }
+        if (netSum > BigDecimal.ZERO) {
+            throw UserException("fibu.rechnung.error.cancellation.mustBeNegative")
+        }
+    }
+
+    /**
+     * @return The (undeleted) invoice with the given number, if any. Without access check: the caller
+     * resolves a reference by it, and the invoice itself is checked on read/write.
+     */
+    fun findByNummer(nummer: Int?): RechnungDO? {
+        nummer ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_BY_NUMMER,
+            RechnungDO::class.java,
+            Pair("nummer", nummer),
+        ).firstOrNull()
+    }
+
+    /**
+     * @return The (undeleted) cancellation invoice of the given invoice, if any.
+     */
+    fun findCancellationOf(originalId: Long?): RechnungDO? {
+        originalId ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).firstOrNull { it.typ == RechnungTyp.CANCELLATION }
     }
 
     override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType) {

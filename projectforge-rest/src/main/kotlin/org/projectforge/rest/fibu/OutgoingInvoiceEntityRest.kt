@@ -50,6 +50,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.common.i18n.UserException
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.Configuration
@@ -78,6 +79,7 @@ import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
@@ -188,6 +190,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             rechnungDO.kundeText = null
         }
         assignNumbersAndIndicesToNewRows(rechnungDO)
+        if (rechnungDO.typ == RechnungTyp.CANCELLATION && rechnungDO.originalRechnung == null) {
+            // Typed by the user as the number of the cancelled invoice (a cancellation written by hand
+            // instead of through [createCancellation]): resolved to the invoice here, `RechnungDao` validates it.
+            rechnungDO.originalRechnung = baseDao.findByNummer(dto.originalInvoice?.nummer)
+        }
         dto.id?.let { id ->
             baseDao.find(id, checkAccess = false)?.let { dbObj ->
                 rechnungDO.attachmentsCounter = dbObj.attachmentsCounter
@@ -219,6 +226,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         } else {
             rechnung.copyFrom(obj)
             rechnung.project?.displayName = obj.projekt?.name
+        }
+        if (editMode && obj.isCancellable) {
+            rechnung.cancellationInvoice = Rechnung.InvoiceRef.of(baseDao.findCancellationOf(obj.id))
+            rechnung.cancellable = rechnung.cancellationInvoice == null
         }
         rechnung.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
         rechnung.writeAccess = if (obj.id == null) {
@@ -298,6 +309,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         if (obj.id == null &&
             obj.nummer == null &&
             obj.typ != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN &&
+            // No number of its own either: it is derived from the cancelled invoice's (`RechnungDO.belegNummer`).
+            obj.typ != RechnungTyp.CANCELLATION &&
             obj.status != RechnungStatus.GEPLANT
         ) {
             obj.nummer = baseDao.getNextNumber(obj)
@@ -645,6 +658,32 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // `validate(dbObj, postData)` and not `validate(dbObj)`: the invoice has rules of its own beyond the
         // annotated fields (the period of performance, see `validate` above), and the regular save runs both.
         return saveOrUpdate(request, baseDao, dbObj, postData, this, validate(dbObj, postData))
+    }
+
+    /**
+     * A cancellation invoice of the given invoice, prepared and not saved: the "create cancellation" button of
+     * the edit page (`EditDef.convert`), which opens it on the add page, where the user saves it.
+     *
+     * Built from the *stored* invoice, not from the posted form: a cancellation reverses what was issued, not
+     * what is being edited. Refused (406, `UserException`) for an invoice that isn't cancellable
+     * ([RechnungDO.isCancellable]) or is cancelled already — the client doesn't offer the button then
+     * ([Rechnung.cancellable]).
+     *
+     * @see prepareCancellation for what the cancellation keeps and what it reverses.
+     */
+    @PostMapping("createCancellation")
+    fun createCancellation(@RequestBody postData: PostData<Rechnung>): ResponseAction {
+        baseDao.hasLoggedInUserInsertAccess()
+        val original = postData.data.id?.let { baseDao.find(it) }
+        if (original == null || !original.isCancellable) {
+            throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
+        }
+        baseDao.findCancellationOf(original.id)?.let {
+            throw UserException("fibu.rechnung.cancellation.alreadyExists", it.belegNummer)
+        }
+        val dto = prepareClone(transformFromDB(original, editMode = true))
+        prepareCancellation(dto, original, translateMsg("fibu.rechnung.cancellation.of", original.nummer.toString()))
+        return ResponseAction(targetType = TargetType.NOTHING).addVariable("data", dto)
     }
 
     /**
@@ -1217,6 +1256,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             invoices.forEach { invoice ->
                 val row = sheet.createRow()
                 row.autoFillFromObject(invoice)
+                if (invoice.typ == RechnungTyp.CANCELLATION) {
+                    // No number of its own, the derived one ("16956-S") instead.
+                    ExcelUtils.getCell(row, RechnungDO::nummer)?.setCellValue(invoice.belegNummer)
+                }
                 // The related customer or, for an invoice naming none, the free text - the same fallback
                 // the list's cell and `KundeFormatter` make.
                 row.getCell(COL_CUSTOMER)?.setCellValue(
@@ -1345,6 +1388,39 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 position.id = null
                 position.kostZuweisungen?.forEach { it.id = null }
             }?.toMutableList()
+            // A clone is a new document: it neither has the number of the cloned one, nor is it cancelled by the
+            // cancellation of that one. A cloned cancellation keeps no reference either, the invoice it cancels
+            // is cancelled already - the user names another one (or changes the type).
+            dto.belegNummer = null
+            dto.originalInvoice = null
+            dto.cancellationInvoice = null
+            dto.cancellable = false
+            return dto
+        }
+
+        /**
+         * Turns a prepared clone of [original] ([prepareInvoiceClone]) into its cancellation: the type
+         * [RechnungTyp.CANCELLATION], the reference to [original], and every amount negated — the unit prices
+         * of the positions and their cost assignments — so that the two documents cancel each other out in
+         * every sum of the Rechnungsbuch. The quantities are kept, as are the order positions billed (the
+         * cancellation reverses their billing, too).
+         *
+         * The e-invoice states it as a credit note with positive amounts (`EInvoiceExportService`).
+         *
+         * @param subjectPrefix Prepended to the subject, e.g. "Storno zu Rechnung 16956".
+         */
+        internal fun prepareCancellation(dto: Rechnung, original: RechnungDO, subjectPrefix: String): Rechnung {
+            dto.typ = RechnungTyp.CANCELLATION
+            dto.originalInvoice = Rechnung.InvoiceRef.of(original)
+            dto.betreff = listOfNotNull(subjectPrefix, dto.betreff?.takeIf { it.isNotBlank() }).joinToString(": ")
+            // Nothing to pay, and nothing to pay early.
+            dto.discountPercent = null
+            dto.discountMaturity = null
+            dto.discountZahlungsZielInTagen = null
+            dto.positionen?.forEach { position ->
+                position.einzelNetto = position.einzelNetto?.negate()
+                position.kostZuweisungen?.forEach { it.netto = it.netto?.negate() }
+            }
             return dto
         }
 

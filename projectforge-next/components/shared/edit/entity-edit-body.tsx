@@ -407,8 +407,11 @@ export function EntityEditBody<
         )}
         // Wherever the entity declares a conversion — the backend adds its switch button to the layout
         // unconditionally too (TimesheetPagesRest/TeamEventPagesRest.createEditLayout), and it acts on
-        // the form's values, so it needs no stored entry.
-        showConvert={Boolean(edit.convert)}
+        // the form's values, so it needs no stored entry. A conversion only some entries allow says so
+        // through its `visible` predicate (EditConvert.visible).
+        showConvert={Boolean(
+          edit.convert && (edit.convert.visible?.(data) ?? true)
+        )}
         convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
         onClone={runClone}
         onDelete={runDelete}

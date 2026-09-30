@@ -35,6 +35,7 @@ export function toFormValues(invoice: InvoiceDetail): InvoiceValues {
   return {
     id: invoice.id ?? null,
     nummer: invoice.nummer ?? null,
+    originalInvoice: invoice.originalInvoice ?? null,
     datum: invoice.datum ?? null,
     status: invoice.status ?? null,
     typ: invoice.typ ?? null,

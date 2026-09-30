@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -301,6 +302,40 @@ class RechnungDtoTest : AbstractTestBase() {
         assertNull(dto.attachments)
         assertNull(dto.attachmentsCounter)
         assertNull(dto.attachmentsSize)
+    }
+
+    @Test
+    fun `a cancellation references its original and negates every amount, the quantities kept`() {
+        val original = createInvoice()
+        original.nummer = 16956
+        val clone = clonedInvoice()
+        val quantities = clone.positionen?.map { it.menge }
+        val prices = clone.positionen?.map { it.einzelNetto }
+
+        val dto = OutgoingInvoiceEntityRest.prepareCancellation(clone, original, "Storno zu Rechnung 16956")
+
+        assertEquals(RechnungTyp.CANCELLATION, dto.typ)
+        assertNull(dto.nummer, "A cancellation has no number of its own.")
+        assertEquals(original.id, dto.originalInvoice?.id)
+        assertEquals(16956, dto.originalInvoice?.nummer)
+        assertEquals("Storno zu Rechnung 16956: Test invoice", dto.betreff)
+        assertEquals(quantities, dto.positionen?.map { it.menge })
+        assertEquals(prices?.map { it?.negate() }, dto.positionen?.map { it.einzelNetto })
+        assertEquals(BigDecimal("-600.00"), dto.positionen?.first()?.kostZuweisungen?.first()?.netto)
+        // Nothing to pay early.
+        assertNull(dto.discountMaturity)
+        assertNull(dto.discountPercent)
+    }
+
+    @Test
+    fun `the reference to the original is written back by id`() {
+        val dto = Rechnung()
+        dto.originalInvoice = Rechnung.InvoiceRef(id = 42L, nummer = 16956)
+        val dest = RechnungDO()
+
+        dto.copyTo(dest)
+
+        assertEquals(42L, dest.originalRechnung?.id)
     }
 
     /**

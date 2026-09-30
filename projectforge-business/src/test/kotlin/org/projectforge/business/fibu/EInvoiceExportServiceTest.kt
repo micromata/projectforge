@@ -163,6 +163,56 @@ class EInvoiceExportServiceTest {
         assertTrue(xmlString.contains("381"), "Credit note should have document type code 381")
     }
 
+    /**
+     * The cancellation of [createTestInvoice]: no number of its own, the original referenced, the unit prices
+     * negated - as `OutgoingInvoiceEntityRest.prepareCancellation` builds it.
+     */
+    private fun createTestCancellation(): RechnungDO {
+        val original = createTestInvoice().apply { id = 42L }
+        return createTestInvoice().apply {
+            nummer = null
+            typ = RechnungTyp.CANCELLATION
+            datum = LocalDate.of(2024, 7, 1)
+            originalRechnung = original
+            positionen!!.forEach { it.einzelNetto = it.einzelNetto!!.negate() }
+        }
+    }
+
+    @Test
+    fun exportCancellation() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val invoice = createTestCancellation()
+        assertEquals("2024001-S", invoice.belegNummer)
+        assertTrue(service.validate(invoice).isEmpty(), "A complete cancellation is exportable: ${service.validate(invoice)}")
+
+        val xmlString = String(service.exportAsXRechnung(invoice), Charsets.UTF_8)
+        assertTrue(xmlString.contains("<ram:TypeCode>381</ram:TypeCode>"), "Cancellation is exported as credit note (381)")
+        assertTrue(!xmlString.contains("<ram:TypeCode>457</ram:TypeCode>"), "457 is no XRechnung type code")
+        assertTrue(xmlString.contains("<ram:ID>2024001-S</ram:ID>"), "BT-1 is the derived number")
+        val reference = xmlString.substringAfter("<ram:InvoiceReferencedDocument>", "")
+            .substringBefore("</ram:InvoiceReferencedDocument>")
+        assertTrue(reference.contains("<ram:IssuerAssignedID>2024001</ram:IssuerAssignedID>"), "BT-25 references the original")
+        assertTrue(reference.contains("20240615"), "BT-26 is the date of the original")
+        // 10 * 150 + 5 * 120, positive as a credit note states it.
+        assertTrue(xmlString.contains(">2100.00<"), "Amounts are positive")
+        assertTrue(!xmlString.contains(">-"), "No negative amount in the credit note")
+        assertEquals("XRechnung_2024001-S.xml", service.getExportFilename(invoice))
+    }
+
+    @Test
+    fun validateCancellation() {
+        val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
+        val withoutOriginal = createTestCancellation().apply { originalRechnung = null }
+        val errors = service.validate(withoutOriginal)
+        assertTrue(errors.contains(eInvoiceError("cancellationOriginalMissing")), "Should report missing original")
+        assertTrue(!errors.contains(eInvoiceError("numberMissing")), "A cancellation has no number of its own")
+
+        val positive = createTestCancellation().apply {
+            positionen!!.forEach { it.einzelNetto = it.einzelNetto!!.negate() }
+        }
+        assertTrue(service.validate(positive).contains(eInvoiceError("cancellationNotNegative")), "Should report positive sum")
+    }
+
     @Test
     fun validateMissingFields() {
         val service = EInvoiceExportService(createSellerConfig(), invoiceServiceMock, attachmentsServiceMock, repoServiceMock, rechnungDaoMock)
