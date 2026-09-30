@@ -228,7 +228,11 @@ class Auftrag(
         entscheidungsDatum = src.entscheidungsDatum
         periodOfPerformanceBegin = src.periodOfPerformanceBegin
         periodOfPerformanceEnd = src.periodOfPerformanceEnd
-        probabilityOfOccurrence = src.probabilityOfOccurrence
+        // Left out for a commissioned order: the value entered during acquisition is stale, and 100 % would be
+        // wrong too, as positions still potential/optional keep the entered probability (see
+        // [ForecastUtils.getProbabilityOfAccurence]). The edit form keeps the entered value (see [copyFrom]).
+        probabilityOfOccurrence =
+            if (src.status == AuftragsStatus.BEAUFTRAGT) null else src.probabilityOfOccurrence
         assignedPersons = src.assignedPersons
         attachmentsCounter = src.attachmentsCounter
         attachmentsSize = src.attachmentsSize
