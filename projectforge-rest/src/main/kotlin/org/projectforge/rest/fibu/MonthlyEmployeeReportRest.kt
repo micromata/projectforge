@@ -388,7 +388,8 @@ class MonthlyEmployeeReportRest {
             showInvoicingQuota = showInvoicingQuota,
             invoicingQuota = if (invoicingQuotaShown) report.formattedInvoicingQuota else null,
             invoicingQuotaTooltip = if (invoicingQuotaShown) report.formattedInvoicingQuotaTooltip else null,
-            invoicingQuotaInfo = if (invoicingQuotaShown) {
+            // Also while switched off: the switch's info icon explains what the user would turn on.
+            invoicingQuotaInfo = if (invoicingQuotaAvailable) {
                 invoicingQuotaService.getInfo(ThreadLocalUserContext.locale)
             } else null,
             startDate = fromDate.toString(),

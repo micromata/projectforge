@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
+import { FieldHint } from "@/components/shared/form/field-hint";
 import { PeriodStepper } from "@/components/shared/period-stepper";
 import { useCurrentUserRef } from "@/hooks/use-current-user-ref";
 import { useFormatContext } from "@/hooks/use-format";
@@ -133,6 +134,12 @@ export function ReportFilterRow({
           <Label htmlFor="report-show-invoicing-quota">
             {t("fibu.monthlyEmployeeReport.showInvoicingQuota")}
           </Label>
+          {report.invoicingQuotaInfo && (
+            <FieldHint
+              hint={report.invoicingQuotaInfo}
+              label={t("fibu.monthlyEmployeeReport.showInvoicingQuota")}
+            />
+          )}
         </div>
       )}
     </div>
