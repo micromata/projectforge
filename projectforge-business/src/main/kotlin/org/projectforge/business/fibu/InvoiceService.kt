@@ -149,6 +149,15 @@ open class InvoiceService {
             variables.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.faelligkeit))
             variables.put("Anlage", getReplacementForAttachment(data))
             variables.put("isSkonto", isSkonto)
+            // A cancellation invoice shares the template of the invoice: the template asks for `isStorno` and
+            // names the cancelled invoice by number and date. Set for every invoice (empty where there is no
+            // original), so a variable used outside of the condition is never left unreplaced.
+            variables.put("isStorno", data.typ == RechnungTyp.CANCELLATION)
+            variables.put("Originalrechnungsnummer", data.originalRechnung?.nummer?.toString() ?: "")
+            variables.put(
+                "Originalrechnungsdatum",
+                DateTimeFormatter.instance().getFormattedDate(data.originalRechnung?.datum)
+            )
             if (isSkonto) {
                 variables.put("Skonto", formatBigDecimal(data.discountPercent!!.stripTrailingZeros()) + "%")
                 variables.put(
