@@ -684,9 +684,10 @@
           "prevPrevYear": "Year before previous year",
           "prevYear": "Previous year",
           "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
+          "replacedByStartDate": "Replaced by the first month of the forecast.",
           "startDate": {
             "_": "First month of the forecast",
-            "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied, its period of performance is replaced by this date."
+            "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
           },
           "total": "Forecast"
         },
@@ -1219,6 +1220,7 @@
       "chart": {
         "_": "Charts",
         "boundedRangeHint": "Please restrict the invoice date to a period (from and to) to compare it with the three preceding years.",
+        "comparedPeriods": "Compared with the same period of {arg0}.",
         "cumulative": "Cumulative net revenue",
         "monthly": "Monthly net revenue"
       },
@@ -1446,6 +1448,15 @@
     "after": "After",
     "all": "all",
     "allFilters": "All filters",
+    "applied": {
+      "_": "Filter of the list",
+      "columnFiltersHint": "Column filters of the table (funnel in the column header) are not considered.",
+      "ignored": "not considered",
+      "ignoredTooltip": "The charts do not support this filter of the list, so their figures may differ from the list.",
+      "none": "No filter: all entries",
+      "partial": "only the first value",
+      "partialTooltip": "Only the first of the selected values is applied, so the figures may differ from the list."
+    },
     "apply": "Apply",
     "before": "Before",
     "between": "Between",
@@ -2513,6 +2524,7 @@
     "today": "Today",
     "withoutTimePeriod": "Without time period"
   },
+  "searchString": "Search string",
   "select": {
     "_": "Select",
     "placeholder": "Select..."

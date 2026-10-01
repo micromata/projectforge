@@ -684,9 +684,10 @@
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
           "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
+          "replacedByStartDate": "Ersetzt durch den ersten Monat des Forecasts.",
           "startDate": {
             "_": "Erster Monat des Forecasts",
-            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, sein Leistungszeitraum durch dieses Datum ersetzt."
+            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
           "total": "Forecast"
         },
@@ -1219,6 +1220,7 @@
       "chart": {
         "_": "Grafiken",
         "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
+        "comparedPeriods": "Verglichen mit demselben Zeitraum {arg0}.",
         "cumulative": "Kumulierter Nettoumsatz",
         "monthly": "Monatlicher Nettoumsatz"
       },
@@ -1446,6 +1448,15 @@
     "after": "Nach",
     "all": "alle",
     "allFilters": "Alle Filter",
+    "applied": {
+      "_": "Filter der Liste",
+      "columnFiltersHint": "Spaltenfilter der Tabelle (Trichter im Spaltenkopf) werden nicht berücksichtigt.",
+      "ignored": "nicht berücksichtigt",
+      "ignoredTooltip": "Die Grafiken unterstützen diesen Filter der Liste nicht, ihre Zahlen können daher von der Liste abweichen.",
+      "none": "Kein Filter: alle Einträge",
+      "partial": "nur der erste Wert",
+      "partialTooltip": "Nur der erste der gewählten Werte wird angewendet, die Zahlen können daher von der Liste abweichen."
+    },
     "apply": "Anwenden",
     "before": "Vor",
     "between": "Zwischen",
@@ -2513,6 +2524,7 @@
     "today": "Heute",
     "withoutTimePeriod": "Ohne Zeitangabe"
   },
+  "searchString": "Suchtext",
   "select": {
     "_": "Auswählen",
     "placeholder": "Auswählen..."

@@ -1,9 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRememberedFilter } from "@/components/data-table/use-remembered-filter";
+import { AppliedFilterSummary } from "@/components/shared/chart/applied-filter-summary";
 import { DateInput } from "@/components/shared/date-input";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Spinner } from "@/components/shared/spinner";
@@ -23,6 +28,12 @@ import { ORDER_ENTITY } from "../order.page";
 import { OrderForecastCumulativeChart } from "./order-forecast-cumulative-chart";
 import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
 
+/** The order list's combined period-of-performance filter (`OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER`). */
+const PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance";
+
+/** React Query key of the user's remembered chart dates (see fetchForecastChartSettings). */
+const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
+
 /**
  * The "Grafiken" tab of `/order` (see `app/(authenticated)/order/page.tsx`): the charts of the forecast
  * Excel export (sheet 'Grafiken 1'), computed by the very export pipeline (`ForecastExport.chartData`), so
@@ -31,11 +42,15 @@ import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
  * Follows the filter the list is showing through {@link useRememberedFilter}; the period of performance of
  * that filter is replaced by the start date of the controls. Start and planning date are remembered by the
  * backend, so the settings are loaded first.
+ *
+ * The forecast knows only some of the list's criteria (`OrderEntityRest.toAuftragFilter`); the backend
+ * reports the others with the charts and {@link AppliedFilterSummary} marks them, so totals that differ
+ * from the list are explained rather than silent.
  */
 export function OrderForecastChartsView() {
-  const remembered = useRememberedFilter(ORDER_ENTITY);
+  const remembered = useRememberedFilter(ORDER_ENTITY, { fresh: false });
   const settings = useQuery({
-    queryKey: ["order", "forecastChart", "settings"],
+    queryKey: FORECAST_CHART_SETTINGS_KEY,
     queryFn: ({ signal }) => fetchForecastChartSettings(signal),
   });
   if (settings.isError) {
@@ -87,16 +102,25 @@ function OrderForecastCharts({
     [startDate, planningDate]
   );
   const debouncedParams = useDebouncedValue(params);
+  const queryClient = useQueryClient();
   // The filter drives the query key, so a changed list filter refetches when the user returns to this tab.
   const filterKey = useMemo(() => JSON.stringify(filter ?? {}), [filter]);
   const query = useQuery({
     queryKey: ["order", "forecastChart", filterKey, debouncedParams],
-    queryFn: ({ signal }) =>
-      fetchForecastChart(
+    queryFn: async ({ signal }) => {
+      const data = await fetchForecastChart(
         filter ?? { entries: [], sortProperties: [] },
         debouncedParams,
         signal
-      ),
+      );
+      // The backend has just stored these dates as the user's settings; the cached settings must follow,
+      // otherwise the tab re-seeds its controls with the dates of its first load when it is mounted again.
+      queryClient.setQueryData(FORECAST_CHART_SETTINGS_KEY, debouncedParams);
+      return data;
+    },
+    // Every request persists its dates, so returning to dates used a moment ago must post again rather
+    // than answer from the cache — otherwise the backend keeps the dates in between.
+    staleTime: 0,
     placeholderData: keepPreviousData,
   });
   // Recalculating: a request is running, or a changed date is still waiting for the debounce. The previous
@@ -104,12 +128,38 @@ function OrderForecastCharts({
   const recalculating =
     !query.isPending && (query.isFetching || params !== debouncedParams);
 
+  // What of the list's filter the forecast did not apply, as the backend reports it with the charts.
+  const data = query.data;
+  const usage = useMemo(
+    () =>
+      data && {
+        ignored: data.ignoredFilterFields,
+        replaced: data.replacedFilterFields,
+        partial: data.partialFilterFields,
+      },
+    [data]
+  );
+  const notes = useMemo(
+    () => ({ [PERIOD_OF_PERFORMANCE_FILTER]: t("replacedByStartDate") }),
+    [t]
+  );
+
   return (
     <div className="space-y-6 p-4">
       {/* The charts skip the detail of the Excel (e.g. a chosen variant, snapshots, the project overview). */}
       <Alert>
         <AlertDescription>{t("quickViewHint")}</AlertDescription>
       </Alert>
+      {/* Only with an answer: before it, the summary couldn't tell an applied criterion from an ignored
+          one, and showing all as applied is exactly the impression it is there to correct. */}
+      {usage && (
+        <AppliedFilterSummary
+          entity={ORDER_ENTITY}
+          filter={filter}
+          usage={usage}
+          notes={notes}
+        />
+      )}
       <div className="flex flex-wrap items-end gap-4">
         <div className="grid gap-1.5">
           <HintTooltip text={t("startDate.tooltip")} openOnTap>

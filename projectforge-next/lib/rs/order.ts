@@ -237,6 +237,13 @@ export interface ForecastChartData {
   plan: number[] | null;
   /** The snapshot date actually used for the plan (`yyyy-MM-dd`). */
   planningDate: string | null;
+  /**
+   * The fields of the list filter the forecast did not apply (see `OrderEntityRest.forecastFilterUsage`):
+   * not at all, replaced by the start date, or only the first of several values.
+   */
+  ignoredFilterFields?: string[];
+  replacedFilterFields?: string[];
+  partialFilterFields?: string[];
 }
 
 /** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */

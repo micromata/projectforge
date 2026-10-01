@@ -105,6 +105,35 @@ class OrderFilterTest {
         assertNull(empty.startDate)
     }
 
+    /**
+     * The forecast charts tab lists which of the list's criteria it did not apply, so a total that disagrees
+     * with the list is explained rather than silent: whatever [OrderEntityRest.toAuftragFilter] drops has to
+     * show up here.
+     */
+    @Test
+    fun `the forecast filter usage names what the translation drops`() {
+        val magicFilter = MagicFilter()
+        magicFilter.entries.add(entry(MagicFilter.PAGINATION_PAGE_SIZE).also { it.value.value = "50" })
+        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("positionsStatus", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("positionsPaymentType", values = arrayOf("FESTPREISPAKET", "TIME_AND_MATERIALS")))
+        magicFilter.entries.add(entry("projectManager").also { it.value.id = 42L })
+        magicFilter.entries.add(
+            entry(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01", toValue = "2026-12-31")
+        )
+        // Without a value an entry is no criterion, so nothing to report.
+        magicFilter.entries.add(entry("kunde.name"))
+
+        val usage = OrderEntityRest.forecastFilterUsage(magicFilter)
+        assertEquals(listOf("positionsStatus", "projectManager"), usage.ignored)
+        assertEquals(listOf(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER), usage.replaced)
+        assertEquals(listOf("positionsPaymentType"), usage.partial)
+
+        val single = MagicFilter()
+        single.entries.add(entry("positionsPaymentType", values = arrayOf("FESTPREISPAKET")))
+        assertTrue(OrderEntityRest.forecastFilterUsage(single).partial.isEmpty())
+    }
+
     private fun entry(
         field: String,
         values: Array<String>? = null,

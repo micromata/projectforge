@@ -994,8 +994,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     filter.periodOfPerformanceStartDate = settings.startDate
     filter.periodOfPerformanceEndDate = null
     // Empty months (instead of no body) if neither order positions nor invoices were found:
-    return forecastExport.chartData(filter, planningDate = settings.planningDate)
+    val data = forecastExport.chartData(filter, planningDate = settings.planningDate)
       ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+    // What of the list's filter the charts did not take as it is, for the summary above them.
+    val usage = forecastFilterUsage(request.filter ?: MagicFilter())
+    data.ignoredFilterFields = usage.ignored
+    data.replacedFilterFields = usage.replaced
+    data.partialFilterFields = usage.partial
+    return data
   }
 
   /** What the forecast charts tab asks for, and what is remembered of it per user. */
@@ -1121,6 +1127,56 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       }
       return filter
     }
+
+    /**
+     * The fields of the list filter [toAuftragFilter] translates - every other one is lost on the way into
+     * the [AuftragFilter], so the forecast charts don't apply it (see [forecastFilterUsage]).
+     */
+    private val AUFTRAG_FILTER_FIELDS = setOf(
+      "status",
+      "positionsArt",
+      "positionsPaymentType",
+      "fakturiert",
+      PERIOD_OF_PERFORMANCE_FILTER,
+      AuftragDO::erfassungsDatum.name,
+    )
+
+    /**
+     * Which entries of the list's filter the forecast charts do not take as they are, so the charts tab can
+     * say so instead of showing totals that silently disagree with the list: the forecast runs over the
+     * [AuftragFilter] of [toAuftragFilter], which knows only a few of the list's criteria.
+     *
+     * - `ignored`: fields [toAuftragFilter] doesn't translate (positions status, the person pickers, the
+     *   next-invoice date, every free field filter, ...).
+     * - `replaced`: the period of performance, which the chart's start date replaces.
+     * - `partial`: a payment type filter with more than one value, of which only the first is used.
+     *
+     * Only entries with a value count; the page size travels as an entry but is no filter.
+     */
+    internal fun forecastFilterUsage(magicFilter: MagicFilter): ForecastFilterUsage {
+      val usage = ForecastFilterUsage()
+      magicFilter.entries.forEach { entry ->
+        val field = entry.field?.takeIf { it.isNotBlank() } ?: return@forEach
+        // A user picker carries only the id, which isNoValueGiven doesn't look at.
+        if (field == MagicFilter.PAGINATION_PAGE_SIZE || (entry.isNoValueGiven && entry.value?.id == null)) {
+          return@forEach
+        }
+        when {
+          field == PERIOD_OF_PERFORMANCE_FILTER -> usage.replaced.add(field)
+          field !in AUFTRAG_FILTER_FIELDS -> usage.ignored.add(field)
+          field == "positionsPaymentType" && (entry.value.values?.count { it.isNotBlank() } ?: 0) > 1 ->
+            usage.partial.add(field)
+        }
+      }
+      return usage
+    }
+
+    /** See [forecastFilterUsage]. */
+    class ForecastFilterUsage(
+      val ignored: MutableList<String> = mutableListOf(),
+      val replaced: MutableList<String> = mutableListOf(),
+      val partial: MutableList<String> = mutableListOf(),
+    )
 
     /**
      * Numbers the rows the client added, leaving every stored row untouched: `number` is what the
