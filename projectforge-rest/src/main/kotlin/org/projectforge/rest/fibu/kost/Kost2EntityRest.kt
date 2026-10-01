@@ -150,15 +150,23 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      * there are the ones the task's project has (Wicket prefilters the picker with the search string
      * `"nummer:" + projekt.kost + ".*"`, `TaskEditForm`; the id keeps the number format out of the url and
      * needs no re-parsing here).
+     *
+     * `siblingsOf` (a cost 2 id) answers an empty term with the *siblings* of that unit instead of the first
+     * slice of all units, which practically never fits: the units sharing its number range, area and number
+     * (`x.xxx.xx`, everything but the Kost2Art) — what a user re-opening the picker of a chosen unit is
+     * looking for (cost assignments of invoices). A typed term searches as usual.
      */
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<Kost2DO> {
         val onlyActiveEntries = request.getParameter("onlyActiveEntries")?.toBooleanStrictOrNull() ?: true
         val projektId = NumberHelper.parseLong(request.getParameter("projektId"))
-        var list = super.queryAutocompleteObjects(request, filter)
+        val siblingsOf = NumberHelper.parseLong(request.getParameter("siblingsOf"))
         val searchString = filter.searchString?.replace(Regex("[*+]"), "")?.trim()
+        if (siblingsOf != null && searchString.isNullOrEmpty()) {
+            querySiblings(siblingsOf, onlyActiveEntries)?.let { return it }
+        }
+        var list = super.queryAutocompleteObjects(request, filter)
         if (onlyActiveEntries && !NumberHelper.isDigitsAndDotsOnly(searchString)) {
-            list =
-                list.filter { it.effectiveKostentraegerStatus == null || it.effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE }
+            list = list.filter { it.isActive() }
         }
         if (projektId != null) {
             list = list.filter { it.projekt?.id == projektId }
@@ -166,6 +174,25 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
         list.forEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
         return list.sortedBy { it.displayName }
     }
+
+    /**
+     * The units sharing number range, area and number with the given one, the given one included even if
+     * it is no longer active (it is the current value). Loaded from the database rather than taken from
+     * [org.projectforge.business.fibu.kost.KostCache]: the display name set here must not leak into the
+     * cached instances. Null for an unknown id, which then falls back to the usual search.
+     */
+    private fun querySiblings(kost2Id: Long, onlyActiveEntries: Boolean): List<Kost2DO>? {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val kost2 = caches.getKost2(kost2Id) ?: return null
+        return baseDao.getActiveKost2(kost2.nummernkreis, kost2.bereich, kost2.teilbereich)
+            .filter { !it.deleted || it.id == kost2Id }
+            .filter { !onlyActiveEntries || it.id == kost2Id || it.isActive() }
+            .onEach { it.displayName = kostFormatter.formatKost2(it, KostFormatter.FormatType.LONG) }
+            .sortedBy { it.displayName }
+    }
+
+    private fun Kost2DO.isActive() =
+        effectiveKostentraegerStatus == null || effectiveKostentraegerStatus == KostentraegerStatus.ACTIVE
 
     override val autoCompleteSearchFields =
         arrayOf("description", "nummer", "rawNumberString", "projekt.name", "projekt.kunde.name")

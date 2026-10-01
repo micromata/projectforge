@@ -38,6 +38,8 @@ export interface EntityAutocompleteFieldProps extends BaseFieldProps {
   metadataLess?: boolean;
   /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /** See [EntityAutocompleteProps.popoverClassName]. */
+  popoverClassName?: string;
 }
 
 /**
@@ -59,6 +61,7 @@ export function EntityAutocompleteField({
   onPicked,
   metadataLess,
   disabled,
+  popoverClassName,
 }: EntityAutocompleteFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -96,6 +99,7 @@ export function EntityAutocompleteField({
               params={params}
               selectMe={selectMe}
               disabled={disabled}
+              popoverClassName={popoverClassName}
               // A required field cannot validly be cleared to nothing, so drop the reset button (a new
               // pick still replaces the value); the "*" is already on the label via FieldShell.
               required={required}

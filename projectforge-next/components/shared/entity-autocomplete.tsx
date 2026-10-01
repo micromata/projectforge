@@ -69,6 +69,11 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * gives a text box — so a picked entry and a typed title catch the eye the same way.
    */
   emphasized?: boolean;
+  /**
+   * Overrides the size of the dropdown, which by default is as wide as the trigger — for entries whose
+   * names are much longer than the field is wide (the long cost 2 names in a row of cost assignments).
+   */
+  popoverClassName?: string;
 }
 
 /**
@@ -93,6 +98,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   disabled,
   required,
   emphasized,
+  popoverClassName,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -158,7 +164,10 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
       </div>
       <PopoverContent
         align="start"
-        className="w-(--radix-popover-trigger-width) min-w-56 p-0"
+        className={cn(
+          "w-(--radix-popover-trigger-width) min-w-56 p-0",
+          popoverClassName
+        )}
       >
         <EntitySearchList<T>
           url={url}
