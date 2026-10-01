@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * The layout-free REST endpoint of the address campaigns, serving the hand-built projectforge-next page
  * (see components/features/address-campaign). Replaces the retired `AddressCampaignPagesRest`, whose
- * server-side `UILayout` moved onto the frontend. The Wicket pages `AddressCampaignListPage`/`EditPage`
- * stay as the classic version.
+ * server-side `UILayout` moved onto the frontend, and the removed Wicket pages
+ * `AddressCampaignListPage`/`AddressCampaignEditPage`.
  */
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaign")
@@ -58,7 +58,7 @@ class AddressCampaignEntityRest : AbstractDTOEntityRest<AddressCampaignDO, Addre
     }
 
     /**
-     * The format check of Wicket's `AddressCampaignEditForm`: values like "Value 1; Value 2; Value 3", at least
+     * The format check of the former Wicket `AddressCampaignEditForm`: values like "Value 1; Value 2; Value 3", at least
      * one of them. Title and values being given at all is checked generically (`@PropertyInfo(required)`).
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: AddressCampaign) {

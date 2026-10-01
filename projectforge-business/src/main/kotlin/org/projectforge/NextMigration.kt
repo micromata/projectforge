@@ -186,14 +186,20 @@ object NextMigration {
         ),
         // The address campaigns of the marketing plugin, migrated from Wicket (the menu entry pointed at the
         // bookmarkable AddressCampaignListPage). Hand built (AddressCampaignEntityRest, no layout; the server
-        // laid out React page of AddressCampaignPagesRest is gone). The plugin mounts its Wicket pages under its
-        // id (addressCampaignList/addressCampaignEdit), which is the convention, so no legacy route has to be
-        // spelled out; the way back to the classic Wicket pages stays offered.
+        // laid out React page of AddressCampaignPagesRest is gone). The Wicket pages have been removed: the way
+        // back is no longer offered, and legacyApp/legacyRoute stay only so OrphanedLinkFilter still redirects
+        // bookmarked links onto the next page. The legacy routes are the bookmarkable urls (as for `liquidity`):
+        // a plugin's mount points (addressCampaignList/addressCampaignEdit) were never actually mounted, see
+        // PluginWicketRegistrationService.registerMenuItem.
         "addressCampaign" to NextPage(
             route = "address-campaign",
             editRoute = "address-campaign/$ID_PLACEHOLDER",
             newEntryRoute = "address-campaign/new",
             legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage",
+            offerLegacyLink = false,
         ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is

@@ -7,7 +7,7 @@ import type { AddressCampaignDetail } from "./types";
 
 /**
  * The campaign's values ("Value 1; Value 2; Value 3"), with the format as its ⓘ hint — and, on a saved
- * campaign, Wicket's warning (`AddressCampaignEditForm`'s alert icon) that relabelling a value may drop
+ * campaign, the warning of the former Wicket form (`AddressCampaignEditForm`'s alert icon) that relabelling a value may drop
  * the addresses already assigned to it: they store the value's text, not a reference to it.
  *
  * A custom field because the warning only applies once the campaign exists, which a static declaration

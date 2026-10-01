@@ -19,11 +19,11 @@ export const ADDRESS_CAMPAIGN_LIST_QUERY_KEY = ["addressCampaign"] as const;
  * The whole address campaign page of the marketing plugin — list and edit — as data (see
  * lib/page-def/types.ts).
  *
- * Replaces the server-laid-out React page (`AddressCampaignPagesRest`) and follows the legacy Wicket
- * pages, which stay reachable as the classic version: the list shows `AddressCampaignListPage`'s columns
- * in its order, sorted by title as it does; the form has `AddressCampaignEditForm`'s fields, including the
- * values' format hint and the warning against relabelling them. Labels and every rule come from
- * AddressCampaignDO through the generated metadata.
+ * Replaces the server-laid-out React page (`AddressCampaignPagesRest`) and the removed Wicket pages,
+ * which it follows: the list shows `AddressCampaignListPage`'s columns in its order, sorted by title as
+ * it did; the form has `AddressCampaignEditForm`'s fields, including the values' format hint and the
+ * warning against relabelling them. Labels and every rule come from AddressCampaignDO through the
+ * generated metadata.
  */
 export const ADDRESS_CAMPAIGN_PAGE = definePage<
   AddressCampaignListRow,
