@@ -64,6 +64,11 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * buttons beside it are left out: both are ways of changing the value.
    */
   disabled?: boolean;
+  /**
+   * The value the reader of the form looks for first, set in the emphasis [InputField]'s `emphasized`
+   * gives a text box — so a picked entry and a typed title catch the eye the same way.
+   */
+  emphasized?: boolean;
 }
 
 /**
@@ -87,6 +92,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   selectMe,
   disabled,
   required,
+  emphasized,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
@@ -119,7 +125,13 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             onKeyDown={openOnTyping}
             className="h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
-            <span className={cn("truncate", !value && "text-muted-foreground")}>
+            <span
+              className={cn(
+                "truncate",
+                !value && "text-muted-foreground",
+                value && emphasized && "font-semibold text-primary"
+              )}
+            >
               {value?.displayName ?? t("filter.chooseEntity")}
             </span>
             <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
