@@ -76,7 +76,7 @@ export function MonthInput({
           variant="outline"
           aria-label={text ? `${ariaLabel}: ${text}` : ariaLabel}
           className={cn(
-            "h-8 w-full justify-between px-2.5 font-normal tabular-nums",
+            "h-7 w-full justify-between px-2.5 font-normal tabular-nums",
             !text && "text-muted-foreground",
             className
           )}

@@ -96,7 +96,7 @@ export function EntityOrTextAutocomplete({
             onKeyDown={openOnTyping}
             data-value-kind={value?.kind}
             className={cn(
-              "h-8 min-w-0 flex-1 justify-between gap-1.5 px-2 text-xs font-normal",
+              "h-7 min-w-0 flex-1 justify-between gap-1.5 px-2 text-xs font-normal",
               isText && "border-dashed border-warning"
             )}
           >

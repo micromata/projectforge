@@ -37,6 +37,8 @@ export interface SelectFieldProps extends BaseFieldProps {
   /**
    * Renders the value larger and in the accent colour. For the one value a reader looks for first —
    * the status of a book, the status of a cost unit — which the legacy pages buried among the others.
+   * The box keeps the height of every other field, so the row it sits in stays level with the rows of
+   * a column beside it (an order's status next to its project).
    */
   emphasized?: boolean;
   /**
@@ -142,7 +144,7 @@ export function SelectField({
                     // truncate a long label instead of overflowing (see Kost2 on a time sheet).
                     "min-w-0 flex-1",
                     emphasized &&
-                      "h-9 border-primary/40 bg-primary/5 text-sm font-semibold text-primary data-[size=default]:h-9"
+                      "border-primary/40 bg-primary/5 text-sm font-semibold text-primary"
                   )}
                 >
                   <SelectValue />

@@ -67,7 +67,7 @@ export function ValueCombobox({
           role="combobox"
           aria-label={ariaLabel}
           className={cn(
-            "h-auto min-h-8 w-full justify-between gap-1 font-normal text-xs",
+            "h-auto min-h-7 w-full justify-between gap-1 font-normal text-xs",
             className
           )}
         >

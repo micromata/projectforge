@@ -117,7 +117,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             autoFocus={autoFocus}
             disabled={disabled}
             onKeyDown={openOnTyping}
-            className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
+            className="h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
               {value?.displayName ?? t("filter.chooseEntity")}

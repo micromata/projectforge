@@ -65,7 +65,7 @@ export function EntityMultiAutocomplete({
           className={cn(
             // The look of a text field (see components/ui/input.tsx), because that is what it is: a
             // control one puts values into, only that the values are chips.
-            "flex min-h-8 min-w-0 flex-wrap items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 py-1 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 dark:bg-input/30",
+            "flex min-h-7 min-w-0 flex-wrap items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 py-px focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 dark:bg-input/30",
             className
           )}
         >
