@@ -4,11 +4,8 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { Card } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { useNavigateMenuUrl } from "@/hooks/use-navigate-menu-url";

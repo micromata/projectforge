@@ -9,6 +9,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  COPYABLE_TRIGGER_CLASS,
+  useCopyableTrigger,
+} from "@/lib/text-selection";
 import { cn } from "@/lib/utils";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
@@ -93,6 +97,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   // `autoOpen` seeds the initial state only (see useTypeToOpen). Skipped when a value is already set: a
   // restored filter or a field with a pick should show it, not drop the user straight into a search to
   // replace it.
+  const copyableTrigger = useCopyableTrigger(disabled);
   const { open, onOpenChange, initialSearch, openOnTyping } = useTypeToOpen({
     initiallyOpen: !!autoOpen && !disabled && !value,
     disabled,
@@ -115,9 +120,12 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-expanded={open}
             aria-label={ariaLabel}
             autoFocus={autoFocus}
-            disabled={disabled}
+            {...copyableTrigger}
             onKeyDown={openOnTyping}
-            className="h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
+            className={cn(
+              "h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal",
+              COPYABLE_TRIGGER_CLASS
+            )}
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
               {value?.displayName ?? t("filter.chooseEntity")}

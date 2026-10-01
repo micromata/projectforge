@@ -13,6 +13,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  COPYABLE_TRIGGER_CLASS,
+  useCopyableTrigger,
+} from "@/lib/text-selection";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import { EntitySearchList } from "./entity-search-list";
@@ -61,6 +65,7 @@ export function EntityOrTextAutocomplete({
   "aria-label": ariaLabel,
 }: EntityOrTextAutocompleteProps) {
   const t = useTranslations();
+  const copyableTrigger = useCopyableTrigger(disabled);
   const { open, onOpenChange, initialSearch, openOnTyping } = useTypeToOpen({
     initiallyOpen: false,
     disabled,
@@ -92,11 +97,12 @@ export function EntityOrTextAutocomplete({
               ariaLabel &&
               [ariaLabel, kindLabel, shown].filter(Boolean).join(": ")
             }
-            disabled={disabled}
+            {...copyableTrigger}
             onKeyDown={openOnTyping}
             data-value-kind={value?.kind}
             className={cn(
               "h-7 min-w-0 flex-1 justify-between gap-1.5 px-2 text-xs font-normal",
+              COPYABLE_TRIGGER_CLASS,
               isText && "border-dashed border-warning"
             )}
           >

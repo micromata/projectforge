@@ -4,13 +4,8 @@ import { useDeferredValue, useState } from "react";
 import type { Column } from "@tanstack/react-table";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { Spinner } from "@/components/shared/spinner";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber } from "@/lib/format";

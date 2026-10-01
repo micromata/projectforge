@@ -410,6 +410,17 @@
 }
 
 /*
+ * A label's text can be selected and copied. The shadcn Label (components/ui/label.tsx, not ours to
+ * edit) makes it `select-none`; this rule is outside any layer and so wins over that utility. A click
+ * on a label still reaches its control — a drag across it selects instead. `field-label` is the same
+ * Label, renamed by FieldLabel (components/ui/field.tsx).
+ */
+[data-slot="label"],
+[data-slot="field-label"] {
+  user-select: text;
+}
+
+/*
  * A row picked for a mass update (see useRowSelection).
  *
  * A pseudo element rather than a background, because both background layers of a cell are taken: the
