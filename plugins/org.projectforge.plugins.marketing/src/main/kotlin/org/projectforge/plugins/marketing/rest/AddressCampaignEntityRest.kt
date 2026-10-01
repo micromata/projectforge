@@ -23,22 +23,28 @@
 
 package org.projectforge.plugins.marketing.rest
 
-import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.marketing.AddressCampaignDO
 import org.projectforge.plugins.marketing.AddressCampaignDao
 import org.projectforge.plugins.marketing.dto.AddressCampaign
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.ui.LayoutUtils
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
+import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.ui.ValidationError
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The layout-free REST endpoint of the address campaigns, serving the hand-built projectforge-next page
+ * (see components/features/address-campaign). Replaces the retired `AddressCampaignPagesRest`, whose
+ * server-side `UILayout` moved onto the frontend. The Wicket pages `AddressCampaignListPage`/`EditPage`
+ * stay as the classic version.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/addressCampaign")
-class AddressCampaignPagesRest: AbstractDTOPagesRest<AddressCampaignDO, AddressCampaign, AddressCampaignDao>(baseDaoClazz = AddressCampaignDao::class.java, i18nKeyPrefix = "plugins.marketing.addressCampaign.title") {
+class AddressCampaignEntityRest : AbstractDTOEntityRest<AddressCampaignDO, AddressCampaign, AddressCampaignDao>(
+    baseDaoClazz = AddressCampaignDao::class.java,
+    i18nKeyPrefix = "plugins.marketing.addressCampaign.title"
+) {
     override fun transformForDB(dto: AddressCampaign): AddressCampaignDO {
         val addressCampaignDO = AddressCampaignDO()
         dto.copyTo(addressCampaignDO)
@@ -52,19 +58,18 @@ class AddressCampaignPagesRest: AbstractDTOPagesRest<AddressCampaignDO, AddressC
     }
 
     /**
-     * LAYOUT List page
+     * The format check of Wicket's `AddressCampaignEditForm`: values like "Value 1; Value 2; Value 3", at least
+     * one of them. Title and values being given at all is checked generically (`@PropertyInfo(required)`).
      */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-        layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "created", "lastUpdate", "title", "values", "comment"))
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: AddressCampaign, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(lc, "title", "values", "comment")
-        return LayoutUtils.processEditPage(layout, dto, this)
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: AddressCampaign) {
+        super.validate(validationErrors, dto)
+        if (!dto.values.isNullOrBlank() && AddressCampaignDO.getValuesArray(dto.values) == null) {
+            validationErrors.add(
+                ValidationError(
+                    translate("plugins.marketing.addressCampaign.values.invalidFormat"),
+                    fieldId = "values",
+                )
+            )
+        }
     }
 }

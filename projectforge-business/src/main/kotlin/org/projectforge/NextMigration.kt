@@ -184,6 +184,17 @@ object NextMigration {
             newEntryRoute = "accounting-record/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // The address campaigns of the marketing plugin, migrated from Wicket (the menu entry pointed at the
+        // bookmarkable AddressCampaignListPage). Hand built (AddressCampaignEntityRest, no layout; the server
+        // laid out React page of AddressCampaignPagesRest is gone). The plugin mounts its Wicket pages under its
+        // id (addressCampaignList/addressCampaignEdit), which is the convention, so no legacy route has to be
+        // spelled out; the way back to the classic Wicket pages stays offered.
+        "addressCampaign" to NextPage(
+            route = "address-campaign",
+            editRoute = "address-campaign/$ID_PLACEHOLDER",
+            newEntryRoute = "address-campaign/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
         // no way back: legacyApp = null.

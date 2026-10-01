@@ -1954,6 +1954,7 @@
       "short": "Menu",
       "title": "Main menu"
     },
+    "misc": "Miscellaneous",
     "monthlyEmployeeReport": {
       "_": "Monthly employee report",
       "fileprefix": "MonthlyEmployeeReport"
@@ -2279,6 +2280,24 @@
       },
       "validate": {
         "maxForecastDays": "The defined days count is bigger than the limit of 600."
+      }
+    },
+    "marketing": {
+      "addressCampaign": {
+        "_": "Address campaign",
+        "edit": {
+          "warning": {
+            "doNotChangeValues": "A modification of the values can delete existing values which are already assigned to addresses!"
+          }
+        },
+        "title": {
+          "add": "Add new address campaign",
+          "list": "Address campaign list"
+        },
+        "values": {
+          "format": "Please enter a list of semicolon separated values: value 1; value 2; value 3",
+          "invalidFormat": "Invalid format: expected format is: value 1; value 2; value 3"
+        }
       }
     },
     "memo": {

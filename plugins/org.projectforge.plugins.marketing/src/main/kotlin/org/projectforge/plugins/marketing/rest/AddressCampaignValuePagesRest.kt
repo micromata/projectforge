@@ -458,7 +458,7 @@ class AddressCampaignValuePagesRest :
         campaignValues.add(UISelectValue("", "--")) // Empty option
 
         // Add campaign values from the DTO (already parsed)
-        dto.addressCampaign?.values?.forEach { value ->
+        dto.addressCampaign?.valuesArray?.forEach { value ->
             campaignValues.add(UISelectValue(value, value))
         }
 

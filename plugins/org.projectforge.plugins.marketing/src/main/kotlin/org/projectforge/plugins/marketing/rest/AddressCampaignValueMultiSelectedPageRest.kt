@@ -91,7 +91,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         if (addressCampaign != null) {
             layout.add(UIReadOnlyField(label = "plugins.marketing.addressCampaign", value = addressCampaign.title))
         }
-        val values = addressCampaign?.values?.map { UISelectValue(it, it) }
+        val values = addressCampaign?.valuesArray?.map { UISelectValue(it, it) }
         layout.add(
             createInputFieldRow(
                 "value",
@@ -112,7 +112,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         val addressCampaign = addressCampaignValuePagesRest.getAddressCampaign(request)
         params["value"]?.let { param ->
             param.textValue?.let { value ->
-                if (!value.isEmpty() && addressCampaign?.values?.contains(value) != true) {
+                if (!value.isEmpty() && addressCampaign?.valuesArray?.contains(value) != true) {
                     return showValidationErrors(
                         ValidationError(
                             "plugins.marketing.addressCampaignValue.error.unknownValue",

@@ -1954,6 +1954,7 @@
       "short": "Menü",
       "title": "Hauptmenü"
     },
+    "misc": "Verschiedenes",
     "monthlyEmployeeReport": {
       "_": "Monatsbericht",
       "fileprefix": "Monatsbericht"
@@ -2279,6 +2280,24 @@
       },
       "validate": {
         "maxForecastDays": "Die angegebene Anzahl an Tagen überschreitet das Limit von 600."
+      }
+    },
+    "marketing": {
+      "addressCampaign": {
+        "_": "Adresskampagne",
+        "edit": {
+          "warning": {
+            "doNotChangeValues": "Nachträgliches Ändern der Label kann bisherige Adresszuordnungen löschen!"
+          }
+        },
+        "title": {
+          "add": "Adresskampagne hinzufügen",
+          "list": "Adresskampagnen"
+        },
+        "values": {
+          "format": "Bitte geben Sie eine Werteliste ein (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
+          "invalidFormat": "Ungültiges Format, das Format ist: Wert 1; Wert 2; Wert 3"
+        }
       }
     },
     "memo": {

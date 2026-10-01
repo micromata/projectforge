@@ -37,13 +37,13 @@ export const ADDRESS_CAMPAIGN_METADATA = {
     title: {
       dataType: "STRING",
       i18nKey: "title",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
     values: {
       dataType: "STRING",
       i18nKey: "values",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
   },

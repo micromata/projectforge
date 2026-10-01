@@ -24,6 +24,7 @@
 package org.projectforge.plugins.marketing
 
 import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.address.AddressDao
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
@@ -72,10 +73,12 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         // )
 
         // Register the menu entry as sub menu entry of the misc menu:
-        pluginWicketRegistrationService.registerMenuItem(
-            MenuItemDefId.MISC, create(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"),
-            AddressCampaignListPage::class.java
-        )
+        // The campaigns are migrated to projectforge-next, so the entry points at /next/addressCampaign (see
+        // NextMigration.MIGRATED); the Wicket pages stay mounted above as the classic version. Passing null for
+        // the page class keeps the url set here.
+        val campaignMenuEntry = create(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu")
+        campaignMenuEntry.url = NextMigration.listUrl(ADDRESS_CAMPAIGN_ID)
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, campaignMenuEntry, null)
         // React page registration - URL points to the React route
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         menuCreator.register(
