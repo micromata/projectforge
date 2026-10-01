@@ -71,6 +71,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // LuceneConsole, GroovyConsole, SQLConsole:
       "/wa/wicket/bookmarkable/org.projectforge.web.admin"
     )
+    // The migrated System page (SystemRest, /rs/system), successor of Wicket's /wa/admin, and the migrated Plugins
+    // page (PluginAdminRest, /rs/pluginList), successor of Wicket's org.projectforge.web.admin.PluginListPage: both
+    // legacy pages are gated by ADMIN_WRITE as a whole (see above). Their next pages are static files served by a
+    // resource handler, so only their rest calls are left to gate, and the whole path keeps the write period.
+    registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
     registerShortCutValues(
       My2FAShortCut.ADMIN,
       "/wa/user;/wa/group;/wa/admin",
@@ -89,6 +94,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // behind the org.projectforge.web.admin admin 2FA prefix, so its successor keeps the admin second factor here.
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
+      // The migrated System page (/wa/admin, see ADMIN_WRITE above):
+      SystemRest::class.java,
     )
 
     registerShortCutValues(
