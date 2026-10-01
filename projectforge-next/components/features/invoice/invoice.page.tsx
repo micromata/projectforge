@@ -12,6 +12,7 @@ import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
 import { InvoiceNumberField } from "./edit/invoice-number-field";
 import { OriginalInvoiceField } from "./edit/original-invoice-field";
+import { CancellationNotice } from "./edit/cancellation-notice";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { SellerBankAccountField } from "./edit/seller-bank-account-field";
@@ -293,6 +294,8 @@ export const INVOICE_PAGE = definePage<
       targetEntity: "outgoingInvoice",
       targetRoute: "/invoice",
       labelKey: "fibu.rechnung.cancellation.create",
+      // Pressing it only prepares the cancellation; the invoice is cancelled when that is saved.
+      tooltipKey: "fibu.rechnung.cancellation.hint.create",
       visible: (invoice?: InvoiceDetail) => invoice?.cancellable === true,
     },
     // The Word export, beside the heading: it acts on the stored invoice, and `headerTrailing` is the one
@@ -303,6 +306,9 @@ export const INVOICE_PAGE = definePage<
         id: "head",
         titleKey: "fibu.rechnung",
         fields: [
+          // Only on either end of a cancellation: how it works, while it is new that it is not in effect
+          // until saved, and on the cancelled invoice where its status comes from (see CancellationNotice).
+          { custom: CancellationNotice, span: 3 },
           // Number and date in one cell of the three columns: neither needs a third of the page, and the
           // two together are what identifies the invoice on paper.
           {

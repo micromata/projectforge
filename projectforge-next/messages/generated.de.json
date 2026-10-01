@@ -1208,6 +1208,12 @@
         "alreadyExists": "Diese Rechnung ist bereits durch {arg0} storniert.",
         "cancelledBy": "Storniert durch {arg0}",
         "create": "Storno erzeugen",
+        "hint": {
+          "create": "Bereitet eine Storno-Rechnung zu dieser Rechnung vor: Ihre Positionen werden mit negativen Beträgen übernommen und als neue, noch nicht gespeicherte Rechnung geöffnet. Storniert wird diese Rechnung erst, wenn die Storno-Rechnung gespeichert wird – wird sie nicht gespeichert, bleibt alles unverändert.",
+          "original": "Diese Rechnung ist durch die Storno-Rechnung {arg0} storniert und wurde deshalb automatisch auf „storniert“ gesetzt. Um den Storno rückgängig zu machen, die Storno-Rechnung löschen: Diese Rechnung erhält dann wieder den Status „gestellt“ bzw. „bezahlt“.",
+          "system": "Eine Storno-Rechnung hebt die stornierte Rechnung vollständig auf: Sie übernimmt deren Positionen mit negativen Beträgen und hat keine eigene Nummer, sondern die der stornierten Rechnung mit dem Zusatz „-S“. Beim Speichern wird die stornierte Rechnung automatisch auf „storniert“ gesetzt. Typ und stornierte Rechnung sind danach nicht mehr änderbar; wird die Storno-Rechnung gelöscht, erhält die stornierte Rechnung wieder den Status „gestellt“ bzw. „bezahlt“.",
+          "unsaved": "Diese Storno-Rechnung ist nur vorbereitet und noch nicht wirksam: Die Rechnung wird erst storniert, wenn Sie diese Storno-Rechnung speichern. Ohne Speichern passiert nichts."
+        },
         "of": "Storno zu Rechnung {arg0}"
       },
       "chart": {
