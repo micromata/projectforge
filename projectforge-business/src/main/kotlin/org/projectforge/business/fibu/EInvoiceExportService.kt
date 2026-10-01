@@ -49,6 +49,9 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.renderer.LibreOfficeService
+import org.projectforge.framework.renderer.PdfFontProvider
+import org.projectforge.framework.renderer.PdfFontService
 import org.projectforge.jcr.RepoService
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
@@ -67,6 +70,9 @@ class EInvoiceExportService(
     private val attachmentsService: AttachmentsService,
     private val repoService: RepoService,
     private val rechnungDao: RechnungDao,
+    // Optional only for unit tests constructing the service by hand; Spring always injects them.
+    private val pdfFontService: PdfFontService? = null,
+    private val libreOfficeService: LibreOfficeService? = null,
 ) {
     companion object {
         const val JCR_PATH = "org.projectforge.rechnung"
@@ -257,9 +263,12 @@ class EInvoiceExportService(
     private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
         val docxStream = invoiceService.getInvoiceWordDocument(invoice, null) ?: return null
         val docxBytes = docxStream.toByteArray()
+        // LibreOffice is much closer to Word's layout, xdocreport is the fallback if it isn't installed.
+        libreOfficeService?.convertDocxToPdf(docxBytes)?.let { return it }
         ByteArrayInputStream(docxBytes).use { bais ->
             WordDocument(bais, "invoice.docx").use { word ->
                 val options = PdfOptions.create()
+                pdfFontService?.let { options.fontProvider(PdfFontProvider(it)) }
                 ByteArrayOutputStream().use { pdfBaos ->
                     PdfConverter.getInstance().convert(word.document, pdfBaos, options)
                     return pdfBaos.toByteArray()
