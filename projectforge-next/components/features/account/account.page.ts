@@ -1,3 +1,4 @@
+import { eInvoiceAddressFields } from "@/components/shared/invoice/e-invoice-address-fields";
 import { KONTO_METADATA } from "@/lib/metadata/konto.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AccountSellerBankAccountField } from "./account-seller-bank-account-field";
@@ -70,18 +71,21 @@ export const ACCOUNT_PAGE = definePage<
         // What an e-invoice to this account is addressed with (Wicket's heading `fibu.konto.eInvoice`).
         id: "eInvoice",
         titleKey: "fibu.konto.eInvoice",
-        fields: [
-          { name: "contactPerson", span: 2 },
-          // Beside the contact person; the cell after the e-invoice address stays empty.
-          { custom: AccountSellerBankAccountField },
-          { name: "street", span: 3 },
-          { name: "zipCode" },
-          { name: "city", span: 2 },
-          { name: "country" },
-          { name: "vatId" },
-          { name: "leitwegId", hintKey: "fibu.konto.leitwegId.tooltip" },
-          { name: "eInvoiceEmail", span: 2 },
-        ],
+        // The layout an invoice's address block has as well, which is prefilled from this one (see
+        // eInvoiceAddressFields).
+        ...eInvoiceAddressFields<typeof KONTO_METADATA>({
+          names: {
+            contactPerson: "contactPerson",
+            street: "street",
+            zipCode: "zipCode",
+            city: "city",
+            country: "country",
+            vatId: "vatId",
+            leitwegId: "leitwegId",
+            eInvoiceEmail: "eInvoiceEmail",
+          },
+          sellerBankAccount: AccountSellerBankAccountField,
+        }),
       },
     ],
   },

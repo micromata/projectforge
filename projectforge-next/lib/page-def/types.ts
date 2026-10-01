@@ -621,6 +621,14 @@ export interface EditDef<Values, Data, M extends EntityMetadata> {
    */
   editBanner?: ComponentType;
   /**
+   * Above the first section, scrolling with the sections rather than sticky like [editBanner] — a note
+   * about the whole entry that belongs before any of its fieldsets (an invoice's cancellation notice, see
+   * CancellationNotice).
+   *
+   * Rendered inside the form like [editBanner], so it can read the loaded entry and the form's values.
+   */
+  editIntro?: ComponentType;
+  /**
    * Below the scrolled sections, above the sticky action bar — the counterpart of the legacy UILayout's
    * `layoutBelowActions`, for a note that belongs to the whole form rather than to any one section (a
    * time sheet's configured AI-savings hint, see AiNoteFooter).

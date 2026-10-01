@@ -73,6 +73,9 @@ export function EntityEditDialogShell({
           {...scrollProps}
           className="min-h-0 flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
         >
+          {regions.aboveSections && (
+            <div className="pt-4">{regions.aboveSections}</div>
+          )}
           {regions.sections.map((section, i) => (
             <div
               key={regions.tabs[i]?.id ?? i}

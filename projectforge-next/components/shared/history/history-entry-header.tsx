@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
 import { CollapsibleSummary } from "@/components/shared/collapsible-summary";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { useFormatContext } from "@/hooks/use-format";

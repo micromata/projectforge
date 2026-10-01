@@ -5,7 +5,7 @@ import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-stat
 import { AccountField } from "./edit/account-field";
 import { KreditorField } from "./edit/kreditor-field";
 import { CreditorInvoiceEditBanner } from "./edit/creditor-invoice-edit-banner";
-import { PaymentFields } from "./edit/payment-fields";
+import { PaymentTermsFields } from "@/components/shared/invoice/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { CreditorInvoiceListActions } from "./creditor-invoice-list-actions";
 import { CreditorInvoiceTransferButton } from "./creditor-invoice-transfer-button";
@@ -234,7 +234,13 @@ export const CREDITOR_INVOICE_PAGE = definePage<
       {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
-        render: ({ id }) => <PaymentFields id={id} />,
+        render: ({ id }) => (
+          <PaymentTermsFields
+            id={id}
+            metadata={EINGANGSRECHNUNG_METADATA}
+            sumsEntity="incomingInvoice"
+          />
+        ),
       },
       {
         id: "positions",

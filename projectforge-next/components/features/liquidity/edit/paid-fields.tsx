@@ -2,13 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useStore } from "@tanstack/react-form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { SelectItemWithHint } from "@/components/shared/form/select-item-with-hint";
 import {
   FieldShell,

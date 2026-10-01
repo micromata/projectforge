@@ -9,6 +9,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  COPYABLE_TRIGGER_CLASS,
+  useCopyableTrigger,
+} from "@/lib/text-selection";
 import { cn } from "@/lib/utils";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
@@ -64,6 +68,16 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * buttons beside it are left out: both are ways of changing the value.
    */
   disabled?: boolean;
+  /**
+   * The value the reader of the form looks for first, set in the emphasis [InputField]'s `emphasized`
+   * gives a text box — so a picked entry and a typed title catch the eye the same way.
+   */
+  emphasized?: boolean;
+  /**
+   * Overrides the size of the dropdown, which by default is as wide as the trigger — for entries whose
+   * names are much longer than the field is wide (the long cost 2 names in a row of cost assignments).
+   */
+  popoverClassName?: string;
 }
 
 /**
@@ -87,12 +101,15 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   selectMe,
   disabled,
   required,
+  emphasized,
+  popoverClassName,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
   // `autoOpen` seeds the initial state only (see useTypeToOpen). Skipped when a value is already set: a
   // restored filter or a field with a pick should show it, not drop the user straight into a search to
   // replace it.
+  const copyableTrigger = useCopyableTrigger(disabled);
   const { open, onOpenChange, initialSearch, openOnTyping } = useTypeToOpen({
     initiallyOpen: !!autoOpen && !disabled && !value,
     disabled,
@@ -115,11 +132,20 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-expanded={open}
             aria-label={ariaLabel}
             autoFocus={autoFocus}
-            disabled={disabled}
+            {...copyableTrigger}
             onKeyDown={openOnTyping}
-            className="h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
+            className={cn(
+              "h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal",
+              COPYABLE_TRIGGER_CLASS
+            )}
           >
-            <span className={cn("truncate", !value && "text-muted-foreground")}>
+            <span
+              className={cn(
+                "truncate",
+                !value && "text-muted-foreground",
+                value && emphasized && "font-semibold text-primary"
+              )}
+            >
               {value?.displayName ?? t("filter.chooseEntity")}
             </span>
             <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
@@ -146,7 +172,10 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
       </div>
       <PopoverContent
         align="start"
-        className="w-(--radix-popover-trigger-width) min-w-56 p-0"
+        className={cn(
+          "w-(--radix-popover-trigger-width) min-w-56 p-0",
+          popoverClassName
+        )}
       >
         <EntitySearchList<T>
           url={url}

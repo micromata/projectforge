@@ -6,13 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { FieldHint } from "@/components/shared/form/field-hint";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SuggestInput } from "@/components/shared/suggest-input";
 import { SectionCard } from "@/components/shared/section-card";

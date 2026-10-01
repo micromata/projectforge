@@ -10,11 +10,11 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { daysBetweenDates, shiftDateByDays } from "@/lib/date-parse";
 import { formatCurrency } from "@/lib/format";
-import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
+import type { EINGANGSRECHNUNG_METADATA } from "@/lib/metadata/eingangsrechnung.generated";
+import type { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { cn } from "@/lib/utils";
-import type { InvoiceValues } from "../invoice-schema";
-import { deviatingGrossSum } from "@/components/shared/invoice/payment-amount-deviation";
-import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
+import { deviatingGrossSum } from "./payment-amount-deviation";
+import { useInvoiceSums } from "./use-invoice-sums";
 
 /** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
 const DERIVED_TARGETS = [
@@ -22,8 +22,26 @@ const DERIVED_TARGETS = [
   { date: "discountMaturity", days: "discountZahlungsZielInTagen" },
 ] as const;
 
+/** The form values read here — the same fields on an outgoing and an incoming invoice. */
+interface PaymentTermsValues {
+  datum?: string | null;
+  faelligkeit?: string | null;
+  discountMaturity?: string | null;
+  zahlBetrag?: number | null;
+}
+
+/** A line of fields side by side, wrapping only where the half is genuinely too narrow for them. */
+const ROW = "flex flex-wrap items-start gap-x-4 gap-y-4";
 /**
- * When the invoice is due, when a discount would still apply, and what was actually paid.
+ * Sized to its value rather than to the line — `w-auto` against the `w-full` every field carries
+ * ([FieldShell]), as a packed group does it (see DeclaredFormField).
+ */
+const PACKED = "w-auto shrink-0";
+
+/**
+ * When the invoice is due, when a discount would still apply, and what was actually paid — the same
+ * section on the outgoing and the incoming invoice, which differ only in their metadata and in the REST
+ * category their sums are recalculated by.
  *
  * Custom rather than declared because of one rule between fields: a payment target in days and the date
  * it leads to say the same thing twice, so the two are kept on each other here — entering days moves the
@@ -42,14 +60,19 @@ const DERIVED_TARGETS = [
  */
 export function PaymentTermsFields({
   id,
+  metadata,
+  sumsEntity,
   className,
 }: {
   /** The stored invoice, or null while adding one — which is when the days are a formula, see above. */
   id: number | null;
+  metadata: typeof RECHNUNG_METADATA | typeof EINGANGSRECHNUNG_METADATA;
+  /** The REST category of the invoice, for [useInvoiceSums]. */
+  sumsEntity: "outgoingInvoice" | "incomingInvoice";
   className?: string;
 }) {
   const t = useTranslations();
-  const label = useFieldLabels(RECHNUNG_METADATA);
+  const label = useFieldLabels(metadata);
   const format = useFormatContext();
   const form = useEntityEditForm();
   const isNew = id == null;
@@ -60,7 +83,7 @@ export function PaymentTermsFields({
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
-      const v = state.values as InvoiceValues;
+      const v = state.values as PaymentTermsValues;
       return {
         datum: v.datum,
         faelligkeit: v.faelligkeit,
@@ -78,7 +101,7 @@ export function PaymentTermsFields({
    * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip. That is the right
    * moment: a warning about a half-typed number would be about a number nobody entered.
    */
-  const { sums } = useInvoiceSums("outgoingInvoice");
+  const { sums } = useInvoiceSums(sumsEntity);
   const deviatesFrom = deviatingGrossSum(zahlBetrag, sums);
 
   // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the
@@ -102,7 +125,7 @@ export function PaymentTermsFields({
    * changed term would otherwise leave the old date standing.
    *
    * An emptied box leaves the date alone: deleting a number is how one is retyped, and dropping the due
-   * date of an issued invoice over a keystroke is not what anybody means by it.
+   * date of an issued or booked invoice over a keystroke is not what anybody means by it.
    */
   const moveDate = (
     date: (typeof DERIVED_TARGETS)[number]["date"],
@@ -114,69 +137,90 @@ export function PaymentTermsFields({
   };
 
   return (
+    // Two halves, one topic each: on the left the terms — what is owed by when, and the discount below
+    // it — and on the right what actually came in. Within a half the boxes sit side by side at the width
+    // of their values (PACKED), and the two term rows start with the same date and days boxes, so the
+    // discount's fields stand right under the ones they are the early variant of. Bezahldatum shares the
+    // first line with Fälligkeit: due and paid are read as a pair.
     <div
       className={cn(
-        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3",
+        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2",
         className
       )}
     >
-      <InputField name="faelligkeit" label={label("faelligkeit")} type="date" />
-      <NumberField
-        name="zahlungsZielInTagen"
-        label={label("zahlungsZielInTagen")}
-        suffix={t("days")}
-        // A term is counted in days, and no term needs four digits.
-        maxDigits={3}
-        disabled={!isNew}
-        onChanged={(days) => moveDate("faelligkeit", days)}
-      />
-      <InputField
-        name="discountMaturity"
-        label={label("discountMaturity")}
-        type="date"
-        // Starts a row of its own: the discount is a block of three fields, and letting it begin
-        // wherever the row above happened to end would read as part of the due date beside it.
-        className="md:col-start-1"
-      />
-      <NumberField
-        name="discountZahlungsZielInTagen"
-        label={label("discountZahlungsZielInTagen")}
-        suffix={t("days")}
-        maxDigits={3}
-        disabled={!isNew}
-        onChanged={(days) => moveDate("discountMaturity", days)}
-      />
-      <NumberField
-        name="discountPercent"
-        label={label("discountPercent")}
-        // Already a percentage in the entity, unlike a position's VAT factor — so no conversion, only
-        // the sign behind the box.
-        fractionDigits={2}
-        suffix="%"
-        maxDigits={5}
-      />
-      {/* What was actually paid, and when — a row of its own for the same reason as the discount. */}
-      <InputField
-        name="bezahlDatum"
-        label={label("bezahlDatum")}
-        type="date"
-        className="md:col-start-1"
-      />
-      <NumberField
-        name="zahlBetrag"
-        label={label("zahlBetrag")}
-        // DECIMAL, not AMOUNT — `AbstractRechnungDO.zahlBetrag` is a plain `BigDecimal`.
-        fractionDigits={2}
-        suffix={format.currency}
-        // A hint, not a rule: the invoice saves either way, because a part payment is as real as a typo.
-        warning={
-          deviatesFrom == null
-            ? undefined
-            : t("fibu.rechnung.zahlBetrag.warning.deviation", {
-                arg0: formatCurrency(deviatesFrom, format),
-              })
-        }
-      />
+      <div className="grid gap-y-4">
+        <div className={ROW}>
+          <InputField
+            name="faelligkeit"
+            label={label("faelligkeit")}
+            type="date"
+            className={PACKED}
+          />
+          <NumberField
+            name="zahlungsZielInTagen"
+            label={label("zahlungsZielInTagen")}
+            suffix={t("days")}
+            // A term is counted in days, and no term needs four digits.
+            maxDigits={3}
+            disabled={!isNew}
+            onChanged={(days) => moveDate("faelligkeit", days)}
+            className={PACKED}
+          />
+        </div>
+        <div className={ROW}>
+          <InputField
+            name="discountMaturity"
+            label={label("discountMaturity")}
+            type="date"
+            className={PACKED}
+          />
+          <NumberField
+            name="discountZahlungsZielInTagen"
+            label={label("discountZahlungsZielInTagen")}
+            suffix={t("days")}
+            maxDigits={3}
+            disabled={!isNew}
+            onChanged={(days) => moveDate("discountMaturity", days)}
+            className={PACKED}
+          />
+          <NumberField
+            name="discountPercent"
+            label={label("discountPercent")}
+            // Already a percentage in the entity, unlike a position's VAT factor — so no conversion, only
+            // the sign behind the box.
+            fractionDigits={2}
+            suffix="%"
+            maxDigits={5}
+            className={PACKED}
+          />
+        </div>
+      </div>
+      <div className={ROW}>
+        <InputField
+          name="bezahlDatum"
+          label={label("bezahlDatum")}
+          type="date"
+          className={PACKED}
+        />
+        <NumberField
+          name="zahlBetrag"
+          label={label("zahlBetrag")}
+          // DECIMAL, not AMOUNT — `AbstractRechnungDO.zahlBetrag` is a plain `BigDecimal`.
+          fractionDigits={2}
+          suffix={format.currency}
+          // Wide enough for any invoice amount, rather than the whole half.
+          maxDigits={10}
+          // A hint, not a rule: the invoice saves either way, because a part payment is as real as a typo.
+          warning={
+            deviatesFrom == null
+              ? undefined
+              : t("fibu.rechnung.zahlBetrag.warning.deviation", {
+                  arg0: formatCurrency(deviatesFrom, format),
+                })
+          }
+          className={PACKED}
+        />
+      </div>
     </div>
   );
 }

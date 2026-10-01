@@ -41,6 +41,9 @@ export function useTypeToOpen({
   }
 
   function onOpenChange(next: boolean) {
+    // The trigger of a disabled picker is only aria-disabled, so its value stays selectable (see
+    // useCopyableTrigger) — which leaves it to this to keep the popover shut.
+    if (next && disabled) return;
     if (!next) setInitialSearch("");
     setOpen(next);
   }

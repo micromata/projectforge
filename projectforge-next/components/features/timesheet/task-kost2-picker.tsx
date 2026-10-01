@@ -4,13 +4,8 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { renderCell, type CellSpec } from "@/components/data-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { TaskSelectControl } from "@/components/shared/tasks/task-select-control";

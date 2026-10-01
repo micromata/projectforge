@@ -83,6 +83,9 @@ export function OrderPositionField({
                       }
                 }
                 minChars={2}
+                // Which order a position bills is what the positions are checked by, so it stands out
+                // the way the order's own title does on its page.
+                emphasized
                 onChange={(picked) => {
                   const hit = picked as OrderPositionHit | null;
                   field.handleChange(
