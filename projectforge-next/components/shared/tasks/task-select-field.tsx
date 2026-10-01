@@ -31,6 +31,7 @@ export function TaskSelectField({
   disabled,
   onPicked,
   openTreeOnAncestorClick,
+  linkCurrentToTimesheets,
 }: BaseFieldProps & {
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
@@ -39,6 +40,11 @@ export function TaskSelectField({
    * one-click drill-down to the booking points beneath it (see [TaskPath]). Off by default.
    */
   openTreeOnAncestorClick?: boolean;
+  /**
+   * Make the task segment of the path — the task itself, not its ancestors — a link to the time sheets
+   * booked on it (see [TaskPath]). Off by default; the order position turns it on.
+   */
+  linkCurrentToTimesheets?: boolean;
   /**
    * What else changing the task means for the form — a time sheet's cost unit belongs to the task it was
    * chosen under, so picking another one drops it (see TaskKost2Section).
@@ -101,6 +107,7 @@ export function TaskSelectField({
               }}
               onSelect={change}
               openTreeOnAncestorClick={openTreeOnAncestorClick}
+              linkCurrentToTimesheets={linkCurrentToTimesheets}
               onDrillDown={(task) => {
                 setRootAtId(task.id);
                 setOpen(true);
