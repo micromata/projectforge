@@ -86,6 +86,34 @@ class NextMigration2FATest {
   }
 
   /**
+   * Standalone pages migrated to projectforge-next are no category of [NextMigration], so the two tests above don't
+   * see them. Their legacy url -> a rest url their next page calls.
+   */
+  private val standalonePages = mapOf(
+    "/wa/admin" to "/rs/system/reindex",
+    "/wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage" to "/rs/pluginList/setActivated",
+  )
+
+  @Test
+  fun `a migrated standalone page requires the second factor of its legacy page`() {
+    listOf(
+      "ADMIN;FINANCE;HR;ORGA;SCRIPT",
+      "ADMIN_WRITE;FINANCE_WRITE;HR_WRITE;ORGA_WRITE;SCRIPT_WRITE",
+    ).forEach { shortCuts ->
+      val handler = handler(shortCuts)
+      standalonePages.forEach { (legacyUrl, restUrl) ->
+        if (handler.getRemainingPeriod(legacyUrl) == null) {
+          return@forEach
+        }
+        Assertions.assertNotNull(
+          handler.getRemainingPeriod(restUrl),
+          "$legacyUrl requires a 2FA ($shortCuts), so $restUrl of the migrated page has to require one as well.",
+        )
+      }
+    }
+  }
+
+  /**
    * The rest url of a category: [NextMigration] is keyed by the rest category, which is the path of its
    * `*Rest` class (`/rs/order`), so no lookup is needed.
    */

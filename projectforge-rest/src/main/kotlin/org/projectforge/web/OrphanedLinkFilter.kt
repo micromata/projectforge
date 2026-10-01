@@ -68,14 +68,9 @@ class OrphanedLinkFilter : Filter {
         } else if (uri.contains("/wa/feedback")) { // Old Wicket feedback page, migrated to projectforge-next.
             // The Wicket page was removed, so there is no "classic version" escape hatch.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}feedback")
-        } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to projectforge-next.
-            if (servletRequest.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
-                // The "classic version" escape hatch: let it reach the legacy Wicket page (see the next page's
-                // LegacyPageLink, url "wa/monthlyEmployeeReport?legacyEscape").
-                chain.doFilter(servletRequest, servletResponse)
-            } else {
-                redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
-            }
+        } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to
+            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
         } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
             // Old Wicket System (administration) page, migrated to projectforge-next. The precise segment match
             // keeps this from catching sibling pages like /wa/adminLogViewer.

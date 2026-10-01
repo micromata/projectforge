@@ -285,7 +285,6 @@ public class WebRegistry
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPage("datevImport", DatevImportPage.class);
     addMountPage("error", ErrorPage.class);
-    addMountPage("monthlyEmployeeReport", MonthlyEmployeeReportPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
     addMountPage("reportObjectives", ReportObjectivesPage.class);
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.

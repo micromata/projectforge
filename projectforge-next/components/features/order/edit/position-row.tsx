@@ -138,6 +138,8 @@ export function PositionRow({
         // order is closed, or a reached payment schedule entry points at it — not merely "not fully
         // invoiced yet", which is true of every open commissioned position.
         highlighted={!!sums?.toBeInvoiced}
+        // Every position otherwise: its header is what the list of positions is read by.
+        tinted
       >
         <InputField
           name={name("titel")}

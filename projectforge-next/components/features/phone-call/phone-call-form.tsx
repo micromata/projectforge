@@ -22,6 +22,7 @@ import { placeCall } from "@/lib/rs/phone-call";
 import { PhoneCallAddressPanel } from "./phone-call-address-panel";
 import { useAddressSelection } from "./use-address-selection";
 import type { PhoneCallInitialData } from "./types";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * The number + "my phone" / "my caller id" form, seeded once from the server's [initial] data. Plain
@@ -102,11 +103,11 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
           <Field>
             <div className="flex items-start gap-1">
               <FieldLabel htmlFor="phone-call-my-phone">
-                {t("address.myCurrentPhoneId")}
+                {t(leafKeyOf("address.myCurrentPhoneId", t.has))}
               </FieldLabel>
               <FieldHint
                 hint={t("address.myCurrentPhoneId.tooltip.content")}
-                label={t("address.myCurrentPhoneId")}
+                label={t(leafKeyOf("address.myCurrentPhoneId", t.has))}
               />
             </div>
             <Select value={myPhoneId} onValueChange={setMyPhoneId}>
@@ -127,11 +128,11 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
           <Field>
             <div className="flex items-start gap-1">
               <FieldLabel htmlFor="phone-call-caller-id">
-                {t("address.myCurrentCallerId")}
+                {t(leafKeyOf("address.myCurrentCallerId", t.has))}
               </FieldLabel>
               <FieldHint
                 hint={t("address.myCurrentCallerId.tooltip.content")}
-                label={t("address.myCurrentCallerId")}
+                label={t(leafKeyOf("address.myCurrentCallerId", t.has))}
               />
             </div>
             <Select value={myCallerId} onValueChange={setMyCallerId}>

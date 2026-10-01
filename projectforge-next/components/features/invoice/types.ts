@@ -213,6 +213,8 @@ export interface InvoiceListRow extends ListRow, RowWithAttachments {
   belegNummer?: string;
   /** The customer, or the free text of an invoice naming none (`KundeFormatter`). */
   customer?: DisplayRef;
+  /** Set only when [customer] is the free text one, so the list can mark it (see FreeTextNameCell). */
+  kundeText?: string | null;
   project?: DisplayRef;
   /** The account of the invoice itself, as "11400 - Debitoren". */
   konto?: DisplayRef;

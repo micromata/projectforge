@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Progress } from "@/components/ui/progress";
 import { AttachmentDropArea } from "@/components/shared/attachments/attachment-drop-area";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { ImportConfig } from "./import-types";
 
 interface Props {
@@ -28,7 +29,7 @@ export function ImportDropStep({ config, onFile, uploadProgress }: Props) {
         accept={config.fileAccept}
         multiple={false}
         disabled={uploading}
-        label={t(config.titleKey)}
+        label={t(leafKeyOf(config.titleKey, t.has))}
       />
       {uploading && (
         <div className="flex items-center gap-2">

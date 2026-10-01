@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/format";
 import { useFormatContext } from "@/hooks/use-format";
 import type { InvoiceValues } from "../invoice-schema";
 import { InvoiceLink } from "./invoice-link";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * The invoice a cancellation cancels (`RechnungDO.originalRechnung`) — shown only while the type is
@@ -62,7 +63,7 @@ export function OriginalInvoiceField({ className }: { className?: string }) {
       <div id={ids.controlId} className="flex h-9 items-center gap-2 text-sm">
         <InvoiceLink
           invoiceId={original.id}
-          ariaLabel={`${t("show")}: ${t("fibu.rechnung")} ${number}`}
+          ariaLabel={`${t("show")}: ${t(leafKeyOf("fibu.rechnung", t.has))} ${number}`}
           className="font-semibold tabular-nums"
         >
           {number}

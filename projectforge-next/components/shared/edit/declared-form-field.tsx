@@ -18,7 +18,14 @@ import type { EntityMetadata, FieldMetadata } from "@/lib/metadata/types";
 import { labelKeyFor } from "@/lib/page-def/define-page";
 import type { FieldDeclaration } from "@/lib/page-def/types";
 
-const SPAN_CLASS = { 1: undefined, 2: "md:col-span-2", 3: "md:col-span-3" };
+// Span 4 exists only in a four-column main grid, which has two columns below `lg` (see
+// SectionDef.mainColumns) — there it is the whole row, as span 2 is.
+const SPAN_CLASS = {
+  1: undefined,
+  2: "md:col-span-2",
+  3: "md:col-span-3",
+  4: "md:col-span-2 lg:col-span-4",
+};
 
 /** The key of a declaration among its siblings — stable, since it is what the field *is*. */
 export function fieldKey<M extends EntityMetadata>(

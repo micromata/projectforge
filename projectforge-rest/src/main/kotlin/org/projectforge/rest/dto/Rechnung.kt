@@ -239,6 +239,8 @@ class Rechnung(
         // the same fallback `KundeFormatter` makes for the Wicket list.
         // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
         customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        // Set only for a free text customer, so the list can mark the name as typed rather than a customer record.
+        kundeText = if (src.kunde == null) src.kundeText else null
         project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         // The account of the invoice itself, not the one inherited from customer or project: that is what
         // the Wicket list's column shows too (`RechnungDO.konto`), while `KontoCache.getKonto(invoice)`

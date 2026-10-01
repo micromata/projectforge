@@ -83,6 +83,8 @@ export function PositionRow({
           sums?.kostZuweisungNetFehlbetrag != null &&
           sums.kostZuweisungNetFehlbetrag !== 0
         }
+        // Every position otherwise, as on the order: its header is what the list of positions is read by.
+        tinted
       >
         <PositionFields position={position} prefix={prefix} sums={sums} />
         {costConfigured && (

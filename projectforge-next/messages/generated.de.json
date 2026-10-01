@@ -684,10 +684,12 @@
           "prevPrevYear": "Vorvorjahr",
           "prevYear": "Vorjahr",
           "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
+          "replacedByStartDate": "Ersetzt durch den ersten Monat des Forecasts.",
           "startDate": {
             "_": "Erster Monat des Forecasts",
-            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, sein Leistungszeitraum durch dieses Datum ersetzt."
+            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
+          "stateFilterIgnored": "Beschreibt den aktuellen Zustand der Aufträge und würde den Vergleich mit den Vorjahren verzerren, daher in den Grafiken nicht berücksichtigt (im Excel-Export schon).",
           "total": "Forecast"
         },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
@@ -876,8 +878,31 @@
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },
     "eingangsrechnung": {
+      "_": "Kreditorenrechnung",
       "import": {
-        "title": "Kreditorenrechnungen hochladen"
+        "description": "## Import von Kreditorenrechnungen\nHier können Kreditorenrechnungen im CSV-Format (.csv) aus Datev importiert werden.",
+        "headerOnly": {
+          "newInvoicesSkipped": "Neue Rechnungen können nicht über diese Datei angelegt werden. Bitte verwende den Import mit Rechnungspositionen. {arg0} neue Rechnung(en) werden ignoriert."
+        },
+        "job": {
+          "title": "Importiere Kreditorenrechnungen"
+        },
+        "templateInfo": "## Beschreibung:\n- Diese Dateien werden durch DATEV erzeugt.\n- Der Import erfolgt in zwei Schritten, die beide nacheinander für **neue** Rechnungen durchgeführt werden müssen.\n- Jederzeit können die Rechnungen oder Rechnungspositionen unabhängig voneinander erneut importiert werden, um die Daten zu aktualisieren.\n- ProjectForge erkennt automatisch, ob Rechnungen oder Positionen eingelesen werden.\n- Der Export erfolgt jeweils am besten für **einzelne Monate**.\n- Nach dem Upload einer Datei kann die Import-Datei mit den ProjectForge-Rechnungen abgeglichen werden und dann ausgewählt werden, welche Rechnungen/Positionen übernommen werden sollen.\n\n**Schritt 1: Import von Rechnungspositionen** (erforderlich für **neue** Rechnungen)\n- Die Dateien werden in Datev über \"Belegdaten exportieren\" -> \"Rechnungseingang exportieren\" erzeugt (Dateien enden mit **\"Lieferantenrechnungen.csv\"**).\n- Dieser Import dient der Anlage neuer Rechnungen und der Aktualisierung von Rechnungen (mit Positionen).\n- Nicht mehr im Import enthaltene Rechnungen und Positionen können auch gelöscht werden.\n- Unterstützte Spalten: \"Periode\", \"Betrag\", \"Währung\", \"Datum\", \"RENR\", \"LieferantName\", \"LieferantKonto\", \"Ware/Leistung\", \"Fällig_am\", \"Steuer%\", \"KOST1\", \"KOST2\"\n\n**Schritt 2: Aktualisierung von Rechnungsdaten** (optional)\n- In Datev in der \"Belegübersicht\" den gewünschten Monat als Zeitraum auswählen und die Datei generieren lassen (Dateien enden mit **\"export.csv\"**).\n- Dieser Import aktualisiert nur die Kopfdaten bestehender Rechnungen (Bezahldatum etc.) ohne die Positionen zu verändern.\n- Nicht mehr im Import enthaltene Rechnungen können auf Wunsch auch gelöscht werden.\n- Unterstützte Spalten: \"Geschäftspartner-Name\", \"Geschäftspartner-Konto\", \"WKZ\", \"Rechnungs-Nr.\", \"Rechnungsdatum\", \"Konto\", \"Ware/Leistung\", \"BezahltAm\", \"Fällig mit Skonto 1\", \"Skonto 1 in %\", \"Fällig ohne Skonto\", \"IBAN\", \"BIC\", \"Notiz\"\n",
+        "title": {
+          "_": "Kreditorenrechnungen hochladen",
+          "header": "Rechnungskopfdaten",
+          "positions": "Rechnungspositionen"
+        }
+      },
+      "multiselected": {
+        "title": "Mehrfachauswahl Kreditorrechnungen"
+      },
+      "skonto": "Skonto",
+      "title": {
+        "add": "Kreditorenrechnung anlegen",
+        "edit": "Kreditorenrechnung bearbeiten",
+        "heading": "Kreditorenrechnungen",
+        "list": "Kreditorenrechnungsliste"
       }
     },
     "employee": {
@@ -1051,6 +1076,11 @@
     "kunde": {
       "_": "Kunde",
       "division": "Bereich",
+      "freeText": {
+        "_": "Freitext",
+        "tooLong": "Freitext zu lang (max. {arg0} Zeichen)",
+        "use": "Als Freitext übernehmen: „{arg0}“"
+      },
       "identifier": "Kurzbezeichner",
       "konto": {
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
@@ -1212,12 +1242,20 @@
         "alreadyExists": "Diese Rechnung ist bereits durch {arg0} storniert.",
         "cancelledBy": "Storniert durch {arg0}",
         "create": "Storno erzeugen",
+        "hint": {
+          "create": "Bereitet eine Storno-Rechnung zu dieser Rechnung vor: Ihre Positionen werden mit negativen Beträgen übernommen und als neue, noch nicht gespeicherte Rechnung geöffnet. Storniert wird diese Rechnung erst, wenn die Storno-Rechnung gespeichert wird – wird sie nicht gespeichert, bleibt alles unverändert.",
+          "original": "Diese Rechnung ist durch die Storno-Rechnung {arg0} storniert und wurde deshalb automatisch auf „storniert“ gesetzt. Um den Storno rückgängig zu machen, die Storno-Rechnung löschen: Diese Rechnung erhält dann wieder den Status „gestellt“ bzw. „bezahlt“.",
+          "system": "Eine Storno-Rechnung hebt die stornierte Rechnung vollständig auf: Sie übernimmt deren Positionen mit negativen Beträgen und hat keine eigene Nummer, sondern die der stornierten Rechnung mit dem Zusatz „-S“. Beim Speichern wird die stornierte Rechnung automatisch auf „storniert“ gesetzt. Typ und stornierte Rechnung sind danach nicht mehr änderbar; wird die Storno-Rechnung gelöscht, erhält die stornierte Rechnung wieder den Status „gestellt“ bzw. „bezahlt“. Bitte beachten: Die Beträge der Storno-Rechnung werden automatisch auf negative Werte gesetzt – die Beträge also bitte nicht ändern!",
+          "unsaved": "Diese Storno-Rechnung ist nur vorbereitet und noch nicht wirksam: Die Rechnung wird erst storniert, wenn Sie diese Storno-Rechnung speichern. Ohne Speichern passiert nichts."
+        },
         "of": "Storno zu Rechnung {arg0}"
       },
       "chart": {
         "_": "Grafiken",
         "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
+        "comparedPeriods": "Verglichen mit demselben Zeitraum {arg0}.",
         "cumulative": "Kumulierter Nettoumsatz",
+        "ignoredTooltip": "Beschreibt den aktuellen Zustand der Rechnung (z. B. bezahlt) und ist im Jahresvergleich nicht sinnvoll, daher in keinem Jahr der Grafiken berücksichtigt. Die Zahlen können deshalb von der Liste abweichen.",
         "monthly": "Monatlicher Nettoumsatz"
       },
       "currency": "Währung",
@@ -1293,6 +1331,11 @@
       },
       "filter": {
         "incomplete": "unvollständig",
+        "incompleteTooltip": {
+          "account": "Kein Konto zugeordnet.",
+          "costs": "Kostzuweisungen unvollständig: Die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab.",
+          "costsOrAccount": "Kostzuweisungen unvollständig (die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab) oder kein Konto zugeordnet."
+        },
         "paymentStatus": "Bezahlstatus",
         "ueberfaellig": "überfällig",
         "unbezahlt": "unbezahlt"
@@ -1344,7 +1387,8 @@
         "previousYear": "Vorjahr",
         "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
         "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum.",
-        "previousYearPeriod": "Vergleichszeitraum"
+        "previousYearPeriod": "Vergleichszeitraum",
+        "previousYearWithoutFilters": "Ohne die Filter, die den aktuellen Zustand der Rechnung beschreiben: {arg0}"
       },
       "status": {
         "_": "Rechnungsstatus",
@@ -1444,6 +1488,15 @@
     "after": "Nach",
     "all": "alle",
     "allFilters": "Alle Filter",
+    "applied": {
+      "_": "Filter der Liste",
+      "columnFiltersHint": "Spaltenfilter der Tabelle (Trichter im Spaltenkopf) werden nicht berücksichtigt.",
+      "ignored": "nicht berücksichtigt",
+      "ignoredTooltip": "Die Grafiken unterstützen diesen Filter der Liste nicht, ihre Zahlen können daher von der Liste abweichen.",
+      "none": "Kein Filter: alle Einträge",
+      "partial": "nur der erste Wert",
+      "partialTooltip": "Nur der erste der gewählten Werte wird angewendet, die Zahlen können daher von der Liste abweichen."
+    },
     "apply": "Anwenden",
     "before": "Vor",
     "between": "Zwischen",
@@ -2511,6 +2564,7 @@
     "today": "Heute",
     "withoutTimePeriod": "Ohne Zeitangabe"
   },
+  "searchString": "Suchtext",
   "select": {
     "_": "Auswählen",
     "placeholder": "Auswählen..."

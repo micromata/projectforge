@@ -64,6 +64,18 @@ class ForecastChartData(
         val forecast = forecastByStatus.values.fold(BigDecimal.ZERO) { acc, values -> acc + values[i] }
         ist[i].max(forecast)
     }
+
+    /**
+     * The fields of the list filter the charts were asked for but did not apply, set by the REST layer
+     * (`OrderEntityRest.forecastFilterUsage`), so the charts tab can show which of the list's criteria hold.
+     */
+    var ignoredFilterFields: List<String> = emptyList()
+
+    /** The fields of the list filter replaced by a parameter of the charts (the period of performance). */
+    var replacedFilterFields: List<String> = emptyList()
+
+    /** The fields of the list filter applied only in part (the first of several payment types). */
+    var partialFilterFields: List<String> = emptyList()
 }
 
 /**

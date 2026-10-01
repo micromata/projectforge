@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { NumberField } from "@/components/shared/form/number-field";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { InvoiceValues } from "../invoice-schema";
 
 /**
@@ -38,7 +39,7 @@ export function InvoiceNumberField({ className }: { className?: string }) {
       };
     }
   );
-  const label = t("fibu.rechnung.nummer");
+  const label = t(leafKeyOf("fibu.rechnung.nummer", t.has));
 
   if (typ !== "CANCELLATION" || nummer != null) {
     return (

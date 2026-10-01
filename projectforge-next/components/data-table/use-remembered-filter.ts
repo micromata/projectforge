@@ -22,8 +22,20 @@ import type { ListMetaData, MagicFilter } from "@/lib/rs/types";
  * settles before the list seeds — the caller shows its spinner meanwhile, exactly
  * as on a first open.
  */
-export function useRememberedFilter(entity: string) {
-  const query = useListMeta(entity, { alwaysFresh: true });
+export function useRememberedFilter(
+  entity: string,
+  {
+    /**
+     * Off for a view beside a mounted list (the "Grafiken" tabs): it must follow the filter the list is
+     * *showing*, which useRememberFilter keeps in the cache. The backend's copy can lag behind it — the
+     * list answers a recently used filter from its own cache without posting it, so the backend still
+     * holds the one before — and a forced refetch would overwrite the live filter with that stale one.
+     * The cache is still fetched when empty.
+     */
+    fresh = true,
+  }: { fresh?: boolean } = {}
+) {
+  const query = useListMeta(entity, { alwaysFresh: fresh });
   return {
     filter: query.data?.filter,
     isPending: query.isPending || query.isFetching,

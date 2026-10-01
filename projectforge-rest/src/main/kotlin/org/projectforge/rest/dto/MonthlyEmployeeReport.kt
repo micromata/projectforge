@@ -90,7 +90,10 @@ class MonthlyEmployeeReportData(
     val invoicingQuota: String?,
     /** Localized tooltip explaining how [invoicingQuota] was computed, or null. */
     val invoicingQuotaTooltip: String?,
-    /** Configured explanation why the invoicing quota is shown and why it matters (markdown), or null. */
+    /**
+     * Configured explanation why the invoicing quota is shown and why it matters (markdown), or null. Sent whenever
+     * [invoicingQuotaAvailable] (not only while shown), as it also explains the user's switch.
+     */
     val invoicingQuotaInfo: String?,
     /** Drill-down window: first day of the month as `yyyy-MM-dd` (the timesheet-list period seed). */
     val startDate: String,

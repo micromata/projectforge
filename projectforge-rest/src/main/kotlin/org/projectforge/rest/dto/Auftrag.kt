@@ -241,6 +241,8 @@ class Auftrag(
         // `KundeFormatter` does it for the Wicket list.
         // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
         customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        // Set only for a free text customer, so the list can mark the name as typed rather than a customer record.
+        kundeText = if (src.kunde == null) src.kundeText else null
         project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         erfassungsDatum = src.erfassungsDatum
         entscheidungsDatum = src.entscheidungsDatum

@@ -1,6 +1,5 @@
 "use client";
 
-import { type KeyboardEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -13,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
+import { useTypeToOpen } from "./use-type-to-open";
 
 /** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
 export interface EntityRef {
@@ -90,43 +90,16 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
-  // `autoOpen` seeds the initial state only: the picker mounts open when asked to, and Radix moves the
-  // focus onto its search input. A later change of the prop must not reopen it — that is the user's to
-  // do — so it is read once, not watched. Skipped when a value is already set: a restored filter or a
-  // field with a pick should show it, not drop the user straight into a search to replace it.
-  const [open, setOpen] = useState(() => !!autoOpen && !disabled && !value);
-  // The term a keystroke on the (closed) trigger opens the picker with, so that first character is not
-  // lost: the search input lives inside the popover and only exists once it is open, so without this a
-  // user who tabs onto the trigger and starts typing would type into nothing until they clicked. Reset
-  // whenever the popover closes, so a later open by click starts empty again.
-  const [initialSearch, setInitialSearch] = useState("");
-
-  function openOnTyping(event: KeyboardEvent<HTMLButtonElement>) {
-    if (disabled) return;
-    // Only printable single characters — leave Space (the button's own "open"), Enter, Tab, arrows and
-    // any modifier combo (copy, browser shortcuts) alone.
-    if (
-      event.key.length !== 1 ||
-      event.key === " " ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.altKey
-    ) {
-      return;
-    }
-    event.preventDefault();
-    setInitialSearch(event.key);
-    setOpen(true);
-  }
+  // `autoOpen` seeds the initial state only (see useTypeToOpen). Skipped when a value is already set: a
+  // restored filter or a field with a pick should show it, not drop the user straight into a search to
+  // replace it.
+  const { open, onOpenChange, initialSearch, openOnTyping } = useTypeToOpen({
+    initiallyOpen: !!autoOpen && !disabled && !value,
+    disabled,
+  });
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) setInitialSearch("");
-        setOpen(next);
-      }}
-    >
+    <Popover open={open} onOpenChange={onOpenChange}>
       {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
           minimum size is its content, so the trigger would hold the width of the *whole* entity name
           however narrow its field is and push the reset button out of it — onto the field beside it,
@@ -144,7 +117,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             autoFocus={autoFocus}
             disabled={disabled}
             onKeyDown={openOnTyping}
-            className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
+            className="h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
           >
             <span className={cn("truncate", !value && "text-muted-foreground")}>
               {value?.displayName ?? t("filter.chooseEntity")}
@@ -183,7 +156,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           initialSearch={initialSearch}
           onPick={(entry) => {
             onChange(entry);
-            setOpen(false);
+            onOpenChange(false);
           }}
         />
       </PopoverContent>

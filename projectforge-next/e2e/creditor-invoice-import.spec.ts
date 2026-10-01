@@ -1,6 +1,6 @@
 import { test, expect, goto, login } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
-import { userFormat } from "./fixtures/format";
+import { label, userFormat } from "./fixtures/format";
 import {
   importSubject,
   datevCsvFile,
@@ -55,7 +55,7 @@ test.describe("creditor invoice import", () => {
       await expect(page).toHaveURL(/\/creditor-invoice-import$/);
       await expect(
         page.getByRole("heading", {
-          name: format.t("fibu.eingangsrechnung.import.title"),
+          name: label(format, "fibu.eingangsrechnung.import.title"),
         })
       ).toBeVisible({ timeout: 60_000 });
 

@@ -26,6 +26,8 @@ export interface EntityEditActionBarProps {
   /** The conversion, where the entity declares one (see EditDef.convert); its label varies by direction. */
   showConvert: boolean;
   convertLabel: string;
+  /** Hover explanation of the conversion, where it declares one (EditConvert.tooltipKey). */
+  convertTooltip?: string;
   onClone: () => void | Promise<void>;
   onDelete: () => void | Promise<void>;
   onForceDelete: () => void | Promise<void>;
@@ -58,6 +60,7 @@ export function EntityEditActionBar({
   showForceDelete,
   showConvert,
   convertLabel,
+  convertTooltip,
   onClone,
   onDelete,
   onForceDelete,
@@ -82,6 +85,7 @@ export function EntityEditActionBar({
         showConvert ? (
           <EntityConvertButton
             label={convertLabel}
+            tooltip={convertTooltip}
             onConvert={onConvert}
             disabled={convertDisabled}
           />

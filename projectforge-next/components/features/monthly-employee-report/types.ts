@@ -88,7 +88,7 @@ export interface MonthlyReport {
   invoicingQuota?: string | null;
   /** How the quota was computed (plain lines, single `\n` line breaks). */
   invoicingQuotaTooltip?: string | null;
-  /** Configured explanation why the quota is shown and why it matters (markdown). */
+  /** Configured explanation why the quota is shown and why it matters (markdown); also sent while switched off. */
   invoicingQuotaInfo?: string | null;
   /** Drill-down month bounds as `yyyy-MM-dd`. */
   startDate: string;

@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 import { AccountField } from "./edit/account-field";
@@ -12,6 +13,7 @@ import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
 import { InvoiceNumberField } from "./edit/invoice-number-field";
 import { OriginalInvoiceField } from "./edit/original-invoice-field";
+import { CancellationNotice } from "./edit/cancellation-notice";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { SellerBankAccountField } from "./edit/seller-bank-account-field";
@@ -104,6 +106,14 @@ export const INVOICE_PAGE = definePage<
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
+      // A free text customer is marked as such, the way the edit form marks it (EntityOrTextField).
+      cell: (ctx) => (
+        <FreeTextNameCell
+          name={ctx.row.original.customer?.displayName}
+          freeText={!!ctx.row.original.kundeText}
+          highlight={ctx.table.options.meta?.highlight}
+        />
+      ),
       referenceKey: "customer",
       size: 200,
       pinned: "left",
@@ -245,6 +255,7 @@ export const INVOICE_PAGE = definePage<
       statistics={statistics as InvoiceStatistics | undefined}
       isFetching={isFetching}
       filter={filter}
+      entity={INVOICE_ENTITY}
       previousYearComparison={previousYearComparison}
       setPreviousYearComparison={setPreviousYearComparison}
     />
@@ -293,6 +304,8 @@ export const INVOICE_PAGE = definePage<
       targetEntity: "outgoingInvoice",
       targetRoute: "/invoice",
       labelKey: "fibu.rechnung.cancellation.create",
+      // Pressing it only prepares the cancellation; the invoice is cancelled when that is saved.
+      tooltipKey: "fibu.rechnung.cancellation.hint.create",
       visible: (invoice?: InvoiceDetail) => invoice?.cancellable === true,
     },
     // The Word export, beside the heading: it acts on the stored invoice, and `headerTrailing` is the one
@@ -302,9 +315,15 @@ export const INVOICE_PAGE = definePage<
       {
         id: "head",
         titleKey: "fibu.rechnung",
+        highlighted: true,
+        // The invoice itself in the two columns on the left: number, status, type, subject, attachment
+        // and period.
         fields: [
-          // Number and date in one cell of the three columns: neither needs a third of the page, and the
-          // two together are what identifies the invoice on paper.
+          // Only on either end of a cancellation: how it works, while it is new that it is not in effect
+          // until saved, and on the cancelled invoice where its status comes from (see CancellationNotice).
+          { custom: CancellationNotice, span: 2 },
+          // Number and date in one cell: neither needs a column of its own, and the two together are
+          // what identifies the invoice on paper.
           {
             group: [
               // Editable except on a cancellation, whose number is the synthetic "<original>-S"
@@ -319,12 +338,8 @@ export const INVOICE_PAGE = definePage<
           { custom: OriginalInvoiceField },
           // Highlighted like the list's subject column, so both set the same focus.
           { name: "betreff", span: 2, emphasized: true },
-          { custom: AccountField },
-          { custom: CustomerProjectFields, span: 3 },
-          // Two free texts of the invoice head, both `TextArea` in Wicket and both about what the
-          // customer needs to see on it.
-          { name: "customerref1", rows: 2, span: 2 },
-          { name: "attachment", rows: 2 },
+          // A free text of the invoice head, `TextArea` in Wicket, about what the customer needs to see.
+          { name: "attachment", rows: 2, span: 2 },
           {
             // One label, two dates — the way the invoice states it. The positions may each have one of
             // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`). As on the
@@ -338,6 +353,29 @@ export const INVOICE_PAGE = definePage<
             startsRow: true,
           },
         ],
+        // Who the invoice is for as one block on the right, which stays together however narrow the
+        // page gets (see SectionDef.aside): project, customer, the customer's account and reference.
+        aside: [
+          { custom: CustomerProjectFields },
+          { custom: AccountField },
+          { name: "customerref1", rows: 2 },
+        ],
+      },
+      {
+        // Second, right below the head: what is worth knowing about the invoice is read before its
+        // terms and positions. The two texts side by side, as one group across the grid — two equal
+        // halves, which the three columns cannot give.
+        id: "notes",
+        titleKey: "comment",
+        fields: [
+          {
+            group: [
+              { name: "bemerkung", rows: 3 },
+              { name: "besonderheiten", rows: 3 },
+            ],
+            span: 3,
+          },
+        ],
       },
       {
         id: "payment",
@@ -348,14 +386,6 @@ export const INVOICE_PAGE = definePage<
         id: "positions",
         titleKey: "fibu.rechnung.positions",
         render: ({ id }) => <PositionsSection id={id} />,
-      },
-      {
-        id: "notes",
-        titleKey: "comment",
-        fields: [
-          { name: "bemerkung", rows: 3, span: 3 },
-          { name: "besonderheiten", rows: 3, span: 3 },
-        ],
       },
       {
         // Last but one, directly above the attachments: it is the end of the invoice, and its ZUGFeRD
