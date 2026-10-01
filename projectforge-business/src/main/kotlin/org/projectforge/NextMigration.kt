@@ -161,6 +161,17 @@ object NextMigration {
             newEntryRoute = "access/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // The accounts ("Konten"), migrated from the React app (MenuItemDefId.ACCOUNT_LIST pointed at react/account),
+        // whose page is gone with the layout of KontoPagesRest (now KontoEntityRest, no layout). The way back
+        // therefore leads to the Wicket pages, which are kept as the classic version; their mount points follow
+        // the convention (DaoConst.ACCOUNT + List/Edit = accountList/accountEdit), so no legacy route has to be
+        // spelled out.
+        "account" to NextPage(
+            route = "account",
+            editRoute = "account/$ID_PLACEHOLDER",
+            newEntryRoute = "account/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // The DATEV accounting-record list ("Buchungssätze", MenuItemDefId.ACCOUNTING_RECORD_LIST pointed at
         // wa/accountingRecordList), migrated from Wicket with its filter, its BWA (business assessment) and
         // the report drill-down. Hand built (AccountingRecordEntityRest, no layout) so the list keeps the

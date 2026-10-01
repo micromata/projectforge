@@ -965,6 +965,10 @@
         "nonactive": "non-active"
       },
       "street": "Street",
+      "title": {
+        "add": "New account",
+        "list": "List of accounts"
+      },
       "vatId": "VAT ID",
       "zipCode": "Zip code"
     },

@@ -44,7 +44,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (hand built, GroupAccessEntityRest); the Wicket page (wa/accessList)
     // stays reachable through the escape hatch, see NextMigration.legacyListUrl.
     ACCESS_LIST("menu.accessList", getListUrl("access")), //
-    ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
+    ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
     // Migrated to projectforge-next; the Wicket page (wa/accountingRecordList) stays reachable through the
     // escape hatch next to the page title, see NextMigration.legacyListUrl.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //

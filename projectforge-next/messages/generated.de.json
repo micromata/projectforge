@@ -965,6 +965,10 @@
         "nonactive": "nicht aktiv"
       },
       "street": "Straße",
+      "title": {
+        "add": "Neues Konto",
+        "list": "Liste der Konten"
+      },
       "vatId": "USt-IdNr.",
       "zipCode": "PLZ"
     },

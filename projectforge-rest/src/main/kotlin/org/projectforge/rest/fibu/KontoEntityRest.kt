@@ -23,29 +23,39 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.fibu.EInvoiceSellerConfig
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.KontoStatus
 import org.projectforge.business.fibu.kost.AccountingConfig
 import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Konto
-import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
+/**
+ * The layout-free REST endpoint of the accounts ("Konten"), serving the hand-built projectforge-next page
+ * (see components/features/account). Replaces the retired `KontoPagesRest`, whose server-side `UILayout`
+ * moved onto the frontend, and the removed Wicket pages `KontoListPage`/`KontoEditPage`.
+ *
+ * The account pickers of other forms (invoice, creditor invoice, project, customer, accounting record) keep
+ * using [getAccounts] & co. and the generic `autosearch`.
+ */
 @RestController
 @RequestMapping("${Rest.URL}/account")
-class KontoPagesRest
-    : AbstractDTOPagesRest<KontoDO, Konto, KontoDao>(
+class KontoEntityRest
+    : AbstractDTOEntityRest<KontoDO, Konto, KontoDao>(
         KontoDao::class.java,
         "fibu.konto.title") {
+
+    @Autowired
+    private lateinit var sellerConfig: EInvoiceSellerConfig
 
     /**
      * Feeds the generic `account/autosearch` (AbstractEntityRest.getAutoCompleteObjects) used by the
@@ -66,9 +76,6 @@ class KontoPagesRest
         return kontoDO
     }
 
-    override val classicsLinkListUrl: String?
-        get() = "wa/accountList"
-
     @GetMapping("ac")
     fun getAccounts(@RequestParam("search") search: String?): List<Konto> {
         return getAccounts(search)
@@ -84,6 +91,23 @@ class KontoPagesRest
         return getAccounts(search, AccountingConfig.getInstance().creditorsAccountNumberRanges)
     }
 
+    /**
+     * The seller's bank accounts (`EInvoiceSellerConfig.bankAccounts`), for the `sellerBankAccountName` select
+     * of the e-invoice block. The value is the account's *name*, because that is what the column holds (as
+     * Wicket's `KontoEditForm` stored it); the label adds the IBAN so equally named accounts stay apart.
+     * Empty where the installation configured none.
+     *
+     * Read only, so the select access of the category is what has to be checked here.
+     */
+    @GetMapping("sellerBankAccounts")
+    fun getSellerBankAccounts(): List<SellerBankAccount> {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        return sellerConfig.bankAccounts.map { SellerBankAccount(value = it.name, label = it.displayName) }
+    }
+
+    /** One entry of the `sellerBankAccountName` select, see [getSellerBankAccounts]. */
+    class SellerBankAccount(val value: String, val label: String)
+
     private fun getAccounts(search: String?, accountRanges: IntRanges? = null): List<Konto> {
         val filter = BaseSearchFilter()
         filter.searchFields = arrayOf("nummer", "bezeichnung", "description")
@@ -95,28 +119,5 @@ class KontoPagesRest
         return list.filter { konto ->
             konto.status != KontoStatus.NONACTIVE && accountRanges.doesMatch(konto.nummer)
         }.map { Konto(it) }
-    }
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-        layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "nummer", "status", "bezeichnung", "description"))
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Konto, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(lc, "nummer", "status", "bezeichnung", "description")))
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UILabel("fibu.konto.eInvoice"))
-                                .add(lc, "contactPerson", "street", "zipCode", "city", "country", "vatId", "leitwegId", "eInvoiceEmail", "sellerBankAccountName")))
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 }
