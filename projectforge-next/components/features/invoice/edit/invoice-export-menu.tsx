@@ -103,9 +103,13 @@ export function InvoiceExportMenu({
  * "default" for the unnamed one.
  *
  * The name is a file name fragment ("MMInvoiceTemplate_Commerzbank.docx" → "Commerzbank"), so it is the
- * installation's own word and not translatable — only the fallback is.
+ * installation's own word and not translatable — only the fallback is. Shared with the ZUGFeRD export,
+ * which converts the same templates (see EInvoiceActions).
  */
-function variantLabel(variant: string, t: (key: string) => string): string {
+export function variantLabel(
+  variant: string,
+  t: (key: string) => string
+): string {
   return variant
     ? variant.replace(/_/g, " ")
     : t("fibu.rechnung.exportInvoice.template.default");

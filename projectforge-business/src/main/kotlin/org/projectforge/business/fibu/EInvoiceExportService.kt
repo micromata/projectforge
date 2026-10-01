@@ -91,7 +91,12 @@ class EInvoiceExportService(
         return baos.toByteArray()
     }
 
-    fun exportAsZUGFeRD(invoice: RechnungDO): ByteArray {
+    /**
+     * @param variant The variant of the Word invoice template to convert where no invoice PDF was uploaded
+     * (see [InvoiceService.getTemplateVariants]); null or blank for the unnamed one. Ignored where a PDF was
+     * uploaded, since that is the document the XML is embedded into then.
+     */
+    fun exportAsZUGFeRD(invoice: RechnungDO, variant: String? = null): ByteArray {
         val validationErrors = validate(invoice)
         if (validationErrors.isNotEmpty()) {
             throw IllegalStateException(
@@ -100,7 +105,7 @@ class EInvoiceExportService(
         }
 
         val pdfBytes = getUploadedInvoicePdf(invoice.id)
-            ?: generateInvoicePdf(invoice)
+            ?: generateInvoicePdf(invoice, variant)
             ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured and no PDF uploaded)")
 
         val mustangInvoice = buildMustangInvoice(invoice)
@@ -254,8 +259,8 @@ class EInvoiceExportService(
         return attachments.firstOrNull { it.description == INVOICE_PDF_MARKER }
     }
 
-    private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
-        val docxStream = invoiceService.getInvoiceWordDocument(invoice, null) ?: return null
+    private fun generateInvoicePdf(invoice: RechnungDO, variant: String?): ByteArray? {
+        val docxStream = invoiceService.getInvoiceWordDocument(invoice, variant) ?: return null
         val docxBytes = docxStream.toByteArray()
         ByteArrayInputStream(docxBytes).use { bais ->
             WordDocument(bais, "invoice.docx").use { word ->

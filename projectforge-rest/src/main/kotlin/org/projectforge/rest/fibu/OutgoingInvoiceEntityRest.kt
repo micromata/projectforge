@@ -713,15 +713,21 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
      * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
      * this endpoint could not work on a posted state even if it wanted to.
+     *
+     * `variant` chooses the Word template for that conversion, as it does for [exportInvoiceWord]; where an
+     * invoice PDF was uploaded it has no effect.
      */
     @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
-    fun exportZugferd(@PathVariable("id") id: Long): ResponseEntity<*> {
+    fun exportZugferd(
+        @PathVariable("id") id: Long,
+        @RequestParam("variant", required = false) variant: String?,
+    ): ResponseEntity<*> {
         val invoice = checkEInvoiceReadAccess(id)
-        log.info { "Exporting invoice #$id as a ZUGFeRD PDF." }
+        log.info { "Exporting invoice #$id as a ZUGFeRD PDF, variant='${variant ?: ""}'." }
         return exportEInvoice(invoice) {
             RestUtils.downloadFile(
                 eInvoiceExportService.getZUGFeRDExportFilename(invoice),
-                eInvoiceExportService.exportAsZUGFeRD(invoice),
+                eInvoiceExportService.exportAsZUGFeRD(invoice, variant),
             )
         }
     }

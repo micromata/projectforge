@@ -235,14 +235,17 @@ export function downloadXRechnung(
  * The invoice as a ZUGFeRD PDF, i.e. a PDF carrying the same XML.
  *
  * The document it is embedded into is the uploaded invoice PDF, or the Word template converted where none
- * was uploaded (see InvoicePdfField).
+ * was uploaded (see InvoicePdfField) — of the variant given, as for downloadInvoiceWord (an empty string for
+ * the unnamed one). With an uploaded PDF the variant has no effect.
  */
 export function downloadZugferd(
   id: number,
+  variant: string,
   signal?: AbortSignal
 ): Promise<void> {
+  const query = variant ? `?variant=${encodeURIComponent(variant)}` : "";
   return downloadFile(
-    `/rs/outgoingInvoice/eInvoice/${id}/zugferd`,
+    `/rs/outgoingInvoice/eInvoice/${id}/zugferd${query}`,
     { method: "GET" },
     signal
   );

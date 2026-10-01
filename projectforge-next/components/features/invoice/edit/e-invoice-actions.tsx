@@ -2,7 +2,7 @@
 
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import {
@@ -10,8 +10,17 @@ import {
   downloadZugferd,
   type EInvoiceValidation,
 } from "@/lib/rs/invoice";
+import { fetchInvoicePdfInfo, invoicePdfQueryKey } from "@/lib/rs/invoice-pdf";
 import type { SubmitMeta } from "@/lib/rs/submit-meta";
 import { ExportButton } from "@/components/shared/export-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useInvoiceFormDefaults } from "../use-invoice-form-defaults";
+import { variantLabel } from "./invoice-export-menu";
 
 /**
  * The two buttons of the e-invoice section: save the form, then build the e-invoice from what was saved —
@@ -29,6 +38,11 @@ import { ExportButton } from "@/components/shared/export-button";
  * the checklist above (see `OutgoingInvoiceEntityRest.saveAndCheckEInvoice` and lib/rs/submit-meta.ts, the
  * page stays put for a declared action). Pressing one of these is also what brings that checklist out in the
  * first place: `revalidate` is the only thing that asks for it (see EInvoiceSection).
+ *
+ * **The template of the ZUGFeRD export.** Where no invoice PDF was uploaded, the ZUGFeRD export converts the
+ * Word template — so it offers the same variants the Word export does (InvoiceExportMenu), as a menu where
+ * there are several. With an uploaded PDF there is nothing to choose: that PDF is the document, and a menu
+ * of templates that are not used would suggest otherwise.
  */
 export function EInvoiceActions({
   invoiceId,
@@ -48,8 +62,22 @@ export function EInvoiceActions({
     (s: unknown) => (s as { isSubmitting: boolean }).isSubmitting
   );
 
+  const variants = useInvoiceFormDefaults()?.templateVariants ?? [];
+  // The same query (and cache entry) as InvoicePdfField's, which keeps it current on upload and delete.
+  const invoicePdf = useQuery({
+    queryKey: invoicePdfQueryKey(invoiceId),
+    queryFn: ({ signal }) => fetchInvoicePdfInfo(invoiceId, signal),
+  });
+  const chooseTemplate = variants.length > 1 && invoicePdf.data?.pdf == null;
+
   const run = useMutation({
-    mutationFn: async (kind: "xrechnung" | "zugferd") => {
+    mutationFn: async ({
+      kind,
+      variant,
+    }: {
+      kind: ExportKind;
+      variant: string;
+    }) => {
       let written = false;
       // The meta is typed here rather than inferred: `form` is the shared layer's untyped EntityForm (see
       // form-context.tsx), so nothing would check the shape of what is passed to the submit.
@@ -73,7 +101,7 @@ export function EInvoiceActions({
       }
       await (kind === "xrechnung"
         ? downloadXRechnung(invoiceId)
-        : downloadZugferd(invoiceId));
+        : downloadZugferd(invoiceId, variant));
     },
     // The backend's own answer — for a refused export the list of what is missing, which `downloadFile`
     // carries out of the response body (see lib/rs/download.ts).
@@ -81,23 +109,43 @@ export function EInvoiceActions({
       toast.error(error instanceof Error ? error.message : String(error)),
   });
 
+  // Every submit of this form, not only this button's: while one runs, the other would post the same values
+  // a second time.
+  const isPending = (kind: ExportKind) =>
+    (run.isPending && run.variables?.kind === kind) || isSubmitting;
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {EXPORTS.map(({ kind, labelKey }) => (
-        <ExportButton
-          key={kind}
-          label={t(labelKey)}
-          // No tooltip: the label names both halves of what the button does, and a note about the saved
-          // state would be about a case these buttons no longer have.
-          isPending={
-            (run.isPending && run.variables === kind) ||
-            // Every submit of this form, not only this button's: while one runs, the other would post the
-            // same values a second time.
-            isSubmitting
-          }
-          onClick={() => run.mutate(kind)}
-        />
-      ))}
+      {EXPORTS.map(({ kind, labelKey }) =>
+        kind === "zugferd" && chooseTemplate ? (
+          <DropdownMenu key={kind}>
+            <DropdownMenuTrigger asChild>
+              {/* No `onClick`: the trigger's own opens the menu, and the entries are what export. */}
+              <ExportButton label={t(labelKey)} isPending={isPending(kind)} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {variants.map((variant) => (
+                <DropdownMenuItem
+                  key={variant}
+                  onSelect={() => run.mutate({ kind, variant })}
+                >
+                  {variantLabel(variant, t)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <ExportButton
+            key={kind}
+            label={t(labelKey)}
+            // No tooltip: the label names both halves of what the button does, and a note about the saved
+            // state would be about a case these buttons no longer have.
+            isPending={isPending(kind)}
+            // The single variant where there is one; with an uploaded PDF the backend ignores it anyway.
+            onClick={() => run.mutate({ kind, variant: variants[0] ?? "" })}
+          />
+        )
+      )}
     </div>
   );
 }
@@ -107,3 +155,5 @@ const EXPORTS = [
   { kind: "xrechnung", labelKey: "fibu.rechnung.eInvoice.saveAndXRechnung" },
   { kind: "zugferd", labelKey: "fibu.rechnung.eInvoice.saveAndZugferd" },
 ] as const;
+
+type ExportKind = (typeof EXPORTS)[number]["kind"];
