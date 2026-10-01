@@ -413,6 +413,9 @@ export function EntityEditBody<
           edit.convert && (edit.convert.visible?.(data) ?? true)
         )}
         convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
+        convertTooltip={
+          edit.convert?.tooltipKey ? t(edit.convert.tooltipKey) : undefined
+        }
         onClone={runClone}
         onDelete={runDelete}
         onForceDelete={runForceDelete}

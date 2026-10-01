@@ -468,6 +468,11 @@ export interface EditConvert {
   /** i18n key of the button label, the backend's own, e.g. `plugins.teamcal.switchToTeamEventButton`. */
   labelKey: string;
   /**
+   * i18n key of a hover explanation on the button — what pressing it does, where that is not obvious
+   * from the label (e.g. that a prepared cancellation only takes effect once it is saved).
+   */
+  tooltipKey?: string;
+  /**
    * Whether the conversion applies to the loaded entry — offered everywhere when absent. Given the loaded
    * row (undefined while it loads), so a conversion only some entries allow is not offered on the others,
    * e.g. the invoice's cancellation only on a stored invoice not cancelled yet (`Rechnung.cancellable`).

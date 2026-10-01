@@ -1202,6 +1202,12 @@
         "alreadyExists": "This invoice is already cancelled by {arg0}.",
         "cancelledBy": "Cancelled by {arg0}",
         "create": "Create cancellation",
+        "hint": {
+          "create": "Prepares a cancellation invoice for this invoice: its positions are taken over with negative amounts and opened as a new, not yet saved invoice. This invoice is only cancelled once the cancellation invoice is saved; if it is not saved, nothing changes.",
+          "original": "This invoice is cancelled by the cancellation invoice {arg0} and was therefore automatically set to \"cancelled\". To undo the cancellation, delete the cancellation invoice: this invoice then gets back the status \"issued\" or \"paid\".",
+          "system": "A cancellation invoice fully reverses the cancelled invoice: it takes over its positions with negative amounts and has no number of its own, but the one of the cancelled invoice with the suffix \"-S\". On saving, the cancelled invoice is automatically set to \"cancelled\". Type and cancelled invoice cannot be changed afterwards; if the cancellation invoice is deleted, the cancelled invoice gets back the status \"issued\" or \"paid\".",
+          "unsaved": "This cancellation invoice is only prepared and not yet in effect: the invoice is only cancelled once you save this cancellation invoice. Without saving, nothing happens."
+        },
         "of": "Cancellation of invoice {arg0}"
       },
       "chart": {
