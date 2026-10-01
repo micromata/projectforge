@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import {
   downloadMonthlyEmployeeReportPdf,
   fetchMonthlyEmployeeReport,
@@ -78,7 +77,6 @@ export function MonthlyEmployeeReportPage() {
           <HugeiconsIcon icon={PdfIcon} size={14} aria-hidden />
           {t("exportAsPdf")}
         </Button>
-        <LegacyPageLink url="wa/monthlyEmployeeReport?legacyEscape" />
       </PageTitleRow>
       <div className="flex flex-col gap-4 px-4 pb-6">
         {/* Filter (user / year / month) on the left, the key figures right-aligned on the same line. */}
