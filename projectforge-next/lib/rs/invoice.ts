@@ -114,6 +114,8 @@ export interface InvoiceNetSumChartData {
   months: string[];
   /** One entry per year, newest (offset 0) first. */
   series: InvoiceNetSumYearSeries[];
+  /** The fields of the list's filter left out of every year: criteria of an invoice's current state. */
+  ignoredFilterFields?: string[];
 }
 
 /**

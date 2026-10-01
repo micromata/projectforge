@@ -97,5 +97,18 @@ internal class IncompleteInvoiceFilter<O : AbstractRechnungDO>(
         fun isOffered(costConfigured: Boolean, accountRequired: Boolean): Boolean {
             return costConfigured || accountRequired
         }
+
+        /**
+         * The i18n key of the filter's tooltip: the label "incomplete" alone doesn't say what is missing, and
+         * what is depends on the installation, so the tooltip names only the reasons that apply here.
+         */
+        fun tooltipKey(costConfigured: Boolean, accountRequired: Boolean): String {
+            val reason = when {
+                costConfigured && accountRequired -> "costsOrAccount"
+                costConfigured -> "costs"
+                else -> "account"
+            }
+            return "fibu.rechnung.filter.incompleteTooltip.$reason"
+        }
     }
 }

@@ -67,6 +67,7 @@ export function InvoiceStatisticsLine({
   isFetching,
   className,
   filter,
+  entity,
   previousYearComparison,
   setPreviousYearComparison,
 }: {
@@ -75,6 +76,8 @@ export function InvoiceStatisticsLine({
   isFetching?: boolean;
   className?: string;
   filter?: MagicFilter;
+  /** The list's entity, whose filter labels name the criteria the comparison leaves out. */
+  entity?: string;
   previousYearComparison?: boolean;
   setPreviousYearComparison?: (on: boolean) => void;
 }) {
@@ -117,6 +120,8 @@ export function InvoiceStatisticsLine({
             current={tableEntries}
             comparison={comparison}
             previousPeriod={previousYearPeriod(dateRange)}
+            entity={entity}
+            ignoredFilterFields={statistics?.previousYear?.ignoredFilterFields}
             corner={caret}
           />
         ) : (

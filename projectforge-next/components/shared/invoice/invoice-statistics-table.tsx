@@ -3,19 +3,15 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useFormatContext } from "@/hooks/use-format";
-import {
-  formatCurrency,
-  formatDateRange,
-  type FormatContext,
-} from "@/lib/format";
+import { formatCurrency, type FormatContext } from "@/lib/format";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
-import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
   TONE_CLASS,
   type InvoiceComparisonEntry,
   type InvoiceStatisticsEntry,
 } from "./invoice-statistics";
+import { PreviousYearFootnote } from "./previous-year-footnote";
 
 /** An entry's value the way the line writes it: `Ø n` days, otherwise an amount in the user's currency. */
 function formatValue(
@@ -62,6 +58,8 @@ export function InvoiceStatisticsTable({
   current,
   comparison,
   previousPeriod,
+  entity,
+  ignoredFilterFields,
   corner,
 }: {
   current: InvoiceStatisticsEntry[];
@@ -72,6 +70,9 @@ export function InvoiceStatisticsTable({
    * a whole one; null when there is no bounded range (then the comparison is not shown at all).
    */
   previousPeriod?: { from: string; to: string } | null;
+  /** The list, and the criteria the previous year leaves out — named in the same footnote. */
+  entity?: string;
+  ignoredFilterFields?: readonly string[] | null;
   corner?: ReactNode;
 }) {
   const t = useTranslations();
@@ -120,19 +121,11 @@ export function InvoiceStatisticsTable({
             >
               {t("fibu.rechnung.statistics.previousYear")}
               {previousPeriod && (
-                <HintTooltip
-                  openOnTap
-                  title={t("fibu.rechnung.statistics.previousYearPeriod")}
-                  text={formatDateRange(
-                    previousPeriod.from,
-                    previousPeriod.to,
-                    format
-                  )}
-                  plain
-                >
-                  {/* A footnote marker, not a control: the caret in the corner already toggles the row. */}
-                  <sup className="ml-0.5 cursor-help">*</sup>
-                </HintTooltip>
+                <PreviousYearFootnote
+                  previousPeriod={previousPeriod}
+                  entity={entity}
+                  ignoredFilterFields={ignoredFilterFields}
+                />
               )}
             </th>
             {comparison.map((entry) => (

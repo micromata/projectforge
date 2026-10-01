@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -106,6 +107,17 @@ class IncompleteInvoiceFilterTest {
         assertTrue(IncompleteInvoiceFilter.isOffered(costConfigured = true, accountRequired = true))
         // Neither: it would match every invoice or none, so the list doesn't offer it.
         assertFalse(IncompleteInvoiceFilter.isOffered(costConfigured = false, accountRequired = false))
+    }
+
+    /** The tooltip names only the reasons this installation's filter asks about. */
+    @Test
+    fun `the tooltip names the reasons that apply`() {
+        val prefix = "fibu.rechnung.filter.incompleteTooltip"
+        assertEquals("$prefix.costs", IncompleteInvoiceFilter.tooltipKey(costConfigured = true, accountRequired = false))
+        assertEquals("$prefix.account", IncompleteInvoiceFilter.tooltipKey(costConfigured = false, accountRequired = true))
+        assertEquals(
+            "$prefix.costsOrAccount", IncompleteInvoiceFilter.tooltipKey(costConfigured = true, accountRequired = true)
+        )
     }
 
     /** The invoice's own account, as the outgoing invoice list resolves it (without the inheritance). */

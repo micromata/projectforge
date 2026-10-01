@@ -255,6 +255,7 @@ export const INVOICE_PAGE = definePage<
       statistics={statistics as InvoiceStatistics | undefined}
       isFetching={isFetching}
       filter={filter}
+      entity={INVOICE_ENTITY}
       previousYearComparison={previousYearComparison}
       setPreviousYearComparison={setPreviousYearComparison}
     />

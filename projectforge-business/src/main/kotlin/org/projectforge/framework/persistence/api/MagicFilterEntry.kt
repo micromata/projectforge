@@ -114,6 +114,16 @@ class MagicFilterEntry(
     val isEmpty: Boolean
         get() = isNoValueGiven && this.field.isNullOrBlank()
 
+    /**
+     * True, if this entry narrows the result: a field with a value. A user picker carries only the id, which
+     * [isNoValueGiven] doesn't look at; the page size travels as an entry but is no criterion.
+     */
+    @get:JsonIgnore
+    val isCriterion: Boolean
+        @Suppress("SENSELESS_COMPARISON") // value might be null after json deserialization.
+        get() = !this.field.isNullOrBlank() && this.field != MagicFilter.PAGINATION_PAGE_SIZE &&
+                (!isNoValueGiven || (value != null && value.id != null))
+
     @JsonIgnore
     var isNew: Boolean? = false
         private set

@@ -83,7 +83,7 @@ public class MenuItemRegistry implements Serializable {
         // SEARCH (Suche) migrated to projectforge-next; its Wicket page was removed and the menu points at next/search.
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
-        register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
+        // MONTHLY_EMPLOYEE_REPORT (Monatsbericht) migrated to projectforge-next (next/monthlyEmployeeReport); its Wicket page was removed.
         register(MenuItemDefId.HR_VIEW, HRListPage.class);
         register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
         register(MenuItemDefId.GANTT, GanttChartListPage.class);

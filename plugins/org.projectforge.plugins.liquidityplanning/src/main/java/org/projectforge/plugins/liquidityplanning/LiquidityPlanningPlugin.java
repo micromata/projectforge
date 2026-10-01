@@ -31,6 +31,7 @@ import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntityRest;
+import org.projectforge.plugins.liquidityplanning.rest.LiquiditySeriesRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
 import org.projectforge.web.WicketSupport;
@@ -69,6 +70,10 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
         registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidity;/wa/liquidityplanningEdit");
         registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
         registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntityRest.class);
+        // The series split (LiquiditySeriesRest, /rs/liquiditySeries/split) writes entries without passing the
+        // save of /rs/liquidity, so WRITE:liquidity doesn't catch it. FINANCE covers it by its url prefix
+        // (^/rs/liquidity.*), an installation configuring FINANCE_WRITE alone wouldn't gate it.
+        registerShortCutClasses(My2FAShortCut.FINANCE_WRITE, LiquiditySeriesRest.class);
         final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
                 "plugins.liquidityplanning");
         register(entry);
