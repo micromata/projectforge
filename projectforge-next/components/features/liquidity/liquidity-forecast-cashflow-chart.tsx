@@ -26,7 +26,8 @@ import type { LiquidityForecastDay } from "@/lib/rs/liquidity";
 
 /**
  * The per-day expected cash flow — the successor of the Wicket `LiquidityChartBuilder` bar chart. Each day's
- * expected credit (money coming in, negative) and expected debit (money going out, positive) as bars, with
+ * expected credit (money going out, negative, "Soll") in red and expected debit (money coming in, positive,
+ * "Haben") in green as bars, with
  * the expected running balance overlaid as a line. As with the balance chart, no paranoia-case series.
  */
 export function LiquidityForecastCashflowChart({
@@ -37,8 +38,8 @@ export function LiquidityForecastCashflowChart({
   const t = useTranslations("plugins.liquidityplanning");
   const ctx = useFormatContext();
   const config: ChartConfig = {
-    creditExpected: { label: t("common.credit"), color: CHART_ROLE.positive },
-    debitExpected: { label: t("common.debit"), color: CHART_ROLE.negative },
+    creditExpected: { label: t("common.credit"), color: CHART_ROLE.negative },
+    debitExpected: { label: t("common.debit"), color: CHART_ROLE.positive },
     expectedBalance: {
       label: t("forecast.expected"),
       color: CHART_ROLE.neutral,
