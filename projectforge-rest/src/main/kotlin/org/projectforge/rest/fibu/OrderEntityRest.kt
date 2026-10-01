@@ -979,8 +979,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * The monthly totals of the forecast charts ('Grafiken 1' of the forecast Excel export) of the filtered
    * orders ([ForecastExport.chartData]). The start date replaces the filter's period of performance, as
-   * for [exportForecast]. The parameters are remembered for the next time. The months are empty if
-   * neither order positions nor invoices were found.
+   * for [exportForecast]; unlike the export, the state criteria are left out ([forecastChartFilter]).
+   * The parameters are remembered for the next time. The months are empty if neither order positions
+   * nor invoices were found.
    */
   @PostMapping("forecastChart")
   fun forecastChart(@RequestBody request: ForecastChartRequest): ForecastChartData {
@@ -990,7 +991,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       planningDate = request.planningDate,
     )
     userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_CHART, settings, true)
-    val filter = toAuftragFilter(request.filter ?: MagicFilter())
+    val filter = toAuftragFilter(forecastChartFilter(request.filter ?: MagicFilter()))
     filter.periodOfPerformanceStartDate = settings.startDate
     filter.periodOfPerformanceEndDate = null
     // Empty months (instead of no body) if neither order positions nor invoices were found:
@@ -1147,7 +1148,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * [AuftragFilter] of [toAuftragFilter], which knows only a few of the list's criteria.
      *
      * - `ignored`: fields [toAuftragFilter] doesn't translate (positions status, the person pickers, the
-     *   next-invoice date, every free field filter, ...).
+     *   next-invoice date, every free field filter, ...), and the state criteria [forecastChartFilter]
+     *   leaves out ([FORECAST_CHART_STATE_FIELDS]).
      * - `replaced`: the period of performance, which the chart's start date replaces.
      * - `partial`: a payment type filter with more than one value, of which only the first is used.
      *
@@ -1159,13 +1161,27 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         val field = entry.field!! // Not null: isCriterion requires a field.
         when {
           field == PERIOD_OF_PERFORMANCE_FILTER -> usage.replaced.add(field)
-          field !in AUFTRAG_FILTER_FIELDS -> usage.ignored.add(field)
+          field in FORECAST_CHART_STATE_FIELDS || field !in AUFTRAG_FILTER_FIELDS -> usage.ignored.add(field)
           field == "positionsPaymentType" && (entry.value.values?.count { it.isNotBlank() } ?: 0) > 1 ->
             usage.partial.add(field)
         }
       }
       return usage
     }
+
+    /**
+     * The criteria of the order's current state (order status, invoiced status), which the forecast charts
+     * leave out. Invoiced and earlier years are the invoices of the projects of the filtered orders: with
+     * "commissioned" or "not invoiced", the projects whose orders have moved on since drop out, and the
+     * years they earned in look smaller than they were. Left out of the whole chart, as the invoice chart
+     * does (`OutgoingInvoiceEntityRest.COMPARISON_IGNORED_FIELDS`), so all its series answer the same
+     * question. The Excel export still applies them.
+     */
+    internal val FORECAST_CHART_STATE_FIELDS = setOf("status", "fakturiert")
+
+    /** A copy of [magicFilter] without the [FORECAST_CHART_STATE_FIELDS], the original left untouched. */
+    internal fun forecastChartFilter(magicFilter: MagicFilter): MagicFilter =
+      magicFilter.clone().also { clone -> clone.entries.removeIf { it.field in FORECAST_CHART_STATE_FIELDS } }
 
     /** See [forecastFilterUsage]. */
     class ForecastFilterUsage(

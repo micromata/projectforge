@@ -32,7 +32,7 @@ const elements = [
 ];
 
 describe("appliedFilterItems", () => {
-  it("lists the pills in field order, flagged as the chart used them", () => {
+  it("lists the pills in field order, flagged as the chart used them, the struck ones last", () => {
     const filter: MagicFilter = {
       entries: [
         { field: "paginationPageSize", value: { value: "50" } },
@@ -56,11 +56,11 @@ describe("appliedFilterItems", () => {
     );
     expect(items.map((item) => [item.key, item.value, item.status])).toEqual([
       ["status", "beauftragt", "applied"],
-      ["positionsStatus", "LOI", "ignored"],
-      ["periodOfPerformance", "01.01.2026 – 31.12.2026", "replaced"],
       // Not offered as a field anymore, but still part of the query.
       ["unknownField", "x", "applied"],
       ["searchString", "ACME", "applied"],
+      ["positionsStatus", "LOI", "ignored"],
+      ["periodOfPerformance", "01.01.2026 – 31.12.2026", "replaced"],
     ]);
   });
 

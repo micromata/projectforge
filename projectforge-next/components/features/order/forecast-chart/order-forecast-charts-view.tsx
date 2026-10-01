@@ -31,6 +31,9 @@ import { OrderForecastMonthlyChart } from "./order-forecast-monthly-chart";
 /** The order list's combined period-of-performance filter (`OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER`). */
 const PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance";
 
+/** The criteria of the order's current state the charts leave out (`OrderEntityRest.FORECAST_CHART_STATE_FIELDS`). */
+const STATE_FILTER_FIELDS = ["status", "fakturiert"];
+
 /** React Query key of the user's remembered chart dates (see fetchForecastChartSettings). */
 const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
 
@@ -45,7 +48,8 @@ const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
  *
  * The forecast knows only some of the list's criteria (`OrderEntityRest.toAuftragFilter`); the backend
  * reports the others with the charts and {@link AppliedFilterSummary} marks them, so totals that differ
- * from the list are explained rather than silent.
+ * from the list are explained rather than silent. The criteria of the order's current state are left out
+ * on purpose, as they would distort the comparison with the previous years; their note says so.
  */
 export function OrderForecastChartsView() {
   const remembered = useRememberedFilter(ORDER_ENTITY, { fresh: false });
@@ -140,7 +144,12 @@ function OrderForecastCharts({
     [data]
   );
   const notes = useMemo(
-    () => ({ [PERIOD_OF_PERFORMANCE_FILTER]: t("replacedByStartDate") }),
+    () => ({
+      [PERIOD_OF_PERFORMANCE_FILTER]: t("replacedByStartDate"),
+      ...Object.fromEntries(
+        STATE_FILTER_FIELDS.map((field) => [field, t("stateFilterIgnored")])
+      ),
+    }),
     [t]
   );
 

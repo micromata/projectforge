@@ -689,6 +689,7 @@
             "_": "Erster Monat des Forecasts",
             "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
           },
+          "stateFilterIgnored": "Beschreibt den aktuellen Zustand der Aufträge und würde den Vergleich mit den Vorjahren verzerren, daher in den Grafiken nicht berücksichtigt (im Excel-Export schon).",
           "total": "Forecast"
         },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
@@ -1298,6 +1299,11 @@
       },
       "filter": {
         "incomplete": "unvollständig",
+        "incompleteTooltip": {
+          "account": "Kein Konto zugeordnet.",
+          "costs": "Kostzuweisungen unvollständig: Die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab.",
+          "costsOrAccount": "Kostzuweisungen unvollständig (die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab) oder kein Konto zugeordnet."
+        },
         "paymentStatus": "Bezahlstatus",
         "ueberfaellig": "überfällig",
         "unbezahlt": "unbezahlt"

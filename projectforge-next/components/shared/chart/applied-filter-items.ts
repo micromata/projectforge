@@ -52,7 +52,9 @@ export function filterFieldLabel(
  * The entries of [filter] as the list's pills read them, in the order of the list's filter fields: the
  * label of the field and [describeFilterValue] for the value, the three history fields as one entry like
  * their combined pill. A stored entry the list no longer offers as a field is still part of the query,
- * so it is listed too (under its id). The search string comes last.
+ * so it is listed too (under its id). The search string comes last of the applied ones; the entries the
+ * chart didn't apply (ignored, replaced) follow at the very end, so the criteria the figures rest on read
+ * first.
  */
 export function appliedFilterItems(
   filter: MagicFilter | undefined,
@@ -109,5 +111,7 @@ export function appliedFilterItems(
       status: "applied",
     });
   }
-  return items;
+  const struck = (item: AppliedFilterItem) =>
+    item.status === "ignored" || item.status === "replaced";
+  return [...items.filter((item) => !struck(item)), ...items.filter(struck)];
 }

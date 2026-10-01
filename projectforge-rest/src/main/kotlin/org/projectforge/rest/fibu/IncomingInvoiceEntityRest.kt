@@ -360,12 +360,15 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
                 )
             }
         )
-        if (IncompleteInvoiceFilter.isOffered(Configuration.instance.isCostConfigured, invoiceConfig.accountRequired)) {
+        val costConfigured = Configuration.instance.isCostConfigured
+        val accountRequired = invoiceConfig.accountRequired
+        if (IncompleteInvoiceFilter.isOffered(costConfigured, accountRequired)) {
             elements.add(
                 UIFilterElement(
                     INCOMPLETE_FILTER,
                     UIFilterElement.FilterType.BOOLEAN,
                     label = translate("fibu.rechnung.filter.incomplete"),
+                    tooltip = translate(IncompleteInvoiceFilter.tooltipKey(costConfigured, accountRequired)),
                     defaultFilter = true,
                 )
             )

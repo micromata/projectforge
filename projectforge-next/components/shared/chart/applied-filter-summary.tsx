@@ -21,8 +21,9 @@ import {
  * criteria the figures rest on, and why they may differ from the list.
  *
  * Each entry reads as its pill in the list does (see [appliedFilterItems]); the labels come from the
- * list's filter fields (`listMeta`, a cache read). An entry the chart didn't apply ([usage]) is struck
- * through and tagged. One compact row: the notes and the hint that the table's column filters (the header
+ * list's filter fields (`listMeta`, a cache read). An entry the chart left out ([usage]) is struck
+ * through in red, as a deleted row is, with the reason as its tooltip; a replaced one in grey, a partly
+ * applied one is tagged. One compact row: the notes and the hint that the table's column filters (the header
  * funnels) never reach a chart sit behind info icons, so long sentences don't break the chips apart.
  */
 export function AppliedFilterSummary({
@@ -36,7 +37,10 @@ export function AppliedFilterSummary({
   entity: string;
   filter: MagicFilter | undefined;
   usage?: AppliedFilterUsage;
-  /** A short remark after an entry, by field id — what replaced it, or how the chart uses it. */
+  /**
+   * A short remark after an entry, by field id — what replaced it, or how the chart uses it. On an ignored
+   * entry it is the tooltip of its tag instead: why this criterion was left out.
+   */
   notes?: Readonly<Record<string, string>>;
   /** Why the chart left a criterion out, where the generic "not supported" says too little. */
   ignoredTooltip?: string;
@@ -99,35 +103,44 @@ function SummaryChip({
   ignoredTooltip?: string;
 }) {
   const t = useTranslations("filter.applied");
-  const notApplied = item.status === "ignored" || item.status === "replaced";
-  const tag =
-    item.status === "ignored" ? (
-      <HintTooltip text={ignoredTooltip ?? t("ignoredTooltip")} openOnTap>
-        <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
-          {t("ignored")}
-        </Badge>
-      </HintTooltip>
-    ) : item.status === "partial" ? (
-      <HintTooltip text={t("partialTooltip")} openOnTap>
-        <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
-          {t("partial")}
-        </Badge>
-      </HintTooltip>
-    ) : null;
+  const ignored = item.status === "ignored";
+  const text = (
+    <span
+      className={cn(
+        "truncate",
+        // Struck through in red as a deleted row is (`row-deleted`), the reason behind its tooltip.
+        ignored && "line-through decoration-destructive decoration-2",
+        item.status === "replaced" && "text-muted-foreground line-through"
+      )}
+    >
+      <span className="text-muted-foreground">{item.label}</span>
+      {/* A boolean pill has no value text: its label alone says what is meant. */}
+      {item.value && <>: {item.value}</>}
+      {/* The strike alone says nothing to a screen reader. */}
+      {ignored && <span className="sr-only"> ({t("ignored")})</span>}
+    </span>
+  );
   return (
     <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-full border bg-background px-2.5">
-      <span
-        className={cn(
-          "truncate",
-          notApplied && "text-muted-foreground line-through"
-        )}
-      >
-        <span className="text-muted-foreground">{item.label}</span>
-        {/* A boolean pill has no value text: its label alone says what is meant. */}
-        {item.value && <>: {item.value}</>}
-      </span>
-      {note && <FieldHint hint={note} label={item.label} />}
-      {tag}
+      {/* An ignored criterion's own note says why it is ignored, so it replaces the general reason. */}
+      {ignored ? (
+        <HintTooltip
+          text={note ?? ignoredTooltip ?? t("ignoredTooltip")}
+          openOnTap
+        >
+          {text}
+        </HintTooltip>
+      ) : (
+        text
+      )}
+      {note && !ignored && <FieldHint hint={note} label={item.label} />}
+      {item.status === "partial" && (
+        <HintTooltip text={t("partialTooltip")} openOnTap>
+          <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+            {t("partial")}
+          </Badge>
+        </HintTooltip>
+      )}
     </span>
   );
 }

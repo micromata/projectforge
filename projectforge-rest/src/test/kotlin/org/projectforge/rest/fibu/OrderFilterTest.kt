@@ -125,13 +125,36 @@ class OrderFilterTest {
         magicFilter.entries.add(entry("kunde.name"))
 
         val usage = OrderEntityRest.forecastFilterUsage(magicFilter)
-        assertEquals(listOf("positionsStatus", "projectManager"), usage.ignored)
+        assertEquals(listOf("status", "positionsStatus", "projectManager"), usage.ignored)
         assertEquals(listOf(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER), usage.replaced)
         assertEquals(listOf("positionsPaymentType"), usage.partial)
 
         val single = MagicFilter()
         single.entries.add(entry("positionsPaymentType", values = arrayOf("FESTPREISPAKET")))
         assertTrue(OrderEntityRest.forecastFilterUsage(single).partial.isEmpty())
+    }
+
+    /**
+     * The order's current state would shrink the invoiced and earlier years of the charts to the projects
+     * whose orders are still in that state, so the charts leave it out; the original filter is the list's.
+     */
+    @Test
+    fun `the forecast chart filter leaves the state criteria out`() {
+        val magicFilter = MagicFilter()
+        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("fakturiert", values = arrayOf(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT.name)))
+        magicFilter.entries.add(entry("kunde.name").also { it.value.value = "ACME" })
+
+        val chartFilter = OrderEntityRest.forecastChartFilter(magicFilter)
+        assertEquals(listOf("kunde.name"), chartFilter.entries.map { it.field })
+        val auftragFilter = OrderEntityRest.toAuftragFilter(chartFilter)
+        assertTrue(auftragFilter.auftragsStatuses.isEmpty())
+        assertEquals(AuftragFakturiertFilterStatus.ALL, auftragFilter.auftragFakturiertFilterStatus)
+        assertEquals(listOf("status", "fakturiert", "kunde.name"), magicFilter.entries.map { it.field })
+        // kunde.name is ignored anyway: toAuftragFilter doesn't translate it.
+        assertEquals(
+            listOf("status", "fakturiert", "kunde.name"), OrderEntityRest.forecastFilterUsage(magicFilter).ignored
+        )
     }
 
     private fun entry(
