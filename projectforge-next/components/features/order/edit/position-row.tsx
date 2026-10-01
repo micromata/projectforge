@@ -227,6 +227,7 @@ export function PositionRow({
         <TaskSelectField
           name={name("task")}
           label={label("task")}
+          linkCurrentToTimesheets
           className="md:col-span-3"
         />
         <TextAreaField
