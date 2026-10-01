@@ -314,12 +314,14 @@ export const INVOICE_PAGE = definePage<
       {
         id: "head",
         titleKey: "fibu.rechnung",
+        // The invoice itself in the two columns on the left: number, status, type, subject, attachment
+        // and period.
         fields: [
           // Only on either end of a cancellation: how it works, while it is new that it is not in effect
           // until saved, and on the cancelled invoice where its status comes from (see CancellationNotice).
-          { custom: CancellationNotice, span: 3 },
-          // Number and date in one cell of the three columns: neither needs a third of the page, and the
-          // two together are what identifies the invoice on paper.
+          { custom: CancellationNotice, span: 2 },
+          // Number and date in one cell: neither needs a column of its own, and the two together are
+          // what identifies the invoice on paper.
           {
             group: [
               // Editable except on a cancellation, whose number is the synthetic "<original>-S"
@@ -334,12 +336,8 @@ export const INVOICE_PAGE = definePage<
           { custom: OriginalInvoiceField },
           // Highlighted like the list's subject column, so both set the same focus.
           { name: "betreff", span: 2, emphasized: true },
-          { custom: AccountField },
-          { custom: CustomerProjectFields, span: 3 },
-          // Two free texts of the invoice head, both `TextArea` in Wicket and both about what the
-          // customer needs to see on it.
-          { name: "customerref1", rows: 2, span: 2 },
-          { name: "attachment", rows: 2 },
+          // A free text of the invoice head, `TextArea` in Wicket, about what the customer needs to see.
+          { name: "attachment", rows: 2, span: 2 },
           {
             // One label, two dates — the way the invoice states it. The positions may each have one of
             // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`). As on the
@@ -352,6 +350,13 @@ export const INVOICE_PAGE = definePage<
             longLabel: true,
             startsRow: true,
           },
+        ],
+        // Who the invoice is for as one block on the right, which stays together however narrow the
+        // page gets (see SectionDef.aside): project, customer, the customer's account and reference.
+        aside: [
+          { custom: CustomerProjectFields },
+          { custom: AccountField },
+          { name: "customerref1", rows: 2 },
         ],
       },
       {

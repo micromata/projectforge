@@ -101,15 +101,9 @@ export function CustomerProjectFields({ className }: { className?: string }) {
   }
 
   return (
-    // A grid of its own, with the columns and gaps of the section's: the two fields read as one row
-    // beside each other, aligned with the rows above and below, while the block itself takes the width
-    // its declaration gives it (`span: 3`, hence the className).
-    <div
-      className={cn(
-        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2",
-        className
-      )}
-    >
+    // Stacked, with the row gap of the section's grid: the two fields are the top two rows of the
+    // invoice's customer column (the head section's `aside`), one above the other like the rows below.
+    <div className={cn("grid grid-cols-1 gap-y-4", className)}>
       <EntityAutocompleteField
         name="project"
         label={t("fibu.projekt._")}

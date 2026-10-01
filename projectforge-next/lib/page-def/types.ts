@@ -206,8 +206,11 @@ export type ColumnDeclaration<Row, M extends EntityMetadata> =
   | PeriodColumn<M>;
 
 interface FieldBase {
-  /** Columns of the section's grid this field spans. */
-  span?: 1 | 2 | 3;
+  /**
+   * Columns of the section's grid this field spans. `4` only in a four-column main grid beside an aside
+   * (see SectionDef.mainColumns).
+   */
+  span?: 1 | 2 | 3 | 4;
   /**
    * Starts a new row of the section's grid, leaving the rest of the current one empty — for a field that
    * begins a group a reader is meant to see as one line (an order's three dates around the assignment,
@@ -368,6 +371,22 @@ export interface SectionDef<M extends EntityMetadata> {
    */
   visible?: (ctx: { data: Record<string, unknown> | undefined }) => boolean;
   fields?: FieldDeclaration<M>[];
+  /**
+   * Fields stacked as a column of their own at the right — the grid's third column — for a group a
+   * reader is meant to see as one block: an order's customer, project, reference and forecast.
+   *
+   * With an aside the [fields] take the two columns left of it (so a span of 2 is their widest), and the
+   * two parts are separate grids: narrowing the page never interleaves the aside's rows with the main
+   * ones, and below `md`, where everything stacks, the aside follows the main fields as one block.
+   */
+  aside?: FieldDeclaration<M>[];
+  /**
+   * Columns of the main grid beside an [aside]: 2 by default, or 4 — each column halved, so a line of
+   * three narrow fields (an order's three dates) shares its vertical lines with the two-column rows
+   * above and below it instead of starting at thirds. Four columns only from `lg`; below it each would
+   * be narrower than a date box, so the grid keeps two, where a span of 2 or 4 is the whole row.
+   */
+  mainColumns?: 2 | 4;
   /** Renders the whole body itself — a book's loan block, its attachments. */
   render?: (ctx: { id: number | null }) => ReactNode;
   /**
