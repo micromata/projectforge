@@ -8,13 +8,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { DateInput } from "@/components/shared/date-input";
 import { NumberBox } from "@/components/shared/form/number-box";
 import { HintTooltip } from "@/components/shared/hint-tooltip";

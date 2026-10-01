@@ -2,13 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { Switch } from "@/components/ui/switch";
 import { EntityAutocomplete } from "@/components/shared/entity-autocomplete";
 import { FieldHint } from "@/components/shared/form/field-hint";

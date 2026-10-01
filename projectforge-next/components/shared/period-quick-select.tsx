@@ -3,13 +3,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Timer01Icon } from "@hugeicons/core-free-icons";
 import { useTranslations } from "next-intl";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { CUSTOM_PERIOD_KIND, type PeriodKind } from "@/lib/date-period";
 import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
