@@ -1428,9 +1428,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * Gives every posted row that has no id yet its number: the positions of the invoice, and the cost
          * assignments of each position.
          *
-         * Both are `@OrderColumn`s the client cannot assign, and both identify a row inside its collection:
-         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` with `@ListIndexBase(1)`, and
-         * `KostZuweisungDO.index` is the order column of a position's assignments (0-based, as
+         * Both are numbers the client cannot assign, and both identify a row inside its collection:
+         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` (1-based), and `KostZuweisungDO.index`
+         * sorts a position's assignments and is part of its unique constraint (0-based, as
          * `AbstractRechnungsPositionDO.addKostZuweisung` assigns it).
          *
          * The next free number is taken from the **stored** rows only: whatever number the client gave a new

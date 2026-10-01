@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
@@ -223,8 +222,10 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         mappedBy = "rechnung",
         targetEntity = RechnungsPositionDO::class,
     )
-    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
-    @get:ListIndexBase(1)
+    // Sorted by the position number, not an @OrderColumn on it: as an order column a single gap in the numbers
+    // (1, 3) loaded as a null hole, and the invoice could no longer be opened. See also
+    // RechnungsPositionDO.kostZuweisungen. The numbers are assigned by addPosition and the edit forms.
+    @get:OrderBy("number")
     override var positionen: MutableList<RechnungsPositionDO>? = null
 
     override val abstractPositionen: List<AbstractRechnungsPositionDO>?

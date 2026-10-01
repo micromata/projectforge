@@ -44,7 +44,7 @@ const entityRef = z
  * (`RechnungDO.positionen` has `autoUpdateCollectionEntries` but no `@SoftDeleteCollection`; only
  * `EingangsrechnungDO.positionen` has that).
  *
- * `number` travels back untouched: it is `@OrderColumn` with `@ListIndexBase(1)` and part of
+ * `number` travels back untouched: the positions are sorted by it (starting with 1) and it is part of
  * `UNIQUE(rechnung_fk, number)`, so renumbering an existing position would collide or read as
  * "removed and added".
  */

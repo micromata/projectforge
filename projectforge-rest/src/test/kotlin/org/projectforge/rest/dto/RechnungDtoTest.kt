@@ -47,7 +47,7 @@ import java.time.LocalDate
  * `RechnungDO.positionen` nor `RechnungsPositionDO.kostZuweisungen` has `@SoftDeleteCollection` (only
  * `EingangsrechnungDO.positionen` does). So a round trip that loses a row's number, its `deleted` flag or its
  * back reference costs data and history, silently — and frees a number the unique constraint
- * `UNIQUE(rechnung_fk, number)` and the two order columns would then collide with.
+ * `UNIQUE(rechnung_fk, number)` and the one on the cost assignment index would then collide with.
  *
  * That is what these tests pin down, together with the numbering of new rows and the sums an unsaved invoice
  * has to answer (the recalculate endpoint computes them off the posted state, which no cache knows).

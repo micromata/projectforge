@@ -34,8 +34,8 @@ import java.math.BigDecimal
  *
  * The incoming sibling of [RechnungsPosition], trimmed: it has no order position and no period of
  * performance — an incoming invoice states neither. [number] is what identifies the position inside its
- * invoice, `EingangsrechnungsPositionDO` carrying the same `@OrderColumn(name = "number")` with
- * `@ListIndexBase(1)` and the unique constraint on (eingangsrechnung_fk, number).
+ * invoice, `EingangsrechnungDO.positionen` being sorted by it the same way and `EingangsrechnungsPositionDO`
+ * carrying the unique constraint on (eingangsrechnung_fk, number).
  *
  * Deleted positions stay in the list with `deleted = true`; unlike the outgoing invoice,
  * `EingangsrechnungDO.positionen` carries `@SoftDeleteCollection`, so a position missing from the posted
