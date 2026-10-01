@@ -13,6 +13,7 @@ import { InvoiceEditBanner } from "./edit/invoice-edit-banner";
 import { InvoiceExportMenu } from "./edit/invoice-export-menu";
 import { InvoiceNumberField } from "./edit/invoice-number-field";
 import { OriginalInvoiceField } from "./edit/original-invoice-field";
+import { eInvoiceAddressFields } from "@/components/shared/invoice/e-invoice-address-fields";
 import { CancellationNotice } from "./edit/cancellation-notice";
 import { PaymentTermsFields } from "./edit/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
@@ -316,15 +317,14 @@ export const INVOICE_PAGE = definePage<
         id: "head",
         titleKey: "fibu.rechnung",
         highlighted: true,
-        // The invoice itself in the two columns on the left: number, status, type, subject, attachment
-        // and period.
+        // The invoice itself in the two columns on the left: number, status, type, period, subject and
+        // attachment.
         fields: [
-          // Only on either end of a cancellation: how it works, while it is new that it is not in effect
-          // until saved, and on the cancelled invoice where its status comes from (see CancellationNotice).
-          { custom: CancellationNotice, span: 2 },
           // Number and date in one cell: neither needs a column of its own, and the two together are
-          // what identifies the invoice on paper.
+          // what identifies the invoice on paper. Packed, so the date sits right beside the number
+          // instead of at the far end of the cell the number field would otherwise stretch across.
           {
+            packed: true,
             group: [
               // Editable except on a cancellation, whose number is the synthetic "<original>-S"
               // (see InvoiceNumberField).
@@ -334,24 +334,24 @@ export const INVOICE_PAGE = definePage<
           },
           { name: "status", emphasized: true },
           { name: "typ" },
-          // Only on a cancellation: the invoice it cancels (see OriginalInvoiceField).
-          { custom: OriginalInvoiceField },
-          // Highlighted like the list's subject column, so both set the same focus.
-          { name: "betreff", span: 2, emphasized: true },
-          // A free text of the invoice head, `TextArea` in Wicket, about what the customer needs to see.
-          { name: "attachment", rows: 2, span: 2 },
           {
-            // One label, two dates — the way the invoice states it. The positions may each have one of
-            // their own; this is the default they inherit (`PeriodOfPerformanceType.SEEABOVE`). As on the
-            // order, a term picks the end off the begin and pages the whole period on.
+            // Beside the type. One label, two dates — the way the invoice states it. The positions may
+            // each have one of their own; this is the default they inherit
+            // (`PeriodOfPerformanceType.SEEABOVE`). As on the order, a term picks the end off the begin
+            // and pages the whole period on.
             periodLabelKey: "fibu.periodOfPerformance._",
             begin: "periodOfPerformanceBegin",
             end: "periodOfPerformanceEnd",
             periodKinds: TERM_KIND_IDS,
             paging: true,
             longLabel: true,
-            startsRow: true,
           },
+          // Only on a cancellation: the invoice it cancels (see OriginalInvoiceField).
+          { custom: OriginalInvoiceField },
+          // Highlighted like the list's subject column, so both set the same focus.
+          { name: "betreff", span: 2, emphasized: true },
+          // A free text of the invoice head, `TextArea` in Wicket, about what the customer needs to see.
+          { name: "attachment", rows: 2, span: 2 },
         ],
         // Who the invoice is for as one block on the right, which stays together however narrow the
         // page gets (see SectionDef.aside): project, customer, the customer's account and reference.
@@ -394,22 +394,24 @@ export const INVOICE_PAGE = definePage<
         // The address of the recipient as the e-invoice needs it — Wicket's `fibu.konto.eInvoice`
         // fieldset, whose fields are named after the account's they are prefilled from.
         titleKey: "fibu.konto.eInvoice",
-        fields: [
-          { name: "customerContactPerson" },
-          { name: "customerAddress", rows: 2 },
-          { name: "customerZipCode", startsRow: true },
-          { name: "customerCity" },
-          { name: "customerCountry" },
-          { name: "customerVatId", startsRow: true },
-          {
-            name: "customerLeitwegId",
-            hintKey: "fibu.konto.leitwegId.tooltip",
+        // The layout an account's address block has as well (see eInvoiceAddressFields): the postal
+        // address on the left, what routes the e-invoice on the right. The bank account is the select
+        // over the configured accounts, as Wicket has it — custom because the options are application
+        // configuration, which no field metadata can carry.
+        ...eInvoiceAddressFields<typeof RECHNUNG_METADATA>({
+          names: {
+            contactPerson: "customerContactPerson",
+            street: "customerAddress",
+            zipCode: "customerZipCode",
+            city: "customerCity",
+            country: "customerCountry",
+            vatId: "customerVatId",
+            leitwegId: "customerLeitwegId",
+            eInvoiceEmail: "customerEInvoiceEmail",
           },
-          { name: "customerEInvoiceEmail" },
-          // A select over the configured bank accounts, as Wicket has it — custom because the options
-          // are application configuration, which no field metadata can carry.
-          { custom: SellerBankAccountField, startsRow: true },
-        ],
+          sellerBankAccount: SellerBankAccountField,
+          streetRows: 2,
+        }),
         // Below those very fields: the invoice PDF, what is still missing for an e-invoice, and the three
         // buttons — the fields above are what the checklist is about (see EInvoiceSection).
         footer: EInvoiceSection,
@@ -426,5 +428,9 @@ export const INVOICE_PAGE = definePage<
       },
     ],
     editBanner: InvoiceEditBanner,
+    // Only on either end of a cancellation, above the head rather than one of its fields: how it works,
+    // while it is new that it is not in effect until saved, and on the cancelled invoice where its status
+    // comes from (see CancellationNotice).
+    editIntro: CancellationNotice,
   },
 });

@@ -22,6 +22,12 @@ export interface EditPageShellProps {
    */
   sections: (ReactNode | ((active: boolean) => ReactNode))[];
   /**
+   * Above the first card and inside the same scrolled column — a note about the whole entry rather than
+   * one of its sections (an invoice's cancellation notice). Scrolls away with the cards, unlike the
+   * sticky [banner], and has no tab of its own for the same reason as [belowSections].
+   */
+  aboveSections?: ReactNode;
+  /**
    * Below the last card and inside the same scrolled column — what belongs to the save rather than to
    * the entity: the change comment of a historizable entry (see HistoryUserCommentField).
    *
@@ -47,6 +53,7 @@ export function EditPageShell({
   header,
   tabs,
   sections,
+  aboveSections,
   belowSections,
   actions,
   banner,
@@ -134,6 +141,7 @@ export function EditPageShell({
           }}
           className="flex-1 overflow-y-auto bg-muted/30 px-6 pb-6"
         >
+          {aboveSections && <div className="pt-4">{aboveSections}</div>}
           {sections.map((section, i) => (
             <div
               key={tabs[i]?.id ?? i}

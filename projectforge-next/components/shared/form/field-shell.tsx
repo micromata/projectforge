@@ -114,8 +114,13 @@ export function FieldShell({
           </FieldLabel>
           {/* Not on a field the user cannot fill in: a value only the backend supplies (an order's
               number) is mandatory in the database but never the reader's obligation. */}
+          {/* `leading-none`: the marker inherits the field's larger text, whose line box would make
+              the label row of a required field taller than its neighbours' and push its box down. */}
           {required && !readOnly && (
-            <span className="ml-0.5 text-primary" aria-hidden="true">
+            <span
+              className="ml-0.5 leading-none text-primary"
+              aria-hidden="true"
+            >
               *
             </span>
           )}

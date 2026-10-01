@@ -86,6 +86,7 @@ export function EntityEditPage<
           tabs={regions.tabs}
           tabPanels={regions.tabPanels}
           banner={regions.banner}
+          aboveSections={regions.aboveSections}
           sections={regions.sections}
           belowSections={regions.belowSections}
           actions={regions.actions}

@@ -17,7 +17,7 @@ import type { InvoiceValues } from "../invoice-schema";
 import type { InvoiceDetail } from "../types";
 
 /**
- * Atop the form, the two ends of a cancellation each say what it means:
+ * Above the form's first fieldset, the two ends of a cancellation each say what it means:
  * - A cancellation: how it works — negated positions, the number "<original>-S", the cancelled invoice
  *   set to STORNIERT on save (`RechnungDao`), restored when the cancellation is deleted. While it is new
  *   — prepared by "Create cancellation" or typed by hand — it first says, in the warning colour, that

@@ -61,6 +61,7 @@ export interface EditRegions {
   tabs: EditPageTab[];
   tabPanels: Record<string, ReactNode>;
   sections: (ReactNode | ((active: boolean) => ReactNode))[];
+  aboveSections?: ReactNode;
   belowSections?: ReactNode;
   banner?: ReactNode;
   actions: ReactNode;
@@ -366,6 +367,8 @@ export function EntityEditBody<
           {edit.editBanner && <edit.editBanner />}
         </>
       ) : undefined,
+    // Above the sections: the entity's own note about the whole entry (an invoice's cancellation notice).
+    aboveSections: edit.editIntro ? <edit.editIntro /> : undefined,
     // Below the sections: the entity's own footer note (the legacy `layoutBelowActions`, e.g. a time
     // sheet's AI-savings hint) and, only where the history takes a comment and the user may write, the
     // change-comment field — a comment on a save that cannot happen is nothing to ask for (see
