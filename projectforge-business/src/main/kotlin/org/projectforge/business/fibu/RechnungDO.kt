@@ -70,6 +70,8 @@ import java.time.LocalDate
         name = RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
         query = "select r.typ as typ, o.id as originalId from RechnungDO r left join r.originalRechnung o where r.id=:id"
     ),
+    NamedQuery(name = RechnungDO.SELECT_STATUS, query = "select status from RechnungDO where id=:id"),
+    NamedQuery(name = RechnungDO.SELECT_NUMMER, query = "select nummer from RechnungDO where id=:id"),
 )
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, AttachmentsInfo {
     override val displayName: String
@@ -326,6 +328,8 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO>, Attachment
         internal const val FIND_BY_NUMMER = "RechnungDO_FindByNummer"
         internal const val FIND_CANCELLATIONS_OF = "RechnungDO_FindCancellationsOf"
         internal const val SELECT_TYP_AND_ORIGINAL_ID = "RechnungDO_SelectTypAndOriginalId"
+        internal const val SELECT_STATUS = "RechnungDO_SelectStatus"
+        internal const val SELECT_NUMMER = "RechnungDO_SelectNummer"
 
         /** Appended to the number of the original to form the number of a cancellation invoice. */
         const val CANCELLATION_SUFFIX = "-S"

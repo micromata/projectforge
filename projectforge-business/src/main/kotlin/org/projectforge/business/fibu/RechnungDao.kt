@@ -211,8 +211,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             checkStoredCancellationUnchanged(obj)
         }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = find(obj.id, checkAccess = false)
-            if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
+            // A projection, not find(): find() detaches the managed instance this update is just writing, and the
+            // merge of the detached graph then appended every cost assignment past max(index) (see
+            // RechnungsPositionDO.kostZuweisungen).
+            val storedStatus = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_STATUS,
+                RechnungStatus::class.java,
+                Pair("id", obj.id),
+            )
+            if (RechnungStatus.GEPLANT == storedStatus && RechnungStatus.GEPLANT != obj.status) {
                 obj.nummer = getNextNumber(obj)
 
                 val day = now()
@@ -529,10 +536,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     fun getNextNumber(rechnung: RechnungDO?): Int {
         if (rechnung?.id != null) {
-            val orig = find(rechnung.id, checkAccess = false)
-            if (orig!!.nummer != null) {
-                rechnung.nummer = orig.nummer
-                return orig.nummer!!
+            // A projection, not find(): called by onInsertOrModify, where find() would detach the invoice being written.
+            val storedNummer = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_NUMMER,
+                Int::class.javaObjectType,
+                Pair("id", rechnung.id),
+            )
+            if (storedNummer != null) {
+                rechnung.nummer = storedNummer
+                return storedNummer
             }
         }
         return persistenceService.getNextNumber("RechnungDO", "nummer", START_NUMBER)
