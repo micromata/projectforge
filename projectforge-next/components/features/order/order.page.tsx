@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { AttachmentSection } from "./edit/attachment-section";
@@ -88,6 +89,14 @@ export const ORDER_PAGE = definePage<
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
+      // A free text customer is marked as such, the way the edit form marks it (EntityOrTextField).
+      cell: (ctx) => (
+        <FreeTextNameCell
+          name={ctx.row.original.customer?.displayName}
+          freeText={!!ctx.row.original.kundeText}
+          highlight={ctx.table.options.meta?.highlight}
+        />
+      ),
       referenceKey: "customer",
       size: 160,
       pinned: "left",

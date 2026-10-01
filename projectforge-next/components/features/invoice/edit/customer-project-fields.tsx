@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
-import { InputField } from "@/components/shared/form/input-field";
+import { EntityOrTextField } from "@/components/shared/form/entity-or-text-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { fetchOne } from "@/lib/rs/client";
 import { cn } from "@/lib/utils";
@@ -48,8 +48,8 @@ const ADDRESS_FIELDS: [keyof AccountDetail, string][] = [
 ];
 
 /**
- * The project, the customer and the free-text customer of an invoice — three fields that only make sense
- * together.
+ * The project and the customer of an invoice — the customer either picked from the list or typed as free text
+ * (see EntityOrTextField) — fields that only make sense together.
  *
  * Custom rather than declared, twice over: `customer` and `project` reference `KundeDO`/`ProjektDO`, for
  * which there is no `UIDataType`, so the generated metadata cannot carry them however the entity is
@@ -101,12 +101,12 @@ export function CustomerProjectFields({ className }: { className?: string }) {
   }
 
   return (
-    // A grid of its own, with the columns and gaps of the section's: the three fields read as one row
+    // A grid of its own, with the columns and gaps of the section's: the two fields read as one row
     // beside each other, aligned with the rows above and below, while the block itself takes the width
     // its declaration gives it (`span: 3`, hence the className).
     <div
       className={cn(
-        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3",
+        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2",
         className
       )}
     >
@@ -117,19 +117,16 @@ export function CustomerProjectFields({ className }: { className?: string }) {
         metadataLess
         onPicked={(project) => void fillFromProject(project)}
       />
-      <EntityAutocompleteField
-        name="customer"
+      <EntityOrTextField
+        entityName="customer"
+        textName="kundeText"
         label={t("fibu.kunde._")}
         entity="customer"
         metadataLess
         onPicked={(customer) => void fillFromCustomer(customer)}
-      />
-      <InputField
-        name="kundeText"
-        label={t("fibu.kunde.text")}
-        // Says what the field is for: a customer that has no record of its own. The backend drops it
-        // when a customer *is* chosen (`OutgoingInvoiceEntityRest.transformForDB`), so the two cannot
-        // disagree.
+        // Says what the free text is for: a customer that has no record of its own, which may differ
+        // from the project's. Picking one clears the other, and the backend drops the free text beside a
+        // customer as well (`OutgoingInvoiceEntityRest.transformForDB`), so the two cannot disagree.
         hint={t("fibu.rechnung.hint.kannVonProjektKundenAbweichen")}
       />
     </div>

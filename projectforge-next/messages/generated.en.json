@@ -1047,6 +1047,11 @@
     "kunde": {
       "_": "Customer",
       "division": "Division",
+      "freeText": {
+        "_": "Free text",
+        "tooLong": "Free text too long (max. {arg0} characters)",
+        "use": "Use as free text: “{arg0}”"
+      },
       "identifier": "Identifier",
       "konto": {
         "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."

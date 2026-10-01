@@ -1047,6 +1047,11 @@
     "kunde": {
       "_": "Kunde",
       "division": "Bereich",
+      "freeText": {
+        "_": "Freitext",
+        "tooLong": "Freitext zu lang (max. {arg0} Zeichen)",
+        "use": "Als Freitext übernehmen: „{arg0}“"
+      },
       "identifier": "Kurzbezeichner",
       "konto": {
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."

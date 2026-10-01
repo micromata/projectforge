@@ -180,6 +180,8 @@ export interface OrderListRow {
   nummer?: number | null;
   /** `displayName` — of the customer, or the free text one of an order without a customer — plus `deleted`. */
   customer?: Pick<EntityRefDto, "displayName" | "deleted"> | null;
+  /** Set only when [customer] is the free text one, so the list can mark it (see FreeTextNameCell). */
+  kundeText?: string | null;
   /** `displayName` and `deleted`, see [customer]. */
   project?: Pick<EntityRefDto, "displayName" | "deleted"> | null;
   titel?: string | null;

@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 import { AccountField } from "./edit/account-field";
@@ -105,6 +106,14 @@ export const INVOICE_PAGE = definePage<
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
+      // A free text customer is marked as such, the way the edit form marks it (EntityOrTextField).
+      cell: (ctx) => (
+        <FreeTextNameCell
+          name={ctx.row.original.customer?.displayName}
+          freeText={!!ctx.row.original.kundeText}
+          highlight={ctx.table.options.meta?.highlight}
+        />
+      ),
       referenceKey: "customer",
       size: 200,
       pinned: "left",
