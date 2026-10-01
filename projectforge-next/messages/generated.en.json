@@ -1107,10 +1107,7 @@
         "add": "Add new customer",
         "edit": "Edit customer",
         "heading": "Customers",
-        "list": {
-          "_": "List of customers",
-          "select": "Choose customer"
-        }
+        "list": "List of customers"
       },
       "validation": {
         "existingCustomerNr": "A customer with this customer number already exists"

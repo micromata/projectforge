@@ -212,16 +212,8 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         }
         customerTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.select")));
         add(customerTextField);
-        final SubmitLink selectButton = new SubmitLink("select") {
-            @Override
-            public void onSubmit() {
-                setResponsePage(new CustomerListPage(caller, selectProperty));
-            }
-        };
-        selectButton.setDefaultFormProcessing(false);
-        add(selectButton);
-        selectButton
-                .add(new TooltipImage("selectHelp", WebConstants.IMAGE_KUNDE_SELECT, getString("fibu.tooltip.selectKunde")));
+        // No select button: the customer list has been migrated to projectforge-next, so there is no Wicket list
+        // page to select from any more. The autocompletion field and the favorites remain.
         final SubmitLink unselectButton = new SubmitLink("unselect") {
             @Override
             public void onSubmit() {
