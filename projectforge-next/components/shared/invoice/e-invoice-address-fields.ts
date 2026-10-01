@@ -17,7 +17,7 @@ export interface EInvoiceAddressNames<M extends EntityMetadata> {
 /**
  * The fields of an "E-Rechnung" section, laid out the same wherever the address block appears — on an
  * account, where it is kept, and on an outgoing invoice, which is prefilled from it (see
- * CustomerProjectFields' `ADDRESS_FIELDS`).
+ * `OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount`).
  *
  * The postal address on the left, as it reads on an envelope: contact person, street, then zip code,
  * city and country in one line (a four-column grid, so the zip code and the country stay narrow and the

@@ -155,7 +155,7 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         // `IllegalStateException`, i.e. a 500, and an export URL can be called without asking `validate` first.
         listOf(
             outgoingInvoiceEntityRest.exportXRechnung(id),
-            outgoingInvoiceEntityRest.exportZugferd(id),
+            outgoingInvoiceEntityRest.exportZugferd(id, null),
         ).forEach { response ->
             assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
             val body = response.body as String
@@ -231,7 +231,7 @@ class OutgoingInvoiceEInvoiceTest : AbstractTestBase() {
         logon(TEST_USER)
         assertThrows<AccessException> { outgoingInvoiceEntityRest.validateEInvoice(id) }
         assertThrows<AccessException> { outgoingInvoiceEntityRest.exportXRechnung(id) }
-        assertThrows<AccessException> { outgoingInvoiceEntityRest.exportZugferd(id) }
+        assertThrows<AccessException> { outgoingInvoiceEntityRest.exportZugferd(id, null) }
         // The save is one of the e-invoice functions and guarded by the same groups, although it writes what
         // the regular save writes: the button that triggers it lives in the e-invoice section.
         assertThrows<AccessException> { post(dto) }

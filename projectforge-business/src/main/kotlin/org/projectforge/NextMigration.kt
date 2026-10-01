@@ -268,14 +268,17 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from Wicket (MenuItemDefId.CUSTOMER_LIST pointed at wa/customerList; the React page exists
-        // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"), so the way
-        // back leads to Wicket. Hand built rather than generic so the list keeps its filter row, saved
-        // filters, gear and Excel export. Customer favorites (UserPrefArea.KUNDE_FAVORITE) are not migrated.
+        // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"). Hand built
+        // rather than generic so the list keeps its filter row, saved filters, gear and Excel export. Customer
+        // favorites (UserPrefArea.KUNDE_FAVORITE) are not migrated. The Wicket pages have been removed: the way
+        // back is no longer offered, and legacyApp stays only so OrphanedLinkFilter still redirects bookmarked
+        // wa/customerList / wa/customerEdit links (the mount points follow the convention).
         "customer" to NextPage(
             route = "customer",
             editRoute = "customer/$ID_PLACEHOLDER",
             newEntryRoute = "customer/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
         // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only

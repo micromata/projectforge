@@ -216,6 +216,42 @@ class InvoiceServiceTest : AbstractTestBase() {
   }
 
   /**
+   * A cancellation invoice uses the template of the invoice: `isStorno=true` replaces the type by a heading
+   * naming the cancelled invoice by number and date, and drops the payment sentence (discount or not).
+   */
+  @Test
+  fun invoiceWordDocumentOfCancellationTest() {
+    val original = discountInvoice()
+    val cancellation = discountInvoice().also {
+      it.nummer = null
+      it.typ = RechnungTyp.CANCELLATION
+      it.originalRechnung = original
+      it.datum = LocalDate.of(2024, Month.JULY, 1)
+    }
+    RechnungCalculator.calculate(cancellation, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(cancellation, null))
+    val originalDate = DateTimeFormatter.instance().getFormattedDate(original.datum)
+    Assertions.assertTrue(text.contains("Stornorechnung zur Rechnung 12345 vom $originalDate"), text)
+    Assertions.assertTrue(text.contains("12345-S"), "The document number of the cancellation: $text")
+    Assertions.assertFalse(text.contains("Überweisung"), "No payment sentence: $text")
+    Assertions.assertTrue(text.contains("Zusammenarbeit"), text)
+    Assertions.assertFalse(text.contains("isStorno") || text.contains("isSkonto"), text)
+  }
+
+  /**
+   * An ordinary invoice keeps its type heading, and no trace of the cancellation heading.
+   */
+  @Test
+  fun invoiceWordDocumentIsNoCancellationTest() {
+    val invoice = discountInvoice()
+    RechnungCalculator.calculate(invoice, useCaches = false)
+    val text = documentText(invoiceService.getInvoiceWordDocument(invoice, null))
+    Assertions.assertFalse(text.contains("Stornorechnung"), text)
+    Assertions.assertFalse(text.contains("Originalrechnung"), text)
+    Assertions.assertTrue(text.contains("Überweisung"), text)
+  }
+
+  /**
    * The Word-to-PDF conversion the ZUGFeRD export relies on (see EInvoiceExportService.generateInvoicePdf).
    * xdocreport is compiled against com.lowagie:itext:2.1.7; a different com.lowagie.text implementation on the
    * classpath (OpenPDF, whose PdfPTable.addCell returns PdfPCell instead of void) fails here with a

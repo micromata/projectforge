@@ -1107,10 +1107,7 @@
         "add": "Add new customer",
         "edit": "Edit customer",
         "heading": "Customers",
-        "list": {
-          "_": "List of customers",
-          "select": "Choose customer"
-        }
+        "list": "List of customers"
       },
       "validation": {
         "existingCustomerNr": "A customer with this customer number already exists"
@@ -1291,6 +1288,10 @@
           "numberMissing": "The invoice number is missing. It is assigned as soon as the invoice leaves the status \"planned\".",
           "sellerNotConfigured": "The seller of this installation is not configured completely (projectforge.einvoice.seller.*). An administrator has to complete it."
         },
+        "fillFromAccount": "Fill in from account",
+        "fillFromAccountDone": "{arg0} field(s) filled in from the account.",
+        "fillFromAccountHint": "Fills in the empty fields of this section from the account of the invoice, else from the account of the customer. Fields already filled in are kept.",
+        "fillFromAccountNothing": "Nothing to fill in: the account has no values for the empty fields.",
         "saveAndOpen": "Save and e-invoice",
         "saveAndXRechnung": "Save and XRechnung",
         "saveAndZugferd": "Save and ZUGFeRD",

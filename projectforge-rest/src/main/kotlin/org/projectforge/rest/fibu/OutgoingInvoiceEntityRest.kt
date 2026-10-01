@@ -30,10 +30,12 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
 import org.projectforge.business.fibu.EInvoiceExportService
+import org.projectforge.business.fibu.BankAccountConfig
 import org.projectforge.business.fibu.EInvoiceSellerConfig
 import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungCalculator
@@ -274,9 +276,41 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * invoice is what a clone is for.
      *
      * @see prepareInvoiceClone for what a clone is and isn't.
+     *
+     * The e-invoice fields the original left empty are filled from the account here as well: the recurring
+     * invoice is mostly an old one, from before the e-invoice, and a clone already names its customer — so
+     * the fill the form does when a customer is picked never comes. (The cancellation is built through here
+     * too, which is right for it: it is addressed to the same recipient.)
      */
     override fun prepareClone(dto: Rechnung): Rechnung {
-        return prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
+        val clone = prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
+        fillEInvoiceFieldsFromAccount(clone, eInvoiceAccountOf(clone), sellerConfig.bankAccounts)
+        return clone
+    }
+
+    /**
+     * The given (unsaved) invoice with the e-invoice fields it leaves empty filled from its account — the
+     * "fill from account" button of the e-invoice section, and the fill of the form when a customer or an
+     * account is picked. Nothing is written; the client takes the e-invoice fields from the answer.
+     *
+     * Read only, so the select access of the category is what has to be checked here, as for [getFormDefaults].
+     *
+     * @see fillEInvoiceFieldsFromAccount for which account and which fields.
+     */
+    @PostMapping("eInvoiceFromAccount")
+    fun getEInvoiceFromAccount(@RequestBody dto: Rechnung): Rechnung {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        fillEInvoiceFieldsFromAccount(dto, eInvoiceAccountOf(dto), sellerConfig.bankAccounts)
+        return dto
+    }
+
+    /**
+     * The account the e-invoice fields of [dto] are taken from: the invoice's own, else its customer's — the
+     * order `EInvoiceExportService.buildBuyer` reads them in, too.
+     */
+    private fun eInvoiceAccountOf(dto: Rechnung): KontoDO? {
+        return kontoCache.getKonto(dto.konto?.id)
+            ?: kontoCache.getKontoIfNotInitialized(kundeCache.getKunde(dto.customer?.id)?.konto)
     }
 
     /**
@@ -713,15 +747,21 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
      * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
      * this endpoint could not work on a posted state even if it wanted to.
+     *
+     * `variant` chooses the Word template for that conversion, as it does for [exportInvoiceWord]; where an
+     * invoice PDF was uploaded it has no effect.
      */
     @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
-    fun exportZugferd(@PathVariable("id") id: Long): ResponseEntity<*> {
+    fun exportZugferd(
+        @PathVariable("id") id: Long,
+        @RequestParam("variant", required = false) variant: String?,
+    ): ResponseEntity<*> {
         val invoice = checkEInvoiceReadAccess(id)
-        log.info { "Exporting invoice #$id as a ZUGFeRD PDF." }
+        log.info { "Exporting invoice #$id as a ZUGFeRD PDF, variant='${variant ?: ""}'." }
         return exportEInvoice(invoice) {
             RestUtils.downloadFile(
                 eInvoiceExportService.getZUGFeRDExportFilename(invoice),
-                eInvoiceExportService.exportAsZUGFeRD(invoice),
+                eInvoiceExportService.exportAsZUGFeRD(invoice, variant),
             )
         }
     }
@@ -1416,6 +1456,42 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             dto.cancellationInvoice = null
             dto.cancellable = false
             return dto
+        }
+
+        /**
+         * Fills the e-invoice fields [dto] leaves empty from [account] — and only those: an invoice may name a
+         * different contact or address on purpose, and overwriting it would quietly undo that.
+         *
+         * The bank account is the one exception to a plain copy: the account names it by its configured
+         * *name* (`KontoDO.sellerBankAccountName`), the invoice stores its IBAN. Taken only where the name is
+         * unambiguous, since nothing makes the configured names unique, and of two accounts of the same name
+         * either guess could send the payment to the wrong one.
+         *
+         * `internal` and in the companion object for the reason [prepareInvoiceClone] is: testable without a
+         * Spring context.
+         */
+        internal fun fillEInvoiceFieldsFromAccount(
+            dto: Rechnung,
+            account: KontoDO?,
+            bankAccounts: List<BankAccountConfig>,
+        ) {
+            account ?: return
+            fun fill(current: String?, value: String?, set: (String) -> Unit) {
+                if (current.isNullOrBlank() && !value.isNullOrBlank()) set(value)
+            }
+            fill(dto.customerContactPerson, account.contactPerson) { dto.customerContactPerson = it }
+            fill(dto.customerAddress, account.street) { dto.customerAddress = it }
+            fill(dto.customerZipCode, account.zipCode) { dto.customerZipCode = it }
+            fill(dto.customerCity, account.city) { dto.customerCity = it }
+            fill(dto.customerCountry, account.country) { dto.customerCountry = it }
+            fill(dto.customerVatId, account.vatId) { dto.customerVatId = it }
+            fill(dto.customerLeitwegId, account.leitwegId) { dto.customerLeitwegId = it }
+            fill(dto.customerEInvoiceEmail, account.eInvoiceEmail) { dto.customerEInvoiceEmail = it }
+            val bankAccountName = account.sellerBankAccountName
+            if (!bankAccountName.isNullOrBlank()) {
+                val iban = bankAccounts.filter { it.name == bankAccountName }.singleOrNull()?.iban
+                fill(dto.sellerBankAccount, iban) { dto.sellerBankAccount = it }
+            }
         }
 
         /**
