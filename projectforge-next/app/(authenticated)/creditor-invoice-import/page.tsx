@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { CreditorInvoiceImport } from "@/components/features/creditor-invoice-import/creditor-invoice-import";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * The incoming-invoice (Kreditor) CSV/DATEV import (`/next/creditor-invoice-import`), reached from the
@@ -20,7 +21,7 @@ export default function CreditorInvoiceImportPage() {
     <PageShell>
       <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
         <h1 className="text-lg font-bold tracking-tight">
-          {t("fibu.eingangsrechnung.import.title")}
+          {t(leafKeyOf("fibu.eingangsrechnung.import.title", t.has))}
         </h1>
         <div className="flex-1" />
         {/* The way back to the still-live Wicket/React upload page (uploadIncomingInvoices),

@@ -61,7 +61,7 @@ export function DeclaredSection<M extends EntityMetadata>({
 
   if (!section.collapsed) {
     return (
-      <SectionCard>
+      <SectionCard className={cn(section.highlighted && "bg-primary/5")}>
         <SectionHeader title={title} trailing={actions} />
         {body}
       </SectionCard>

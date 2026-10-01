@@ -9,6 +9,7 @@ import { ImportPreviewTable } from "./import-preview-table";
 import { ImportStatisticsLine } from "./import-statistics-line";
 import { selectableIds } from "./import-model";
 import { useImport } from "./use-import";
+import { leafKeyOf } from "@/lib/leaf-key";
 import type { ImportConfig } from "./import-types";
 
 interface Props {
@@ -29,7 +30,9 @@ export function ImportFeature({ config }: Props) {
   if (!imp.hasStorage) {
     return (
       <SectionCard className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">{t(config.titleKey)}</p>
+        <p className="text-sm text-muted-foreground">
+          {t(leafKeyOf(config.titleKey, t.has))}
+        </p>
         <ImportDropStep
           config={config}
           onFile={(file) => imp.upload.mutate(file)}

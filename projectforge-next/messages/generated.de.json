@@ -876,8 +876,31 @@
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },
     "eingangsrechnung": {
+      "_": "Kreditorenrechnung",
       "import": {
-        "title": "Kreditorenrechnungen hochladen"
+        "description": "## Import von Kreditorenrechnungen\nHier können Kreditorenrechnungen im CSV-Format (.csv) aus Datev importiert werden.",
+        "headerOnly": {
+          "newInvoicesSkipped": "Neue Rechnungen können nicht über diese Datei angelegt werden. Bitte verwende den Import mit Rechnungspositionen. {arg0} neue Rechnung(en) werden ignoriert."
+        },
+        "job": {
+          "title": "Importiere Kreditorenrechnungen"
+        },
+        "templateInfo": "## Beschreibung:\n- Diese Dateien werden durch DATEV erzeugt.\n- Der Import erfolgt in zwei Schritten, die beide nacheinander für **neue** Rechnungen durchgeführt werden müssen.\n- Jederzeit können die Rechnungen oder Rechnungspositionen unabhängig voneinander erneut importiert werden, um die Daten zu aktualisieren.\n- ProjectForge erkennt automatisch, ob Rechnungen oder Positionen eingelesen werden.\n- Der Export erfolgt jeweils am besten für **einzelne Monate**.\n- Nach dem Upload einer Datei kann die Import-Datei mit den ProjectForge-Rechnungen abgeglichen werden und dann ausgewählt werden, welche Rechnungen/Positionen übernommen werden sollen.\n\n**Schritt 1: Import von Rechnungspositionen** (erforderlich für **neue** Rechnungen)\n- Die Dateien werden in Datev über \"Belegdaten exportieren\" -> \"Rechnungseingang exportieren\" erzeugt (Dateien enden mit **\"Lieferantenrechnungen.csv\"**).\n- Dieser Import dient der Anlage neuer Rechnungen und der Aktualisierung von Rechnungen (mit Positionen).\n- Nicht mehr im Import enthaltene Rechnungen und Positionen können auch gelöscht werden.\n- Unterstützte Spalten: \"Periode\", \"Betrag\", \"Währung\", \"Datum\", \"RENR\", \"LieferantName\", \"LieferantKonto\", \"Ware/Leistung\", \"Fällig_am\", \"Steuer%\", \"KOST1\", \"KOST2\"\n\n**Schritt 2: Aktualisierung von Rechnungsdaten** (optional)\n- In Datev in der \"Belegübersicht\" den gewünschten Monat als Zeitraum auswählen und die Datei generieren lassen (Dateien enden mit **\"export.csv\"**).\n- Dieser Import aktualisiert nur die Kopfdaten bestehender Rechnungen (Bezahldatum etc.) ohne die Positionen zu verändern.\n- Nicht mehr im Import enthaltene Rechnungen können auf Wunsch auch gelöscht werden.\n- Unterstützte Spalten: \"Geschäftspartner-Name\", \"Geschäftspartner-Konto\", \"WKZ\", \"Rechnungs-Nr.\", \"Rechnungsdatum\", \"Konto\", \"Ware/Leistung\", \"BezahltAm\", \"Fällig mit Skonto 1\", \"Skonto 1 in %\", \"Fällig ohne Skonto\", \"IBAN\", \"BIC\", \"Notiz\"\n",
+        "title": {
+          "_": "Kreditorenrechnungen hochladen",
+          "header": "Rechnungskopfdaten",
+          "positions": "Rechnungspositionen"
+        }
+      },
+      "multiselected": {
+        "title": "Mehrfachauswahl Kreditorrechnungen"
+      },
+      "skonto": "Skonto",
+      "title": {
+        "add": "Kreditorenrechnung anlegen",
+        "edit": "Kreditorenrechnung bearbeiten",
+        "heading": "Kreditorenrechnungen",
+        "list": "Kreditorenrechnungsliste"
       }
     },
     "employee": {

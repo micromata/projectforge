@@ -314,6 +314,7 @@ export const INVOICE_PAGE = definePage<
       {
         id: "head",
         titleKey: "fibu.rechnung",
+        highlighted: true,
         // The invoice itself in the two columns on the left: number, status, type, subject, attachment
         // and period.
         fields: [
@@ -360,6 +361,22 @@ export const INVOICE_PAGE = definePage<
         ],
       },
       {
+        // Second, right below the head: what is worth knowing about the invoice is read before its
+        // terms and positions. The two texts side by side, as one group across the grid — two equal
+        // halves, which the three columns cannot give.
+        id: "notes",
+        titleKey: "comment",
+        fields: [
+          {
+            group: [
+              { name: "bemerkung", rows: 3 },
+              { name: "besonderheiten", rows: 3 },
+            ],
+            span: 3,
+          },
+        ],
+      },
+      {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
         render: ({ id }) => <PaymentTermsFields id={id} />,
@@ -368,14 +385,6 @@ export const INVOICE_PAGE = definePage<
         id: "positions",
         titleKey: "fibu.rechnung.positions",
         render: ({ id }) => <PositionsSection id={id} />,
-      },
-      {
-        id: "notes",
-        titleKey: "comment",
-        fields: [
-          { name: "bemerkung", rows: 3, span: 3 },
-          { name: "besonderheiten", rows: 3, span: 3 },
-        ],
       },
       {
         // Last but one, directly above the attachments: it is the end of the invoice, and its ZUGFeRD

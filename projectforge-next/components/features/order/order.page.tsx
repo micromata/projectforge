@@ -276,6 +276,7 @@ export const ORDER_PAGE = definePage<
         id: "head",
         // The bare key of a namespace with children, hence `._` — see categoryKey above.
         titleKey: "fibu.auftrag._",
+        highlighted: true,
         // The order itself on the left: number, status, title and the dates of its progress. Four
         // columns rather than two, so the line of three dates shares its vertical lines with the rows
         // above and below it — number, entry date and period flush on the first, offer date and

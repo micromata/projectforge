@@ -356,6 +356,12 @@ export interface SectionDef<M extends EntityMetadata> {
    */
   collapsed?: boolean;
   /**
+   * Tints the card in the accent colour — for the head of a form, the card holding what identifies the
+   * entry (an order's or an invoice's number, status and customer), so it stands out from the details
+   * below it.
+   */
+  highlighted?: boolean;
+  /**
    * Whether the form has this section at all — for one whose subject may not exist in this
    * installation or may not be administered by this user: a group's LDAP card only where posix
    * accounts are configured (`GroupPagesRest.useLdapStuff`).
