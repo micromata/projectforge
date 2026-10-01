@@ -172,6 +172,49 @@ export function fetchInvoiceFormDefaults(
   );
 }
 
+/**
+ * The e-invoice fields of an invoice that its account can fill — the address block and the seller's bank
+ * account (`OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount`).
+ */
+export const E_INVOICE_ACCOUNT_FIELDS = [
+  "customerContactPerson",
+  "customerAddress",
+  "customerZipCode",
+  "customerCity",
+  "customerCountry",
+  "customerVatId",
+  "customerLeitwegId",
+  "customerEInvoiceEmail",
+  "sellerBankAccount",
+] as const;
+
+export type EInvoiceAccountField = (typeof E_INVOICE_ACCOUNT_FIELDS)[number];
+
+/** What the fill is asked with: the two references naming the account, and the fields as they stand. */
+export type EInvoiceFromAccountInput = {
+  customer?: { id?: number | null } | null;
+  konto?: { id?: number | null } | null;
+} & Partial<Record<EInvoiceAccountField, string | null>>;
+
+/**
+ * The given e-invoice fields with the empty ones filled from the account — the invoice's own, else its
+ * customer's (`OutgoingInvoiceEntityRest.getEInvoiceFromAccount`).
+ *
+ * Asked of the backend rather than read off the account here: the bank account is named by its configured
+ * name on an account and by its IBAN on an invoice, and the clone fills the same fields by the same rule —
+ * one rule, kept in one place.
+ */
+export function fetchEInvoiceFromAccount(
+  input: EInvoiceFromAccountInput,
+  signal?: AbortSignal
+): Promise<Partial<Record<EInvoiceAccountField, string | null>>> {
+  return request(
+    "/rs/outgoingInvoice/eInvoiceFromAccount",
+    { method: "POST", body: JSON.stringify(input) },
+    signal
+  );
+}
+
 /** What `OutgoingInvoiceEntityRest.validateEInvoice` answers (`EInvoiceValidation` there). */
 export interface EInvoiceValidation {
   /**

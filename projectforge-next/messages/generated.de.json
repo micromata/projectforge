@@ -1291,6 +1291,10 @@
           "numberMissing": "Die Rechnungsnummer fehlt. Sie wird vergeben, sobald die Rechnung den Status „geplant“ verlässt.",
           "sellerNotConfigured": "Der Verkäufer dieser Installation ist nicht vollständig konfiguriert (projectforge.einvoice.seller.*). Ein Administrator muss das ergänzen."
         },
+        "fillFromAccount": "Aus Konto ergänzen",
+        "fillFromAccountDone": "{arg0} Feld(er) aus dem Konto ergänzt.",
+        "fillFromAccountHint": "Ergänzt die leeren Felder dieses Abschnitts aus dem Konto der Rechnung, sonst aus dem Konto des Kunden. Bereits ausgefüllte Felder bleiben unverändert.",
+        "fillFromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte.",
         "saveAndOpen": "Speichern und E-Rechnung",
         "saveAndXRechnung": "Speichern und XRechnung",
         "saveAndZugferd": "Speichern und ZUGFeRD",

@@ -4,7 +4,7 @@ import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { CostAssignmentCell } from "@/components/shared/invoice/cost-assignment-cell";
-import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
+import { EInvoiceSectionHeaderActions } from "./edit/e-invoice-fill-from-account-button";
 import { AccountField } from "./edit/account-field";
 import { AttachmentSection } from "./edit/attachment-section";
 import { CustomerProjectFields } from "./edit/customer-project-fields";
@@ -422,8 +422,9 @@ export const INVOICE_PAGE = definePage<
         // buttons — the fields above are what the checklist is about (see EInvoiceSection).
         footer: EInvoiceSection,
         // Beside the heading, at the right end: the counterpart of the exports below — an exported file is
-        // read back here to see what arrived (see EInvoiceCheckerButton).
-        headerActions: EInvoiceCheckerButton,
+        // read back here to see what arrived (see EInvoiceCheckerButton) — and before it the fill of the
+        // empty fields from the account, for an invoice that names its customer already.
+        headerActions: EInvoiceSectionHeaderActions,
       },
       {
         id: "attachments",
