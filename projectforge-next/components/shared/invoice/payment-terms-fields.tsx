@@ -10,17 +10,25 @@ import { useFieldLabels } from "@/components/shared/form/use-field-labels";
 import { useFormatContext } from "@/hooks/use-format";
 import { daysBetweenDates, shiftDateByDays } from "@/lib/date-parse";
 import { formatCurrency } from "@/lib/format";
-import { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
+import type { EINGANGSRECHNUNG_METADATA } from "@/lib/metadata/eingangsrechnung.generated";
+import type { RECHNUNG_METADATA } from "@/lib/metadata/rechnung.generated";
 import { cn } from "@/lib/utils";
-import type { InvoiceValues } from "../invoice-schema";
-import { deviatingGrossSum } from "@/components/shared/invoice/payment-amount-deviation";
-import { useInvoiceSums } from "@/components/shared/invoice/use-invoice-sums";
+import { deviatingGrossSum } from "./payment-amount-deviation";
+import { useInvoiceSums } from "./use-invoice-sums";
 
 /** A date of the invoice and the day count from `datum` to it — the two ways to state one term. */
 const DERIVED_TARGETS = [
   { date: "faelligkeit", days: "zahlungsZielInTagen" },
   { date: "discountMaturity", days: "discountZahlungsZielInTagen" },
 ] as const;
+
+/** The form values read here — the same fields on an outgoing and an incoming invoice. */
+interface PaymentTermsValues {
+  datum?: string | null;
+  faelligkeit?: string | null;
+  discountMaturity?: string | null;
+  zahlBetrag?: number | null;
+}
 
 /** A line of fields side by side, wrapping only where the half is genuinely too narrow for them. */
 const ROW = "flex flex-wrap items-start gap-x-4 gap-y-4";
@@ -31,7 +39,9 @@ const ROW = "flex flex-wrap items-start gap-x-4 gap-y-4";
 const PACKED = "w-auto shrink-0";
 
 /**
- * When the invoice is due, when a discount would still apply, and what was actually paid.
+ * When the invoice is due, when a discount would still apply, and what was actually paid — the same
+ * section on the outgoing and the incoming invoice, which differ only in their metadata and in the REST
+ * category their sums are recalculated by.
  *
  * Custom rather than declared because of one rule between fields: a payment target in days and the date
  * it leads to say the same thing twice, so the two are kept on each other here — entering days moves the
@@ -50,14 +60,19 @@ const PACKED = "w-auto shrink-0";
  */
 export function PaymentTermsFields({
   id,
+  metadata,
+  sumsEntity,
   className,
 }: {
   /** The stored invoice, or null while adding one — which is when the days are a formula, see above. */
   id: number | null;
+  metadata: typeof RECHNUNG_METADATA | typeof EINGANGSRECHNUNG_METADATA;
+  /** The REST category of the invoice, for [useInvoiceSums]. */
+  sumsEntity: "outgoingInvoice" | "incomingInvoice";
   className?: string;
 }) {
   const t = useTranslations();
-  const label = useFieldLabels(RECHNUNG_METADATA);
+  const label = useFieldLabels(metadata);
   const format = useFormatContext();
   const form = useEntityEditForm();
   const isNew = id == null;
@@ -68,7 +83,7 @@ export function PaymentTermsFields({
     form.store,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => {
-      const v = state.values as InvoiceValues;
+      const v = state.values as PaymentTermsValues;
       return {
         datum: v.datum,
         faelligkeit: v.faelligkeit,
@@ -86,7 +101,7 @@ export function PaymentTermsFields({
    * trail the keystroke by the 400 ms [useInvoiceSums] debounces plus the round trip. That is the right
    * moment: a warning about a half-typed number would be about a number nobody entered.
    */
-  const { sums } = useInvoiceSums("outgoingInvoice");
+  const { sums } = useInvoiceSums(sumsEntity);
   const deviatesFrom = deviatingGrossSum(zahlBetrag, sums);
 
   // Whenever one of the dates moves — the due date here, or the invoice date in the section above — the
@@ -110,7 +125,7 @@ export function PaymentTermsFields({
    * changed term would otherwise leave the old date standing.
    *
    * An emptied box leaves the date alone: deleting a number is how one is retyped, and dropping the due
-   * date of an issued invoice over a keystroke is not what anybody means by it.
+   * date of an issued or booked invoice over a keystroke is not what anybody means by it.
    */
   const moveDate = (
     date: (typeof DERIVED_TARGETS)[number]["date"],

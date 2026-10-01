@@ -15,7 +15,7 @@ import { InvoiceNumberField } from "./edit/invoice-number-field";
 import { OriginalInvoiceField } from "./edit/original-invoice-field";
 import { eInvoiceAddressFields } from "@/components/shared/invoice/e-invoice-address-fields";
 import { CancellationNotice } from "./edit/cancellation-notice";
-import { PaymentTermsFields } from "./edit/payment-terms-fields";
+import { PaymentTermsFields } from "@/components/shared/invoice/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { SellerBankAccountField } from "./edit/seller-bank-account-field";
 import { InvoiceListActions } from "./invoice-list-actions";
@@ -380,7 +380,13 @@ export const INVOICE_PAGE = definePage<
       {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
-        render: ({ id }) => <PaymentTermsFields id={id} />,
+        render: ({ id }) => (
+          <PaymentTermsFields
+            id={id}
+            metadata={RECHNUNG_METADATA}
+            sumsEntity="outgoingInvoice"
+          />
+        ),
       },
       {
         id: "positions",
