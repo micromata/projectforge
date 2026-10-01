@@ -1222,6 +1222,7 @@
         "boundedRangeHint": "Please restrict the invoice date to a period (from and to) to compare it with the three preceding years.",
         "comparedPeriods": "Compared with the same period of {arg0}.",
         "cumulative": "Cumulative net revenue",
+        "ignoredTooltip": "Describes the invoice's current state (e.g. paid) and is meaningless across years, so it is left out of every year of the charts. Their figures may therefore differ from the list.",
         "monthly": "Monthly net revenue"
       },
       "currency": "Currency",
@@ -1348,7 +1349,8 @@
         "previousYear": "Previous year",
         "previousYearComparison": "Previous-year comparison (same period)",
         "previousYearComparisonHint": "Only for a bounded invoice-date range.",
-        "previousYearPeriod": "Comparison period"
+        "previousYearPeriod": "Comparison period",
+        "previousYearWithoutFilters": "Without the filters describing the invoice''s current state: {arg0}"
       },
       "status": {
         "_": "Status of invoice",

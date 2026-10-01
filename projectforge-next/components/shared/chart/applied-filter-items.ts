@@ -36,6 +36,19 @@ export const SEARCH_ITEM_KEY = "searchString";
 export const HISTORY_ITEM_KEY = "history";
 
 /**
+ * How the list's filter bar names [field]: its element's label, the history group's label for the three
+ * history fields, else the id (a stored field the list no longer offers).
+ */
+export function filterFieldLabel(
+  field: string,
+  elements: readonly FilterElement[],
+  historyLabel: string
+): string {
+  if (HISTORY_FILTER_IDS.includes(field)) return historyLabel;
+  return elements.find((element) => element.id === field)?.label ?? field;
+}
+
+/**
  * The entries of [filter] as the list's pills read them, in the order of the list's filter fields: the
  * label of the field and [describeFilterValue] for the value, the three history fields as one entry like
  * their combined pill. A stored entry the list no longer offers as a field is still part of the query,
@@ -73,7 +86,7 @@ export function appliedFilterItems(
       return;
     items.push({
       key: element.id,
-      label: element.label ?? element.id,
+      label: filterFieldLabel(element.id, elements, labels.history),
       value: describeFilterValue(values[element.id], element, ctx),
       status: statusOf([element.id]),
     });

@@ -87,6 +87,37 @@ class OutgoingInvoiceShiftYearsFilterTest {
         assertNull(OutgoingInvoiceEntityRest.shiftYearsFilter(MagicFilter(), 1))
     }
 
+    /**
+     * A criterion of the invoice's current state carried over to earlier years would compare this year's open
+     * invoices with next to nothing; the invoice's other dates have to move along, or they match nothing.
+     */
+    @Test
+    fun `the comparison leaves the state criteria out and shifts the other dates`() {
+        val filter = filterWith(from = "2026-01-01", to = "2026-12-31")
+        filter.entries.add(MagicFilterEntry(field = "listType").also { it.value.values = arrayOf("unbezahlt") })
+        filter.entries.add(MagicFilterEntry(field = "status").also { it.value.values = arrayOf("GESTELLT") })
+        // Without a value no criterion, so nothing to name.
+        filter.entries.add(MagicFilterEntry(field = "bezahlDatum"))
+        filter.entries.add(MagicFilterEntry(field = "periodOfPerformance").also { entry ->
+            entry.value.fromValue = "2026-01-01"
+            entry.value.toValue = "2026-06-30"
+        })
+        filter.entries.add(MagicFilterEntry(field = "kunde").also { it.value.value = "ACME" })
+
+        val comparison = OutgoingInvoiceEntityRest.comparisonFilter(filter, 2)!!
+        assertEquals(listOf("datum", "periodOfPerformance", "kunde"), comparison.entries.map { it.field })
+        val period = comparison.entries.first { it.field == "periodOfPerformance" }.value
+        assertEquals("2024-01-01", period.fromValue)
+        assertEquals("2024-06-30", period.toValue)
+        assertEquals("ACME", comparison.entries.first { it.field == "kunde" }.value.value)
+        assertEquals(listOf("listType", "status"), OutgoingInvoiceEntityRest.comparisonIgnoredFields(filter))
+
+        val previousYear = OutgoingInvoiceEntityRest.previousYearFilter(
+            filter.also { it.extended[OutgoingInvoiceEntityRest.PREVIOUS_YEAR_COMPARISON] = true }
+        )!!
+        assertEquals(listOf("datum", "periodOfPerformance", "kunde"), previousYear.entries.map { it.field })
+    }
+
     private fun filterWith(from: String?, to: String?): MagicFilter {
         val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry(field = "datum").also { entry ->

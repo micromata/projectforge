@@ -20,7 +20,8 @@ import { InvoiceMonthlyNetSumChart } from "./invoice-monthly-net-sum-chart";
  * itself restores from and the toolbar keeps live — so the charts follow the list without a filter bar of
  * their own. The four years are that filter's invoice-date range shifted zero to three years back, which
  * the backend computes with the same shift as the statistics line's previous-year comparison
- * (`OutgoingInvoiceEntityRest.netSumChart`).
+ * (`OutgoingInvoiceEntityRest.netSumChart`). Criteria of an invoice's current state (paid, status, ...)
+ * are left out of every year, and flagged as such in the summary.
  *
  * The filter is the list's live one from the local cache rather than a fresh read of the backend's copy,
  * which can lag behind what the list shows (see useRememberedFilter's `fresh`), and it is spelled out above
@@ -64,6 +65,10 @@ function InvoiceCharts({ filter }: { filter: MagicFilter | undefined }) {
         : undefined,
     [compared, t]
   );
+  // The criteria of the invoice's current state (paid, status, ...) are left out of every year, as they
+  // make no sense across years; the summary strikes them through.
+  const ignored = query.data?.ignoredFilterFields;
+  const usage = useMemo(() => ignored && { ignored }, [ignored]);
 
   return (
     <div className="space-y-8 p-4">
@@ -73,6 +78,8 @@ function InvoiceCharts({ filter }: { filter: MagicFilter | undefined }) {
         entity={INVOICE_ENTITY}
         filter={filter}
         notes={notes}
+        usage={usage}
+        ignoredTooltip={t("ignoredTooltip")}
       />
       {query.isError ? (
         <p className="text-sm text-destructive">

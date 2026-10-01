@@ -1222,6 +1222,7 @@
         "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
         "comparedPeriods": "Verglichen mit demselben Zeitraum {arg0}.",
         "cumulative": "Kumulierter Nettoumsatz",
+        "ignoredTooltip": "Beschreibt den aktuellen Zustand der Rechnung (z. B. bezahlt) und ist im Jahresvergleich nicht sinnvoll, daher in keinem Jahr der Grafiken berücksichtigt. Die Zahlen können deshalb von der Liste abweichen.",
         "monthly": "Monatlicher Nettoumsatz"
       },
       "currency": "Währung",
@@ -1348,7 +1349,8 @@
         "previousYear": "Vorjahr",
         "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
         "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum.",
-        "previousYearPeriod": "Vergleichszeitraum"
+        "previousYearPeriod": "Vergleichszeitraum",
+        "previousYearWithoutFilters": "Ohne die Filter, die den aktuellen Zustand der Rechnung beschreiben: {arg0}"
       },
       "status": {
         "_": "Rechnungsstatus",

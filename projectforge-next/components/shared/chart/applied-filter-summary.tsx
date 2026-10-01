@@ -30,6 +30,7 @@ export function AppliedFilterSummary({
   filter,
   usage,
   notes,
+  ignoredTooltip,
   className,
 }: {
   entity: string;
@@ -37,6 +38,8 @@ export function AppliedFilterSummary({
   usage?: AppliedFilterUsage;
   /** A short remark after an entry, by field id — what replaced it, or how the chart uses it. */
   notes?: Readonly<Record<string, string>>;
+  /** Why the chart left a criterion out, where the generic "not supported" says too little. */
+  ignoredTooltip?: string;
   className?: string;
 }) {
   const t = useTranslations();
@@ -74,7 +77,12 @@ export function AppliedFilterSummary({
         </span>
       ) : (
         items.map((item) => (
-          <SummaryChip key={item.key} item={item} note={notes?.[item.key]} />
+          <SummaryChip
+            key={item.key}
+            item={item}
+            note={notes?.[item.key]}
+            ignoredTooltip={ignoredTooltip}
+          />
         ))
       )}
     </section>
@@ -84,15 +92,17 @@ export function AppliedFilterSummary({
 function SummaryChip({
   item,
   note,
+  ignoredTooltip,
 }: {
   item: AppliedFilterItem;
   note?: string;
+  ignoredTooltip?: string;
 }) {
   const t = useTranslations("filter.applied");
   const notApplied = item.status === "ignored" || item.status === "replaced";
   const tag =
     item.status === "ignored" ? (
-      <HintTooltip text={t("ignoredTooltip")} openOnTap>
+      <HintTooltip text={ignoredTooltip ?? t("ignoredTooltip")} openOnTap>
         <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
           {t("ignored")}
         </Badge>

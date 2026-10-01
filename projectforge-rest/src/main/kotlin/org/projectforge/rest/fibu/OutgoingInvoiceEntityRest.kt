@@ -59,6 +59,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.UserRightService
@@ -953,7 +954,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             // The same query one year back, run through the same pipeline (getObjectList + filterList)
             // as the list itself, so the two sums differ only by the period.
             val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
-            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
+            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices)).also {
+                it.ignoredFilterFields = comparisonIgnoredFields(magicFilter)
+            }
         }
         return statistics
     }
@@ -995,16 +998,24 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * top-level object carries it; the one nested here is always null.
          */
         var previousYear: InvoiceStatistics? = null
+
+        /**
+         * The fields of the list's filter the previous-year figures leave out (see [comparisonFilter]), so the
+         * client can say they rest on a broader question. Set on [previousYear] only.
+         */
+        var ignoredFilterFields: List<String> = emptyList()
     }
 
     /**
      * The monthly net sums of the filtered invoices, this year and the three years before it, for the
      * "Grafiken" tab of `/next/invoice`.
      *
-     * The four years are the same period shifted zero, one, two and three years back ([shiftYearsFilter]),
-     * every other criterion of the list's filter kept - a generalization of the previous-year comparison the
-     * statistics line shows, so the series of offset one equals that comparison and the offset-zero sum equals
-     * the list's own `netto`. Each year's invoices are read through the very pipeline the list uses
+     * The four years are the same period shifted zero, one, two and three years back ([comparisonFilter]) -
+     * a generalization of the previous-year comparison the statistics line shows, so the series of offset one
+     * equals that comparison. The criteria that describe an invoice's current state (paid, status, ...) are
+     * left out of every year, the reference year included, so all four answer the same question; the
+     * offset-zero sum therefore equals the list's own `netto` only without such a criterion, and the answer
+     * names the left-out fields for the client to flag. Each year's invoices are read through the very pipeline the list uses
      * ([getResultList]), so the chart counts the invoices the list shows and no others.
      *
      * Requires a bounded invoice-date range, as the comparison does: without a start and an end "the same
@@ -1020,7 +1031,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     fun netSumChart(@RequestBody filter: MagicFilter): NetSumChartData {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         // Offset zero validates the bounded range and yields the reference period the other years align to.
-        val reference = shiftYearsFilter(filter, 0) ?: return NetSumChartData()
+        val reference = comparisonFilter(filter, 0) ?: return NetSumChartData()
         val from = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.fromValue)
             ?: return NetSumChartData()
         val to = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.toValue)
@@ -1035,7 +1046,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
         val index = months.withIndex().associate { (i, ym) -> ym to i }
         val series = (0 until NET_SUM_CHART_YEARS).map { offset ->
-            val shifted = shiftYearsFilter(filter, offset)!! // Not null: the bounded range was asserted above.
+            val shifted = comparisonFilter(filter, offset)!! // Not null: the bounded range was asserted above.
             val monthly = Array(months.size) { BigDecimal.ZERO }
             getResultList(shifted).forEach { invoice ->
                 val datum = invoice.datum ?: return@forEach
@@ -1053,7 +1064,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 monthly = monthly.toList(),
             )
         }
-        return NetSumChartData(months = months.map { it.toString() }, series = series)
+        return NetSumChartData(
+            months = months.map { it.toString() },
+            series = series,
+            ignoredFilterFields = comparisonIgnoredFields(filter),
+        )
     }
 
     /**
@@ -1065,6 +1080,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val months: List<String> = emptyList(),
         /** One entry per year, newest ([offset] 0) first. */
         val series: List<NetSumYearSeries> = emptyList(),
+        /** The fields of the list's filter the chart leaves out in every year (see [comparisonFilter]). */
+        val ignoredFilterFields: List<String> = emptyList(),
     )
 
     class NetSumYearSeries(
@@ -1497,8 +1514,63 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             if (!requested) {
                 return null
             }
-            return shiftYearsFilter(magicFilter, 1)
+            return comparisonFilter(magicFilter, 1)
         }
+
+        /**
+         * The criteria a comparison across years leaves out, because they describe the invoice's current
+         * state rather than which invoices are meant: last year's invoices are all paid, so "unpaid" or
+         * "incomplete" carried over would compare this year's open invoices with next to nothing. The
+         * attachments and the change history are such states too, and the invoice number is a fixed range,
+         * matching nothing in earlier years.
+         */
+        private val COMPARISON_IGNORED_FIELDS = setOf(
+            RechnungDO::status.name,
+            LIST_TYPE_FILTER,
+            INCOMPLETE_FILTER,
+            RechnungDO::bezahlDatum.name,
+            RechnungDO::zahlBetrag.name,
+            RechnungDO::uiStatusAsXml.name,
+            RechnungDO::nummer.name,
+            RechnungDO::attachmentsCounter.name,
+            RechnungDO::attachmentsNames.name,
+            RechnungDO::attachmentsIds.name,
+            RechnungDO::attachmentsSize.name,
+            RechnungDO::attachmentsLastUserAction.name,
+        ) + MagicFilterEntry.HistorySearch.entries.map { it.fieldName }
+
+        /**
+         * The dates of the invoice besides [DATE_FIELD]: as fixed ranges they would match nothing in earlier
+         * years, so a comparison moves them back by the same years as the invoice date.
+         */
+        private val COMPARISON_SHIFTED_DATE_FIELDS = setOf(
+            PERIOD_OF_PERFORMANCE_FILTER,
+            RechnungDO::faelligkeit.name,
+            RechnungDO::discountMaturity.name,
+        )
+
+        /**
+         * The filter of a comparison [years] years back (see [shiftYearsFilter]), without the criteria that
+         * make no sense across years ([COMPARISON_IGNORED_FIELDS]) and with the invoice's other dates moved
+         * along ([COMPARISON_SHIFTED_DATE_FIELDS]). Null when there is no bounded invoice-date range.
+         * [years] `== 0` is the reference period of the chart, which leaves the same criteria out, so all
+         * years answer the same question.
+         */
+        internal fun comparisonFilter(magicFilter: MagicFilter, years: Int): MagicFilter? {
+            return shiftYearsFilter(magicFilter, years)?.also { clone ->
+                clone.entries.removeIf { it.field in COMPARISON_IGNORED_FIELDS }
+                clone.entries.filter { it.field in COMPARISON_SHIFTED_DATE_FIELDS }.forEach { entry ->
+                    entry.value.fromValue = parseIsoDate(entry.value.fromValue)?.minusYears(years.toLong())?.toString()
+                    entry.value.toValue = parseIsoDate(entry.value.toValue)?.minusYears(years.toLong())?.toString()
+                    entry.value.periodKind = null
+                }
+            }
+        }
+
+        /** The fields of [magicFilter] with a value that [comparisonFilter] leaves out, for the client to name. */
+        internal fun comparisonIgnoredFields(magicFilter: MagicFilter): List<String> =
+            magicFilter.entries.filter { it.isCriterion && it.field in COMPARISON_IGNORED_FIELDS }
+                .mapNotNull { it.field }.distinct()
 
         /**
          * The given filter with its invoice-date range ([DATE_FIELD]) moved [years] years back, or null when it

@@ -1155,12 +1155,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      */
     internal fun forecastFilterUsage(magicFilter: MagicFilter): ForecastFilterUsage {
       val usage = ForecastFilterUsage()
-      magicFilter.entries.forEach { entry ->
-        val field = entry.field?.takeIf { it.isNotBlank() } ?: return@forEach
-        // A user picker carries only the id, which isNoValueGiven doesn't look at.
-        if (field == MagicFilter.PAGINATION_PAGE_SIZE || (entry.isNoValueGiven && entry.value?.id == null)) {
-          return@forEach
-        }
+      magicFilter.entries.filter { it.isCriterion }.forEach { entry ->
+        val field = entry.field!! // Not null: isCriterion requires a field.
         when {
           field == PERIOD_OF_PERFORMANCE_FILTER -> usage.replaced.add(field)
           field !in AUFTRAG_FILTER_FIELDS -> usage.ignored.add(field)
