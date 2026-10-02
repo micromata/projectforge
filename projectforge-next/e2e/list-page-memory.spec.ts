@@ -162,7 +162,12 @@ function watchScrolling(page: Page): Promise<void> {
       "scroll",
       (event) => {
         const target = event.target;
-        if (!(target instanceof HTMLElement) || !target.querySelector("table"))
+        // The table's own parent only, as tableColumn() takes it: `<main>` holds the table too and
+        // scrolls as well where the window is too short for the list's header (see ListPageShell).
+        if (
+          !(target instanceof HTMLElement) ||
+          !target.querySelector(":scope > table")
+        )
           return;
         (window as unknown as Record<string, number>)[key] = target.scrollTop;
       },

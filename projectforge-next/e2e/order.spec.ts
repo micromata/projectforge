@@ -343,10 +343,16 @@ test.describe("order book", () => {
       trigger(page, label(format, "fibu.projectManager")),
       "a manager chosen by hand is kept"
     ).toHaveText(manager!);
-    // The empty ones are filled from what the project knows.
-    await expect(trigger(page, label(format, "fibu.kunde._"))).not.toHaveText(
-      format.t("filter.chooseEntity")
-    );
+    // The empty ones are filled from what the project knows. By role and a name prefix rather than
+    // through `trigger`: the customer is the merged customer/free-text field (EntityOrTextField),
+    // which names its combobox after the value it holds ("Kunde: 130 - …") once it holds one.
+    await expect(
+      page
+        .getByRole("combobox", {
+          name: new RegExp(`^${escapeRegExp(label(format, "fibu.kunde._"))}`),
+        })
+        .first()
+    ).not.toHaveText(format.t("filter.chooseEntity"));
   });
 
   test("refuses a position title longer than the column, naming the row", async ({

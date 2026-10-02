@@ -44,16 +44,19 @@ test.describe("project page", () => {
     await goto(page, "/project");
 
     await expect(
-      page.getByRole("heading", { name: format.t("fibu.projekt.title.list") })
+      page.getByRole("heading", {
+        name: label(format, "fibu.projekt.title.list"),
+      })
     ).toBeVisible({ timeout: 30_000 });
 
-    // Exact: "Name" of the project would otherwise also match "Customer's name".
+    // Anchored at the start rather than `exact`: the accessible name of a header includes its filter
+    // button and its resize handle ("Name Filter Spaltenbreite ändern"), while a plain substring match
+    // would let "Name" of the project find "Customer's name" (see order.spec.ts).
     for (const column of PROJECT_PAGE.columns) {
       const key = columnHeaderKeyOf(column, PROJEKT_METADATA);
       await expect(
         page.getByRole("columnheader", {
-          name: label(format, key),
-          exact: true,
+          name: new RegExp(`^${escapeRegExp(label(format, key))}(\\s|$)`),
         }),
         `column ${columnIdOf(column)}`
       ).toHaveCount(1);
@@ -255,4 +258,9 @@ async function listProjects(
 /** The name field, by the label ProjektDO gives it. */
 function nameField(page: Page, format: UserFormat) {
   return page.getByLabel(label(format, "fibu.projekt.name"), { exact: true });
+}
+
+/** Escapes a label for use inside a `RegExp` — a label may carry brackets or dots. */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

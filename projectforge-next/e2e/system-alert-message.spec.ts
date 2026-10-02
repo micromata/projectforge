@@ -1,13 +1,14 @@
 import { test, expect, goto } from "./fixtures/auth";
+import { writeHeaders } from "./fixtures/seed";
 import type { Page } from "@playwright/test";
 
 /**
  * The system alert message (a maintenance announcement) reaching every page of this app.
  *
- * This test *writes* global state: the message is shown to every logged-in user of the instance, and
- * there is no REST endpoint for it — it can only be set on the Wicket admin page, which is what the
- * test drives (same session cookie, cookies ignore the port). Hence the `finally`: a failure in the
- * middle must not leave the announcement standing for everyone.
+ * This test *writes* global state: the message is shown to every logged-in user of the instance. It is
+ * set and cleared through the endpoints of the System page (SystemRest), the subject here being where
+ * it shows rather than the page that sets it. Hence the `finally`: a failure in the middle must not
+ * leave the announcement standing for everyone.
  *
  * The text is the admin's own and is never translated, so spelling it out here is correct — unlike a
  * label, which would have to come from the user's locale (see fixtures/format).
@@ -44,25 +45,17 @@ test("the system alert message is shown on every page until it is cleared", asyn
   await expect(banner).toHaveCount(0);
 });
 
-const ADMIN_PAGE = "http://localhost:8080/wa/admin";
-
 async function setAlertMessage(page: Page, message: string): Promise<void> {
-  await page.goto(ADMIN_PAGE);
-  // The first textarea of the page is the alert message's (AdminForm.init).
-  await page.locator("textarea").first().fill(message);
-  await page
-    .getByRole("button", { name: /^set system alert message$/i })
-    .click();
-  // Wicket shows the message on its own pages right away — so the backend has it.
-  await expect(page.locator("div.global-alert-message")).toBeVisible();
+  const res = await page.request.post("/rs/system/setAlertMessage", {
+    headers: await writeHeaders(page.request),
+    data: { alertMessage: message },
+  });
+  expect(res.ok(), `set the alert message: HTTP ${res.status()}`).toBe(true);
 }
 
 async function clearAlertMessage(page: Page): Promise<void> {
-  await page.goto(ADMIN_PAGE);
-  const clear = page.getByRole("button", { name: /^clear alert message$/i });
-  // The button exists only while a message is set, and the test may have failed before setting one.
-  if (await clear.count()) {
-    await clear.click();
-    await expect(page.locator("div.global-alert-message")).toHaveCount(0);
-  }
+  const res = await page.request.post("/rs/system/clearAlertMessage", {
+    headers: await writeHeaders(page.request),
+  });
+  expect(res.ok(), `clear the alert message: HTTP ${res.status()}`).toBe(true);
 }

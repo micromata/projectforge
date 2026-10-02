@@ -1,5 +1,5 @@
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat } from "./fixtures/format";
+import { label, userFormat } from "./fixtures/format";
 import { LICENSE_METADATA } from "../lib/metadata/license.generated";
 import { LICENSE_PAGE } from "../components/features/license/license.page";
 import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
@@ -23,17 +23,19 @@ test.describe("license", () => {
   test("shows the declared columns under the labels of LicenseDO", async ({
     loggedInPage: page,
   }) => {
-    const { t } = await userFormat(page);
+    const format = await userFormat(page);
+    const { t } = format;
     await goto(page, "/license");
 
     await expect(
       page.getByRole("heading", { name: t(LICENSE_PAGE.titleKey) })
     ).toBeVisible();
     // The default account is in every group, the admin group included, so it sees the key column too.
+    // Through `label`: a key with children of its own (`key`, `device`) holds its text under `_`.
     for (const column of LICENSE_PAGE.columns) {
       const key = columnHeaderKeyOf(column, LICENSE_METADATA);
       await expect(
-        page.getByRole("columnheader", { name: t(key) }),
+        page.getByRole("columnheader", { name: label(format, key) }),
         `column ${columnIdOf(column)}`
       ).toHaveCount(1);
     }

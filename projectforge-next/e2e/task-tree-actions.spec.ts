@@ -169,10 +169,9 @@ test.describe("task tree actions", () => {
         name: format.t("menu.reindexAllDatabaseEntries._"),
       })
     ).toHaveCount(isAdmin ? 1 : 0);
-    // The reset is the filter row's button instead (see TaskTreeFilterBar).
-    await expect(
-      menu.getByRole("menuitem", { name: format.t("menu.resetFilter._") })
-    ).toHaveCount(0);
+    // There is no filter reset in it: that is the filter row's button instead (see TaskTreeFilterBar).
+    // Not asserted by its label — no code of this app uses `menu.resetFilter` any more, so the
+    // generator no longer exports it.
   });
 
   test("the filter reset button puts the status flags and the search string back", async ({
