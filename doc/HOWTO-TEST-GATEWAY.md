@@ -120,19 +120,35 @@ HTTPS host name.
 ### 3. Create a TLS certificate (Let's Encrypt)
 
 On first start the certificate has to be created initially. Replace `gateway.example.com`
-with the actual host name (in `nginx/nginx.conf` as well):
+with the actual, publicly resolvable host name (in `nginx/nginx.conf` as well) and
+`admin@example.com` with a real address — Let's Encrypt rejects `example.com`. Port 80 of
+the host must be reachable from the internet for the HTTP-01 challenge.
+
+The temporary nginx uses `nginx/nginx-init.conf` (HTTP only), not `nginx/nginx.conf`: the
+latter contains the 443 server block, which refers to the not yet existing certificate, so
+nginx would refuse to start. Make sure step 2 copied both files (`ls nginx/`).
 
 ```bash
 ssh user@server
 cd ~/gateway
 mkdir -p nginx/certs nginx/webroot
 
+# Actual host name, used in nginx.conf and for certbot below
+GW_HOST=gateway.example.com
+sed -i "s/gateway.example.com/$GW_HOST/g" nginx/nginx.conf
+
+# Rootless Podman may not bind port 80 by default (see troubleshooting)
+sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+
 # Temporarily start nginx without SSL (for the ACME challenge)
 podman run --rm -d --name nginx-init \
   -p 80:80 \
-  -v ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+  -v ./nginx/nginx-init.conf:/etc/nginx/nginx.conf:ro \
   -v ./nginx/webroot:/var/www/certbot \
   docker.io/library/nginx:alpine
+
+# Check that it is running (otherwise: podman logs nginx-init — run without --rm to keep it)
+podman ps
 
 # Obtain the certificate
 podman run --rm \
@@ -140,7 +156,7 @@ podman run --rm \
   -v ./nginx/webroot:/var/www/certbot \
   docker.io/certbot/certbot certonly \
     --webroot -w /var/www/certbot \
-    -d gateway.example.com \
+    -d $GW_HOST \
     --agree-tos --non-interactive -m admin@example.com
 
 podman stop nginx-init
@@ -322,6 +338,23 @@ OAuth2 configuration. This was fixed by commit `08b59438` ("Improve gateway resi
 the dependency is optional now. Compare the commit hash in the startup log against the
 branch — if it predates the fix, rebuild the JAR and the image.
 
+### Authentik: "Redirect URI Error" (`redirect_uri=http://...`)
+
+The authorize URL in the browser shows `redirect_uri=http://<host>/login/oauth2/code/authentik`
+although the gateway is reached via HTTPS. nginx forwards to the application via plain HTTP;
+unless Spring evaluates `X-Forwarded-Proto`, `{baseUrl}` resolves to `http://...`, which does
+not match the `https://` URI registered in Authentik (strict mode).
+
+The `external-gateway` profile sets `server.forward-headers-strategy=framework`. With older
+builds, add the line to the home `projectforge.properties` and restart the container. Make
+sure nginx sends `proxy_set_header X-Forwarded-Proto https;` (or `$scheme`) and
+`proxy_set_header Host $host;`.
+
+### Main instance: `Sync push to /users failed ... PKIX path building failed`
+
+The JVM of the main instance does not trust the gateway's TLS certificate (self-signed or
+private CA). Import it into a dedicated truststore, see Variant C step 8.
+
 ### `No active profile set` although `JAVA_ARGS` is set in compose
 
 The auto-generated `environment.sh` in the ProjectForge home overrides `JAVA_ARGS`. See the
@@ -496,7 +529,62 @@ export JAVA_ARGS="--spring.profiles.active=external-gateway \
   -Djdk.internal.httpclient.disableHostnameVerification=true"
 ```
 
-### 8. `projectforge.properties` for the `.priv` domain
+### 8. Trust the gateway certificate in the main instance JVM
+
+The main instance pushes its sync data via HTTPS to the gateway. With a self-signed
+certificate the push fails with:
+
+```
+Sync push to /users failed
+... PKIX path building failed: ... unable to find valid certification path to requested target
+```
+
+Point `projectforge.gateway.push.url` at the internal host name (e.g.
+`https://gateway.priv/api/gateway/sync`), not at a public name that is not resolvable
+internally or is protected by an SSO proxy.
+
+**1. Fetch and check the certificate** on the host of the main instance:
+
+```bash
+openssl s_client -connect gateway.priv:443 -servername gateway.priv </dev/null 2>/dev/null \
+  | openssl x509 > gateway.crt
+openssl x509 -in gateway.crt -noout -subject -ext subjectAltName
+```
+
+The output must contain `DNS:gateway.priv`. Without a matching `subjectAltName` Java fails the
+hostname verification even after the import — regenerate the certificate as in step 2.
+
+**2. Create a dedicated truststore.** Prefer this over modifying the JDK's `cacerts`: on Debian
+`ca-certificates-java` regenerates the system `cacerts` on updates, which silently drops the
+import. It also works without `sudo`. Start from a *copy* of `cacerts` — an empty truststore
+would replace all public CAs, and calls to e.g. Authentik would fail.
+
+```bash
+# Find the JDK the main instance runs with (path and current -D options):
+ps -o args= -C java | head -1
+
+JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))   # or the JDK from above
+cp $JAVA_HOME/lib/security/cacerts ~/pf-truststore.jks
+keytool -importcert -alias gateway-priv -file gateway.crt \
+  -keystore ~/pf-truststore.jks -storepass changeit -noprompt
+keytool -list -keystore ~/pf-truststore.jks -storepass changeit -alias gateway-priv
+```
+
+**3. Start the main instance JVM with this truststore** — wherever its Java options are set
+(start script, systemd unit, `JAVA_OPTS`), using the absolute path:
+
+```
+-Djavax.net.ssl.trustStore=/home/<user>/pf-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit
+```
+
+If the main instance runs in a container, the truststore has to be available inside the
+container. Restart the main instance; the sync appears in the gateway log after at most
+`syncIntervalMs`.
+
+Note that the truststore is a snapshot of the JDK's `cacerts`: after a JDK update, recreate it
+so that new or renewed public CAs are included.
+
+### 9. `projectforge.properties` for the `.priv` domain
 
 Same as Variant B step 4, with the host names replaced:
 
@@ -506,7 +594,7 @@ spring.security.oauth2.client.registration.authentik.redirect-uri={baseUrl}/logi
 spring.security.oauth2.client.provider.authentik.issuer-uri=https://auth.priv/application/o/projectforge/
 ```
 
-### 9. Register the redirect URI in Authentik
+### 10. Register the redirect URI in Authentik
 
 In the Authentik provider settings set the allowed redirect URI to:
 
