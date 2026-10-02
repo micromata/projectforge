@@ -23,10 +23,15 @@
 
 package org.projectforge.rest.admin
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.logging.LogFilter
 import org.projectforge.common.logging.LogLevel
 
+/**
+ * Filter of the log viewer ([LogViewerRest]). Stored as user pref of the admin log viewer, so the class must keep its
+ * name and package (the pref is stored with its class name).
+ */
 class LogViewFilter(
   @PropertyInfo(i18nKey = "system.admin.logViewer.level", required = true)
   var threshold: LogLevel = LogLevel.INFO,
@@ -36,6 +41,7 @@ class LogViewFilter(
   var autoRefresh: Boolean? = null,
   val logSubscriptionId: Int? = null,
 ) {
+  @get:JsonIgnore
   val logFilter
     get() = LogFilter(threshold = threshold, search = search)
 }

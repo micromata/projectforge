@@ -50,7 +50,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
-    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
+    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "next/adminLogViewer"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //

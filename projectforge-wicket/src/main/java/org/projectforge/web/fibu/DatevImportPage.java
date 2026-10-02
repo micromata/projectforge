@@ -38,8 +38,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.common.logging.LogEventLoggerNameMatcher;
 import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.rest.admin.LogViewerPageRest;
-import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.admin.LogViewerRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -62,7 +61,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
     form = new DatevImportForm(this);
     body.add(form);
     form.init();
-    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+    final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID, LogViewerRest.viewerUrl(logSubscription.getId(), true));
     addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink, getString("system.admin.logViewer.title")));
   }
 

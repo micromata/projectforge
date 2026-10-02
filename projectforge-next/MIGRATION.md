@@ -427,6 +427,11 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   im Juli-Stapel → Hinweis, kein Fehler; > 12 Monate Abstand → Fehler). BWA der Vorschau
   über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
   `NextMigration.MIGRATED` (keine Entity-Seite).
+- **Log-Viewer** – `next/logViewer/<id>` (eigenes `LogSubscription`, Link via
+  `LogViewerRest.viewerUrl`) und `next/adminLogViewer` (Menü `ADMIN_LOG_VIEWER`). Layoutfreie
+  Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
+  (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
+  Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die

@@ -27,8 +27,7 @@ import org.projectforge.common.logging.LogEventLoggerNameMatcher
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.rest.admin.LogViewerPageRest
-import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.importer.ImportPairEntry
 
 /**
@@ -71,9 +70,9 @@ internal object DatevImportLog {
             .joinToString(", ") { "${it.key}=${it.value}" }
     }
 
-    /** The (React) log viewer's url of the user's subscription, relative to the app root, e.g. `react/logViewer/dynamic/7`. */
+    /** The log viewer's url of the user's subscription, relative to the app root, e.g. `next/logViewer/7`. */
     fun viewerUrl(): String? {
         val subscription = ensureSubscription() ?: return null
-        return PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = subscription.id)
+        return LogViewerRest.viewerUrl(subscription.id)
     }
 }

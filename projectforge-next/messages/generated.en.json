@@ -1850,6 +1850,15 @@
     }
   },
   "loading": "Loading...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Error",
+      "info": "Info",
+      "trace": "Trace",
+      "warn": "Warn"
+    }
+  },
   "login": {
     "_": "Login",
     "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
@@ -2528,6 +2537,7 @@
   },
   "rating": "Rating",
   "recursive": "recursive",
+  "refresh": "refresh",
   "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
@@ -2636,6 +2646,9 @@
   "sum": "Sum",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Admin log viewer"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2732,7 +2745,14 @@
         }
       },
       "logViewer": {
-        "title": "Log viewer"
+        "autoRefresh": "Auto refresh",
+        "level": "Loglevel",
+        "message": "Message",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",
+        "title": "Log viewer",
+        "user": "user@ip",
+        "userAgent": "User agent"
       },
       "reindex": {
         "fromDate": {
@@ -3007,6 +3027,7 @@
     "totalDuration": "Total duration",
     "user": "Employee"
   },
+  "timestamp": "Time stamp",
   "timezone": "Time zone",
   "title": "Title",
   "tooltip": {

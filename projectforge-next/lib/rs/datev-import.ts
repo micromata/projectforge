@@ -14,7 +14,7 @@ export const ACCOUNT_ENTITY = "datevAccountImport";
 
 /**
  * The log viewer url of the user's DATEV import log (both tabs), relative to the app root, e.g.
- * `react/logViewer/dynamic/7`; `null` without a logged-in user. See DatevImportLog on the backend.
+ * `next/logViewer/7`; `null` without a logged-in user. See DatevImportLog on the backend.
  */
 export async function fetchDatevImportLogViewerUrl(
   signal?: AbortSignal

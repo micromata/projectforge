@@ -1850,6 +1850,15 @@
     }
   },
   "loading": "Laden...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Fehler",
+      "info": "Info",
+      "trace": "Verfolgen",
+      "warn": "Warnung"
+    }
+  },
   "login": {
     "_": "Anmelden",
     "adminLoginRequired": "Wartungsmodus: Bitte als Administrator:in anmelden!",
@@ -2528,6 +2537,7 @@
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
+  "refresh": "Neu laden",
   "reload": "Neu laden",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
@@ -2636,6 +2646,9 @@
   "sum": "Summe",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Adminprotokoll einsehen"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2732,7 +2745,14 @@
         }
       },
       "logViewer": {
-        "title": "Protokoll einsehen"
+        "autoRefresh": "Auto-Aktualisierung",
+        "level": "Log-Level",
+        "message": "Meldung",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "Dieses Protokoll ist nicht mehr verfügbar: Es verfällt nach einer Stunde ohne Aktivität und bei einem Neustart des Servers. Es lässt sich über die Seite, zu der es gehört, erneut öffnen.",
+        "title": "Protokoll einsehen",
+        "user": "Benutzer:in@IP",
+        "userAgent": "Browser"
       },
       "reindex": {
         "fromDate": {
@@ -3007,6 +3027,7 @@
     "totalDuration": "Gesamtdauer",
     "user": "Mitarbeiter:in"
   },
+  "timestamp": "Zeitstempel",
   "timezone": "Zeitzone",
   "title": "Titel",
   "tooltip": {

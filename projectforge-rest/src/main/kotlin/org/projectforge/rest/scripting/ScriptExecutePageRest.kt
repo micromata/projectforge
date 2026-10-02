@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.admin.LogViewerPageRest
+import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
@@ -144,10 +144,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
       MenuItem(
         "logViewer",
         i18nKey = "system.admin.logViewer.title",
-        url = PagesResolver.getDynamicPageUrl(
-          LogViewerPageRest::
-          class.java, id = ensureUserLogSubscription().id
-        ),
+        url = LogViewerRest.viewerUrl(ensureUserLogSubscription().id),
         type = MenuItemTargetType.REDIRECT,
       )
     )
