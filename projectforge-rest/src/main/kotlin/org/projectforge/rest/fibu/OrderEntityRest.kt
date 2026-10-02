@@ -450,11 +450,19 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     )
     // The customer as the list's cell shows it, entity or free text, picked from the customers the order book
     // names (OrderCustomerFilter). Replaces the free-text pills on the customer's name and on the free-text
-    // customer, which ask the same question by a name fragment. The project's customer stays a pill of its own.
-    elements.removeIf { it is UIFilterElement && (it.id.startsWith("kunde.") || it.id == "kundeText") }
+    // customer, which ask the same question by a name fragment. The project likewise (OrderProjectFilter),
+    // replacing the pills on every field of the embedded project, its customer's included.
+    elements.removeIf {
+      it is UIFilterElement && (it.id.startsWith("kunde.") || it.id == "kundeText" || it.id.startsWith("projekt."))
+    }
     elements.add(
       UIFilterListElement(OrderCustomerFilter.FIELD, label = translate("fibu.kunde"), multi = true).also {
         it.valuesUrl = OrderCustomerFilter.VALUES_URL
+      }
+    )
+    elements.add(
+      UIFilterListElement(OrderProjectFilter.FIELD, label = translate("fibu.projekt"), multi = true).also {
+        it.valuesUrl = OrderProjectFilter.VALUES_URL
       }
     )
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
@@ -529,6 +537,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
     addPeriodOfPerformanceCriterion(target, source)
     OrderCustomerFilter.addCriterion(target, source)
+    OrderProjectFilter.addCriterion(target, source)
     return filters
   }
 
@@ -761,14 +770,31 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   /**
    * The customers to choose from in the customer filter ([OrderCustomerFilter]): those of the orders the
-   * logged-in user may see, so a contact person is not shown the customers of orders they have no access to.
-   * The orders' ids come from the access-checked query, their customers from [AuftragsCache].
+   * list's *other* criteria in [filter] match, as Excel's autofilter offers a column's values — with projects
+   * chosen, only their customers. Without a filter, those of every order the user may see.
    */
-  @GetMapping("customerFilterValues")
-  fun customerFilterValues(): List<UIFilterListValue> {
+  @PostMapping("customerFilterValues")
+  fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return OrderCustomerFilter.valuesOf(filterValueOrders(filter, OrderCustomerFilter.FIELD))
+  }
+
+  /** The projects to choose from in the project filter ([OrderProjectFilter]), as [customerFilterValues]. */
+  @PostMapping("projectFilterValues")
+  fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return OrderProjectFilter.valuesOf(filterValueOrders(filter, OrderProjectFilter.FIELD))
+  }
+
+  /**
+   * The orders [filter] matches when its entry on [ownField] is left out — the rows a checklist filter's
+   * values are taken from. Ids only, from the access-checked query the paged list runs (so a contact person
+   * is not offered the customers of orders they may not read); the rest comes from [AuftragsCache].
+   */
+  private fun filterValueOrders(filter: MagicFilter?, ownField: String): Sequence<OrderInfo> {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
-    val ids = baseDao.selectIds(QueryFilter(), null).ids
-    return OrderCustomerFilter.valuesOf(ids.asSequence().mapNotNull { auftragsCache.getOrderInfo(it) })
+    val others = filter?.clone() ?: MagicFilter()
+    others.entries.removeIf { it.field == ownField || it.field == MagicFilter.PAGINATION_PAGE_SIZE }
+    others.sortProperties.clear()
+    return getResultIds(others).asSequence().mapNotNull { auftragsCache.getOrderInfo(it) }
   }
 
   /**

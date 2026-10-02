@@ -754,6 +754,17 @@ constructor(
     }
 
     /**
+     * The ids of what [getResultList] would return, access checked, without loading a single entity: the
+     * query server-side paging runs ([getListPage]). Not sorted by the [computedSortProperties].
+     */
+    fun getResultIds(filter: MagicFilter): LongArray {
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
+        return baseDao.selectIds(queryFilter, customResultFilters).ids
+    }
+
+    /**
      * Will be called after getting the list from the database before calling. Will be called before returning
      * list to callee (client).
      * Useful also for saving database calls by setting additional data to the list.
