@@ -15,6 +15,7 @@ import {
 } from "@/lib/rs/configuration";
 import type { ConfigurationValues } from "../schema";
 import type { ConfigurationType } from "../types";
+import { JSON_EDITORS } from "./json-editors";
 
 /**
  * The one editable value of a configuration parameter, rendered as the input its `configurationType`
@@ -30,10 +31,8 @@ import type { ConfigurationType } from "../types";
 export function ConfigurationValueField({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
-  const { configurationType, i18nKey, descriptionI18nKey } = useStore(
-    form.store,
-    (s: unknown) => (s as FormState).values
-  );
+  const { configurationType, parameter, i18nKey, descriptionI18nKey } =
+    useStore(form.store, (s: unknown) => (s as FormState).values);
 
   const label = i18nKey ? t(leafKeyOf(i18nKey, t.has)) : "";
   // The description key is a plain leaf, but a parameter that has none must not ask for a missing key.
@@ -42,17 +41,35 @@ export function ConfigurationValueField({ className }: { className?: string }) {
       ? t(descriptionI18nKey)
       : undefined;
 
-  return renderValueField(configurationType, label, hint, className);
+  return renderValueField(configurationType, parameter, label, hint, className);
 }
 
 /** Picks the input for the value slot the type stores in (see Configuration.copyTo). */
 function renderValueField(
   type: ConfigurationType | null,
+  parameter: string | null,
   label: string,
   hint: string | undefined,
   className?: string
 ) {
   switch (type) {
+    case "JSON": {
+      // A JSON parameter brings its own editor; one without is edited as text, checked by the backend.
+      const Editor = parameter ? JSON_EDITORS[parameter] : undefined;
+      if (Editor) {
+        return <Editor label={label} hint={hint} className={className} />;
+      }
+      return (
+        <TextAreaField
+          name="stringValue"
+          label={label}
+          hint={hint}
+          className={className}
+          rows={10}
+          metadataLess
+        />
+      );
+    }
     case "TEXT":
       return (
         <TextAreaField
@@ -139,6 +156,6 @@ function renderValueField(
 interface FormState {
   values: Pick<
     ConfigurationValues,
-    "configurationType" | "i18nKey" | "descriptionI18nKey"
+    "configurationType" | "parameter" | "i18nKey" | "descriptionI18nKey"
   >;
 }

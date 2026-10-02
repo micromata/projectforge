@@ -72,6 +72,11 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN), //
   /**
+   * The settings of the contribution margin as JSON object (revenue accounts, hourly rate, target percentage,
+   * red threshold, kost2 assignments), see {@code ContributionMarginConfig}.
+   */
+  FIBU_CONTRIBUTION_MARGIN("fibu.contributionMargin", ConfigurationType.JSON), //
+  /**
    * Cost configured configuration param.
    */
   TIMESHEET_NOTE_SAVINGS_BY_AI("timesheet.noteSavingsByAI", ConfigurationType.TEXT), //

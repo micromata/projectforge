@@ -24,6 +24,8 @@
 package org.projectforge.rest
 
 import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationJsonValidators
+import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -32,6 +34,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Configuration
+import org.projectforge.ui.ValidationError
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -71,6 +74,21 @@ class ConfigurationEntityRest :
         val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: ConfigurationDO()
         dto.copyTo(obj)
         return obj
+    }
+
+    /**
+     * A JSON parameter is checked by the validator its owner registered (see [ConfigurationJsonValidators]).
+     * The type is taken from the DB row, never from the request. The errors are given on the one value field
+     * `stringValue`; each message names the part of the JSON object it is about.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Configuration) {
+        val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: return
+        if (obj.configurationType != ConfigurationType.JSON) {
+            return
+        }
+        ConfigurationJsonValidators.validate(obj.parameter, dto.stringValue).forEach { message ->
+            validationErrors.add(ValidationError(message, fieldId = "stringValue"))
+        }
     }
 
     /**

@@ -94,7 +94,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     }
 
     fun getValue(parameter: IConfigurationParam, configurationDO: ConfigurationDO?): Any? {
-        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             if (configurationDO == null) {
                 return parameter.defaultStringValue
             }
@@ -202,7 +202,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         val configuration = ConfigurationDO()
         configuration.parameter = param.key
         configuration.configurationType = param.type
-        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             configuration.value = param.defaultStringValue
         }
         if (param.type.isIn(ConfigurationType.LONG)) {

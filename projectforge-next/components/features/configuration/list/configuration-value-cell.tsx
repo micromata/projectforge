@@ -5,7 +5,9 @@ import { BooleanCell } from "@/components/data-table/cells/boolean-cell";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatNumber, formatPercentageDecimal } from "@/lib/format";
+import { CONTRIBUTION_MARGIN_PARAM } from "../contribution-margin-config";
 import type { ConfigurationRow } from "../types";
+import { ContributionMarginConfigSummary } from "./contribution-margin-config-summary";
 
 /**
  * The current value of a configuration parameter, read-only, formatted for the type it is stored as —
@@ -43,6 +45,15 @@ export function ConfigurationValueCell({
       return (
         <span className="tabular-nums">
           {formatPercentageDecimal(row.floatValue, format)}
+        </span>
+      );
+    case "JSON":
+      if (row.parameter === CONTRIBUTION_MARGIN_PARAM) {
+        return <ContributionMarginConfigSummary json={row.stringValue} />;
+      }
+      return (
+        <span className="line-clamp-2 break-all font-mono text-xs">
+          <HighlightedText text={row.stringValue ?? ""} query={highlight} />
         </span>
       );
     // STRING, TEXT, TIME_ZONE and the unused CALENDAR/TASK all carry their value as text.

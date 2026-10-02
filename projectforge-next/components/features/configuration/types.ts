@@ -19,6 +19,7 @@ export const CONFIGURATION_TYPES = [
   "TASK",
   "TIME_ZONE",
   "CALENDAR",
+  "JSON",
 ] as const;
 
 export type ConfigurationType = (typeof CONFIGURATION_TYPES)[number];
@@ -41,7 +42,7 @@ export interface ConfigurationDetail {
   descriptionI18nKey?: string | null;
   /** Translated parameter label in the user's locale — the edit page heading (see Configuration.label). */
   label?: string | null;
-  /** Value slot for STRING, TEXT and TIME_ZONE (a time-zone id). */
+  /** Value slot for STRING, TEXT, JSON and TIME_ZONE (a time-zone id). */
   stringValue?: string | null;
   /** Value slot for LONG. */
   longValue?: number | null;

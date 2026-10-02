@@ -136,6 +136,9 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "json": {
+        "invalid": "Kein gültiges JSON."
+      },
       "param": {
         "calendarDomain": {
           "_": "Kalenderdomäne",
@@ -163,6 +166,10 @@
           "label": "Feedback"
         },
         "fibu": {
+          "contributionMargin": {
+            "_": "Deckungsbeitrag",
+            "description": "Einstellungen des Deckungsbeitrags (Auftragsbuch und Scripte): die Erlöskonten, der Stundensatz für die Zeitberichte der Monate ohne importierte Buchungssätze, der Ziel-Prozentsatz mit der Rot-Grenze der Ampel und die Zuordnung von Kostenträgern ohne eigenes Projekt zu einem Projekt."
+          },
           "costConfigured": {
             "_": "Kostenkalkulation freigeschaltet?",
             "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
@@ -592,6 +599,67 @@
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "contributionMargin": {
+        "_": "Deckungsbeitrag",
+        "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: ungebuchte Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "config": {
+          "addAssignment": "Zuordnung hinzufügen",
+          "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
+          "error": {
+            "kostNumber": "{arg0} ist keine dreiteilige Nummer wie 6.000.10.",
+            "negative": "darf nicht negativ sein.",
+            "percentage": "muss zwischen 0 und 100 liegen.",
+            "projectNotFound": "Kein Projekt mit dem Kostenträger {arg0} gefunden.",
+            "redAboveTarget": "darf nicht größer als das Ziel sein.",
+            "revenueAccounts": "Keine gültigen Kontobereiche, z. B. 4000-4799, 4900."
+          },
+          "hourlyRate": {
+            "_": "Stundensatz",
+            "tooltip": "Pauschaler Stundensatz (netto), mit dem die Zeitberichte der Monate ohne importierte Buchungssätze als Kosten eingehen. Ohne Stundensatz enthalten diese Monate keine Kosten aus Zeitberichten."
+          },
+          "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+          "kost2": "Kost2 (erste drei Teile)",
+          "kost2Assignments": {
+            "_": "Kost2-Zuordnung",
+            "tooltip": "Ordnet Kostenträger ohne eigenes Projekt einem Projekt zu: Alle Kost2, die mit den angegebenen drei Teilen beginnen (alle Kostenarten), zählen zum Projekt mit dem angegebenen Kostenträger."
+          },
+          "project": "Projekt (Kostenträger)",
+          "redThreshold": "Rot unter",
+          "removeAssignment": "Zuordnung {arg0} entfernen",
+          "revenueAccounts": {
+            "_": "Erlöskonten",
+            "tooltip": "Die Kontonummern der Erlöse als kommagetrennte Bereiche, z. B. 4000-4799 (SKR04). Buchungssätze auf diesen Konten sind Erlöse, alle anderen Kosten."
+          },
+          "summary": "Ziel {arg0} % · rot unter {arg1} % · {arg2} Kost2-Zuordnungen",
+          "targetPercentage": "Ziel-DB %"
+        },
+        "costs": "Kosten",
+        "customer": "Kunde",
+        "empty": "Für die Projekte der ausgewählten Aufträge wurden weder Erlöse noch Kosten gefunden.",
+        "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher fehlen in den vorläufigen Monaten die Kosten der Zeitberichte.",
+        "kost": "Kostenträger",
+        "monthly": "Deckungsbeitrag Monatswerte",
+        "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: ungebuchte Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "noRevenue": "Keine Erlöse im Zeitraum, nur Kosten.",
+        "ordersWithoutProject": "{arg0} der ausgewählten Aufträge haben kein Projekt und werden nicht berücksichtigt.",
+        "percentage": "DB %",
+        "preliminary": "vorläufig",
+        "prevPrevYear": "DB1 Vorvorjahr",
+        "prevYear": "DB1 Vorjahr",
+        "prevYearCosts": "Kosten Vorjahr",
+        "prevYearPercentage": "DB % Vorjahr",
+        "prevYearRevenue": "Erlöse Vorjahr",
+        "profit": "DB1",
+        "project": "Projekt",
+        "projects": "Deckungsbeitrag je Projekt",
+        "revenue": "Erlöse",
+        "startDate": {
+          "_": "Erster Monat",
+          "tooltip": "Der Deckungsbeitrag umfasst die 12 Monate ab dem Monat dieses Datums, verglichen mit denselben Monaten der beiden Vorjahre. Angezeigt werden die Projekte der Aufträge, die der Filter der Liste auswählt (siehe Zusammenfassung oben); sein Leistungszeitraum wird durch dieses Datum ersetzt."
+        },
+        "target": "Ziel {arg0} %",
+        "total": "Summe"
+      },
       "datum": {
         "_": "Angebotsdatum",
         "short": "Datum"

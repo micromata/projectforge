@@ -11,6 +11,7 @@ import {
  * formatted value on the right (`font-mono tabular-nums` so the numbers line up). Wraps the shadcn
  * `ChartTooltip`/`ChartTooltipContent` pair that every chart otherwise copies verbatim; the two formatters
  * are the only things that differ between charts (currency vs. plain number, month vs. date label).
+ * `formatValue` gets the series key too, for a chart mixing units (e.g. amounts and a percentage).
  *
  * Drop it in place of a hand-written `<ChartTooltip>` inside any recharts chart.
  */
@@ -20,7 +21,7 @@ export function ChartValueTooltip({
   formatLabel,
 }: {
   config: ChartConfig;
-  formatValue: (value: number) => string;
+  formatValue: (value: number, key: string) => string;
   formatLabel?: (label: string) => string;
 }) {
   return (
@@ -36,7 +37,7 @@ export function ChartValueTooltip({
                 {config[String(name)]?.label ?? String(name)}
               </span>
               <span className="font-mono font-medium tabular-nums">
-                {formatValue(value as number)}
+                {formatValue(value as number, String(name))}
               </span>
             </span>
           )}

@@ -29,6 +29,8 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -119,6 +121,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var rechnungCache: RechnungCache
+
+  @Autowired
+  private lateinit var contributionMarginService: ContributionMarginService
 
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
@@ -1019,6 +1024,69 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var planningDate: LocalDate? = null,
   )
 
+  /**
+   * The start date of the contribution margin tab of `/next/order`, remembered per user. Returns the
+   * default (begin of the current year) if never used.
+   */
+  @GetMapping("contributionMargin/settings")
+  fun getContributionMarginSettings(): ContributionMarginSettings {
+    contributionMarginService.checkAccess()
+    val stored = userPrefService.getEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN,
+      ContributionMarginSettings::class.java
+    )
+    return ContributionMarginSettings(startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate)
+  }
+
+  /**
+   * The contribution margin ([ContributionMarginService.calculate]) of the projects of the filtered orders,
+   * for the 12 months from the start date on and the two previous years. The orders are queried as for
+   * [forecastChart]: the start date (two years back, for the comparison) replaces the filter's period of
+   * performance, the state criteria are left out. Project managers get only their own projects
+   * ([ContributionMarginService.allowedProjectIds]). The start date is remembered for the next time.
+   */
+  @PostMapping("contributionMargin")
+  fun contributionMargin(@RequestBody request: ContributionMarginRequest): ContributionMarginData {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    userPrefService.putEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN,
+      ContributionMarginSettings(startDate),
+      true
+    )
+    val magicFilter = request.filter ?: MagicFilter()
+    val filter = toAuftragFilter(forecastChartFilter(magicFilter))
+    filter.periodOfPerformanceStartDate = startDate.withDayOfMonth(1).minusYears(2)
+    filter.periodOfPerformanceEndDate = null
+    val orders = baseDao.select(filter)
+    val projectIds = contributionMarginService.allowedProjectIds(orders.mapNotNull { it.projekt?.id })
+    val data = contributionMarginService.calculate(projectIds, startDate)
+    data.ordersWithoutProject = orders.count { it.projekt == null }
+    val usage = forecastFilterUsage(magicFilter)
+    data.ignoredFilterFields = usage.ignored
+    data.replacedFilterFields = usage.replaced
+    data.partialFilterFields = usage.partial
+    return data
+  }
+
+  /** What the contribution margin tab asks for, and what is remembered of it per user. */
+  class ContributionMarginSettings(
+    /** The first month of the 12 months shown (any day of it). */
+    var startDate: LocalDate? = null,
+  )
+
+  class ContributionMarginRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+  )
+
+  /** Whether the list page offers the contribution margin tab (see [ContributionMarginService.hasAccess]). */
+  override fun addVariablesForListPage(): Map<String, Any> {
+    return mapOf("contributionMargin" to runCatching { contributionMarginService.hasAccess() }.getOrDefault(false))
+  }
+
   companion object {
     /**
      * A new order built from this one, as `OutgoingInvoiceEntityRest.prepareInvoiceClone` builds a new
@@ -1335,5 +1403,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
     private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
+    private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN = "contributionMargin"
   }
 }

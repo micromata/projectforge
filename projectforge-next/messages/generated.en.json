@@ -136,6 +136,9 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "json": {
+        "invalid": "No valid JSON."
+      },
       "param": {
         "calendarDomain": {
           "_": "Calendar domain",
@@ -163,6 +166,10 @@
           "label": "Feed-back"
         },
         "fibu": {
+          "contributionMargin": {
+            "_": "Contribution margin",
+            "description": "Settings of the contribution margin (order book and scripts): the revenue accounts, the hourly rate for the time sheets of months without imported accounting records, the target percentage with the red threshold of the traffic light, and the assignment of cost 2 units without an own project to a project."
+          },
           "costConfigured": {
             "_": "Cost-unit accounting configured?",
             "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
@@ -592,6 +599,67 @@
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
       "commissioned": "commissioned",
+      "contributionMargin": {
+        "_": "Contribution margin",
+        "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: unbooked invoices as revenue, time sheets × hourly rate as costs.",
+        "config": {
+          "addAssignment": "Add assignment",
+          "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
+          "error": {
+            "kostNumber": "{arg0} is no number of three parts like 6.000.10.",
+            "negative": "must not be negative.",
+            "percentage": "must be between 0 and 100.",
+            "projectNotFound": "No project with the cost unit {arg0} found.",
+            "redAboveTarget": "must not be greater than the target.",
+            "revenueAccounts": "No valid account ranges, e.g. 4000-4799, 4900."
+          },
+          "hourlyRate": {
+            "_": "Hourly rate",
+            "tooltip": "Flat hourly rate (net) the time sheets of the months without imported accounting records are valued with as costs. Without a rate, these months show no time sheet costs."
+          },
+          "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+          "kost2": "Kost2 (first three parts)",
+          "kost2Assignments": {
+            "_": "Kost2 assignment",
+            "tooltip": "Assigns cost 2 units without an own project to a project: all kost2 starting with the given three parts (any kost2 type) count for the project with the given cost unit."
+          },
+          "project": "Project (cost unit)",
+          "redThreshold": "Red below",
+          "removeAssignment": "Remove assignment {arg0}",
+          "revenueAccounts": {
+            "_": "Revenue accounts",
+            "tooltip": "The account numbers of revenue as comma separated ranges, e.g. 4000-4799 (SKR04). Accounting records on these accounts are revenue, all others costs."
+          },
+          "summary": "Target {arg0} % · red below {arg1} % · {arg2} kost2 assignments",
+          "targetPercentage": "Target DB %"
+        },
+        "costs": "Costs",
+        "customer": "Customer",
+        "empty": "No revenue or costs found for the projects of the selected orders.",
+        "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the preliminary months lack the costs of the time sheets.",
+        "kost": "Cost unit",
+        "monthly": "Contribution margin monthly",
+        "noImport": "No accounting records are imported at all. All values are preliminary: unbooked invoices as revenue, time sheets × hourly rate as costs.",
+        "noRevenue": "No revenue in the period, only costs.",
+        "ordersWithoutProject": "{arg0} of the selected orders have no project and are not taken into account.",
+        "percentage": "DB %",
+        "preliminary": "preliminary",
+        "prevPrevYear": "DB1 year before previous year",
+        "prevYear": "DB1 previous year",
+        "prevYearCosts": "Costs previous year",
+        "prevYearPercentage": "DB % previous year",
+        "prevYearRevenue": "Revenue previous year",
+        "profit": "DB1",
+        "project": "Project",
+        "projects": "Contribution margin per project",
+        "revenue": "Revenue",
+        "startDate": {
+          "_": "First month",
+          "tooltip": "The contribution margin covers the 12 months starting with the month of this date, compared with the same months of the two previous years. Shown are the projects of the orders the list's filter selects (see the summary above); its period of performance is replaced by this date."
+        },
+        "target": "Target {arg0} %",
+        "total": "Total"
+      },
       "datum": {
         "_": "Date of order",
         "short": "Date"

@@ -66,7 +66,7 @@ class Configuration(
      */
     var label: String? = null,
     /**
-     * The value slot for STRING, TEXT and TIME_ZONE (a time-zone id).
+     * The value slot for STRING, TEXT, JSON and TIME_ZONE (a time-zone id).
      */
     var stringValue: String? = null,
     /**
@@ -105,6 +105,7 @@ class Configuration(
         when (dest.configurationType) {
             ConfigurationType.STRING,
             ConfigurationType.TEXT,
+            ConfigurationType.JSON,
             ConfigurationType.TIME_ZONE -> dest.stringValue = stringValue
             ConfigurationType.BOOLEAN -> dest.booleanValue = booleanValue
             ConfigurationType.LONG,

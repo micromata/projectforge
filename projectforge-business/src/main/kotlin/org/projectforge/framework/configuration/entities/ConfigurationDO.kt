@@ -113,7 +113,7 @@ open class ConfigurationDO : DefaultBaseDO {
                 field = type
             } else if (field == type) {
                 // Do nothing.
-            } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+            } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
             } else if (type == ConfigurationType.LONG && field == ConfigurationType.CALENDAR) {
@@ -207,7 +207,7 @@ open class ConfigurationDO : DefaultBaseDO {
     @CandHIgnore
     open var value: Any?
         @Transient
-        get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
+        get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.TIME_ZONE)) {
             this.stringValue
         } else if (this.configurationType == ConfigurationType.LONG
                 || this.configurationType == ConfigurationType.CALENDAR) {
@@ -268,7 +268,7 @@ open class ConfigurationDO : DefaultBaseDO {
     fun internalSetConfigurationType(type: ConfigurationType) {
         this.configurationType = type
         when {
-            this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT,
+            this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT, ConfigurationType.JSON,
                     ConfigurationType.TIME_ZONE) -> {
                 this.longValue = null
                 this.floatValue = null
@@ -289,7 +289,7 @@ open class ConfigurationDO : DefaultBaseDO {
         if (this.configurationType != null) {
             if (this.configurationType == type) {
                 return
-            } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+            } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 return
             } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
@@ -313,7 +313,7 @@ open class ConfigurationDO : DefaultBaseDO {
             this.configurationType = type
         } else if (this.configurationType == type) {
             // Do nothing.
-        } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+        } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
             // Do nothing.
         } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {

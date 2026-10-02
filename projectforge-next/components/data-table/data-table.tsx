@@ -154,6 +154,11 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
    * default; a bounded table (a list page, a dialog) keeps its own scroller.
    */
   autoHeight?: boolean;
+  /**
+   * Vertical lines between the columns, for a table of figures read across a row (e.g. the contribution
+   * margin per project). Off by default; an ordinary list keeps its open look.
+   */
+  columnLines?: boolean;
 }
 
 export function DataTable<TData>({
@@ -178,6 +183,7 @@ export function DataTable<TData>({
   collapseLogoOnScroll = false,
   dense = false,
   autoHeight = false,
+  columnLines = false,
   ...tableOptions
 }: DataTableProps<TData>) {
   const t = useTranslations("table");
@@ -364,6 +370,10 @@ export function DataTable<TData>({
                         // select-none: shift-clicking would otherwise select text.
                         header.column.getCanSort() &&
                           "cursor-pointer select-none",
+                        // Aligned like the column's values (see ColumnMeta.align and DataTableRow).
+                        header.column.columnDef.meta?.align === "right" &&
+                          "text-right",
+                        columnLines && "border-r",
                         header.column.getIsSorted() &&
                           "before:pointer-events-none before:absolute before:inset-0 before:bg-primary/10",
                         pinnedClass(header.column, pinningSuspended)
@@ -463,6 +473,7 @@ export function DataTable<TData>({
                     onSelectClick={selection?.onRowClick}
                     rowActions={rowActions}
                     suspendPinning={pinningSuspended}
+                    columnLines={columnLines}
                     // The row's colour and the marker are two layers, so both classes apply — see
                     // `row-highlighted` in globals.css, which is why it is no background.
                     className={cn(
