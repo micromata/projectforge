@@ -27,6 +27,65 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class HistoryFormatUtilsTest {
+    @Suppress("unused")
+    private class IdListEntity {
+        @HistoryIdList(HistoryIdList.Type.USER)
+        var ownerIds: String? = null
+
+        @HistoryIdList(HistoryIdList.Type.GROUP)
+        var attendeeIds: String? = null
+
+        var fullAccessUserIds: String? = null
+
+        var comment: String? = null
+    }
+
+    @Test
+    fun testGetIdListType() {
+        val clazz = IdListEntity::class.java
+        Assertions.assertEquals(HistoryIdList.Type.USER, HistoryFormatUtils.getIdListType(clazz, "ownerIds"))
+        Assertions.assertEquals(HistoryIdList.Type.GROUP, HistoryFormatUtils.getIdListType(clazz, "attendeeIds"))
+        Assertions.assertEquals(HistoryIdList.Type.USER, HistoryFormatUtils.getIdListType(clazz, "fullAccessUserIds"))
+        Assertions.assertEquals(HistoryIdList.Type.GROUP, HistoryFormatUtils.getIdListType(null, "readonlyAccessGroupIds"))
+        Assertions.assertNull(HistoryFormatUtils.getIdListType(clazz, "comment"))
+        Assertions.assertNull(HistoryFormatUtils.getIdListType(clazz, null))
+        Assertions.assertNull(HistoryFormatUtils.getIdListType(null, "ownerIds"))
+    }
+
+    @Test
+    fun testGetIdListNames() {
+        val names = mapOf(1L to "Zoe Zimmer", 2L to "Anna Adams")
+        val nameOf: (Long) -> String? = { names[it] }
+        Assertions.assertEquals(listOf("Anna Adams", "Zoe Zimmer"), HistoryFormatUtils.getIdListNames("1,2", nameOf))
+        Assertions.assertEquals(listOf("#3", "Anna Adams"), HistoryFormatUtils.getIdListNames(" 2, 3 ", nameOf))
+        Assertions.assertEquals(listOf("Zoe Zimmer"), HistoryFormatUtils.getIdListNames("1", nameOf))
+        // Already formatted or not an id list:
+        Assertions.assertNull(HistoryFormatUtils.getIdListNames("Anna Adams, Zoe Zimmer", nameOf))
+        Assertions.assertEquals(emptyList<String>(), HistoryFormatUtils.getIdListNames(null, nameOf))
+        Assertions.assertEquals(emptyList<String>(), HistoryFormatUtils.getIdListNames("", nameOf))
+        Assertions.assertEquals(emptyList<String>(), HistoryFormatUtils.getIdListNames("null", nameOf))
+    }
+
+    @Test
+    fun testSetListValues() {
+        DisplayHistoryEntryAttr().also { attr ->
+            attr.setListValues(listOf("Anna", "Bert", "Carl"), listOf("Bert", "Carl", "Dora"))
+            Assertions.assertEquals(listOf("Anna"), attr.removedValues)
+            Assertions.assertEquals(listOf("Dora"), attr.addedValues)
+        }
+        DisplayHistoryEntryAttr().also { attr ->
+            attr.setListValues(emptyList(), listOf("Anna"))
+            Assertions.assertEquals(emptyList<String>(), attr.removedValues)
+            Assertions.assertEquals(listOf("Anna"), attr.addedValues)
+        }
+        DisplayHistoryEntryAttr().also { attr ->
+            // No difference: nothing to show as diff.
+            attr.setListValues(listOf("Anna", "Bert"), listOf("Bert", "Anna"))
+            Assertions.assertNull(attr.removedValues)
+            Assertions.assertNull(attr.addedValues)
+        }
+    }
+
     @Test
     fun testSetPropertyForListEntries() {
         assertAndTest("pos#1", "property", "pos", 1)

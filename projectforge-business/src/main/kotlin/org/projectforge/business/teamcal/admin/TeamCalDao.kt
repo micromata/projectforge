@@ -35,8 +35,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -50,9 +48,6 @@ import org.springframework.stereotype.Service
 class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var historyFormatUtils: HistoryFormatUtils
 
     @Autowired
     private lateinit var teamCalCache: TeamCalCache
@@ -146,10 +141,6 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
             filter.setFullAccess(true).setReadonlyAccess(false).setMinimalAccess(false)
             return select(filter)
         }
-
-    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
-        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
-    }
 
     /**
      * Calls [TeamCalCache.setExpired].

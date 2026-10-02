@@ -24,6 +24,13 @@ export interface HistoryEntryAttr {
   operation: string | null;
   oldValue: string | null;
   newValue: string | null;
+  /**
+   * The entries removed from and added to a list property (user/group id lists, entity
+   * collections), diffed by the backend; null if the property isn't a list. Shown instead of the
+   * whole lists in `oldValue`/`newValue`.
+   */
+  removedValues?: string[] | null;
+  addedValues?: string[] | null;
 }
 
 /** How many properties an entry inserted/updated/deleted, see DisplayHistoryEntry.DiffCount. */
