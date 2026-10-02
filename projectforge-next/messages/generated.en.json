@@ -670,7 +670,6 @@
           }
         },
         "chart": {
-          "_": "Charts",
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",

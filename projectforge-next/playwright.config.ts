@@ -44,7 +44,9 @@ const LANES = [
   "creditor",
   "calendar",
   "cost1",
+  "cost2",
   "customer",
+  "timesheet",
 ];
 const PARALLEL_TAGS = /@parallel|@lane-/;
 

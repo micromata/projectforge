@@ -88,6 +88,7 @@ import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterListValue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -1199,6 +1200,12 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 )
             )
         }
+        // The customer and the project as the list's cells show them, picked from those of the invoices (see
+        // customerFilterValues), as on the order list. They replace the free-text pills on every field of the
+        // embedded customer and project, and on the free-text customer.
+        elements.removeTextFilters("kunde", "kundeText", "projekt")
+        elements.add(customerFilter.element())
+        elements.add(projectFilter.element())
     }
 
     override fun preProcessMagicFilter(
@@ -1230,7 +1237,29 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             )
         }
         addPeriodOfPerformanceCriterion(target, source)
+        customerFilter.addCriterion(target, source)
+        projectFilter.addCriterion(target, source)
         return filters
+    }
+
+    /**
+     * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the invoices
+     * the list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("customerFilterValues")
+    fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        val invoices = getResultList(checklistFilter(filter, CustomerChecklistFilter.FIELD))
+        return CustomerChecklistFilter.valuesOf(
+            // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
+            invoices.asSequence().map { PfCaches.instance.getKundeIfNotInitialized(it.kunde)?.nummer to it.kundeText }
+        )
+    }
+
+    /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("projectFilterValues")
+    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        val invoices = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
+        return ProjectChecklistFilter.valuesOf(invoices.asSequence().map { it.projekt?.id })
     }
 
     /**
@@ -1401,6 +1430,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     companion object {
+        private val customerFilter = CustomerChecklistFilter("outgoingInvoice/customerFilterValues")
+        private val projectFilter = ProjectChecklistFilter("outgoingInvoice/projectFilterValues")
+
         /**
          * Turns a copy of an invoice into a new one, the way `RechnungEditPage.cloneData` does it.
          *

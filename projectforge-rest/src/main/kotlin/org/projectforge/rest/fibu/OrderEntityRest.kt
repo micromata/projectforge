@@ -449,14 +449,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       )
     )
     // The customer as the list's cell shows it, entity or free text, picked from the customers the order book
-    // names (OrderCustomerFilter). Replaces the free-text pills on the customer's name and on the free-text
-    // customer, which ask the same question by a name fragment. The project's customer stays a pill of its own.
-    elements.removeIf { it is UIFilterElement && (it.id.startsWith("kunde.") || it.id == "kundeText") }
-    elements.add(
-      UIFilterListElement(OrderCustomerFilter.FIELD, label = translate("fibu.kunde"), multi = true).also {
-        it.valuesUrl = OrderCustomerFilter.VALUES_URL
-      }
-    )
+    // names (CustomerChecklistFilter). Replaces the free-text pills on the customer's name and on the free-text
+    // customer, which ask the same question by a name fragment. The project likewise (ProjectChecklistFilter),
+    // replacing the pills on every field of the embedded project, its customer's included.
+    elements.removeTextFilters("kunde", "kundeText", "projekt")
+    elements.add(customerFilter.element())
+    elements.add(projectFilter.element())
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
     // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
     // user picker each, as the edit form offers — a person is searched by picking them, not by typing a
@@ -528,7 +526,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
-    OrderCustomerFilter.addCriterion(target, source)
+    customerFilter.addCriterion(target, source)
+    projectFilter.addCriterion(target, source)
     return filters
   }
 
@@ -760,15 +759,27 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
-   * The customers to choose from in the customer filter ([OrderCustomerFilter]): those of the orders the
-   * logged-in user may see, so a contact person is not shown the customers of orders they have no access to.
-   * The orders' ids come from the access-checked query, their customers from [AuftragsCache].
+   * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the orders the
+   * list's *other* criteria in [filter] match, as Excel's autofilter offers a column's values — with projects
+   * chosen, only their customers. Without a filter, those of every order the user may see.
    */
-  @GetMapping("customerFilterValues")
-  fun customerFilterValues(): List<UIFilterListValue> {
-    baseDao.hasLoggedInUserSelectAccess(throwException = true)
-    val ids = baseDao.selectIds(QueryFilter(), null).ids
-    return OrderCustomerFilter.valuesOf(ids.asSequence().mapNotNull { auftragsCache.getOrderInfo(it) })
+  @PostMapping("customerFilterValues")
+  fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    // Without a customer entity, kundeAsString is the free text itself (see KundeFormatter).
+    return CustomerChecklistFilter.valuesOf(
+      checklistOrders(filter, CustomerChecklistFilter.FIELD).map { it.kundeId to it.kundeAsString }
+    )
+  }
+
+  /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+  @PostMapping("projectFilterValues")
+  fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return ProjectChecklistFilter.valuesOf(checklistOrders(filter, ProjectChecklistFilter.FIELD).map { it.projektId })
+  }
+
+  /** The orders of a checklist ([checklistFilter]): ids only, the rest comes from [AuftragsCache]. */
+  private fun checklistOrders(filter: MagicFilter?, ownField: String): Sequence<OrderInfo> {
+    return getResultIds(checklistFilter(filter, ownField)).asSequence().mapNotNull { auftragsCache.getOrderInfo(it) }
   }
 
   /**
@@ -1064,6 +1075,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   )
 
   companion object {
+    private val customerFilter = CustomerChecklistFilter("order/customerFilterValues")
+    private val projectFilter = ProjectChecklistFilter("order/projectFilterValues")
+
     /**
      * A new order built from this one, as `OutgoingInvoiceEntityRest.prepareInvoiceClone` builds a new
      * invoice — the clone is a fresh draft, not a copy of what the original earned:

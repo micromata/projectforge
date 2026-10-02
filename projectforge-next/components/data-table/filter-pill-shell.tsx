@@ -15,11 +15,14 @@ import {
 } from "@/components/ui/popover";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
+import { FilterPillFace, filterPillFrameClass } from "./filter-pill-face";
 
 interface FilterPillShellProps {
   label: string;
   /** The value as text, appended after the label: "Modified: Kai Reinhard, …". */
   text?: string;
+  /** Picks left off [text], counted beside it (see [filterPillContent]). */
+  more?: number;
   tooltip?: string;
   /** Show [tooltip] verbatim, line by line, instead of as markdown — for a list of user data. */
   tooltipPlain?: boolean;
@@ -64,6 +67,7 @@ interface FilterPillShellProps {
 export function FilterPillShell({
   label,
   text,
+  more,
   tooltip,
   tooltipPlain,
   active,
@@ -103,14 +107,7 @@ export function FilterPillShell({
   );
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border text-xs font-medium",
-        active
-          ? "border-primary/30 bg-primary/10 text-primary"
-          : "border-dashed border-muted-foreground/40 text-muted-foreground"
-      )}
-    >
+    <span className={filterPillFrameClass(active)}>
       {/* The arrows flank the label so the pill reads as a pager; they are siblings of the trigger, never
           nested in it, and paging applies live without opening the popover below. */}
       {stepping && (
@@ -126,10 +123,9 @@ export function FilterPillShell({
             aria-label={label}
             aria-pressed={active}
             onClick={onToggle}
-            className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
+            className="min-w-0 cursor-pointer rounded-full px-2.5 py-0.5"
           >
-            {label}
-            {text && `: ${text}`}
+            <FilterPillFace label={label} text={text} more={more} />
           </button>
         </HintTooltip>
       ) : (
@@ -140,10 +136,9 @@ export function FilterPillShell({
               <button
                 type="button"
                 aria-label={t("editEntry", { arg0: label })}
-                className="max-w-64 cursor-pointer truncate rounded-full px-2.5 py-0.5"
+                className="min-w-0 cursor-pointer rounded-full px-2.5 py-0.5"
               >
-                {label}
-                {text && `: ${text}`}
+                <FilterPillFace label={label} text={text} more={more} />
               </button>
             </PopoverTrigger>
           </HintTooltip>

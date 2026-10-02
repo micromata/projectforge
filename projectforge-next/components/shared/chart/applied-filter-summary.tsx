@@ -13,6 +13,10 @@ import { filterElementsOf } from "@/lib/rs/filter-elements";
 import type { MagicFilter } from "@/lib/rs/types";
 import { cn } from "@/lib/utils";
 import {
+  FilterPillFace,
+  filterPillFrameClass,
+} from "@/components/data-table/filter-pill-face";
+import {
   appliedFilterItems,
   type AppliedFilterItem,
   type AppliedFilterUsage,
@@ -111,35 +115,43 @@ function SummaryChip({
 }) {
   const t = useTranslations("filter.applied");
   const ignored = item.status === "ignored";
-  const text = (
-    <span
-      className={cn(
-        "truncate",
-        // Struck through in red as a deleted row is (`row-deleted`), the reason behind its tooltip.
-        ignored && "line-through decoration-destructive decoration-2",
-        item.status === "replaced" && "text-muted-foreground line-through"
-      )}
-    >
-      <span className="text-muted-foreground">{item.label}</span>
-      {/* A boolean pill has no value text: its label alone says what is meant. */}
-      {item.value && <>: {item.value}</>}
+  const face = (
+    <span className="flex min-w-0 px-2.5 py-0.5">
+      <FilterPillFace
+        label={item.label}
+        text={item.value}
+        more={item.more}
+        className={cn(
+          // Struck through in red as a deleted row is (`row-deleted`), the reason behind its tooltip.
+          ignored && "line-through decoration-destructive decoration-2",
+          item.status === "replaced" && "text-muted-foreground line-through"
+        )}
+      />
       {/* The strike alone says nothing to a screen reader. */}
       {ignored && <span className="sr-only"> ({t("ignored")})</span>}
     </span>
   );
   return (
-    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-full border bg-background px-2.5">
-      {/* An ignored criterion's own note says why it is ignored, so it replaces the general reason. */}
-      {ignored ? (
-        <HintTooltip
-          text={note ?? ignoredTooltip ?? t("ignoredTooltip")}
-          openOnTap
-        >
-          {text}
-        </HintTooltip>
-      ) : (
-        text
+    // The list's pill, read-only: same face, same tooltip, so the chart's criteria read as the list's.
+    <span
+      className={cn(
+        filterPillFrameClass(true),
+        // Room for the marks after the text, which sit outside its padding.
+        ((note && !ignored) || item.status === "partial") && "gap-0.5 pr-1.5"
       )}
+    >
+      {/* An ignored criterion's own note says why it is ignored, so it replaces the value. */}
+      <HintTooltip
+        text={
+          ignored
+            ? (note ?? ignoredTooltip ?? t("ignoredTooltip"))
+            : item.tooltip
+        }
+        plain={!ignored && item.tooltipPlain}
+        openOnTap
+      >
+        {face}
+      </HintTooltip>
       {note && !ignored && <FieldHint hint={note} label={item.label} />}
       {item.status === "partial" && (
         <HintTooltip text={t("partialTooltip")} openOnTap>

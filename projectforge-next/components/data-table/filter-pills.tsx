@@ -8,6 +8,7 @@ import type { PeriodKindId } from "@/lib/date-period";
 import { FilterFieldPicker } from "./filter-field-picker";
 import { hoistDeletedFilter } from "./filter-groups";
 import { FilterPeriodKindsProvider } from "./filter-period-kinds";
+import { FilterValuesProvider } from "./filter-values-context";
 import { FilterPill } from "./filter-pill";
 import { withFilterValue, type FilterValues } from "./filter-value";
 import {
@@ -96,93 +97,96 @@ export function FilterPills({
     // Around the whole row, so the fields of the pills and the ones the "all filters" dialog repeats
     // offer the same arts.
     <FilterPeriodKindsProvider periodKinds={periodKinds}>
-      <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
-        {showHistory && (
-          <HistoryFilterPill
-            group={history}
+      {/* Pill edits apply live, so the applied values are the ones a checklist narrows by. */}
+      <FilterValuesProvider value={values}>
+        <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+          {showHistory && (
+            <HistoryFilterPill
+              group={history}
+              values={values}
+              open={openId === HISTORY_FILTER_GROUP_ID}
+              onOpenChange={(open) =>
+                open ? setOpenId(HISTORY_FILTER_GROUP_ID) : close()
+              }
+              onSave={(draft) => onChange(mergeHistoryFilters(values, draft))}
+              onDelete={() => {
+                onChange(clearHistoryFilters(values));
+                close();
+              }}
+            />
+          )}
+          {shown.map((element) => (
+            <FilterPill
+              key={element.id}
+              element={element}
+              value={values[element.id]}
+              open={openId === element.id}
+              onOpenChange={(open) => (open ? setOpenId(element.id) : close())}
+              removable={!element.defaultFilter}
+              onSave={(value) => {
+                // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
+                if (element.filterType === "BOOLEAN") keepBoolean(element.id);
+                onChange(withFilterValue(values, element.id, value));
+              }}
+              onDelete={() => {
+                // The pill's × is the real removal: drop the value and stop keeping the empty pill.
+                dropBoolean(element.id);
+                onChange(withFilterValue(values, element.id, undefined));
+                close();
+              }}
+            />
+          ))}
+          <FilterFieldPicker
+            entries={[
+              ...(history
+                ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
+                : []),
+              // `deleted` right behind the change history instead of alphabetically among the entity's
+              // own properties, in both places a field can be picked (see hoistDeletedFilter).
+              ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
+                (element) => ({
+                  id: element.id,
+                  label: element.label ?? element.id,
+                  tooltip: element.tooltip,
+                })
+              ),
+            ]}
+            activeIds={[
+              ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
+              ...shown.map((element) => element.id),
+            ]}
+            onSelect={(id) => {
+              // A boolean has one meaningful state; picking it is the same as ticking it, so it
+              // becomes an active pill straight away instead of opening a popover with one checkbox.
+              const element = elements.find((e) => e.id === id);
+              if (element?.filterType === "BOOLEAN") {
+                onChange(withFilterValue(values, id, { value: "true" }));
+                return;
+              }
+              // Keyed by id, so a pending pill mounts with its popover already open.
+              if (!(id in values)) setPendingId(id);
+              setOpenId(id);
+            }}
+            elements={elements}
             values={values}
-            open={openId === HISTORY_FILTER_GROUP_ID}
-            onOpenChange={(open) =>
-              open ? setOpenId(HISTORY_FILTER_GROUP_ID) : close()
-            }
-            onSave={(draft) => onChange(mergeHistoryFilters(values, draft))}
-            onDelete={() => {
-              onChange(clearHistoryFilters(values));
-              close();
-            }}
+            onApply={onChange}
           />
-        )}
-        {shown.map((element) => (
-          <FilterPill
-            key={element.id}
-            element={element}
-            value={values[element.id]}
-            open={openId === element.id}
-            onOpenChange={(open) => (open ? setOpenId(element.id) : close())}
-            removable={!element.defaultFilter}
-            onSave={(value) => {
-              // A boolean toggled here stays on the row even once emptied (see keptBooleanIds).
-              if (element.filterType === "BOOLEAN") keepBoolean(element.id);
-              onChange(withFilterValue(values, element.id, value));
-            }}
-            onDelete={() => {
-              // The pill's × is the real removal: drop the value and stop keeping the empty pill.
-              dropBoolean(element.id);
-              onChange(withFilterValue(values, element.id, undefined));
-              close();
-            }}
-          />
-        ))}
-        <FilterFieldPicker
-          entries={[
-            ...(history
-              ? [{ id: HISTORY_FILTER_GROUP_ID, label: t("history") }]
-              : []),
-            // `deleted` right behind the change history instead of alphabetically among the entity's
-            // own properties, in both places a field can be picked (see hoistDeletedFilter).
-            ...hoistDeletedFilter(withoutHistoryFilters(elements)).map(
-              (element) => ({
-                id: element.id,
-                label: element.label ?? element.id,
-                tooltip: element.tooltip,
-              })
-            ),
-          ]}
-          activeIds={[
-            ...(showHistory ? [HISTORY_FILTER_GROUP_ID] : []),
-            ...shown.map((element) => element.id),
-          ]}
-          onSelect={(id) => {
-            // A boolean has one meaningful state; picking it is the same as ticking it, so it
-            // becomes an active pill straight away instead of opening a popover with one checkbox.
-            const element = elements.find((e) => e.id === id);
-            if (element?.filterType === "BOOLEAN") {
-              onChange(withFilterValue(values, id, { value: "true" }));
-              return;
-            }
-            // Keyed by id, so a pending pill mounts with its popover already open.
-            if (!(id in values)) setPendingId(id);
-            setOpenId(id);
-          }}
-          elements={elements}
-          values={values}
-          onApply={onChange}
-        />
-        {activeCount > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              close();
-              setKeptBooleanIds(new Set());
-              onChange({});
-            }}
-            className="cursor-pointer px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            {t("clearAll")}
-          </button>
-        )}
-        {trailing}
-      </div>
+          {activeCount > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                close();
+                setKeptBooleanIds(new Set());
+                onChange({});
+              }}
+              className="cursor-pointer px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              {t("clearAll")}
+            </button>
+          )}
+          {trailing}
+        </div>
+      </FilterValuesProvider>
     </FilterPeriodKindsProvider>
   );
 }
