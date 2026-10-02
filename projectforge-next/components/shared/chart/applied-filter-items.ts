@@ -1,5 +1,6 @@
 import {
   describeFilterValue,
+  filterPillContent,
   filterValuesFromEntries,
 } from "@/components/data-table/filter-value";
 import { HISTORY_FILTER_IDS } from "@/components/data-table/history-filter";
@@ -26,8 +27,17 @@ export interface AppliedFilterItem {
   /** The field id, `history` for the three history fields, `searchString` for the search box. */
   key: string;
   label: string;
-  /** Empty for a boolean pill, whose label alone says what is meant. */
+  /**
+   * As the pill reads it ([filterPillContent]): several picks named only up to a few, a task without its
+   * path. Empty for a boolean pill, whose label alone says what is meant.
+   */
   value: string;
+  /** Picks left off [value], counted beside it. */
+  more: number;
+  /** The whole value, as the pill's tooltip has it. */
+  tooltip?: string;
+  /** Show [tooltip] line by line, verbatim. */
+  tooltipPlain: boolean;
   status: "applied" | "ignored" | "replaced" | "partial";
 }
 
@@ -75,10 +85,11 @@ export function appliedFilterItems(
   const items: AppliedFilterItem[] = [];
   const historyFields = HISTORY_FILTER_IDS.filter((id) => id in values);
   if (historyFields.length > 0) {
+    const value = describeHistoryFilter(values, ctx);
     items.push({
       key: HISTORY_ITEM_KEY,
       label: labels.history,
-      value: describeHistoryFilter(values, ctx),
+      ...plain(labels.history, value),
       status: statusOf(historyFields),
     });
   }
@@ -86,10 +97,15 @@ export function appliedFilterItems(
   elements.forEach((element) => {
     if (!(element.id in values) || HISTORY_FILTER_IDS.includes(element.id))
       return;
+    const label = filterFieldLabel(element.id, elements, labels.history);
+    const content = filterPillContent(values[element.id], element, label, ctx);
     items.push({
       key: element.id,
-      label: filterFieldLabel(element.id, elements, labels.history),
-      value: describeFilterValue(values[element.id], element, ctx),
+      label,
+      value: content.text,
+      more: content.more,
+      tooltip: content.tooltip,
+      tooltipPlain: content.tooltipPlain,
       status: statusOf([element.id]),
     });
   });
@@ -99,7 +115,7 @@ export function appliedFilterItems(
       items.push({
         key: field,
         label: field,
-        value: describeFilterValue(values[field], undefined, ctx),
+        ...plain(field, describeFilterValue(values[field], undefined, ctx)),
         status: statusOf([field]),
       })
     );
@@ -107,11 +123,21 @@ export function appliedFilterItems(
     items.push({
       key: SEARCH_ITEM_KEY,
       label: labels.search,
-      value: filter.searchString,
+      ...plain(labels.search, filter.searchString),
       status: "applied",
     });
   }
   const struck = (item: AppliedFilterItem) =>
     item.status === "ignored" || item.status === "replaced";
   return [...items.filter((item) => !struck(item)), ...items.filter(struck)];
+}
+
+/** A value shown as it is, the tooltip repeating it in full for when the chip truncates it. */
+function plain(label: string, value: string) {
+  return {
+    value,
+    more: 0,
+    tooltip: value ? `${label}: ${value}` : undefined,
+    tooltipPlain: false,
+  };
 }

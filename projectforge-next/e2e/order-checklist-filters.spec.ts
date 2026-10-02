@@ -103,7 +103,10 @@ test.describe("order book checklist filters", { tag: "@lane-order" }, () => {
     test.skip(!customer, "No customer with orders of only some projects.");
 
     await openFilter(page, t, "customers");
+    // Applied once the pill's edit settles; closing a new pill before that would drop it.
+    const applied = filteredListPage(page, "customers", [customer!.id]);
     await tick(page, t, customer!);
+    await applied;
     await page.keyboard.press("Escape");
 
     // The project checklist asks with the customer as the other criterion, and offers that answer.
