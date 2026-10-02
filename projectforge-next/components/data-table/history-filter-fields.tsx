@@ -52,6 +52,9 @@ export function HistoryFilterFields({
           label={group.user.label ?? group.user.id}
           id={group.user.id}
           autoFocus={autoFocus}
+          // Focused, but not opened: its list would cover the period and the term below it, which the
+          // group is just as often opened for.
+          autoOpen={false}
           value={values[HISTORY_FILTER_FIELDS.user]}
           onChange={(value) => change(HISTORY_FILTER_FIELDS.user, value)}
           onSubmit={(value) => submit(HISTORY_FILTER_FIELDS.user, value)}

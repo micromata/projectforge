@@ -461,6 +461,10 @@ export function EntityEditBody<
     >
       <form
         ref={formRef}
+        // The schema validates, not the browser: a control carrying a native `required` (SuggestInput,
+        // DateInput) would otherwise stop the submit with the browser's own bubble, in the browser's
+        // language, before the form's messages are ever shown.
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
           void form.handleSubmit();
