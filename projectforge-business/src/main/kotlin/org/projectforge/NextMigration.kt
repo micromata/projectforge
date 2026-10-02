@@ -308,6 +308,19 @@ object NextMigration {
         // The "classic version" link is no longer offered: Wicket is no longer supported for liquidity
         // (the next page is the only one). legacyApp/legacyRoute stay so OrphanedLinkFilter still redirects
         // bookmarked wicket/bookmarkable/...LiquidityEntry* links to the next page (as for `order`).
+        // The licenses (plugin licensemanagement) are migrated straight from Wicket and their Wicket pages are
+        // removed, so there is no way back. The legacy routes are the bookmarkable urls (as for `addressCampaign`),
+        // they are kept so bookmarked links still reach the next page.
+        "license" to NextPage(
+            route = "license",
+            editRoute = "license/$ID_PLACEHOLDER",
+            newEntryRoute = "license/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseEditPage",
+            offerLegacyLink = false,
+        ),
         "liquidity" to NextPage(
             route = "liquidity",
             editRoute = "liquidity/$ID_PLACEHOLDER",

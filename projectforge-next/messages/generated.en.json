@@ -2181,13 +2181,34 @@
       }
     },
     "licensemanagement": {
-      "device": "Device",
-      "key": "Key",
+      "device": {
+        "_": "Device",
+        "tooltip": "On which device(s) is this software installed?"
+      },
+      "file1": "File 1",
+      "file2": "File 2",
+      "files": "Files",
+      "key": {
+        "_": "Key",
+        "notvisible": {
+          "_": "Key is only visible for administrators and owners of this license.",
+          "tooltip": "Please add yourself as owner first (and save) to view the license key."
+        }
+      },
+      "license": "License",
       "licenseHolder": "License holder",
       "numberOfLicenses": "Number",
       "owner": "Owner",
       "product": "Product",
-      "updateFromVersion": "Update from version",
+      "swapFiles": "Swap files",
+      "title": {
+        "add": "Add new license",
+        "list": "List of licenses"
+      },
+      "updateFromVersion": {
+        "_": "Update from version",
+        "tooltip": "This license is an update from this (older) version."
+      },
       "validSince": "Valid since",
       "validUntil": "Valid until",
       "version": "Version"
