@@ -670,7 +670,6 @@
           }
         },
         "chart": {
-          "_": "Grafiken",
           "cumulative": "Umsatzprognose kumuliert",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",

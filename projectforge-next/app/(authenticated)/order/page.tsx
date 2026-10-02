@@ -9,7 +9,7 @@ import { OrderForecastChartsView } from "@/components/features/order/forecast-ch
 
 /**
  * The order book (`/order`). Two tabs under one page shell, as the invoice page composes its list and
- * charts: the order list and a "Grafiken" tab with the forecast charts of the filtered orders. The list
+ * charts: the order list and a "Forecast" tab with the forecast charts of the filtered orders. The list
  * keeps its full chrome by rendering {@link EntityListPage} `embedded`; the charts tab reads the same filter
  * the list is showing.
  */
@@ -20,7 +20,7 @@ export default function OrderListPage() {
       <Tabs defaultValue="list" className="flex min-h-0 flex-1 flex-col">
         <TabsList className="mx-4 mt-2 w-fit shrink-0">
           <TabsTrigger value="list">{t("title.list")}</TabsTrigger>
-          <TabsTrigger value="charts">{t("forecast.chart._")}</TabsTrigger>
+          <TabsTrigger value="charts">{t("forecast._")}</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="flex min-h-0 flex-col">
           <EntityListPage page={ORDER_PAGE} embedded />

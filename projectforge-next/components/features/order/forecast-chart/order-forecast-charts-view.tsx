@@ -38,7 +38,7 @@ const STATE_FILTER_FIELDS = ["status", "fakturiert"];
 const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
 
 /**
- * The "Grafiken" tab of `/order` (see `app/(authenticated)/order/page.tsx`): the charts of the forecast
+ * The "Forecast" tab of `/order` (see `app/(authenticated)/order/page.tsx`): the charts of the forecast
  * Excel export (sheet 'Grafiken 1'), computed by the very export pipeline (`ForecastExport.chartData`), so
  * the values match the Excel of the same filter, start and planning date.
  *
