@@ -150,11 +150,59 @@ export function filterValueLabels(
   );
 }
 
+/** What a filter pill says: on its face, and in full in its tooltip. */
+export interface FilterPillContent {
+  /** After the label: "Kunde: <text>". Empty for a boolean, whose label alone says it. */
+  text: string;
+  /** Picks left off [text], shown as "+n" beside it so a truncated text never hides the count. */
+  more: number;
+  tooltip?: string;
+  /** Show [tooltip] verbatim, line by line — a list of user data, no markdown. */
+  tooltipPlain: boolean;
+}
+
+/** How many picks of a multi-value filter a pill names before it counts the rest. */
+const PILL_NAMED_PICKS = 3;
+
 /**
- * [labels] cut to the first [max] for a pill, the rest counted: "A, B, C +12". A pill truncates long
- * text anyway; the count says how much was cut, the tooltip lists it all.
+ * What the pill of [element] says about [value], the same in the list's filter row ([FilterPill]) and in a
+ * chart's summary of it ([AppliedFilterSummary]):
+ * - several picks: the first few named, the rest counted ("A, B, C" +12), all of them listed in the
+ *   tooltip, one per line;
+ * - a task: only the task itself, since its ancestors would truncate away the one segment that identifies
+ *   it — the full path stays in the tooltip;
+ * - anything else: [describeFilterValue], repeated in the tooltip, as the pill truncates it.
+ *
+ * Without a value the tooltip is the field's description.
  */
-export function abbreviatedLabels(labels: string[], max = 3): string {
-  const shown = labels.slice(0, max).join(", ");
-  return labels.length > max ? `${shown} +${labels.length - max}` : shown;
+export function filterPillContent(
+  value: MagicFilterEntryValue | undefined,
+  element: FilterElement | undefined,
+  label: string,
+  ctx: FormatContext
+): FilterPillContent {
+  const labels = filterValueLabels(value, element);
+  if (labels && labels.length > 1) {
+    return {
+      text: labels.slice(0, PILL_NAMED_PICKS).join(", "),
+      more: Math.max(0, labels.length - PILL_NAMED_PICKS),
+      tooltip: `${label}:\n${labels.join("\n")}`,
+      tooltipPlain: true,
+    };
+  }
+  const valueText = describeFilterValue(value, element, ctx);
+  const isTask =
+    element?.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
+  return {
+    text: isTask ? taskLeafOf(valueText) : valueText,
+    more: 0,
+    tooltip: valueText ? `${label}: ${valueText}` : element?.tooltip,
+    tooltipPlain: false,
+  };
+}
+
+/** The last segment of a " | "-joined task path — the task itself, without its ancestors. */
+function taskLeafOf(path: string): string {
+  const segments = path.split(" | ");
+  return segments[segments.length - 1] || path;
 }
