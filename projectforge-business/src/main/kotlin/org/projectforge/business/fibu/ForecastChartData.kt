@@ -73,9 +73,6 @@ class ForecastChartData(
 
     /** The fields of the list filter replaced by a parameter of the charts (the period of performance). */
     var replacedFilterFields: List<String> = emptyList()
-
-    /** The fields of the list filter applied only in part (the first of several payment types). */
-    var partialFilterFields: List<String> = emptyList()
 }
 
 /**

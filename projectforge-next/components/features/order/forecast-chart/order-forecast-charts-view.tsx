@@ -46,10 +46,11 @@ const FORECAST_CHART_SETTINGS_KEY = ["order", "forecastChart", "settings"];
  * that filter is replaced by the start date of the controls. Start and planning date are remembered by the
  * backend, so the settings are loaded first.
  *
- * The forecast knows only some of the list's criteria (`OrderEntityRest.toAuftragFilter`); the backend
- * reports the others with the charts and {@link AppliedFilterSummary} marks them, so totals that differ
- * from the list are explained rather than silent. The criteria of the order's current state are left out
- * on purpose, as they would distort the comparison with the previous years; their note says so.
+ * The forecast is computed over the orders the list's filter selects (`OrderEntityRest.forecastOrders`).
+ * The backend reports the criteria it didn't apply as they are, and {@link AppliedFilterSummary} marks
+ * them, so totals that differ from the list are explained rather than silent: the period of performance
+ * is replaced by the start date, and the criteria of the order's current state are left out on purpose,
+ * as they would distort the comparison with the previous years; their note says so.
  */
 export function OrderForecastChartsView() {
   const remembered = useRememberedFilter(ORDER_ENTITY, { fresh: false });
@@ -139,7 +140,6 @@ function OrderForecastCharts({
       data && {
         ignored: data.ignoredFilterFields,
         replaced: data.replacedFilterFields,
-        partial: data.partialFilterFields,
       },
     [data]
   );

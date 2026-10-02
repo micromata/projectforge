@@ -32,6 +32,7 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
@@ -62,6 +63,9 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var forecastOrderAnalysis: ForecastOrderAnalysis
+
+    @Autowired
+    private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
 
     /**
      * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
@@ -564,6 +568,49 @@ class ForecastExportTest : AbstractTestBase() {
             assertAmounts(excelRow(cumulatedSheet, 7, 1), chartData.prevYear, "Vorjahr")
             assertAmounts(excelRow(cumulatedSheet, 10, 1), chartData.prevPrevYear, "Vorvorjahr")
         }
+    }
+
+    /**
+     * A planning date must not undo the search string: the order book snapshot used as plan can't be searched in
+     * full text, so its orders are restricted to those the search found. Neither may the snapshot's positions draw
+     * the invoices of other orders into IST and the previous years.
+     */
+    @Test
+    fun planningDateKeepsSearchStringTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        fun createInvoicedOrder(titel: String, projectNumber: Int, amount: Double) {
+            val projekt = ProjektDO()
+            projekt.nummer = projectNumber
+            projekt.name = "ForecastExportTest - $titel"
+            val projektId = projektDao.insert(projekt, checkAccess = false)
+            val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+            order.titel = titel
+            order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+            addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5 * amount, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+            val orderId = auftragDao.insert(order)
+            val invoice = createInvoice(baseDate.plusMonths(1))
+            addPosition(invoice, amount, auftragDao.find(orderId)!!.getPosition(1))
+            rechnungDao.insert(invoice)
+        }
+        createInvoicedOrder("Plansearchmatch order", 3, 1000.0)
+        createInvoicedOrder("Other order", 4, 7000.0)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
+
+        val filter = AuftragFilter()
+        filter.searchString = "Plansearchmatch"
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val withoutPlan = forecastExport.chartData(filter, distributeUnusedBudget = true)!!
+        val withPlan = forecastExport.chartData(filter, planningDate = today.localDate, distributeUnusedBudget = true)!!
+        assertAmount(withoutPlan.ist.sumOf { it }, 1000.0)
+        assertAmounts(withoutPlan.ist, withPlan.ist, "IST with planning date")
+        assertAmounts(withoutPlan.prevYear, withPlan.prevYear, "Previous year with planning date")
+        assertAmounts(withoutPlan.total, withPlan.total, "Total with planning date")
+        // The plan of today's snapshot is the forecast of today, of the found order only:
+        assertAmounts(withoutPlan.total, withPlan.plan!!, "Plan")
     }
 
     private fun assertAmounts(expected: List<BigDecimal>, actual: List<BigDecimal>, name: String) {
