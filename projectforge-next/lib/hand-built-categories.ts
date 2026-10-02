@@ -26,6 +26,7 @@ export const HAND_BUILT_CATEGORIES = [
   "customer",
   "employeeSalary",
   "group",
+  "hrPlanning",
   "incomingInvoice",
   "license",
   "liquidity",

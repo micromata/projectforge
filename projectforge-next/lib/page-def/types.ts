@@ -790,6 +790,17 @@ export interface PageDef<
    */
   onRowClick?: (row: Row) => string | undefined;
   /**
+   * The form of this list is another entity's, declared by a page of its own under the same [route] —
+   * for a list whose rows are the *parts* of what is edited: the HR planning list shows the entries of
+   * the planned weeks (`hrPlanningEntry`), and the add button and a row open the week itself
+   * (`hrPlanning`, see HR_PLANNING_PAGE).
+   *
+   * Without [edit] the list would lead to the legacy pages (see useEditTargets); this says the form is
+   * this app's all the same. The add button opens `<route>/new`, a row [onRowClick]'s target — the id of
+   * an entry is not the id of the form's entity, so such a page has to name it there.
+   */
+  foreignEdit?: true;
+  /**
    * Renders what the backend aggregated over the whole result set, between the toolbar and the table —
    * the sums of the order book (`ResultSet.statistics`, see OrderStatisticsLine).
    *

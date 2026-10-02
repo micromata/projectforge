@@ -76,6 +76,29 @@ export const HR_PLANNING_ENTRY_METADATA = {
       i18nKey: "hr.planning.probability.short",
       required: false,
     },
+    status: {
+      dataType: "STRING",
+      i18nKey: "status",
+      required: false,
+      enumValues: [
+        {
+          value: "ABSENT",
+          i18nKey: "hr.planning.entry.status.absence",
+        },
+        {
+          value: "ILL",
+          i18nKey: "hr.planning.entry.status.illness",
+        },
+        {
+          value: "LEAVE",
+          i18nKey: "hr.planning.entry.status.leave",
+        },
+        {
+          value: "OTHER",
+          i18nKey: "hr.planning.entry.status.other",
+        },
+      ],
+    },
     thursdayHours: {
       dataType: "DECIMAL",
       i18nKey: "calendar.shortday.thursday",

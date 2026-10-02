@@ -28,15 +28,13 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.business.humanresources.HRViewDao;
 import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.wicket.WebConstants;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -71,13 +69,8 @@ public class HRListResourceLinkPanel extends Panel {
             @SuppressWarnings("serial") final Link<Object> link = new Link<Object>("resourceLink") {
                 @Override
                 public void onClick() {
-                    final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
-                    final PageParameters pageParams = new PageParameters();
-                    pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
-                    pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
-                    final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
-                    page.setReturnToPage(hrListPage);
-                    setResponsePage(page);
+                    // An unplanned user has no planning of the week: the next form of a new one, user and week preset.
+                    throw new RedirectToUrlException(HRListPage.getPlanningUrl(null, user.getId(), startDay));
                 }
             };
             container.add(link);

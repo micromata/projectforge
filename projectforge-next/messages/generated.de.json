@@ -1723,10 +1723,33 @@
   "hr": {
     "planning": {
       "description": "Tätigkeit",
+      "entry": {
+        "copyFromPredecessor": "Vorgänger kopieren",
+        "status": {
+          "absence": "Abwesenheit",
+          "illness": "Krankheit",
+          "leave": "Urlaub",
+          "other": "Sonstiges"
+        }
+      },
+      "hours": "Stunden",
+      "notPlanned": "Ungeplant",
+      "plannings": "Personaleinsatzplanung",
       "priority": "Priorität",
       "probability": {
+        "_": "Wahrscheinlichkeit",
         "short": "%"
       },
+      "sum": "Summe",
+      "title": {
+        "add": "Neue Resourcenplanung",
+        "edit": "Resourcenplanung bearbeiten",
+        "heading": "Resourcenplanung"
+      },
+      "tooltip": {
+        "addEntry": "Eintrag hinzufügen"
+      },
+      "total": "Gesamt",
       "unassignedHours": "ohne Tagangabe",
       "weekend": "Wochenende"
     }
@@ -2018,6 +2041,7 @@
     "gear": {
       "feedback": "Feedback senden"
     },
+    "hrPlanningList": "Personalplanungsliste",
     "main": {
       "short": "Menü",
       "title": "Hauptmenü"

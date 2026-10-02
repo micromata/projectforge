@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -42,6 +43,8 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.hr.HRPlanningEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
@@ -52,13 +55,18 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
+ * The weekly HR planning lives in projectforge-next (its Wicket edit page was removed), so this page has no
+ * edit page of its own (no {@link ListPage} annotation): a user's row, the add button and the unplanned resources
+ * lead to the next form of the planned week ({@link #getPlanningUrl}).
+ *
  * @author Mario Groß (m.gross@micromata.de)
  * @author Kai Reinhard
  */
-@ListPage(editPage = HRPlanningEditPage.class)
 public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUserData> implements ISelectCallerPage {
     private static final long serialVersionUID = -718881597957595460L;
 
@@ -67,8 +75,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
     private HRViewData hrViewData;
 
     private HRListResourceLinkPanel resourceLinkPanel;
-
-    private Long weekMillis;
 
     public HRListPage(final PageParameters parameters) {
         super(parameters, "hr.planning");
@@ -82,8 +88,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
 
     @SuppressWarnings("serial")
     private void recreateDataTable() {
-        final LocalDate date = form.getSearchFilter().getStartDay();
-        weekMillis = date != null ? PFDateTime.from(date).getBeginOfWeek().getEpochMilli() : null;
         if (dataTable != null) {
             form.remove(dataTable);
         }
@@ -102,18 +106,15 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
             @Override
             public void populateItem(final Item<ICellPopulator<HRViewUserData>> item, final String componentId,
                                      final IModel<HRViewUserData> rowModel) {
-                final Long planningId = rowModel.getObject().getPlanningId();
-                final String[] params;
-                if (planningId == null) {
-                    // Preset fields for adding new entry:
-                    final Long userId = rowModel.getObject().getUserId();
-                    params = new String[]{WebConstants.PARAMETER_USER_ID, userId != null ? String.valueOf(userId) : null,
-                            WebConstants.PARAMETER_DATE, weekMillis != null ? String.valueOf(weekMillis) : null};
-                } else {
-                    params = null;
-                }
-                item.add(new ListSelectActionPanel(componentId, rowModel, HRPlanningEditPage.class, planningId, HRListPage.this,
-                        getLabelString(rowModel), params));
+                final HRViewUserData userData = rowModel.getObject();
+                // Without a planning of the week, the new one gets the user and the week preset:
+                final String url = getPlanningUrl(userData.getPlanningId(), userData.getUserId(), form.getSearchFilter().getStartDay());
+                item.add(new ListSelectActionPanel(componentId, new Link<Void>(ListSelectActionPanel.LINK_ID) {
+                    @Override
+                    public void onClick() {
+                        throw new RedirectToUrlException(url);
+                    }
+                }, new Label(ListSelectActionPanel.LABEL_ID, getLabelString(rowModel))));
                 cellItemListener.populateItem(item, componentId, rowModel);
                 addRowClick(item);
             }
@@ -237,18 +238,29 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
     }
 
     /**
-     * Get the current date (start date) and preset this date for the edit page.
+     * Opens the next form of a new planning, the week preset to the current date (start date).
      */
     @Override
-    protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params) {
-        if (params == null) {
-            params = new PageParameters();
+    protected AbstractEditPage<?, ?, ?> redirectToEditPage(final PageParameters params) {
+        throw new RedirectToUrlException(getPlanningUrl(null, null, form.getSearchFilter().getStartDay()));
+    }
+
+    /**
+     * The url of the next form of a planned week: the planning itself if given, otherwise a new one with the user
+     * and the week (normalized to its begin by the form) preset.
+     */
+    static String getPlanningUrl(final Long planningId, final Long userId, final LocalDate week) {
+        if (planningId != null) {
+            return PagesResolver.getEditPageUrl(HRPlanningEntityRest.class, planningId, null, true, null);
         }
-        if (weekMillis != null) {
-            params.add(WebConstants.PARAMETER_DATE, String.valueOf(weekMillis));
+        final Map<String, Object> params = new HashMap<>();
+        if (userId != null) {
+            params.put("userId", userId);
         }
-        final AbstractEditPage<?, ?, ?> editPage = super.redirectToEditPage(params);
-        return editPage;
+        if (week != null) {
+            params.put("week", week.toString());
+        }
+        return PagesResolver.getEditPageUrl(HRPlanningEntityRest.class, null, params, true, null);
     }
 
     @SuppressWarnings("serial")

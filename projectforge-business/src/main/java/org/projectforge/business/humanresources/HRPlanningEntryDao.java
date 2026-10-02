@@ -24,8 +24,6 @@
 package org.projectforge.business.humanresources;
 
 import jakarta.persistence.criteria.JoinType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.fibu.ProjektDO;
@@ -44,8 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -101,19 +101,71 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
         if (list == null) {
             return null;
         }
+        initializePlanningEntries(list);
+        return groupAndFilter(list, myFilter.isGroupEntries(), myFilter.isOnlyMyProjects());
+    }
+
+    /**
+     * Joins the associations every list row reads into the query itself: the planning and its employee (access
+     * check, week, user), the project and its customer (project name and customer column). The list query
+     * scrolls its result, so Hibernate's batch fetching never sees more than one pending proxy and each lazy
+     * association would cost one select per row.
+     */
+    public static void addListFetchJoins(final QueryFilter queryFilter) {
+        queryFilter.createJoin("planning", JoinType.INNER, true)
+                .createJoin("user", JoinType.INNER, true, "planning")
+                .createJoin("projekt", JoinType.LEFT, true)
+                .createJoin("kunde", JoinType.LEFT, true, "projekt");
+    }
+
+    /**
+     * Sets the entries of the plannings of the given (detached, read-only) list entries, loaded with one query
+     * per batch of plannings instead of one lazy load per planning. Needed by the planning's sums
+     * ({@link HRPlanningDO#getTotalHours()}) and by {@link #groupAndFilter(List, boolean, boolean)}.
+     */
+    public void initializePlanningEntries(final List<HRPlanningEntryDO> list) {
+        final Map<Long, List<HRPlanningDO>> plannings = new HashMap<>();
         for (final HRPlanningEntryDO entry : list) {
-            @SuppressWarnings("unchecked") final List<HRPlanningEntryDO> entries = (List<HRPlanningEntryDO>) CollectionUtils.select(
-                    entry.getPlanning().getEntries(),
-                    PredicateUtils.uniquePredicate());
-            entry.getPlanning().setEntries(entries);
+            final HRPlanningDO planning = entry.getPlanning();
+            if (planning != null && planning.getId() != null) {
+                plannings.computeIfAbsent(planning.getId(), id -> new ArrayList<>()).add(planning);
+            }
         }
-        if (!myFilter.isGroupEntries() && !myFilter.isOnlyMyProjects()) {
+        if (plannings.isEmpty()) {
+            return;
+        }
+        final List<HRPlanningEntryDO> entries = getPersistenceService().executeQueryBatched(
+                "select e from HRPlanningEntryDO e left join fetch e.projekt where e.planning.id in :planningIds order by e.id",
+                HRPlanningEntryDO.class, "planningIds", plannings.keySet());
+        final Map<Long, List<HRPlanningEntryDO>> entriesByPlanning = new HashMap<>();
+        for (final HRPlanningEntryDO entry : entries) {
+            entriesByPlanning.computeIfAbsent(entry.getPlanningId(), id -> new ArrayList<>()).add(entry);
+        }
+        plannings.forEach((id, instances) -> {
+            for (final HRPlanningDO planning : instances) {
+                planning.setEntries(new ArrayList<>(entriesByPlanning.getOrDefault(id, List.of())));
+            }
+        });
+    }
+
+    /**
+     * Applies the two list options of the HR planning to the given entries.
+     *
+     * @param groupEntries   If true, the entries of a planned week are replaced by one synthetic entry (without id)
+     *                       holding the sums of the week and the projects (or status) of its entries as description.
+     * @param onlyMyProjects If true, only entries of projects whose project manager group the logged-in user is a
+     *                       member of are kept.
+     * @return The given list itself if neither option is set.
+     */
+    public List<HRPlanningEntryDO> groupAndFilter(final List<HRPlanningEntryDO> list, final boolean groupEntries,
+                                                  final boolean onlyMyProjects) {
+        if (!groupEntries && !onlyMyProjects) {
             return list;
         }
         final List<HRPlanningEntryDO> result = new ArrayList<>();
-        final Set<Long> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
+        final Set<Long> set = groupEntries ? new HashSet<>() : null;
         for (final HRPlanningEntryDO entry : list) {
-            if (myFilter.isOnlyMyProjects()) {
+            if (onlyMyProjects) {
                 if (entry.getProjekt() == null) {
                     continue;
                 }
@@ -125,7 +177,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
                     continue;
                 }
             }
-            if (myFilter.isGroupEntries()) {
+            if (groupEntries) {
                 if (set.contains(entry.getPlanningId())) {
                     // Entry is already in result list.
                     continue;
@@ -143,6 +195,9 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
                 final StringBuilder buf = new StringBuilder();
                 boolean first = true;
                 for (final HRPlanningEntryDO pos : planning.getEntries()) {
+                    if (pos.getDeleted()) {
+                        continue;
+                    }
                     final String str = pos.getProjektNameOrStatus();
                     if (StringUtils.isNotBlank(str)) {
                         if (first) {
@@ -165,8 +220,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
 
     public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
         final QueryFilter queryFilter = new QueryFilter(filter);
-        queryFilter.createJoin("planning")
-                .createJoin("user", JoinType.INNER, false, "planning");
+        addListFetchJoins(queryFilter);
         if (filter.getUserId() != null) {
             final PFUserDO user = new PFUserDO();
             user.setId(filter.getUserId());
@@ -214,8 +268,10 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
     @Override
     public boolean hasAccess(final PFUserDO user, final HRPlanningEntryDO obj, final HRPlanningEntryDO oldObj,
                              final OperationType operationType, final boolean throwException) {
+        // obj is null for the entity wide question, e.g. whether the list may offer a new entry (listMeta).
+        final HRPlanningDO planning = obj != null ? obj.getPlanning() : null;
         final HRPlanningDO old = oldObj != null ? oldObj.getPlanning() : null;
-        return hrPlanningDao.hasAccess(user, obj.getPlanning(), old, operationType, throwException);
+        return hrPlanningDao.hasAccess(user, planning, old, operationType, throwException);
     }
 
     @Override

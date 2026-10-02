@@ -31,8 +31,8 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
 import org.projectforge.rest.fibu.kost.Kost2EntityRest
-import org.projectforge.rest.hr.HRPlanningListPagesRest
-import org.projectforge.rest.hr.HRPlanningPagesRest
+import org.projectforge.rest.hr.HRPlanningEntityRest
+import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
 import org.projectforge.rest.scripting.MyScriptExecutePageRest
@@ -100,8 +100,9 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
-      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;",
-      "/wa/hrPlanningEdit"
+      // WRITE:hrPlanning gates the save of the migrated weekly HR planning (HRPlanningEntityRest, /rs/hrPlanning),
+      // which replaced the Wicket /wa/hrPlanningEdit gated here before.
+      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;WRITE:hrPlanning;"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
@@ -110,8 +111,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.HR,
       LeaveAccountEntryPagesRest::class.java,
-      HRPlanningPagesRest::class.java,
-      HRPlanningListPagesRest::class.java,
+      HRPlanningEntityRest::class.java,
+      HRPlanningEntryEntityRest::class.java,
       EmployeePagesRest::class.java,
     )
 
