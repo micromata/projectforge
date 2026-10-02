@@ -9,7 +9,13 @@ import { FilterPillShell } from "./filter-pill-shell";
 import { useFilterPeriodKinds } from "./filter-period-kinds";
 import { pageablePeriodOf, steppedPeriodValue } from "./filter-period";
 import { useDebouncedApply } from "./use-debounced-apply";
-import { describeFilterValue, isEmptyFilterValue } from "./filter-value";
+import {
+  abbreviatedLabels,
+  describeFilterValue,
+  filterValueLabels,
+  isEmptyFilterValue,
+} from "./filter-value";
+import { useResolvedFilterElements } from "./use-filter-list-values";
 
 interface FilterPillProps {
   element: FilterElement;
@@ -76,20 +82,40 @@ export function FilterPill({
   // The pill truncates its text, so the tooltip carries the full value — a long task path is only
   // recognizable that way. With no value it falls back to the field's description (element.tooltip).
   const label = element.label ?? element.id;
-  const valueText = describeFilterValue(value, element, ctx);
+  // Values loaded on demand (the customers of the order book) are fetched to name the picks.
+  const [resolved] = useResolvedFilterElements(
+    [element],
+    value ? { [element.id]: value } : undefined
+  );
+  const valueText = describeFilterValue(value, resolved, ctx);
+  // Several picks: the pill names the first few and counts the rest, the tooltip lists them all, one per
+  // line — verbatim, since a customer's name is no markdown.
+  const labels = filterValueLabels(value, resolved);
+  const many = !!labels && labels.length > 1;
 
   // A task filter's value names the whole path ("A | B | Task"); the pill shows only the task itself,
   // since the ancestors would truncate away the one segment that identifies it. The full path stays in
   // the tooltip and the popover. Its picker needs a wider popover for the breadcrumb and the controls.
   const isTask =
     element.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
-  const pillText = isTask ? taskLeafOf(valueText) : valueText;
+  const pillText = isTask
+    ? taskLeafOf(valueText)
+    : labels
+      ? abbreviatedLabels(labels)
+      : valueText;
 
   return (
     <FilterPillShell
       label={label}
       text={pillText}
-      tooltip={valueText ? `${label}: ${valueText}` : element.tooltip}
+      tooltip={
+        many
+          ? `${label}:\n${labels.join("\n")}`
+          : valueText
+            ? `${label}: ${valueText}`
+            : element.tooltip
+      }
+      tooltipPlain={many}
       active={!isEmptyFilterValue(value)}
       onStep={onStep}
       stepPreviousLabel={t(

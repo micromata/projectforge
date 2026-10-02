@@ -21,6 +21,8 @@ interface FilterPillShellProps {
   /** The value as text, appended after the label: "Modified: Kai Reinhard, …". */
   text?: string;
   tooltip?: string;
+  /** Show [tooltip] verbatim, line by line, instead of as markdown — for a list of user data. */
+  tooltipPlain?: boolean;
   /** Filled pills read as solid, empty ones as a dashed outline. */
   active: boolean;
   open: boolean;
@@ -63,6 +65,7 @@ export function FilterPillShell({
   label,
   text,
   tooltip,
+  tooltipPlain,
   active,
   open,
   onOpenChange,
@@ -117,7 +120,7 @@ export function FilterPillShell({
       )}
       {onToggle ? (
         // A single on/off filter: the trigger flips the value in place — no popover, no checkbox.
-        <HintTooltip text={tooltip}>
+        <HintTooltip text={tooltip} plain={tooltipPlain}>
           <button
             type="button"
             aria-label={label}
@@ -132,7 +135,7 @@ export function FilterPillShell({
       ) : (
         <Popover open={open} onOpenChange={onOpenChange}>
           {/* Wrapping the trigger, not wrapped by it — `asChild` has to reach a DOM element. */}
-          <HintTooltip text={tooltip}>
+          <HintTooltip text={tooltip} plain={tooltipPlain}>
             <PopoverTrigger asChild>
               <button
                 type="button"

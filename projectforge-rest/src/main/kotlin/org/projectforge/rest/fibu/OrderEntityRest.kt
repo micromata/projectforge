@@ -64,6 +64,7 @@ import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
 import org.springframework.beans.factory.annotation.Autowired
@@ -447,6 +448,15 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         label = translate("fibu.periodOfPerformance"),
       )
     )
+    // The customer as the list's cell shows it, entity or free text, picked from the customers the order book
+    // names (OrderCustomerFilter). Replaces the free-text pills on the customer's name and on the free-text
+    // customer, which ask the same question by a name fragment. The project's customer stays a pill of its own.
+    elements.removeIf { it is UIFilterElement && (it.id.startsWith("kunde.") || it.id == "kundeText") }
+    elements.add(
+      UIFilterListElement(OrderCustomerFilter.FIELD, label = translate("fibu.kunde"), multi = true).also {
+        it.valuesUrl = OrderCustomerFilter.VALUES_URL
+      }
+    )
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
     // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
     // user picker each, as the edit form offers — a person is searched by picking them, not by typing a
@@ -518,6 +528,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
+    OrderCustomerFilter.addCriterion(target, source)
     return filters
   }
 
@@ -746,6 +757,18 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     val analysis = forecastOrderAnalysis.exportOrderAnalysis(id)
       ?: return ResponseEntity.notFound().build<Any>()
     return RestUtils.downloadFile("orderAnalysis-${order?.nummer}.json", JsonUtils.toJson(analysis))
+  }
+
+  /**
+   * The customers to choose from in the customer filter ([OrderCustomerFilter]): those of the orders the
+   * logged-in user may see, so a contact person is not shown the customers of orders they have no access to.
+   * The orders' ids come from the access-checked query, their customers from [AuftragsCache].
+   */
+  @GetMapping("customerFilterValues")
+  fun customerFilterValues(): List<UIFilterListValue> {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val ids = baseDao.selectIds(QueryFilter(), null).ids
+    return OrderCustomerFilter.valuesOf(ids.asSequence().mapNotNull { auftragsCache.getOrderInfo(it) })
   }
 
   /**

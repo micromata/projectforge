@@ -7,6 +7,8 @@ import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useFormatContext } from "@/hooks/use-format";
 import { useListMeta } from "@/hooks/use-list-meta";
+import { filterValuesFromEntries } from "@/components/data-table/filter-value";
+import { useResolvedFilterElements } from "@/components/data-table/use-filter-list-values";
 import { filterElementsOf } from "@/lib/rs/filter-elements";
 import type { MagicFilter } from "@/lib/rs/types";
 import { cn } from "@/lib/utils";
@@ -49,17 +51,22 @@ export function AppliedFilterSummary({
   const t = useTranslations();
   const ctx = useFormatContext();
   const meta = useListMeta(entity);
+  // Values loaded on demand (the order book's customers) are fetched to name the picks, as the pill does.
+  const elements = useResolvedFilterElements(
+    filterElementsOf(meta.data),
+    filterValuesFromEntries(filter?.entries)
+  );
 
   const items = useMemo(
     () =>
       appliedFilterItems(
         filter,
-        filterElementsOf(meta.data),
+        elements,
         usage,
         { history: t("filter.history"), search: t("searchString") },
         ctx
       ),
-    [filter, meta.data, usage, t, ctx]
+    [filter, elements, usage, t, ctx]
   );
 
   const title = t("filter.applied._");

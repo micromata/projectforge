@@ -114,11 +114,8 @@ export function describeFilterValue(
   ctx: FormatContext
 ): string {
   if (!value) return "";
-  if (value.values?.length) {
-    return value.values
-      .map((id) => element?.values?.find((v) => v.id === id)?.displayName ?? id)
-      .join(", ");
-  }
+  const labels = filterValueLabels(value, element);
+  if (labels) return labels.join(", ");
   if ((value.from || value.to) && element?.filterType === "MONTH") {
     return formatMonthRange(value.from, value.to, ctx);
   }
@@ -137,4 +134,27 @@ export function describeFilterValue(
   // BOOLEAN filters carry "true"; the label alone already says what is meant.
   if (element?.filterType === "BOOLEAN") return "";
   return fromLikeTerm(value.value);
+}
+
+/**
+ * The display names of a LIST value's picks, or null for any other kind of value. A key the element
+ * doesn't offer (any more, or not yet fetched) is shown as it is rather than vanishing.
+ */
+export function filterValueLabels(
+  value: MagicFilterEntryValue | undefined,
+  element: FilterElement | undefined
+): string[] | null {
+  if (!value?.values?.length) return null;
+  return value.values.map(
+    (id) => element?.values?.find((v) => v.id === id)?.displayName ?? id
+  );
+}
+
+/**
+ * [labels] cut to the first [max] for a pill, the rest counted: "A, B, C +12". A pill truncates long
+ * text anyway; the count says how much was cut, the tooltip lists it all.
+ */
+export function abbreviatedLabels(labels: string[], max = 3): string {
+  const shown = labels.slice(0, max).join(", ");
+  return labels.length > max ? `${shown} +${labels.length - max}` : shown;
 }
