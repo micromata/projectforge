@@ -21,8 +21,9 @@ const PAGE = "/taskTree";
 const TREE_CELL = "tbody tr[data-row-id] td:nth-child(1)";
 
 test.describe("task tree", { tag: "@lane-task" }, () => {
-  test.beforeEach(async ({ loggedInPage: page }) => {
-    await resetTreeState(page);
+  test.beforeEach(async ({ loggedInPage: page, seededTask }) => {
+    // Collapsed, so the cases that open it find the chevron they click (see resetTreeState).
+    await resetTreeState(page, [seededTask.id]);
   });
 
   test("renders the backend's columns and the selection hint", async ({
