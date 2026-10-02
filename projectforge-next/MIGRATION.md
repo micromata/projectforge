@@ -419,7 +419,7 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Mehrfachauswahl (SEPA-Transfer-Export). **TODO offen:** CSV/SEPA-Import-Assistent und der
   SEPA-Überweisungs-Export als eigene Seite bleiben auf Wicket/React.
 - **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite bleibt
-  als Legacy unter `wa/datevImport?legacyEscape`). Zwei Tabs über das gemeinsame
+  unter `wa/datevImport` gemountet, aber ohne Link aus next). Zwei Tabs über das gemeinsame
   `ImportFeature` (`DatevRecordImportRest`, `DatevAccountImportRest`), beide nehmen die
   **unveränderte Originaldatei** des Steuerbüros: Buchungssätze nur aus Monatsblättern
   (`07`), Kontenplan aus `07_Kontenplan`, Berichtsblätter (BWA, SuSa, USt …) werden

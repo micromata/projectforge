@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { DatevImport } from "@/components/features/datev-import/datev-import";
 import { DatevImportFormatHint } from "@/components/features/datev-import/format-hint";
 import { DatevImportLogViewerLink } from "@/components/features/datev-import/log-viewer-link";
@@ -26,8 +25,6 @@ export default function DatevImportPage() {
         </h1>
         <div className="flex-1" />
         <DatevImportLogViewerLink />
-        {/* The way back to the Wicket import page, kept as legacy version. */}
-        <LegacyPageLink url="wa/datevImport?legacyEscape" />
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <DatevImport />
