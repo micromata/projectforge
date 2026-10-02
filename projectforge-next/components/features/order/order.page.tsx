@@ -19,6 +19,7 @@ import {
   type OrderValues,
 } from "./order-schema";
 import { NextInvoiceCell } from "./next-invoice-cell";
+import { OrderGearMenuActions } from "./order-gear-menu-actions";
 import { OrderListActions } from "./order-list-actions";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
@@ -258,6 +259,7 @@ export const ORDER_PAGE = definePage<
     />
   ),
   listActions: OrderListActions,
+  gearMenuActions: OrderGearMenuActions,
   edit: {
     schema: orderSchema,
     fieldNames: ORDER_FIELDS,

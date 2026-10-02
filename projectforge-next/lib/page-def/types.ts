@@ -819,6 +819,12 @@ export interface PageDef<
    */
   listActions?: ComponentType<{ filter: MagicFilter }>;
   /**
+   * Maintenance entries of a specific list, appended to the gear menu below the standard re-index
+   * entries — the order book's cache refresh (see OrderGearMenuActions). Rendered inside the menu, so
+   * the component should yield `GearMenuItem`s.
+   */
+  gearMenuActions?: ComponentType;
+  /**
    * The list lets the user pick several rows and change them in one go.
    *
    * Which fields that offers, of which type, with which of the four actions (set, clear, replace,

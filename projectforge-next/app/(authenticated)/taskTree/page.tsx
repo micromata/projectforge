@@ -76,7 +76,7 @@ function TaskTreeBody() {
           // and, until it is migrated, anything else of Wicket's tree page.
           legacyUrl="wa/taskTree"
         >
-          <TaskTreeActionBar onFilterReset={tree.resetFilter} />
+          <TaskTreeActionBar />
         </PageTitleRow>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4">

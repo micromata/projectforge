@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   FilterIcon,
+  FilterResetIcon,
   HelpCircleIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { LUCENE_QUERY_DOCS_URL } from "@/lib/docs-links";
-import { type TaskTreeFilter } from "@/lib/rs/task";
+import { DEFAULT_TASK_TREE_FILTER, type TaskTreeFilter } from "@/lib/rs/task";
 
 /** The four flags, in the order the legacy panel lists them, with their i18n keys. */
 const STATUS_FLAGS = [
@@ -31,6 +32,12 @@ const STATUS_FLAGS = [
 interface TaskTreeFilterBarProps {
   filter: TaskTreeFilter;
   onChange: (filter: TaskTreeFilter) => void;
+  /**
+   * Puts the filter back to [DEFAULT_TASK_TREE_FILTER] — Wicket's "Rücksetzen" button of the tree
+   * form. A callback rather than `onChange(defaults)`: the reset skips the search debounce and has to
+   * reach the backend, which stores it in the session (see useTaskTree.resetFilter).
+   */
+  onReset: () => void;
   /**
    * Offer the handbook link beside the search field, as Wicket's tree form does (`TaskTreeForm`, the
    * `IconType.HELP` in the search fieldset).
@@ -52,10 +59,14 @@ interface TaskTreeFilterBarProps {
 export function TaskTreeFilterBar({
   filter,
   onChange,
+  onReset,
   showSearchHelp,
 }: TaskTreeFilterBarProps) {
   const t = useTranslations();
   const active = STATUS_FLAGS.filter((flag) => filter[flag.name] === true);
+  const isDefault = (
+    Object.keys(DEFAULT_TASK_TREE_FILTER) as (keyof TaskTreeFilter)[]
+  ).every((key) => filter[key] === DEFAULT_TASK_TREE_FILTER[key]);
 
   return (
     <div className="flex items-center gap-2">
@@ -138,6 +149,20 @@ export function TaskTreeFilterBar({
           ))}
         </PopoverContent>
       </Popover>
+      {/* Disabled rather than hidden at the default, so the row doesn't shift as the filter changes. */}
+      <HintTooltip text={t("task.tree.filter.reset.tooltip")}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={onReset}
+          disabled={isDefault}
+        >
+          <HugeiconsIcon icon={FilterResetIcon} size={13} aria-hidden />
+          {t("filter.reset")}
+        </Button>
+      </HintTooltip>
     </div>
   );
 }

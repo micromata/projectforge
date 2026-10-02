@@ -5,8 +5,7 @@ import { userFormat } from "./fixtures/format";
  * The gear menu of the book list against the live backend.
  *
  * Read-only: the menu is opened and its entries are checked, but none of the actions is triggered —
- * re-indexing affects the whole system and resetting the filter would destroy the account's stored
- * one. What the test guards is that the entries exist and carry their texts from the backend bundle
+ * re-indexing affects the whole system. What the test guards is that the entries exist and carry their texts from the backend bundle
  * (see ListGearMenu, which declares them in the frontend instead of reading UILayout.pageMenu).
  */
 test.describe("book list gear menu", () => {
@@ -27,9 +26,10 @@ test.describe("book list gear menu", () => {
       name: t("menu.reindexNewestDatabaseEntries._"),
     });
     await expect(reindexNewest).toBeVisible();
+    // The legacy menu's filter reset is deliberately not offered.
     await expect(
       menu.getByRole("menuitem", { name: t("menu.resetFilter._") })
-    ).toBeVisible();
+    ).toHaveCount(0);
 
     // The explanation stands in the entry instead of in a tooltip, so it needs no hover — same bundle
     // keys the legacy gear menu used for its tooltips.

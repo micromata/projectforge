@@ -10,14 +10,14 @@ import { LUCENE_QUERY_DOCS_URL } from "../lib/docs-links";
  * The action bar of the structure tree page — step 3 of projectforge-next/MIGRATION.md.
  *
  * The inventory under test is Wicket's `TaskTreePage` content menu plus the reset button of its form:
- * add a task, add a *subtask* per row, re-index, reset the filter, and the handbook link beside the
- * search field. One entry of that menu is deliberately absent and therefore not asserted here — the
- * favourites (`UserPrefArea.TASK_FAVORITE`), still Wicket-only and reachable through the legacy link in
+ * add a task, add a *subtask* per row, re-index, reset the filter (a button of the filter row, not a
+ * gear menu entry), and the handbook link beside the search field. One entry of that menu is
+ * deliberately absent and therefore not asserted here — the favourites (`UserPrefArea.TASK_FAVORITE`), still Wicket-only and reachable through the legacy link in
  * the header. The wizard's entry has its own spec (`e2e/task-wizard.spec.ts`).
  *
  * What each case is really about is a difference from every list page: the tree's filter is a
  * `TaskFilter` in the session and not the entity's stored `MagicFilter`, so "reset" happens in the
- * client and the endpoint the gear menu calls would not touch it; and "add" exists twice, because only
+ * client and the list's `filter/reset` endpoint would not touch it; and "add" exists twice, because only
  * the per-row variant can name a parent — which travels as a parameter of the backend's preset rather
  * than being filled in here (see EditDef.newEntryParams).
  *
@@ -143,7 +143,7 @@ test.describe("task tree actions", () => {
     ).toHaveCount(0);
   });
 
-  test("the gear menu offers the re-index entries and the filter reset", async ({
+  test("the gear menu offers the re-index entries but no filter reset", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -169,12 +169,13 @@ test.describe("task tree actions", () => {
         name: format.t("menu.reindexAllDatabaseEntries._"),
       })
     ).toHaveCount(isAdmin ? 1 : 0);
+    // The reset is the filter row's button instead (see TaskTreeFilterBar).
     await expect(
       menu.getByRole("menuitem", { name: format.t("menu.resetFilter._") })
-    ).toBeVisible();
+    ).toHaveCount(0);
   });
 
-  test("the filter reset puts the status flags and the search string back", async ({
+  test("the filter reset button puts the status flags and the search string back", async ({
     loggedInPage: page,
   }) => {
     test.setTimeout(60_000);
@@ -203,7 +204,7 @@ test.describe("task tree actions", () => {
     // Every call to the endpoint that would reset the *list* perspective, collected over the reset: it
     // stores an empty `MagicFilter` and drops the category's grid state (`AbstractEntityRest`), neither
     // of which has anything to do with this page's filter — so on the tree it must not be called at all
-    // (see ListGearMenu.filterScope, `"own"`).
+    // (see useTaskTree.resetFilter).
     const listResets: string[] = [];
     page.on("request", (request) => {
       if (request.url().includes("/rs/task/filter/reset")) {
@@ -211,9 +212,8 @@ test.describe("task tree actions", () => {
       }
     });
 
-    await gear(page, format).click();
     await page
-      .getByRole("menuitem", { name: format.t("menu.resetFilter._") })
+      .getByRole("button", { name: format.t("filter.reset"), exact: true })
       .click();
 
     // The client resets the tree's own filter instead, which is a `TaskFilter` in the session.

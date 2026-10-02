@@ -1987,10 +1987,6 @@
       }
     },
     "reporting": "Reporting",
-    "resetFilter": {
-      "_": "Reset filter",
-      "info": "Resets the current filter if you have any trouble with the given search function."
-    },
     "sendSms": "Send SMS",
     "system": "System",
     "taskTree": "Structure tree",
@@ -2834,6 +2830,11 @@
     "tree": {
       "close": "Close structure element",
       "explore": "Close/open all structure sub elements",
+      "filter": {
+        "reset": {
+          "tooltip": "Restores the default filter: empty search, status \"not opened\" and \"opened\"."
+        }
+      },
       "info": "Expand or collapse a structure element by clicking its folder icon or title; click anywhere else in the row to select the element.\n\n**Keyboard**\n\n- **↑ / ↓** – move between the elements\n- **→ / ←** – expand and collapse the focused element\n- **Enter** – open the focused element",
       "open": "Open structure element",
       "perspective": "Tree view",

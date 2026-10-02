@@ -311,18 +311,6 @@ export function useEntityListPage<Row extends ListRow>({
       filters.setFavorite(undefined);
   }
 
-  /**
-   * The local half of the gear menu's "reset filter": the endpoint only drops what the server
-   * stores. It discards the grid state along with the filter, so the columns go with it.
-   */
-  function resetFilter() {
-    filters.setValues({});
-    filters.setFavorite(undefined);
-    // Clears search string and sort order and returns to page 1.
-    query.applyFilter({ entries: [], sortProperties: [] });
-    resetColumns();
-  }
-
   return {
     table,
     filters,
@@ -373,7 +361,6 @@ export function useEntityListPage<Row extends ListRow>({
     globalFilter: query.globalFilter,
     setGlobalFilter: query.setGlobalFilter,
     resetColumns,
-    resetFilter,
     applyValues,
   };
 }
