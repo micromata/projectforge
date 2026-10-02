@@ -311,7 +311,7 @@ class MonthlyEmployeeReportRest {
                     customer = if (project != null) project.kunde?.name ?: "" else null,
                     project = if (project != null) project.name else null,
                     description = if (project == null) kost2.description else null,
-                    kost2Art = kost2.kost2Art?.name,
+                    kost2Art = MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName(kost2),
                     perWeek = report.weeks.map { toCell(it.kost2Entries[kost2Id]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
