@@ -601,7 +601,7 @@
       "commissioned": "beauftragt",
       "contributionMargin": {
         "_": "Deckungsbeitrag",
-        "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: ungebuchte Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
         "config": {
           "addAssignment": "Zuordnung hinzufügen",
           "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
@@ -639,7 +639,7 @@
         "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher fehlen in den vorläufigen Monaten die Kosten der Zeitberichte.",
         "kost": "Kostenträger",
         "monthly": "Deckungsbeitrag Monatswerte",
-        "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: ungebuchte Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
         "noRevenue": "Keine Erlöse im Zeitraum, nur Kosten.",
         "ordersWithoutProject": "{arg0} der ausgewählten Aufträge haben kein Projekt und werden nicht berücksichtigt.",
         "percentage": "DB %",

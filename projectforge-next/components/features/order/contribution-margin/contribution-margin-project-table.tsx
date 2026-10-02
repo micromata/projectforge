@@ -13,13 +13,12 @@ import type {
   ContributionMarginProject,
 } from "@/lib/rs/order";
 import { ContributionMarginPercentage } from "./contribution-margin-percentage";
-import { ContributionMarginTotal } from "./contribution-margin-total";
 
 type Row = ContributionMarginProject;
 
 /**
  * The contribution margin per project of the period, with the DB1 of the two previous years; the sums
- * of all projects below. The DB % carries a traffic light by the configured target and red threshold. Sorted by
+ * of all projects in the last row, under their columns. The DB % carries a traffic light by the configured target and red threshold. Sorted by
  * customer and project as the backend sends it; any column sorts on click.
  */
 export function ContributionMarginProjectTable({
@@ -29,7 +28,13 @@ export function ContributionMarginProjectTable({
 }) {
   const t = useTranslations("fibu.auftrag.contributionMargin");
   const ctx = useFormatContext();
+  const { total } = data;
   const columns = useMemo<ColumnDef<Row, unknown>[]>(() => {
+    const money = (value: number) => (
+      <span className={cn("tabular-nums", value < 0 && "text-destructive")}>
+        {formatCurrency(value, ctx)}
+      </span>
+    );
     const text = (
       key: "customer" | "kost",
       label: string,
@@ -41,6 +46,7 @@ export function ContributionMarginProjectTable({
       size,
       meta: { label },
       cell: ({ row }) => row.original[key] ?? "",
+      footer: key === "customer" ? t("total") : undefined,
     });
     const amount = (
       key:
@@ -57,22 +63,14 @@ export function ContributionMarginProjectTable({
       size: 120,
       sortDescFirst: true,
       meta: { label, align: "right" },
-      cell: ({ row }) => (
-        <span
-          className={cn(
-            "tabular-nums",
-            row.original[key] < 0 && "text-destructive"
-          )}
-        >
-          {formatCurrency(row.original[key], ctx)}
-        </span>
-      ),
+      cell: ({ row }) => money(row.original[key]),
+      footer: () => money(total[key]),
     });
     const percentage = (
       key: "percentage" | "prevYearPercentage",
       label: string,
       // The costs, telling a loss without revenue (red "–") from an empty row.
-      costs: (row: Row) => number
+      costs: (row: Row | typeof total) => number
     ): ColumnDef<Row, unknown> => ({
       id: key,
       // Projects without revenue (no percentage) sort below all others.
@@ -85,6 +83,13 @@ export function ContributionMarginProjectTable({
         <ContributionMarginPercentage
           percentage={row.original[key]}
           costs={costs(row.original)}
+          limits={data}
+        />
+      ),
+      footer: () => (
+        <ContributionMarginPercentage
+          percentage={total[key]}
+          costs={costs(total)}
           limits={data}
         />
       ),
@@ -117,7 +122,7 @@ export function ContributionMarginProjectTable({
       ),
       amount("prevPrevYearProfit", t("prevPrevYear")),
     ];
-  }, [t, ctx, data]);
+  }, [t, ctx, data, total]);
 
   return (
     <DataTable<Row>
@@ -130,7 +135,6 @@ export function ContributionMarginProjectTable({
       autoHeight
       columnLines
       getRowId={(row) => String(row.projectId)}
-      footer={<ContributionMarginTotal data={data} />}
     />
   );
 }

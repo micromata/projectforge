@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
 import { useElementWidth } from "@/hooks/use-element-width";
+import { DataTableFooterRow } from "./data-table-footer-row";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableRow, pinnedClass, pinnedStyle } from "./data-table-row";
 import { TableLoadingOverlay } from "./table-loading-overlay";
@@ -126,7 +127,11 @@ export interface DataTableProps<TData> extends UseDataTableOptions<TData> {
   showPagination?: boolean;
 
   emptyState?: React.ReactNode;
-  /** Rendered between the scrollable table area and the pagination bar (e.g. a colour legend). */
+  /**
+   * Rendered between the scrollable table area and the pagination bar (e.g. a colour legend). Not for
+   * sums: those are the columns' `footer` definitions, shown as a row under their columns
+   * (DataTableFooterRow) as soon as a visible column defines one.
+   */
   footer?: React.ReactNode;
   className?: string;
   /**
@@ -487,6 +492,16 @@ export function DataTable<TData>({
                 ))
               )}
             </TableBody>
+            {!showSkeleton &&
+              table.getRowModel().rows.length > 0 &&
+              visibleColumns.some((c) => c.columnDef.footer != null) && (
+                <DataTableFooterRow
+                  table={table}
+                  hasRowActions={!!rowActions}
+                  suspendPinning={pinningSuspended}
+                  columnLines={columnLines}
+                />
+              )}
           </table>
           {overflowTooltip.tooltip}
         </div>

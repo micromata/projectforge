@@ -601,7 +601,7 @@
       "commissioned": "commissioned",
       "contributionMargin": {
         "_": "Contribution margin",
-        "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: unbooked invoices as revenue, time sheets × hourly rate as costs.",
+        "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
         "config": {
           "addAssignment": "Add assignment",
           "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
@@ -639,7 +639,7 @@
         "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the preliminary months lack the costs of the time sheets.",
         "kost": "Cost unit",
         "monthly": "Contribution margin monthly",
-        "noImport": "No accounting records are imported at all. All values are preliminary: unbooked invoices as revenue, time sheets × hourly rate as costs.",
+        "noImport": "No accounting records are imported at all. All values are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
         "noRevenue": "No revenue in the period, only costs.",
         "ordersWithoutProject": "{arg0} of the selected orders have no project and are not taken into account.",
         "percentage": "DB %",
