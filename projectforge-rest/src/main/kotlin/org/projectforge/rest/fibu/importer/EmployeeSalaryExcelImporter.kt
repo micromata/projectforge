@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Parses an employee-salary xlsx with Merlin into the layout-free [EmployeeSalaryImportStorage].
  *
- * Unlike the legacy [org.projectforge.business.fibu.datev.EmployeeSalaryExcelImporter] it does not rely on
+ * Unlike the legacy (removed) Wicket importer it does not rely on
  * a fixed sheet name (`employeeSalaries`) or a manually chosen accounting month:
  *  - The sheet is detected by scanning every sheet for a head row that carries the required columns, so the
  *    real tax-office export (whose sheet is named `Aktueller Monat NB im Abrechnun`, truncated to 31 chars)

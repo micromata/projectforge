@@ -74,10 +74,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
-    // Migrated to projectforge-next; the Wicket page (wa/employeeSalaryList) stays reachable through the
-    // escape hatch next to the page title, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
+    // The import is reached as a button in the salary list.
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //
-    EMPLOYEE_SALARY_IMPORT("menu.fibu.employeeSalariesImport", "wa/wicket/bookmarkable/org.projectforge.web.fibu.EmployeeSalaryImportPage"), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
