@@ -418,6 +418,15 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Teile bleiben im Ausgangsrechnungs-Feature. `IncomingInvoiceEntityRest` (layoutfrei) +
   Mehrfachauswahl (SEPA-Transfer-Export). **TODO offen:** CSV/SEPA-Import-Assistent und der
   SEPA-Überweisungs-Export als eigene Seite bleiben auf Wicket/React.
+- **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite bleibt
+  als Legacy unter `wa/datevImport?legacyEscape`). Zwei Tabs über das gemeinsame
+  `ImportFeature` (`DatevRecordImportRest`, `DatevAccountImportRest`), beide nehmen die
+  **unveränderte Originaldatei** des Steuerbüros: Buchungssätze nur aus Monatsblättern
+  (`07`), Kontenplan aus `07_Kontenplan`, Berichtsblätter (BWA, SuSa, USt …) werden
+  ignoriert. Der Buchungsstapel kommt vom Blatt, das Belegdatum bleibt echt (August-Belege
+  im Juli-Stapel → Hinweis, kein Fehler; > 12 Monate Abstand → Fehler). BWA der Vorschau
+  über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
+  `NextMigration.MIGRATED` (keine Entity-Seite).
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die

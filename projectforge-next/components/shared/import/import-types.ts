@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * The wire shape and the config contract of the generic, hand-built CSV/DATEV import flow
  * (`AbstractImportRest` / `ImportView` on the backend).
@@ -116,8 +118,16 @@ export interface ImportConfig {
   columns: ImportColumn[];
   /** `<input accept>` value for the drop step, e.g. `.csv`. */
   fileAccept: string;
-  /** Where committing returns to, e.g. `/creditor-invoice`. */
+  /** Where committing returns to, e.g. `/creditor-invoice`. Unused with [stayAfterCommit]. */
   returnRoute: string;
+  /**
+   * Stay on the import page after committing: the job's progress is shown above the table, and once the job
+   * is over the preview is reloaded with the new statuses. Otherwise the user is sent to [returnRoute] and the
+   * job's progress follows as an app-wide toast.
+   */
+  stayAfterCommit?: boolean;
   /** Which statuses the user may tick; defaults to the importable ones (NEW, MODIFIED, DELETED). */
   selectableStatuses?: ImportStatus[];
+  /** Optional import specific content between the controls and the preview table, e.g. a summary of `meta`. */
+  renderAboveTable?: (view: ImportView) => ReactNode;
 }

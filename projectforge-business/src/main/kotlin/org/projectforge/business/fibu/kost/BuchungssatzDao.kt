@@ -72,6 +72,19 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
     }
 
     /**
+     * All records of the given booking batch (year/month), including deleted ones: the unique key
+     * (year, month, satznr) also covers deleted rows, so an import has to match them too. No access check.
+     */
+    open fun selectByMonth(year: Int, month: Int): List<BuchungssatzDO> {
+        return persistenceService.executeQuery(
+            "from BuchungssatzDO where year=:year and month=:month",
+            BuchungssatzDO::class.java,
+            Pair("year", year),
+            Pair("month", month),
+        )
+    }
+
+    /**
      * Checks that the given year/month time period is consistent: no month without its year, and the from
      * date not after the to date.
      */

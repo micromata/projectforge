@@ -874,6 +874,22 @@
       "targetCurrency": "Zielwährung"
     },
     "customerref1": "Kundenreferenz",
+    "datev": {
+      "import": {
+        "_": "Buchhaltungsdaten importieren",
+        "accounts": "Kontenplan",
+        "column": {
+          "hint": "Hinweis"
+        },
+        "format": {
+          "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
+          "title": "Dateiformat der Importdatei"
+        },
+        "records": "Buchungssätze"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
@@ -13,7 +13,9 @@ import {
   reconcileImport,
   uploadImportFile,
 } from "@/lib/rs/import";
+import { fetchJobs, isJobTerminated, type JobInfo } from "@/lib/rs/jobs";
 import type { UploadProgress } from "@/lib/rs/upload";
+import { showJobResult } from "@/components/shared/jobs/job-toasts";
 import { useJobStore } from "@/store/job-store";
 import {
   filterEntriesByStatus,
@@ -38,6 +40,17 @@ const ALL_STATUSES = {
   unknown: true,
 } as const;
 
+/** Same interval the app-wide job toasts poll with (JobToasts). */
+const JOB_POLL_INTERVAL_MS = 2000;
+
+/**
+ * The job reports FINISHED before its `onAfterTermination` has re-reconciled the stash (which rebuilds the
+ * rows one by one), so after the job the state is re-read until no row is UNKNOWN any more — bounded, so a
+ * stash that legitimately keeps UNKNOWN rows doesn't poll forever.
+ */
+const STATE_SETTLE_ATTEMPTS = 10;
+const STATE_SETTLE_DELAY_MS = 500;
+
 /** Hidden by default, so the unmodified rows we now fetch stay out of sight until the chip is toggled. */
 const DEFAULT_HIDDEN_STATUS_KEYS = ["unmodified"] as const;
 
@@ -45,7 +58,8 @@ const DEFAULT_HIDDEN_STATUS_KEYS = ["unmodified"] as const;
  * The whole state of one import route: the current [ImportView] (React-Query owned, so a reconcile or a
  * fresh upload refreshes it), the ticked row ids, the display options, and the four mutations. On a
  * successful commit the returned job id is handed to the job store — whose toast is mounted app-wide and
- * survives the navigation — and the user is sent back to the entity's list.
+ * survives the navigation — and the user is sent back to the entity's list. With `config.stayAfterCommit`
+ * the user stays: the job is followed here ([runningJob]) and the preview is reloaded once it is over.
  */
 export function useImport(config: ImportConfig) {
   const base = config.endpoints.base;
@@ -60,6 +74,13 @@ export function useImport(config: ImportConfig) {
     () => new Set(DEFAULT_HIDDEN_STATUS_KEYS)
   );
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  /** The committed import job followed on this page (stayAfterCommit only). */
+  const [runningJobId, setRunningJobId] = useState<number | null>(null);
+
+  /** False once unmounted, so a late state answer isn't written into a page that is gone. */
+  const mountedRef = useRef(true);
+  /** The job followed here, as a ref for the poll and the unmount handover (state is read too late there). */
+  const runningJobIdRef = useRef<number | null>(null);
 
   const query = useQuery({
     queryKey: stateKey,
@@ -104,6 +125,11 @@ export function useImport(config: ImportConfig) {
   const commit = useMutation({
     mutationFn: (selectedIds: number[]) => commitImport(base, selectedIds),
     onSuccess: ({ jobId }) => {
+      if (config.stayAfterCommit) {
+        runningJobIdRef.current = jobId;
+        setRunningJobId(jobId);
+        return;
+      }
       watchJob(jobId);
       queryClient.removeQueries({ queryKey: stateKey });
       router.push(config.returnRoute);
@@ -122,6 +148,65 @@ export function useImport(config: ImportConfig) {
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : String(error)),
   });
+
+  useEffect(() => {
+    runningJobIdRef.current = runningJobId;
+  }, [runningJobId]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      // Leaving the page (or the tab) while the job runs hands it over to the app-wide job toast.
+      if (runningJobIdRef.current != null) watchJob(runningJobIdRef.current);
+    };
+  }, [watchJob]);
+
+  /** The job is over: report it and reload the preview with the new statuses. */
+  const onJobTerminated = useCallback(
+    async (job: JobInfo) => {
+      setRunningJobId(null);
+      setSelection({});
+      showJobResult(job);
+      for (let attempt = 0; attempt < STATE_SETTLE_ATTEMPTS; attempt++) {
+        try {
+          const state = await fetchImportState(base);
+          if (!mountedRef.current) return;
+          setView(state);
+          if (!state.entries.some((entry) => entry.status === "UNKNOWN"))
+            return;
+        } catch {
+          // Retried below; the view keeps its last answer.
+        }
+        await new Promise((resolve) =>
+          setTimeout(resolve, STATE_SETTLE_DELAY_MS)
+        );
+      }
+    },
+    [base, setView]
+  );
+
+  // Polls the job list while a committed job is followed here. A key of its own, so the termination check
+  // isn't skipped when the app-wide job toasts poll; the answer is mirrored into their `["jobs"]` entry,
+  // which the progress card (JobProgressToast) reads.
+  const jobs = useQuery({
+    queryKey: ["import", base, "jobs"],
+    queryFn: async ({ signal }) => {
+      const list = await fetchJobs(signal);
+      queryClient.setQueryData(["jobs"], list);
+      const followed = list.find((job) => job.id === runningJobIdRef.current);
+      if (followed && isJobTerminated(followed)) {
+        void onJobTerminated(followed);
+      }
+      return list;
+    },
+    enabled: runningJobId != null,
+    refetchInterval: runningJobId != null ? JOB_POLL_INTERVAL_MS : false,
+    staleTime: 0,
+  });
+  const runningJob =
+    runningJobId != null
+      ? jobs.data?.find((job) => job.id === runningJobId)
+      : undefined;
 
   const view = query.data;
   const selectedIds = useMemo(
@@ -189,6 +274,10 @@ export function useImport(config: ImportConfig) {
     toggleStatusKey,
     filteredEntries,
     uploadProgress,
+    /** The id of the committed job still running on this page, null if none (stayAfterCommit only). */
+    runningJobId,
+    /** Its latest progress, once the first poll knows it. */
+    runningJob,
     upload,
     reconcile,
     commit,

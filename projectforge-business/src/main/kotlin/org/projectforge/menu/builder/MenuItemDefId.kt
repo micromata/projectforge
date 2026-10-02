@@ -70,7 +70,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
     CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
 
-    DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
+    DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //

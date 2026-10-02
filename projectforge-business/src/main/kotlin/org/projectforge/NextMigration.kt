@@ -282,8 +282,8 @@ object NextMigration {
         ),
         // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
         // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only
-        // the hand built projectforge-next one and Wicket. The DATEV import page (EMPLOYEE_SALARY_IMPORT)
-        // stays on Wicket as a separate menu item.
+        // the hand built projectforge-next one and Wicket. The salary import (EMPLOYEE_SALARY_IMPORT) is no
+        // entity page and so no entry here: next/employeeSalary/import, reached from the salary list.
         "employeeSalary" to NextPage(
             route = "employeeSalary",
             editRoute = "employeeSalary/$ID_PLACEHOLDER",
