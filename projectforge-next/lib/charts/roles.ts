@@ -9,6 +9,8 @@ export const CHART_ROLE = {
   positive: "var(--chart-positive)",
   /** Money going out / below target — the brand pink. */
   negative: "var(--chart-negative)",
+  /** A balance below zero — the area between a running balance and the zero line is filled red. */
+  deficit: "var(--chart-deficit)",
   /** A meaning-neutral reference series (e.g. an expected running balance) — a muted black/white. */
   neutral: "var(--chart-neutral)",
   /** The planned/target ("Soll") series of the discipline charts — red. */

@@ -46,6 +46,8 @@ interface TaskTreeTableProps {
   /** The term the visible rows were filtered by, highlighted in their text (see useTaskTree). */
   searchTerm?: string;
   onFilterChange: (filter: TaskTreeFilter) => void;
+  /** Puts the filter back to its defaults, see `useTaskTree.resetFilter`. */
+  onFilterReset: () => void;
   onToggle: (task: TaskNode) => void;
   onSelect?: (task: TaskNode) => void;
   /**
@@ -81,6 +83,7 @@ export function TaskTreeTable({
   filter,
   searchTerm,
   onFilterChange,
+  onFilterReset,
   onToggle,
   onSelect,
   pageActions,
@@ -203,6 +206,7 @@ export function TaskTreeTable({
         <TaskTreeFilterBar
           filter={filter}
           onChange={onFilterChange}
+          onReset={onFilterReset}
           showSearchHelp={pageActions}
         />
         <DataTableColumnPanel

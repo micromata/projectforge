@@ -43,6 +43,8 @@ import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.renderer.PdfFontProvider
+import org.projectforge.framework.renderer.PdfFontService
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -75,7 +77,7 @@ open class MerlinRunner {
     private lateinit var merlinHandler: MerlinHandler
 
     @Autowired
-    private lateinit var merlinFontService: MerlinFontService
+    private lateinit var pdfFontService: PdfFontService
 
     /**
      * @return Pair of filename and byte array representing the Word file.
@@ -248,7 +250,7 @@ open class MerlinRunner {
         ByteArrayInputStream(wordBytes).use { bais ->
             WordDocument(bais, filename).use { word ->
                 val options = PdfOptions.create()
-                options.fontProvider(MerlinFontProvider(merlinFontService))
+                options.fontProvider(PdfFontProvider(pdfFontService))
                 ByteArrayOutputStream().use { baos ->
                     PdfConverter.getInstance().convert(word.document, baos, options)
                     val pdfFilename = "${FilenameUtils.getBaseName(filename)}.pdf"

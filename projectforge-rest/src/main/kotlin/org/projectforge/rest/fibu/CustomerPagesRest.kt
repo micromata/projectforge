@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController
  * The customer (Kunde) list and edit page, layout free — its list and form are hand built in
  * projectforge-next (`/next/customer`), so this carries no `createListLayout` or `createEditLayout`
  * any more. The counterpart of [OutgoingInvoiceEntityRest] and [OrderEntityRest]: only the read/write
- * path, the filter and the validation are left for the server to answer. The Wicket customer page is
- * still reachable and writes through the same [KundeDao].
+ * path, the filter and the validation are left for the server to answer. The Wicket customer pages
+ * have been removed.
  *
  * Customer favorites (`UserPrefArea.KUNDE_FAVORITE`) are deliberately not carried over — the next
  * list offers the generic saved-filter favorites instead.

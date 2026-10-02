@@ -220,6 +220,8 @@
   /* Money in vs. money out (the liquidity forecast's due-date balance and credit/debit). */
   --chart-positive: var(--brand-green);
   --chart-negative: var(--brand-pink);
+  /* A balance below zero (the liquidity forecast's area under the zero line) — a warning red. */
+  --chart-deficit: #de1821;
   /* Categorical series palette — up to four distinguishable series for comparing N things (e.g. the
      Debitoren "Grafiken" tab: current year red, then blue, green, yellow). Shared across charts via
      lib/charts/series.ts. Vivid enough for the dark theme too, so not overridden under .dark (like

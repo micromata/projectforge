@@ -7,7 +7,7 @@ export { DataTableColumnHeader } from "./data-table-column-header";
 export { DataTableColumnPanel } from "./data-table-column-panel";
 export { FilterPills } from "./filter-pills";
 export { FilterFavoritesMenu } from "./filter-favorites-menu";
-export { ListGearMenu } from "./list-gear-menu";
+export { GearMenuItem, ListGearMenu } from "./list-gear-menu";
 export type { ListGearMenuProps } from "./list-gear-menu";
 export { useFilterFavorites } from "./use-filter-favorites";
 export type { UseFilterFavoritesResult } from "./use-filter-favorites";

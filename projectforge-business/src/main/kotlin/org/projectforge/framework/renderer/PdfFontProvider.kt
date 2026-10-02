@@ -21,7 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.merlin
+
+package org.projectforge.framework.renderer
 
 import com.lowagie.text.Font
 import com.lowagie.text.FontFactory
@@ -33,25 +34,20 @@ import java.awt.Color
 private val log = KotlinLogging.logger {}
 
 /**
- * @author Kai Reinhard
+ * Font provider for xdocreport's Word-to-PDF conversion, serving the fonts installed on the server
+ * (see [PdfFontService]). Usage: `PdfOptions.create().fontProvider(PdfFontProvider(pdfFontService))`.
  */
-class MerlinFontProvider(val fontService: MerlinFontService) : IFontProvider {
-  override fun getFont(familyName: String?, encoding: String?, size: Float, style: Int, color: Color?): Font {
-    // Thanx to: https://github.com/opensagres/xdocreport/issues/129
-    //log.info { "Trying to get font familyName='$familyName', encoding='$encoding', size=$size, style=$style, color=$color" }
-    fontService.getFont(familyName)?.let { baseFont ->
-      try {
-        return Font(baseFont, size, style, color)
-      } catch (ex: Exception) {
-        log.error("Error while creating font: ${ex.message}", ex)
-        throw RuntimeException(ex)
-      }
+class PdfFontProvider(private val fontService: PdfFontService) : IFontProvider {
+    override fun getFont(familyName: String?, encoding: String?, size: Float, style: Int, color: Color?): Font {
+        // See https://github.com/opensagres/xdocreport/issues/129
+        fontService.getFont(familyName, style)?.let { resolved ->
+            return Font(resolved.baseFont, size, resolved.style, color)
+        }
+        return try {
+            FontFactory.getFont(familyName, encoding, size, style, color)
+        } catch (ex: Exception) {
+            log.warn { "Font '$familyName' with encoding '$encoding' not found, falling back to default encoding: ${ex.message}" }
+            FontFactory.getFont(familyName, BaseFont.CP1252, size, style, color)
+        }
     }
-    try {
-      return FontFactory.getFont(familyName, encoding, size, style, color)
-    } catch (ex: Exception) {
-      log.warn("Font '$familyName' with encoding '$encoding' not found, falling back to default encoding: ${ex.message}")
-      return FontFactory.getFont(familyName, BaseFont.CP1252, size, style, color)
-    }
-  }
 }

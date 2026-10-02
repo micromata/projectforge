@@ -1107,10 +1107,7 @@
         "add": "Neuer Kunde",
         "edit": "Kunde bearbeiten",
         "heading": "Kunden",
-        "list": {
-          "_": "Kunden",
-          "select": "Kunde auswählen"
-        }
+        "list": "Kunden"
       },
       "validation": {
         "existingCustomerNr": "Es existiert bereits ein Kunde mit dieser Kundennummer"
@@ -1291,6 +1288,10 @@
           "numberMissing": "Die Rechnungsnummer fehlt. Sie wird vergeben, sobald die Rechnung den Status „geplant“ verlässt.",
           "sellerNotConfigured": "Der Verkäufer dieser Installation ist nicht vollständig konfiguriert (projectforge.einvoice.seller.*). Ein Administrator muss das ergänzen."
         },
+        "fillFromAccount": "Aus Konto ergänzen",
+        "fillFromAccountDone": "{arg0} Feld(er) aus dem Konto ergänzt.",
+        "fillFromAccountHint": "Ergänzt die leeren Felder dieses Abschnitts aus dem Konto der Rechnung, sonst aus dem Konto des Kunden. Bereits ausgefüllte Felder bleiben unverändert.",
+        "fillFromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte.",
         "saveAndOpen": "Speichern und E-Rechnung",
         "saveAndXRechnung": "Speichern und XRechnung",
         "saveAndZugferd": "Speichern und ZUGFeRD",
@@ -1986,10 +1987,6 @@
       }
     },
     "reporting": "Reporting",
-    "resetFilter": {
-      "_": "Filter zurücksetzen",
-      "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
-    },
     "sendSms": "SMS senden",
     "system": "System",
     "taskTree": "Strukturbaum",
@@ -2854,6 +2851,11 @@
     "tree": {
       "close": "Strukturelement zuklappen",
       "explore": "Alle Strukturelemente auf-/zuklappen",
+      "filter": {
+        "reset": {
+          "tooltip": "Stellt den Standardfilter wieder her: leere Suche, Status „nicht begonnen“ und „begonnen“."
+        }
+      },
       "info": "Strukturelemente werden auf- und zugeklappt, indem auf das Ordnersymbol oder den Titel geklickt wird; zur Auswahl eines Elements kann jede andere Stelle innerhalb der Zeile angeklickt werden.\n\n**Tastatur**\n\n- **↑ / ↓** – zwischen den Elementen bewegen\n- **→ / ←** – fokussiertes Element auf- und zuklappen\n- **Eingabetaste** – fokussiertes Element öffnen",
       "open": "Strukturelement aufklappen",
       "perspective": "Baumansicht",

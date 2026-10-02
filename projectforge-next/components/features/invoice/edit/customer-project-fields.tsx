@@ -7,45 +7,7 @@ import { EntityOrTextField } from "@/components/shared/form/entity-or-text-field
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { fetchOne } from "@/lib/rs/client";
 import { cn } from "@/lib/utils";
-
-/** The account of a customer, as `/rs/customer/{id}` answers it — `Customer.konto`. */
-interface CustomerDetail {
-  konto?: { id?: number | null } | null;
-}
-
-/**
- * The address block of an account, as `/rs/account/{id}` answers it (`KontoPagesRest.transformFromDB`,
- * which copies the whole `KontoDO`).
- *
- * Read separately, and this is not a detour that can be shortened: `Customer.copyFrom` builds its account
- * with `Konto(KontoDO)`, whose constructor is `copyFromMinimal` — so the customer's own answer carries
- * nothing but the account's id and display name, however many fields the `Konto` DTO declares.
- */
-interface AccountDetail {
-  contactPerson?: string | null;
-  street?: string | null;
-  zipCode?: string | null;
-  city?: string | null;
-  country?: string | null;
-  vatId?: string | null;
-  leitwegId?: string | null;
-  eInvoiceEmail?: string | null;
-}
-
-/**
- * The account's field on the left, the invoice's field on the right — the whole address block of the
- * e-invoice, in the order the `customer` section shows it.
- */
-const ADDRESS_FIELDS: [keyof AccountDetail, string][] = [
-  ["contactPerson", "customerContactPerson"],
-  ["street", "customerAddress"],
-  ["zipCode", "customerZipCode"],
-  ["city", "customerCity"],
-  ["country", "customerCountry"],
-  ["vatId", "customerVatId"],
-  ["leitwegId", "customerLeitwegId"],
-  ["eInvoiceEmail", "customerEInvoiceEmail"],
-];
+import { useFillEInvoiceFromAccount } from "./use-fill-e-invoice-from-account";
 
 /**
  * The project and the customer of an invoice — the customer either picked from the list or typed as free text
@@ -65,6 +27,7 @@ const ADDRESS_FIELDS: [keyof AccountDetail, string][] = [
 export function CustomerProjectFields({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
+  const fillEInvoiceFromAccount = useFillEInvoiceFromAccount();
 
   async function fillFromProject(project: EntityRef | null) {
     if (!project) return;
@@ -83,21 +46,13 @@ export function CustomerProjectFields({ className }: { className?: string }) {
   }
 
   /**
-   * The address block from the customer's account — what `EInvoiceService` needs to produce an XRechnung
-   * and what nobody should have to copy by hand.
-   *
-   * Two reads, because the customer only names its account (see [AccountDetail]). A customer without one
-   * fills nothing: the address lives on the account, not on the customer.
+   * The e-invoice fields from the customer's account — what `EInvoiceService` needs to produce an XRechnung
+   * and what nobody should have to copy by hand. An account of the invoice's own comes first, as it does in
+   * the export (see useFillEInvoiceFromAccount).
    */
   async function fillFromCustomer(customer: EntityRef | null) {
     if (!customer) return;
-    const { konto } = await fetchOne<CustomerDetail>("customer", customer.id);
-    if (konto?.id == null) return;
-    const account = await fetchOne<AccountDetail>("account", konto.id);
-    for (const [from, to] of ADDRESS_FIELDS) {
-      const value = account[from];
-      if (value && !form.getFieldValue(to)) form.setFieldValue(to, value);
-    }
+    await fillEInvoiceFromAccount();
   }
 
   return (
