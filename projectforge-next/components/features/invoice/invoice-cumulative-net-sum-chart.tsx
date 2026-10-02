@@ -9,13 +9,14 @@ import { SeriesLegendContent } from "@/components/shared/chart/series-legend-con
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
-import { buildChartConfig } from "@/lib/charts/series";
 import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
 import {
+  buildInvoiceChartConfig,
   cumulativeRows,
   formatChartMonth,
   seriesKeys,
   spansMultipleYears,
+  yearDashArray,
 } from "./invoice-net-sum-series";
 
 /**
@@ -30,7 +31,7 @@ export function InvoiceCumulativeNetSumChart({
 }) {
   const t = useTranslations("fibu.rechnung.chart");
   const ctx = useFormatContext();
-  const config = useMemo(() => buildChartConfig(data.series), [data]);
+  const config = useMemo(() => buildInvoiceChartConfig(data), [data]);
   const rows = useMemo(() => cumulativeRows(data), [data]);
   const keys = useMemo(() => seriesKeys(data), [data]);
   const showYear = spansMultipleYears(data);
@@ -84,6 +85,7 @@ export function InvoiceCumulativeNetSumChart({
             type="linear"
             stroke={`var(--color-${key})`}
             strokeWidth={2}
+            strokeDasharray={yearDashArray(key)}
             dot={false}
             isAnimationActive={false}
           />

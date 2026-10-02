@@ -1,14 +1,45 @@
-import { seriesKey } from "@/lib/charts/series";
+import type { ChartConfig } from "@/components/ui/chart";
+import { buildChartConfig, seriesKey } from "@/lib/charts/series";
 import { formatMonthName, type FormatContext } from "@/lib/format";
 import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
 
 /**
  * The invoice-specific shaping of the net-sum chart data (see `invoice-charts-view.tsx`): the two charts of
  * the "Grafiken" tab — the monthly bars and the cumulative curves — are the same four years, so both read
- * from one set of series keys and the shared categorical palette/config in `lib/charts/series.ts`. Only the
- * numbers differ (a month's sum for the bars, its running total for the curves), which is what
+ * from one set of series keys and one year styling ({@link buildInvoiceChartConfig}, {@link yearDashArray}).
+ * Only the numbers differ (a month's sum for the bars, its running total for the curves), which is what
  * {@link monthlyRows} and {@link cumulativeRows} produce. The month-axis label helpers live here too.
  */
+
+/**
+ * The colours of the years, newest first, in the colours of the order book forecast charts (the
+ * `--chart-forecast-*` tokens): current year blue, previous year green, the year before blue again and the
+ * oldest grey. The two blue years are told apart by their dash pattern ({@link yearDashArray}).
+ */
+const YEAR_PALETTE = [
+  "var(--chart-forecast-total)",
+  "var(--chart-forecast-prev-year)",
+  "var(--chart-forecast-total)",
+  "var(--chart-forecast-prev-prev-year)",
+];
+
+/**
+ * The dash patterns of the years, newest first: the current and the previous year solid, the two older ones
+ * dotted like the forecast's pre-previous year.
+ */
+const YEAR_DASH_ARRAYS = [undefined, undefined, "2 3", "2 3"];
+
+/** The chart config of both charts: each year labelled by its own label and coloured by {@link YEAR_PALETTE}. */
+export function buildInvoiceChartConfig(
+  data: InvoiceNetSumChartData
+): ChartConfig {
+  return buildChartConfig(data.series, YEAR_PALETTE);
+}
+
+/** The dash pattern of the year under `key` (see {@link YEAR_DASH_ARRAYS}); undefined draws it solid. */
+export function yearDashArray(key: string): string | undefined {
+  return YEAR_DASH_ARRAYS[Number(key.slice(1))];
+}
 
 /**
  * The keys of every series present — what both charts map over to place their bars and lines. Reversed

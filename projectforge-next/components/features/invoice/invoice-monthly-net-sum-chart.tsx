@@ -9,13 +9,15 @@ import { SeriesLegendContent } from "@/components/shared/chart/series-legend-con
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
-import { buildChartConfig, CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
+import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
 import {
+  buildInvoiceChartConfig,
   formatChartMonth,
   monthlyRows,
   seriesKeys,
   spansMultipleYears,
+  yearDashArray,
 } from "./invoice-net-sum-series";
 
 /**
@@ -30,7 +32,7 @@ export function InvoiceMonthlyNetSumChart({
 }) {
   const t = useTranslations("fibu.rechnung.chart");
   const ctx = useFormatContext();
-  const config = useMemo(() => buildChartConfig(data.series), [data]);
+  const config = useMemo(() => buildInvoiceChartConfig(data), [data]);
   const rows = useMemo(() => monthlyRows(data), [data]);
   const keys = useMemo(() => seriesKeys(data), [data]);
   const showYear = spansMultipleYears(data);
@@ -83,6 +85,8 @@ export function InvoiceMonthlyNetSumChart({
             dataKey={key}
             stroke={`var(--color-${key})`}
             strokeWidth={1.5}
+            strokeDasharray={yearDashArray(key)}
+            legendType="line"
             fill={`var(--color-${key})`}
             fillOpacity={CHART_BAR_FILL_OPACITY}
             isAnimationActive={false}

@@ -223,7 +223,7 @@
   /* A balance below zero (the liquidity forecast's area under the zero line) — a warning red. */
   --chart-deficit: #de1821;
   /* Categorical series palette — up to four distinguishable series for comparing N things (e.g. the
-     Debitoren "Grafiken" tab: current year red, then blue, green, yellow). Shared across charts via
+     invoicing quota chart). Shared across charts via
      lib/charts/series.ts. Vivid enough for the dark theme too, so not overridden under .dark (like
      --chart-soll/--chart-ist). */
   --chart-series-1: #de1821;

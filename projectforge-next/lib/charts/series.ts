@@ -28,15 +28,18 @@ export function seriesKey(index: number): string {
 
 /**
  * A {@link ChartConfig} for a list of series: each labelled by its own `label` and coloured by its rank in
- * the {@link SERIES_PALETTE} (wrapping past the fourth). `ChartContainer` turns each entry into a
- * `--color-<key>` CSS variable, so marks reference `var(--color-s0)` etc.
+ * the `palette` ({@link SERIES_PALETTE} by default, wrapping past its end). `ChartContainer` turns each entry
+ * into a `--color-<key>` CSS variable, so marks reference `var(--color-s0)` etc.
  */
-export function buildChartConfig(series: { label: string }[]): ChartConfig {
+export function buildChartConfig(
+  series: { label: string }[],
+  palette: string[] = SERIES_PALETTE
+): ChartConfig {
   const config: ChartConfig = {};
   series.forEach((serie, index) => {
     config[seriesKey(index)] = {
       label: serie.label,
-      color: SERIES_PALETTE[index % SERIES_PALETTE.length],
+      color: palette[index % palette.length],
     };
   });
   return config;
