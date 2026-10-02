@@ -85,9 +85,6 @@ class ContributionMarginData(
 
   /** Set by the REST layer: the list's filter criteria replaced by the start date. */
   var replacedFilterFields: List<String> = emptyList()
-
-  /** Set by the REST layer: the list's filter criteria applied only partially. */
-  var partialFilterFields: List<String> = emptyList()
 }
 
 /**

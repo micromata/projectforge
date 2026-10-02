@@ -9,7 +9,8 @@ import { FilterPillShell } from "./filter-pill-shell";
 import { useFilterPeriodKinds } from "./filter-period-kinds";
 import { pageablePeriodOf, steppedPeriodValue } from "./filter-period";
 import { useDebouncedApply } from "./use-debounced-apply";
-import { describeFilterValue, isEmptyFilterValue } from "./filter-value";
+import { filterPillContent, isEmptyFilterValue } from "./filter-value";
+import { useResolvedFilterElements } from "./use-filter-list-values";
 
 interface FilterPillProps {
   element: FilterElement;
@@ -73,23 +74,25 @@ export function FilterPill({
       }
     : undefined;
 
-  // The pill truncates its text, so the tooltip carries the full value — a long task path is only
-  // recognizable that way. With no value it falls back to the field's description (element.tooltip).
   const label = element.label ?? element.id;
-  const valueText = describeFilterValue(value, element, ctx);
-
-  // A task filter's value names the whole path ("A | B | Task"); the pill shows only the task itself,
-  // since the ancestors would truncate away the one segment that identifies it. The full path stays in
-  // the tooltip and the popover. Its picker needs a wider popover for the breadcrumb and the controls.
+  // Values loaded on demand (the customers of the order book) are fetched to name the picks.
+  const [resolved] = useResolvedFilterElements(
+    [element],
+    value ? { [element.id]: value } : undefined
+  );
+  // The pill truncates its text, so the tooltip carries the full value (see [filterPillContent]). A task
+  // filter's picker needs a wider popover for the breadcrumb and the controls.
+  const content = filterPillContent(value, resolved, label, ctx);
   const isTask =
     element.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
-  const pillText = isTask ? taskLeafOf(valueText) : valueText;
 
   return (
     <FilterPillShell
       label={label}
-      text={pillText}
-      tooltip={valueText ? `${label}: ${valueText}` : element.tooltip}
+      text={content.text}
+      more={content.more}
+      tooltip={content.tooltip}
+      tooltipPlain={content.tooltipPlain}
       active={!isEmptyFilterValue(value)}
       onStep={onStep}
       stepPreviousLabel={t(
@@ -149,10 +152,4 @@ export function FilterPill({
     save(baseline.current);
     onOpenChange(false);
   }
-}
-
-/** The last segment of a " | "-joined task path — the task itself, without its ancestors. */
-function taskLeafOf(path: string): string {
-  const segments = path.split(" | ");
-  return segments[segments.length - 1] || path;
 }

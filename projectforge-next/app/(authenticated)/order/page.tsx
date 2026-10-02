@@ -14,7 +14,7 @@ import { useListMeta } from "@/hooks/use-list-meta";
 
 /**
  * The order book (`/order`). Tabs under one page shell, as the invoice page composes its list and
- * charts: the order list, a "Grafiken" tab with the forecast charts of the filtered orders and, for finance,
+ * charts: the order list, a "Forecast" tab with the forecast charts of the filtered orders and, for finance,
  * controlling and project managers (list meta variable `contributionMargin`), a "Deckungsbeitrag" tab with
  * the contribution margin of their projects. The list keeps its full chrome by rendering
  * {@link EntityListPage} `embedded`; the other tabs read the same filter the list is showing.
@@ -29,7 +29,7 @@ export default function OrderListPage() {
       <Tabs defaultValue="list" className="flex min-h-0 flex-1 flex-col">
         <TabsList className="mx-4 mt-2 w-fit shrink-0">
           <TabsTrigger value="list">{t("title.list")}</TabsTrigger>
-          <TabsTrigger value="charts">{t("forecast.chart._")}</TabsTrigger>
+          <TabsTrigger value="charts">{t("forecast._")}</TabsTrigger>
           {contributionMargin && (
             <TabsTrigger value="contributionMargin">
               {t("contributionMargin._")}

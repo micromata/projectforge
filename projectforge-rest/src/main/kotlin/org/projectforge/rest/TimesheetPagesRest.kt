@@ -58,11 +58,14 @@ import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.fibu.ProjectChecklistFilter
+import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.Kost2FilterUtils
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
@@ -842,6 +845,29 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         if (JiraUtils.isJiraConfigured) {
             elements.add(UIFilterBooleanElement("hasJiraIssues", label = translate("timesheet.filter.hasJiraIssues")))
         }
+        // The project as the order list offers it, picked from those of the sheets (see projectFilterValues),
+        // replacing the free-text pills on the fields of the cost 2's project.
+        elements.removeTextFilters("kost2.projekt")
+        elements.add(projectFilter.element())
+    }
+
+    /**
+     * A sheet reaches its project via its cost 2, so the picked projects match by the ids of all their cost 2
+     * — `kost2.id`, not the nested `kost2.projekt.id`, which a search matched in memory would resolve by
+     * loading each sheet's cost 2.
+     */
+    private val projectFilter = ProjectChecklistFilter("timesheet/projectFilterValues", path = "kost2.id") { ids ->
+        ids.flatMap { id -> kostCache.getKost2ForProjekt(id, includeDeleted = true).mapNotNull { it.id } }
+    }
+
+    /**
+     * The projects to choose from in the project filter ([ProjectChecklistFilter]): those of the sheets the
+     * list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("projectFilterValues")
+    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        val sheets = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
+        return ProjectChecklistFilter.valuesOf(sheets.asSequence().map { caches.getKost2(it.kost2?.id)?.projekt?.id })
     }
 
     /**
@@ -862,6 +888,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<TimesheetDO>> {
         val filters = mutableListOf<CustomResultFilter<TimesheetDO>>()
+        projectFilter.addCriterion(target, source)
         source.entries.find { it.field == "period" }?.let { periodEntry ->
             periodEntry.synthetic = true
             // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that

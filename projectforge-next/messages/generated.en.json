@@ -738,7 +738,6 @@
           }
         },
         "chart": {
-          "_": "Charts",
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
@@ -2672,6 +2671,11 @@
   "searchString": "Search string",
   "select": {
     "_": "Select",
+    "checklist": {
+      "andMore": "and {arg0} more",
+      "selectedOf": "{arg0} of {arg1} selected",
+      "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
+    },
     "placeholder": "Select..."
   },
   "selectAll": "Select all",

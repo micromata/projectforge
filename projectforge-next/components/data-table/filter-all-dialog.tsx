@@ -24,6 +24,7 @@ import {
   searchTextsOf,
 } from "./filter-groups";
 import type { FilterValues } from "./filter-value";
+import { FilterValuesProvider } from "./filter-values-context";
 import {
   historyFilterGroupOf,
   mergeHistoryFilters,
@@ -85,73 +86,76 @@ export function FilterAllDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="grid max-h-[85vh] w-[min(1100px,calc(100vw-2rem))] grid-rows-[auto_auto_1fr_auto] gap-3 sm:max-w-none">
-        <DialogHeader>
-          <DialogTitle>{t("allFilters")}</DialogTitle>
-        </DialogHeader>
-        <div className="relative">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={14}
-            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            value={term}
-            onChange={(event) => setTerm(event.target.value)}
-            placeholder={t("search")}
-            aria-label={t("search")}
-            className="h-8 pl-8 text-xs"
-          />
-        </div>
-        <div className="min-h-0 space-y-1 overflow-y-auto pr-1">
-          {showHistory && history && (
-            <div className="space-y-1.5 px-2 pb-2">
-              <h3 className="text-xs font-semibold">{t("history")}</h3>
-              <div className="grid auto-rows-min items-start gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-                <HistoryFilterFields
-                  // Its three criteria are cells of the grid above, like every other group's fields.
-                  layout="grid"
-                  group={history}
-                  values={pickHistoryFilters(draft)}
-                  onChange={(next) =>
-                    setDraft(mergeHistoryFilters(draft, next))
-                  }
-                />
-              </div>
-            </div>
-          )}
-          {groups.map((group) => (
-            <FilterFieldGroup
-              key={group.id}
-              group={group}
-              label={headingOf(group.id, group.groupLabel)}
-              values={draft}
-              onChange={setDraft}
+      {/* The draft, not the applied filter: a checklist here narrows by what is about to be applied. */}
+      <FilterValuesProvider value={draft}>
+        <DialogContent className="grid max-h-[85vh] w-[min(1100px,calc(100vw-2rem))] grid-rows-[auto_auto_1fr_auto] gap-3 sm:max-w-none">
+          <DialogHeader>
+            <DialogTitle>{t("allFilters")}</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={14}
+              className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground"
             />
-          ))}
-          {groups.length === 0 && !showHistory && (
-            <p className="px-2 py-4 text-xs text-muted-foreground">
-              {elements.length === 0 ? t("noFields") : t("noMatch")}
-            </p>
-          )}
-        </div>
-        <DialogFooter className="border-t pt-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="sm:mr-auto"
-            onClick={() => setDraft({})}
-          >
-            {t("reset")}
-          </Button>
-          <Button variant="outline" size="sm" onClick={onClose}>
-            {tAction("cancel")}
-          </Button>
-          <Button size="sm" onClick={() => onApply(draft)}>
-            {tAction("apply")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+            <Input
+              value={term}
+              onChange={(event) => setTerm(event.target.value)}
+              placeholder={t("search")}
+              aria-label={t("search")}
+              className="h-8 pl-8 text-xs"
+            />
+          </div>
+          <div className="min-h-0 space-y-1 overflow-y-auto pr-1">
+            {showHistory && history && (
+              <div className="space-y-1.5 px-2 pb-2">
+                <h3 className="text-xs font-semibold">{t("history")}</h3>
+                <div className="grid auto-rows-min items-start gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <HistoryFilterFields
+                    // Its three criteria are cells of the grid above, like every other group's fields.
+                    layout="grid"
+                    group={history}
+                    values={pickHistoryFilters(draft)}
+                    onChange={(next) =>
+                      setDraft(mergeHistoryFilters(draft, next))
+                    }
+                  />
+                </div>
+              </div>
+            )}
+            {groups.map((group) => (
+              <FilterFieldGroup
+                key={group.id}
+                group={group}
+                label={headingOf(group.id, group.groupLabel)}
+                values={draft}
+                onChange={setDraft}
+              />
+            ))}
+            {groups.length === 0 && !showHistory && (
+              <p className="px-2 py-4 text-xs text-muted-foreground">
+                {elements.length === 0 ? t("noFields") : t("noMatch")}
+              </p>
+            )}
+          </div>
+          <DialogFooter className="border-t pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sm:mr-auto"
+              onClick={() => setDraft({})}
+            >
+              {t("reset")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              {tAction("cancel")}
+            </Button>
+            <Button size="sm" onClick={() => onApply(draft)}>
+              {tAction("apply")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </FilterValuesProvider>
     </Dialog>
   );
 }

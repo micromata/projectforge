@@ -134,7 +134,6 @@ function OrderContributionMargin({
       data && {
         ignored: data.ignoredFilterFields,
         replaced: data.replacedFilterFields,
-        partial: data.partialFilterFields,
       },
     [data]
   );

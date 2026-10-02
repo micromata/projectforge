@@ -738,7 +738,6 @@
           }
         },
         "chart": {
-          "_": "Grafiken",
           "cumulative": "Umsatzprognose kumuliert",
           "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
           "ist": "IST",
@@ -2672,6 +2671,11 @@
   "searchString": "Suchtext",
   "select": {
     "_": "Auswählen",
+    "checklist": {
+      "andMore": "und {arg0} weitere",
+      "selectedOf": "{arg0} von {arg1} ausgewählt",
+      "truncated": "{arg0} von {arg1} Einträgen angezeigt; die Suche verfeinern, um die übrigen zu sehen."
+    },
     "placeholder": "Auswählen..."
   },
   "selectAll": "Alle auswählen",

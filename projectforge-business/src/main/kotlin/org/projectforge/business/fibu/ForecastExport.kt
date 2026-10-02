@@ -161,7 +161,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         // scriptLogger?.info { msgSB } ?: log.info { msgSB }
         val orderList = if (closestSnapshotDate != null) {
-            readSnapshot(closestSnapshotDate, filter)
+            readSnapshot(closestSnapshotDate, snapshotMatcher(filter, searchMatchIds(filter, null)))
         } else {
             orderDao.select(filter)
         }
@@ -180,7 +180,7 @@ open class ForecastExport { // open needed by Wicket.
                 planningDate = closestPlanningDate,
                 snapshotDate = closestSnapshotDate,
                 showAll = showAll,
-                auftragFilter = filter,
+                planningOrderMatcher = { orders -> snapshotMatcher(filter, searchMatchIds(filter, orders)) },
                 scriptLogger = scriptLogger,
                 distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
                 fillUnitCol = fillUnitCol,
@@ -217,7 +217,7 @@ open class ForecastExport { // open needed by Wicket.
             planningDate = closestPlanningDate,
             snapshotDate = null,
             showAll = isShowAll(filter),
-            auftragFilter = filter,
+            planningOrderMatcher = { orders -> snapshotMatcher(filter, searchMatchIds(filter, orders)) },
             scriptLogger = null,
             distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
             fillUnitCol = null,
@@ -225,19 +225,91 @@ open class ForecastExport { // open needed by Wicket.
         )?.chartData
     }
 
+    /**
+     * The forecast charts of orders the caller has already selected, e.g. by the filter of a list page with all its
+     * criteria. The forecast doesn't filter them any further, and the order book snapshot of [planningDate] is
+     * restricted to the same orders (by id).
+     * @param orderList The orders of the forecast. Must reach 3 years back before [startDate] (by their period of
+     * performance), so the invoices of the two prior years find their orders, see [buildQueryFilter].
+     * @param startDate The first month of the forecast (any day of it), the begin of the year if not given.
+     * @param unfiltered True, if [orderList] is the whole order book: invoices without any order are then part of the
+     * sums as well (for financial and controlling staff only, see [isShowAll]).
+     * @param planningDate If given, the plan is calculated from the closest order book snapshot.
+     * @return null, if neither order positions nor invoices were found.
+     */
+    open fun chartData(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ForecastChartData? {
+        return exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = true)
+            ?.chartData
+    }
+
+    /**
+     * The forecast Excel of orders the caller has already selected, see [chartData] for the parameters.
+     */
+    open fun xlsExport(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate? = null,
+        distributeUnusedBudget: Boolean? = null,
+    ): ByteArray? {
+        try {
+            return exportSelected(orderList, startDate, unfiltered, planningDate, distributeUnusedBudget, chartsOnly = false)
+                ?.xls
+        } catch (ex: Exception) {
+            log.error(ex) { "Error exporting forecast: $ex" }
+            throw ex
+        }
+    }
+
+    private fun exportSelected(
+        orderList: Collection<AuftragDO>,
+        startDate: LocalDate?,
+        unfiltered: Boolean,
+        planningDate: LocalDate?,
+        distributeUnusedBudget: Boolean?,
+        chartsOnly: Boolean,
+    ): ExportResult? {
+        val orderIds = orderList.mapNotNull { it.id }.toSet()
+        return export(
+            orderList,
+            startDate = getStartDate(startDate),
+            planningDate = getClosestSnapshotDate(planningDate, null, "planning"),
+            snapshotDate = null,
+            showAll = unfiltered && isFinanceOrControllingStaff(),
+            planningOrderMatcher = { { it.id in orderIds } },
+            scriptLogger = null,
+            distributeUnusedBudget = distributeUnusedBudget ?: ForecastOrderPosInfo.defaultDistributeUnusedBudget,
+            fillUnitCol = null,
+            chartsOnly = chartsOnly,
+        )
+    }
+
     /** True, if no filter is given, for financial and controlling staff only. */
     private fun isShowAll(filter: AuftragFilter): Boolean {
-        return accessChecker.isLoggedInUserMemberOfGroup(
-            ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP
-        ) &&
+        return isFinanceOrControllingStaff() &&
                 filter.searchString.isNullOrBlank() &&
                 filter.projectList.isNullOrEmpty()
     }
 
+    private fun isFinanceOrControllingStaff(): Boolean {
+        return accessChecker.isLoggedInUserMemberOfGroup(
+            ProjectForgeGroup.FINANCE_GROUP,
+            ProjectForgeGroup.CONTROLLING_GROUP
+        )
+    }
+
     private fun getStartDate(origFilter: AuftragFilter): PFDay {
-        val startDateParam = origFilter.periodOfPerformanceStartDate
-        return if (startDateParam != null) PFDay.from(startDateParam).beginOfMonth else PFDay.now().beginOfYear
+        return getStartDate(origFilter.periodOfPerformanceStartDate)
+    }
+
+    private fun getStartDate(startDate: LocalDate?): PFDay {
+        return if (startDate != null) PFDay.from(startDate).beginOfMonth else PFDay.now().beginOfYear
     }
 
     /**
@@ -273,8 +345,13 @@ open class ForecastExport { // open needed by Wicket.
 
     @JvmOverloads
     open fun getExcelFilenmame(origFilter: AuftragFilter, distributeUnusedBudget: Boolean? = null): String {
+        return getExcelFilename(origFilter.periodOfPerformanceStartDate, distributeUnusedBudget)
+    }
+
+    /** The filename of [xlsExport] of the given start date (begin of the year, if not given). */
+    open fun getExcelFilename(startDate: LocalDate?, distributeUnusedBudget: Boolean? = null): String {
         return getFilename(
-            getStartDate(origFilter),
+            getStartDate(startDate),
             extension = ".xlsx",
             distributeUnusedBudget = distributeUnusedBudget,
         )
@@ -350,6 +427,9 @@ open class ForecastExport { // open needed by Wicket.
      * @param orderList The list of orders to export.
      * @param startDate The start date for the forecast.
      * @param showAll True, if no filter is given, for financial and controlling staff only.
+     * @param planningOrderMatcher Which orders of the snapshot of [planningDate] are the plan, given [orderList]:
+     *              those matching the same filter (a snapshot can't be searched in full text, so it's matched against
+     *              the orders found).
      * @param planningDate If given, the monthly forecast will be calculated with the specified date and inserted as plan data.
      * @param snapshotDate Today (null) or, the day of the snapshot, if the orderList is loaded from order book snapshots.
      *              If the date is in the past, the forecast will be simulated with the specified date.
@@ -365,7 +445,7 @@ open class ForecastExport { // open needed by Wicket.
         showAll: Boolean,
         planningDate: LocalDate?,
         snapshotDate: LocalDate?,
-        auftragFilter: AuftragFilter,
+        planningOrderMatcher: (orderList: Collection<AuftragDO>) -> (AuftragDO) -> Boolean,
         scriptLogger: ScriptLogger?,
         distributeUnusedBudget: Boolean,
         fillUnitCol: ((orderInfo: OrderInfo) -> String)?,
@@ -467,7 +547,7 @@ open class ForecastExport { // open needed by Wicket.
             log.debug { "info sheet: $infoSheet" }
 
             analyzeOrderPositions(orderList, ctx, planningData = false)
-            analyzePlanningForecast(planningDate, auftragFilter, ctx)
+            analyzePlanningForecast(planningDate, planningOrderMatcher(orderList), ctx)
             forecastExportInvoices.fillInvoices(ctx)
             val orderPositionsFound = fillOrderPositions(
                 orderList,
@@ -551,6 +631,12 @@ open class ForecastExport { // open needed by Wicket.
                     ctx.orderMap[id] = orderInfo
                 }
             }
+            if (planningData) {
+                // The order positions decide which invoices belong to the filtered orders (see
+                // ForecastExportInvoices.fillInvoices). Those of the snapshot must not widen that selection:
+                // the plan is compared with the invoices of the orders of the forecast, not of the snapshot.
+                continue
+            }
             orderInfo.infoPositions?.forEach { pos ->
                 pos.id?.let {
                     ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
@@ -560,9 +646,9 @@ open class ForecastExport { // open needed by Wicket.
         }
     }
 
-    private fun analyzePlanningForecast(planningDate: LocalDate?, auftragFilter: AuftragFilter, ctx: Context) {
+    private fun analyzePlanningForecast(planningDate: LocalDate?, match: (AuftragDO) -> Boolean, ctx: Context) {
         planningDate ?: return
-        val orderList = readSnapshot(planningDate, auftragFilter)
+        val orderList = readSnapshot(planningDate, match)
         analyzeOrderPositions(orderList, ctx, planningData = true)
         ctx.planningOrderList = orderList
     }
@@ -1193,9 +1279,31 @@ open class ForecastExport { // open needed by Wicket.
             ctx.currencyCellStyle
     }
 
-    private fun readSnapshot(date: LocalDate, filter: AuftragFilter): List<AuftragDO> {
-        return orderbookSnapshotsService.readSnapshot(date)?.filter { filter.match(it) }
+    /** The orders of the snapshot of [date] matching [match]. */
+    private fun readSnapshot(date: LocalDate, match: (AuftragDO) -> Boolean): List<AuftragDO> {
+        return orderbookSnapshotsService.readSnapshot(date)?.filter(match)
             ?.sortedByDescending { it.nummer } ?: emptyList()
+    }
+
+    /**
+     * Which orders of a snapshot match [filter].
+     * @param searchMatchIds The ids of the orders matching the search string of [filter] (see [searchMatchIds]), or
+     *                       null if there is none. [AuftragFilter.match] can't evaluate a search string, so without
+     *                       these the whole order book of the snapshot would be taken.
+     */
+    private fun snapshotMatcher(filter: AuftragFilter, searchMatchIds: Set<Long>?): (AuftragDO) -> Boolean =
+        { filter.match(it) && (searchMatchIds == null || it.id in searchMatchIds) }
+
+    /**
+     * The ids of the orders matching the search string of [filter], or null if it has none. The full text search
+     * only exists for the current order book, so its result decides which orders of a snapshot match as well.
+     * @param currentOrderList The orders already selected with [filter], if any, to save a second query.
+     */
+    private fun searchMatchIds(filter: AuftragFilter, currentOrderList: Collection<AuftragDO>?): Set<Long>? {
+        if (filter.searchString.isNullOrBlank()) {
+            return null
+        }
+        return (currentOrderList ?: orderDao.select(filter)).mapNotNull { it.id }.toSet()
     }
 
     companion object {

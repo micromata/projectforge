@@ -114,11 +114,8 @@ export function describeFilterValue(
   ctx: FormatContext
 ): string {
   if (!value) return "";
-  if (value.values?.length) {
-    return value.values
-      .map((id) => element?.values?.find((v) => v.id === id)?.displayName ?? id)
-      .join(", ");
-  }
+  const labels = filterValueLabels(value, element);
+  if (labels) return labels.join(", ");
   if ((value.from || value.to) && element?.filterType === "MONTH") {
     return formatMonthRange(value.from, value.to, ctx);
   }
@@ -137,4 +134,75 @@ export function describeFilterValue(
   // BOOLEAN filters carry "true"; the label alone already says what is meant.
   if (element?.filterType === "BOOLEAN") return "";
   return fromLikeTerm(value.value);
+}
+
+/**
+ * The display names of a LIST value's picks, or null for any other kind of value. A key the element
+ * doesn't offer (any more, or not yet fetched) is shown as it is rather than vanishing.
+ */
+export function filterValueLabels(
+  value: MagicFilterEntryValue | undefined,
+  element: FilterElement | undefined
+): string[] | null {
+  if (!value?.values?.length) return null;
+  return value.values.map(
+    (id) => element?.values?.find((v) => v.id === id)?.displayName ?? id
+  );
+}
+
+/** What a filter pill says: on its face, and in full in its tooltip. */
+export interface FilterPillContent {
+  /** After the label: "Kunde: <text>". Empty for a boolean, whose label alone says it. */
+  text: string;
+  /** Picks left off [text], shown as "+n" beside it so a truncated text never hides the count. */
+  more: number;
+  tooltip?: string;
+  /** Show [tooltip] verbatim, line by line — a list of user data, no markdown. */
+  tooltipPlain: boolean;
+}
+
+/** How many picks of a multi-value filter a pill names before it counts the rest. */
+const PILL_NAMED_PICKS = 3;
+
+/**
+ * What the pill of [element] says about [value], the same in the list's filter row ([FilterPill]) and in a
+ * chart's summary of it ([AppliedFilterSummary]):
+ * - several picks: the first few named, the rest counted ("A, B, C" +12), all of them listed in the
+ *   tooltip, one per line;
+ * - a task: only the task itself, since its ancestors would truncate away the one segment that identifies
+ *   it — the full path stays in the tooltip;
+ * - anything else: [describeFilterValue], repeated in the tooltip, as the pill truncates it.
+ *
+ * Without a value the tooltip is the field's description.
+ */
+export function filterPillContent(
+  value: MagicFilterEntryValue | undefined,
+  element: FilterElement | undefined,
+  label: string,
+  ctx: FormatContext
+): FilterPillContent {
+  const labels = filterValueLabels(value, element);
+  if (labels && labels.length > 1) {
+    return {
+      text: labels.slice(0, PILL_NAMED_PICKS).join(", "),
+      more: Math.max(0, labels.length - PILL_NAMED_PICKS),
+      tooltip: `${label}:\n${labels.join("\n")}`,
+      tooltipPlain: true,
+    };
+  }
+  const valueText = describeFilterValue(value, element, ctx);
+  const isTask =
+    element?.filterType === "OBJECT" && element.autoCompletion?.type === "TASK";
+  return {
+    text: isTask ? taskLeafOf(valueText) : valueText,
+    more: 0,
+    tooltip: valueText ? `${label}: ${valueText}` : element?.tooltip,
+    tooltipPlain: false,
+  };
+}
+
+/** The last segment of a " | "-joined task path — the task itself, without its ancestors. */
+function taskLeafOf(path: string): string {
+  const segments = path.split(" | ");
+  return segments[segments.length - 1] || path;
 }

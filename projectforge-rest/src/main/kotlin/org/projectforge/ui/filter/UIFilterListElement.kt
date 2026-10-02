@@ -45,6 +45,13 @@ open class UIFilterListElement(
     : UIFilterElement(id, FilterType.LIST, label = label, additionalLabel = additionalLabel, tooltip = tooltip, defaultFilter = defaultFilter) {
 
     /**
+     * Endpoint (relative to `/rs/`) answering the values to choose from as a list of [UIFilterListValue], for a
+     * value set too big or too costly to ship with every `listMeta` (e.g. the customers of the order book). The
+     * frontend fetches it when the filter is opened; [values] stays empty then.
+     */
+    var valuesUrl: String? = null
+
+    /**
      * @param addNullValue Offer "no value set" as one more value, for a field that may be null. It filters
      *   for entries without any value (see [MagicFilterEntry.NULL_VALUE]).
      */
