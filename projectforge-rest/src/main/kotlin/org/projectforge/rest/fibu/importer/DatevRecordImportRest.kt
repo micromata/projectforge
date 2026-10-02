@@ -35,6 +35,7 @@ import org.projectforge.rest.dto.BwaStatistics
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.InputStream
@@ -75,6 +76,17 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     override fun checkRight() {
         DatevImportService.checkLoggedinUserRight(accessChecker)
         accessChecker.checkRestrictedOrDemoUser()
+        // Every request of the import page passes here, so the log subscription exists before the upload is logged.
+        DatevImportLog.ensureSubscription()
+    }
+
+    /**
+     * The log viewer url of the user's DATEV import log (both tabs, see [DatevImportLog]), for the "view log" button.
+     */
+    @GetMapping("logViewer")
+    fun logViewer(): Map<String, String?> {
+        checkRight()
+        return mapOf("url" to DatevImportLog.viewerUrl())
     }
 
     override fun proceedUpload(inputStream: InputStream, filename: String): DatevRecordImportStorage {

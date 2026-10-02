@@ -61,8 +61,10 @@ class DatevAccountExcelImporter {
         ExcelWorkbook(inputStream, storage.filename ?: "unknown", ThreadLocalUserContext.locale).use { workbook ->
             val (sheet, cols) = detectSheet(workbook)
                 ?: throw IllegalArgumentException(translate("fibu.datev.import.accounts.error.noSheet"))
-            log.info { "Reading chart of accounts of sheet '${sheet.sheetName}'." }
+            log.info { "Reading chart of accounts of sheet '${sheet.sheetName}' of file '${storage.filename}'." }
             val numbers = mutableSetOf<Int>()
+            var read = 0
+            var faulty = 0
             val it = sheet.dataRowIterator
             while (it.hasNext()) {
                 val row = it.next()
@@ -81,8 +83,18 @@ class DatevAccountExcelImporter {
                 if (bezeichnung == null) {
                     dto.addError(translate("fibu.datev.import.accounts.error.bezeichnungMissing"))
                 }
+                read += 1
+                val errors = dto.getErrors()
+                if (errors.isNotEmpty()) {
+                    faulty += 1
+                    log.warn {
+                        "Sheet '${sheet.sheetName}', row ${row.rowNum + 1}, account ${nummer ?: "?"} is faulty and " +
+                                "won't be imported: ${errors.joinToString("; ")}"
+                    }
+                }
                 storage.commitEntity(dto)
             }
+            log.info { "Read $read accounts of sheet '${sheet.sheetName}': faulty=$faulty." }
         }
     }
 

@@ -128,6 +128,7 @@ class DatevRecordExcelImporter(
     fun parse(inputStream: InputStream, storage: DatevRecordImportStorage) {
         val filename = storage.filename ?: "unknown"
         val fileMonth = parseFileMonth(filename)
+        log.info { "Reading accounting records of file '$filename'." }
         ExcelWorkbook(inputStream, filename, ThreadLocalUserContext.locale).use { workbook ->
             val batches = mutableListOf<Triple<ExcelSheet, Columns, Int>>()
             for (idx in 0 until workbook.numberOfSheets) {
@@ -217,6 +218,8 @@ class DatevRecordExcelImporter(
         }
         val year = detectYear(raws, month, fileMonth)
         val satznrs = mutableSetOf<Int>()
+        var faulty = 0
+        var dateHints = 0
         raws.forEach { raw ->
             val dto = buildRecord(raw, year, month)
             raw.satznr?.let { satznr ->
@@ -224,9 +227,22 @@ class DatevRecordExcelImporter(
                     dto.addError(translateMsg("fibu.datev.import.error.satznrDuplicate", "$satznr"))
                 }
             }
+            // One line per conspicuous row, so the log viewer tells which rows to look at (Excel row numbers).
+            val where = "Sheet '${sheet.sheetName}', row ${raw.rowNum + 1}, record #${raw.satznr ?: "?"}"
+            val errors = dto.getErrors()
+            if (errors.isNotEmpty()) {
+                faulty += 1
+                log.warn { "$where is faulty and won't be imported: ${errors.joinToString("; ")}" }
+            } else if (dto.dateHint != null) {
+                dateHints += 1
+                log.info { "$where dated ${raw.dateText ?: dto.datum}: ${dto.dateHint}" }
+            }
             storage.commitEntity(dto)
         }
-        log.info { "Read ${raws.size} accounting records of sheet '${sheet.sheetName}' for $year/$month." }
+        log.info {
+            "Read ${raws.size} accounting records of sheet '${sheet.sheetName}' for booking batch $year/$month: " +
+                    "faulty=$faulty, dated outside the booking month=$dateHints."
+        }
     }
 
     private fun buildRecord(raw: RawRecord, year: Int?, month: Int): DatevRecordImportDTO {

@@ -51,6 +51,8 @@ class DatevAccountImportStorage(
     /** The accounts the parser read from the file, kept so a re-reconcile can rebuild the pairs. */
     val readAccounts = mutableListOf<DatevAccountImportDTO>()
 
+    private var lastReconcileSummary: String? = null
+
     override fun prepareEntity(): DatevAccountImportDTO {
         return DatevAccountImportDTO()
     }
@@ -88,6 +90,11 @@ class DatevAccountImportStorage(
             read.getErrors().forEach { pairEntry.addError(it) }
             addEntry(pairEntry)
         }
-        log.debug { "Reconciled ${pairEntries.size} DATEV account import rows." }
+        // Logged on a changed result only: the preview reconciles again on every change of its display options.
+        val summary = DatevImportLog.reconcileSummary(pairEntries)
+        if (summary != lastReconcileSummary) {
+            lastReconcileSummary = summary
+            log.info { "Reconciled ${pairEntries.size} accounts of file '$filename' with the database: $summary." }
+        }
     }
 }

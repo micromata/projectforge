@@ -65,6 +65,8 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
     override fun checkRight() {
         DatevImportService.checkLoggedinUserRight(accessChecker)
         accessChecker.checkRestrictedOrDemoUser()
+        // Every request of the import page passes here, so the log subscription exists before the upload is logged.
+        DatevImportLog.ensureSubscription()
     }
 
     override fun proceedUpload(inputStream: InputStream, filename: String): DatevAccountImportStorage {

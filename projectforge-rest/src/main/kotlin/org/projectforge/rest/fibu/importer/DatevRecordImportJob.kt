@@ -80,6 +80,7 @@ class DatevRecordImportJob(
         val toPersist = mutableListOf<BuchungssatzDO>()
         for (entry in selectedEntries) {
             if (!isActive) {
+                log.info { "Import cancelled, nothing was saved." }
                 return
             }
             val read = entry.read ?: continue // No deletions.
@@ -104,12 +105,19 @@ class DatevRecordImportJob(
         }
         // One transaction as before (all or nothing), but block by block, so the progress follows the database work.
         totalNumber = toPersist.size
-        buchungssatzDao.persistenceService.runInTransaction { context ->
-            toPersist.chunked(INSERT_BLOCK_SIZE).forEach { block ->
-                buchungssatzDao.insertOrUpdate(block, checkAccess = false)
-                context.flush()
-                processedNumber += block.size
+        try {
+            buchungssatzDao.persistenceService.runInTransaction { context ->
+                toPersist.chunked(INSERT_BLOCK_SIZE).forEach { block ->
+                    buchungssatzDao.insertOrUpdate(block, checkAccess = false)
+                    context.flush()
+                    processedNumber += block.size
+                    log.info { "Saved $processedNumber of $totalNumber accounting records." }
+                }
             }
+        } catch (ex: Exception) {
+            // Logged here too: the job framework's own failure message doesn't reach the user's import log.
+            log.error(ex) { "Import failed, nothing was saved (all or nothing): ${ex.message}" }
+            throw ex
         }
         log.info("Import completed: inserted=${result.inserted}, updated=${result.updated}.")
     }
