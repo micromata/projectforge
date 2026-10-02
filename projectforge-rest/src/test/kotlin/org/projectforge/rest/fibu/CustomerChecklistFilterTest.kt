@@ -21,6 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+
 package org.projectforge.rest.fibu
 
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -29,16 +30,19 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.kost.Kost2DO
 
 /**
- * The customer filter of the order book matches an order by its customer entity or, for an order without
- * one, by its free-text customer — the two kinds of keys the frontend sends.
+ * The customer checklist matches a row by its customer entity or, for a row without one, by its free-text
+ * customer — the two kinds of keys the frontend sends.
  */
-class OrderCustomerFilterTest {
+class CustomerChecklistFilterTest {
+    private val filter = CustomerChecklistFilter("order/customerFilterValues")
 
     @Test
     fun `entity keys match the order's customer`() {
-        val predicate = OrderCustomerFilter.buildPredicate(arrayOf("k:473", "k:12"))!!
+        val predicate = filter.buildPredicate(arrayOf("k:473", "k:12"))!!
         assertTrue(predicate.match(order(kundeId = 473)))
         assertFalse(predicate.match(order(kundeId = 99)))
         assertFalse(predicate.match(order(kundeText = "473")))
@@ -46,7 +50,7 @@ class OrderCustomerFilterTest {
 
     @Test
     fun `text keys match only orders without a customer entity`() {
-        val predicate = OrderCustomerFilter.buildPredicate(arrayOf("t:ACME"))!!
+        val predicate = filter.buildPredicate(arrayOf("t:ACME"))!!
         assertTrue(predicate.match(order(kundeText = "ACME")))
         assertFalse(predicate.match(order(kundeText = "Other")))
         // The cell shows the entity then, so does the filter.
@@ -55,7 +59,7 @@ class OrderCustomerFilterTest {
 
     @Test
     fun `both kinds combine as alternatives`() {
-        val predicate = OrderCustomerFilter.buildPredicate(arrayOf("k:473", "t:ACME"))!!
+        val predicate = filter.buildPredicate(arrayOf("k:473", "t:ACME"))!!
         assertTrue(predicate.match(order(kundeId = 473)))
         assertTrue(predicate.match(order(kundeText = "ACME")))
         assertFalse(predicate.match(order(kundeId = 1)))
@@ -63,13 +67,34 @@ class OrderCustomerFilterTest {
 
     @Test
     fun `no usable key filters nothing`() {
-        assertNull(OrderCustomerFilter.buildPredicate(null))
-        assertNull(OrderCustomerFilter.buildPredicate(arrayOf()))
-        assertNull(OrderCustomerFilter.buildPredicate(arrayOf("k:abc", "unknown")))
+        assertNull(filter.buildPredicate(null))
+        assertNull(filter.buildPredicate(arrayOf()))
+        assertNull(filter.buildPredicate(arrayOf("k:abc", "unknown")))
     }
 
+    @Test
+    fun `without a free-text path text keys are ignored`() {
+        val projects = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)
+        assertNull(projects.buildPredicate(arrayOf("t:ACME")))
+        val predicate = projects.buildPredicate(arrayOf("k:473", "t:ACME"))!!
+        assertTrue(predicate.match(ProjektDO().also { it.kunde = kunde(473) }))
+        assertFalse(predicate.match(ProjektDO()))
+    }
+
+    @Test
+    fun `a nested path matches the customer of the cost 2's project`() {
+        val kost2s = CustomerChecklistFilter("cost2/customerFilterValues", kundePath = "projekt.kunde", kundeTextPath = null)
+        val predicate = kost2s.buildPredicate(arrayOf("k:473"))!!
+        assertTrue(predicate.match(kost2(kunde(473))))
+        assertFalse(predicate.match(kost2(kunde(12))))
+    }
+
+    private fun kunde(id: Long) = KundeDO().also { it.nummer = id }
+
+    private fun kost2(kunde: KundeDO) = Kost2DO().also { it.projekt = ProjektDO().also { p -> p.kunde = kunde } }
+
     private fun order(kundeId: Long? = null, kundeText: String? = null) = AuftragDO().also { order ->
-        order.kunde = kundeId?.let { id -> KundeDO().also { it.nummer = id } }
+        order.kunde = kundeId?.let { kunde(it) }
         order.kundeText = kundeText
     }
 }
