@@ -2184,13 +2184,34 @@
       }
     },
     "licensemanagement": {
-      "device": "Gerät",
-      "key": "Schlüssel",
+      "device": {
+        "_": "Gerät",
+        "tooltip": "Auf welchem/welchen Gerät(en) ist die Software installiert?"
+      },
+      "file1": "Datei 1",
+      "file2": "Datei 2",
+      "files": "Dateien",
+      "key": {
+        "_": "Schlüssel",
+        "notvisible": {
+          "_": "Der Schlüssel ist nur für Besitzer und Administratoren sichtbar.",
+          "tooltip": "Bitte fügen Sie sich zuerst als Besitzer hinzu (und speichern), bevor Sie den Schlüssel sehen können."
+        }
+      },
+      "license": "Lizenz",
       "licenseHolder": "Lizenznehmer",
       "numberOfLicenses": "Anzahl",
       "owner": "Besitzer",
       "product": "Produkt",
-      "updateFromVersion": "Update der Version",
+      "swapFiles": "Dateien vertauschen",
+      "title": {
+        "add": "Lizenz hinzufügen",
+        "list": "Lizenzen"
+      },
+      "updateFromVersion": {
+        "_": "Update der Version",
+        "tooltip": "Diese Lizent stellt ein Update von dieser (älteren) Version dar."
+      },
       "validSince": "Gültig seit",
       "validUntil": "Gültig bis",
       "version": "Version"

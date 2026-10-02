@@ -55,17 +55,17 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(length = 1000)
     open var organization: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.licensemanagement.product")
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.product", required = true)
     @FullTextField
     @get:Column(length = 1000)
     open var product: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.licensemanagement.version")
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.version", required = true)
     @FullTextField
     @get:Column(length = 1000)
     open var version: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion")
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion", tooltip = "plugins.licensemanagement.updateFromVersion.tooltip")
     @FullTextField
     @get:Column(name = "update_from_version", length = 1000)
     open var updateFromVersion: String? = null
@@ -80,7 +80,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(length = 10000)
     open var key: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses", min = "0", max = "999999")
     @get:Column(name = "number_of_licenses")
     open var numberOfLicenses: Int? = null
 
@@ -91,7 +91,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(length = 4000)
     open var ownerIds: String? = null
 
-    @PropertyInfo(i18nKey = "plugins.licensemanagement.device")
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.device", tooltip = "plugins.licensemanagement.device.tooltip")
     @FullTextField
     @get:Column(length = 4000)
     open var device: String? = null
@@ -120,6 +120,7 @@ open class LicenseDO : DefaultBaseDO() {
     @JdbcTypeCode(SqlTypes.BLOB)
     open var file1: ByteArray? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.file1")
     @FullTextField
     @get:Column(name = "file_name1", length = 255)
     open var filename1: String? = null
@@ -130,6 +131,7 @@ open class LicenseDO : DefaultBaseDO() {
     @JdbcTypeCode(SqlTypes.BLOB)
     open var file2: ByteArray? = null
 
+    @PropertyInfo(i18nKey = "plugins.licensemanagement.file2")
     @FullTextField
     @get:Column(name = "file_name2", length = 255)
     open var filename2: String? = null

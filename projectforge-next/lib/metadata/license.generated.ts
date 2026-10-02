@@ -29,6 +29,19 @@ export const LICENSE_METADATA = {
       i18nKey: "plugins.licensemanagement.device",
       required: false,
       maxLength: 4000,
+      tooltipI18nKey: "plugins.licensemanagement.device.tooltip",
+    },
+    filename1: {
+      dataType: "STRING",
+      i18nKey: "plugins.licensemanagement.file1",
+      required: false,
+      maxLength: 255,
+    },
+    filename2: {
+      dataType: "STRING",
+      i18nKey: "plugins.licensemanagement.file2",
+      required: false,
+      maxLength: 255,
     },
     id: {
       dataType: "LONG",
@@ -56,6 +69,8 @@ export const LICENSE_METADATA = {
       dataType: "INT",
       i18nKey: "plugins.licensemanagement.numberOfLicenses",
       required: false,
+      min: 0,
+      max: 999999,
     },
     organization: {
       dataType: "STRING",
@@ -72,7 +87,7 @@ export const LICENSE_METADATA = {
     product: {
       dataType: "STRING",
       i18nKey: "plugins.licensemanagement.product",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
     updateFromVersion: {
@@ -80,6 +95,7 @@ export const LICENSE_METADATA = {
       i18nKey: "plugins.licensemanagement.updateFromVersion",
       required: false,
       maxLength: 1000,
+      tooltipI18nKey: "plugins.licensemanagement.updateFromVersion.tooltip",
     },
     validSince: {
       dataType: "DATE",
@@ -94,7 +110,7 @@ export const LICENSE_METADATA = {
     version: {
       dataType: "STRING",
       i18nKey: "plugins.licensemanagement.version",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
   },

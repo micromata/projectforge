@@ -23,11 +23,13 @@
 
 package org.projectforge.plugins.licensemanagement
 
+import org.projectforge.NextMigration
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.plugins.licensemanagement.rest.LicensePagesRest
+import org.projectforge.plugins.licensemanagement.rest.LicenseEntityRest
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
 import org.projectforge.web.WicketSupport
@@ -51,7 +53,9 @@ class LicenseManagementPlugin : AbstractPlugin(
         )
         registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit")
         registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement")
-        registerShortCutClasses(My2FAShortCut.FINANCE, LicensePagesRest::class.java)
+        // The file endpoints aren't standard REST paths, so WRITE:license doesn't cover them:
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/rs/license/file")
+        registerShortCutClasses(My2FAShortCut.FINANCE, LicenseEntityRest::class.java)
         val entry = RegistryEntry(
             ID,
             LicenseDao::class.java, licenseDao,
@@ -67,10 +71,12 @@ class LicenseManagementPlugin : AbstractPlugin(
             LicenseEditPage::class.java
         )
 
-        // Register the menu entry as sub menu entry of the misc menu:
-        pluginWicketRegistrationService.registerMenuItem(
-            MenuItemDefId.MISC, MenuItemDef(ID, "plugins.licensemanagement.menu"),
-            LicenseListPage::class.java
+        // Register the menu entry as sub menu entry of the misc menu. The licenses are migrated to
+        // projectforge-next (see NextMigration.MIGRATED). The menu id stays ID, LicensePluginService
+        // derives the menu visibility from it.
+        WicketSupport.get(MenuCreator::class.java).register(
+            MenuItemDefId.MISC,
+            MenuItemDef(ID, "plugins.licensemanagement.menu", NextMigration.listUrl(CATEGORY))
         )
 
         // Define the access management:
@@ -82,6 +88,9 @@ class LicenseManagementPlugin : AbstractPlugin(
 
     companion object {
         const val ID: String = "licenseManagement"
+
+        /** The category of the next page and the REST endpoints (/rs/license). */
+        const val CATEGORY: String = "license"
 
         const val RESOURCE_BUNDLE_NAME: String = "LicenseManagementI18nResources"
     }
