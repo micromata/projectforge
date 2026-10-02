@@ -39,7 +39,7 @@ function statusPill(page: Page, format: UserFormat, keys: string[]) {
   });
 }
 
-test.describe("task tree actions", () => {
+test.describe("task tree actions", { tag: "@lane-task" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetTreeState(page);
   });

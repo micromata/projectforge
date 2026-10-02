@@ -23,7 +23,7 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * at the end (afterAll), which keeps the row but takes it out of every default list. The cost 2 unit
  * one test creates stays with it.
  */
-test.describe("project page", () => {
+test.describe("project page", { tag: "@lane-customer" }, () => {
   let project: SeededProject;
 
   test.beforeEach(async ({ loggedInPage: page, seededProject }) => {

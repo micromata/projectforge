@@ -49,7 +49,7 @@ test.describe.configure({ timeout: 120_000 });
  * Nothing is spelled out: the field comes from `listMeta`, the texts from the account's catalog and every
  * expected date from the very functions the component computes with.
  */
-test.describe("year to date", () => {
+test.describe("year to date", { tag: "@isolated" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetFilter(page, ENTITY);
   });

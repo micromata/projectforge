@@ -8,7 +8,7 @@ import { userFormat } from "./fixtures/format";
  * re-indexing affects the whole system. What the test guards is that the entries exist and carry their texts from the backend bundle
  * (see ListGearMenu, which declares them in the frontend instead of reading UILayout.pageMenu).
  */
-test.describe("book list gear menu", () => {
+test.describe("book list gear menu", { tag: "@lane-book" }, () => {
   test("offers the maintenance actions of the list", async ({
     loggedInPage: page,
   }) => {

@@ -16,7 +16,7 @@ import type { MenuData, MenuItem } from "../lib/rs/types";
  * inspected, never followed — only Spring serves those, so the Next dev server would answer with
  * its 404.
  */
-test.describe("quick access", () => {
+test.describe("quick access", { tag: "@isolated" }, () => {
   test("opens a focused search field from the menu and closes on Escape", async ({
     loggedInPage: page,
   }) => {

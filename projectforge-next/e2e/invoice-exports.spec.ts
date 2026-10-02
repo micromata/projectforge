@@ -28,7 +28,7 @@ const SUBJECT = `${MARKER} invoice export (delete me)`;
 // additionally waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("outgoing invoice Word export", () => {
+test.describe("outgoing invoice Word export", { tag: "@parallel" }, () => {
   test("downloads the invoice as a .docx of the configured template", async ({
     loggedInPage: page,
   }) => {
@@ -123,7 +123,7 @@ test.describe("outgoing invoice Word export", () => {
  * downloaded document; the two exports are covered by `OutgoingInvoiceEInvoiceTest`, which can configure a
  * seller.
  */
-test.describe("outgoing invoice e-invoice", () => {
+test.describe("outgoing invoice e-invoice", { tag: "@parallel" }, () => {
   test("offers the section with its two buttons, whatever the invoice is missing", async ({
     loggedInPage: page,
   }) => {

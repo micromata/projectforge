@@ -26,7 +26,7 @@ const ROW = "tbody tr[data-row-id]";
  */
 const MIN_OVERFLOW = 60;
 
-test.describe("list page memory", () => {
+test.describe("list page memory", { tag: "@lane-book" }, () => {
   // A criterion left behind by another spec would cut the list down to a single page, and there is
   // then no page to return to. Resets what the server stores for this account, as the other list
   // specs do.

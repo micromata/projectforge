@@ -35,9 +35,13 @@ export const MARKER = "ZZ e2e";
  * The timestamp in seconds, base 36: short enough to fit into a signature column and monotonic, so
  * the newest row of a search is the current run's. `Math.random` is deliberately not part of it —
  * two runs in the same second would be the same run for a human reading the rows.
+ *
+ * Followed by the worker's parallel index: workers start together, so two of them seeding a book in
+ * the same second would otherwise claim the same signature.
  */
 export function uniqueSuffix(): string {
-  return Math.floor(Date.now() / 1000).toString(36);
+  const worker = Number(process.env.TEST_PARALLEL_INDEX ?? 0);
+  return Math.floor(Date.now() / 1000).toString(36) + worker.toString(36);
 }
 
 /** The headers a state changing call needs; the CSRF token is read per call rather than cached. */
@@ -514,8 +518,13 @@ export async function findProjectWithCustomer(
   const body = (await res.json()) as {
     resultSet?: { name?: string; customer?: unknown }[];
   };
+  // Not one of the tests' own: the customer lane marks its seeded project deleted while other
+  // lanes run, so the pick could vanish from the autocomplete between search and click.
   const project = (body.resultSet ?? []).find(
-    (row) => row.customer != null && (row.name?.length ?? 0) >= 2
+    (row) =>
+      row.customer != null &&
+      (row.name?.length ?? 0) >= 2 &&
+      !row.name!.startsWith(MARKER)
   );
   if (!project?.name) return null;
   // `EntityAutocomplete` has `minChars = 2` and asks the backend for nothing shorter, so a

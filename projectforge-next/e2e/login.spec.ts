@@ -1,5 +1,5 @@
 import { test as base, expect } from "@playwright/test";
-import { login, goto, waitForHydration } from "./fixtures/auth";
+import { loginViaForm, goto, waitForHydration } from "./fixtures/auth";
 import { readCredentials } from "./fixtures/credentials";
 import { locales, translate } from "./fixtures/format";
 
@@ -14,7 +14,7 @@ import { locales, translate } from "./fixtures/format";
  */
 const test = base;
 
-test.describe("login", () => {
+test.describe("login", { tag: "@isolated" }, () => {
   test("keeps the user on the form and names the reason on a wrong password", async ({
     page,
   }) => {
@@ -51,7 +51,7 @@ test.describe("login", () => {
 
   test("returns to the page the user was sent away from", async ({ page }) => {
     // A deep link of this app, as WicketUserFilter/actions/authentication.js hand it over.
-    await login(page, "/next/book/");
+    await loginViaForm(page, "/next/book/");
     await expect(page).toHaveURL(/\/next\/book/);
   });
 
@@ -59,7 +59,7 @@ test.describe("login", () => {
     // An open redirect would be a convincing phishing hop: the victim really did log in here.
     // Rejected on both sides (lib/menu-url.ts and LoginServiceRest.sanitizeRedirectUrl), so the
     // login falls back to its own target instead.
-    await login(page, "https://evil.example/phish");
+    await loginViaForm(page, "https://evil.example/phish");
     await expect(page).not.toHaveURL(/evil\.example/);
     await expect(page).not.toHaveURL(/\/login/);
   });

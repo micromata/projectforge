@@ -7,7 +7,7 @@ import { userFormat } from "./fixtures/format";
  *
  * Nothing is saved — the form is filled and abandoned.
  */
-test.describe("date input calendar", () => {
+test.describe("date input calendar", { tag: "@parallel" }, () => {
   test("takes the first clicked day, without a second attempt", async ({
     loggedInPage: page,
   }) => {

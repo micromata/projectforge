@@ -166,6 +166,29 @@ reachable — `normalo-user` for a plain refusal, `admin-user` for one that surv
 entity, `finance-user` for the finance rights without the admin group. Not every instance has every account
 (an older one, a role pointed elsewhere by hand): check `hasRole(role)` and skip rather than fail.
 
+### Running the e2e suite
+
+- `npm run e2e` (`e2e/tools/run-e2e.mjs`) runs against **Spring on :8080**, i.e. the static export of the last
+  Gradle build. The global setup (`e2e/global-setup.ts`) refuses a stale one — sources newer than the export, or
+  a server that serves another build id (another worktree's) — and names the rebuild:
+  `./gradlew :projectforge-application:processResources`. `E2E_SKIP_BUILD_CHECK=1` overrides it.
+- **Quick runs during development** go against the Next dev server, so an edit needs no rebuild or Spring
+  restart: `npm run e2e:dev -- <spec>` (:3000), or `npm run e2e -- --port <n> <spec>` for another worktree's
+  dev server. The build check is skipped and the timeouts are raised (it compiles routes mid-run, so a full
+  run there is slower and flakier). For a direct `npx playwright test`, set `E2E_BASE_URL=http://localhost:<n>`
+  and, for a port other than 3000, `E2E_DEV_SERVER=1`.
+- Each role is logged in **once per run** and its session cookie reused (`e2e/fixtures/session.ts`).
+  `login(page, role, path?)` hands it to a test; `loggedInPage` starts on a blank page, so navigate first.
+  Only login.spec.ts uses the form (`loginViaForm`).
+- **Every spec carries a tag on its top-level `describe`**, deciding what it may run beside
+  (`playwright.config.ts`). User prefs (list filter, sort, grid state, calendar, task tree) are stored per user
+  and per list on the server, not per session, so two specs on the same list must not run at once:
+  - `@parallel` — no stored list state touched (own entities, read-only pages, no list visit).
+  - `@lane-book`, `@lane-order`, … — works on that area's list state; one spec per lane at a time.
+  - `@isolated` or **no tag** — runs alone at the end (global state, two lanes at once, unclassified).
+- `E2E_WORKERS` sets the total number of workers (default 6). `npx playwright test <spec>` still runs a single
+  spec directly.
+
 ## Communication
 
 - **Plan mode for any non-trivial task.** Use `ExitPlanMode` to get approval before implementing anything beyond a one-line edit.

@@ -11,7 +11,7 @@ import type { Page } from "@playwright/test";
  * from the logged-in user (see fixtures/format.ts) — spelling out "dd.MM.yyyy" here would pass only
  * for a German account and hide exactly the bug this component was written for.
  */
-test.describe("date input", () => {
+test.describe("date input", { tag: "@lane-book" }, () => {
   test("takes a date in the user's layout and offers its mask", async ({
     loggedInPage: page,
   }) => {

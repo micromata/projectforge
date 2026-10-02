@@ -13,7 +13,7 @@ import { waitForRow, waitForRows } from "./fixtures/list-table";
  * the viewport and the account's stored column widths, and a hard-coded column would pass or fail for
  * reasons that have nothing to do with the tooltip.
  */
-test.describe("data table overflow tooltip", () => {
+test.describe("data table overflow tooltip", { tag: "@lane-order" }, () => {
   const TOOLTIP = "[data-slot=tooltip-content]";
 
   /**

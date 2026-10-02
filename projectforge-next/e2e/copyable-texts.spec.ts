@@ -10,7 +10,7 @@ import { userFormat } from "./fixtures/format";
  *
  * A drag must select and leave the popup shut; a plain click must still open it. Reads only.
  */
-test.describe("copyable texts", () => {
+test.describe("copyable texts", { tag: "@parallel" }, () => {
   test("a label and a select's value can be selected", async ({
     loggedInPage: page,
     seededBook,

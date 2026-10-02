@@ -15,15 +15,17 @@ import { LOOKUP_PAGE_SIZE } from "../lib/rs/autocomplete-url";
  * Reads only. The filter is stored per user and per entity, so it is reset around the test — nothing
  * is saved here, but a pill left open must not reach the other books specs either.
  */
-test.describe("entity lookup", () => {
+test.describe("entity lookup", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
       .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
   });
 
-  test.afterAll(async ({ request }) => {
-    await request
+  test.afterAll(async ({ seedRequest }) => {
+    // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
+    // refused and left the filter behind.
+    await seedRequest
       .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
   });

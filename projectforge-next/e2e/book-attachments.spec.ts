@@ -57,7 +57,7 @@ async function remove(page: Page, t: UserFormat["t"], name: string) {
   await expect(storedRow(page, t, name)).toHaveCount(0);
 }
 
-test.describe("book attachments", () => {
+test.describe("book attachments", { tag: "@parallel" }, () => {
   let book: SeededBook;
 
   // One book for the file, not one per case: every case cleans its own files up again, and each

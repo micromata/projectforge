@@ -70,7 +70,7 @@ function columnStateStored(page: Page, expected: string) {
   );
 }
 
-test.describe("dynamic grid", () => {
+test.describe("dynamic grid", { tag: "@lane-book" }, () => {
   // The column state lives in the account's prefs, i.e. it outlives the browser context — a test
   // that hides a column would otherwise dictate what the next one (or the next run) sees. Resetting
   // through the endpoint rather than through the UI keeps it independent of a failed assertion.

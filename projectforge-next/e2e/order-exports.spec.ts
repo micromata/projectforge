@@ -19,7 +19,7 @@ import type { Page } from "@playwright/test";
 // Both exports run for a while on a real database, and the dev server compiles the route on top of it.
 test.describe.configure({ timeout: 180_000 });
 
-test.describe("order book exports", () => {
+test.describe("order book exports", { tag: "@lane-order" }, () => {
   test("offers both exports in the toolbar", async ({ loggedInPage: page }) => {
     const format = await userFormat(page);
     await goto(page, "/order");

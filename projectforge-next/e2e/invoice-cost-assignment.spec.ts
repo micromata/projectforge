@@ -51,7 +51,7 @@ const FILTER_ID = "incomplete";
  * Read-only: the column is switched on and off again and the filter is opened but never applied, so
  * the account's stored list state is left as it was found.
  */
-test.describe("invoice cost assignment", () => {
+test.describe("invoice cost assignment", { tag: "@lane-invoice" }, () => {
   // The visibility under test is the declared one, so whatever a previous run stored is dropped first
   // (AbstractEntityRest.resetListFilter drops the grid state along with the filter).
   test.beforeEach(async ({ loggedInPage: page }) => {
@@ -156,7 +156,7 @@ const SUBJECT = `${MARKER} cost assignment (delete me)`;
  * Nothing is saved. The invoice is created through the API and marked deleted afterwards, and the
  * proposals under test are the form's, before any submit.
  */
-test.describe("invoice cost assignment form", () => {
+test.describe("invoice cost assignment form", { tag: "@lane-invoice" }, () => {
   // Each case fills a form of dozens of fields against a live backend, and the first navigation to a
   // route additionally waits for the dev server to compile it.
   test.describe.configure({ timeout: 120_000 });

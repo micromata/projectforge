@@ -13,7 +13,7 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * reaches the server; what is asserted is what the page shows of the stored accounts and what the
  * form refuses on its own.
  */
-test.describe("account", () => {
+test.describe("account", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
       .get("/rs/account/filter/reset", { headers: { "X-PF-Frontend": "next" } })

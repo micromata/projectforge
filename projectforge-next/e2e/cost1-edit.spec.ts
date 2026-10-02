@@ -19,7 +19,7 @@ import type { Page } from "@playwright/test";
  * with a live one), so an inserted cost number stays occupied for good. Hence the second entry is
  * created once for the whole file rather than per case, and the shared one gets its description back.
  */
-test.describe("cost 1 edit", () => {
+test.describe("cost 1 edit", { tag: "@lane-cost1" }, () => {
   let cost1: SeededCost1;
   /**
    * A number that is certainly taken — because this test took it.

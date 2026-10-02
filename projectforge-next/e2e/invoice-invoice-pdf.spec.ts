@@ -31,7 +31,7 @@ const PDF = {
 // A live backend plus the JCR, and the first navigation to a route waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("outgoing invoice PDF", () => {
+test.describe("outgoing invoice PDF", { tag: "@parallel" }, () => {
   let id: number | null = null;
 
   test.beforeEach(async ({ loggedInPage: page }) => {

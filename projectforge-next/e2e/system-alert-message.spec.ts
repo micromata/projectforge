@@ -15,34 +15,36 @@ import type { Page } from "@playwright/test";
 const MESSAGE =
   "Achtung: ProjectForge ist um 13:00 Uhr für ca. 5 Minuten\naufgrund von Wartungsarbeiten nicht erreichbar!";
 
-test("the system alert message is shown on every page until it is cleared", async ({
-  loggedInPage: page,
-}) => {
-  const banner = page.getByTestId("system-alert-message");
-  await goto(page, "/");
-  await expect(banner).toHaveCount(0);
-
-  try {
-    await setAlertMessage(page, MESSAGE);
-
-    // A page change picks it up: the userStatus query is stale after a minute and refetches on mount
-    // (see useAuth) — a full reload is not needed.
+test(
+  "the system alert message is shown on every page until it is cleared",
+  { tag: "@isolated" },
+  async ({ loggedInPage: page }) => {
+    const banner = page.getByTestId("system-alert-message");
     await goto(page, "/");
-    await expect(banner).toBeVisible();
-    // The admin writes into a textarea, so the line break is part of the message.
-    await expect(banner).toContainText("für ca. 5 Minuten");
-    await expect(banner).toContainText("nicht erreichbar!");
+    await expect(banner).toHaveCount(0);
 
-    // And on a list page, which builds its own chrome on top of the same shell.
-    await goto(page, "/book");
-    await expect(banner).toBeVisible();
-  } finally {
-    await clearAlertMessage(page);
+    try {
+      await setAlertMessage(page, MESSAGE);
+
+      // A page change picks it up: the userStatus query is stale after a minute and refetches on mount
+      // (see useAuth) — a full reload is not needed.
+      await goto(page, "/");
+      await expect(banner).toBeVisible();
+      // The admin writes into a textarea, so the line break is part of the message.
+      await expect(banner).toContainText("für ca. 5 Minuten");
+      await expect(banner).toContainText("nicht erreichbar!");
+
+      // And on a list page, which builds its own chrome on top of the same shell.
+      await goto(page, "/book");
+      await expect(banner).toBeVisible();
+    } finally {
+      await clearAlertMessage(page);
+    }
+
+    await goto(page, "/");
+    await expect(banner).toHaveCount(0);
   }
-
-  await goto(page, "/");
-  await expect(banner).toHaveCount(0);
-});
+);
 
 const ADMIN_PAGE = "http://localhost:8080/wa/admin";
 

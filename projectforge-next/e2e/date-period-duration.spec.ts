@@ -22,7 +22,7 @@ test.describe.configure({ timeout: 120_000 });
  * catalog: a spelled-out "14.06.2026" or "3 Monate" would pass for one account and hide a real bug for
  * the rest.
  */
-test.describe("period of performance as a term", () => {
+test.describe("period of performance as a term", { tag: "@parallel" }, () => {
   test("fills the end in from the begin", async ({ loggedInPage: page }) => {
     const format = await userFormat(page);
     await goto(page, "/order/new");
@@ -152,7 +152,7 @@ test.describe("period of performance as a term", () => {
  * The arrows beside the same period: they move it on by its own length, so what one click does depends on
  * the term in effect — three months at a time with "3 Monate", and by the days it spans with none.
  */
-test.describe("paging a period of performance", () => {
+test.describe("paging a period of performance", { tag: "@parallel" }, () => {
   test("moves a term on and back by the term", async ({
     loggedInPage: page,
   }) => {

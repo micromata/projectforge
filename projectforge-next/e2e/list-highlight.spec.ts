@@ -26,7 +26,7 @@ import type { ResultSet } from "../lib/rs/types";
  * no spec may name a row of it. Written to the database: one book, and one edit of its comment per
  * case.
  */
-test.describe("list highlight", () => {
+test.describe("list highlight", { tag: "@lane-book" }, () => {
   let book: SeededBook;
   /** A second book, for the cancel case — see [cancelAndReturnToList]. */
   let cancelledBook: SeededBook;

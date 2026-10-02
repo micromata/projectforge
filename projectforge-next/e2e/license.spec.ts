@@ -11,7 +11,7 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * Read-only: the database is a copy of production. Every save below is intercepted before it reaches
  * the server; what is asserted is what the page shows and what the form refuses on its own.
  */
-test.describe("license", () => {
+test.describe("license", { tag: "@parallel" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await page.request
       .get("/rs/license/filter/reset", {
