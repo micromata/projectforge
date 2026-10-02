@@ -30,6 +30,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HistoryIdList
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.context.annotation.DependsOn
@@ -68,10 +69,12 @@ open class PollDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "poll.attendees")
     @get:Column(name = "attendeeIds", nullable = true)
+    @HistoryIdList(HistoryIdList.Type.USER)
     open var attendeeIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.attendee_groups")
     @get:Column(name = "groupAttendeeIds", nullable = true)
+    @HistoryIdList(HistoryIdList.Type.GROUP)
     open var groupAttendeeIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.full_access_groups")

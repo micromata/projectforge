@@ -35,6 +35,7 @@ import org.projectforge.Constants
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HistoryIdList
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate
@@ -89,6 +90,7 @@ open class LicenseDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "plugins.licensemanagement.owner")
     @get:Column(length = 4000)
+    @HistoryIdList(HistoryIdList.Type.USER)
     open var ownerIds: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.device", tooltip = "plugins.licensemanagement.device.tooltip")
