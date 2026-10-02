@@ -33,7 +33,6 @@ import org.projectforge.plugins.licensemanagement.rest.LicenseEntityRest
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
 import org.projectforge.web.WicketSupport
-import org.projectforge.web.plugin.PluginWicketRegistrationService
 
 /**
  * @author Kai Reinhard
@@ -48,13 +47,9 @@ class LicenseManagementPlugin : AbstractPlugin(
      */
     override fun initialize() {
         val licenseDao = WicketSupport.get(LicenseDao::class.java)
-        val pluginWicketRegistrationService = WicketSupport.get(
-            PluginWicketRegistrationService::class.java
-        )
-        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit")
-        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement")
-        // The file endpoints aren't standard REST paths, so WRITE:license doesn't cover them:
-        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/rs/license/file")
+        // Writes go through the standard REST paths (WRITE:license) and the file endpoints, which aren't
+        // standard paths and are therefore registered explicitly.
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/rs/license/file")
         registerShortCutClasses(My2FAShortCut.FINANCE, LicenseEntityRest::class.java)
         val entry = RegistryEntry(
             ID,
@@ -64,16 +59,9 @@ class LicenseManagementPlugin : AbstractPlugin(
         // The LicenseDao is automatically available by the scripting engine!
         register(entry)
 
-        // Register the web part:
-        pluginWicketRegistrationService.registerWeb(
-            ID,
-            LicenseListPage::class.java,
-            LicenseEditPage::class.java
-        )
-
         // Register the menu entry as sub menu entry of the misc menu. The licenses are migrated to
-        // projectforge-next (see NextMigration.MIGRATED). The menu id stays ID, LicensePluginService
-        // derives the menu visibility from it.
+        // projectforge-next (see NextMigration.MIGRATED), their Wicket pages are removed. The menu id
+        // stays ID, LicensePluginService derives the menu visibility from it.
         WicketSupport.get(MenuCreator::class.java).register(
             MenuItemDefId.MISC,
             MenuItemDef(ID, "plugins.licensemanagement.menu", NextMigration.listUrl(CATEGORY))
