@@ -18,7 +18,7 @@ import { AUDIT_COLUMN_NAMES } from "../lib/page-def/audit-columns";
  * Read-only, and the stored grid state is reset first: whether a column starts hidden is only a
  * statement about a user who never touched it.
  */
-test.describe("audit columns", () => {
+test.describe("audit columns", { tag: "@lane-order" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     // Drops the stored filter *and* the grid state (AbstractEntityRest.resetListFilter), so the
     // visibility under test is the declared one rather than one a previous run left behind.

@@ -20,7 +20,7 @@ const PAGE = "/taskTree";
 /** The tree column, pinned left; the one whose click expands rather than selects. */
 const TREE_CELL = "tbody tr[data-row-id] td:nth-child(1)";
 
-test.describe("task tree", () => {
+test.describe("task tree", { tag: "@lane-task" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetTreeState(page);
   });

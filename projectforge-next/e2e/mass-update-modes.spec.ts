@@ -45,7 +45,7 @@ const TEXT_FIELD: MassUpdateFieldMeta = {
 
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("mass update replacement modes", () => {
+test.describe("mass update replacement modes", { tag: "@parallel" }, () => {
   test("set overwrites the field with the value", async ({
     loggedInPage: page,
   }) => {

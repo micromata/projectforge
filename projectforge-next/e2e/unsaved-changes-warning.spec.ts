@@ -23,7 +23,7 @@ import type { Page } from "@playwright/test";
  * Asserted on a *book*, whose form is cheapest to fill in; the guard sits in `EntityEditPage` and so
  * serves all four hand-built entities. Nothing is saved.
  */
-test.describe("unsaved changes warning", () => {
+test.describe("unsaved changes warning", { tag: "@lane-book" }, () => {
   test("asks before a menu entry takes the user off the form", async ({
     loggedInPage: page,
     seededBook,

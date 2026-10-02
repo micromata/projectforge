@@ -31,7 +31,7 @@ const TITLE = "ZZ e2e order (delete me)";
 // and the first navigation to a route additionally waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("order book", () => {
+test.describe("order book", { tag: "@lane-order" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     // The filter and the grid state are stored per user, so a criterion or a hidden column left behind
     // by another run — or by someone working with the account — would otherwise decide what these tests

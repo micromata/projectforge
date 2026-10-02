@@ -16,7 +16,7 @@ import { label, userFormat } from "./fixtures/format";
  *
  * Nothing is saved: the form is filled in, the tab is visited, and the page is left.
  */
-test.describe("edit page tab round trip", () => {
+test.describe("edit page tab round trip", { tag: "@parallel" }, () => {
   test("keeps what was entered when the history tab is visited", async ({
     loggedInPage: page,
     seededBook,

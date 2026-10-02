@@ -12,7 +12,7 @@ import { userFormat } from "./fixtures/format";
  * Read-only: the link is inspected, never followed. Leaving the Next dev server for `/react/...`
  * would land on its 404, since only Spring serves that app.
  */
-test.describe("legacy page link", () => {
+test.describe("legacy page link", { tag: "@isolated" }, () => {
   test("is absent for a page whose legacy counterpart is gone", async ({
     loggedInPage: page,
     seededBook,

@@ -20,7 +20,7 @@ import { LOGO_ROW_HEIGHT } from "../hooks/use-collapse-on-scroll";
  *
  * Reads only — no entry is created or changed.
  */
-test.describe("logo row", () => {
+test.describe("logo row", { tag: "@lane-book" }, () => {
   // A criterion left behind by another spec would cut the list down to a handful of rows, and a column
   // with no room to scroll declines to collapse on purpose (see nextCollapsed) - so the test would
   // fail on the state of the shared account rather than on the feature. Resets what the server stores
@@ -100,20 +100,24 @@ test.describe("logo row", () => {
  *
  * `base` rather than the logged-in fixture: this page is the one before a session exists.
  */
-base("the logo row stays on the login page", async ({ page }) => {
-  await goto(page, "/login");
-  await waitForHydration(page);
-  // No session, so no user language to derive from it: the label reads the same in every catalog, but
-  // it is still looked up rather than spelled out.
-  await expect(
-    byRole(page, translate(locales()[0])("logo.projectforge"))
-  ).toBeVisible();
-  expect(await height(logoRow(page))).toBe(LOGO_ROW_HEIGHT);
-  // And the marker of a development instance is there before a login as well - this suite only ever runs
-  // against one (its accounts exist in development mode only), so its absence is a real failure: either
-  // the flag stopped arriving in the redacted publicSystemData or the marker was dropped from the row.
-  await expect(page.locator("[data-development-mode]")).toBeVisible();
-});
+base(
+  "the logo row stays on the login page",
+  { tag: "@lane-book" },
+  async ({ page }) => {
+    await goto(page, "/login");
+    await waitForHydration(page);
+    // No session, so no user language to derive from it: the label reads the same in every catalog, but
+    // it is still looked up rather than spelled out.
+    await expect(
+      byRole(page, translate(locales()[0])("logo.projectforge"))
+    ).toBeVisible();
+    expect(await height(logoRow(page))).toBe(LOGO_ROW_HEIGHT);
+    // And the marker of a development instance is there before a login as well - this suite only ever runs
+    // against one (its accounts exist in development mode only), so its absence is a real failure: either
+    // the flag stopped arriving in the redacted publicSystemData or the marker was dropped from the row.
+    await expect(page.locator("[data-development-mode]")).toBeVisible();
+  }
+);
 
 /** The ProjectForge wordmark, as the accessibility tree exposes it. */
 function byRole(page: Page, name: string): Locator {

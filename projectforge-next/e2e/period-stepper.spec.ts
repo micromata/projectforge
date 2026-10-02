@@ -55,7 +55,7 @@ const MONTH = periodKindsOf(["month"])[0];
  * Read-only apart from the filter itself, which is stored per user and per entity, so it is reset
  * around each case and cannot leak into the other books specs.
  */
-test.describe("period stepper", () => {
+test.describe("period stepper", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetFilter(page, ENTITY);
   });

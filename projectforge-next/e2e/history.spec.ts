@@ -28,7 +28,7 @@ const ENTITIES = [
   },
 ];
 
-test.describe("change history", () => {
+test.describe("change history", { tag: "@parallel" }, () => {
   let format: UserFormat;
 
   test.beforeEach(async ({ loggedInPage: page }) => {

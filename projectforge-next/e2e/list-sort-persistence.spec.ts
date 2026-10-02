@@ -27,7 +27,7 @@ import type { ResultSet } from "../lib/rs/types";
  * Read-only apart from the marker the cancel writes: the stored state is reset first and again at the
  * end, so the account is left as found.
  */
-test.describe("list sort persistence", () => {
+test.describe("list sort persistence", { tag: "@lane-book" }, () => {
   /** The column the test sorts by: a book's year, which every book carries and no other spec sorts. */
   const SORT_COLUMN = "yearOfPublishing";
 

@@ -18,7 +18,7 @@ import { columnHeaderKeyOf, columnIdOf } from "../lib/page-def/define-page";
  * `KundeDO` is historizable, so the seeded customer cannot be removed cleanly — it is marked deleted
  * at the end (afterAll), which keeps the row but takes it out of every default list.
  */
-test.describe("customer page", () => {
+test.describe("customer page", { tag: "@lane-customer" }, () => {
   let customer: SeededCustomer;
 
   test.beforeEach(async ({ loggedInPage: page, seededCustomer }) => {

@@ -21,7 +21,7 @@ import type {
  * Read-only throughout. The preview is a POST because the black/white list is form content that has no
  * business in a url (see the endpoint's own note), not because it writes anything.
  */
-test.describe("kost2 preview", () => {
+test.describe("kost2 preview", { tag: "@parallel" }, () => {
   test("resolves the same cost units as the tree does", async ({
     seedRequest,
   }) => {

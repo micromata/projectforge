@@ -64,7 +64,7 @@ async function accessEntriesOf(
   );
 }
 
-test.describe("task wizard", () => {
+test.describe("task wizard", { tag: "@lane-task" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetTreeState(page);
   });

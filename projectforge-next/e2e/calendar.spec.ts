@@ -39,7 +39,7 @@ const VIEW_KEYS = [
 /** Under this name the favourite case saves, so the sweep afterwards can tell it from the account's own. */
 const FAVORITE_NAME = `${MARKER} calendar favorite`;
 
-test.describe("calendar", () => {
+test.describe("calendar", { tag: "@lane-calendar" }, () => {
   test.afterEach(async ({ loggedInPage: page }) => {
     await dropOwnFavorites(page);
   });
@@ -325,7 +325,8 @@ async function seedTimesheet(
 
   // The backend rejects a timesheet that overlaps another of the same user, so a leftover from an
   // earlier crashed run would block today's slot forever. Sweep our own markers for the day first —
-  // runs are serial (workers: 1), so anything matching MARKER is stale debris and safe to remove.
+  // no other spec books a timesheet, and this one's lane runs one spec at a time (@lane-calendar), so
+  // anything matching MARKER is stale debris and safe to remove.
   const todaysTimesheets = async () => {
     const res = await page.request.post("/rs/calendar/events", {
       headers: writeHeaders,

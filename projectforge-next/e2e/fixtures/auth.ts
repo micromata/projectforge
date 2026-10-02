@@ -1,11 +1,11 @@
 import {
   test as base,
   expect,
-  request as apiRequest,
   type APIRequestContext,
   type Page,
 } from "@playwright/test";
 import { DEFAULT_ROLE, readCredentials, type Role } from "./credentials";
+import { createSession, loggedInRequest, readSession } from "./session";
 import { BASE_PATH } from "../../lib/config";
 import {
   createBook,
@@ -27,9 +27,10 @@ import {
 /**
  * Base test with a logged-in page, and the test data a spec asks for.
  *
- * Every test gets its own browser context (Playwright's default), so the login runs per test rather
- * than being shared through a storage state file — the session lives in a `JSESSIONID` cookie whose
- * lifetime the tests don't control, and a stale one would fail in a way that looks like a UI bug.
+ * Every test gets its own browser context (Playwright's default), but not its own login: the session
+ * of each role is created once per run by the global setup and handed to the context as a cookie
+ * (see ./session.ts). A session that went stale meanwhile — a restarted server — is replaced on the
+ * spot rather than failing in a way that looks like a UI bug.
  *
  * The seeded entities are **worker-scoped**: one book, one cost unit and one task per run, not per
  * test. They are inserts into a real database (and cannot be removed again — see ./seed.ts), so
@@ -56,6 +57,8 @@ export const test = base.extend<
     seededProject: SeededProject;
   }
 >({
+  // Logged in, but on no page yet: every spec navigates to what it tests anyway, and the start page
+  // would redirect to the calendar and store the account's calendar state on the way.
   loggedInPage: async ({ page }, use) => {
     await login(page);
     await use(page);
@@ -65,27 +68,12 @@ export const test = base.extend<
     // `baseURL` is read off the project's `use` block rather than taken as a fixture: that one is
     // test-scoped, and a worker fixture may not depend on it.
     async ({}, use, workerInfo) => {
-      const context = await apiRequest.newContext({
-        // 127.0.0.1 rather than the configured "localhost": Node resolves that to `::1` first, and
-        // the dev server listens on IPv4 only — the browser tries both, an API context does not.
-        baseURL: (workerInfo.project.use.baseURL ?? "").replace(
-          "localhost",
-          "127.0.0.1"
-        ),
-      });
-      const { username, password } = readCredentials();
-      // The REST login rather than the form: this context has no browser, and the session cookie is
-      // all the seeds need (see CLAUDE.md, "Testing against the running system").
-      const res = await context.post("/rsPublic/nextLogin", {
-        data: { username, password },
-      });
-      if (!res.ok()) {
-        throw new Error(
-          `Could not log in to create the test data (HTTP ${res.status()}). Is ProjectForge on ` +
-            `:8080, and in development mode — the mode in which it keeps ` +
-            `$PROJECTFORGE_HOME/testAccounts.txt current?`
-        );
-      }
+      // An own login rather than the stored session (./session.ts): one REST call per worker, and
+      // the context stays independent of a session another worker may be refreshing.
+      const context = await loggedInRequest(
+        workerInfo.project.use.baseURL ?? "",
+        DEFAULT_ROLE
+      );
       await use(context);
       await context.dispose();
     },
@@ -145,8 +133,41 @@ export const test = base.extend<
 export { expect };
 
 /**
- * Logs in through the real login form, so the test exercises the same path a user takes (and the
- * backend gets its session cookie the way it expects).
+ * Logs `page` in as `role` by handing its browser context the role's session cookie, and navigates
+ * to `path` if one is given.
+ *
+ * Without `path` the page stays where it is (blank, for a fresh one), so the caller's first `goto`
+ * is the first page the account visits. The start page would redirect to `/calendar` and store the
+ * account's calendar state — a write that a test running at the same time would see.
+ *
+ * @param role Which account to log in as; the default has every right, so a spec only names one to
+ *   reach a *refusal* (see credentials.ts, and check `hasRole` before asking for it).
+ * @param path An app-relative path ("/calendar") to open once logged in.
+ */
+export async function login(
+  page: Page,
+  role: Role = DEFAULT_ROLE,
+  path?: string
+): Promise<void> {
+  const baseURL = test.info().project.use.baseURL ?? "";
+  const stored = readSession(role);
+  if (stored) {
+    await page.context().addCookies(stored);
+  }
+  // A stored session is checked before use: the server may have been restarted since the setup, and
+  // a dead one would only show as the login page in place of whatever the test expected.
+  if (!stored || !(await page.request.get("/rs/userStatus")).ok()) {
+    await page.context().clearCookies();
+    await page.context().addCookies(await createSession(baseURL, role));
+  }
+  if (path) {
+    await goto(page, path);
+  }
+}
+
+/**
+ * Logs in through the real login form, so the test exercises the same path a user takes — for the
+ * specs whose subject is the login itself (login.spec.ts). Every other spec uses [login].
  *
  * @param returnUrl Where the login should return to, as `?returnUrl=`. Defaults to this app's start
  *   page: without it the server sends the user to `/react/calendar` (the default of
@@ -155,7 +176,7 @@ export { expect };
  * @param role Which account to log in as; the default has every right, so a spec only names one to
  *   reach a *refusal* (see credentials.ts, and check `hasRole` before asking for it).
  */
-export async function login(
+export async function loginViaForm(
   page: Page,
   returnUrl = "/next/",
   role: Role = DEFAULT_ROLE

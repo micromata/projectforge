@@ -19,7 +19,7 @@ import type { SeededCost1 } from "./fixtures/seed";
  * `seededCost1` created (see fixtures/seed.ts) — the list of this database is a production chart of
  * accounts, and a fresh one holds no cost unit at all.
  */
-test.describe("cost 1 list", () => {
+test.describe("cost 1 list", { tag: "@lane-cost1" }, () => {
   let cost1: SeededCost1;
 
   test.beforeEach(async ({ loggedInPage: page, seededCost1 }) => {

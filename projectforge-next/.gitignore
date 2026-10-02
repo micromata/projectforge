@@ -18,6 +18,8 @@
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# live session cookies of the e2e accounts (e2e/fixtures/session.ts)
+/e2e/.auth/
 
 # next.js
 /.next/

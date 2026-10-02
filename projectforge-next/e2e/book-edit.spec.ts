@@ -15,7 +15,7 @@ import { BOOK_METADATA } from "../lib/metadata/book.generated";
  * (`JsonInclude.Include.NON_NULL`). All assertions are read-only — nothing is saved.
  */
 
-test.describe("book edit", () => {
+test.describe("book edit", { tag: "@parallel" }, () => {
   test("shows the stored status and type in their selects", async ({
     loggedInPage: page,
     seededBook,
