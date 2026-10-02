@@ -41,8 +41,22 @@ export const MARKER = "ZZ e2e";
  */
 export function uniqueSuffix(): string {
   const worker = Number(process.env.TEST_PARALLEL_INDEX ?? 0);
-  return Math.floor(Date.now() / 1000).toString(36) + worker.toString(36);
+  const second = Math.floor(Date.now() / 1000);
+  // And a sequence within the second: one test creating a group and the next seeding its own easily
+  // fall into the same one, now that a test no longer logs in first. Still monotonic, and the seconds
+  // part is of fixed length, so a sequence cannot be mistaken for a worker index.
+  sequence = second === lastSecond ? sequence + 1 : 0;
+  lastSecond = second;
+  return (
+    second.toString(36) +
+    worker.toString(36) +
+    (sequence > 0 ? sequence.toString(36) : "")
+  );
 }
+
+/** The second [uniqueSuffix] was last called in, and how often within it. */
+let lastSecond = 0;
+let sequence = 0;
 
 /** The headers a state changing call needs; the CSRF token is read per call rather than cached. */
 export async function writeHeaders(
