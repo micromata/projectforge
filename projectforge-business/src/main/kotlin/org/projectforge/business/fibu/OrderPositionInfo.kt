@@ -76,6 +76,14 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     var toBeInvoiced: Boolean = false
 
     /**
+     * Like [toBeInvoiced], but only by the status of the position or its order, ignoring reached payment
+     * schedules: true for a finished position (or a commissioned position of a finished order) not yet fully
+     * invoiced. Such a position is to be invoiced immediately, whatever date its payment schedules have.
+     * @see OrderInfo.toBeInvoicedImmediately
+     */
+    var toBeInvoicedByStatus: Boolean = false
+
+    /**
      * The net sum for commissioned positions ([AuftragsOrderState.COMMISSIONED]), otherwise, 0.
      * @see calculate
      */
@@ -106,6 +114,14 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     var notYetInvoiced = BigDecimal.ZERO
 
     /**
+     * True if the position is marked as fully invoiced, but its invoices sum up to less than its net sum by at least
+     * [OrderInfo.MIN_REMAINING_AMOUNT], e.g. because an invoice was cancelled afterwards.
+     */
+    @get:JsonIgnore
+    val vollstaendigFakturiertMitRestbetrag: Boolean
+        get() = vollstaendigFakturiert && !deleted && netSum - invoicedSum >= OrderInfo.MIN_REMAINING_AMOUNT
+
+    /**
      * If true, the order position was loaded from a snapshot. Therefore, no recalculation should be done.
      */
     var snapshotVersion: Boolean = false
@@ -133,10 +149,12 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
     fun recalculateAll(order: OrderInfo, snapshotDate: LocalDate? = null) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
         commissionedNetSum = if (status.orderState == AuftragsOrderState.COMMISSIONED) netSum else BigDecimal.ZERO
+        val closed = status == AuftragsStatus.ABGESCHLOSSEN ||
+                (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.COMMISSIONED)
+        toBeInvoicedByStatus = status.orderState != AuftragsOrderState.LOST && closed && !vollstaendigFakturiert
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
-        } else if (status == AuftragsStatus.ABGESCHLOSSEN ||
-            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.COMMISSIONED) ||
+        } else if (closed ||
             // Now, check payment schedules
             order.paymentScheduleEntries?.any { it.positionNumber == number && it.toBeInvoiced } == true
         ) {
@@ -175,6 +193,7 @@ class OrderPositionInfo(position: AuftragsPositionDO? = null, order: OrderInfo? 
             netSum = BigDecimal.ZERO
             commissionedNetSum = BigDecimal.ZERO
             toBeInvoiced = false
+            toBeInvoicedByStatus = false
             toBeInvoicedSum = BigDecimal.ZERO
             notYetInvoiced = BigDecimal.ZERO
             akquiseSum = BigDecimal.ZERO

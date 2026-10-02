@@ -29,7 +29,7 @@ const FE = { "X-PF-Frontend": "next" } as const;
 // A live backend plus a full form of a route to compile on first touch — allow well beyond the default.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("order list caching", () => {
+test.describe("order list caching", { tag: "@lane-order" }, () => {
   test("visibility of a freshly inserted order across list/listPage paths", async ({
     loggedInPage: page,
   }) => {

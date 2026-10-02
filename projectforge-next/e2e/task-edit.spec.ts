@@ -59,7 +59,7 @@ function breadcrumb(page: Page, format: UserFormat) {
     .getByRole("link", { name: format.t("menu.taskTree") });
 }
 
-test.describe("task edit", () => {
+test.describe("task edit", { tag: "@lane-task" }, () => {
   test("opens from the tree and leads back to it", async ({
     loggedInPage: page,
     seededTask,
@@ -281,7 +281,7 @@ test.describe("task edit", () => {
       "this instance has no admin-user account (see fixtures/credentials.ts)"
     );
     test.setTimeout(90_000);
-    await login(page, "/next/", "admin-user");
+    await login(page, "admin-user");
     const format = await userFormat(page);
 
     // A task that has no id yet still has a parent, and Wicket asks the rights question on that parent
@@ -511,7 +511,7 @@ function escapeRegExp(text: string): string {
  * one case that proves the two halves of `?returnTo=` fit together: the tree writes the parameter and
  * the edit page reads it.
  */
-test.describe("task tree row click", () => {
+test.describe("task tree row click", { tag: "@lane-task" }, () => {
   test("opens the next edit page with the tree as its caller", async ({
     loggedInPage: page,
     seededTask,

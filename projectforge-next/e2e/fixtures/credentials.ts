@@ -32,6 +32,14 @@ export type Role =
   /** A logged in user with no special rights, and `locale=en`. */
   | "normalo-user";
 
+/** Every role, for the global setup that logs each of them in once (see ./session.ts). */
+export const ROLES: Role[] = [
+  "full-access-user",
+  "finance-user",
+  "admin-user",
+  "normalo-user",
+];
+
 /** What a spec gets when it asks for no particular role. */
 export const DEFAULT_ROLE: Role = "full-access-user";
 

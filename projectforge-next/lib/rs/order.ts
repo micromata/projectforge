@@ -48,7 +48,15 @@ export interface OrderSums {
    */
   weightedProbabilityOfOccurrence?: number | null;
   vollstaendigFakturiert: boolean;
+  /** Something is due until the end of the current month (`OrderInfo.isToBeInvoicedBy`). */
   toBeInvoiced: boolean;
+  /**
+   * ISO date of the earliest reached payment schedule not yet invoiced — possibly in a following month.
+   * Absent if nothing is to be invoiced.
+   */
+  nextInvoiceDate?: string | null;
+  /** Something is to be invoiced right now, e.g. a finished position (`OrderInfo.toBeInvoicedImmediately`). */
+  toBeInvoicedImmediately: boolean;
   /**
    * The period of performance over *all* positions, as ISO dates: the earliest begin and the latest end
    * any position effectively has. Computed by the backend, because which of the two dates a position
@@ -187,4 +195,106 @@ export function downloadOrderForecast(
   signal?: AbortSignal
 ): Promise<void> {
   return downloadPost("/rs/order/exportForecast", { filter, settings }, signal);
+}
+
+/**
+ * The parameters of the forecast charts tab, mirroring `OrderEntityRest.ForecastChartSettings`; remembered
+ * per user by the backend on every chart request.
+ */
+export interface ForecastChartSettings {
+  /** First month of the forecast as `yyyy-MM-dd`; the backend takes the begin of its month. */
+  startDate: string | null;
+  /** Day of the order book snapshot used as plan (the closest one), or null for no plan. */
+  planningDate: string | null;
+}
+
+/** The position statuses the forecast sums up, in the order of the Excel template (rows 2-6). */
+export const FORECAST_CHART_STATUSES = [
+  "BEAUFTRAGT",
+  "GELEGT",
+  "LOI",
+  "IN_ERSTELLUNG",
+  "POTENZIAL",
+] as const;
+
+export type ForecastChartStatus = (typeof FORECAST_CHART_STATUSES)[number];
+
+/**
+ * The monthly totals of the forecast charts, see `ForecastChartData`: 12 entries per list, one per month
+ * of `months`.
+ */
+export interface ForecastChartData {
+  /** The 12 months as `yyyy-MM`. */
+  months: string[];
+  /** Remaining forecast per month by position status. */
+  forecastByStatus: Partial<Record<ForecastChartStatus, number[]>>;
+  ist: number[];
+  prevYear: number[];
+  prevPrevYear: number[];
+  /** Per month max(IST, forecast) — the base of the cumulated forecast. */
+  total: number[];
+  /** Null if no planning date was given. */
+  plan: number[] | null;
+  /** The snapshot date actually used for the plan (`yyyy-MM-dd`). */
+  planningDate: string | null;
+  /**
+   * The fields of the list filter the forecast did not apply (see `OrderEntityRest.forecastFilterUsage`):
+   * not at all, or replaced by the start date.
+   */
+  ignoredFilterFields?: string[];
+  replacedFilterFields?: string[];
+}
+
+/** The stored parameters of the charts tab, or the backend's defaults (begin of the year, no plan). */
+export function fetchForecastChartSettings(
+  signal?: AbortSignal
+): Promise<ForecastChartSettings> {
+  return request<ForecastChartSettings>(
+    "/rs/order/forecastChart/settings",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The forecast chart totals of the filtered orders. `months` is empty if neither order positions nor
+ * invoices were found.
+ */
+export function fetchForecastChart(
+  filter: MagicFilter,
+  settings: ForecastChartSettings,
+  signal?: AbortSignal
+): Promise<ForecastChartData> {
+  return request<ForecastChartData>(
+    "/rs/order/forecastChart",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
+/** React Query key of whether the logged-in user may refresh the order caches. */
+export const REFRESH_CACHE_ACCESS_QUERY_KEY = [
+  "order",
+  "refreshCacheAccess",
+] as const;
+
+/** Whether the logged-in user may use {@link refreshOrderCache}: the finance staff only. */
+export function fetchRefreshCacheAccess(
+  signal?: AbortSignal
+): Promise<{ access: boolean }> {
+  return request<{ access: boolean }>(
+    "/rs/order/refreshCacheAccess",
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * Rebuilds the invoice and order caches, so the invoiced sums and invoice links of the orders reflect the
+ * current invoices at once. Answers the translated confirmation.
+ */
+export function refreshOrderCache(): Promise<{ message: string }> {
+  return request<{ message: string }>("/rs/order/refreshCache", {
+    method: "POST",
+  });
 }

@@ -303,6 +303,7 @@ function DeclaredList<
   const denied = isAccessDenied(list.error);
   useAccessDeniedRedirect(denied);
   const ListActions = page.listActions;
+  const GearMenuActions = page.gearMenuActions;
   const mode = list.selectionMode;
   const table = list.table;
   // Both the shortcut and the bar's button mean the whole result set, which is the set the table's own
@@ -348,10 +349,11 @@ function DeclaredList<
           gearMenu={
             <ListGearMenu
               entity={page.entity}
-              onFilterReset={list.resetFilter}
               // Present only for an entity that has moved its way back in here (see legacyInMenu).
               legacyUrl={list.legacyInMenu ? list.legacyUrl : undefined}
-            />
+            >
+              {GearMenuActions && <GearMenuActions />}
+            </ListGearMenu>
           }
           // The result hit the backend's row cap, so it is incomplete — a prominent red warning
           // above the pills, where the user narrows the filter that overflowed. `rowCount` is the cap

@@ -49,6 +49,9 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.AttachmentsService
+import org.projectforge.framework.renderer.LibreOfficeService
+import org.projectforge.framework.renderer.PdfFontProvider
+import org.projectforge.framework.renderer.PdfFontService
 import org.projectforge.jcr.RepoService
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
@@ -67,6 +70,9 @@ class EInvoiceExportService(
     private val attachmentsService: AttachmentsService,
     private val repoService: RepoService,
     private val rechnungDao: RechnungDao,
+    // Optional only for unit tests constructing the service by hand; Spring always injects them.
+    private val pdfFontService: PdfFontService? = null,
+    private val libreOfficeService: LibreOfficeService? = null,
 ) {
     companion object {
         const val JCR_PATH = "org.projectforge.rechnung"
@@ -91,7 +97,12 @@ class EInvoiceExportService(
         return baos.toByteArray()
     }
 
-    fun exportAsZUGFeRD(invoice: RechnungDO): ByteArray {
+    /**
+     * @param variant The variant of the Word invoice template to convert where no invoice PDF was uploaded
+     * (see [InvoiceService.getTemplateVariants]); null or blank for the unnamed one. Ignored where a PDF was
+     * uploaded, since that is the document the XML is embedded into then.
+     */
+    fun exportAsZUGFeRD(invoice: RechnungDO, variant: String? = null): ByteArray {
         val validationErrors = validate(invoice)
         if (validationErrors.isNotEmpty()) {
             throw IllegalStateException(
@@ -100,7 +111,7 @@ class EInvoiceExportService(
         }
 
         val pdfBytes = getUploadedInvoicePdf(invoice.id)
-            ?: generateInvoicePdf(invoice)
+            ?: generateInvoicePdf(invoice, variant)
             ?: throw IllegalStateException("Could not generate PDF for invoice #${invoice.nummer} (no template configured and no PDF uploaded)")
 
         val mustangInvoice = buildMustangInvoice(invoice)
@@ -254,12 +265,15 @@ class EInvoiceExportService(
         return attachments.firstOrNull { it.description == INVOICE_PDF_MARKER }
     }
 
-    private fun generateInvoicePdf(invoice: RechnungDO): ByteArray? {
-        val docxStream = invoiceService.getInvoiceWordDocument(invoice, null) ?: return null
+    private fun generateInvoicePdf(invoice: RechnungDO, variant: String?): ByteArray? {
+        val docxStream = invoiceService.getInvoiceWordDocument(invoice, variant) ?: return null
         val docxBytes = docxStream.toByteArray()
+        // LibreOffice is much closer to Word's layout, xdocreport is the fallback if it isn't installed.
+        libreOfficeService?.convertDocxToPdf(docxBytes)?.let { return it }
         ByteArrayInputStream(docxBytes).use { bais ->
             WordDocument(bais, "invoice.docx").use { word ->
                 val options = PdfOptions.create()
+                pdfFontService?.let { options.fontProvider(PdfFontProvider(it)) }
                 ByteArrayOutputStream().use { pdfBaos ->
                     PdfConverter.getInstance().convert(word.document, pdfBaos, options)
                     return pdfBaos.toByteArray()
@@ -285,7 +299,15 @@ class EInvoiceExportService(
         if (!sellerConfig.isConfigured()) {
             errors.add(translate("fibu.rechnung.eInvoice.error.sellerNotConfigured"))
         }
-        if (invoice.nummer == null) {
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            // A cancellation has no number of its own, it is derived from the original's (BT-1 and BT-25).
+            if (invoice.originalRechnung?.nummer == null) {
+                errors.add(translate("fibu.rechnung.eInvoice.error.cancellationOriginalMissing"))
+            }
+            if (netSumOf(invoice) >= BigDecimal.ZERO) {
+                errors.add(translate("fibu.rechnung.eInvoice.error.cancellationNotNegative"))
+            }
+        } else if (invoice.nummer == null) {
             errors.add(translate("fibu.rechnung.eInvoice.error.numberMissing"))
         }
         if (invoice.datum == null) {
@@ -332,7 +354,7 @@ class EInvoiceExportService(
 
     private fun buildMustangInvoice(invoice: RechnungDO): Invoice {
         val mustangInvoice = Invoice()
-            .setNumber(invoice.nummer.toString())
+            .setNumber(invoice.belegNummer)
             .setIssueDate(toDate(invoice.datum!!))
             .setCurrency(invoice.currency ?: "EUR")
             .setSender(buildSeller(invoice))
@@ -342,11 +364,20 @@ class EInvoiceExportService(
 
         // Document type code
         val documentCode = when (invoice.typ) {
-            RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN -> "381"
-            RechnungTyp.CANCELLATION -> "457"
+            // A cancellation is a credit note referencing the cancelled invoice (BT-25): 457 (reversal) is no
+            // type code XRechnung allows (BR-DE-17), 381 is. Its amounts are therefore positive (see buildItem).
+            RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN, RechnungTyp.CANCELLATION -> "381"
             else -> "380"
         }
         mustangInvoice.setDocumentCode(documentCode)
+
+        // Preceding invoice reference (BT-25, BT-26): the invoice this cancellation cancels.
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            invoice.originalRechnung?.let { original ->
+                mustangInvoice.setInvoiceReferencedDocumentID(original.nummer.toString())
+                original.datum?.let { mustangInvoice.setInvoiceReferencedIssueDate(toDate(it)) }
+            }
+        }
 
         // Delivery date and period (BR-FX-EN-04)
         val deliveryBegin = invoice.periodOfPerformanceBegin ?: invoice.datum!!
@@ -365,8 +396,10 @@ class EInvoiceExportService(
             mustangInvoice.setBuyerOrderReferencedDocumentID(invoice.customerref1)
         }
 
-        // Cash discount (Skonto)
-        if (invoice.discountPercent != null && invoice.discountMaturity != null) {
+        // Cash discount (Skonto), none for a cancellation: there is nothing to pay early.
+        if (invoice.typ != RechnungTyp.CANCELLATION &&
+            invoice.discountPercent != null && invoice.discountMaturity != null
+        ) {
             val days = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.discountMaturity).toInt()
             if (days > 0) {
                 mustangInvoice.addCashDiscount(CashDiscount(invoice.discountPercent, days))
@@ -499,7 +532,12 @@ class EInvoiceExportService(
             vatPercent
         )
 
-        val item = Item(product, pos.einzelNetto ?: BigDecimal.ZERO, pos.menge ?: BigDecimal.ONE)
+        // A cancellation is stored with negative amounts (so that it cancels its original out in every sum of
+        // the Rechnungsbuch), but is exported as a credit note (381), whose amounts are positive.
+        val einzelNetto = (pos.einzelNetto ?: BigDecimal.ZERO).let {
+            if (invoice.typ == RechnungTyp.CANCELLATION) it.negate() else it
+        }
+        val item = Item(product, einzelNetto, pos.menge ?: BigDecimal.ONE)
         item.setId(pos.number.toString())
 
         // Per-position delivery period
@@ -521,6 +559,10 @@ class EInvoiceExportService(
     }
 
     private fun buildPaymentTermsDescription(invoice: RechnungDO): String {
+        if (invoice.typ == RechnungTyp.CANCELLATION) {
+            // Nothing for the customer to pay: the amount of the cancelled invoice is refunded or offset.
+            return "Der Betrag wird erstattet bzw. mit offenen Forderungen verrechnet."
+        }
         val parts = mutableListOf<String>()
         if (invoice.discountPercent != null && invoice.discountMaturity != null) {
             val days = java.time.temporal.ChronoUnit.DAYS.between(invoice.datum, invoice.discountMaturity).toInt()
@@ -548,15 +590,22 @@ class EInvoiceExportService(
         return exporter
     }
 
+    /** The net sum of the undeleted positions, as [RechnungCalculator] sums it (without any rounding). */
+    private fun netSumOf(invoice: RechnungDO): BigDecimal {
+        return invoice.positionenExcludingDeleted.fold(BigDecimal.ZERO) { sum, pos ->
+            sum + (pos.menge ?: BigDecimal.ONE) * (pos.einzelNetto ?: BigDecimal.ZERO)
+        }
+    }
+
     private fun toDate(localDate: LocalDate): Date {
         return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
     }
 
     fun getExportFilename(invoice: RechnungDO): String {
-        return "XRechnung_${invoice.nummer ?: "draft"}.xml"
+        return "XRechnung_${invoice.belegNummer ?: "draft"}.xml"
     }
 
     fun getZUGFeRDExportFilename(invoice: RechnungDO): String {
-        return "ZUGFeRD_${invoice.nummer ?: "draft"}.pdf"
+        return "ZUGFeRD_${invoice.belegNummer ?: "draft"}.pdf"
     }
 }

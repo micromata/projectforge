@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.user.ProjectForgeGroup
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
@@ -36,6 +37,9 @@ import org.springframework.context.annotation.Configuration
  * projectforge.invoicing-quota.enabled=true
  * projectforge.invoicing-quota.billed-patterns=5.*,!5.999.*,5.___.99.*
  * projectforge.invoicing-quota.ignored-patterns=6.3*
+ * projectforge.invoicing-quota.info.de=Die Fakturaquote gibt dir einen guten Überblick, ...
+ * projectforge.invoicing-quota.info.en=The invoicing quota gives you a good overview, ...
+ * projectforge.invoicing-quota.foreign-user-groups=CONTROLLING_GROUP
  * ```
  *
  * Pattern syntax:
@@ -70,4 +74,20 @@ open class InvoicingQuotaConfiguration {
      * Example: `6.3*` = Urlaub, Elternzeit, Krankheit, Zeitausgleich, Abwesenheiten
      */
     var ignoredPatterns: List<String> = emptyList()
+
+    /**
+     * Explanation shown as tooltip of the invoicing quota (why it is shown and why it matters), keyed by
+     * language (`de`, `en`, ...). Markdown. The defaults are part of the bundled application.properties,
+     * a local configuration may override single languages or add new ones.
+     */
+    var info: Map<String, String> = emptyMap()
+
+    /**
+     * Groups whose members may see the invoicing quota of other users (e.g. `CONTROLLING_GROUP`). Everybody else
+     * sees only their own quota. Empty by default, so nobody sees the quota of other users.
+     *
+     * Viewing the monthly report of another user at all additionally requires the access to other users' time
+     * sheets.
+     */
+    var foreignUserGroups: List<ProjectForgeGroup> = emptyList()
 }

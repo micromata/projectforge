@@ -142,7 +142,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         var passwordObj = internalGetByUserId(userId)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.find(userId, checkAccess = false)
+            // Attached: only the reference of the new password entry, and this runs in the caller's transaction, which
+            // may manage the user (e.g. just inserted) - a detaching find would pull it out of the session.
+            val user = userDao.find(userId, checkAccess = false, attached = true)
             passwordObj.user = user
         }
         return passwordObj

@@ -85,6 +85,16 @@ public class LicenseDao extends BaseDao<LicenseDO>
     return buf.toString();
   }
 
+  /**
+   * Organization and product complete from the values already entered. Every user with select access sees all
+   * licenses, so no check of single entities is needed (the key is no autocompletion property).
+   */
+  @Override
+  public boolean isAutocompletionPropertyEnabled(final String property)
+  {
+    return "organization".equals(property) || "product".equals(property);
+  }
+
   @Override
   public LicenseDO newInstance()
   {

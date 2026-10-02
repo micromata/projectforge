@@ -1,6 +1,5 @@
 "use client";
 
-import { type KeyboardEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -10,9 +9,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  COPYABLE_TRIGGER_CLASS,
+  useCopyableTrigger,
+} from "@/lib/text-selection";
 import { cn } from "@/lib/utils";
 import { EntitySearchList } from "./entity-search-list";
 import { SelectMeButton } from "./select-me-button";
+import { useTypeToOpen } from "./use-type-to-open";
 
 /** What `{entity}/autosearch` answers with (AbstractPagesRest.DisplayObject). */
 export interface EntityRef {
@@ -64,6 +68,16 @@ export interface EntityAutocompleteProps<T extends EntityRef = EntityRef> {
    * buttons beside it are left out: both are ways of changing the value.
    */
   disabled?: boolean;
+  /**
+   * The value the reader of the form looks for first, set in the emphasis [InputField]'s `emphasized`
+   * gives a text box — so a picked entry and a typed title catch the eye the same way.
+   */
+  emphasized?: boolean;
+  /**
+   * Overrides the size of the dropdown, which by default is as wide as the trigger — for entries whose
+   * names are much longer than the field is wide (the long cost 2 names in a row of cost assignments).
+   */
+  popoverClassName?: string;
 }
 
 /**
@@ -87,46 +101,22 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
   selectMe,
   disabled,
   required,
+  emphasized,
+  popoverClassName,
   "aria-label": ariaLabel,
 }: EntityAutocompleteProps<T>) {
   const t = useTranslations();
-  // `autoOpen` seeds the initial state only: the picker mounts open when asked to, and Radix moves the
-  // focus onto its search input. A later change of the prop must not reopen it — that is the user's to
-  // do — so it is read once, not watched. Skipped when a value is already set: a restored filter or a
-  // field with a pick should show it, not drop the user straight into a search to replace it.
-  const [open, setOpen] = useState(() => !!autoOpen && !disabled && !value);
-  // The term a keystroke on the (closed) trigger opens the picker with, so that first character is not
-  // lost: the search input lives inside the popover and only exists once it is open, so without this a
-  // user who tabs onto the trigger and starts typing would type into nothing until they clicked. Reset
-  // whenever the popover closes, so a later open by click starts empty again.
-  const [initialSearch, setInitialSearch] = useState("");
-
-  function openOnTyping(event: KeyboardEvent<HTMLButtonElement>) {
-    if (disabled) return;
-    // Only printable single characters — leave Space (the button's own "open"), Enter, Tab, arrows and
-    // any modifier combo (copy, browser shortcuts) alone.
-    if (
-      event.key.length !== 1 ||
-      event.key === " " ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.altKey
-    ) {
-      return;
-    }
-    event.preventDefault();
-    setInitialSearch(event.key);
-    setOpen(true);
-  }
+  // `autoOpen` seeds the initial state only (see useTypeToOpen). Skipped when a value is already set: a
+  // restored filter or a field with a pick should show it, not drop the user straight into a search to
+  // replace it.
+  const copyableTrigger = useCopyableTrigger(disabled);
+  const { open, onOpenChange, initialSearch, openOnTyping } = useTypeToOpen({
+    initiallyOpen: !!autoOpen && !disabled && !value,
+    disabled,
+  });
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) setInitialSearch("");
-        setOpen(next);
-      }}
-    >
+    <Popover open={open} onOpenChange={onOpenChange}>
       {/* `min-w-0` on both, to keep the picker inside the width it was given: a flex item's automatic
           minimum size is its content, so the trigger would hold the width of the *whole* entity name
           however narrow its field is and push the reset button out of it — onto the field beside it,
@@ -142,11 +132,20 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
             aria-expanded={open}
             aria-label={ariaLabel}
             autoFocus={autoFocus}
-            disabled={disabled}
+            {...copyableTrigger}
             onKeyDown={openOnTyping}
-            className="h-8 min-w-0 flex-1 justify-between px-2 text-xs font-normal"
+            className={cn(
+              "h-7 min-w-0 flex-1 justify-between px-2 text-xs font-normal",
+              COPYABLE_TRIGGER_CLASS
+            )}
           >
-            <span className={cn("truncate", !value && "text-muted-foreground")}>
+            <span
+              className={cn(
+                "truncate",
+                !value && "text-muted-foreground",
+                value && emphasized && "font-semibold text-primary"
+              )}
+            >
               {value?.displayName ?? t("filter.chooseEntity")}
             </span>
             <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden />
@@ -173,7 +172,10 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
       </div>
       <PopoverContent
         align="start"
-        className="w-(--radix-popover-trigger-width) min-w-56 p-0"
+        className={cn(
+          "w-(--radix-popover-trigger-width) min-w-56 p-0",
+          popoverClassName
+        )}
       >
         <EntitySearchList<T>
           url={url}
@@ -183,7 +185,7 @@ export function EntityAutocomplete<T extends EntityRef = EntityRef>({
           initialSearch={initialSearch}
           onPick={(entry) => {
             onChange(entry);
-            setOpen(false);
+            onOpenChange(false);
           }}
         />
       </PopoverContent>

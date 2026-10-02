@@ -7,6 +7,7 @@
 import { request } from "./client";
 import { downloadPost } from "./download";
 import type {
+  InvoicingQuotaHistory,
   MonthlyReport,
   MonthlyReportQuery,
 } from "@/components/features/monthly-employee-report/types";
@@ -16,6 +17,8 @@ function toParams(query: MonthlyReportQuery): string {
   if (query.userId != null) params.set("userId", String(query.userId));
   if (query.year != null) params.set("year", String(query.year));
   if (query.month != null) params.set("month", String(query.month));
+  if (query.showInvoicingQuota != null)
+    params.set("showInvoicingQuota", String(query.showInvoicingQuota));
   const s = params.toString();
   return s ? `?${s}` : "";
 }
@@ -27,6 +30,25 @@ export function fetchMonthlyEmployeeReport(
 ): Promise<MonthlyReport> {
   return request<MonthlyReport>(
     `/rs/monthlyEmployeeReport${toParams(query)}`,
+    { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The invoicing quota of the 12 months ending with the query's month (the chart tab). 403 unless the logged-in
+ * user may see the quota of that user.
+ */
+export function fetchInvoicingQuotaHistory(
+  query: MonthlyReportQuery,
+  signal?: AbortSignal
+): Promise<InvoicingQuotaHistory> {
+  return request<InvoicingQuotaHistory>(
+    `/rs/monthlyEmployeeReport/invoicingQuotaHistory${toParams({
+      userId: query.userId,
+      year: query.year,
+      month: query.month,
+    })}`,
     { method: "GET" },
     signal
   );

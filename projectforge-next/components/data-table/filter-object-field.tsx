@@ -25,8 +25,16 @@ export function FilterObjectField({
   label,
   id,
   autoFocus,
+  autoOpen = autoFocus,
   onSubmit,
-}: FilterInputProps & { element: FilterElement }) {
+}: FilterInputProps & {
+  element: FilterElement;
+  /**
+   * Opens the picker along with the focus. Defaults to [autoFocus]: a pill of its own has nothing
+   * else to cover. A field among others (the history group) turns it off.
+   */
+  autoOpen?: boolean;
+}) {
   // Only a user filter offers the „select me" smiley: it picks the logged-in user with one click, as
   // the form's [EntityAutocompleteField] does for a user field. A filter on an employee, project or
   // customer takes a different entity's id, for which the current user reference means nothing.
@@ -78,7 +86,7 @@ export function FilterObjectField({
         autoFocus={autoFocus}
         // A freshly added filter (user, group, …) should open its picker at once, with the search
         // input focused, so the user types the entry to look for without a further click.
-        autoOpen={autoFocus}
+        autoOpen={autoOpen}
         aria-label={label}
         selectMe={selectMe}
         value={entityRefOf(value)}

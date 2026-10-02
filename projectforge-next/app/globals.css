@@ -220,8 +220,10 @@
   /* Money in vs. money out (the liquidity forecast's due-date balance and credit/debit). */
   --chart-positive: var(--brand-green);
   --chart-negative: var(--brand-pink);
+  /* A balance below zero (the liquidity forecast's area under the zero line) — a warning red. */
+  --chart-deficit: #de1821;
   /* Categorical series palette — up to four distinguishable series for comparing N things (e.g. the
-     Debitoren "Grafiken" tab: current year red, then blue, green, yellow). Shared across charts via
+     invoicing quota chart). Shared across charts via
      lib/charts/series.ts. Vivid enough for the dark theme too, so not overridden under .dark (like
      --chart-soll/--chart-ist). */
   --chart-series-1: #de1821;
@@ -232,6 +234,18 @@
      --muted-foreground so it reads as black, but softened so it does not overpower the coloured
      series. Overridden under .dark, where a muted white takes its place. */
   --chart-neutral: oklch(0.32 0 0);
+  /* The order book forecast charts, in the colours of the forecast Excel export's charts (theme "Office"
+     of the template), so the web and the Excel charts read alike. Not overridden under .dark. */
+  --chart-forecast-beauftragt: #9bbb59;
+  --chart-forecast-loi: #8064a2;
+  --chart-forecast-gelegt: #4bacc6;
+  --chart-forecast-potenzial: #f79646;
+  --chart-forecast-in-erstellung: #2c4d75;
+  --chart-forecast-ist: #bfbfbf;
+  --chart-forecast-total: #4f81bd;
+  --chart-forecast-plan: #c0504d;
+  --chart-forecast-prev-year: #9bbb59;
+  --chart-forecast-prev-prev-year: #bfbfbf;
   --radius: 0.625rem;
 
   /* Sidebar — light variant */
@@ -395,6 +409,17 @@
 }
 .row-grey > td {
   background-image: linear-gradient(var(--row-grey), var(--row-grey));
+}
+
+/*
+ * A label's text can be selected and copied. The shadcn Label (components/ui/label.tsx, not ours to
+ * edit) makes it `select-none`; this rule is outside any layer and so wins over that utility. A click
+ * on a label still reaches its control — a drag across it selects instead. `field-label` is the same
+ * Label, renamed by FieldLabel (components/ui/field.tsx).
+ */
+[data-slot="label"],
+[data-slot="field-label"] {
+  user-select: text;
 }
 
 /*

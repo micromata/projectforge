@@ -17,7 +17,7 @@ import { MULTI_SELECTION_PARAM } from "../lib/rs/multi-select";
  * The list of this database is a production ledger of thousands of invoices, so nothing here names one:
  * every assertion is about the first rows of whatever the list shows, identified by their number cell.
  */
-test.describe("invoice selection mode", () => {
+test.describe("invoice selection mode", { tag: "@lane-invoice" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     // A criterion another run left behind would decide which rows the first page shows, and two cases
     // below compare the list before and after a filter change.

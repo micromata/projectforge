@@ -72,6 +72,23 @@ export interface OrderRef {
   nummer?: number;
 }
 
+/**
+ * The other end of a cancellation — `Rechnung.InvoiceRef`: the invoice a cancellation (`typ = CANCELLATION`)
+ * cancels, or the cancellation an invoice is cancelled by.
+ *
+ * Only `id` travels back, and only for the former (`Rechnung.copyTo` writes `originalRechnung` by it); a new
+ * cancellation typed by hand carries the original's `nummer` instead, which the backend resolves
+ * (`OutgoingInvoiceEntityRest.transformForDB`). An alias for the `looseObject` of the schema, see
+ * [EntityRefDto].
+ */
+export type InvoiceRef = {
+  id?: number | null;
+  nummer?: number | null;
+  /** The number the document is known by: the original's plus "-S" for a cancellation (`RechnungDO.belegNummer`). */
+  belegNummer?: string | null;
+  datum?: string | null;
+};
+
 /** One cost assignment of a position — `KostZuweisung`, the third nesting level. */
 export interface KostZuweisungDto {
   id?: number | null;
@@ -122,6 +139,20 @@ export interface InvoiceDetail {
    * by mistake is taken back (see invoice.page.tsx).
    */
   nummer?: number | null;
+  /**
+   * The number the document is known by (`RechnungDO.belegNummer`): [nummer], or for a cancellation, which
+   * has none of its own, the cancelled invoice's number plus "-S". Read-only.
+   */
+  belegNummer?: string | null;
+  /** The invoice a cancellation cancels — only on `typ = CANCELLATION`. */
+  originalInvoice?: InvoiceRef | null;
+  /** The cancellation this invoice is cancelled by, if any. Read-only. */
+  cancellationInvoice?: InvoiceRef | null;
+  /**
+   * Whether "Create cancellation" applies: a stored, numbered invoice not cancelled yet
+   * (`RechnungDO.isCancellable` and no [cancellationInvoice]). Read-only.
+   */
+  cancellable?: boolean;
   // `customer`/`project` as the DTO names them, not `kunde`/`projekt` as the entity does — the JSON
   // carries the DTO's names, and `Rechnung.copyTo` is what maps them back.
   customer?: EntityRefDto | null;
@@ -178,14 +209,19 @@ export interface InvoiceDetail {
 /** One row of the invoice list. */
 export interface InvoiceListRow extends ListRow, RowWithAttachments {
   nummer?: number;
+  /** What the number column shows: [nummer], or "16956-S" for a cancellation, which has none of its own. */
+  belegNummer?: string;
   /** The customer, or the free text of an invoice naming none (`KundeFormatter`). */
   customer?: DisplayRef;
+  /** Set only when [customer] is the free text one, so the list can mark it (see FreeTextNameCell). */
+  kundeText?: string | null;
   project?: DisplayRef;
   /** The account of the invoice itself, as "11400 - Debitoren". */
   konto?: DisplayRef;
   betreff?: string;
   bemerkung?: string;
   status?: RechnungStatus;
+  typ?: RechnungTyp;
   /** The status translated by the backend — what the column shows and sorts by. */
   statusAsString?: string;
   datum?: string;

@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.business.fibu.PeriodOfPerformanceType
@@ -230,6 +231,41 @@ class OutgoingInvoiceSaveTest : AbstractTestBase() {
     }
 
     /** The hook as `AbstractPagesRestUtils.saveOrUpdate` calls it: last step before the insert. */
+    @Test
+    fun `a planned invoice gets its number when it is issued`() {
+        logon(TEST_FINANCE_USER)
+        val invoice = newInvoice().also { it.status = RechnungStatus.GEPLANT }
+        onBeforeSave(invoice)
+        val id = rechnungDao.insert(invoice)
+        val expected = rechnungDao.getNextNumber(null)
+
+        val stored = rechnungDao.find(id)!!
+        stored.status = RechnungStatus.GESTELLT
+        rechnungDao.update(stored)
+
+        // RechnungDao reads the stored status to see the transition out of GEPLANT.
+        assertEquals(expected, rechnungDao.find(id)?.nummer)
+    }
+
+    @Test
+    fun `an update leaves the invoice it writes in the session`() {
+        logon(TEST_FINANCE_USER)
+        val invoice = newInvoice()
+        onBeforeSave(invoice)
+        val id = rechnungDao.insert(invoice)
+
+        persistenceService.runInTransaction { context ->
+            val managed = context.em.find(RechnungDO::class.java, id)
+            managed.betreff = "Changed"
+            rechnungDao.update(managed)
+            // RechnungDao.onInsertOrModify used to look up the stored status with find(), which detached this very
+            // instance mid-update. The merge of the detached graph then appended every cost assignment past
+            // max(index) while index was still an order column (see RechnungsPositionDO.kostZuweisungen).
+            assertTrue(context.em.contains(managed), "The update detached the invoice it was writing.")
+        }
+        assertEquals("Changed", rechnungDao.find(id)?.betreff)
+    }
+
     private fun onBeforeSave(invoice: RechnungDO) {
         outgoingInvoiceEntityRest.onBeforeSave(
             Mockito.mock(HttpServletRequest::class.java),

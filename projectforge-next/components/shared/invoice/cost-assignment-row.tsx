@@ -18,6 +18,12 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import { CostAssignmentShare } from "./cost-assignment-share";
 
+/**
+ * The dropdown of both cost pickers: their long names (number, type, project, customer) would wrap over
+ * several lines in one as narrow as the field. Capped by the viewport on small screens.
+ */
+const WIDE_POPOVER = "w-[44rem] max-w-[calc(100vw-2rem)]";
+
 export interface CostAssignmentRowProps {
   /**
    * Prefix of every field name of this row — the **full** path,
@@ -100,12 +106,18 @@ export function CostAssignmentRow({
           name={name("kost1")}
           label={label("kost1")}
           entity="cost1"
+          popoverClassName={WIDE_POPOVER}
           className="min-w-0 flex-1 basis-40"
         />
         <EntityAutocompleteField
           name={name("kost2")}
           label={label("kost2")}
           entity="cost2"
+          // Re-opening the picker of a chosen unit offers its siblings — the units of the same
+          // `x.xxx.xx` prefix — rather than the first units in number order, which practically never
+          // fit (`Kost2EntityRest.queryAutocompleteObjects`). A typed term searches all units as usual.
+          params={kost2Id != null ? { siblingsOf: kost2Id } : undefined}
+          popoverClassName={WIDE_POPOVER}
           className="min-w-0 flex-1 basis-40"
         />
         {/* Beside the field it is about, as Wicket outlines that very field — the page decides whether

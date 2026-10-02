@@ -35,13 +35,31 @@ export const MARKER = "ZZ e2e";
  * The timestamp in seconds, base 36: short enough to fit into a signature column and monotonic, so
  * the newest row of a search is the current run's. `Math.random` is deliberately not part of it —
  * two runs in the same second would be the same run for a human reading the rows.
+ *
+ * Followed by the worker's parallel index: workers start together, so two of them seeding a book in
+ * the same second would otherwise claim the same signature.
  */
 export function uniqueSuffix(): string {
-  return Math.floor(Date.now() / 1000).toString(36);
+  const worker = Number(process.env.TEST_PARALLEL_INDEX ?? 0);
+  const second = Math.floor(Date.now() / 1000);
+  // And a sequence within the second: one test creating a group and the next seeding its own easily
+  // fall into the same one, now that a test no longer logs in first. Still monotonic, and the seconds
+  // part is of fixed length, so a sequence cannot be mistaken for a worker index.
+  sequence = second === lastSecond ? sequence + 1 : 0;
+  lastSecond = second;
+  return (
+    second.toString(36) +
+    worker.toString(36) +
+    (sequence > 0 ? sequence.toString(36) : "")
+  );
 }
 
+/** The second [uniqueSuffix] was last called in, and how often within it. */
+let lastSecond = 0;
+let sequence = 0;
+
 /** The headers a state changing call needs; the CSRF token is read per call rather than cached. */
-async function writeHeaders(
+export async function writeHeaders(
   request: APIRequestContext
 ): Promise<Record<string, string>> {
   const status = await request.get("/rs/userStatus", {
@@ -448,6 +466,50 @@ export async function createCustomer(
   );
 }
 
+export interface SeededProject {
+  id: number;
+  /** The project's two digits, unique within its customer. */
+  nummer: number;
+  name: string;
+  /** The run's own suffix, the one word of the name that hits this run only. */
+  suffix: string;
+  customer: SeededCustomer;
+}
+
+/**
+ * Creates a project of the given (seeded) customer whose number is free.
+ *
+ * The number is unique within the customer (`fibu.projekt.validation.numbernotfreeforcustomer`, checked
+ * by `ProjectEntityRest.validate`), so it is probed descending from 99 like the customer's own. The
+ * customer is the run's seeded one, so the first candidate is free unless an earlier test of the same
+ * worker took it. The status stays unset (NONE), so the project is in the default "not ended" list.
+ */
+export async function createProject(
+  request: APIRequestContext,
+  customer: SeededCustomer,
+  suffix = uniqueSuffix()
+): Promise<SeededProject> {
+  const name = `${MARKER} project ${suffix}`;
+  for (let nummer = 99; nummer >= 0; nummer--) {
+    try {
+      const id = await insert(request, "project", {
+        nummer,
+        name,
+        customer: { id: customer.id },
+        description: `${MARKER} project ${suffix}`,
+      });
+      return { id, nummer, name, suffix, customer };
+    } catch (cause) {
+      if (!/Number already exists|Nummer bereits/i.test(String(cause))) {
+        throw cause;
+      }
+    }
+  }
+  throw new Error(
+    `Could not find a free project number for customer ${customer.nummer}.`
+  );
+}
+
 /**
  * A project of the database that has a customer, for the order form's autocomplete.
  *
@@ -470,14 +532,24 @@ export async function findProjectWithCustomer(
   const body = (await res.json()) as {
     resultSet?: { name?: string; customer?: unknown }[];
   };
+  // Not one of the tests' own: the customer lane marks its seeded project deleted while other
+  // lanes run, so the pick could vanish from the autocomplete between search and click.
   const project = (body.resultSet ?? []).find(
-    (row) => row.customer != null && (row.name?.length ?? 0) >= 2
+    (row) =>
+      row.customer != null &&
+      (row.name?.length ?? 0) >= 2 &&
+      !row.name!.startsWith(MARKER)
   );
   if (!project?.name) return null;
   // `EntityAutocomplete` has `minChars = 2` and asks the backend for nothing shorter, so a
   // one-letter term would look like "no project matched". The full name is the most selective term
-  // available and keeps the pick unambiguous.
-  return { name: project.name, searchTerm: project.name };
+  // available and keeps the pick unambiguous — without the characters the autosearch reads as query
+  // syntax: a name like "KCE (myDHL Express)" taken literally matches nothing, its words do.
+  const searchTerm = project.name
+    .replace(/[+\-!(){}[\]^"~*?:\\/&|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { name: project.name, searchTerm };
 }
 
 /** The logged-in account itself, as a lookup term for a user autocomplete. */

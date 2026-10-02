@@ -7,7 +7,7 @@ import { userFormat } from "./fixtures/format";
  *
  * Nothing is saved; the form is opened and abandoned.
  */
-test.describe("order head layout", () => {
+test.describe("order head layout", { tag: "@parallel" }, () => {
   test("puts the number and the offer date side by side", async ({
     loggedInPage: page,
   }) => {

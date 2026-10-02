@@ -29,4 +29,28 @@ describe("invoiceSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts a cancellation's reference to the invoice it cancels, by id or by a typed number", () => {
+    // Prefilled by "Create cancellation" (id, number, date) …
+    expect(
+      invoiceSchema.safeParse({
+        ...emptyInvoiceValues(),
+        typ: "CANCELLATION",
+        originalInvoice: {
+          id: 42,
+          nummer: 16956,
+          belegNummer: "16956",
+          datum: "2024-06-15",
+        },
+      }).success
+    ).toBe(true);
+    // … or typed by hand, where the backend resolves the number.
+    expect(
+      invoiceSchema.safeParse({
+        ...emptyInvoiceValues(),
+        typ: "CANCELLATION",
+        originalInvoice: { nummer: 16956 },
+      }).success
+    ).toBe(true);
+  });
 });

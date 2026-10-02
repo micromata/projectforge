@@ -30,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.common.AutoCompletionUtils
+import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.task.TaskNode
@@ -349,7 +350,36 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         if (hasTimeOverlap(obj, true)) {
             throw UserException("timesheet.error.timeCollision")
         }
-        
+        if (operationType == OperationType.INSERT) {
+            validateKost2(obj)
+        }
+        // An update is checked in onUpdate, as it needs the stored time sheet; a (un)delete keeps the booking.
+    }
+
+    override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
+        if (compareValues(obj.taskId, dbObj.taskId) != 0) {
+            taskTree.resetTotalDuration(dbObj.taskId!!)
+        }
+        if (compareValues(obj.taskId, dbObj.taskId) != 0 || compareValues(obj.kost2Id, dbObj.kost2Id) != 0) {
+            validateKost2(obj)
+        }
+    }
+
+    /**
+     * The cost 2 unit must be one the task may be booked on ([TaskTree.getKost2List]: active cost 2 units of
+     * the task's project). Checked for a new time sheet and for a changed task or cost 2 unit only: an existing
+     * booking stays editable (and deletable) after its cost 2 unit was deactivated or its project ended.
+     *
+     * The task's project (the nearest one in the task tree) must not be ended or deleted. Its cost 2 units are
+     * ended then, but that alone doesn't block a booking: without any bookable cost 2 unit, the task would take
+     * a time sheet without one, or the cost 2 units of an ancestor task's project ([TaskTree.getKost2List]).
+     */
+    private fun validateKost2(obj: TimesheetDO) {
+        taskTree.getProjekt(obj.taskId)?.let { projekt ->
+            if (projekt.status == ProjektStatus.ENDED || projekt.deleted) {
+                throw UserException("timesheet.error.projectEnded")
+            }
+        }
         if (Configuration.instance.isCostConfigured) {
             val kost2List = taskTree.getKost2List(obj.taskId)
             val kost2Id = obj.kost2Id
@@ -386,12 +416,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                     throw UserException("timesheet.error.invalidKost2") // Kost2Id can't be given for task without any kost2 entries!
                 }
             }
-        }
-    }
-
-    override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
-        if (compareValues(obj.taskId, dbObj.taskId) != 0) {
-            taskTree.resetTotalDuration(dbObj.taskId!!)
         }
     }
 

@@ -42,7 +42,7 @@ const SUBJECT = `${MARKER} invoice (delete me)`;
 // first navigation to a route additionally waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("outgoing invoice edit", () => {
+test.describe("outgoing invoice edit", { tag: "@lane-invoice" }, () => {
   test("is what the list leads to, by a row click and by add", async ({
     loggedInPage: page,
   }) => {

@@ -28,10 +28,23 @@ import { DEFAULT_PAGE_SIZE } from "../../components/data-table/page-size-options
  * already in its field, typing the same one produces no request at all — which is what
  * [narrowToSeeded] waits for.
  *
+ * The open nodes are a third state of the same kind (the account's prefs, shared by both modes), but
+ * not one to wipe: they are the account's own. Only the nodes in `close` are collapsed — the seeded
+ * task is worker-scoped, and a spec run earlier in the worker (a subtask added under it, a click into
+ * its tree cell) leaves it open, so a case that expects a chevron to *open* would find "collapse".
+ *
  * Failures are swallowed: this is setup, and a spec that then finds no rows fails with a message about
  * the tree rather than about a preference call.
  */
-export async function resetTreeState(page: Page): Promise<void> {
+export async function resetTreeState(
+  page: Page,
+  close: number[] = []
+): Promise<void> {
+  for (const id of close) {
+    await page.request
+      .get(`/rs/task/tree?table=true&initial=true&close=${id}`)
+      .catch(() => undefined);
+  }
   for (const select of ["", "&select=true"]) {
     await page.request
       .get(

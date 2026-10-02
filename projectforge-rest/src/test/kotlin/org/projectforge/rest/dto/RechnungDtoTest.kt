@@ -28,9 +28,12 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.BankAccountConfig
+import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungStatus
+import org.projectforge.business.fibu.RechnungTyp
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
@@ -46,7 +49,7 @@ import java.time.LocalDate
  * `RechnungDO.positionen` nor `RechnungsPositionDO.kostZuweisungen` has `@SoftDeleteCollection` (only
  * `EingangsrechnungDO.positionen` does). So a round trip that loses a row's number, its `deleted` flag or its
  * back reference costs data and history, silently — and frees a number the unique constraint
- * `UNIQUE(rechnung_fk, number)` and the two order columns would then collide with.
+ * `UNIQUE(rechnung_fk, number)` and the one on the cost assignment index would then collide with.
  *
  * That is what these tests pin down, together with the numbering of new rows and the sums an unsaved invoice
  * has to answer (the recalculate endpoint computes them off the posted state, which no cache knows).
@@ -303,6 +306,96 @@ class RechnungDtoTest : AbstractTestBase() {
         assertNull(dto.attachmentsSize)
     }
 
+    @Test
+    fun `a cancellation references its original and negates every amount, the quantities kept`() {
+        val original = createInvoice()
+        original.nummer = 16956
+        val clone = clonedInvoice()
+        val quantities = clone.positionen?.map { it.menge }
+        val prices = clone.positionen?.map { it.einzelNetto }
+
+        val dto = OutgoingInvoiceEntityRest.prepareCancellation(clone, original, "Storno zu Rechnung 16956")
+
+        assertEquals(RechnungTyp.CANCELLATION, dto.typ)
+        assertNull(dto.nummer, "A cancellation has no number of its own.")
+        assertEquals(original.id, dto.originalInvoice?.id)
+        assertEquals(16956, dto.originalInvoice?.nummer)
+        assertEquals("Storno zu Rechnung 16956: Test invoice", dto.betreff)
+        assertEquals(quantities, dto.positionen?.map { it.menge })
+        assertEquals(prices?.map { it?.negate() }, dto.positionen?.map { it.einzelNetto })
+        assertEquals(BigDecimal("-600.00"), dto.positionen?.first()?.kostZuweisungen?.first()?.netto)
+        // Nothing to pay early.
+        assertNull(dto.discountMaturity)
+        assertNull(dto.discountPercent)
+    }
+
+    @Test
+    fun `the e-invoice fields left empty are filled from the account, the ones given are kept`() {
+        val dto = Rechnung()
+        dto.customerContactPerson = "Erika Mustermann"
+        dto.customerCity = ""
+
+        OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount(dto, eInvoiceAccount(), BANK_ACCOUNTS)
+
+        // Given on the invoice, so the invoice's: it may name a different contact on purpose.
+        assertEquals("Erika Mustermann", dto.customerContactPerson)
+        assertEquals("Hauptstr. 1", dto.customerAddress)
+        assertEquals("34117", dto.customerZipCode)
+        // Blank counts as empty: that is what a cleared text box posts.
+        assertEquals("Kassel", dto.customerCity)
+        assertEquals("DE", dto.customerCountry)
+        assertEquals("DE123456789", dto.customerVatId)
+        assertEquals("04011000-12345-67", dto.customerLeitwegId)
+        assertEquals("rechnung@kundin.de", dto.customerEInvoiceEmail)
+        // The account names the bank account, the invoice stores its IBAN.
+        assertEquals("DE02120300000000202051", dto.sellerBankAccount)
+    }
+
+    @Test
+    fun `a bank account name the configuration doesn't name exactly once fills no IBAN`() {
+        val ambiguous = BANK_ACCOUNTS + BankAccountConfig().also {
+            it.name = "Commerzbank"
+            it.iban = "DE89370400440532013000"
+        }
+        Rechnung().also { dto ->
+            OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount(dto, eInvoiceAccount(), ambiguous)
+            assertNull(dto.sellerBankAccount, "Of two accounts of the same name either guess could be wrong.")
+        }
+        Rechnung().also { dto ->
+            val account = eInvoiceAccount().also { it.sellerBankAccountName = "Sparkasse" }
+            OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount(dto, account, BANK_ACCOUNTS)
+            assertNull(dto.sellerBankAccount)
+        }
+        Rechnung().also { dto ->
+            dto.sellerBankAccount = "DE89370400440532013000"
+            OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount(dto, eInvoiceAccount(), BANK_ACCOUNTS)
+            assertEquals("DE89370400440532013000", dto.sellerBankAccount, "A chosen bank account is kept.")
+        }
+    }
+
+    private fun eInvoiceAccount() = KontoDO().also {
+        it.contactPerson = "Max Mustermann"
+        it.street = "Hauptstr. 1"
+        it.zipCode = "34117"
+        it.city = "Kassel"
+        it.country = "DE"
+        it.vatId = "DE123456789"
+        it.leitwegId = "04011000-12345-67"
+        it.eInvoiceEmail = "rechnung@kundin.de"
+        it.sellerBankAccountName = "Commerzbank"
+    }
+
+    @Test
+    fun `the reference to the original is written back by id`() {
+        val dto = Rechnung()
+        dto.originalInvoice = Rechnung.InvoiceRef(id = 42L, nummer = 16956)
+        val dest = RechnungDO()
+
+        dto.copyTo(dest)
+
+        assertEquals(42L, dest.originalRechnung?.id)
+    }
+
     /**
      * The invoice of [createInvoice] as the clone endpoint answers it: paid, overdue, with an attachment —
      * i.e. carrying everything a clone has to drop.
@@ -387,5 +480,16 @@ class RechnungDtoTest : AbstractTestBase() {
     companion object {
         /** Passed in rather than read from the clock, so the derived dates are assertable at all. */
         private val TODAY = LocalDate.of(2026, 6, 15)
+
+        private val BANK_ACCOUNTS = listOf(
+            BankAccountConfig().also {
+                it.name = "Commerzbank"
+                it.iban = "DE02120300000000202051"
+            },
+            BankAccountConfig().also {
+                it.name = "Deutsche Bank"
+                it.iban = "DE02500105170137075030"
+            },
+        )
     }
 }

@@ -58,8 +58,12 @@ internal class ForecastExportInvoices { // open needed by Wicket.
     internal fun fillInvoices(ctx: ForecastExportContext) {
         val firstMonthCol = ctx.invoicesSheet.getColumnDef(ForecastExportContext.MonthCol.MONTH1.header)!!.columnNumber
         for (invoice in ctx.invoices) {
-            if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT) {
-                continue // Ignoriere stornierte oder geplante Rechnungen.
+            if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT ||
+                invoice.typ == RechnungTyp.CANCELLATION
+            ) {
+                // Ignore planned and cancelled invoices, and cancellations: the latter would otherwise count
+                // negatively against an original that is ignored as STORNIERT already.
+                continue
             }
             // Resolve the lazy kunde/projekt proxies from the caches once per invoice (avoids an n+1: reading
             // invoice.kundeAsString below would otherwise trigger one SELECT on T_FIBU_KUNDE per invoice). The
@@ -244,6 +248,13 @@ internal class ForecastExportInvoices { // open needed by Wicket.
             ctx.currencyCellStyle
         sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle =
             ctx.currencyCellStyle
+        val chartKind = when (sheet) {
+            ctx.invoicesSheet -> ForecastChartTotals.InvoiceKind.IST
+            ctx.planningInvoicesSheet -> ForecastChartTotals.InvoiceKind.PLANNING
+            ctx.invoicesPrevYearSheet -> ForecastChartTotals.InvoiceKind.PREV_YEAR
+            else -> ForecastChartTotals.InvoiceKind.PREV_PREV_YEAR
+        }
+        ctx.chartTotals.addInvoice(chartKind, projectId ?: ForecastExportContext.PROJECT_ID_NONE, monthIndex, pos.netSum)
 
     }
 

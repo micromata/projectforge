@@ -5,7 +5,7 @@ import type { InvoiceStatistics } from "@/components/shared/invoice/invoice-stat
 import { AccountField } from "./edit/account-field";
 import { KreditorField } from "./edit/kreditor-field";
 import { CreditorInvoiceEditBanner } from "./edit/creditor-invoice-edit-banner";
-import { PaymentFields } from "./edit/payment-fields";
+import { PaymentTermsFields } from "@/components/shared/invoice/payment-terms-fields";
 import { PositionsSection } from "./edit/positions-section";
 import { CreditorInvoiceListActions } from "./creditor-invoice-list-actions";
 import { CreditorInvoiceTransferButton } from "./creditor-invoice-transfer-button";
@@ -196,7 +196,9 @@ export const CREDITOR_INVOICE_PAGE = definePage<
     sections: [
       {
         id: "head",
-        titleKey: "fibu.rechnung",
+        // `._`: the key is a text of its own and the parent of `fibu.eingangsrechnung.*`.
+        titleKey: "fibu.eingangsrechnung._",
+        highlighted: true,
         fields: [
           { name: "datum" },
           // Highlighted like the list's subject column, so both set the same focus.
@@ -214,22 +216,36 @@ export const CREDITOR_INVOICE_PAGE = definePage<
         ],
       },
       {
+        // Second, right below the head: what is worth knowing about the invoice is read before its
+        // terms and positions. The two texts side by side, as one group across the grid — two equal
+        // halves, which the three columns cannot give.
+        id: "notes",
+        titleKey: "comment",
+        fields: [
+          {
+            group: [
+              { name: "bemerkung", rows: 3 },
+              { name: "besonderheiten", rows: 3 },
+            ],
+            span: 3,
+          },
+        ],
+      },
+      {
         id: "payment",
         titleKey: "fibu.rechnung.paymentTerms",
-        render: ({ id }) => <PaymentFields id={id} />,
+        render: ({ id }) => (
+          <PaymentTermsFields
+            id={id}
+            metadata={EINGANGSRECHNUNG_METADATA}
+            sumsEntity="incomingInvoice"
+          />
+        ),
       },
       {
         id: "positions",
         titleKey: "fibu.rechnung.positions",
         render: ({ id }) => <PositionsSection id={id} />,
-      },
-      {
-        id: "notes",
-        titleKey: "comment",
-        fields: [
-          { name: "bemerkung", rows: 3, span: 3 },
-          { name: "besonderheiten", rows: 3, span: 3 },
-        ],
       },
     ],
     editBanner: CreditorInvoiceEditBanner,

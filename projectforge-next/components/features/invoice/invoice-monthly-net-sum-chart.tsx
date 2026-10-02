@@ -3,22 +3,21 @@
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useTranslations } from "next-intl";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart";
+import { ChartContainer, ChartLegend } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
+import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency } from "@/lib/format";
 import { niceScale } from "@/lib/chart-scale";
-import { buildChartConfig, CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
+import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { InvoiceNetSumChartData } from "@/lib/rs/invoice";
 import {
+  buildInvoiceChartConfig,
   formatChartMonth,
   monthlyRows,
   seriesKeys,
   spansMultipleYears,
+  yearDashArray,
 } from "./invoice-net-sum-series";
 
 /**
@@ -33,7 +32,7 @@ export function InvoiceMonthlyNetSumChart({
 }) {
   const t = useTranslations("fibu.rechnung.chart");
   const ctx = useFormatContext();
-  const config = useMemo(() => buildChartConfig(data.series), [data]);
+  const config = useMemo(() => buildInvoiceChartConfig(data), [data]);
   const rows = useMemo(() => monthlyRows(data), [data]);
   const keys = useMemo(() => seriesKeys(data), [data]);
   const showYear = spansMultipleYears(data);
@@ -77,13 +76,17 @@ export function InvoiceMonthlyNetSumChart({
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatChartMonth(label, ctx, showYear)}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend
+          content={<SeriesLegendContent config={config} reversed />}
+        />
         {keys.map((key) => (
           <Bar
             key={key}
             dataKey={key}
             stroke={`var(--color-${key})`}
             strokeWidth={1.5}
+            strokeDasharray={yearDashArray(key)}
+            legendType="line"
             fill={`var(--color-${key})`}
             fillOpacity={CHART_BAR_FILL_OPACITY}
             isAnimationActive={false}

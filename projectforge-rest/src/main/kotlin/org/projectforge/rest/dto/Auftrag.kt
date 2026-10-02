@@ -71,8 +71,23 @@ class Auftrag(
     var beauftragtNettoSumme: BigDecimal? = null,
     var fakturiertSum: BigDecimal? = null,
     var zuFakturierenSum: BigDecimal? = null,
-    /** True when at least one position or payment schedule is due to be invoiced — used for list row highlighting. */
+    /**
+     * Amount not invoiced, although positions or payment schedules are marked as fully invoiced (see
+     * [OrderInfo.fehlbetrag]); null if none.
+     */
+    var fehlbetrag: BigDecimal? = null,
+    /**
+     * True when at least one position or payment schedule is due to be invoiced until the end of the current month
+     * (see [OrderInfo.toBeInvoicedDue]) — used for list row highlighting.
+     */
     var toBeInvoiced: Boolean? = null,
+    /**
+     * The earliest date of the reached payment schedules not yet invoiced (see [OrderInfo.nextInvoiceDate]),
+     * given only if anything is to be invoiced, the future included.
+     */
+    var nextInvoiceDate: LocalDate? = null,
+    /** True if an invoice is to be written right now, e.g. for a finished position (see [OrderInfo.toBeInvoicedImmediately]). */
+    var toBeInvoicedImmediately: Boolean? = null,
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
     var probabilityOfOccurrence: Int? = null,
@@ -164,7 +179,10 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
-        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
+        fehlbetrag = orderInfo.fehlbetrag
+        toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
+        nextInvoiceDate = orderInfo.nextInvoiceDate
+        toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
         formattedNettoSumme = NumberFormatter.formatCurrency(orderInfo.netSum)
         formattedBeauftragtNettoSumme = NumberFormatter.formatCurrency(orderInfo.commissionedNetSum)
         formattedFakturiertSum = NumberFormatter.formatCurrency(orderInfo.invoicedSum)
@@ -223,12 +241,18 @@ class Auftrag(
         // `KundeFormatter` does it for the Wicket list.
         // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
         customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        // Set only for a free text customer, so the list can mark the name as typed rather than a customer record.
+        kundeText = if (src.kunde == null) src.kundeText else null
         project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         erfassungsDatum = src.erfassungsDatum
         entscheidungsDatum = src.entscheidungsDatum
         periodOfPerformanceBegin = src.periodOfPerformanceBegin
         periodOfPerformanceEnd = src.periodOfPerformanceEnd
-        probabilityOfOccurrence = src.probabilityOfOccurrence
+        // Left out for a commissioned order: the value entered during acquisition is stale, and 100 % would be
+        // wrong too, as positions still potential/optional keep the entered probability (see
+        // [ForecastUtils.getProbabilityOfAccurence]). The edit form keeps the entered value (see [copyFrom]).
+        probabilityOfOccurrence =
+            if (src.status == AuftragsStatus.BEAUFTRAGT) null else src.probabilityOfOccurrence
         assignedPersons = src.assignedPersons
         attachmentsCounter = src.attachmentsCounter
         attachmentsSize = src.attachmentsSize
@@ -238,7 +262,10 @@ class Auftrag(
         beauftragtNettoSumme = orderInfo.commissionedNetSum
         fakturiertSum = orderInfo.invoicedSum
         zuFakturierenSum = orderInfo.notYetInvoicedSum
-        toBeInvoiced = if (orderInfo.toBeInvoiced) true else null
+        fehlbetrag = orderInfo.fehlbetrag
+        toBeInvoiced = if (orderInfo.toBeInvoicedDue) true else null
+        nextInvoiceDate = orderInfo.nextInvoiceDate
+        toBeInvoicedImmediately = if (orderInfo.toBeInvoicedImmediately) true else null
         pos = "#" + (orderInfo.infoPositions?.count { !it.deleted } ?: 0)
     }
 
@@ -260,9 +287,12 @@ class Auftrag(
         }?.toMutableList()
         // Matched by number, not by id: a snapshot's position infos may carry no id, and number is the
         // key of a position inside its order anyway.
-        val positionInfos = orderInfo(src).infoPositions
+        val orderInfo = orderInfo(src)
+        val positionInfos = orderInfo.infoPositions
         positionen?.forEach { position ->
-            position.notInvoicedSum = positionInfos?.find { it.number == position.number }?.notYetInvoiced
+            val positionInfo = positionInfos?.find { it.number == position.number }
+            position.notInvoicedSum = positionInfo?.notYetInvoiced
+            position.fehlbetrag = positionInfo?.let { orderInfo.getFehlbetrag(it) }
         }
     }
 

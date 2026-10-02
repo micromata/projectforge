@@ -26,7 +26,7 @@ const ROW = "tbody tr[data-row-id]";
  */
 const MIN_OVERFLOW = 60;
 
-test.describe("list page memory", () => {
+test.describe("list page memory", { tag: "@lane-book" }, () => {
   // A criterion left behind by another spec would cut the list down to a single page, and there is
   // then no page to return to. Resets what the server stores for this account, as the other list
   // specs do.
@@ -162,7 +162,12 @@ function watchScrolling(page: Page): Promise<void> {
       "scroll",
       (event) => {
         const target = event.target;
-        if (!(target instanceof HTMLElement) || !target.querySelector("table"))
+        // The table's own parent only, as tableColumn() takes it: `<main>` holds the table too and
+        // scrolls as well where the window is too short for the list's header (see ListPageShell).
+        if (
+          !(target instanceof HTMLElement) ||
+          !target.querySelector(":scope > table")
+        )
           return;
         (window as unknown as Record<string, number>)[key] = target.scrollTop;
       },

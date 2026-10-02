@@ -2,7 +2,12 @@ import type { APIRequestContext } from "@playwright/test";
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
 import { listRows, waitForRows } from "./fixtures/list-table";
-import { fetchRootTaskId, MARKER, uniqueSuffix } from "./fixtures/seed";
+import {
+  fetchRootTaskId,
+  MARKER,
+  uniqueSuffix,
+  writeHeaders,
+} from "./fixtures/seed";
 import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
 
 /**
@@ -22,32 +27,44 @@ import { narrowToSeeded, resetTreeState } from "./fixtures/task-tree";
  */
 const PAGE = "/taskWizard";
 
-/** The access entries of one group, read the way the access management list reads them. */
+/**
+ * The access entries of one group, read the way the access management list reads them: a page of
+ * `POST /rs/access/listPage` — the layout-free GroupAccessEntityRest has no `initialList`. Unfiltered,
+ * as large as the table, rebuilt (`refresh`: the wizard has just written) and not remembered as the
+ * account's access filter (`doNotStore`); the group is picked from the rows.
+ */
 async function accessEntriesOf(
   request: APIRequestContext,
   groupId: number
 ): Promise<{ id: number; task?: { id?: number }; recursive?: boolean }[]> {
-  const res = await request.get("/rs/access/initialList");
+  const res = await request.post("/rs/access/listPage", {
+    headers: await writeHeaders(request),
+    data: {
+      filter: {},
+      offset: 0,
+      limit: 100_000,
+      refresh: true,
+      doNotStore: true,
+    },
+  });
   if (!res.ok()) {
     throw new Error(`Could not read the access list: HTTP ${res.status()}`);
   }
   const body = (await res.json()) as {
-    data?: {
-      resultSet?: {
-        id: number;
-        group?: { id?: number };
-        task?: { id?: number };
-        recursive?: boolean;
-        deleted?: boolean;
-      }[];
-    };
+    resultSet?: {
+      id: number;
+      group?: { id?: number };
+      task?: { id?: number };
+      recursive?: boolean;
+      deleted?: boolean;
+    }[];
   };
-  return (body.data?.resultSet ?? []).filter(
+  return (body.resultSet ?? []).filter(
     (row) => row.group?.id === groupId && row.deleted !== true
   );
 }
 
-test.describe("task wizard", () => {
+test.describe("task wizard", { tag: "@lane-task" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetTreeState(page);
   });
@@ -433,16 +450,8 @@ async function revokeAccess(
       `Could not read access entry ${id}: HTTP ${stored.status()}`
     );
   }
-  const status = await request.get("/rs/userStatus", {
-    headers: { "X-PF-Frontend": "next" },
-  });
-  const { csrfToken } = (await status.json()) as { csrfToken: string };
   const removed = await request.delete("/rs/access/markAsDeleted", {
-    headers: {
-      "X-PF-Frontend": "next",
-      "X-PF-CSRF-Token": csrfToken,
-      "Content-Type": "application/json",
-    },
+    headers: await writeHeaders(request),
     data: { data: await stored.json() },
   });
   if (!removed.ok()) {

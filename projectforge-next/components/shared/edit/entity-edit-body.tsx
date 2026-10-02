@@ -61,6 +61,7 @@ export interface EditRegions {
   tabs: EditPageTab[];
   tabPanels: Record<string, ReactNode>;
   sections: (ReactNode | ((active: boolean) => ReactNode))[];
+  aboveSections?: ReactNode;
   belowSections?: ReactNode;
   banner?: ReactNode;
   actions: ReactNode;
@@ -366,6 +367,8 @@ export function EntityEditBody<
           {edit.editBanner && <edit.editBanner />}
         </>
       ) : undefined,
+    // Above the sections: the entity's own note about the whole entry (an invoice's cancellation notice).
+    aboveSections: edit.editIntro ? <edit.editIntro /> : undefined,
     // Below the sections: the entity's own footer note (the legacy `layoutBelowActions`, e.g. a time
     // sheet's AI-savings hint) and, only where the history takes a comment and the user may write, the
     // change-comment field — a comment on a save that cannot happen is nothing to ask for (see
@@ -407,9 +410,15 @@ export function EntityEditBody<
         )}
         // Wherever the entity declares a conversion — the backend adds its switch button to the layout
         // unconditionally too (TimesheetPagesRest/TeamEventPagesRest.createEditLayout), and it acts on
-        // the form's values, so it needs no stored entry.
-        showConvert={Boolean(edit.convert)}
+        // the form's values, so it needs no stored entry. A conversion only some entries allow says so
+        // through its `visible` predicate (EditConvert.visible).
+        showConvert={Boolean(
+          edit.convert && (edit.convert.visible?.(data) ?? true)
+        )}
         convertLabel={edit.convert ? t(edit.convert.labelKey) : ""}
+        convertTooltip={
+          edit.convert?.tooltipKey ? t(edit.convert.tooltipKey) : undefined
+        }
         onClone={runClone}
         onDelete={runDelete}
         onForceDelete={runForceDelete}
@@ -452,6 +461,10 @@ export function EntityEditBody<
     >
       <form
         ref={formRef}
+        // The schema validates, not the browser: a control carrying a native `required` (SuggestInput,
+        // DateInput) would otherwise stop the submit with the browser's own bubble, in the browser's
+        // language, before the form's messages are ever shown.
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
           void form.handleSubmit();

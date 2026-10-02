@@ -107,14 +107,12 @@ export function locales(): (keyof typeof MESSAGES)[] {
 }
 
 async function fetchUserData(page: Page): Promise<UserData> {
-  const status = await page.evaluate<UserStatus>(async () => {
-    const response = await fetch("/rs/userStatus", {
-      credentials: "include",
-      headers: { "X-PF-Frontend": "next" },
-    });
-    return response.json();
+  // Through the context's request API rather than a fetch inside the page: it shares the cookies, and
+  // does not need the page to be on the app's origin yet (`loggedInPage` starts out blank).
+  const response = await page.request.get("/rs/userStatus", {
+    headers: { "X-PF-Frontend": "next" },
   });
-  return status.userData;
+  return ((await response.json()) as UserStatus).userData;
 }
 
 /**
@@ -126,15 +124,12 @@ async function fetchCustomerOverrides(
   page: Page,
   locale: string
 ): Promise<Record<string, string>> {
-  return page.evaluate<Record<string, string>, string>(async (loc) => {
-    try {
-      const response = await fetch(
-        `/rsPublic/i18nCustomerOverrides?locale=${encodeURIComponent(loc)}`,
-        { credentials: "include" }
-      );
-      return response.ok ? await response.json() : {};
-    } catch {
-      return {};
-    }
-  }, locale);
+  try {
+    const response = await page.request.get(
+      `/rsPublic/i18nCustomerOverrides?locale=${encodeURIComponent(locale)}`
+    );
+    return response.ok() ? await response.json() : {};
+  } catch {
+    return {};
+  }
 }

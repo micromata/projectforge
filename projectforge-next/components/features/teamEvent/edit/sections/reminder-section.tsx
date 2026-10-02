@@ -3,13 +3,8 @@
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { cn } from "@/lib/utils";

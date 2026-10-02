@@ -77,8 +77,6 @@ public class WebConstants
 
   public static final String IMAGE_KOST2_UNSELECT = DIR + "coins_delete.png";
 
-  public static final String IMAGE_KUNDE_SELECT = DIR + "button_selectCustomer.png";
-
   public static final String IMAGE_KUNDE_UNSELECT = DIR + "button_unselectCustomer.png";
 
   public static final String IMAGE_PHONE = DIR + "telephone.png";

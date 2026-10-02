@@ -81,6 +81,8 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
   protected void init()
   {
     super.init();
+    // Number and customer are fixed once the project has cost 2 units, see ProjektDao.onUpdate.
+    final boolean numberLocked = !isNew() && WicketSupport.get(ProjektDao.class).isNumberLocked(getData().getId());
     gridBuilder.newGridPanel();
     {
       // Number
@@ -98,8 +100,12 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
         }
       };
       WicketUtils.setSize(field, 2);
+      field.setEnabled(!numberLocked);
       dependentFormComponents[0] = field;
       fs.add(field);
+      if (numberLocked) {
+        fs.addHelpIcon(getString(ProjektDao.NUMBER_LOCKED_I18N_KEY));
+      }
     }
     {
       // Customer
@@ -109,6 +115,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       dependentFormComponents[1] = kundeSelectPanel;
       fs.add(kundeSelectPanel);
       kundeSelectPanel.init();
+      kundeSelectPanel.setEnabled(!numberLocked);
     }
     {
       // Internal cost (digit 2-4)
@@ -127,6 +134,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
         }
       };
       WicketUtils.setSize(field, 3);
+      field.setEnabled(!numberLocked);
       fs.add(field);
       fs.add(new DivTextPanel(fs.newChildId(), ".##.##"));
     }

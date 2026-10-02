@@ -2,6 +2,7 @@ import { attachmentsColumn } from "@/components/shared/attachments/attachments-c
 import { TERM_KIND_IDS } from "@/lib/date-period";
 import { AUFTRAG_METADATA } from "@/lib/metadata/auftrag.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { FreeTextNameCell } from "@/components/shared/free-text-name-cell";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
 import { AttachmentSection } from "./edit/attachment-section";
@@ -17,6 +18,8 @@ import {
   ORDER_ARRAY_FIELDS,
   type OrderValues,
 } from "./order-schema";
+import { NextInvoiceCell } from "./next-invoice-cell";
+import { OrderGearMenuActions } from "./order-gear-menu-actions";
 import { OrderListActions } from "./order-list-actions";
 import { OrderStatisticsLine } from "./order-statistics-line";
 import type { OrderStatistics } from "./order-statistics";
@@ -87,6 +90,14 @@ export const ORDER_PAGE = definePage<
       id: "kunde.displayName",
       labelKey: "fibu.kunde._",
       accessor: (row) => row.customer?.displayName ?? "",
+      // A free text customer is marked as such, the way the edit form marks it (EntityOrTextField).
+      cell: (ctx) => (
+        <FreeTextNameCell
+          name={ctx.row.original.customer?.displayName}
+          freeText={!!ctx.row.original.kundeText}
+          highlight={ctx.table.options.meta?.highlight}
+        />
+      ),
       referenceKey: "customer",
       size: 160,
       pinned: "left",
@@ -142,6 +153,29 @@ export const ORDER_PAGE = definePage<
       accessor: (row) => row.zuFakturierenSum ?? null,
       dataType: "AMOUNT",
       size: 120,
+    },
+    // Not invoiced, although marked as fully invoiced — e.g. an invoice was cancelled afterwards. Nothing else
+    // shows this amount as to be invoiced, so it is shown by default (with the matching "fakturiert" filter it is
+    // the list to work through). Sorted by the backend (OrderEntityRest.COMPUTED_SORT_PROPERTIES).
+    {
+      id: "fehlbetrag",
+      labelKey: "fibu.auftrag.position.fehlbetrag._",
+      accessor: (row) => row.fehlbetrag ?? null,
+      dataType: "AMOUNT",
+      size: 120,
+      className: "font-bold text-destructive",
+    },
+    // When the next invoice is to be written: right now for a finished position, otherwise the date of the
+    // earliest reached payment schedule. Sorted by the backend (immediately due first, see
+    // OrderEntityRest.COMPUTED_SORT_PROPERTIES) and filtered by its own date pill (AuftragNextInvoiceDateFilter),
+    // so no header filter over the rendered text.
+    {
+      id: "nextInvoiceDate",
+      labelKey: "fibu.auftrag.nextInvoice._",
+      accessor: (row) => row.nextInvoiceDate ?? null,
+      size: 120,
+      filterKind: null,
+      cell: ({ row }) => <NextInvoiceCell row={row.original} />,
     },
     { name: "probabilityOfOccurrence", size: 80 },
     // The one value a reader looks for first — where the order stands.
@@ -225,6 +259,7 @@ export const ORDER_PAGE = definePage<
     />
   ),
   listActions: OrderListActions,
+  gearMenuActions: OrderGearMenuActions,
   edit: {
     schema: orderSchema,
     fieldNames: ORDER_FIELDS,
@@ -243,32 +278,25 @@ export const ORDER_PAGE = definePage<
         id: "head",
         // The bare key of a namespace with children, hence `._` — see categoryKey above.
         titleKey: "fibu.auftrag._",
+        highlighted: true,
+        // The order itself on the left: number, status, title and the dates of its progress. Four
+        // columns rather than two, so the line of three dates shares its vertical lines with the rows
+        // above and below it — number, entry date and period flush on the first, offer date and
+        // decision on the second, status, deadline and forecast type on the third (see mainColumns).
+        mainColumns: 4,
         fields: [
-          // The number and the date of the offer in one cell of the three columns: neither needs a
-          // third of the page, and a cell of their own would push the forecast type into the next row.
-          {
-            group: [
-              // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never
-              // changed afterwards — but shown, because it is how an order is referred to in every
-              // conversation.
-              { name: "nummer", readOnly: true, maxDigits: 6 },
-              { name: "angebotsDatum" },
-            ],
-          },
-          { name: "status", emphasized: true },
-          { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
+          // Assigned by the backend on the first save (`AuftragDao.getNextNumber`), and never changed
+          // afterwards — but shown, because it is how an order is referred to in every conversation.
+          { name: "nummer", readOnly: true, maxDigits: 6 },
+          { name: "angebotsDatum" },
+          { name: "status", span: 2, emphasized: true },
           // Highlighted like the list's title column, so both set the same focus.
-          { name: "titel", span: 2, emphasized: true },
-          { name: "referenz", jiraHint: true },
-          // A full-width row of its own, so it sits below the title/reference line rather than in a
-          // lonely grid cell beside it (see makeJiraFieldLinks).
-          { custom: ReferenzJiraLinks, span: 3 },
-          { custom: CustomerProjectFields, span: 3 },
-          // The three dates of the order's own progress — when it was entered, when it was decided, when
-          // it was assigned — as one line, which is how a reader compares them.
+          { name: "titel", span: 4, emphasized: true },
+          // When the order was entered, when it was decided and how long the offer binds, as one line.
+          // The date it was assigned is read with the customer's side of it, in the column on the right.
           { name: "erfassungsDatum" },
           { name: "entscheidungsDatum" },
-          { name: "beauftragungsDatum" },
+          { name: "bindungsFrist" },
           {
             // One label, two dates — the way it reads on the paper the order came from. And the way it
             // is usually agreed on: a term from a start date, so the end can be picked instead of
@@ -278,11 +306,23 @@ export const ORDER_PAGE = definePage<
             end: "periodOfPerformanceEnd",
             periodKinds: TERM_KIND_IDS,
             paging: true,
+            span: 2,
             startsRow: true,
           },
-          { name: "bindungsFrist" },
+          // Beside the period: how the order enters the forecast and how likely it is.
+          { name: "forecastType", hintKey: "fibu.auftrag.forecastType.info" },
           // 0 to 100, so three digits are the most it ever shows.
           { name: "probabilityOfOccurrence", maxDigits: 3 },
+        ],
+        // The customer's side of the order as one block on the right, which stays together however
+        // narrow the page gets (see SectionDef.aside): who it is for, their reference and when they
+        // assigned it.
+        aside: [
+          { custom: CustomerProjectFields },
+          // Highlighted like the title: it is what the customer calls the order.
+          { name: "referenz", jiraHint: true, emphasized: true },
+          { custom: ReferenzJiraLinks },
+          { name: "beauftragungsDatum" },
         ],
       },
       {

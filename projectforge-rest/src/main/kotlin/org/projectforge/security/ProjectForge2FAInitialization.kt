@@ -71,6 +71,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // LuceneConsole, GroovyConsole, SQLConsole:
       "/wa/wicket/bookmarkable/org.projectforge.web.admin"
     )
+    // The migrated System page (SystemRest, /rs/system), successor of Wicket's /wa/admin, and the migrated Plugins
+    // page (PluginAdminRest, /rs/pluginList), successor of Wicket's org.projectforge.web.admin.PluginListPage: both
+    // legacy pages are gated by ADMIN_WRITE as a whole (see above). Their next pages are static files served by a
+    // resource handler, so only their rest calls are left to gate, and the whole path keeps the write period.
+    registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
     registerShortCutValues(
       My2FAShortCut.ADMIN,
       "/wa/user;/wa/group;/wa/admin",
@@ -89,6 +94,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // behind the org.projectforge.web.admin admin 2FA prefix, so its successor keeps the admin second factor here.
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
+      // The migrated System page (/wa/admin, see ADMIN_WRITE above):
+      SystemRest::class.java,
     )
 
     registerShortCutValues(
@@ -118,7 +125,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       // a second factor before Wicket's form, but no longer before the migrated one.
       // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
       // dao ("auftrag"): the write access of Wicket's own form is gated by the url below, not by this entry.
-      "WRITE:order;WRITE:cost1;WRITE:cost2;WRITE:customer;",
+      "WRITE:order;WRITE:account;WRITE:cost1;WRITE:cost2;WRITE:cost2Type;WRITE:customer;",
       "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
       "/wa/projectEdit;/wa/orderBookEdit"
     )
@@ -135,11 +142,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       EmployeeSalaryEntityRest::class.java,
       Kost1EntityRest::class.java,
       Kost2EntityRest::class.java,
-      KontoPagesRest::class.java,
+      KontoEntityRest::class.java,
       IncomingInvoiceEntityRest::class.java,
       OutgoingInvoiceEntityRest::class.java,
       CustomerPagesRest::class.java,
-      ProjectPagesRest::class.java,
+      ProjectEntityRest::class.java, ProjectMultiSelectedPageRest::class.java,
       OrderEntityRest::class.java,
       EingangsrechnungMultiSelectedPageRest::class.java,
       RechnungMultiSelectedPageRest::class.java,

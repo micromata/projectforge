@@ -33,12 +33,7 @@ class AuftragsPositionsPaymentTypeFilter(val values: List<AuftragsPositionsPayme
         if (values.isEmpty()) {
             return true
         }
-        element.positionenExcludingDeleted.forEach { pos ->
-            if (values.contains(pos.paymentType)) {
-                return true
-            }
-        }
-        return false
+        return AuftragsCache.instance.anyPositionMatches(element) { _, _, paymentType -> values.contains(paymentType) }
     }
 
     companion object {

@@ -23,6 +23,8 @@
 
 package org.projectforge.rest.dto
 
+import java.math.BigDecimal
+
 /**
  * The next-facing DTO of a monthly employee report ("Monatsbericht"), the successor of Wicket's
  * `MonthlyEmployeeReportPage`. It carries the already-computed and already-formatted report so the next
@@ -77,10 +79,22 @@ class MonthlyEmployeeReportData(
     val vacationAvailable: Boolean,
     val vacationCount: String?,
     val vacationPlannedCount: String?,
-    /** Fakturaquote (invoicing quota), formatted as a percentage, or null if not enabled. */
+    /**
+     * Whether the invoicing quota is enabled by configuration and the logged-in user may see it for this report's
+     * user (own report, or member of a configured group); drives showing the user's switch.
+     */
+    val invoicingQuotaAvailable: Boolean,
+    /** The user's choice whether to see the invoicing quota (persisted, default off). */
+    val showInvoicingQuota: Boolean,
+    /** Fakturaquote (invoicing quota), formatted as a percentage, or null if not enabled or not shown. */
     val invoicingQuota: String?,
     /** Localized tooltip explaining how [invoicingQuota] was computed, or null. */
     val invoicingQuotaTooltip: String?,
+    /**
+     * Configured explanation why the invoicing quota is shown and why it matters (markdown), or null. Sent whenever
+     * [invoicingQuotaAvailable] (not only while shown), as it also explains the user's switch.
+     */
+    val invoicingQuotaInfo: String?,
     /** Drill-down window: first day of the month as `yyyy-MM-dd` (the timesheet-list period seed). */
     val startDate: String,
     /** Drill-down window: last day of the month as `yyyy-MM-dd`. */
@@ -142,4 +156,21 @@ class MonthlyEmployeeReportCell(
     val factor: String? = null,
     /** True when the reduction involves the shared-cost overlap split (not only the working time fraction). */
     val sharedCosts: Boolean = false,
+)
+
+/** The invoicing quota of the last months, oldest first (the chart tab of the monthly report). */
+class InvoicingQuotaHistory(
+    val months: List<InvoicingQuotaHistoryMonth>,
+)
+
+/** The invoicing quota of one month. */
+class InvoicingQuotaHistoryMonth(
+    /** The month as `yyyy-MM`. */
+    val month: String,
+    /** The quota as fraction (0..1), or null if the month has no (non-ignored) work time. */
+    val quota: BigDecimal?,
+    /** Billed work time in hours (formatted), or null together with [quota]. */
+    val billedHours: String?,
+    /** Non-ignored work time in hours (formatted), or null together with [quota]. */
+    val totalHours: String?,
 )

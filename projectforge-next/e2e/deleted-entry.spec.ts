@@ -34,7 +34,7 @@ async function isDeleted(
   return stored.deleted === true;
 }
 
-test.describe("a deleted entry", () => {
+test.describe("a deleted entry", { tag: "@lane-book" }, () => {
   // Serial: every case works on the same book and puts it back into the deleted state it expects.
   test.describe.configure({ mode: "serial" });
 

@@ -4,10 +4,10 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
   ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
+import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatDate, formatNumber } from "@/lib/format";
 import { CHART_AREA_FILL_OPACITY } from "@/lib/charts/roles";
@@ -79,7 +79,7 @@ export function DisciplineChart({
           formatValue={(value) => formatNumber(value, ctx, fractionDigits)}
           formatLabel={(label) => formatDate(label, ctx)}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<SeriesLegendContent config={config} />} />
         {series.map((s) => (
           <Area
             key={s.key}
@@ -88,6 +88,7 @@ export function DisciplineChart({
             stroke={`var(--color-${s.key})`}
             fill={`var(--color-${s.key})`}
             fillOpacity={CHART_AREA_FILL_OPACITY}
+            legendType="rect"
             strokeWidth={2}
             dot={false}
             isAnimationActive={false}

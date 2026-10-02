@@ -96,11 +96,8 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
             }
         }
         synchronized(invoiceInfoMap) {
-            rechnungInfo.positions?.forEach { posInfo ->
-                invoicePosInfoMap[invoice.id!!] = posInfo
-            }
+            updatePositions(rechnungInfo)
         }
-
     }
 
     fun update(invoice: EingangsrechnungDO) {

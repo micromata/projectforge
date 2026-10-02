@@ -32,6 +32,8 @@ export interface TaskSelectControlProps {
   openTreeOnAncestorClick?: boolean;
   /** Open the tree focused on the given node — the drill-down [openTreeOnAncestorClick] triggers (see [TaskPath]). */
   onDrillDown?: (task: TaskNode) => void;
+  /** Make the task segment of the path a link to its time sheets — see [TaskPath]. */
+  linkCurrentToTimesheets?: boolean;
 }
 
 /**
@@ -51,6 +53,7 @@ export function TaskSelectControl({
   onSelect,
   openTreeOnAncestorClick,
   onDrillDown,
+  linkCurrentToTimesheets,
 }: TaskSelectControlProps) {
   const t = useTranslations();
   const { recordTask } = useRecentTasks();
@@ -85,6 +88,7 @@ export function TaskSelectControl({
           onOpen={onOpen}
           openTreeOnAncestorClick={openTreeOnAncestorClick}
           onDrillDown={onDrillDown}
+          linkCurrentToTimesheets={linkCurrentToTimesheets}
           disabled={disabled}
         />
       </div>

@@ -6,13 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { FieldHint } from "@/components/shared/form/field-hint";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SuggestInput } from "@/components/shared/suggest-input";
 import { SectionCard } from "@/components/shared/section-card";
@@ -22,6 +17,7 @@ import { placeCall } from "@/lib/rs/phone-call";
 import { PhoneCallAddressPanel } from "./phone-call-address-panel";
 import { useAddressSelection } from "./use-address-selection";
 import type { PhoneCallInitialData } from "./types";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * The number + "my phone" / "my caller id" form, seeded once from the server's [initial] data. Plain
@@ -102,11 +98,11 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
           <Field>
             <div className="flex items-start gap-1">
               <FieldLabel htmlFor="phone-call-my-phone">
-                {t("address.myCurrentPhoneId")}
+                {t(leafKeyOf("address.myCurrentPhoneId", t.has))}
               </FieldLabel>
               <FieldHint
                 hint={t("address.myCurrentPhoneId.tooltip.content")}
-                label={t("address.myCurrentPhoneId")}
+                label={t(leafKeyOf("address.myCurrentPhoneId", t.has))}
               />
             </div>
             <Select value={myPhoneId} onValueChange={setMyPhoneId}>
@@ -127,11 +123,11 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
           <Field>
             <div className="flex items-start gap-1">
               <FieldLabel htmlFor="phone-call-caller-id">
-                {t("address.myCurrentCallerId")}
+                {t(leafKeyOf("address.myCurrentCallerId", t.has))}
               </FieldLabel>
               <FieldHint
                 hint={t("address.myCurrentCallerId.tooltip.content")}
-                label={t("address.myCurrentCallerId")}
+                label={t(leafKeyOf("address.myCurrentCallerId", t.has))}
               />
             </div>
             <Select value={myCallerId} onValueChange={setMyCallerId}>

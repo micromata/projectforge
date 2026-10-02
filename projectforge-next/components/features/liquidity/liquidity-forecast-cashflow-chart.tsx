@@ -13,19 +13,21 @@ import { useTranslations } from "next-intl";
 import {
   ChartContainer,
   ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { ChartValueTooltip } from "@/components/shared/chart/chart-value-tooltip";
+import { SeriesLegendContent } from "@/components/shared/chart/series-legend-content";
 import { useFormatContext } from "@/hooks/use-format";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { niceDateTicks, niceScale } from "@/lib/chart-scale";
 import { CHART_ROLE } from "@/lib/charts/roles";
+import { CHART_BAR_FILL_OPACITY } from "@/lib/charts/series";
 import type { LiquidityForecastDay } from "@/lib/rs/liquidity";
 
 /**
  * The per-day expected cash flow — the successor of the Wicket `LiquidityChartBuilder` bar chart. Each day's
- * expected credit (money coming in, negative) and expected debit (money going out, positive) as bars, with
+ * expected credit (money going out, negative, "Soll") in red and expected debit (money coming in, positive,
+ * "Haben") in green as bars, with
  * the expected running balance overlaid as a line. As with the balance chart, no paranoia-case series.
  */
 export function LiquidityForecastCashflowChart({
@@ -36,8 +38,8 @@ export function LiquidityForecastCashflowChart({
   const t = useTranslations("plugins.liquidityplanning");
   const ctx = useFormatContext();
   const config: ChartConfig = {
-    creditExpected: { label: t("common.credit"), color: CHART_ROLE.positive },
-    debitExpected: { label: t("common.debit"), color: CHART_ROLE.negative },
+    creditExpected: { label: t("common.credit"), color: CHART_ROLE.negative },
+    debitExpected: { label: t("common.debit"), color: CHART_ROLE.positive },
     expectedBalance: {
       label: t("forecast.expected"),
       color: CHART_ROLE.neutral,
@@ -100,15 +102,21 @@ export function LiquidityForecastCashflowChart({
           formatValue={(value) => formatCurrency(value, ctx, 0)}
           formatLabel={(label) => formatDate(label, ctx)}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<SeriesLegendContent config={config} />} />
         <Bar
           dataKey="creditExpected"
+          stroke="var(--color-creditExpected)"
+          strokeWidth={1.5}
           fill="var(--color-creditExpected)"
+          fillOpacity={CHART_BAR_FILL_OPACITY}
           isAnimationActive={false}
         />
         <Bar
           dataKey="debitExpected"
+          stroke="var(--color-debitExpected)"
+          strokeWidth={1.5}
           fill="var(--color-debitExpected)"
+          fillOpacity={CHART_BAR_FILL_OPACITY}
           isAnimationActive={false}
         />
         <Line

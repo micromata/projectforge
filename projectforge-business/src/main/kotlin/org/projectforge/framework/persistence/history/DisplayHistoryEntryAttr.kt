@@ -36,6 +36,32 @@ class DisplayHistoryEntryAttr {
     var oldValue: String? = null
     var newValue: String? = null
 
+    /**
+     * The entries removed from a list property (user/group id lists or entity collections), so clients are able to
+     * show only the removed and added entries instead of the whole lists. Null, if the property isn't a list.
+     * @see setListValues
+     */
+    var removedValues: List<String>? = null
+
+    /**
+     * The entries added to a list property. See [removedValues].
+     */
+    var addedValues: List<String>? = null
+
+    /**
+     * Sets [removedValues] and [addedValues] as the difference of the given old and new entries of a list property.
+     * Leaves both null, if there is no difference (e.g. only the order changed).
+     */
+    fun setListValues(oldValues: List<String>, newValues: List<String>) {
+        val removed = oldValues.filter { it !in newValues }
+        val added = newValues.filter { it !in oldValues }
+        if (removed.isEmpty() && added.isEmpty()) {
+            return
+        }
+        removedValues = removed
+        addedValues = added
+    }
+
     companion object {
         fun create(attr: HistoryEntryAttrDO, context: HistoryLoadContext): DisplayHistoryEntryAttr {
             val entry = context.requiredHistoryEntry

@@ -3,13 +3,8 @@
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { DateInput } from "@/components/shared/date-input";
 import type { EndMode, RecurrenceModel } from "../recurrence-model";
 

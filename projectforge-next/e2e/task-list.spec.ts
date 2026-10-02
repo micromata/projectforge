@@ -31,7 +31,7 @@ const PAGE = "/task";
 /** The three flags `TaskPagesRest.addVariablesForListPage` answers, keyed as the declarations read them. */
 type ListVariables = Record<string, unknown>;
 
-test.describe("task list", () => {
+test.describe("task list", { tag: "@lane-task" }, () => {
   let seeded: SeededTask;
   let variables: ListVariables;
 

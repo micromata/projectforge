@@ -4,11 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
 import { CollapsedOnly } from "@/components/shared/collapsed-only";
 import { SectionCard } from "@/components/shared/section-card";
 import { SectionHeader } from "@/components/shared/section-header";
@@ -16,13 +13,13 @@ import { leafKeyOf } from "@/lib/leaf-key";
 import { cn } from "@/lib/utils";
 import type { EntityMetadata } from "@/lib/metadata/types";
 import type { SectionDef } from "@/lib/page-def/types";
-import { DeclaredFormField, fieldKey } from "./declared-form-field";
+import { DeclaredSectionFields } from "./declared-section-fields";
 
 /**
  * One card of the edit page, rendered from its declaration: order, grouping, width and label.
  *
- * Which component each field gets is [DeclaredFormField]'s decision; this is only the card and the
- * three-column grid its fields sit in.
+ * Which component each field gets is [DeclaredFormField]'s decision, the grid they sit in
+ * [DeclaredSectionFields]'; this is only the card.
  */
 export function DeclaredSection<M extends EntityMetadata>({
   section,
@@ -46,15 +43,7 @@ export function DeclaredSection<M extends EntityMetadata>({
       {section.render ? (
         section.render({ id })
       ) : (
-        <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3">
-          {section.fields?.map((field) => (
-            <DeclaredFormField
-              key={fieldKey(field)}
-              field={field}
-              metadata={metadata}
-            />
-          ))}
-        </div>
+        <DeclaredSectionFields section={section} metadata={metadata} />
       )}
       {/* After the fields and in the same card, so it reads as part of the section — see SectionDef. */}
       {section.footer ? <section.footer id={id} /> : null}
@@ -69,7 +58,7 @@ export function DeclaredSection<M extends EntityMetadata>({
 
   if (!section.collapsed) {
     return (
-      <SectionCard>
+      <SectionCard className={cn(section.highlighted && "bg-primary/5")}>
         <SectionHeader title={title} trailing={actions} />
         {body}
       </SectionCard>

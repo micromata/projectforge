@@ -14,7 +14,9 @@
  */
 export const HAND_BUILT_CATEGORIES = [
   "access",
+  "account",
   "accountingRecord",
+  "addressCampaign",
   "book",
   "calendar",
   "configuration",
@@ -25,9 +27,11 @@ export const HAND_BUILT_CATEGORIES = [
   "employeeSalary",
   "group",
   "incomingInvoice",
+  "license",
   "liquidity",
   "order",
   "outgoingInvoice",
+  "project",
   "task",
   "teamEvent",
   "timesheet",

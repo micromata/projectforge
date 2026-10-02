@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
@@ -193,6 +194,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.update(obj)
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            // Its status was changed along with this cancellation (see [updateOriginalStatus]).
+            obj.originalRechnung?.let { rechnungCache.update(it) }
+        }
     }
 
     /**
@@ -202,9 +207,19 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wird.
      */
     override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+        if (operationType == OperationType.UPDATE && obj.id != null) {
+            checkStoredCancellationUnchanged(obj)
+        }
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = find(obj.id, checkAccess = false)
-            if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
+            // A projection, not find(): find() detaches the managed instance this update is just writing, and the
+            // merge of the detached graph then appended every cost assignment past max(index) (see
+            // RechnungsPositionDO.kostZuweisungen).
+            val storedStatus = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_STATUS,
+                RechnungStatus::class.java,
+                Pair("id", obj.id),
+            )
+            if (RechnungStatus.GEPLANT == storedStatus && RechnungStatus.GEPLANT != obj.status) {
                 obj.nummer = getNextNumber(obj)
 
                 val day = now()
@@ -222,10 +237,31 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
         validate(obj)
 
+        if (obj.typ == RechnungTyp.CANCELLATION) {
+            if (operationType == OperationType.DELETE) {
+                // No validation: a cancellation has to be deletable even if its original is not cancellable
+                // anymore. The original is no longer cancelled then.
+                obj.originalRechnung?.id?.let { persistenceService.find(RechnungDO::class.java, it, attached = true) }
+                    ?.let { original ->
+                        obj.originalRechnung = original
+                        updateOriginalStatus(original, cancelled = false)
+                    }
+            } else {
+                validateCancellation(obj)
+                updateOriginalStatus(obj.originalRechnung!!, cancelled = true)
+            }
+        } else {
+            // Only a cancellation references an original, and a stale one left over from a type change would
+            // derive nothing but confusion.
+            obj.originalRechnung = null
+        }
         if (obj.typ == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
             if (obj.nummer != null) {
                 throw UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben")
             }
+        } else if (obj.typ == RechnungTyp.CANCELLATION) {
+            // No number of its own: the number of a cancellation is derived from the original's
+            // ([RechnungDO.belegNummer]), so there is no sequence to keep and nothing that could collide.
         } else {
             if (RechnungStatus.GEPLANT != obj.status && obj.nummer == null) {
                 throw UserException(
@@ -293,6 +329,128 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         if (projektId == null && kundeId == null && kundeText.isNullOrEmpty()) {
             throw UserException("fibu.rechnung.error.kundeTextOderProjektRequired")
         }
+    }
+
+    /**
+     * The rules of a cancellation invoice ([RechnungTyp.CANCELLATION]):
+     * - it has no number of its own, its number is derived from the original ([RechnungDO.belegNummer]),
+     * - it references the invoice it cancels, which has to be cancellable ([RechnungDO.isCancellable]: a
+     *   cancellation of a cancellation or of an invoice without number makes no sense),
+     * - an invoice is cancelled once at most, otherwise two documents would carry the same number,
+     * - its net sum is negative (or zero), so an invoice and its cancellation cancel each other out in every
+     *   sum of the Rechnungsbuch.
+     *
+     * Replaces the given reference (usually an id-only stub from the REST layer) by the original loaded from the
+     * database, so [RechnungDO.belegNummer] is right for the rest of the request (caches, index, history).
+     */
+    private fun validateCancellation(obj: RechnungDO) {
+        if (obj.nummer != null) {
+            throw UserException("fibu.rechnung.error.cancellation.noOwnNumber")
+        }
+        val originalId = obj.originalRechnung?.id
+            ?: throw UserException("fibu.rechnung.error.cancellation.originalRequired")
+        // Loaded attached, in the session of the running insert/update, and without the positions (which
+        // [find] initializes): a detached copy lazy-loads them through a temporary session on a second
+        // connection, which a table-locking database (HSQLDB in the tests) blocks behind this transaction.
+        val original = persistenceService.find(RechnungDO::class.java, originalId, attached = true)
+        if (original == null || original.id == obj.id || !original.isCancellable) {
+            throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
+        }
+        obj.originalRechnung = original
+        val otherCancellation = persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).any { it.id != obj.id && it.typ == RechnungTyp.CANCELLATION }
+        if (otherCancellation) {
+            throw UserException("fibu.rechnung.error.cancellation.alreadyCancelled", original.nummer.toString())
+        }
+        val netSum = obj.positionenExcludingDeleted.fold(BigDecimal.ZERO) { sum, pos ->
+            sum + (pos.menge ?: BigDecimal.ONE) * (pos.einzelNetto ?: BigDecimal.ZERO)
+        }
+        if (netSum > BigDecimal.ZERO) {
+            throw UserException("fibu.rechnung.error.cancellation.mustBeNegative")
+        }
+    }
+
+    /**
+     * A stored cancellation keeps its type and its original: the original's status was set to STORNIERT for
+     * it, and a cancellation turned into an invoice or moved to another original would leave that status
+     * behind. Deleting the cancellation (and creating a new one) is the way to go instead.
+     */
+    private fun checkStoredCancellationUnchanged(obj: RechnungDO) {
+        val stored = persistenceService.selectNamedSingleResult(
+            RechnungDO.SELECT_TYP_AND_ORIGINAL_ID,
+            Tuple::class.java,
+            Pair("id", obj.id),
+        ) ?: return
+        if (stored.get("typ") != RechnungTyp.CANCELLATION) {
+            return
+        }
+        if (obj.typ != RechnungTyp.CANCELLATION || obj.originalRechnung?.id != stored.get("originalId")) {
+            throw UserException("fibu.rechnung.error.cancellation.unchangeable")
+        }
+    }
+
+    /**
+     * Sets the status of the cancelled invoice: STORNIERT while a cancellation exists, and back to BEZAHLT or
+     * GESTELLT (by its payment) once the cancellation is deleted. A status the user has changed by hand in the
+     * meantime is left alone on the way back.
+     *
+     * Written to the (attached) original directly, in the transaction of the cancellation, with a history entry
+     * of its own: a regular [update] of the original would copy it onto itself and detect no change.
+     */
+    private fun updateOriginalStatus(original: RechnungDO, cancelled: Boolean) {
+        val oldStatus = original.status
+        val newStatus = if (cancelled) {
+            RechnungStatus.STORNIERT
+        } else {
+            if (oldStatus != RechnungStatus.STORNIERT) {
+                return
+            }
+            if (original.bezahlDatum != null && original.zahlBetrag != null) RechnungStatus.BEZAHLT else RechnungStatus.GESTELLT
+        }
+        if (oldStatus == newStatus) {
+            return
+        }
+        persistenceService.runInTransaction { context ->
+            original.status = newStatus
+            original.setLastUpdate()
+            HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
+                entity = original,
+                propertyName = "status",
+                propertyTypeClass = RechnungStatus::class.java,
+                oldValue = oldStatus,
+                newValue = newStatus,
+                context = context,
+            )
+        }
+        log.info { "Status of invoice #${original.nummer} changed from $oldStatus to $newStatus (cancellation)." }
+    }
+
+    /**
+     * @return The (undeleted) invoice with the given number, if any. Without access check: the caller
+     * resolves a reference by it, and the invoice itself is checked on read/write.
+     */
+    fun findByNummer(nummer: Int?): RechnungDO? {
+        nummer ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_BY_NUMMER,
+            RechnungDO::class.java,
+            Pair("nummer", nummer),
+        ).firstOrNull()
+    }
+
+    /**
+     * @return The (undeleted) cancellation invoice of the given invoice, if any.
+     */
+    fun findCancellationOf(originalId: Long?): RechnungDO? {
+        originalId ?: return null
+        return persistenceService.executeNamedQuery(
+            RechnungDO.FIND_CANCELLATIONS_OF,
+            RechnungDO::class.java,
+            Pair("originalId", originalId),
+        ).firstOrNull { it.typ == RechnungTyp.CANCELLATION }
     }
 
     override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType) {
@@ -378,10 +536,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     fun getNextNumber(rechnung: RechnungDO?): Int {
         if (rechnung?.id != null) {
-            val orig = find(rechnung.id, checkAccess = false)
-            if (orig!!.nummer != null) {
-                rechnung.nummer = orig.nummer
-                return orig.nummer!!
+            // A projection, not find(): called by onInsertOrModify, where find() would detach the invoice being written.
+            val storedNummer = persistenceService.selectNamedSingleResult(
+                RechnungDO.SELECT_NUMMER,
+                Int::class.javaObjectType,
+                Pair("id", rechnung.id),
+            )
+            if (storedNummer != null) {
+                rechnung.nummer = storedNummer
+                return storedNummer
             }
         }
         return persistenceService.getNextNumber("RechnungDO", "nummer", START_NUMBER)
@@ -575,6 +738,10 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             var nettoSumme = BigDecimal.ZERO
             if (col != null && col.size > 0) {
                 for (pos in col) {
+                    if (!pos.isInvoiced) {
+                        // Planned or cancelled invoices don't count as invoiced.
+                        continue
+                    }
                     nettoSumme = nettoSumme.add(pos.netSum)
                 }
             }

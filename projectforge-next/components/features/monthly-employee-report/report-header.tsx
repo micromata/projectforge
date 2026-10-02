@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { cn } from "@/lib/utils";
 import type { MonthlyReport } from "./types";
 
@@ -12,13 +13,14 @@ import type { MonthlyReport } from "./types";
 function Stat({
   label,
   children,
-  title,
+  hint,
   danger,
   className,
 }: {
   label: string;
   children: ReactNode;
-  title?: string;
+  /** Markdown explanation shown as tooltip of the value. */
+  hint?: string;
   danger?: boolean;
   /** Extra classes on the pair wrapper, e.g. a max width so a long value wraps instead of widening the row. */
   className?: string;
@@ -26,14 +28,29 @@ function Stat({
   return (
     <div className={cn("flex flex-col", className)}>
       <dt className="text-[11px] opacity-70">{label}</dt>
-      <dd
-        className={cn("text-sm tabular-nums", danger && "text-destructive")}
-        title={title}
-      >
-        {children}
-      </dd>
+      <HintTooltip text={hint} openOnTap>
+        <dd
+          className={cn("text-sm tabular-nums", danger && "text-destructive")}
+        >
+          {children}
+        </dd>
+      </HintTooltip>
     </div>
   );
+}
+
+/**
+ * The quota's tooltip: the configured explanation why it matters, then how it was computed. The
+ * computation's lines are separated by single `\n`, which markdown would run together, so they become
+ * hard breaks.
+ */
+function invoicingQuotaHint(report: MonthlyReport): string | undefined {
+  const calculation = report.invoicingQuotaTooltip?.replace(
+    /(?<!\n)\n(?!\n)/g,
+    "  \n"
+  );
+  const parts = [report.invoicingQuotaInfo, calculation].filter(Boolean);
+  return parts.length ? parts.join("\n\n") : undefined;
 }
 
 /**
@@ -64,7 +81,7 @@ export function ReportHeader({ report }: { report: MonthlyReport }) {
       {report.invoicingQuota && (
         <Stat
           label={t("fibu.common.invoicingQuota._")}
-          title={report.invoicingQuotaTooltip ?? undefined}
+          hint={invoicingQuotaHint(report)}
         >
           {report.invoicingQuota}
         </Stat>

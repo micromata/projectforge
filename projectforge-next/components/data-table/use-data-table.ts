@@ -222,6 +222,12 @@ export function useDataTable<TData>({
     // deliberately: for the server-side filters in useMagicFilterQuery, and for the client-side column
     // filters above.
     autoResetPageIndex: false,
+    // Every column cycles ascending → descending → unsorted. Left to itself TanStack picks the first
+    // direction from the first row's value (a string: ascending, anything else: descending) and removes
+    // the sort once the current direction differs from it — so a column whose ascending sort leads with
+    // empty entries (nulls come first, see DBQueryBuilderByCriteria.addOrder) went ascending → unsorted
+    // and could never be sorted descending.
+    sortDescFirst: false,
     manualSorting,
     manualPagination,
     manualFiltering,

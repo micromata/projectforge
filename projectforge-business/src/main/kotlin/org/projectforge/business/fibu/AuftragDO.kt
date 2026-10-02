@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.user.UserGroupCache
@@ -123,8 +122,8 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         orphanRemoval = false,
         fetch = FetchType.LAZY, mappedBy = "auftrag",
     )
-    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
-    @get:ListIndexBase(1)
+    // Sorted by the position number, not an @OrderColumn on it: see RechnungDO.positionen.
+    @get:OrderBy("number")
     open var positionen: MutableList<AuftragsPositionDO>? = null
 
     @PropertyInfo(i18nKey = "status")
@@ -238,8 +237,8 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         orphanRemoval = false,
         fetch = FetchType.LAZY, mappedBy = "auftrag",
     )
-    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
-    @get:ListIndexBase(1)
+    // Sorted by the payment schedule number, not an @OrderColumn on it: see RechnungDO.positionen.
+    @get:OrderBy("number")
     open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
 
     /**

@@ -43,7 +43,7 @@ async function expectVisibleOverlay(overlay: Locator): Promise<void> {
     .toBeGreaterThan(0.5);
 }
 
-test.describe("table loading overlay", () => {
+test.describe("table loading overlay", { tag: "@lane-book" }, () => {
   test("the hand-built list shows it while a new result set is fetched", async ({
     loggedInPage: page,
   }) => {

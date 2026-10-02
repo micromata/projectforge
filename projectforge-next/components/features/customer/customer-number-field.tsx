@@ -9,8 +9,8 @@ import type { CustomerDetail } from "./types";
  * The customer number — the entity's user-assigned id (`Customer.copyFrom` sets `id = src.nummer`).
  *
  * A custom field because it is editable only while adding: once assigned, the number identifies the
- * customer and must not change, so it turns read-only on an existing entry — exactly as Wicket and
- * `CustomerPagesRest.createEditLayout` do. `page-def`'s `readOnly` is static and cannot flip per
+ * customer and must not change, so it turns read-only on an existing entry — exactly as the former Wicket
+ * form and `CustomerPagesRest.createEditLayout` did. `page-def`'s `readOnly` is static and cannot flip per
  * entry, hence the field reads the loaded DTO to tell new from saved (a new one has no id yet).
  */
 export function CustomerNumberField({ className }: { className?: string }) {

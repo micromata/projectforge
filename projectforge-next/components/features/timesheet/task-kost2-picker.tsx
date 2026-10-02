@@ -4,13 +4,8 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { renderCell, type CellSpec } from "@/components/data-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { TaskSelectControl } from "@/components/shared/tasks/task-select-control";
@@ -37,6 +32,11 @@ const CONSUMPTION: CellSpec = { kind: "consumption" };
  * server's answer (`timesheet.error.kost2Required`): it depends on the task's project, which the client
  * does not reason about — the edit form passes `required` in, the mass update leaves it to the server.
  *
+ * An existing time sheet keeps its stored booking ([storedBooking]) while its task is unchanged, even when
+ * the cost unit has left the task's list since (deactivated, or its project ended): the backend only checks
+ * a changed task or cost unit (`TimesheetDao.validateKost2`), so such a sheet stays editable. The stored
+ * cost unit is offered as an extra, marked non-active entry then.
+ *
  * The reconciliation is reactive rather than done at pick time: the new task's `kost2List` is not on the
  * reference [onTaskChange] hands back, it arrives with the `["taskInfo", id]` query below, so keeping-or-
  * dropping can only be decided once that answer is in. `["taskInfo", id]` is the same query every other
@@ -51,6 +51,7 @@ export function TaskKost2Picker({
   taskErrors = [],
   kost2Errors = [],
   showConsumption = false,
+  storedBooking,
   disabled,
   className,
 }: {
@@ -64,6 +65,11 @@ export function TaskKost2Picker({
   kost2Errors?: string[];
   /** Show what is already booked on the task; off where a single figure carries no meaning (mass update). */
   showConsumption?: boolean;
+  /** The task and cost unit an existing time sheet is stored with; null for a new one (and the mass update). */
+  storedBooking?: {
+    taskId: number;
+    kost2: { id: number; displayName?: string | null };
+  } | null;
   /** Locks both controls; the whole widget is read-only. */
   disabled?: boolean;
   className?: string;
@@ -84,6 +90,13 @@ export function TaskKost2Picker({
   });
 
   const kost2List = info?.kost2List ?? [];
+  // The stored cost unit, while the stored task is shown and it isn't bookable on it any more.
+  const storedKost2 =
+    storedBooking != null &&
+    storedBooking.taskId === taskId &&
+    !kost2List.some((kost2) => kost2.id === storedBooking.kost2.id)
+      ? storedBooking.kost2
+      : null;
 
   // Reconcile the cost unit against the task's list: keep it while the (new) task still allows it, drop it
   // otherwise. `info == null` means the list for the current task is not in yet — leave the value be until
@@ -96,12 +109,13 @@ export function TaskKost2Picker({
       return;
     }
     if (info == null) return;
+    if (storedKost2?.id === kost2Id) return;
     if (!kost2List.some((kost2) => kost2.id === kost2Id)) {
       onKost2Change(null);
     }
     // `kost2List` is derived from `info`; keying on `info` avoids a new array identity re-running this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskId, info, kost2Id]);
+  }, [taskId, info, kost2Id, storedKost2?.id]);
 
   /** The reference the callers expect, built from the node the tree hands back. */
   const change = (task: { id: number; title?: string } | null) =>
@@ -152,9 +166,9 @@ export function TaskKost2Picker({
         />
       </FieldShell>
 
-      {/* Only where the task has cost units at all: on a task without them the select would be an empty
-          dropdown next to a field the backend never asks for. */}
-      {kost2List.length > 0 && (
+      {/* Only where the task has cost units at all (or the stored one): on a task without them the select
+          would be an empty dropdown next to a field the backend never asks for. */}
+      {(kost2List.length > 0 || storedKost2 != null) && (
         <FieldShell
           label={t("fibu.kost2._")}
           required={required}
@@ -184,6 +198,12 @@ export function TaskKost2Picker({
                   {kost2.title}
                 </SelectItem>
               ))}
+              {storedKost2 != null && (
+                <SelectItem value={String(storedKost2.id)}>
+                  {storedKost2.displayName ?? storedKost2.id} (
+                  {t("fibu.kost.status.nonactive")})
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </FieldShell>

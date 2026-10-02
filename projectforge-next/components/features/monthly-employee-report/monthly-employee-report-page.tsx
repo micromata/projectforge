@@ -7,13 +7,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PdfIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/shared/page-shell";
 import { PageTitleRow } from "@/components/shared/page-title-row";
-import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import {
   downloadMonthlyEmployeeReportPdf,
   fetchMonthlyEmployeeReport,
 } from "@/lib/rs/monthly-employee-report";
+import { InvoicingQuotaChartView } from "./invoicing-quota-chart-view";
 import { ReportFilterRow } from "./report-filter-row";
 import { ReportHeader } from "./report-header";
 import { ReportMatrix } from "./report-matrix";
@@ -54,6 +55,11 @@ export function MonthlyEmployeeReportPage() {
   });
 
   const data = report.data;
+  // The quota tab exists only while the quota is shown; switching it off (or picking a user whose quota is
+  // not visible) falls back to the report instead of leaving an empty tab selected.
+  const [tab, setTab] = useState("report");
+  const quotaTab = !!data?.invoicingQuotaAvailable && !!data.showInvoicingQuota;
+  const activeTab = quotaTab ? tab : "report";
 
   return (
     <PageShell>
@@ -71,7 +77,6 @@ export function MonthlyEmployeeReportPage() {
           <HugeiconsIcon icon={PdfIcon} size={14} aria-hidden />
           {t("exportAsPdf")}
         </Button>
-        <LegacyPageLink url="wa/monthlyEmployeeReport?legacyEscape" />
       </PageTitleRow>
       <div className="flex flex-col gap-4 px-4 pb-6">
         {/* Filter (user / year / month) on the left, the key figures right-aligned on the same line. */}
@@ -88,17 +93,38 @@ export function MonthlyEmployeeReportPage() {
           </p>
         )}
         {data && (
-          <>
-            <ReportHeader report={data} />
-            <ReportMatrix report={data} />
-            {/* The average-working-time sentence is low-priority context, so it sits quietly below the table. */}
-            {data.averageWorkingTimeStats && (
-              <p className="text-xs text-muted-foreground">
-                <span className="opacity-70">{t("statistics")}:</span>{" "}
-                {data.averageWorkingTimeStats}
-              </p>
+          <Tabs
+            value={activeTab}
+            onValueChange={setTab}
+            className="flex flex-col gap-4"
+          >
+            {quotaTab && (
+              <TabsList className="w-fit">
+                <TabsTrigger value="report">
+                  {t("fibu.monthlyEmployeeReport.tab.report")}
+                </TabsTrigger>
+                <TabsTrigger value="invoicingQuota">
+                  {t("fibu.common.invoicingQuota._")}
+                </TabsTrigger>
+              </TabsList>
             )}
-          </>
+            <TabsContent value="report" className="flex flex-col gap-4">
+              <ReportHeader report={data} />
+              <ReportMatrix report={data} />
+              {/* The average-working-time sentence is low-priority context, so it sits quietly below the table. */}
+              {data.averageWorkingTimeStats && (
+                <p className="text-xs text-muted-foreground">
+                  <span className="opacity-70">{t("statistics")}:</span>{" "}
+                  {data.averageWorkingTimeStats}
+                </p>
+              )}
+            </TabsContent>
+            {quotaTab && (
+              <TabsContent value="invoicingQuota">
+                <InvoicingQuotaChartView report={data} />
+              </TabsContent>
+            )}
+          </Tabs>
         )}
       </div>
     </PageShell>

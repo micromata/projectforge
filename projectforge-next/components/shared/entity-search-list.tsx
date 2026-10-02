@@ -13,6 +13,10 @@ import {
 import { LookupLoadingRow } from "@/components/shared/lookup-loading-row";
 import { isNearBottom, useEntityLookup } from "@/hooks/use-entity-lookup";
 import type { EntityRef } from "./entity-autocomplete";
+import {
+  EntitySearchFreeText,
+  type FreeTextOption,
+} from "./entity-search-free-text";
 
 export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
   /** The lookup url from the layout, with its literal `:search` placeholder. */
@@ -59,6 +63,12 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
    * this seeds the term once; the user types on from there.
    */
   initialSearch?: string;
+  /**
+   * Also offers the typed term itself, as text instead of a record — the free-text customer of an order
+   * (see [EntityOrTextAutocomplete]). Shown as its own group under the records found, see
+   * [EntitySearchFreeText]. Left out by callers that only take records.
+   */
+  freeText?: FreeTextOption;
 }
 
 /**
@@ -81,6 +91,7 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   recentLabel,
   emptyTermSearches = true,
   initialSearch = "",
+  freeText,
 }: EntitySearchListProps<T>) {
   const t = useTranslations();
   const [search, setSearch] = useState(initialSearch);
@@ -171,6 +182,13 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
             </CommandItem>
           ))}
         {isLoadingMore && <LookupLoadingRow />}
+        {freeText && (
+          <EntitySearchFreeText
+            term={search}
+            entries={entries}
+            option={freeText}
+          />
+        )}
       </CommandList>
     </Command>
   );

@@ -1,5 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
 import { userFormat } from "./fixtures/format";
+import { waitForRows } from "./fixtures/list-table";
 import { BOOK_METADATA } from "../lib/metadata/book.generated";
 import { BOOK_PAGE } from "../components/features/book/book.page";
 import type { SeededBook } from "./fixtures/seed";
@@ -26,7 +27,7 @@ import type { ResultSet } from "../lib/rs/types";
  * Read-only apart from the marker the cancel writes: the stored state is reset first and again at the
  * end, so the account is left as found.
  */
-test.describe("list sort persistence", () => {
+test.describe("list sort persistence", { tag: "@lane-book" }, () => {
   /** The column the test sorts by: a book's year, which every book carries and no other spec sorts. */
   const SORT_COLUMN = "yearOfPublishing";
 
@@ -56,6 +57,12 @@ test.describe("list sort persistence", () => {
     await expect(
       page.getByRole("heading", { name: t(BOOK_PAGE.titleKey) })
     ).toBeVisible({ timeout: 60_000 });
+    // The first load over, too: `sortBy` takes the next list answer as the sort's, and the initial one
+    // still in flight would otherwise be it.
+    await waitForRows(page, 60_000);
+    await expect(page.locator("[aria-busy=true]")).toHaveCount(0, {
+      timeout: 60_000,
+    });
 
     // By the year: one click on the header cell, which is what sorts (see DataTable — the whole cell
     // carries the handler, not a button inside it).

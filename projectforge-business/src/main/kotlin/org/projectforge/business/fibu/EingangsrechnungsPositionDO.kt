@@ -65,7 +65,8 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
         orphanRemoval = false,
         fetch = FetchType.LAZY,
     )
-    @get:OrderColumn(name = "index")
+    // Sorted by KostZuweisungDO.index, not an @OrderColumn on it: see RechnungsPositionDO.kostZuweisungen.
+    @get:OrderBy("index")
     @JsonManagedReference
     override var kostZuweisungen: MutableList<KostZuweisungDO>? = null
 

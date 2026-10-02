@@ -384,12 +384,14 @@
       "october": "Oktober",
       "september": "September"
     },
+    "nextYear": "Nächstes Jahr",
     "option": {
       "firstHour": "Tagesbeginn",
       "gridSize": "Raster in Minuten",
       "showBreaks": "Pausen",
       "timesheets": "Zeitberichte"
     },
+    "previousYear": "Vorheriges Jahr",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quickselect - aktueller Monat",
@@ -618,7 +620,9 @@
           "all": "alle",
           "nochNichtVollstaendigFakturiert": "noch nicht vollständig fakturiert",
           "vollstaendigFakturiert": "vollständig fakturiert",
-          "zuFakturieren": "zu fakturieren"
+          "vollstaendigFakturiertMitRestbetrag": "als vollständig fakturiert markiert, aber Restbetrag offen",
+          "zuFakturieren": "diesen Monat zu fakturieren",
+          "zuFakturierenFolgemonate": "in Folgemonaten zu fakturieren"
         }
       },
       "forecast": {
@@ -665,6 +669,29 @@
             }
           }
         },
+        "chart": {
+          "_": "Grafiken",
+          "cumulative": "Umsatzprognose kumuliert",
+          "empty": "Weder Auftragspositionen noch Rechnungen für den Forecast gefunden.",
+          "ist": "IST",
+          "monthly": "Umsatzprognose Monatswerte",
+          "plan": "Plan",
+          "planningDate": {
+            "_": "Plandatum",
+            "tooltip": "Optional: Der Forecast des Auftragsbuch-Snapshots dieses Tages (bzw. des nächstgelegenen) wird als Plan angezeigt. Leer lassen, um den Plan auszublenden."
+          },
+          "planningDateUsed": "Plan des Auftragsbuch-Snapshots vom {arg0}",
+          "prevPrevYear": "Vorvorjahr",
+          "prevYear": "Vorjahr",
+          "quickViewHint": "Dies ist nur eine schnelle Ansicht. Für zuverlässige Forecasts bitte die Forecast-Funktion verwenden (Excel-Export der Liste).",
+          "replacedByStartDate": "Ersetzt durch den ersten Monat des Forecasts.",
+          "startDate": {
+            "_": "Erster Monat des Forecasts",
+            "tooltip": "Der Forecast zeigt die 12 Monate ab dem Monat dieses Datums. Der Filter der Liste wird angewendet, soweit der Forecast ihn unterstützt (siehe Zusammenfassung oben), sein Leistungszeitraum durch dieses Datum ersetzt."
+          },
+          "stateFilterIgnored": "Beschreibt den aktuellen Zustand der Aufträge und würde den Vergleich mit den Vorjahren verzerren, daher in den Grafiken nicht berücksichtigt (im Excel-Export schon).",
+          "total": "Forecast"
+        },
         "invoicedProjectWithoutOrder": "fakturiertes Projekt ohne offene Positionen",
         "lostBudgetWarning": "{arg0} Budget-Verlust-Warnung: Das Budget wird um voraussichtlich {arg1}% unterschritten (mehr als {arg2}%). Für Analysedetails siehe Auftrageditierseite.",
         "withoutProject": "ohne Projekt"
@@ -703,6 +730,10 @@
         "_": "Nettosumme",
         "weighted": "Gewichtete Nettosumme"
       },
+      "nextInvoice": {
+        "_": "Nächste Rechnung",
+        "immediately": "sofort"
+      },
       "notification": {
         "error": "Der Auftrag wurde gespeichert, aber die E-Mail-Benachrichtigung konnte nicht versandt werden: {arg0}"
       },
@@ -729,6 +760,10 @@
         "error": {
           "notFound": "Auftragsposition nicht gefunden."
         },
+        "fehlbetrag": {
+          "_": "Fehlbetrag",
+          "info": "Die Position ist als vollständig fakturiert markiert, aber ihre gültigen Rechnungen (ohne geplante und stornierte) ergeben weniger als ihr Nettowert bzw. als ihre als vollständig fakturiert markierten Zahlungsmeilensteine."
+        },
         "noTaskGiven": "Keinem Strukturelement zugeordnet.",
         "paymenttype": {
           "_": "Abrechnungsart",
@@ -746,6 +781,11 @@
           "_": "Tats. Eintrittswahrsch.",
           "info": "Die Wahrscheinlichkeit, mit der der Forecast rechnet.\n\nSie ergibt sich aus dem Status des Auftrags und dem jeder Position; die eingetragene Eintrittswahrscheinlichkeit greift nur dort, wo der Status sie offen lässt.\n\nAngezeigt wird sie mit den Nettosummen der Positionen gewichtet: Summe(Nettosumme x Wahrscheinlichkeit) / Nettosumme."
         }
+      },
+      "refreshCache": {
+        "_": "Auftragscache erneuern",
+        "done": "Auftrags- und Rechnungscache erneuert.",
+        "tooltip": "Berechnet die fakturierten Summen und Rechnungsverknüpfungen aller Aufträge anhand der aktuellen Rechnungen neu."
       },
       "showInactivePosition": "Inaktive Positionen anzeigen",
       "status": {
@@ -780,6 +820,7 @@
     "buchungssatz": {
       "_": "Buchungssatz",
       "beleg": "Beleg",
+      "bookingMonth": "Buchungsmonat",
       "error": {
         "invalidTimeperiod": "Ungültige Zeitraumangabe"
       },
@@ -837,8 +878,31 @@
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },
     "eingangsrechnung": {
+      "_": "Kreditorenrechnung",
       "import": {
-        "title": "Kreditorenrechnungen hochladen"
+        "description": "## Import von Kreditorenrechnungen\nHier können Kreditorenrechnungen im CSV-Format (.csv) aus Datev importiert werden.",
+        "headerOnly": {
+          "newInvoicesSkipped": "Neue Rechnungen können nicht über diese Datei angelegt werden. Bitte verwende den Import mit Rechnungspositionen. {arg0} neue Rechnung(en) werden ignoriert."
+        },
+        "job": {
+          "title": "Importiere Kreditorenrechnungen"
+        },
+        "templateInfo": "## Beschreibung:\n- Diese Dateien werden durch DATEV erzeugt.\n- Der Import erfolgt in zwei Schritten, die beide nacheinander für **neue** Rechnungen durchgeführt werden müssen.\n- Jederzeit können die Rechnungen oder Rechnungspositionen unabhängig voneinander erneut importiert werden, um die Daten zu aktualisieren.\n- ProjectForge erkennt automatisch, ob Rechnungen oder Positionen eingelesen werden.\n- Der Export erfolgt jeweils am besten für **einzelne Monate**.\n- Nach dem Upload einer Datei kann die Import-Datei mit den ProjectForge-Rechnungen abgeglichen werden und dann ausgewählt werden, welche Rechnungen/Positionen übernommen werden sollen.\n\n**Schritt 1: Import von Rechnungspositionen** (erforderlich für **neue** Rechnungen)\n- Die Dateien werden in Datev über \"Belegdaten exportieren\" -> \"Rechnungseingang exportieren\" erzeugt (Dateien enden mit **\"Lieferantenrechnungen.csv\"**).\n- Dieser Import dient der Anlage neuer Rechnungen und der Aktualisierung von Rechnungen (mit Positionen).\n- Nicht mehr im Import enthaltene Rechnungen und Positionen können auch gelöscht werden.\n- Unterstützte Spalten: \"Periode\", \"Betrag\", \"Währung\", \"Datum\", \"RENR\", \"LieferantName\", \"LieferantKonto\", \"Ware/Leistung\", \"Fällig_am\", \"Steuer%\", \"KOST1\", \"KOST2\"\n\n**Schritt 2: Aktualisierung von Rechnungsdaten** (optional)\n- In Datev in der \"Belegübersicht\" den gewünschten Monat als Zeitraum auswählen und die Datei generieren lassen (Dateien enden mit **\"export.csv\"**).\n- Dieser Import aktualisiert nur die Kopfdaten bestehender Rechnungen (Bezahldatum etc.) ohne die Positionen zu verändern.\n- Nicht mehr im Import enthaltene Rechnungen können auf Wunsch auch gelöscht werden.\n- Unterstützte Spalten: \"Geschäftspartner-Name\", \"Geschäftspartner-Konto\", \"WKZ\", \"Rechnungs-Nr.\", \"Rechnungsdatum\", \"Konto\", \"Ware/Leistung\", \"BezahltAm\", \"Fällig mit Skonto 1\", \"Skonto 1 in %\", \"Fällig ohne Skonto\", \"IBAN\", \"BIC\", \"Notiz\"\n",
+        "title": {
+          "_": "Kreditorenrechnungen hochladen",
+          "header": "Rechnungskopfdaten",
+          "positions": "Rechnungspositionen"
+        }
+      },
+      "multiselected": {
+        "title": "Mehrfachauswahl Kreditorrechnungen"
+      },
+      "skonto": "Skonto",
+      "title": {
+        "add": "Kreditorenrechnung anlegen",
+        "edit": "Kreditorenrechnung bearbeiten",
+        "heading": "Kreditorenrechnungen",
+        "list": "Kreditorenrechnungsliste"
       }
     },
     "employee": {
@@ -847,7 +911,28 @@
       "division": "Team",
       "eintrittsdatum": "Eintrittsdatum",
       "salaries": {
-        "import": "Gehälterimport"
+        "import": {
+          "_": "Gehälterimport",
+          "error": {
+            "employeeNotFound": "Kein:e Mitarbeiter:in mit Personalnummer ''{arg0}'' gefunden.",
+            "month": "Ungültiger oder fehlender Abrechnungsmonat: ''{arg0}'' (erwartet z. B. ''2026/08'').",
+            "noBrutto": "Fehlender Bruttobetrag (Spalte ''Gesamtkosten'').",
+            "noSheet": "Kein Blatt mit den benötigten Spalten (Personalnummer und Bruttobetrag) gefunden."
+          },
+          "format": {
+            "also": "auch",
+            "brutto": "Gesamte Arbeitgeberkosten (Brutto zzgl. aller Arbeitgeberanteile), wird als \"Brutto mit AG-Anteil\" importiert.",
+            "columns": "Benötigte Spalten (Reihenfolge beliebig):",
+            "intro": "Excel-Datei (.xlsx / .xls). Das Tabellenblatt wird automatisch erkannt: Gelesen wird jedes Blatt, dessen Kopfzeile die benötigten Spalten enthält, unabhängig vom Namen.",
+            "month": "Abrechnungsjahr und -monat als Text im Format {arg0}, z. B. {arg1}.",
+            "staffNumber": "Personalnummer einer vorhandenen Person. Zeilen, deren Personalnummer keiner Person zugeordnet werden kann (z. B. eine Summenzeile), werden als fehlerhaft markiert und übersprungen.",
+            "title": "Dateiformat der Importdatei"
+          },
+          "job": {
+            "title": "Import von {arg0} Gehältern"
+          },
+          "success": "Gehälter erfolgreich importiert."
+        }
       },
       "salary": {
         "bruttoMitAgAnteil": "Brutto mit AG-Anteil",
@@ -905,6 +990,10 @@
         "nonactive": "nicht aktiv"
       },
       "street": "Straße",
+      "title": {
+        "add": "Neues Konto",
+        "list": "Liste der Konten"
+      },
       "vatId": "USt-IdNr.",
       "zipCode": "PLZ"
     },
@@ -973,6 +1062,8 @@
       "workFraction": "Arbeitszeitanteil"
     },
     "kost2art": {
+      "kost2arten": "Kost2-Arten",
+      "notInvoiced": "nicht fakturiert",
       "nummer": "Nummer",
       "projektStandard": "Projektstandard",
       "title": {
@@ -985,6 +1076,11 @@
     "kunde": {
       "_": "Kunde",
       "division": "Bereich",
+      "freeText": {
+        "_": "Freitext",
+        "tooLong": "Freitext zu lang (max. {arg0} Zeichen)",
+        "use": "Als Freitext übernehmen: „{arg0}“"
+      },
       "identifier": "Kurzbezeichner",
       "konto": {
         "tooltip": "Dieses Konto wird bei einem Export von Debitorenrechnungen mit ausgegeben, sofern im konkreten Projekt, welches der Rechnung evtl. zugewiesen ist, kein anderes Konto angegeben ist."
@@ -1011,10 +1107,7 @@
         "add": "Neuer Kunde",
         "edit": "Kunde bearbeiten",
         "heading": "Kunden",
-        "list": {
-          "_": "Kunden",
-          "select": "Kunde auswählen"
-        }
+        "list": "Kunden"
       },
       "validation": {
         "existingCustomerNr": "Es existiert bereits ein Kunde mit dieser Kundennummer"
@@ -1038,6 +1131,15 @@
           "factor": "Faktor {arg0}: {arg1} von {arg2} Std. gerechnet.",
           "sharedCosts": "Shared Costs → Faktor {arg0}: {arg1} von {arg2} Std. gerechnet."
         }
+      },
+      "invoicingQuotaChart": {
+        "billed": "{arg0} h von {arg1} h fakturiert",
+        "noData": "Im Zeitraum gibt es keine Arbeitszeit, aus der sich eine Fakturaquote berechnen ließe.",
+        "title": "Fakturaquote der letzten 12 Monate"
+      },
+      "showInvoicingQuota": "Fakturaquote anzeigen",
+      "tab": {
+        "report": "Monatsbericht"
       },
       "targetWorkingHours": "Arbeitsstunden",
       "totalSum": {
@@ -1072,7 +1174,10 @@
     "projekt": {
       "_": "Projekt",
       "edit": {
-        "kost2DoesAlreadyExists": "Kost2 existiert bereits."
+        "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
+        "kost2DoesAlreadyExists": "Kost2 existiert bereits.",
+        "kost2LockedEnded": "Das Projekt ist beendet: Seine Kostenarten sind nicht mehr änderbar.",
+        "selectStandardKost2Arts": "Alle Standard-Kostenarten auswählen"
       },
       "identifier": "Kurzbezeichner",
       "internKost2_4": "Intern: Koststellen 2-4",
@@ -1112,6 +1217,7 @@
         }
       },
       "validation": {
+        "numberLocked": "Nummer und Kunde können nicht mehr geändert werden: Das Projekt hat bereits Kostenträger (Kost2), die diese Nummer tragen.",
         "numbernotfreeforcustomer": "Nummer bereits für anderes Kundenprojekt vergeben"
       },
       "wizard": {
@@ -1129,10 +1235,24 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Bruttobetrag",
+      "cancellation": {
+        "alreadyExists": "Diese Rechnung ist bereits durch {arg0} storniert.",
+        "cancelledBy": "Storniert durch {arg0}",
+        "create": "Storno erzeugen",
+        "hint": {
+          "create": "Bereitet eine Storno-Rechnung zu dieser Rechnung vor: Ihre Positionen werden mit negativen Beträgen übernommen und als neue, noch nicht gespeicherte Rechnung geöffnet. Storniert wird diese Rechnung erst, wenn die Storno-Rechnung gespeichert wird – wird sie nicht gespeichert, bleibt alles unverändert.",
+          "original": "Diese Rechnung ist durch die Storno-Rechnung {arg0} storniert und wurde deshalb automatisch auf „storniert“ gesetzt. Um den Storno rückgängig zu machen, die Storno-Rechnung löschen: Diese Rechnung erhält dann wieder den Status „gestellt“ bzw. „bezahlt“.",
+          "system": "Eine Storno-Rechnung hebt die stornierte Rechnung vollständig auf: Sie übernimmt deren Positionen mit negativen Beträgen und hat keine eigene Nummer, sondern die der stornierten Rechnung mit dem Zusatz „-S“. Beim Speichern wird die stornierte Rechnung automatisch auf „storniert“ gesetzt. Typ und stornierte Rechnung sind danach nicht mehr änderbar; wird die Storno-Rechnung gelöscht, erhält die stornierte Rechnung wieder den Status „gestellt“ bzw. „bezahlt“. Bitte beachten: Die Beträge der Storno-Rechnung werden automatisch auf negative Werte gesetzt – die Beträge also bitte nicht ändern!",
+          "unsaved": "Diese Storno-Rechnung ist nur vorbereitet und noch nicht wirksam: Die Rechnung wird erst storniert, wenn Sie diese Storno-Rechnung speichern. Ohne Speichern passiert nichts."
+        },
+        "of": "Storno zu Rechnung {arg0}"
+      },
       "chart": {
         "_": "Grafiken",
         "boundedRangeHint": "Bitte das Rechnungsdatum auf einen Zeitraum (von und bis) eingrenzen, um es mit den drei Vorjahren zu vergleichen.",
+        "comparedPeriods": "Verglichen mit demselben Zeitraum {arg0}.",
         "cumulative": "Kumulierter Nettoumsatz",
+        "ignoredTooltip": "Beschreibt den aktuellen Zustand der Rechnung (z. B. bezahlt) und ist im Jahresvergleich nicht sinnvoll, daher in keinem Jahr der Grafiken berücksichtigt. Die Zahlen können deshalb von der Liste abweichen.",
         "monthly": "Monatlicher Nettoumsatz"
       },
       "currency": "Währung",
@@ -1158,6 +1278,8 @@
           "bankAccountNotConfigured": "Es ist kein Bankkonto des Verkäufers konfiguriert (projectforge.einvoice.seller.bankAccounts). Ein Administrator muss eines hinterlegen.",
           "bankAccountNotFound": "Das Bankkonto dieser Rechnung ({arg0}) ist keines der konfigurierten. Bitte eines davon auswählen.",
           "bankAccountNotSelected": "Für diese Rechnung ist kein Bankkonto ausgewählt.",
+          "cancellationNotNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein: Sie kehrt die Beträge der stornierten Rechnung um.",
+          "cancellationOriginalMissing": "Die Storno-Rechnung verweist auf keine stornierte Rechnung mit Rechnungsnummer.",
           "customerAddressIncomplete": "Die Adresse des Kunden ist unvollständig: Postleitzahl und Ort sind erforderlich.",
           "customerAddressMissing": "Die Adresse des Kunden fehlt.",
           "customerNameMissing": "Der Name des Kunden fehlt: es ist weder ein Kunde noch ein Kundentext angegeben.",
@@ -1166,6 +1288,10 @@
           "numberMissing": "Die Rechnungsnummer fehlt. Sie wird vergeben, sobald die Rechnung den Status „geplant“ verlässt.",
           "sellerNotConfigured": "Der Verkäufer dieser Installation ist nicht vollständig konfiguriert (projectforge.einvoice.seller.*). Ein Administrator muss das ergänzen."
         },
+        "fillFromAccount": "Aus Konto ergänzen",
+        "fillFromAccountDone": "{arg0} Feld(er) aus dem Konto ergänzt.",
+        "fillFromAccountHint": "Ergänzt die leeren Felder dieses Abschnitts aus dem Konto der Rechnung, sonst aus dem Konto des Kunden. Bereits ausgefüllte Felder bleiben unverändert.",
+        "fillFromAccountNothing": "Nichts zu ergänzen: Das Konto hat für die leeren Felder keine Werte.",
         "saveAndOpen": "Speichern und E-Rechnung",
         "saveAndXRechnung": "Speichern und XRechnung",
         "saveAndZugferd": "Speichern und ZUGFeRD",
@@ -1173,6 +1299,14 @@
       },
       "error": {
         "bezahlDatumRequired": "Wenn der Zahlbetrag gegeben ist muss auch das zugehörige Bezahldatum eingegeben sein.",
+        "cancellation": {
+          "alreadyCancelled": "Die Rechnung {arg0} ist bereits durch eine andere Storno-Rechnung storniert.",
+          "mustBeNegative": "Die Nettosumme einer Storno-Rechnung muss negativ sein (die Beträge der stornierten Rechnung mit negativem Vorzeichen).",
+          "noOwnNumber": "Eine Storno-Rechnung hat keine eigene Rechnungsnummer: Ihre Nummer ist die der stornierten Rechnung mit dem Zusatz „-S“.",
+          "originalInvalid": "Die stornierte Rechnung muss eine vorhandene Rechnung vom Typ „Rechnung“ mit Rechnungsnummer sein.",
+          "originalRequired": "Eine Storno-Rechnung erfordert die Angabe der stornierten Rechnung.",
+          "unchangeable": "Typ und stornierte Rechnung einer gespeicherten Storno-Rechnung können nicht geändert werden. Bitte stattdessen die Storno-Rechnung löschen (die stornierte Rechnung wird dann wieder auf gestellt bzw. bezahlt gesetzt)."
+        },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "Eine Gutschriftsanzeige durch den Kunden hat keine Rechnungsnummer.",
         "kundeTextOderProjektRequired": "Ein Kundentext oder ein Projekt müssen angegeben sein.",
         "negativAmount": "Bei Überweisung kann kein negativer Brutto-Betrag existieren",
@@ -1198,6 +1332,11 @@
       },
       "filter": {
         "incomplete": "unvollständig",
+        "incompleteTooltip": {
+          "account": "Kein Konto zugeordnet.",
+          "costs": "Kostzuweisungen unvollständig: Die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab.",
+          "costsOrAccount": "Kostzuweisungen unvollständig (die den Kostenträgern zugewiesene Nettosumme weicht von der Nettosumme der Rechnung ab) oder kein Konto zugeordnet."
+        },
         "paymentStatus": "Bezahlstatus",
         "ueberfaellig": "überfällig",
         "unbezahlt": "unbezahlt"
@@ -1230,6 +1369,7 @@
         "short": "Nr."
       },
       "offen": "Offen",
+      "originalRechnung": "Stornierte Rechnung",
       "paymentTerms": "Zahlungsbedingungen",
       "position": {
         "einzelNetto": "Einzelnettopreis"
@@ -1248,7 +1388,8 @@
         "previousYear": "Vorjahr",
         "previousYearComparison": "Vorjahresvergleich (gleicher Zeitraum)",
         "previousYearComparisonHint": "Nur bei eingegrenztem Rechnungsdatum-Zeitraum.",
-        "previousYearPeriod": "Vergleichszeitraum"
+        "previousYearPeriod": "Vergleichszeitraum",
+        "previousYearWithoutFilters": "Ohne die Filter, die den aktuellen Zustand der Rechnung beschreiben: {arg0}"
       },
       "status": {
         "_": "Rechnungsstatus",
@@ -1348,6 +1489,15 @@
     "after": "Nach",
     "all": "alle",
     "allFilters": "Alle Filter",
+    "applied": {
+      "_": "Filter der Liste",
+      "columnFiltersHint": "Spaltenfilter der Tabelle (Trichter im Spaltenkopf) werden nicht berücksichtigt.",
+      "ignored": "nicht berücksichtigt",
+      "ignoredTooltip": "Die Grafiken unterstützen diesen Filter der Liste nicht, ihre Zahlen können daher von der Liste abweichen.",
+      "none": "Kein Filter: alle Einträge",
+      "partial": "nur der erste Wert",
+      "partialTooltip": "Nur der erste der gewählten Werte wird angewendet, die Zahlen können daher von der Liste abweichen."
+    },
     "apply": "Anwenden",
     "before": "Vor",
     "between": "Zwischen",
@@ -1371,6 +1521,8 @@
     "hide": "Filter ausblenden",
     "history": "Geändert",
     "lessThan": "Kleiner als",
+    "monthFrom": "Von (Monat)",
+    "monthTo": "Bis (Monat)",
     "moreFields": "Weitere Felder",
     "newest": "die neuesten",
     "noFields": "Keine Filterfelder verfügbar",
@@ -1803,6 +1955,7 @@
       "short": "Menü",
       "title": "Hauptmenü"
     },
+    "misc": "Verschiedenes",
     "monthlyEmployeeReport": {
       "_": "Monatsbericht",
       "fileprefix": "Monatsbericht"
@@ -1834,10 +1987,6 @@
       }
     },
     "reporting": "Reporting",
-    "resetFilter": {
-      "_": "Filter zurücksetzen",
-      "info": "Setzt den aktuellen Suchfilter zurück, wenn Probleme beim Suchen bestehen."
-    },
     "sendSms": "SMS senden",
     "system": "System",
     "taskTree": "Strukturbaum",
@@ -2032,13 +2181,34 @@
       }
     },
     "licensemanagement": {
-      "device": "Gerät",
-      "key": "Schlüssel",
+      "device": {
+        "_": "Gerät",
+        "tooltip": "Auf welchem/welchen Gerät(en) ist die Software installiert?"
+      },
+      "file1": "Datei 1",
+      "file2": "Datei 2",
+      "files": "Dateien",
+      "key": {
+        "_": "Schlüssel",
+        "notvisible": {
+          "_": "Der Schlüssel ist nur für Besitzer und Administratoren sichtbar.",
+          "tooltip": "Bitte fügen Sie sich zuerst als Besitzer hinzu (und speichern), bevor Sie den Schlüssel sehen können."
+        }
+      },
+      "license": "Lizenz",
       "licenseHolder": "Lizenznehmer",
       "numberOfLicenses": "Anzahl",
       "owner": "Besitzer",
       "product": "Produkt",
-      "updateFromVersion": "Update der Version",
+      "swapFiles": "Dateien vertauschen",
+      "title": {
+        "add": "Lizenz hinzufügen",
+        "list": "Lizenzen"
+      },
+      "updateFromVersion": {
+        "_": "Update der Version",
+        "tooltip": "Diese Lizent stellt ein Update von dieser (älteren) Version dar."
+      },
       "validSince": "Gültig seit",
       "validUntil": "Gültig bis",
       "version": "Version"
@@ -2128,6 +2298,24 @@
       },
       "validate": {
         "maxForecastDays": "Die angegebene Anzahl an Tagen überschreitet das Limit von 600."
+      }
+    },
+    "marketing": {
+      "addressCampaign": {
+        "_": "Adresskampagne",
+        "edit": {
+          "warning": {
+            "doNotChangeValues": "Nachträgliches Ändern der Label kann bisherige Adresszuordnungen löschen!"
+          }
+        },
+        "title": {
+          "add": "Adresskampagne hinzufügen",
+          "list": "Adresskampagnen"
+        },
+        "values": {
+          "format": "Bitte geben Sie eine Werteliste ein (durch Semikolons separiert): Wert 1; Wert 2; Wert 3",
+          "invalidFormat": "Ungültiges Format, das Format ist: Wert 1; Wert 2; Wert 3"
+        }
       }
     },
     "memo": {
@@ -2413,6 +2601,7 @@
     "today": "Heute",
     "withoutTimePeriod": "Ohne Zeitangabe"
   },
+  "searchString": "Suchtext",
   "select": {
     "_": "Auswählen",
     "placeholder": "Auswählen..."
@@ -2662,6 +2851,11 @@
     "tree": {
       "close": "Strukturelement zuklappen",
       "explore": "Alle Strukturelemente auf-/zuklappen",
+      "filter": {
+        "reset": {
+          "tooltip": "Stellt den Standardfilter wieder her: leere Suche, Status „nicht begonnen“ und „begonnen“."
+        }
+      },
       "info": "Strukturelemente werden auf- und zugeklappt, indem auf das Ordnersymbol oder den Titel geklickt wird; zur Auswahl eines Elements kann jede andere Stelle innerhalb der Zeile angeklickt werden.\n\n**Tastatur**\n\n- **↑ / ↓** – zwischen den Elementen bewegen\n- **→ / ←** – fokussiertes Element auf- und zuklappen\n- **Eingabetaste** – fokussiertes Element öffnen",
       "open": "Strukturelement aufklappen",
       "perspective": "Baumansicht",

@@ -1,6 +1,6 @@
 import { test, expect, goto, login } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
-import { userFormat } from "./fixtures/format";
+import { label, userFormat } from "./fixtures/format";
 import {
   importSubject,
   datevCsvFile,
@@ -30,14 +30,14 @@ const ROLE = "finance-user";
 // first navigation to each route additionally waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("creditor invoice import", () => {
+test.describe("creditor invoice import", { tag: "@lane-creditor" }, () => {
   test.skip(
     !hasRole(ROLE),
     `No ${ROLE} account on this instance — see e2e/fixtures/credentials.ts.`
   );
 
   test.beforeEach(async ({ page }) => {
-    await login(page, "/next/", ROLE);
+    await login(page, ROLE);
   });
 
   test("uploads a DATEV CSV, reconciles it and commits the new invoice", async ({
@@ -55,7 +55,7 @@ test.describe("creditor invoice import", () => {
       await expect(page).toHaveURL(/\/creditor-invoice-import$/);
       await expect(
         page.getByRole("heading", {
-          name: format.t("fibu.eingangsrechnung.import.title"),
+          name: label(format, "fibu.eingangsrechnung.import.title"),
         })
       ).toBeVisible({ timeout: 60_000 });
 

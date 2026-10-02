@@ -32,6 +32,7 @@ import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
@@ -62,6 +63,9 @@ class ForecastExportTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var forecastOrderAnalysis: ForecastOrderAnalysis
+
+    @Autowired
+    private lateinit var orderbookSnapshotsService: OrderbookSnapshotsService
 
     /**
      * The order analysis shows both cases of projectforge.fibu.forecast.distributeUnusedBudget, but only if they
@@ -496,6 +500,125 @@ class ForecastExportTest : AbstractTestBase() {
                 )
             )
         }
+    }
+
+    /**
+     * The chart data ([ForecastExport.chartData]) must equal what the charts of the Excel export show: the evaluated
+     * template formulas of the summary rows of Forecast_Data (monthly sums by position status, IST) and of the sheet
+     * 'Umsatz kumuliert' (previous years).
+     */
+    @Test
+    fun chartDataMatchesExcelTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 1000.0, baseDate,
+            baseDate.plusMonths(1), baseDate.plusMonths(4), baseDate.plusMonths(2), baseDate.plusMonths(3)
+        )
+        // Invoice of the previous year's window:
+        createTimeAndMaterials(
+            AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT, 700.0, baseDate.plusMonths(-12),
+            baseDate.plusMonths(-12), baseDate.plusMonths(-10), baseDate.plusMonths(-11)
+        )
+        val order = createOrder(today, AuftragsStatus.GELEGT, today.plusMonths(1), today.plusMonths(3))
+        addPosition(order, 1, AuftragsStatus.GELEGT, 3000.00, AuftragsPositionsPaymentType.PAUSCHALE)
+        addPosition(order, 2, AuftragsStatus.LOI, 900.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        auftragDao.insert(order)
+        auftragsCache.setExpired()
+
+        val filter = AuftragFilter()
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val chartData = forecastExport.chartData(filter, distributeUnusedBudget = true)
+        Assertions.assertNotNull(chartData, "Chart data expected.")
+        chartData!!
+        Assertions.assertNull(chartData.plan, "No plan without planning date.")
+        Assertions.assertEquals(12, chartData.months.size)
+        Assertions.assertEquals("${baseDate.year}-${baseDate.monthValue.toString().padStart(2, '0')}", chartData.months[0])
+        Assertions.assertTrue(
+            chartData.forecastByStatus.values.any { values -> values.any { it.signum() != 0 } },
+            "Forecast values expected."
+        )
+
+        // The status sums of the template (SUMIFS) compare against the German status labels:
+        val user = ThreadLocalUserContext.loggedInUser!!
+        val locale = user.locale
+        user.locale = Locale.GERMAN
+        val ba = try {
+            forecastExport.xlsExport(filter, distributeUnusedBudget = true)
+        } finally {
+            user.locale = locale
+        }
+        XSSFWorkbook(ByteArrayInputStream(ba)).use { workbook ->
+            val forecastSheet = workbook.getSheet(ForecastExportContext.Sheet.FORECAST.title)!!
+            val firstMonthCol = CellReference.convertColStringToIndex("AD")
+            fun excelRow(sheet: Sheet, rowNum: Int, firstCol: Int): List<BigDecimal> = List(12) { i ->
+                BigDecimal(sheet.getRow(rowNum).getCell(firstCol + i)?.numericCellValue ?: 0.0)
+            }
+            // Rows 2-6 (0-based 1-5) of Forecast_Data in the order of the template:
+            listOf(
+                AuftragsStatus.BEAUFTRAGT, AuftragsStatus.GELEGT, AuftragsStatus.LOI,
+                AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.POTENZIAL,
+            ).forEachIndexed { index, status ->
+                assertAmounts(excelRow(forecastSheet, index + 1, firstMonthCol), chartData.forecastByStatus[status]!!, "$status")
+            }
+            assertAmounts(excelRow(forecastSheet, 7, firstMonthCol), chartData.ist, "IST")
+            val cumulatedSheet = workbook.getSheet("Umsatz kumuliert")!!
+            assertAmounts(excelRow(cumulatedSheet, 3, 1), chartData.total, "Gesamt")
+            assertAmounts(excelRow(cumulatedSheet, 7, 1), chartData.prevYear, "Vorjahr")
+            assertAmounts(excelRow(cumulatedSheet, 10, 1), chartData.prevPrevYear, "Vorvorjahr")
+        }
+    }
+
+    /**
+     * A planning date must not undo the search string: the order book snapshot used as plan can't be searched in
+     * full text, so its orders are restricted to those the search found. Neither may the snapshot's positions draw
+     * the invoices of other orders into IST and the previous years.
+     */
+    @Test
+    fun planningDateKeepsSearchStringTest() {
+        logon(TEST_FINANCE_USER)
+        val today = PFDay.now()
+        val baseDate = today.plusMonths(-4)
+        fun createInvoicedOrder(titel: String, projectNumber: Int, amount: Double) {
+            val projekt = ProjektDO()
+            projekt.nummer = projectNumber
+            projekt.name = "ForecastExportTest - $titel"
+            val projektId = projektDao.insert(projekt, checkAccess = false)
+            val order = createOrder(baseDate, AuftragsStatus.BEAUFTRAGT, baseDate, baseDate.plusMonths(4))
+            order.titel = titel
+            order.projekt = projektDao.find(projektId, checkAccess = false, attached = true)
+            addPosition(order, 1, AuftragsStatus.BEAUFTRAGT, 5 * amount, AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
+            val orderId = auftragDao.insert(order)
+            val invoice = createInvoice(baseDate.plusMonths(1))
+            addPosition(invoice, amount, auftragDao.find(orderId)!!.getPosition(1))
+            rechnungDao.insert(invoice)
+        }
+        createInvoicedOrder("Plansearchmatch order", 3, 1000.0)
+        createInvoicedOrder("Other order", 4, 7000.0)
+        auftragsCache.setExpired()
+        auftragsCache.forceReload()
+        orderbookSnapshotsService.storeOrderbookSnapshot(date = today.localDate)
+
+        val filter = AuftragFilter()
+        filter.searchString = "Plansearchmatch"
+        filter.periodOfPerformanceStartDate = baseDate.localDate
+        val withoutPlan = forecastExport.chartData(filter, distributeUnusedBudget = true)!!
+        val withPlan = forecastExport.chartData(filter, planningDate = today.localDate, distributeUnusedBudget = true)!!
+        assertAmount(withoutPlan.ist.sumOf { it }, 1000.0)
+        assertAmounts(withoutPlan.ist, withPlan.ist, "IST with planning date")
+        assertAmounts(withoutPlan.prevYear, withPlan.prevYear, "Previous year with planning date")
+        assertAmounts(withoutPlan.total, withPlan.total, "Total with planning date")
+        // The plan of today's snapshot is the forecast of today, of the found order only:
+        assertAmounts(withoutPlan.total, withPlan.plan!!, "Plan")
+    }
+
+    private fun assertAmounts(expected: List<BigDecimal>, actual: List<BigDecimal>, name: String) {
+        Assertions.assertEquals(
+            expected.map { it.setScale(2, RoundingMode.HALF_UP) },
+            actual.map { it.setScale(2, RoundingMode.HALF_UP) },
+            name,
+        )
     }
 
     private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsStatus,

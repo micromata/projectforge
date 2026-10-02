@@ -28,10 +28,12 @@ import mu.KotlinLogging
 import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.hibernate.Hibernate
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -54,6 +56,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     private var orderPositionMapByPosId = mapOf<Long, OrderPositionInfo>()
 
     private var toBeInvoicedCounter: Int? = null
+
+    /** The cutoff [toBeInvoicedCounter] was counted for: it is out of date with the next month. */
+    private var toBeInvoicedCounterCutoff: LocalDate? = null
 
     @PostConstruct
     private fun init() {
@@ -108,19 +113,24 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     }
 
     /**
-     * Number of all orders (finished, signed or escalated) which has to be invoiced.
+     * Number of all orders (finished, signed or escalated) which has to be invoiced until the end of the current
+     * month (see [OrderInfo.isToBeInvoicedBy]).
      */
     fun getToBeInvoicedCounter(): Int {
-        if (toBeInvoicedCounter != null) {
-            return toBeInvoicedCounter!!
+        val cutoff = OrderInfo.invoiceCutoff()
+        toBeInvoicedCounter?.let { counter ->
+            if (toBeInvoicedCounterCutoff == cutoff) {
+                return counter
+            }
         }
         // No sync, immutable map.
-        val counter = orderInfoMap.values.count { it.toBeInvoiced }
+        val counter = orderInfoMap.values.count { it.isToBeInvoicedBy(cutoff) }
         log.debug {
             "To be invoiced counter=$counter: ${
-                orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+                orderInfoMap.values.filter { it.isToBeInvoicedBy(cutoff) }.joinToString { it.nummer.toString() }
             }"
         }
+        toBeInvoicedCounterCutoff = cutoff
         toBeInvoicedCounter = counter
         return counter
     }
@@ -151,6 +161,26 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         return orderPositionMapByPosId[positionInfoId]?.auftrag // No sync, immutable map.
     }
 
+
+    /**
+     * True, if any non-deleted position of the given order matches [predicate]. Meant for filtering lists of orders by
+     * position attributes: the positions are taken from the cache, because touching the lazy positions of each order
+     * fires one select per order (N+1). The order's own positions are used if they are loaded already (e.g. an order
+     * being edited) or if the order isn't cached (e.g. not yet persisted).
+     */
+    fun anyPositionMatches(
+        order: AuftragDO,
+        predicate: (status: AuftragsStatus?, art: AuftragsPositionsArt?, paymentType: AuftragsPositionsPaymentType?) -> Boolean,
+    ): Boolean {
+        val positions = order.positionen
+        val cachedPositions = if (positions == null || Hibernate.isInitialized(positions)) {
+            null
+        } else {
+            getOrderInfo(order.id)?.infoPositions
+        }
+        cachedPositions ?: return order.positionenExcludingDeleted.any { predicate(it.status, it.art, it.paymentType) }
+        return cachedPositions.any { !it.deleted && predicate(it.status, it.art, it.paymentType) }
+    }
 
     /**
      * @param checkRefresh If true, the cache will be checked for refresh (needed for avoiding deadlocks).

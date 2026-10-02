@@ -2,13 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { FieldShell, useFieldIds } from "@/components/shared/form/field-shell";
 import type { RecurrenceFreq, RecurrenceModel } from "../recurrence-model";
 import { RecurrenceDetailMonthly } from "./recurrence-detail-monthly";

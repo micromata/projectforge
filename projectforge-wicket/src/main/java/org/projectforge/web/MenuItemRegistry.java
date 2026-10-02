@@ -83,16 +83,13 @@ public class MenuItemRegistry implements Serializable {
         // SEARCH (Suche) migrated to projectforge-next; its Wicket page was removed and the menu points at next/search.
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
-        register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
+        // MONTHLY_EMPLOYEE_REPORT (Monatsbericht) migrated to projectforge-next (next/monthlyEmployeeReport); its Wicket page was removed.
         register(MenuItemDefId.HR_VIEW, HRListPage.class);
         register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
         register(MenuItemDefId.GANTT, GanttChartListPage.class);
         // OUTGOING_INVOICE_LIST (Debitoren) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
-        // CUSTOMER_LIST (Kunden) migrated to projectforge-next; the menu entry resolves to next/customer
-        // (MenuItemDefId.CUSTOMER_LIST). The CustomerListPage class is kept for the select panels, but is no
-        // longer registered as the menu's Wicket page.
-        //register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
+        // CUSTOMER_LIST (Kunden) migrated to projectforge-next; its Wicket pages were removed.
         //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
         register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
         // ORDER_LIST (Auftragsbuch) migrated to projectforge-next; its Wicket page was removed.

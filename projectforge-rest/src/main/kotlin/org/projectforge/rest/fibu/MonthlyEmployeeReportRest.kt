@@ -51,6 +51,8 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.dto.InvoicingQuotaHistory
+import org.projectforge.rest.dto.InvoicingQuotaHistoryMonth
 import org.projectforge.rest.dto.MonthlyEmployeeReportCell
 import org.projectforge.rest.dto.MonthlyEmployeeReportData
 import org.projectforge.rest.dto.MonthlyEmployeeReportRow
@@ -130,12 +132,15 @@ class MonthlyEmployeeReportRest {
      * other users' time sheets, else HTTP 403.
      * @param year   Defaults to the current year.
      * @param month  1-based (1 = January, ..., 12 = December); defaults to the current month.
+     * @param showInvoicingQuota Whether the user wants to see the invoicing quota; defaults to the last choice
+     * (off at first).
      */
     @GetMapping
     fun getReport(
         @RequestParam("userId", required = false) userId: Long?,
         @RequestParam("year", required = false) year: Int?,
         @RequestParam("month", required = false) month: Int?,
+        @RequestParam("showInvoicingQuota", required = false) showInvoicingQuota: Boolean?,
     ): MonthlyEmployeeReportData {
         val now = PFDay.now()
         // Fall back to the last selection (persisted per user, like the legacy page's user-pref filter): the
@@ -150,7 +155,11 @@ class MonthlyEmployeeReportRest {
         userPrefService.putEntry(PREF_AREA, PREF_USER_ID, user.id, true)
         userPrefService.putEntry(PREF_AREA, PREF_YEAR, reportYear, true)
         userPrefService.putEntry(PREF_AREA, PREF_MONTH, reportMonth, true)
-        return toDto(report, user)
+        val showQuota = showInvoicingQuota
+            ?: userPrefService.getEntry(PREF_AREA, PREF_SHOW_INVOICING_QUOTA, Boolean::class.java)
+            ?: false
+        userPrefService.putEntry(PREF_AREA, PREF_SHOW_INVOICING_QUOTA, showQuota, true)
+        return toDto(report, user, showQuota)
     }
 
     /**
@@ -172,6 +181,38 @@ class MonthlyEmployeeReportRest {
     fun getYears(@RequestParam("userId", required = false) userId: Long?): List<Int> {
         val user = resolveUser(userId)
         return timesheetDao.getYears(user.id).toList().sortedDescending()
+    }
+
+    /**
+     * The invoicing quota of the 12 months ending with [year]/[month] (defaults to the current month), for the
+     * chart tab. Each month is computed by the very report the monthly view uses, so the values match it.
+     * Only for a user whose quota the logged-in user may see (see [InvoicingQuotaService.mayViewQuotaOf]).
+     */
+    @GetMapping("invoicingQuotaHistory")
+    fun getInvoicingQuotaHistory(
+        @RequestParam("userId", required = false) userId: Long?,
+        @RequestParam("year", required = false) year: Int?,
+        @RequestParam("month", required = false) month: Int?,
+    ): InvoicingQuotaHistory {
+        val user = resolveUser(userId)
+        if (!invoicingQuotaService.isEnabled() || !invoicingQuotaService.mayViewQuotaOf(user.id)) {
+            throw AccessException("access.exception.userHasNotRight")
+        }
+        val now = PFDay.now()
+        val lastMonth = PFDay.of(year ?: now.year, month ?: now.monthValue, 1)
+        val months = (HISTORY_MONTHS - 1 downTo 0).map { back ->
+            val day = lastMonth.minusMonths(back.toLong())
+            // No vacation stats: only the working-time totals are needed.
+            val report = monthlyEmployeeReportDao.getReport(day.year, day.monthValue, user, false)
+            val quota = report?.invoicingQuota
+            InvoicingQuotaHistoryMonth(
+                month = "%04d-%02d".format(day.year, day.monthValue),
+                quota = quota,
+                billedHours = quota?.let { MonthlyEmployeeReport.formatDurationHours(report.invoicingQuotaBilledMillis) },
+                totalHours = quota?.let { MonthlyEmployeeReport.formatDurationHours(report.invoicingQuotaTotalMillis) },
+            )
+        }
+        return InvoicingQuotaHistory(months)
     }
 
     /**
@@ -236,7 +277,11 @@ class MonthlyEmployeeReportRest {
             ?: throw AccessException("access.exception.noAccess")
     }
 
-    private fun toDto(report: MonthlyEmployeeReport, user: PFUserDO): MonthlyEmployeeReportData {
+    private fun toDto(
+        report: MonthlyEmployeeReport,
+        user: PFUserDO,
+        showInvoicingQuota: Boolean,
+    ): MonthlyEmployeeReportData {
         val costConfigured = Configuration.instance.isCostConfigured
         val timeSavingsByAIEnabled = timesheetDao.timeSavingsByAIEnabled
         val weeks = report.weeks.map { week ->
@@ -266,7 +311,7 @@ class MonthlyEmployeeReportRest {
                     customer = if (project != null) project.kunde?.name ?: "" else null,
                     project = if (project != null) project.name else null,
                     description = if (project == null) kost2.description else null,
-                    kost2Art = kost2.kost2Art?.name,
+                    kost2Art = MonthlyEmployeeReport.Kost2Row.displayedKost2ArtName(kost2),
                     perWeek = report.weeks.map { toCell(it.kost2Entries[kost2Id]) },
                     sum = total?.formattedDuration ?: "",
                     aiTimeSavings = total?.getFormattedTimeSavedByAI ?: "",
@@ -293,6 +338,8 @@ class MonthlyEmployeeReportRest {
 
         val kost1 = report.kost1Id?.let { kostCache.getKost1(it) }
         val vacationAvailable = vacationService.hasAccessToVacationService(ThreadLocalUserContext.loggedInUser, false)
+        val invoicingQuotaAvailable = invoicingQuotaService.isEnabled() && invoicingQuotaService.mayViewQuotaOf(user.id)
+        val invoicingQuotaShown = invoicingQuotaAvailable && showInvoicingQuota
         val averageWorkingTimeStats = averageWorkingTimeStats(user, report.year, report.month)
         val fromDate = LocalDate.of(report.year, report.month, 1)
         // Target ("Soll") working hours of the month = weekly hours × working days ÷ 5 (5 working days/week),
@@ -337,8 +384,14 @@ class MonthlyEmployeeReportRest {
             vacationAvailable = vacationAvailable,
             vacationCount = if (vacationAvailable) report.formattedVacationCount else null,
             vacationPlannedCount = if (vacationAvailable) report.formattedVacationPlandCount else null,
-            invoicingQuota = if (invoicingQuotaService.isEnabled()) report.formattedInvoicingQuota else null,
-            invoicingQuotaTooltip = if (invoicingQuotaService.isEnabled()) report.formattedInvoicingQuotaTooltip else null,
+            invoicingQuotaAvailable = invoicingQuotaAvailable,
+            showInvoicingQuota = showInvoicingQuota,
+            invoicingQuota = if (invoicingQuotaShown) report.formattedInvoicingQuota else null,
+            invoicingQuotaTooltip = if (invoicingQuotaShown) report.formattedInvoicingQuotaTooltip else null,
+            // Also while switched off: the switch's info icon explains what the user would turn on.
+            invoicingQuotaInfo = if (invoicingQuotaAvailable) {
+                invoicingQuotaService.getInfo(ThreadLocalUserContext.locale)
+            } else null,
             startDate = fromDate.toString(),
             endDate = fromDate.withDayOfMonth(fromDate.lengthOfMonth()).toString(),
         )
@@ -403,5 +456,9 @@ class MonthlyEmployeeReportRest {
         private const val PREF_USER_ID = "userId"
         private const val PREF_YEAR = "year"
         private const val PREF_MONTH = "month"
+        private const val PREF_SHOW_INVOICING_QUOTA = "showInvoicingQuota"
+
+        /** Number of months shown in the invoicing quota chart (including the selected month). */
+        private const val HISTORY_MONTHS = 12
     }
 }

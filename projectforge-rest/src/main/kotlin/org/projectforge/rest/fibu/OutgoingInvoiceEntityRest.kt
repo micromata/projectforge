@@ -30,10 +30,12 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper
 import org.projectforge.business.fibu.EInvoiceExportService
+import org.projectforge.business.fibu.BankAccountConfig
 import org.projectforge.business.fibu.EInvoiceSellerConfig
 import org.projectforge.business.fibu.InvoiceConfiguration
 import org.projectforge.business.fibu.InvoiceService
 import org.projectforge.business.fibu.KontoCache
+import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.PeriodOfPerformanceValidator
 import org.projectforge.business.fibu.RechnungCache
 import org.projectforge.business.fibu.RechnungCalculator
@@ -50,6 +52,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungExport
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.common.i18n.UserException
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.Configuration
@@ -58,6 +61,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.UserRightService
@@ -78,6 +82,7 @@ import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Rechnung
 import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.TargetType
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
@@ -188,6 +193,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             rechnungDO.kundeText = null
         }
         assignNumbersAndIndicesToNewRows(rechnungDO)
+        if (rechnungDO.typ == RechnungTyp.CANCELLATION && rechnungDO.originalRechnung == null) {
+            // Typed by the user as the number of the cancelled invoice (a cancellation written by hand
+            // instead of through [createCancellation]): resolved to the invoice here, `RechnungDao` validates it.
+            rechnungDO.originalRechnung = baseDao.findByNummer(dto.originalInvoice?.nummer)
+        }
         dto.id?.let { id ->
             baseDao.find(id, checkAccess = false)?.let { dbObj ->
                 rechnungDO.attachmentsCounter = dbObj.attachmentsCounter
@@ -219,6 +229,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         } else {
             rechnung.copyFrom(obj)
             rechnung.project?.displayName = obj.projekt?.name
+        }
+        if (editMode && obj.isCancellable) {
+            rechnung.cancellationInvoice = Rechnung.InvoiceRef.of(baseDao.findCancellationOf(obj.id))
+            rechnung.cancellable = rechnung.cancellationInvoice == null
         }
         rechnung.deleteAccess = baseDao.hasLoggedInUserDeleteAccess(obj, obj, false)
         rechnung.writeAccess = if (obj.id == null) {
@@ -262,9 +276,41 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * invoice is what a clone is for.
      *
      * @see prepareInvoiceClone for what a clone is and isn't.
+     *
+     * The e-invoice fields the original left empty are filled from the account here as well: the recurring
+     * invoice is mostly an old one, from before the e-invoice, and a clone already names its customer — so
+     * the fill the form does when a customer is picked never comes. (The cancellation is built through here
+     * too, which is right for it: it is addressed to the same recipient.)
      */
     override fun prepareClone(dto: Rechnung): Rechnung {
-        return prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
+        val clone = prepareInvoiceClone(super.prepareClone(dto), LocalDate.now())
+        fillEInvoiceFieldsFromAccount(clone, eInvoiceAccountOf(clone), sellerConfig.bankAccounts)
+        return clone
+    }
+
+    /**
+     * The given (unsaved) invoice with the e-invoice fields it leaves empty filled from its account — the
+     * "fill from account" button of the e-invoice section, and the fill of the form when a customer or an
+     * account is picked. Nothing is written; the client takes the e-invoice fields from the answer.
+     *
+     * Read only, so the select access of the category is what has to be checked here, as for [getFormDefaults].
+     *
+     * @see fillEInvoiceFieldsFromAccount for which account and which fields.
+     */
+    @PostMapping("eInvoiceFromAccount")
+    fun getEInvoiceFromAccount(@RequestBody dto: Rechnung): Rechnung {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        fillEInvoiceFieldsFromAccount(dto, eInvoiceAccountOf(dto), sellerConfig.bankAccounts)
+        return dto
+    }
+
+    /**
+     * The account the e-invoice fields of [dto] are taken from: the invoice's own, else its customer's — the
+     * order `EInvoiceExportService.buildBuyer` reads them in, too.
+     */
+    private fun eInvoiceAccountOf(dto: Rechnung): KontoDO? {
+        return kontoCache.getKonto(dto.konto?.id)
+            ?: kontoCache.getKontoIfNotInitialized(kundeCache.getKunde(dto.customer?.id)?.konto)
     }
 
     /**
@@ -298,6 +344,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         if (obj.id == null &&
             obj.nummer == null &&
             obj.typ != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN &&
+            // No number of its own either: it is derived from the cancelled invoice's (`RechnungDO.belegNummer`).
+            obj.typ != RechnungTyp.CANCELLATION &&
             obj.status != RechnungStatus.GEPLANT
         ) {
             obj.nummer = baseDao.getNextNumber(obj)
@@ -648,6 +696,32 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /**
+     * A cancellation invoice of the given invoice, prepared and not saved: the "create cancellation" button of
+     * the edit page (`EditDef.convert`), which opens it on the add page, where the user saves it.
+     *
+     * Built from the *stored* invoice, not from the posted form: a cancellation reverses what was issued, not
+     * what is being edited. Refused (406, `UserException`) for an invoice that isn't cancellable
+     * ([RechnungDO.isCancellable]) or is cancelled already — the client doesn't offer the button then
+     * ([Rechnung.cancellable]).
+     *
+     * @see prepareCancellation for what the cancellation keeps and what it reverses.
+     */
+    @PostMapping("createCancellation")
+    fun createCancellation(@RequestBody postData: PostData<Rechnung>): ResponseAction {
+        baseDao.hasLoggedInUserInsertAccess()
+        val original = postData.data.id?.let { baseDao.find(it) }
+        if (original == null || !original.isCancellable) {
+            throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
+        }
+        baseDao.findCancellationOf(original.id)?.let {
+            throw UserException("fibu.rechnung.cancellation.alreadyExists", it.belegNummer)
+        }
+        val dto = prepareClone(transformFromDB(original, editMode = true))
+        prepareCancellation(dto, original, translateMsg("fibu.rechnung.cancellation.of", original.nummer.toString()))
+        return ResponseAction(targetType = TargetType.NOTHING).addVariable("data", dto)
+    }
+
+    /**
      * The invoice as XRechnung, i.e. the XML alone — Wicket's `fibu.rechnung.exportEInvoice` button.
      *
      * 400 with the validation errors where the invoice isn't exportable: the client checks first, so this is
@@ -673,15 +747,21 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * where none was uploaded (`exportAsZUGFeRD`); the regular attachments of the invoice are embedded as
      * files, the marked invoice PDF is not. All of that is read from the JCR by the invoice id — which is why
      * this endpoint could not work on a posted state even if it wanted to.
+     *
+     * `variant` chooses the Word template for that conversion, as it does for [exportInvoiceWord]; where an
+     * invoice PDF was uploaded it has no effect.
      */
     @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
-    fun exportZugferd(@PathVariable("id") id: Long): ResponseEntity<*> {
+    fun exportZugferd(
+        @PathVariable("id") id: Long,
+        @RequestParam("variant", required = false) variant: String?,
+    ): ResponseEntity<*> {
         val invoice = checkEInvoiceReadAccess(id)
-        log.info { "Exporting invoice #$id as a ZUGFeRD PDF." }
+        log.info { "Exporting invoice #$id as a ZUGFeRD PDF, variant='${variant ?: ""}'." }
         return exportEInvoice(invoice) {
             RestUtils.downloadFile(
                 eInvoiceExportService.getZUGFeRDExportFilename(invoice),
-                eInvoiceExportService.exportAsZUGFeRD(invoice),
+                eInvoiceExportService.exportAsZUGFeRD(invoice, variant),
             )
         }
     }
@@ -813,13 +893,16 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val invoice = RechnungDO()
         postData.data.copyTo(invoice)
         val info = Rechnung.calculateInvoiceInfo(invoice)
+        // Without cost accounting no invoice has a single assignment, so every net sum would read as a
+        // Fehlbetrag. Null keeps it off the wire, and the form shows none (as Wicket's form does).
+        val costConfigured = Configuration.instance.isCostConfigured
         return InvoiceSums(
             netSum = info.netSum,
             vatAmount = info.vatAmount,
             grossSum = info.grossSum,
             grossSumWithDiscount = info.grossSumWithDiscount,
             kostZuweisungenNetSum = info.kostZuweisungenNetSum,
-            kostZuweisungenFehlbetrag = info.kostZuweisungenFehlbetrag,
+            kostZuweisungenFehlbetrag = if (costConfigured) info.kostZuweisungenFehlbetrag else null,
             bezahlt = info.isBezahlt,
             ueberfaellig = info.isUeberfaellig,
             positions = info.positions?.map { position ->
@@ -829,7 +912,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                     vatAmount = position.vatAmount,
                     grossSum = position.grossSum,
                     kostZuweisungNetSum = position.kostZuweisungNetSum,
-                    kostZuweisungNetFehlbetrag = position.kostZuweisungNetFehlbetrag,
+                    kostZuweisungNetFehlbetrag = if (costConfigured) position.kostZuweisungNetFehlbetrag else null,
                 )
             },
         )
@@ -847,8 +930,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         /**
          * How much of [netSum] is not assigned to a cost unit yet. A hint for the user only: `RechnungDao`
          * performs no validation of the cost assignment sums, so an invoice with a difference saves fine.
+         * Null where cost accounting is not configured at all (`Configuration.isCostConfigured`).
          */
-        val kostZuweisungenFehlbetrag: BigDecimal,
+        val kostZuweisungenFehlbetrag: BigDecimal?,
         val bezahlt: Boolean,
         val ueberfaellig: Boolean,
         val positions: List<PositionSums>?,
@@ -861,7 +945,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val grossSum: BigDecimal,
         val kostZuweisungNetSum: BigDecimal,
         /** The per position counterpart of [InvoiceSums.kostZuweisungenFehlbetrag], which Wicket paints red. */
-        val kostZuweisungNetFehlbetrag: BigDecimal,
+        val kostZuweisungNetFehlbetrag: BigDecimal?,
     )
 
     /**
@@ -910,7 +994,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             // The same query one year back, run through the same pipeline (getObjectList + filterList)
             // as the list itself, so the two sums differ only by the period.
             val previousInvoices = filterList(getObjectList(this, baseDao, previousFilter), previousFilter)
-            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices))
+            statistics.previousYear = InvoiceStatistics(baseDao.buildStatistik(previousInvoices)).also {
+                it.ignoredFilterFields = comparisonIgnoredFields(magicFilter)
+            }
         }
         return statistics
     }
@@ -952,16 +1038,24 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * top-level object carries it; the one nested here is always null.
          */
         var previousYear: InvoiceStatistics? = null
+
+        /**
+         * The fields of the list's filter the previous-year figures leave out (see [comparisonFilter]), so the
+         * client can say they rest on a broader question. Set on [previousYear] only.
+         */
+        var ignoredFilterFields: List<String> = emptyList()
     }
 
     /**
      * The monthly net sums of the filtered invoices, this year and the three years before it, for the
      * "Grafiken" tab of `/next/invoice`.
      *
-     * The four years are the same period shifted zero, one, two and three years back ([shiftYearsFilter]),
-     * every other criterion of the list's filter kept - a generalization of the previous-year comparison the
-     * statistics line shows, so the series of offset one equals that comparison and the offset-zero sum equals
-     * the list's own `netto`. Each year's invoices are read through the very pipeline the list uses
+     * The four years are the same period shifted zero, one, two and three years back ([comparisonFilter]) -
+     * a generalization of the previous-year comparison the statistics line shows, so the series of offset one
+     * equals that comparison. The criteria that describe an invoice's current state (paid, status, ...) are
+     * left out of every year, the reference year included, so all four answer the same question; the
+     * offset-zero sum therefore equals the list's own `netto` only without such a criterion, and the answer
+     * names the left-out fields for the client to flag. Each year's invoices are read through the very pipeline the list uses
      * ([getResultList]), so the chart counts the invoices the list shows and no others.
      *
      * Requires a bounded invoice-date range, as the comparison does: without a start and an end "the same
@@ -977,7 +1071,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     fun netSumChart(@RequestBody filter: MagicFilter): NetSumChartData {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
         // Offset zero validates the bounded range and yields the reference period the other years align to.
-        val reference = shiftYearsFilter(filter, 0) ?: return NetSumChartData()
+        val reference = comparisonFilter(filter, 0) ?: return NetSumChartData()
         val from = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.fromValue)
             ?: return NetSumChartData()
         val to = parseIsoDate(reference.entries.find { it.field == DATE_FIELD }?.value?.toValue)
@@ -992,7 +1086,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
         val index = months.withIndex().associate { (i, ym) -> ym to i }
         val series = (0 until NET_SUM_CHART_YEARS).map { offset ->
-            val shifted = shiftYearsFilter(filter, offset)!! // Not null: the bounded range was asserted above.
+            val shifted = comparisonFilter(filter, offset)!! // Not null: the bounded range was asserted above.
             val monthly = Array(months.size) { BigDecimal.ZERO }
             getResultList(shifted).forEach { invoice ->
                 val datum = invoice.datum ?: return@forEach
@@ -1010,7 +1104,11 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 monthly = monthly.toList(),
             )
         }
-        return NetSumChartData(months = months.map { it.toString() }, series = series)
+        return NetSumChartData(
+            months = months.map { it.toString() },
+            series = series,
+            ignoredFilterFields = comparisonIgnoredFields(filter),
+        )
     }
 
     /**
@@ -1022,6 +1120,8 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         val months: List<String> = emptyList(),
         /** One entry per year, newest ([offset] 0) first. */
         val series: List<NetSumYearSeries> = emptyList(),
+        /** The fields of the list's filter the chart leaves out in every year (see [comparisonFilter]). */
+        val ignoredFilterFields: List<String> = emptyList(),
     )
 
     class NetSumYearSeries(
@@ -1086,12 +1186,15 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 label = translate("fibu.periodOfPerformance"),
             )
         )
-        if (IncompleteInvoiceFilter.isOffered(Configuration.instance.isCostConfigured, invoiceConfig.accountRequired)) {
+        val costConfigured = Configuration.instance.isCostConfigured
+        val accountRequired = invoiceConfig.accountRequired
+        if (IncompleteInvoiceFilter.isOffered(costConfigured, accountRequired)) {
             elements.add(
                 UIFilterElement(
                     INCOMPLETE_FILTER,
                     UIFilterElement.FilterType.BOOLEAN,
                     label = translate("fibu.rechnung.filter.incomplete"),
+                    tooltip = translate(IncompleteInvoiceFilter.tooltipKey(costConfigured, accountRequired)),
                     defaultFilter = true,
                 )
             )
@@ -1213,6 +1316,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             invoices.forEach { invoice ->
                 val row = sheet.createRow()
                 row.autoFillFromObject(invoice)
+                if (invoice.typ == RechnungTyp.CANCELLATION) {
+                    // No number of its own, the derived one ("16956-S") instead.
+                    ExcelUtils.getCell(row, RechnungDO::nummer)?.setCellValue(invoice.belegNummer)
+                }
                 // The related customer or, for an invoice naming none, the free text - the same fallback
                 // the list's cell and `KundeFormatter` make.
                 row.getCell(COL_CUSTOMER)?.setCellValue(
@@ -1341,6 +1448,75 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
                 position.id = null
                 position.kostZuweisungen?.forEach { it.id = null }
             }?.toMutableList()
+            // A clone is a new document: it neither has the number of the cloned one, nor is it cancelled by the
+            // cancellation of that one. A cloned cancellation keeps no reference either, the invoice it cancels
+            // is cancelled already - the user names another one (or changes the type).
+            dto.belegNummer = null
+            dto.originalInvoice = null
+            dto.cancellationInvoice = null
+            dto.cancellable = false
+            return dto
+        }
+
+        /**
+         * Fills the e-invoice fields [dto] leaves empty from [account] — and only those: an invoice may name a
+         * different contact or address on purpose, and overwriting it would quietly undo that.
+         *
+         * The bank account is the one exception to a plain copy: the account names it by its configured
+         * *name* (`KontoDO.sellerBankAccountName`), the invoice stores its IBAN. Taken only where the name is
+         * unambiguous, since nothing makes the configured names unique, and of two accounts of the same name
+         * either guess could send the payment to the wrong one.
+         *
+         * `internal` and in the companion object for the reason [prepareInvoiceClone] is: testable without a
+         * Spring context.
+         */
+        internal fun fillEInvoiceFieldsFromAccount(
+            dto: Rechnung,
+            account: KontoDO?,
+            bankAccounts: List<BankAccountConfig>,
+        ) {
+            account ?: return
+            fun fill(current: String?, value: String?, set: (String) -> Unit) {
+                if (current.isNullOrBlank() && !value.isNullOrBlank()) set(value)
+            }
+            fill(dto.customerContactPerson, account.contactPerson) { dto.customerContactPerson = it }
+            fill(dto.customerAddress, account.street) { dto.customerAddress = it }
+            fill(dto.customerZipCode, account.zipCode) { dto.customerZipCode = it }
+            fill(dto.customerCity, account.city) { dto.customerCity = it }
+            fill(dto.customerCountry, account.country) { dto.customerCountry = it }
+            fill(dto.customerVatId, account.vatId) { dto.customerVatId = it }
+            fill(dto.customerLeitwegId, account.leitwegId) { dto.customerLeitwegId = it }
+            fill(dto.customerEInvoiceEmail, account.eInvoiceEmail) { dto.customerEInvoiceEmail = it }
+            val bankAccountName = account.sellerBankAccountName
+            if (!bankAccountName.isNullOrBlank()) {
+                val iban = bankAccounts.filter { it.name == bankAccountName }.singleOrNull()?.iban
+                fill(dto.sellerBankAccount, iban) { dto.sellerBankAccount = it }
+            }
+        }
+
+        /**
+         * Turns a prepared clone of [original] ([prepareInvoiceClone]) into its cancellation: the type
+         * [RechnungTyp.CANCELLATION], the reference to [original], and every amount negated — the unit prices
+         * of the positions and their cost assignments — so that the two documents cancel each other out in
+         * every sum of the Rechnungsbuch. The quantities are kept, as are the order positions billed (the
+         * cancellation reverses their billing, too).
+         *
+         * The e-invoice states it as a credit note with positive amounts (`EInvoiceExportService`).
+         *
+         * @param subjectPrefix Prepended to the subject, e.g. "Storno zu Rechnung 16956".
+         */
+        internal fun prepareCancellation(dto: Rechnung, original: RechnungDO, subjectPrefix: String): Rechnung {
+            dto.typ = RechnungTyp.CANCELLATION
+            dto.originalInvoice = Rechnung.InvoiceRef.of(original)
+            dto.betreff = listOfNotNull(subjectPrefix, dto.betreff?.takeIf { it.isNotBlank() }).joinToString(": ")
+            // Nothing to pay, and nothing to pay early.
+            dto.discountPercent = null
+            dto.discountMaturity = null
+            dto.discountZahlungsZielInTagen = null
+            dto.positionen?.forEach { position ->
+                position.einzelNetto = position.einzelNetto?.negate()
+                position.kostZuweisungen?.forEach { it.netto = it.netto?.negate() }
+            }
             return dto
         }
 
@@ -1348,9 +1524,9 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
          * Gives every posted row that has no id yet its number: the positions of the invoice, and the cost
          * assignments of each position.
          *
-         * Both are `@OrderColumn`s the client cannot assign, and both identify a row inside its collection:
-         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` with `@ListIndexBase(1)`, and
-         * `KostZuweisungDO.index` is the order column of a position's assignments (0-based, as
+         * Both are numbers the client cannot assign, and both identify a row inside its collection:
+         * `RechnungsPositionDO` has `UNIQUE(rechnung_fk, number)` (1-based), and `KostZuweisungDO.index`
+         * sorts a position's assignments and is part of its unique constraint (0-based, as
          * `AbstractRechnungsPositionDO.addKostZuweisung` assigns it).
          *
          * The next free number is taken from the **stored** rows only: whatever number the client gave a new
@@ -1417,8 +1593,63 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
             if (!requested) {
                 return null
             }
-            return shiftYearsFilter(magicFilter, 1)
+            return comparisonFilter(magicFilter, 1)
         }
+
+        /**
+         * The criteria a comparison across years leaves out, because they describe the invoice's current
+         * state rather than which invoices are meant: last year's invoices are all paid, so "unpaid" or
+         * "incomplete" carried over would compare this year's open invoices with next to nothing. The
+         * attachments and the change history are such states too, and the invoice number is a fixed range,
+         * matching nothing in earlier years.
+         */
+        private val COMPARISON_IGNORED_FIELDS = setOf(
+            RechnungDO::status.name,
+            LIST_TYPE_FILTER,
+            INCOMPLETE_FILTER,
+            RechnungDO::bezahlDatum.name,
+            RechnungDO::zahlBetrag.name,
+            RechnungDO::uiStatusAsXml.name,
+            RechnungDO::nummer.name,
+            RechnungDO::attachmentsCounter.name,
+            RechnungDO::attachmentsNames.name,
+            RechnungDO::attachmentsIds.name,
+            RechnungDO::attachmentsSize.name,
+            RechnungDO::attachmentsLastUserAction.name,
+        ) + MagicFilterEntry.HistorySearch.entries.map { it.fieldName }
+
+        /**
+         * The dates of the invoice besides [DATE_FIELD]: as fixed ranges they would match nothing in earlier
+         * years, so a comparison moves them back by the same years as the invoice date.
+         */
+        private val COMPARISON_SHIFTED_DATE_FIELDS = setOf(
+            PERIOD_OF_PERFORMANCE_FILTER,
+            RechnungDO::faelligkeit.name,
+            RechnungDO::discountMaturity.name,
+        )
+
+        /**
+         * The filter of a comparison [years] years back (see [shiftYearsFilter]), without the criteria that
+         * make no sense across years ([COMPARISON_IGNORED_FIELDS]) and with the invoice's other dates moved
+         * along ([COMPARISON_SHIFTED_DATE_FIELDS]). Null when there is no bounded invoice-date range.
+         * [years] `== 0` is the reference period of the chart, which leaves the same criteria out, so all
+         * years answer the same question.
+         */
+        internal fun comparisonFilter(magicFilter: MagicFilter, years: Int): MagicFilter? {
+            return shiftYearsFilter(magicFilter, years)?.also { clone ->
+                clone.entries.removeIf { it.field in COMPARISON_IGNORED_FIELDS }
+                clone.entries.filter { it.field in COMPARISON_SHIFTED_DATE_FIELDS }.forEach { entry ->
+                    entry.value.fromValue = parseIsoDate(entry.value.fromValue)?.minusYears(years.toLong())?.toString()
+                    entry.value.toValue = parseIsoDate(entry.value.toValue)?.minusYears(years.toLong())?.toString()
+                    entry.value.periodKind = null
+                }
+            }
+        }
+
+        /** The fields of [magicFilter] with a value that [comparisonFilter] leaves out, for the client to name. */
+        internal fun comparisonIgnoredFields(magicFilter: MagicFilter): List<String> =
+            magicFilter.entries.filter { it.isCriterion && it.field in COMPARISON_IGNORED_FIELDS }
+                .mapNotNull { it.field }.distinct()
 
         /**
          * The given filter with its invoice-date range ([DATE_FIELD]) moved [years] years back, or null when it
@@ -1499,12 +1730,29 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         private const val PROJECT_SORT_PROPERTY = "projekt.displayName"
 
         /**
+         * What the number column sorts by: the number the cell shows ([RechnungDO.belegNummer]), numerically.
+         * A cancellation has no number of its own, so `ORDER BY nummer` would gather all of them at one end;
+         * it sorts right behind the invoice it cancels instead (`16956`, `16956-S`, `16957`). Doubled, so the
+         * cancellation's key fits between its original's and the next number's. Not the string itself, which
+         * would sort `9999` behind `10000`. Null (a planned invoice, a credit note announced by the customer)
+         * ranks as blank.
+         */
+        internal fun numberSortKey(invoice: RechnungDO): Long? {
+            return if (invoice.typ == RechnungTyp.CANCELLATION) {
+                invoice.originalRechnung?.nummer?.let { 2L * it + 1 }
+            } else {
+                invoice.nummer?.let { 2L * it }
+            }
+        }
+
+        /**
          * The sort ids no database column can answer, and the value each one sorts by (see [filterList]).
          *
          * Keyed by what `invoice.page.tsx` declares its columns as, which for the three DTO fields is the
          * DTO's property name.
          */
         private val COMPUTED_SORT_PROPERTIES = mapOf<String, (RechnungDO) -> Comparable<*>?>(
+            RechnungDO::nummer.name to { numberSortKey(it) },
             Rechnung::netSum.name to { it.ensuredInfo.netSum },
             Rechnung::grossSumWithDiscount.name to { it.ensuredInfo.grossSumWithDiscount },
             Rechnung::kostZuweisungenFehlbetrag.name to { it.ensuredInfo.kostZuweisungenFehlbetrag },

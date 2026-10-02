@@ -24,76 +24,80 @@
 package org.projectforge.rest.fibu
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragFakturiertFilterStatus
-import org.projectforge.business.fibu.AuftragsPositionsArt
-import org.projectforge.business.fibu.AuftragsPositionsPaymentType
-import org.projectforge.business.fibu.AuftragsStatus
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
-import java.time.LocalDate
 
 /**
- * The two exports of the order book act on the filter the list is showing, and they take the legacy
- * [org.projectforge.business.fibu.AuftragFilter] rather than a [MagicFilter] — so a field the translation
- * silently drops means an export over more orders than the list shows, without anything failing.
+ * The forecast of the order book (charts and Excel) selects its orders as the list does, except for the
+ * period of performance (replaced by the start date) and, in the charts, the state criteria. What the
+ * charts tab reports as not applied, and when the forecast counts as the one of the whole order book,
+ * follows from that.
  */
 class OrderFilterTest {
 
+    /**
+     * The charts tab lists which of the list's criteria it did not apply, so a total that disagrees with
+     * the list is explained rather than silent: only the period of performance and the state criteria.
+     */
     @Test
-    fun `every criterion of the list filter reaches the legacy filter`() {
+    fun `the forecast filter usage names only the replaced and left out criteria`() {
         val magicFilter = MagicFilter()
-        magicFilter.searchString = "Micromata"
-        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT", "LOI")))
-        magicFilter.entries.add(entry("positionsArt", values = arrayOf("WARTUNG")))
-        magicFilter.entries.add(entry("positionsPaymentType", values = arrayOf("TIME_AND_MATERIALS")))
-        magicFilter.entries.add(entry("fakturiert", values = arrayOf("ZU_FAKTURIEREN")))
+        magicFilter.entries.add(entry(MagicFilter.PAGINATION_PAGE_SIZE).also { it.value.value = "50" })
+        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("positionsStatus", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("positionsPaymentType", values = arrayOf("FESTPREISPAKET", "TIME_AND_MATERIALS")))
+        magicFilter.entries.add(entry("projectManager").also { it.value.id = 42L })
+        magicFilter.entries.add(entry("kunde.name").also { it.value.value = "ACME" })
         magicFilter.entries.add(
-            entry(
-                OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01", toValue = "2026-12-31"
-            )
+            entry(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01", toValue = "2026-12-31")
         )
-        magicFilter.entries.add(entry("erfassungsDatum", fromValue = "2025-07-01", toValue = "2025-09-30"))
 
-        val filter = OrderEntityRest.toAuftragFilter(magicFilter)
-
-        assertEquals("Micromata", filter.searchString)
-        assertEquals(setOf(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI), filter.auftragsStatuses.toSet())
-        assertEquals(setOf(AuftragsPositionsArt.WARTUNG), filter.auftragsPositionsArten.toSet())
-        assertEquals(AuftragsPositionsPaymentType.TIME_AND_MATERIALS, filter.auftragsPositionsPaymentType)
-        assertEquals(AuftragFakturiertFilterStatus.ZU_FAKTURIEREN, filter.auftragFakturiertFilterStatus)
-        assertEquals(LocalDate.of(2026, 1, 1), filter.periodOfPerformanceStartDate)
-        assertEquals(LocalDate.of(2026, 12, 31), filter.periodOfPerformanceEndDate)
-        // AuftragFilter calls the entry date range startDate/endDate.
-        assertEquals(LocalDate.of(2025, 7, 1), filter.startDate)
-        assertEquals(LocalDate.of(2025, 9, 30), filter.endDate)
+        val usage = OrderEntityRest.forecastFilterUsage(magicFilter)
+        assertEquals(listOf("status"), usage.ignored)
+        assertEquals(listOf(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER), usage.replaced)
     }
 
     /**
-     * Every value of the filter panel is a string from the client, so an unknown one must be dropped
-     * rather than throwing: a stored favorite of an enum value that has since been renamed would
-     * otherwise make the list page fail instead of the filter entry being ignored.
+     * The order's current state would shrink the invoiced and earlier years of the charts to the projects
+     * whose orders are still in that state, so the charts leave it out; the original filter is the list's.
      */
     @Test
-    fun `an unknown enum value is dropped, and an empty filter stays empty`() {
+    fun `the forecast chart filter leaves the state criteria out`() {
         val magicFilter = MagicFilter()
-        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT", "", "NO_SUCH_STATUS")))
+        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry("fakturiert", values = arrayOf(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT.name)))
+        magicFilter.entries.add(entry("kunde.name").also { it.value.value = "ACME" })
 
-        val filter = OrderEntityRest.toAuftragFilter(magicFilter)
-        assertEquals(setOf(AuftragsStatus.BEAUFTRAGT), filter.auftragsStatuses.toSet())
+        val chartFilter = OrderEntityRest.forecastChartFilter(magicFilter)
+        assertEquals(listOf("kunde.name"), chartFilter.entries.map { it.field })
+        assertEquals(listOf("status", "fakturiert", "kunde.name"), magicFilter.entries.map { it.field })
+    }
 
-        val empty = OrderEntityRest.toAuftragFilter(MagicFilter())
-        assertNull(empty.searchString)
-        assertTrue(empty.auftragsStatuses.isEmpty())
-        assertTrue(empty.auftragsPositionsArten.isEmpty())
-        assertNull(empty.auftragsPositionsPaymentType)
-        // Not null: AuftragFilter's getter answers ALL for an unset invoiced status, which is its way of
-        // saying "no criterion".
-        assertEquals(AuftragFakturiertFilterStatus.ALL, empty.auftragFakturiertFilterStatus)
-        assertNull(empty.periodOfPerformanceStartDate)
-        assertNull(empty.startDate)
+    /**
+     * Only a forecast of the whole order book includes the invoices without any order: every criterion
+     * the forecast applies (search string, customer, a person, ...) makes it a filtered one.
+     */
+    @Test
+    fun `the forecast is unfiltered only without any applied criterion`() {
+        val magicFilter = MagicFilter()
+        magicFilter.entries.add(entry(MagicFilter.PAGINATION_PAGE_SIZE).also { it.value.value = "50" })
+        magicFilter.entries.add(entry("status", values = arrayOf("BEAUFTRAGT")))
+        magicFilter.entries.add(entry(OrderEntityRest.PERIOD_OF_PERFORMANCE_FILTER, fromValue = "2026-01-01"))
+        // Without a value an entry is no criterion.
+        magicFilter.entries.add(entry("kunde.name"))
+        assertTrue(OrderEntityRest.isUnfiltered(magicFilter))
+
+        assertFalse(OrderEntityRest.isUnfiltered(magicFilter.clone().also { it.searchString = "ACME" }))
+        assertFalse(OrderEntityRest.isUnfiltered(MagicFilter().also {
+            it.entries.add(entry("kunde.name").also { entry -> entry.value.value = "ACME" })
+        }))
+        assertFalse(OrderEntityRest.isUnfiltered(MagicFilter().also {
+            it.entries.add(entry("projectManager").also { entry -> entry.value.id = 42L })
+        }))
     }
 
     private fun entry(

@@ -33,7 +33,7 @@ import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.rest.core.AbstractPagesRest;
 import org.projectforge.rest.core.PagesResolver;
-import org.projectforge.rest.fibu.ProjectPagesRest;
+import org.projectforge.rest.fibu.ProjectEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -93,7 +93,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
       return;
     }
     WicketSupport.get(UserPrefService.class).putEntry("project", AbstractPagesRest.USER_PREF_PARAM_HIGHLIGHT_ROW, getData().getId(), false);
-    throw new RedirectToUrlException(PagesResolver.getListPageUrl(ProjectPagesRest.class, null, true));
+    throw new RedirectToUrlException(PagesResolver.getListPageUrl(ProjectEntityRest.class, null, true));
   }
 
   @Override

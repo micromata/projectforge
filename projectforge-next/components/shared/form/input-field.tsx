@@ -29,6 +29,8 @@ export interface InputFieldProps extends BaseFieldProps {
    * group's `emails` — is no `@PropertyInfo` field of its DO (see [useFieldMetadata]).
    */
   metadataLess?: boolean;
+  /** Something to heed about the value, shown under a valid field (see FieldShell's `warning`). */
+  warning?: string;
 }
 
 export function InputField({
@@ -41,6 +43,7 @@ export function InputField({
   disabled,
   metadataLess,
   emphasized,
+  warning,
 }: InputFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
@@ -60,6 +63,7 @@ export function InputField({
             required={required}
             readOnly={disabled}
             hint={hint}
+            warning={warning}
             invalid={invalid}
             errors={fieldErrors(meta, label)}
             className={className}

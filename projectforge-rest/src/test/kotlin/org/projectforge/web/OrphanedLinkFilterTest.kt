@@ -64,6 +64,19 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/group", redirectOf("/react/group"))
     }
 
+    /**
+     * The old React project list is gone, although the project's legacy app is Wicket: a bookmarked link to
+     * it, list or form, is bent onto next. A sibling path isn't caught.
+     */
+    @Test
+    fun `the old react project pages are redirected to next`() {
+        Assertions.assertEquals("/next/project", redirectOf("/react/project"))
+        Assertions.assertEquals("/next/project", redirectOf("/react/project/"))
+        Assertions.assertEquals("/next/project/42", redirectOf("/react/project/edit/42"))
+        Assertions.assertEquals("/next/project/new", redirectOf("/react/project/edit"))
+        Assertions.assertNull(redirectOf("/react/projectXyz"))
+    }
+
     /** Old Wicket calendars, bookmarked by some users, still lead to the next calendar. */
     @Test
     fun `the old wicket calendar is redirected to next`() {
@@ -91,15 +104,12 @@ class OrphanedLinkFilterTest {
         )
     }
 
-    /**
-     * The "classic version" escape hatch: a request to the Wicket report carrying the escape marker is let
-     * through to the legacy page instead of being bounced back to next (see the next page's LegacyPageLink).
-     */
+    /** The Wicket report was removed, so the escape marker no longer lets a request through to it. */
     @Test
-    fun `the wicket monthly employee report with the escape marker stays in the legacy app`() {
-        Assertions.assertNull(
+    fun `the old wicket monthly employee report is redirected to next even with the escape marker`() {
+        Assertions.assertEquals(
+            "/next/monthlyEmployeeReport",
             redirectOf("/wa/monthlyEmployeeReport", NextMigration.ESCAPE_HATCH_PARAM),
-            "The classic report switch carries the escape marker and must stay in Wicket.",
         )
     }
 

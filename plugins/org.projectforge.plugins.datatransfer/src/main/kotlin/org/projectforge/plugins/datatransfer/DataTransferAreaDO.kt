@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.history.HistoryIdList
 import org.projectforge.framework.persistence.history.NoHistory
 
 /**
@@ -70,12 +71,14 @@ open class DataTransferAreaDO : AbstractBaseDO<Long>(), AttachmentsInfo, IDataTr
    * These users have full read/write access.
    */
   @get:Column(name = "admin_ids", length = 4000, nullable = true)
+  @HistoryIdList(HistoryIdList.Type.USER)
   open var adminIds: String? = null
 
   /**
    * These observers get notifications on upload (internal and external) as well as on external downloads.
    */
   @get:Column(name = "observer_ids", length = 4000, nullable = true)
+  @HistoryIdList(HistoryIdList.Type.USER)
   open var observerIds: String? = null
 
   /**

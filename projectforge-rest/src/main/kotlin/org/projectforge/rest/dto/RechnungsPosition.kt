@@ -32,8 +32,8 @@ import java.time.LocalDate
  * One position of an outgoing invoice, as the edit form of `/next/invoice` sends and receives it.
  *
  * A position is never edited on its own — it has no `AbstractPagesRest` and no url. It travels as part of
- * [Rechnung.positionen], and [number] is what identifies it there: `RechnungsPositionDO` carries
- * `@OrderColumn(name = "number")` with `@ListIndexBase(1)` and a unique constraint on
+ * [Rechnung.positionen], and [number] is what identifies it there: `RechnungDO.positionen` is sorted by it
+ * (`@OrderBy`, starting with 1) and `RechnungsPositionDO` carries a unique constraint on
  * (rechnung_fk, number), so a position the client sends without a number would be written as a new row.
  *
  * Deleted positions stay in the list with `deleted = true`. `RechnungDO.positionen` carries

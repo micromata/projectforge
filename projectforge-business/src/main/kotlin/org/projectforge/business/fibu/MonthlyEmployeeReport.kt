@@ -86,14 +86,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
         val kost2ArtName: String?
             /**
-             * XML-escaped or null if not exists.
+             * XML-escaped or null if not exists or not displayed (see [displayedKost2ArtName]).
              */
-            get() {
-                if (kost2?.kost2Art == null) {
-                    return null
-                }
-                return StringEscapeUtils.escapeXml11(kost2.kost2Art!!.name)
-            }
+            get() = displayedKost2ArtName(kost2)?.let { StringEscapeUtils.escapeXml11(it) }
 
         val kost2Description: String?
             /**
@@ -108,6 +103,18 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
 
         companion object {
             private const val serialVersionUID = -5379735557333691194L
+
+            /**
+             * The cost type name is only shown for customer cost units (Nummernkreis 4 and 5). For internal ones
+             * it is misleading (e.g. vacation shown as "Akquise"), so it is left empty.
+             */
+            @JvmStatic
+            fun displayedKost2ArtName(kost2: Kost2DO?): String? {
+                if (kost2 == null || (kost2.nummernkreis != 4 && kost2.nummernkreis != 5)) {
+                    return null
+                }
+                return kost2.kost2Art?.name
+            }
         }
     }
 
@@ -153,9 +160,13 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
     var invoicingQuota: BigDecimal? = null
         private set
 
-    private var invoicingQuotaBilledMillis: Long = 0
+    /** Billed work time in ms the [invoicingQuota] is based on (numerator). */
+    var invoicingQuotaBilledMillis: Long = 0
+        private set
 
-    private var invoicingQuotaTotalMillis: Long = 0
+    /** Non-ignored work time in ms the [invoicingQuota] is based on (denominator). */
+    var invoicingQuotaTotalMillis: Long = 0
+        private set
 
     private var vacationCount: BigDecimal? = BigDecimal.ZERO
 
@@ -361,7 +372,9 @@ class MonthlyEmployeeReport(user: PFUserDO, year: Int, month: Int) : Serializabl
             }
         }
         val invoicingQuotaService = WicketSupport.get(InvoicingQuotaService::class.java)
-        if (invoicingQuotaService?.isEnabled() == true) {
+        // Computed only if the logged-in user may see it: the own quota, the quota of others only as member of a
+        // configured group. So no page (Wicket, REST) can show it to anybody else.
+        if (invoicingQuotaService?.isEnabled() == true && invoicingQuotaService.mayViewQuotaOf(user?.id)) {
             invoicingQuotaService.calculateQuotaResult(kost2Durations)?.let { result ->
                 this.invoicingQuota = result.quota
                 this.invoicingQuotaBilledMillis = result.billedDurationMillis

@@ -13,7 +13,7 @@ import { waitForRow, waitForRows } from "./fixtures/list-table";
  * the viewport and the account's stored column widths, and a hard-coded column would pass or fail for
  * reasons that have nothing to do with the tooltip.
  */
-test.describe("data table overflow tooltip", () => {
+test.describe("data table overflow tooltip", { tag: "@lane-order" }, () => {
   const TOOLTIP = "[data-slot=tooltip-content]";
 
   /**
@@ -81,13 +81,26 @@ test.describe("data table overflow tooltip", () => {
     // certainly wider than its column. The run's suffix as the term — the rest of the title is the
     // same in every run.
     const term = seededOrder.title.split(" ")[3] ?? seededOrder.title;
+    // The answer to the search itself, not just a row showing the term: the order was created by this
+    // run, so it is often on the first page already — and the debounced search, landing after the
+    // hover below, would re-render the table and drop the pending tooltip with it.
+    const searched = page.waitForResponse(
+      (response) =>
+        response.url().includes("/rs/order/") &&
+        (response.request().postData() ?? "").includes(term),
+      { timeout: 60_000 }
+    );
     await page
       .getByPlaceholder((await userFormat(page)).t("filter.searchList"))
       .fill(term);
+    await searched;
     const row = await waitForRow(page, term, 30_000);
     // And the fetch is over: a cell measured while the next page is still loading is measured in a
     // table whose columns are still the previous answer's width.
     await expect(page.locator("[data-slot=skeleton]")).toHaveCount(0, {
+      timeout: 60_000,
+    });
+    await expect(page.locator("[aria-busy=true]")).toHaveCount(0, {
       timeout: 60_000,
     });
 

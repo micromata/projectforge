@@ -32,13 +32,13 @@ import java.math.BigDecimal
  * One cost assignment of an invoice position, as the edit form of `/next/invoice` sends and receives it.
  *
  * Never edited on its own: it travels as part of [RechnungsPosition.kostZuweisungen], and [index] is what
- * identifies it there — `RechnungsPositionDO.kostZuweisungen` carries `@OrderColumn(name = "index")`, so a
- * row the client sends without one would be written as a new row.
+ * identifies it there — `RechnungsPositionDO.kostZuweisungen` is sorted by it (`@OrderBy`) and it is part of
+ * the unique constraint of `KostZuweisungDO`, so a row the client sends without one would be written as a new row.
  *
  * Deleted assignments stay in the list with `deleted = true`. The collection has
  * `autoUpdateCollectionEntries = true` but no `@SoftDeleteCollection` (only `EingangsrechnungDO.positionen`
  * has that), so an assignment missing from the posted collection is deleted **physically**, together with
- * its history — and its index is then free again, which the order column would collide with.
+ * its history — and its index is then free again, which the unique constraint would collide with.
  */
 class KostZuweisung(
     var index: Short = 0,

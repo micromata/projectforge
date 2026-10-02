@@ -21,6 +21,8 @@ import { ForecastExportDialog } from "./forecast-export-dialog";
  * Both act on the filter the list is showing, which is why they live in its toolbar and are handed that
  * filter (see PageDef.listActions). The forecast asks for its start month first — see
  * [ForecastExportDialog].
+ *
+ * The cache refresh of the finance staff is in the gear menu instead (see OrderGearMenuActions).
  */
 export function OrderListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();

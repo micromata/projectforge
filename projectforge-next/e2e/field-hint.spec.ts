@@ -12,7 +12,7 @@ import { label, userFormat } from "./fixtures/format";
 // waits for the dev server to compile the route, and the order form is a large one (see order.spec.ts).
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("field hint", () => {
+test.describe("field hint", { tag: "@parallel" }, () => {
   test("keeps a field's explanation behind its ⓘ", async ({
     loggedInPage: page,
   }) => {

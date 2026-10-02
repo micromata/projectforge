@@ -9,11 +9,8 @@ import {
   Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { CollapsibleTrigger } from "@/components/shared/copyable-collapsible-trigger";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +36,11 @@ export interface RepeatableRowProps {
   removeLabel: string;
   /** Draws attention to rows that require action — e.g. an order position with outstanding invoicing. */
   highlighted?: boolean;
+  /**
+   * Tints the header quietly, so the rows stand out from the fields around them — e.g. the positions
+   * of an order, whose headers are otherwise hard to tell from the form. `highlighted` wins over it.
+   */
+  tinted?: boolean;
   /**
    * The row is soft-deleted and only shown because the user asked to see the deleted ones
    * ([RepeatableList]): struck through, greyed, and its fields are not rendered at all.
@@ -69,6 +71,7 @@ export function RepeatableRow({
   onRemove,
   removeLabel,
   highlighted,
+  tinted,
   deleted,
   onRestore,
 }: RepeatableRowProps) {
@@ -109,7 +112,9 @@ export function RepeatableRow({
       <div
         className={cn(
           "flex items-center gap-2 rounded-t-md px-3 py-2",
-          highlighted && "bg-destructive/15"
+          highlighted
+            ? "bg-destructive/15"
+            : tinted && "bg-primary/10 dark:bg-primary/25"
         )}
       >
         <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left">

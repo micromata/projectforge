@@ -168,8 +168,9 @@ class OrderbookSnapshotsService {
     /**
      * If today's order book snapshot is already stored, nothing will be done.
      * @param date the date of the order book's snapshot (default is today). This is for testing purposes only.
+     * Public for the tests of other modules (e. g. the forecast charts of projectforge-rest).
      */
-    internal fun storeOrderbookSnapshot(
+    fun storeOrderbookSnapshot(
         incrementalBasedOn: LocalDate? = null,
         date: LocalDate = LocalDate.now(),
     ): SerializedSnapshot {

@@ -15,7 +15,8 @@ import type { TimesheetEditValues } from "../timesheet-edit-schema";
  * The task + cost unit block of the time sheet edit form — the form adapter around the shared
  * [TaskKost2Picker]. It reads and writes the two form values and surfaces their validation, while the
  * picker owns the dependency between them (see there); the mass update drives the same picker from local
- * state (see TaskKost2MassUpdateField).
+ * state (see TaskKost2MassUpdateField). An existing sheet hands its stored booking in, which the picker keeps
+ * even if its cost unit isn't bookable any more (see there).
  */
 export function TaskKost2Section({ className }: { className?: string }) {
   const form = useEntityEditForm();
@@ -32,6 +33,15 @@ export function TaskKost2Section({ className }: { className?: string }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => (state.values as TimesheetEditValues).kost2?.id ?? null
   ) as number | null;
+
+  // The booking as loaded: the form's default values, which a new entry has no id in.
+  const defaults = form.options.defaultValues as
+    | TimesheetEditValues
+    | undefined;
+  const storedBooking =
+    defaults?.id != null && defaults.task?.id != null && defaults.kost2 != null
+      ? { taskId: defaults.task.id, kost2: defaults.kost2 }
+      : null;
 
   const taskErrors = useStore(form.store, (state: unknown) =>
     errorsOf(state, "task", fieldErrors, "task._")
@@ -55,6 +65,7 @@ export function TaskKost2Section({ className }: { className?: string }) {
       taskErrors={taskErrors}
       kost2Errors={kost2Errors}
       showConsumption
+      storedBooking={storedBooking}
     />
   );
 }

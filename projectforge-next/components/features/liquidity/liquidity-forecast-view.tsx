@@ -2,15 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { Label } from "@/components/ui/label";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { DateInput } from "@/components/shared/date-input";
 import { NumberBox } from "@/components/shared/form/number-box";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
@@ -27,6 +26,8 @@ import { LiquidityForecastCashflowChart } from "./liquidity-forecast-cashflow-ch
 /** The forecast horizons offered — days from the base date on. */
 const NEXT_DAYS_OPTIONS = [30, 60, 90, 180, 365] as const;
 const DEFAULT_NEXT_DAYS = 90;
+/** React Query key of the user's last-used forecast parameters (see fetchLiquidityForecastSettings). */
+const FORECAST_SETTINGS_KEY = ["liquidity", "forecast", "settings"];
 
 /**
  * The "Liquiditätsvorschau" tab of `/next/liquidity`, the successor of the Wicket `LiquidityForecastPage`.
@@ -36,7 +37,7 @@ const DEFAULT_NEXT_DAYS = 90;
 export function LiquidityForecastView() {
   const t = useTranslations();
   const settings = useQuery({
-    queryKey: ["liquidity", "forecast", "settings"],
+    queryKey: FORECAST_SETTINGS_KEY,
     queryFn: ({ signal }) => fetchLiquidityForecastSettings(signal),
   });
 
@@ -89,10 +90,23 @@ function LiquidityForecastControls({
     [startAmount, baseDate, nextDays]
   );
   const debouncedParams = useDebouncedValue(params);
+  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ["liquidity", "forecast", debouncedParams],
-    queryFn: ({ signal }) => fetchLiquidityForecast(debouncedParams, signal),
+    queryFn: async ({ signal }) => {
+      const data = await fetchLiquidityForecast(debouncedParams, signal);
+      // The backend has just stored these parameters as the user's settings; the cached settings must
+      // follow, otherwise the tab re-seeds its controls with the values of its first load when mounted again.
+      queryClient.setQueryData<LiquidityForecastSettings>(
+        FORECAST_SETTINGS_KEY,
+        debouncedParams
+      );
+      return data;
+    },
+    // Every request persists its parameters, so returning to values used a moment ago must post again
+    // rather than answer from the cache — otherwise the backend keeps the values in between.
+    staleTime: 0,
     // Keep the current charts on screen while the next request runs, so a changed control updates them
     // in place instead of flashing back to the loading state.
     placeholderData: keepPreviousData,

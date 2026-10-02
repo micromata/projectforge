@@ -227,7 +227,9 @@ class HRPlanningDao protected constructor() : BaseDao<HRPlanningDO>(HRPlanningDO
         ) {
             var existingPlanning: HRPlanningDO? = null
             if (obj.id != null) {
-                existingPlanning = find(obj.id, false)
+                // Attached: inside the update this is the managed instance being written (its values aren't copied in
+                // yet), and a detaching find() would make the update merge a detached graph.
+                existingPlanning = find(obj.id, checkAccess = false, attached = true)
             }
             for (entry in obj.entries!!) {
                 val projekt = entry.projekt

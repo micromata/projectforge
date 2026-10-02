@@ -242,7 +242,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         var positionStatusAlreadyFilterd = false
         queryFilter.createJoin("positionen")
-        if (myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+        val toBeInvoicedFilter = myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN ||
+                myFilter.auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN_FOLGEMONATE
+        if (toBeInvoicedFilter) {
             // Show all orders to be invoiced (ignore status values on orders and their positions).
             queryFilter.createJoin("paymentSchedules", JoinType.LEFT)
             queryFilter.add(
@@ -280,7 +282,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         list = myFilter.filterFakturiert(list)
 
-        if (myFilter.auftragFakturiertFilterStatus != AuftragFakturiertFilterStatus.ZU_FAKTURIEREN) {
+        if (!toBeInvoicedFilter) {
             // Don't use filter for orders to be invoiced.
             list = list.toMutableList() // Make mutable list of Kotlin's immutable list.
             filterPositionsArten(myFilter, list)
@@ -336,7 +338,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (auftragsStatuses.isEmpty()) {
             return list
         }
-        return list.filter { auftrag -> auftrag.positionenExcludingDeleted.any { pos -> auftragsStatuses.contains(pos.status) } }
+        return list.filter { auftrag ->
+            auftragsCache.anyPositionMatches(auftrag) { status, _, _ -> auftragsStatuses.contains(status) }
+        }
     }
 
     private fun filterPositionsPaymentTypes(myFilter: AuftragFilter, list: List<AuftragDO>) {

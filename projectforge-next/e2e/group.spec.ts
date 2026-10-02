@@ -20,7 +20,7 @@ import type { SeededGroup } from "./fixtures/seed";
  * group is shared with task-wizard.spec.ts. Nothing here creates a group of its own: `GroupDO` is
  * historizable, so a group cannot be removed again (see fixtures/seed.ts).
  */
-test.describe("group page", () => {
+test.describe("group page", { tag: "@parallel" }, () => {
   let group: SeededGroup;
 
   test.beforeEach(async ({ loggedInPage: page, seededGroup }) => {
@@ -219,8 +219,10 @@ test.describe("group page", () => {
   });
 
   // The status filter is stored per user and per entity, so it must not leak into another spec.
-  test.afterAll(async ({ request }) => {
-    await request
+  test.afterAll(async ({ seedRequest }) => {
+    // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
+    // refused and left the filter behind.
+    await seedRequest
       .get("/rs/group/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
   });
@@ -241,57 +243,63 @@ test.describe("group page", () => {
  * Skipped rather than failed where the account is missing: not every instance has every role (see
  * fixtures/credentials.ts).
  */
-test.describe("group list without the insert right", () => {
-  test.skip(
-    !hasRole("normalo-user"),
-    "no normalo-user in this instance's testAccounts.txt"
-  );
+test.describe(
+  "group list without the insert right",
+  { tag: "@parallel" },
+  () => {
+    test.skip(
+      !hasRole("normalo-user"),
+      "no normalo-user in this instance's testAccounts.txt"
+    );
 
-  test("leaves the add button out", async ({ page }) => {
-    // Not `loggedInPage`: that fixture logs in as the account with every right, which is the account
-    // that must *not* be looked at here.
-    await login(page, "/next/", "normalo-user");
-    const format = await userFormat(page);
-    await goto(page, "/group");
-    // The page itself is there — this user may read the list (`userAccess.read`), it is only empty for
-    // them, so the assertion below is about the button and not about a page that never rendered.
-    await expect(
-      page.getByRole("heading", { name: format.t("group.title.list._") })
-    ).toBeVisible({ timeout: 30_000 });
+    test("leaves the add button out", async ({ page }) => {
+      // Not `loggedInPage`: that fixture logs in as the account with every right, which is the account
+      // that must *not* be looked at here.
+      await login(page, "normalo-user");
+      const format = await userFormat(page);
+      await goto(page, "/group");
+      // The page itself is there — this user may read the list (`userAccess.read`), it is only empty for
+      // them, so the assertion below is about the button and not about a page that never rendered.
+      await expect(
+        page.getByRole("heading", { name: format.t("group.title.list._") })
+      ).toBeVisible({ timeout: 30_000 });
 
-    // Gone, not disabled: there is nothing this user could do to enable it, and its `N` shortcut goes
-    // with it (see AddEntryButton, which owns both).
-    await expect(
-      page.getByRole("link", { name: format.t("menu.addNewEntry") })
-    ).toHaveCount(0);
-  });
-
-  test("is not offered as clickable rows either", async ({ page }) => {
-    await login(page, "/next/", "normalo-user");
-    // The flag both list pages hang their row click on — read here, because this account sees no group
-    // to click. The counter-case is the whole spec above: `loggedInPage` is an administrator and opens
-    // the seeded group by its row.
-    const meta = await page.request.get("/rs/group/listMeta", {
-      headers: { "X-PF-Frontend": "next" },
+      // Gone, not disabled: there is nothing this user could do to enable it, and its `N` shortcut goes
+      // with it (see AddEntryButton, which owns both).
+      await expect(
+        page.getByRole("link", { name: format.t("menu.addNewEntry") })
+      ).toHaveCount(0);
     });
-    expect(meta.ok()).toBe(true);
-    const { userAccess } = (await meta.json()) as {
-      userAccess?: { update?: boolean; insert?: boolean };
-    };
-    expect(userAccess?.update).toBe(false);
-    expect(userAccess?.insert).toBe(false);
-  });
 
-  test("keeps it for a user who may insert", async ({ loggedInPage: page }) => {
-    // The counter-case, so the one above cannot pass on a toolbar that stopped rendering the button
-    // altogether.
-    const format = await userFormat(page);
-    await goto(page, "/group");
-    await expect(
-      page.getByRole("link", { name: format.t("menu.addNewEntry") })
-    ).toBeVisible({ timeout: 30_000 });
-  });
-});
+    test("is not offered as clickable rows either", async ({ page }) => {
+      await login(page, "normalo-user");
+      // The flag both list pages hang their row click on — read here, because this account sees no group
+      // to click. The counter-case is the whole spec above: `loggedInPage` is an administrator and opens
+      // the seeded group by its row.
+      const meta = await page.request.get("/rs/group/listMeta", {
+        headers: { "X-PF-Frontend": "next" },
+      });
+      expect(meta.ok()).toBe(true);
+      const { userAccess } = (await meta.json()) as {
+        userAccess?: { update?: boolean; insert?: boolean };
+      };
+      expect(userAccess?.update).toBe(false);
+      expect(userAccess?.insert).toBe(false);
+    });
+
+    test("keeps it for a user who may insert", async ({
+      loggedInPage: page,
+    }) => {
+      // The counter-case, so the one above cannot pass on a toolbar that stopped rendering the button
+      // altogether.
+      const format = await userFormat(page);
+      await goto(page, "/group");
+      await expect(
+        page.getByRole("link", { name: format.t("menu.addNewEntry") })
+      ).toBeVisible({ timeout: 30_000 });
+    });
+  }
+);
 
 /** The group as its page's DTO — what a write has to be given in full. */
 async function storedGroup(

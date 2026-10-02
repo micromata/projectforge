@@ -40,6 +40,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -113,6 +114,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var auftragsCache: AuftragsCache
+
+  @Autowired
+  private lateinit var auftragsRechnungCache: AuftragsRechnungCache
+
+  @Autowired
+  private lateinit var rechnungCache: RechnungCache
 
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
@@ -417,6 +424,15 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       UIFilterListElement("fakturiert", label = translate("fibu.auftrag.status.fakturiert"), defaultFilter = true)
         .buildValues(AuftragFakturiertFilterStatus::class.java)
     )
+    // When the next invoice is due: the date of the earliest reached payment schedule, or today if something is
+    // to be invoiced immediately. Consumed in preProcessMagicFilter.
+    elements.add(
+      UIFilterElement(
+        NEXT_INVOICE_DATE_FILTER,
+        UIFilterElement.FilterType.DATE,
+        label = translate("fibu.auftrag.nextInvoice"),
+      )
+    )
     val statusFilter = elements.find { it is UIFilterElement && it.id == "status" } as UIFilterElement
     statusFilter.defaultFilter = true
     // The two ends of the period of performance are one question, as the edit form asks it: one label,
@@ -491,6 +507,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         if (userId != null) {
           target.add(QueryFilter.eq("$property.id", userId))
         }
+      }
+    }
+    source.entries.find { it.field == NEXT_INVOICE_DATE_FILTER }?.let { entry ->
+      entry.synthetic = true // No property of AuftragDO, but calculated by OrderInfo.
+      val from = PFDayUtils.parseDate(entry.value.fromValue)
+      val until = PFDayUtils.parseDate(entry.value.toValue)
+      if (from != null || until != null) {
+        filters.add(AuftragNextInvoiceDateFilter(from, until))
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
@@ -585,17 +609,21 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     postData.data.copyTo(order)
     val info = Auftrag.calculateOrderInfo(order)
     val period = effectivePeriodOfPerformance(info)
+    val cutoff = OrderInfo.invoiceCutoff()
     return OrderSums(
       netSum = info.netSum,
       commissionedNetSum = info.commissionedNetSum,
       akquiseSum = info.akquiseSum,
       invoicedSum = info.invoicedSum,
       notYetInvoicedSum = info.notYetInvoicedSum,
-      toBeInvoicedSum = info.toBeInvoicedSum,
+      // Due until the end of the month, as the list statistics count it (AuftragsStatistik).
+      toBeInvoicedSum = info.toBeInvoicedSumBy(cutoff),
       personDays = info.personDays,
       weightedProbabilityOfOccurrence = ForecastUtils.getWeightedProbabilityOfAccurence(info),
       vollstaendigFakturiert = info.isVollstaendigFakturiert,
-      toBeInvoiced = info.toBeInvoiced,
+      toBeInvoiced = info.isToBeInvoicedBy(cutoff),
+      nextInvoiceDate = if (info.toBeInvoiced) info.nextInvoiceDate else null,
+      toBeInvoicedImmediately = info.toBeInvoicedImmediately,
       periodOfPerformanceBegin = period.first,
       periodOfPerformanceEnd = period.second,
       positions = info.infoPositions?.map { position ->
@@ -604,7 +632,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
           netSum = position.netSum,
           invoicedSum = position.invoicedSum,
           notYetInvoicedSum = position.notYetInvoiced,
-          toBeInvoiced = position.toBeInvoiced,
+          toBeInvoiced = info.isPositionToBeInvoicedBy(position, cutoff),
           probabilityOfOccurrence = ForecastUtils.getProbabilityOfAccurence(info, position),
         )
       },
@@ -655,7 +683,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      */
     val weightedProbabilityOfOccurrence: BigDecimal?,
     val vollstaendigFakturiert: Boolean,
+    /** Something is to be invoiced until the end of the current month, see [OrderInfo.isToBeInvoicedBy]. */
     val toBeInvoiced: Boolean,
+    /** See [OrderInfo.nextInvoiceDate]; null if nothing is to be invoiced. */
+    val nextInvoiceDate: LocalDate?,
+    /** See [OrderInfo.toBeInvoicedImmediately]. */
+    val toBeInvoicedImmediately: Boolean,
     /**
      * Begin of the period of performance over all positions, i.e. the earliest one any of them
      * effectively has - see [effectivePeriodOfPerformance]. Null where neither the order nor a position
@@ -676,7 +709,8 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      * Whether this position is due to be invoiced - see [OrderPositionInfo.recalculateAll]. Unlike
      * [notYetInvoicedSum], which is positive for every commissioned position that is not fully invoiced,
      * this is what marks a position as overdue: the position or its order is closed, or a payment schedule
-     * entry of this position has been reached.
+     * entry of this position has been reached, dated until the end of the current month (see
+     * [OrderInfo.isPositionToBeInvoicedBy]).
      */
     val toBeInvoiced: Boolean,
     /**
@@ -832,6 +866,34 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /**
+   * Whether the logged-in user may use [refreshCache]: the order book offers the button to the finance staff only.
+   */
+  @GetMapping("refreshCacheAccess")
+  fun getRefreshCacheAccess(): RefreshCacheAccess {
+    return RefreshCacheAccess(orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
+  }
+
+  /**
+   * Rebuilds the invoice and order caches, so the invoiced sums and invoice links of the orders reflect the current
+   * invoices at once. A manual fallback for the finance staff, who close order positions only after everything
+   * invoiced shows up in the order; normally saving an invoice updates the caches by itself.
+   *
+   * [AuftragsRechnungCache.forceReload] triggers the coupled reload of [AuftragsCache].
+   */
+  @PostMapping("refreshCache")
+  fun refreshCache(): RefreshCacheResult {
+    orderAccessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
+    log.info { "Refreshing order and invoice caches on user request." }
+    rechnungCache.forceReload()
+    auftragsRechnungCache.forceReload()
+    return RefreshCacheResult(translate("fibu.auftrag.refreshCache.done"))
+  }
+
+  class RefreshCacheAccess(val access: Boolean)
+
+  class RefreshCacheResult(val message: String)
+
+  /**
    * What the forecast export dialog of the next frontend is preset with, remembered per user.
    *
    * Unlike Wicket, which derives the start month silently from the period of performance filter, the
@@ -863,20 +925,19 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     log.info("Exporting forecast of orders as Excel file.")
     val settings = request.settings ?: ForecastExportSettings()
     userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_EXPORT, settings, true)
-    val filter = toAuftragFilter(request.filter ?: MagicFilter())
-    // The dialog's answer replaces the filter's, which is what Wicket goes by.
-    filter.periodOfPerformanceStartDate = settings.startDate
-    filter.periodOfPerformanceEndDate = null
+    val magicFilter = request.filter ?: MagicFilter()
+    // The dialog's start date replaces the filter's period of performance, which is what Wicket goes by.
     val xls = forecastExport.xlsExport(
-      filter,
+      forecastOrders(magicFilter, settings.startDate, chartsOnly = false),
+      startDate = settings.startDate,
+      unfiltered = isUnfiltered(magicFilter),
       distributeUnusedBudget = settings.distributeUnusedBudget,
-      copyAllFilterCriteria = true,
     )
     if (xls == null || xls.isEmpty()) {
       return ResponseEntity.notFound().build<Any>()
     }
     return RestUtils.downloadFile(
-      forecastExport.getExcelFilenmame(filter, settings.distributeUnusedBudget),
+      forecastExport.getExcelFilename(settings.startDate, settings.distributeUnusedBudget),
       xls,
     )
   }
@@ -899,6 +960,84 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   class ForecastExportRequest(
     var filter: MagicFilter? = null,
     var settings: ForecastExportSettings? = null,
+  )
+
+  /**
+   * The parameters of the forecast charts tab of `/next/order`, remembered per user, as the liquidity
+   * forecast tab does. Returns the defaults (begin of the current year, no plan) if never used.
+   */
+  @GetMapping("forecastChart/settings")
+  fun getForecastChartSettings(): ForecastChartSettings {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val stored = userPrefService.getEntry(category, USER_PREF_PARAM_FORECAST_CHART, ForecastChartSettings::class.java)
+    return ForecastChartSettings(
+      startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = stored?.planningDate,
+    )
+  }
+
+  /**
+   * The monthly totals of the forecast charts ('Grafiken 1' of the forecast Excel export) of the filtered
+   * orders ([ForecastExport.chartData]), selected as the list selects them ([forecastOrders]). The start date
+   * replaces the filter's period of performance, as for [exportForecast]; unlike the export, the state
+   * criteria are left out ([FORECAST_CHART_STATE_FIELDS]).
+   * The parameters are remembered for the next time. The months are empty if neither order positions
+   * nor invoices were found.
+   */
+  @PostMapping("forecastChart")
+  fun forecastChart(@RequestBody request: ForecastChartRequest): ForecastChartData {
+    baseDao.hasLoggedInUserSelectAccess(throwException = true)
+    val settings = ForecastChartSettings(
+      startDate = request.startDate ?: PFDay.now().beginOfYear.localDate,
+      planningDate = request.planningDate,
+    )
+    userPrefService.putEntry(category, USER_PREF_PARAM_FORECAST_CHART, settings, true)
+    val magicFilter = request.filter ?: MagicFilter()
+    // Empty months (instead of no body) if neither order positions nor invoices were found:
+    val data = forecastExport.chartData(
+      forecastOrders(magicFilter, settings.startDate, chartsOnly = true),
+      startDate = settings.startDate,
+      unfiltered = isUnfiltered(magicFilter),
+      planningDate = settings.planningDate,
+    ) ?: ForecastChartData(emptyList(), emptyMap(), emptyList(), emptyList(), emptyList(), null, null)
+    // What of the list's filter the charts did not take as it is, for the summary above them.
+    val usage = forecastFilterUsage(magicFilter)
+    data.ignoredFilterFields = usage.ignored
+    data.replacedFilterFields = usage.replaced
+    return data
+  }
+
+  /**
+   * The orders of a forecast: those the list shows for [magicFilter] (the same pipeline as the list and
+   * [exportAsExcel], [getResultList]), except for
+   * - the period of performance, replaced by one reaching 3 years back from [startDate] without end: the
+   *   invoices of the two prior years must find their orders (see `ForecastExport.buildQueryFilter`),
+   * - the state criteria for the charts ([forecastChartFilter]).
+   *
+   * [magicFilter] itself is left untouched.
+   */
+  private fun forecastOrders(magicFilter: MagicFilter, startDate: LocalDate?, chartsOnly: Boolean): List<AuftragDO> {
+    val filter = if (chartsOnly) forecastChartFilter(magicFilter) else magicFilter.clone()
+    filter.entries.removeIf { it.field == PERIOD_OF_PERFORMANCE_FILTER || it.field == MagicFilter.PAGINATION_PAGE_SIZE }
+    val from = PFDay.fromOrNull(startDate)?.beginOfMonth ?: PFDay.now().beginOfYear
+    filter.entries.add(MagicFilterEntry(PERIOD_OF_PERFORMANCE_FILTER).also {
+      it.value.fromValue = from.plusYears(-3).isoString
+    })
+    return getResultList(filter)
+  }
+
+  /** What the forecast charts tab asks for, and what is remembered of it per user. */
+  class ForecastChartSettings(
+    /** The month the forecast starts with (any day of it). */
+    var startDate: LocalDate? = null,
+    /** The date of the order book snapshot to take as plan (the closest one is used), or null for no plan. */
+    var planningDate: LocalDate? = null,
+  )
+
+  class ForecastChartRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+    var planningDate: LocalDate? = null,
   )
 
   companion object {
@@ -946,6 +1085,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         position.vollstaendigFakturiert = false
         position.invoicedSum = null
         position.notInvoicedSum = null
+        position.fehlbetrag = null
         position.invoices = null
         position.invoicedElsewhere = false
       }?.toMutableList()
@@ -964,51 +1104,56 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     private val POSITION_SEARCH_FIELDS = arrayOf("nummerAsString", "projekt.name", "kunde.name")
 
     /**
-     * The list's [MagicFilter] as the [AuftragFilter] the two exports of `projectforge-business` take.
+     * Which entries of the list's filter the forecast charts do not take as they are, so the charts tab can
+     * say so instead of showing totals that silently disagree with the list. The charts select the orders as
+     * the list does ([forecastOrders]), so these are only
+     * - `ignored`: the state criteria [forecastChartFilter] leaves out ([FORECAST_CHART_STATE_FIELDS]),
+     * - `replaced`: the period of performance, which the chart's start date replaces.
      *
-     * A translation rather than a shared filter object: the exports predate the magic filter and are used
-     * by Wicket and by the forecast scripts as well, so they keep their own filter type. The field names
-     * are the ones [addMagicFilterElements] declares and [preProcessMagicFilter] reads.
-     *
-     * `user` and `projectList` stay empty - the order list of the next frontend offers no filter for
-     * either, and guessing one from the search string would filter by something nobody asked for.
-     *
-     * `internal` and in the companion object rather than a private method, as [assignNumbersToNewRows]:
-     * it needs nothing of the instance, which is what makes it testable without a Spring context
-     * (`OrderFilterTest`).
+     * Only entries with a value count; the page size travels as an entry but is no filter.
      */
-    internal fun toAuftragFilter(magicFilter: MagicFilter): AuftragFilter {
-      val filter = AuftragFilter()
-      filter.searchString = magicFilter.searchString
-      magicFilter.entries.forEach { entry ->
-        val values = entry.value.values?.filter { it.isNotBlank() } ?: emptyList()
-        when (entry.field) {
-          "status" -> filter.auftragsStatuses.addAll(values.mapNotNull { AuftragsStatus.safeValueOf(it) })
-          "positionsArt" -> filter.auftragsPositionsArten.addAll(
-            values.mapNotNull { AuftragsPositionsArt.safeValueOf(it) })
-          // Single valued in AuftragFilter, multi valued in the filter panel: the export can only be told
-          // one, so the first is used and the rest is lost - the same choice the legacy filter form offers.
-          "positionsPaymentType" -> filter.auftragsPositionsPaymentType =
-            values.firstNotNullOfOrNull { AuftragsPositionsPaymentType.safeValueOf(it) }
-
-          // A java enum, so it has no safeValueOf of its own.
-          "fakturiert" -> filter.auftragFakturiertFilterStatus = values.firstNotNullOfOrNull { value ->
-            AuftragFakturiertFilterStatus.values().firstOrNull { it.name == value }
-          }
-
-          PERIOD_OF_PERFORMANCE_FILTER -> {
-            filter.periodOfPerformanceStartDate = PFDayUtils.parseDate(entry.value.fromValue)
-            filter.periodOfPerformanceEndDate = PFDayUtils.parseDate(entry.value.toValue)
-          }
-          // The date the order was entered, which AuftragFilter calls startDate/endDate.
-          AuftragDO::erfassungsDatum.name -> {
-            filter.startDate = PFDayUtils.parseDate(entry.value.fromValue)
-            filter.endDate = PFDayUtils.parseDate(entry.value.toValue)
-          }
+    internal fun forecastFilterUsage(magicFilter: MagicFilter): ForecastFilterUsage {
+      val usage = ForecastFilterUsage()
+      magicFilter.entries.filter { it.isCriterion }.forEach { entry ->
+        val field = entry.field!! // Not null: isCriterion requires a field.
+        when (field) {
+          PERIOD_OF_PERFORMANCE_FILTER -> usage.replaced.add(field)
+          in FORECAST_CHART_STATE_FIELDS -> usage.ignored.add(field)
         }
       }
-      return filter
+      return usage
     }
+
+    /**
+     * True, if [magicFilter] narrows the order book by nothing but the criteria a forecast replaces or
+     * leaves out (period of performance, state): the forecast is then the one of the whole order book,
+     * which includes the invoices without any order (see `ForecastExport.chartData`).
+     */
+    internal fun isUnfiltered(magicFilter: MagicFilter): Boolean {
+      return magicFilter.searchString.isNullOrBlank() && magicFilter.entries.none {
+        it.isCriterion && it.field != PERIOD_OF_PERFORMANCE_FILTER && it.field !in FORECAST_CHART_STATE_FIELDS
+      }
+    }
+
+    /**
+     * The criteria of the order's current state (order status, invoiced status), which the forecast charts
+     * leave out. Invoiced and earlier years are the invoices of the projects of the filtered orders: with
+     * "commissioned" or "not invoiced", the projects whose orders have moved on since drop out, and the
+     * years they earned in look smaller than they were. Left out of the whole chart, as the invoice chart
+     * does (`OutgoingInvoiceEntityRest.COMPARISON_IGNORED_FIELDS`), so all its series answer the same
+     * question. The Excel export still applies them.
+     */
+    internal val FORECAST_CHART_STATE_FIELDS = setOf("status", "fakturiert")
+
+    /** A copy of [magicFilter] without the [FORECAST_CHART_STATE_FIELDS], the original left untouched. */
+    internal fun forecastChartFilter(magicFilter: MagicFilter): MagicFilter =
+      magicFilter.clone().also { clone -> clone.entries.removeIf { it.field in FORECAST_CHART_STATE_FIELDS } }
+
+    /** See [forecastFilterUsage]. */
+    class ForecastFilterUsage(
+      val ignored: MutableList<String> = mutableListOf(),
+      val replaced: MutableList<String> = mutableListOf(),
+    )
 
     /**
      * Numbers the rows the client added, leaving every stored row untouched: `number` is what the
@@ -1109,7 +1254,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       Auftrag::beauftragtNettoSumme.name to { it.commissionedNetSum },
       Auftrag::fakturiertSum.name to { it.invoicedSum },
       Auftrag::zuFakturierenSum.name to { it.notYetInvoicedSum },
+      Auftrag::fehlbetrag.name to { it.fehlbetrag },
       Auftrag::personDays.name to { it.personDays },
+      // Immediately due orders first, then by date; orders with nothing to invoice have no value.
+      Auftrag::nextInvoiceDate.name to { info ->
+        if (info.toBeInvoiced) (if (info.toBeInvoicedImmediately) LocalDate.MIN else info.nextInvoiceDate) else null
+      },
       Auftrag::pos.name to { info ->
         info.infoPositions?.count { !it.deleted } ?: 0
       },
@@ -1131,6 +1281,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
      */
     internal const val PERIOD_OF_PERFORMANCE_FILTER = "periodOfPerformance"
 
+    /** Id of the next-invoice-date filter, see [AuftragNextInvoiceDateFilter]. */
+    internal const val NEXT_INVOICE_DATE_FILTER = "nextInvoiceDate"
+
     /** The two date properties the combined filter replaces in the filter field list. */
     private val PERIOD_OF_PERFORMANCE_FIELDS = setOf("periodOfPerformanceBegin", "periodOfPerformanceEnd")
 
@@ -1146,5 +1299,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
+    private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
   }
 }

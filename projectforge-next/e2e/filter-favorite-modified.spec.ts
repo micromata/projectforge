@@ -34,7 +34,7 @@ test.describe.configure({ timeout: 120_000 });
  * `MagicFilterEntry.Value` is a Kotlin class with identity equality, so the backend's own answer would
  * always be "modified".
  */
-test.describe("saved filter modification marker", () => {
+test.describe("saved filter modification marker", { tag: "@lane-book" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     await resetFilter(page, ENTITY);
     await dropOwnFavorites(page);

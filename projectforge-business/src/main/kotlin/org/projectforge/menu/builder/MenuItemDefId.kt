@@ -44,7 +44,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (hand built, GroupAccessEntityRest); the Wicket page (wa/accessList)
     // stays reachable through the escape hatch, see NextMigration.legacyListUrl.
     ACCESS_LIST("menu.accessList", getListUrl("access")), //
-    ACCOUNT_LIST("menu.fibu.konten", getReactListUrl("account")), //
+    ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
     // Migrated to projectforge-next; the Wicket page (wa/accountingRecordList) stays reachable through the
     // escape hatch next to the page title, see NextMigration.legacyListUrl.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
@@ -67,8 +67,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     COST2_TYPE_LIST("menu.fibu.kost2arten", getListUrl("cost2Type")), //
     COST_SEARCH("menu.fibu.kostSearch", getReactDynamicPageUrl("costSearch")), //
 
-    // Migrated to projectforge-next; the Wicket page (wa/customerList) stays reachable through the escape
-    // hatch next to the page title, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
     CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
 
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
@@ -114,7 +113,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // "classic version" escape hatch, so only this menu entry points at next now.
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
-    PROJECT_LIST("menu.fibu.projekte", getReactListUrl("project")), //
+    PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
     REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //

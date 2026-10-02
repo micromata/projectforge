@@ -384,12 +384,14 @@
       "october": "October",
       "september": "September"
     },
+    "nextYear": "Next year",
     "option": {
       "firstHour": "Begin of day",
       "gridSize": "Grid size in minutes",
       "showBreaks": "Breaks",
       "timesheets": "time sheets"
     },
+    "previousYear": "Previous year",
     "quickselect": {
       "tooltip": {
         "selectCurrentMonth": "Quick select - current month",
@@ -618,7 +620,9 @@
           "all": "all",
           "nochNichtVollstaendigFakturiert": "not completely invoiced",
           "vollstaendigFakturiert": "completely invoiced",
-          "zuFakturieren": "to be invoiced"
+          "vollstaendigFakturiertMitRestbetrag": "marked as completely invoiced, but amount remaining",
+          "zuFakturieren": "to be invoiced this month",
+          "zuFakturierenFolgemonate": "to be invoiced in following months"
         }
       },
       "forecast": {
@@ -665,6 +669,29 @@
             }
           }
         },
+        "chart": {
+          "_": "Charts",
+          "cumulative": "Revenue forecast cumulated",
+          "empty": "Neither order positions nor invoices found for the forecast.",
+          "ist": "Invoiced",
+          "monthly": "Revenue forecast monthly",
+          "plan": "Plan",
+          "planningDate": {
+            "_": "Planning date",
+            "tooltip": "Optional: the forecast of the order book snapshot of this day (the closest available one) is shown as plan. Leave empty to hide the plan."
+          },
+          "planningDateUsed": "Plan of order book snapshot {arg0}",
+          "prevPrevYear": "Year before previous year",
+          "prevYear": "Previous year",
+          "quickViewHint": "This is only a quick view. For reliable forecasts, please use the Forecast function (Excel export of the list).",
+          "replacedByStartDate": "Replaced by the first month of the forecast.",
+          "startDate": {
+            "_": "First month of the forecast",
+            "tooltip": "The forecast shows the 12 months starting with the month this date lies in. The list's filter is applied as far as the forecast supports it (see the summary above), its period of performance is replaced by this date."
+          },
+          "stateFilterIgnored": "Describes the current state of the orders and would distort the comparison with the previous years, so the charts leave it out (the Excel export applies it).",
+          "total": "Forecast"
+        },
         "invoicedProjectWithoutOrder": "invoiced project without open positions",
         "lostBudgetWarning": "{arg0} Budget Loss Warning: The budget is expected to be undershot by {arg1}% (more than {arg2}%). For analysis details see the order editing page.",
         "withoutProject": "without project"
@@ -703,6 +730,10 @@
         "_": "Net sum",
         "weighted": "Weighted net sum"
       },
+      "nextInvoice": {
+        "_": "Next invoice",
+        "immediately": "immediately"
+      },
       "notification": {
         "error": "The order was saved, but the e-mail notification could not be sent: {arg0}"
       },
@@ -729,6 +760,10 @@
         "error": {
           "notFound": "Order position not found."
         },
+        "fehlbetrag": {
+          "_": "Shortfall",
+          "info": "The position is marked as completely invoiced, but its valid invoices (without planned or cancelled ones) sum up to less than its net sum or its payment schedules marked as completely invoiced."
+        },
         "noTaskGiven": "No structure element given!",
         "paymenttype": {
           "_": "Payment type",
@@ -746,6 +781,11 @@
           "_": "Effective probability",
           "info": "The probability the forecast works with.\n\nIt follows from the status of the order and of each position; the given probability of occurrence is only used where the status leaves it open.\n\nShown weighted by the net sums of the positions: sum(net sum x probability) / net sum."
         }
+      },
+      "refreshCache": {
+        "_": "Refresh order cache",
+        "done": "Order and invoice caches refreshed.",
+        "tooltip": "Recalculates the invoiced sums and invoice links of all orders from the current invoices."
       },
       "showInactivePosition": "Show inactive positions",
       "status": {
@@ -780,6 +820,7 @@
     "buchungssatz": {
       "_": "Accounting record",
       "beleg": "Receipt",
+      "bookingMonth": "Booking month",
       "error": {
         "invalidTimeperiod": "Invalid time-period"
       },
@@ -837,8 +878,31 @@
       "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
     },
     "eingangsrechnung": {
+      "_": "Creditor invoice",
       "import": {
-        "title": "Upload of creditor invoices"
+        "description": "## Import of creditor invoices\nHere you can import creditor invoices in CSV format (.csv) from Datev.",
+        "headerOnly": {
+          "newInvoicesSkipped": "New invoices cannot be created using this file. Please use the import with invoice positions. {arg0} new invoice(s) will be ignored."
+        },
+        "job": {
+          "title": "Import creditor invoices"
+        },
+        "templateInfo": "## Description:\n- These files are generated by DATEV.\n- The import takes place in two steps, both of which must be carried out consecutively for **new** invoices.\n- The invoices or invoice positions can be re-imported independently at any time to update the data.\n- ProjectForge automatically detects whether invoices or positions are being imported.\n- It is best to export for **individual months**.\n- After uploading a file, the import file can be compared with the ProjectForge invoices and then you can select which invoices/positions should be imported.\n\n** Step 1: Import invoice positions** (required for **new** invoices)\n- The files are created in Datev via \"Belegdaten exportieren\" -> \"Rechnungseingang exportieren\" (files end with **\"Lieferantenrechnungen.csv\"**).\n- This import is used to create new invoices and to update invoices (with positions).\n- Invoices and positions no longer included in the import can also be deleted.\n- Supported columns: \"Periode\", \"Betrag\", \"Währung\", \"Datum\", \"RENR\", \"LieferantName\", \"LieferantKonto\", \"Ware/Leistung\", \"Fällig_am\", \"Steuer%\", \"KOST1\", \"KOST2\"\n\n** Step 2: Update invoice information** (optional)\n- In Datev, select the desired month as the period in the \"Belegübersicht\" and generate the file (files end with **\"export.csv\"**).\n- This import only updates the header data of existing invoices (payment date, etc.) without changing the positions.\n- Invoices no longer included in the import can also be deleted if desired.\n- Supported columns: \"Geschäftspartner-Name\", \"Geschäftspartner-Konto\", \"WKZ\", \"Rechnungs-Nr.\", \"Rechnungsdatum\", \"Konto\", \"Ware/Leistung\", \"BezahltAm\", \"Fällig mit Skonto 1\", \"Skonto 1 in %\", \"Fällig ohne Skonto\", \"IBAN\", \"BIC\", \"Notiz\"\n",
+        "title": {
+          "_": "Upload of creditor invoices",
+          "header": "invoice headers",
+          "positions": "invoice positions"
+        }
+      },
+      "multiselected": {
+        "title": "Multiple selection incoming invoices"
+      },
+      "skonto": "Discount",
+      "title": {
+        "add": "Create incoming invoice",
+        "edit": "Edit incoming invoice",
+        "heading": "Incoming invoices",
+        "list": "List of incoming invoices"
       }
     },
     "employee": {
@@ -847,7 +911,28 @@
       "division": "Division",
       "eintrittsdatum": "Entry date",
       "salaries": {
-        "import": "Import of salaries"
+        "import": {
+          "_": "Import of salaries",
+          "error": {
+            "employeeNotFound": "No employee found with staff number ''{arg0}''.",
+            "month": "Invalid or missing accounting month: ''{arg0}'' (expected e. g. ''2026/08'').",
+            "noBrutto": "Missing gross amount (column ''Gesamtkosten'').",
+            "noSheet": "No sheet with the required columns (staff number and gross amount) found."
+          },
+          "format": {
+            "also": "also",
+            "brutto": "Full employer cost (gross plus all employer contributions), imported into \"Brutto mit AG-Anteil\".",
+            "columns": "Required columns (the column order is arbitrary):",
+            "intro": "Excel file (.xlsx / .xls). The sheet is detected automatically: any sheet whose header row contains the required columns is read, regardless of its name.",
+            "month": "Accounting year and month as text in the format {arg0}, e. g. {arg1}.",
+            "staffNumber": "Staff number of an existing employee. Rows whose staff number matches no employee (e. g. an aggregate/total row) are marked faulty and skipped.",
+            "title": "File format of the import file"
+          },
+          "job": {
+            "title": "Import of {arg0} salaries"
+          },
+          "success": "Salaries imported successfully."
+        }
       },
       "salary": {
         "bruttoMitAgAnteil": "Gross with employers' share",
@@ -905,6 +990,10 @@
         "nonactive": "non-active"
       },
       "street": "Street",
+      "title": {
+        "add": "New account",
+        "list": "List of accounts"
+      },
       "vatId": "VAT ID",
       "zipCode": "Zip code"
     },
@@ -973,6 +1062,8 @@
       "workFraction": "Work time fraction"
     },
     "kost2art": {
+      "kost2arten": "Cost 2 types",
+      "notInvoiced": "not invoiced",
       "nummer": "Cost 2 number",
       "projektStandard": "Project standard",
       "title": {
@@ -985,6 +1076,11 @@
     "kunde": {
       "_": "Customer",
       "division": "Division",
+      "freeText": {
+        "_": "Free text",
+        "tooLong": "Free text too long (max. {arg0} characters)",
+        "use": "Use as free text: “{arg0}”"
+      },
       "identifier": "Identifier",
       "konto": {
         "tooltip": "This account number is part of the export of invoices and may be overwritten by any account number of a project which may be assigned to the invoice."
@@ -1011,10 +1107,7 @@
         "add": "Add new customer",
         "edit": "Edit customer",
         "heading": "Customers",
-        "list": {
-          "_": "List of customers",
-          "select": "Choose customer"
-        }
+        "list": "List of customers"
       },
       "validation": {
         "existingCustomerNr": "A customer with this customer number already exists"
@@ -1038,6 +1131,15 @@
           "factor": "Factor {arg0}: {arg1} of {arg2} h counted.",
           "sharedCosts": "Shared costs → factor {arg0}: {arg1} of {arg2} h counted."
         }
+      },
+      "invoicingQuotaChart": {
+        "billed": "Billed {arg0} h of {arg1} h",
+        "noData": "No work time in this period to compute an invoicing quota from.",
+        "title": "Invoicing quota of the last 12 months"
+      },
+      "showInvoicingQuota": "Show invoicing quota",
+      "tab": {
+        "report": "Monthly report"
       },
       "targetWorkingHours": "Working hours",
       "totalSum": {
@@ -1072,7 +1174,10 @@
     "projekt": {
       "_": "Project",
       "edit": {
-        "kost2DoesAlreadyExists": "Cost2 does already exist."
+        "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
+        "kost2DoesAlreadyExists": "Cost2 does already exist.",
+        "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
+        "selectStandardKost2Arts": "Select all standard cost types"
       },
       "identifier": "Identifier",
       "internKost2_4": "Internal: Koststellen 2-4",
@@ -1112,6 +1217,7 @@
         }
       },
       "validation": {
+        "numberLocked": "Number and customer can no longer be changed: the project already has cost units (Kost2), which carry this number.",
         "numbernotfreeforcustomer": "Number already exists for other customer project"
       },
       "wizard": {
@@ -1129,10 +1235,24 @@
       },
       "bic": "BIC",
       "bruttoBetrag": "Gross amount",
+      "cancellation": {
+        "alreadyExists": "This invoice is already cancelled by {arg0}.",
+        "cancelledBy": "Cancelled by {arg0}",
+        "create": "Create cancellation",
+        "hint": {
+          "create": "Prepares a cancellation invoice for this invoice: its positions are taken over with negative amounts and opened as a new, not yet saved invoice. This invoice is only cancelled once the cancellation invoice is saved; if it is not saved, nothing changes.",
+          "original": "This invoice is cancelled by the cancellation invoice {arg0} and was therefore automatically set to \"cancelled\". To undo the cancellation, delete the cancellation invoice: this invoice then gets back the status \"issued\" or \"paid\".",
+          "system": "A cancellation invoice fully reverses the cancelled invoice: it takes over its positions with negative amounts and has no number of its own, but the one of the cancelled invoice with the suffix \"-S\". On saving, the cancelled invoice is automatically set to \"cancelled\". Type and cancelled invoice cannot be changed afterwards; if the cancellation invoice is deleted, the cancelled invoice gets back the status \"issued\" or \"paid\". Please note: the amounts of the cancellation invoice are automatically set to negative values – so please do not change the amounts!",
+          "unsaved": "This cancellation invoice is only prepared and not yet in effect: the invoice is only cancelled once you save this cancellation invoice. Without saving, nothing happens."
+        },
+        "of": "Cancellation of invoice {arg0}"
+      },
       "chart": {
         "_": "Charts",
         "boundedRangeHint": "Please restrict the invoice date to a period (from and to) to compare it with the three preceding years.",
+        "comparedPeriods": "Compared with the same period of {arg0}.",
         "cumulative": "Cumulative net revenue",
+        "ignoredTooltip": "Describes the invoice's current state (e.g. paid) and is meaningless across years, so it is left out of every year of the charts. Their figures may therefore differ from the list.",
         "monthly": "Monthly net revenue"
       },
       "currency": "Currency",
@@ -1158,6 +1278,8 @@
           "bankAccountNotConfigured": "No bank account of the seller is configured (projectforge.einvoice.seller.bankAccounts). An administrator has to add one.",
           "bankAccountNotFound": "The bank account of this invoice ({arg0}) is not among the configured ones. Please select one of them.",
           "bankAccountNotSelected": "No bank account is selected for this invoice.",
+          "cancellationNotNegative": "The net sum of a cancellation invoice has to be negative: it reverses the amounts of the cancelled invoice.",
+          "cancellationOriginalMissing": "The cancellation invoice references no cancelled invoice with a number.",
           "customerAddressIncomplete": "The address of the customer is incomplete: zip code and city are required.",
           "customerAddressMissing": "The address of the customer is missing.",
           "customerNameMissing": "The name of the customer is missing: neither a customer nor a customer text is given.",
@@ -1166,6 +1288,10 @@
           "numberMissing": "The invoice number is missing. It is assigned as soon as the invoice leaves the status \"planned\".",
           "sellerNotConfigured": "The seller of this installation is not configured completely (projectforge.einvoice.seller.*). An administrator has to complete it."
         },
+        "fillFromAccount": "Fill in from account",
+        "fillFromAccountDone": "{arg0} field(s) filled in from the account.",
+        "fillFromAccountHint": "Fills in the empty fields of this section from the account of the invoice, else from the account of the customer. Fields already filled in are kept.",
+        "fillFromAccountNothing": "Nothing to fill in: the account has no values for the empty fields.",
         "saveAndOpen": "Save and e-invoice",
         "saveAndXRechnung": "Save and XRechnung",
         "saveAndZugferd": "Save and ZUGFeRD",
@@ -1173,6 +1299,14 @@
       },
       "error": {
         "bezahlDatumRequired": "If paid amount is given then the date of payment should be given.",
+        "cancellation": {
+          "alreadyCancelled": "The invoice {arg0} is already cancelled by another cancellation invoice.",
+          "mustBeNegative": "The net sum of a cancellation invoice has to be negative (the amounts of the cancelled invoice with a negative sign).",
+          "noOwnNumber": "A cancellation invoice has no number of its own: its number is the one of the cancelled invoice with the suffix \"-S\".",
+          "originalInvalid": "The cancelled invoice has to be an existing invoice of type \"invoice\" with an invoice number.",
+          "originalRequired": "A cancellation invoice requires the invoice it cancels.",
+          "unchangeable": "The type and the cancelled invoice of a stored cancellation cannot be changed. Please delete the cancellation instead (the cancelled invoice is reset to issued/paid then)."
+        },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
         "kundeTextOderProjektRequired": "Customer text or project required.",
         "negativAmount": "It's not possible to have a negative gross value with bank transfer",
@@ -1198,6 +1332,11 @@
       },
       "filter": {
         "incomplete": "incomplete",
+        "incompleteTooltip": {
+          "account": "No account assigned.",
+          "costs": "Cost assignments incomplete: the net sum assigned to cost units differs from the net sum of the invoice.",
+          "costsOrAccount": "Cost assignments incomplete (the net sum assigned to cost units differs from the net sum of the invoice) or no account assigned."
+        },
         "paymentStatus": "Payment status",
         "ueberfaellig": "delinquent",
         "unbezahlt": "not paid"
@@ -1230,6 +1369,7 @@
         "short": "No"
       },
       "offen": "Open",
+      "originalRechnung": "Cancelled invoice",
       "paymentTerms": "Payment terms",
       "position": {
         "einzelNetto": "Unit net price"
@@ -1248,7 +1388,8 @@
         "previousYear": "Previous year",
         "previousYearComparison": "Previous-year comparison (same period)",
         "previousYearComparisonHint": "Only for a bounded invoice-date range.",
-        "previousYearPeriod": "Comparison period"
+        "previousYearPeriod": "Comparison period",
+        "previousYearWithoutFilters": "Without the filters describing the invoice''s current state: {arg0}"
       },
       "status": {
         "_": "Status of invoice",
@@ -1348,6 +1489,15 @@
     "after": "After",
     "all": "all",
     "allFilters": "All filters",
+    "applied": {
+      "_": "Filter of the list",
+      "columnFiltersHint": "Column filters of the table (funnel in the column header) are not considered.",
+      "ignored": "not considered",
+      "ignoredTooltip": "The charts do not support this filter of the list, so their figures may differ from the list.",
+      "none": "No filter: all entries",
+      "partial": "only the first value",
+      "partialTooltip": "Only the first of the selected values is applied, so the figures may differ from the list."
+    },
     "apply": "Apply",
     "before": "Before",
     "between": "Between",
@@ -1371,6 +1521,8 @@
     "hide": "Hide filter",
     "history": "Modified",
     "lessThan": "Less than",
+    "monthFrom": "From (month)",
+    "monthTo": "To (month)",
     "moreFields": "Other fields",
     "newest": "newest",
     "noFields": "No filter fields available",
@@ -1803,6 +1955,7 @@
       "short": "Menu",
       "title": "Main menu"
     },
+    "misc": "Miscellaneous",
     "monthlyEmployeeReport": {
       "_": "Monthly employee report",
       "fileprefix": "MonthlyEmployeeReport"
@@ -1834,10 +1987,6 @@
       }
     },
     "reporting": "Reporting",
-    "resetFilter": {
-      "_": "Reset filter",
-      "info": "Resets the current filter if you have any trouble with the given search function."
-    },
     "sendSms": "Send SMS",
     "system": "System",
     "taskTree": "Structure tree",
@@ -2032,13 +2181,34 @@
       }
     },
     "licensemanagement": {
-      "device": "Device",
-      "key": "Key",
+      "device": {
+        "_": "Device",
+        "tooltip": "On which device(s) is this software installed?"
+      },
+      "file1": "File 1",
+      "file2": "File 2",
+      "files": "Files",
+      "key": {
+        "_": "Key",
+        "notvisible": {
+          "_": "Key is only visible for administrators and owners of this license.",
+          "tooltip": "Please add yourself as owner first (and save) to view the license key."
+        }
+      },
+      "license": "License",
       "licenseHolder": "License holder",
       "numberOfLicenses": "Number",
       "owner": "Owner",
       "product": "Product",
-      "updateFromVersion": "Update from version",
+      "swapFiles": "Swap files",
+      "title": {
+        "add": "Add new license",
+        "list": "List of licenses"
+      },
+      "updateFromVersion": {
+        "_": "Update from version",
+        "tooltip": "This license is an update from this (older) version."
+      },
       "validSince": "Valid since",
       "validUntil": "Valid until",
       "version": "Version"
@@ -2128,6 +2298,24 @@
       },
       "validate": {
         "maxForecastDays": "The defined days count is bigger than the limit of 600."
+      }
+    },
+    "marketing": {
+      "addressCampaign": {
+        "_": "Address campaign",
+        "edit": {
+          "warning": {
+            "doNotChangeValues": "A modification of the values can delete existing values which are already assigned to addresses!"
+          }
+        },
+        "title": {
+          "add": "Add new address campaign",
+          "list": "Address campaign list"
+        },
+        "values": {
+          "format": "Please enter a list of semicolon separated values: value 1; value 2; value 3",
+          "invalidFormat": "Invalid format: expected format is: value 1; value 2; value 3"
+        }
       }
     },
     "memo": {
@@ -2413,6 +2601,7 @@
     "today": "Today",
     "withoutTimePeriod": "Without time period"
   },
+  "searchString": "Search string",
   "select": {
     "_": "Select",
     "placeholder": "Select..."
@@ -2662,6 +2851,11 @@
     "tree": {
       "close": "Close structure element",
       "explore": "Close/open all structure sub elements",
+      "filter": {
+        "reset": {
+          "tooltip": "Restores the default filter: empty search, status \"not opened\" and \"opened\"."
+        }
+      },
       "info": "Expand or collapse a structure element by clicking its folder icon or title; click anywhere else in the row to select the element.\n\n**Keyboard**\n\n- **↑ / ↓** – move between the elements\n- **→ / ←** – expand and collapse the focused element\n- **Enter** – open the focused element",
       "open": "Open structure element",
       "perspective": "Tree view",

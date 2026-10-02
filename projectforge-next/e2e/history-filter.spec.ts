@@ -20,7 +20,7 @@ type Translate = (
  * Read-only apart from the filter itself, which is stored per user and per entity; `afterAll` resets
  * it so it cannot leak into the other books specs.
  */
-test.describe("history filter", () => {
+test.describe("history filter", { tag: "@lane-book" }, () => {
   // Before each, not just once at the end: the backend stores the filter per user and per entity, so a
   // criterion one case saved is still there in the next one — and saving an unchanged filter sends no
   // list request at all, which is what the assertions here wait for.
@@ -30,8 +30,10 @@ test.describe("history filter", () => {
       .catch(() => undefined);
   });
 
-  test.afterAll(async ({ request }) => {
-    await request
+  test.afterAll(async ({ seedRequest }) => {
+    // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
+    // refused and left the filter behind.
+    await seedRequest
       .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
   });

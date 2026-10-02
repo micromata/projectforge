@@ -5,6 +5,7 @@ import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { fetchOne } from "@/lib/rs/client";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /** The parts of a project's own cost number, as the Project DTO carries them (org...dto.Project). */
 interface ProjectNumberParts {
@@ -37,7 +38,7 @@ export function Cost2ProjectField({ className }: { className?: string }) {
   return (
     <EntityAutocompleteField
       name="project"
-      label={t("fibu.projekt")}
+      label={t(leafKeyOf("fibu.projekt", t.has))}
       entity="project"
       metadataLess
       className={className}

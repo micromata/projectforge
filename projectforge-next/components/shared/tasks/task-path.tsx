@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Home01Icon } from "@hugeicons/core-free-icons";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import type { TaskNode } from "@/lib/rs/task";
-import { cn } from "@/lib/utils";
+import { TaskPathCurrent } from "./task-path-current";
 
 interface TaskPathProps {
   /** The selected task, or null while nothing is selected. */
@@ -57,6 +57,11 @@ interface TaskPathProps {
    * the same reason (the node the tree is rooted at). Pass `false` to render the last segment plain.
    */
   highlightCurrent?: boolean;
+  /**
+   * Make the last segment — the task itself, not its ancestors — a link to the time sheets booked on it
+   * (see [TaskPathCurrent]). Off by default; the order position turns it on.
+   */
+  linkCurrentToTimesheets?: boolean;
 }
 
 /**
@@ -64,7 +69,7 @@ interface TaskPathProps {
  *
  * The ancestors are buttons, since selecting one is how the timesheet moves a booking up the tree
  * without opening the whole panel. The last segment is the current selection: highlighted turquoise by
- * default and inert (see [highlightCurrent]).
+ * default and inert (see [highlightCurrent]) unless [linkCurrentToTimesheets] makes it a link.
  */
 export function TaskPath({
   task,
@@ -78,6 +83,7 @@ export function TaskPath({
   ancestorTooltip,
   showPlaceholder = true,
   highlightCurrent = true,
+  linkCurrentToTimesheets = false,
 }: TaskPathProps) {
   const t = useTranslations();
   // `path` holds the ancestors root-first and excludes the task itself (TaskServicesRest.createTask).
@@ -129,14 +135,11 @@ export function TaskPath({
       {task && (
         <span className="flex min-w-0 items-center gap-1">
           <span className="text-muted-foreground">/</span>
-          <span
-            className={cn(
-              "truncate",
-              highlightCurrent ? "font-bold text-primary" : "font-medium"
-            )}
-          >
-            {task.title}
-          </span>
+          <TaskPathCurrent
+            task={task}
+            highlight={highlightCurrent}
+            linkToTimesheets={linkCurrentToTimesheets}
+          />
         </span>
       )}
       {!task &&

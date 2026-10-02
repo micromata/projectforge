@@ -28,6 +28,9 @@ import java.io.Serializable
 import java.math.BigDecimal
 
 class AuftragsStatistik() : Serializable {
+    /** Reached payment schedules dated after this day aren't counted as to be invoiced. */
+    private val invoiceCutoff = OrderInfo.invoiceCutoff()
+
     /**
      * Sum of all nets.
      */
@@ -60,7 +63,7 @@ class AuftragsStatistik() : Serializable {
 
     /**
      * Sum of the to-be-invoiced-sums of the orders which are ABGESCHLOSSEN and not "vollstaendig fakturiert" or with
-     * reached payment schedules.
+     * reached payment schedules dated until the end of the current month.
      */
     var toBeInvoiced: BigDecimal
         private set
@@ -120,8 +123,9 @@ class AuftragsStatistik() : Serializable {
             notYetInvoicedSum = add(notYetInvoicedSum, info.notYetInvoicedSum)
             counterNotYetInvoiced++
         }
-        if (info.toBeInvoicedSum > BigDecimal.ZERO) {
-            toBeInvoiced = add(toBeInvoiced, info.toBeInvoicedSum)
+        val toBeInvoicedSum = info.toBeInvoicedSumBy(invoiceCutoff)
+        if (toBeInvoicedSum > BigDecimal.ZERO) {
+            toBeInvoiced = add(toBeInvoiced, toBeInvoicedSum)
             counterToBeInvoiced++
         }
         if (info.invoicedSum > BigDecimal.ZERO) {

@@ -70,7 +70,9 @@ object RechnungCalculator {
             if (pos.deleted) {
                 return@forEach
             }
-            var posInfo = if (useCaches) {
+            // An unsaved position (no id) is in no cache: not asked, so a calculation outside of Spring (e.g. of
+            // a new invoice in a unit test) doesn't need the caches at all.
+            var posInfo = if (useCaches && pos.id != null) {
                 rechnungCache.getRechnungPosInfo(pos.id)
             } else null
             if (posInfo == null) {
@@ -105,7 +107,10 @@ object RechnungCalculator {
             false
         }
         info.isUeberfaellig = false
-        if (!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
+        // A cancelled invoice and its cancellation are settled by each other: nothing is due, so neither is
+        // overdue (and neither is a candidate for a payment reminder).
+        val settledByCancellation = info.status == RechnungStatus.STORNIERT || info.typ == RechnungTyp.CANCELLATION
+        if (!settledByCancellation && !info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
             info.isUeberfaellig = true
         }
         return info
@@ -131,7 +136,7 @@ object RechnungCalculator {
             // The order behind the position is the cache's answer and is only known once it has been read.
             // Whoever needs it later resolves it from auftragsPositionId, when the cache is filled (see
             // ForecastExportInvoices).
-            auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id, checkRefresh)?.let { orderPosInfo ->
+            position.auftragsPosition?.id?.let { auftragsCache.getOrderPositionInfo(it, checkRefresh) }?.let { orderPosInfo ->
                 posInfo.auftragsId = orderPosInfo.auftragId
                 posInfo.auftragsPositionNummer = orderPosInfo.number
             }

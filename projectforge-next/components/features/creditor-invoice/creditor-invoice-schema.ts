@@ -77,7 +77,7 @@ export const creditorInvoiceSchema = z.object({
    * Days from `datum` to the due date and to the discount date. Transient properties of the entity, not
    * columns: the backend derives the dates from them while those are empty
    * (`AuftragAndRechnungDaoHelper.onSaveOrModify`), which is why the form only lets them be typed for a new
-   * invoice and shows what the dates say afterwards (see PaymentFields).
+   * invoice and shows what the dates say afterwards (see PaymentTermsFields).
    *
    * Deliberately **unbounded** for the same reason as the outgoing invoice: a stored invoice reads these
    * off the dates, and a discount date before the invoice date is in the data.

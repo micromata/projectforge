@@ -16,7 +16,7 @@ import type { FilterElement } from "../lib/rs/types";
  * Read-only: the dialog is opened and searched, never applied, so the account's stored filter is
  * left alone.
  */
-test.describe("all-filters dialog", () => {
+test.describe("all-filters dialog", { tag: "@isolated" }, () => {
   // The filter is stored per user and per entity, and an applied field moves out of its group into
   // "active filters" — so a criterion left behind by another run decides whether the group under test
   // exists at all. Resetting is what makes these cases repeatable.

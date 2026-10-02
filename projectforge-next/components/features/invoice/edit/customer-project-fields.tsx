@@ -3,53 +3,15 @@
 import { useTranslations } from "next-intl";
 import type { EntityRef } from "@/components/shared/entity-autocomplete";
 import { EntityAutocompleteField } from "@/components/shared/form/entity-autocomplete-field";
-import { InputField } from "@/components/shared/form/input-field";
+import { EntityOrTextField } from "@/components/shared/form/entity-or-text-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { fetchOne } from "@/lib/rs/client";
 import { cn } from "@/lib/utils";
-
-/** The account of a customer, as `/rs/customer/{id}` answers it — `Customer.konto`. */
-interface CustomerDetail {
-  konto?: { id?: number | null } | null;
-}
+import { useFillEInvoiceFromAccount } from "./use-fill-e-invoice-from-account";
 
 /**
- * The address block of an account, as `/rs/account/{id}` answers it (`KontoPagesRest.transformFromDB`,
- * which copies the whole `KontoDO`).
- *
- * Read separately, and this is not a detour that can be shortened: `Customer.copyFrom` builds its account
- * with `Konto(KontoDO)`, whose constructor is `copyFromMinimal` — so the customer's own answer carries
- * nothing but the account's id and display name, however many fields the `Konto` DTO declares.
- */
-interface AccountDetail {
-  contactPerson?: string | null;
-  street?: string | null;
-  zipCode?: string | null;
-  city?: string | null;
-  country?: string | null;
-  vatId?: string | null;
-  leitwegId?: string | null;
-  eInvoiceEmail?: string | null;
-}
-
-/**
- * The account's field on the left, the invoice's field on the right — the whole address block of the
- * e-invoice, in the order the `customer` section shows it.
- */
-const ADDRESS_FIELDS: [keyof AccountDetail, string][] = [
-  ["contactPerson", "customerContactPerson"],
-  ["street", "customerAddress"],
-  ["zipCode", "customerZipCode"],
-  ["city", "customerCity"],
-  ["country", "customerCountry"],
-  ["vatId", "customerVatId"],
-  ["leitwegId", "customerLeitwegId"],
-  ["eInvoiceEmail", "customerEInvoiceEmail"],
-];
-
-/**
- * The project, the customer and the free-text customer of an invoice — three fields that only make sense
- * together.
+ * The project and the customer of an invoice — the customer either picked from the list or typed as free text
+ * (see EntityOrTextField) — fields that only make sense together.
  *
  * Custom rather than declared, twice over: `customer` and `project` reference `KundeDO`/`ProjektDO`, for
  * which there is no `UIDataType`, so the generated metadata cannot carry them however the entity is
@@ -65,6 +27,7 @@ const ADDRESS_FIELDS: [keyof AccountDetail, string][] = [
 export function CustomerProjectFields({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
+  const fillEInvoiceFromAccount = useFillEInvoiceFromAccount();
 
   async function fillFromProject(project: EntityRef | null) {
     if (!project) return;
@@ -83,33 +46,19 @@ export function CustomerProjectFields({ className }: { className?: string }) {
   }
 
   /**
-   * The address block from the customer's account — what `EInvoiceService` needs to produce an XRechnung
-   * and what nobody should have to copy by hand.
-   *
-   * Two reads, because the customer only names its account (see [AccountDetail]). A customer without one
-   * fills nothing: the address lives on the account, not on the customer.
+   * The e-invoice fields from the customer's account — what `EInvoiceService` needs to produce an XRechnung
+   * and what nobody should have to copy by hand. An account of the invoice's own comes first, as it does in
+   * the export (see useFillEInvoiceFromAccount).
    */
   async function fillFromCustomer(customer: EntityRef | null) {
     if (!customer) return;
-    const { konto } = await fetchOne<CustomerDetail>("customer", customer.id);
-    if (konto?.id == null) return;
-    const account = await fetchOne<AccountDetail>("account", konto.id);
-    for (const [from, to] of ADDRESS_FIELDS) {
-      const value = account[from];
-      if (value && !form.getFieldValue(to)) form.setFieldValue(to, value);
-    }
+    await fillEInvoiceFromAccount();
   }
 
   return (
-    // A grid of its own, with the columns and gaps of the section's: the three fields read as one row
-    // beside each other, aligned with the rows above and below, while the block itself takes the width
-    // its declaration gives it (`span: 3`, hence the className).
-    <div
-      className={cn(
-        "grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3",
-        className
-      )}
-    >
+    // Stacked, with the row gap of the section's grid: the two fields are the top two rows of the
+    // invoice's customer column (the head section's `aside`), one above the other like the rows below.
+    <div className={cn("grid grid-cols-1 gap-y-4", className)}>
       <EntityAutocompleteField
         name="project"
         label={t("fibu.projekt._")}
@@ -117,19 +66,16 @@ export function CustomerProjectFields({ className }: { className?: string }) {
         metadataLess
         onPicked={(project) => void fillFromProject(project)}
       />
-      <EntityAutocompleteField
-        name="customer"
+      <EntityOrTextField
+        entityName="customer"
+        textName="kundeText"
         label={t("fibu.kunde._")}
         entity="customer"
         metadataLess
         onPicked={(customer) => void fillFromCustomer(customer)}
-      />
-      <InputField
-        name="kundeText"
-        label={t("fibu.kunde.text")}
-        // Says what the field is for: a customer that has no record of its own. The backend drops it
-        // when a customer *is* chosen (`OutgoingInvoiceEntityRest.transformForDB`), so the two cannot
-        // disagree.
+        // Says what the free text is for: a customer that has no record of its own, which may differ
+        // from the project's. Picking one clears the other, and the backend drops the free text beside a
+        // customer as well (`OutgoingInvoiceEntityRest.transformForDB`), so the two cannot disagree.
         hint={t("fibu.rechnung.hint.kannVonProjektKundenAbweichen")}
       />
     </div>

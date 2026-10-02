@@ -109,7 +109,7 @@ class HistoryValueService private constructor() {
             }
         }
         if (propertyTypeClass == EmployeeDO::class.java || propertyTypeClass == AddressbookDO::class.java) {
-            return getDBObjects(value, context).joinToString { dbObject ->
+            return getDBObjects(value, context).map { dbObject ->
                 if (dbObject is EmployeeDO) {
                     dbObject.user?.getFullname() ?: "???"
                 } else if (dbObject is AddressbookDO) {
@@ -280,8 +280,18 @@ class HistoryValueService private constructor() {
     internal fun toDisplayNames(value: Any?): String {
         value ?: return ""
         return if (value is Collection<*>) {
-            value.map { input -> toDisplayName(input) }.sorted().joinToString()
+            toDisplayNameList(value).joinToString()
         } else toDisplayName(value)
+    }
+
+    /**
+     * @return The sorted display names of the given collection, or of the single object.
+     */
+    internal fun toDisplayNameList(value: Any?): List<String> {
+        value ?: return emptyList()
+        return if (value is Collection<*>) {
+            value.map { input -> toDisplayName(input) }.sorted()
+        } else listOf(toDisplayName(value))
     }
 
     internal fun toDisplayName(obj: Any?): String {

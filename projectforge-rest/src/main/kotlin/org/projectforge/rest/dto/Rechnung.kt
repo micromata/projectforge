@@ -107,6 +107,46 @@ class Rechnung(
      */
     var orders: List<OrderRef>? = null
 
+    /**
+     * The number of the document ([RechnungDO.belegNummer]): [nummer] for an invoice, `<original>-S` for a
+     * cancellation, which has no [nummer] of its own. Read-only, what the list and the form show.
+     */
+    var belegNummer: String? = null
+
+    /**
+     * The invoice a cancellation ([RechnungTyp.CANCELLATION]) cancels ([RechnungDO.originalRechnung]). Only its
+     * id is written back, the other fields are for display.
+     */
+    var originalInvoice: InvoiceRef? = null
+
+    /**
+     * The cancellation invoice cancelling this invoice, if any. Read-only and on the edit page only (see
+     * `OutgoingInvoiceEntityRest.transformFromDB`): it is what hides the "create cancellation" button of an
+     * invoice cancelled already, and what the banner links to.
+     */
+    var cancellationInvoice: InvoiceRef? = null
+
+    /**
+     * Whether a cancellation invoice may be created from this invoice: it is cancellable
+     * ([RechnungDO.isCancellable]) and not cancelled yet. Read-only, on the edit page only; decides whether the
+     * "create cancellation" button is offered.
+     */
+    var cancellable: Boolean = false
+
+    /** An invoice as a reference to it needs it: the id to navigate to, the number and date to show. */
+    class InvoiceRef(
+        var id: Long? = null,
+        var nummer: Int? = null,
+        var belegNummer: String? = null,
+        var datum: LocalDate? = null,
+    ) {
+        companion object {
+            fun of(src: RechnungDO?): InvoiceRef? = src?.let {
+                InvoiceRef(id = it.id, nummer = it.nummer, belegNummer = it.belegNummer, datum = it.datum)
+            }
+        }
+    }
+
     /** An order as a link to it needs it: the id to navigate to and the number to show. */
     class OrderRef(
         var id: Long? = null,
@@ -152,6 +192,8 @@ class Rechnung(
             customer = Customer()
             customer?.copyFromMinimal(c)
         }
+        belegNummer = src.belegNummer
+        originalInvoice = InvoiceRef.of(src.originalRechnung)
         // ensuredInfo, not info: the latter is a lateinit that throws for an invoice nobody calculated yet,
         // which is every invoice the recalculate endpoint and `newBaseDTO` build.
         val info = src.ensuredInfo
@@ -192,10 +234,13 @@ class Rechnung(
         // (`lib/page-def/audit-columns.ts`).
         copyAuditFieldsFrom(src)
         nummer = src.nummer
+        belegNummer = src.belegNummer
         // The name only, and the free text as the fallback of an invoice naming no customer of the list -
         // the same fallback `KundeFormatter` makes for the Wicket list.
         // deleted so the frontend strikes a removed customer/project through (constructor otherwise leaves it).
         customer = Customer(displayName = src.kunde?.displayName ?: src.kundeText).also { it.deleted = src.kunde?.deleted ?: false }
+        // Set only for a free text customer, so the list can mark the name as typed rather than a customer record.
+        kundeText = if (src.kunde == null) src.kundeText else null
         project = src.projekt?.let { Project(displayName = it.displayName).also { dto -> dto.deleted = it.deleted } }
         // The account of the invoice itself, not the one inherited from customer or project: that is what
         // the Wicket list's column shows too (`RechnungDO.konto`), while `KontoCache.getKonto(invoice)`
@@ -292,6 +337,8 @@ class Rechnung(
         super.copyTo(dest)
         dest.kunde = customer?.id?.let { id -> KundeDO().also { it.id = id } }
         dest.projekt = project?.id?.let { id -> ProjektDO().also { it.id = id } }
+        // An id-only stub, `RechnungDao.validateCancellation` replaces it by the stored original.
+        dest.originalRechnung = originalInvoice?.id?.let { id -> RechnungDO().also { it.id = id } }
         dest.positionen = positionen?.map { dto ->
             RechnungsPositionDO().also { dto.copyTo(it, dest) }
         }?.toMutableList()

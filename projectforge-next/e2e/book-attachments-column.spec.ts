@@ -19,7 +19,7 @@ import { createBook, type SeededBook } from "./fixtures/seed";
  */
 const FILE_NAME = "pf-e2e-column.txt";
 
-test.describe("books list attachments", () => {
+test.describe("books list attachments", { tag: "@lane-book" }, () => {
   let book: SeededBook;
 
   test.beforeAll(async ({ seedRequest }) => {
@@ -123,8 +123,10 @@ test.describe("books list attachments", () => {
   });
 
   // The filter is stored per user and per entity, so it must not leak into the other books specs.
-  test.afterAll(async ({ request }) => {
-    await request
+  test.afterAll(async ({ seedRequest }) => {
+    // The logged-in context of the seeds: the plain `request` fixture has no session, so its reset was
+    // refused and left the filter behind.
+    await seedRequest
       .get("/rs/book/filter/reset", { headers: { "X-PF-Frontend": "next" } })
       .catch(() => undefined);
   });

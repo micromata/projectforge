@@ -34,7 +34,7 @@ function startingWith(label: string): RegExp {
   return new RegExp(`^${escape(label)}`, "i");
 }
 
-test.describe("book lend out", () => {
+test.describe("book lend out", { tag: "@parallel" }, () => {
   // Serial: all cases work on the same book, and each one leaves it free again.
   test.describe.configure({ mode: "serial" });
 

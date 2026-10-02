@@ -33,179 +33,183 @@ const ROLE = "finance-user";
 
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("creditor invoice selection mode", () => {
-  test.skip(
-    !hasRole(ROLE),
-    `No ${ROLE} account on this instance — see e2e/fixtures/credentials.ts.`
-  );
-
-  test.beforeEach(async ({ page }) => {
-    await login(page, "/next/", ROLE);
-    // A criterion another run left behind would decide which rows the first page shows, and two cases
-    // below compare the list before and after a filter change.
-    await page.request
-      .get(`/rs/${ENTITY}/filter/reset`, {
-        headers: { "X-PF-Frontend": "next" },
-      })
-      .catch(() => undefined);
-    // And a selection another run left behind would restore itself into this one, mode and all (see
-    // the selection store's `restore` and `listMeta.selectedIds`).
-    await page.request
-      .get(`/rs/${MASS_UPDATE.endpoint}/cancel`, {
-        headers: { "X-PF-Frontend": "next" },
-      })
-      .catch(() => undefined);
-  });
-
-  test("shows the checkboxes only inside the mode", async ({ page }) => {
-    const format = await userFormat(page);
-    await openList(page);
-
-    const toggle = modeToggle(page, format);
-    await expect(toggle).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
-
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(1);
-    await expect(selectionCount(page, format, 0)).toBeVisible();
-    // Nothing to look at while nothing is ticked.
-    await expect(panelTrigger(page, format)).toHaveCount(0);
-
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
-  });
-
-  test("takes the arrow keys without a click first", async ({ page }) => {
-    const format = await userFormat(page);
-    await openList(page);
-    await modeToggle(page, format).click();
-
-    // Entering the mode focuses the table body and puts the keyboard on the first row, so Space ticks
-    // it with no click having happened.
-    await expect(page.locator("tbody tr.row-focused")).toHaveCount(1);
-    await page.keyboard.press(" ");
-    await expect(selectionCount(page, format, 1)).toBeVisible();
-    // And the arrows move from there, Shift extending the range.
-    await page.keyboard.press("Shift+ArrowDown");
-    await page.keyboard.press("Shift+ArrowDown");
-    await expect(selectionCount(page, format, 3)).toBeVisible();
-
-    await modeToggle(page, format).click();
-  });
-
-  test("keeps the ticks across a reload and a change of the filter", async ({
-    page,
-  }) => {
-    const format = await userFormat(page);
-    await openList(page);
-    await modeToggle(page, format).click();
-    const picked = await tickFirstRows(page, 2);
-    await expect(selectionCount(page, format, 2)).toBeVisible();
-
-    // Restored from the session, which is what `listMeta.selectedIds` is served for: the store that
-    // held them is gone after a reload.
-    await page.reload();
-    await expect(selectionCount(page, format, 2)).toBeVisible();
-    for (const id of picked) {
-      await expect(tickedRow(page, id), `row ${id}`).toHaveCount(1);
-    }
-
-    // A changed filter re-registers what may be picked, and that *replaces* the session context — so
-    // the ticks have to be restated with it. Searching for something no invoice matches is the sharp
-    // case: the ticked rows leave the result set, the selection must not.
-    await search(page, format).fill(noMatch());
-    await expect(listRows(listTable(page))).toHaveCount(0);
-    await expect(selectionCount(page, format, 2)).toBeVisible();
-    await page.reload();
-    await expect(selectionCount(page, format, 2)).toBeVisible();
-
-    await modeToggle(page, format).click();
-    await page.reload();
-    // Nothing restored: leaving told the backend to forget the selection.
-    await expect(modeToggle(page, format)).toHaveAttribute(
-      "aria-pressed",
-      "false"
+test.describe(
+  "creditor invoice selection mode",
+  { tag: "@lane-creditor" },
+  () => {
+    test.skip(
+      !hasRole(ROLE),
+      `No ${ROLE} account on this instance — see e2e/fixtures/credentials.ts.`
     );
-  });
 
-  test("shows the picked entries in the collapsible of the list", async ({
-    page,
-  }) => {
-    const format = await userFormat(page);
-    await openList(page);
-    await modeToggle(page, format).click();
-    const picked = await tickFirstRows(page, 2);
+    test.beforeEach(async ({ page }) => {
+      await login(page, ROLE);
+      // A criterion another run left behind would decide which rows the first page shows, and two cases
+      // below compare the list before and after a filter change.
+      await page.request
+        .get(`/rs/${ENTITY}/filter/reset`, {
+          headers: { "X-PF-Frontend": "next" },
+        })
+        .catch(() => undefined);
+      // And a selection another run left behind would restore itself into this one, mode and all (see
+      // the selection store's `restore` and `listMeta.selectedIds`).
+      await page.request
+        .get(`/rs/${MASS_UPDATE.endpoint}/cancel`, {
+          headers: { "X-PF-Frontend": "next" },
+        })
+        .catch(() => undefined);
+    });
 
-    // Closed until asked, because its rows are a request of their own (`{page}/selectedList`).
-    const trigger = panelTrigger(page, format);
-    await expect(trigger).toBeVisible();
-    await expect(panelContent(page)).toBeHidden();
-    await trigger.click();
-    for (const id of picked) {
-      await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
-    }
+    test("shows the checkboxes only inside the mode", async ({ page }) => {
+      const format = await userFormat(page);
+      await openList(page);
 
-    // And they are the *server's* answer rather than the list's own rows, which is the whole reason
-    // this panel exists: under a filter that matches none of them, it still shows both.
-    await search(page, format).fill(noMatch());
-    await expect(listRows(listTable(page))).toHaveCount(0);
-    await expect(selectionCount(page, format, 2)).toBeVisible();
-    for (const id of picked) {
-      await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
-    }
+      const toggle = modeToggle(page, format);
+      await expect(toggle).toHaveAttribute("aria-pressed", "false");
+      await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
 
-    await modeToggle(page, format).click();
-  });
+      await toggle.click();
+      await expect(toggle).toHaveAttribute("aria-pressed", "true");
+      await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(1);
+      await expect(selectionCount(page, format, 0)).toBeVisible();
+      // Nothing to look at while nothing is ticked.
+      await expect(panelTrigger(page, format)).toHaveCount(0);
 
-  test("opens in the mode when the url asks for it", async ({ page }) => {
-    const format = await userFormat(page);
-    // How the backend links to a list opened *for* a mass update (`PagesResolver
-    // .getMultiSelectionPageUrl`) — the mode must not have to be switched on by hand then.
-    await openList(page, `?${MULTI_SELECTION_PARAM}=true`);
-    await expect(modeToggle(page, format)).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(1);
+      await toggle.click();
+      await expect(toggle).toHaveAttribute("aria-pressed", "false");
+      await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
+    });
 
-    // And leaving is final, although the parameter is still in the url.
-    await modeToggle(page, format).click();
-    await expect(modeToggle(page, format)).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
-    await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
-  });
+    test("takes the arrow keys without a click first", async ({ page }) => {
+      const format = await userFormat(page);
+      await openList(page);
+      await modeToggle(page, format).click();
 
-  test("carries the selection to the mass update page", async ({ page }) => {
-    const format = await userFormat(page);
-    await openList(page);
-    await modeToggle(page, format).click();
-    const picked = await tickFirstRows(page, 2);
+      // Entering the mode focuses the table body and puts the keyboard on the first row, so Space ticks
+      // it with no click having happened.
+      await expect(page.locator("tbody tr.row-focused")).toHaveCount(1);
+      await page.keyboard.press(" ");
+      await expect(selectionCount(page, format, 1)).toBeVisible();
+      // And the arrows move from there, Shift extending the range.
+      await page.keyboard.press("Shift+ArrowDown");
+      await page.keyboard.press("Shift+ArrowDown");
+      await expect(selectionCount(page, format, 3)).toBeVisible();
 
-    await page
-      .getByRole("button", { name: format.t("massUpdate.button") })
-      .click();
-    await expect(page).toHaveURL(new RegExp(`${MASS_UPDATE.route}$`));
-    await expect(selectionCount(page, format, 2)).toBeVisible();
+      await modeToggle(page, format).click();
+    });
 
-    // The same panel as in the list, and here too the ids come from the session — so a reload of this
-    // page, which holds no selection of its own at all, still knows them.
-    await page.reload();
-    await panelTrigger(page, format).click();
-    for (const id of picked) {
-      await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
-    }
+    test("keeps the ticks across a reload and a change of the filter", async ({
+      page,
+    }) => {
+      const format = await userFormat(page);
+      await openList(page);
+      await modeToggle(page, format).click();
+      const picked = await tickFirstRows(page, 2);
+      await expect(selectionCount(page, format, 2)).toBeVisible();
 
-    // Out through the page's own cancel, which drops the selection and returns to the list.
-    await page
-      .getByRole("button", { name: format.t("cancel"), exact: true })
-      .click();
-    await expect(page).toHaveURL(new RegExp(`${ROUTE}$`));
-  });
-});
+      // Restored from the session, which is what `listMeta.selectedIds` is served for: the store that
+      // held them is gone after a reload.
+      await page.reload();
+      await expect(selectionCount(page, format, 2)).toBeVisible();
+      for (const id of picked) {
+        await expect(tickedRow(page, id), `row ${id}`).toHaveCount(1);
+      }
+
+      // A changed filter re-registers what may be picked, and that *replaces* the session context — so
+      // the ticks have to be restated with it. Searching for something no invoice matches is the sharp
+      // case: the ticked rows leave the result set, the selection must not.
+      await search(page, format).fill(noMatch());
+      await expect(listRows(listTable(page))).toHaveCount(0);
+      await expect(selectionCount(page, format, 2)).toBeVisible();
+      await page.reload();
+      await expect(selectionCount(page, format, 2)).toBeVisible();
+
+      await modeToggle(page, format).click();
+      await page.reload();
+      // Nothing restored: leaving told the backend to forget the selection.
+      await expect(modeToggle(page, format)).toHaveAttribute(
+        "aria-pressed",
+        "false"
+      );
+    });
+
+    test("shows the picked entries in the collapsible of the list", async ({
+      page,
+    }) => {
+      const format = await userFormat(page);
+      await openList(page);
+      await modeToggle(page, format).click();
+      const picked = await tickFirstRows(page, 2);
+
+      // Closed until asked, because its rows are a request of their own (`{page}/selectedList`).
+      const trigger = panelTrigger(page, format);
+      await expect(trigger).toBeVisible();
+      await expect(panelContent(page)).toBeHidden();
+      await trigger.click();
+      for (const id of picked) {
+        await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
+      }
+
+      // And they are the *server's* answer rather than the list's own rows, which is the whole reason
+      // this panel exists: under a filter that matches none of them, it still shows both.
+      await search(page, format).fill(noMatch());
+      await expect(listRows(listTable(page))).toHaveCount(0);
+      await expect(selectionCount(page, format, 2)).toBeVisible();
+      for (const id of picked) {
+        await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
+      }
+
+      await modeToggle(page, format).click();
+    });
+
+    test("opens in the mode when the url asks for it", async ({ page }) => {
+      const format = await userFormat(page);
+      // How the backend links to a list opened *for* a mass update (`PagesResolver
+      // .getMultiSelectionPageUrl`) — the mode must not have to be switched on by hand then.
+      await openList(page, `?${MULTI_SELECTION_PARAM}=true`);
+      await expect(modeToggle(page, format)).toHaveAttribute(
+        "aria-pressed",
+        "true"
+      );
+      await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(1);
+
+      // And leaving is final, although the parameter is still in the url.
+      await modeToggle(page, format).click();
+      await expect(modeToggle(page, format)).toHaveAttribute(
+        "aria-pressed",
+        "false"
+      );
+      await expect(page.locator("thead").getByRole("checkbox")).toHaveCount(0);
+    });
+
+    test("carries the selection to the mass update page", async ({ page }) => {
+      const format = await userFormat(page);
+      await openList(page);
+      await modeToggle(page, format).click();
+      const picked = await tickFirstRows(page, 2);
+
+      await page
+        .getByRole("button", { name: format.t("massUpdate.button") })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`${MASS_UPDATE.route}$`));
+      await expect(selectionCount(page, format, 2)).toBeVisible();
+
+      // The same panel as in the list, and here too the ids come from the session — so a reload of this
+      // page, which holds no selection of its own at all, still knows them.
+      await page.reload();
+      await panelTrigger(page, format).click();
+      for (const id of picked) {
+        await expect(panelRow(page, id), `row ${id}`).toHaveCount(1);
+      }
+
+      // Out through the page's own cancel, which drops the selection and returns to the list.
+      await page
+        .getByRole("button", { name: format.t("cancel"), exact: true })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`${ROUTE}$`));
+    });
+  }
+);
 
 async function openList(page: Page, query = ""): Promise<void> {
   await goto(page, `${ROUTE}${query}`);

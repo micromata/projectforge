@@ -28,6 +28,11 @@ export interface InvoiceStatistics {
    * top-level object (its own `previousYear` stays null). See `OutgoingInvoiceEntityRest`.
    */
   previousYear?: InvoiceStatistics | null;
+  /**
+   * The fields of the list's filter the previous-year figures leave out (the invoice's current state:
+   * paid, status, ...), set on `previousYear` only. See `OutgoingInvoiceEntityRest.comparisonFilter`.
+   */
+  ignoredFilterFields?: string[] | null;
 }
 
 /**

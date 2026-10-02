@@ -29,48 +29,54 @@ async function openSettings(page: import("@playwright/test").Page) {
   return { dialog, timesheetsLabel: format.t("calendar.option.timesheets") };
 }
 
-test.describe("calendar timesheet-user setting", () => {
-  test.describe("without HR or finance rights", () => {
-    test.skip(
-      !hasRole("normalo-user"),
-      "no normalo-user in this instance's testAccounts.txt"
-    );
+test.describe(
+  "calendar timesheet-user setting",
+  { tag: "@lane-calendar" },
+  () => {
+    test.describe("without HR or finance rights", () => {
+      test.skip(
+        !hasRole("normalo-user"),
+        "no normalo-user in this instance's testAccounts.txt"
+      );
 
-    test("offers only a show-timesheets checkbox, not a user picker", async ({
-      page,
-    }) => {
-      // Not `loggedInPage`: that fixture logs in as the account with every right, which is exactly the
-      // account that must *not* be looked at here.
-      await login(page, "/next/", "normalo-user");
-      const { dialog, timesheetsLabel } = await openSettings(page);
+      test("offers only a show-timesheets checkbox, not a user picker", async ({
+        page,
+      }) => {
+        // Not `loggedInPage`: that fixture logs in as the account with every right, which is exactly the
+        // account that must *not* be looked at here.
+        await login(page, "normalo-user", "/calendar");
+        const { dialog, timesheetsLabel } = await openSettings(page);
 
-      // The plain checkbox is there ...
-      await expect(dialog.locator("#calendar-show-timesheets")).toBeVisible();
-      // ... and the user autocomplete (a combobox named by the same label) is not.
-      await expect(
-        dialog.getByRole("combobox", { name: timesheetsLabel })
-      ).toHaveCount(0);
+        // The plain checkbox is there ...
+        await expect(dialog.locator("#calendar-show-timesheets")).toBeVisible();
+        // ... and the user autocomplete (a combobox named by the same label) is not.
+        await expect(
+          dialog.getByRole("combobox", { name: timesheetsLabel })
+        ).toHaveCount(0);
+      });
     });
-  });
 
-  test.describe("with finance rights", () => {
-    test.skip(
-      !hasRole("finance-user"),
-      "no finance-user in this instance's testAccounts.txt"
-    );
+    test.describe("with finance rights", () => {
+      test.skip(
+        !hasRole("finance-user"),
+        "no finance-user in this instance's testAccounts.txt"
+      );
 
-    test("offers a user picker for other users' timesheets", async ({
-      page,
-    }) => {
-      await login(page, "/next/", "finance-user");
-      const { dialog, timesheetsLabel } = await openSettings(page);
+      test("offers a user picker for other users' timesheets", async ({
+        page,
+      }) => {
+        await login(page, "finance-user", "/calendar");
+        const { dialog, timesheetsLabel } = await openSettings(page);
 
-      // The user autocomplete is offered ...
-      await expect(
-        dialog.getByRole("combobox", { name: timesheetsLabel })
-      ).toBeVisible();
-      // ... in place of the plain checkbox.
-      await expect(dialog.locator("#calendar-show-timesheets")).toHaveCount(0);
+        // The user autocomplete is offered ...
+        await expect(
+          dialog.getByRole("combobox", { name: timesheetsLabel })
+        ).toBeVisible();
+        // ... in place of the plain checkbox.
+        await expect(dialog.locator("#calendar-show-timesheets")).toHaveCount(
+          0
+        );
+      });
     });
-  });
-});
+  }
+);

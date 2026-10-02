@@ -4,13 +4,8 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectTrigger } from "@/components/shared/copyable-select";
 import { cn } from "@/lib/utils";
 import type { SelectOption } from "@/lib/validation/from-metadata";
 import {
@@ -37,6 +32,8 @@ export interface SelectFieldProps extends BaseFieldProps {
   /**
    * Renders the value larger and in the accent colour. For the one value a reader looks for first —
    * the status of a book, the status of a cost unit — which the legacy pages buried among the others.
+   * The box keeps the height of every other field, so the row it sits in stays level with the rows of
+   * a column beside it (an order's status next to its project).
    */
   emphasized?: boolean;
   /**
@@ -110,51 +107,74 @@ export function SelectField({
             ids={ids}
           >
             <div className="flex min-w-0 items-center gap-1">
-              <Select
-                value={raw}
-                disabled={disabled}
-                // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
-                // so it can only come from its own hidden native <select> (SelectBubbleInput): that
-                // mirrors every value change into the native element and dispatches a change event,
-                // which comes back through here. Its <option>s exist only while SelectContent is
-                // mounted, i.e. while the dropdown is open, so setting the value of a *closed*
-                // select matches nothing, leaves it at "" and would wipe the field. This happens
-                // whenever the value changes without the dropdown being opened — for us when the
-                // loaded entity resets the form (see useEntityEditForm) to something other than the
-                // default.
-                onValueChange={(v) => {
-                  if (v === "") return;
-                  field.handleChange(
-                    parseOptionValue(
-                      v,
-                      valueType,
-                      options.find((o) => o.value === v)?.label
-                    )
-                  );
-                }}
-              >
-                {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
-                <SelectTrigger
+              {disabled ? (
+                // Not a disabled trigger: a disabled <button> receives no mouse events, so its text
+                // could be neither selected nor copied. Still a combobox to assistive technology, just a
+                // disabled one, as before; with no popup there is nothing for aria-controls to name.
+                <div
                   id={ids.controlId}
+                  // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-disabled="true"
                   aria-labelledby={ids.labelId}
                   className={cn(
-                    // min-w-0 lets the trigger shrink to its column so the value's line-clamp can
-                    // truncate a long label instead of overflowing (see Kost2 on a time sheet).
-                    "min-w-0 flex-1",
+                    "flex h-7 min-w-0 flex-1 cursor-default items-center rounded-md border border-input bg-input/20 px-2 py-1.5 text-xs/relaxed whitespace-nowrap text-muted-foreground dark:bg-input/30",
                     emphasized &&
-                      "h-9 border-primary/40 bg-primary/5 text-sm font-semibold text-primary data-[size=default]:h-9"
+                      "border-primary/40 bg-primary/5 text-sm font-semibold text-primary"
                   )}
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {options.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <span className="line-clamp-1">
+                    {options.find((o) => o.value === raw)?.label ?? ""}
+                  </span>
+                </div>
+              ) : (
+                <Select
+                  value={raw}
+                  disabled={disabled}
+                  // "" is never a choice a user can make — Radix forbids an empty SelectItem value —
+                  // so it can only come from its own hidden native <select> (SelectBubbleInput): that
+                  // mirrors every value change into the native element and dispatches a change event,
+                  // which comes back through here. Its <option>s exist only while SelectContent is
+                  // mounted, i.e. while the dropdown is open, so setting the value of a *closed*
+                  // select matches nothing, leaves it at "" and would wipe the field. This happens
+                  // whenever the value changes without the dropdown being opened — for us when the
+                  // loaded entity resets the form (see useEntityEditForm) to something other than the
+                  // default.
+                  onValueChange={(v) => {
+                    if (v === "") return;
+                    field.handleChange(
+                      parseOptionValue(
+                        v,
+                        valueType,
+                        options.find((o) => o.value === v)?.label
+                      )
+                    );
+                  }}
+                >
+                  {/* The trigger is a button, which a <label htmlFor> cannot name — hence labelledby. */}
+                  <SelectTrigger
+                    id={ids.controlId}
+                    aria-labelledby={ids.labelId}
+                    className={cn(
+                      // min-w-0 lets the trigger shrink to its column so the value's line-clamp can
+                      // truncate a long label instead of overflowing (see Kost2 on a time sheet).
+                      "min-w-0 flex-1",
+                      emphasized &&
+                        "border-primary/40 bg-primary/5 text-sm font-semibold text-primary"
+                    )}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {options.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {canClear && raw !== "" && (
                 <Button
                   type="button"

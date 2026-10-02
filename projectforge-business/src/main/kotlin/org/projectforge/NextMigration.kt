@@ -161,6 +161,17 @@ object NextMigration {
             newEntryRoute = "access/new",
             legacyApp = LegacyApp.WICKET,
         ),
+        // The accounts ("Konten"), migrated from the React app (MenuItemDefId.ACCOUNT_LIST pointed at react/account),
+        // whose page is gone with the layout of KontoPagesRest (now KontoEntityRest, no layout). The way back
+        // therefore leads to the Wicket pages, which are kept as the classic version; their mount points follow
+        // the convention (DaoConst.ACCOUNT + List/Edit = accountList/accountEdit), so no legacy route has to be
+        // spelled out.
+        "account" to NextPage(
+            route = "account",
+            editRoute = "account/$ID_PLACEHOLDER",
+            newEntryRoute = "account/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // The DATEV accounting-record list ("Buchungssätze", MenuItemDefId.ACCOUNTING_RECORD_LIST pointed at
         // wa/accountingRecordList), migrated from Wicket with its filter, its BWA (business assessment) and
         // the report drill-down. Hand built (AccountingRecordEntityRest, no layout) so the list keeps the
@@ -172,6 +183,23 @@ object NextMigration {
             editRoute = "accounting-record/$ID_PLACEHOLDER",
             newEntryRoute = "accounting-record/new",
             legacyApp = LegacyApp.WICKET,
+        ),
+        // The address campaigns of the marketing plugin, migrated from Wicket (the menu entry pointed at the
+        // bookmarkable AddressCampaignListPage). Hand built (AddressCampaignEntityRest, no layout; the server
+        // laid out React page of AddressCampaignPagesRest is gone). The Wicket pages have been removed: the way
+        // back is no longer offered, and legacyApp/legacyRoute stay only so OrphanedLinkFilter still redirects
+        // bookmarked links onto the next page. The legacy routes are the bookmarkable urls (as for `liquidity`):
+        // a plugin's mount points (addressCampaignList/addressCampaignEdit) were never actually mounted, see
+        // PluginWicketRegistrationService.registerMenuItem.
+        "addressCampaign" to NextPage(
+            route = "address-campaign",
+            editRoute = "address-campaign/$ID_PLACEHOLDER",
+            newEntryRoute = "address-campaign/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.marketing.AddressCampaignEditPage",
+            offerLegacyLink = false,
         ),
         // Hand built feature, so its routes are /book, /book/new and /book/<id>. The React page it was
         // migrated from is removed (its layout is gone with BookEntityRest.createListLayout), so there is
@@ -240,14 +268,17 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from Wicket (MenuItemDefId.CUSTOMER_LIST pointed at wa/customerList; the React page exists
-        // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"), so the way
-        // back leads to Wicket. Hand built rather than generic so the list keeps its filter row, saved
-        // filters, gear and Excel export. Customer favorites (UserPrefArea.KUNDE_FAVORITE) are not migrated.
+        // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"). Hand built
+        // rather than generic so the list keeps its filter row, saved filters, gear and Excel export. Customer
+        // favorites (UserPrefArea.KUNDE_FAVORITE) are not migrated. The Wicket pages have been removed: the way
+        // back is no longer offered, and legacyApp stays only so OrphanedLinkFilter still redirects bookmarked
+        // wa/customerList / wa/customerEdit links (the mount points follow the convention).
         "customer" to NextPage(
             route = "customer",
             editRoute = "customer/$ID_PLACEHOLDER",
             newEntryRoute = "customer/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
         // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only
@@ -277,6 +308,19 @@ object NextMigration {
         // The "classic version" link is no longer offered: Wicket is no longer supported for liquidity
         // (the next page is the only one). legacyApp/legacyRoute stay so OrphanedLinkFilter still redirects
         // bookmarked wicket/bookmarkable/...LiquidityEntry* links to the next page (as for `order`).
+        // The licenses (plugin licensemanagement) are migrated straight from Wicket and their Wicket pages are
+        // removed, so there is no way back. The legacy routes are the bookmarkable urls (as for `addressCampaign`),
+        // they are kept so bookmarked links still reach the next page.
+        "license" to NextPage(
+            route = "license",
+            editRoute = "license/$ID_PLACEHOLDER",
+            newEntryRoute = "license/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.licensemanagement.LicenseEditPage",
+            offerLegacyLink = false,
+        ),
         "liquidity" to NextPage(
             route = "liquidity",
             editRoute = "liquidity/$ID_PLACEHOLDER",
@@ -337,6 +381,19 @@ object NextMigration {
             // Trusted now: the way back is no longer offered (neither list menu nor edit button).
             // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/incomingInvoice* links.
             offerLegacyLink = false,
+        ),
+        // The project list was the generic React page (ProjectPagesRest's layout), its form the Wicket
+        // ProjektEditPage - the React form never got past "Not yet implemented". Both halves are hand built in
+        // projectforge-next now and ProjectEntityRest serves no layout any more, so the React page is gone and
+        // the way back leads to Wicket, whose list and form follow the mount convention (projectList /
+        // projectEdit, DaoConst.PROJECT). An old react/project bookmark is bent onto next by an explicit rule of
+        // OrphanedLinkFilter, as the generic redirects stay within a page's legacyApp. Project favorites (UserPrefArea.PROJEKT_FAVORITE) are not
+        // migrated.
+        "project" to NextPage(
+            route = "project",
+            editRoute = "project/$ID_PLACEHOLDER",
+            newEntryRoute = "project/new",
+            legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from Wicket (MenuItemDefId.TASK_TREE pointed at wa/taskTree). This entry is the
         // *list* perspective of the entity, /next/task, as for every other page - the structure tree is

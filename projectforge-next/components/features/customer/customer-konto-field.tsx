@@ -9,9 +9,10 @@ import { leafKeyOf } from "@/lib/leaf-key";
  *
  * Custom for the reason the invoice's account is: `KontoDO` has no `UIDataType`, so `ElementsRegistry`
  * never reports it and the generated metadata cannot carry it however the entity is annotated — hence
- * `metadataLess`. Wicket restricts the picker to the debtor account ranges and hides the field when no
- * account exists; neither is done here — `/rs/account/autosearch` searches all of them, and an
- * installation without accounts simply finds nothing (same accepted limitation as the invoice's field).
+ * `metadataLess`. The former Wicket form restricted the picker to the debtor account ranges and hid the
+ * field when no account existed; neither is done here — `/rs/account/autosearch` searches all of them,
+ * and an installation without accounts simply finds nothing (same accepted limitation as the invoice's
+ * field).
  */
 export function CustomerKontoField({ className }: { className?: string }) {
   const t = useTranslations();

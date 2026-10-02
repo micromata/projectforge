@@ -31,7 +31,7 @@ const TITLE = "ZZ e2e order (delete me)";
 // and the first navigation to a route additionally waits for the dev server to compile it.
 test.describe.configure({ timeout: 120_000 });
 
-test.describe("order book", () => {
+test.describe("order book", { tag: "@lane-order" }, () => {
   test.beforeEach(async ({ loggedInPage: page }) => {
     // The filter and the grid state are stored per user, so a criterion or a hidden column left behind
     // by another run — or by someone working with the account — would otherwise decide what these tests
@@ -91,6 +91,7 @@ test.describe("order book", () => {
       "fibu.auftrag.filter.type.all",
       "fibu.auftrag.filter.type.vollstaendigFakturiert",
       "fibu.auftrag.filter.type.zuFakturieren",
+      "fibu.auftrag.filter.type.zuFakturierenFolgemonate",
       "fibu.auftrag.filter.type.nochNichtVollstaendigFakturiert",
     ]) {
       await expect(
@@ -342,10 +343,16 @@ test.describe("order book", () => {
       trigger(page, label(format, "fibu.projectManager")),
       "a manager chosen by hand is kept"
     ).toHaveText(manager!);
-    // The empty ones are filled from what the project knows.
-    await expect(trigger(page, label(format, "fibu.kunde._"))).not.toHaveText(
-      format.t("filter.chooseEntity")
-    );
+    // The empty ones are filled from what the project knows. By role and a name prefix rather than
+    // through `trigger`: the customer is the merged customer/free-text field (EntityOrTextField),
+    // which names its combobox after the value it holds ("Kunde: 130 - …") once it holds one.
+    await expect(
+      page
+        .getByRole("combobox", {
+          name: new RegExp(`^${escapeRegExp(label(format, "fibu.kunde._"))}`),
+        })
+        .first()
+    ).not.toHaveText(format.t("filter.chooseEntity"));
   });
 
   test("refuses a position title longer than the column, naming the row", async ({

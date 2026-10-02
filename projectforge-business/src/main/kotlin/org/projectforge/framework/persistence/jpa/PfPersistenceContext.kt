@@ -29,6 +29,8 @@ import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
 import org.hibernate.NonUniqueResultException
+import org.hibernate.engine.spi.SessionImplementor
+import org.projectforge.SystemStatus
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
@@ -38,6 +40,14 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextTy
 import org.projectforge.framework.persistence.utils.SQLHelper
 
 private val log = KotlinLogging.logger {}
+
+/**
+ * Reports a [PfPersistenceContext.find] with `attached = false` that detaches an instance which was already managed
+ * by the context before the call: em.find hands such an instance back as it is, so the caller gets no copy of its own
+ * but the very object the surrounding code works with, and detaching it pulls it out of that code's session (e.g.
+ * the object an update is just writing, see RechnungDao.onInsertOrModify). Warn in development mode, debug otherwise.
+ */
+private val sharedDetachLog = KotlinLogging.logger("org.projectforge.framework.persistence.jpa.SharedInstanceDetach")
 
 /**
  * A wrapper for EntityManager with some convenience methods. The EntityManager is created by the given entityManagerFactory.
@@ -109,6 +119,7 @@ class PfPersistenceContext internal constructor(
         entityGraphName: String? = null,
     ): T? {
         id ?: return null
+        val wasManaged = !attached && reportSharedDetach() && isManaged(entityClass, id)
         logAndAdd(
             CallType.FIND,
             entityClass.simpleName,
@@ -136,9 +147,38 @@ class PfPersistenceContext internal constructor(
         }
         entity ?: return null
         if (!attached && em.contains(entity)) {
+            if (wasManaged) {
+                logSharedDetach(entityClass, id)
+            }
             em.detach(entity)
         }
         return entity
+    }
+
+    private fun reportSharedDetach(): Boolean {
+        return SystemStatus.isDevelopmentMode() || sharedDetachLog.isDebugEnabled
+    }
+
+    /**
+     * Whether an instance of the given entity is in the persistence context already. Asked before em.find, because
+     * afterwards a freshly loaded and a handed back instance look the same.
+     */
+    private fun isManaged(entityClass: Class<*>, id: Any): Boolean {
+        return runCatching {
+            val session = em.unwrap(SessionImplementor::class.java)
+            val persister = session.factory.mappingMetamodel.getEntityDescriptor(entityClass)
+            session.persistenceContextInternal.getEntity(session.generateEntityKey(id, persister)) != null
+        }.getOrDefault(false)
+    }
+
+    private fun logSharedDetach(entityClass: Class<*>, id: Any) {
+        val msg = "find(${entityClass.simpleName}, id=$id, attached=false) detached an instance this context already" +
+                " managed, e.g. the object an update is writing. Use attached=true or a projection query instead."
+        if (SystemStatus.isDevelopmentMode()) {
+            sharedDetachLog.warn(Exception("Caller of the detaching find")) { msg }
+        } else {
+            sharedDetachLog.debug(Exception("Caller of the detaching find")) { msg }
+        }
     }
 
     fun <T> selectAll(

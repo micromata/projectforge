@@ -144,11 +144,20 @@ open class InvoiceService {
                 .distinct()
                 .collect(Collectors.joining(", ")))
             variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.loggedInUser?.getFullname()?.uppercase() ?: "")
-            variables.put("Rechnungsnummer", data.nummer?.toString() ?: "")
+            variables.put("Rechnungsnummer", data.belegNummer ?: "")
             variables.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.datum))
             variables.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.faelligkeit))
             variables.put("Anlage", getReplacementForAttachment(data))
             variables.put("isSkonto", isSkonto)
+            // A cancellation invoice shares the template of the invoice: the template asks for `isStorno` and
+            // names the cancelled invoice by number and date. Set for every invoice (empty where there is no
+            // original), so a variable used outside of the condition is never left unreplaced.
+            variables.put("isStorno", data.typ == RechnungTyp.CANCELLATION)
+            variables.put("Originalrechnungsnummer", data.originalRechnung?.nummer?.toString() ?: "")
+            variables.put(
+                "Originalrechnungsdatum",
+                DateTimeFormatter.instance().getFormattedDate(data.originalRechnung?.datum)
+            )
             if (isSkonto) {
                 variables.put("Skonto", formatBigDecimal(data.discountPercent!!.stripTrailingZeros()) + "%")
                 variables.put(
@@ -319,7 +328,7 @@ open class InvoiceService {
             return suffix
         }
         //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
-        val number = if (invoice.nummer != null) invoice.nummer.toString() else ""
+        val number = invoice.belegNummer ?: ""
         val customerName = invoice.konto?.bezeichnung ?: invoice.kunde?.konto?.bezeichnung ?: invoice.kunde?.name ?: invoice.kundeText
         var customer = if (!customerName.isNullOrBlank()) "_$customerName" else ""
         val project = if (invoice.projekt != null) "_" + invoice.projekt!!.name else ""

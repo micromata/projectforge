@@ -114,6 +114,8 @@ export interface InvoiceNetSumChartData {
   months: string[];
   /** One entry per year, newest (offset 0) first. */
   series: InvoiceNetSumYearSeries[];
+  /** The fields of the list's filter left out of every year: criteria of an invoice's current state. */
+  ignoredFilterFields?: string[];
 }
 
 /**
@@ -166,6 +168,49 @@ export function fetchInvoiceFormDefaults(
   return request<InvoiceFormDefaults>(
     "/rs/outgoingInvoice/formDefaults",
     { method: "GET" },
+    signal
+  );
+}
+
+/**
+ * The e-invoice fields of an invoice that its account can fill — the address block and the seller's bank
+ * account (`OutgoingInvoiceEntityRest.fillEInvoiceFieldsFromAccount`).
+ */
+export const E_INVOICE_ACCOUNT_FIELDS = [
+  "customerContactPerson",
+  "customerAddress",
+  "customerZipCode",
+  "customerCity",
+  "customerCountry",
+  "customerVatId",
+  "customerLeitwegId",
+  "customerEInvoiceEmail",
+  "sellerBankAccount",
+] as const;
+
+export type EInvoiceAccountField = (typeof E_INVOICE_ACCOUNT_FIELDS)[number];
+
+/** What the fill is asked with: the two references naming the account, and the fields as they stand. */
+export type EInvoiceFromAccountInput = {
+  customer?: { id?: number | null } | null;
+  konto?: { id?: number | null } | null;
+} & Partial<Record<EInvoiceAccountField, string | null>>;
+
+/**
+ * The given e-invoice fields with the empty ones filled from the account — the invoice's own, else its
+ * customer's (`OutgoingInvoiceEntityRest.getEInvoiceFromAccount`).
+ *
+ * Asked of the backend rather than read off the account here: the bank account is named by its configured
+ * name on an account and by its IBAN on an invoice, and the clone fills the same fields by the same rule —
+ * one rule, kept in one place.
+ */
+export function fetchEInvoiceFromAccount(
+  input: EInvoiceFromAccountInput,
+  signal?: AbortSignal
+): Promise<Partial<Record<EInvoiceAccountField, string | null>>> {
+  return request(
+    "/rs/outgoingInvoice/eInvoiceFromAccount",
+    { method: "POST", body: JSON.stringify(input) },
     signal
   );
 }
@@ -233,14 +278,17 @@ export function downloadXRechnung(
  * The invoice as a ZUGFeRD PDF, i.e. a PDF carrying the same XML.
  *
  * The document it is embedded into is the uploaded invoice PDF, or the Word template converted where none
- * was uploaded (see InvoicePdfField).
+ * was uploaded (see InvoicePdfField) — of the variant given, as for downloadInvoiceWord (an empty string for
+ * the unnamed one). With an uploaded PDF the variant has no effect.
  */
 export function downloadZugferd(
   id: number,
+  variant: string,
   signal?: AbortSignal
 ): Promise<void> {
+  const query = variant ? `?variant=${encodeURIComponent(variant)}` : "";
   return downloadFile(
-    `/rs/outgoingInvoice/eInvoice/${id}/zugferd`,
+    `/rs/outgoingInvoice/eInvoice/${id}/zugferd${query}`,
     { method: "GET" },
     signal
   );

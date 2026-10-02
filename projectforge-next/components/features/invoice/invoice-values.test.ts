@@ -6,6 +6,7 @@ import {
   referencedOrders,
   remainingNet,
   shareOfNetSum,
+  toFormValues,
 } from "./invoice-values";
 import type {
   InvoicePositionValues,
@@ -163,5 +164,28 @@ describe("shareOfNetSum", () => {
     expect(shareOfNetSum(0, 2000)).toBeNull();
     expect(shareOfNetSum(500, undefined)).toBeNull();
     expect(shareOfNetSum(500, 0)).toBeNull();
+  });
+});
+
+describe("toFormValues — cancellation", () => {
+  it("keeps the reference to the cancelled invoice, so saving the prefilled cancellation writes it", () => {
+    const original = {
+      id: 42,
+      nummer: 16956,
+      belegNummer: "16956",
+      datum: "2024-06-15",
+    };
+    const values = toFormValues({
+      id: null,
+      typ: "CANCELLATION",
+      originalInvoice: original,
+    });
+    expect(values.originalInvoice).toEqual(original);
+    // A cancellation has no number of its own.
+    expect(values.nummer).toBeNull();
+  });
+
+  it("normalises an absent reference to null, as every other field", () => {
+    expect(toFormValues({ id: 1 }).originalInvoice).toBeNull();
   });
 });

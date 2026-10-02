@@ -14,7 +14,6 @@
   <image path="images/button_next_week.png" width="16" height="16"/>
   <image path="images/button_previous_month.png" width="16" height="16"/>
   <image path="images/button_previous_week.png" width="16" height="16"/>
-  <image path="images/button_selectCustomer.png" width="16" height="16"/>
   <image path="images/button_selectGroup.png" width="16" height="16"/>
   <image path="images/button_selectMe.png" width="16" height="16"/>
   <image path="images/button_selectProjekt.png" width="16" height="16"/>

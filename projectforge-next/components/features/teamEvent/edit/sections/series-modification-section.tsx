@@ -17,6 +17,7 @@ import { useFieldErrors } from "@/components/shared/form/use-field-errors";
 import { cn } from "@/lib/utils";
 import type { TeamEventDetail } from "../../types";
 import type { TeamEventEditValues } from "../team-event-edit-schema";
+import { leafKeyOf } from "@/lib/leaf-key";
 
 /**
  * Which occurrences of a series an edit touches — the inline "all / all future / only this event" radios
@@ -77,7 +78,9 @@ export function SeriesModificationSection({
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => {
         const meta = field.state.meta as FieldMetaState;
-        const label = t("plugins.teamcal.event.recurrence.change.text");
+        const label = t(
+          leafKeyOf("plugins.teamcal.event.recurrence.change.text", t.has)
+        );
         return (
           <FieldShell
             name="seriesModificationMode"

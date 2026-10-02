@@ -50,7 +50,9 @@ export function FilterPill({
   // the default `w-72` stays just under, see [RangeBounds]) and the art is spelled out below them,
   // rather than stacked and abbreviated as they are in a form's narrow column.
   const isPeriod =
-    element.filterType === "DATE" || element.filterType === "TIMESTAMP";
+    element.filterType === "DATE" ||
+    element.filterType === "MONTH" ||
+    element.filterType === "TIMESTAMP";
 
   // A boolean is on or off: the pill toggles it in place rather than opening a popover with a lone
   // checkbox (see [FilterPillShell] onToggle). Emptying it removes a normal pill and leaves a
