@@ -233,6 +233,10 @@ class CustomerGroupService {
 
     class Unassigned(val entries: List<UnassignedEntry> = emptyList())
 
+    /** The id of the stored row, whose change history the editor shows; null if none yet. */
+    val entryId: Long?
+        get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.id
+
     /** The stored row's last update (epoch millis) for the optimistic lock of [save], null if none yet. */
     val lastUpdate: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.lastUpdate?.time
@@ -388,6 +392,7 @@ class CustomerGroupService {
 
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION
+        config.remark = config.remark?.trim()?.ifEmpty { null }
         val usedKeys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
         (config.groups + config.businessUnits).forEach { set ->
             set.name = set.name?.trim()

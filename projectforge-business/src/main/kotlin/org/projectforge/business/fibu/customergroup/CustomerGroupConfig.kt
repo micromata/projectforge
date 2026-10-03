@@ -44,6 +44,12 @@ class CustomerGroupConfig(
     var version: Int = VERSION,
     var groups: MutableList<CustomerGroup> = mutableListOf(),
     var businessUnits: MutableList<BusinessUnit> = mutableListOf(),
+    /**
+     * Free text of finance and controlling about the definition as a whole: how the groups and business units
+     * are drawn, or why they were changed. Not evaluated; changes are traced through the history of the
+     * configuration parameter.
+     */
+    var remark: String? = null,
 ) {
     fun toJson(): String = JsonUtils.toJson(this, ignoreNullableProps = true)
 

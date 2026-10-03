@@ -68,6 +68,7 @@ export function toFormValues(
         })
       )
     ),
+    remark: data.remark ?? "",
     lastUpdate: data.lastUpdate ?? null,
   };
 }
@@ -75,6 +76,7 @@ export function toFormValues(
 export const EMPTY_VALUES: CustomerGroupsValues = {
   groups: [],
   businessUnits: [],
+  remark: "",
   lastUpdate: null,
 };
 

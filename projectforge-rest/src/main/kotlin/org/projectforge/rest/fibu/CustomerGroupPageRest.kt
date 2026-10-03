@@ -84,6 +84,10 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         var businessUnits: MutableList<BusinessUnitData> = mutableListOf(),
         /** The stored row's last update (epoch millis), sent back on save for the optimistic lock. */
         var lastUpdate: Long? = null,
+        /** Free text about the definition as a whole, see [CustomerGroupConfig.remark]. */
+        var remark: String? = null,
+        /** The stored `ConfigurationDO` row, for its change history (`/rs/configuration/history/{id}`). */
+        var id: Long? = null,
     )
 
     @Autowired
@@ -168,7 +172,9 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
                 data.tasks = bu.tasks.map { EntityRef(it, TaskServicesRest.formatPath(it)) }.toMutableList()
             }
         }.toMutableList(),
+        remark = config.remark,
         lastUpdate = customerGroupService.lastUpdate,
+        id = customerGroupService.entryId,
     )
 
     private fun <T : CustomerSetData> fill(dest: T, src: CustomerSet): T {
@@ -188,6 +194,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
                 dest.tasks = bu.tasks.mapNotNull { it.id }.distinct().toMutableList()
             }
         }.toMutableList(),
+        remark = data.remark,
     )
 
     private fun <T : CustomerSet> copy(src: CustomerSetData, dest: T): T {
