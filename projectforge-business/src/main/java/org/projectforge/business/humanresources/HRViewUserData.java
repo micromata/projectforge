@@ -108,6 +108,9 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         if (kunde == null) {
             plannedSecondsRestSum += entry.getTotalHours().multiply(NumberHelper.THREE_THOUSAND_SIX_HUNDRED).longValue();
         }
+        if (entry.getPlanning() != null) {
+            deleted = entry.getPlanning().getDeleted();
+        }
     }
 
     public Long getPlanningId() {
@@ -170,7 +173,8 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
     public HRViewUserEntryData getEntry(final KundeDO kunde) {
         for (final HRViewUserEntryData entry : entries) {
             if (kunde == null) {
-                if (entry.kunde == null) {
+                // The rest entry: one of a project isn't (its kunde is null as well).
+                if (entry.kunde == null && entry.projekt == null) {
                     return entry;
                 }
             } else if (entry.kunde != null && entry.kunde.getNummer().equals(kunde.getNummer())) {

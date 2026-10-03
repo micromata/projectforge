@@ -1784,6 +1784,13 @@
           "other": "Sonstiges"
         }
       },
+      "filter": {
+        "allProjectsGroupedByCustomer": "Alle summiert nach Kunden",
+        "onlyMyProjects": "nur meine Projekte",
+        "otherProjectsGroupedByCustomer": "Andere summiert nach Kunden",
+        "showBookedTimesheets": "Zeitberichtsdaten",
+        "showPlanning": "Planungsdaten"
+      },
       "hours": "Stunden",
       "notPlanned": "Ungeplant",
       "plannings": "Personaleinsatzplanung",
@@ -2102,6 +2109,7 @@
     "gear": {
       "feedback": "Feedback senden"
     },
+    "hrList": "Personalplanung",
     "hrPlanningList": "Personalplanungsliste",
     "main": {
       "short": "Menü",
@@ -2669,6 +2677,7 @@
   "reload": "Neu laden",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
+  "rest": "Rest",
   "resubmissionOnDate": "Wiedervorlage",
   "save": "Speichern",
   "scripting": {

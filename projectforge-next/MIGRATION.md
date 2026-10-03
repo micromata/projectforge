@@ -452,8 +452,13 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Einträge als Collection). Dafür die geteilte `PageDef`-Option `foreignEdit` (+ `onRowClick`).
   Gelöschte Einträge werden mit `deleted=true` gepostet, nicht weggelassen (der
   Collection-Handler würde sie sonst physisch löschen). „Vom Vorgänger kopieren" über
-  `GET hrPlanning/predecessor`. Die Wicket-Ressourcenansicht (`wa/hrList`) bleibt und
-  verlinkt auf die next-Bearbeitung.
+  `GET hrPlanning/predecessor`.
+- **Personalplanung** (`hrList`, Wicket `HRListPage`) – eigenständige Seite ohne Entität wie der
+  Monatsbericht: `GET rs/hrView` liefert die Matrix aus `HRViewDao` (Mitarbeiter × Projekte/Kunden,
+  geplant und gebucht in Tagen, nicht verplante Mitarbeiter), Filter als User-Pref. Mitarbeiter
+  führen auf ihre Woche in der next-Bearbeitung, gebuchte Tage auf die Zeitberichtsliste.
+  `HRViewDao` ohne N+1 (Einträge über `HRPlanningEntryDao`, Projekte/Kunden aus den Caches).
+  `wa/hrList` leitet `OrphanedLinkFilter` um; die Wicket-Seite ist gelöscht.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie

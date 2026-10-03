@@ -1784,6 +1784,13 @@
           "other": "other"
         }
       },
+      "filter": {
+        "allProjectsGroupedByCustomer": "All grouped by customer",
+        "onlyMyProjects": "only my projects",
+        "otherProjectsGroupedByCustomer": "Other grouped by customer",
+        "showBookedTimesheets": "Booked time sheets",
+        "showPlanning": "Plannings"
+      },
       "hours": "hours",
       "notPlanned": "Not planned",
       "plannings": "Human resources planning",
@@ -2102,6 +2109,7 @@
     "gear": {
       "feedback": "Send feedback"
     },
+    "hrList": "HR planning",
     "hrPlanningList": "HR planning list",
     "main": {
       "short": "Menu",
@@ -2669,6 +2677,7 @@
   "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
+  "rest": "Rest",
   "resubmissionOnDate": "Resubmission on",
   "save": "Save",
   "scripting": {
