@@ -126,7 +126,7 @@ class CalendarSubscriptionServiceRest {
             // setup event is needed for empty calendars
             generator.ensureNotEmpty()
             logMessage = params.filter { it.key != "token" }.map { "${it.key}=${it.value}" }.joinToString(", ")
-            log.info("Read calendar entries for: $logMessage")
+            log.debug { "Read calendar entries for: $logMessage" }
             val baos = ByteArrayOutputStream()
             generator.writeToOutputStream(baos)
 
@@ -144,7 +144,7 @@ class CalendarSubscriptionServiceRest {
             val safeFilename = "projectforge-${ReplaceUtils.encodeFilename(sb.toString(), false)}.ics"
             return RestUtils.downloadFile(safeFilename, resource)
         } finally {
-            log.info("Finished request: $logMessage")
+            log.debug { "Finished request: $logMessage" }
             ThreadLocalUserContext.setUser(null)
             MDC.remove("ip")
             MDC.remove("session")
