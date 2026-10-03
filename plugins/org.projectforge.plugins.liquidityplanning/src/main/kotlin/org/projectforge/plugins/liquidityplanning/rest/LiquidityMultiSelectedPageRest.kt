@@ -77,11 +77,6 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
 
     override val layoutContext: LayoutContext = LayoutContext(LiquidityEntryDO::class.java)
 
-    override fun getTitleKey(): String {
-        // Generic "Multi selection" / "Mehrfachauswahl"; no entity-specific title wanted.
-        return "multiselection.button"
-    }
-
     @PostConstruct
     private fun postConstruct() {
         pagesRest = liquidityEntityRest

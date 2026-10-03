@@ -74,10 +74,6 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
 
   override val layoutContext: LayoutContext = LayoutContext(EingangsrechnungDO::class.java)
 
-  override fun getTitleKey(): String {
-    return "fibu.eingangsrechnung.multiselected.title"
-  }
-
   override val listPageUrl: String = "/${MenuItemDefId.INCOMING_INVOICE_LIST.url}"
 
   @PostConstruct

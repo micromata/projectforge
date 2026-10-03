@@ -61,10 +61,6 @@ class AddressMultiSelectedPageRest : AbstractMultiSelectedPage<AddressDO>() {
 
     override val layoutContext: LayoutContext = LayoutContext(AddressDO::class.java)
 
-    override fun getTitleKey(): String {
-        return "address.multiselected.title"
-    }
-
     override val listPageUrl: String = "/${MenuItemDefId.ADDRESS_LIST.url}"
 
     @PostConstruct

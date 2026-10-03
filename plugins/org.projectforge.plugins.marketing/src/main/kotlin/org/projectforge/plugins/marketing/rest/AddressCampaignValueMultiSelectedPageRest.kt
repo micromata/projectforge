@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
 
-
 /**
  * Mass update after selection.
  */
@@ -61,10 +60,6 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
     override fun getId(obj: AddressCampaignValue): Long {
         return obj.id ?: obj.addressId ?: -1
-    }
-
-    override fun getTitleKey(): String {
-        return "plugins.marketing.addressCampaignValue.multiselected.title"
     }
 
     @PostConstruct

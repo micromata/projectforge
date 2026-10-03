@@ -66,10 +66,6 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
     override val layoutContext: LayoutContext = LayoutContext(TimesheetDO::class.java)
 
-    override fun getTitleKey(): String {
-        return "timesheet.multiselected.title"
-    }
-
     override val listPageUrl: String = "/${MenuItemDefId.TIMESHEET_LIST.url}"
 
     @PostConstruct
@@ -427,7 +423,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
 
     override fun ensureUserLogSubscription(): LogSubscription {
         val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
-        val displayTitle = translate("fibu.timesheet.multiselected.title")
+        val displayTitle = translate("timesheet.multiselected.title")
         return LogSubscription.ensureSubscription(
             title = "Timesheets",
             displayTitle = displayTitle,

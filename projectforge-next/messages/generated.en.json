@@ -1182,9 +1182,6 @@
           "title": "Choose cost 1"
         }
       },
-      "multiselected": {
-        "title": "Multiple selection cost 1"
-      },
       "number": "Cost1 number",
       "nummernkreis": "Number range",
       "teilbereich": "Sub-area",
@@ -1206,9 +1203,6 @@
       },
       "id": "Cost 2 id",
       "kost2s": "cost 2 ids",
-      "multiselected": {
-        "title": "Multiple selection cost 2"
-      },
       "number": "Cost2 number",
       "title": {
         "add": "New cost 2",

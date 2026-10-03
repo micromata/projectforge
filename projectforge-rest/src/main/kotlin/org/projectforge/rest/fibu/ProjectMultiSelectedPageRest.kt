@@ -62,10 +62,6 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
 
   override val layoutContext: LayoutContext = LayoutContext(ProjektDO::class.java)
 
-  override fun getTitleKey(): String {
-    return "fibu.projekt.multiselected.title"
-  }
-
   override val listPageUrl: String = "/${MenuItemDefId.PROJECT_LIST.url}"
 
   @PostConstruct

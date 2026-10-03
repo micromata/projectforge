@@ -73,11 +73,6 @@ class GroupAccessMultiSelectedPageRest : AbstractMultiSelectedPage<GroupTaskAcce
 
     override val layoutContext: LayoutContext = LayoutContext(GroupTaskAccessDO::class.java)
 
-    override fun getTitleKey(): String {
-        // Generic "Multi selection" / "Mehrfachauswahl"; no entity-specific title wanted.
-        return "multiselection.button"
-    }
-
     @PostConstruct
     private fun postConstruct() {
         pagesRest = groupAccessEntityRest

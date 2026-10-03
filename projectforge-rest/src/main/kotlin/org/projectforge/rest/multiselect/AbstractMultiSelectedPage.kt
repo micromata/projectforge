@@ -106,7 +106,13 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     protected open val listPageUrl: String
         get() = PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true)
 
-    abstract fun getTitleKey(): String
+    /**
+     * Title of the mass update page (and name of its Excel export). The same generic title for every entity,
+     * override only if an entity really needs its own.
+     */
+    open fun getTitleKey(): String {
+        return "multiselection.button"
+    }
 
     protected lateinit var pagesRest: AbstractEntityRest<*, *, *>
 

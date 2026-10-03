@@ -124,7 +124,7 @@ class AddressMultiSelectedPageRestTest : AbstractTestBase() {
 
     @Test
     fun `getTitleKey should return correct i18n key`() {
-        assertEquals("address.multiselected.title", addressMultiSelectedPageRest.getTitleKey())
+        assertEquals("multiselection.button", addressMultiSelectedPageRest.getTitleKey())
     }
 
     // =========================================================================

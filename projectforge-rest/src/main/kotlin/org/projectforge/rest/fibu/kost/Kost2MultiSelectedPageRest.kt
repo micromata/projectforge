@@ -57,10 +57,6 @@ class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
 
   override val layoutContext: LayoutContext = LayoutContext(Kost2DO::class.java)
 
-  override fun getTitleKey(): String {
-    return "fibu.kost2.multiselected.title"
-  }
-
   override val listPageUrl: String = "/${MenuItemDefId.COST2_LIST.url}"
 
   @PostConstruct
