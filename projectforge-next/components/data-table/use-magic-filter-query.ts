@@ -58,8 +58,9 @@ interface UseMagicFilterQueryOptions {
   columnFilterActive?: boolean;
   /**
    * Do not let the backend remember this filter as the user's current one (`ListPageRequest.doNotStore`).
-   * For a transient jump into a pre-filtered list — the consumption bar linking to a task's time sheets.
-   * Only the server-side page path honours it; the whole-list fallback (`getList`) always stores.
+   * For a transient jump into a pre-filtered list — the consumption bar linking to a task's time sheets,
+   * a task's "show access rights". Both paths honour it: the paged one in its body, the whole-list one
+   * (`getList`) as a query parameter.
    */
   doNotStore?: boolean;
 }
@@ -218,7 +219,7 @@ export function useMagicFilterQuery<O>({
             signal,
             doNotStore
           )
-        : fetchList<O>(entity, filter, signal),
+        : fetchList<O>(entity, filter, signal, doNotStore),
     placeholderData: keepPreviousData,
     // Refetch whenever the list's tab regains focus, regardless of staleTime: a list is exactly the view
     // a user leaves open in one tab while creating or editing the entity in another (or in the legacy
