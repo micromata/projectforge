@@ -80,7 +80,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
-    GANTT("menu.gantt", "wa/ganttList"), //
+    GANTT("menu.gantt", getListUrl("gantt")), //
     // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //

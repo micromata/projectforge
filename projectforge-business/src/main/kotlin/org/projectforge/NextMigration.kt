@@ -292,6 +292,17 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
+        // The Gantt charts, migrated from Wicket (MenuItemDefId.GANTT pointed at wa/ganttList): the way back
+        // leads to Wicket. GanttChartEntityRest serves no layout, so there is no React page; the chart is
+        // still rendered by Batik on the server (GanttServicesRest). Wicket's mount points follow the
+        // convention (ganttList / ganttEdit); its "new chart for this task" link (wa/ganttEdit?task=) is bent
+        // onto gantt/new?task= by OrphanedLinkFilter.
+        "gantt" to NextPage(
+            route = "gantt",
+            editRoute = "gantt/$ID_PLACEHOLDER",
+            newEntryRoute = "gantt/new",
+            legacyApp = LegacyApp.WICKET,
+        ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
         // way back leads. Hand built rather than generic because the React list has a filter of its own
         // (the group type) and an Excel export, neither of which the generic UILayout route renders.

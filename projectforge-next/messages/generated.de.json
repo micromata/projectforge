@@ -11,6 +11,7 @@
       "denied": "nicht erlaubt",
       "granted": "erlaubt"
     },
+    "read": "Lesezugriff",
     "recursive": {
       "help": "Rekursiv gilt auch für alle Strukturunterelemente."
     },
@@ -40,7 +41,8 @@
       "timesheets": "Zeitberichte",
       "undelete": "Wiederherstellen",
       "update": "Ändern"
-    }
+    },
+    "write": "Schreibzugriff"
   },
   "add": "Hinzufügen",
   "address": {
@@ -556,6 +558,7 @@
     "title": "Ein Fehler ist aufgetreten."
   },
   "expand": "Aufklappen",
+  "export": "Export",
   "exportAsPdf": "Pdf-Export",
   "exportAsXls": "Excel-Export",
   "favorite": {
@@ -1559,28 +1562,81 @@
   "firstName": "Vorname",
   "forceDelete": "Unwiderruflich löschen",
   "gantt": {
+    "access": {
+      "all": "Alle",
+      "owner": "Eigner:in",
+      "projectmanager": "Projektmanager"
+    },
+    "action": {
+      "move": "Verschieben (Unteraktivität)",
+      "moveToTop": "Verschieben (als Hauptaktivität)",
+      "newActivity": "Neue Aktivität"
+    },
+    "contextMenu": {
+      "newSubActivity": "Neue Unteraktivität",
+      "saveAsTask": "Als ProjectForge-Strukturelement anlegen",
+      "setInvisible": "Unsichtbar machen",
+      "setSubTasksVisible": "Sichtbar inkl. Untertasks"
+    },
     "duration": "Dauer",
     "endDate": "Endedatum",
+    "error": {
+      "parentObjectIsNotAPFTask": "Das übergeordnete Gantt-Objekt muss ein ProjectForge-Strukturelement sein!"
+    },
+    "export": {
+      "jpg": "JPG (nicht empfohlen)",
+      "msproject": {
+        "mpx": "Microsoft® Project (MPX)",
+        "xml": "Microsoft® Project (XML)"
+      },
+      "pdf": "PDF",
+      "png": "PNG",
+      "projectforge": "ProjectForge (XML)",
+      "svg": "SVG"
+    },
     "name": "Name",
     "objectType": {
       "_": "Gantt-Objekttyp",
       "activity": "Aktivität (Standard)",
       "milestone": "Meilenstein",
+      "short": "Typ",
       "summary": "Zusammenfassung"
     },
     "owner": "Eigner",
     "predecessor": "Vorgänger",
     "predecessorOffset": "Offset",
+    "question": {
+      "moveTask": "Soll das zugehörige ProjectForge-Strukturelement wirklich verschoben werden?",
+      "saveGanttObjectAsTask": "Soll dieses Gantt-Objekt wirklich als neues ProjectForge-Strukturelement übernommen werden?"
+    },
     "relationType": {
       "_": "Beziehung",
       "finish_finish": "Ende-Ende",
       "finish_start": "Ende-Beginn (Standard)",
+      "short": "Bez.",
       "start_finish": "Beginn-Ende",
       "start_start": "Beginn-Beginn"
     },
+    "settings": {
+      "showOnlyVisibles": "Nur sichtbare",
+      "totalLabelWidth": "Beschriftungsbreite",
+      "width": "Breite"
+    },
     "startDate": "Beginndatum",
+    "style": {
+      "relativeTimeValues": "Relative Zeitangaben",
+      "showCompletion": "Fortschritt",
+      "showToday": "Heutelinie"
+    },
     "title": {
-      "add": "Ganttdiagramm erstellen"
+      "add": "Ganttdiagramm erstellen",
+      "heading": "Ganttdiagramme",
+      "list": "Ganttdiagramme"
+    },
+    "tooltip": {
+      "isVisible": "Soll dieses Objekt angezeigt werden?",
+      "rejectValue": "Diesen Wert verwerfen und den Wert des Strukturelements übernehmen: ''{arg0}''.",
+      "saveTaskValue": "Diesen Wert dem Strukturelement zuweisen und abspeichern."
     }
   },
   "gender": {
@@ -1754,6 +1810,7 @@
   },
   "label": {
     "historyOfChanges": "Änderungshistorie",
+    "options": "Optionen",
     "position": {
       "short": "Pos"
     },
@@ -1865,6 +1922,7 @@
     "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",
     "title": "Anmeldung"
   },
+  "mark": "Markieren",
   "markAsDeleted": "Löschen",
   "massUpdate": {
     "button": "Massenänderung",
@@ -2089,6 +2147,7 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "paste": "Einfügen",
   "percent": "Prozent",
   "percentage": "Prozentsatz",
   "personal": {
@@ -2487,6 +2546,7 @@
     "state": "Status",
     "title": "Titel"
   },
+  "preview": "Vorschau",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -3002,6 +3062,7 @@
       "link": "Link zur Lucene-Abfrage-Syntax."
     },
     "selectMe": "You are great!",
+    "selectTask": "Strukturelement wählen",
     "shortcut": {
       "addEntry": {
         "_": "N oder + drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
@@ -3015,9 +3076,11 @@
         "_": "Return drücken, in mehrzeiligen Textfeldern STRG-Return (macOS: CMD-Return).",
         "title": "Tastaturkürzel Return"
       }
-    }
+    },
+    "unselectTask": "Strukturelementwahl aufheben"
   },
   "undelete": "Wiederherstellen",
+  "untitled": "unbenannt",
   "update": "Ändern",
   "uptodate": "aktuell",
   "user": {

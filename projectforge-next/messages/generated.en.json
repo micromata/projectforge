@@ -11,6 +11,7 @@
       "denied": "not granted",
       "granted": "granted"
     },
+    "read": "Read access",
     "recursive": {
       "help": "Recursive includes all structure sub elements."
     },
@@ -40,7 +41,8 @@
       "timesheets": "Time sheets",
       "undelete": "Undelete",
       "update": "Update"
-    }
+    },
+    "write": "Write access"
   },
   "add": "Add",
   "address": {
@@ -556,6 +558,7 @@
     "title": "An error has occurred."
   },
   "expand": "Expand",
+  "export": "Export",
   "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",
   "favorite": {
@@ -1559,28 +1562,81 @@
   "firstName": "First name",
   "forceDelete": "Irrevocable deletion",
   "gantt": {
+    "access": {
+      "all": "All",
+      "owner": "Owner",
+      "projectmanager": "Project manager"
+    },
+    "action": {
+      "move": "Move here (sub activity)",
+      "moveToTop": "Move to top",
+      "newActivity": "New activity"
+    },
+    "contextMenu": {
+      "newSubActivity": "New sub activity",
+      "saveAsTask": "Save as ProjectForge structure element",
+      "setInvisible": "Make invisible",
+      "setSubTasksVisible": "Visible incl. structure sub elements"
+    },
     "duration": "Duration",
     "endDate": "End date",
+    "error": {
+      "parentObjectIsNotAPFTask": "The parent Gantt object has to be a ProjectForge structure element!"
+    },
+    "export": {
+      "jpg": "JPG (not recommended)",
+      "msproject": {
+        "mpx": "Microsoft® Project (MPX)",
+        "xml": "Microsoft® Project (XML)"
+      },
+      "pdf": "PDF",
+      "png": "PNG",
+      "projectforge": "ProjectForge (XML)",
+      "svg": "SVG"
+    },
     "name": "Name",
     "objectType": {
       "_": "Gantt type",
       "activity": "Activity (Standard)",
       "milestone": "Milestone",
+      "short": "Type",
       "summary": "Summary"
     },
     "owner": "Owner",
     "predecessor": "Predecessor",
     "predecessorOffset": "Offset",
+    "question": {
+      "moveTask": "Do you really want to move the related ProjectForge structure element?",
+      "saveGanttObjectAsTask": "Should this Gantt object really be saved as new ProjectForge structure element?"
+    },
     "relationType": {
       "_": "Relation type",
       "finish_finish": "finish-finish",
       "finish_start": "finish-start (default)",
+      "short": "Rel.",
       "start_finish": "start-finish",
       "start_start": "start-start"
     },
+    "settings": {
+      "showOnlyVisibles": "only visibles",
+      "totalLabelWidth": "Total label width",
+      "width": "Width"
+    },
     "startDate": "Start date",
+    "style": {
+      "relativeTimeValues": "time values",
+      "showCompletion": "completion",
+      "showToday": "Show today line"
+    },
     "title": {
-      "add": "Create Gantt diagram"
+      "add": "Create Gantt diagram",
+      "heading": "Gantt diagrams",
+      "list": "Gantt diagrams"
+    },
+    "tooltip": {
+      "isVisible": "Should this item be displayed?",
+      "rejectValue": "Reject this value and take over the value of the structure element: ''{arg0}''.",
+      "saveTaskValue": "Save this value to the structure element."
     }
   },
   "gender": {
@@ -1754,6 +1810,7 @@
   },
   "label": {
     "historyOfChanges": "History of changes",
+    "options": "Options",
     "position": {
       "short": "Pos"
     },
@@ -1865,6 +1922,7 @@
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
     "title": "Login"
   },
+  "mark": "Mark",
   "markAsDeleted": "Delete",
   "massUpdate": {
     "button": "Mass update",
@@ -2089,6 +2147,7 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "paste": "Paste",
   "percent": "Percent",
   "percentage": "Percentage",
   "personal": {
@@ -2487,6 +2546,7 @@
     "state": "State",
     "title": "Title"
   },
+  "preview": "Preview",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -3002,6 +3062,7 @@
       "link": "Link to howto of lucene queries."
     },
     "selectMe": "You are great!",
+    "selectTask": "Select structure element",
     "shortcut": {
       "addEntry": {
         "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
@@ -3015,9 +3076,11 @@
         "_": "Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).",
         "title": "Keyboard shortcut Return"
       }
-    }
+    },
+    "unselectTask": "Unselect structure element"
   },
   "undelete": "Undelete",
+  "untitled": "untitled",
   "update": "Update",
   "uptodate": "up-to-date",
   "user": {
