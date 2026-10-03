@@ -41,6 +41,7 @@ import org.projectforge.plugins.todo.ToDoDao
 import org.projectforge.plugins.todo.ToDoFavorite
 import org.projectforge.plugins.todo.ToDoFavoritesService
 import org.projectforge.plugins.todo.ToDoStatus
+import org.projectforge.plugins.todo.ToDoType
 import org.projectforge.plugins.todo.dto.ToDo
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
@@ -51,8 +52,12 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.UIColor
 import org.projectforge.ui.UILabelledElement
+import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterBooleanElement
+import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -99,12 +104,6 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
      * serving concurrent requests; null for a new to-do.
      */
     private val storedState = ThreadLocal<StoredState?>()
-
-    /**
-     * Warning of a notification mail that could not be sent, handed from [sendNotification] to the response of
-     * [onAfterEdit] (see `OrderEntityRest`).
-     */
-    private val notificationFailure = ThreadLocal<String?>()
 
     /**
      * Takes over the recent flag from the stored to-do: the client can't post it (read only), and the dao only
@@ -155,11 +154,34 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     }
 
     /**
-     * "Only recent": the to-dos of the logged-in user changed by somebody else and not seen yet, as the filter
-     * of the Wicket list offered. Assignee, reporter, task (with its descendants) and status are filters of the
-     * list's columns.
+     * Pinned: status, type, assignee and reporter. "Only recent": the to-dos of the logged-in user changed by
+     * somebody else and not seen yet, as the filter of the Wicket list offered.
+     *
+     * Status and type are plain enum filters (they replace the ones derived from the search fields, see
+     * `LayoutListFilterUtils.dedupById`); assignee and reporter are user pickers consumed in
+     * [preProcessMagicFilter], replacing the free-text pills derived from the indexed user fields.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.removeIf {
+            it is UIFilterElement && USER_FILTERS.any { field -> it.id == field || it.id.startsWith("$field.") }
+        }
+        elements.add(
+            UIFilterListElement("status", label = translate("plugins.todo.status"), defaultFilter = true)
+                .buildValues(ToDoStatus::class.java)
+        )
+        elements.add(
+            UIFilterListElement("type", label = translate("plugins.todo.type"), defaultFilter = true)
+                .buildValues(ToDoType::class.java, addNullValue = true)
+        )
+        USER_FILTERS.forEach { field ->
+            elements.add(
+                UIFilterObjectElement(
+                    field,
+                    label = translate("plugins.todo.$field"),
+                    autoCompletion = AutoCompletion.getAutoCompletion4Users(),
+                ).also { it.defaultFilter = true }
+            )
+        }
         elements.add(
             UIFilterBooleanElement(ONLY_RECENT, label = translate("plugins.todo.status.onlyRecent"))
                 .also { it.tooltip = translate("plugins.todo.status.onlyRecent.tooltip") }
@@ -167,6 +189,15 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     }
 
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ToDoDO>>? {
+        // The picker sends the user as `value.id`, which the generic processor doesn't read.
+        USER_FILTERS.forEach { field ->
+            source.entries.find { it.field == field }?.let { entry ->
+                entry.synthetic = true
+                (entry.value.id ?: entry.value.value?.toLongOrNull())?.let {
+                    target.add(QueryFilter.eq("$field.id", it))
+                }
+            }
+        }
         source.entries.find { it.field == ONLY_RECENT }?.let { entry ->
             entry.synthetic = true
             if (entry.isTrueValue) {
@@ -212,12 +243,12 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
         val stored = storedState.get()
         // Unconditionally, so nothing is left behind for the next request on this thread.
         storedState.remove()
-        if (event != RestButtonEvent.CANCEL && isNotificationRequired(obj, postData.data, stored)) {
+        val message = if (event != RestButtonEvent.CANCEL && isNotificationRequired(obj, postData.data, stored)) {
             sendNotification(obj)
+        } else {
+            null
         }
         val responseAction = super.onAfterEdit(request, obj, postData, event)
-        val message = notificationFailure.get()
-        notificationFailure.remove()
         message?.let {
             responseAction.message = ResponseAction.Message(message = it, color = UIColor.WARNING)
         }
@@ -234,15 +265,18 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
     }
 
     /**
-     * A failing notification must never fail the write, which is committed already, nor stay silent: it is
-     * remembered as warning of the response (see `OrderEntityRest`).
+     * Notifies assignee and reporter of the written to-do. A failing notification must never fail the write,
+     * which is committed already, nor stay silent: the warning is returned for the response (see
+     * `OrderEntityRest`). Also used by the mass update ([ToDoMultiSelectedPageRest]).
+     *
+     * @return The translated warning of a failed notification, or null.
      */
-    private fun sendNotification(obj: ToDoDO) {
+    fun sendNotification(obj: ToDoDO): String? {
         val url = domainService.getDomain(
             NextMigration.standardEditPage(category).replace(NextMigration.ID_PLACEHOLDER, "${obj.id}")
         )
         // The mail shows the names of the references, the written object carries id-only stubs.
-        val todo = baseDao.find(obj.id, checkAccess = false) ?: return
+        val todo = baseDao.find(obj.id, checkAccess = false) ?: return null
         try {
             baseDao.sendNotification(todo, url)
         } catch (ex: Exception) {
@@ -252,8 +286,9 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
                 is InternalErrorException -> translateMsg(ex.i18nKey, *(ex.params ?: emptyArray()))
                 else -> ex.message
             }
-            notificationFailure.set(translateMsg("plugins.todo.notification.error", reason ?: ""))
+            return translateMsg("plugins.todo.notification.error", reason ?: "")
         }
+        return null
     }
 
     /**
@@ -327,5 +362,8 @@ class ToDoEntityRest : AbstractDTOEntityRest<ToDoDO, ToDo, ToDoDao>(
         private const val TEMPLATES = "templates"
 
         private const val ONLY_RECENT = "onlyRecent"
+
+        /** The pinned user filters, named after their property. */
+        private val USER_FILTERS = listOf("assignee", "reporter")
     }
 }

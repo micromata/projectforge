@@ -28,6 +28,8 @@ import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.extensions.capitalize
 import org.projectforge.common.logging.LogSubscription
@@ -71,6 +73,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var dataTransferBridge: DataTransferBridge
 
+    @Autowired
+    private lateinit var groupService: GroupService
+
     class MultiSelection {
         private var _selectedIds: Collection<Serializable>? = null
 
@@ -106,7 +111,13 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     protected open val listPageUrl: String
         get() = PagesResolver.getListPageUrl(pagesRest::class.java, absolute = true)
 
-    abstract fun getTitleKey(): String
+    /**
+     * Title of the mass update page (and name of its Excel export). The same generic title for every entity,
+     * override only if an entity really needs its own.
+     */
+    open fun getTitleKey(): String {
+        return "multiselection.button"
+    }
 
     protected lateinit var pagesRest: AbstractEntityRest<*, *, *>
 
@@ -515,7 +526,12 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             "timeValue" -> param.timeValue?.toString()
             "booleanValue" -> param.booleanValue?.let { translate(if (it) "yes" else "no") }
             "id" -> param.id?.let { id ->
-                if (meta.dataType == UIDataType.USER) userService.find(id, false)?.displayName ?: "#$id" else "#$id"
+                when (meta.dataType) {
+                    UIDataType.USER -> userService.find(id, false)?.displayName
+                    UIDataType.GROUP -> groupService.getGroup(id)?.displayName
+                    UIDataType.TASK -> TaskTree.instance.getTaskById(id)?.title
+                    else -> null
+                } ?: "#$id"
             }
             else -> param.textValue
         }

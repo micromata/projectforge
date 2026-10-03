@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/shared/date-input";
 import { ValueCombobox } from "@/components/shared/value-combobox";
+import { MassUpdateEntityControl } from "./mass-update-entity-control";
+import { MassUpdateTaskControl } from "./mass-update-task-control";
 import type {
   MassUpdateFieldMeta,
   MassUpdateParameter,
@@ -38,7 +40,31 @@ export function MassUpdateValueControl({
         }))}
         selected={value == null || value === "" ? [] : [String(value)]}
         onChange={(values) => setValue(values[0] ?? undefined)}
+        clearable
         aria-label={label}
+      />
+    );
+  }
+  if (
+    meta.valueProperty === "id" &&
+    (meta.dataType === "USER" || meta.dataType === "GROUP")
+  ) {
+    return (
+      <MassUpdateEntityControl
+        url={`${meta.dataType.toLowerCase()}/autosearch?search=:search`}
+        id={typeof value === "number" ? value : null}
+        withSelectMe={meta.dataType === "USER"}
+        label={label}
+        onChange={setValue}
+      />
+    );
+  }
+  if (meta.valueProperty === "id" && meta.dataType === "TASK") {
+    return (
+      <MassUpdateTaskControl
+        id={typeof value === "number" ? value : null}
+        label={label}
+        onChange={setValue}
       />
     );
   }
