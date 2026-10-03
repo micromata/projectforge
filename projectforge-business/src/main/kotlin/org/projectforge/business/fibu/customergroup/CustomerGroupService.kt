@@ -353,7 +353,7 @@ class CustomerGroupService {
                 "select distinct t.kundeText from $entity t where t.kunde is null and t.kundeText is not null and t.deleted = false",
                 String::class.java,
             )
-        }.filter { it.isNotBlank() }.distinct()
+        }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
     /**
      * Normalizes (trimmed names and texts, no duplicate members, keys for new groups and business units),
