@@ -45,10 +45,13 @@ import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncResultDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.projectforge.rest.pub.HeartbeatRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import java.time.Duration
 import java.util.Base64
 import java.util.Date
 import java.util.concurrent.locks.ReentrantLock
@@ -361,6 +364,7 @@ class GatewaySyncPushService(
     fun pushAll(fullSync: Boolean = false) {
         pushLock.withLock {
             val full = fullSync || lastAddressPush == null
+            if (!isGatewayAvailable()) return
             log.info { if (full) "Starting full gateway sync..." else "Starting delta gateway sync..." }
             if (!pushUsers()) return
             pushGroups(full)
@@ -368,6 +372,37 @@ class GatewaySyncPushService(
             if (config.syncAddresses && pushAddressBooks(full)) pushFavorites(full)
             if (config.syncCalendar) pushIcsData(full)
         }
+    }
+
+    /**
+     * Calls the gateway's public heartbeat ([HeartbeatRest]), so an unreachable gateway costs one short request
+     * and one warning instead of a failing push for every entity.
+     */
+    private fun isGatewayAvailable(): Boolean {
+        val url = heartbeatUrl
+        try {
+            val heartbeat = WebClient.create().get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(HeartbeatRest.Heartbeat::class.java)
+                .block(HEARTBEAT_TIMEOUT)
+            if (heartbeat?.mode != HeartbeatRest.MODE_GATEWAY) {
+                log.error { "$url isn't a gateway (mode=${heartbeat?.mode}), sync skipped. Check projectforge.gateway.push.url." }
+                return false
+            }
+            return true
+        } catch (e: Exception) {
+            log.warn { "Gateway not reachable at $url, sync skipped: ${e.message}" }
+            return false
+        }
+    }
+
+    /**
+     * The push url points to the sync API (e. g. https://gateway.example.com/api/gateway/sync), the heartbeat is
+     * located relative to the root of the gateway (context path included).
+     */
+    private val heartbeatUrl: String by lazy {
+        "${config.url.trimEnd('/').removeSuffix(SYNC_API_PATH)}${HeartbeatRest.URL}"
     }
 
     /**
@@ -384,13 +419,20 @@ class GatewaySyncPushService(
             log.info { "Sync push to $path completed: $result" }
             return result ?: SyncResultDto()
         } catch (e: Exception) {
-            if (isConnectionError(e)) {
+            if (isConnectionError(e) || isGatewayDown(e)) {
                 log.warn { "Gateway not reachable at ${config.url} (sync skipped): Sync push to $path failed" }
             } else {
                 log.error(e) { "Sync push to $path failed" }
             }
             return null
         }
+    }
+
+    /**
+     * 502, 503 and 504 come from the reverse proxy in front of the gateway: the gateway itself is down.
+     */
+    private fun isGatewayDown(e: Exception): Boolean {
+        return e is WebClientResponseException && e.statusCode.value() in 502..504
     }
 
     private fun isConnectionError(e: Exception): Boolean {
@@ -408,5 +450,9 @@ class GatewaySyncPushService(
          * was running aren't lost.
          */
         private const val DELTA_OVERLAP_MS = 5 * 60 * 1000L
+
+        private val HEARTBEAT_TIMEOUT = Duration.ofSeconds(10)
+
+        private const val SYNC_API_PATH = "/api/gateway/sync"
     }
 }

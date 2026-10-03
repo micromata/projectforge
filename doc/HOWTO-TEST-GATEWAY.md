@@ -53,6 +53,10 @@ Start with ```-Dprojectforge.base.dir=$HOME/ProjectForge```
 Sync requests appear in the gateway logs after at most 60s. Manual test:
 
 ```bash
+# Public heartbeat, available in every mode; the main instance checks it before every sync
+# (200 with {"status":"UP","mode":"gateway"}, 503 while starting)
+curl -i http://localhost:8090/rsPublic/heartbeat
+
 # Simulate a user sync
 curl -X POST http://localhost:8090/api/gateway/sync/users \
   -H "X-Gateway-Secret: test-secret-12345" \
