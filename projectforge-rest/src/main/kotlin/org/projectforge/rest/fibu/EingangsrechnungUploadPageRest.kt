@@ -25,12 +25,14 @@ package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.NextMigration
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.DaoConst
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.fibu.importer.EingangsrechnungImportStorage
 import org.projectforge.rest.fibu.importer.IncomingInvoiceCsvImporter
@@ -73,7 +75,8 @@ class EingangsrechnungUploadPageRest : AbstractImportUploadPageRest() {
     }
 
     override fun callerPage(request: HttpServletRequest): String {
-        return "/wa/incomingInvoiceList" //PagesResolver.getListPageUrl(EingangsrechnungPagesRest::class.java, absolute = true)
+        // The migrated next list (next/creditor-invoice), not the Wicket list the redirect would bounce off.
+        return "/${NextMigration.listUrl(DaoConst.INCOMING_INVOICE)}"
     }
 
     override fun successPage(request: HttpServletRequest): String {
