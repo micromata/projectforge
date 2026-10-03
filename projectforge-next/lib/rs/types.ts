@@ -301,6 +301,8 @@ export interface FilterListValue {
   displayName: string;
   /** Typed as free text rather than picked from an entity (an order's free-text customer). */
   freeText?: boolean;
+  /** Stands for several others: a customer group in the customer checklist. */
+  group?: boolean;
 }
 
 export interface FilterElement {

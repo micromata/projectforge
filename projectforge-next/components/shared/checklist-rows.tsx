@@ -4,6 +4,7 @@ import type { KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FreeTextBadge } from "@/components/shared/free-text-badge";
+import { GroupBadge } from "@/components/shared/group-badge";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import type { ChecklistOption } from "./checklist";
 import { toggled } from "./checklist-selection";
@@ -50,6 +51,7 @@ export function ChecklistRows({
               <span className="min-w-0 flex-1 truncate">
                 <HighlightedText text={option.label} query={term} />
               </span>
+              {option.group && <GroupBadge />}
               {option.freeText && <FreeTextBadge />}
             </label>
           </li>

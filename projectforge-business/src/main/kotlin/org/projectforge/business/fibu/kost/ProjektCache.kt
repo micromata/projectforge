@@ -75,6 +75,16 @@ class ProjektCache : AbstractCache() {
     }
 
     /**
+     * All projects by id, deleted ones included. Replaced as a whole by each refresh, so a caller holding on to
+     * something derived can tell by identity whether it is still current.
+     */
+    val all: Map<Long, ProjektDO>
+        get() {
+            checkRefresh()
+            return projektMap
+        }
+
+    /**
      * Returns the ProjektDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
      * Prevents lazy loadings.
      */

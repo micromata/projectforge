@@ -33,8 +33,7 @@ import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.rest.admin.LogViewerPageRest;
-import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.admin.LogViewerRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -69,7 +68,7 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
         body.add(form);
         form.init();
         final ExternalLink logViewerLink = new ExternalLink(ContentMenuEntryPanel.LINK_ID,
-                PagesResolver.getDynamicPageUrl(LogViewerPageRest.class, null, logSubscription.getId(), true));
+                LogViewerRest.viewerUrl(logSubscription.getId(), true));
         addContentMenuEntry(new ContentMenuEntryPanel(getNewContentMenuChildId(), logViewerLink,
                 getString("system.admin.logViewer.title")));
     }

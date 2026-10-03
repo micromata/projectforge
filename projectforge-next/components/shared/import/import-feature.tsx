@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
+import { JobProgressToast } from "@/components/shared/jobs/job-progress-toast";
 import { ImportColumnInfo } from "./import-column-info";
 import { ImportControls } from "./import-controls";
 import { ImportDropStep } from "./import-drop-step";
@@ -68,7 +69,22 @@ export function ImportFeature({ config }: Props) {
           isReconciling={imp.reconcile.isPending}
           isCommitting={imp.commit.isPending}
           isCancelling={imp.cancel.isPending}
+          disabled={imp.runningJobId != null}
         />
+        {/* The committed job, followed on the page (stayAfterCommit); placeholder until the first poll. */}
+        {imp.runningJobId != null && (
+          <JobProgressToast
+            key={imp.runningJobId}
+            initialJob={
+              imp.runningJob ?? {
+                id: imp.runningJobId,
+                title: t("common.import.action.commit"),
+                progressPercentage: 0,
+              }
+            }
+          />
+        )}
+        {view && config.renderAboveTable?.(view)}
         <div className="flex max-h-[70vh] flex-col">
           <ImportPreviewTable
             config={config}

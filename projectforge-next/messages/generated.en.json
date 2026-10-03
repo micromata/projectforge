@@ -136,6 +136,10 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "editPage": {
+        "hint": "This parameter is maintained on a page of its own.",
+        "link": "Open the editor"
+      },
       "json": {
         "invalid": "No valid JSON."
       },
@@ -173,6 +177,10 @@
           "costConfigured": {
             "_": "Cost-unit accounting configured?",
             "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
+          },
+          "customerGroups": {
+            "_": "Customer groups and business units",
+            "description": "Customer groups and business units (JSON), offered in the customer filters of the order book, the invoices, the projects and the cost 2. Maintained by finance and controlling on the page \"Customer groups\", not here."
           },
           "defaultVAT": {
             "_": "Default VAT (in %)",
@@ -250,6 +258,7 @@
           "description": "List of activated Plugins. Please don't edit directly."
         }
       },
+      "readOnly": "You may see this parameter, but not change it.",
       "title": {
         "edit": "Edit configuration parameter",
         "heading": "Configuration parameter",
@@ -909,6 +918,15 @@
       "overallPerformance": "over all performance",
       "preliminaryResult": "preliminary result"
     },
+    "businessUnits": {
+      "add": "Add business unit",
+      "empty": "No business units yet.",
+      "groups": "Customer groups",
+      "remove": "Remove business unit {arg0}",
+      "tasks": "Tasks",
+      "tasksHint": "Projects below one of these tasks belong to the business unit, if their customer belongs to none.",
+      "title": "Business units"
+    },
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",
       "betrag": "Amount",
@@ -940,7 +958,42 @@
       "sourceCurrency": "Source currency",
       "targetCurrency": "Target currency"
     },
+    "customerGroups": {
+      "add": "Add customer group",
+      "badge": "Group",
+      "customers": "Customers",
+      "empty": "No customer groups yet.",
+      "error": {
+        "invalidText": "Neither a name nor a valid pattern."
+      },
+      "groups": "Customer groups",
+      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit.",
+      "matches": "Matches {arg0} customers",
+      "matchesNone": "Matches no customer yet",
+      "name": "Name",
+      "remove": "Remove customer group {arg0}",
+      "saved": "Customer groups saved.",
+      "texts": "Customer names",
+      "textsHint": "Applies to the names of customer entries as well as to customers entered as free text in orders and invoices. An exact name (case-insensitive) or a pattern: ACME* (starts with), *Logistics (ends with), *ACME* (contains). Confirm each with Enter.",
+      "title": "Customer groups and business units"
+    },
     "customerref1": "Customer reference",
+    "datev": {
+      "import": {
+        "_": "Import Datev",
+        "accounts": "Chart of accounts",
+        "column": {
+          "hint": "Hint"
+        },
+        "format": {
+          "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
+          "title": "File format of the import file"
+        },
+        "records": "Accounting records"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
     },
@@ -997,8 +1050,7 @@
           },
           "job": {
             "title": "Import of {arg0} salaries"
-          },
-          "success": "Salaries imported successfully."
+          }
         }
       },
       "salary": {
@@ -1925,6 +1977,15 @@
     }
   },
   "loading": "Loading...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Error",
+      "info": "Info",
+      "trace": "Trace",
+      "warn": "Warn"
+    }
+  },
   "login": {
     "_": "Login",
     "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
@@ -2015,11 +2076,11 @@
       "_": "Finance",
       "buchungssaetze": "Accounting records",
       "currencyPair": "Currency conversion",
+      "customerGroups": "Customer groups",
       "datevImport": "Datev import",
       "eInvoiceChecker": "E-Invoice Checker",
       "eingangsrechnungen": "Incoming invoices",
       "employeeSalaries": "Salaries",
-      "employeeSalariesImport": "Import of salaries",
       "employees": "Employees",
       "konten": "Accounts",
       "kost": "Cost",
@@ -2604,6 +2665,7 @@
   },
   "rating": "Rating",
   "recursive": "recursive",
+  "refresh": "refresh",
   "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
@@ -2712,6 +2774,9 @@
   "sum": "Sum",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Admin log viewer"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2806,6 +2871,16 @@
             "configuration": "Configuration"
           }
         }
+      },
+      "logViewer": {
+        "autoRefresh": "Auto refresh",
+        "level": "Loglevel",
+        "message": "Message",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",
+        "title": "Log viewer",
+        "user": "user@ip",
+        "userAgent": "User agent"
       },
       "reindex": {
         "fromDate": {
@@ -3080,6 +3155,7 @@
     "totalDuration": "Total duration",
     "user": "Employee"
   },
+  "timestamp": "Time stamp",
   "timezone": "Time zone",
   "title": "Title",
   "tooltip": {

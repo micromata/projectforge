@@ -29,9 +29,12 @@ package org.projectforge.ui.filter
  * @param id The key sent back in `MagicFilterEntry.value.values` when the value is selected.
  * @param freeText True for a value typed as free text rather than picked from an entity (e.g. an order's
  *   `kundeText`), so the frontend can mark it as such.
+ * @param group True for a value standing for several others (a customer group, a business unit), marked as such
+ *   by the frontend.
  */
 class UIFilterListValue(
     val id: String,
     val displayName: String,
     val freeText: Boolean? = null,
+    val group: Boolean? = null,
 )

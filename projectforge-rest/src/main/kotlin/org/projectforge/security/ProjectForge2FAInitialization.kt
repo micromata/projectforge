@@ -26,7 +26,7 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
-import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
@@ -87,7 +87,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.ADMIN,
       UserPagesRest::class.java,
       GroupPagesRest::class.java,
-      AdminLogViewerPageRest::class.java,
+      AdminLogViewerRest::class.java,
       GroupAccessEntityRest::class.java,
       // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a
       // resource handler, so no filter sees its url - only the REST call is left to gate. The classic Wicket page sat
@@ -207,7 +207,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutClasses(
     shortCut: My2FAShortCut,
@@ -219,7 +219,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,
@@ -233,7 +233,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,

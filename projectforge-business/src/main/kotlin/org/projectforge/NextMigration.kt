@@ -280,15 +280,17 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
-        // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
-        // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only
-        // the hand built projectforge-next one and Wicket. The DATEV import page (EMPLOYEE_SALARY_IMPORT)
-        // stays on Wicket as a separate menu item.
+        // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList).
+        // EmployeeSalaryEntityRest serves no layout, so there is no React page. The Wicket pages (the salary
+        // import included, now a button in the next list) have been removed: the way back is no longer
+        // offered, and legacyApp stays only so OrphanedLinkFilter still redirects bookmarked
+        // wa/employeeSalaryList / wa/employeeSalaryEdit links (the mount points follow the convention).
         "employeeSalary" to NextPage(
             route = "employeeSalary",
             editRoute = "employeeSalary/$ID_PLACEHOLDER",
             newEntryRoute = "employeeSalary/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
         // way back leads. Hand built rather than generic because the React list has a filter of its own

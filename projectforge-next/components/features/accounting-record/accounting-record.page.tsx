@@ -1,6 +1,7 @@
 import { BUCHUNGSSATZ_METADATA } from "@/lib/metadata/buchungssatz.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { AccountingRecordBwa } from "./accounting-record-bwa";
+import { AccountingRecordListActions } from "./accounting-record-list-actions";
 import {
   accountingRecordSchema,
   ACCOUNTING_RECORD_FIELDS,
@@ -117,6 +118,8 @@ export const ACCOUNTING_RECORD_PAGE = definePage<
   // The BWA over the whole filtered result set, above the table — the analog of the invoice statistics
   // line. The cast is where the untyped `ResultSet.statistics` becomes what `AccountingRecordEntityRest`
   // sends (see PageDef.statistics).
+  // The DATEV import (next/datev-import) in the list's toolbar.
+  listActions: AccountingRecordListActions,
   statistics: ({ statistics, isFetching }) => (
     <AccountingRecordBwa
       statistics={statistics as BwaStatistics | undefined}

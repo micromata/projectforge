@@ -37,9 +37,8 @@ import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.merlin.rest.MerlinAttachmentsActionListener
 import org.projectforge.rest.AttachmentsServicesRest
-import org.projectforge.rest.admin.LogViewerPageRest
+import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.JacksonConfiguration
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.web.WicketSupport
 
 /**
@@ -109,10 +108,7 @@ class MerlinPlugin :
             return MenuItem(
                 "logViewer",
                 i18nKey = "plugins.merlin.viewLogs",
-                url = PagesResolver.getDynamicPageUrl(
-                    LogViewerPageRest::class.java,
-                    id = ensureUserLogSubscription().id
-                ),
+                url = LogViewerRest.viewerUrl(ensureUserLogSubscription().id),
                 type = MenuItemTargetType.REDIRECT,
             )
         }

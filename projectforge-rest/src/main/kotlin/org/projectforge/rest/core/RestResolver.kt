@@ -60,7 +60,7 @@ object RestResolver {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   fun getRestMethodUrl(
     restClass: Class<*>,
@@ -92,7 +92,7 @@ object RestResolver {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   fun getRestMethodUrl(
     method: KFunction<*>,

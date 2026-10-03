@@ -268,7 +268,8 @@ public class WebRegistry
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 
-    addMountPages(DaoConst.EMPLOYEE_SALARY, EmployeeSalaryListPage.class, EmployeeSalaryEditPage.class);
+    // The employee salaries have been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/employeeSalary* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
     // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
     addMountPage(DaoConst.HR_LIST, HRListPage.class);

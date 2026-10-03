@@ -25,6 +25,7 @@
 package org.projectforge.rest.fibu
 
 import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -42,17 +43,22 @@ import org.projectforge.ui.filter.UIFilterListValue
  * A customer is either a customer entity or, where the entity has one ([kundeTextPath]), the free text naming a
  * customer that is not in the customer list, as the list's customer cell shows it. Both travel as keys in
  * `MagicFilterEntry.value.values`: [ENTITY_PREFIX] plus the customer's number, or [TEXT_PREFIX] plus the free
- * text.
+ * text. A configured customer group (see `CustomerGroupService`) is offered in front of them, keyed by
+ * [GROUP_PREFIX] plus the group's key, and stands for all of its customers.
  *
  * @param valuesUrl Endpoint of the selectable customers, relative to `/rs/`.
  * @param kundePath Path of the customer from the listed entity: `kunde`, or `projekt.kunde` for cost 2.
  * @param kundeTextPath Path of the free-text customer, if the entity has one.
+ * @param groupIndex The configured customer groups.
  */
 internal class CustomerChecklistFilter(
     private val valuesUrl: String,
-    private val kundePath: String = "kunde",
-    private val kundeTextPath: String? = "kundeText",
+    kundePath: String = "kunde",
+    kundeTextPath: String? = "kundeText",
+    private val groupIndex: () -> CustomerGroupIndex = CustomerPaths.defaultIndex,
 ) {
+    private val paths = CustomerPaths(kundePath, kundeTextPath, projektIdPath = null)
+
     /** Pinned (`defaultFilter`): always on the filter row, not only once picked from the field list. */
     fun element(): UIFilterListElement =
         UIFilterListElement(FIELD, label = translate("fibu.kunde"), multi = true).also {
@@ -74,35 +80,45 @@ internal class CustomerChecklistFilter(
     internal fun buildPredicate(keys: Array<String>?): DBPredicate? {
         keys ?: return null
         val ids = keys.filter { it.startsWith(ENTITY_PREFIX) }.mapNotNull { it.removePrefix(ENTITY_PREFIX).toLongOrNull() }
-        val byEntity = ids.takeIf { it.isNotEmpty() }?.let { DBPredicate.IsIn("$kundePath.id", it) }
-        val byText = kundeTextPath?.let { textPath ->
-            val texts = keys.filter { it.startsWith(TEXT_PREFIX) }.map { it.removePrefix(TEXT_PREFIX) }
-            texts.takeIf { it.isNotEmpty() }?.let {
-                DBPredicate.And(DBPredicate.IsNull(kundePath), DBPredicate.IsIn(textPath, it))
-            }
-        }
-        return when {
-            byEntity != null && byText != null -> DBPredicate.Or(byEntity, byText)
-            else -> byEntity ?: byText
-        }
+        val texts = keys.filter { it.startsWith(TEXT_PREFIX) }.map { it.removePrefix(TEXT_PREFIX) }
+        val index = groupIndex()
+        val groups = keys.filter { it.startsWith(GROUP_PREFIX) }
+            .mapNotNull { index.resolveGroup(it.removePrefix(GROUP_PREFIX)) }
+        return paths.predicate(
+            ids + groups.flatMap { it.kundeIds },
+            exactTexts = texts,
+            patterns = groups.flatMap { it.texts }.distinct(),
+        )
     }
 
     companion object {
+        private val byName = Comparator<UIFilterListValue> { a, b -> StringComparator.compare(a.displayName, b.displayName) }
+
         /** Id of the filter entry, a pseudo field (see [addCriterion]). */
         const val FIELD = "customers"
 
         private const val ENTITY_PREFIX = "k:"
         private const val TEXT_PREFIX = "t:"
+        private const val GROUP_PREFIX = "g:"
 
         /**
          * The customers of the given rows, each once, sorted by name: a customer entity's number, or `null`
          * plus the free text. A free-text customer only counts for a row without a customer entity: with one,
          * the cell shows the entity and so does this list.
+         *
+         * In front, sorted by name, the customer groups of these customers.
          */
-        fun valuesOf(customers: Sequence<Pair<Long?, String?>>): List<UIFilterListValue> {
+        fun valuesOf(
+            customers: Sequence<CustomerRow>,
+            groupIndex: CustomerGroupIndex = CustomerPaths.defaultIndex(),
+        ): List<UIFilterListValue> {
             val customerIds = mutableSetOf<Long>()
             val texts = mutableSetOf<String>()
+            val groups = linkedSetOf<String>()
             customers.forEach { (kundeId, kundeText) ->
+                if (!groupIndex.isEmpty) {
+                    groupIndex.groupOf(kundeId, kundeText)?.key?.let { groups.add(it) }
+                }
                 if (kundeId != null) {
                     customerIds.add(kundeId)
                 } else {
@@ -113,7 +129,10 @@ internal class CustomerChecklistFilter(
                 UIFilterListValue(ENTITY_PREFIX + id, PfCaches.instance.getKunde(id)?.displayName ?: id.toString())
             }
             val freeTexts = texts.map { UIFilterListValue(TEXT_PREFIX + it, it.trim(), freeText = true) }
-            return (entities + freeTexts).sortedWith { a, b -> StringComparator.compare(a.displayName, b.displayName) }
+            val groupValues = groups.mapNotNull { groupIndex.getGroup(it) }.map {
+                UIFilterListValue(GROUP_PREFIX + it.key, it.name ?: it.key!!, group = true)
+            }
+            return groupValues.sortedWith(byName) + (entities + freeTexts).sortedWith(byName)
         }
     }
 }
