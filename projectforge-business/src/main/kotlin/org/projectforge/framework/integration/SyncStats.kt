@@ -81,10 +81,13 @@ class SyncCounts(
 class SyncStats(val type: String) {
     enum class Status { SUCCESS, ERRORS, ABORTED }
 
+    /**
+     * @param durationMs Duration of the step, or a negative value, if the step wasn't measured separately.
+     */
     class StepResult(val name: String, val durationMs: Long, val counts: SyncCounts, val error: String? = null) {
         override fun toString(): String {
             val result = error?.let { "failed: $it" } ?: counts.toString()
-            return "$name [$result] ${durationMs.formatMillis()}"
+            return if (durationMs >= 0) "$name [$result] ${durationMs.formatMillis()}" else "$name [$result]"
         }
     }
 
@@ -114,6 +117,13 @@ class SyncStats(val type: String) {
          */
         fun addStep(name: String, durationMs: Long, counts: SyncCounts) {
             steps.add(StepResult(name, durationMs, counts))
+        }
+
+        /**
+         * Adds the counts of a step without own timing (e.g. counted in the same loop as other steps).
+         */
+        fun addStep(name: String, counts: SyncCounts) {
+            addStep(name, -1, counts)
         }
 
         /**
