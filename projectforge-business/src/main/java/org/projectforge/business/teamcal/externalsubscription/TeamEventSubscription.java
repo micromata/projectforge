@@ -23,17 +23,16 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.integration.IntegrationConfig;
+import org.projectforge.framework.integration.PooledHttpClients;
 import org.projectforge.framework.time.DateHelper;
 
 import java.io.IOException;
@@ -118,11 +117,12 @@ public class TeamEventSubscription implements Serializable {
     log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
     byte[] bytes = null;
 
-    // Create a method instance.
-    try (final CloseableHttpClient client = HttpClients.createDefault()) {
+    // Shared pooled client with timeouts (IntegrationConfig "ical"), so a hanging server can't block the update job.
+    final long maxResponseBytes = IntegrationConfig.get(IntegrationConfig.ICAL).getMaxResponseBytes();
+    try {
       final HttpGet method = new HttpGet(url);
 
-      bytes = client.execute(method, response -> {
+      bytes = PooledHttpClients.get(IntegrationConfig.ICAL).execute(method, response -> {
         final int statusCode = response.getCode();
         if (statusCode != HttpStatus.SC_OK) {
           error("Unable to gather subscription calendar #"
@@ -138,11 +138,17 @@ public class TeamEventSubscription implements Serializable {
           return null;
         }
         try (InputStream inputStream = responseEntity.getContent()) {
-          return IOUtils.toByteArray(inputStream);
+          return PooledHttpClients.readLimited(inputStream, maxResponseBytes);
         }
       });
     } catch (IOException ex) {
-      log.error(ex.getMessage());
+      // Timeouts, unreachable server, response too large: recorded as failed update (with back-off).
+      error("Unable to gather subscription calendar #"
+          + teamCalDO.getId()
+          + " from url '"
+          + displayUrl
+          + "': "
+          + ex.getMessage(), null);
       return;
     }
     if (bytes == null) {
