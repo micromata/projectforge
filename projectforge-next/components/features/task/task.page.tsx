@@ -7,6 +7,7 @@ import {
 } from "@/components/shared/tasks/task-routes";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { definePage } from "@/lib/page-def/define-page";
+import { accessListHref } from "@/lib/access-links";
 import { timesheetAddHref, timesheetListHref } from "@/lib/timesheet-links";
 import { JiraLinkedText } from "@/components/shared/jira/jira-linked-text";
 import { makeJiraFieldLinks } from "@/components/shared/jira/jira-field-links";
@@ -225,7 +226,10 @@ export const TASK_PAGE = definePage<
       },
       {
         labelKey: "task.menu.showAccessRights",
-        href: (task) => `wa/accessList?taskId=${task.id}`,
+        href: (task) =>
+          task.id != null
+            ? accessListHref(task.id, task.title ?? undefined)
+            : null,
       },
       // Not in Wicket's top menu, where the wizard is reachable from the tree page alone: an admin who
       // is *in* an element is exactly who wants its rights set up, and having to go back to the tree

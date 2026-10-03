@@ -18,6 +18,8 @@ export interface ContributionMarginConfig {
   targetPercentage: number;
   redThreshold: number;
   kost2Assignments: Kost2Assignment[];
+  /** Free text about the settings, e.g. how the calculated rate is derived; not evaluated. */
+  remark: string | null;
 }
 
 /** The backend's defaults (`ContributionMarginConfig`), for a parameter not set yet. */
@@ -27,6 +29,7 @@ export const CONTRIBUTION_MARGIN_DEFAULTS: ContributionMarginConfig = {
   targetPercentage: 65,
   redThreshold: 50,
   kost2Assignments: [],
+  remark: null,
 };
 
 /**

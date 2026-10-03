@@ -171,10 +171,12 @@ export async function request<O>(
 export function fetchList<O>(
   entity: string,
   filter: MagicFilter,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  doNotStore = false
 ): Promise<ResultSet<O>> {
+  // A query parameter, not a body field: the body stays the plain MagicFilter the legacy app posts too.
   return request<ResultSet<O>>(
-    `/rs/${entity}/list`,
+    `/rs/${entity}/list${doNotStore ? "?doNotStore=true" : ""}`,
     { method: "POST", body: JSON.stringify(filter) },
     signal
   );

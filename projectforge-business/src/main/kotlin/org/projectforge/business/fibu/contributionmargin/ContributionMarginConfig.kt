@@ -47,6 +47,11 @@ class ContributionMarginConfig(
   /** The contribution margin in % below which it is shown red. */
   var redThreshold: Int = DEFAULT_RED_THRESHOLD,
   var kost2Assignments: List<Kost2Assignment> = emptyList(),
+  /**
+   * Free text of finance and controlling about the settings, e.g. how the calculated rate is derived. Not
+   * evaluated; changes are traced through the history of the configuration parameter.
+   */
+  var remark: String? = null,
 ) {
   /**
    * Assigns the kost2 without an own project whose number starts with [kost2] (nummernkreis, bereich,

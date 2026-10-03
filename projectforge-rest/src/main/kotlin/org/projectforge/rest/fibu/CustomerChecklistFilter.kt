@@ -125,7 +125,8 @@ internal class CustomerChecklistFilter(
 
         /**
          * The customers of the given rows, each once, sorted by name: a customer entity's number, or `null`
-         * plus the free text. A free-text customer only counts for a row without a customer entity: with one,
+         * plus the free text, trimmed: texts differing only in surrounding blanks ("DHL", "DHL ") are one entry, as
+         * the list's cell shows them alike. A free-text customer only counts for a row without a customer entity: with one,
          * the cell shows the entity and so does this list.
          *
          * In front, sorted by name, the customer groups of these customers.
@@ -144,13 +145,13 @@ internal class CustomerChecklistFilter(
                 if (kundeId != null) {
                     customerIds.add(kundeId)
                 } else {
-                    kundeText?.takeIf { it.isNotBlank() }?.let { texts.add(it) }
+                    kundeText?.trim()?.takeIf { it.isNotEmpty() }?.let { texts.add(it) }
                 }
             }
             val entities = customerIds.map { id ->
                 UIFilterListValue(ENTITY_PREFIX + id, PfCaches.instance.getKunde(id)?.displayName ?: id.toString())
             }
-            val freeTexts = texts.map { UIFilterListValue(TEXT_PREFIX + it, it.trim(), freeText = true) }
+            val freeTexts = texts.map { UIFilterListValue(TEXT_PREFIX + it, it, freeText = true) }
             val groupValues = groups.mapNotNull { groupIndex.getGroup(it) }.map {
                 UIFilterListValue(GROUP_PREFIX + it.key, it.name ?: it.key!!, group = true)
             }

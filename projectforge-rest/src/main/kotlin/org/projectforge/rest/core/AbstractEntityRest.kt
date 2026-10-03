@@ -577,12 +577,24 @@ constructor(
      * Get the list of all items matching the given filter.
      * Please note: filter.deleted is ignored (entries.field == "deleted" is used instead).
      */
+    /**
+     * @param doNotStore A query parameter rather than a body field, so the body stays the plain [MagicFilter]
+     *   the legacy React app posts. Same meaning as [ListPageRequest.doNotStore], for the lists that are not
+     *   paged server-side (the access list opened from a task's "show access rights").
+     */
     @RequestMapping(RestPaths.LIST)
-    fun getList(request: HttpServletRequest, @RequestBody filter: MagicFilter): ResultSet<*> {
+    fun getList(
+        request: HttpServletRequest,
+        @RequestBody filter: MagicFilter,
+        @RequestParam(required = false) doNotStore: Boolean? = null,
+    ): ResultSet<*> {
         filter.autoWildcardSearch = true
         fixMagicFilterFromClient(filter)
         val list = getList(request, this, baseDao, filter)
-        saveCurrentFilter(filter)
+        // A transient jump (doNotStore) must not leave its filter behind as the user's remembered one.
+        if (doNotStore != true) {
+            saveCurrentFilter(filter)
+        }
         val resultSet = postProcessResultSet(list, request, filter)
         resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
         return resultSet

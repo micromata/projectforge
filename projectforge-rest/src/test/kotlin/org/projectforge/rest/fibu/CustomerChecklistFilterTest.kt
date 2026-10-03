@@ -139,6 +139,16 @@ class CustomerChecklistFilterTest {
         assertNull(values[1].group)
     }
 
+    @Test
+    fun `free texts differing only in surrounding blanks are one value`() {
+        val values = CustomerChecklistFilter.valuesOf(
+            sequenceOf(CustomerRow(null, "DHL"), CustomerRow(null, "DHL "), CustomerRow(null, " DHL"), CustomerRow(null, "  ")),
+            index,
+        )
+        assertEquals(listOf("t:DHL"), values.map { it.id })
+        assertEquals("DHL", values[0].displayName)
+    }
+
     private val index = CustomerGroupIndex(
         CustomerGroupConfig(
             groups = mutableListOf(

@@ -20,11 +20,13 @@ export const CUSTOMER_SET_METADATA: EntityMetadata = {
   },
 };
 
-/** No field of its own on the form level: everything lives in the rows. */
+/** The fields of the form level: only the remark, everything else lives in the rows. */
 export const FORM_METADATA: EntityMetadata = {
   entity: "CustomerGroupConfig",
   historizable: false,
-  fields: {},
+  fields: {
+    remark: { dataType: "STRING", required: false },
+  },
 };
 
 const entityRef = z.object({ id: z.number(), displayName: z.string() });
@@ -51,6 +53,7 @@ export const customerGroupsSchema = z.object({
       tasks: z.array(entityRef),
     })
   ),
+  remark: z.string(),
   lastUpdate: z.number().nullable(),
 });
 

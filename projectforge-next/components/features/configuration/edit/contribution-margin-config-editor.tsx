@@ -17,6 +17,7 @@ import {
 } from "../contribution-margin-config";
 import { ContributionMarginBands } from "./contribution-margin-bands";
 import { ContributionMarginKost2Rows } from "./contribution-margin-kost2-rows";
+import { ContributionMarginRemark } from "./contribution-margin-remark";
 import type { JsonEditorProps } from "./json-editors";
 
 /**
@@ -139,6 +140,11 @@ export function ContributionMarginConfigEditor({
                   />
                 </FieldShell>
               </div>
+              <ContributionMarginRemark
+                value={config.remark}
+                onChange={(remark) => update({ remark })}
+                onBlur={field.handleBlur}
+              />
               <ContributionMarginBands limits={config} />
               <ContributionMarginKost2Rows
                 rows={config.kost2Assignments}
