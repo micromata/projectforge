@@ -32,6 +32,7 @@ import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
@@ -86,6 +87,9 @@ class ProjectEntityRest
 ) {
     @Autowired
     private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var kostCache: KostCache
@@ -195,8 +199,8 @@ class ProjectEntityRest
      * The status mirrors `ProjektDao.select`: "not ended" matches a null status too, and so does `NONE`.
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
-        customerFilter.addCriterion(target, source)
-        businessUnitFilter.addCriterion(target, source)
+        viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
+        viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
         val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
         entry.synthetic = true
         val listTypes = entry.value.values?.filter { it.isNotBlank() }.orEmpty()
@@ -347,14 +351,30 @@ class ProjectEntityRest
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+        return businessUnitFilter.valuesOfProjects(
+            getResultIds(checklistFilter(filter, BusinessUnitChecklistFilter.FIELD)).asSequence()
+        )
     }
 
-    /** The customers of the projects of a checklist, never a free text. */
+    /** The customers of the projects of a checklist: their own, else those of their orders ([projectCustomersOf]). */
     private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
-        val projects = getResultList(checklistFilter(filter, ownField))
-        // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
-        return projects.asSequence().map { CustomerRow(caches.getKundeIfNotInitialized(it.kunde)?.nummer, null, it.id) }
+        val projektIds = getResultIds(checklistFilter(filter, ownField))
+        val projectCustomers = projectCustomersOf(projektCache.all, caches)
+        return projektIds.asSequence().flatMap { customerRowsOf(it, projectCustomers) }
+    }
+
+    /**
+     * A project without a customer entity is matched by the customers of its orders, so the customer and
+     * business-unit picks are resolved to the projects in memory (see [ViaProjectCriteria]).
+     */
+    private val viaProject by lazy {
+        ViaProjectCriteria(
+            path = "id",
+            nullPath = null,
+            projects = { projectCustomersOf(projektCache.all, caches) },
+            idsOf = { it },
+            idsWithoutProject = { emptyList() },
+        )
     }
 
     companion object {
@@ -365,7 +385,7 @@ class ProjectEntityRest
 
         private const val FILTER_NOT_ENDED = "notEnded"
 
-        /** A project has no free-text customer. */
+        /** Matched via [viaProject]: the paths only serve the element. */
         private val customerFilter = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)
         private val businessUnitFilter =
             BusinessUnitChecklistFilter("project/businessUnitFilterValues", kundeTextPath = null, projektIdPath = "id")

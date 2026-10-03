@@ -23,8 +23,15 @@
 
 package org.projectforge.business.fibu.customergroup
 
-/** A project as far as the business-unit rules ask: its customer and its task. */
-data class ProjectRef(val kundeId: Long?, val taskId: Long?)
+/**
+ * A project as far as the business-unit rules ask: its customer, its task, and the customers it is worked for
+ * (see [CustomerUsage.projectCustomers]): its own customer entity, else the customers of its orders.
+ */
+data class ProjectRef(
+    val kundeId: Long?,
+    val taskId: Long?,
+    val customers: List<CustomerKey> = listOfNotNull(kundeId?.let { CustomerKey(it) }),
+)
 
 /**
  * What the rules of the customer groups are applied to, taken from the caches (`CustomerGroupService`): the

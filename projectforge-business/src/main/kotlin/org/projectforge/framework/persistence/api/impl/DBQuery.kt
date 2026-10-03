@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import mu.KotlinLogging
+import org.projectforge.common.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -151,6 +152,61 @@ open class DBQuery {
         // A full result equal to maxRows is treated as truncated: there may be more rows the cap dropped.
         val truncated = list.size >= filter.maxRows
         return DBIdResult(ids, truncated)
+    }
+
+    /**
+     * The distinct values of [path] over what [select] would return, null for the rows without one, unordered.
+     *
+     * Selects only the values of [path] and of the dao's [BaseDao.selectAccessProjection] if the query is a pure
+     * criteria search: the per-row access check then runs once per distinct combination of the access values, on
+     * the dao's stub. Unlike [select], [QueryFilter.maxRows] does not cap the rows here: what this returns are the
+     * values of all matching rows.
+     *
+     * Loads the entities as [select] does instead, if anything has to be matched in memory: a full text search,
+     * result predicates, [customResultFilters], a history search, or an access check needing the entity.
+     */
+    @JvmOverloads
+    open fun <O : ExtendedBaseDO<Long>> selectDistinct(
+        baseDao: BaseDao<O>,
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        path: String,
+        checkAccess: Boolean = true,
+    ): List<Any?> {
+        val access = baseDao.selectAccessProjection
+        val history = filter.modifiedByUserId != null || filter.modifiedFrom != null || filter.modifiedTo != null ||
+                !filter.searchHistory.isNullOrBlank()
+        if (customResultFilters.isNullOrEmpty() && !history && (!checkAccess || access != null)) {
+            if (checkAccess) {
+                baseDao.checkLoggedInUserSelectAccess()
+                if (accessChecker.isRestrictedUser) {
+                    return listOf()
+                }
+            }
+            val accessPaths = if (checkAccess) access!!.paths else emptyList()
+            val rows = try {
+                persistenceService.runReadOnly { context ->
+                    val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, filter.createDBFilter(), projection = true)
+                    if (queryBuilder.projectable) queryBuilder.selectDistinct(listOf(path) + accessPaths) else null
+                }
+            } catch (ex: Exception) {
+                log.error(ex) { "Error while querying distinct '$path': ${ex.message}. Filter: $filter." }
+                return emptyList()
+            }
+            if (rows != null) {
+                if (!checkAccess) {
+                    return rows.map { it[0] }.distinct()
+                }
+                val loggedInUser = ThreadLocalUserContext.loggedInUser!!
+                val granted = mutableMapOf<List<Any?>, Boolean>()
+                return rows.filter { row ->
+                    val values = row.drop(1)
+                    granted.getOrPut(values) { baseDao.hasSelectAccess(access!!.stubOf(values), loggedInUser) }
+                }.map { it[0] }.distinct()
+            }
+        }
+        return select(baseDao, filter, customResultFilters, checkAccess)
+            .map { PropertyUtils.getProperty(it, path) }.distinct()
     }
 
     private fun <O : ExtendedBaseDO<Long>> privateCreateList(

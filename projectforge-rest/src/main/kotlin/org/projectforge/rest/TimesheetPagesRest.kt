@@ -64,6 +64,8 @@ import org.projectforge.rest.fibu.CustomerChecklistFilter
 import org.projectforge.rest.fibu.CustomerRow
 import org.projectforge.rest.fibu.ProjectChecklistFilter
 import org.projectforge.rest.fibu.ViaProjectCriteria
+import org.projectforge.rest.fibu.customerRowsOf
+import org.projectforge.rest.fibu.projectCustomersOf
 import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
@@ -872,7 +874,10 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     private fun kost2IdsOf(projektIds: List<Long>): List<Long> =
         projektIds.flatMap { id -> kostCache.getKost2ForProjekt(id, includeDeleted = true).mapNotNull { it.id } }
 
-    /** A sheet has no customer of its own, so neither a free-text one. */
+    /**
+     * A sheet has no customer of its own: it is its project's, else that of the project's orders, free texts
+     * included (see [viaProject]).
+     */
     private val customerFilter =
         CustomerChecklistFilter("timesheet/customerFilterValues", kundePath = "kost2.projekt.kunde", kundeTextPath = null)
 
@@ -891,7 +896,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         ViaProjectCriteria(
             path = "kost2.id",
             nullPath = "kost2",
-            projects = { projektCache.all.mapValues { caches.getKundeIfNotInitialized(it.value.kunde)?.nummer } },
+            projects = { projectCustomersOf(projektCache.all, caches) },
             idsOf = ::kost2IdsOf,
             idsWithoutProject = {
                 kostCache.getAllKost2(includeDeleted = true).filter { it.projekt == null }.mapNotNull { it.id }
@@ -911,16 +916,22 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+        return businessUnitFilter.valuesOfProjects(projektIdsOf(filter, BusinessUnitChecklistFilter.FIELD))
     }
 
-    /** The customers of the sheets' projects, via the caches; a sheet of no project has none. */
+    /** The customers of the sheets' projects (see [projectCustomersOf]); a sheet of no project has none. */
     private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
-        val sheets = getResultList(checklistFilter(filter, ownField))
-        return sheets.asSequence().map { sheet ->
-            val projekt = caches.getProjektByKost2(sheet.kost2?.id)
-            CustomerRow(caches.getKundeIfNotInitialized(projekt?.kunde)?.nummer, null, projekt?.id)
-        }
+        val projectCustomers = projectCustomersOf(projektCache.all, caches)
+        return projektIdsOf(filter, ownField).flatMap { customerRowsOf(it, projectCustomers) }
+    }
+
+    /**
+     * The projects of the sheets, via the caches, once each; null for the sheets of none. Only the sheets' cost 2
+     * ids are selected, not the sheets.
+     */
+    private fun projektIdsOf(filter: MagicFilter?, ownField: String): Sequence<Long?> {
+        val kost2Ids = getResultDistinct(checklistFilter(filter, ownField), "kost2.id")
+        return kost2Ids.asSequence().map { caches.getKost2(it as Long?)?.projekt?.id }.distinct()
     }
 
     /**
@@ -929,8 +940,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     @PostMapping("projectFilterValues")
     fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        val sheets = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
-        return ProjectChecklistFilter.valuesOf(sheets.asSequence().map { caches.getKost2(it.kost2?.id)?.projekt?.id })
+        return ProjectChecklistFilter.valuesOf(projektIdsOf(filter, ProjectChecklistFilter.FIELD))
     }
 
     /**

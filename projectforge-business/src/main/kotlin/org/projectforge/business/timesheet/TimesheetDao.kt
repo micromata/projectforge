@@ -33,6 +33,7 @@ import org.projectforge.business.common.AutoCompletionUtils
 import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
+import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskNode
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.ProjectForgeGroup
@@ -51,6 +52,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SelectAccessProjection
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ge
@@ -141,6 +143,14 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
+
+    /** [hasUserSelectAccess] reads the sheet's task and user, nothing else. */
+    override val selectAccessProjection = SelectAccessProjection(listOf("task.id", "user.id")) { values ->
+        TimesheetDO().also { sheet ->
+            sheet.task = (values[0] as Long?)?.let { id -> TaskDO().also { it.id = id } }
+            sheet.user = (values[1] as Long?)?.let { id -> PFUserDO().also { it.id = id } }
+        }
+    }
 
     /**
      * The data the list statistics need for the given time sheets, as a lean projection instead of the whole

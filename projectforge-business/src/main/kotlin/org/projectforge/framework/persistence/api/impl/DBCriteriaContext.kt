@@ -33,7 +33,8 @@ import jakarta.persistence.criteria.*
  */
 internal class DBCriteriaContext<O : ExtendedBaseDO<Long>>(
         val cb: CriteriaBuilder,
-        val cr: CriteriaQuery<O>,
+        /** Of [entityClass] for the entities, of `Array<Any>` for a projection (see [DBQueryBuilderByCriteria]). */
+        val cr: CriteriaQuery<*>,
         val root: Root<O>,
         /**
          * For logging purposes.
