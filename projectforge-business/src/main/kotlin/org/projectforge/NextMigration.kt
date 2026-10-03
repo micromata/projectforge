@@ -473,6 +473,18 @@ object NextMigration {
             legacyEditRoute = "calendar/teamEvent/edit/$ID_PLACEHOLDER",
             legacyNewEntryRoute = "calendar/teamEvent/edit",
         ),
+        // The to-dos (plugin todo) are migrated straight from Wicket and their Wicket pages are removed, as the
+        // licenses. The legacy edit route is the link of the notification mails sent before.
+        "todo" to NextPage(
+            route = "todo",
+            editRoute = "todo/$ID_PLACEHOLDER",
+            newEntryRoute = "todo/new",
+            legacyApp = LegacyApp.WICKET,
+            legacyRoute = "wicket/bookmarkable/org.projectforge.plugins.todo.ToDoListPage",
+            legacyEditRoute = "wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage?id=$ID_PLACEHOLDER",
+            legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage",
+            offerLegacyLink = false,
+        ),
     )
 
     /**

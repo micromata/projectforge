@@ -38,6 +38,7 @@ export const HAND_BUILT_CATEGORIES = [
   "task",
   "teamEvent",
   "timesheet",
+  "todo",
 ];
 
 export function isHandBuilt(category: string | undefined): boolean {

@@ -2742,6 +2742,23 @@
     },
     "todo": {
       "assignee": "Assignee",
+      "button": {
+        "close": "Close ToDo"
+      },
+      "closeDialog": {
+        "heading": "Close to-do"
+      },
+      "group": {
+        "tooltip": {
+          "content": "This optional group defines access rights. This means that all users of this group have full access to this to-do. Otherwise the assignee and the reporter have full access to this to-do."
+        }
+      },
+      "legend": {
+        "recent": "Changed by somebody else, not seen by you yet"
+      },
+      "notification": {
+        "tooltip": "Should an e-mail be sent to the reporter and assignee? An e-mail will not be sent to you as the logged-in user!"
+      },
       "reporter": "Reporter",
       "status": {
         "_": "Status",
@@ -2752,6 +2769,17 @@
         "reopened": "reopened"
       },
       "subject": "Subject",
+      "task": {
+        "tooltip": {
+          "content": "This optional structure element defines access rights. This means that all users with read access to this element have also read-access to this to-do, same for the rights insert, update and delete. Otherwise the assignee and the reporter have full access to this to-do."
+        }
+      },
+      "templates": "Templates",
+      "title": {
+        "add": "Add new to-do",
+        "list": "To-do list"
+      },
+      "todo": "To-do",
       "type": {
         "_": "Type",
         "bug": "Bug",

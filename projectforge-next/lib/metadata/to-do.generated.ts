@@ -122,7 +122,7 @@ export const TO_DO_METADATA = {
     subject: {
       dataType: "STRING",
       i18nKey: "plugins.todo.subject",
-      required: false,
+      required: true,
       maxLength: 1000,
     },
     task: {

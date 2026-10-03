@@ -29,6 +29,11 @@ export interface ValueComboboxProps {
   onChange: (values: string[]) => void;
   /** Shown while nothing is picked. */
   placeholder?: string;
+  /**
+   * A reset button beside the trigger while something is picked — for a single pick, whose only other way
+   * back to "nothing" is clicking the picked option again, which nobody finds (as [EntityAutocomplete]).
+   */
+  clearable?: boolean;
   "aria-label"?: string;
   className?: string;
 }
@@ -52,56 +57,76 @@ export function ValueCombobox({
   multi,
   onChange,
   placeholder,
+  clearable,
   "aria-label": ariaLabel,
   className,
 }: ValueComboboxProps) {
   const t = useTranslations("select");
+  const tRoot = useTranslations();
   const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          variant="outline"
-          role="combobox"
-          aria-label={ariaLabel}
-          className={cn(
-            "h-auto min-h-7 w-full justify-between gap-1 font-normal text-xs",
-            className
-          )}
-        >
-          <span className="flex flex-wrap items-center gap-1">
-            {selected.length === 0 && (
-              <span className="text-muted-foreground">
-                {placeholder ?? t("empty")}
-              </span>
+      {/* `min-w-0`, so the reset button stays within the width the field was given (see EntityAutocomplete). */}
+      <div className="flex w-full min-w-0 items-center gap-1">
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
+            variant="outline"
+            role="combobox"
+            aria-label={ariaLabel}
+            className={cn(
+              "h-auto min-h-7 w-full min-w-0 flex-1 justify-between gap-1 font-normal text-xs",
+              className
             )}
-            {selected.map((value) => {
-              const label = labelOf(options, value);
-              return multi ? (
-                <Badge key={value} variant="secondary">
-                  {label}
-                  <span
-                    role="button"
-                    tabIndex={-1}
-                    aria-label={t("remove", { label })}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange(selected.filter((it) => it !== value));
-                    }}
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} />
-                  </span>
-                </Badge>
-              ) : (
-                <span key={value}>{label}</span>
-              );
-            })}
-          </span>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
-        </Button>
-      </PopoverTrigger>
+          >
+            <span className="flex flex-wrap items-center gap-1">
+              {selected.length === 0 && (
+                <span className="text-muted-foreground">
+                  {placeholder ?? t("empty")}
+                </span>
+              )}
+              {selected.map((value) => {
+                const label = labelOf(options, value);
+                return multi ? (
+                  <Badge key={value} variant="secondary">
+                    {label}
+                    <span
+                      role="button"
+                      tabIndex={-1}
+                      aria-label={t("remove", { label })}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange(selected.filter((it) => it !== value));
+                      }}
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} />
+                    </span>
+                  </Badge>
+                ) : (
+                  <span key={value}>{label}</span>
+                );
+              })}
+            </span>
+            <HugeiconsIcon icon={ArrowDown01Icon} size={14} />
+          </Button>
+        </PopoverTrigger>
+        {clearable && selected.length > 0 && (
+          <button
+            type="button"
+            // On pointer down, not click: the button unmounts as soon as the value is gone (see
+            // EntityAutocomplete).
+            onPointerDown={(e) => {
+              e.preventDefault();
+              onChange([]);
+            }}
+            aria-label={`${tRoot("reset")}: ${ariaLabel ?? selected.map((it) => labelOf(options, it)).join(", ")}`}
+            className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+          </button>
+        )}
+      </div>
       <PopoverContent
         align="start"
         className="w-(--radix-popover-trigger-width) min-w-56 p-0"

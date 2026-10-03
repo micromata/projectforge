@@ -50,7 +50,11 @@ export function paramForMode(
     case "replace":
       return { ...carried, replaceText: param.replaceText };
     case "delete":
-      return { delete: true, ...carried };
+      // Only a text field shows its value in this mode (the occurrences to delete); any other field hides
+      // it, so a value picked before switching would act unseen — or make the backend reject the mix.
+      return meta.replaceOption
+        ? { delete: true, ...carried }
+        : { delete: true };
     case "set":
     default:
       return { ...carried };
