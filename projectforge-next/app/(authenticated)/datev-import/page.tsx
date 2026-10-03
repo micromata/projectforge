@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { DatevImport } from "@/components/features/datev-import/datev-import";
 import { DatevImportFormatHint } from "@/components/features/datev-import/format-hint";
 import { DatevImportLogViewerLink } from "@/components/features/datev-import/log-viewer-link";
@@ -17,12 +18,12 @@ import { leafKeyOf } from "@/lib/leaf-key";
  */
 export default function DatevImportPage() {
   const t = useTranslations();
+  const title = t(leafKeyOf("fibu.datev.import", t.has));
+  useDocumentTitle(title);
   return (
     <PageShell>
       <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
-        <h1 className="text-lg font-bold tracking-tight">
-          {t(leafKeyOf("fibu.datev.import", t.has))}
-        </h1>
+        <h1 className="text-lg font-bold tracking-tight">{title}</h1>
         <div className="flex-1" />
         <DatevImportLogViewerLink />
       </div>

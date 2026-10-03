@@ -88,7 +88,7 @@ open class UIFilterElement(
 
     /**
      * A field the entity indexes but never declares: no `@PropertyInfo`, so it has no translation and
-     * its label falls back to the property name (`attachmentsIds`). Offered, because it is searchable,
+     * its label falls back to the property name. Offered, because it is searchable,
      * but not worth a place among the fields a user came for.
      */
     var technical: Boolean? = null

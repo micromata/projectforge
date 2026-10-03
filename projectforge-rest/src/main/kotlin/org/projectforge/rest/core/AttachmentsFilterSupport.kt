@@ -34,7 +34,12 @@ import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterListElement
 
 /**
- * The "has attachments" filter of a list page, offered for every entity with attachment support.
+ * The attachment filters of a list page, offered for every entity with attachment support:
+ * the synthetic "has attachments" filter and the full-text search on the attachments' file names
+ * ([AttachmentsInfo.attachmentsNames]). The file ids ([AttachmentsInfo.attachmentsIds]) are indexed as
+ * well, but no user ever types one, so they aren't offered as a filter field.
+ *
+ * The "has attachments" filter:
  *
  * [AttachmentsInfo.attachmentsCounter] is kept up to date by
  * [org.projectforge.framework.jcr.AttachmentsService], so the filter is a plain query predicate and
@@ -50,6 +55,10 @@ object AttachmentsFilterSupport {
   const val FILTER_ID = "hasAttachments"
 
   private const val COUNTER_PROPERTY = "attachmentsCounter"
+
+  private const val NAMES_PROPERTY = "attachmentsNames"
+
+  private const val IDS_PROPERTY = "attachmentsIds"
 
   /** The choices; their names travel as the filter's value. */
   enum class HasAttachments(override val i18nKey: String) : I18nEnum {
@@ -68,11 +77,23 @@ object AttachmentsFilterSupport {
     elements.add(
       UIFilterListElement(
         FILTER_ID,
-        label = translate("attachments"),
+        label = translate("attachment.filter.hasAttachments"),
         multi = false,
       ).buildValues(HasAttachments::class.java)
     )
   }
+
+  /**
+   * Whether the search field of the entity is index plumbing that isn't offered as a filter field at all.
+   */
+  fun isHiddenSearchField(field: String): Boolean = field == IDS_PROPERTY
+
+  /**
+   * The label of the attachments' file names search field, or null for any other field. The property
+   * carries no `@PropertyInfo`, so it has no translation of its own.
+   */
+  fun searchFieldLabel(field: String): String? =
+    if (field == NAMES_PROPERTY) translate("attachment.filter.fileNames") else null
 
   /**
    * Turns the filter entry, if any, into a predicate. The entry is marked as synthetic, so

@@ -46,7 +46,7 @@ export function groupLabelOf(element: FilterElement): string | null {
 }
 
 /**
- * Whether the field is index plumbing rather than a question a user asks (`attachmentsIds`).
+ * Whether the field is index plumbing rather than a question a user asks (a field without @PropertyInfo).
  *
  * The fallback is exact for a backend that doesn't send `technical`: LayoutListFilterUtils presets
  * `label = id` and only overwrites it from a translation, so label === id means "no @PropertyInfo".
@@ -153,8 +153,8 @@ export function matchesSearchTerm(
 }
 
 /**
- * The texts a field can be found by. Its raw id is one of them, which is what keeps a field like
- * `attachmentsIds` findable at all — the same reason [FilterFieldList] matches on it.
+ * The texts a field can be found by. Its raw id is one of them, which is what keeps a field without a
+ * translation findable at all — the same reason [FilterFieldList] matches on it.
  */
 export function searchTextsOf(element: FilterElement): (string | undefined)[] {
   return [element.label, element.shortLabel, element.group, element.id];

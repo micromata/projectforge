@@ -32,8 +32,8 @@ interface FilterFieldListProps {
  * The searchable list of filter fields.
  *
  * The list is long and mostly technical — the backend offers every search field of the entity —
- * so it needs a search, and matching on the raw id as well as the label is what makes fields like
- * "attachmentsIds" findable at all.
+ * so it needs a search, and matching on the raw id as well as the label is what makes a field without
+ * a translation (no @PropertyInfo, label = id) findable at all.
  *
  * Takes plain entries rather than [FilterElement]s, because not every entry is one field: the
  * change history is a single entry standing for three (see [historyFilterGroupOf]).

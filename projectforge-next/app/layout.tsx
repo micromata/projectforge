@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   Archivo_Narrow,
   Geist_Mono,
@@ -13,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/lib/query-client";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { APP_TITLE } from "@/lib/window-title";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -42,10 +42,6 @@ const robotoCondensed = Roboto_Condensed({
   style: ["italic"],
 });
 
-export const metadata: Metadata = {
-  title: "ProjectForge",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -66,6 +62,12 @@ export default function RootLayout({
         "font-sans"
       )}
     >
+      <head>
+        {/* The prerendered default; each page names the window after itself (see useDocumentTitle).
+            Not Next's `metadata.title`: Next re-mounts the <title> it renders from that after the page's
+            effects have run, resetting the title the page had just set (seen on the login page). */}
+        <title>{APP_TITLE}</title>
+      </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {/* QueryProvider wraps LocaleProvider because the latter fetches the deployment's

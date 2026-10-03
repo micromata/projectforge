@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 
 export interface PageTitleRowProps {
   /** The menu parent above the title, e.g. "Structure tree" — where the page sits in the main menu.
@@ -32,6 +33,7 @@ export function PageTitleRow({
   center,
   children,
 }: PageTitleRowProps) {
+  useDocumentTitle(title);
   return (
     <div className="flex items-center gap-3 px-4 pt-3">
       <div className="shrink-0">

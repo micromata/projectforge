@@ -284,6 +284,10 @@
     "fileId": "Dateikennung",
     "fileName": "Dateiname",
     "fileSize": "Dateigröße",
+    "filter": {
+      "fileNames": "Anhang-Dateiname",
+      "hasAttachments": "Anhänge vorhanden"
+    },
     "info": "Info",
     "list": "Anhänge",
     "onlyAvailableAfterSave": "Anhänge können erst hochgeladen werden, nachdem dieses Objekt gespeichert wurde.",
@@ -929,16 +933,16 @@
       "empty": "Noch keine Business Units.",
       "groups": "Kundengruppen",
       "members": "Umfasst ({arg0})",
-      "membersHint": "Was in den Aufträgen und Rechnungen der letzten fünf Jahre zu dieser Business Unit zählt: Kundengruppen sowie Kunden und Freitexte ohne Gruppe. Mit „über Aufgabe“ markiert: nur über die Aufgaben der Projekte; andere Aufträge und Rechnungen des Kunden können woanders zählen.",
+      "membersHint": "Was in den Aufträgen und Rechnungen der letzten fünf Jahre zu dieser Business Unit zählt: Kundengruppen sowie Kunden und Freitexte ohne Gruppe. Mit „über Strukturelement“ markiert: nur über die Strukturelemente der Projekte; andere Aufträge und Rechnungen des Kunden können woanders zählen.",
       "membersNone": "Keine Aufträge oder Rechnungen der letzten fünf Jahre zählen zu dieser Business Unit.",
       "remove": "Business Unit {arg0} entfernen",
-      "tasks": "Aufgaben",
-      "tasksHint": "Projekte unterhalb einer dieser Aufgaben gehören zur Business Unit, sofern ihr Kunde zu keiner gehört.",
+      "tasks": "Strukturelemente",
+      "tasksHint": "Projekte unterhalb eines dieser Strukturelemente gehören zur Business Unit, sofern ihr Kunde zu keiner gehört.",
       "title": "Business Units",
       "unassigned": "Sonstige ({arg0})",
-      "unassignedHint": "Was zu keiner Business Unit gehört und in den Business-Unit-Filtern und Skripten als „Sonstige“ zählt: Kundengruppen sowie Kunden und Freitexte ohne Gruppe aus den Aufträgen und Rechnungen der letzten fünf Jahre. Aufträge und Rechnungen von Projekten, die über ihre Aufgabe zu einer Business Unit gehören, zählen dabei nicht mit.",
+      "unassignedHint": "Was zu keiner Business Unit gehört und in den Business-Unit-Filtern und Skripten als „Sonstige“ zählt: Kundengruppen sowie Kunden und Freitexte ohne Gruppe aus den Aufträgen und Rechnungen der letzten fünf Jahre. Aufträge und Rechnungen von Projekten, die über ihr Strukturelement zu einer Business Unit gehören, zählen dabei nicht mit.",
       "unassignedNone": "Alles gehört zu einer Business Unit.",
-      "viaTask": "über Aufgabe"
+      "viaTask": "über Strukturelement"
     },
     "common": {
       "assignedPersons": "PL/BUL/KAM/AP",
@@ -2924,7 +2928,7 @@
         },
         "checkSystemIntegrity": {
           "_": "Check system integrity",
-          "tooltip": "Runs some sanity checks (task tree, data transfer, etc.)."
+          "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
         "createMissingDatabaseIndices": {
@@ -3115,7 +3119,7 @@
     },
     "protectionOfPrivacy": {
       "_": "Datenschutz",
-      "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Tasks zugegriffen werden."
+      "tooltip": "Wenn diese Option gewählt wird, dann kann nicht auf die Zeitberichte anderer Benutzer:innen unterhalb dieses Strukturelements zugegriffen werden."
     },
     "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
