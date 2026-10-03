@@ -142,15 +142,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             }
         }
         if (reminderHasChanged) {
-            val stackTrace = Thread.currentThread().stackTrace
-            val changedByWebView =
-                Arrays.stream(stackTrace)
-                    .filter { ste: StackTraceElement -> ste.className.contains("org.projectforge.web.wicket.EditPageSupport") }
-                    .count() > 0
-            log.info(
-                "TeamEventDao.internalUpdate -> Changed reminder of team event. Changed by: " + (if (changedByWebView) "WebView" else "REST") + " Message: " + message
-                    .toString()
-            )
+            log.info { "TeamEventDao.internalUpdate -> Changed reminder of team event. Message: $message" }
         }
     }
 

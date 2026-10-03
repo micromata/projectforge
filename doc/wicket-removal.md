@@ -20,13 +20,11 @@
 
 ### Remaining Wicket pages and how they are reached
 
-45 concrete page classes are left (`projectforge-wicket`).
+44 concrete page classes are left (`projectforge-wicket`).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
-The `register(MenuItemDefId.…, …Page.class)` calls left in `MenuItemRegistry` (account, cost1/2,
-cost2Type, accountingRecord, access, gantt, incomingInvoice, timesheet, taskTree, phoneCall, system) are
-dead weight: `MenuItemDefId` resolves all of them to `next/…`.
+`MenuItemRegistry` is gone: every menu entry resolves to `next/…`, so `WicketMenuBuilder` only uses the url.
 
 | Group | Pages | Reached from |
 |---|---|---|
@@ -34,7 +32,6 @@ dead weight: `MenuItemDefId` resolves all of them to `next/…`.
 | Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
 | Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
 | Mounted, but no way back from next | `DatevImportPage` (`wa/datevImport`, menu points to `next/datev-import`, only `CallAllPagesTest` uses it) | URL typed by hand only |
-| Dead, no reference at all | `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` | – |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
@@ -48,38 +45,32 @@ after its `offerLegacyLink` has been set to `false`.
 | ihk | none (`IHKPage`, `IHKForm` deleted) | migrated to next (`/next/ihk`, `IHKRest`); no Wicket dependency |
 | todo | none (`ToDoListPage/Form`, `ToDoEditPage/Form`, `ToDoPagesRest` deleted) | migrated to next (`/next/todo`, `ToDoEntityRest`); no Wicket dependency |
 | liquidityplanning | none (pages, forms, `LiquidityChartBuilder`, `.html` deleted) | migrated to next (`/next/liquidity`); no Wicket dependency |
-| licensemanagement | no pages; `LicenseDao` uses `web.user.UsersProvider` | migrated |
-| marketing | none; unused `projectforge-wicket` dependency | migrated |
+| licensemanagement | none (unused owner helpers of `LicenseDao` with `UsersProvider` deleted) | migrated; no Wicket dependency |
+| marketing | none | migrated; no Wicket dependency |
 | banking, datatransfer, memo, merlin, skillmatrix | none | React, no Wicket dependency |
 
 ## Phase 1 – Remove hidden dependencies (low risk, can start now)
 
 These would break silently if the module were simply deleted.
 
-- [ ] **Main i18n bundle.** `WicketApplication.init()` → `addResourceBundle(Constants.RESOURCE_BUNDLE_NAME)`
-      is the only production registration of `I18nResources` (`I18nHelper.addBundleName`). Register it in
-      business at startup (e.g. `I18nServiceImpl` init or `PluginAdminService`), before the plugins add
-      theirs. Without this every translation falls back to its key.
-- [ ] **Filters used by `WebXMLInitializer`** from the Wicket module: move `ResponseHeaderFilter`
-      (Cache-Control for static resources) to `projectforge-rest`/`-application`; drop
-      `SpringThreadLocalFilter` if nothing needs it.
-- [ ] **`LicenseDao`:** replace `UsersProvider` (a wicketstuff-select2 `ChoiceProvider`) by
-      `UserGroupCache`/`UserService`; then drop licensemanagement's Wicket dependency.
-- [ ] **marketing:** drop the unused `api(project(":projectforge-wicket"))` and the `**/*.html` resource
-      include.
-- [ ] **Plugin menu registration:** plugins register menu items through
-      `PluginWicketRegistrationService.registerMenuItem` (builds `wa/wicket/bookmarkable/<class>` URLs).
-      Switch to `MenuCreator.register(...)` directly, as marketing, licensemanagement and liquidityplanning
-      already do.
-- [ ] **`ProjectForgeEndpoints`** (`projectforge-application/.../start/`): strip the Wicket parts
-      (`AdminPage`, `WebRegistry`, `AbstractUnsecureBasePage`); keep the REST endpoint dump and
-      `SystemDiagnosticsExport` (used by `SystemRest`).
-- [ ] **`MenuCustomizationController`** (`/rs/menucustomization`, in the Wicket module): no frontend
-      caller found – verify and delete, or move to rest.
-- [ ] **Dead code:** delete `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` and the
-      `register(MenuItemDefId…)` calls in `MenuItemRegistry` whose menu entries resolve to `next/…`.
-- [ ] **`TeamEventDao`** (~l. 148) inspects the stack trace for `org.projectforge.web.wicket.EditPageSupport`
-      – remove the hack.
+- [x] **Main i18n bundle** – registered by `I18nServiceImpl.init()` (`I18nHelper.addBundleName`), the
+      plugin bundles by `PluginAdminService.activatePlugin`; independent of `WicketApplication`.
+- [x] **Filters used by `WebXMLInitializer`** – `ResponseHeaderFilter` moved to
+      `projectforge-application` (`org.projectforge.config`, Kotlin); `SpringThreadLocalFilter` and
+      `SpringContext` deleted (nothing read the context).
+- [x] **`LicenseDao`** – its owner helpers (`setOwners`, `getSortedOwners`, `getSortedOwnernames`) had no
+      callers left (the REST DTO maps `ownerIds` itself) and were deleted with the `UsersProvider` use;
+      licensemanagement no longer depends on `projectforge-wicket`.
+- [x] **marketing** – `api(project(":projectforge-wicket"))` and the `**/*.html` resource include removed.
+- [x] **Plugin menu registration** – all plugins register via `MenuCreator`;
+      `PluginWicketRegistrationService` deleted.
+- [x] **`ProjectForgeEndpoints`** – implements only `SystemDiagnosticsExport` now (REST endpoints, no Wicket
+      mount points); `AdminPage` gets the dump via `WicketSupport.get(SystemDiagnosticsExport.class)`,
+      `IProjectForgeEndpoints` deleted.
+- [x] **`MenuCustomizationController`** (`/rs/menucustomization`) – no caller anywhere, deleted.
+- [x] **Dead code** – `PacmanViewPage` (+ `scripts/pacman`, LESS rule), `AbstractViewPage`,
+      `AbstractSecuredPopupPage` and `MenuItemRegistry` deleted.
+- [x] **`TeamEventDao`** – stack-trace check for `EditPageSupport` removed.
 - [ ] **Hard-coded `wa/` links outside Wicket:**
   - ~~`task.page.tsx` "show access rights" (`wa/accessList?taskId=…`, lost the `taskId` in the redirect)~~
     – done: `lib/access-links.ts` → `next/access?taskId=…`, seeded as a transient task filter.
@@ -143,10 +134,8 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] `projectforge-application/build.gradle.kts`: remove the module dependency and the Wicket libs
       (wicket myextensions, wicket.spring, wicketstuff html5/select2); check rhino (only the Wicket LESS
       compiler?) and jsp-api.
-- [ ] Plugin `build.gradle.kts` (licensemanagement, marketing): remove
-      `api(project(":projectforge-wicket"))` and Wicket `**/*.html` resource includes.
 - [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
-- [ ] `WebXMLInitializer`: remove `WicketUserFilter`, `SpringThreadLocalFilter`, the `WicketFilter`
+- [ ] `WebXMLInitializer`: remove `WicketUserFilter`, the `WicketFilter`
       on `/wa/*`; keep locale filter, `restUserFilter`, `calendarSubscriptionFilter`, `OrphanedLinkFilter`.
 - [ ] Delete `projectforge-business/.../user/filter/WicketUserFilter.kt` (its `/wa/setup` branch is dead
       already – setup lives in next).

@@ -189,8 +189,8 @@ object NextMigration {
         // laid out React page of AddressCampaignPagesRest is gone). The Wicket pages have been removed: the way
         // back is no longer offered, and legacyApp/legacyRoute stay only so OrphanedLinkFilter still redirects
         // bookmarked links onto the next page. The legacy routes are the bookmarkable urls (as for `liquidity`):
-        // a plugin's mount points (addressCampaignList/addressCampaignEdit) were never actually mounted, see
-        // PluginWicketRegistrationService.registerMenuItem.
+        // a plugin's mount points (addressCampaignList/addressCampaignEdit) were never actually mounted (the
+        // former PluginWicketRegistrationService.registerMenuItem only registered the bookmarkable page class).
         "addressCampaign" to NextPage(
             route = "address-campaign",
             editRoute = "address-campaign/$ID_PLACEHOLDER",

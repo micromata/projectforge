@@ -24,17 +24,9 @@
 package org.projectforge.start
 
 import mu.KotlinLogging
-import org.apache.wicket.Page
-import org.apache.wicket.markup.html.WebPage
 import org.projectforge.SystemStatus
 import org.projectforge.business.admin.SystemDiagnosticsExport
 import org.projectforge.security.My2FARequestHandler
-import org.projectforge.web.admin.AdminPage
-import org.projectforge.web.admin.IProjectForgeEndpoints
-import org.projectforge.web.registry.WebRegistry
-import org.projectforge.web.wicket.AbstractUnsecureBasePage
-import org.reflections.Reflections
-import org.reflections.scanners.Scanners
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
@@ -45,15 +37,12 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.lang.reflect.Modifier
-import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
 @Service
-class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
+class ProjectForgeEndpoints : SystemDiagnosticsExport {
   private lateinit var restEndPointsMap: Map<RequestMappingInfo, HandlerMethod>
-  private lateinit var wicketPagesMap: Map<String, Class<out WebPage>>
   private var initialized = false
 
   @Autowired
@@ -62,17 +51,11 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
 
-  @PostConstruct
-  private fun postConstruct() {
-    AdminPage.set(this)
-  }
-
   private fun ensureEndpoints() {
     synchronized(this) {
       if (initialized) {
         return
       }
-      val newWicketPagesMap = WebRegistry.getInstance().getMountPages()
       val requestMappingHandlerMapping = applicationContext.getBean(RequestMappingHandlerMapping::class.java)
       restEndPointsMap = requestMappingHandlerMapping.handlerMethods
       if (log.isDebugEnabled) {
@@ -80,20 +63,6 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
           log.debug { "key=$key, value=$value" }
         }
       }
-
-      val reflections = Reflections("org.projectforge")
-      val wicketPages =
-        reflections.get(Scanners.SubTypes.of(AbstractUnsecureBasePage::class.java).asClass<Class<out Page>>())
-      wicketPages.forEach { pageClass ->
-        if (!newWicketPagesMap.containsValue(pageClass) && !Modifier.isAbstract(pageClass.getModifiers())) {
-          @Suppress("UNCHECKED_CAST")
-          pageClass as Class<out WebPage>
-          newWicketPagesMap[WebRegistry.getInstance().getMountPoint(pageClass)] = pageClass
-        }
-      }
-      wicketPagesMap = newWicketPagesMap
-      println(wicketPages.joinToString { it.name })
-
       initialized = true
     }
   }
@@ -120,9 +89,6 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
         endpoints.add(info.directPaths.iterator().next())
       }
     }
-    wicketPagesMap.forEach { mountPoint, clazz ->
-      endpoints.add(WebRegistry.getInstance().getMountPoint(clazz))
-    }
     pw.println(my2FARequestHandler.printAllEndPoints(endpoints))
     return out.toString()
   }
@@ -130,7 +96,7 @@ class ProjectForgeEndpoints : IProjectForgeEndpoints, SystemDiagnosticsExport {
   @EventListener(ApplicationReadyEvent::class)
   fun onApplicationReady() {
     if (SystemStatus.isDevelopmentMode()) {
-      log.info(info)
+      log.info(getInfo())
     }
   }
 }

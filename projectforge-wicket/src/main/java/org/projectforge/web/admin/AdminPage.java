@@ -28,6 +28,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.address.AddressImageDao;
+import org.projectforge.business.admin.SystemDiagnosticsExport;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
@@ -65,12 +66,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   static final int NUMBER_OF_TEST_OBJECTS_TO_CREATE = 100;
 
   private final AdminForm form;
-
-  private static IProjectForgeEndpoints projectForgeEndpoints;
-
-  public static void set(IProjectForgeEndpoints endpoints) {
-    projectForgeEndpoints = endpoints;
-  }
 
   @Override
   protected void onBeforeRender() {
@@ -377,7 +372,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: export 2FA configuration file config-2FA.txt.");
     checkAccess();
     final String filename = "config-2FA" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
-    final String content = projectForgeEndpoints.getInfo();
+    final String content = WicketSupport.get(SystemDiagnosticsExport.class).getInfo();
     DownloadUtils.setUTF8CharacterEncoding(getResponse());
     DownloadUtils.setDownloadTarget(content.getBytes(), filename);
   }

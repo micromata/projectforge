@@ -27,9 +27,9 @@ package org.projectforge.business.admin
  * Provides the textual system/2FA diagnostics dump exported by the administration page ("Export 2FA configuration").
  *
  * The implementation ([org.projectforge.start.ProjectForgeEndpoints]) lives in `projectforge-application` because it
- * has to enumerate the Wicket page mount points and the REST endpoints, which are only known there. This interface is
- * declared in `projectforge-business` so both the classic Wicket `AdminPage` and the projectforge-next `SystemRest`
- * can obtain the dump without depending on `projectforge-wicket` or `projectforge-application`.
+ * has to enumerate the REST endpoints, which are only known there. This interface is declared in
+ * `projectforge-business` so both the classic Wicket `AdminPage` and the projectforge-next `SystemRest` can obtain the
+ * dump without depending on `projectforge-application`.
  */
 interface SystemDiagnosticsExport {
     /** The 2FA configuration, short cuts and endpoint list as plain text, for the "Export 2FA configuration" download. */

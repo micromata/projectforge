@@ -38,8 +38,6 @@ import org.projectforge.rest.config.RestUtils;
 import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;
-import org.projectforge.web.filter.ResponseHeaderFilter;
-import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestCalendarSubscriptionUserFilter;
 import org.projectforge.web.rest.RestUserFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +107,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
             boolean filterAfterInternal = false;
             RestUtils.registerFilter(sc, "UserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
-            RestUtils.registerFilter(sc, "springContext", SpringThreadLocalFilter.class, filterAfterInternal, "/wa/*");
 
             final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
             wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());

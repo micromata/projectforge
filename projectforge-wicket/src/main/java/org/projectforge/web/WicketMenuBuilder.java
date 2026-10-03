@@ -27,7 +27,6 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
-import org.projectforge.NextMigration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
@@ -49,9 +48,6 @@ public class WicketMenuBuilder implements Serializable {
 
     @Autowired
     private transient FavoritesMenuCreator favoritesMenuCreator;
-
-    @Autowired
-    private transient MenuItemRegistry menuItemRegistry;
 
     @PostConstruct
     private void init() {
@@ -107,16 +103,10 @@ public class WicketMenuBuilder implements Serializable {
             entry.name = item.getTitle();
         else
             entry.name = "???";
+        // No menu entry is served by Wicket any more: the entry keeps its url and gets no pageClass, so
+        // NavAbstractPanel.getMenuEntryLink leaves Wicket (the mounted escape hatches are reached via
+        // NextMigration.legacyListUrl only).
         entry.url = item.getUrl();
-        if (NextMigration.isNextUrl(entry.url)) {
-            // The page is served by projectforge-next, so the menu has to leave Wicket: the entry keeps
-            // its url and gets no pageClass, otherwise NavAbstractPanel.getMenuEntryLink would prefer the
-            // still registered Wicket page (which stays mounted as the escape hatch, see
-            // NextMigration.legacyListUrl) and the menu would silently contradict MenuItemDefId's url.
-            entry.pageClass = null;
-        } else {
-            entry.pageClass = menuItemRegistry.getPageClass(item.getId());
-        }
         if (item.getBadge() != null) {
             entry.setBadgeCounter(new Model<Integer>() {
                 @Override
@@ -131,7 +121,6 @@ public class WicketMenuBuilder implements Serializable {
     @Serial
     private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
         this.favoritesMenuCreator = instance.favoritesMenuCreator;
-        this.menuItemRegistry = instance.menuItemRegistry;
     }
 
     @Serial
