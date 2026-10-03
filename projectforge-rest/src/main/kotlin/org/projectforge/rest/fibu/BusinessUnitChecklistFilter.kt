@@ -94,6 +94,25 @@ internal class BusinessUnitChecklistFilter(
     }
 
     /**
+     * The projects the picks stand for, for a list reaching its customer only through the project (see
+     * [ViaProjectCriteria]): those whose customer or task leads to a picked business unit, and with [NONE_KEY]
+     * those leading to none, and the rows of no project. Null if no key is known, as [buildPredicate].
+     */
+    fun projectMatch(keys: Array<String>?): ProjectMatch? {
+        keys ?: return null
+        val index = groupIndex()
+        val picked = keys.filter { it.startsWith(PREFIX) }.mapNotNull { index.getBusinessUnit(it.removePrefix(PREFIX)) }
+        val none = NONE_KEY in keys && index.businessUnits.isNotEmpty()
+        if (picked.isEmpty() && !none) {
+            return null
+        }
+        return ProjectMatch(withoutProject = none) { kundeId, projektId ->
+            val bu = index.businessUnitOf(kundeId, null, projektId)
+            if (bu == null) none else picked.any { it === bu }
+        }
+    }
+
+    /**
      * The business units of the given rows (by customer, else by project), each once, sorted by name, followed by
      * [NONE_KEY] if a row has none.
      */

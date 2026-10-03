@@ -26,6 +26,7 @@ package org.projectforge.rest.fibu
 
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
+import org.projectforge.business.fibu.customergroup.ResolvedCustomers
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -79,16 +80,37 @@ internal class CustomerChecklistFilter(
 
     internal fun buildPredicate(keys: Array<String>?): DBPredicate? {
         keys ?: return null
-        val ids = keys.filter { it.startsWith(ENTITY_PREFIX) }.mapNotNull { it.removePrefix(ENTITY_PREFIX).toLongOrNull() }
+        val ids = entityIdsOf(keys)
         val texts = keys.filter { it.startsWith(TEXT_PREFIX) }.map { it.removePrefix(TEXT_PREFIX) }
-        val index = groupIndex()
-        val groups = keys.filter { it.startsWith(GROUP_PREFIX) }
-            .mapNotNull { index.resolveGroup(it.removePrefix(GROUP_PREFIX)) }
+        val groups = groupsOf(keys)
         return paths.predicate(
             ids + groups.flatMap { it.kundeIds },
             exactTexts = texts,
             patterns = groups.flatMap { it.texts }.distinct(),
         )
+    }
+
+    /**
+     * The projects the picks stand for, for a list reaching its customer only through the project (see
+     * [ViaProjectCriteria]): those of the picked customers and of the groups' customers. A free text names no
+     * project's customer. Null if no key is known, as [buildPredicate].
+     */
+    fun projectMatch(keys: Array<String>?): ProjectMatch? {
+        keys ?: return null
+        val groups = groupsOf(keys)
+        val ids = entityIdsOf(keys).toSet() + groups.flatMap { it.kundeIds }
+        if (ids.isEmpty() && groups.isEmpty()) {
+            return null
+        }
+        return ProjectMatch { kundeId, _ -> kundeId in ids }
+    }
+
+    private fun entityIdsOf(keys: Array<String>): List<Long> =
+        keys.filter { it.startsWith(ENTITY_PREFIX) }.mapNotNull { it.removePrefix(ENTITY_PREFIX).toLongOrNull() }
+
+    private fun groupsOf(keys: Array<String>): List<ResolvedCustomers> {
+        val index = groupIndex()
+        return keys.filter { it.startsWith(GROUP_PREFIX) }.mapNotNull { index.resolveGroup(it.removePrefix(GROUP_PREFIX)) }
     }
 
     companion object {
