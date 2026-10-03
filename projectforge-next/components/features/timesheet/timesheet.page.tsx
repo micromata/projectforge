@@ -282,9 +282,12 @@ export const TIMESHEET_PAGE = definePage<
       targetRoute: "/teamEvent",
       labelKey: "plugins.teamcal.switchToTeamEventButton",
     },
-    // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
-    // no timesheet list of this app to return to (see toTimesheetRoute).
-    returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],
+    // Save and cancel come back to the calendar by default: there is no timesheet list of this app to return
+    // to (see toTimesheetRoute). The IHK report opens a time sheet lacking its description and wants it back.
+    returnTargets: [
+      { route: "/calendar", labelKey: "menu.calendar" },
+      { route: "/ihk", labelKey: "plugins.ihk.title" },
+    ],
     // The templates/recent bar sits above the sections and stays visible while the user scrolls — the
     // legacy form's `timesheet.edit.templatesAndRecent` widget, which is not a field of any section.
     editBanner: TemplatesRecentBar,

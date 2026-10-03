@@ -113,6 +113,14 @@ class OrphanedLinkFilterTest {
         )
     }
 
+    /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
+    @Test
+    fun `the old wicket IHK page is redirected to next`() {
+        val uri = "/wa/wicket/bookmarkable/org.projectforge.plugins.ihk.IHKPage"
+        Assertions.assertEquals("/next/ihk", redirectOf(uri))
+        Assertions.assertEquals("/next/ihk", redirectOf(uri, NextMigration.ESCAPE_HATCH_PARAM))
+    }
+
     /** The Wicket HR view has moved to projectforge-next; a bookmarked link is bent onto it, a sibling isn't. */
     @Test
     fun `the old wicket HR view is redirected to next`() {

@@ -2433,6 +2433,52 @@
         "info": "Maximum upload size of a single file. Max size of this area in total is this value doubled."
       }
     },
+    "ihk": {
+      "download": "Download",
+      "downloadAnyway": "Download Anyway",
+      "edit": "Edit",
+      "menu": "IHK-Report for trainees",
+      "missing": {
+        "hint": "These timesheets of the week have no description. Add one, or download the report anyway."
+      },
+      "nodescriptionfound": "Missing description",
+      "settings": {
+        "ausbildungsbeginn": "Training start",
+        "ausbildungsjahr": {
+          "_": "Training year",
+          "auto": "calculated from the training start"
+        },
+        "teamname": "Team",
+        "title": "Your settings"
+      },
+      "setup": {
+        "address": {
+          "edit": "Open your address",
+          "new": "Create your address"
+        },
+        "description": "Each timesheet of the week becomes one row of the report, its description is the activity. Text in front of a | becomes the learning field, e.g. \"LF 5 | Implemented the login page\".",
+        "field": {
+          "ausbildungsbeginn": "The first day of your apprenticeship, written as year-month-day (e.g. 2024-09-01).",
+          "ausbildungsjahr": "Your training year. With -1 it is calculated from the training start. Enter a number only if it differs, e.g. for a shortened apprenticeship.",
+          "teamname": "Your team or department, as printed on the report."
+        },
+        "fields": "The values:",
+        "intro": "This page creates your weekly IHK training report (Ausbildungsnachweis) from your timesheets as an Excel file. It needs a few settings, which are read from the comment field of your own address in the contacts.",
+        "reason": {
+          "empty": "Your address was found, but its comment field is empty.",
+          "notFound": "No address in the contacts has exactly your name (first name \"{arg0}\", last name \"{arg1}\").",
+          "parsing": "The comment field of your address does not contain valid settings. Error: {arg0}"
+        },
+        "show": "Setup instructions",
+        "step1": "Open your own address in the contacts, or create it. First and last name must exactly match your ProjectForge user: {arg0} {arg1}.",
+        "step2": "Copy the following text into the comment field of the address and adjust the values.",
+        "step3": "Save the address and reload this page.",
+        "steps": "How to set it up:",
+        "title": "Setup of the training report"
+      },
+      "title": "IHK",
+      "week": "Week (Monday to Sunday)"
+    },
     "licensemanagement": {
       "device": {
         "_": "Device",

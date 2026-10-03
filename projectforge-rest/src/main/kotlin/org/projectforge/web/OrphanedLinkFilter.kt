@@ -71,6 +71,10 @@ class OrphanedLinkFilter : Filter {
         } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to
             // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
+        } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.plugins.ihk.IHKPage")) { // Old Wicket
+            // IHK report of the IHK plugin, migrated to projectforge-next. The Wicket page was removed, so there is
+            // no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}ihk")
         } else if (uri.endsWith("/wa/hrList") || uri.contains("/wa/hrList/")) { // Old Wicket HR view, migrated to
             // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch. The
             // precise segment match keeps this from catching sibling pages.

@@ -1,12 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { LeftToRightListBulletIcon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
+import { LogViewerLink } from "@/components/shared/log-viewer-link";
 import { fetchDatevImportLogViewerUrl } from "@/lib/rs/datev-import";
-import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
 /**
  * "View log" of the DATEV import, as the legacy Wicket page offers it: opens the log viewer with the
@@ -17,23 +13,10 @@ import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
  * import request anyway, so nothing is lost if this request comes late.
  */
 export function DatevImportLogViewerLink() {
-  const t = useTranslations();
   const { data: url } = useQuery({
     queryKey: ["datev-import", "logViewer"],
     queryFn: ({ signal }) => fetchDatevImportLogViewerUrl(signal),
     staleTime: Infinity,
   });
-  if (!url) return null;
-  return (
-    <Button asChild size="sm" variant="outline">
-      <a
-        href={toAbsoluteUrl(resolveMenuUrl(url))}
-        target="_blank"
-        rel="noopener"
-      >
-        <HugeiconsIcon icon={LeftToRightListBulletIcon} size={13} />
-        {t("system.admin.logViewer.title")}
-      </a>
-    </Button>
-  );
+  return <LogViewerLink url={url} />;
 }

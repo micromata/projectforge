@@ -31,7 +31,7 @@
 
 | Plugin | Wicket code | Status |
 |---|---|---|
-| ihk | `IHKPage`, `IHKForm` | **not migrated**, menu opens Wicket |
+| ihk | none (`IHKPage`, `IHKForm` deleted) | migrated to next (`/next/ihk`, `IHKRest`); no Wicket dependency |
 | todo | `ToDoListPage/Form`, `ToDoEditPage/Form` | **not migrated**, menu opens Wicket; small React layout `ToDoPagesRest` exists |
 | liquidityplanning | 6 page/form classes, `LiquidityChartBuilder`, `.html` | migrated to next; Wicket classes are leftovers |
 | licensemanagement | no pages; `LicenseDao` uses `web.user.UsersProvider` | migrated |
@@ -75,9 +75,8 @@ These would break silently if the module were simply deleted.
 
 Each item: build in next, or decide with the product owner that it goes away.
 
-- [ ] **IHK plugin** – week picker + training-report Excel download. `IHKExporter` has no Wicket imports
-      and can be reused by a small REST endpoint + next page. Its link into the Wicket
-      `TimesheetEditPage` becomes a next timesheet link.
+- [x] **IHK plugin** – migrated: next page `/next/ihk` (week picker, missing-description list with next
+      timesheet links, setup instructions) on `IHKRest`/`IHKService`, reusing `IHKExporter`. Wicket pages deleted.
 - [ ] **ToDo plugin** – list, edit, close dialog, templates (`UserPrefArea.TODO_FAVORITE`), the "send
       notification" / "send short message" options, the badge counter. **The notification mail is only
       sent from `ToDoEditPage`** (`ToDoDao.sendNotification(todo, requestUrl)`); the REST/next save path
@@ -125,7 +124,7 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] `projectforge-application/build.gradle.kts`: remove the module dependency and the Wicket libs
       (wicket myextensions, wicket.spring, wicketstuff html5/select2); check rhino (only the Wicket LESS
       compiler?) and jsp-api.
-- [ ] Plugin `build.gradle.kts` (ihk, licensemanagement, liquidityplanning, marketing, todo): remove
+- [ ] Plugin `build.gradle.kts` (licensemanagement, liquidityplanning, marketing, todo): remove
       `api(project(":projectforge-wicket"))` and Wicket `**/*.html` resource includes.
 - [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
 - [ ] `WebXMLInitializer`: remove `WicketUserFilter`, `SpringThreadLocalFilter`, the `WicketFilter`

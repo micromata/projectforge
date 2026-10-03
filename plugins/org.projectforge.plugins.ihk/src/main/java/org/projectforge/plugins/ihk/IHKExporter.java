@@ -55,7 +55,8 @@ import static org.projectforge.framework.persistence.user.api.ThreadLocalUserCon
 class IHKExporter
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IHKExporter.class);
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+  // Per instance: SimpleDateFormat isn't thread-safe and its time zone is set per export.
+  private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
   private static final int FIRST_DATA_ROW_NUM = 2;
 
@@ -111,9 +112,10 @@ class IHKExporter
 
   private void setFirstRow(final List<TimesheetDO> timesheets, ExcelSheet excelSheet)
   {
-    PFDateTime mondayDate = PFDateTime.from(Objects.requireNonNull(timesheets.get(0).getStartTime()))
-        .getBeginOfWeek().getEndOfDay();
-    PFDateTime sundayDate = mondayDate.getEndOfWeek().getEndOfDay();
+    // German reports: the week is always Monday to Sunday, whatever first day of week the user has set.
+    PFDateTime mondayDate = PFDateTime.from(IHKService.mondayOf(
+        PFDateTime.from(Objects.requireNonNull(timesheets.get(0).getStartTime())).getLocalDate())).getEndOfDay();
+    PFDateTime sundayDate = mondayDate.plusDays(6).getEndOfDay();
     sdf.setTimeZone(timeZone);
 
     // run exception
