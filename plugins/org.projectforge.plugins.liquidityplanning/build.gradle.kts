@@ -12,19 +12,11 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api(project(":projectforge-wicket"))
     api(project(":projectforge-rest"))
     testImplementation(project(":projectforge-business"))
     testImplementation(libs.org.mockito.core)
     testImplementation(libs.org.mockito.junit.jupiter)
     testImplementation(libs.org.mockito.kotlin)
-}
-
-tasks.withType<ProcessResources> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from("src/main/java") {
-        include( "**/*.html") // Wicket pages.
-    }
 }
 
 description = "org.projectforge.plugins.liquidityplanning"

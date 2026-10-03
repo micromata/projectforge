@@ -24,7 +24,9 @@ Commands:
   dev              next dev (projectforge-next)
   build            next build (projectforge-next)
   e2e [args…]      Playwright e2e tests; args are forwarded
-                   (e.g. pfDev.sh e2e book-edit --headed)
+                   (e.g. pfDev.sh e2e book-edit --headed). Against Spring, the
+                   Next export is refreshed first (processResources, a no-op if
+                   current); skipped with --dev / --port <n> (dev server)
   e2e:ui [args…]   Playwright e2e tests in UI mode
   check            Next quality gates: typecheck → lint → format:check
   help             Show this help
@@ -53,6 +55,12 @@ case "$cmd" in
     cd "$NEXT" && exec npm run build "$@"
     ;;
   e2e)
+    # Spring serves the export from build/resources, so bring it up to date first. A dev server
+    # compiles the working tree itself and needs nothing.
+    case " $* " in
+      *" --dev "* | *" --port "* | *" --port="*) ;;
+      *) "$GRADLEW" -p "$ROOT" :projectforge-application:processResources ;;
+    esac
     cd "$NEXT" && exec npm run e2e -- "$@"
     ;;
   e2e:ui)

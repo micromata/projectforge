@@ -23,17 +23,16 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.integration.IntegrationConfig;
+import org.projectforge.framework.integration.PooledHttpClients;
 import org.projectforge.framework.time.DateHelper;
 
 import java.io.IOException;
@@ -118,11 +117,12 @@ public class TeamEventSubscription implements Serializable {
     log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
     byte[] bytes = null;
 
-    // Create a method instance.
-    try (final CloseableHttpClient client = HttpClients.createDefault()) {
+    // Shared pooled client with timeouts (IntegrationConfig "ical"), so a hanging server can't block the update job.
+    final long maxResponseBytes = IntegrationConfig.get(IntegrationConfig.ICAL).getMaxResponseBytes();
+    try {
       final HttpGet method = new HttpGet(url);
 
-      bytes = client.execute(method, response -> {
+      bytes = PooledHttpClients.get(IntegrationConfig.ICAL).execute(method, response -> {
         final int statusCode = response.getCode();
         if (statusCode != HttpStatus.SC_OK) {
           error("Unable to gather subscription calendar #"
@@ -138,11 +138,17 @@ public class TeamEventSubscription implements Serializable {
           return null;
         }
         try (InputStream inputStream = responseEntity.getContent()) {
-          return IOUtils.toByteArray(inputStream);
+          return PooledHttpClients.readLimited(inputStream, maxResponseBytes);
         }
       });
     } catch (IOException ex) {
-      log.error(ex.getMessage());
+      // Timeouts, unreachable server, response too large: recorded as failed update (with back-off).
+      error("Unable to gather subscription calendar #"
+          + teamCalDO.getId()
+          + " from url '"
+          + displayUrl
+          + "': "
+          + ex.getMessage(), null);
       return;
     }
     if (bytes == null) {
@@ -185,34 +191,8 @@ public class TeamEventSubscription implements Serializable {
       return;
     }
 
-    final SubscriptionHolder newSubscription = new SubscriptionHolder();
-    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
     try {
-      final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
-      Long startId = -1L;
-      ICalParser parser = new ICalParser();
-
-      // the event id must (!) be negative and decrementing (different on each event)
-      for (TeamEventDO event : parser.parse(bytes)) {
-        if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
-          continue;
-        }
-        event.setId(startId);
-        event.setCalendar(teamCalDO);
-
-        if (event.hasRecurrence()) {
-          // special treatment for recurrence events ..
-          newRecurrenceEvents.add(event);
-        } else {
-          newSubscription.add(event);
-        }
-
-        startId--;
-      }
-
-      // OK, update the subscription:
-      recurrenceEvents = newRecurrenceEvents;
-      subscription = newSubscription;
+      parseEvents(teamCalDO, bytes);
       lastUpdated = System.currentTimeMillis();
       currentInitializedHash = teamCalDO.getExternalSubscriptionHash();
       clear();
@@ -225,6 +205,55 @@ public class TeamEventSubscription implements Serializable {
           + "': "
           + e.getMessage());
     }
+  }
+
+  /**
+   * Shows the events last fetched (stored in the database) without fetching the calendar, e.g. after a restart for
+   * a failing subscription, which isn't retried immediately. Not regarded as update, see {@link #getLastUpdated()}.
+   */
+  public void loadFromDatabase(final TeamCalDO teamCalDO) {
+    this.teamCalId = teamCalDO.getId();
+    this.initialized = true;
+    final byte[] bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
+    if (bytes == null) {
+      return;
+    }
+    try {
+      parseEvents(teamCalDO, bytes);
+      log.info("Subscribed calendar #" + teamCalDO.getId() + " loaded from database (subscription is failing).");
+    } catch (final Exception e) {
+      log.warn("Unable to load subscribed calendar #" + teamCalDO.getId() + " from database: " + e.getMessage());
+    }
+  }
+
+  private void parseEvents(final TeamCalDO teamCalDO, final byte[] bytes) {
+    final SubscriptionHolder newSubscription = new SubscriptionHolder();
+    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
+    final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
+    Long startId = -1L;
+    ICalParser parser = new ICalParser();
+
+    // the event id must (!) be negative and decrementing (different on each event)
+    for (TeamEventDO event : parser.parse(bytes)) {
+      if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
+        continue;
+      }
+      event.setId(startId);
+      event.setCalendar(teamCalDO);
+
+      if (event.hasRecurrence()) {
+        // special treatment for recurrence events ..
+        newRecurrenceEvents.add(event);
+      } else {
+        newSubscription.add(event);
+      }
+
+      startId--;
+    }
+
+    // OK, update the subscription:
+    recurrenceEvents = newRecurrenceEvents;
+    subscription = newSubscription;
   }
 
   private void clear() {

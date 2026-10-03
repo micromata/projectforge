@@ -22,6 +22,7 @@ import {
 } from "@/lib/rs/liquidity";
 import { LiquidityForecastBalanceChart } from "./liquidity-forecast-balance-chart";
 import { LiquidityForecastCashflowChart } from "./liquidity-forecast-cashflow-chart";
+import { LiquidityForecastExport } from "./liquidity-forecast-export";
 
 /** The forecast horizons offered — days from the base date on. */
 const NEXT_DAYS_OPTIONS = [30, 60, 90, 180, 365] as const;
@@ -158,6 +159,10 @@ function LiquidityForecastControls({
             </SelectContent>
           </Select>
         </div>
+        <LiquidityForecastExport
+          params={debouncedParams}
+          disabled={query.isPending || points.length === 0}
+        />
       </div>
 
       {query.isError ? (

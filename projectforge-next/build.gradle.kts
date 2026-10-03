@@ -59,6 +59,12 @@ tasks {
                     ".next/**",
                     "build/**",
                     "_parked/**",
+                    // The e2e suite and its reports aren't part of the export; a run would otherwise
+                    // invalidate the build it tests.
+                    "e2e/**",
+                    "playwright-report/**",
+                    "blob-report/**",
+                    "test-results/**",
                     "**/*.md",
                     "tsconfig.tsbuildinfo",
                     ".gitignore",

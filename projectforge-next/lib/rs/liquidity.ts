@@ -1,10 +1,11 @@
 /**
  * The calls of the liquidity plugin (`LiquidityEntityRest`) that are neither a list, a read nor a write of
  * the entity: the Excel export of the filtered list and the per-day liquidity forecast that drives the
- * forecast tab of `/next/liquidity`.
+ * forecast tab of `/next/liquidity`, with its own Excel export.
  */
 
 import { request } from "./client";
+import { downloadPost } from "./download";
 import { downloadListExcel } from "./list-export";
 import type { MagicFilter } from "./types";
 
@@ -12,7 +13,7 @@ import type { MagicFilter } from "./types";
 const ENTITY = "liquidity";
 
 /**
- * The filtered liquidity entries as the Excel file Wicket's "Excel export" produces — one row per entry.
+ * The filtered liquidity entries as Excel file — one row per entry.
  *
  * The generic list export of this category, so it goes through [downloadListExcel]. A 404 means the filter
  * matched nothing; the caller says so rather than reporting an error (see LiquidityListActions).
@@ -69,6 +70,18 @@ export function fetchLiquidityForecast(
     { method: "POST", body: JSON.stringify(params) },
     signal
   );
+}
+
+/**
+ * The forecast for the given parameters as Excel file (`POST /rs/liquidity/forecast/excel`): the per-day cash
+ * flow with running balances, all entries the forecast is based on (liquidity entries and open invoices with
+ * their expected dates of payment) and the debitor and creditor invoices. The backend names the file.
+ */
+export function downloadLiquidityForecastExcel(
+  params: LiquidityForecastRequest,
+  signal?: AbortSignal
+): Promise<void> {
+  return downloadPost(`/rs/${ENTITY}/forecast/excel`, params, signal);
 }
 
 /**

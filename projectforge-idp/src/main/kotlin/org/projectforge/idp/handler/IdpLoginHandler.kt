@@ -34,6 +34,10 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.integration.SingleRunExecutor
+import org.projectforge.framework.integration.SyncCounts
+import org.projectforge.framework.integration.SyncStats
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.idp.IdpAdminClient
@@ -97,8 +101,15 @@ open class IdpLoginHandler : LoginHandler {
     @Autowired
     private lateinit var idpGroupConverter: IdpGroupConverter
 
+    // The sync writes users and groups and expires the UserGroupCache, whose refresh calls
+    // afterUserGroupCacheRefresh again: this flag ignores these calls during a running sync.
     @Volatile
     private var syncInProgress = false
+
+    // One thread for all syncs instead of a new thread per cache refresh.
+    private val syncExecutor = SingleRunExecutor("idp-slave-sync")
+
+    private val syncStats = SyncStatsRegistry.get("idp-slave")
 
     override fun initialize() {
         val providerName = idpAdminClient.providerName()
@@ -139,22 +150,20 @@ open class IdpLoginHandler : LoginHandler {
 
     override fun afterUserGroupCacheRefresh(users: Collection<PFUserDO>, groups: Collection<GroupDO>) {
         if (syncInProgress) return
-        Thread {
-            synchronized(this) {
-                if (syncInProgress) return@synchronized
-                try {
-                    syncInProgress = true
-                    syncFromIdp()
-                    val freshUsers = userService.selectAll(false)
-                    val freshGroups = groupService.getAllGroups()
-                    ldapMasterLoginHandler.afterUserGroupCacheRefresh(freshUsers, freshGroups)
-                } catch (ex: Exception) {
-                    log.error("IdP sync failed: ${ex.message}", ex)
-                } finally {
-                    syncInProgress = false
-                }
+        syncExecutor.trigger {
+            if (syncInProgress) return@trigger
+            try {
+                syncInProgress = true
+                syncFromIdp()
+                val freshUsers = userService.selectAll(false)
+                val freshGroups = groupService.getAllGroups()
+                ldapMasterLoginHandler.afterUserGroupCacheRefresh(freshUsers, freshGroups)
+            } catch (ex: Exception) {
+                log.error("IdP sync failed: ${ex.message}", ex)
+            } finally {
+                syncInProgress = false
             }
-        }.start()
+        }
     }
 
     override fun getAllUsers(): List<PFUserDO> = loginDefaultHandler.getAllUsers()
@@ -199,10 +208,15 @@ open class IdpLoginHandler : LoginHandler {
             log.debug("IdP not configured, skipping sync.")
             return
         }
+        syncStats.execute(idpAdminClient.providerName()) { run -> syncFromIdp(run) }
+    }
+
+    private fun syncFromIdp(run: SyncStats.Run) {
         val providerName = idpAdminClient.providerName()
         log.info("Starting $providerName -> PF DB sync...")
 
         // --- Sync users ---
+        var stepStart = System.currentTimeMillis()
         val idpUsers = idpAdminClient.getAllUsers()
         val dbUsers = userService.selectAll(false)
 
@@ -255,8 +269,11 @@ open class IdpLoginHandler : LoginHandler {
         }
         log.info("$providerName user sync: $created created, $updated updated, $deactivated deactivated" +
                 (if (errors > 0) ", *** $errors errors ***" else ""))
+        run.addStep("users", System.currentTimeMillis() - stepStart,
+            SyncCounts(created, updated, deactivated, maxOf(0, idpUsers.size - created - updated - errors), errors))
 
         // --- Sync groups ---
+        stepStart = System.currentTimeMillis()
         val idpGroups = idpAdminClient.getAllGroups()
         val dbGroups = groupService.getAllGroups().toMutableList()
 
@@ -298,9 +315,11 @@ open class IdpLoginHandler : LoginHandler {
         }
         log.info("$providerName group sync: $gCreated created, $gUpdated updated" +
                 (if (gErrors > 0) ", *** $gErrors errors ***" else ""))
+        run.addStep("groups", System.currentTimeMillis() - stepStart,
+            SyncCounts(gCreated, gUpdated, 0, maxOf(0, idpGroups.size - gCreated - gUpdated - gErrors), gErrors))
 
         // --- Sync memberships ---
-        syncMemberships(idpUsers, idpIdToPfUser, idpIdToPfGroup)
+        run.step("memberships") { counts -> syncMemberships(idpUsers, idpIdToPfUser, idpIdToPfGroup, counts) }
 
         userGroupCache.setExpired()
         log.info("$providerName -> PF DB sync complete.")
@@ -309,7 +328,8 @@ open class IdpLoginHandler : LoginHandler {
     private fun syncMemberships(
         idpUsers: List<IdpUser>,
         idpIdToPfUser: Map<String, PFUserDO>,
-        idpIdToPfGroup: Map<String, GroupDO>
+        idpIdToPfGroup: Map<String, GroupDO>,
+        counts: SyncCounts,
     ) {
         if (idpIdToPfGroup.isEmpty()) return
         val groupToMembers = mutableMapOf<GroupDO, MutableSet<PFUserDO>>()
@@ -326,6 +346,7 @@ open class IdpLoginHandler : LoginHandler {
                 }
             } catch (ex: Exception) {
                 log.error("Error fetching groups for IdP user '${idpUser.username}' (continuing): ${ex.message}", ex)
+                counts.errors++
             }
         }
 
@@ -333,9 +354,11 @@ open class IdpLoginHandler : LoginHandler {
         groupToMembers.forEach { (pfGroup, members) ->
             try {
                 groupDao.setAssignedUsers(pfGroup, members)
+                counts.updated++
             } catch (ex: Exception) {
                 log.error("Error updating members for group '${pfGroup.name}' (continuing): ${ex.message}", ex)
                 mErrors++
+                counts.errors++
             }
         }
         if (mErrors > 0) {

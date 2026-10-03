@@ -24,6 +24,8 @@
 package org.projectforge.idp.keycloak
 
 import mu.KotlinLogging
+import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.idp.IdpAdminClient
 import org.projectforge.idp.model.IdpGroup
 import org.projectforge.idp.model.IdpUser
@@ -54,7 +56,8 @@ open class KeycloakAdminClient(
     private val tokenClient: KeycloakTokenClient
 ) : IdpAdminClient {
 
-    private val restTemplate = RestTemplate()
+    // Pooled client with timeouts (IntegrationConfig "idp"), created on first use after the configuration is read.
+    private val restTemplate by lazy { RestTemplate(PooledHttpClients.requestFactory(IntegrationConfig.IDP)) }
 
     private val adminBaseUrl: String
         get() = "${keycloakConfig.serverUrl}/admin/realms/${keycloakConfig.realm}"

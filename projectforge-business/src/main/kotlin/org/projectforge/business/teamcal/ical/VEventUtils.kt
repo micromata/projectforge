@@ -35,8 +35,10 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.io.StringReader
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
@@ -63,7 +65,9 @@ object VEventUtils {
             note = component.description?.orElse(null)?.value
             val startTemporal = component.getDateTimeStart<Temporal>()?.orElse(null)?.date
             val endTemporal = component.getDateTimeEnd<Temporal>()?.orElse(null)?.date
-            val dtTemporal = component.dateTimeStamp?.orElse(null)?.date
+            // Not via component.dateTimeStamp: DtStamp is typed as Instant, but relaxed parsing returns e.g.
+            // OffsetDateTime or ZonedDateTime, so the implicit cast would fail.
+            val dtTemporal = component.getProperty<DateProperty<Temporal>>(Property.DTSTAMP)?.orElse(null)?.date
             allDay = startTemporal is LocalDate
             startDate = temporalToUTCDate(startTemporal)
             endDate = temporalToUTCDate(endTemporal)
@@ -208,6 +212,10 @@ object VEventUtils {
             is LocalDate ->
                 // Assume start of day (00:00) in UTC
                 Date.from(temporal.atStartOfDay(ZoneOffset.UTC).toInstant())
+
+            is OffsetDateTime -> Date.from(temporal.toInstant())
+
+            is Instant -> Date.from(temporal)
 
             else -> null // Unknown type, return null
         }

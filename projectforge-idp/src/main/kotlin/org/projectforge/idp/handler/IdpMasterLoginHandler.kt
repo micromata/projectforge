@@ -25,7 +25,6 @@ package org.projectforge.idp.handler
 
 import arlut.csd.crypto.SmbEncrypt
 import mu.KotlinLogging
-import org.projectforge.common.logging.LogDuration
 import org.projectforge.business.ldap.LdapMasterLoginHandler
 import org.projectforge.business.ldap.LdapService
 import org.projectforge.business.ldap.LdapUserDao
@@ -34,6 +33,10 @@ import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.LoginResult
 import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.business.user.UserDao
+import org.projectforge.framework.integration.SingleRunExecutor
+import org.projectforge.framework.integration.SyncCounts
+import org.projectforge.framework.integration.SyncStats
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.idp.IdpAdminClient
@@ -89,8 +92,11 @@ open class IdpMasterLoginHandler : LoginHandler {
     @Autowired
     private lateinit var ldapUserDao: LdapUserDao
 
-    @Volatile
-    private var syncInProgress = false
+    // One thread for all syncs instead of a new thread per cache refresh. A refresh during a running sync isn't
+    // lost, but synced afterwards with the newest data.
+    private val syncExecutor = SingleRunExecutor("idp-master-sync")
+
+    private val syncStats = SyncStatsRegistry.get("idp-master")
 
     override fun initialize() {
         val providerName = idpAdminClient.providerName()
@@ -145,23 +151,16 @@ open class IdpMasterLoginHandler : LoginHandler {
     }
 
     override fun afterUserGroupCacheRefresh(users: Collection<PFUserDO>, groups: Collection<GroupDO>) {
-        if (syncInProgress) return
-        Thread {
-            synchronized(this) {
-                if (syncInProgress) return@synchronized
-                try {
-                    syncInProgress = true
-                    syncToIdp(users, groups)
-                    if (isLdapConfigured()) {
-                        ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
-                    }
-                } catch (ex: Exception) {
-                    log.error("IdP master sync failed: ${ex.message}", ex)
-                } finally {
-                    syncInProgress = false
+        syncExecutor.trigger {
+            try {
+                syncToIdp(users, groups)
+                if (isLdapConfigured()) {
+                    ldapMasterLoginHandler.afterUserGroupCacheRefresh(users, groups)
                 }
+            } catch (ex: Exception) {
+                log.error("IdP master sync failed: ${ex.message}", ex)
             }
-        }.start()
+        }
     }
 
     override fun getAllUsers(): List<PFUserDO> = loginDefaultHandler.getAllUsers()
@@ -216,11 +215,15 @@ open class IdpMasterLoginHandler : LoginHandler {
             log.debug("IdP not configured, skipping push sync.")
             return
         }
+        syncStats.execute(idpAdminClient.providerName()) { run -> syncToIdp(users, groups, run) }
+    }
+
+    private fun syncToIdp(users: Collection<PFUserDO>, groups: Collection<GroupDO>, run: SyncStats.Run) {
         val providerName = idpAdminClient.providerName()
-        val duration = LogDuration()
         log.info("Starting PF DB -> $providerName push sync...")
 
         // --- Sync users ---
+        var stepStart = System.currentTimeMillis()
         val idpUsers = idpAdminClient.getAllUsers()
         val idpUserByUsername = idpUsers.filter { it.username != null }.associateBy { it.username!! }
 
@@ -274,11 +277,13 @@ open class IdpMasterLoginHandler : LoginHandler {
             "$providerName user push: $uCreated created, $uUpdated updated, $uDisabled disabled, " +
             "$uUnmodified unmodified" + (if (uErrors > 0) ", *** $uErrors errors ***" else "")
         )
+        run.addStep("users", System.currentTimeMillis() - stepStart, SyncCounts(uCreated, uUpdated, uDisabled, uUnmodified, uErrors))
 
         // --- Migrate WLAN password hashes from LDAP to IdP (one-time migration) ---
         migrateWlanPasswordsFromLdap(users, idpUserByUsername, idpUserIdByUsername)
 
         // --- Sync groups ---
+        stepStart = System.currentTimeMillis()
         val idpGroups = idpAdminClient.getAllGroups()
         val idpGroupByName = idpGroups.filter { it.name != null }.associateBy { it.name!! }
         val idpGroupIdByName = mutableMapOf<String, String>()
@@ -324,11 +329,12 @@ open class IdpMasterLoginHandler : LoginHandler {
             "$providerName group push: $gCreated created, $gUpdated updated, $gUnmodified unmodified" +
             (if (gErrors > 0) ", *** $gErrors errors ***" else "")
         )
+        run.addStep("groups", System.currentTimeMillis() - stepStart, SyncCounts(gCreated, gUpdated, 0, gUnmodified, gErrors))
 
         // --- Sync memberships ---
-        syncMembershipsToIdp(groups, idpUserIdByUsername, idpGroupIdByName, idpGroupMemberIds)
-
-        log.info("PF DB -> $providerName push sync complete in ${duration.toSeconds()}.")
+        run.step("memberships") { counts ->
+            syncMembershipsToIdp(groups, idpUserIdByUsername, idpGroupIdByName, idpGroupMemberIds, counts)
+        }
     }
 
     private fun syncMembershipsToIdp(
@@ -336,6 +342,7 @@ open class IdpMasterLoginHandler : LoginHandler {
         idpUserIdByUsername: Map<String, String>,
         idpGroupIdByName: Map<String, String>,
         idpGroupMemberIds: Map<String, Set<String>>,
+        counts: SyncCounts,
     ) {
         val providerName = idpAdminClient.providerName()
         val usernameByIdpId = idpUserIdByUsername.entries.associate { (k, v) -> v to k }
@@ -387,6 +394,9 @@ open class IdpMasterLoginHandler : LoginHandler {
             "$providerName membership push: $added added, $removed removed" +
             (if (mErrors > 0) ", *** $mErrors errors ***" else "")
         )
+        counts.created = added
+        counts.deleted = removed
+        counts.errors = mErrors
     }
 
     private fun syncPasswordToIdp(user: PFUserDO, password: CharArray) {

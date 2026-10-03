@@ -42,6 +42,19 @@ class VEventUtilsTest {
         Assertions.assertEquals("Team Meeting", teamEvent.subject)
         Assertions.assertEquals("Discuss quarterly goals.", teamEvent.note)
         Assertions.assertEquals("Conference Room", teamEvent.location)
+        Assertions.assertEquals("2024-11-15T09:00:00Z", teamEvent.startDate.isoString())
+        Assertions.assertEquals("2024-11-15T10:00:00Z", teamEvent.endDate.isoString())
+        Assertions.assertEquals("2024-11-01T12:00:00Z", teamEvent.dtStamp.isoString())
+    }
+
+    @Test
+    fun `test parsing of ics with time zones`() {
+        val vEvent = VEventUtils.parseVEventFromIcs(testIcsWithTimeZone)
+        Assertions.assertNotNull(vEvent)
+        val teamEvent = VEventUtils.convertToEventDO(vEvent!!)
+        Assertions.assertEquals("2024-11-15T08:00:00Z", teamEvent.startDate.isoString())
+        Assertions.assertEquals("2024-11-15T09:00:00Z", teamEvent.endDate.isoString())
+        Assertions.assertEquals("2024-11-01T11:00:00Z", teamEvent.dtStamp.isoString())
     }
 
     @Test
@@ -69,8 +82,19 @@ class VEventUtilsTest {
     SUMMARY:Team Meeting
     DTSTART:20241115T090000Z
     DTEND:20241115T100000Z
+    DTSTAMP:20241101T120000Z
     LOCATION:Conference Room
     DESCRIPTION:Discuss quarterly goals.
+    END:VEVENT
+    """.trimIndent()
+
+    // Relaxed parsing accepts a DTSTAMP with TZID (seen in iCloud/Google subscriptions):
+    private val testIcsWithTimeZone = """
+    BEGIN:VEVENT
+    SUMMARY:Team Meeting
+    DTSTART;TZID=Europe/Berlin:20241115T090000
+    DTEND;TZID=Europe/Berlin:20241115T100000
+    DTSTAMP;TZID=Europe/Berlin:20241101T120000
     END:VEVENT
     """.trimIndent()
 

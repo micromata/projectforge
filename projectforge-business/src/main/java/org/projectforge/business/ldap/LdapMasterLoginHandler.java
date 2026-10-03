@@ -27,10 +27,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.integration.SingleRunExecutor;
+import org.projectforge.framework.integration.SyncCounts;
+import org.projectforge.framework.integration.SyncStats;
+import org.projectforge.framework.integration.SyncStatsRegistry;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import kotlin.Unit;
 
 import java.util.*;
 
@@ -59,7 +65,10 @@ import java.util.*;
 public class LdapMasterLoginHandler extends LdapLoginHandler {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapMasterLoginHandler.class);
 
-  private boolean refreshInProgress;
+  // One thread for all refreshes instead of a new thread per cache refresh:
+  private final SingleRunExecutor refreshExecutor = new SingleRunExecutor("ldap-master-sync");
+
+  private final SyncStats syncStats = SyncStatsRegistry.get("ldap-master");
 
   @Autowired
   private GroupDOConverter groupDOConverter;
@@ -137,33 +146,28 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
    */
   @Override
   public void afterUserGroupCacheRefresh(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
-    new Thread() {
-      @Override
-      public void run() {
-        synchronized (LdapMasterLoginHandler.this) {
-          try {
-            refreshInProgress = true;
-            updateLdap(users, groups);
-          } finally {
-            refreshInProgress = false;
-          }
-        }
-      }
-    }.start();
+    refreshExecutor.trigger(() -> {
+      syncStats.execute(null, run -> {
+        updateLdap(users, groups, run);
+        return null;
+      });
+      return Unit.INSTANCE;
+    });
   }
 
   /**
    * @return true if currently a cache refresh is running, otherwise false.
    */
   public boolean isRefreshInProgress() {
-    return refreshInProgress;
+    return refreshExecutor.getBusy();
   }
 
-  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups, final SyncStats.Run run) {
     new LdapTemplate(ldapConnector) {
       @Override
       protected Object call() throws Exception {
         log.info("Updating LDAP...");
+        long stepStart = System.currentTimeMillis();
         // First, get set of all ldap entries:
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
         final List<LdapUser> updatedLdapUsers = new ArrayList<>();
@@ -247,6 +251,8 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
             + " renamed, "
             + deleted
             + " deleted.");
+        run.addStep("users", System.currentTimeMillis() - stepStart, new SyncCounts(created, updated + renamed, deleted, unmodified, error));
+        stepStart = System.currentTimeMillis();
         // Now get all groups:
         final List<LdapGroup> ldapGroups = getAllLdapGroups(ctx);
         final Map<Long, LdapUser> ldapUserMap = getUserMap(updatedLdapUsers);
@@ -303,6 +309,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
             + " renamed, "
             + deleted
             + " deleted.");
+        run.addStep("groups", System.currentTimeMillis() - stepStart, new SyncCounts(created, updated + renamed, deleted, unmodified, error));
         log.info("LDAP update done.");
         return null;
       }

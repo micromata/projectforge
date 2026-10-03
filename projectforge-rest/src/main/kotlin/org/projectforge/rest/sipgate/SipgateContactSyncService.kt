@@ -31,6 +31,9 @@ import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.integration.IntegrationErrors
+import org.projectforge.framework.integration.SyncCounts
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
@@ -101,6 +104,16 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
         override fun toString(): String {
             return "total=$total, inserted=$inserted, updated=$updated, deleted=$deleted, failed=$failed, ignored=$ignored"
         }
+
+        internal fun toSyncCounts(): SyncCounts {
+            return SyncCounts(
+                created = inserted,
+                updated = updated,
+                deleted = deleted,
+                unchanged = maxOf(0, total - inserted - updated - deleted - failed),
+                errors = failed,
+            )
+        }
     }
 
     /**
@@ -141,6 +154,8 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     private lateinit var taskScheduler: TaskScheduler
 
     private var lastSyncInEpochMillis: Long? = null
+
+    private val syncStats = SyncStatsRegistry.get("sipgate")
 
     /**
      * Debouncing mechanism to prevent expensive sync operations on every address modification.
@@ -550,6 +565,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     fun sync(resetContacts: Boolean = false): SyncContext {
         log.info { "Syncing local addresses and remote Sipgate contacts..." }
         synchronized(this) {
+            val run = syncStats.startRun(if (resetContacts) "reset contacts" else null)
             try {
                 val syncContext = SyncContext()
                 syncContext.addressList =
@@ -709,8 +725,12 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 // Delete remote contacts (without numbers)?
                 lastSyncInEpochMillis = System.currentTimeMillis()
                 log.info { "Syncing of local addresses and remote Sipgate contacts finished: $syncContext" }
+                run.addStep("local", syncContext.localCounter.toSyncCounts())
+                run.addStep("remote", syncContext.remoteCounter.toSyncCounts())
+                run.finish()
                 return syncContext
             } catch (ex: Exception) {
+                run.abort(ex.message ?: ex.javaClass.simpleName, IntegrationErrors.isTimeout(ex))
                 log.error("Error during sync: ${ex.message}", ex)
                 throw ex
             }

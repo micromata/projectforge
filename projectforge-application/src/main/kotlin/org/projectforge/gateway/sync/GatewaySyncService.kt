@@ -233,23 +233,46 @@ class GatewaySyncService(
             }
         }
         if (fullSync && addresses.isNotEmpty() && errors == 0) {
-            val uids = addresses.map { it.uid }.toSet()
-            persistenceService.runInTransaction { context ->
-                context.em.createQuery("SELECT a FROM AddressDO a WHERE a.deleted = false", AddressDO::class.java)
-                    .resultList
-                    .filter { it.uid !in uids }
-                    .forEach {
-                        it.deleted = true
-                        it.lastUpdate = Date()
-                        deleted++
-                    }
-            }
+            deleted += markMissingAddressesAsDeleted(addresses.map { it.uid }.toSet())
         }
         log.info { "Address sync complete: created=$created, updated=$updated, deleted=$deleted, errors=$errors" }
         if (created + updated + deleted > 0) {
             expireAddressCaches()
         }
         return SyncResultDto(created = created, updated = updated, deleted = deleted, errors = errors)
+    }
+
+    /**
+     * End of a full sync sent in batches (each batch as delta): marks all addresses as deleted, which aren't
+     * part of [uids] (the not deleted addresses of the main instance).
+     */
+    fun retainAddresses(uids: List<String>): SyncResultDto {
+        if (uids.isEmpty()) {
+            // Protection: an empty address list of the main instance is most likely an error.
+            log.warn { "Empty uid list received, no addresses deleted." }
+            return SyncResultDto()
+        }
+        val deleted = markMissingAddressesAsDeleted(uids.toSet())
+        log.info { "Address retain complete: ${uids.size} addresses retained, deleted=$deleted" }
+        if (deleted > 0) {
+            expireAddressCaches()
+        }
+        return SyncResultDto(deleted = deleted)
+    }
+
+    private fun markMissingAddressesAsDeleted(uids: Set<String>): Int {
+        var deleted = 0
+        persistenceService.runInTransaction { context ->
+            context.em.createQuery("SELECT a FROM AddressDO a WHERE a.deleted = false", AddressDO::class.java)
+                .resultList
+                .filter { it.uid !in uids }
+                .forEach {
+                    it.deleted = true
+                    it.lastUpdate = Date()
+                    deleted++
+                }
+        }
+        return deleted
     }
 
     private fun syncAddressChunk(chunk: List<SyncAddressDto>): SyncResultDto {

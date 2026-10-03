@@ -41,6 +41,7 @@ import org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
 import org.projectforge.plugins.liquidityplanning.LiquidityEntryDao
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastBuilder
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastCashFlow
+import org.projectforge.plugins.liquidityplanning.LiquidityForecastExcelExport
 import org.projectforge.plugins.liquidityplanning.LiquidityForecastSettings
 import org.projectforge.plugins.liquidityplanning.LiquidityMaterializationService
 import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDO
@@ -323,8 +324,9 @@ class LiquidityEntityRest :
     }
 
     /**
-     * The filtered list as the Excel file Wicket's "Excel export" produces. The rows come through the same
-     * pipeline as the list itself ([getResultList]). An empty result answers 404 rather than a file.
+     * The filtered list as Excel file. The rows come through the same pipeline as the list itself
+     * ([getResultList]). An empty result answers 404 rather than a file. The forecast sheets are exported by
+     * [exportForecastAsExcel].
      */
     @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
@@ -375,10 +377,7 @@ class LiquidityEntityRest :
     @PostMapping("forecast")
     fun getForecast(@RequestBody request: ForecastRequest): ForecastResult {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
-        val baseDate = parseBaseDate(request.baseDate?.toString()) ?: LocalDate.now()
-        val startAmount = request.startAmount ?: BigDecimal.ZERO
-        val nextDays = (request.nextDays ?: LiquidityForecastSettings.DEFAULT_FORECAST_DAYS)
-            .coerceIn(1, LiquidityForecastSettings.MAX_FORECAST_DAYS)
+        val (baseDate, startAmount, nextDays) = forecastParams(request)
 
         // Remember the chosen parameters as a user preference, as the Wicket forecast page did, so the tab
         // reopens with the last-used values. The raw request values are stored (not the clamped/parsed ones)
@@ -416,6 +415,34 @@ class LiquidityEntityRest :
             nextDays = nextDays,
             points = points,
         )
+    }
+
+    /**
+     * The forecast of the forecast tab as Excel file (cash flow, all entries, debitor and creditor invoices,
+     * see [LiquidityForecastExcelExport]), for the parameters the tab is showing. The parameters are not
+     * stored again: [getForecast] has already done so for the very same values.
+     */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
+    @PostMapping("forecast/excel")
+    fun exportForecastAsExcel(@RequestBody request: ForecastRequest): ResponseEntity<*> {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        log.info("Exporting liquidity forecast as Excel file.")
+        val (baseDate, startAmount, nextDays) = forecastParams(request)
+        val forecast = liquidityForecastBuilder.build(baseDate, nextDays)
+        val cashFlow = LiquidityForecastCashFlow(forecast, nextDays)
+        val bytes = LiquidityForecastExcelExport.export(forecast, cashFlow, startAmount)
+        val filename = "ProjectForge-${translate("plugins.liquidityplanning.forecast")}" +
+            "_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+        return RestUtils.downloadFile(filename, bytes)
+    }
+
+    /** Base date (today unless a past one), start amount and clamped horizon of a [ForecastRequest]. */
+    private fun forecastParams(request: ForecastRequest): Triple<LocalDate, BigDecimal, Int> {
+        val baseDate = parseBaseDate(request.baseDate?.toString()) ?: LocalDate.now()
+        val startAmount = request.startAmount ?: BigDecimal.ZERO
+        val nextDays = (request.nextDays ?: LiquidityForecastSettings.DEFAULT_FORECAST_DAYS)
+            .coerceIn(1, LiquidityForecastSettings.MAX_FORECAST_DAYS)
+        return Triple(baseDate, startAmount, nextDays)
     }
 
     /**
