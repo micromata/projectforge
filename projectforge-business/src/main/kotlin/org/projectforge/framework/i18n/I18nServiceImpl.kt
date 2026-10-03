@@ -25,6 +25,7 @@ package org.projectforge.framework.i18n
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserLocale
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +50,8 @@ class I18nServiceImpl : I18nService {
     @PostConstruct
     fun init() {
         I18nHelper.setI18nService(this)
+        // Not only by WicketApplication: the gateway runs without Wicket, but its React UI needs the texts too.
+        I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME)
         // Auto-discover CustomerI18nResources if present (highest priority)
         registerCustomerBundleIfPresent()
         loadResourceBundles()
