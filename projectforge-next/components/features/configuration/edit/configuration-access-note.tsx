@@ -21,7 +21,7 @@ export function ConfigurationAccessNote() {
         {t("administration.configuration.editPage.hint")}{" "}
         {/* next/link prepends the app's basePath (/next) itself — see menu-url.ts. */}
         <Link
-          href={`/${data.editPage}`}
+          href={`/${data.editPage}?returnTo=/configuration`}
           className="font-medium text-primary underline underline-offset-2"
         >
           {t("administration.configuration.editPage.link")}

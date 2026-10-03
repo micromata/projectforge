@@ -1,15 +1,20 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
-import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
+import {
+  confirmLeaveUnsavedChanges,
+  useUnsavedChangesWarning,
+} from "@/hooks/use-unsaved-changes-warning";
 import { saveCustomerGroups } from "@/lib/rs/customer-groups";
 import { BusinessUnitList } from "./business-unit-list";
 import { GroupList } from "./group-list";
+import { UnassignedCustomers } from "./unassigned-customers";
 import { useLiveValidation } from "./use-live-validation";
 import {
   CUSTOMER_GROUPS_FIELDS,
@@ -18,6 +23,13 @@ import {
 } from "./schema";
 import type { CustomerGroupsData, CustomerGroupsValues } from "./types";
 import { EMPTY_VALUES, toFormValues, toPayload } from "./values";
+
+/**
+ * The pages leading here that cancelling returns to, named by the caller as `?returnTo=`: the
+ * configuration list (the parameter's row) and the customers. Only these are followed, so the url
+ * needs no sanitizing.
+ */
+const RETURN_ROUTES = ["/configuration", "/customer"];
 
 const save = (values: CustomerGroupsValues) =>
   saveCustomerGroups(toPayload(values));
@@ -30,6 +42,9 @@ const save = (values: CustomerGroupsValues) =>
 export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const requested = useSearchParams().get("returnTo");
+  const returnRoute = RETURN_ROUTES.find((route) => route === requested);
   const { form, isDirty, isSubmitting } = useEntityEditForm<
     CustomerGroupsValues,
     CustomerGroupsData
@@ -86,11 +101,21 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
               </h2>
               <BusinessUnitList />
             </section>
+            <UnassignedCustomers />
           </div>
         </div>
         <EntityEditActions
-          // Nothing to leave for: cancelling takes back the changes since loading or the last save.
-          onCancel={() => form.reset()}
+          // Back to the caller, asking first if there are changes. Opened from the menu there is
+          // nothing to leave for: cancelling takes back the changes since loading or the last save.
+          onCancel={() => {
+            if (!returnRoute) {
+              form.reset();
+              return;
+            }
+            void confirmLeaveUnsavedChanges().then((leave) => {
+              if (leave) router.push(returnRoute);
+            });
+          }}
           canSave
           isSaving={isSubmitting}
           isDirty={isDirty}
