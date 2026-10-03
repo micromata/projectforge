@@ -24,6 +24,8 @@
 package org.projectforge.idp.keycloak
 
 import mu.KotlinLogging
+import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.PooledHttpClients
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -43,7 +45,8 @@ private val log = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["projectforge.idp.provider"], havingValue = "keycloak", matchIfMissing = true)
 open class KeycloakTokenClient(private val keycloakConfig: KeycloakConfig) {
 
-    private val restTemplate = RestTemplate()
+    // Pooled client with timeouts (IntegrationConfig "idp"), created on first use after the configuration is read.
+    private val restTemplate by lazy { RestTemplate(PooledHttpClients.requestFactory(IntegrationConfig.IDP)) }
 
     @Volatile
     private var cachedToken: String? = null
