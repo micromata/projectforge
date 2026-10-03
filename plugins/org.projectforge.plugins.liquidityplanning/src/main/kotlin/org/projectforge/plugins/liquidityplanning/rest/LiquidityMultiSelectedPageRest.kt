@@ -229,6 +229,8 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
      */
     override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any? {
         selectedIds ?: return null
+        // The preview reads the series unchecked, so the list's read right is checked here.
+        liquidityEntryDao.hasLoggedInUserSelectAccess(true)
         val (realIds, virtualIds) = partitionIds(selectedIds)
         // The preview must not persist: virtual occurrences are built transiently, real ones are loaded.
         val entries = ArrayList<LiquidityEntryDO>()
@@ -242,6 +244,11 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
     /** Loads the selected real entries and materializes the selected virtual occurrences into real rows. */
     private fun resolveSelectedEntries(selectedIds: Collection<Serializable>): List<LiquidityEntryDO> {
         val (realIds, virtualIds) = partitionIds(selectedIds)
+        if (virtualIds.isNotEmpty()) {
+            // Materializing inserts unchecked (and before the checked update/delete that follows), so the
+            // write right is checked first.
+            liquidityEntryDao.hasLoggedInUserInsertAccess(null, true)
+        }
         val entries = ArrayList<LiquidityEntryDO>()
         if (realIds.isNotEmpty()) {
             liquidityEntryDao.select(realIds)?.let { entries.addAll(it) }

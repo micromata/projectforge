@@ -42,6 +42,7 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
@@ -192,6 +193,7 @@ class EmployeePagesRest :
      * Exports the employee list as an Excel file. The given [filter] is the currently active list filter, so the
      * exported rows match exactly the rows shown in the list view (e.g. "only active entries").
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting employees as Excel file.")

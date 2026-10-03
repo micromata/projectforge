@@ -54,6 +54,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
@@ -617,12 +618,25 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * stored ones for an order whose form the user has changed.
    *
    * Not a `saveOrUpdate` in disguise: nothing is written, so the read access has to be checked here.
+   *
+   * The invoiced sums are read from [org.projectforge.business.fibu.RechnungCache] by position id, and those
+   * ids come from the client. So only the ids of positions of the stored order (read-checked by `find`) are
+   * kept; any other id is dropped, otherwise the invoiced sums of foreign orders could be asked for.
    */
+  @AccessChecked("DAO: select access; position ids only of the stored order (find)")
   @PostMapping("recalculate")
   fun recalculate(@RequestBody postData: PostData<Auftrag>): OrderSums {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
     val order = AuftragDO()
     postData.data.copyTo(order)
+    val storedPositionIds = order.id?.let { id ->
+      baseDao.find(id)?.positionen?.mapNotNull { it.id }?.toSet()
+    } ?: emptySet()
+    order.positionen?.forEach { position ->
+      if (position.id != null && position.id !in storedPositionIds) {
+        position.id = null
+      }
+    }
     val info = Auftrag.calculateOrderInfo(order)
     val period = effectivePeriodOfPerformance(info)
     val cutoff = OrderInfo.invoiceCutoff()
@@ -744,6 +758,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * through [AuftragDao] and thereby checks the read access, while the `htmlExport(orderInfo)` overload
    * takes an already loaded order and checks nothing.
    */
+  @AccessChecked("DAO: AuftragDao.find")
   @GetMapping("forecastAnalysis/{id}")
   fun forecastAnalysis(@PathVariable("id") id: Long): String {
     return forecastOrderAnalysis.htmlExport(orderId = id)
@@ -753,6 +768,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * The same analysis as raw json, for comparing the forecast against the numbers of an export.
    * Development only, as in Wicket (`AuftragEditPage`, "Export as json (dev)").
    */
+  @AccessChecked("Dev mode only + DAO: baseDao.find")
   @GetMapping("forecastAnalysisJson/{id}")
   fun forecastAnalysisJson(@PathVariable("id") id: Long): ResponseEntity<*> {
     if (!SystemStatus.isDevelopmentMode()) {
@@ -769,12 +785,14 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * list's *other* criteria in [filter] match, as Excel's autofilter offers a column's values — with projects
    * chosen, only their customers. Without a filter, those of every order the user may see.
    */
+  @AccessChecked("DAO: select access (checklistFilter + getResultList)")
   @PostMapping("customerFilterValues")
   fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
     return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
   }
 
   /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+  @AccessChecked("DAO: select access (checklistFilter + getResultList)")
   @PostMapping("businessUnitFilterValues")
   fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
     return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
@@ -787,6 +805,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   }
 
   /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+  @AccessChecked("DAO: select access (checklistFilter + getResultList)")
   @PostMapping("projectFilterValues")
   fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
     return ProjectChecklistFilter.valuesOf(checklistOrders(filter, ProjectChecklistFilter.FIELD).map { it.projektId })
@@ -817,6 +836,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * goes through [AuftragDao.getAuftragsPosition], which queries the database directly and checks nothing,
    * so an order the user may not read would otherwise be named by its number here.
    */
+  @AccessChecked("DAO: select access, per order for direct position hits")
   @GetMapping("positionAutosearch")
   fun positionAutosearch(
     @RequestParam("search") search: String?,
@@ -902,6 +922,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * (`datatable.no-records-found`), and a downloaded file saying "nothing to export" looks like a
    * successful export in the download folder.
    */
+  @AccessChecked("DAO: select access (list result filtered by baseDao)")
   @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
   fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
     log.info("Exporting orders as Excel file.")
@@ -917,6 +938,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
   /**
    * Whether the logged-in user may use [refreshCache]: the order book offers the button to the finance staff only.
    */
+  @AccessChecked("Answers only the own FINANCE membership")
   @GetMapping("refreshCacheAccess")
   fun getRefreshCacheAccess(): RefreshCacheAccess {
     return RefreshCacheAccess(orderAccessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP))
@@ -929,6 +951,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    *
    * [AuftragsRechnungCache.forceReload] triggers the coupled reload of [AuftragsCache].
    */
+  @AccessChecked("FINANCE group")
   @PostMapping("refreshCache")
   fun refreshCache(): RefreshCacheResult {
     orderAccessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)
@@ -949,6 +972,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * next frontend asks for it: the start date is what the whole sheet is laid out around, so it is a
    * question of the export and not of the list. Storing the answer means it only has to be given once.
    */
+  @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess); own user pref")
   @GetMapping("forecastExportSettings")
   fun getForecastExportSettings(): ForecastExportSettings {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -969,6 +993,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * The settings are stored before the export runs: it is the answer the user gave, and it should be
    * preset next time whether or not there was anything to export.
    */
+  @AccessChecked("DAO: select access (list result filtered by baseDao); showAll only for FINANCE/CONTROLLING")
   @PostMapping("exportForecast")
   fun exportForecast(@RequestBody request: ForecastExportRequest): ResponseEntity<*> {
     log.info("Exporting forecast of orders as Excel file.")
@@ -1015,6 +1040,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * The parameters of the forecast charts tab of `/next/order`, remembered per user, as the liquidity
    * forecast tab does. Returns the defaults (begin of the current year, no plan) if never used.
    */
+  @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess); own user pref")
   @GetMapping("forecastChart/settings")
   fun getForecastChartSettings(): ForecastChartSettings {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -1033,6 +1059,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * The parameters are remembered for the next time. The months are empty if neither order positions
    * nor invoices were found.
    */
+  @AccessChecked("DAO: select access (list result filtered by baseDao)")
   @PostMapping("forecastChart")
   fun forecastChart(@RequestBody request: ForecastChartRequest): ForecastChartData {
     baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -1093,6 +1120,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * The start date of the contribution margin tab of `/next/order`, remembered per user. Returns the
    * default (begin of the current year) if never used.
    */
+  @AccessChecked("contributionMarginService.checkAccess (fibu, project manager/assistant)")
   @GetMapping("contributionMargin/settings")
   fun getContributionMarginSettings(): ContributionMarginSettings {
     contributionMarginService.checkAccess()
@@ -1111,6 +1139,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    * performance, the state criteria are left out. Project managers get only their own projects
    * ([ContributionMarginService.allowedProjectIds]). The start date is remembered for the next time.
    */
+  @AccessChecked("contributionMarginService.checkAccess + allowed projects + DAO select")
   @PostMapping("contributionMargin")
   fun contributionMargin(@RequestBody request: ContributionMarginRequest): ContributionMarginData {
     contributionMarginService.checkAccess()

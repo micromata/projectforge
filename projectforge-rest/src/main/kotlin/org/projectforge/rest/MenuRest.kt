@@ -31,6 +31,7 @@ import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.RecentMenuEntriesService
 import org.projectforge.menu.builder.*
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.my2fa.My2FASetupMenuBadge
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -110,6 +111,7 @@ class MenuRest {
    * Answers 204 even for a key that is no menu entry: the callers report and forget, and none of them
    * could act on an error.
    */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @PostMapping("recent")
   fun reportMenuUsage(@RequestBody usage: MenuUsage): ResponseEntity<Void> {
     recentMenuEntriesService.append(usage.key)

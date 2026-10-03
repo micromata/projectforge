@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -43,6 +44,7 @@ class UISettingsRest {
   @Autowired
   private lateinit var userPrefService: UserPrefService
 
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @GetMapping("theme")
   fun getTheme(): UIThemeSettings {
     return userPrefService.getEntry(PREF_AREA, PREF_NAME_THEME, UIThemeSettings::class.java)
@@ -50,6 +52,7 @@ class UISettingsRest {
       ?: UIThemeSettings(DEFAULT_THEME)
   }
 
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @PostMapping("theme")
   fun setTheme(@RequestBody settings: UIThemeSettings): ResponseEntity<UIThemeSettings> {
     val value = normalize(settings.theme)

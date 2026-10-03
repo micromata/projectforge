@@ -28,6 +28,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -84,6 +85,7 @@ class PluginAdminRest {
 
     class SetActivatedRequest(var id: String? = null, var activate: Boolean = false)
 
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
     @GetMapping
     fun getData(): PluginListData {
         checkAdminAccess()
@@ -102,6 +104,7 @@ class PluginAdminRest {
         return PluginListData(plugins = plugins, ensureActivePluginIds = ensureActiveIds)
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("setActivated")
     fun setActivated(@RequestBody request: SetActivatedRequest): MessageResponse {
         checkWriteAccess()

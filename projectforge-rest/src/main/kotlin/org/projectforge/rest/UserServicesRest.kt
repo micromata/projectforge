@@ -31,6 +31,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.SessionCsrfService
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.User
@@ -96,6 +97,7 @@ open class UserServicesRest {
    * in again. The session itself is left alone: the user is on their my-account page and didn't ask to be
    * thrown out of it.
    */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @PostMapping("logoutAllDevices")
   fun logoutAllDevices(
     request: HttpServletRequest,
@@ -118,6 +120,7 @@ open class UserServicesRest {
   /**
    * The same for another user, for admins only (user edit page).
    */
+  @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
   @PostMapping("logoutAllDevicesOfUser")
   fun logoutAllDevicesOfUser(
     @RequestParam("userId", required = true) userId: Long,

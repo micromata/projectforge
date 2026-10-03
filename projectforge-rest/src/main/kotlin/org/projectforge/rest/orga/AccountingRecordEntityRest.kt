@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Buchungssatz
 import org.projectforge.rest.dto.BwaStatistics
@@ -201,6 +202,7 @@ class AccountingRecordEntityRest :
      * reporting page. An absent storage / report (e.g. after a restart, or if the reporting UI was never opened)
      * yields an empty result — the same limitation the Wicket list has.
      */
+    @AccessChecked("FIBU_DATEV_IMPORT (checkDatevImportAccess); own session storage")
     @GetMapping("reportRecords")
     fun getReportRecords(
         @RequestParam("reportId") reportId: String?,

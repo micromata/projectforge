@@ -51,6 +51,7 @@ import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.InvoicingQuotaHistory
 import org.projectforge.rest.dto.InvoicingQuotaHistoryMonth
 import org.projectforge.rest.dto.MonthlyEmployeeReportCell
@@ -135,6 +136,7 @@ class MonthlyEmployeeReportRest {
      * @param showInvoicingQuota Whether the user wants to see the invoicing quota; defaults to the last choice
      * (off at first).
      */
+    @AccessChecked("Own user or access to timesheets of other users (resolveUser)")
     @GetMapping
     fun getReport(
         @RequestParam("userId", required = false) userId: Long?,
@@ -177,6 +179,7 @@ class MonthlyEmployeeReportRest {
     /**
      * The years that have time sheets for [userId] (defaults to the logged-in user), for the year dropdown.
      */
+    @AccessChecked("Own user or access to timesheets of other users (resolveUser)")
     @GetMapping("years")
     fun getYears(@RequestParam("userId", required = false) userId: Long?): List<Int> {
         val user = resolveUser(userId)
@@ -188,6 +191,7 @@ class MonthlyEmployeeReportRest {
      * chart tab. Each month is computed by the very report the monthly view uses, so the values match it.
      * Only for a user whose quota the logged-in user may see (see [InvoicingQuotaService.mayViewQuotaOf]).
      */
+    @AccessChecked("Own user or access to timesheets of other users (resolveUser) + mayViewQuotaOf")
     @GetMapping("invoicingQuotaHistory")
     fun getInvoicingQuotaHistory(
         @RequestParam("userId", required = false) userId: Long?,
@@ -219,6 +223,7 @@ class MonthlyEmployeeReportRest {
      * Renders the report as PDF, reusing the same Apache FOP stylesheet as the legacy page. The body mirrors
      * the report request; the PDF is streamed as a download named `Monatsbericht_<lastname>_<year>-<month>.pdf`.
      */
+    @AccessChecked("Own user or access to timesheets of other users (resolveUser)")
     @PostMapping("exportPdf")
     fun exportPdf(@RequestBody request: ExportRequest): ResponseEntity<Resource> {
         val user = resolveUser(request.userId)

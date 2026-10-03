@@ -31,6 +31,7 @@ import org.projectforge.business.login.LoginResultStatus
 import org.projectforge.login.LoginData
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestCsrfProtection
 import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.rest.pub.SystemStatusRest
@@ -72,6 +73,7 @@ open class LoginNextRest {
      * might be pre-logged-in with a pending second factor (e. g. after a browser reload during the 2FA step), or
      * might carry a valid stay-logged-in cookie.
      */
+    @AccessChecked("PUBLIC: login status; stay-logged-in only same-site")
     @GetMapping("status")
     fun getStatus(
         request: HttpServletRequest,
@@ -109,6 +111,7 @@ open class LoginNextRest {
         )
     }
 
+    @AccessChecked("PUBLIC: login, throttled by LoginProtection")
     @PostMapping
     fun login(
         request: HttpServletRequest,
@@ -144,6 +147,7 @@ open class LoginNextRest {
     /**
      * Cancels a pending 2FA (or logs the user out) and clears the stay-logged-in cookie.
      */
+    @AccessChecked("PUBLIC: logout of the own session")
     @GetMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         loginServiceRest.logout(request, response)

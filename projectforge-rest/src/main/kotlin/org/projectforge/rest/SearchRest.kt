@@ -36,6 +36,7 @@ import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.security.My2FARequestHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -103,6 +104,7 @@ class SearchRest {
    * The searchable areas the logged-in user may use, in [PRIORITY_AREAS] order first (addresses lead), then the
    * Registry order. Feeds the search page's scope panel and the "search more" (Weitersuchen) request.
    */
+  @AccessChecked("DAO: select access per area (whitelist) and per row")
   @GetMapping("areas")
   fun availableAreas(): List<SearchArea> {
     return accessibleAreas().map { entry ->
@@ -119,6 +121,7 @@ class SearchRest {
    * @param areas       Area ids to search; null/empty falls back to all accessible areas (MVP has no persisted scope yet).
    * @param maxPerArea  Hits per area before a [SearchAreaResult.hasMore] marker; the magnifier passes a small value.
    */
+  @AccessChecked("DAO: select access per area (whitelist) and per row")
   @GetMapping("query")
   fun query(
     @RequestParam("q") term: String,

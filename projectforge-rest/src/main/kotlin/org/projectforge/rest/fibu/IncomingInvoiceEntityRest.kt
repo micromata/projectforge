@@ -51,6 +51,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.Eingangsrechnung
 import org.projectforge.rest.dto.PostData
@@ -177,6 +178,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      *
      * Read only, so the select access of the category is what has to be checked here.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @GetMapping("formDefaults")
     fun getFormDefaults(): FormDefaults {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -204,6 +206,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * Read only, so the select access of the category is what is checked. A blank creditor or one with no
      * stored invoice answers null, and the form then leaves its fields as the user has them.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @GetMapping("newestByKreditor")
     fun getNewestByKreditor(@RequestParam("kreditor") kreditor: String?): KreditorAutofill? {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -234,6 +237,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * The sums of an invoice as they are right now in the form, computed on the posted state, not on the
      * stored one — see [OutgoingInvoiceEntityRest.recalculate] for why the client cannot do this itself.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @PostMapping("recalculate")
     fun recalculate(@RequestBody postData: PostData<Eingangsrechnung>): InvoiceSums {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -426,6 +430,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * [getResultList], i.e. through the same pipeline the list itself uses. An empty result answers 404
      * rather than a file. See [OutgoingInvoiceEntityRest.exportAsExcel].
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting incoming invoices as Excel file.")
@@ -472,6 +477,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * The same invoices with one row per cost assignment. Answers 404 where no cost ids are configured. See
      * [OutgoingInvoiceEntityRest.exportCostAssignmentsAsExcel].
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
     fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting cost assignments of incoming invoices as Excel file.")
@@ -500,6 +506,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
      * "Export bank transfers" button. A validation failure (missing IBAN/BIC/receiver/…) is returned as a
      * downloadable `error.txt` listing the missing fields, exactly as the multi-select export does.
      */
+    @AccessChecked("DAO: baseDao.find (select access)")
     @GetMapping("exportTransfer/{id}")
     fun exportTransfer(@PathVariable id: Long): ResponseEntity<*> {
         val invoice = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()

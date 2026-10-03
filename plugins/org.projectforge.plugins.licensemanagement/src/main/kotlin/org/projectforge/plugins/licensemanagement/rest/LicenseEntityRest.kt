@@ -38,6 +38,7 @@ import org.projectforge.plugins.licensemanagement.dto.License
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -146,12 +147,14 @@ class LicenseEntityRest : AbstractDTOEntityRest<LicenseDO, License, LicenseDao>(
     // ------------------------------------------------------------------------------------------
 
     /** The names of the stored files. */
+    @AccessChecked("DAO: checkFileAccess (find + license key visibility, update access for writes)")
     @GetMapping("$FILE_PATH/{id}")
     fun getFiles(@PathVariable("id") id: Long): LicenseFilesState {
         return LicenseFilesState(checkFileAccess(id, write = false))
     }
 
     /** Downloads the file of the given slot (1 or 2). */
+    @AccessChecked("DAO: checkFileAccess (find + license key visibility, update access for writes)")
     @GetMapping("$FILE_PATH/{id}/{slot}")
     fun downloadFile(@PathVariable("id") id: Long, @PathVariable("slot") slot: Int): ResponseEntity<*> {
         val license = checkFileAccess(id, write = false)
@@ -168,6 +171,7 @@ class LicenseEntityRest : AbstractDTOEntityRest<LicenseDO, License, LicenseDao>(
      * Stores the given file in the given slot (1 or 2), replacing the one that was there. A refusal (too
      * large) is answered as 400 with the translated text of [FileCheck].
      */
+    @AccessChecked("DAO: checkFileAccess (find + license key visibility, update access for writes)")
     @PostMapping("$FILE_PATH/{id}/{slot}")
     fun uploadFile(
         @PathVariable("id") id: Long,
@@ -197,6 +201,7 @@ class LicenseEntityRest : AbstractDTOEntityRest<LicenseDO, License, LicenseDao>(
     }
 
     /** Removes the file of the given slot (1 or 2); nothing to do where there is none. */
+    @AccessChecked("DAO: checkFileAccess (find + license key visibility, update access for writes)")
     @DeleteMapping("$FILE_PATH/{id}/{slot}")
     fun deleteFile(@PathVariable("id") id: Long, @PathVariable("slot") slot: Int): LicenseFilesState {
         checkSlot(slot)
@@ -214,6 +219,7 @@ class LicenseEntityRest : AbstractDTOEntityRest<LicenseDO, License, LicenseDao>(
     }
 
     /** Swaps the two files, as Wicket's swap button did. */
+    @AccessChecked("DAO: checkFileAccess (find + license key visibility, update access for writes)")
     @PostMapping("$FILE_PATH/{id}/swap")
     fun swapFiles(@PathVariable("id") id: Long): LicenseFilesState {
         val license = checkFileAccess(id, write = true)

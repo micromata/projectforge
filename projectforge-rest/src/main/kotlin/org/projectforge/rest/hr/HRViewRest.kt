@@ -34,6 +34,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.HRView
 import org.projectforge.rest.dto.HRViewCell
 import org.projectforge.rest.dto.HRViewColumn
@@ -78,6 +79,7 @@ class HRViewRest {
      * @param startDay ISO date, the first day of the period.
      * @param stopDay ISO date, the last day of the period. Defaults to the end of the start day's week.
      */
+    @AccessChecked("PM_HR_PLANNING right (READONLY/READWRITE) + DAO selects")
     @GetMapping
     fun getView(
         @RequestParam("startDay", required = false) startDay: String?,

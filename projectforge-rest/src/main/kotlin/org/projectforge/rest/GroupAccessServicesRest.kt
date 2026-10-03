@@ -23,8 +23,10 @@
 
 package org.projectforge.rest
 
+import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.GroupTaskAccess
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
@@ -53,22 +55,30 @@ class GroupAccessServicesRest {
     @Autowired
     private lateinit var groupAccessRest: GroupAccessEntityRest
 
+    @Autowired
+    private lateinit var accessDao: AccessDao
+
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("clear")
     fun clear(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
         apply(postData) { it.clear() }
 
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("guest")
     fun guest(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
         apply(postData) { it.guest() }
 
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("employee")
     fun employee(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
         apply(postData) { it.employee() }
 
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("leader")
     fun leader(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
         apply(postData) { it.leader() }
 
+    @AccessChecked("TASK_ACCESS_MANAGEMENT on the posted task (AccessDao insert/update access)")
     @PostMapping("administrator")
     fun administrator(@RequestBody postData: PostData<GroupTaskAccess>): ResponseAction =
         apply(postData) { it.administrator() }
@@ -77,14 +87,33 @@ class GroupAccessServicesRest {
      * Applies the given template to the posted entity and returns it recomputed, without touching the
      * database — the group, task, recursive flag and description the user already entered are preserved,
      * only the four access entries are overwritten by the template.
+     *
+     * Although nothing is written, the access of the save the template prepares is checked
+     * (`TASK_ACCESS_MANAGEMENT` on the task, see [AccessDao.hasAccess]): the answer resolves the group's
+     * name and the task's path, which must not be readable for arbitrary ids.
      */
     private fun apply(
         postData: PostData<GroupTaskAccess>,
         template: (GroupTaskAccessDO) -> Unit,
     ): ResponseAction {
         val obj = groupAccessRest.transformForDB(postData.data)
+        checkWriteAccess(obj)
         template(obj)
         val dto = groupAccessRest.transformFromDB(obj, true)
         return ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+    }
+
+    /**
+     * No task yet (a new entry, buttons pressed before picking one): there is no task path to answer and the
+     * permission depends on the task, so nothing is checked. Group names are offered by every group picker.
+     */
+    private fun checkWriteAccess(obj: GroupTaskAccessDO) {
+        obj.taskId ?: return
+        val dbObj = obj.id?.let { accessDao.find(it) }
+        if (dbObj != null) {
+            accessDao.hasLoggedInUserUpdateAccess(obj, dbObj, true)
+        } else {
+            accessDao.hasLoggedInUserInsertAccess(obj, true)
+        }
     }
 }

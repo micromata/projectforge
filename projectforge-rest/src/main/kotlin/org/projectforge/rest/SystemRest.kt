@@ -49,6 +49,7 @@ import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.jobs.ReindexJob
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -149,6 +150,7 @@ class SystemRest {
     /** The id of the started [ReindexJob], which the frontend polls (see JobsMonitorPageRest) for the progress. */
     class ReindexResponse(val jobId: Int)
 
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup)")
     @GetMapping
     fun getData(): SystemAdminData {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -167,6 +169,7 @@ class SystemRest {
     // Alert message (shown red on every page, not persisted).
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("setAlertMessage")
     fun setAlertMessage(@RequestBody request: AlertMessageRequest): MessageResponse {
         checkWriteAccess()
@@ -175,6 +178,7 @@ class SystemRest {
         return MessageResponse(translate("system.admin.alertMessage.setMessage"))
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("clearAlertMessage")
     fun clearAlertMessage(): MessageResponse {
         checkWriteAccess()
@@ -187,6 +191,7 @@ class SystemRest {
     // Caches / configuration.
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("refreshCaches")
     fun refreshCaches(): MessageResponse {
         checkWriteAccess()
@@ -195,6 +200,7 @@ class SystemRest {
         return MessageResponse(translateMsg("administration.refreshCachesDone", refreshedCaches))
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("rereadConfiguration")
     fun rereadConfiguration(): MessageResponse {
         checkWriteAccess()
@@ -203,6 +209,7 @@ class SystemRest {
         return MessageResponse(translateMsg("administration.rereadConfiguration", result ?: ""))
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("exportConfiguration")
     fun exportConfiguration(): ResponseEntity<*> {
         checkWriteAccess()
@@ -211,6 +218,7 @@ class SystemRest {
         return RestUtils.downloadFile(filename, systemService.exportConfiguration() ?: "")
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("export2FAConfiguration")
     fun export2FAConfiguration(): ResponseEntity<*> {
         checkWriteAccess()
@@ -226,6 +234,7 @@ class SystemRest {
     // Checks.
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("checkSystemIntegrity")
     fun checkSystemIntegrity(): ResponseEntity<*> {
         checkWriteAccess()
@@ -238,6 +247,7 @@ class SystemRest {
     // Database actions.
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("createMissingIndices")
     fun createMissingIndices(): MessageResponse {
         checkWriteAccess()
@@ -246,6 +256,7 @@ class SystemRest {
         return MessageResponse(translateMsg("administration.missingDatabaseIndicesCreated", counter.toString()))
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("exportSchema")
     fun exportSchema(): ResponseEntity<*> {
         checkWriteAccess()
@@ -254,6 +265,7 @@ class SystemRest {
         return RestUtils.downloadFile(filename, systemService.exportSchema() ?: "")
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("optimizeAddressImages")
     fun optimizeAddressImages(): ResponseEntity<*> {
         checkWriteAccess()
@@ -262,6 +274,7 @@ class SystemRest {
         return RestUtils.downloadFile(filename, addressImageDao.shrinkAllImagesAndRebuildPreviews())
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("resetIdpPasswordSync")
     fun resetIdpPasswordSync(): MessageResponse {
         checkWriteAccess()
@@ -274,6 +287,7 @@ class SystemRest {
     // Reindex (through the background-job infrastructure, so the frontend can show a progress bar).
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("reindex")
     fun reindex(@RequestBody request: ReindexRequest): ReindexResponse {
         checkWriteAccess()
@@ -296,6 +310,7 @@ class SystemRest {
     // Development tools.
     // ------------------------------------------------------------------------------------------
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("checkI18nProperties")
     fun checkI18nProperties(): ResponseEntity<*> {
         checkWriteAccess()
@@ -307,6 +322,7 @@ class SystemRest {
         return RestUtils.downloadFile(excelFile.filename, excelFile.bytes)
     }
 
+    @AccessChecked("Admin group + not restricted/demo (checkWriteAccess)")
     @GetMapping("debugUserGroupCache")
     fun debugUserGroupCache(): ResponseEntity<*> {
         checkWriteAccess()
@@ -315,6 +331,7 @@ class SystemRest {
         return RestUtils.downloadFile(filename, userGroupCache.internalGetStateAsJson())
     }
 
+    @AccessChecked("Dev mode only + Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("testDatabase")
     fun testDatabase(): MessageResponse {
         checkDevelopmentMode()
@@ -324,6 +341,7 @@ class SystemRest {
         return MessageResponse(translate("system.admin.development.databaseTestStarted"))
     }
 
+    @AccessChecked("Dev mode only + Admin group + not restricted/demo (checkWriteAccess)")
     @PostMapping("createTestBooks")
     fun createTestBooks(): MessageResponse {
         checkDevelopmentMode()
