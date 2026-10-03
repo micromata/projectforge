@@ -10,6 +10,7 @@ import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import { saveCustomerGroups } from "@/lib/rs/customer-groups";
 import { BusinessUnitList } from "./business-unit-list";
 import { GroupList } from "./group-list";
+import { UnassignedCustomers } from "./unassigned-customers";
 import { useLiveValidation } from "./use-live-validation";
 import {
   CUSTOMER_GROUPS_FIELDS,
@@ -86,6 +87,7 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
               </h2>
               <BusinessUnitList />
             </section>
+            <UnassignedCustomers />
           </div>
         </div>
         <EntityEditActions

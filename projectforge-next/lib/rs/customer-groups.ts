@@ -58,3 +58,35 @@ export function validateCustomerGroups(
     signal
   );
 }
+
+/** Mirror of `CustomerGroupService.UnassignedEntry`. */
+export interface UnassignedEntry {
+  /** The group's name, the customer as "number name", or the free text. */
+  name: string;
+  kind: "GROUP" | "CUSTOMER" | "FREE_TEXT";
+  /** The year of the latest order or invoice (a group: of any of its members). */
+  year: number;
+}
+
+/**
+ * Mirror of `CustomerGroupService.Unassigned`: sorted by year (most recent first), then by name. Spring omits
+ * an empty list (`NON_NULL`).
+ */
+export interface UnassignedCustomers {
+  entries?: UnassignedEntry[];
+}
+
+/**
+ * What the unsaved configuration leaves without a business unit: only customers and free texts of the
+ * last five years' orders and invoices count. Nothing is stored.
+ */
+export function fetchUnassignedCustomers(
+  values: CustomerGroupsValues,
+  signal?: AbortSignal
+): Promise<UnassignedCustomers> {
+  return request<UnassignedCustomers>(
+    "/rs/customerGroups/unassigned",
+    { method: "POST", body: JSON.stringify(values) },
+    signal
+  );
+}

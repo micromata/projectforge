@@ -52,7 +52,8 @@ export interface ConfigurationDetail {
   booleanValue?: boolean | null;
   /**
    * Route of the page the parameter is maintained on, if it has one of its own (the customer groups):
-   * shown read-only here and linked there (ConfigurationParam.getEditPage).
+   * a row opens it directly, and it is shown read-only here and linked there (ConfigurationParam.getEditPage).
+   * Only sent to the parameter's editors; anyone else could not open it.
    */
   editPage?: string | null;
   /** False where the user may only look (EntityAccessSupport, see lib/rs/entity-access.ts). */

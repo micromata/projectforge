@@ -33,6 +33,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Configuration
@@ -64,6 +65,13 @@ class ConfigurationEntityRest :
     override fun transformFromDB(obj: ConfigurationDO, editMode: Boolean): Configuration {
         val dto = Configuration()
         dto.copyFrom(obj)
+        // The page of its own is offered only to the parameter's editors: the list opens it directly, and
+        // anyone else (an admin) would only be refused there - they get the read-only view instead.
+        val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
+        val user = ThreadLocalUserContext.loggedInUser
+        if (param == null || user == null || !baseDao.isEditor(user, param)) {
+            dto.editPage = null
+        }
         return dto
     }
 

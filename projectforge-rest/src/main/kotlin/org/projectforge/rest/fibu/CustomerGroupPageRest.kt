@@ -136,6 +136,16 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         return customerGroupService.matches(request.texts)
     }
 
+    /**
+     * What the given unsaved configuration leaves without a business unit, shown below the business units and
+     * updated while editing.
+     */
+    @PostMapping("unassigned")
+    fun unassigned(@RequestBody data: CustomerGroupsData): CustomerGroupService.Unassigned {
+        checkAccess()
+        return customerGroupService.unassigned(toConfig(data))
+    }
+
     private fun checkAccess() {
         accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
     }
