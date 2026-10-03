@@ -27,6 +27,8 @@ package org.projectforge.ui.filter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.ui.UILabelledElement
+import java.text.Collator
+import java.util.Locale
 
 class AddLeadingTest {
     @Test
@@ -35,6 +37,7 @@ class AddLeadingTest {
             UIFilterElement("deleted", label = "Gelöscht"),
             UIFilterElement("status", label = "Status"),
             UIFilterElement("amount", label = "Betrag"),
+            UIFilterElement("unlabelled"),
         )
         elements.addLeading(
             UIFilterListElement("businessUnit", label = "Business Unit"),
@@ -42,9 +45,12 @@ class AddLeadingTest {
             UIFilterListElement("customer", label = "Kunde"),
             UIFilterListElement("project", label = "Projekt"),
         )
-        LayoutListFilterUtils.sortElements(elements, compareBy { it as String? })
+        // A collator, as in production: it takes no null, neither for a leading field nor a missing label.
+        @Suppress("UNCHECKED_CAST")
+        val collator = Collator.getInstance(Locale.GERMAN) as Comparator<Any?>
+        LayoutListFilterUtils.sortElements(elements, collator)
         assertEquals(
-            listOf("businessUnit", "customer", "project", "amount", "deleted", "status"),
+            listOf("businessUnit", "customer", "project", "unlabelled", "amount", "deleted", "status"),
             elements.map { (it as UIFilterElement).id },
         )
     }

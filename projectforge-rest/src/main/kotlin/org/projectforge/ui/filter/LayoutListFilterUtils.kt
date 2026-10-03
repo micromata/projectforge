@@ -143,7 +143,11 @@ object LayoutListFilterUtils {
     internal fun sortElements(elements: MutableList<UILabelledElement>, comparator: Comparator<Any?>) {
         elements.sortWith(
             compareBy<UILabelledElement> { (it as? UIFilterElement)?.leading != true }
-                .thenBy(comparator) { if ((it as? UIFilterElement)?.leading == true) null else it.label }
+                .thenComparator { a, b ->
+                    // Leading fields keep their order; the others by label (the collator takes no null).
+                    if ((a as? UIFilterElement)?.leading == true) 0
+                    else comparator.compare(a.label ?: "", b.label ?: "")
+                }
         )
     }
 
