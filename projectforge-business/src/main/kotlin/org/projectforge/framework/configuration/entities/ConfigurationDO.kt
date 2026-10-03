@@ -354,7 +354,7 @@ open class ConfigurationDO : DefaultBaseDO {
          * the cost menu). Must list all [ConfigurationType] values, see ConfigurationDOKnownTypesTest.
          */
         const val KNOWN_TYPES_RESTRICTION =
-            "configurationtype in ('STRING', 'TEXT', 'LONG', 'INTEGER', 'FLOAT', 'BOOLEAN', 'PERCENT', 'TASK', 'TIME_ZONE', 'CALENDAR')"
+            "configurationtype in ('STRING', 'TEXT', 'LONG', 'INTEGER', 'FLOAT', 'BOOLEAN', 'PERCENT', 'TASK', 'TIME_ZONE', 'CALENDAR', 'JSON')"
 
         fun getParamLength(): Int {
             return PARAM_LENGTH
