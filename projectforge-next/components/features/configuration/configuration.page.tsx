@@ -107,6 +107,9 @@ export const CONFIGURATION_PAGE = definePage<
       ),
     },
   ],
+  // A parameter maintained on a page of its own (the customer groups) opens that page directly; the
+  // backend names it only to the parameter's editors, so everyone else gets the read-only edit page.
+  onRowClick: (row) => (row.editPage ? `/${row.editPage}` : undefined),
   // No massUpdate and no listActions: the parameter set is fixed and each parameter is edited on its own.
   edit: {
     schema: configurationSchema,

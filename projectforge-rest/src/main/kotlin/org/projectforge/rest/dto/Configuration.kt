@@ -84,7 +84,8 @@ class Configuration(
     var booleanValue: Boolean? = null,
     /**
      * The route of the page this parameter is maintained on, if it has one of its own
-     * ([ConfigurationParam.getEditPage]): the configuration page then shows it read-only and links there.
+     * ([ConfigurationParam.getEditPage]): the configuration page then shows it read-only and links there. The list
+     * opens it directly. `ConfigurationEntityRest` clears it for users who aren't the parameter's editors.
      */
     var editPage: String? = null,
     override var writeAccess: Boolean? = null,
