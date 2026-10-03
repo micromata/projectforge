@@ -25,6 +25,7 @@ export const HAND_BUILT_CATEGORIES = [
   "cost2Type",
   "customer",
   "employeeSalary",
+  "gantt",
   "group",
   "hrPlanning",
   "hrPlanningEntry",

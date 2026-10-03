@@ -81,7 +81,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
-    GANTT("menu.gantt", "wa/ganttList"), //
+    GANTT("menu.gantt", getListUrl("gantt")), //
     // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
@@ -114,7 +114,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
-    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
+    // Migrated to projectforge-next (ReportObjectivesPageRest); the Wicket page (wa/reportObjectives) was removed.
+    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "next/reportObjectives"), //
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //

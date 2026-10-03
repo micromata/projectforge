@@ -54,6 +54,12 @@ export interface SelectFieldProps extends BaseFieldProps {
   valueType?: "string" | "number" | "boolean" | "entityRef";
   /** Shown but not changeable — a value this user may read and not set (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * The entity has no metadata for this field, and cannot have any: a choice serialized into a settings
+   * blob of the entity (a Gantt chart's access) is no `@PropertyInfo` field of its DO (see
+   * [useFieldMetadata]).
+   */
+  metadataLess?: boolean;
 }
 
 export function SelectField({
@@ -66,12 +72,13 @@ export function SelectField({
   emphasized,
   valueType = "string",
   disabled,
+  metadataLess,
 }: SelectFieldProps) {
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
   const tCommon = useTranslations();
-  const { required } = useFieldMetadata(name);
+  const { required } = useFieldMetadata(name, metadataLess);
   // Never on a field the user may not change: clearing it is a change like any other.
   const canClear = !disabled && (clearable ?? !required);
   return (

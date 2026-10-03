@@ -147,6 +147,10 @@ class OrphanedLinkFilter : Filter {
                 }
                 val target = if (id != null) {
                     link.nextEditUrl.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                } else if (link.legacyApp == NextMigration.LegacyApp.WICKET && !request.queryString.isNullOrBlank()) {
+                    // The presets of a Wicket add page travel as parameters (e.g. wa/ganttEdit?task=42 of the
+                    // task page) and mean the same on the next new-entry page (newEntryParams).
+                    "${link.nextNewEntryUrl}?${request.queryString}"
                 } else {
                     link.nextNewEntryUrl
                 }

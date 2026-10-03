@@ -71,7 +71,7 @@ public class AccountingRecordListPage
     /**
      * Gets the page parameters for calling the list page only for displaying accounting records of the given report.
      *
-     * @param reportId The id of the report of the ReportStorage of ReportObjectivesPage.
+     * @param reportId The id of the report of the ReportStorage of the report objectives page (next).
      */
     public static PageParameters getPageParameters(final String reportId) {
         return getPageParameters(reportId, null);
@@ -80,7 +80,7 @@ public class AccountingRecordListPage
     /**
      * Gets the page parameters for calling the list page only for displaying accounting records of the given report.
      *
-     * @param reportId The id of the report of the ReportStorage of ReportObjectivesPage.
+     * @param reportId The id of the report of the ReportStorage of the report objectives page (next).
      */
     public static PageParameters getPageParameters(final String reportId, final String businessAssessmentRowNo) {
         final PageParameters params = new PageParameters();
@@ -273,7 +273,7 @@ public class AccountingRecordListPage
     protected List<BuchungssatzDO> buildList() {
         List<BuchungssatzDO> list = null;
         if (StringUtils.isNotEmpty(reportId) == true) {
-            final ReportStorage reportStorage = (ReportStorage) getUserPrefEntry(ReportObjectivesPage.KEY_REPORT_STORAGE);
+            final ReportStorage reportStorage = (ReportStorage) getUserPrefEntry(ReportStorage.USER_PREF_KEY);
             if (reportStorage != null) {
                 report = reportStorage.findById(this.reportId);
                 if (report != null) {

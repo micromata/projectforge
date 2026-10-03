@@ -11,6 +11,7 @@
       "denied": "not granted",
       "granted": "granted"
     },
+    "read": "Read access",
     "recursive": {
       "help": "Recursive includes all structure sub elements."
     },
@@ -40,7 +41,8 @@
       "timesheets": "Time sheets",
       "undelete": "Undelete",
       "update": "Update"
-    }
+    },
+    "write": "Write access"
   },
   "add": "Add",
   "address": {
@@ -572,6 +574,7 @@
     "title": "An error has occurred."
   },
   "expand": "Expand",
+  "export": "Export",
   "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",
   "favorite": {
@@ -1130,6 +1133,30 @@
         "kost2NotOfProject": "This cost unit doesn't belong to the project or customer of the invoice."
       },
       "kostentraeger": "Cost unit ids",
+      "reporting": {
+        "_": "Reporting",
+        "clearStorage": "Clear",
+        "createReport": "Create report",
+        "file": "Report objectives file",
+        "help": {
+          "attributes": "**Attributes:** `id` names the report (shown as column head and in the path), `title` describes it. Without `suppressOther=\"true\"` the accounting records of a report that match none of its children are shown as additional column `<id> - Other`; without `suppressDuplicates=\"true\"` the records matching more than one child are shown as column `<id> - Duplicates`. Both columns help to check that the children are complete and free of overlaps.",
+          "drilldown": "**Drill-down:** A column head shown as link opens the report of this child objective with its own children as columns; the path above the table leads back. The amounts and the icon next to a column head open the accounting records behind it (requires the right for the DATEV import).",
+          "example": "```xml\n<ReportObjective title=\"Customer ACME\" id=\"ACME\" suppressOther=\"true\" suppressDuplicates=\"true\">\n  <kost1-include>3.*</kost1-include>\n  <kost1-exclude>*.01</kost1-exclude>\n  <kost2-include>5.*</kost2-include>\n  <kost2-exclude>*.02</kost2-exclude>\n  <ReportObjective title=\"Project ACME-WEB-Portal\" id=\"ACME-WEB-Portal\">\n    <kost2-include>5.020.01.*</kost2-include>\n  </ReportObjective>\n  <ReportObjective title=\"Project ACME-Java-Migration\" id=\"ACME-Java-Migration\">\n    <kost2-include>5.020.02.*</kost2-include>\n  </ReportObjective>\n</ReportObjective>\n```",
+          "intro": "A report objective is an XML file describing a tree of reports. Each report selects accounting records by their cost 1 and cost 2 units; nested report objectives refine the selection of their parent.",
+          "rules": "**Selection rules:**\n- An empty include list matches all records.\n- A non-empty include list requires at least one of its entries to match.\n- With several include lists (cost 1 and cost 2) a record must match all of them.\n- A record matching any entry of an exclude list is excluded.\n- A nested report objective can only select records of its parent (always a subset).",
+          "storage": "The uploaded report objectives are kept in memory until logout or server restart. Use \"Clear\" to load other ones.",
+          "title": "Format of the report objectives",
+          "wildcards": "**Expressions:** The entries are Java regular expressions (`java.util.regex.Pattern`) matched against the formatted cost unit (e.g. `5.020.01.03`). For convenience every `.` is escaped and `*` stands for any characters: `3.*` matches everything starting with \"3.\", `*.02` everything ending with \".02\". An expression starting with an apostrophe is used as it is (without the apostrophe), e.g. `'^5\\.510.*`."
+        },
+        "intro": "Evaluates the accounting records by report objectives: upload a report objectives file (XML) or paste its content, choose the period and create the report. The result is a business assessment (BWA) of the report and of each of its child reports side by side.",
+        "notLoaded": "Choose the period and create the report.",
+        "pasteApply": "Apply XML",
+        "pasteLabel": "…or paste the XML here",
+        "pasted": "pasted XML",
+        "showAllRows": "Show all rows",
+        "showRecords": "Show accounting records",
+        "upload": "Upload of report objectives"
+      },
       "status": {
         "active": "active",
         "ended": "ended",
@@ -1687,28 +1714,81 @@
   "firstName": "First name",
   "forceDelete": "Irrevocable deletion",
   "gantt": {
+    "access": {
+      "all": "All",
+      "owner": "Owner",
+      "projectmanager": "Project manager"
+    },
+    "action": {
+      "move": "Move here (sub activity)",
+      "moveToTop": "Move to top",
+      "newActivity": "New activity"
+    },
+    "contextMenu": {
+      "newSubActivity": "New sub activity",
+      "saveAsTask": "Save as ProjectForge structure element",
+      "setInvisible": "Make invisible",
+      "setSubTasksVisible": "Visible incl. structure sub elements"
+    },
     "duration": "Duration",
     "endDate": "End date",
+    "error": {
+      "parentObjectIsNotAPFTask": "The parent Gantt object has to be a ProjectForge structure element!"
+    },
+    "export": {
+      "jpg": "JPG (not recommended)",
+      "msproject": {
+        "mpx": "Microsoft® Project (MPX)",
+        "xml": "Microsoft® Project (XML)"
+      },
+      "pdf": "PDF",
+      "png": "PNG",
+      "projectforge": "ProjectForge (XML)",
+      "svg": "SVG"
+    },
     "name": "Name",
     "objectType": {
       "_": "Gantt type",
       "activity": "Activity (Standard)",
       "milestone": "Milestone",
+      "short": "Type",
       "summary": "Summary"
     },
     "owner": "Owner",
     "predecessor": "Predecessor",
     "predecessorOffset": "Offset",
+    "question": {
+      "moveTask": "Do you really want to move the related ProjectForge structure element?",
+      "saveGanttObjectAsTask": "Should this Gantt object really be saved as new ProjectForge structure element?"
+    },
     "relationType": {
       "_": "Relation type",
       "finish_finish": "finish-finish",
       "finish_start": "finish-start (default)",
+      "short": "Rel.",
       "start_finish": "start-finish",
       "start_start": "start-start"
     },
+    "settings": {
+      "showOnlyVisibles": "only visibles",
+      "totalLabelWidth": "Total label width",
+      "width": "Width"
+    },
     "startDate": "Start date",
+    "style": {
+      "relativeTimeValues": "time values",
+      "showCompletion": "completion",
+      "showToday": "Show today line"
+    },
     "title": {
-      "add": "Create Gantt diagram"
+      "add": "Create Gantt diagram",
+      "heading": "Gantt diagrams",
+      "list": "Gantt diagrams"
+    },
+    "tooltip": {
+      "isVisible": "Should this item be displayed?",
+      "rejectValue": "Reject this value and take over the value of the structure element: ''{arg0}''.",
+      "saveTaskValue": "Save this value to the structure element."
     }
   },
   "gender": {
@@ -1912,6 +1992,7 @@
   },
   "label": {
     "historyOfChanges": "History of changes",
+    "options": "Options",
     "position": {
       "short": "Pos"
     },
@@ -2032,6 +2113,7 @@
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
     "title": "Login"
   },
+  "mark": "Mark",
   "markAsDeleted": "Delete",
   "massUpdate": {
     "button": "Mass update",
@@ -2259,6 +2341,7 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "paste": "Paste",
   "percent": "Percent",
   "percentage": "Percentage",
   "personal": {
@@ -2657,6 +2740,7 @@
     "state": "State",
     "title": "Title"
   },
+  "preview": "Preview",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -3188,6 +3272,7 @@
       "link": "Link to howto of lucene queries."
     },
     "selectMe": "You are great!",
+    "selectTask": "Select structure element",
     "shortcut": {
       "addEntry": {
         "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
@@ -3201,9 +3286,11 @@
         "_": "Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).",
         "title": "Keyboard shortcut Return"
       }
-    }
+    },
+    "unselectTask": "Unselect structure element"
   },
   "undelete": "Undelete",
+  "untitled": "untitled",
   "update": "Update",
   "uptodate": "up-to-date",
   "user": {

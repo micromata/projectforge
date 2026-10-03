@@ -219,10 +219,9 @@ export const TASK_PAGE = definePage<
         prominent: true,
       },
       {
-        // `gantt` is the basename the Gantt pages are mounted under, so the edit page is `ganttEdit`
-        // (see WebRegistry.addMountPages) — and its parameter is `task`, not `taskId`.
+        // The new-entry page of the Gantt chart takes the task as its `task` preset (newEntryParams).
         labelKey: "gantt.title.add",
-        href: (task) => `wa/ganttEdit?task=${task.id}`,
+        href: (task) => `next/gantt/new?task=${task.id}`,
       },
       {
         labelKey: "task.menu.showAccessRights",

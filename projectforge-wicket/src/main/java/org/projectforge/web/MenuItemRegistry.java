@@ -94,7 +94,6 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
         register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
         register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
-        register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
         register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
         // DATEV_IMPORT migrated to projectforge-next (next/datev-import, DatevRecordImportRest/DatevAccountImportRest);
         // the Wicket page DatevImportPage stays mounted (wa/datevImport) as legacy version.

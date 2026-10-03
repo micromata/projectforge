@@ -11,6 +11,7 @@
       "denied": "nicht erlaubt",
       "granted": "erlaubt"
     },
+    "read": "Lesezugriff",
     "recursive": {
       "help": "Rekursiv gilt auch für alle Strukturunterelemente."
     },
@@ -40,7 +41,8 @@
       "timesheets": "Zeitberichte",
       "undelete": "Wiederherstellen",
       "update": "Ändern"
-    }
+    },
+    "write": "Schreibzugriff"
   },
   "add": "Hinzufügen",
   "address": {
@@ -572,6 +574,7 @@
     "title": "Ein Fehler ist aufgetreten."
   },
   "expand": "Aufklappen",
+  "export": "Export",
   "exportAsPdf": "Pdf-Export",
   "exportAsXls": "Excel-Export",
   "favorite": {
@@ -1130,6 +1133,30 @@
         "kost2NotOfProject": "Dieser Kostenträger gehört nicht zum Projekt bzw. Kunden der Rechnung."
       },
       "kostentraeger": "Kostenträger",
+      "reporting": {
+        "_": "Reporting",
+        "clearStorage": "Leeren",
+        "createReport": "Report erstellen",
+        "file": "Report-Objectives-Datei",
+        "help": {
+          "attributes": "**Attribute:** `id` benennt den Report (als Spaltenkopf und im Pfad), `title` beschreibt ihn. Ohne `suppressOther=\"true\"` werden die Buchungssätze eines Reports, die zu keinem seiner Kinder passen, als zusätzliche Spalte `<id> - Sonstige` ausgewiesen; ohne `suppressDuplicates=\"true\"` die Buchungssätze, die zu mehreren Kindern passen, als Spalte `<id> - Dubletten`. Beide Spalten helfen zu prüfen, ob die Kinder vollständig und überschneidungsfrei sind.",
+          "drilldown": "**Drilldown:** Ein als Link dargestellter Spaltenkopf öffnet den Report dieses Kind-Objectives mit dessen Kindern als Spalten; der Pfad über der Tabelle führt zurück. Die Beträge und das Symbol am Spaltenkopf öffnen die zugrunde liegenden Buchungssätze (erfordert das Recht für den DATEV-Import).",
+          "example": "```xml\n<ReportObjective title=\"Kunde ACME\" id=\"ACME\" suppressOther=\"true\" suppressDuplicates=\"true\">\n  <kost1-include>3.*</kost1-include>\n  <kost1-exclude>*.01</kost1-exclude>\n  <kost2-include>5.*</kost2-include>\n  <kost2-exclude>*.02</kost2-exclude>\n  <ReportObjective title=\"Projekt ACME-WEB-Portal\" id=\"ACME-WEB-Portal\">\n    <kost2-include>5.020.01.*</kost2-include>\n  </ReportObjective>\n  <ReportObjective title=\"Projekt ACME-Java-Migration\" id=\"ACME-Java-Migration\">\n    <kost2-include>5.020.02.*</kost2-include>\n  </ReportObjective>\n</ReportObjective>\n```",
+          "intro": "Ein Report-Objective ist eine XML-Datei, die einen Baum von Reports beschreibt. Jeder Report wählt Buchungssätze anhand ihrer Kost1- und Kost2-Träger aus; verschachtelte Report-Objectives verfeinern die Auswahl ihres Eltern-Reports.",
+          "rules": "**Auswahlregeln:**\n- Eine leere Include-Liste passt auf alle Buchungssätze.\n- Bei einer nicht leeren Include-Liste muss mindestens ein Eintrag passen.\n- Bei mehreren Include-Listen (Kost1 und Kost2) muss ein Buchungssatz zu allen passen.\n- Ein Buchungssatz, der zu einem Eintrag einer Exclude-Liste passt, wird ausgeschlossen.\n- Ein verschachteltes Report-Objective kann nur Buchungssätze seines Eltern-Reports auswählen (immer eine Teilmenge).",
+          "storage": "Die hochgeladenen Report-Objectives werden bis zum Logout oder Server-Neustart im Speicher gehalten. Mit „Leeren\" können andere geladen werden.",
+          "title": "Format der Report-Objectives",
+          "wildcards": "**Ausdrücke:** Die Einträge sind reguläre Ausdrücke in Java-Syntax (`java.util.regex.Pattern`), die mit dem formatierten Kostenträger (z. B. `5.020.01.03`) verglichen werden. Zur Vereinfachung wird jeder `.` maskiert und `*` steht für beliebige Zeichen: `3.*` passt auf alles, was mit „3.\" beginnt, `*.02` auf alles, was auf „.02\" endet. Ein Ausdruck, der mit einem Apostroph beginnt, wird unverändert (ohne Apostroph) verwendet, z. B. `'^5\\.510.*`."
+        },
+        "intro": "Wertet die Buchungssätze anhand von Report-Objectives aus: Report-Objectives-Datei (XML) hochladen oder ihren Inhalt einfügen, Zeitraum wählen und Report erstellen. Das Ergebnis ist eine betriebswirtschaftliche Auswertung (BWA) des Reports und seiner Kind-Reports nebeneinander.",
+        "notLoaded": "Zeitraum wählen und Report erstellen.",
+        "pasteApply": "XML übernehmen",
+        "pasteLabel": "…oder das XML hier einfügen",
+        "pasted": "eingefügtes XML",
+        "showAllRows": "Alle Zeilen anzeigen",
+        "showRecords": "Buchungssätze anzeigen",
+        "upload": "Upload von Reportobjectives"
+      },
       "status": {
         "active": "aktiv",
         "ended": "beendet",
@@ -1687,28 +1714,81 @@
   "firstName": "Vorname",
   "forceDelete": "Unwiderruflich löschen",
   "gantt": {
+    "access": {
+      "all": "Alle",
+      "owner": "Eigner:in",
+      "projectmanager": "Projektmanager"
+    },
+    "action": {
+      "move": "Verschieben (Unteraktivität)",
+      "moveToTop": "Verschieben (als Hauptaktivität)",
+      "newActivity": "Neue Aktivität"
+    },
+    "contextMenu": {
+      "newSubActivity": "Neue Unteraktivität",
+      "saveAsTask": "Als ProjectForge-Strukturelement anlegen",
+      "setInvisible": "Unsichtbar machen",
+      "setSubTasksVisible": "Sichtbar inkl. Untertasks"
+    },
     "duration": "Dauer",
     "endDate": "Endedatum",
+    "error": {
+      "parentObjectIsNotAPFTask": "Das übergeordnete Gantt-Objekt muss ein ProjectForge-Strukturelement sein!"
+    },
+    "export": {
+      "jpg": "JPG (nicht empfohlen)",
+      "msproject": {
+        "mpx": "Microsoft® Project (MPX)",
+        "xml": "Microsoft® Project (XML)"
+      },
+      "pdf": "PDF",
+      "png": "PNG",
+      "projectforge": "ProjectForge (XML)",
+      "svg": "SVG"
+    },
     "name": "Name",
     "objectType": {
       "_": "Gantt-Objekttyp",
       "activity": "Aktivität (Standard)",
       "milestone": "Meilenstein",
+      "short": "Typ",
       "summary": "Zusammenfassung"
     },
     "owner": "Eigner",
     "predecessor": "Vorgänger",
     "predecessorOffset": "Offset",
+    "question": {
+      "moveTask": "Soll das zugehörige ProjectForge-Strukturelement wirklich verschoben werden?",
+      "saveGanttObjectAsTask": "Soll dieses Gantt-Objekt wirklich als neues ProjectForge-Strukturelement übernommen werden?"
+    },
     "relationType": {
       "_": "Beziehung",
       "finish_finish": "Ende-Ende",
       "finish_start": "Ende-Beginn (Standard)",
+      "short": "Bez.",
       "start_finish": "Beginn-Ende",
       "start_start": "Beginn-Beginn"
     },
+    "settings": {
+      "showOnlyVisibles": "Nur sichtbare",
+      "totalLabelWidth": "Beschriftungsbreite",
+      "width": "Breite"
+    },
     "startDate": "Beginndatum",
+    "style": {
+      "relativeTimeValues": "Relative Zeitangaben",
+      "showCompletion": "Fortschritt",
+      "showToday": "Heutelinie"
+    },
     "title": {
-      "add": "Ganttdiagramm erstellen"
+      "add": "Ganttdiagramm erstellen",
+      "heading": "Ganttdiagramme",
+      "list": "Ganttdiagramme"
+    },
+    "tooltip": {
+      "isVisible": "Soll dieses Objekt angezeigt werden?",
+      "rejectValue": "Diesen Wert verwerfen und den Wert des Strukturelements übernehmen: ''{arg0}''.",
+      "saveTaskValue": "Diesen Wert dem Strukturelement zuweisen und abspeichern."
     }
   },
   "gender": {
@@ -1912,6 +1992,7 @@
   },
   "label": {
     "historyOfChanges": "Änderungshistorie",
+    "options": "Optionen",
     "position": {
       "short": "Pos"
     },
@@ -2032,6 +2113,7 @@
     "timeOffset": "Der Zugang ist noch für {arg0} Sekunden gesperrt auf Grund von {arg1} Fehlanmeldungen. Bitte später nochmals versuchen.",
     "title": "Anmeldung"
   },
+  "mark": "Markieren",
   "markAsDeleted": "Löschen",
   "massUpdate": {
     "button": "Massenänderung",
@@ -2259,6 +2341,7 @@
     }
   },
   "passwordRepeat": "Passwort wiederholen",
+  "paste": "Einfügen",
   "percent": "Prozent",
   "percentage": "Prozentsatz",
   "personal": {
@@ -2657,6 +2740,7 @@
     "state": "Status",
     "title": "Titel"
   },
+  "preview": "Vorschau",
   "priority": {
     "_": "Priorität",
     "high": "hoch",
@@ -3188,6 +3272,7 @@
       "link": "Link zur Lucene-Abfrage-Syntax."
     },
     "selectMe": "You are great!",
+    "selectTask": "Strukturelement wählen",
     "shortcut": {
       "addEntry": {
         "_": "N oder + drücken, oder ALT-N (macOS: STRG-ALT-N), solange keine Eingabe läuft.",
@@ -3201,9 +3286,11 @@
         "_": "Return drücken, in mehrzeiligen Textfeldern STRG-Return (macOS: CMD-Return).",
         "title": "Tastaturkürzel Return"
       }
-    }
+    },
+    "unselectTask": "Strukturelementwahl aufheben"
   },
   "undelete": "Wiederherstellen",
+  "untitled": "unbenannt",
   "update": "Ändern",
   "uptodate": "aktuell",
   "user": {
