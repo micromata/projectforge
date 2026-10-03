@@ -418,6 +418,11 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
     const addTimesheetHref = `/timesheet/new?${new URLSearchParams({
       taskId: String(seededTask.id),
     }).toString()}`;
+    // The access list of this task (lib/access-links.ts), not the Wicket one the redirect would strip.
+    const showAccessRightsHref = `/access?${new URLSearchParams({
+      taskId: String(seededTask.id),
+      taskName: seededTask.title,
+    }).toString()}`;
     // Beside the heading without a click, on this viewport: the two an open task is left for
     // (`CrossLinkDef.prominent`). Below `md` they are menu entries like the rest, so this half of the
     // assertion belongs to the desktop viewport the suite runs in.
@@ -437,7 +442,7 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
     for (const [key, href] of [
       ["task.menu.addTimesheet", addTimesheetHref],
       ["gantt.title.add", `/next/gantt/new?task=${seededTask.id}`],
-      ["task.menu.showAccessRights", `/wa/accessList?taskId=${seededTask.id}`],
+      ["task.menu.showAccessRights", showAccessRightsHref],
     ] as const) {
       await expect(
         menu.getByRole("menuitem", { name: format.t(key) })

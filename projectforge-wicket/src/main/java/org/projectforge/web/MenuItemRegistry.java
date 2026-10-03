@@ -34,7 +34,6 @@ import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.timesheet.TimesheetListPage;
-import org.projectforge.web.user.UserPrefListPage;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -100,7 +99,7 @@ public class MenuItemRegistry implements Serializable {
         // The employee-salary import (Gehaltsimport) is now reached as a button in the migrated Next.js
         // salary list (EmployeeSalaryImportRest / employee-salary-import); its menu entry and Wicket page were removed.
 
-        register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
+        // MY_PREFERENCES (Favoriten, wa/userPrefList) was removed from the menu.
         //register(MenuItemDefId.USER_LIST, UserListPage.class);
         //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
         register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);

@@ -554,7 +554,6 @@ open class MenuCreator {
             .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
             .add(MenuItemDef(MenuItemDefId.CUSTOMIZE_MENU))
             .add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP))
-            .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES))
             .add(
                 MenuItemDef(MenuItemDefId.VACATION_ACCOUNT,
                     badgeCounter = {

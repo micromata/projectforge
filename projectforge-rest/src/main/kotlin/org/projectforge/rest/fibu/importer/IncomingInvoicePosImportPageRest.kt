@@ -24,11 +24,13 @@
 package org.projectforge.rest.fibu.importer
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.NextMigration
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
 import org.projectforge.business.fibu.RechnungInfo
 import org.projectforge.framework.jobs.JobHandler
+import org.projectforge.framework.persistence.DaoConst
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.dto.FormLayoutData
@@ -57,7 +59,8 @@ class IncomingInvoicePosImportPageRest : AbstractImportPageRest<Eingangsrechnung
     override val title: String = "fibu.eingangsrechnung.import.title"
 
     override fun callerPage(request: HttpServletRequest): String {
-        return "/wa/incomingInvoiceList" //PagesResolver.getListPageUrl(EingangsrechnungPagesRest::class.java, absolute = true)
+        // The migrated next list (next/creditor-invoice), not the Wicket list the redirect would bounce off.
+        return "/${NextMigration.listUrl(DaoConst.INCOMING_INVOICE)}"
     }
 
     override fun clearImportStorage(request: HttpServletRequest) {
