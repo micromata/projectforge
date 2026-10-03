@@ -117,8 +117,9 @@ class DataTransferJCRCleanUpJob {
         }
 
         val nodePath = repoService.getAbsolutePath(dataTransferAreaPagesRest.jcrPath)
-        val nodeInfo = repoService.getNodeInfo(nodePath, true)
-        nodeInfo.children?.let { children ->
+        // The node doesn't exist until the first file is uploaded (e. g. on a new gateway instance).
+        val nodeInfo = repoService.getNodeInfoOrNull(nodePath, true)
+        nodeInfo?.children?.let { children ->
             for (child in children) {
                 val dbId = NumberHelper.parseLong(child.name)
                 if (dbId == null) {

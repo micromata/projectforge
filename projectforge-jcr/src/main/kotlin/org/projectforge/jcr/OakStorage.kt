@@ -362,6 +362,21 @@ abstract class OakStorage(val mainNodeName: String) {
         }
     }
 
+    /**
+     * @return The node info or null, if the node doesn't exist (e. g. no file was stored yet below this path).
+     */
+    @JvmOverloads
+    open fun getNodeInfoOrNull(absPath: String, recursive: Boolean = false): NodeInfo? {
+        return runInSession { session ->
+            if (!session.nodeExists(absPath)) {
+                log.info { "Node with path '$absPath' doesn't exist (yet)." }
+                return@runInSession null
+            }
+            log.info { "Getting node info of path '$absPath'..." }
+            NodeInfo(session.getNode(absPath), recursive)
+        }
+    }
+
     private fun getFilesNode(
         sessionWrapper: SessionWrapper,
         parentNodePath: String?,

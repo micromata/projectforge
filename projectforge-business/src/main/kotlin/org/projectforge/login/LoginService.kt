@@ -373,6 +373,16 @@ open class LoginService {
             session.setAttribute(SESSION_KEY_USER, userContext)
         }
 
+        /**
+         * Stores the given userContext in the current session without renewing it. Only for logins whose session
+         * id was already renewed by the authentication itself, e. g. the OAuth2 login of the gateway via Spring
+         * Security: [internalLogin] would invalidate the session together with Spring's security context.
+         */
+        @JvmStatic
+        fun internalLoginInCurrentSession(request: HttpServletRequest, userContext: UserContext) {
+            request.getSession(true).setAttribute(SESSION_KEY_USER, userContext)
+        }
+
         @JvmStatic
         fun getUser(request: HttpServletRequest): PFUserDO? {
             return getUserContext(request)?.user

@@ -62,6 +62,40 @@ class GatewayEndpointFilterTest {
     }
 
     @Test
+    fun allowsDataTransferReactUi() {
+        assertAllowed("/react/datatransfer")
+        assertAllowed("/react/datatransferfiles/dynamic/42")
+        assertAllowed("/react/datatransferpersonalfiles/dynamic")
+        assertAllowed("/react-app.html")
+        assertAllowed("/assets/index-abc123.js")
+        assertAllowed("/manifest.json")
+    }
+
+    @Test
+    fun allowsRestServicesOfReactUi() {
+        assertAllowed("/rs/userStatus")
+        assertAllowed("/rs/menu")
+        assertAllowed("/rs/logout")
+        assertAllowed("/rs/user/autosearch")
+        assertAllowed("/rs/group/autosearch")
+        assertAllowed("/rs/datatransferfiles/dynamic")
+        assertAllowed("/rs/datatransferaudit/dynamic")
+    }
+
+    @Test
+    fun allowsLoginAndErrorPage() {
+        assertAllowed("/next/login")
+        assertAllowed("/error")
+    }
+
+    @Test
+    fun blocksOtherReactAndNextPages() {
+        assertBlocked("/react/address")
+        assertBlocked("/react/user/edit/1")
+        assertBlocked("/next/address")
+    }
+
+    @Test
     fun allowsSyncApi() {
         assertAllowed("/api/gateway/sync/users")
     }
