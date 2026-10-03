@@ -74,6 +74,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.ValidationUtils
 import org.projectforge.rest.core.getObjectList
@@ -299,9 +300,12 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * @see fillEInvoiceFieldsFromAccount for which account and which fields.
      */
+    @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @PostMapping("eInvoiceFromAccount")
     fun getEInvoiceFromAccount(@RequestBody dto: Rechnung): Rechnung {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
+        checkSingleInvoiceDetailAccess()
         fillEInvoiceFieldsFromAccount(dto, eInvoiceAccountOf(dto), sellerConfig.bankAccounts)
         return dto
     }
@@ -393,9 +397,12 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * Read only, so the select access of the category is what has to be checked here — nothing is written.
      */
+    @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("formDefaults")
     fun getFormDefaults(): FormDefaults {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
+        checkSingleInvoiceDetailAccess()
         return FormDefaults(
             defaultVat = Configuration.instance.getPercentValue(ConfigurationParam.FIBU_DEFAULT_VAT),
             bankAccounts = sellerConfig.bankAccounts.map { BankAccount(value = it.iban, label = it.displayName) },
@@ -445,9 +452,12 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * An empty list where the project has no area — [KostCache] cannot be asked without one, and a project
      * in that state has no cost units to offer.
      */
+    @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("activeKost2")
     fun getActiveKost2(@RequestParam("projektId") projektId: Long?): List<Kost2> {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        // Edit form helper: order book users (list only) don't get it, see checkSingleInvoiceDetailAccess.
+        checkSingleInvoiceDetailAccess()
         val projekt = projektCache.getProjekt(projektId) ?: return emptyList()
         val bereich = projekt.bereich ?: return emptyList()
         return kostCache.getActiveKost2(projekt.nummernkreis, bereich, projekt.teilbereich)
@@ -474,6 +484,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * customers. Here the customer number is compared against `bereich`, which is the question the form is
      * asking.
      */
+    @AccessChecked("DAO: select access + checkSingleInvoiceDetailAccess (edit form helper)")
     @GetMapping("kost2Check")
     fun checkKost2(
         @RequestParam("kost2Id") kost2Id: Long?,
@@ -481,6 +492,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         @RequestParam("kundeId", required = false) kundeId: Long?,
     ): Kost2Check {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        checkSingleInvoiceDetailAccess()
         val kost2 = kostCache.getKost2(kost2Id) ?: return Kost2Check(matchesInvoice = true)
         // The project wins over the customer, as the Wicket form reads them: a project already names its
         // customer, and its area narrows the answer further.
@@ -542,6 +554,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * `recalculate()`), are none of this endpoint's business: [InvoiceService] derives the discount terms of
      * the document from the stored dates itself, so that every caller of it prints the same invoice.
      */
+    @AccessChecked("checkSingleInvoiceDetailAccess + DAO find")
     @GetMapping("$EXPORT_WORD_PATH/{id}")
     fun exportInvoiceWord(
         @PathVariable("id") id: Long,
@@ -570,6 +583,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * wrong. The `fileId` travels so the form can offer the file for download through the generic attachment
      * route rather than through an endpoint of its own (see [InvoicePdfInfo]).
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO find (checkEInvoiceReadAccess)")
     @GetMapping("$INVOICE_PDF_PATH/{id}/info")
     fun getInvoicePdfInfo(@PathVariable("id") id: Long): InvoicePdfState {
         checkEInvoiceReadAccess(id)
@@ -587,6 +601,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * Answers the new state, so the client needs no second call for what it just wrote.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO update access")
     @PostMapping("$INVOICE_PDF_PATH/{id}")
     fun uploadInvoicePdf(
         @PathVariable("id") id: Long,
@@ -611,6 +626,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Answers the new (empty) state for the same reason the upload answers the new one, and does nothing
      * where there was none — the outcome the caller asked for is reached either way.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO update access")
     @DeleteMapping("$INVOICE_PDF_PATH/{id}")
     fun deleteInvoicePdf(@PathVariable("id") id: Long): InvoicePdfState {
         checkInvoicePdfWriteAccess(id)
@@ -657,6 +673,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * The stored invoice, as everything else on this path: the ZUGFeRD export reads the JCR by the invoice
      * id, so there is no posted state it could validate instead.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO find (checkEInvoiceReadAccess)")
     @GetMapping("$E_INVOICE_PATH/{id}/validate")
     fun validateEInvoice(@PathVariable("id") id: Long): EInvoiceValidation {
         val invoice = checkEInvoiceReadAccess(id)
@@ -682,6 +699,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Deliberately no export and no validation of its own: it saves, nothing more. What is still missing comes
      * from [validateEInvoice], which the client asks afterwards — one endpoint, one job.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + DAO saveOrUpdate")
     @PostMapping("saveAndCheckEInvoice")
     fun saveAndCheckEInvoice(
         request: HttpServletRequest,
@@ -708,9 +726,10 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * @see prepareCancellation for what the cancellation keeps and what it reverses.
      */
+    @AccessChecked("DAO: insert access + find; single invoice detail access")
     @PostMapping("createCancellation")
     fun createCancellation(@RequestBody postData: PostData<Rechnung>): ResponseAction {
-        baseDao.hasLoggedInUserInsertAccess()
+        baseDao.hasLoggedInUserInsertAccess(null, throwException = true)
         val original = postData.data.id?.let { baseDao.find(it) }
         if (original == null || !original.isCancellable) {
             throw UserException("fibu.rechnung.error.cancellation.originalInvalid")
@@ -730,6 +749,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * the case of a state that changed in between, and the errors are more useful than a bare status. The
      * check is repeated here rather than trusted, because a download URL can be called on its own.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO find (checkEInvoiceReadAccess)")
     @GetMapping("$E_INVOICE_PATH/{id}/xrechnung")
     fun exportXRechnung(@PathVariable("id") id: Long): ResponseEntity<*> {
         val invoice = checkEInvoiceReadAccess(id)
@@ -753,6 +773,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * `variant` chooses the Word template for that conversion, as it does for [exportInvoiceWord]; where an
      * invoice PDF was uploaded it has no effect.
      */
+    @AccessChecked("FIBU_ORGA_GROUPS + single invoice detail access + DAO find (checkEInvoiceReadAccess)")
     @GetMapping("$E_INVOICE_PATH/{id}/zugferd")
     fun exportZugferd(
         @PathVariable("id") id: Long,
@@ -872,6 +893,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      */
     private fun checkEInvoiceReadAccess(id: Long): RechnungDO {
         checkEInvoiceAccess()
+        checkSingleInvoiceDetailAccess()
         return baseDao.find(id) ?: throw AccessException("access.exception.userHasNotRight")
     }
 
@@ -889,6 +911,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      *
      * Not a `saveOrUpdate` in disguise: nothing is written, so the read access has to be checked here.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @PostMapping("recalculate")
     fun recalculate(@RequestBody postData: PostData<Rechnung>): InvoiceSums {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -1069,6 +1092,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * reference period's month. The cumulative curves the chart also draws are the running sums of these, built
      * on the client from the same numbers (one source of truth).
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping("netSumChart")
     fun netSumChart(@RequestBody filter: MagicFilter): NetSumChartData {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -1247,12 +1271,14 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the invoices
      * the list's *other* criteria in [filter] match (see [checklistFilter]).
      */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
     }
 
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
@@ -1268,6 +1294,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
     }
 
     /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("projectFilterValues")
     fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         val invoices = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
@@ -1328,6 +1355,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * form error, and a file saying "nothing to export" looks like a successful export in the download
      * folder.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting outgoing invoices as Excel file.")
@@ -1390,6 +1418,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      * Answers 404 where no cost ids are configured, as the Wicket menu entry is simply absent there:
      * without them every row of the sheet would be the invoice itself, which the export above already is.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
     fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting cost assignments of outgoing invoices as Excel file.")

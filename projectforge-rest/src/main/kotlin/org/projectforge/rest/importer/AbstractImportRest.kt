@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -61,6 +62,7 @@ private val log = KotlinLogging.logger {}
  * @param O The import DTO.
  * @param S The concrete [ImportStorage] the subclass produces and consumes.
  */
+@AccessChecked("checkRight(), implemented by every subclass")
 abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportStorage<O>> {
 
     /** Checks that the logged-in user may run this import; throws if not. */

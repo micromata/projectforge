@@ -128,6 +128,8 @@ class ConfigurationEntityRest :
         target: QueryFilter,
         source: MagicFilter,
     ): List<CustomResultFilter<ConfigurationDO>> {
+        // The housekeeping below writes unchecked, so the list's read access is checked before it.
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
         baseDao.checkAndUpdateDatabaseEntries()
         // The user searches the parameter as it is *shown* - its translated label and description, runtime
         // texts no database index carries. So we take the term over, clear it from the filter (otherwise

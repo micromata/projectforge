@@ -31,6 +31,7 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -78,11 +79,13 @@ class FeedbackPageRest {
         val message: String,
     )
 
+    @AccessChecked("Any logged-in user (as in Wicket); receiver and sender are set server side")
     @GetMapping
     fun getInitialData(): InitialData {
         return InitialData(receiver = feedbackReceiver(), sender = sender())
     }
 
+    @AccessChecked("Any logged-in user (as in Wicket); receiver and sender are set server side")
     @PostMapping("send")
     fun send(@RequestBody postData: SendRequest): SendResult {
         val sender = sender()

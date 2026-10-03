@@ -37,6 +37,7 @@ import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
 import org.projectforge.favorites.Favorites
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -54,6 +55,7 @@ import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.rest.calendar.TeamEventPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
@@ -908,12 +910,14 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the sheets' projects
      * the list's *other* criteria in [filter] match (see [checklistFilter]).
      */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
     }
 
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return businessUnitFilter.valuesOfProjects(projektIdsOf(filter, BusinessUnitChecklistFilter.FIELD))
@@ -938,6 +942,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * The projects to choose from in the project filter ([ProjectChecklistFilter]): those of the sheets the
      * list's *other* criteria in [filter] match (see [checklistFilter]).
      */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("projectFilterValues")
     fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return ProjectChecklistFilter.valuesOf(projektIdsOf(filter, ProjectChecklistFilter.FIELD))
@@ -1039,6 +1044,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * Exports the filtered timesheets as an Excel file, the "Excel export" of the legacy list
      * (`TimesheetListPage.exportExcel` → [TimesheetExport]).
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         // The list endpoints (getList/listPage) normalize the client filter before querying; the export has to
@@ -1059,6 +1065,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * The PDF-export options the user last chose (or the all-on defaults for a user who never opened the
      * dialog), so the Next dialog can prefill itself. Persisted per user by [exportAsPdf].
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @GetMapping("pdfExportSettings")
     fun getPdfExportSettings(): TimesheetPdfExportSettings {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -1084,6 +1091,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      * never lands in the stored prefs); the settings are remembered per user and shape which columns and
      * whether the filter-summary block are printed.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_PDF_SUB_PATH)
     fun exportAsPdf(@RequestBody request: TimesheetPdfExportRequest): ResponseEntity<*> {
         val settings = request.settings ?: TimesheetPdfExportSettings()
@@ -1146,13 +1154,18 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     )
 
     /**
-     * The subscription URL of the timesheet calendar feed for the given user (the current one by default), the
-     * "ics export" of the legacy list. Returns the URL rather than a stream: the client shows it for the user
-     * to subscribe to in their calendar (see [CalendarFeedService.getUrl4Timesheets]).
+     * The subscription URL of the timesheet calendar feed of the current user, the "ics export" of the legacy
+     * list. Returns the URL rather than a stream: the client shows it for the user to subscribe to in their
+     * calendar (see [CalendarFeedService.getUrl4Timesheets]). Another user's id is refused, as the feed itself
+     * only serves the own time sheets.
      */
+    @AccessChecked("Own user only (logged-in user's data/prefs)")
     @GetMapping("icsExportUrl")
     fun getIcsExportUrl(@RequestParam("userId", required = false) userId: Long?): Map<String, String> {
-        val id = userId ?: ThreadLocalUserContext.loggedInUserId
+        val id = ThreadLocalUserContext.loggedInUserId
+        if (userId != null && userId != id) {
+            throw AccessException("access.exception.userHasNotRight")
+        }
         return mapOf("url" to calendarFeedService.getUrl4Timesheets(id))
     }
 

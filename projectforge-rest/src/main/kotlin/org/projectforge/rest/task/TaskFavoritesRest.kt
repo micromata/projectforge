@@ -23,10 +23,13 @@
 
 package org.projectforge.rest.task
 
+import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFavoritesService
 import org.projectforge.business.task.TaskTree
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -43,6 +46,9 @@ class TaskFavoritesRest {
     @Autowired
     private lateinit var taskFavorites: TaskFavoritesService
 
+    @Autowired
+    private lateinit var taskDao: TaskDao
+
     /**
      * A favorite for the client: its name, and the whole path of the referenced task (root first, its own
      * title last), so the picker can show the path behind a favorite as a tooltip (`formatPath`, the same
@@ -51,6 +57,7 @@ class TaskFavoritesRest {
      */
     class TaskFavoriteInfo(val id: Long?, val name: String?, val pathAsString: String?)
 
+    @AccessChecked("Own user prefs")
     @GetMapping("list")
     fun getList(): List<TaskFavoriteInfo> {
         return toInfoList()
@@ -60,8 +67,10 @@ class TaskFavoritesRest {
      * Adds new favorite task with given id under the given name.
      * @return new list of favorites.
      */
+    @AccessChecked("Own user prefs; task select access")
     @GetMapping("create")
     fun new(@RequestParam("taskId", required = true) taskId: Long, @RequestParam("name", required = true) name: String): List<TaskFavoriteInfo> {
+        checkTaskAccess(taskId)
         taskFavorites.createFavorite(name, taskId)
         return toInfoList()
     }
@@ -79,6 +88,7 @@ class TaskFavoritesRest {
      * Selects the task id from the filter.
      * @return taskId referenced by given favorite.
      */
+    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
     @GetMapping("delete")
     fun delete(@RequestParam("id", required = true) id: Long): List<TaskFavoriteInfo> {
         taskFavorites.deleteFavorite(id)
@@ -89,6 +99,7 @@ class TaskFavoritesRest {
      * Selects the task id from the filter.
      * @return taskId referenced by given favorite.
      */
+    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
     @GetMapping("rename")
     fun rename(@RequestParam("id", required = true) id: Long, @RequestParam("newName", required = true) newName: String): List<TaskFavoriteInfo> {
         taskFavorites.renameFavorite(id, newName)
@@ -98,23 +109,28 @@ class TaskFavoritesRest {
     // POST variants for the Next.js frontend, which sends the CSRF token on state changing calls. They
     // delegate to the same service as the GET mappings above (kept for the legacy React frontend).
 
+    @AccessChecked("Own user prefs; task select access")
     @PostMapping("create")
     fun createPost(@RequestParam("taskId", required = true) taskId: Long, @RequestParam("name", required = true) name: String): List<TaskFavoriteInfo> {
+        checkTaskAccess(taskId)
         taskFavorites.createFavorite(name, taskId)
         return toInfoList()
     }
 
+    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
     @PostMapping("select")
     fun selectPost(@RequestParam("id", required = true) id: Long): Long? {
         return taskFavorites.selectTaskId(id)
     }
 
+    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
     @PostMapping("delete")
     fun deletePost(@RequestParam("id", required = true) id: Long): List<TaskFavoriteInfo> {
         taskFavorites.deleteFavorite(id)
         return toInfoList()
     }
 
+    @AccessChecked("Own user prefs (UserPrefDao, scoped to the logged-in user)")
     @PostMapping("rename")
     fun renamePost(@RequestParam("id", required = true) id: Long, @RequestParam("newName", required = true) newName: String): List<TaskFavoriteInfo> {
         taskFavorites.renameFavorite(id, newName)
@@ -125,6 +141,15 @@ class TaskFavoritesRest {
      * The favorites with the referenced task's whole path resolved for the tooltip. The favorite keeps
      * only the task id, so the path is looked up per favorite (the list is a handful of entries).
      */
+    /**
+     * The favorite is the user's own, but the answer carries the task's path: only a task the user may
+     * select may be stored, otherwise any id would reveal the titles of its path.
+     */
+    private fun checkTaskAccess(taskId: Long) {
+        val task = TaskTree.instance.getTaskById(taskId) ?: throw AccessException("access.exception.userHasNotRight")
+        taskDao.hasLoggedInUserSelectAccess(task, true)
+    }
+
     private fun toInfoList(): List<TaskFavoriteInfo> {
         return taskFavorites.getListWithTaskId().map { favorite ->
             TaskFavoriteInfo(favorite.id, favorite.name, formatPath(favorite.taskId))

@@ -75,7 +75,11 @@ test.describe("quick access", { tag: "@isolated" }, () => {
     // Everything left over matches, and every entry that matches is left — the count follows from
     // the same rule the search applies. The full-search row is no longer an option: it is pinned
     // below the list as a footer button (see the next case), so it does not add to this count.
-    await expect(options).toHaveCount(matching(entries, term).length);
+    // The live data hits below the menu (`data:…`/`data-more:…`, QuickDataHits) depend on the
+    // database, not on this rule, so only the menu's own options are counted.
+    await expect(
+      results(page).locator('[role="option"]:not([data-value^="data"])')
+    ).toHaveCount(matching(entries, term).length);
   });
 
   test("navigates into this app on Enter", async ({ loggedInPage: page }) => {
@@ -190,9 +194,9 @@ test.describe("quick access", { tag: "@isolated" }, () => {
     const format = await userFormat(page);
     const entries = await menuEntries(page);
     const entry = entries.find((e) => e.url.startsWith("wa/"));
-    if (!entry) {
-      throw new Error("No menu entry served by Wicket.");
-    }
+    // Wicket is being retired: once no entry of this account leads there, there is nothing to offer.
+    test.skip(!entry, "No menu entry served by Wicket.");
+    if (!entry) return;
 
     await goto(page, "/book");
     const field = await focusSearch(page, format);

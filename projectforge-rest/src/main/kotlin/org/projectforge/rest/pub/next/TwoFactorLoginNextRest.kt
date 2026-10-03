@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
@@ -55,6 +56,7 @@ open class TwoFactorLoginNextRest {
     @Autowired
     private lateinit var twoFactorSupport: NextTwoFactorSupport
 
+    @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @PostMapping("checkOTP")
     fun checkOtp(
         request: HttpServletRequest,
@@ -75,21 +77,25 @@ open class TwoFactorLoginNextRest {
         }
     }
 
+    @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @GetMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendSmsCode(request) }
     }
 
+    @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @GetMapping("sendMailCode")
     fun sendMailCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendMailCode(request) }
     }
 
+    @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @GetMapping("webAuthn")
     fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions?> {
         return authenticated(request) { twoFactorSupport.webAuthn(request) }
     }
 
+    @AccessChecked("PUBLIC: pre-login UserContext in the session required (authenticated())")
     @PostMapping("webAuthnFinish")
     fun webAuthnFinish(
         request: HttpServletRequest,
@@ -114,6 +120,7 @@ open class TwoFactorLoginNextRest {
     /**
      * Cancels the login process (clears the user's session as well as the stay-logged-in cookie).
      */
+    @AccessChecked("PUBLIC: logout of the own session")
     @GetMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         loginServiceRest.logout(request, response)

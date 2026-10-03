@@ -26,6 +26,7 @@ package org.projectforge.rest.pub.next
 import org.projectforge.framework.i18n.I18nService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -56,6 +57,7 @@ open class I18nCustomerNextRest {
      * @param locale The UI locale next resolved on the client (`de`, `en`). Falls back to the request's locale
      *   (set by the LocaleFilter) when absent.
      */
+    @AccessChecked("PUBLIC: customer i18n overrides only")
     @GetMapping
     fun getOverrides(
         @RequestParam("locale", required = false) locale: String?,

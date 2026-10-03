@@ -49,6 +49,7 @@ import org.projectforge.plugins.liquidityplanning.LiquiditySeriesProjector
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.UILabelledElement
@@ -110,6 +111,8 @@ class LiquidityEntityRest :
         val seriesDate = request?.getParameter("seriesDate")
             ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         if (seriesId != null && seriesDate != null) {
+            // buildPrefill reads the series unchecked; the form is for materializing it, i.e. an insert.
+            baseDao.hasLoggedInUserInsertAccess(null, true)
             liquidityMaterializationService.buildPrefill(seriesId, seriesDate)?.let { return it }
         }
         return super.newBaseDO(request)
@@ -323,6 +326,7 @@ class LiquidityEntityRest :
      * The filtered list as the Excel file Wicket's "Excel export" produces. The rows come through the same
      * pipeline as the list itself ([getResultList]). An empty result answers 404 rather than a file.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting liquidity entries as Excel file.")
@@ -367,6 +371,7 @@ class LiquidityEntityRest :
      *
      * Read only, so the select access of the category is what is checked here.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @PostMapping("forecast")
     fun getForecast(@RequestBody request: ForecastRequest): ForecastResult {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)
@@ -418,6 +423,7 @@ class LiquidityEntityRest :
      * with them on open (the successor of the Wicket page's `LiquidityForecastSettings` user preference).
      * Returns the defaults if the user has never run a forecast.
      */
+    @AccessChecked("DAO: select access; own user pref")
     @GetMapping("forecast/settings")
     fun getForecastSettings(): ForecastSettings {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)

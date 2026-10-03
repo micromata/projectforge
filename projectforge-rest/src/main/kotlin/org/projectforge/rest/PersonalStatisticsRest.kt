@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -94,6 +95,7 @@ class PersonalStatisticsRest {
         val summary: Summary,
     )
 
+    @AccessChecked("Own user only (logged-in user's data/prefs)")
     @GetMapping
     fun getStatistics(): Statistics {
         val userId = ThreadLocalUserContext.loggedInUserId

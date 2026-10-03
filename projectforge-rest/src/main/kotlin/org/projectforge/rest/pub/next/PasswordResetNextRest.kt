@@ -39,6 +39,7 @@ import org.projectforge.framework.time.TimeUnit
 import org.projectforge.login.LoginService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.my2fa.My2FAServicesRest
 import org.projectforge.rest.pub.LoginServiceRest
 import org.projectforge.security.RegisterUser4Thread
@@ -88,6 +89,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * Requests a mail with a password reset link. Doesn't tell the client whether the user exists (no user
      * enumeration): [PasswordResetService.sendMail] sends the mail in an own thread for the very same reason.
      */
+    @AccessChecked("PUBLIC: same answer for every input (no user enumeration); refused when logged in")
     @PostMapping("requestMail")
     fun requestMail(
         request: HttpServletRequest,
@@ -125,6 +127,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * @param token The token sent by mail (mandatory for getting and checking the user).
      * @see PasswordResetService.checkToken
      */
+    @AccessChecked("PUBLIC: valid reset token or reset data in the session")
     @GetMapping("status")
     fun getStatus(request: HttpServletRequest, @RequestParam("token") token: String): NextPasswordResetState {
         if (LoginService.getUserContext(request) != null) {
@@ -150,6 +153,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
     /**
      * Sets the new password. Requires a successful 2FA (not older than 10 minutes).
      */
+    @AccessChecked("PUBLIC: reset session data + fresh 2FA + CSRF")
     @PostMapping
     fun setPassword(
         request: HttpServletRequest,
@@ -208,6 +212,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
         )
     }
 
+    @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
     @PostMapping("checkOTP")
     fun checkOtp(
         request: HttpServletRequest,
@@ -217,16 +222,19 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
         return authenticated(request) { twoFactorSupport.checkOtp(request, response, postData) }
     }
 
+    @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
     @GetMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): ResponseEntity<NextTwoFactorResult> {
         return authenticated(request) { twoFactorSupport.sendSmsCode(request) }
     }
 
+    @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
     @GetMapping("webAuthn")
     fun webAuthn(request: HttpServletRequest): ResponseEntity<WebAuthnPublicKeyCredentialCreationOptions?> {
         return authenticated(request) { twoFactorSupport.webAuthn(request) }
     }
 
+    @AccessChecked("PUBLIC: reset session data from a valid token required (authenticated())")
     @PostMapping("webAuthnFinish")
     fun webAuthnFinish(
         request: HttpServletRequest,
@@ -244,6 +252,7 @@ open class PasswordResetNextRest : AbstractDynamicPageRest() {
      * Cancels the password reset: the token is deleted (the link of the mail is invalid afterwards) and the session
      * is cleared.
      */
+    @AccessChecked("PUBLIC: drops the own reset token/session data")
     @GetMapping("cancel")
     fun cancel(request: HttpServletRequest, response: HttpServletResponse): NextActionResult {
         getSessionData(request)?.let {

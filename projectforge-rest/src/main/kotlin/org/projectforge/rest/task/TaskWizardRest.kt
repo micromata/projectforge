@@ -26,6 +26,7 @@ package org.projectforge.rest.task
 import org.projectforge.business.task.TaskWizardService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -119,6 +120,7 @@ class TaskWizardRest {
     @Autowired
     private lateinit var taskWizardService: TaskWizardService
 
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup) + AccessDao checks")
     @PostMapping("execute")
     fun execute(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
@@ -140,6 +142,7 @@ class TaskWizardRest {
      * A POST although nothing is written: the body is the same as [execute]'s, and asking the same
      * question in two forms would be two contracts to keep in step.
      */
+    @AccessChecked("Admin group (checkIsLoggedInUserMemberOfAdminGroup) + AccessDao checks")
     @PostMapping("preview")
     fun preview(@RequestBody request: ExecuteRequest): ResponseEntity<ExecuteResponse> {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()

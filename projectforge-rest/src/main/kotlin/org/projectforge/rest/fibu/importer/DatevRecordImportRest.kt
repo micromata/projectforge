@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.BwaStatistics
 import org.projectforge.rest.importer.AbstractImportRest
 import org.projectforge.rest.importer.ImportPairEntry
@@ -83,6 +84,7 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     /**
      * The log viewer url of the user's DATEV import log (both tabs, see [DatevImportLog]), for the "view log" button.
      */
+    @AccessChecked("FIBU_DATEV_IMPORT + not restricted/demo (checkRight)")
     @GetMapping("logViewer")
     fun logViewer(): Map<String, String?> {
         checkRight()

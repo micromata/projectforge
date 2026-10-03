@@ -25,6 +25,7 @@ package org.projectforge.gateway
 
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.gateway.sync.GatewayIcsCache
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -47,6 +48,7 @@ private val log = KotlinLogging.logger {}
 class GatewayIcsExportController(
     private val icsCache: GatewayIcsCache,
     private val userAuthenticationsService: UserAuthenticationsService,
+    private val userDao: UserDao,
 ) {
 
     @GetMapping("/export/ProjectForge.ics")
@@ -60,8 +62,16 @@ class GatewayIcsExportController(
 
         // Validate the token by attempting decryption (same as main instance)
         val decryptedParams = userAuthenticationsService.decrypt(userId, UserTokenType.CALENDAR_REST, q)
-        if (decryptedParams == null) {
+        // decrypt answers "" (not null) for a user without a stored token.
+        if (decryptedParams.isNullOrEmpty()) {
             log.warn { "ICS export: failed to decrypt params for user $userId" }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+
+        // Deactivated or deleted users (as synced by the main instance) get nothing, as on the main instance.
+        val user = userDao.find(userId, checkAccess = false)
+        if (user == null || user.deactivated || user.deleted) {
+            log.warn { "ICS export: user $userId unknown, deactivated or deleted" }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 

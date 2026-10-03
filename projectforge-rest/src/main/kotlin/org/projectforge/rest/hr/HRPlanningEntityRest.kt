@@ -33,6 +33,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.HRPlanning
 import org.projectforge.rest.dto.HRPlanningEntry
 import org.projectforge.rest.dto.User
@@ -125,6 +126,7 @@ class HRPlanningEntityRest : AbstractDTOEntityRest<HRPlanningDO, HRPlanning, HRP
      * out) — what "copy from predecessor" of a new planned week takes over. Empty if there is no such week or
      * the user may not see it.
      */
+    @AccessChecked("DAO: HRPlanningDao.getEntry (select access)")
     @GetMapping("predecessor")
     fun getPredecessor(
         @RequestParam("userId") userId: Long,

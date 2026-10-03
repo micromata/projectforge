@@ -90,6 +90,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard
  */
+@AccessChecked("DAO: the base endpoints check via baseDao (select/insert/update/delete access)")
 abstract class AbstractEntityRest<
         O : ExtendedBaseDO<Long>,
         DTO : Any, // DTO may be equals to O if no special data transfer objects are used.

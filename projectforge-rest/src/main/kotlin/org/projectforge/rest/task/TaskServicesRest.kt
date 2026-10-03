@@ -47,6 +47,7 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.ListFilterService
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.core.aggrid.AGGridSupport
@@ -709,6 +710,7 @@ class TaskServicesRest {
      * opened (see `useEntityLookup`); Wicket's field, which only ever searches on two typed characters,
      * never sees that case.
      */
+    @AccessChecked("DAO: TaskDao.select")
     @GetMapping("tree/autosearch")
     fun autosearch(
         @RequestParam("search") search: String?,
@@ -733,6 +735,7 @@ class TaskServicesRest {
      * installation's own (`task.path.rootTask`). Whether a user may add below it is the DAO's decision, not
      * this endpoint's.
      */
+    @AccessChecked("Any logged-in user: only the root's id and name")
     @GetMapping("tree/root")
     fun getRoot(): AbstractEntityRest.DisplayObject {
         val rootId = TaskTree.instance.rootTaskNode.id
@@ -744,13 +747,14 @@ class TaskServicesRest {
      * `{id, displayName}` with the whole path as the label — the same shape [autosearch] answers, so the
      * client's shared picker offers them as quick-picks before anything is typed.
      *
-     * A task that no longer resolves (deleted, or the tree does not know it) is dropped, so a stale id in
-     * the stored queue never reaches the client.
+     * A task that no longer resolves (deleted, or the tree does not know it) or that the user may no longer
+     * select is dropped, so a stale id in the stored queue never reaches the client.
      */
+    @AccessChecked("Own user prefs; tasks filtered by select access")
     @GetMapping("recent/list")
     fun getRecentList(): List<AbstractEntityRest.DisplayObject> {
         return recentTaskService.getRecentTaskIds()
-            .filter { TaskTree.instance.getTaskNodeById(it) != null }
+            .filter { hasSelectAccess(it) }
             .map { AbstractEntityRest.DisplayObject(it, formatPath(it)) }
     }
 
@@ -762,10 +766,18 @@ class TaskServicesRest {
      * A POST although it stores only a user preference: it changes user state and so needs the CSRF token
      * like every write.
      */
+    @AccessChecked("Own user prefs; only tasks with select access")
     @PostMapping("recent/select")
     fun selectRecent(@RequestParam("id") id: Long): List<AbstractEntityRest.DisplayObject> {
-        recentTaskService.addRecentTaskId(id)
+        if (hasSelectAccess(id)) {
+            recentTaskService.addRecentTaskId(id)
+        }
         return getRecentList()
+    }
+
+    private fun hasSelectAccess(taskId: Long): Boolean {
+        val node = TaskTree.instance.getTaskNodeById(taskId) ?: return false
+        return taskDao.hasLoggedInUserSelectAccess(node.task, false)
     }
 
     /**
@@ -779,12 +791,16 @@ class TaskServicesRest {
      * Read only, but a POST: the black/white list is form content, and a GET would carry it in the url and
      * into every log.
      */
+    @AccessChecked("Task select access (task or parent task)")
     @PostMapping("kost2Preview")
     fun getKost2Preview(@RequestBody request: Kost2PreviewRequest): ResponseEntity<Kost2Preview> {
+        // Nothing is written, but the answer shows the project and the cost units of the task (or of the
+        // parent of a new one), which the tree shows only to who may see the task: so that is checked.
+        // A task id that doesn't exist resolves no project and answers an empty preview.
+        (request.id ?: request.parentTaskId)?.let { taskId ->
+            TaskTree.instance.getTaskById(taskId)?.let { taskDao.hasLoggedInUserSelectAccess(it, true) }
+        }
         // The task as the form has it, not as the database has it: the preview is about the unsaved list.
-        // Access is not checked - nothing is written, and what may be seen is the cost units of a project,
-        // which the tree shows to everybody who may see the task. A task id that doesn't exist resolves no
-        // project and answers an empty preview.
         val task = TaskDO()
         task.id = request.id
         request.parentTaskId?.let { taskDao.setParentTask(task, it) }
@@ -893,6 +909,7 @@ class TaskServicesRest {
     /**
      * Saves grid state (column order, width, visibility, filters, etc.) for task tree.
      */
+    @AccessChecked("Own user only (logged-in user's data/prefs)")
     @PostMapping("tree/${RestPaths.SET_COLUMN_STATES}")
     fun updateColumnStates(
         @Valid @RequestBody request: DataTableStateRequest,
@@ -905,6 +922,7 @@ class TaskServicesRest {
     /**
      * Resets the AG Grid state to defaults and returns fresh column definitions for task tree.
      */
+    @AccessChecked("Own user only (logged-in user's data/prefs)")
     @GetMapping("tree/resetGridState")
     fun resetGridState(@RequestParam("select") select: Boolean?): ResponseAction {
         val selectMode = select == true

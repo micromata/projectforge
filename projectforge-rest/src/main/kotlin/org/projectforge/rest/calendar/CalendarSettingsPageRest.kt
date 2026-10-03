@@ -31,6 +31,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
@@ -140,6 +141,7 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
    * which merges the colours into its own modal instead of opening this dynamic form as a page.
    * Returns the cloned settings with every colour filled by its default (see [getSettings]).
    */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @GetMapping("settings")
   fun getSettingsJson(): CalendarSettings {
     return calendarSettingsRest.getSettings()
@@ -150,6 +152,7 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
    * (406 with the field errors on a bad hex code) and, like the sibling `change*` endpoints, relies on
    * the `X-PF-CSRF-Token` header rather than a wrapped [PostData]. Answers with the canonical settings.
    */
+  @AccessChecked("Own user only (logged-in user's data/prefs)")
   @PostMapping("settings")
   fun saveSettingsJson(@RequestBody settings: CalendarSettings): ResponseEntity<*> {
     validate(settings)?.let { return it }

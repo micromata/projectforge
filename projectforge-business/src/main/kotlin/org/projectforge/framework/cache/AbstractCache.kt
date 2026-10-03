@@ -88,6 +88,14 @@ abstract class AbstractCache {
     private var stuckRefreshReported = false
 
     /**
+     * [refreshStartMillis] of the running refresh a skipped [performRefresh] was last reported for: a caller looping
+     * over the cache during another thread's refresh (e.g. a dependent cache's refresh, once per order) is told
+     * once per refresh, not on every access.
+     */
+    @Transient
+    private val skippedRefreshReportedFor = AtomicLong(Long.MIN_VALUE)
+
+    /**
      * Guards [performRefresh], so a cache is never refreshed by two threads at the same time. Reentrant, because a
      * refresh may (indirectly) access this very cache again: such nested calls must not start a second refresh.
      */
@@ -363,7 +371,12 @@ abstract class AbstractCache {
             refreshLock.tryLock(MAX_WAIT_FOR_CONCURRENT_REFRESH_MS, TimeUnit.MILLISECONDS)
         }
         if (!locked) {
-            log.warn { "Refresh of cache ${this::class.simpleName} is already in progress, using current data." }
+            val runningRefresh = refreshStartMillis
+            if (skippedRefreshReportedFor.getAndSet(runningRefresh) != runningRefresh) {
+                log.warn { "Refresh of cache ${this::class.simpleName} is already in progress, using current data (further skips during this refresh are logged at debug level)." }
+            } else {
+                log.debug { "Refresh of cache ${this::class.simpleName} is already in progress, using current data." }
+            }
             return
         }
         // Invariant for deadlock-freedom: from here until unlock this thread holds refreshLock, so it must count as

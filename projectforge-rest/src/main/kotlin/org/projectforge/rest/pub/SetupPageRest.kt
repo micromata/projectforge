@@ -29,6 +29,7 @@ import org.projectforge.business.admin.SetupService
 import org.projectforge.business.admin.SetupTarget
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -95,6 +96,7 @@ open class SetupPageRest {
      * Returns the current setup state and the data needed to render the form.
      * The client should check [SetupState.alreadyInitialized] first.
      */
+    @AccessChecked("PUBLIC: answers only whether the database is initialized")
     @GetMapping("status")
     fun getStatus(): SetupState {
         if (databaseService.databaseTablesWithEntriesExist()) {
@@ -118,6 +120,7 @@ open class SetupPageRest {
      * running session would not pick up cleanly. The client is sent to the login page instead, so
      * the admin signs in with the credentials just created and the app loads from a clean session.
      */
+    @AccessChecked("PUBLIC: refused once the database has entries (first run only)")
     @PostMapping
     fun finish(@RequestBody body: SetupRequest): SetupResult {
         if (databaseService.databaseTablesWithEntriesExist()) {

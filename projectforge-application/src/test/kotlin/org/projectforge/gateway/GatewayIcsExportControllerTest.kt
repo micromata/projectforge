@@ -32,7 +32,9 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.projectforge.business.user.UserAuthenticationsService
+import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserTokenType
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.gateway.sync.GatewayIcsCache
 import org.springframework.http.HttpStatus
 
@@ -41,7 +43,15 @@ class GatewayIcsExportControllerTest {
 
     private val icsCache = GatewayIcsCache()
     private val userAuthenticationsService = mock<UserAuthenticationsService>()
-    private val controller = GatewayIcsExportController(icsCache, userAuthenticationsService)
+    private val userDao = mock<UserDao>()
+    private val controller = GatewayIcsExportController(icsCache, userAuthenticationsService, userDao)
+
+    private fun stubUser(deactivated: Boolean = false) {
+        val user = PFUserDO()
+        user.id = 1L
+        user.deactivated = deactivated
+        whenever(userDao.find(eq(1L), eq(false), any())).thenReturn(user)
+    }
 
     @Test
     fun returnsBadRequestForMissingParams() {
@@ -65,7 +75,29 @@ class GatewayIcsExportControllerTest {
     }
 
     @Test
+    fun returnsUnauthorizedForUserWithoutToken() {
+        // decrypt answers "" for a user without a stored token.
+        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), any()))
+            .thenReturn("")
+
+        val response = controller.exportCalendar(1L, "valid-q")
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+    }
+
+    @Test
+    fun returnsUnauthorizedForDeactivatedUser() {
+        stubUser(deactivated = true)
+        icsCache.put(1L, "valid-q", "BEGIN:VCALENDAR\r\nEND:VCALENDAR")
+        whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
+            .thenReturn("token=abc&teamCals=5")
+
+        val response = controller.exportCalendar(1L, "valid-q")
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+    }
+
+    @Test
     fun returnsNotFoundForCacheMiss() {
+        stubUser()
         whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
             .thenReturn("token=abc&teamCals=5")
 
@@ -77,6 +109,7 @@ class GatewayIcsExportControllerTest {
     fun returnsCachedIcsData() {
         val icsData = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR"
         icsCache.put(1L, "valid-q", icsData)
+        stubUser()
         whenever(userAuthenticationsService.decrypt(eq(1L), eq(UserTokenType.CALENDAR_REST), eq("valid-q")))
             .thenReturn("token=abc&teamCals=5")
 

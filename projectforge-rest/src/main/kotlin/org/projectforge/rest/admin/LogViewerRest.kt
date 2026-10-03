@@ -33,6 +33,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -84,6 +85,7 @@ open class LogViewerRest {
     /**
      * @param id Id of the [LogSubscription] to show; ignored by the admin log viewer.
      */
+    @AccessChecked("Admin group (admin viewer) or own log subscription only")
     @GetMapping("initial")
     fun getInitial(@RequestParam("id", required = false) id: Int?): LogViewerData {
         if (adminLogViewer) {
@@ -113,6 +115,7 @@ open class LogViewerRest {
         )
     }
 
+    @AccessChecked("Admin group (admin viewer) or own log subscription only")
     @PostMapping("query")
     fun query(@RequestBody filter: LogViewFilter): List<LogViewerEvent> {
         if (adminLogViewer) {
@@ -132,6 +135,7 @@ open class LogViewerRest {
      * Hides all entries received so far of the user's subscription: from now on only newer ones are shown. The
      * queue itself isn't cleared (see [LogSubscription.reset]). Not available for the admin log viewer.
      */
+    @AccessChecked("Admin group (admin viewer) or own log subscription only")
     @PostMapping("reset")
     fun reset(@RequestBody filter: LogViewFilter): List<LogViewerEvent> {
         if (adminLogViewer) {

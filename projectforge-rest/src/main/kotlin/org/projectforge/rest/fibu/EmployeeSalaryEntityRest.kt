@@ -41,6 +41,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.EmployeeSalary
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.UISelectValue
@@ -90,6 +91,8 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
      * default-visible; the year is the one the list is usually narrowed by.
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        // The years are read unchecked and tell which years have salaries.
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
         val years = baseDao.years.sortedDescending()
         elements.add(
             UIFilterListElement(FILTER_YEAR, label = translate("calendar.year"), multi = false, defaultFilter = true)
@@ -142,6 +145,7 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
      * the cost-assignment export below. The rows come from [getResultList], i.e. through the same pipeline
      * the list uses. An empty result answers 404 rather than a file.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
     fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         log.info("Exporting employee salaries as Excel file (one row per salary).")
@@ -189,6 +193,7 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
      * body). An empty result answers 404 rather than a file, so a filter matching nothing does not look
      * like a successful export in the download folder.
      */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
     @PostMapping(EXPORT_COST_ASSIGNMENTS_PATH)
     fun exportCostAssignmentsAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
         val year = readInt(filter, FILTER_YEAR)

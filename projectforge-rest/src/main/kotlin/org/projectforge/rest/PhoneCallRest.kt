@@ -40,6 +40,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.RecentQueue
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.sipgate.SipgateDirectCallService
 import org.springframework.beans.factory.annotation.Autowired
@@ -149,6 +150,7 @@ class PhoneCallRest {
      * @param number    A raw receiver number, used verbatim (extracted) when given.
      * @param callerPage Where the user came from (`addressList` / `addressView`), passed through for the "back" link.
      */
+    @AccessChecked("DAO: AddressDao.find; own devices/caller ids")
     @GetMapping
     fun getInitialData(
         @RequestParam("addressId", required = false) addressId: Long?,
@@ -203,6 +205,7 @@ class PhoneCallRest {
      * page) and carrying the address id so the client can follow the pick in the address panel. An empty search
      * offers the numbers recently called (persisted per user), which have no address behind them.
      */
+    @AccessChecked("DAO: AddressDao.select")
     @GetMapping("ac")
     fun autoComplete(@RequestParam("search", required = false) search: String?): List<AcItem> {
         if (search.isNullOrBlank()) {
@@ -226,6 +229,7 @@ class PhoneCallRest {
      * [number] is given, the address is only returned if that number still belongs to it (else `null`) and the
      * pair is remembered as the last shown address, so re-opening the page without a deep link restores it.
      */
+    @AccessChecked("DAO: AddressDao.find")
     @GetMapping("address")
     fun address(
         @RequestParam("id") id: Long,
@@ -242,6 +246,7 @@ class PhoneCallRest {
         return toAddressInfo(address)
     }
 
+    @AccessChecked("Any logged-in user; only own Sipgate devices and caller ids")
     @PostMapping("call")
     fun call(@RequestBody postData: CallRequest): CallResult {
         if (!sipgateConfiguration.isConfigured()) {
@@ -254,6 +259,18 @@ class PhoneCallRest {
         }
         val user = ThreadLocalUserContext.loggedInUser
             ?: return CallResult(false, translate("address.phoneCall.result.callingError"))
+        // Only the user's own devices and caller ids, as offered by the initial data: a free string would
+        // fall back to the default device and be shown as caller id at the callee.
+        if (!postData.myPhoneId.isNullOrBlank() &&
+            postData.myPhoneId !in sipgateDirectCallService.getCallerNumbers(user)
+        ) {
+            return CallResult(false, translate("address.phoneCall.result.callingError"))
+        }
+        if (!postData.myCallerId.isNullOrBlank() &&
+            postData.myCallerId !in sipgateDirectCallService.getCallerIds(user)
+        ) {
+            return CallResult(false, translate("address.phoneCall.result.callingError"))
+        }
         val callee = extractPhonenumber(number) ?: number
         log.info {
             "User initiates direct call from phone with id '${postData.myPhoneId}' with caller-id " +
