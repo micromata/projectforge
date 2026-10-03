@@ -11,9 +11,9 @@ import { ContributionMarginPercentage } from "./contribution-margin-percentage";
 
 /**
  * The key figures of the period as tiles above the chart: the current period in the first row, the same
- * period one year earlier in the second, each as revenue, costs, DB1 and the DB % against the target (large,
- * with its traffic light). The current row is marked "preliminary" if the period contains months after the
- * last imported accounting records.
+ * period one year earlier in the second and two years earlier in the third, each as revenue, costs, DB1 and
+ * the DB % against the target (large, with its traffic light). The current row is marked "preliminary" if the
+ * period contains months after the last imported accounting records.
  */
 export function ContributionMarginKpis({
   data,
@@ -31,8 +31,10 @@ export function ContributionMarginKpis({
       {formatCurrency(value, ctx, 0)}
     </span>
   );
-  // The previous year's costs aren't sent; they are its revenue minus its DB1.
+  // The previous years' costs aren't sent; they are their revenue minus their DB1.
   const prevYearCosts = total.prevYearRevenue - total.prevYearProfit;
+  const prevPrevYearCosts =
+    total.prevPrevYearRevenue - total.prevPrevYearProfit;
   const target = t("target", { arg0: data.targetPercentage });
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -62,6 +64,21 @@ export function ContributionMarginKpis({
         <ContributionMarginPercentage
           percentage={total.prevYearPercentage}
           costs={Math.max(0, prevYearCosts)}
+          limits={data}
+          large
+        />
+      </Kpi>
+      <Kpi label={t("prevPrevYearRevenue")}>
+        {amount(total.prevPrevYearRevenue)}
+      </Kpi>
+      <Kpi label={t("prevPrevYearCosts")}>
+        {formatCurrency(prevPrevYearCosts, ctx, 0)}
+      </Kpi>
+      <Kpi label={t("prevPrevYear")}>{amount(total.prevPrevYearProfit)}</Kpi>
+      <Kpi label={t("prevPrevYearPercentage")} note={target}>
+        <ContributionMarginPercentage
+          percentage={total.prevPrevYearPercentage}
+          costs={Math.max(0, prevPrevYearCosts)}
           limits={data}
           large
         />

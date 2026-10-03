@@ -295,6 +295,9 @@ export interface ContributionMarginSums {
   /** Revenue of the same period one year earlier, and its DB % (null without positive revenue). */
   prevYearRevenue: number;
   prevYearPercentage: number | null;
+  /** Revenue of the same period two years earlier, and its DB % (null without positive revenue). */
+  prevPrevYearRevenue: number;
+  prevPrevYearPercentage: number | null;
 }
 
 export interface ContributionMarginProject extends ContributionMarginSums {

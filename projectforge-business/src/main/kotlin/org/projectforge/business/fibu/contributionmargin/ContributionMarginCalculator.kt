@@ -139,6 +139,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         prevYearProfit = prevByProject[projectId]?.profit ?: BigDecimal.ZERO,
         prevPrevYearProfit = prevPrevByProject[projectId]?.profit ?: BigDecimal.ZERO,
         prevYearRevenue = prevByProject[projectId]?.revenue ?: BigDecimal.ZERO,
+        prevPrevYearRevenue = prevPrevByProject[projectId]?.revenue ?: BigDecimal.ZERO,
       )
     }.sortedWith(compareBy<ContributionMarginProject>({ it.customer ?: "" }, { it.project ?: "" }, { it.kost ?: "" }))
     val preliminaryBegin = preliminaryBegin
@@ -165,6 +166,7 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         prevYearProfit = projects.sumOf { it.prevYearProfit },
         prevPrevYearProfit = projects.sumOf { it.prevPrevYearProfit },
         prevYearRevenue = projects.sumOf { it.prevYearRevenue },
+        prevPrevYearRevenue = projects.sumOf { it.prevPrevYearRevenue },
       ),
       bookingImportEnd = bookingImportEnd,
       hourlyRate = hourlyRate,

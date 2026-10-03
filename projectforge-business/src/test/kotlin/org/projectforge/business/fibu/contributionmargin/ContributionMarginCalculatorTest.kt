@@ -78,6 +78,7 @@ class ContributionMarginCalculatorTest {
       ContributionMarginEntry(PROJECT_A, LocalDate.of(2026, 3, 1), revenue = BigDecimal("100")),
       ContributionMarginEntry(PROJECT_A, LocalDate.of(2025, 3, 31), revenue = BigDecimal("80")),
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2024, 3, 15), costs = BigDecimal("-30")),
+      ContributionMarginEntry(PROJECT_B, LocalDate.of(2024, 4, 15), revenue = BigDecimal("120")),
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2023, 12, 31), revenue = BigDecimal("1000")), // Too old.
       ContributionMarginEntry(PROJECT_B, LocalDate.of(2027, 1, 1), revenue = BigDecimal("1000")), // After the period.
     )
@@ -85,9 +86,12 @@ class ContributionMarginCalculatorTest {
     assertEquals(BigDecimal("100"), data.profit[2])
     assertEquals(BigDecimal("80"), data.prevYear[2])
     assertEquals(BigDecimal("-30"), data.prevPrevYear[2])
+    assertEquals(BigDecimal("120"), data.prevPrevYear[3])
     assertEquals(BigDecimal("100"), data.total.revenue)
     assertEquals(BigDecimal("80"), data.total.prevYearProfit)
-    assertEquals(BigDecimal("-30"), data.total.prevPrevYearProfit)
+    assertEquals(BigDecimal("90"), data.total.prevPrevYearProfit)
+    assertEquals(BigDecimal("120"), data.total.prevPrevYearRevenue)
+    assertEquals(BigDecimal("75.0"), data.total.prevPrevYearPercentage)
     assertEquals(BigDecimal("100.0"), data.total.prevYearPercentage)
     assertEquals(BigDecimal("100.0"), data.prevYearPercentage[2])
     assertEquals(BigDecimal("100.0"), data.prevYearPercentage[3]) // Cumulated: March carries on.
