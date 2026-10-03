@@ -498,13 +498,6 @@ open class MenuCreator {
                     checkAccess =
                     { Configuration.instance.isCostConfigured })
             )
-            .add(
-                MenuItemDef(
-                    MenuItemDefId.EMPLOYEE_SALARY_IMPORT,
-                    requiredUserRightId = EmployeeDao.USER_RIGHT_ID,
-                    requiredUserRightValues = arrayOf(UserRightValue.READWRITE),
-                )
-            )
 
         //////////////////////////////////////
         //

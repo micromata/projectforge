@@ -1034,8 +1034,7 @@
           },
           "job": {
             "title": "Import of {arg0} salaries"
-          },
-          "success": "Salaries imported successfully."
+          }
         }
       },
       "salary": {
@@ -2034,7 +2033,6 @@
       "eInvoiceChecker": "E-Invoice Checker",
       "eingangsrechnungen": "Incoming invoices",
       "employeeSalaries": "Salaries",
-      "employeeSalariesImport": "Import of salaries",
       "employees": "Employees",
       "konten": "Accounts",
       "kost": "Cost",
