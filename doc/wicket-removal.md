@@ -18,14 +18,29 @@
 
 ## Current state (inventory)
 
-### Wicket pages still mounted (`WebRegistry.init()`)
+### Remaining Wicket pages and how they are reached
+
+50 concrete page classes are left (`projectforge-wicket` + the todo and liquidityplanning plugins).
+"Reached" means a real link or registration – mentions in comments are not counted. Sources:
+`MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
+
+The `register(MenuItemDefId.…, …Page.class)` calls left in `MenuItemRegistry` (account, cost1/2,
+cost2Type, accountingRecord, access, gantt, incomingInvoice, timesheet, taskTree, phoneCall, system) are
+dead weight: `MenuItemDefId` resolves all of them to `next/…`.
 
 | Group | Pages | Reached from |
 |---|---|---|
-| Escape hatch ("classic version") behind a migrated next page | access, account, accountingRecord, cost1, cost2, cost2Type, project, gantt, task/taskTree, phoneCall, admin | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true`; hard links in next (`taskTree/page.tsx`, `system-page.tsx`, `phone-call-page.tsx`) |
-| Only reached from other legacy pages | timesheet, group, incomingInvoice, userPref, TeamCal admin (`TeamCalListPage`/`TeamCalEditPage`), ICS import (`TeamCalImportPage`), team events, `oldCalendar`/`oldTeamCalendar`, `TaskWizardPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest`) |
-| Dead / hidden | `datevImport`, `PacmanViewPage`, incoming invoice (`offerLegacyLink = false`) | URL typed by hand only |
-| Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, `Abstract*Page` | Wicket itself |
+| Menu entry | `ToDoListPage`, `ToDoEditPage` | `ToDoPlugin.registerMenuItem` (MISC); the only Wicket page still opened by a menu entry (if the plugin is active), no next page exists |
+| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), cost1 (`Kost1*Page`), cost2 (`Kost2*Page`), cost2Type (`Kost2Art*Page`), gantt (`GanttChart*Page`), project (`Projekt*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
+| Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
+| Mounted, but no way back from next | `DatevImportPage` (`wa/datevImport`, menu points to `next/datev-import`, only `CallAllPagesTest` uses it), `LiquidityEntryListPage`, `LiquidityEntryEditPage`, `LiquidityForecastPage` (`offerLegacyLink = false`, still `registerWeb`/`addMountPage` in the plugin) | URL typed by hand only |
+| Dead, no reference at all | `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` | – |
+| Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
+
+Without the escape hatches and the hidden mounts, Wicket is still needed only for ToDo, the task
+wizard, the user favorites (`UserPref`) and the old calendar pages. An escape-hatch category can only go
+after its `offerLegacyLink` has been set to `false`.
 
 ### Plugins
 
@@ -61,6 +76,8 @@ These would break silently if the module were simply deleted.
       `SystemDiagnosticsExport` (used by `SystemRest`).
 - [ ] **`MenuCustomizationController`** (`/rs/menucustomization`, in the Wicket module): no frontend
       caller found – verify and delete, or move to rest.
+- [ ] **Dead code:** delete `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` and the
+      `register(MenuItemDefId…)` calls in `MenuItemRegistry` whose menu entries resolve to `next/…`.
 - [ ] **`TeamEventDao`** (~l. 148) inspects the stack trace for `org.projectforge.web.wicket.EditPageSupport`
       – remove the hack.
 - [ ] **Hard-coded `wa/` links outside Wicket:**
