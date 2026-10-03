@@ -26,11 +26,15 @@ package org.projectforge.business.ldap;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
+import org.projectforge.framework.integration.IntegrationConfig;
+import org.projectforge.framework.integration.IntegrationErrors;
+import org.projectforge.framework.integration.IntegrationTimeouts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 import java.io.File;
@@ -93,6 +97,14 @@ public class LdapConnector implements ConfigurationListener {
     if (ldapConfig != null && StringUtils.isNotBlank(ldapConfig.getSslCertificateFile())) {
       env.put("java.naming.ldap.factory.socket", "org.projectforge.business.ldap.MySSLSocketFactory");
     }
+    // Without timeouts, an unreachable or hanging LDAP server blocks logins and syncs forever:
+    final IntegrationTimeouts timeouts = IntegrationConfig.get(IntegrationConfig.LDAP);
+    if (timeouts.getConnectTimeoutMs() > 0) {
+      env.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(timeouts.getConnectTimeoutMs()));
+    }
+    if (timeouts.getResponseTimeoutMs() > 0) {
+      env.put("com.sun.jndi.ldap.read.timeout", String.valueOf(timeouts.getResponseTimeoutMs()));
+    }
     log.info("Trying to connect the LDAP server: url=["
         + ldapConfig.getCompleteServerUrl()
         + "], authentication=["
@@ -131,6 +143,52 @@ public class LdapConnector implements ConfigurationListener {
     final Hashtable<String, Object> env = createEnv(username, password);
     final LdapContext ctx = new InitialLdapContext(env, null);
     return ctx;
+  }
+
+  /**
+   * Block executed with an open LDAP context, see {@link #withContext(String, char[], ContextCallback)}.
+   */
+  @FunctionalInterface
+  public interface ContextCallback<T> {
+    T apply(DirContext ctx) throws NamingException;
+  }
+
+  /**
+   * Opens a context with the given credentials (bind), runs the block and closes the context in any case, so
+   * no connection to the LDAP server is left open. The duration of the call is measured: slow calls and timeouts
+   * are logged as warnings.
+   *
+   * @throws NamingException e.g. on invalid credentials, unreachable server or timeout.
+   */
+  public <T> T withContext(final String username, final char[] password, final ContextCallback<T> block)
+      throws NamingException {
+    final long start = System.currentTimeMillis();
+    DirContext ctx = null;
+    try {
+      ctx = createContext(username, password);
+      return block.apply(ctx);
+    } catch (final NamingException ex) {
+      if (IntegrationErrors.isTimeout(ex)) {
+        log.warn("LDAP call of '" + username + "' timed out after " + (System.currentTimeMillis() - start) + "ms: "
+            + ex.getMessage());
+      }
+      throw ex;
+    } finally {
+      if (ctx != null) {
+        try {
+          ctx.close();
+        } catch (final NamingException ex) {
+          log.warn("Error while closing LDAP context of '" + username + "': " + ex.getMessage());
+        }
+      }
+      final long duration = System.currentTimeMillis() - start;
+      final long responseTimeoutMs = IntegrationConfig.get(IntegrationConfig.LDAP).getResponseTimeoutMs();
+      if (responseTimeoutMs > 0 && duration > responseTimeoutMs / 2) {
+        log.warn("Slow LDAP call of '" + username + "': " + duration + "ms.");
+      } else if (log.isDebugEnabled()) {
+        log.debug("LDAP call of '" + username + "': " + duration + "ms.");
+      }
+    }
   }
 
   /**

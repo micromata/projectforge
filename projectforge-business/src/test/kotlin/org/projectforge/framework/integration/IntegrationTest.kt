@@ -31,7 +31,6 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 class IntegrationTest {
     @Test
@@ -62,37 +61,38 @@ class IntegrationTest {
     }
 
     @Test
-    fun `single run executor coalesces triggers`() {
+    fun `single run executor runs the newest waiting job`() {
         val executor = SingleRunExecutor("test-sync")
         val started = CountDownLatch(1)
         val release = CountDownLatch(1)
-        val counter = AtomicInteger()
+        val executed = java.util.Collections.synchronizedList(mutableListOf<Int>())
         assertTrue(executor.trigger {
             started.countDown()
             release.await(5, TimeUnit.SECONDS)
-            counter.incrementAndGet()
+            executed.add(1)
         })
         assertTrue(started.await(5, TimeUnit.SECONDS))
-        // First one is running, the second one waits, the others are dropped:
-        assertTrue(executor.trigger { counter.incrementAndGet() })
-        assertFalse(executor.trigger { counter.incrementAndGet() })
-        assertFalse(executor.trigger { counter.incrementAndGet() })
+        // First one is running, the second one waits and is replaced by the newer ones:
+        assertTrue(executor.trigger { executed.add(2) })
+        assertFalse(executor.trigger { executed.add(3) })
+        assertFalse(executor.trigger { executed.add(4) })
         assertTrue(executor.busy)
         release.countDown()
+        waitUntilIdle(executor)
+        assertEquals(listOf(1, 4), executed)
+        // Exceptions don't kill the executor:
+        executor.trigger { throw IllegalStateException("test") }
+        executor.trigger { executed.add(5) }
+        waitUntilIdle(executor)
+        assertEquals(5, executed.last())
+        executor.shutdown()
+    }
+
+    private fun waitUntilIdle(executor: SingleRunExecutor) {
         val waitUntil = System.currentTimeMillis() + 5000
         while (executor.busy && System.currentTimeMillis() < waitUntil) {
             Thread.sleep(10)
         }
-        assertEquals(2, counter.get())
-        // Exceptions don't kill the executor:
-        executor.trigger { throw IllegalStateException("test") }
-        val done = CountDownLatch(1)
-        val waitUntil2 = System.currentTimeMillis() + 5000
-        while (!executor.trigger { done.countDown() } && System.currentTimeMillis() < waitUntil2) {
-            Thread.sleep(10)
-        }
-        assertTrue(done.await(5, TimeUnit.SECONDS))
-        executor.shutdown()
     }
 
     @Test

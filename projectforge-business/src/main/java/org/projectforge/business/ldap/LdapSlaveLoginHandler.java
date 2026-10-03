@@ -29,6 +29,10 @@ import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.integration.SingleRunExecutor;
+import org.projectforge.framework.integration.SyncCounts;
+import org.projectforge.framework.integration.SyncStats;
+import org.projectforge.framework.integration.SyncStatsRegistry;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -36,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.naming.NameNotFoundException;
+import kotlin.Unit;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -82,7 +88,12 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
 
   private Mode mode;
 
-  private boolean refreshInProgress;
+  private volatile boolean refreshInProgress;
+
+  // One thread for all refreshes instead of a new thread per cache refresh:
+  private final SingleRunExecutor refreshExecutor = new SingleRunExecutor("ldap-slave-sync");
+
+  private final SyncStats syncStats = SyncStatsRegistry.get("ldap-slave");
 
   /**
    * Only for test cases.
@@ -233,37 +244,38 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
     if (mode == Mode.SIMPLE || refreshInProgress) {
       return;
     }
-    new Thread() {
-      @Override
-      public void run() {
-        synchronized (LdapSlaveLoginHandler.this) {
-          if (refreshInProgress) {
-            return;
-          }
-          try {
-            refreshInProgress = true;
-            updateLdap(users, groups);
-            userGroupCache.internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
-          } finally {
-            refreshInProgress = false;
-          }
-        }
+    refreshExecutor.trigger(() -> {
+      if (refreshInProgress) {
+        return Unit.INSTANCE;
       }
-    }.start();
+      try {
+        // The refresh of the UserGroupCache below calls this method again, which is ignored by this flag.
+        refreshInProgress = true;
+        syncStats.execute(null, run -> {
+          updateLdap(users, groups, run);
+          return null;
+        });
+        userGroupCache.internalGetNumberOfUsers(); // Force refresh of UserGroupCache.
+      } finally {
+        refreshInProgress = false;
+      }
+      return Unit.INSTANCE;
+    });
   }
 
   /**
    * @return true if currently a cache refresh is running, otherwise false.
    */
   public boolean isRefreshInProgress() {
-    return refreshInProgress;
+    return refreshInProgress || refreshExecutor.getBusy();
   }
 
-  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups) {
+  private void updateLdap(final Collection<PFUserDO> users, final Collection<GroupDO> groups, final SyncStats.Run run) {
     new LdapTemplate(ldapConnector) {
       @Override
       protected Object call() throws NameNotFoundException, Exception {
         log.info("Updating LDAP...");
+        final long stepStart = System.currentTimeMillis();
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
         final List<PFUserDO> dbUsers = userService.selectAll(false);
         final List<PFUserDO> users = new ArrayList<>(ldapUsers.size());
@@ -348,6 +360,8 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
             + " ignored ldap users (local users), "
             + localUsers
             + " local users.");
+        run.addStep("users", System.currentTimeMillis() - stepStart,
+            new SyncCounts(created, updated + undeleted, deleted, unmodified + ignoredLocalUsers + localUsers, error));
         return null;
       }
     }.excecute();
