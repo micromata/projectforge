@@ -26,6 +26,7 @@ package org.projectforge.business.admin
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -56,6 +57,7 @@ class SystemStatistics {
         registerStatisticsBuilder(databaseStatisticsBuilder)
         registerStatisticsBuilder(MemoryStatisticsBuilder())
         registerStatisticsBuilder(diskUsageStatisticsBuilder)
+        registerStatisticsBuilder(SyncStatsRegistry)
     }
 
     /**

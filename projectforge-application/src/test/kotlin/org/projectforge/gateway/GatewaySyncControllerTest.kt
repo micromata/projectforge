@@ -92,4 +92,15 @@ class GatewaySyncControllerTest {
         val response = controller.syncIcsEntries("my-secret", entries)
         assertEquals(HttpStatus.OK, response.statusCode)
     }
+
+    @Test
+    fun retainAddressesRequiresSecretAndDelegates() {
+        val controller = GatewaySyncController(syncService, "my-secret")
+        assertEquals(HttpStatus.UNAUTHORIZED, controller.retainAddresses("wrong", listOf("uid-1")).statusCode)
+        whenever(syncService.retainAddresses(any())).thenReturn(SyncResultDto(deleted = 3))
+
+        val response = controller.retainAddresses("my-secret", listOf("uid-1", "uid-2"))
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals(3, (response.body as SyncResultDto).deleted)
+    }
 }

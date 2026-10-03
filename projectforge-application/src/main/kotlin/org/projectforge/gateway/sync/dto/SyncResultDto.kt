@@ -23,6 +23,8 @@
 
 package org.projectforge.gateway.sync.dto
 
+import org.projectforge.framework.integration.SyncCounts
+
 /**
  * Result of a sync request, returned by the gateway to the main instance.
  *
@@ -36,4 +38,11 @@ data class SyncResultDto(
     val deleted: Int = 0,
     val errors: Int = 0,
     val icsCacheSize: Int? = null,
-)
+) {
+    fun addTo(counts: SyncCounts) {
+        counts.created += created
+        counts.updated += updated
+        counts.deleted += deleted
+        counts.errors += errors
+    }
+}

@@ -70,6 +70,18 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/wa/
 curl -X PROPFIND http://localhost:8090/.well-known/carddav
 ```
 
+**Timeouts and statistics:** the main instance gives up a push after
+`projectforge.integration.clients.gateway.responseTimeoutMs` (default 120s) and stops the whole sync with one
+warning, if the gateway isn't reachable or answers too slowly. Addresses are pushed in batches of 500; a full sync
+deletes missing addresses afterwards (`/api/gateway/sync/addressbooks/retain`), only if all batches succeeded.
+Duration and counts of every run are logged (`Sync 'gateway-push' (delta) success in ...`) and shown on the system
+statistics page (group *Sync*, admins only): `gateway-push` on the main instance, `gateway-receive-*` on the gateway.
+
+Test of the timeout: let the push url point to a port which accepts connections but never answers, e.g.
+`nc -lk 8091` and `projectforge.gateway.push.url=http://localhost:8091/api/gateway/sync` together with
+`projectforge.integration.clients.gateway.responseTimeoutMs=3000`. Expected: one warning per sync, status
+*aborted* and `timeouts=1` on the statistics page.
+
 ---
 
 ## Variant B: Podman + Postgres on a Debian server
