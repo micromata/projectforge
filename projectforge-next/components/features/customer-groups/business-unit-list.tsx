@@ -7,8 +7,8 @@ import {
   NestedFieldMetadata,
   useEntityEditForm,
 } from "@/components/shared/form/form-context";
-import { EntityMultiAutocompleteField } from "@/components/shared/form/entity-multi-autocomplete-field";
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
+import { TaskMultiSelectField } from "@/components/shared/tasks/task-multi-select-field";
 import { useFieldArray } from "@/hooks/use-field-array";
 import { CUSTOMER_SET_METADATA } from "./schema";
 import { CustomerSetFields } from "./customer-set-fields";
@@ -71,12 +71,10 @@ export function BusinessUnitList() {
                 label={t("fibu.businessUnits.groups")}
                 className="md:col-span-2"
               />
-              <EntityMultiAutocompleteField
+              <TaskMultiSelectField
                 name={`${prefix}tasks`}
-                entity="task/tree"
                 label={t("fibu.businessUnits.tasks")}
                 hint={t("fibu.businessUnits.tasksHint")}
-                sorted
                 className="md:col-span-2"
               />
             </CustomerSetRow>
