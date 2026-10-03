@@ -81,10 +81,10 @@ sudo apt update && sudo apt install -y podman podman-compose
 **Locally: build the fat JAR and copy the build context to the server**
 
 ```bash
-./gradlew :projectforge-application:bootJar
+./gradlew clean build
 
 ssh user@server "mkdir -p ~/build/docker"
-scp projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar user@server:~/build/
+rsync -P -e ssh projectforge-application/build/libs/projectforge-application-8.2-SNAPSHOT.jar user@server:~/build/
 scp Dockerfile user@server:~/build/
 scp docker/entrypoint.sh docker/environment.sh user@server:~/build/docker/
 ```
