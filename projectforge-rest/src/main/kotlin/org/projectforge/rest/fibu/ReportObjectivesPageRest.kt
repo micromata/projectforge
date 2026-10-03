@@ -36,6 +36,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.FileCheck
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -127,12 +128,14 @@ class ReportObjectivesPageRest {
     @Autowired
     private lateinit var userPrefService: UserPrefService
 
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @GetMapping
     fun getData(): ReportObjectivesData {
         checkAccess()
         return toData(getStorage())
     }
 
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo (checkWriteAccess)")
     @PostMapping("upload")
     fun upload(@RequestParam("file") file: MultipartFile): ResponseEntity<*> {
         checkWriteAccess()
@@ -149,6 +152,7 @@ class ReportObjectivesPageRest {
     }
 
     /** As [upload], but with the XML pasted into the page; the stored report then has no file name. */
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo (checkWriteAccess)")
     @PostMapping("paste")
     fun paste(@RequestBody request: PasteRequest): ResponseEntity<*> {
         checkWriteAccess()
@@ -173,6 +177,7 @@ class ReportObjectivesPageRest {
     }
 
     /** Selects the accounting records of the given period, as Wicket's "create report" did. */
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo (checkWriteAccess)")
     @PostMapping("create")
     fun create(@RequestBody request: PeriodRequest): ResponseEntity<*> {
         checkWriteAccess()
@@ -196,6 +201,7 @@ class ReportObjectivesPageRest {
     }
 
     /** Navigates to the given report (an ancestor of the current one or a child with children). */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @PostMapping("select")
     fun select(@RequestBody request: SelectRequest): ReportObjectivesData {
         checkAccess()
@@ -208,6 +214,7 @@ class ReportObjectivesPageRest {
     }
 
     /** Removes the stored report objective, so another one can be uploaded. */
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo (checkWriteAccess)")
     @PostMapping("clear")
     fun clear(): ReportObjectivesData {
         checkWriteAccess()

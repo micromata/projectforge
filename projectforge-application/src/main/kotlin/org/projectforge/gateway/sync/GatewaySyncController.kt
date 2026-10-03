@@ -23,6 +23,7 @@
 
 package org.projectforge.gateway.sync
 
+import java.security.MessageDigest
 import mu.KotlinLogging
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
@@ -101,7 +102,8 @@ class GatewaySyncController(
             log.error { "Gateway sync secret is not configured!" }
             return false
         }
-        if (secret != syncSecret) {
+        // Constant time, so the secret can't be guessed from response times.
+        if (!MessageDigest.isEqual(secret.toByteArray(Charsets.UTF_8), syncSecret.toByteArray(Charsets.UTF_8))) {
             log.warn { "Invalid gateway sync secret received" }
             return false
         }

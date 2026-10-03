@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Kost2Art
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.Project
@@ -339,12 +340,14 @@ class ProjectEntityRest
      * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the projects
      * the list's *other* criteria in [filter] match (see [checklistFilter]).
      */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
     }
 
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))

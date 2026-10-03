@@ -30,6 +30,7 @@ import org.projectforge.plugins.liquidityplanning.LiquiditySeriesDao
 import org.projectforge.plugins.liquidityplanning.LiquiditySeriesSplitService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
@@ -77,6 +78,7 @@ class LiquiditySeriesRest :
      * ([LiquiditySeriesSplitService.createContinuationAndMigrate]); ending the old series is the separate
      * write that follows — the same two-step shape the entry form's `repeat` block has.
      */
+    @AccessChecked("DAO: find/insert/saveOrUpdate of LiquiditySeriesDao (PLUGIN_LIQUIDITY_PLANNING)")
     @PostMapping("split")
     fun split(
         request: HttpServletRequest,

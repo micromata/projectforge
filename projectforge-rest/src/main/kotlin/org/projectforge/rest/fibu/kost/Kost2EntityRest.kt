@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Customer
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.Kost2Art
@@ -217,12 +218,14 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the projects
      * of the cost 2 the list's *other* criteria in [filter] match (see [checklistFilter]).
      */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
     }
 
     /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
@@ -238,6 +241,7 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
     }
 
     /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+    @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("projectFilterValues")
     fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
         val kost2s = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))

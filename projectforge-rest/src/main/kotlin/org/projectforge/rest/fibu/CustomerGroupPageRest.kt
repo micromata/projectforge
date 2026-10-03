@@ -36,6 +36,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.ResponseAction
@@ -96,12 +97,14 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var customerGroupService: CustomerGroupService
 
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @GetMapping
     fun getData(): CustomerGroupsData {
         checkAccess()
         return toData(customerGroupService.index.config)
     }
 
+    @AccessChecked("FINANCE/CONTROLLING group + not restricted/demo")
     @PostMapping("save")
     fun save(
         request: HttpServletRequest,
@@ -124,6 +127,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
      * after the change causing it (on both sets involved) instead of only on saving. Nothing is stored, hence
      * no CSRF token; the optimistic lock is [save]'s.
      */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @PostMapping("validate")
     fun validate(@RequestBody data: CustomerGroupsData): List<ValidationError> {
         checkAccess()
@@ -134,6 +138,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
      * The customer entities and free-text customers the given names and patterns match, so the editor can show
      * what a pattern catches before it is saved.
      */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @PostMapping("matches")
     fun matches(@RequestBody request: MatchesRequest): CustomerGroupService.CustomerMatches {
         checkAccess()
@@ -144,6 +149,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
      * What the given unsaved configuration leaves without a business unit, shown below the business units and
      * updated while editing.
      */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @PostMapping("unassigned")
     fun unassigned(@RequestBody data: CustomerGroupsData): CustomerGroupService.Unassigned {
         checkAccess()
@@ -154,6 +160,7 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
      * What each business unit of the given unsaved configuration stands for (by business-unit key), shown in
      * its row and updated while editing.
      */
+    @AccessChecked("FINANCE/CONTROLLING group (checkAccess)")
     @PostMapping("businessUnitMembers")
     fun businessUnitMembers(@RequestBody data: CustomerGroupsData): Map<String, List<CustomerGroupService.BusinessUnitMember>> {
         checkAccess()

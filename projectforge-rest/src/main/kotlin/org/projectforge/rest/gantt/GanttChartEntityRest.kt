@@ -77,8 +77,8 @@ class GanttChartEntityRest :
         // The stored style and settings of an existing chart, so the values this form doesn't offer survive.
         val stored = dto.id?.let { baseDao.find(it, checkAccess = false) }
         dto.copyTo(obj, stored?.style ?: GanttChartStyle(), stored?.settings ?: GanttChartSettings())
-        dto.task?.id?.let { baseDao.setTask(obj, it) }
-        dto.owner?.id?.let { baseDao.setOwner(obj, it) }
+        dto.task?.id?.let { setCheckedTask(obj, it) }
+        ownerToSet(dto.owner?.id, stored)?.let { baseDao.setOwner(obj, it) }
         val root = dto.root
         if (root != null && obj.task != null) {
             baseDao.writeGanttObjects(obj, GanttObjectConverter.fromDTO(root).rootObject)
@@ -97,8 +97,35 @@ class GanttChartEntityRest :
         obj.readAccess = GanttAccess.OWNER
         obj.writeAccess = GanttAccess.OWNER
         baseDao.setOwner(obj, ThreadLocalUserContext.loggedInUserId!!)
-        NumberHelper.parseLong(request?.getParameter("task"))?.let { baseDao.setTask(obj, it) }
+        NumberHelper.parseLong(request?.getParameter("task"))?.let { setCheckedTask(obj, it) }
         return obj
+    }
+
+    /**
+     * Sets the task of [obj] if the logged-in user may see it: the chart's tree is read from the task's
+     * subtree (titles, dates), which must not be readable for an arbitrary task id.
+     */
+    private fun setCheckedTask(obj: GanttChartDO, taskId: Long) {
+        val task = taskDao.find(taskId) ?: return
+        taskDao.hasLoggedInUserSelectAccess(task, true)
+        baseDao.setTask(obj, taskId)
+    }
+
+    /**
+     * The owner a saved chart gets: only the current owner (the logged-in user for a new chart) or an admin
+     * may hand a chart to someone else; otherwise the stored owner (or the logged-in user) is kept.
+     */
+    private fun ownerToSet(requestedOwnerId: Long?, stored: GanttChartDO?): Long? {
+        val loggedInUserId = ThreadLocalUserContext.loggedInUserId
+        val currentOwnerId = if (stored != null) stored.ownerId else loggedInUserId
+        if (requestedOwnerId == null || requestedOwnerId == currentOwnerId) {
+            return requestedOwnerId ?: currentOwnerId
+        }
+        return if (currentOwnerId == loggedInUserId || accessChecker.isLoggedInUserMemberOfAdminGroup) {
+            requestedOwnerId
+        } else {
+            currentOwnerId
+        }
     }
 
     override fun newBaseDTO(request: HttpServletRequest?): GanttDiagram {

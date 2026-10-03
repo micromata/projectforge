@@ -29,6 +29,7 @@ import org.projectforge.framework.i18n.Duration
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.pub.next.NextTwoFactorMethodsService
 import org.projectforge.rest.pub.next.NextTwoFactorPostData
 import org.projectforge.rest.pub.next.NextTwoFactorResult
@@ -69,6 +70,7 @@ open class My2FANextRest {
      * @param expiryMillis The expiry period of the protected action (only for the message shown to the user), see
      * [My2FAPageRest.getForm].
      */
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @GetMapping("status")
     fun getStatus(@RequestParam expiryMillis: Long? = null): NextTwoFactorState {
         val expiryMessage = if (expiryMillis != null && expiryMillis > 0) {
@@ -85,6 +87,7 @@ open class My2FANextRest {
         )
     }
 
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @PostMapping("checkOTP")
     fun checkOtp(
         request: HttpServletRequest,
@@ -94,21 +97,25 @@ open class My2FANextRest {
         return twoFactorSupport.checkOtp(request, response, postData)
     }
 
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @GetMapping("sendSmsCode")
     fun sendSmsCode(request: HttpServletRequest): NextTwoFactorResult {
         return twoFactorSupport.sendSmsCode(request)
     }
 
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @GetMapping("sendMailCode")
     fun sendMailCode(request: HttpServletRequest): NextTwoFactorResult {
         return twoFactorSupport.sendMailCode(request)
     }
 
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @GetMapping("webAuthn")
     fun webAuthn(request: HttpServletRequest): WebAuthnPublicKeyCredentialCreationOptions? {
         return twoFactorSupport.webAuthn(request)
     }
 
+    @AccessChecked("Own user only (2FA of the logged-in user)")
     @PostMapping("webAuthnFinish")
     fun webAuthnFinish(
         request: HttpServletRequest,

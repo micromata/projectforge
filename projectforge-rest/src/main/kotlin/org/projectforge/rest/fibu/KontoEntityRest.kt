@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.utils.IntRanges
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Konto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -76,16 +77,19 @@ class KontoEntityRest
         return kontoDO
     }
 
+    @AccessChecked("DAO: KontoDao.select")
     @GetMapping("ac")
     fun getAccounts(@RequestParam("search") search: String?): List<Konto> {
         return getAccounts(search)
     }
 
+    @AccessChecked("DAO: KontoDao.select")
     @GetMapping("acDebitors")
     fun getDebitorAccounts(@RequestParam("search") search: String?): List<Konto> {
         return getAccounts(search, AccountingConfig.getInstance().debitorsAccountNumberRanges)
     }
 
+    @AccessChecked("DAO: KontoDao.select")
     @GetMapping("acCreditors")
     fun getCreditorAccounts(@RequestParam("search") search: String?): List<Konto> {
         return getAccounts(search, AccountingConfig.getInstance().creditorsAccountNumberRanges)
@@ -99,6 +103,7 @@ class KontoEntityRest
      *
      * Read only, so the select access of the category is what has to be checked here.
      */
+    @AccessChecked("DAO: select access (hasLoggedInUserSelectAccess)")
     @GetMapping("sellerBankAccounts")
     fun getSellerBankAccounts(): List<SellerBankAccount> {
         baseDao.hasLoggedInUserSelectAccess(throwException = true)

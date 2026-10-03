@@ -42,6 +42,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.TeamEvent
@@ -120,6 +121,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
    * same list [createEditLayout] embeds into the UILayout form. External subscriptions are
    * read-only, so they are excluded.
    */
+  @AccessChecked("DAO: TeamCalDao.select, calendars with full access only")
   @GetMapping("calendars")
   fun getCalendars(): List<CalendarSelectValue> {
     val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()

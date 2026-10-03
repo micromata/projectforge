@@ -63,6 +63,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Base class of mass updates after multi selection.
  */
+@AccessChecked("Subclasses: proceedMassUpdate/proceedMassDelete/getStatisticsData have to check (DAO)")
 abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     @Autowired
     protected lateinit var userService: UserService

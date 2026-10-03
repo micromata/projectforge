@@ -29,6 +29,7 @@ import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.PhoneType
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -39,6 +40,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.RecentQueue
 import org.projectforge.messaging.SmsSender
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -66,6 +68,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping("${Rest.URL}/sendTextMessage")
 class SendTextMessageRest {
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
+
     @Autowired
     private lateinit var addressDao: AddressDao
 
@@ -103,6 +108,7 @@ class SendTextMessageRest {
      * @param phoneType MOBILE or PRIVATE_MOBILE — which number of the address to prefill.
      * @param number    A raw receiver number, used verbatim when no address is given.
      */
+    @AccessChecked("DAO: AddressDao.find")
     @GetMapping
     fun getInitialData(
         @RequestParam("addressId", required = false) addressId: Long?,
@@ -122,6 +128,7 @@ class SendTextMessageRest {
      * matching addresses, formatted `"<number>: <name>, <firstName>, <organization>"` (as the Wicket page).
      * An empty search offers the numbers recently sent to (persisted per user).
      */
+    @AccessChecked("DAO: AddressDao.select")
     @GetMapping("ac")
     fun autoComplete(@RequestParam("search", required = false) search: String?): List<String> {
         if (search.isNullOrBlank()) {
@@ -140,8 +147,12 @@ class SendTextMessageRest {
         return entries.toList()
     }
 
+    @AccessChecked("Any logged-in user except restricted/demo (checkRestrictedOrDemoUser)")
     @PostMapping("send")
     fun send(@RequestBody postData: SendRequest): SendResult {
+        // Open to every user as in Wicket, but demo and restricted users don't send text messages at the
+        // operator's expense.
+        accessChecker.checkRestrictedOrDemoUser()
         val number = NumberHelper.extractPhonenumber(postData.phoneNumber)
         if (!smsSenderConfig.isSmsConfigured()) {
             log.error("Servlet url for sending sms not configured. SMS not supported.")

@@ -29,6 +29,7 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -66,6 +67,7 @@ class LogoServiceRest {
         return getLogo()
     }
 
+    @AccessChecked("PUBLIC: serves only the configured logo file")
     @GetMapping(value = arrayOf("logoDark.jpg"), produces = arrayOf(MediaType.IMAGE_JPEG_VALUE))
     @ResponseBody
     @Throws(IOException::class)
@@ -73,6 +75,7 @@ class LogoServiceRest {
         return getLogo(dark = true)
     }
 
+    @AccessChecked("PUBLIC: serves only the configured logo file")
     @GetMapping(value = arrayOf("logoDark.png"), produces = arrayOf(MediaType.IMAGE_PNG_VALUE))
     @ResponseBody
     @Throws(IOException::class)
@@ -80,6 +83,7 @@ class LogoServiceRest {
         return getLogo(dark = true)
     }
 
+    @AccessChecked("PUBLIC: serves only the configured logo file")
     @GetMapping(value = arrayOf("logoDark.gif"), produces = arrayOf(MediaType.IMAGE_GIF_VALUE))
     @ResponseBody
     @Throws(IOException::class)

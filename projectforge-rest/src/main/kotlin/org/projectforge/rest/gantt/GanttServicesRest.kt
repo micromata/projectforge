@@ -40,6 +40,7 @@ import org.projectforge.framework.renderer.BatikImageRenderer
 import org.projectforge.framework.renderer.ImageFormat
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
@@ -101,6 +102,7 @@ class GanttServicesRest {
      * The plain Gantt object tree of a task, for a chart whose task was just chosen (the first level visible,
      * as Wicket shows a new chart).
      */
+    @AccessChecked("Task select access (TaskDao)")
     @GetMapping("objects")
     fun objects(@RequestParam("taskId") taskId: Long): GanttObject? {
         val task = taskTree.getTaskById(taskId) ?: return null
@@ -110,6 +112,7 @@ class GanttServicesRest {
         return GanttObjectConverter.toDTO(root, taskDao)
     }
 
+    @AccessChecked("Task select access per node + GanttChartDao.find")
     @PostMapping("preview")
     fun preview(@RequestBody dto: GanttDiagram): Preview {
         val chart = createChart(dto) ?: return Preview(null, emptyMap())
@@ -124,6 +127,7 @@ class GanttServicesRest {
      * The posted chart as a file of the given format. 404 if there is nothing to draw, which the frontend
      * reports as such (the same convention as the list exports).
      */
+    @AccessChecked("Task select access per node + GanttChartDao.find")
     @PostMapping("export")
     fun export(@RequestParam("format") format: ExportFormat, @RequestBody dto: GanttDiagram): ResponseEntity<Resource> {
         val chart = createChart(dto) ?: return ResponseEntity.notFound().build()
@@ -143,6 +147,7 @@ class GanttServicesRest {
      * Writes one value of a Gantt object back to its task (the "save" button beside a differing value).
      * @return The task's values after the update.
      */
+    @AccessChecked("DAO: TaskDao find/insert/update access")
     @PostMapping("saveToTask")
     fun saveToTask(@RequestBody data: SaveToTaskData): GanttObject.TaskValues {
         val node = requireNotNull(data.node) { "node required" }
@@ -172,6 +177,7 @@ class GanttServicesRest {
     /**
      * Moves a task below another one ("move here", or "move to top" with the chart's task as parent).
      */
+    @AccessChecked("DAO: TaskDao find/insert/update access")
     @PostMapping("moveTask")
     fun moveTask(@RequestBody data: MoveTaskData) {
         val task = requireNotNull(taskDao.find(data.taskId)) { "No task with id ${data.taskId}" }
@@ -183,6 +189,7 @@ class GanttServicesRest {
      * Saves a Gantt-only activity as a new task below [SaveAsTaskData.parentTaskId].
      * @return The id of the new task, which becomes the activity's id.
      */
+    @AccessChecked("DAO: TaskDao find/insert/update access")
     @PostMapping("saveAsTask")
     fun saveAsTask(@RequestBody data: SaveAsTaskData): SaveAsTaskResult {
         val node = requireNotNull(data.node) { "node required" }
