@@ -284,6 +284,10 @@
     "fileId": "File id",
     "fileName": "Filename",
     "fileSize": "File size",
+    "filter": {
+      "fileNames": "Attachment file name",
+      "hasAttachments": "Has attachments"
+    },
     "info": "Info",
     "list": "List of attachments",
     "onlyAvailableAfterSave": "Uploading of attachments is only available after saving this new object.",

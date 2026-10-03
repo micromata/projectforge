@@ -284,6 +284,10 @@
     "fileId": "Dateikennung",
     "fileName": "Dateiname",
     "fileSize": "Dateigröße",
+    "filter": {
+      "fileNames": "Anhang-Dateiname",
+      "hasAttachments": "Anhänge vorhanden"
+    },
     "info": "Info",
     "list": "Anhänge",
     "onlyAvailableAfterSave": "Anhänge können erst hochgeladen werden, nachdem dieses Objekt gespeichert wurde.",

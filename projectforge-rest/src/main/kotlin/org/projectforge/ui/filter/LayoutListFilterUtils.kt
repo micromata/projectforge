@@ -84,6 +84,9 @@ object LayoutListFilterUtils {
         val baseDao = pagesRest.baseDao
         val searchFields = baseDao.searchFields
         searchFields.forEach {
+            if (AttachmentsFilterSupport.isHiddenSearchField(it)) {
+                return@forEach
+            }
             val elInfo = ElementsRegistry.getElementInfo(lc, it)
             if (elInfo == null) {
                 log.warn("Search field '${baseDao.doClass}.$it' not found. Ignoring it.")
@@ -113,9 +116,12 @@ object LayoutListFilterUtils {
                         element.group = group
                         element.shortLabel = leafLabel(elInfo)
                     }
-                    // No @PropertyInfo, so no translation: getLabel fell back to the property name above
-                    // (attachmentsIds). Indexed plumbing, searchable but not a field a user looks for.
-                    if (elInfo.i18nKey.isNullOrBlank()) {
+                    val attachmentsLabel = AttachmentsFilterSupport.searchFieldLabel(it)
+                    if (attachmentsLabel != null) {
+                        element.label = attachmentsLabel
+                    } else if (elInfo.i18nKey.isNullOrBlank()) {
+                        // No @PropertyInfo, so no translation: getLabel fell back to the property name above.
+                        // Indexed plumbing, searchable but not a field a user looks for.
                         element.technical = true
                     }
                 }

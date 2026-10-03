@@ -96,7 +96,10 @@ test.describe("books list attachments", { tag: "@lane-book" }, () => {
 
     await page.getByRole("button", { name: t("filter.addField") }).click();
     await page
-      .getByRole("option", { name: t("attachments._"), exact: true })
+      .getByRole("option", {
+        name: t("attachment.filter.hasAttachments"),
+        exact: true,
+      })
       .click();
 
     // The pill popover applies live and has no save button (see filter-pill-shell): picking a value
