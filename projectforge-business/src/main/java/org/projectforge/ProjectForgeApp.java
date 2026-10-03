@@ -170,7 +170,7 @@ public class ProjectForgeApp {
     }
 
     /**
-     * Should be called on start-up (e. g. by WicketApplication) if all start-up stuff is done and all the services and
+     * Called on start-up ({@link ApplicationReadyEvent}, see {@link #startApp()}) if all start-up stuff is done and all the services and
      * login should be started. <br>
      * Flag upAndRunning will be set to true.
      */

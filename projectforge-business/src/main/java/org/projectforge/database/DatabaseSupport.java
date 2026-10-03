@@ -88,7 +88,7 @@ public class DatabaseSupport
   }
 
   /**
-   * Will be called on shutdown by WicketApplication.
+   * Will be called on shutdown (ProjectForgeApp -> DatabaseService.shutdownDatabase).
    */
   public String getShutdownDatabaseStatement()
   {

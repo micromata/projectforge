@@ -107,8 +107,8 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] **User preferences** (`UserPrefListPage`) – no replacement planned. Decide on the Wicket-only
       `UserPrefArea`s (`USER_FAVORITE`, `TIMESHEET_TEMPLATE`, `TASK_FAVORITE`, `KUNDE_FAVORITE`, …):
       drop or migrate their data.
-- [ ] **`ExternalResourceLoader`** (customer i18n overrides, Wicket only) – check whether next needs an
-      equivalent.
+- [x] **`ExternalResourceLoader`** – only a Wicket adapter on `I18nHelper`; next already applies the
+      customer overrides (`I18nCustomerNextRest`, `i18n/customer-overrides.test.ts`). Goes with the module.
 
 ## Phase 3 – Close the escape hatches
 
@@ -137,8 +137,8 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
 - [ ] `WebXMLInitializer`: remove `WicketUserFilter`, the `WicketFilter`
       on `/wa/*`; keep locale filter, `restUserFilter`, `calendarSubscriptionFilter`, `OrphanedLinkFilter`.
-- [ ] Delete `projectforge-business/.../user/filter/WicketUserFilter.kt` (its `/wa/setup` branch is dead
-      already – setup lives in next).
+- [ ] Delete `projectforge-business/.../user/filter/WicketUserFilter.kt` (its dead `/wa/setup` branch is
+      already removed – setup lives in next).
 - [ ] Static resources: the module ships `src/main/webapp` (images, styles, fonts, scripts) as `static`.
       Verify nothing outside Wicket loads them (favicon, mail templates, React) before deleting.
 - [ ] Split packages: `org.projectforge.web`, `.web.session`, `.web.teamcal.event` also exist in other
@@ -146,8 +146,7 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] Config/log cleanup: `projectforge.wicket.developmentMode` (`application.properties`,
       `ConfigurationService`), `Constants.WICKET_REQUEST_TIMEOUT_MINUTES`, `LoggingFilter` `/wa` /
       `/styles/` exclusions (+ `LoggingFilterTest`), `logback-spring.xml` Wicket logger,
-      `TomcatConfig` comment, `SetupService` comment, stale comments in `ProjectForgeApp` and
-      `DatabaseSupport`.
+      `TomcatConfig` comment (`maxPartCount` for Wicket forms).
 - [ ] Optional business cleanup: `imageDimensions.xml` (read only by Wicket `WebConstants`),
       `@Deprecated` "used by Wicket" methods (`TimesheetDao`), `ProjectServiceImpl.isNumberFreeForCustomer`,
       "open/Serializable for Wicket" comments.

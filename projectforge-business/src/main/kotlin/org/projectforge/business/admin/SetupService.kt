@@ -58,8 +58,8 @@ data class SetupValidationError(
 )
 
 /**
- * Service encapsulating the initial database setup flow, shared by the
- * Wicket page (/wa/setup, legacy) and the Next.js REST endpoint (/rsPublic/setup).
+ * Service encapsulating the initial database setup flow, used by the Next.js setup page
+ * (/next/setup) via its REST endpoint (/rsPublic/setup).
  *
  * The caller is responsible for creating an HTTP login session for the returned
  * admin user after [finish] succeeds.

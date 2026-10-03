@@ -26,12 +26,10 @@ package org.projectforge.business.user.filter
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.Constants
-import org.projectforge.SystemStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
 import org.projectforge.security.My2FARequestHandler
 import org.projectforge.security.SecurityLogging
-import org.projectforge.web.WebUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.context.support.WebApplicationContextUtils
 import java.io.IOException
@@ -55,9 +53,6 @@ class WicketUserFilter : Filter {
 
   @Autowired
   private lateinit var my2FARequestHandler: My2FARequestHandler
-
-  @Autowired
-  private lateinit var systemStatus: SystemStatus
 
   @Throws(ServletException::class)
   override fun init(filterConfig: FilterConfig) {
@@ -92,17 +87,6 @@ class WicketUserFilter : Filter {
           doFilterDecoratedWithLocale(request, response, chain)
         }
       } else {
-        if (systemStatus.setupRequiredFirst == true) {
-          val normalizedUri = WebUtils.getNormalizedUri(request) ?: ""
-          if (normalizedUri.startsWith("/wa/setup") ||
-            normalizedUri.startsWith("/wa/styles/") ||
-            normalizedUri.startsWith("/wa/wicket/resource/")
-          ) {
-            // It's an empty data-base, therefore accept the call of setup-page:
-            doFilterDecoratedWithLocale(request, response, chain)
-            return
-          }
-        }
         var url = request.requestURI
         val queryString = request.queryString
         if (StringUtils.isNotBlank(queryString)) {
