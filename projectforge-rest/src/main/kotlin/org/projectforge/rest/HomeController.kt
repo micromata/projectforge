@@ -26,6 +26,7 @@ package org.projectforge.rest
 import org.projectforge.Constants
 import org.projectforge.SystemStatus
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 
@@ -33,8 +34,10 @@ import org.springframework.web.bind.annotation.GetMapping
  * Handles the bare root url. Without this the request reaches the DispatcherServlet, finds no
  * handler and fails with "No static resource" (there is no index.html at the static root since
  * the React app moved to /react and the app to /next).
+ * Not on the gateway: there, GatewayPageController handles the root url.
  */
 @Controller
+@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true)
 class HomeController {
     @Autowired
     private lateinit var systemStatus: SystemStatus
