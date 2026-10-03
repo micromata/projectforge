@@ -925,7 +925,10 @@
       "remove": "Remove business unit {arg0}",
       "tasks": "Tasks",
       "tasksHint": "Projects below one of these tasks belong to the business unit, if their customer belongs to none.",
-      "title": "Business units"
+      "title": "Business units",
+      "unassigned": "Without a business unit ({arg0})",
+      "unassignedHint": "Customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. A customer assigned only through the tasks of its projects is listed as well.",
+      "unassignedNone": "Everything belongs to a business unit."
     },
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",

@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -142,6 +143,57 @@ class CustomerGroupService {
 
     class CustomerMatches(val customers: List<String> = emptyList(), val freeTexts: List<String> = emptyList())
 
+    /**
+     * What the given (unsaved) configuration leaves without a business unit: the groups, and the customer entities
+     * and free-text customers belonging to no group. A customer or free text of a group without a business unit is
+     * represented by its group. Only customers and free texts of orders and invoices of the last [RECENT_YEARS]
+     * years are considered, the others no longer matter; a group none of whose members occurs there is left out
+     * as well.
+     *
+     * Each entry carries the year it was last used in (a group: the latest of its members), and they are sorted by
+     * this year (most recent first), then by name.
+     *
+     * A customer only reaching a business unit through the tasks of its projects is listed as well: the
+     * tasks assign projects, not customers.
+     */
+    fun unassigned(config: CustomerGroupConfig): Unassigned {
+        normalize(config)
+        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all))
+        val groupsInBusinessUnits = config.businessUnits.flatMap { it.groups }.toSet()
+        val recent = cachedRecentCustomers()
+        val entries = mutableListOf<UnassignedEntry>()
+        val groupYears = mutableMapOf<String, Int>()
+        val add = { kundeId: Long?, text: String?, year: Int, name: String?, kind: UnassignedKind ->
+            val group = index.groupOf(kundeId, text)
+            if (group != null) {
+                if (group.key !in groupsInBusinessUnits) {
+                    group.key?.let { key -> groupYears.merge(key, year, ::maxOf) }
+                }
+            } else if (index.businessUnitOf(kundeId, text) == null && name != null) {
+                entries.add(UnassignedEntry(name, kind, year))
+            }
+        }
+        recent.kundeYears.forEach { (kundeId, year) ->
+            add(kundeId, null, year, kundeCache.getKunde(kundeId)?.displayName, UnassignedKind.CUSTOMER)
+        }
+        recent.freeTextYears.forEach { (text, year) -> add(null, text, year, text, UnassignedKind.FREE_TEXT) }
+        config.groups.forEach { group ->
+            val year = groupYears[group.key] ?: return@forEach
+            group.name?.let { entries.add(UnassignedEntry(it, UnassignedKind.GROUP, year)) }
+        }
+        return Unassigned(
+            entries.sortedWith(
+                compareByDescending<UnassignedEntry> { it.year }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+            )
+        )
+    }
+
+    enum class UnassignedKind { GROUP, CUSTOMER, FREE_TEXT }
+
+    class UnassignedEntry(val name: String, val kind: UnassignedKind, val year: Int)
+
+    class Unassigned(val entries: List<UnassignedEntry> = emptyList())
+
     /** The stored row's last update (epoch millis) for the optimistic lock of [save], null if none yet. */
     val lastUpdate: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.lastUpdate?.time
@@ -186,6 +238,50 @@ class CustomerGroupService {
         val now = System.currentTimeMillis()
         freeTextsCache?.let { (loaded, texts) -> if (now - loaded < FREE_TEXTS_MAX_AGE_MILLIS) return texts }
         return loadFreeTexts().also { freeTextsCache = now to it }
+    }
+
+    @Volatile
+    private var recentCustomersCache: Pair<Long, RecentCustomers>? = null
+
+    private fun cachedRecentCustomers(): RecentCustomers {
+        val now = System.currentTimeMillis()
+        recentCustomersCache?.let { (loaded, recent) -> if (now - loaded < FREE_TEXTS_MAX_AGE_MILLIS) return recent }
+        return loadRecentCustomers().also { recentCustomersCache = now to it }
+    }
+
+    /** The year each customer entity and free-text customer (trimmed, the latest spelling) was last used in. */
+    private data class RecentCustomers(val kundeYears: Map<Long, Int>, val freeTextYears: Map<String, Int>)
+
+    /**
+     * The customer entities and free-text customers of the orders (by offer date, else entry date) and invoices
+     * of the last [RECENT_YEARS] years, with the year of their latest one.
+     */
+    private fun loadRecentCustomers(): RecentCustomers {
+        val since = "since" to LocalDate.now().minusYears(RECENT_YEARS)
+        val dates = listOf("AuftragDO" to "coalesce(t.angebotsDatum, t.erfassungsDatum)", "RechnungDO" to "t.datum")
+        val kundeYears = mutableMapOf<Long, Int>()
+        val freeTextYears = mutableMapOf<String, Pair<String, Int>>() // lowercase -> spelling, year
+        dates.forEach { (entity, date) ->
+            persistenceService.executeQuery(
+                "select t.kunde.id, max($date) from $entity t where t.kunde is not null and t.deleted = false and $date >= :since group by t.kunde.id",
+                Array<Any?>::class.java,
+                since,
+            ).forEach { row ->
+                val kundeId = (row[0] as? Number)?.toLong() ?: return@forEach
+                val year = (row[1] as? LocalDate)?.year ?: return@forEach
+                kundeYears.merge(kundeId, year, ::maxOf)
+            }
+            persistenceService.executeQuery(
+                "select t.kundeText, max($date) from $entity t where t.kunde is null and t.kundeText is not null and t.deleted = false and $date >= :since group by t.kundeText",
+                Array<Any?>::class.java,
+                since,
+            ).forEach { row ->
+                val text = (row[0] as? String)?.trim()?.takeIf { it.isNotEmpty() } ?: return@forEach
+                val year = (row[1] as? LocalDate)?.year ?: return@forEach
+                freeTextYears.merge(text.lowercase(), text to year) { a, b -> if (b.second > a.second) b else a }
+            }
+        }
+        return RecentCustomers(kundeYears, freeTextYears.values.associate { it })
     }
 
     /** The distinct free-text customers of the orders and invoices without a customer entity. */
@@ -257,8 +353,11 @@ class CustomerGroupService {
         /** A task moved in the tree is noticed after this time at the latest (see [index]). */
         private const val MAX_AGE_MILLIS = 10 * 60 * 1000L
 
-        /** For [check] and [matches], asked after every change in the editor. */
+        /** For [check], [matches] and [unassigned], asked after every change in the editor. */
         private const val FREE_TEXTS_MAX_AGE_MILLIS = 60 * 1000L
+
+        /** Customers and free texts without an order or invoice since are left out of [unassigned]. */
+        const val RECENT_YEARS = 5L
 
         /** Null outside a Spring context (unit tests), where the lists then offer no groups. */
         @JvmStatic
