@@ -169,6 +169,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
          */
         get() = null
 
+    /**
+     * What the per-row select access ([hasSelectAccess]) reads, so [selectDistinct] can check it without loading
+     * the entities. Null (the default) if it needs the entity: [selectDistinct] loads them then. Overwrite it
+     * only together with the access check, and with nothing more than the access check reads.
+     */
+    open val selectAccessProjection: SelectAccessProjection<O>?
+        get() = null
+
     abstract fun newInstance(): O
 
     /**
@@ -376,6 +384,25 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             checkLoggedInUserSelectAccess()
         }
         return dbQuery.selectIds(this, filter, customResultFilters, checkAccess)
+    }
+
+    /**
+     * The distinct values of [path] (e.g. `kost2.id`) over what [select] would return, access checked, unordered;
+     * null for the rows without one. Selects only these values (and those of [selectAccessProjection]) if it can,
+     * see [DBQuery.selectDistinct].
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun selectDistinct(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        path: String,
+        checkAccess: Boolean = true,
+    ): List<Any?> {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        return dbQuery.selectDistinct(this, filter, customResultFilters, path, checkAccess)
     }
 
     /**

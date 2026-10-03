@@ -27,10 +27,12 @@ import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.login.LoginService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.annotation.Order
 import org.springframework.security.core.context.SecurityContextHolder
@@ -42,6 +44,10 @@ private val log = KotlinLogging.logger {}
 /**
  * Sets up ThreadLocalUserContext from the OAuth2 session for authenticated requests.
  * This ensures PF business logic has access to the logged-in user.
+ *
+ * On the first request after the OAuth2 login, the user is also stored as PF user in the session
+ * (see [LoginService.internalLoginInCurrentSession]): REST services such as UserStatusRest, used by the React
+ * client, read the logged-in user from there.
  */
 @Component
 @Order(2)
@@ -52,22 +58,39 @@ class GatewaySessionFilter(
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         try {
-            val authentication = SecurityContextHolder.getContext().authentication
-            if (authentication != null && authentication.isAuthenticated) {
-                val principal = authentication.principal
-                if (principal is OidcUser && ThreadLocalUserContext.loggedInUser == null) {
-                    val sub = principal.subject
-                    val username = principal.preferredUsername
-                    val pfUser = userDao.getUserByIdpExternalId(sub)
-                        ?: userDao.getInternalByName(username)
-                    if (pfUser != null) {
-                        ThreadLocalUserContext.userContext = UserContext(pfUser)
-                    }
+            val principal = SecurityContextHolder.getContext().authentication
+                ?.takeIf { it.isAuthenticated }
+                ?.principal as? OidcUser
+            if (principal != null && ThreadLocalUserContext.loggedInUser == null) {
+                getUserContext(request as HttpServletRequest, principal)?.let {
+                    ThreadLocalUserContext.userContext = it
                 }
             }
             chain.doFilter(request, response)
         } finally {
             ThreadLocalUserContext.clear()
         }
+    }
+
+    private fun getUserContext(request: HttpServletRequest, principal: OidcUser): UserContext? {
+        LoginService.getUserContext(request)?.let { userContext ->
+            if (userContext.user?.hasSystemAccess() == true) {
+                return userContext
+            }
+            // Deactivated by a sync since the login: log out completely (PF user and Spring's security context).
+            log.info { "User '${userContext.user?.username}' isn't active anymore, invalidating gateway session." }
+            request.getSession(false)?.invalidate()
+            return null
+        }
+        val pfUser = userDao.getUserByIdpExternalId(principal.subject)
+            ?: principal.preferredUsername?.let { userDao.getInternalByName(it) }
+        if (pfUser == null || !pfUser.hasSystemAccess()) {
+            log.warn { "OAuth2 user '${principal.preferredUsername}' (sub=${principal.subject}) not found or not active on the gateway." }
+            return null
+        }
+        val userContext = UserContext(pfUser)
+        LoginService.internalLoginInCurrentSession(request, userContext)
+        log.info { "Gateway session established for user '${pfUser.username}'." }
+        return userContext
     }
 }

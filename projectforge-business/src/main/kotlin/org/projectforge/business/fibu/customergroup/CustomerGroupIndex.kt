@@ -130,6 +130,31 @@ class CustomerGroupIndex(
     fun businessUnitOf(kundeId: Long?, kundeText: String?, projektId: Long? = null): BusinessUnit? =
         customerBusinessUnitOf(kundeId, kundeText) ?: projektId?.let { businessUnitByProjektId[it] }
 
+    /**
+     * The customers each project is worked for ([ProjectRef.customers]), for the lists reaching their customer
+     * only through the project (timesheets, projects, cost 2). Projects with none are left out.
+     */
+    val projectCustomers: Map<Long, List<CustomerKey>> =
+        directory.projects.mapNotNull { (id, project) -> project.customers.takeIf { it.isNotEmpty() }?.let { id to it } }
+            .toMap()
+
+    /**
+     * The business unit of a row known only by its project: that of the first of the [customers] having one (the
+     * project's own customer, else the most recent order's), else the one of the project's task. One per
+     * project, so the business units still partition the rows.
+     */
+    fun businessUnitOf(customers: List<CustomerKey>, projektId: Long?): BusinessUnit? =
+        customers.firstNotNullOfOrNull { customerBusinessUnitOf(it.kundeId, it.kundeText) }
+            ?: projektId?.let { businessUnitByProjektId[it] }
+
+    /** [businessUnitOf] for the project's customers ([projectCustomers]). */
+    fun businessUnitOfProject(projektId: Long): BusinessUnit? =
+        businessUnitOf(projectCustomers[projektId] ?: emptyList(), projektId)
+
+    /** The group of the first of the project's customers ([projectCustomers]) having one. */
+    fun groupOfProject(projektId: Long): CustomerGroup? =
+        projectCustomers[projektId]?.firstNotNullOfOrNull { groupOf(it.kundeId, it.kundeText) }
+
     /** @return The group's customers, or null for an unknown key (a deleted group in a saved filter). */
     fun resolveGroup(key: String?): ResolvedCustomers? {
         val group = getGroup(key) ?: return null

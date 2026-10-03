@@ -46,14 +46,25 @@ class GatewayEndpointFilter : Filter {
         "/.well-known/carddav",
         "/export/ProjectForge.ics",
         "/rsPublic/datatransfer/",
-        "/rs/datatransfer/",
         "/api/gateway/sync/",
         "/login/oauth2/",
         "/oauth2/",
         "/logout",
         "/rsPublic/login",
         "/rsPublic/setup",
-    )
+        // React app: shell, assets and the REST services the DataTransfer pages need.
+        "/react-app.html",
+        "/assets/",
+        "/manifest.json",
+        "/rs/userStatus",
+        "/rs/menu",
+        "/rs/logout",
+        "/rs/user/autosearch",
+        "/rs/group/autosearch",
+        // Login and error page (GatewayPageController).
+        GatewayPageController.LOGIN_URL,
+        "/error",
+    ) + GatewaySecurityConfig.DATATRANSFER_CATEGORIES.flatMap { listOf("/react/$it", "/rs/$it") }
 
     private val allowedExtensions = listOf(
         ".css", ".js", ".png", ".jpg", ".gif", ".ico", ".svg", ".woff", ".woff2", ".ttf",

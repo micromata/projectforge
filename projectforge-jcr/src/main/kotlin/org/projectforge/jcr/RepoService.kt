@@ -214,6 +214,13 @@ open class RepoService {
         return repoStore!!.getNodeInfo(absPath, recursive)
     }
 
+    /**
+     * @return The node info or null, if the node doesn't exist.
+     */
+    open fun getNodeInfoOrNull(absPath: String, recursive: Boolean = false): NodeInfo? {
+        return repoStore!!.getNodeInfoOrNull(absPath, recursive)
+    }
+
     internal fun getFileInfos(
         filesNode: Node?,
         parentNodePath: String? = null,

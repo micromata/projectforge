@@ -33,11 +33,16 @@ import org.projectforge.framework.persistence.api.SortProperty
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * @param projection For [selectDistinct] instead of [result]: no order by (a distinct query can't order by what
+ * it doesn't select, and the values come unordered anyway).
+ */
 class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     private val baseDao: BaseDao<O>,
     private val entityManager: EntityManager,
     private val queryFilter: QueryFilter,
-    dbFilter: DBFilter
+    dbFilter: DBFilter,
+    private val projection: Boolean = false,
 ) {
 
     enum class Mode {
@@ -59,7 +64,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     }
 
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O> by lazy {
-        DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
+        DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter, projection)
     }
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O> by lazy {
         DBQueryBuilderByFullText(
@@ -127,7 +132,7 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
         // A column of the list may be made of several database columns — a cost number is four (see
         // Kost1EntityRest.postProcessMagicFilter) — so one requested sort can be more than one order.
         var maxOrder = MAX_ORDERS
-        for (sortProperty in dbFilter.sortProperties) {
+        for (sortProperty in dbFilter.sortProperties.takeUnless { projection }.orEmpty()) {
             addOrder(sortProperty)
             if (--maxOrder <= 0)
                 break
@@ -143,6 +148,19 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
         }
         logDebugFunCall(log) { it.mtd("result()").msg("criteriaSearch") }
         return dbQueryBuilderByCriteria.createResultIterator(resultPredicates, queryFilter)
+    }
+
+    /**
+     * Whether [selectDistinct] answers the query: a criteria search only, with nothing to be matched in memory
+     * (no full text search, no [resultPredicates]).
+     */
+    val projectable: Boolean
+        get() = projection && criteriaSearchAvailable && resultPredicates.isEmpty()
+
+    /** See [DBQueryBuilderByCriteria.selectDistinct]; only if [projectable]. */
+    fun selectDistinct(paths: List<String>): List<Array<Any?>> {
+        check(projectable) { "The query needs the entities: full text search or result predicates." }
+        return dbQueryBuilderByCriteria.selectDistinct(paths)
     }
 
     /**

@@ -24,36 +24,44 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.PfCaches
+import org.projectforge.business.fibu.ProjektDO
+import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
+import org.projectforge.business.fibu.customergroup.CustomerKey
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 
 /**
- * The projects the picks of a checklist stand for, by customer number and project id.
+ * The projects the picks of a checklist stand for, by the project's customers (its own, else those of its
+ * orders, see `CustomerGroupIndex.projectCustomers`) and its id.
  *
  * @param withoutProject The rows of no project as well (the business units' remainder, "Sonstige").
  */
 internal class ProjectMatch(
     val withoutProject: Boolean = false,
-    val matches: (kundeId: Long?, projektId: Long) -> Boolean,
+    val matches: (customers: List<CustomerKey>, projektId: Long) -> Boolean,
 )
 
 /**
  * The customer and business-unit checklists of a list reaching its customer only through the project
- * (timesheets: `kost2.projekt.kunde`). The picks are resolved to the projects they stand for, and these to the
- * ids [path] holds, as the project checklist does it ([ProjectChecklistFilter]): a search matched in memory then
- * resolves no nested path per row.
+ * (timesheets: `kost2.projekt`, cost 2: `projekt`, the projects themselves). The picks are resolved to the
+ * projects they stand for, and these to the ids [path] holds, as the project checklist does it
+ * ([ProjectChecklistFilter]): a search matched in memory then resolves no nested path per row.
+ *
+ * A project without a customer entity is matched by the customers of its orders, free texts included: its
+ * timesheets count for the customer the orders were placed by.
  *
  * @param path The id property matched: `kost2.id` for timesheets.
- * @param nullPath The reference of [path], missing for a row of no project: `kost2`.
- * @param projects All projects (id to customer number).
+ * @param nullPath The reference of [path], missing for a row of no project: `kost2`; null if every row has one.
+ * @param projects All projects, id to their customers (empty for none).
  * @param idsOf Maps project ids to the ids [path] holds (their cost 2).
  * @param idsWithoutProject The ids [path] holds that belong to no project (a cost 2 without one).
  */
 internal class ViaProjectCriteria(
     private val path: String,
-    private val nullPath: String,
-    private val projects: () -> Map<Long, Long?>,
+    private val nullPath: String?,
+    private val projects: () -> Map<Long, List<CustomerKey>>,
     private val idsOf: (List<Long>) -> List<Long>,
     private val idsWithoutProject: () -> List<Long>,
 ) {
@@ -71,10 +79,10 @@ internal class ViaProjectCriteria(
 
     /** `path IN (ids of the matching projects)`, or `nullPath IS NULL` too for [ProjectMatch.withoutProject]. */
     fun predicate(match: ProjectMatch): DBPredicate {
-        val projektIds = projects().filter { (projektId, kundeId) -> match.matches(kundeId, projektId) }.keys
+        val projektIds = projects().filter { (projektId, customers) -> match.matches(customers, projektId) }.keys
         val ids = idsOf(projektIds.toList()) + if (match.withoutProject) idsWithoutProject() else emptyList()
         val byIds = ids.takeIf { it.isNotEmpty() }?.let { DBPredicate.IsIn(path, it.distinct()) }
-        val withoutProject = if (match.withoutProject) DBPredicate.IsNull(nullPath) else null
+        val withoutProject = if (match.withoutProject) nullPath?.let { DBPredicate.IsNull(it) } else null
         return when {
             byIds != null && withoutProject != null -> DBPredicate.Or(byIds, withoutProject)
             // A pick of known keys whose projects have no rows matches none, it doesn't filter nothing.
@@ -87,3 +95,26 @@ internal class ViaProjectCriteria(
         const val NO_ID = -1L
     }
 }
+
+/**
+ * The customers of each of the [projects], for [ViaProjectCriteria]: those the [index] knows (the project's own,
+ * else its orders', see `CustomerGroupIndex.projectCustomers`), else its own customer entity (outside a Spring
+ * context, where there is no index).
+ */
+internal fun projectCustomersOf(
+    projects: Map<Long, ProjektDO>,
+    caches: PfCaches,
+    index: CustomerGroupIndex = CustomerPaths.defaultIndex(),
+): Map<Long, List<CustomerKey>> = projects.mapValues { (id, projekt) ->
+    index.projectCustomers[id]
+        ?: listOfNotNull(caches.getKundeIfNotInitialized(projekt.kunde)?.nummer?.let { CustomerKey(it) })
+}
+
+/**
+ * The rows offered by the customer checklist for a row of the given project: one per customer of the project
+ * (see [projectCustomersOf]), or one without a customer.
+ */
+internal fun customerRowsOf(projektId: Long?, projectCustomers: Map<Long, List<CustomerKey>>): List<CustomerRow> =
+    projektId?.let { projectCustomers[it] }?.takeIf { it.isNotEmpty() }
+        ?.map { CustomerRow(it.kundeId, it.kundeText, projektId) }
+        ?: listOf(CustomerRow(null, null, projektId))

@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.customergroup.CustomerDirectory
 import org.projectforge.business.fibu.customergroup.CustomerGroup
 import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
 import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
+import org.projectforge.business.fibu.customergroup.CustomerKey
 import org.projectforge.business.fibu.customergroup.ProjectRef
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.timesheet.TimesheetDO
@@ -45,11 +46,22 @@ class ViaProjectCriteriaTest {
     private val customers = CustomerChecklistFilter("timesheet/customerFilterValues", groupIndex = { index })
     private val businessUnits = BusinessUnitChecklistFilter("timesheet/businessUnitFilterValues", groupIndex = { index })
 
-    // Projects 1 (ACME), 2 (Retail's customer), 7 (Retail by task) and 8 (none); cost 2 = project * 10, 99 has none.
+    // Projects 1 (ACME), 2 (Retail's customer), 7 (Retail by task), 8 (none), 5 and 6 without a customer entity:
+    // 5 ordered by the free text "Paketdienst" (Logistics), then by Retail; 6 by nobody. Cost 2 = project * 10,
+    // 99 has none.
     private val via = ViaProjectCriteria(
         path = "kost2.id",
         nullPath = "kost2",
-        projects = { mapOf(1L to 101L, 2L to 500L, 7L to 200L, 8L to 200L) },
+        projects = {
+            mapOf(
+                1L to listOf(CustomerKey(101)),
+                2L to listOf(CustomerKey(500)),
+                7L to listOf(CustomerKey(200)),
+                8L to listOf(CustomerKey(200)),
+                5L to listOf(CustomerKey(null, "Paketdienst"), CustomerKey(500)),
+                6L to emptyList(),
+            )
+        },
         idsOf = { ids -> ids.map { it * 10 } },
         idsWithoutProject = { listOf(99L) },
     )
@@ -85,6 +97,24 @@ class ViaProjectCriteriaTest {
     }
 
     @Test
+    fun `a project without a customer entity matches by the customers of its orders`() {
+        val byText = via.predicate(customers.projectMatch(arrayOf("t:paketdienst "))!!)
+        assertTrue(byText.match(sheet(50)))
+        assertFalse(byText.match(sheet(60)))
+        assertTrue(via.predicate(customers.projectMatch(arrayOf("k:500"))!!).match(sheet(50)))
+        assertTrue(via.predicate(customers.projectMatch(arrayOf("g:paketg"))!!).match(sheet(50)))
+    }
+
+    @Test
+    fun `a project counts for the business unit of its first customer having one`() {
+        assertTrue(via.predicate(businessUnits.projectMatch(arrayOf("b:logbu1"))!!).match(sheet(50)))
+        assertFalse(via.predicate(businessUnits.projectMatch(arrayOf("b:retbu2"))!!).match(sheet(50)))
+        val none = via.predicate(businessUnits.projectMatch(arrayOf(BusinessUnitChecklistFilter.NONE_KEY))!!)
+        assertTrue(none.match(sheet(60)))
+        assertFalse(none.match(sheet(50)))
+    }
+
+    @Test
     fun `unknown keys filter nothing, known ones without sheets match none`() {
         assertNull(customers.projectMatch(arrayOf("k:x", "g:gone12")))
         assertNull(businessUnits.projectMatch(arrayOf("b:gone12")))
@@ -105,6 +135,11 @@ class ViaProjectCriteriaTest {
                     it.name = "ACME"
                     it.customers = mutableListOf(101)
                 },
+                CustomerGroup().also {
+                    it.key = "paketg"
+                    it.name = "Paket"
+                    it.texts = mutableListOf("Paket*")
+                },
             ),
             businessUnits = mutableListOf(
                 BusinessUnit().also {
@@ -116,7 +151,7 @@ class ViaProjectCriteriaTest {
                 BusinessUnit().also {
                     it.key = "logbu1"
                     it.name = "Logistics"
-                    it.groups = mutableListOf("acmeg1")
+                    it.groups = mutableListOf("acmeg1", "paketg")
                 },
             ),
         ),

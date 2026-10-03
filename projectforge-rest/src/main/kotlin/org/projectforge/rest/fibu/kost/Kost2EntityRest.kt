@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -46,6 +47,9 @@ import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
 import org.projectforge.rest.fibu.CustomerChecklistFilter
 import org.projectforge.rest.fibu.CustomerRow
 import org.projectforge.rest.fibu.ProjectChecklistFilter
+import org.projectforge.rest.fibu.ViaProjectCriteria
+import org.projectforge.rest.fibu.customerRowsOf
+import org.projectforge.rest.fibu.projectCustomersOf
 import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.KostStatusFilterUtils
@@ -65,6 +69,9 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
 
     @Autowired
     private lateinit var caches: PfCaches
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         // Resolve the lazy references from the caches rather than from the row itself. A list of cost
@@ -131,8 +138,8 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      * `Kost2Dao.select`).
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<Kost2DO>>? {
-        customerFilter.addCriterion(target, source)
-        businessUnitFilter.addCriterion(target, source)
+        viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
+        viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
         projectFilter.addCriterion(target, source)
         val listTypes = KostStatusFilterUtils.consumeListTypes(source)
         if (listTypes.isEmpty()) {
@@ -228,24 +235,37 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
     @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("businessUnitFilterValues")
     fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+        return businessUnitFilter.valuesOfProjects(projektIdsOf(filter, BusinessUnitChecklistFilter.FIELD))
     }
 
-    /** The customers of the projects of the cost 2 of a checklist, never a free text. */
+    /** The customers of the projects of the cost 2 of a checklist (see [projectCustomersOf]). */
     private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
-        val kost2s = getResultList(checklistFilter(filter, ownField))
-        // Via the caches: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
-        return kost2s.asSequence().map {
-            CustomerRow(caches.getKundeIfNotInitialized(caches.getProjekt(it.projekt?.id)?.kunde)?.nummer, null, it.projekt?.id)
-        }
+        val projectCustomers = projectCustomersOf(projektCache.all, caches)
+        return projektIdsOf(filter, ownField).flatMap { customerRowsOf(it, projectCustomers) }
+    }
+
+    private fun projektIdsOf(filter: MagicFilter?, ownField: String): Sequence<Long?> =
+        getResultDistinct(checklistFilter(filter, ownField), "projekt.id").asSequence().map { it as Long? }
+
+    /**
+     * A project without a customer entity is matched by the customers of its orders, so the customer and
+     * business-unit picks are resolved to the projects in memory (see [ViaProjectCriteria]).
+     */
+    private val viaProject by lazy {
+        ViaProjectCriteria(
+            path = "projekt.id",
+            nullPath = "projekt",
+            projects = { projectCustomersOf(projektCache.all, caches) },
+            idsOf = { it },
+            idsWithoutProject = { emptyList() },
+        )
     }
 
     /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
     @AccessChecked("DAO: select access (checklistFilter + getResultList)")
     @PostMapping("projectFilterValues")
     fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        val kost2s = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
-        return ProjectChecklistFilter.valuesOf(kost2s.asSequence().map { it.projekt?.id })
+        return ProjectChecklistFilter.valuesOf(projektIdsOf(filter, ProjectChecklistFilter.FIELD))
     }
 
     private class Kost2StatusResultFilter(private val listTypes: List<String>) : CustomResultFilter<Kost2DO> {
@@ -254,7 +274,7 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
     }
 
     companion object {
-        /** The customer of a cost 2 is its project's; a cost 2 has no free-text customer. */
+        /** The customers of a cost 2 are its project's, matched via [viaProject]: the paths only serve the element. */
         private val customerFilter =
             CustomerChecklistFilter("cost2/customerFilterValues", kundePath = "projekt.kunde", kundeTextPath = null)
         private val businessUnitFilter = BusinessUnitChecklistFilter(

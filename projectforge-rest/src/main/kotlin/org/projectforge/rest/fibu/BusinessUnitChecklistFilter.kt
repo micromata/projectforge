@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.fibu.customergroup.BusinessUnit
 import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -95,7 +96,8 @@ internal class BusinessUnitChecklistFilter(
 
     /**
      * The projects the picks stand for, for a list reaching its customer only through the project (see
-     * [ViaProjectCriteria]): those whose customer or task leads to a picked business unit, and with [NONE_KEY]
+     * [ViaProjectCriteria]): those whose customers or task lead to a picked business unit (one per project, see
+     * `CustomerGroupIndex.businessUnitOf(customers, projektId)`), and with [NONE_KEY]
      * those leading to none, and the rows of no project. Null if no key is known, as [buildPredicate].
      */
     fun projectMatch(keys: Array<String>?): ProjectMatch? {
@@ -106,8 +108,8 @@ internal class BusinessUnitChecklistFilter(
         if (picked.isEmpty() && !none) {
             return null
         }
-        return ProjectMatch(withoutProject = none) { kundeId, projektId ->
-            val bu = index.businessUnitOf(kundeId, null, projektId)
+        return ProjectMatch(withoutProject = none) { customers, projektId ->
+            val bu = index.businessUnitOf(customers, projektId)
             if (bu == null) none else picked.any { it === bu }
         }
     }
@@ -121,7 +123,22 @@ internal class BusinessUnitChecklistFilter(
         if (index.businessUnits.isEmpty()) {
             return emptyList()
         }
-        val businessUnits = customers.map { index.businessUnitOf(it.kundeId, it.kundeText, it.projektId) }.toSet()
+        return valuesOf(customers.map { index.businessUnitOf(it.kundeId, it.kundeText, it.projektId) }.toSet())
+    }
+
+    /**
+     * The business units of the given rows' projects (see [projectMatch]), each once, sorted by name, followed by
+     * [NONE_KEY] if a row has none (also a row of no project).
+     */
+    fun valuesOfProjects(projektIds: Sequence<Long?>): List<UIFilterListValue> {
+        val index = groupIndex()
+        if (index.businessUnits.isEmpty()) {
+            return emptyList()
+        }
+        return valuesOf(projektIds.distinct().map { it?.let { id -> index.businessUnitOfProject(id) } }.toSet())
+    }
+
+    private fun valuesOf(businessUnits: Set<BusinessUnit?>): List<UIFilterListValue> {
         val values = businessUnits.filterNotNull()
             .map { UIFilterListValue(PREFIX + it.key, it.name ?: it.key!!) }
             .sortedWith { a, b -> StringComparator.compare(a.displayName, b.displayName) }

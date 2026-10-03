@@ -21,22 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway.push
+package org.projectforge.gateway
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
-@Configuration
-@ConfigurationProperties(prefix = "projectforge.gateway.push")
-@ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
-open class GatewaySyncPushConfig {
-    var enabled: Boolean = false
-    var url: String = ""
-    var secret: String = ""
-    var syncIntervalMs: Long = 900000
-    /** Spring cron expression of the nightly full sync. */
-    var fullSyncCron: String = "0 0 3 * * *"
-    var syncAddresses: Boolean = true
-    var syncCalendar: Boolean = true
+class GatewayPageControllerTest {
+    @Test
+    fun acceptsDataTransferReturnUrls() {
+        assertTrue(GatewayPageController.isSafeReturnUrl("/react/datatransfer"))
+        assertTrue(GatewayPageController.isSafeReturnUrl("/react/datatransferfiles/dynamic/42?q=1"))
+    }
+
+    @Test
+    fun rejectsForeignOrOtherReturnUrls() {
+        assertFalse(GatewayPageController.isSafeReturnUrl("https://evil.example.com/react/datatransfer"))
+        assertFalse(GatewayPageController.isSafeReturnUrl("//evil.example.com"))
+        assertFalse(GatewayPageController.isSafeReturnUrl("/react/datatransfer//evil.example.com"))
+        assertFalse(GatewayPageController.isSafeReturnUrl("/react/address"))
+    }
 }

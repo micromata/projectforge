@@ -1,14 +1,6 @@
 import { test, expect, goto } from "./fixtures/auth";
-import {
-  label as leafLabel,
-  userFormat,
-  type UserFormat,
-} from "./fixtures/format";
-import {
-  cancelButton,
-  filterElements,
-  reopenPill,
-} from "./fixtures/filter-pill";
+import { userFormat, type UserFormat } from "./fixtures/format";
+import { filterElements, reopenPill } from "./fixtures/filter-pill";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import {
   INVOICE_ENTITY,
@@ -165,17 +157,14 @@ for (const list of LISTS) {
         loggedInPage: page,
       }) => {
         const { t } = await userFormat(page);
-        // Picked from what the pill itself offers: it asks with the list's default criteria (the
-        // project list's "not ended"), which a request of the test's own would have to repeat.
-        const url = valuesUrl(list, checklist.field);
-        const values = page.waitForResponse(
-          (response) =>
-            response.url().endsWith(`/rs/${url}`) &&
-            response.request().method() === "POST"
+        // Picked from what the pill offers, i.e. narrowed by the list's default filter (a project list
+        // without the ended projects offers fewer customers than the bare endpoint).
+        const pillValues = page.waitForResponse((response) =>
+          response.url().endsWith(`/rs/${valuesUrl(list, checklist.field)}`)
         );
         const label = await openFilter(page, t, list, checklist.field);
-        const offered = pickable(
-          (await (await values).json()) as FilterListValue[]
+        const offered = named(
+          (await (await pillValues).json()) as FilterListValue[]
         );
         test.skip(offered.length < 2, `Fewer than two ${checklist.field}.`);
         const [first, second] = offered;
@@ -187,7 +176,7 @@ for (const list of LISTS) {
         ]);
         for (const pick of [first, second]) await tick(page, t, pick);
         const response = await filtered;
-        await page.keyboard.press("Escape");
+        await closeFilter(page);
 
         const expected = [first, second].map((pick) => pick[checklist.by]);
         const rows = (await response.json()).resultSet as Row[];
@@ -235,9 +224,7 @@ for (const list of LISTS) {
         ]);
         await tick(page, t, customer!);
         await applied;
-        await page.keyboard.press("Escape");
-        // Closed before the next pill opens, or both popovers' cancel buttons match.
-        await expect(cancelButton(page, t)).toBeHidden();
+        await closeFilter(page);
 
         // The project checklist asks with the customer as the other criterion, and offers that answer.
         const narrowed = page.waitForResponse(
@@ -269,7 +256,8 @@ function valuesUrl(list: List, field: Checklist["field"]): string {
 
 /**
  * The values a checklist offers with [entries] as the other criteria (the list's default filter is not
- * among them, so they may be more than the list shows); only the [pickable] ones.
+ * among them, so they may be more than the list shows); named customers and projects only, no free text
+ * and no customer group (a row names its customer, never the group).
  */
 async function filterValues(
   page: Page,
@@ -281,18 +269,20 @@ async function filterValues(
     data: { entries },
   });
   expect(response.ok()).toBeTruthy();
-  return pickable((await response.json()) as FilterListValue[]);
+  return named((await response.json()) as FilterListValue[]);
 }
 
-/**
- * The values a test can pick and check rows against: named, and neither free text nor a customer group —
- * a group stands for several customers, so no row's cell names it, and its checkbox carries the group
- * badge in its name.
- */
-function pickable(values: FilterListValue[]): FilterListValue[] {
+/** The named customers and projects of [values]: no free text, no customer group. */
+function named(values: FilterListValue[]): FilterListValue[] {
   return values.filter(
     (it) => !it.freeText && !it.group && it.displayName.trim()
   );
+}
+
+/** Closes the open pill and waits until it is gone: the next one would otherwise open beside it. */
+async function closeFilter(page: Page) {
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 }
 
 async function postHeaders(page: Page) {
@@ -337,10 +327,7 @@ async function openFilter(
   if (navigate) {
     await goto(page, list.route);
     await expect(
-      // A title key may also be the parent of others (`fibu.projekt.title.list.select`), see leafLabel().
-      page.getByRole("heading", {
-        name: leafLabel({ t } as UserFormat, list.titleKey),
-      })
+      page.getByRole("heading", { name: t(list.titleKey) })
     ).toBeVisible({
       timeout: 60_000,
     });
@@ -367,9 +354,8 @@ async function tick(page: Page, t: Translate, pick: FilterListValue) {
 }
 
 /**
- * The list request carrying all of [keys] as the criterion of [field]: `listPage` with the filter wrapped
- * for a server-paged list (order, invoice), `list` with the bare filter for one loaded whole (project,
- * cost 2). Both answer the rows as `resultSet`.
+ * The list request carrying all of [keys] as the criterion of [field]: `listPage` (`{ filter }`) for a
+ * server-paged list, `list` (the filter itself) for one paged by the client (projects, cost 2).
  */
 function filteredListPage(
   page: Page,
@@ -378,13 +364,16 @@ function filteredListPage(
   keys: string[]
 ): Promise<Response> {
   return page.waitForResponse((response) => {
-    const path = new URL(response.url()).pathname;
-    const paged = path.endsWith(`/rs/${entity}/listPage`);
-    if (!paged && !path.endsWith(`/rs/${entity}/list`)) return false;
+    const url = response.url();
+    const paged = url.endsWith(`/rs/${entity}/listPage`);
+    if (!paged && !url.endsWith(`/rs/${entity}/list`)) return false;
     const body = response.request().postDataJSON() as
-      | (MagicFilter & { filter?: MagicFilter })
+      | { filter?: MagicFilter }
+      | MagicFilter
       | undefined;
-    const filter = paged ? body?.filter : body;
+    const filter = paged
+      ? (body as { filter?: MagicFilter } | undefined)?.filter
+      : (body as MagicFilter | undefined);
     const entry = filter?.entries?.find((it) => it.field === field);
     const values = entry?.value?.values ?? [];
     return keys.every((key) => values.includes(key));

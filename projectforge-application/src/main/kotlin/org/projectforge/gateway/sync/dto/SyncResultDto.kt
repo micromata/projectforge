@@ -21,22 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway.push
+package org.projectforge.gateway.sync.dto
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-
-@Configuration
-@ConfigurationProperties(prefix = "projectforge.gateway.push")
-@ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
-open class GatewaySyncPushConfig {
-    var enabled: Boolean = false
-    var url: String = ""
-    var secret: String = ""
-    var syncIntervalMs: Long = 900000
-    /** Spring cron expression of the nightly full sync. */
-    var fullSyncCron: String = "0 0 3 * * *"
-    var syncAddresses: Boolean = true
-    var syncCalendar: Boolean = true
-}
+/**
+ * Result of a sync request, returned by the gateway to the main instance.
+ *
+ * @param icsCacheSize Number of entries in the gateway's ICS cache after the request (only set by the ICS
+ * endpoint). 0 tells the main instance that the gateway lost its cache (e.g. after a restart), so all
+ * calendars have to be pushed again.
+ */
+data class SyncResultDto(
+    val created: Int = 0,
+    val updated: Int = 0,
+    val deleted: Int = 0,
+    val errors: Int = 0,
+    val icsCacheSize: Int? = null,
+)

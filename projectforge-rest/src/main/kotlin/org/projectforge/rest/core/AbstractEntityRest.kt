@@ -778,10 +778,22 @@ constructor(
     }
 
     /**
+     * The distinct values of [path] (e.g. `kost2.id`) over what [getResultList] would return, access checked,
+     * without loading the entities where the query allows it (see `DBQuery.selectDistinct`): what a checklist
+     * offers ([checklistFilter]) needs only one column of the rows.
+     */
+    fun getResultDistinct(filter: MagicFilter, path: String): List<Any?> {
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
+        return baseDao.selectDistinct(queryFilter, customResultFilters, path)
+    }
+
+    /**
      * The filter a checklist filter on [ownField] takes its values from: [filter] without its entry on
      * [ownField], so a checklist offers what the list's *other* criteria leave, as Excel's autofilter does.
-     * Without the page size and the sort, which change nothing about the set. Run it through [getResultList]
-     * or [getResultIds]: the access-checked query of the list itself, so nobody is offered the customers of
+     * Without the page size and the sort, which change nothing about the set. Run it through [getResultList],
+     * [getResultIds] or [getResultDistinct]: the access-checked query of the list itself, so nobody is offered the customers of
      * rows they may not read.
      */
     protected fun checklistFilter(filter: MagicFilter?, ownField: String): MagicFilter {

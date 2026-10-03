@@ -60,8 +60,18 @@ open class PluginAdminService {
     @Value("\${projectforge.plugins.ensure-active:}")
     private var ensureActivePluginsConfig: String = ""
 
+    @Value("\${projectforge.gateway.enabled:false}")
+    private var gatewayMode: Boolean = false
+
+    /**
+     * The gateway serves the DataTransfer UI, so the plugin is always active there, also without the
+     * external-gateway profile (which sets projectforge.plugins.ensure-active=datatransfer).
+     */
     val ensureActivePluginIds: List<String>
-        get() = ensureActivePluginsConfig.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        get() {
+            val ids = ensureActivePluginsConfig.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            return if (gatewayMode && !ids.contains(PLUGIN_DATA_TRANSFER_ID)) ids + PLUGIN_DATA_TRANSFER_ID else ids
+        }
 
     /**
      * Comma separated list of plugin ids to activate, independent of the configuration stored in the database.

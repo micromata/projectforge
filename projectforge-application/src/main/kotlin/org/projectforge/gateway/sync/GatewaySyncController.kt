@@ -26,6 +26,7 @@ package org.projectforge.gateway.sync
 import java.security.MessageDigest
 import mu.KotlinLogging
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
@@ -62,12 +63,13 @@ class GatewaySyncController(
     fun syncGroups(
         @RequestHeader("X-Gateway-Secret") secret: String,
         @RequestBody groups: List<SyncGroupDto>,
+        @RequestParam(defaultValue = "false") fullSync: Boolean,
     ): ResponseEntity<Any> {
         if (!authenticateSecret(secret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
-        log.info { "Receiving sync: ${groups.size} groups" }
-        val result = gatewaySyncService.syncGroups(groups)
+        log.info { "Receiving sync: ${groups.size} groups (fullSync=$fullSync)" }
+        val result = gatewaySyncService.syncGroups(groups, fullSync)
         return ResponseEntity.ok(result)
     }
 
@@ -75,12 +77,26 @@ class GatewaySyncController(
     fun syncAddressBooks(
         @RequestHeader("X-Gateway-Secret") secret: String,
         @RequestBody addresses: List<SyncAddressDto>,
+        @RequestParam(defaultValue = "false") fullSync: Boolean,
     ): ResponseEntity<Any> {
         if (!authenticateSecret(secret)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
-        log.info { "Receiving sync: ${addresses.size} addresses" }
-        val result = gatewaySyncService.syncAddresses(addresses)
+        log.info { "Receiving sync: ${addresses.size} addresses (fullSync=$fullSync)" }
+        val result = gatewaySyncService.syncAddresses(addresses, fullSync)
+        return ResponseEntity.ok(result)
+    }
+
+    @PostMapping("/favorites")
+    fun syncFavorites(
+        @RequestHeader("X-Gateway-Secret") secret: String,
+        @RequestBody favorites: List<SyncFavoritesDto>,
+    ): ResponseEntity<Any> {
+        if (!authenticateSecret(secret)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+        log.info { "Receiving sync: favorites of ${favorites.size} users" }
+        val result = gatewaySyncService.syncFavorites(favorites)
         return ResponseEntity.ok(result)
     }
 

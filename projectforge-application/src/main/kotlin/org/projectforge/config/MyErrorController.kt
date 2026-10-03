@@ -23,6 +23,7 @@
 
 package org.projectforge.config
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.web.servlet.error.ErrorController
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
@@ -31,7 +32,11 @@ import jakarta.servlet.RequestDispatcher
 import jakarta.servlet.http.HttpServletRequest
 
 
+/**
+ * Not in gateway mode: there, GatewayPageController renders the error page.
+ */
 @Controller
+@ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "false", matchIfMissing = true)
 class MyErrorController : ErrorController {
 
     @RequestMapping("/error")

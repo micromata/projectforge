@@ -35,9 +35,21 @@ private val log = KotlinLogging.logger {}
 class GatewaySyncScheduler(
     private val pushService: GatewaySyncPushService,
 ) {
+    /**
+     * Delta sync: only changed addresses and calendars (users and groups are always pushed completely).
+     */
     @Scheduled(fixedDelayString = "\${projectforge.gateway.push.syncIntervalMs:900000}")
     fun scheduledSync() {
         log.info { "Starting scheduled gateway sync..." }
         pushService.pushAll()
+    }
+
+    /**
+     * Nightly full sync: pushes everything, the gateway removes data deleted on the main instance.
+     */
+    @Scheduled(cron = "\${projectforge.gateway.push.fullSyncCron:0 0 3 * * *}")
+    fun scheduledFullSync() {
+        log.info { "Starting scheduled full gateway sync..." }
+        pushService.pushAll(fullSync = true)
     }
 }

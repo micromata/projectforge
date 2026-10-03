@@ -21,22 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway.push
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
+package org.projectforge.framework.persistence.api
 
-@Configuration
-@ConfigurationProperties(prefix = "projectforge.gateway.push")
-@ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
-open class GatewaySyncPushConfig {
-    var enabled: Boolean = false
-    var url: String = ""
-    var secret: String = ""
-    var syncIntervalMs: Long = 900000
-    /** Spring cron expression of the nightly full sync. */
-    var fullSyncCron: String = "0 0 3 * * *"
-    var syncAddresses: Boolean = true
-    var syncCalendar: Boolean = true
-}
+/**
+ * What a dao's per-row select access ([BaseDao.hasSelectAccess]) reads of a row, for checking it on a projection
+ * ([BaseDao.selectDistinct]) instead of on loaded entities: the [paths] of the values the check depends on, and a
+ * stub carrying them to check instead of the row. Rows with the same values are checked once.
+ *
+ * @param paths The properties the access check reads, e.g. `task.id` and `user.id` of a timesheet.
+ * @param stubOf An object with the values of [paths] set (in their order), passed to [BaseDao.hasSelectAccess].
+ */
+class SelectAccessProjection<O>(
+    val paths: List<String>,
+    val stubOf: (values: List<Any?>) -> O,
+)
