@@ -155,14 +155,14 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutClasses(shortCut, *restClasses)
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java)
@@ -170,7 +170,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
     }
 
     /**
-     * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+     * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>) {
         WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutMethods(shortCut, *methods)

@@ -11,6 +11,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useFormatContext } from "@/hooks/use-format";
+import { compareText } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { EntityRef } from "./entity-autocomplete";
 import { EntitySearchList } from "./entity-search-list";
@@ -30,6 +32,11 @@ export interface EntityMultiAutocompleteProps {
   className?: string;
   /** Names the removing buttons of the chips („Löschen: Kai Reinhard"). */
   removeLabel: (entry: EntityRef) => string;
+  /**
+   * Shows the chips alphabetically, whatever order they were picked in — for a set of members, where
+   * the order means nothing. The value itself keeps its order, so sorting marks no form dirty.
+   */
+  sorted?: boolean;
 }
 
 /**
@@ -51,10 +58,17 @@ export function EntityMultiAutocomplete({
   id,
   className,
   removeLabel,
+  sorted,
   "aria-label": ariaLabel,
 }: EntityMultiAutocompleteProps) {
   const t = useTranslations();
+  const format = useFormatContext();
   const [open, setOpen] = useState(false);
+  const chips = sorted
+    ? [...value].sort((a, b) =>
+        compareText(a.displayName, b.displayName, format)
+      )
+    : value;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -69,7 +83,7 @@ export function EntityMultiAutocomplete({
             className
           )}
         >
-          {value.map((entry) => (
+          {chips.map((entry) => (
             <span
               key={entry.id}
               className="inline-flex h-6 max-w-full items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2 text-xs font-semibold text-primary"
@@ -120,9 +134,10 @@ export function EntityMultiAutocomplete({
           params={params}
           minChars={minChars}
           active={open}
-          // Adding is a series, not a single act: the search stays open with the cursor in its term,
-          // so the next name is typed and not clicked open again.
-          keepFocus
+          // Adding is a series, not a single act: the search stays open with its term and the cursor
+          // in it, so the next match is clicked and not searched for again.
+          collecting
+          excludeIds={new Set(value.map((picked) => picked.id))}
           onPick={(entry) => {
             // Silently ignored rather than reported: the same entry twice is no error, the search
             // simply answers what is already there — and its chip says so.

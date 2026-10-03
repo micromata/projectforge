@@ -24,6 +24,8 @@ interface Props {
   isReconciling?: boolean;
   isCommitting?: boolean;
   isCancelling?: boolean;
+  /** Bars every action, e.g. while a committed import job is still running on this page. */
+  disabled?: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export function ImportControls({
   isReconciling,
   isCommitting,
   isCancelling,
+  disabled,
 }: Props) {
   const t = useTranslations();
   const allSelected = totalSelectable > 0 && selectedCount >= totalSelectable;
@@ -54,7 +57,7 @@ export function ImportControls({
         type="button"
         variant="outline"
         onClick={onReconcile}
-        disabled={isReconciling}
+        disabled={disabled || isReconciling}
       >
         <HugeiconsIcon icon={RefreshIcon} />
         {t("common.import.action.reconcile")}
@@ -63,7 +66,7 @@ export function ImportControls({
         type="button"
         variant="outline"
         onClick={allSelected ? onDeselectAll : onSelectAll}
-        disabled={totalSelectable === 0}
+        disabled={disabled || totalSelectable === 0}
       >
         <HugeiconsIcon
           icon={allSelected ? SquareIcon : CheckmarkSquare02Icon}
@@ -75,7 +78,9 @@ export function ImportControls({
       <Button
         type="button"
         onClick={onCommit}
-        disabled={!hasBeenReconciled || selectedCount === 0 || isCommitting}
+        disabled={
+          disabled || !hasBeenReconciled || selectedCount === 0 || isCommitting
+        }
       >
         <HugeiconsIcon icon={CheckmarkCircle02Icon} />
         {t("common.import.action.commit")}
@@ -84,7 +89,7 @@ export function ImportControls({
         type="button"
         variant="destructive"
         onClick={onCancel}
-        disabled={isCancelling}
+        disabled={disabled || isCancelling}
         className="ml-auto"
       >
         <HugeiconsIcon icon={Cancel01Icon} />

@@ -18,6 +18,8 @@ export interface ChecklistOption {
   label: string;
   /** Marked as typed text rather than a picked record (see [FreeTextBadge]). */
   freeText?: boolean;
+  /** Stands for several others, e.g. a customer group (see [GroupBadge]). */
+  group?: boolean;
 }
 
 export interface ChecklistProps {

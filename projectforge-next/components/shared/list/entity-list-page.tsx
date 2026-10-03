@@ -199,7 +199,7 @@ function DeclaredList<
   const targets = useEditTargets(
     page.entity,
     page.route,
-    !!page.edit,
+    !!page.edit || !!page.foreignEdit,
     page.edit?.returnTargets
   );
   const router = useRouter();

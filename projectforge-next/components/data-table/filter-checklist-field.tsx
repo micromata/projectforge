@@ -44,6 +44,7 @@ export function FilterChecklistField({
     value: it.id,
     label: it.displayName,
     freeText: it.freeText,
+    group: it.group,
   }));
   // An emptied field is dropped from the filter, as everywhere else.
   const onValues = (next: string[]) =>

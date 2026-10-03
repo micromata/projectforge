@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.configuration.entities
 
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationType
@@ -42,6 +43,7 @@ import org.projectforge.framework.persistence.candh.CandHIgnore
  */
 @Entity
 @Indexed
+@SQLRestriction(ConfigurationDO.KNOWN_TYPES_RESTRICTION)
 @Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter"])])
 //@JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
@@ -113,7 +115,7 @@ open class ConfigurationDO : DefaultBaseDO {
                 field = type
             } else if (field == type) {
                 // Do nothing.
-            } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+            } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
             } else if (type == ConfigurationType.LONG && field == ConfigurationType.CALENDAR) {
@@ -207,7 +209,7 @@ open class ConfigurationDO : DefaultBaseDO {
     @CandHIgnore
     open var value: Any?
         @Transient
-        get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
+        get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.TIME_ZONE)) {
             this.stringValue
         } else if (this.configurationType == ConfigurationType.LONG
                 || this.configurationType == ConfigurationType.CALENDAR) {
@@ -268,7 +270,7 @@ open class ConfigurationDO : DefaultBaseDO {
     fun internalSetConfigurationType(type: ConfigurationType) {
         this.configurationType = type
         when {
-            this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT,
+            this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT, ConfigurationType.JSON,
                     ConfigurationType.TIME_ZONE) -> {
                 this.longValue = null
                 this.floatValue = null
@@ -289,7 +291,7 @@ open class ConfigurationDO : DefaultBaseDO {
         if (this.configurationType != null) {
             if (this.configurationType == type) {
                 return
-            } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+            } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 return
             } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
@@ -313,7 +315,7 @@ open class ConfigurationDO : DefaultBaseDO {
             this.configurationType = type
         } else if (this.configurationType == type) {
             // Do nothing.
-        } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
+        } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.JSON, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
             // Do nothing.
         } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
@@ -333,7 +335,26 @@ open class ConfigurationDO : DefaultBaseDO {
     companion object {
         internal const val FIND_BY_PARAMETER = "ConfigurationDO_FindByParameter"
 
-        const val PARAM_LENGTH = 4000
+        /**
+         * The column's length, for the structured parameters edited on a page of their own (the customer
+         * groups, see [org.projectforge.framework.configuration.ConfigurationParam.getEditPage]). Not more:
+         * the history stores the old and new value in attributes of the same length.
+         */
+        const val PARAM_LENGTH = 100000
+
+        /**
+         * The length a value edited on the configuration page may have (the column's length up to 8.0.28).
+         */
+        const val LEGACY_PARAM_LENGTH = 4000
+
+        /**
+         * Hides rows of a configuration type this version doesn't know (e.g. written by a newer version or another
+         * branch on a shared database). Without it, Hibernate's enum mapping fails on such a row and the whole
+         * table can't be loaded, so [Configuration] would lose every parameter (e.g. fibu.costConfigured and with it
+         * the cost menu). Must list all [ConfigurationType] values, see ConfigurationDOKnownTypesTest.
+         */
+        const val KNOWN_TYPES_RESTRICTION =
+            "configurationtype in ('STRING', 'TEXT', 'LONG', 'INTEGER', 'FLOAT', 'BOOLEAN', 'PERCENT', 'TASK', 'TIME_ZONE', 'CALENDAR', 'JSON')"
 
         fun getParamLength(): Int {
             return PARAM_LENGTH

@@ -138,6 +138,13 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "editPage": {
+        "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
+        "link": "Editor öffnen"
+      },
+      "json": {
+        "invalid": "Kein gültiges JSON."
+      },
       "param": {
         "calendarDomain": {
           "_": "Kalenderdomäne",
@@ -165,9 +172,17 @@
           "label": "Feedback"
         },
         "fibu": {
+          "contributionMargin": {
+            "_": "Deckungsbeitrag",
+            "description": "Einstellungen des Deckungsbeitrags (Auftragsbuch und Scripte): die Erlöskonten, der Stundensatz für die Zeitberichte der Monate ohne importierte Buchungssätze, der Ziel-Prozentsatz mit der Rot-Grenze der Ampel und die Zuordnung von Kostenträgern ohne eigenes Projekt zu einem Projekt."
+          },
           "costConfigured": {
             "_": "Kostenkalkulation freigeschaltet?",
             "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
+          },
+          "customerGroups": {
+            "_": "Kundengruppen und Business Units",
+            "description": "Kundengruppen und Business Units (JSON), angeboten in den Kundenfiltern von Auftragsbuch, Rechnungen, Projekten und Kost2. Wird von Finance und Controlling auf der Seite „Kundengruppen“ gepflegt, nicht hier."
           },
           "defaultVAT": {
             "_": "Standardsteuersatz (in %)",
@@ -245,6 +260,7 @@
           "description": "List of activated Plugins. Please don't edit directly."
         }
       },
+      "readOnly": "Sie dürfen diesen Parameter sehen, aber nicht ändern.",
       "title": {
         "edit": "Konfigurationsparameter ändern",
         "heading": "Configuration parameter",
@@ -595,6 +611,67 @@
       "beauftragungsdatum": "Beauftragungsdatum",
       "bindungsFrist": "Bindungsfrist",
       "commissioned": "beauftragt",
+      "contributionMargin": {
+        "_": "Deckungsbeitrag",
+        "bookingImportEnd": "Buchungssätze sind bis {arg0} importiert. Die späteren Monate (heller) sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "config": {
+          "addAssignment": "Zuordnung hinzufügen",
+          "bands": "Rot unter {arg0} %, gelb unter {arg1} %, grün ab {arg1} %.",
+          "error": {
+            "kostNumber": "{arg0} ist keine dreiteilige Nummer wie 6.000.10.",
+            "negative": "darf nicht negativ sein.",
+            "percentage": "muss zwischen 0 und 100 liegen.",
+            "projectNotFound": "Kein Projekt mit dem Kostenträger {arg0} gefunden.",
+            "redAboveTarget": "darf nicht größer als das Ziel sein.",
+            "revenueAccounts": "Keine gültigen Kontobereiche, z. B. 4000-4799, 4900."
+          },
+          "hourlyRate": {
+            "_": "Stundensatz",
+            "tooltip": "Pauschaler Stundensatz (netto), mit dem die Zeitberichte der Monate ohne importierte Buchungssätze als Kosten eingehen. Ohne Stundensatz enthalten diese Monate keine Kosten aus Zeitberichten."
+          },
+          "invalidJson": "Der gespeicherte Wert ist kein gültiges JSON; angezeigt werden die Standardwerte, die ihn beim Speichern ersetzen.",
+          "kost2": "Kost2 (erste drei Teile)",
+          "kost2Assignments": {
+            "_": "Kost2-Zuordnung",
+            "tooltip": "Ordnet Kostenträger ohne eigenes Projekt einem Projekt zu: Alle Kost2, die mit den angegebenen drei Teilen beginnen (alle Kostenarten), zählen zum Projekt mit dem angegebenen Kostenträger."
+          },
+          "project": "Projekt (Kostenträger)",
+          "redThreshold": "Rot unter",
+          "removeAssignment": "Zuordnung {arg0} entfernen",
+          "revenueAccounts": {
+            "_": "Erlöskonten",
+            "tooltip": "Die Kontonummern der Erlöse als kommagetrennte Bereiche, z. B. 4000-4799 (SKR04). Buchungssätze auf diesen Konten sind Erlöse, alle anderen Kosten."
+          },
+          "summary": "Ziel {arg0} % · rot unter {arg1} % · {arg2} Kost2-Zuordnungen",
+          "targetPercentage": "Ziel-DB %"
+        },
+        "costs": "Kosten",
+        "customer": "Kunde",
+        "empty": "Für die Projekte der ausgewählten Aufträge wurden weder Erlöse noch Kosten gefunden.",
+        "hourlyRateMissing": "Es ist kein Stundensatz konfiguriert (Administration → Konfiguration), daher fehlen in den vorläufigen Monaten die Kosten der Zeitberichte.",
+        "kost": "Kostenträger",
+        "monthly": "Deckungsbeitrag Monatswerte",
+        "noImport": "Es sind noch keine Buchungssätze importiert. Alle Werte sind vorläufig: Rechnungen als Erlöse, Zeitberichte × Stundensatz als Kosten.",
+        "noRevenue": "Keine Erlöse im Zeitraum, nur Kosten.",
+        "ordersWithoutProject": "{arg0} der ausgewählten Aufträge haben kein Projekt und werden nicht berücksichtigt.",
+        "percentage": "DB %",
+        "preliminary": "vorläufig",
+        "prevPrevYear": "DB1 Vorvorjahr",
+        "prevYear": "DB1 Vorjahr",
+        "prevYearCosts": "Kosten Vorjahr",
+        "prevYearPercentage": "DB % Vorjahr",
+        "prevYearRevenue": "Erlöse Vorjahr",
+        "profit": "DB1",
+        "project": "Projekt",
+        "projects": "Deckungsbeitrag je Projekt",
+        "revenue": "Erlöse",
+        "startDate": {
+          "_": "Erster Monat",
+          "tooltip": "Der Deckungsbeitrag umfasst die 12 Monate ab dem Monat dieses Datums, verglichen mit denselben Monaten der beiden Vorjahre. Angezeigt werden die Projekte der Aufträge, die der Filter der Liste auswählt (siehe Zusammenfassung oben); sein Leistungszeitraum wird durch dieses Datum ersetzt."
+        },
+        "target": "Ziel {arg0} %",
+        "total": "Summe"
+      },
       "datum": {
         "_": "Angebotsdatum",
         "short": "Datum"
@@ -844,6 +921,15 @@
       "overallPerformance": "Gesamtleistung",
       "preliminaryResult": "Vorläufiges Ergebnis"
     },
+    "businessUnits": {
+      "add": "Business Unit hinzufügen",
+      "empty": "Noch keine Business Units.",
+      "groups": "Kundengruppen",
+      "remove": "Business Unit {arg0} entfernen",
+      "tasks": "Aufgaben",
+      "tasksHint": "Projekte unterhalb einer dieser Aufgaben gehören zur Business Unit, sofern ihr Kunde zu keiner gehört.",
+      "title": "Business Units"
+    },
     "common": {
       "assignedPersons": "PL/BUL/KAM/AP",
       "betrag": "Betrag",
@@ -875,7 +961,42 @@
       "sourceCurrency": "Quellwährung",
       "targetCurrency": "Zielwährung"
     },
+    "customerGroups": {
+      "add": "Kundengruppe hinzufügen",
+      "badge": "Gruppe",
+      "customers": "Kunden",
+      "empty": "Noch keine Kundengruppen.",
+      "error": {
+        "invalidText": "Weder ein Name noch ein gültiges Muster."
+      },
+      "groups": "Kundengruppen",
+      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit.",
+      "matches": "Trifft {arg0} Kunden",
+      "matchesNone": "Trifft noch keinen Kunden",
+      "name": "Name",
+      "remove": "Kundengruppe {arg0} entfernen",
+      "saved": "Kundengruppen gespeichert.",
+      "texts": "Kundennamen",
+      "textsHint": "Gilt für die Namen von Kundeneinträgen ebenso wie für Kunden, die in Aufträgen und Rechnungen als Freitext erfasst sind. Ein exakter Name (Groß-/Kleinschreibung egal) oder ein Muster: ACME* (beginnt mit), *Logistics (endet mit), *ACME* (enthält). Jeweils mit Enter übernehmen.",
+      "title": "Kundengruppen und Business Units"
+    },
     "customerref1": "Kundenreferenz",
+    "datev": {
+      "import": {
+        "_": "Buchhaltungsdaten importieren",
+        "accounts": "Kontenplan",
+        "column": {
+          "hint": "Hinweis"
+        },
+        "format": {
+          "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
+          "title": "Dateiformat der Importdatei"
+        },
+        "records": "Buchungssätze"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },
@@ -1710,10 +1831,33 @@
   "hr": {
     "planning": {
       "description": "Tätigkeit",
+      "entry": {
+        "copyFromPredecessor": "Vorgänger kopieren",
+        "status": {
+          "absence": "Abwesenheit",
+          "illness": "Krankheit",
+          "leave": "Urlaub",
+          "other": "Sonstiges"
+        }
+      },
+      "hours": "Stunden",
+      "notPlanned": "Ungeplant",
+      "plannings": "Personaleinsatzplanung",
       "priority": "Priorität",
       "probability": {
+        "_": "Wahrscheinlichkeit",
         "short": "%"
       },
+      "sum": "Summe",
+      "title": {
+        "add": "Neue Resourcenplanung",
+        "edit": "Resourcenplanung bearbeiten",
+        "heading": "Resourcenplanung"
+      },
+      "tooltip": {
+        "addEntry": "Eintrag hinzufügen"
+      },
+      "total": "Gesamt",
       "unassignedHours": "ohne Tagangabe",
       "weekend": "Wochenende"
     }
@@ -1890,6 +2034,15 @@
     }
   },
   "loading": "Laden...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Fehler",
+      "info": "Info",
+      "trace": "Verfolgen",
+      "warn": "Warnung"
+    }
+  },
   "login": {
     "_": "Anmelden",
     "adminLoginRequired": "Wartungsmodus: Bitte als Administrator:in anmelden!",
@@ -1981,6 +2134,7 @@
       "_": "Fibu",
       "buchungssaetze": "Buchungssätze",
       "currencyPair": "Währungsumrechnung",
+      "customerGroups": "Kundengruppen",
       "datevImport": "Datev-Import",
       "eInvoiceChecker": "E-Rechnungs-Checker",
       "eingangsrechnungen": "Kreditorenrechnungen",
@@ -2006,6 +2160,7 @@
     "gear": {
       "feedback": "Feedback senden"
     },
+    "hrPlanningList": "Personalplanungsliste",
     "main": {
       "short": "Menü",
       "title": "Hauptmenü"
@@ -2570,6 +2725,7 @@
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
+  "refresh": "Neu laden",
   "reload": "Neu laden",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
@@ -2678,6 +2834,9 @@
   "sum": "Summe",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Adminprotokoll einsehen"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2772,6 +2931,16 @@
             "configuration": "Configuration"
           }
         }
+      },
+      "logViewer": {
+        "autoRefresh": "Auto-Aktualisierung",
+        "level": "Log-Level",
+        "message": "Meldung",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "Dieses Protokoll ist nicht mehr verfügbar: Es verfällt nach einer Stunde ohne Aktivität und bei einem Neustart des Servers. Es lässt sich über die Seite, zu der es gehört, erneut öffnen.",
+        "title": "Protokoll einsehen",
+        "user": "Benutzer:in@IP",
+        "userAgent": "Browser"
       },
       "reindex": {
         "fromDate": {
@@ -3046,6 +3215,7 @@
     "totalDuration": "Gesamtdauer",
     "user": "Mitarbeiter:in"
   },
+  "timestamp": "Zeitstempel",
   "timezone": "Zeitzone",
   "title": "Titel",
   "tooltip": {

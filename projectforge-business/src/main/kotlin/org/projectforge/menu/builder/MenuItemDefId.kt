@@ -50,7 +50,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
-    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
+    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "next/adminLogViewer"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
@@ -69,8 +69,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
     CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
+    CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
-    DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
+    DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
@@ -84,7 +85,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
-    HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
+    HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the

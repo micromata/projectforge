@@ -191,7 +191,12 @@ class Configuration(
         if (configurationParamMap == null) {
             for ((key, value1) in newMap) {
                 val value = value1 ?: continue
-                log.info(key.key + "=" + value)
+                if (key.editPage != null) {
+                    // A structured value (the customer groups' JSON) would flood the log.
+                    log.info(key.key + "=<" + value.toString().length + " characters>")
+                } else {
+                    log.info(key.key + "=" + value)
+                }
             }
         }
         configurationParamMap = newMap

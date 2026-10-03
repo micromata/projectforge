@@ -38,8 +38,6 @@ import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
-import org.projectforge.web.humanresources.HRPlanningEditPage;
-import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -273,7 +271,7 @@ public class WebRegistry
     // The employee salaries have been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/employeeSalary* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
-    addMountPages(DaoConst.HR_PLANNING, HRPlanningListPage.class, HRPlanningEditPage.class);
+    // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
     addMountPage(DaoConst.HR_LIST, HRListPage.class);
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 

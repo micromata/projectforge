@@ -28,7 +28,9 @@ public enum ConfigurationType
   STRING, TEXT, LONG, INTEGER, FLOAT, BOOLEAN, PERCENT,
   /** TASK only for backward compatibility. Isn't in use anymore. */
   TASK,
-  TIME_ZONE, CALENDAR;
+  TIME_ZONE, CALENDAR,
+  /** A JSON object, stored as string (see ConfigurationJsonValidators for its validation). */
+  JSON;
 
   public boolean isIn(final ConfigurationType... configurationTypes)
   {

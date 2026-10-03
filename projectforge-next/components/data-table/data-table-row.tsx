@@ -64,6 +64,8 @@ interface DataTableRowProps<TData> {
   className?: string;
   /** Drop the horizontal pinning stick (pinned columns would fill a narrow viewport — see DataTable). */
   suspendPinning?: boolean;
+  /** Vertical lines between the columns (see DataTable). */
+  columnLines?: boolean;
 }
 
 export function DataTableRow<TData>({
@@ -74,6 +76,7 @@ export function DataTableRow<TData>({
   rowActions,
   className,
   suspendPinning,
+  columnLines = false,
 }: DataTableRowProps<TData>) {
   return (
     <TableRow
@@ -133,6 +136,7 @@ export function DataTableRow<TData>({
             // On the cell rather than in each cell renderer: it is the column that is a column of
             // numbers, and both column paths write it (useDeclaredColumns, columnDefAdapter).
             cell.column.columnDef.meta?.align === "right" && "text-right",
+            columnLines && "border-r",
             pinnedClass(cell.column, suspendPinning)
           )}
         >

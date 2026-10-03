@@ -82,6 +82,16 @@ class KundeCache : AbstractCache() {
      * Returns the KundeDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
      * Prevents lazy loadings.
      */
+    /**
+     * All customers by number, deleted ones included. Replaced as a whole by each refresh, so a caller holding
+     * on to something derived can tell by identity whether it is still current.
+     */
+    val all: Map<Long, KundeDO>
+        get() {
+            checkRefresh()
+            return kundeMap
+        }
+
     fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
         kunde ?: return null
         if (HibernateUtils.isFullyInitialized(kunde)) {

@@ -282,7 +282,7 @@ class TaskServicesRest {
          * hit, built as Wicket's `createPath` builds it. [TaskTree.getPathToRoot] ends at the task itself
          * and leaves the root out, so the root task alone has an empty path and is named instead.
          */
-        private fun formatPath(taskId: Long?): String {
+        fun formatPath(taskId: Long?): String {
             val path = TaskTree.instance.getPathToRoot(taskId)
             if (path.isEmpty()) {
                 return translate("task.path.rootTask")

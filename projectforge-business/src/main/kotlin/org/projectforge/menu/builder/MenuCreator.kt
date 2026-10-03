@@ -383,6 +383,11 @@ open class MenuCreator {
                         })
                 )
         }
+        // Not tied to isCostConfigured: groups of free-text customers make sense without customer entities.
+        fibuMenu.add(
+            MenuItemDef(MenuItemDefId.CUSTOMER_GROUPS,
+                checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+        )
         if (dvelopConfiguration.isConfigured()) {
             fibuMenu.add(
                 MenuItemDef(MenuItemDefId.DVELOP,
@@ -583,7 +588,17 @@ open class MenuCreator {
         adminMenu
             .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
             .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.
-            .add(MenuItemDef(MenuItemDefId.CONFIGURATION, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+            // Finance and controlling maintain the finance parameters (ConfigurationParam.getEditors).
+            .add(
+                MenuItemDef(
+                    MenuItemDefId.CONFIGURATION,
+                    requiredGroups = arrayOf(
+                        ProjectForgeGroup.ADMIN_GROUP,
+                        ProjectForgeGroup.FINANCE_GROUP,
+                        ProjectForgeGroup.CONTROLLING_GROUP,
+                    )
+                )
+            )
             .add(
                 MenuItemDef(
                     MenuItemDefId.PLUGIN_ADMIN,

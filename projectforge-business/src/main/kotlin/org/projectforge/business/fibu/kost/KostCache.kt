@@ -141,6 +141,27 @@ class KostCache : AbstractCache() {
         }
     }
 
+    /**
+     * All cost 2 units with the given first three parts of the number (any cost 2 type), whatever their state.
+     */
+    fun getKost2List(nummernkreis: Int, bereich: Int, teilbereich: Int, includeDeleted: Boolean = false): List<Kost2DO> {
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { kost2 ->
+                kost2.nummernkreis == nummernkreis && kost2.bereich == bereich && kost2.teilbereich == teilbereich
+                        && (includeDeleted || !kost2.deleted)
+            }
+        }
+    }
+
+    /** All cost 2 units, also the deleted ones if [includeDeleted]. */
+    fun getAllKost2(includeDeleted: Boolean = false): List<Kost2DO> {
+        checkRefresh()
+        synchronized(kost2Map) {
+            return kost2Map.values.filter { includeDeleted || !it.deleted }
+        }
+    }
+
     fun getKost1(kost1Id: Long?): Kost1DO? {
         kost1Id ?: return null
         if (!greaterZero(kost1Id)) {

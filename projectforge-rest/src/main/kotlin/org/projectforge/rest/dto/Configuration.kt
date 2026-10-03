@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.i18n.translate
@@ -66,7 +67,7 @@ class Configuration(
      */
     var label: String? = null,
     /**
-     * The value slot for STRING, TEXT and TIME_ZONE (a time-zone id).
+     * The value slot for STRING, TEXT, JSON and TIME_ZONE (a time-zone id).
      */
     var stringValue: String? = null,
     /**
@@ -81,7 +82,14 @@ class Configuration(
      * The value slot for BOOLEAN (stored as a string on the DO).
      */
     var booleanValue: Boolean? = null,
-) : BaseDTO<ConfigurationDO>() {
+    /**
+     * The route of the page this parameter is maintained on, if it has one of its own
+     * ([ConfigurationParam.getEditPage]): the configuration page then shows it read-only and links there.
+     */
+    var editPage: String? = null,
+    override var writeAccess: Boolean? = null,
+    override var deleteAccess: Boolean? = null,
+) : BaseDTO<ConfigurationDO>(), EntityAccessSupport {
 
     override fun copyFrom(src: ConfigurationDO) {
         super.copyFrom(src)
@@ -93,6 +101,7 @@ class Configuration(
         // booleanValue is a computed getter on the DO (proxying stringValue) and is only meaningful for a
         // BOOLEAN parameter; fill it here since it, too, has no backing field to copy reflectively.
         booleanValue = if (src.configurationType == ConfigurationType.BOOLEAN) src.booleanValue else null
+        editPage = src.parameter?.let { ConfigurationParam.ofKey(it) }?.editPage
     }
 
     /**
@@ -105,6 +114,7 @@ class Configuration(
         when (dest.configurationType) {
             ConfigurationType.STRING,
             ConfigurationType.TEXT,
+            ConfigurationType.JSON,
             ConfigurationType.TIME_ZONE -> dest.stringValue = stringValue
             ConfigurationType.BOOLEAN -> dest.booleanValue = booleanValue
             ConfigurationType.LONG,

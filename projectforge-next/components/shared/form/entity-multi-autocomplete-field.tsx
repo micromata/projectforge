@@ -28,6 +28,8 @@ export interface EntityMultiAutocompleteFieldProps extends BaseFieldProps {
    * metadata however it is annotated (see [useFieldMetadata]).
    */
   metadataLess?: boolean;
+  /** See [EntityMultiAutocompleteProps.sorted]. */
+  sorted?: boolean;
 }
 
 /**
@@ -46,6 +48,7 @@ export function EntityMultiAutocompleteField({
   minChars,
   params,
   metadataLess,
+  sorted,
 }: EntityMultiAutocompleteFieldProps) {
   const t = useTranslations();
   const form = useEntityEditForm();
@@ -84,6 +87,7 @@ export function EntityMultiAutocompleteField({
               removeLabel={(entry) => `${t("delete")}: ${entry.displayName}`}
               minChars={minChars}
               params={params}
+              sorted={sorted}
             />
           </FieldShell>
         );

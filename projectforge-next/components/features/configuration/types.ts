@@ -19,6 +19,7 @@ export const CONFIGURATION_TYPES = [
   "TASK",
   "TIME_ZONE",
   "CALENDAR",
+  "JSON",
 ] as const;
 
 export type ConfigurationType = (typeof CONFIGURATION_TYPES)[number];
@@ -41,7 +42,7 @@ export interface ConfigurationDetail {
   descriptionI18nKey?: string | null;
   /** Translated parameter label in the user's locale — the edit page heading (see Configuration.label). */
   label?: string | null;
-  /** Value slot for STRING, TEXT and TIME_ZONE (a time-zone id). */
+  /** Value slot for STRING, TEXT, JSON and TIME_ZONE (a time-zone id). */
   stringValue?: string | null;
   /** Value slot for LONG. */
   longValue?: number | null;
@@ -49,6 +50,13 @@ export interface ConfigurationDetail {
   floatValue?: number | null;
   /** Value slot for BOOLEAN. */
   booleanValue?: boolean | null;
+  /**
+   * Route of the page the parameter is maintained on, if it has one of its own (the customer groups):
+   * shown read-only here and linked there (ConfigurationParam.getEditPage).
+   */
+  editPage?: string | null;
+  /** False where the user may only look (EntityAccessSupport, see lib/rs/entity-access.ts). */
+  writeAccess?: boolean;
   /** `boolean` (not `| null`): NON_NULL omits it for a row that isn't deleted, so it matches ListRow. */
   deleted?: boolean;
   created?: string | null;
