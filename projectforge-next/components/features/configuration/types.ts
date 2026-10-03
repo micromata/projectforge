@@ -50,6 +50,13 @@ export interface ConfigurationDetail {
   floatValue?: number | null;
   /** Value slot for BOOLEAN. */
   booleanValue?: boolean | null;
+  /**
+   * Route of the page the parameter is maintained on, if it has one of its own (the customer groups):
+   * shown read-only here and linked there (ConfigurationParam.getEditPage).
+   */
+  editPage?: string | null;
+  /** False where the user may only look (EntityAccessSupport, see lib/rs/entity-access.ts). */
+  writeAccess?: boolean;
   /** `boolean` (not `| null`): NON_NULL omits it for a row that isn't deleted, so it matches ListRow. */
   deleted?: boolean;
   created?: string | null;

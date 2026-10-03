@@ -136,6 +136,10 @@
   "administration": {
     "configuration": {
       "_": "Konfiguration",
+      "editPage": {
+        "hint": "Dieser Parameter wird auf einer eigenen Seite gepflegt.",
+        "link": "Editor öffnen"
+      },
       "json": {
         "invalid": "Kein gültiges JSON."
       },
@@ -173,6 +177,10 @@
           "costConfigured": {
             "_": "Kostenkalkulation freigeschaltet?",
             "description": "Wenn die Kostenkalkulation verwendet werden soll (s. Dokumentation) dann muss diese hier grundsätzlich aktiviert werden. Anschließend sind Entitäten wie Projekte und Kunden nutzbar. Bitte beachten: Die Projektentität ist nur sinnvoll, wenn auch eine Kostenträgerrechnung verwendet werden soll. Andernfalls können die Projekte z. B. über den Strukturbaum ab (Kunde -> Projekt -> Release -> Arbeitspakete ...) abgebildet werden. Eine erneutes Ab- und Wiederanmelden ist ggf. erforderlich, damit das Menü aktualisiert wird."
+          },
+          "customerGroups": {
+            "_": "Kundengruppen und Business Units",
+            "description": "Kundengruppen und Business Units (JSON), angeboten in den Kundenfiltern von Auftragsbuch, Rechnungen, Projekten und Kost2. Wird von Finance und Controlling auf der Seite „Kundengruppen“ gepflegt, nicht hier."
           },
           "defaultVAT": {
             "_": "Standardsteuersatz (in %)",
@@ -250,6 +258,7 @@
           "description": "List of activated Plugins. Please don't edit directly."
         }
       },
+      "readOnly": "Sie dürfen diesen Parameter sehen, aber nicht ändern.",
       "title": {
         "edit": "Konfigurationsparameter ändern",
         "heading": "Configuration parameter",
@@ -909,6 +918,15 @@
       "overallPerformance": "Gesamtleistung",
       "preliminaryResult": "Vorläufiges Ergebnis"
     },
+    "businessUnits": {
+      "add": "Business Unit hinzufügen",
+      "empty": "Noch keine Business Units.",
+      "groups": "Kundengruppen",
+      "remove": "Business Unit {arg0} entfernen",
+      "tasks": "Aufgaben",
+      "tasksHint": "Projekte unterhalb einer dieser Aufgaben gehören zur Business Unit, sofern ihr Kunde zu keiner gehört.",
+      "title": "Business Units"
+    },
     "common": {
       "assignedPersons": "PL/BUL/KAM/AP",
       "betrag": "Betrag",
@@ -939,6 +957,25 @@
       },
       "sourceCurrency": "Quellwährung",
       "targetCurrency": "Zielwährung"
+    },
+    "customerGroups": {
+      "add": "Kundengruppe hinzufügen",
+      "badge": "Gruppe",
+      "customers": "Kunden",
+      "empty": "Noch keine Kundengruppen.",
+      "error": {
+        "invalidText": "Weder ein Name noch ein gültiges Muster."
+      },
+      "groups": "Kundengruppen",
+      "intro": "Zusammengehörende Kunden (ACME Germany, ACME Logistics, ACME Holding) bilden eine Gruppe, die die Kundenfilter von Auftragsbuch, Rechnungen, Projekten und Kost2 wie einen einzelnen Kunden anbieten. Business Units fassen Gruppen und Kunden zusammen und erhalten einen eigenen Filter. Ein Kunde gehört zu höchstens einer Gruppe, eine Gruppe oder ein Kunde zu höchstens einer Business Unit.",
+      "matches": "Trifft {arg0} Kunden",
+      "matchesNone": "Trifft noch keinen Kunden",
+      "name": "Name",
+      "remove": "Kundengruppe {arg0} entfernen",
+      "saved": "Kundengruppen gespeichert.",
+      "texts": "Kundennamen",
+      "textsHint": "Gilt für die Namen von Kundeneinträgen ebenso wie für Kunden, die in Aufträgen und Rechnungen als Freitext erfasst sind. Ein exakter Name (Groß-/Kleinschreibung egal) oder ein Muster: ACME* (beginnt mit), *Logistics (endet mit), *ACME* (enthält). Jeweils mit Enter übernehmen.",
+      "title": "Kundengruppen und Business Units"
     },
     "customerref1": "Kundenreferenz",
     "eInvoiceChecker": {
@@ -1992,6 +2029,7 @@
       "_": "Fibu",
       "buchungssaetze": "Buchungssätze",
       "currencyPair": "Währungsumrechnung",
+      "customerGroups": "Kundengruppen",
       "datevImport": "Datev-Import",
       "eInvoiceChecker": "E-Rechnungs-Checker",
       "eingangsrechnungen": "Kreditorenrechnungen",

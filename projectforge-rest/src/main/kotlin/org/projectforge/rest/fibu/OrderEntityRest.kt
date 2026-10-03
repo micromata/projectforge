@@ -459,6 +459,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     // replacing the pills on every field of the embedded project, its customer's included.
     elements.removeTextFilters("kunde", "kundeText", "projekt")
     elements.add(customerFilter.element())
+    businessUnitFilter.addElement(elements)
     elements.add(projectFilter.element())
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
     // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
@@ -532,6 +533,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     }
     addPeriodOfPerformanceCriterion(target, source)
     customerFilter.addCriterion(target, source)
+    businessUnitFilter.addCriterion(target, source)
     projectFilter.addCriterion(target, source)
     return filters
   }
@@ -770,10 +772,19 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
    */
   @PostMapping("customerFilterValues")
   fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+  }
+
+  /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+  @PostMapping("businessUnitFilterValues")
+  fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+  }
+
+  /** The customers (`kundeId`, `kundeText`) of the orders of a checklist. */
+  private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
     // Without a customer entity, kundeAsString is the free text itself (see KundeFormatter).
-    return CustomerChecklistFilter.valuesOf(
-      checklistOrders(filter, CustomerChecklistFilter.FIELD).map { it.kundeId to it.kundeAsString }
-    )
+    return checklistOrders(filter, ownField).map { CustomerRow(it.kundeId, it.kundeAsString, it.projektId) }
   }
 
   /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
@@ -1141,6 +1152,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   companion object {
     private val customerFilter = CustomerChecklistFilter("order/customerFilterValues")
+    private val businessUnitFilter = BusinessUnitChecklistFilter("order/businessUnitFilterValues")
     private val projectFilter = ProjectChecklistFilter("order/projectFilterValues")
 
     /**

@@ -25,9 +25,11 @@ package org.projectforge.rest
 
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationJsonValidators
+import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
@@ -77,17 +79,34 @@ class ConfigurationEntityRest :
     }
 
     /**
+     * The column holds up to [ConfigurationDO.PARAM_LENGTH] characters for the structured parameters (JSON, or
+     * maintained on a page of their own); a value typed on this page keeps the former limit.
+     *
      * A JSON parameter is checked by the validator its owner registered (see [ConfigurationJsonValidators]).
      * The type is taken from the DB row, never from the request. The errors are given on the one value field
      * `stringValue`; each message names the part of the JSON object it is about.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Configuration) {
         val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: return
-        if (obj.configurationType != ConfigurationType.JSON) {
+        if (obj.configurationType == ConfigurationType.JSON) {
+            ConfigurationJsonValidators.validate(obj.parameter, dto.stringValue).forEach { message ->
+                validationErrors.add(ValidationError(message, fieldId = "stringValue"))
+            }
             return
         }
-        ConfigurationJsonValidators.validate(obj.parameter, dto.stringValue).forEach { message ->
-            validationErrors.add(ValidationError(message, fieldId = "stringValue"))
+        val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
+        val value = dto.stringValue ?: return
+        if (param?.editPage == null && value.length > ConfigurationDO.LEGACY_PARAM_LENGTH) {
+            validationErrors.add(
+                ValidationError(
+                    translateMsg(
+                        "validation.error.maxLength",
+                        dto.i18nKey?.let { translate(it) } ?: dto.parameter,
+                        ConfigurationDO.LEGACY_PARAM_LENGTH,
+                    ),
+                    fieldId = "stringValue",
+                )
+            )
         }
     }
 

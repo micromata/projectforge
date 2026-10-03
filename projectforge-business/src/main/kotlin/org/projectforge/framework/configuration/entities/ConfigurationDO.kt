@@ -333,7 +333,17 @@ open class ConfigurationDO : DefaultBaseDO {
     companion object {
         internal const val FIND_BY_PARAMETER = "ConfigurationDO_FindByParameter"
 
-        const val PARAM_LENGTH = 4000
+        /**
+         * The column's length, for the structured parameters edited on a page of their own (the customer
+         * groups, see [org.projectforge.framework.configuration.ConfigurationParam.getEditPage]). Not more:
+         * the history stores the old and new value in attributes of the same length.
+         */
+        const val PARAM_LENGTH = 100000
+
+        /**
+         * The length a value edited on the configuration page may have (the column's length up to 8.0.28).
+         */
+        const val LEGACY_PARAM_LENGTH = 4000
 
         fun getParamLength(): Int {
             return PARAM_LENGTH

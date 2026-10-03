@@ -176,6 +176,7 @@ class ProjectEntityRest
         // customerFilterValues), as on the order list, replacing the free-text pills on the customer's fields.
         elements.removeTextFilters("kunde")
         elements.add(customerFilter.element())
+        businessUnitFilter.addElement(elements)
     }
 
     /**
@@ -195,6 +196,7 @@ class ProjectEntityRest
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
         customerFilter.addCriterion(target, source)
+        businessUnitFilter.addCriterion(target, source)
         val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
         entry.synthetic = true
         val listTypes = entry.value.values?.filter { it.isNotBlank() }.orEmpty()
@@ -339,11 +341,20 @@ class ProjectEntityRest
      */
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        val projects = getResultList(checklistFilter(filter, CustomerChecklistFilter.FIELD))
+        return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+    }
+
+    /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("businessUnitFilterValues")
+    fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+    }
+
+    /** The customers of the projects of a checklist, never a free text. */
+    private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+        val projects = getResultList(checklistFilter(filter, ownField))
         // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
-        return CustomerChecklistFilter.valuesOf(
-            projects.asSequence().map { caches.getKundeIfNotInitialized(it.kunde)?.nummer to null }
-        )
+        return projects.asSequence().map { CustomerRow(caches.getKundeIfNotInitialized(it.kunde)?.nummer, null, it.id) }
     }
 
     companion object {
@@ -356,5 +367,7 @@ class ProjectEntityRest
 
         /** A project has no free-text customer. */
         private val customerFilter = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)
+        private val businessUnitFilter =
+            BusinessUnitChecklistFilter("project/businessUnitFilterValues", kundeTextPath = null, projektIdPath = "id")
     }
 }

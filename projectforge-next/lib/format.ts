@@ -397,3 +397,21 @@ export function formatValue(
       return formatDisplayName(value);
   }
 }
+
+const collators = new Map<string, Intl.Collator>();
+
+/**
+ * Orders two texts as the user's language does — case- and accent-insensitive, digits by value
+ * ("Kunde 9" before "Kunde 10") — for values listed alphabetically.
+ */
+export function compareText(a: string, b: string, ctx: FormatContext): number {
+  let collator = collators.get(ctx.locale);
+  if (!collator) {
+    collator = new Intl.Collator(ctx.locale, {
+      sensitivity: "base",
+      numeric: true,
+    });
+    collators.set(ctx.locale, collator);
+  }
+  return collator.compare(a, b);
+}

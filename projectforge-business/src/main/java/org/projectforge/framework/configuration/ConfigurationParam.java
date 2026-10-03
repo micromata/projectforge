@@ -101,6 +101,12 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   END_DATE_VACATION_LAST_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, "31.03."),
   /**
+   * The customer groups and business units as JSON (see
+   * org.projectforge.business.fibu.customergroup.CustomerGroupConfig). Maintained on its own page, see
+   * {@link #getEditPage()}.
+   */
+  CUSTOMER_GROUPS("fibu.customerGroups", ConfigurationType.TEXT),
+  /**
    * Minimum password length configuration param.
    */
   MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.LONG, 8),
@@ -186,6 +192,47 @@ public enum ConfigurationParam implements IConfigurationParam
   public String getDescriptionI18nKey()
   {
     return "administration.configuration.param." + key + ".description";
+  }
+
+  /**
+   * @return Who may change this parameter. The finance parameters are maintained by PF_Finance and
+   * PF_Controlling only, all others by PF_Admin only (see ConfigurationDao.hasAccess).
+   */
+  public ConfigurationEditors getEditors()
+  {
+    switch (this) {
+      case FIBU_DEFAULT_VAT:
+      case END_DATE_VACATION_LAST_YEAR:
+      case TIMESHEET_NOTE_SAVINGS_BY_AI:
+      case TIMESHEET_TAGS:
+      case CUSTOMER_GROUPS:
+        return ConfigurationEditors.FINANCE;
+      default:
+        return ConfigurationEditors.ADMIN;
+    }
+  }
+
+  /**
+   * @return The route (relative to the next app) of the page this parameter is maintained on, or null if it
+   * is edited on the configuration page itself. A parameter with its own page is read-only on the
+   * configuration page: its value has a structure only that page validates.
+   */
+  public String getEditPage()
+  {
+    return this == CUSTOMER_GROUPS ? "customerGroups" : null;
+  }
+
+  /**
+   * @return The parameter of the given key, or null if unknown.
+   */
+  public static ConfigurationParam ofKey(final String key)
+  {
+    for (final ConfigurationParam param : values()) {
+      if (param.key.equals(key)) {
+        return param;
+      }
+    }
+    return null;
   }
 
   /**

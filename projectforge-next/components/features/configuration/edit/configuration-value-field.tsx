@@ -7,14 +7,17 @@ import { InputField } from "@/components/shared/form/input-field";
 import { NumberField } from "@/components/shared/form/number-field";
 import { StringSuggestField } from "@/components/shared/form/string-suggest-field";
 import { TextAreaField } from "@/components/shared/form/text-area-field";
-import { useEntityEditForm } from "@/components/shared/form/form-context";
+import {
+  useEntityData,
+  useEntityEditForm,
+} from "@/components/shared/form/form-context";
 import { leafKeyOf } from "@/lib/leaf-key";
 import {
   fetchTimeZoneSuggestions,
   TIME_ZONE_SUGGEST_QUERY_KEY,
 } from "@/lib/rs/configuration";
 import type { ConfigurationValues } from "../schema";
-import type { ConfigurationType } from "../types";
+import type { ConfigurationDetail, ConfigurationType } from "../types";
 import { JSON_EDITORS } from "./json-editors";
 
 /**
@@ -31,6 +34,7 @@ import { JSON_EDITORS } from "./json-editors";
 export function ConfigurationValueField({ className }: { className?: string }) {
   const t = useTranslations();
   const form = useEntityEditForm();
+  const data = useEntityData<ConfigurationDetail>();
   const { configurationType, parameter, i18nKey, descriptionI18nKey } =
     useStore(form.store, (s: unknown) => (s as FormState).values);
 
@@ -41,7 +45,22 @@ export function ConfigurationValueField({ className }: { className?: string }) {
       ? t(descriptionI18nKey)
       : undefined;
 
-  return renderValueField(configurationType, parameter, label, hint, className);
+  const field = renderValueField(
+    configurationType,
+    parameter,
+    label,
+    hint,
+    className
+  );
+  // A parameter the user may only look at (see ConfigurationAccessNote): the save button is gone
+  // already, the disabled fieldset keeps the value from being typed into for nothing.
+  return data?.writeAccess === false || data?.editPage ? (
+    <fieldset disabled className="contents">
+      {field}
+    </fieldset>
+  ) : (
+    field
+  );
 }
 
 /** Picks the input for the value slot the type stores in (see Configuration.copyTo). */

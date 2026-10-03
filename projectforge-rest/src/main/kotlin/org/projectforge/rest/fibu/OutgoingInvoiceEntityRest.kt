@@ -1205,6 +1205,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // embedded customer and project, and on the free-text customer.
         elements.removeTextFilters("kunde", "kundeText", "projekt")
         elements.add(customerFilter.element())
+        businessUnitFilter.addElement(elements)
         elements.add(projectFilter.element())
     }
 
@@ -1238,6 +1239,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         }
         addPeriodOfPerformanceCriterion(target, source)
         customerFilter.addCriterion(target, source)
+        businessUnitFilter.addCriterion(target, source)
         projectFilter.addCriterion(target, source)
         return filters
     }
@@ -1248,11 +1250,22 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
      */
     @PostMapping("customerFilterValues")
     fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        val invoices = getResultList(checklistFilter(filter, CustomerChecklistFilter.FIELD))
-        return CustomerChecklistFilter.valuesOf(
-            // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
-            invoices.asSequence().map { PfCaches.instance.getKundeIfNotInitialized(it.kunde)?.nummer to it.kundeText }
-        )
+        return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+    }
+
+    /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("businessUnitFilterValues")
+    fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+    }
+
+    /** The customers (`kundeId`, `kundeText`) of the invoices of a checklist. */
+    private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+        val invoices = getResultList(checklistFilter(filter, ownField))
+        // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
+        return invoices.asSequence().map {
+            CustomerRow(PfCaches.instance.getKundeIfNotInitialized(it.kunde)?.nummer, it.kundeText, it.projekt?.id)
+        }
     }
 
     /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
@@ -1431,6 +1444,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
 
     companion object {
         private val customerFilter = CustomerChecklistFilter("outgoingInvoice/customerFilterValues")
+        private val businessUnitFilter = BusinessUnitChecklistFilter("outgoingInvoice/businessUnitFilterValues")
         private val projectFilter = ProjectChecklistFilter("outgoingInvoice/projectFilterValues")
 
         /**

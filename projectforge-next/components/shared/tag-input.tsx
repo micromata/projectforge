@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
+import { useFormatContext } from "@/hooks/use-format";
+import { compareText, type FormatContext } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { TagChip } from "./tag-chip";
 
 export interface TagInputProps {
   value: string[];
@@ -11,6 +14,16 @@ export interface TagInputProps {
   variant?: "primary" | "neutral";
   className?: string;
   inputAriaLabel: string;
+  /**
+   * Whether a comma confirms the entry as Enter does. Off for values that may contain one themselves —
+   * a customer's name ("ACME, Inc.").
+   */
+  commitOnComma?: boolean;
+  /**
+   * Shows the chips alphabetically, whatever order they were entered in. The value keeps its order, so
+   * sorting marks no form dirty.
+   */
+  sorted?: boolean;
 }
 
 export function TagInput({
@@ -20,7 +33,10 @@ export function TagInput({
   variant = "primary",
   className,
   inputAriaLabel,
+  commitOnComma = true,
+  sorted,
 }: TagInputProps) {
+  const format = useFormatContext();
   const [draft, setDraft] = useState("");
 
   const commit = (raw: string) => {
@@ -31,7 +47,7 @@ export function TagInput({
   };
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") {
+    if (e.key === "Enter" || (commitOnComma && e.key === ",")) {
       e.preventDefault();
       commit(draft);
     } else if (e.key === "Backspace" && !draft && value.length > 0) {
@@ -41,6 +57,15 @@ export function TagInput({
 
   const remove = (idx: number) => {
     onChange(value.filter((_, i) => i !== idx));
+  };
+
+  /** Emptied, the tag goes; a text another tag already has is dropped, as [commit] drops it. */
+  const edit = (idx: number, next: string) => {
+    if (!next) {
+      remove(idx);
+    } else if (!value.some((tag, i) => i !== idx && tag === next)) {
+      onChange(value.map((tag, i) => (i === idx ? next : tag)));
+    }
   };
 
   const chipClasses =
@@ -55,25 +80,18 @@ export function TagInput({
         className
       )}
     >
-      {value.map((tag, i) => (
-        <span
-          key={`${tag}-${i}`}
-          className={cn(
-            "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-semibold",
-            chipClasses
-          )}
-        >
-          {tag}
-          <button
-            type="button"
-            onClick={() => remove(i)}
-            aria-label={`${tag} entfernen`}
-            className="opacity-60 hover:opacity-100"
-          >
-            ×
-          </button>
-        </span>
-      ))}
+      {chipOrder(value, sorted ? format : null).map((i) => {
+        const tag = value[i];
+        return (
+          <TagChip
+            key={`${tag}-${i}`}
+            tag={tag}
+            chipClassName={chipClasses}
+            onEdit={(next) => edit(i, next)}
+            onRemove={() => remove(i)}
+          />
+        );
+      })}
       <input
         aria-label={inputAriaLabel}
         value={draft}
@@ -85,4 +103,12 @@ export function TagInput({
       />
     </div>
   );
+}
+
+/** Indices into [value] in display order: as entered, or alphabetically for a sorted input. */
+function chipOrder(value: string[], format: FormatContext | null): number[] {
+  const indices = value.map((_, i) => i);
+  return format
+    ? indices.sort((a, b) => compareText(value[a], value[b], format))
+    : indices;
 }
