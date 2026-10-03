@@ -25,6 +25,7 @@ package org.projectforge.rest.pub
 
 import org.projectforge.SystemStatus
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.core.AccessChecked
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -52,6 +53,7 @@ class HeartbeatRest(
     /**
      * @return 200 if ProjectForge is up and running, 503 while it's still starting.
      */
+    @AccessChecked("PUBLIC: liveness status and instance mode only, no details")
     @GetMapping("heartbeat")
     fun heartbeat(): ResponseEntity<Heartbeat> {
         val mode = if (gatewayMode) MODE_GATEWAY else MODE_MAIN
