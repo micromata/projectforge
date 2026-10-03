@@ -1,6 +1,7 @@
 import { KUNDE_METADATA } from "@/lib/metadata/kunde.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CustomerKontoField } from "./customer-konto-field";
+import { CustomerListActions } from "./customer-list-actions";
 import { CustomerNumberField } from "./customer-number-field";
 import {
   customerSchema,
@@ -64,6 +65,8 @@ export const CUSTOMER_PAGE = definePage<
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
   ],
+  // The way to the customer groups and business units, for those who may maintain them.
+  listActions: CustomerListActions,
   edit: {
     schema: customerSchema,
     fieldNames: CUSTOMER_FIELDS,
