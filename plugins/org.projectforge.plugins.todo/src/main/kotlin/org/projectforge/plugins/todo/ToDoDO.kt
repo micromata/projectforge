@@ -47,7 +47,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 @Table(name = "T_PLUGIN_TODO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
 open class ToDoDO : DefaultBaseDO() {
 
-    @PropertyInfo(i18nKey = "plugins.todo.subject")
+    @PropertyInfo(i18nKey = "plugins.todo.subject", required = true)
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
     @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)

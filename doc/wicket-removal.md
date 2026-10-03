@@ -20,7 +20,7 @@
 
 ### Remaining Wicket pages and how they are reached
 
-50 concrete page classes are left (`projectforge-wicket` + the todo and liquidityplanning plugins).
+48 concrete page classes are left (`projectforge-wicket` + the liquidityplanning plugin).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
@@ -30,7 +30,6 @@ dead weight: `MenuItemDefId` resolves all of them to `next/…`.
 
 | Group | Pages | Reached from |
 |---|---|---|
-| Menu entry | `ToDoListPage`, `ToDoEditPage` | `ToDoPlugin.registerMenuItem` (MISC); the only Wicket page still opened by a menu entry (if the plugin is active), no next page exists |
 | Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), cost1 (`Kost1*Page`), cost2 (`Kost2*Page`), cost2Type (`Kost2Art*Page`), gantt (`GanttChart*Page`), project (`Projekt*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
 | Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
 | Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
@@ -38,7 +37,7 @@ dead weight: `MenuItemDefId` resolves all of them to `next/…`.
 | Dead, no reference at all | `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` | – |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
-Without the escape hatches and the hidden mounts, Wicket is still needed only for ToDo, the task
+Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
 wizard, the user favorites (`UserPref`) and the old calendar pages. An escape-hatch category can only go
 after its `offerLegacyLink` has been set to `false`.
 
@@ -47,7 +46,7 @@ after its `offerLegacyLink` has been set to `false`.
 | Plugin | Wicket code | Status |
 |---|---|---|
 | ihk | none (`IHKPage`, `IHKForm` deleted) | migrated to next (`/next/ihk`, `IHKRest`); no Wicket dependency |
-| todo | `ToDoListPage/Form`, `ToDoEditPage/Form` | **not migrated**, menu opens Wicket; small React layout `ToDoPagesRest` exists |
+| todo | none (`ToDoListPage/Form`, `ToDoEditPage/Form`, `ToDoPagesRest` deleted) | migrated to next (`/next/todo`, `ToDoEntityRest`); no Wicket dependency |
 | liquidityplanning | 6 page/form classes, `LiquidityChartBuilder`, `.html` | migrated to next; Wicket classes are leftovers |
 | licensemanagement | no pages; `LicenseDao` uses `web.user.UsersProvider` | migrated |
 | marketing | none; unused `projectforge-wicket` dependency | migrated |
@@ -94,11 +93,11 @@ Each item: build in next, or decide with the product owner that it goes away.
 
 - [x] **IHK plugin** – migrated: next page `/next/ihk` (week picker, missing-description list with next
       timesheet links, setup instructions) on `IHKRest`/`IHKService`, reusing `IHKExporter`. Wicket pages deleted.
-- [ ] **ToDo plugin** – list, edit, close dialog, templates (`UserPrefArea.TODO_FAVORITE`), the "send
-      notification" / "send short message" options, the badge counter. **The notification mail is only
-      sent from `ToDoEditPage`** (`ToDoDao.sendNotification(todo, requestUrl)`); the REST/next save path
-      must call it with a next edit link (`NextMigration` edit URL), otherwise mails stop silently.
-      Update the `/wa/toDoEditPage` URL in the todo `GroovyEngineTest`.
+- [x] **ToDo plugin** – migrated: next pages `/next/todo` (list with "only recent" filter and highlighted
+      recent rows, edit with close dialog, templates, notification option) on `ToDoEntityRest`; the
+      notification mail is sent from the REST save path with a next edit link. The templates are new
+      favorites (`ToDoFavoritesService`), the old `UserPrefArea.TODO_FAVORITE` entries are not migrated;
+      "send short message" (commented out in Wicket) is dropped. Wicket pages deleted.
 - [ ] **Liquidity planning** – decide whether next needs the extra Excel sheets of the Wicket export
       (cash flow, forecast "all", debitor/creditor invoices; next's `LiquidityEntityRest.exportAsExcel`
       writes only the entries) and the "paranoia case" forecast series. Then delete the Wicket classes,
@@ -141,7 +140,7 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] `projectforge-application/build.gradle.kts`: remove the module dependency and the Wicket libs
       (wicket myextensions, wicket.spring, wicketstuff html5/select2); check rhino (only the Wicket LESS
       compiler?) and jsp-api.
-- [ ] Plugin `build.gradle.kts` (licensemanagement, liquidityplanning, marketing, todo): remove
+- [ ] Plugin `build.gradle.kts` (licensemanagement, liquidityplanning, marketing): remove
       `api(project(":projectforge-wicket"))` and Wicket `**/*.html` resource includes.
 - [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
 - [ ] `WebXMLInitializer`: remove `WicketUserFilter`, `SpringThreadLocalFilter`, the `WicketFilter`

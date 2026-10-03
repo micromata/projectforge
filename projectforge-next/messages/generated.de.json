@@ -2748,6 +2748,23 @@
     },
     "todo": {
       "assignee": "Bearbeiter",
+      "button": {
+        "close": "ToDo schließen"
+      },
+      "closeDialog": {
+        "heading": "ToDo schließen"
+      },
+      "group": {
+        "tooltip": {
+          "content": "Die Gruppe definiert optional die Zugriffsrechte, d. h. alle Benutzer dieser Gruppe haben vollen Zugriff auf dieses ToDo. Ansonsten haben der Bearbeiter und der Ersteller vollen Zugriff auf dieses ToDo."
+        }
+      },
+      "legend": {
+        "recent": "Von jemand anderem geändert, von Ihnen noch nicht gesehen"
+      },
+      "notification": {
+        "tooltip": "Soll eine E-Mail an den Reporter und Bearbeiter versendet werden? Eine E-Mail wird nicht an Sie selbst versendet!"
+      },
       "reporter": "Ersteller",
       "status": {
         "_": "Status",
@@ -2758,6 +2775,17 @@
         "reopened": "erneut geöffnet"
       },
       "subject": "Betreff",
+      "task": {
+        "tooltip": {
+          "content": "Das Strukturelement definiert optional die Zugriffsrechte, d. h. alle Benutzer, die lesenden Zugriff auf das gewählte Strukturelement haben, können das ToDo lesen, das gleiche gilt für die Rechte \"Einfügen\", \"Ändern\" und \"Löschen\". Ansonsten haben der Bearbeiter und der Ersteller vollen Zugriff auf dieses ToDo."
+        }
+      },
+      "templates": "Vorlagen",
+      "title": {
+        "add": "ToDo hinzufügen",
+        "list": "ToDo-Liste"
+      },
+      "todo": "ToDo",
       "type": {
         "_": "Art",
         "bug": "Fehler",

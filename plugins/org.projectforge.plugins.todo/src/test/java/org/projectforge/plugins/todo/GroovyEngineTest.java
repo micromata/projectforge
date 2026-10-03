@@ -70,7 +70,7 @@ public class GroovyEngineTest extends AbstractTestBase {
     engine.putVariable("todo", todo);
     engine.putVariable("title", "ToDo");
     engine.putVariable("history", new ArrayList<FlatDisplayHistoryEntry>());
-    engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
+    engine.putVariable("requestUrl", "https://localhost:8443/next/todo/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
     assertTrue(result.contains("hoch"), "I18n priority expected.");
     assertTrue(result.contains("Verbesserung"), "I18n key for type improvement expected.");

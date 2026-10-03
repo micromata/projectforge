@@ -1469,8 +1469,10 @@ constructor(
     /**
      * Will be called after create, update, delete, markAsDeleted, undelete and cancel.
      * @return ResponseAction with the url of the standard list page.
+     *
+     * Protected (not internal) so the rest classes of the plugins may attach a message, too.
      */
-    internal open fun onAfterEdit(
+    protected open fun onAfterEdit(
         request: HttpServletRequest,
         obj: O,
         postData: PostData<DTO>,
