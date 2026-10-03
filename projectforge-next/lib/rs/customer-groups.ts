@@ -90,3 +90,27 @@ export function fetchUnassignedCustomers(
     signal
   );
 }
+
+/** Mirror of `CustomerGroupService.BusinessUnitMember`. */
+export interface BusinessUnitMember {
+  /** The group's name, the customer as "number name", or the free text. */
+  name: string;
+  kind: UnassignedEntry["kind"];
+  /** Only through the tasks of its projects: the customer itself belongs to no business unit. */
+  viaTask: boolean;
+}
+
+/**
+ * What each business unit of the unsaved configuration stands for in the last five years' orders and
+ * invoices, by business-unit key; a business unit nothing counts to is missing. Nothing is stored.
+ */
+export function fetchBusinessUnitMembers(
+  values: CustomerGroupsValues,
+  signal?: AbortSignal
+): Promise<Record<string, BusinessUnitMember[]>> {
+  return request<Record<string, BusinessUnitMember[]>>(
+    "/rs/customerGroups/businessUnitMembers",
+    { method: "POST", body: JSON.stringify(values) },
+    signal
+  );
+}

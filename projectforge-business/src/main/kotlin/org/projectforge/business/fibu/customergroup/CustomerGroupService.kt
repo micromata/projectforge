@@ -153,14 +153,14 @@ class CustomerGroupService {
      * Each entry carries the year it was last used in (a group: the latest of its members), and they are sorted by
      * this year (most recent first), then by name.
      *
-     * A customer only reaching a business unit through the tasks of its projects is listed as well: the
-     * tasks assign projects, not customers.
+     * Orders and invoices of a project belonging to a business unit by its task are not considered: a customer
+     * all of whose projects lie below business-unit tasks is not listed, one with other rows still is.
      */
     fun unassigned(config: CustomerGroupConfig): Unassigned {
         normalize(config)
         val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all))
         val groupsInBusinessUnits = config.businessUnits.flatMap { it.groups }.toSet()
-        val recent = cachedRecentCustomers()
+        val recent = cachedRecentCustomers().without(index.businessUnitProjects)
         val entries = mutableListOf<UnassignedEntry>()
         val groupYears = mutableMapOf<String, Int>()
         val add = { kundeId: Long?, text: String?, year: Int, name: String?, kind: UnassignedKind ->
@@ -187,6 +187,45 @@ class CustomerGroupService {
             )
         )
     }
+
+    /**
+     * What each business unit of the given (unsaved) configuration stands for in the orders and invoices of the
+     * last [RECENT_YEARS] years, by business-unit key: the groups, and the customer entities and free-text
+     * customers belonging to no group, sorted by name. A customer of a group is represented by its group.
+     *
+     * An entry reaching its business unit only through the tasks of the projects ([BusinessUnitMember.viaTask])
+     * is set apart: the customer itself belongs to none, so its other orders and invoices may count to another
+     * one or to "Sonstige" (see [unassigned]).
+     */
+    fun businessUnitMembers(config: CustomerGroupConfig): Map<String, List<BusinessUnitMember>> {
+        normalize(config)
+        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all))
+        val members = mutableMapOf<String, MutableMap<String, BusinessUnitMember>>()
+        val add = { kundeId: Long?, text: String?, projektId: Long?, name: String? ->
+            val bu = index.businessUnitOf(kundeId, text, projektId)
+            if (bu?.key != null && name != null) {
+                val viaTask = index.businessUnitOf(kundeId, text) == null
+                val group = index.groupOf(kundeId, text)
+                val member = if (group?.name != null) {
+                    BusinessUnitMember(group.name!!, UnassignedKind.GROUP, viaTask)
+                } else {
+                    BusinessUnitMember(name, if (kundeId != null) UnassignedKind.CUSTOMER else UnassignedKind.FREE_TEXT, viaTask)
+                }
+                members.getOrPut(bu.key!!) { mutableMapOf() }
+                    .putIfAbsent("${member.kind}:${member.name.lowercase()}", member)
+            }
+        }
+        val recent = cachedRecentCustomers()
+        recent.kundeYears.keys.forEach { (kundeId, projektId) ->
+            add(kundeId, null, projektId, kundeCache.getKunde(kundeId)?.displayName)
+        }
+        recent.freeTextYears.keys.forEach { (text, projektId) -> add(null, text, projektId, text) }
+        return members.mapValues { (_, byName) ->
+            byName.values.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+        }
+    }
+
+    class BusinessUnitMember(val name: String, val kind: UnassignedKind, val viaTask: Boolean)
 
     enum class UnassignedKind { GROUP, CUSTOMER, FREE_TEXT }
 
@@ -249,39 +288,62 @@ class CustomerGroupService {
         return loadRecentCustomers().also { recentCustomersCache = now to it }
     }
 
-    /** The year each customer entity and free-text customer (trimmed, the latest spelling) was last used in. */
-    private data class RecentCustomers(val kundeYears: Map<Long, Int>, val freeTextYears: Map<String, Int>)
+    /**
+     * The year each customer entity and free-text customer was last used in, per project (null: rows without
+     * one), so the rows of the projects belonging to a business unit by task can be left out ([without]).
+     */
+    private data class RecentCustomers(
+        val kundeYears: Map<Pair<Long, Long?>, Int>,
+        val freeTextYears: Map<Pair<String, Long?>, Int>,
+    ) {
+        /** Per customer and per free text (trimmed, the latest spelling), without the rows of [projektIds]. */
+        fun without(projektIds: Set<Long>): Recent {
+            val kunden = mutableMapOf<Long, Int>()
+            kundeYears.forEach { (key, year) ->
+                if (key.second !in projektIds) kunden.merge(key.first, year, ::maxOf)
+            }
+            val texts = mutableMapOf<String, Pair<String, Int>>() // lowercase -> spelling, year
+            freeTextYears.forEach { (key, year) ->
+                if (key.second in projektIds) return@forEach
+                val text = key.first
+                texts.merge(text.lowercase(), text to year) { a, b -> if (b.second > a.second) b else a }
+            }
+            return Recent(kunden, texts.values.associate { it })
+        }
+    }
+
+    private class Recent(val kundeYears: Map<Long, Int>, val freeTextYears: Map<String, Int>)
 
     /**
      * The customer entities and free-text customers of the orders (by offer date, else entry date) and invoices
-     * of the last [RECENT_YEARS] years, with the year of their latest one.
+     * of the last [RECENT_YEARS] years, with the year of their latest one per project.
      */
     private fun loadRecentCustomers(): RecentCustomers {
         val since = "since" to LocalDate.now().minusYears(RECENT_YEARS)
         val dates = listOf("AuftragDO" to "coalesce(t.angebotsDatum, t.erfassungsDatum)", "RechnungDO" to "t.datum")
-        val kundeYears = mutableMapOf<Long, Int>()
-        val freeTextYears = mutableMapOf<String, Pair<String, Int>>() // lowercase -> spelling, year
+        val kundeYears = mutableMapOf<Pair<Long, Long?>, Int>()
+        val freeTextYears = mutableMapOf<Pair<String, Long?>, Int>()
         dates.forEach { (entity, date) ->
             persistenceService.executeQuery(
-                "select t.kunde.id, max($date) from $entity t where t.kunde is not null and t.deleted = false and $date >= :since group by t.kunde.id",
+                "select t.kunde.id, p.id, max($date) from $entity t left join t.projekt p where t.kunde is not null and t.deleted = false and $date >= :since group by t.kunde.id, p.id",
                 Array<Any?>::class.java,
                 since,
             ).forEach { row ->
                 val kundeId = (row[0] as? Number)?.toLong() ?: return@forEach
-                val year = (row[1] as? LocalDate)?.year ?: return@forEach
-                kundeYears.merge(kundeId, year, ::maxOf)
+                val year = (row[2] as? LocalDate)?.year ?: return@forEach
+                kundeYears.merge(kundeId to (row[1] as? Number)?.toLong(), year, ::maxOf)
             }
             persistenceService.executeQuery(
-                "select t.kundeText, max($date) from $entity t where t.kunde is null and t.kundeText is not null and t.deleted = false and $date >= :since group by t.kundeText",
+                "select t.kundeText, p.id, max($date) from $entity t left join t.projekt p where t.kunde is null and t.kundeText is not null and t.deleted = false and $date >= :since group by t.kundeText, p.id",
                 Array<Any?>::class.java,
                 since,
             ).forEach { row ->
                 val text = (row[0] as? String)?.trim()?.takeIf { it.isNotEmpty() } ?: return@forEach
-                val year = (row[1] as? LocalDate)?.year ?: return@forEach
-                freeTextYears.merge(text.lowercase(), text to year) { a, b -> if (b.second > a.second) b else a }
+                val year = (row[2] as? LocalDate)?.year ?: return@forEach
+                freeTextYears.merge(text to (row[1] as? Number)?.toLong(), year, ::maxOf)
             }
         }
-        return RecentCustomers(kundeYears, freeTextYears.values.associate { it })
+        return RecentCustomers(kundeYears, freeTextYears)
     }
 
     /** The distinct free-text customers of the orders and invoices without a customer entity. */

@@ -146,6 +146,16 @@ class CustomerGroupPageRest : AbstractDynamicPageRest() {
         return customerGroupService.unassigned(toConfig(data))
     }
 
+    /**
+     * What each business unit of the given unsaved configuration stands for (by business-unit key), shown in
+     * its row and updated while editing.
+     */
+    @PostMapping("businessUnitMembers")
+    fun businessUnitMembers(@RequestBody data: CustomerGroupsData): Map<String, List<CustomerGroupService.BusinessUnitMember>> {
+        checkAccess()
+        return customerGroupService.businessUnitMembers(toConfig(data))
+    }
+
     private fun checkAccess() {
         accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
     }

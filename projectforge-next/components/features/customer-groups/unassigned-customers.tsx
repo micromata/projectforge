@@ -1,23 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { FreeTextBadge } from "@/components/shared/free-text-badge";
-import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { GroupBadge } from "@/components/shared/group-badge";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
 import {
   fetchUnassignedCustomers,
   type UnassignedEntry,
 } from "@/lib/rs/customer-groups";
-import type { CustomerGroupsValues } from "./types";
-import { toPayload } from "./values";
-
-/** As the live validation: a name typed letter by letter is asked about once. */
-const DELAY_MILLIS = 500;
+import { useDebouncedPayload } from "./use-debounced-payload";
 
 /**
  * What the business units leave out — the groups in none, and the customers and free texts in no group —
@@ -27,13 +19,7 @@ const DELAY_MILLIS = 500;
  */
 export function UnassignedCustomers() {
   const t = useTranslations();
-  const form = useEntityEditForm();
-  const values = useStore(
-    form.store,
-    (s: unknown) => (s as { values: CustomerGroupsValues }).values
-  );
-  const debounced = useDebouncedValue(values, DELAY_MILLIS);
-  const payload = useMemo(() => toPayload(debounced), [debounced]);
+  const payload = useDebouncedPayload();
   const { data } = useQuery({
     queryKey: ["customerGroups", "unassigned", payload],
     queryFn: ({ signal }) => fetchUnassignedCustomers(payload, signal),

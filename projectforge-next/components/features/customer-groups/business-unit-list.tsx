@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useStore } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import {
@@ -10,11 +11,14 @@ import {
 import { RepeatableList } from "@/components/shared/form/repeatable-list";
 import { TaskMultiSelectField } from "@/components/shared/tasks/task-multi-select-field";
 import { useFieldArray } from "@/hooks/use-field-array";
+import { fetchBusinessUnitMembers } from "@/lib/rs/customer-groups";
+import { BusinessUnitMembers } from "./business-unit-members";
 import { CUSTOMER_SET_METADATA } from "./schema";
 import { CustomerSetFields } from "./customer-set-fields";
 import { CustomerSetRow } from "./customer-set-row";
 import { GroupsSelectField } from "./groups-select-field";
 import type { BusinessUnitValues, CustomerGroupsValues } from "./types";
+import { useDebouncedPayload } from "./use-debounced-payload";
 import { newKey, usedKeys } from "./values";
 
 /** The business units: customer groups and single customers combined under one name. */
@@ -32,6 +36,13 @@ export function BusinessUnitList() {
     (s: unknown) => (s as { values: CustomerGroupsValues }).values.groups
   );
   const groupName = new Map(groups.map((g) => [g.key, g.name.trim()]));
+  // What each business unit stands for, asked once for all of them.
+  const payload = useDebouncedPayload();
+  const { data: members } = useQuery({
+    queryKey: ["customerGroups", "businessUnitMembers", payload],
+    queryFn: ({ signal }) => fetchBusinessUnitMembers(payload, signal),
+    placeholderData: keepPreviousData,
+  });
   return (
     <RepeatableList
       array={array}
@@ -76,6 +87,9 @@ export function BusinessUnitList() {
                 label={t("fibu.businessUnits.tasks")}
                 hint={t("fibu.businessUnits.tasksHint")}
                 className="md:col-span-2"
+              />
+              <BusinessUnitMembers
+                members={members && (members[bu.key] ?? [])}
               />
             </CustomerSetRow>
           </NestedFieldMetadata>
