@@ -33,12 +33,16 @@ class CustomerGroupIndexTest {
     private val directory = CustomerDirectory(
         customers = mapOf(101L to "ACME Germany", 102L to "ACME Logistics", 200L to "Internal", 300L to "Kühne Spedition"),
         // Project 1 of the internal customer below task 10 (in BU Blue), project 2 below 20 (in BU Green),
-        // project 3 of an ACME customer below 20, project 4 below no business unit's task.
+        // project 3 of an ACME customer below 20, project 4 below no business unit's task. Project 5 below 20 has
+        // no customer entity, its orders were placed by "Kühne Spedition" (free text), then by the internal one;
+        // project 6 below 20 has neither.
         projects = mapOf(
             1L to ProjectRef(200, 11),
             2L to ProjectRef(200, 21),
             3L to ProjectRef(101, 21),
             4L to ProjectRef(200, 30),
+            5L to ProjectRef(null, 21, listOf(CustomerKey(null, "Kühne Spedition"), CustomerKey(200))),
+            6L to ProjectRef(null, 21),
         ),
         taskPath = {
             mapOf(10L to listOf(1L, 10L), 11L to listOf(1L, 10L, 11L), 20L to listOf(1L, 20L), 21L to listOf(1L, 20L, 21L), 30L to listOf(1L, 30L))[it]
@@ -77,13 +81,23 @@ class CustomerGroupIndexTest {
     }
 
     @Test
+    fun `a project without a customer entity takes the business unit of its orders' customers`() {
+        assertEquals("Blue", index.businessUnitOfProject(5)?.name) // the free text, not the task
+        assertEquals("Green", index.businessUnitOfProject(6)?.name) // no customer: the task
+        assertEquals("Blue", index.businessUnitOfProject(3)?.name) // its own customer
+        assertNull(index.groupOfProject(5))
+        assertEquals("ACME", index.groupOfProject(3)?.name)
+        assertEquals(setOf(1L, 2L, 3L, 4L, 5L), index.projectCustomers.keys)
+    }
+
+    @Test
     fun `a business unit resolves to its customers, texts and projects`() {
         val blue = index.resolveBusinessUnit("blue01")!!
         assertEquals(setOf(101L, 102L, 300L), blue.kundeIds)
         assertEquals(listOf("*Spedition", "ACME*"), blue.texts.map { it.raw })
         assertEquals(setOf(1L), blue.projektIds)
         // Project 3 is listed under Green by its task; its customer's business unit decides per row.
-        assertEquals(setOf(2L, 3L), index.resolveBusinessUnit("green1")?.projektIds)
+        assertEquals(setOf(2L, 3L, 5L, 6L), index.resolveBusinessUnit("green1")?.projektIds)
         assertEquals(setOf(101L, 102L, 300L), index.businessUnitCustomers.kundeIds)
     }
 

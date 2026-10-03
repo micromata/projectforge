@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
@@ -38,17 +39,23 @@ import org.projectforge.framework.persistence.api.SortProperty
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * @param projection Builds a query of selected properties ([selectDistinct]) instead of the entities
+ * ([createResultIterator]).
+ */
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     private val baseDao: BaseDao<O>,
     private val entityManager: EntityManager,
-    private val queryFilter: QueryFilter
+    private val queryFilter: QueryFilter,
+    private val projection: Boolean = false,
 ) {
     private val ctx: DBCriteriaContext<O> by lazy {
         val cb = entityManager.criteriaBuilder
-        val cr = cb.createQuery(baseDao.doClass)
+        val cr = if (projection) cb.createQuery(Array<Any>::class.java) else cb.createQuery(baseDao.doClass)
         DBCriteriaContext(cb, cr, cr.from(baseDao.doClass), baseDao.doClass).also { context ->
             queryFilter.joinList.forEach { join ->
-                context.addJoin(join)
+                // A fetch join needs its owner selected, which a projection doesn't do.
+                context.addJoin(if (projection && join.fetch) DBJoin(join.attribute, join.joinType, false, join.parent) else join)
             }
         }
     }
@@ -66,12 +73,28 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>, queryFilter: QueryFilter): DBResultIterator<O> {
+        check(!projection) { "A projection selects no entities, see selectDistinct." }
+        @Suppress("UNCHECKED_CAST")
+        val cr = ctx.cr as CriteriaQuery<O>
         return DBCriteriaResultIterator(
             entityManager,
-            ctx.cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()),
+            cr.select(ctx.root).where(*predicates.toTypedArray()).orderBy(*order.toTypedArray()),
             resultPredicates,
             queryFilter,
         )
+    }
+
+    /**
+     * The distinct value combinations of the [paths] over the matching rows, unordered. Nested paths are
+     * left-joined (see [DBCriteriaContext.getOrderField]), so a row without the association yields null
+     * instead of being dropped.
+     */
+    fun selectDistinct(paths: List<String>): List<Array<Any?>> {
+        check(projection) { "Build the query builder with projection = true." }
+        @Suppress("UNCHECKED_CAST")
+        val cr = ctx.cr as CriteriaQuery<Array<Any?>>
+        cr.multiselect(paths.map { ctx.getOrderField<Any>(it) }).distinct(true).where(*predicates.toTypedArray())
+        return entityManager.createQuery(cr).resultList
     }
 
     /**

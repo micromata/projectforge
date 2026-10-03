@@ -92,17 +92,28 @@ internal class CustomerChecklistFilter(
 
     /**
      * The projects the picks stand for, for a list reaching its customer only through the project (see
-     * [ViaProjectCriteria]): those of the picked customers and of the groups' customers. A free text names no
-     * project's customer. Null if no key is known, as [buildPredicate].
+     * [ViaProjectCriteria]): those one of whose customers is picked, by entity, by free text (case-insensitive,
+     * as the values offered are one per text regardless of blanks) or by group. Null if no key is known, as
+     * [buildPredicate].
      */
     fun projectMatch(keys: Array<String>?): ProjectMatch? {
         keys ?: return null
-        val groups = groupsOf(keys)
-        val ids = entityIdsOf(keys).toSet() + groups.flatMap { it.kundeIds }
-        if (ids.isEmpty() && groups.isEmpty()) {
+        val index = groupIndex()
+        val groupKeys = keys.filter { it.startsWith(GROUP_PREFIX) }.map { it.removePrefix(GROUP_PREFIX) }
+            .filter { index.getGroup(it) != null }.toSet()
+        val ids = entityIdsOf(keys).toSet()
+        val texts = keys.filter { it.startsWith(TEXT_PREFIX) }.mapNotNull {
+            it.removePrefix(TEXT_PREFIX).trim().lowercase().takeIf { text -> text.isNotEmpty() }
+        }.toSet()
+        if (ids.isEmpty() && texts.isEmpty() && groupKeys.isEmpty()) {
             return null
         }
-        return ProjectMatch { kundeId, _ -> kundeId in ids }
+        return ProjectMatch { customers, _ ->
+            customers.any { customer ->
+                val picked = customer.kundeId?.let { it in ids } ?: (customer.kundeText?.lowercase() in texts)
+                picked || (groupKeys.isNotEmpty() && index.groupOf(customer.kundeId, customer.kundeText)?.key in groupKeys)
+            }
+        }
     }
 
     private fun entityIdsOf(keys: Array<String>): List<Long> =

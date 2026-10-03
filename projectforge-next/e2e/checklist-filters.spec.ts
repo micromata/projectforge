@@ -157,14 +157,18 @@ for (const list of LISTS) {
         loggedInPage: page,
       }) => {
         const { t } = await userFormat(page);
-        const offered = await filterValues(
-          page,
-          valuesUrl(list, checklist.field)
+        // Picked from what the pill offers, i.e. narrowed by the list's default filter (a project list
+        // without the ended projects offers fewer customers than the bare endpoint).
+        const pillValues = page.waitForResponse((response) =>
+          response.url().endsWith(`/rs/${valuesUrl(list, checklist.field)}`)
+        );
+        const label = await openFilter(page, t, list, checklist.field);
+        const offered = named(
+          (await (await pillValues).json()) as FilterListValue[]
         );
         test.skip(offered.length < 2, `Fewer than two ${checklist.field}.`);
         const [first, second] = offered;
 
-        const label = await openFilter(page, t, list, checklist.field);
         // Listened for before ticking: the pill applies live, so the request may leave at once.
         const filtered = filteredListPage(page, list.entity, checklist.field, [
           first.id,
@@ -172,7 +176,7 @@ for (const list of LISTS) {
         ]);
         for (const pick of [first, second]) await tick(page, t, pick);
         const response = await filtered;
-        await page.keyboard.press("Escape");
+        await closeFilter(page);
 
         const expected = [first, second].map((pick) => pick[checklist.by]);
         const rows = (await response.json()).resultSet as Row[];
@@ -220,7 +224,7 @@ for (const list of LISTS) {
         ]);
         await tick(page, t, customer!);
         await applied;
-        await page.keyboard.press("Escape");
+        await closeFilter(page);
 
         // The project checklist asks with the customer as the other criterion, and offers that answer.
         const narrowed = page.waitForResponse(
@@ -252,7 +256,8 @@ function valuesUrl(list: List, field: Checklist["field"]): string {
 
 /**
  * The values a checklist offers with [entries] as the other criteria (the list's default filter is not
- * among them, so they may be more than the list shows); named and not free text only.
+ * among them, so they may be more than the list shows); named customers and projects only, no free text
+ * and no customer group (a row names its customer, never the group).
  */
 async function filterValues(
   page: Page,
@@ -264,9 +269,20 @@ async function filterValues(
     data: { entries },
   });
   expect(response.ok()).toBeTruthy();
-  return ((await response.json()) as FilterListValue[]).filter(
-    (it) => !it.freeText && it.displayName.trim()
+  return named((await response.json()) as FilterListValue[]);
+}
+
+/** The named customers and projects of [values]: no free text, no customer group. */
+function named(values: FilterListValue[]): FilterListValue[] {
+  return values.filter(
+    (it) => !it.freeText && !it.group && it.displayName.trim()
   );
+}
+
+/** Closes the open pill and waits until it is gone: the next one would otherwise open beside it. */
+async function closeFilter(page: Page) {
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 }
 
 async function postHeaders(page: Page) {
@@ -337,7 +353,10 @@ async function tick(page: Page, t: Translate, pick: FilterListValue) {
     .check();
 }
 
-/** The list request carrying all of [keys] as the criterion of [field]. */
+/**
+ * The list request carrying all of [keys] as the criterion of [field]: `listPage` (`{ filter }`) for a
+ * server-paged list, `list` (the filter itself) for one paged by the client (projects, cost 2).
+ */
 function filteredListPage(
   page: Page,
   entity: string,
@@ -345,11 +364,17 @@ function filteredListPage(
   keys: string[]
 ): Promise<Response> {
   return page.waitForResponse((response) => {
-    if (!response.url().endsWith(`/rs/${entity}/listPage`)) return false;
+    const url = response.url();
+    const paged = url.endsWith(`/rs/${entity}/listPage`);
+    if (!paged && !url.endsWith(`/rs/${entity}/list`)) return false;
     const body = response.request().postDataJSON() as
       | { filter?: MagicFilter }
+      | MagicFilter
       | undefined;
-    const entry = body?.filter?.entries?.find((it) => it.field === field);
+    const filter = paged
+      ? (body as { filter?: MagicFilter } | undefined)?.filter
+      : (body as MagicFilter | undefined);
+    const entry = filter?.entries?.find((it) => it.field === field);
     const values = entry?.value?.values ?? [];
     return keys.every((key) => values.includes(key));
   });

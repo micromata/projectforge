@@ -67,6 +67,9 @@ class CustomerGroupService {
     private lateinit var taskTree: TaskTree
 
     @Autowired
+    private lateinit var customerUsageCache: CustomerUsageCache
+
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     /** What [cachedIndex] was built from; any of it changed (by identity) means a rebuild. */
@@ -85,7 +88,8 @@ class CustomerGroupService {
 
     /**
      * The configuration applied to the current customers and projects. Rebuilt when the configuration, the
-     * customers or the projects change (each cache replaces its map on a refresh), and after [MAX_AGE_MILLIS]
+     * customers, the projects or the customers worked for ([CustomerUsageCache]) change (each cache replaces its
+     * data on a refresh), and after [MAX_AGE_MILLIS]
      * at the latest: a task moved within the tree changes no map, but may move projects to another business
      * unit.
      */
@@ -94,13 +98,14 @@ class CustomerGroupService {
             val raw = Configuration.instance.getStringValue(ConfigurationParam.CUSTOMER_GROUPS)
             val customers = kundeCache.all
             val projects = projektCache.all
-            val sources = listOf(raw, customers, projects)
+            val usage = customerUsageCache.all
+            val sources = listOf(raw, customers, projects, usage)
             synchronized(this) {
                 val now = System.currentTimeMillis()
                 val changed = sources.size != cachedSources.size ||
                         sources.zip(cachedSources).any { (a, b) -> if (a is String?) a != b else a !== b }
                 if (changed || now - cachedMillis > MAX_AGE_MILLIS) {
-                    cachedIndex = CustomerGroupIndex(CustomerGroupConfig.parse(raw), directory(customers, projects))
+                    cachedIndex = CustomerGroupIndex(CustomerGroupConfig.parse(raw), directory(customers, projects, usage))
                     cachedSources = sources
                     cachedMillis = now
                 }
@@ -111,7 +116,12 @@ class CustomerGroupService {
     /** The name of the group of a customer entity (by number) or, without one, of a free-text customer. */
     fun groupNameOf(kundeId: Long?, kundeText: String? = null): String? = index.groupOf(kundeId, kundeText)?.name
 
-    fun groupNameOf(projekt: ProjektDO?): String? = groupNameOf(projekt?.kunde?.nummer)
+    /** The group of the project's customer, else of the most recent order's customer of the project. */
+    fun groupNameOf(projekt: ProjektDO?): String? {
+        projekt ?: return null
+        val projektId = projekt.id ?: return groupNameOf(projekt.kunde?.nummer)
+        return index.groupOfProject(projektId)?.name
+    }
 
     /**
      * The name of the business unit of a customer (see [groupNameOf]), else of the one whose task the project
@@ -120,24 +130,32 @@ class CustomerGroupService {
     fun businessUnitNameOf(kundeId: Long?, kundeText: String? = null, projektId: Long? = null): String? =
         index.businessUnitOf(kundeId, kundeText, projektId)?.name
 
-    fun businessUnitNameOf(projekt: ProjektDO?): String? = businessUnitNameOf(projekt?.kunde?.nummer, null, projekt?.id)
+    /** By the project's customers (its own, else those of its orders), else by its task. */
+    fun businessUnitNameOf(projekt: ProjektDO?): String? {
+        projekt ?: return null
+        val projektId = projekt.id ?: return businessUnitNameOf(projekt.kunde?.nummer)
+        return index.businessUnitOfProject(projektId)?.name
+    }
 
     /**
      * The customer entities and free-text customers the given names and patterns match, sorted by name: the
-     * editor shows them, so a pattern catching more than it should is noticed before saving.
+     * editor shows them, so a pattern catching more than it should is noticed before saving. Only customers
+     * worked for (an order, or timesheets on a project of theirs, see [CustomerUsage]) are shown: those known
+     * only from invoices (debtors) would bury the ones that matter.
      */
     fun matches(texts: List<String>): CustomerMatches {
         val patterns = texts.mapNotNull { TextPattern.of(it) }.distinct()
         if (patterns.isEmpty()) {
             return CustomerMatches()
         }
-        val customers = kundeCache.all.values
+        val used = usedCustomers().keys.map { it.first }.distinct()
+        val customers = used.mapNotNull { it.kundeId?.let { id -> kundeCache.getKunde(id) } }
             .filter { kunde -> patterns.any { it.matches(kunde.name?.trim()) } }
             .map { it.displayName }
-        val freeTexts = cachedFreeTexts().filter { text -> patterns.any { it.matches(text) } }.map { it.trim() }
+        val freeTexts = used.mapNotNull { it.kundeText }.filter { text -> patterns.any { it.matches(text) } }
         return CustomerMatches(
             customers.sortedWith(String.CASE_INSENSITIVE_ORDER),
-            freeTexts.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER),
+            freeTexts.distinctBy { it.lowercase() }.sortedWith(String.CASE_INSENSITIVE_ORDER),
         )
     }
 
@@ -146,19 +164,19 @@ class CustomerGroupService {
     /**
      * What the given (unsaved) configuration leaves without a business unit: the groups, and the customer entities
      * and free-text customers belonging to no group. A customer or free text of a group without a business unit is
-     * represented by its group. Only customers and free texts of orders and invoices of the last [RECENT_YEARS]
-     * years are considered, the others no longer matter; a group none of whose members occurs there is left out
-     * as well.
+     * represented by its group. Only customers and free texts worked for in the last [RECENT_YEARS] years (an
+     * order, or timesheets on a project of theirs, see [CustomerUsage]) are considered, the others no longer
+     * matter; a group none of whose members occurs there is left out as well.
      *
      * Each entry carries the year it was last used in (a group: the latest of its members), and they are sorted by
      * this year (most recent first), then by name.
      *
-     * Orders and invoices of a project belonging to a business unit by its task are not considered: a customer
+     * Orders and timesheets of a project belonging to a business unit by its task are not considered: a customer
      * all of whose projects lie below business-unit tasks is not listed, one with other rows still is.
      */
     fun unassigned(config: CustomerGroupConfig): Unassigned {
         normalize(config)
-        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all))
+        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all, customerUsageCache.all))
         val groupsInBusinessUnits = config.businessUnits.flatMap { it.groups }.toSet()
         val recent = cachedRecentCustomers().without(index.businessUnitProjects)
         val entries = mutableListOf<UnassignedEntry>()
@@ -189,8 +207,8 @@ class CustomerGroupService {
     }
 
     /**
-     * What each business unit of the given (unsaved) configuration stands for in the orders and invoices of the
-     * last [RECENT_YEARS] years, by business-unit key: the groups, and the customer entities and free-text
+     * What each business unit of the given (unsaved) configuration stands for in the orders and timesheets of
+     * the last [RECENT_YEARS] years, by business-unit key: the groups, and the customer entities and free-text
      * customers belonging to no group, sorted by name. A customer of a group is represented by its group.
      *
      * An entry reaching its business unit only through the tasks of the projects ([BusinessUnitMember.viaTask])
@@ -199,7 +217,7 @@ class CustomerGroupService {
      */
     fun businessUnitMembers(config: CustomerGroupConfig): Map<String, List<BusinessUnitMember>> {
         normalize(config)
-        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all))
+        val index = CustomerGroupIndex(config, directory(kundeCache.all, projektCache.all, customerUsageCache.all))
         val members = mutableMapOf<String, MutableMap<String, BusinessUnitMember>>()
         val add = { kundeId: Long?, text: String?, projektId: Long?, name: String? ->
             val bu = index.businessUnitOf(kundeId, text, projektId)
@@ -243,7 +261,8 @@ class CustomerGroupService {
 
     /** Against the current customers and tasks, and the free-text customers of all orders and invoices. */
     fun validate(config: CustomerGroupConfig, freeTexts: Collection<String> = loadFreeTexts()): List<CustomerGroupError> =
-        CustomerGroupValidator(directory(kundeCache.all, projektCache.all, freeTexts)).validate(config)
+        CustomerGroupValidator(directory(kundeCache.all, projektCache.all, customerUsageCache.all, freeTexts))
+            .validate(config)
 
     /**
      * Validates an unsaved configuration as [save] would, but without the optimistic lock: the editor asks
@@ -255,17 +274,34 @@ class CustomerGroupService {
         return validate(config, cachedFreeTexts())
     }
 
+    /** The projects' customers are their own, else those of their orders ([CustomerUsage.projectCustomers]). */
     private fun directory(
         customers: Map<Long, KundeDO>,
         projects: Map<Long, ProjektDO>,
+        usage: CustomerUsage,
         freeTexts: Collection<String> = emptyList(),
-    ) = CustomerDirectory(
-        customers = customers.mapValues { it.value.name },
-        freeTexts = freeTexts,
-        projects = projects.mapValues { ProjectRef(it.value.kunde?.nummer, it.value.task?.id) },
-        taskPath = { taskId -> taskPath(taskId) },
-        taskTitle = { taskTree.getTaskById(it)?.title },
-    )
+    ): CustomerDirectory {
+        val projectCustomers = usage.projectCustomers(projects.mapValues { it.value.kunde?.nummer })
+        return CustomerDirectory(
+            customers = customers.mapValues { it.value.name },
+            freeTexts = freeTexts,
+            projects = projects.mapValues { (id, projekt) ->
+                ProjectRef(projekt.kunde?.nummer, projekt.task?.id, projectCustomers[id] ?: emptyList())
+            },
+            taskPath = { taskId -> taskPath(taskId) },
+            taskTitle = { taskTree.getTaskById(it)?.title },
+        )
+    }
+
+    /**
+     * The customers worked for ([CustomerUsage]) with the year they were last worked for, per project (null:
+     * orders of none), so the rows of the projects belonging to a business unit by task can be left out
+     * ([RecentCustomers.without]).
+     */
+    private fun usedCustomers(): Map<Pair<CustomerKey, Long?>, Int> {
+        val usage = customerUsageCache.all
+        return usage.years(usage.projectCustomers(projektCache.all.mapValues { it.value.kunde?.nummer }))
+    }
 
     /** Root first, the task itself last ([TaskTree.getPathToRoot] leaves the root out). */
     private fun taskPath(taskId: Long): List<Long>? {
@@ -281,15 +317,6 @@ class CustomerGroupService {
         val now = System.currentTimeMillis()
         freeTextsCache?.let { (loaded, texts) -> if (now - loaded < FREE_TEXTS_MAX_AGE_MILLIS) return texts }
         return loadFreeTexts().also { freeTextsCache = now to it }
-    }
-
-    @Volatile
-    private var recentCustomersCache: Pair<Long, RecentCustomers>? = null
-
-    private fun cachedRecentCustomers(): RecentCustomers {
-        val now = System.currentTimeMillis()
-        recentCustomersCache?.let { (loaded, recent) -> if (now - loaded < FREE_TEXTS_MAX_AGE_MILLIS) return recent }
-        return loadRecentCustomers().also { recentCustomersCache = now to it }
     }
 
     /**
@@ -318,34 +345,16 @@ class CustomerGroupService {
 
     private class Recent(val kundeYears: Map<Long, Int>, val freeTextYears: Map<String, Int>)
 
-    /**
-     * The customer entities and free-text customers of the orders (by offer date, else entry date) and invoices
-     * of the last [RECENT_YEARS] years, with the year of their latest one per project.
-     */
-    private fun loadRecentCustomers(): RecentCustomers {
-        val since = "since" to LocalDate.now().minusYears(RECENT_YEARS)
-        val dates = listOf("AuftragDO" to "coalesce(t.angebotsDatum, t.erfassungsDatum)", "RechnungDO" to "t.datum")
+    /** The customers worked for in the last [RECENT_YEARS] years ([usedCustomers]), split by kind. */
+    private fun cachedRecentCustomers(): RecentCustomers {
+        val since = LocalDate.now().minusYears(RECENT_YEARS).year
         val kundeYears = mutableMapOf<Pair<Long, Long?>, Int>()
         val freeTextYears = mutableMapOf<Pair<String, Long?>, Int>()
-        dates.forEach { (entity, date) ->
-            persistenceService.executeQuery(
-                "select t.kunde.id, p.id, max($date) from $entity t left join t.projekt p where t.kunde is not null and t.deleted = false and $date >= :since group by t.kunde.id, p.id",
-                Array<Any?>::class.java,
-                since,
-            ).forEach { row ->
-                val kundeId = (row[0] as? Number)?.toLong() ?: return@forEach
-                val year = (row[2] as? LocalDate)?.year ?: return@forEach
-                kundeYears.merge(kundeId to (row[1] as? Number)?.toLong(), year, ::maxOf)
-            }
-            persistenceService.executeQuery(
-                "select t.kundeText, p.id, max($date) from $entity t left join t.projekt p where t.kunde is null and t.kundeText is not null and t.deleted = false and $date >= :since group by t.kundeText, p.id",
-                Array<Any?>::class.java,
-                since,
-            ).forEach { row ->
-                val text = (row[0] as? String)?.trim()?.takeIf { it.isNotEmpty() } ?: return@forEach
-                val year = (row[2] as? LocalDate)?.year ?: return@forEach
-                freeTextYears.merge(text to (row[1] as? Number)?.toLong(), year, ::maxOf)
-            }
+        usedCustomers().forEach { (key, year) ->
+            if (year < since) return@forEach
+            val (customer, projektId) = key
+            customer.kundeId?.let { kundeYears[it to projektId] = year }
+                ?: customer.kundeText?.let { freeTextYears[it to projektId] = year }
         }
         return RecentCustomers(kundeYears, freeTextYears)
     }
@@ -420,10 +429,10 @@ class CustomerGroupService {
         /** A task moved in the tree is noticed after this time at the latest (see [index]). */
         private const val MAX_AGE_MILLIS = 10 * 60 * 1000L
 
-        /** For [check], [matches] and [unassigned], asked after every change in the editor. */
+        /** For [check], asked after every change in the editor. */
         private const val FREE_TEXTS_MAX_AGE_MILLIS = 60 * 1000L
 
-        /** Customers and free texts without an order or invoice since are left out of [unassigned]. */
+        /** Customers and free texts not worked for since are left out of [unassigned] and [businessUnitMembers]. */
         const val RECENT_YEARS = 5L
 
         /** Null outside a Spring context (unit tests), where the lists then offer no groups. */
