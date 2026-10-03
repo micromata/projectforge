@@ -20,7 +20,7 @@
 
 ### Remaining Wicket pages and how they are reached
 
-50 concrete page classes are left (`projectforge-wicket` + the todo and liquidityplanning plugins).
+47 concrete page classes are left (`projectforge-wicket` + the todo plugin).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
@@ -34,7 +34,7 @@ dead weight: `MenuItemDefId` resolves all of them to `next/…`.
 | Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), cost1 (`Kost1*Page`), cost2 (`Kost2*Page`), cost2Type (`Kost2Art*Page`), gantt (`GanttChart*Page`), project (`Projekt*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
 | Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
 | Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
-| Mounted, but no way back from next | `DatevImportPage` (`wa/datevImport`, menu points to `next/datev-import`, only `CallAllPagesTest` uses it), `LiquidityEntryListPage`, `LiquidityEntryEditPage`, `LiquidityForecastPage` (`offerLegacyLink = false`, still `registerWeb`/`addMountPage` in the plugin) | URL typed by hand only |
+| Mounted, but no way back from next | `DatevImportPage` (`wa/datevImport`, menu points to `next/datev-import`, only `CallAllPagesTest` uses it) | URL typed by hand only |
 | Dead, no reference at all | `PacmanViewPage`, `AbstractViewPage`, `AbstractSecuredPopupPage` | – |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
@@ -48,7 +48,7 @@ after its `offerLegacyLink` has been set to `false`.
 |---|---|---|
 | ihk | none (`IHKPage`, `IHKForm` deleted) | migrated to next (`/next/ihk`, `IHKRest`); no Wicket dependency |
 | todo | `ToDoListPage/Form`, `ToDoEditPage/Form` | **not migrated**, menu opens Wicket; small React layout `ToDoPagesRest` exists |
-| liquidityplanning | 6 page/form classes, `LiquidityChartBuilder`, `.html` | migrated to next; Wicket classes are leftovers |
+| liquidityplanning | none (pages, forms, `LiquidityChartBuilder`, `.html` deleted) | migrated to next (`/next/liquidity`); no Wicket dependency |
 | licensemanagement | no pages; `LicenseDao` uses `web.user.UsersProvider` | migrated |
 | marketing | none; unused `projectforge-wicket` dependency | migrated |
 | banking, datatransfer, memo, merlin, skillmatrix | none | React, no Wicket dependency |
@@ -70,7 +70,8 @@ These would break silently if the module were simply deleted.
       include.
 - [ ] **Plugin menu registration:** plugins register menu items through
       `PluginWicketRegistrationService.registerMenuItem` (builds `wa/wicket/bookmarkable/<class>` URLs).
-      Switch to `MenuCreator.register(...)` directly, as marketing and licensemanagement already do.
+      Switch to `MenuCreator.register(...)` directly, as marketing, licensemanagement and liquidityplanning
+      already do.
 - [ ] **`ProjectForgeEndpoints`** (`projectforge-application/.../start/`): strip the Wicket parts
       (`AdminPage`, `WebRegistry`, `AbstractUnsecureBasePage`); keep the REST endpoint dump and
       `SystemDiagnosticsExport` (used by `SystemRest`).
@@ -99,10 +100,12 @@ Each item: build in next, or decide with the product owner that it goes away.
       sent from `ToDoEditPage`** (`ToDoDao.sendNotification(todo, requestUrl)`); the REST/next save path
       must call it with a next edit link (`NextMigration` edit URL), otherwise mails stop silently.
       Update the `/wa/toDoEditPage` URL in the todo `GroovyEngineTest`.
-- [ ] **Liquidity planning** – decide whether next needs the extra Excel sheets of the Wicket export
-      (cash flow, forecast "all", debitor/creditor invoices; next's `LiquidityEntityRest.exportAsExcel`
-      writes only the entries) and the "paranoia case" forecast series. Then delete the Wicket classes,
-      `LiquidityChartBuilder`, `registerWeb`/`addMountPage` and the `/wa/...` 2FA shortcut values.
+- [x] **Liquidity planning** – Wicket pages/forms, `LiquidityChartBuilder`, `registerWeb`/`addMountPage`,
+      the `/wa/...` 2FA shortcut values and the `projectforge-wicket` dependency deleted; the menu entry is
+      registered via `MenuCreator`. The extra sheets of the Wicket export (cash flow, forecast "all",
+      debitor/creditor invoices) moved to the forecast tab's Excel export (`/rs/liquidity/forecast/excel`,
+      `LiquidityForecastExcelExport`); only the "paranoia case" forecast series was dropped. The
+      `NextMigration` entry keeps its `legacyRoute`s so old bookmarks still redirect.
 - [ ] **TeamCal administration** (`TeamCalListPage`/`TeamCalEditPage`), **ICS import**
       (`TeamCalImportPage`, `TeamCalImportDao`), **team event list**, ICS download in
       `TeamEventEditPage`, the ICS subscription-link dialogs (`TimesheetsICSExportDialog`,
@@ -141,7 +144,7 @@ Each item: build in next, or decide with the product owner that it goes away.
 - [ ] `projectforge-application/build.gradle.kts`: remove the module dependency and the Wicket libs
       (wicket myextensions, wicket.spring, wicketstuff html5/select2); check rhino (only the Wicket LESS
       compiler?) and jsp-api.
-- [ ] Plugin `build.gradle.kts` (licensemanagement, liquidityplanning, marketing, todo): remove
+- [ ] Plugin `build.gradle.kts` (licensemanagement, marketing, todo): remove
       `api(project(":projectforge-wicket"))` and Wicket `**/*.html` resource includes.
 - [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
 - [ ] `WebXMLInitializer`: remove `WicketUserFilter`, `SpringThreadLocalFilter`, the `WicketFilter`

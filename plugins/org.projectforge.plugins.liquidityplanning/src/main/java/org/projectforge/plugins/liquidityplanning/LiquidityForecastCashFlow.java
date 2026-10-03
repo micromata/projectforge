@@ -23,13 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.projectforge.business.excel.*;
-import org.projectforge.business.scripting.I18n;
-import org.projectforge.common.DateFormatType;
-import org.projectforge.export.MyExcelExporter;
-import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.PFDay;
-import org.projectforge.framework.utils.NumberHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -112,73 +106,6 @@ public class LiquidityForecastCashFlow implements Serializable {
       array[i] = BigDecimal.ZERO;
     }
     return array;
-  }
-
-  public void addAsExcelSheet(final MyExcelExporter exporter, final String sheetTitle) {
-    final ExportSheet sheet = exporter.addSheet(sheetTitle);
-    sheet.createFreezePane(0, 1);
-    final ContentProvider sheetProvider = sheet.getContentProvider();
-
-    sheet.addRow();
-    sheet.setMergedRegion(0, 0, 1, 3, I18n.getString("plugins.liquidityplanning.entry.expectedDateOfPayment"));
-    sheet.setMergedRegion(0, 0, 4, 6, I18n.getString("plugins.liquidityplanning.forecast.dueDate"));
-
-    final ExportColumn[] cols = new ExportColumn[7];
-    int colNo = 0;
-    I18nExportColumn exportColumn = new I18nExportColumn("date", "date", 10);
-    sheetProvider.putFormat(exportColumn, DateFormats.getExcelFormatString(DateFormatType.DATE));
-    cols[colNo++] = exportColumn;
-
-    exportColumn = new I18nExportColumn("creditsExpected", "plugins.liquidityplanning.common.credit");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-    exportColumn = new I18nExportColumn("debitsExpected", "plugins.liquidityplanning.common.debit");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-    exportColumn = new I18nExportColumn("balanceExpected", "plugins.liquidityplanning.forecast.balance");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-
-    exportColumn = new I18nExportColumn("credits", "plugins.liquidityplanning.common.credit");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-    exportColumn = new I18nExportColumn("debits", "plugins.liquidityplanning.common.debit");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-    exportColumn = new I18nExportColumn("balance", "plugins.liquidityplanning.forecast.balance");
-    cols[colNo++] = exportColumn;
-    exporter.putCurrencyFormat(sheetProvider, exportColumn);
-
-    // column property names
-    sheet.setColumns(cols);
-
-    final int firstDataRowNumber = sheet.getRowCounter() + 1;
-    PFDay current = baseDate;
-    PropertyMapping mapping = new PropertyMapping();
-    mapping.add("balanceExpected", BigDecimal.ZERO);
-    mapping.add("balance", new Formula("D" + firstDataRowNumber));
-    sheet.addRow(mapping.getMapping(), 0);
-
-    for (int i = 0; i < credits.length; i++) {
-      final int rowNumber = sheet.getRowCounter();
-      mapping.add("date", current);
-      mapping.add("creditsExpected", NumberHelper.isZeroOrNull(creditsExpected[i]) ? "" : creditsExpected[i]);
-      mapping.add("debitsExpected", NumberHelper.isZeroOrNull(debitsExpected[i]) ? "" : debitsExpected[i]);
-      mapping.add("balanceExpected", new Formula("D" + rowNumber + "+SUM(B" + rowNumber + ":C" + rowNumber + ")"));
-      mapping.add("credits", NumberHelper.isZeroOrNull(credits[i]) ? "" : credits[i]);
-      mapping.add("debits", NumberHelper.isZeroOrNull(debits[i]) ? "" : debits[i]);
-      mapping.add("balance", new Formula("G" + rowNumber + "+SUM(E" + rowNumber + ":F" + rowNumber + ")"));
-      sheet.addRow(mapping.getMapping(), 0);
-      current = current.plusDays(1);
-    }
-    mapping = new PropertyMapping();
-    mapping.add("creditsExpected", new Formula("SUM(B" + firstDataRowNumber + ":B" + sheet.getRowCounter() + ")"));
-    mapping.add("debitsExpected", new Formula("SUM(C" + firstDataRowNumber + ":C" + sheet.getRowCounter() + ")"));
-    mapping.add("balanceExpected", new Formula("D" + firstDataRowNumber + "+SUM(B" + firstDataRowNumber + ":C" + sheet.getRowCounter() + ")"));
-    mapping.add("credits", new Formula("SUM(E" + firstDataRowNumber + ":E" + sheet.getRowCounter() + ")"));
-    mapping.add("debits", new Formula("SUM(F" + firstDataRowNumber + ":F" + sheet.getRowCounter() + ")"));
-    mapping.add("balance", new Formula("G" + firstDataRowNumber + "+SUM(E" + firstDataRowNumber + ":F" + sheet.getRowCounter() + ")"));
-    sheet.addRow(mapping.getMapping(), 0);
   }
 
   /**
