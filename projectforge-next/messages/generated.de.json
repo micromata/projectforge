@@ -978,6 +978,22 @@
       "title": "Kundengruppen und Business Units"
     },
     "customerref1": "Kundenreferenz",
+    "datev": {
+      "import": {
+        "_": "Buchhaltungsdaten importieren",
+        "accounts": "Kontenplan",
+        "column": {
+          "hint": "Hinweis"
+        },
+        "format": {
+          "accounts": "Kontenplan: das Blatt \"Kontenplan\" (auch mit vorangestelltem Monat, z. B. \"07_Kontenplan\") mit den Spalten Konto und Beschriftung. Importiert werden nur die Kontobezeichnungen, alle übrigen Kontodaten bleiben erhalten.",
+          "intro": "Die Original-Exceldatei des Steuerbüros (.xlsx / .xls) kann unverändert hochgeladen werden. Auswertungsblätter wie BWA, SuSa oder USt werden ignoriert.",
+          "records": "Buchungssätze: Das Monatsblatt (z. B. \"07\") ist der Buchungsmonat. Buchungssätze mit Belegdatum in einem Folgemonat werden diesem Buchungsmonat zugeordnet, behalten aber ihr tatsächliches Belegdatum.",
+          "title": "Dateiformat der Importdatei"
+        },
+        "records": "Buchungssätze"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Laden Sie eine ZUGFeRD-PDF oder XRechnung-XML-Datei hoch, um die enthaltenen Rechnungsdaten zu prüfen."
     },
@@ -1938,6 +1954,15 @@
     }
   },
   "loading": "Laden...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Fehler",
+      "info": "Info",
+      "trace": "Verfolgen",
+      "warn": "Warnung"
+    }
+  },
   "login": {
     "_": "Anmelden",
     "adminLoginRequired": "Wartungsmodus: Bitte als Administrator:in anmelden!",
@@ -2616,6 +2641,7 @@
   },
   "rating": "Bewertung",
   "recursive": "rekursiv",
+  "refresh": "Neu laden",
   "reload": "Neu laden",
   "rename": "Umbenennen",
   "reset": "Rücksetzen",
@@ -2724,6 +2750,9 @@
   "sum": "Summe",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Adminprotokoll einsehen"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2818,6 +2847,16 @@
             "configuration": "Configuration"
           }
         }
+      },
+      "logViewer": {
+        "autoRefresh": "Auto-Aktualisierung",
+        "level": "Log-Level",
+        "message": "Meldung",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "Dieses Protokoll ist nicht mehr verfügbar: Es verfällt nach einer Stunde ohne Aktivität und bei einem Neustart des Servers. Es lässt sich über die Seite, zu der es gehört, erneut öffnen.",
+        "title": "Protokoll einsehen",
+        "user": "Benutzer:in@IP",
+        "userAgent": "Browser"
       },
       "reindex": {
         "fromDate": {
@@ -3092,6 +3131,7 @@
     "totalDuration": "Gesamtdauer",
     "user": "Mitarbeiter:in"
   },
+  "timestamp": "Zeitstempel",
   "timezone": "Zeitzone",
   "title": "Titel",
   "tooltip": {

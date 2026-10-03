@@ -418,6 +418,20 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Teile bleiben im Ausgangsrechnungs-Feature. `IncomingInvoiceEntityRest` (layoutfrei) +
   Mehrfachauswahl (SEPA-Transfer-Export). **TODO offen:** CSV/SEPA-Import-Assistent und der
   SEPA-Überweisungs-Export als eigene Seite bleiben auf Wicket/React.
+- **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite bleibt
+  unter `wa/datevImport` gemountet, aber ohne Link aus next). Zwei Tabs über das gemeinsame
+  `ImportFeature` (`DatevRecordImportRest`, `DatevAccountImportRest`), beide nehmen die
+  **unveränderte Originaldatei** des Steuerbüros: Buchungssätze nur aus Monatsblättern
+  (`07`), Kontenplan aus `07_Kontenplan`, Berichtsblätter (BWA, SuSa, USt …) werden
+  ignoriert. Der Buchungsstapel kommt vom Blatt, das Belegdatum bleibt echt (August-Belege
+  im Juli-Stapel → Hinweis, kein Fehler; > 12 Monate Abstand → Fehler). BWA der Vorschau
+  über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
+  `NextMigration.MIGRATED` (keine Entity-Seite).
+- **Log-Viewer** – `next/logViewer/<id>` (eigenes `LogSubscription`, Link via
+  `LogViewerRest.viewerUrl`) und `next/adminLogViewer` (Menü `ADMIN_LOG_VIEWER`). Layoutfreie
+  Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
+  (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
+  Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die

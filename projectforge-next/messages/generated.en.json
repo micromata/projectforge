@@ -978,6 +978,22 @@
       "title": "Customer groups and business units"
     },
     "customerref1": "Customer reference",
+    "datev": {
+      "import": {
+        "_": "Import Datev",
+        "accounts": "Chart of accounts",
+        "column": {
+          "hint": "Hint"
+        },
+        "format": {
+          "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
+          "title": "File format of the import file"
+        },
+        "records": "Accounting records"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
     },
@@ -1938,6 +1954,15 @@
     }
   },
   "loading": "Loading...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Error",
+      "info": "Info",
+      "trace": "Trace",
+      "warn": "Warn"
+    }
+  },
   "login": {
     "_": "Login",
     "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
@@ -2616,6 +2641,7 @@
   },
   "rating": "Rating",
   "recursive": "recursive",
+  "refresh": "refresh",
   "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
@@ -2724,6 +2750,9 @@
   "sum": "Sum",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Admin log viewer"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2818,6 +2847,16 @@
             "configuration": "Configuration"
           }
         }
+      },
+      "logViewer": {
+        "autoRefresh": "Auto refresh",
+        "level": "Loglevel",
+        "message": "Message",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",
+        "title": "Log viewer",
+        "user": "user@ip",
+        "userAgent": "User agent"
       },
       "reindex": {
         "fromDate": {
@@ -3092,6 +3131,7 @@
     "totalDuration": "Total duration",
     "user": "Employee"
   },
+  "timestamp": "Time stamp",
   "timezone": "Time zone",
   "title": "Title",
   "tooltip": {

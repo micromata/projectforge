@@ -99,7 +99,8 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
         register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
         register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
-        register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
+        // DATEV_IMPORT migrated to projectforge-next (next/datev-import, DatevRecordImportRest/DatevAccountImportRest);
+        // the Wicket page DatevImportPage stays mounted (wa/datevImport) as legacy version.
         // The employee-salary import (Gehaltsimport) is now reached as a button in the migrated Next.js
         // salary list (EmployeeSalaryImportRest / employee-salary-import); its menu entry and Wicket page were removed.
 

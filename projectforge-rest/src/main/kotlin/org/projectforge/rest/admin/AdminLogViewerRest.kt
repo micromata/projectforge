@@ -23,19 +23,19 @@
 
 package org.projectforge.rest.admin
 
-import org.projectforge.common.logging.LogSubscription
 import org.projectforge.rest.config.Rest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Log viewer to view and search last 10.000 log events for all users, to browse
- * own [LogSubscription] queues.
+ * The admin log viewer (`next/adminLogViewer`): the last 10,000 log events of the whole system, admin group only.
+ * Under a REST path of its own, so the 2FA registration of ADMIN gates it without gating the users' log viewer
+ * (see [LogViewerRest]).
  */
 @RestController
 @RequestMapping("${Rest.URL}/adminLogViewer")
-open class AdminLogViewerPageRest : LogViewerPageRest() {
-  init {
-    adminLogViewer = true
-  }
+open class AdminLogViewerRest : LogViewerRest() {
+    init {
+        adminLogViewer = true
+    }
 }

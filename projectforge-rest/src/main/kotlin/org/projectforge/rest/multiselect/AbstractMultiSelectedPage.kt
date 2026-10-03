@@ -44,7 +44,7 @@ import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.admin.LogViewerPageRest
+import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.FormLayoutData
@@ -1001,10 +1001,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
                 MenuItem(
                     "logViewer",
                     i18nKey = "plugins.merlin.viewLogs",
-                    url = PagesResolver.getDynamicPageUrl(
-                        LogViewerPageRest::class.java,
-                        id = logSubscription.id
-                    ),
+                    url = LogViewerRest.viewerUrl(logSubscription.id),
                     type = MenuItemTargetType.REDIRECT,
                 )
             )
