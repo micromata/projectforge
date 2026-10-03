@@ -440,13 +440,14 @@ object NextMigration {
         // Hand built list and edit page (next/timesheet, next/timesheet/:id, next/timesheet/new). The two
         // most-used calendar editors were migrated ahead of the list; the list followed, so the menu entry
         // now resolves through [listUrl] (MenuItemDefId.TIMESHEET_LIST = getListUrl("timesheet")) rather
-        // than pointing at wa/timesheetList. The way back leads to the React app, whose timesheet list and
-        // form were rendered from the same UILayout before.
+        // than pointing at wa/timesheetList. The way back is no longer offered; legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked React links (react/timesheet) onto the next page.
         "timesheet" to NextPage(
             route = "timesheet",
             editRoute = "timesheet/$ID_PLACEHOLDER",
             newEntryRoute = "timesheet/new",
             legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
         ),
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
