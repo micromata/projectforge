@@ -1,3 +1,4 @@
+import { compareText, type FormatContext } from "@/lib/format";
 import type {
   BusinessUnitValues,
   CustomerGroupsData,
@@ -43,16 +44,29 @@ function toSetValues(
   };
 }
 
-export function toFormValues(data: CustomerGroupsData): CustomerGroupsValues {
+/**
+ * With [format], the groups and business units are sorted by name in the user's language — on load and
+ * after a save, not while typing, so a row being renamed stays where it is.
+ */
+export function toFormValues(
+  data: CustomerGroupsData,
+  format?: FormatContext
+): CustomerGroupsValues {
   const used = new Set<string>();
+  const byName = <T extends CustomerSetValues>(sets: T[]) =>
+    format ? sets.sort((a, b) => compareText(a.name, b.name, format)) : sets;
   return {
-    groups: (data.groups ?? []).map((group) => toSetValues(group, used)),
-    businessUnits: (data.businessUnits ?? []).map(
-      (bu): BusinessUnitValues => ({
-        ...toSetValues(bu, used),
-        groups: bu.groups ?? [],
-        tasks: bu.tasks ?? [],
-      })
+    groups: byName(
+      (data.groups ?? []).map((group) => toSetValues(group, used))
+    ),
+    businessUnits: byName(
+      (data.businessUnits ?? []).map(
+        (bu): BusinessUnitValues => ({
+          ...toSetValues(bu, used),
+          groups: bu.groups ?? [],
+          tasks: bu.tasks ?? [],
+        })
+      )
     ),
     lastUpdate: data.lastUpdate ?? null,
   };

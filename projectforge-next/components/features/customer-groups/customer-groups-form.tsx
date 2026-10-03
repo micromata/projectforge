@@ -1,11 +1,13 @@
 "use client";
 
+import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
+import { useFormatContext } from "@/hooks/use-format";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import {
   confirmLeaveUnsavedChanges,
@@ -45,12 +47,17 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
   const router = useRouter();
   const requested = useSearchParams().get("returnTo");
   const returnRoute = RETURN_ROUTES.find((route) => route === requested);
+  const format = useFormatContext();
+  const toSortedFormValues = useCallback(
+    (loaded: CustomerGroupsData) => toFormValues(loaded, format),
+    [format]
+  );
   const { form, isDirty, isSubmitting } = useEntityEditForm<
     CustomerGroupsValues,
     CustomerGroupsData
   >({
     data,
-    toFormValues,
+    toFormValues: toSortedFormValues,
     defaultValues: EMPTY_VALUES,
     schema: customerGroupsSchema,
     fieldNames: CUSTOMER_GROUPS_FIELDS,

@@ -33,6 +33,20 @@ describe("filterPillContent", () => {
     });
   });
 
+  it("lists the picks alphabetically, not in the order picked", () => {
+    const content = filterPillContent(
+      { values: ["k:D", "k:a", "k:C", "k:B"] },
+      {
+        ...customers,
+        values: [...(customers.values ?? []), { id: "k:a", displayName: "a" }],
+      },
+      "Kunde",
+      ctx
+    );
+    expect(content.text).toBe("a, B, C");
+    expect(content.tooltip).toBe("Kunde:\na\nB\nC\nD");
+  });
+
   it("shows a single pick as it is", () => {
     const content = filterPillContent(
       { values: ["k:B"] },

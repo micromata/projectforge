@@ -67,6 +67,34 @@ describe("toFormValues", () => {
   });
 });
 
+describe("toFormValues with a format", () => {
+  it("sorts the groups and business units by name", () => {
+    const values = toFormValues(
+      {
+        groups: [
+          { key: "g10000", name: "Kunde 10" },
+          { key: "g20000", name: "acme" },
+          { key: "g30000", name: "Kunde 9" },
+        ],
+        businessUnits: [
+          { key: "b10000", name: "Retail" },
+          { key: "b20000", name: "Logistik" },
+        ],
+      },
+      { locale: "de-DE", timeZone: "Europe/Berlin" }
+    );
+    expect(values.groups.map((group) => group.name)).toEqual([
+      "acme",
+      "Kunde 9",
+      "Kunde 10",
+    ]);
+    expect(values.businessUnits.map((bu) => bu.name)).toEqual([
+      "Logistik",
+      "Retail",
+    ]);
+  });
+});
+
 describe("toPayload", () => {
   it("drops a business unit's reference to a group removed in the form", () => {
     const values = toFormValues({

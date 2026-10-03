@@ -1,4 +1,5 @@
 import {
+  compareText,
   formatDate,
   formatMonthRange,
   formatTimestampMinutes,
@@ -167,7 +168,7 @@ const PILL_NAMED_PICKS = 3;
 /**
  * What the pill of [element] says about [value], the same in the list's filter row ([FilterPill]) and in a
  * chart's summary of it ([AppliedFilterSummary]):
- * - several picks: the first few named, the rest counted ("A, B, C" +12), all of them listed in the
+ * - several picks, alphabetically: the first few named, the rest counted ("A, B, C" +12), all of them listed in the
  *   tooltip, one per line;
  * - a task: only the task itself, since its ancestors would truncate away the one segment that identifies
  *   it — the full path stays in the tooltip;
@@ -181,7 +182,10 @@ export function filterPillContent(
   label: string,
   ctx: FormatContext
 ): FilterPillContent {
-  const labels = filterValueLabels(value, element);
+  // Alphabetical, not in the order picked, so a long list can be scanned for a name.
+  const labels = filterValueLabels(value, element)?.sort((a, b) =>
+    compareText(a, b, ctx)
+  );
   if (labels && labels.length > 1) {
     return {
       text: labels.slice(0, PILL_NAMED_PICKS).join(", "),
