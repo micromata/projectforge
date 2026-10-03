@@ -4,18 +4,23 @@ import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
+import { EditPageShell } from "@/components/shared/edit-page-shell";
 import { EntityEditActions } from "@/components/shared/edit/entity-edit-actions";
 import { EntityEditFormProvider } from "@/components/shared/form/form-context";
+import { TextAreaField } from "@/components/shared/form/text-area-field";
 import { useEntityEditForm } from "@/hooks/use-entity-edit-form";
 import { useFormatContext } from "@/hooks/use-format";
+import { historyQueryKey } from "@/hooks/use-history";
 import { useSubmitShortcut } from "@/hooks/use-submit-shortcut";
 import {
   confirmLeaveUnsavedChanges,
   useUnsavedChangesWarning,
 } from "@/hooks/use-unsaved-changes-warning";
 import { saveCustomerGroups } from "@/lib/rs/customer-groups";
-import { BusinessUnitList } from "./business-unit-list";
-import { GroupList } from "./group-list";
+import {
+  CONFIGURATION_ENTITY,
+  useCustomerGroupsTabs,
+} from "./customer-groups-tabs";
 import { UnassignedCustomers } from "./unassigned-customers";
 import { useLiveValidation } from "./use-live-validation";
 import {
@@ -69,11 +74,15 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
     onSaved: () => {
       void queryClient.invalidateQueries({ queryKey: ["customerGroups"] });
       void queryClient.invalidateQueries({ queryKey: ["filterListValues"] });
+      void queryClient.invalidateQueries({
+        queryKey: historyQueryKey(CONFIGURATION_ENTITY, data.id ?? null),
+      });
     },
     save,
   });
   useUnsavedChangesWarning(isDirty);
   useLiveValidation(form, isDirty);
+  const { tabs, sections, tabPanels } = useCustomerGroupsTabs(data.id);
   const onKeyDown = useSubmitShortcut(
     () => void form.handleSubmit(),
     isDirty && !isSubmitting
@@ -91,43 +100,40 @@ export function CustomerGroupsForm({ data }: { data: CustomerGroupsData }) {
           void form.handleSubmit();
         }}
       >
-        <div className="flex-1 overflow-y-auto px-4 pb-8 pt-2">
-          <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-            <p className="text-sm text-muted-foreground">
-              {t("fibu.customerGroups.intro")}
-            </p>
-            <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">
-                {t("fibu.customerGroups.groups")}
-              </h2>
-              <GroupList />
-            </section>
-            <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold">
-                {t("fibu.businessUnits.title")}
-              </h2>
-              <BusinessUnitList />
-            </section>
-            <UnassignedCustomers />
-          </div>
-        </div>
-        <EntityEditActions
-          // Back to the caller, asking first if there are changes. Opened from the menu there is
-          // nothing to leave for: cancelling takes back the changes since loading or the last save.
-          onCancel={() => {
-            if (!returnRoute) {
-              form.reset();
-              return;
-            }
-            void confirmLeaveUnsavedChanges().then((leave) => {
-              if (leave) router.push(returnRoute);
-            });
-          }}
-          canSave
-          isSaving={isSubmitting}
-          isDirty={isDirty}
-          allowSaveUnchanged={false}
-          lastSaved={null}
+        <EditPageShell
+          header={null}
+          tabs={tabs}
+          tabPanels={tabPanels}
+          aboveSections={
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                {t("fibu.customerGroups.intro")}
+              </p>
+              <TextAreaField name="remark" label={t("comment")} rows={3} />
+            </div>
+          }
+          sections={sections}
+          belowSections={<UnassignedCustomers />}
+          actions={
+            <EntityEditActions
+              // Back to the caller, asking first if there are changes. Opened from the menu there is
+              // nothing to leave for: cancelling takes back the changes since loading or the last save.
+              onCancel={() => {
+                if (!returnRoute) {
+                  form.reset();
+                  return;
+                }
+                void confirmLeaveUnsavedChanges().then((leave) => {
+                  if (leave) router.push(returnRoute);
+                });
+              }}
+              canSave
+              isSaving={isSubmitting}
+              isDirty={isDirty}
+              allowSaveUnchanged={false}
+              lastSaved={null}
+            />
+          }
         />
       </form>
     </EntityEditFormProvider>

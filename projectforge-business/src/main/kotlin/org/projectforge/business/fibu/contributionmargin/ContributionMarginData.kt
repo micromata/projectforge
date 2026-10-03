@@ -99,6 +99,8 @@ open class ContributionMarginSums(
   val prevPrevYearProfit: BigDecimal,
   /** Revenue of the same period one year earlier. */
   val prevYearRevenue: BigDecimal,
+  /** Revenue of the same period two years earlier. */
+  val prevPrevYearRevenue: BigDecimal,
 ) {
   // Stored, not computed getters: the REST object mapper serializes fields only.
   val profit: BigDecimal = revenue - costs
@@ -108,6 +110,10 @@ open class ContributionMarginSums(
 
   /** Contribution margin in % of the revenue of the same period one year earlier, like [percentage]. */
   val prevYearPercentage: BigDecimal? = ContributionMarginCalculator.percentage(prevYearRevenue, prevYearProfit)
+
+  /** Contribution margin in % of the revenue of the same period two years earlier, like [percentage]. */
+  val prevPrevYearPercentage: BigDecimal? =
+    ContributionMarginCalculator.percentage(prevPrevYearRevenue, prevPrevYearProfit)
 }
 
 class ContributionMarginProject(
@@ -121,4 +127,5 @@ class ContributionMarginProject(
   prevYearProfit: BigDecimal,
   prevPrevYearProfit: BigDecimal,
   prevYearRevenue: BigDecimal,
-) : ContributionMarginSums(revenue, costs, prevYearProfit, prevPrevYearProfit, prevYearRevenue)
+  prevPrevYearRevenue: BigDecimal,
+) : ContributionMarginSums(revenue, costs, prevYearProfit, prevPrevYearProfit, prevYearRevenue, prevPrevYearRevenue)

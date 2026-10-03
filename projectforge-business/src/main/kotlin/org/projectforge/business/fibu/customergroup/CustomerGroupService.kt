@@ -233,6 +233,10 @@ class CustomerGroupService {
 
     class Unassigned(val entries: List<UnassignedEntry> = emptyList())
 
+    /** The id of the stored row, whose change history the editor shows; null if none yet. */
+    val entryId: Long?
+        get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.id
+
     /** The stored row's last update (epoch millis) for the optimistic lock of [save], null if none yet. */
     val lastUpdate: Long?
         get() = configurationDao.getEntry(ConfigurationParam.CUSTOMER_GROUPS)?.lastUpdate?.time
@@ -353,7 +357,7 @@ class CustomerGroupService {
                 "select distinct t.kundeText from $entity t where t.kunde is null and t.kundeText is not null and t.deleted = false",
                 String::class.java,
             )
-        }.filter { it.isNotBlank() }.distinct()
+        }.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
     /**
      * Normalizes (trimmed names and texts, no duplicate members, keys for new groups and business units),
@@ -388,6 +392,7 @@ class CustomerGroupService {
 
     private fun normalize(config: CustomerGroupConfig) {
         config.version = CustomerGroupConfig.VERSION
+        config.remark = config.remark?.trim()?.ifEmpty { null }
         val usedKeys = (config.groups + config.businessUnits).mapNotNull { it.key }.toMutableSet()
         (config.groups + config.businessUnits).forEach { set ->
             set.name = set.name?.trim()

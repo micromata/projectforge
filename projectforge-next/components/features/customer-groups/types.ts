@@ -28,8 +28,12 @@ export interface BusinessUnitData extends CustomerSetData {
 export interface CustomerGroupsData {
   groups?: CustomerGroupData[];
   businessUnits?: BusinessUnitData[];
+  /** Free text about the definition as a whole: how the groups and business units are drawn. */
+  remark?: string | null;
   /** Epoch millis of the stored value, sent back on save for the optimistic lock. */
   lastUpdate?: number | null;
+  /** The stored `ConfigurationDO` row, whose change history the page shows; null before the first save. */
+  id?: number | null;
 }
 
 /**
@@ -51,5 +55,6 @@ export interface BusinessUnitValues extends CustomerSetValues {
 export interface CustomerGroupsValues {
   groups: CustomerSetValues[];
   businessUnits: BusinessUnitValues[];
+  remark: string;
   lastUpdate: number | null;
 }
