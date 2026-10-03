@@ -321,6 +321,16 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
+        // The list of the HR planning above, under the category of its rows (HRPlanningEntryEntityRest): its list
+        // metadata is the one of this category. Without an entry here the category counted as a page of the React
+        // app, which has none, and the list offered a dead "classic version" link (react/hrPlanningEntry). The
+        // entries have no page of their own (a row opens its week by the planning's id, not the entry's, so no
+        // editRoute is given), and there is nothing to go back to either.
+        "hrPlanningEntry" to NextPage(
+            route = "hrPlanning",
+            newEntryRoute = "hrPlanning/new",
+            legacyApp = null,
+        ),
         // The licenses (plugin licensemanagement) are migrated straight from Wicket and their Wicket pages are
         // removed, so there is no way back. The legacy routes are the bookmarkable urls (as for `addressCampaign`),
         // they are kept so bookmarked links still reach the next page.

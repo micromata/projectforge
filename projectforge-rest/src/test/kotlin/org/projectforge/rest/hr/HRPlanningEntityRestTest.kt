@@ -172,6 +172,33 @@ class HRPlanningEntityRestTest : AbstractTestBase() {
     }
 
     @Test
+    fun `the project of an entry is shown and filtered by`() {
+        logon(TEST_FINANCE_USER)
+        val week = WEEK.plusWeeks(5)
+        val planning = newPlanning(week).also {
+            it.entries = mutableListOf(
+                projectEntry(BigDecimal(3)),
+                HRPlanningEntry(status = HRPlanningEntryStatus.OTHER).also { entry -> entry.mondayHours = BigDecimal(2) },
+            )
+        }
+        assertEquals(200, save(planning).statusCode.value())
+        val planningId = hrPlanningDao.getEntry(getUser(TEST_USER).id, week)!!.id!!
+
+        // The edit page shows the project's name in its picker, not only its id.
+        val stored = hrPlanningEntityRest.getItem(planningId).body as HRPlanning
+        assertEquals(projekt.displayName, stored.entries!!.single { it.status == null }.projekt?.displayName)
+
+        // The project filter of the list picks any project (an autocompletion, as the legacy list's) and narrows
+        // the list to its entries.
+        val filter = listFilter(week, grouped = false)
+        filter.entries.add(MagicFilterEntry("project").also { it.value.id = projekt.id })
+        @Suppress("UNCHECKED_CAST")
+        val rows = hrPlanningEntryEntityRest.getList(newRequest(), filter).resultSet as List<HRPlanningEntry>
+        assertEquals(1, rows.size)
+        assertEquals(projekt.id, rows.single().projekt?.id)
+    }
+
+    @Test
     fun `the list loads its rows with a constant number of statements, not one per row`() {
         logon(TEST_FINANCE_USER)
         val firstWeek = WEEK.plusWeeks(10)
@@ -204,6 +231,12 @@ class HRPlanningEntityRestTest : AbstractTestBase() {
     }
 
     private fun list(week: LocalDate, grouped: Boolean, weeks: Long = 1): List<HRPlanningEntry> {
+        val result = hrPlanningEntryEntityRest.getList(newRequest(), listFilter(week, grouped, weeks))
+        @Suppress("UNCHECKED_CAST")
+        return result.resultSet as List<HRPlanningEntry>
+    }
+
+    private fun listFilter(week: LocalDate, grouped: Boolean, weeks: Long = 1): MagicFilter {
         val filter = MagicFilter()
         filter.entries.add(MagicFilterEntry("period").also {
             it.value.fromValue = week.toString()
@@ -213,9 +246,7 @@ class HRPlanningEntityRestTest : AbstractTestBase() {
         if (grouped) {
             filter.entries.add(MagicFilterEntry("groupEntries").also { it.value.value = "true" })
         }
-        val result = hrPlanningEntryEntityRest.getList(newRequest(), filter)
-        @Suppress("UNCHECKED_CAST")
-        return result.resultSet as List<HRPlanningEntry>
+        return filter
     }
 
     private fun newPlanning(week: LocalDate): HRPlanning {

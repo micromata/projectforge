@@ -41,16 +41,12 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.dto.HRPlanningEntry
-import org.projectforge.rest.fibu.ProjectChecklistFilter
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
-import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
@@ -65,7 +61,7 @@ import java.math.BigDecimal
  * with their week.
  *
  * The query is the one of `HRPlanningEntryDao.select(HRPlanningFilter)`, built from the filter of the list:
- * the period and the employee of the week, the projects, and the two options of the legacy list
+ * the period and the employee of the week, the project, and the two options of the legacy list
  * (`groupEntries`, `onlyMyProjects`), applied by the DAO itself ([filterList]).
  */
 @RestController
@@ -124,8 +120,17 @@ class HRPlanningEntryEntityRest : AbstractDTOEntityRest<HRPlanningEntryDO, HRPla
             ).also { it.defaultFilter = true }
         )
         if (projektDao.hasLoggedInUserSelectAccess(false)) {
-            // As the legacy list: the project filter only for users seeing projects at all.
-            elements.add(projectFilter.element())
+            // As the legacy list: the project filter only for users seeing projects at all, and any project
+            // to pick from (the legacy `NewProjektSelectPanel`). Not the project checklist of the order book:
+            // that offers only the projects of the rows the other criteria match, and with the default
+            // criteria (this week, oneself) that is next to nothing. Consumed in preProcessMagicFilter.
+            elements.add(
+                UIFilterObjectElement(
+                    PROJECT,
+                    label = translate("fibu.projekt"),
+                    autoCompletion = AutoCompletion.getAutoCompletion4Projects(),
+                ).also { it.defaultFilter = true }
+            )
         }
         elements.add(UIFilterBooleanElement(GROUP_ENTRIES, label = translate("hr.planning.filter.groupEntries")))
         elements.add(UIFilterBooleanElement(ONLY_MY_PROJECTS, label = translate("hr.planning.filter.onlyMyProjects")))
@@ -151,28 +156,20 @@ class HRPlanningEntryEntityRest : AbstractDTOEntityRest<HRPlanningEntryDO, HRPla
         return filter
     }
 
-    private val projectFilter = ProjectChecklistFilter("hrPlanningEntry/projectFilterValues")
-
-    /**
-     * The projects to choose from in the project filter: those of the entries the list's *other* criteria match.
-     */
-    @PostMapping("projectFilterValues")
-    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
-        val entries = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
-        return ProjectChecklistFilter.valuesOf(entries.asSequence().map { it.projekt?.id })
-    }
-
     /**
      * Turns the synthetic entries of [addMagicFilterElements] into the criteria `HRPlanningEntryDao.buildQueryFilter`
-     * builds: the week of the planning within the period (both ends inclusive) and its employee. The two options
-     * are only marked consumed here, [filterList] applies them.
+     * builds: the project, the week of the planning within the period (both ends inclusive) and its employee. The two
+     * options are only marked consumed here, [filterList] applies them.
      */
     override fun preProcessMagicFilter(
         target: QueryFilter,
         source: MagicFilter,
     ): List<CustomResultFilter<HRPlanningEntryDO>>? {
         HRPlanningEntryDao.addListFetchJoins(target)
-        projectFilter.addCriterion(target, source)
+        source.entries.find { it.field == PROJECT }?.let { entry ->
+            entry.synthetic = true
+            (entry.value.id ?: entry.value.value?.toLongOrNull())?.let { target.add(QueryFilter.eq("projekt.id", it)) }
+        }
         source.entries.find { it.field == PERIOD }?.let { entry ->
             entry.synthetic = true
             PFDayUtils.parseDate(entry.value.fromValue)?.let { target.add(QueryFilter.ge("planning.week", it)) }
@@ -232,6 +229,7 @@ class HRPlanningEntryEntityRest : AbstractDTOEntityRest<HRPlanningEntryDO, HRPla
     companion object {
         private const val PERIOD = "period"
         private const val USER = "user"
+        private const val PROJECT = "project"
         private const val GROUP_ENTRIES = "groupEntries"
         private const val ONLY_MY_PROJECTS = "onlyMyProjects"
     }
