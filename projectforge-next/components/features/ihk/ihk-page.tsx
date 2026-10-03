@@ -15,7 +15,7 @@ import {
 } from "@/lib/rs/ihk";
 import { toast } from "@/lib/toast";
 import { todayOf } from "@/lib/user-zone";
-import { IhkSettingsStatus } from "./ihk-settings-status";
+import { IhkSettingsPanel } from "./ihk-settings-panel";
 import { IhkWeekPicker, mondayOf } from "./ihk-week-picker";
 import { MissingDescriptionList } from "./missing-description-list";
 
@@ -24,8 +24,8 @@ import { MissingDescriptionList } from "./missing-description-list";
  * report (Ausbildungsnachweis) built from their own time sheets, the successor of the plugin's Wicket page.
  *
  * Time sheets of the week without description are listed beforehand, each with a link to its edit page; the
- * download is still possible ("download anyway"). Without valid settings in the user's address, the page explains
- * the setup instead.
+ * download is still possible ("download anyway"). The apprentice's settings (training start, year, team) are a
+ * user pref, entered on this page before the first report.
  */
 export function IhkPage() {
   const t = useTranslations();
@@ -68,7 +68,10 @@ export function IhkPage() {
               : String(init.error)}
           </p>
         )}
-        {init.data && <IhkSettingsStatus init={init.data} />}
+        <p className="text-sm text-muted-foreground">
+          {t("plugins.ihk.intro")}
+        </p>
+        {init.data && <IhkSettingsPanel init={init.data} />}
         {ready && (
           <>
             <div className="flex flex-wrap items-end gap-4">
@@ -88,6 +91,9 @@ export function IhkPage() {
             {missingItems.length > 0 && (
               <MissingDescriptionList items={missingItems} />
             )}
+            <p className="text-sm text-muted-foreground">
+              {t("plugins.ihk.descriptionFormat")}
+            </p>
           </>
         )}
       </div>

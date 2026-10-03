@@ -5,12 +5,13 @@ import type { IhkInit } from "../components/features/ihk/types";
 /**
  * The IHK training report of the IHK plugin (/next/ihk, IHKRest) against the live backend.
  *
- * Read-only. Whether the page offers the download depends on the account's own address (its comment must hold
- * the training settings), which a test account may or may not have: the spec reads `/rs/ihk/init` first and
- * asserts the state the page has to be in — the setup instructions, or the week picker with the download.
+ * Read-only (the settings form is not saved, the account's prefs stay untouched). Whether the page offers the
+ * download depends on the account's training settings, which a test account may or may not have: the spec reads
+ * `/rs/ihk/init` first and asserts the state the page has to be in — the settings form, or the week picker with
+ * the download.
  */
 test.describe("ihk", { tag: "@parallel" }, () => {
-  test("explains the setup, or offers the week's report", async ({
+  test("asks for the settings, or offers the week's report", async ({
     loggedInPage: page,
   }) => {
     const { t } = await userFormat(page);
@@ -23,17 +24,26 @@ test.describe("ihk", { tag: "@parallel" }, () => {
       page.getByRole("heading", { name: t("plugins.ihk.title") })
     ).toBeVisible();
 
-    if (init.settingsError) {
-      await expect(page.getByText(t("plugins.ihk.setup.title"))).toBeVisible();
-      await expect(page.getByText(t("plugins.ihk.setup.steps"))).toBeVisible();
-      // The JSON to paste into the address comment.
-      await expect(page.locator("pre")).toContainText('"ausbildungsbeginn"');
+    if (!init.settings) {
+      await expect(
+        page.getByText(t("plugins.ihk.settings.notConfigured"))
+      ).toBeVisible();
+      await expect(
+        page.getByLabel(t("plugins.ihk.settings.teamname._"))
+      ).toBeVisible();
+      // Without a training start, there is nothing to save yet.
+      await expect(
+        page.getByRole("button", { name: t("save") })
+      ).toBeDisabled();
       await expect(
         page.getByRole("button", { name: t("plugins.ihk.download") })
       ).toHaveCount(0);
       return;
     }
 
+    await expect(
+      page.getByRole("button", { name: t("plugins.ihk.settings.edit") })
+    ).toBeVisible();
     const next = page.getByRole("button", {
       name: t("calendar.quickselect.tooltip.selectNextWeek"),
     });

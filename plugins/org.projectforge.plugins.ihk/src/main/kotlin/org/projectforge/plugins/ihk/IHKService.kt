@@ -29,6 +29,7 @@ import org.projectforge.business.timesheet.OrderDirection
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -46,8 +47,9 @@ private val log = KotlinLogging.logger {}
  * Reads the apprentice's training settings and builds the weekly IHK training report (xlsx) from the
  * logged-in user's time sheets.
  *
- * The settings are a JSON object in the comment of the user's own address (first and last name must match the
- * user exactly), see [IHKCommentObject] and the plugin's README.
+ * The settings are a user pref ([IHKSettings]), edited on the IHK page. Earlier they were a JSON object in the
+ * comment of the user's own address ([IHKCommentObject]); as long as the user has no pref yet, that JSON is taken
+ * over once, so existing apprentices need not set anything up again.
  */
 @Service
 class IHKService {
@@ -57,61 +59,57 @@ class IHKService {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
-    enum class SettingsErrorReason { NOT_FOUND, EMPTY, PARSING }
+    @Autowired
+    private lateinit var userPrefService: UserPrefService
 
-    class Settings(val ausbildungsbeginn: LocalDate, val ausbildungsjahr: Int, val teamname: String?)
-
-    class SettingsError(
-        val reason: SettingsErrorReason,
-        /** The parser message, only for [SettingsErrorReason.PARSING]. */
-        val detail: String? = null,
-    )
-
-    /** Either [settings] or [error] is given. [addressId] is the user's address, if found. */
+    /** [settings] is null while the user has not set them up. */
     class SettingsResult(
-        val settings: Settings? = null,
-        val error: SettingsError? = null,
-        val addressId: Long? = null,
+        val settings: IHKSettings? = null,
+        /** True if [settings] were just taken over from the comment of the user's address. */
+        val migratedFromAddress: Boolean = false,
     )
 
     class Report(val filename: String, val content: ByteArray)
 
     fun loadSettings(): SettingsResult {
-        val user = ThreadLocalUserContext.requiredLoggedInUser
-        val firstname = user.firstname
-        val lastname = user.lastname
-        // Addresses may have no name and/or no first name at all, so compare starting from the user's values.
-        val address = if (firstname != null && lastname != null) {
-            addressDao.select(BaseSearchFilter()).find { lastname == it.name && firstname == it.firstName }
-        } else null
-        if (address == null) {
-            log.info { "IHK-Plugin: no address found for the user." }
-            return SettingsResult(error = SettingsError(SettingsErrorReason.NOT_FOUND))
+        userPrefService.getEntry(PREF_AREA, PREF_NAME, IHKSettings::class.java)?.let { settings ->
+            return SettingsResult(settings.takeIf { it.ausbildungsbeginn != null })
         }
-        val comment = address.comment
+        val settings = readFromAddress() ?: return SettingsResult()
+        log.info { "IHK-Plugin: settings taken over from the comment of the user's address." }
+        saveSettings(settings)
+        return SettingsResult(settings, migratedFromAddress = true)
+    }
+
+    fun saveSettings(settings: IHKSettings) {
+        userPrefService.putEntry(PREF_AREA, PREF_NAME, settings)
+    }
+
+    /**
+     * The settings of the former setup: a JSON object in the comment of the address that has exactly the user's
+     * first and last name. Null if there is no such address or its comment holds no valid settings.
+     */
+    private fun readFromAddress(): IHKSettings? {
+        val user = ThreadLocalUserContext.requiredLoggedInUser
+        val firstname = user.firstname ?: return null
+        val lastname = user.lastname ?: return null
+        val comment = addressDao.select(BaseSearchFilter())
+            .find { lastname == it.name && firstname == it.firstName }
+            ?.comment
         if (comment.isNullOrBlank()) {
-            log.info { "IHK-Plugin: comment of the user's address is empty." }
-            return SettingsResult(
-                error = SettingsError(SettingsErrorReason.EMPTY),
-                addressId = address.id,
-            )
+            return null
         }
         return try {
-            val obj = JsonUtils.fromJson(comment, IHKCommentObject::class.java)!!
-            SettingsResult(
-                settings = Settings(
-                    ausbildungsbeginn = LocalDate.parse(obj.ausbildungStartDatum),
-                    ausbildungsjahr = obj.ausbildungsjahr,
-                    teamname = obj.teamname,
-                ),
-                addressId = address.id,
+            val obj = JsonUtils.fromJson(comment, IHKCommentObject::class.java) ?: return null
+            IHKSettings(
+                ausbildungsbeginn = LocalDate.parse(obj.ausbildungStartDatum),
+                // A missing value is parsed as 0, which means "calculate it" as -1 does.
+                ausbildungsjahr = if (obj.ausbildungsjahr > 0) obj.ausbildungsjahr else IHKSettings.AUSBILDUNGSJAHR_AUTO,
+                teamname = obj.teamname?.trim()?.ifEmpty { null },
             )
         } catch (ex: Exception) {
-            log.warn { "IHK-Plugin: wasn't able to parse json from the comment of the user's address: ${ex.message}" }
-            SettingsResult(
-                error = SettingsError(SettingsErrorReason.PARSING, ex.message),
-                addressId = address.id,
-            )
+            log.info { "IHK-Plugin: the comment of the user's address holds no valid settings: ${ex.message}" }
+            null
         }
     }
 
@@ -134,10 +132,11 @@ class IHKService {
     /**
      * Builds the report of the given time sheets, null if the exporter fails.
      */
-    fun export(settings: Settings, day: LocalDate, timesheets: List<TimesheetDO>): Report? {
+    fun export(settings: IHKSettings, day: LocalDate, timesheets: List<TimesheetDO>): Report? {
+        val ausbildungsbeginn = settings.ausbildungsbeginn ?: return null
         val exporter = IHKExporter()
         val xlsx = exporter.getExcel(
-            timesheets, settings.ausbildungsbeginn, settings.teamname, settings.ausbildungsjahr,
+            timesheets, ausbildungsbeginn, settings.teamname, settings.ausbildungsjahr,
             ThreadLocalUserContext.timeZone,
         )
         val filename = "WB-Nr_${exporter.docNr}_${DateHelper.getDateAsFilenameSuffix(PFDateTime.from(mondayOf(day)).utilDate)}.xlsx"
@@ -149,6 +148,9 @@ class IHKService {
     }
 
     companion object {
+        private const val PREF_AREA = "ihk"
+        private const val PREF_NAME = "settings"
+
         /** The Monday of the week [day] lies in: the IHK reports always run Monday to Sunday. */
         @JvmStatic
         fun mondayOf(day: LocalDate): LocalDate = day.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))

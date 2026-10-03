@@ -1,31 +1,25 @@
 /** Contract of `org.projectforge.plugins.ihk.IHKRest` (/rs/ihk). */
 
-/** The apprentice's settings, read from the JSON in the comment of the user's own address. */
+/** The apprentice's settings, a user pref edited on the page (`IHKSettings`). */
 export interface IhkSettings {
-  /** ISO date. */
-  ausbildungsbeginn: string;
-  /** -1: calculated from the training start. */
+  /** ISO date; required for a report. */
+  ausbildungsbeginn?: string;
+  /** {@link IHK_AUSBILDUNGSJAHR_AUTO}: calculated from the training start. */
   ausbildungsjahr: number;
   teamname?: string;
 }
 
-export type IhkSettingsErrorReason = "notFound" | "empty" | "parsing";
+/** The training year calculated from the training start (`IHKSettings.AUSBILDUNGSJAHR_AUTO`). */
+export const IHK_AUSBILDUNGSJAHR_AUTO = -1;
 
-export interface IhkSettingsError {
-  reason: IhkSettingsErrorReason;
-  /** The JSON parser's message, for `parsing` only. */
-  detail?: string;
-}
+/** The training years that may be chosen explicitly (`IHKSettings.AUSBILDUNGSJAHRE`). */
+export const IHK_AUSBILDUNGSJAHRE = [1, 2, 3, 4] as const;
 
 export interface IhkInit {
-  /** The user's names, which the address must match exactly. */
-  firstname?: string;
-  lastname?: string;
-  /** Either `settings` or `settingsError` is given. */
+  /** Missing while the user has not set them up. */
   settings?: IhkSettings;
-  settingsError?: IhkSettingsError;
-  /** Edit page of the user's address, or the new-address page if none was found (a menu url). */
-  addressUrl: string;
+  /** The settings were just taken over from the comment of the user's address (the former setup). */
+  migratedFromAddress: boolean;
   logViewerUrl?: string;
 }
 

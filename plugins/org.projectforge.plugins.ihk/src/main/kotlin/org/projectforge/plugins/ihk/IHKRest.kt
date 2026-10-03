@@ -25,14 +25,14 @@ package org.projectforge.plugins.ihk
 
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.admin.LogViewerRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AccessChecked
-import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.ui.ResponseAction
+import org.projectforge.ui.ValidationError
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -55,23 +55,19 @@ class IHKRest {
     @Autowired
     private lateinit var kostCache: KostCache
 
-    class SettingsDTO(val ausbildungsbeginn: String, val ausbildungsjahr: Int, val teamname: String?)
-
-    class SettingsErrorDTO(
-        /** notFound, empty or parsing. */
-        val reason: String,
-        /** The parser message, only for parsing. */
-        val detail: String?,
+    class SettingsDTO(
+        /** The first day of the apprenticeship. */
+        var ausbildungsbeginn: LocalDate? = null,
+        /** The training year, -1: calculated from [ausbildungsbeginn]. */
+        var ausbildungsjahr: Int = IHKSettings.AUSBILDUNGSJAHR_AUTO,
+        var teamname: String? = null,
     )
 
     class InitData(
-        /** The user's names, which the address must match exactly. */
-        val firstname: String?,
-        val lastname: String?,
+        /** Null while the user has not set them up. */
         val settings: SettingsDTO?,
-        val settingsError: SettingsErrorDTO?,
-        /** The edit page of the user's address, or the new-address page if none was found. */
-        val addressUrl: String,
+        /** True if [settings] were just taken over from the comment of the user's address (the former setup). */
+        val migratedFromAddress: Boolean,
         val logViewerUrl: String?,
     )
 
@@ -80,30 +76,46 @@ class IHKRest {
     /** [monday] may be any day of the week, the report covers its Monday to Sunday. */
     class ExportRequest(val monday: LocalDate? = null)
 
-    @AccessChecked("Own user only (logged-in user's address and log subscription)")
+    @AccessChecked("Own user only (logged-in user's prefs, address and log subscription)")
     @GetMapping("init")
     fun init(): InitData {
         val result = ihkService.loadSettings()
-        val user = ThreadLocalUserContext.requiredLoggedInUser
         return InitData(
-            firstname = user.firstname,
-            lastname = user.lastname,
-            settings = result.settings?.let {
-                SettingsDTO(it.ausbildungsbeginn.toString(), it.ausbildungsjahr, it.teamname)
-            },
-            settingsError = result.error?.let {
-                SettingsErrorDTO(
-                    reason = when (it.reason) {
-                        IHKService.SettingsErrorReason.NOT_FOUND -> "notFound"
-                        IHKService.SettingsErrorReason.EMPTY -> "empty"
-                        IHKService.SettingsErrorReason.PARSING -> "parsing"
-                    },
-                    detail = it.detail,
-                )
-            },
-            addressUrl = PagesResolver.getEditPageUrl(AddressPagesRest::class.java, result.addressId),
+            settings = result.settings?.let { SettingsDTO(it.ausbildungsbeginn, it.ausbildungsjahr, it.teamname) },
+            migratedFromAddress = result.migratedFromAddress,
             logViewerUrl = IHKPlugin.ensureUserLogSubscription()?.let { LogViewerRest.viewerUrl(it.id) },
         )
+    }
+
+    /**
+     * Saves the logged-in user's settings and answers them as stored. Invalid values are answered with 406 and
+     * the field errors.
+     */
+    @AccessChecked("Own user only (logged-in user's prefs)")
+    @PostMapping("settings")
+    fun saveSettings(@RequestBody dto: SettingsDTO): ResponseEntity<*> {
+        val validationErrors = mutableListOf<ValidationError>()
+        if (dto.ausbildungsbeginn == null) {
+            validationErrors.add(
+                ValidationError.createFieldRequired("ausbildungsbeginn", translate("plugins.ihk.settings.ausbildungsbeginn"))
+            )
+        }
+        val jahr = dto.ausbildungsjahr
+        if (jahr != IHKSettings.AUSBILDUNGSJAHR_AUTO && jahr !in IHKSettings.AUSBILDUNGSJAHRE) {
+            validationErrors.add(
+                ValidationError(translate("plugins.ihk.settings.ausbildungsjahr.invalid"), fieldId = "ausbildungsjahr")
+            )
+        }
+        if (validationErrors.isNotEmpty()) {
+            return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
+        }
+        val settings = IHKSettings(
+            ausbildungsbeginn = dto.ausbildungsbeginn,
+            ausbildungsjahr = dto.ausbildungsjahr,
+            teamname = dto.teamname?.trim()?.ifEmpty { null },
+        )
+        ihkService.saveSettings(settings)
+        return ResponseEntity.ok(SettingsDTO(settings.ausbildungsbeginn, settings.ausbildungsjahr, settings.teamname))
     }
 
     /**
@@ -133,7 +145,7 @@ class IHKRest {
     fun export(@RequestBody request: ExportRequest): ResponseEntity<*> {
         val monday = request.monday ?: return RestUtils.badRequest("monday missing")
         val settings = ihkService.loadSettings().settings
-            ?: return RestUtils.badRequest(translate("plugins.ihk.setup.error"))
+            ?: return RestUtils.badRequest(translate("plugins.ihk.settings.notConfigured"))
         val timesheets = ihkService.findTimesheets(monday)
         if (timesheets.isEmpty()) {
             return RestUtils.badRequest(translate("plugins.ihk.noitemsfound"))

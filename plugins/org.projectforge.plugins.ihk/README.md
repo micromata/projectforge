@@ -4,17 +4,12 @@ Dieses Plugin exportiert die Wochenberichte in eine Excel-Tabelle zum Herunterla
 
 ## Einrichtung
 
-Um es zu benutzen muss man es ein JSON-Objekt in den Kontakten anlegen.  
-Das JSON kommt in das Bemerkungsfeld des Benutzers hinein und hat folgendes Format:  
- 
-``` JSON
- { 
-  "ausbildungsbeginn" : "yyyy-mm-dd", 
-  "ausbildungsjahr" : "-1", 
-  "teamname" : "Dein Teamname" 
-}
-```  
+Die Angaben für den Bericht (Ausbildungsbeginn, Ausbildungsjahr, Team) trägt jede:r Auszubildende selbst auf der
+IHK-Seite (`/next/ihk`) ein; sie werden als Benutzereinstellung gespeichert und lassen sich dort jederzeit ändern.
 
-Dabei ist zu beachten, dass der Vor- und Nachname des Benutzers mit dem des Kontakts übereinstimmen muss
+Das Ausbildungsjahr wird aus dem Ausbildungsbeginn berechnet, solange kein Jahr gewählt ist (nötig nur für jene, die
+verkürzen oder das erste Ausbildungsjahr überspringen).
 
-Das Ausbildungsjahr kann man überschreiben sofern man es nicht auf `"-1"` setzt (nötig für jene, die verkürzen oder das erste Ausbildungsjahr überspringen)
+Früher stand die Einrichtung als JSON-Objekt im Bemerkungsfeld der eigenen Adresse (Vor- und Nachname mussten mit dem
+Benutzer übereinstimmen). Wer noch keine Benutzereinstellung hat, dessen JSON wird beim ersten Aufruf der Seite
+einmalig übernommen; danach wird die Adresse nicht mehr gelesen.

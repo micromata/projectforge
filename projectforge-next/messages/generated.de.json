@@ -2434,9 +2434,11 @@
       }
     },
     "ihk": {
+      "descriptionFormat": "Jeder Zeitbericht der Woche wird eine Zeile des Berichts, seine Beschreibung ist die Tätigkeit. Text vor einem | wird zum Lernfeld, z. B. \"LF 5 | Login-Seite umgesetzt\".",
       "download": "Herunterladen",
       "downloadAnyway": "Dennoch Herunterladen",
       "edit": "Bearbeiten",
+      "intro": "Diese Seite erstellt aus Deinen Zeitberichten Deinen wöchentlichen IHK-Ausbildungsnachweis als Excel-Datei.",
       "menu": "IHK-Report für Azubis",
       "missing": {
         "hint": "Diese Zeitberichte der Woche haben keine Tätigkeitsbeschreibung. Ergänze sie oder lade den Bericht trotzdem herunter."
@@ -2446,35 +2448,19 @@
         "ausbildungsbeginn": "Ausbildungsbeginn",
         "ausbildungsjahr": {
           "_": "Ausbildungsjahr",
-          "auto": "aus dem Ausbildungsbeginn berechnet"
+          "auto": "aus dem Ausbildungsbeginn berechnet",
+          "hint": "Wähle nur dann ein Jahr, wenn es vom berechneten abweicht, z. B. bei verkürzter Ausbildung.",
+          "invalid": "Das Ausbildungsjahr muss zwischen 1 und 4 liegen oder aus dem Ausbildungsbeginn berechnet werden."
         },
-        "teamname": "Team",
+        "edit": "Ändern",
+        "migrated": "Deine Einstellungen wurden aus dem Bemerkungsfeld Deiner Adresse übernommen. Ab jetzt werden sie hier gepflegt, der Text in der Adresse wird nicht mehr gebraucht und kann entfernt werden.",
+        "notConfigured": "Trage vor Deinem ersten Bericht unten Deinen Ausbildungsbeginn und Dein Team ein.",
+        "saved": "Deine Einstellungen wurden gespeichert.",
+        "teamname": {
+          "_": "Team",
+          "hint": "Dein Team bzw. Deine Abteilung, wie sie auf dem Bericht erscheinen soll."
+        },
         "title": "Deine Einstellungen"
-      },
-      "setup": {
-        "address": {
-          "edit": "Deine Adresse öffnen",
-          "new": "Deine Adresse anlegen"
-        },
-        "description": "Jeder Zeitbericht der Woche wird eine Zeile des Berichts, seine Beschreibung ist die Tätigkeit. Text vor einem | wird zum Lernfeld, z. B. \"LF 5 | Login-Seite umgesetzt\".",
-        "field": {
-          "ausbildungsbeginn": "Der erste Tag Deiner Ausbildung, geschrieben als Jahr-Monat-Tag (z. B. 2024-09-01).",
-          "ausbildungsjahr": "Dein Ausbildungsjahr. Mit -1 wird es aus dem Ausbildungsbeginn berechnet. Trage nur dann eine Zahl ein, wenn es abweicht, z. B. bei verkürzter Ausbildung.",
-          "teamname": "Dein Team bzw. Deine Abteilung, wie sie auf dem Bericht erscheinen soll."
-        },
-        "fields": "Die Werte:",
-        "intro": "Diese Seite erstellt aus Deinen Zeitberichten Deinen wöchentlichen IHK-Ausbildungsnachweis als Excel-Datei. Dafür braucht sie ein paar Angaben, die aus dem Bemerkungsfeld Deiner eigenen Adresse in den Kontakten gelesen werden.",
-        "reason": {
-          "empty": "Deine Adresse wurde gefunden, ihr Bemerkungsfeld ist aber leer.",
-          "notFound": "In den Kontakten gibt es keine Adresse mit genau Deinem Namen (Vorname \"{arg0}\", Nachname \"{arg1}\").",
-          "parsing": "Das Bemerkungsfeld Deiner Adresse enthält keine gültigen Angaben. Fehler: {arg0}"
-        },
-        "show": "Anleitung zur Einrichtung",
-        "step1": "Öffne Deine eigene Adresse in den Kontakten oder lege sie an. Vor- und Nachname müssen genau mit Deinem ProjectForge-Benutzer übereinstimmen: {arg0} {arg1}.",
-        "step2": "Kopiere den folgenden Text in das Bemerkungsfeld der Adresse und passe die Werte an.",
-        "step3": "Speichere die Adresse und lade diese Seite neu.",
-        "steps": "So richtest Du es ein:",
-        "title": "Einrichtung des Ausbildungsnachweises"
       },
       "title": "IHK",
       "week": "Woche (Montag bis Sonntag)"
