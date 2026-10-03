@@ -929,16 +929,16 @@
       "empty": "No business units yet.",
       "groups": "Customer groups",
       "members": "Covers ({arg0})",
-      "membersHint": "What counts to this business unit in the orders and invoices of the last five years: customer groups, and customers and free texts belonging to no group. Marked \"via task\": only through the tasks of the projects, other orders and invoices of the customer may count elsewhere.",
+      "membersHint": "What counts to this business unit in the orders and invoices of the last five years: customer groups, and customers and free texts belonging to no group. Marked \"via structure element\": only through the structure elements of the projects, other orders and invoices of the customer may count elsewhere.",
       "membersNone": "No orders or invoices of the last five years count to this business unit.",
       "remove": "Remove business unit {arg0}",
-      "tasks": "Tasks",
-      "tasksHint": "Projects below one of these tasks belong to the business unit, if their customer belongs to none.",
+      "tasks": "Structure elements",
+      "tasksHint": "Projects below one of these structure elements belong to the business unit, if their customer belongs to none.",
       "title": "Business units",
       "unassigned": "Other ({arg0})",
-      "unassignedHint": "What belongs to no business unit, and counts as \"Other\" in the business-unit filters and in scripts: customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. Orders and invoices of projects belonging to a business unit by their task are not counted.",
+      "unassignedHint": "What belongs to no business unit, and counts as \"Other\" in the business-unit filters and in scripts: customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. Orders and invoices of projects belonging to a business unit by their structure element are not counted.",
       "unassignedNone": "Everything belongs to a business unit.",
-      "viaTask": "via task"
+      "viaTask": "via structure element"
     },
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",
@@ -2892,7 +2892,7 @@
         },
         "checkSystemIntegrity": {
           "_": "Check system integrity",
-          "tooltip": "Runs some sanity checks (task tree, data transfer, etc.)."
+          "tooltip": "Runs some sanity checks (structure tree, data transfer, etc.)."
         },
         "clearAlertMessage": "Clear alert message",
         "createMissingDatabaseIndices": {
@@ -3094,7 +3094,7 @@
       "info": "You may select folders by clicking in other columns of the row than the first.\\\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
       "noTasksFound": "No structure elements found.",
       "selectAncestorTask": {
-        "tooltip": "Replace task by this ancestor structure element."
+        "tooltip": "Replace structure element by this ancestor structure element."
       }
     },
     "status": {
