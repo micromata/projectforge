@@ -11,6 +11,7 @@
       "denied": "not granted",
       "granted": "granted"
     },
+    "read": "Read access",
     "recursive": {
       "help": "Recursive includes all structure sub elements."
     },
@@ -40,7 +41,8 @@
       "timesheets": "Time sheets",
       "undelete": "Undelete",
       "update": "Update"
-    }
+    },
+    "write": "Write access"
   },
   "add": "Add",
   "address": {
@@ -136,6 +138,13 @@
   "administration": {
     "configuration": {
       "_": "Configuration",
+      "editPage": {
+        "hint": "This parameter is maintained on a page of its own.",
+        "link": "Open the editor"
+      },
+      "json": {
+        "invalid": "No valid JSON."
+      },
       "param": {
         "calendarDomain": {
           "_": "Calendar domain",
@@ -163,9 +172,17 @@
           "label": "Feed-back"
         },
         "fibu": {
+          "contributionMargin": {
+            "_": "Contribution margin",
+            "description": "Settings of the contribution margin (order book and scripts): the revenue accounts, the hourly rate for the time sheets of months without imported accounting records, the target percentage with the red threshold of the traffic light, and the assignment of cost 2 units without an own project to a project."
+          },
           "costConfigured": {
             "_": "Cost-unit accounting configured?",
             "description": "If you need  cost-unit accounting (refer to the documentation) please enable this feature. Afterwards the entities such as projects, customers etc. are usable. But note: The project entity doesn't make any sense without cost-unit accounting! Please use the structure tree instead for defining your hierarchy (customer -> project -> release -> working package ...). Any change may be activated only after a re-login."
+          },
+          "customerGroups": {
+            "_": "Customer groups and business units",
+            "description": "Customer groups and business units (JSON), offered in the customer filters of the order book, the invoices, the projects and the cost 2. Maintained by finance and controlling on the page \"Customer groups\", not here."
           },
           "defaultVAT": {
             "_": "Default VAT (in %)",
@@ -243,6 +260,7 @@
           "description": "List of activated Plugins. Please don't edit directly."
         }
       },
+      "readOnly": "You may see this parameter, but not change it.",
       "title": {
         "edit": "Edit configuration parameter",
         "heading": "Configuration parameter",
@@ -556,6 +574,7 @@
     "title": "An error has occurred."
   },
   "expand": "Expand",
+  "export": "Export",
   "exportAsPdf": "Pdf export",
   "exportAsXls": "Excel export",
   "favorite": {
@@ -592,6 +611,70 @@
       "beauftragungsdatum": "Date of assignment",
       "bindungsFrist": "period of commitment",
       "commissioned": "commissioned",
+      "contributionMargin": {
+        "_": "Contribution margin",
+        "bookingImportEnd": "Accounting records are imported up to {arg0}. The later months (lighter) are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
+        "config": {
+          "addAssignment": "Add assignment",
+          "bands": "Red below {arg0} %, yellow below {arg1} %, green from {arg1} %.",
+          "error": {
+            "kostNumber": "{arg0} is no number of three parts like 6.000.10.",
+            "negative": "must not be negative.",
+            "percentage": "must be between 0 and 100.",
+            "projectNotFound": "No project with the cost unit {arg0} found.",
+            "redAboveTarget": "must not be greater than the target.",
+            "revenueAccounts": "No valid account ranges, e.g. 4000-4799, 4900."
+          },
+          "hourlyRate": {
+            "_": "Hourly rate",
+            "tooltip": "Flat hourly rate (net) the time sheets of the months without imported accounting records are valued with as costs. Without a rate, these months show no time sheet costs."
+          },
+          "invalidJson": "The stored value is no valid JSON; the defaults are shown and replace it on saving.",
+          "kost2": "Kost2 (first three parts)",
+          "kost2Assignments": {
+            "_": "Kost2 assignment",
+            "tooltip": "Assigns cost 2 units without an own project to a project: all kost2 starting with the given three parts (any kost2 type) count for the project with the given cost unit."
+          },
+          "project": "Project (cost unit)",
+          "redThreshold": "Red below",
+          "removeAssignment": "Remove assignment {arg0}",
+          "revenueAccounts": {
+            "_": "Revenue accounts",
+            "tooltip": "The account numbers of revenue as comma separated ranges, e.g. 4000-4799 (SKR04). Accounting records on these accounts are revenue, all others costs."
+          },
+          "summary": "Target {arg0} % · red below {arg1} % · {arg2} kost2 assignments",
+          "targetPercentage": "Target DB %"
+        },
+        "costs": "Costs",
+        "customer": "Customer",
+        "empty": "No revenue or costs found for the projects of the selected orders.",
+        "hourlyRateMissing": "No hourly rate is configured (Administration → Configuration), so the preliminary months lack the costs of the time sheets.",
+        "kost": "Cost unit",
+        "monthly": "Contribution margin monthly",
+        "noImport": "No accounting records are imported at all. All values are preliminary: invoices as revenue, time sheets × hourly rate as costs.",
+        "noRevenue": "No revenue in the period, only costs.",
+        "ordersWithoutProject": "{arg0} of the selected orders have no project and are not taken into account.",
+        "percentage": "DB %",
+        "preliminary": "preliminary",
+        "prevPrevYear": "DB1 year before previous year",
+        "prevPrevYearCosts": "Costs year before previous year",
+        "prevPrevYearPercentage": "DB % year before previous year",
+        "prevPrevYearRevenue": "Revenue year before previous year",
+        "prevYear": "DB1 previous year",
+        "prevYearCosts": "Costs previous year",
+        "prevYearPercentage": "DB % previous year",
+        "prevYearRevenue": "Revenue previous year",
+        "profit": "DB1",
+        "project": "Project",
+        "projects": "Contribution margin per project",
+        "revenue": "Revenue",
+        "startDate": {
+          "_": "First month",
+          "tooltip": "The contribution margin covers the 12 months starting with the month of this date, compared with the same months of the two previous years. Shown are the projects of the orders the list's filter selects (see the summary above); its period of performance is replaced by this date."
+        },
+        "target": "Target {arg0} %",
+        "total": "Total"
+      },
       "datum": {
         "_": "Date of order",
         "short": "Date"
@@ -670,7 +753,6 @@
           }
         },
         "chart": {
-          "_": "Charts",
           "cumulative": "Revenue forecast cumulated",
           "empty": "Neither order positions nor invoices found for the forecast.",
           "ist": "Invoiced",
@@ -842,6 +924,22 @@
       "overallPerformance": "over all performance",
       "preliminaryResult": "preliminary result"
     },
+    "businessUnits": {
+      "add": "Add business unit",
+      "empty": "No business units yet.",
+      "groups": "Customer groups",
+      "members": "Covers ({arg0})",
+      "membersHint": "What counts to this business unit in the orders and invoices of the last five years: customer groups, and customers and free texts belonging to no group. Marked \"via task\": only through the tasks of the projects, other orders and invoices of the customer may count elsewhere.",
+      "membersNone": "No orders or invoices of the last five years count to this business unit.",
+      "remove": "Remove business unit {arg0}",
+      "tasks": "Tasks",
+      "tasksHint": "Projects below one of these tasks belong to the business unit, if their customer belongs to none.",
+      "title": "Business units",
+      "unassigned": "Other ({arg0})",
+      "unassignedHint": "What belongs to no business unit, and counts as \"Other\" in the business-unit filters and in scripts: customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. Orders and invoices of projects belonging to a business unit by their task are not counted.",
+      "unassignedNone": "Everything belongs to a business unit.",
+      "viaTask": "via task"
+    },
     "common": {
       "assignedPersons": "PM/HOB/KAM/CP",
       "betrag": "Amount",
@@ -873,7 +971,42 @@
       "sourceCurrency": "Source currency",
       "targetCurrency": "Target currency"
     },
+    "customerGroups": {
+      "add": "Add customer group",
+      "badge": "Group",
+      "customers": "Customers",
+      "empty": "No customer groups yet.",
+      "error": {
+        "invalidText": "Neither a name nor a valid pattern."
+      },
+      "groups": "Customer groups",
+      "intro": "Customers that belong together (ACME Germany, ACME Logistics, ACME Holding) form a group, which the customer filters of the order book, the invoices, the projects and the cost 2 offer like a single customer. Business units combine groups and customers and get a filter of their own. A customer belongs to at most one group, a group or customer to at most one business unit.",
+      "matches": "Matches {arg0} customers",
+      "matchesNone": "Matches no customer yet",
+      "name": "Name",
+      "remove": "Remove customer group {arg0}",
+      "saved": "Customer groups saved.",
+      "texts": "Customer names",
+      "textsHint": "Applies to the names of customer entries as well as to customers entered as free text in orders and invoices. An exact name (case-insensitive) or a pattern: ACME* (starts with), *Logistics (ends with), *ACME* (contains). Confirm each with Enter.",
+      "title": "Customer groups and business units"
+    },
     "customerref1": "Customer reference",
+    "datev": {
+      "import": {
+        "_": "Import Datev",
+        "accounts": "Chart of accounts",
+        "column": {
+          "hint": "Hint"
+        },
+        "format": {
+          "accounts": "Chart of accounts: the sheet \"Kontenplan\" (also prefixed by the month, e. g. \"07_Kontenplan\") with the columns Konto and Beschriftung. Only the account names are imported, all other account data is kept.",
+          "intro": "The original Excel file of the tax office (.xlsx / .xls) can be uploaded unchanged. Report sheets such as BWA, SuSa or USt are ignored.",
+          "records": "Accounting records: the month sheet (e. g. \"07\") is the booking month. Records dated in a later month are assigned to this booking month but keep their real voucher date.",
+          "title": "File format of the import file"
+        },
+        "records": "Accounting records"
+      }
+    },
     "eInvoiceChecker": {
       "description": "Upload a ZUGFeRD PDF or XRechnung XML file to inspect the contained invoice data."
     },
@@ -930,8 +1063,7 @@
           },
           "job": {
             "title": "Import of {arg0} salaries"
-          },
-          "success": "Salaries imported successfully."
+          }
         }
       },
       "salary": {
@@ -1004,6 +1136,30 @@
         "kost2NotOfProject": "This cost unit doesn't belong to the project or customer of the invoice."
       },
       "kostentraeger": "Cost unit ids",
+      "reporting": {
+        "_": "Reporting",
+        "clearStorage": "Clear",
+        "createReport": "Create report",
+        "file": "Report objectives file",
+        "help": {
+          "attributes": "**Attributes:** `id` names the report (shown as column head and in the path), `title` describes it. Without `suppressOther=\"true\"` the accounting records of a report that match none of its children are shown as additional column `<id> - Other`; without `suppressDuplicates=\"true\"` the records matching more than one child are shown as column `<id> - Duplicates`. Both columns help to check that the children are complete and free of overlaps.",
+          "drilldown": "**Drill-down:** A column head shown as link opens the report of this child objective with its own children as columns; the path above the table leads back. The amounts and the icon next to a column head open the accounting records behind it (requires the right for the DATEV import).",
+          "example": "```xml\n<ReportObjective title=\"Customer ACME\" id=\"ACME\" suppressOther=\"true\" suppressDuplicates=\"true\">\n  <kost1-include>3.*</kost1-include>\n  <kost1-exclude>*.01</kost1-exclude>\n  <kost2-include>5.*</kost2-include>\n  <kost2-exclude>*.02</kost2-exclude>\n  <ReportObjective title=\"Project ACME-WEB-Portal\" id=\"ACME-WEB-Portal\">\n    <kost2-include>5.020.01.*</kost2-include>\n  </ReportObjective>\n  <ReportObjective title=\"Project ACME-Java-Migration\" id=\"ACME-Java-Migration\">\n    <kost2-include>5.020.02.*</kost2-include>\n  </ReportObjective>\n</ReportObjective>\n```",
+          "intro": "A report objective is an XML file describing a tree of reports. Each report selects accounting records by their cost 1 and cost 2 units; nested report objectives refine the selection of their parent.",
+          "rules": "**Selection rules:**\n- An empty include list matches all records.\n- A non-empty include list requires at least one of its entries to match.\n- With several include lists (cost 1 and cost 2) a record must match all of them.\n- A record matching any entry of an exclude list is excluded.\n- A nested report objective can only select records of its parent (always a subset).",
+          "storage": "The uploaded report objectives are kept in memory until logout or server restart. Use \"Clear\" to load other ones.",
+          "title": "Format of the report objectives",
+          "wildcards": "**Expressions:** The entries are Java regular expressions (`java.util.regex.Pattern`) matched against the formatted cost unit (e.g. `5.020.01.03`). For convenience every `.` is escaped and `*` stands for any characters: `3.*` matches everything starting with \"3.\", `*.02` everything ending with \".02\". An expression starting with an apostrophe is used as it is (without the apostrophe), e.g. `'^5\\.510.*`."
+        },
+        "intro": "Evaluates the accounting records by report objectives: upload a report objectives file (XML) or paste its content, choose the period and create the report. The result is a business assessment (BWA) of the report and of each of its child reports side by side.",
+        "notLoaded": "Choose the period and create the report.",
+        "pasteApply": "Apply XML",
+        "pasteLabel": "…or paste the XML here",
+        "pasted": "pasted XML",
+        "showAllRows": "Show all rows",
+        "showRecords": "Show accounting records",
+        "upload": "Upload of report objectives"
+      },
       "status": {
         "active": "active",
         "ended": "ended",
@@ -1561,28 +1717,81 @@
   "firstName": "First name",
   "forceDelete": "Irrevocable deletion",
   "gantt": {
+    "access": {
+      "all": "All",
+      "owner": "Owner",
+      "projectmanager": "Project manager"
+    },
+    "action": {
+      "move": "Move here (sub activity)",
+      "moveToTop": "Move to top",
+      "newActivity": "New activity"
+    },
+    "contextMenu": {
+      "newSubActivity": "New sub activity",
+      "saveAsTask": "Save as ProjectForge structure element",
+      "setInvisible": "Make invisible",
+      "setSubTasksVisible": "Visible incl. structure sub elements"
+    },
     "duration": "Duration",
     "endDate": "End date",
+    "error": {
+      "parentObjectIsNotAPFTask": "The parent Gantt object has to be a ProjectForge structure element!"
+    },
+    "export": {
+      "jpg": "JPG (not recommended)",
+      "msproject": {
+        "mpx": "Microsoft® Project (MPX)",
+        "xml": "Microsoft® Project (XML)"
+      },
+      "pdf": "PDF",
+      "png": "PNG",
+      "projectforge": "ProjectForge (XML)",
+      "svg": "SVG"
+    },
     "name": "Name",
     "objectType": {
       "_": "Gantt type",
       "activity": "Activity (Standard)",
       "milestone": "Milestone",
+      "short": "Type",
       "summary": "Summary"
     },
     "owner": "Owner",
     "predecessor": "Predecessor",
     "predecessorOffset": "Offset",
+    "question": {
+      "moveTask": "Do you really want to move the related ProjectForge structure element?",
+      "saveGanttObjectAsTask": "Should this Gantt object really be saved as new ProjectForge structure element?"
+    },
     "relationType": {
       "_": "Relation type",
       "finish_finish": "finish-finish",
       "finish_start": "finish-start (default)",
+      "short": "Rel.",
       "start_finish": "start-finish",
       "start_start": "start-start"
     },
+    "settings": {
+      "showOnlyVisibles": "only visibles",
+      "totalLabelWidth": "Total label width",
+      "width": "Width"
+    },
     "startDate": "Start date",
+    "style": {
+      "relativeTimeValues": "time values",
+      "showCompletion": "completion",
+      "showToday": "Show today line"
+    },
     "title": {
-      "add": "Create Gantt diagram"
+      "add": "Create Gantt diagram",
+      "heading": "Gantt diagrams",
+      "list": "Gantt diagrams"
+    },
+    "tooltip": {
+      "isVisible": "Should this item be displayed?",
+      "rejectValue": "Reject this value and take over the value of the structure element: ''{arg0}''.",
+      "saveTaskValue": "Save this value to the structure element."
     }
   },
   "gender": {
@@ -1656,10 +1865,40 @@
   "hr": {
     "planning": {
       "description": "Activity report",
+      "entry": {
+        "copyFromPredecessor": "Copy from predecessor",
+        "status": {
+          "absence": "absence",
+          "illness": "illness",
+          "leave": "leave",
+          "other": "other"
+        }
+      },
+      "filter": {
+        "allProjectsGroupedByCustomer": "All grouped by customer",
+        "onlyMyProjects": "only my projects",
+        "otherProjectsGroupedByCustomer": "Other grouped by customer",
+        "showBookedTimesheets": "Booked time sheets",
+        "showPlanning": "Plannings"
+      },
+      "hours": "hours",
+      "notPlanned": "Not planned",
+      "plannings": "Human resources planning",
       "priority": "Priority",
       "probability": {
+        "_": "Probability",
         "short": "%"
       },
+      "sum": "Sum",
+      "title": {
+        "add": "New human resource planning entry",
+        "edit": "Edit human resource planning entry",
+        "heading": "Human resource plannings"
+      },
+      "tooltip": {
+        "addEntry": "Add entry"
+      },
+      "total": "Total",
       "unassignedHours": "without assigned day",
       "weekend": "Week-end"
     }
@@ -1756,6 +1995,7 @@
   },
   "label": {
     "historyOfChanges": "History of changes",
+    "options": "Options",
     "position": {
       "short": "Pos"
     },
@@ -1835,6 +2075,15 @@
     }
   },
   "loading": "Loading...",
+  "log": {
+    "level": {
+      "debug": "Debug",
+      "error": "Error",
+      "info": "Info",
+      "trace": "Trace",
+      "warn": "Warn"
+    }
+  },
   "login": {
     "_": "Login",
     "adminLoginRequired": "Maintenance mode: Please use ProjectForge only as administrator!",
@@ -1867,6 +2116,7 @@
     "timeOffset": "Your account is now locked for further {arg0} seconds due to {arg1} failed login attempts. Please try again later.",
     "title": "Login"
   },
+  "mark": "Mark",
   "markAsDeleted": "Delete",
   "massUpdate": {
     "button": "Mass update",
@@ -1925,11 +2175,11 @@
       "_": "Finance",
       "buchungssaetze": "Accounting records",
       "currencyPair": "Currency conversion",
+      "customerGroups": "Customer groups",
       "datevImport": "Datev import",
       "eInvoiceChecker": "E-Invoice Checker",
       "eingangsrechnungen": "Incoming invoices",
       "employeeSalaries": "Salaries",
-      "employeeSalariesImport": "Import of salaries",
       "employees": "Employees",
       "konten": "Accounts",
       "kost": "Cost",
@@ -1951,6 +2201,8 @@
     "gear": {
       "feedback": "Send feedback"
     },
+    "hrList": "HR planning",
+    "hrPlanningList": "HR planning list",
     "main": {
       "short": "Menu",
       "title": "Main menu"
@@ -2092,6 +2344,7 @@
     }
   },
   "passwordRepeat": "Repeat password",
+  "paste": "Paste",
   "percent": "Percent",
   "percentage": "Percentage",
   "personal": {
@@ -2490,6 +2743,7 @@
     "state": "State",
     "title": "Title"
   },
+  "preview": "Preview",
   "priority": {
     "_": "Priority",
     "high": "high",
@@ -2513,9 +2767,11 @@
   },
   "rating": "Rating",
   "recursive": "recursive",
+  "refresh": "refresh",
   "reload": "reload",
   "rename": "rename",
   "reset": "Reset",
+  "rest": "Rest",
   "resubmissionOnDate": "Resubmission on",
   "save": "Save",
   "scripting": {
@@ -2604,6 +2860,11 @@
   "searchString": "Search string",
   "select": {
     "_": "Select",
+    "checklist": {
+      "andMore": "and {arg0} more",
+      "selectedOf": "{arg0} of {arg1} selected",
+      "truncated": "Showing {arg0} of {arg1} entries; refine the search to see the rest."
+    },
     "placeholder": "Select..."
   },
   "selectAll": "Select all",
@@ -2616,6 +2877,9 @@
   "sum": "Sum",
   "system": {
     "admin": {
+      "adminLogViewer": {
+        "title": "Admin log viewer"
+      },
       "alertMessage": {
         "copyAndPaste": {
           "title": "For copy & paste"
@@ -2710,6 +2974,16 @@
             "configuration": "Configuration"
           }
         }
+      },
+      "logViewer": {
+        "autoRefresh": "Auto refresh",
+        "level": "Loglevel",
+        "message": "Message",
+        "stacktrace": "Stacktrace",
+        "subscriptionMissing": "This log is no longer available: it expires after one hour without activity and on a restart of the server. Please open it again from the page it belongs to.",
+        "title": "Log viewer",
+        "user": "user@ip",
+        "userAgent": "User agent"
       },
       "reindex": {
         "fromDate": {
@@ -2984,6 +3258,7 @@
     "totalDuration": "Total duration",
     "user": "Employee"
   },
+  "timestamp": "Time stamp",
   "timezone": "Time zone",
   "title": "Title",
   "tooltip": {
@@ -3000,6 +3275,7 @@
       "link": "Link to howto of lucene queries."
     },
     "selectMe": "You are great!",
+    "selectTask": "Select structure element",
     "shortcut": {
       "addEntry": {
         "_": "Press N or +, or ALT-N (macOS: CTRL-ALT-N) while typing is not in progress.",
@@ -3013,9 +3289,11 @@
         "_": "Press Return; in a multi-line text field CTRL-Return (macOS: CMD-Return).",
         "title": "Keyboard shortcut Return"
       }
-    }
+    },
+    "unselectTask": "Unselect structure element"
   },
   "undelete": "Undelete",
+  "untitled": "untitled",
   "update": "Update",
   "uptodate": "up-to-date",
   "user": {

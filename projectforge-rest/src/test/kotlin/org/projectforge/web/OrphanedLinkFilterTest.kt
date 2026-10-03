@@ -113,6 +113,14 @@ class OrphanedLinkFilterTest {
         )
     }
 
+    /** The Wicket HR view has moved to projectforge-next; a bookmarked link is bent onto it, a sibling isn't. */
+    @Test
+    fun `the old wicket HR view is redirected to next`() {
+        Assertions.assertEquals("/next/hrList", redirectOf("/wa/hrList"))
+        Assertions.assertEquals("/next/hrList", redirectOf("/wa/hrList", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertNull(redirectOf("/wa/hrListXyz"))
+    }
+
     /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,

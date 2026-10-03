@@ -73,6 +73,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     @JsonSerialize(using = IdOnlySerializer::class)
     open var projekt: ProjektDO? = null
 
+    @PropertyInfo(i18nKey = "status")
     @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 20)

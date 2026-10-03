@@ -2,6 +2,7 @@
 
 import type { FilterElement, MagicFilterEntryValue } from "@/lib/rs/types";
 import { BooleanField, TextField } from "./filter-field-inputs";
+import { FilterChecklistField } from "./filter-checklist-field";
 import { ListField } from "./filter-list-field";
 import { RangeField } from "./filter-range-field";
 import { FilterKost2Field } from "./filter-kost2-field";
@@ -59,7 +60,12 @@ export function FilterField({
 
   switch (element.filterType) {
     case "LIST":
-      return <ListField element={element} inline={inline} {...props} />;
+      // Values loaded on demand are too many for a plain option list: an Excel-like checklist.
+      return element.valuesUrl ? (
+        <FilterChecklistField element={element} inline={inline} {...props} />
+      ) : (
+        <ListField element={element} inline={inline} {...props} />
+      );
     case "BOOLEAN":
       return <BooleanField {...props} />;
     case "OBJECT":

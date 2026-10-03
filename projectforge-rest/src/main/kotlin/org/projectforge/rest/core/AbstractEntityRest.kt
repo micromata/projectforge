@@ -754,6 +754,32 @@ constructor(
     }
 
     /**
+     * The ids of what [getResultList] would return, access checked, without loading a single entity: the
+     * query server-side paging runs ([getListPage]). Not sorted by the [computedSortProperties].
+     */
+    fun getResultIds(filter: MagicFilter): LongArray {
+        filter.autoWildcardSearch = true
+        fixMagicFilterFromClient(filter)
+        val (queryFilter, customResultFilters) = buildQueryFilter(this, baseDao, filter)
+        return baseDao.selectIds(queryFilter, customResultFilters).ids
+    }
+
+    /**
+     * The filter a checklist filter on [ownField] takes its values from: [filter] without its entry on
+     * [ownField], so a checklist offers what the list's *other* criteria leave, as Excel's autofilter does.
+     * Without the page size and the sort, which change nothing about the set. Run it through [getResultList]
+     * or [getResultIds]: the access-checked query of the list itself, so nobody is offered the customers of
+     * rows they may not read.
+     */
+    protected fun checklistFilter(filter: MagicFilter?, ownField: String): MagicFilter {
+        baseDao.hasLoggedInUserSelectAccess(throwException = true)
+        val others = filter?.clone() ?: MagicFilter()
+        others.entries.removeIf { it.field == ownField || it.field == MagicFilter.PAGINATION_PAGE_SIZE }
+        others.sortProperties.clear()
+        return others
+    }
+
+    /**
      * Will be called after getting the list from the database before calling. Will be called before returning
      * list to callee (client).
      * Useful also for saving database calls by setting additional data to the list.

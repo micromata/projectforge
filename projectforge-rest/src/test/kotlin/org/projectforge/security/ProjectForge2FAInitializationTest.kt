@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.SystemStatus
 import org.projectforge.rest.ChangePasswordPageRest
 import org.projectforge.rest.ChangeWlanPasswordPageRest
-import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.ui.AutoCompletion
 
 class ProjectForge2FAInitializationTest {
@@ -56,8 +56,8 @@ class ProjectForge2FAInitializationTest {
     }
     initialization.registerShortCutClasses(My2FAShortCut.INTERNAL_TEST2, ChangePasswordPageRest::class.java)
     Assertions.assertEquals("/rs/abc;/rs/cde;/rs/changePassword;", my2FARequestHandler.getShortCutResolved(My2FAShortCut.INTERNAL_TEST2))
-    initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST3, AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::search, AdminLogViewerPageRest::refresh)
-    Assertions.assertEquals("/rs/adminLogViewer/search;/rs/adminLogViewer/refresh;", my2FARequestHandler.getShortCutResolved(
+    initialization.registerShortCutMethods(My2FAShortCut.INTERNAL_TEST3, AdminLogViewerRest::class.java, AdminLogViewerRest::query, AdminLogViewerRest::reset)
+    Assertions.assertEquals("/rs/adminLogViewer/query;/rs/adminLogViewer/reset;", my2FARequestHandler.getShortCutResolved(
       My2FAShortCut.INTERNAL_TEST3
     ))
 

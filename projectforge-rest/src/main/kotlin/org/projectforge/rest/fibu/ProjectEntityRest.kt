@@ -56,7 +56,11 @@ import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterListValue
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -169,6 +173,10 @@ class ProjectEntityRest
                 defaultFilter = true,
             )
         )
+        // The customer as the list's cell shows it, picked from those of the projects (see
+        // customerFilterValues), as on the order list, replacing the free-text pills on the customer's fields.
+        elements.removeTextFilters("kunde")
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element())
     }
 
     /**
@@ -184,9 +192,11 @@ class ProjectEntityRest
     }
 
     /**
-     * Mirrors `ProjektDao.select`: "not ended" matches a null status too, and so does `NONE`.
+     * The status mirrors `ProjektDao.select`: "not ended" matches a null status too, and so does `NONE`.
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
+        customerFilter.addCriterion(target, source)
+        businessUnitFilter.addCriterion(target, source)
         val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
         entry.synthetic = true
         val listTypes = entry.value.values?.filter { it.isNotBlank() }.orEmpty()
@@ -325,6 +335,28 @@ class ProjectEntityRest
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
 
+    /**
+     * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the projects
+     * the list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("customerFilterValues")
+    fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+    }
+
+    /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("businessUnitFilterValues")
+    fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+    }
+
+    /** The customers of the projects of a checklist, never a free text. */
+    private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+        val projects = getResultList(checklistFilter(filter, ownField))
+        // Via the cache: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
+        return projects.asSequence().map { CustomerRow(caches.getKundeIfNotInitialized(it.kunde)?.nummer, null, it.id) }
+    }
+
     companion object {
         private const val STATUS_FIELD = "status"
 
@@ -332,5 +364,10 @@ class ProjectEntityRest
         const val LIST_TYPE_FIELD = "listType"
 
         private const val FILTER_NOT_ENDED = "notEnded"
+
+        /** A project has no free-text customer. */
+        private val customerFilter = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)
+        private val businessUnitFilter =
+            BusinessUnitChecklistFilter("project/businessUnitFilterValues", kundeTextPath = null, projektIdPath = "id")
     }
 }

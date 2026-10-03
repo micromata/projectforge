@@ -61,7 +61,7 @@ export function JobToasts() {
         continue;
       }
       if (isJobTerminated(job)) {
-        showResult(job);
+        showJobResult(job);
         shown.current.delete(id);
         unwatchJob(id);
       } else if (!shown.current.has(id)) {
@@ -86,7 +86,7 @@ export function JobToasts() {
  * custom content of an existing toast and would only wrap it in the success styling, leaving the
  * (now stale) progress bar on screen forever — its duration is Infinity.
  */
-function showResult(job: JobInfo): void {
+export function showJobResult(job: JobInfo): void {
   toast.dismiss(toastId(job.id));
   if (isJobFailed(job)) {
     // The reason, not the counters: a refused job never ran, so its numbers are meaningless.

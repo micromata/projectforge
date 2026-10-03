@@ -24,14 +24,20 @@
 package org.projectforge.rest
 
 import org.projectforge.framework.configuration.ConfigurationDao
+import org.projectforge.framework.configuration.ConfigurationJsonValidators
+import org.projectforge.framework.configuration.ConfigurationParam
+import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.dto.Configuration
+import org.projectforge.ui.ValidationError
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -59,6 +65,13 @@ class ConfigurationEntityRest :
     override fun transformFromDB(obj: ConfigurationDO, editMode: Boolean): Configuration {
         val dto = Configuration()
         dto.copyFrom(obj)
+        // The page of its own is offered only to the parameter's editors: the list opens it directly, and
+        // anyone else (an admin) would only be refused there - they get the read-only view instead.
+        val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
+        val user = ThreadLocalUserContext.loggedInUser
+        if (param == null || user == null || !baseDao.isEditor(user, param)) {
+            dto.editPage = null
+        }
         return dto
     }
 
@@ -71,6 +84,38 @@ class ConfigurationEntityRest :
         val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: ConfigurationDO()
         dto.copyTo(obj)
         return obj
+    }
+
+    /**
+     * The column holds up to [ConfigurationDO.PARAM_LENGTH] characters for the structured parameters (JSON, or
+     * maintained on a page of their own); a value typed on this page keeps the former limit.
+     *
+     * A JSON parameter is checked by the validator its owner registered (see [ConfigurationJsonValidators]).
+     * The type is taken from the DB row, never from the request. The errors are given on the one value field
+     * `stringValue`; each message names the part of the JSON object it is about.
+     */
+    override fun validate(validationErrors: MutableList<ValidationError>, dto: Configuration) {
+        val obj = dto.id?.let { baseDao.find(it, checkAccess = false) } ?: return
+        if (obj.configurationType == ConfigurationType.JSON) {
+            ConfigurationJsonValidators.validate(obj.parameter, dto.stringValue).forEach { message ->
+                validationErrors.add(ValidationError(message, fieldId = "stringValue"))
+            }
+            return
+        }
+        val param = obj.parameter?.let { ConfigurationParam.ofKey(it) }
+        val value = dto.stringValue ?: return
+        if (param?.editPage == null && value.length > ConfigurationDO.LEGACY_PARAM_LENGTH) {
+            validationErrors.add(
+                ValidationError(
+                    translateMsg(
+                        "validation.error.maxLength",
+                        dto.i18nKey?.let { translate(it) } ?: dto.parameter,
+                        ConfigurationDO.LEGACY_PARAM_LENGTH,
+                    ),
+                    fieldId = "stringValue",
+                )
+            )
+        }
     }
 
     /**

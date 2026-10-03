@@ -71,6 +71,10 @@ class OrphanedLinkFilter : Filter {
         } else if (uri.contains("/wa/monthlyEmployeeReport")) { // Old Wicket monthly report, migrated to
             // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}monthlyEmployeeReport")
+        } else if (uri.endsWith("/wa/hrList") || uri.contains("/wa/hrList/")) { // Old Wicket HR view, migrated to
+            // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch. The
+            // precise segment match keeps this from catching sibling pages.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}hrList")
         } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
             // Old Wicket System (administration) page, migrated to projectforge-next. The precise segment match
             // keeps this from catching sibling pages like /wa/adminLogViewer.
@@ -143,6 +147,10 @@ class OrphanedLinkFilter : Filter {
                 }
                 val target = if (id != null) {
                     link.nextEditUrl.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                } else if (link.legacyApp == NextMigration.LegacyApp.WICKET && !request.queryString.isNullOrBlank()) {
+                    // The presets of a Wicket add page travel as parameters (e.g. wa/ganttEdit?task=42 of the
+                    // task page) and mean the same on the next new-entry page (newEntryParams).
+                    "${link.nextNewEntryUrl}?${request.queryString}"
                 } else {
                     link.nextNewEntryUrl
                 }

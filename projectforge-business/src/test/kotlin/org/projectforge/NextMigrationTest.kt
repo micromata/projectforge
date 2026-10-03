@@ -90,19 +90,34 @@ class NextMigrationTest {
     }
 
     /**
-     * The invoices no longer offer the way back (see NextPage.offerLegacyLink): neither the creditor nor
-     * the debtor page shows a "classic version" link, so every escape-hatch accessor answers null. The
+     * The invoices and timesheets no longer offer the way back (see NextPage.offerLegacyLink): neither the
+     * creditor, the debtor nor the timesheet page shows a "classic version" link, so every escape-hatch
+     * accessor answers null. The
      * legacyApp stays all the same, so a bookmarked Wicket link is still redirected onto next - asserted in
      * `orphaned links...` below.
      */
     @Test
-    fun `the invoices offer no way back`() {
-        for (category in listOf("outgoingInvoice", "incomingInvoice")) {
+    fun `the invoices and timesheets offer no way back`() {
+        for (category in listOf("outgoingInvoice", "incomingInvoice", "timesheet")) {
             Assertions.assertNull(NextMigration.legacyListUrl(category), category)
             Assertions.assertNull(NextMigration.legacyEditPage(category), category)
             Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
             Assertions.assertFalse(NextMigration.legacyListInMenu(category), category)
         }
+    }
+
+    /**
+     * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
+     * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
+     */
+    @Test
+    fun `the HR planning offers no way back`() {
+        for (category in listOf("hrPlanning", "hrPlanningEntry")) {
+            Assertions.assertNull(NextMigration.legacyListUrl(category), category)
+            Assertions.assertNull(NextMigration.legacyEditPage(category), category)
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
+        }
+        Assertions.assertEquals("next/hrPlanning", NextMigration.listUrl("hrPlanningEntry"))
     }
 
     /**

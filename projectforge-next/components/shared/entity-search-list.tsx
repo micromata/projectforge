@@ -38,10 +38,16 @@ export interface EntitySearchListProps<T extends EntityRef = EntityRef> {
   /** Called with the picked entry **as the backend sent it** — see [EntityAutocompleteProps.onChange]. */
   onPick: (entry: T) => void;
   /**
-   * Whether the cursor stays in the search term after a pick, for a caller that collects several
-   * entries (see [EntityMultiAutocomplete]) rather than closing on the first one.
+   * Whether the caller collects several entries (see [EntityMultiAutocomplete]) rather than closing on
+   * the first one: the term and the cursor stay after a pick, so the next of the same search (the
+   * second „ACME" customer) is a click away instead of typed again.
    */
-  keepFocus?: boolean;
+  collecting?: boolean;
+  /**
+   * Entries not to offer — those a collecting caller already holds, which are shown as its chips. Kept
+   * in the list, a click on one would do nothing.
+   */
+  excludeIds?: ReadonlySet<number>;
   /**
    * Quick-picks to offer *before* the user types — the recently used entries (see TaskSearchPopover).
    * Shown as a labelled group above the backend results while the search term is empty, and hidden the
@@ -86,7 +92,8 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
   minChars = 2,
   active,
   onPick,
-  keepFocus,
+  collecting,
+  excludeIds,
   recentEntries,
   recentLabel,
   emptyTermSearches = true,
@@ -112,11 +119,14 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
 
   const pick = (entry: T) => {
     onPick(entry);
-    // The term goes either way: what was searched for has been found.
-    setSearch("");
-    // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item that was
-    // clicked, so the next term would go nowhere.
-    if (keepFocus) searchRef.current?.focus();
+    if (collecting) {
+      // Explicitly, and not by leaving focus alone: a pick by mouse leaves it on the item that was
+      // clicked, so typing on would go nowhere.
+      searchRef.current?.focus();
+    } else {
+      // A single pick is done: what was searched for has been found.
+      setSearch("");
+    }
   };
 
   return (
@@ -172,15 +182,17 @@ export function EntitySearchList<T extends EntityRef = EntityRef>({
             typed term flips showRecent off and the matches take over. Callers without recents
             (EntityAutocomplete) keep showing their entries on the empty term unchanged. */}
         {!showRecent &&
-          entries.map((entry) => (
-            <CommandItem
-              key={entry.id}
-              value={String(entry.id)}
-              onSelect={() => pick(entry)}
-            >
-              {entry.displayName}
-            </CommandItem>
-          ))}
+          entries
+            .filter((entry) => !excludeIds?.has(entry.id))
+            .map((entry) => (
+              <CommandItem
+                key={entry.id}
+                value={String(entry.id)}
+                onSelect={() => pick(entry)}
+              >
+                {entry.displayName}
+              </CommandItem>
+            ))}
         {isLoadingMore && <LookupLoadingRow />}
         {freeText && (
           <EntitySearchFreeText

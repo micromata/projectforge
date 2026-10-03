@@ -436,7 +436,7 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
     // task, which is what makes them cross links and not menu items (see CrossLinkDef).
     for (const [key, href] of [
       ["task.menu.addTimesheet", addTimesheetHref],
-      ["gantt.title.add", `/wa/ganttEdit?task=${seededTask.id}`],
+      ["gantt.title.add", `/next/gantt/new?task=${seededTask.id}`],
       ["task.menu.showAccessRights", `/wa/accessList?taskId=${seededTask.id}`],
     ] as const) {
       await expect(

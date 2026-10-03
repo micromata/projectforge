@@ -111,6 +111,7 @@
     "search": "Search…",
     "noOptions": "No options",
     "create": "Add \"{value}\"",
+    "edit": "Edit {label}",
     "remove": "Remove {label}",
     "empty": "—"
   },

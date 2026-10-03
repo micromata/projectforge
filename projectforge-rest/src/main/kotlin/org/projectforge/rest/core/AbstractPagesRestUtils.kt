@@ -78,7 +78,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
  * paging) so the two paths build the identical query — the invariant that lets a paged result be the same rows
  * in the same order as the whole `POST list` result.
  */
-private fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFilter(
+internal fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>> buildQueryFilter(
     pagesRest: AbstractEntityRest<O, DTO, B>,
     baseDao: BaseDao<O>,
     magicFilter: MagicFilter,

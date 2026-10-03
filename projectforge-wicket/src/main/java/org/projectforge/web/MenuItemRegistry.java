@@ -32,8 +32,6 @@ import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
-import org.projectforge.web.humanresources.HRListPage;
-import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPrefListPage;
@@ -84,25 +82,23 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
         // MONTHLY_EMPLOYEE_REPORT (Monatsbericht) migrated to projectforge-next (next/monthlyEmployeeReport); its Wicket page was removed.
-        register(MenuItemDefId.HR_VIEW, HRListPage.class);
-        register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
+        // HR_VIEW (Personalplanung) migrated to projectforge-next (next/hrList); its Wicket page was removed.
         register(MenuItemDefId.GANTT, GanttChartListPage.class);
         // OUTGOING_INVOICE_LIST (Debitoren) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
         // CUSTOMER_LIST (Kunden) migrated to projectforge-next; its Wicket pages were removed.
         //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
-        register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
+        // EMPLOYEE_SALARY_LIST (Gehälter) migrated to projectforge-next; its Wicket pages were removed.
         // ORDER_LIST (Auftragsbuch) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.ACCOUNT_LIST, KontoListPage.class);
         register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
         register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
         register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
-        register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
         register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
-        register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
+        // DATEV_IMPORT migrated to projectforge-next (next/datev-import, DatevRecordImportRest/DatevAccountImportRest);
+        // the Wicket page DatevImportPage stays mounted (wa/datevImport) as legacy version.
         // The employee-salary import (Gehaltsimport) is now reached as a button in the migrated Next.js
-        // salary list (EmployeeSalaryImportRest / employee-salary-import), so its menu entry is gone.
-        // The Wicket page (EmployeeSalaryImportPage) stays registered nowhere but is kept in the code base.
+        // salary list (EmployeeSalaryImportRest / employee-salary-import); its menu entry and Wicket page were removed.
 
         register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
         //register(MenuItemDefId.USER_LIST, UserListPage.class);

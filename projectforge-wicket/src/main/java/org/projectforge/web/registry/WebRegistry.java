@@ -37,9 +37,6 @@ import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
-import org.projectforge.web.humanresources.HRListPage;
-import org.projectforge.web.humanresources.HRPlanningEditPage;
-import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -270,10 +267,12 @@ public class WebRegistry
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 
-    addMountPages(DaoConst.EMPLOYEE_SALARY, EmployeeSalaryListPage.class, EmployeeSalaryEditPage.class);
+    // The employee salaries have been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/employeeSalary* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
-    addMountPages(DaoConst.HR_PLANNING, HRPlanningListPage.class, HRPlanningEditPage.class);
-    addMountPage(DaoConst.HR_LIST, HRListPage.class);
+    // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
+    // The HR view (hrList) is migrated to projectforge-next; bookmarked wa/hrList links are redirected by
+    // OrphanedLinkFilter.
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
@@ -283,7 +282,6 @@ public class WebRegistry
     addMountPage("datevImport", DatevImportPage.class);
     addMountPage("error", ErrorPage.class);
     addMountPage("phoneCall", PhoneCallPage.class);
-    addMountPage("reportObjectives", ReportObjectivesPage.class);
     // The global search (Suche) has been migrated to projectforge-next; its Wicket page was removed.
     // Bookmarked /wa/search links are redirected by OrphanedLinkFilter.
     // The "Send text message" page (SMS senden) has been migrated to projectforge-next

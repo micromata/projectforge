@@ -49,7 +49,8 @@ export interface MonthlyReportDrillDown {
 
 /**
  * The time sheet list drilled down from a monthly-employee-report row: the reported user, the exact cost
- * unit or task, and the month range, turned into a transient, cleared filter by the list route.
+ * unit or task, and the month range, turned into a transient, cleared filter by the list route. The HR
+ * view drills down the same way from an employee's booked days (period instead of month, task optional).
  */
 export function monthlyReportDrillDownHref(
   drillDown: MonthlyReportDrillDown

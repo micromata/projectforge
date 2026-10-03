@@ -29,6 +29,8 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginData
+import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
@@ -64,8 +66,10 @@ import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -120,6 +124,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
 
   @Autowired
   private lateinit var rechnungCache: RechnungCache
+
+  @Autowired
+  private lateinit var contributionMarginService: ContributionMarginService
 
   /**
    * Warning of a notification mail that could not be sent, handed from [onAfterSaveOrUpdate] to
@@ -447,6 +454,12 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
         label = translate("fibu.periodOfPerformance"),
       )
     )
+    // The customer as the list's cell shows it, entity or free text, picked from the customers the order book
+    // names (CustomerChecklistFilter). Replaces the free-text pills on the customer's name and on the free-text
+    // customer, which ask the same question by a name fragment. The project likewise (ProjectChecklistFilter),
+    // replacing the pills on every field of the embedded project, its customer's included.
+    elements.removeTextFilters("kunde", "kundeText", "projekt")
+    elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
     // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
     // user picker each, as the edit form offers — a person is searched by picking them, not by typing a
@@ -518,6 +531,9 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
       }
     }
     addPeriodOfPerformanceCriterion(target, source)
+    customerFilter.addCriterion(target, source)
+    businessUnitFilter.addCriterion(target, source)
+    projectFilter.addCriterion(target, source)
     return filters
   }
 
@@ -746,6 +762,39 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     val analysis = forecastOrderAnalysis.exportOrderAnalysis(id)
       ?: return ResponseEntity.notFound().build<Any>()
     return RestUtils.downloadFile("orderAnalysis-${order?.nummer}.json", JsonUtils.toJson(analysis))
+  }
+
+  /**
+   * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the orders the
+   * list's *other* criteria in [filter] match, as Excel's autofilter offers a column's values — with projects
+   * chosen, only their customers. Without a filter, those of every order the user may see.
+   */
+  @PostMapping("customerFilterValues")
+  fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+  }
+
+  /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+  @PostMapping("businessUnitFilterValues")
+  fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+  }
+
+  /** The customers (`kundeId`, `kundeText`) of the orders of a checklist. */
+  private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+    // Without a customer entity, kundeAsString is the free text itself (see KundeFormatter).
+    return checklistOrders(filter, ownField).map { CustomerRow(it.kundeId, it.kundeAsString, it.projektId) }
+  }
+
+  /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+  @PostMapping("projectFilterValues")
+  fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+    return ProjectChecklistFilter.valuesOf(checklistOrders(filter, ProjectChecklistFilter.FIELD).map { it.projektId })
+  }
+
+  /** The orders of a checklist ([checklistFilter]): ids only, the rest comes from [AuftragsCache]. */
+  private fun checklistOrders(filter: MagicFilter?, ownField: String): Sequence<OrderInfo> {
+    return getResultIds(checklistFilter(filter, ownField)).asSequence().mapNotNull { auftragsCache.getOrderInfo(it) }
   }
 
   /**
@@ -1040,7 +1089,71 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     var planningDate: LocalDate? = null,
   )
 
+  /**
+   * The start date of the contribution margin tab of `/next/order`, remembered per user. Returns the
+   * default (begin of the current year) if never used.
+   */
+  @GetMapping("contributionMargin/settings")
+  fun getContributionMarginSettings(): ContributionMarginSettings {
+    contributionMarginService.checkAccess()
+    val stored = userPrefService.getEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN,
+      ContributionMarginSettings::class.java
+    )
+    return ContributionMarginSettings(startDate = stored?.startDate ?: PFDay.now().beginOfYear.localDate)
+  }
+
+  /**
+   * The contribution margin ([ContributionMarginService.calculate]) of the projects of the filtered orders,
+   * for the 12 months from the start date on and the two previous years. The orders are queried as for
+   * [forecastChart]: the start date (two years back, for the comparison) replaces the filter's period of
+   * performance, the state criteria are left out. Project managers get only their own projects
+   * ([ContributionMarginService.allowedProjectIds]). The start date is remembered for the next time.
+   */
+  @PostMapping("contributionMargin")
+  fun contributionMargin(@RequestBody request: ContributionMarginRequest): ContributionMarginData {
+    contributionMarginService.checkAccess()
+    val startDate = request.startDate ?: PFDay.now().beginOfYear.localDate
+    userPrefService.putEntry(
+      category,
+      USER_PREF_PARAM_CONTRIBUTION_MARGIN,
+      ContributionMarginSettings(startDate),
+      true
+    )
+    val magicFilter = request.filter ?: MagicFilter()
+    // The orders as for the forecast charts (reaching back beyond the two comparison years).
+    val orders = forecastOrders(magicFilter, startDate, chartsOnly = true)
+    val projectIds = contributionMarginService.allowedProjectIds(orders.mapNotNull { it.projekt?.id })
+    val data = contributionMarginService.calculate(projectIds, startDate)
+    data.ordersWithoutProject = orders.count { it.projekt == null }
+    val usage = forecastFilterUsage(magicFilter)
+    data.ignoredFilterFields = usage.ignored
+    data.replacedFilterFields = usage.replaced
+    return data
+  }
+
+  /** What the contribution margin tab asks for, and what is remembered of it per user. */
+  class ContributionMarginSettings(
+    /** The first month of the 12 months shown (any day of it). */
+    var startDate: LocalDate? = null,
+  )
+
+  class ContributionMarginRequest(
+    var filter: MagicFilter? = null,
+    var startDate: LocalDate? = null,
+  )
+
+  /** Whether the list page offers the contribution margin tab (see [ContributionMarginService.hasAccess]). */
+  override fun addVariablesForListPage(): Map<String, Any> {
+    return mapOf("contributionMargin" to runCatching { contributionMarginService.hasAccess() }.getOrDefault(false))
+  }
+
   companion object {
+    private val customerFilter = CustomerChecklistFilter("order/customerFilterValues")
+    private val businessUnitFilter = BusinessUnitChecklistFilter("order/businessUnitFilterValues")
+    private val projectFilter = ProjectChecklistFilter("order/projectFilterValues")
+
     /**
      * A new order built from this one, as `OutgoingInvoiceEntityRest.prepareInvoiceClone` builds a new
      * invoice — the clone is a fresh draft, not a copy of what the original earned:
@@ -1300,5 +1413,6 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     /** User pref name of the forecast export dialog's settings, stored in the `order` area. */
     private const val USER_PREF_PARAM_FORECAST_EXPORT = "forecastExport"
     private const val USER_PREF_PARAM_FORECAST_CHART = "forecastChart"
+    private const val USER_PREF_PARAM_CONTRIBUTION_MARGIN = "contributionMargin"
   }
 }

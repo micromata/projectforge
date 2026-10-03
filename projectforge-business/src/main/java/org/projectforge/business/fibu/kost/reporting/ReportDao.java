@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu.kost.reporting;
 
 import com.thoughtworks.xstream.XStream;
+import org.projectforge.business.PfCaches;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BuchungssatzFilter;
@@ -105,6 +106,11 @@ public class ReportDao {
     filter.setToYear(report.getToYear());
     filter.setToMonth(report.getToMonth());
     final List<BuchungssatzDO> list = buchungssatzDao.select(filter);
+    // The selection formats kost1 and kost2 of every record (and the BWA reads the accounts): replace the lazy
+    // proxies by the cached instances, otherwise each distinct cost unit and account is fetched by its own query.
+    // This also keeps the records usable after the request, as the report lives in the user's session.
+    final PfCaches pfCaches = PfCaches.getInstance();
+    list.forEach(pfCaches::initialize);
     report.select(list);
   }
 

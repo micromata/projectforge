@@ -299,6 +299,10 @@ export type FilterType =
 export interface FilterListValue {
   id: string;
   displayName: string;
+  /** Typed as free text rather than picked from an entity (an order's free-text customer). */
+  freeText?: boolean;
+  /** Stands for several others: a customer group in the customer checklist. */
+  group?: boolean;
 }
 
 export interface FilterElement {
@@ -309,6 +313,11 @@ export interface FilterElement {
   label?: string;
   /** LIST: the values to choose from. */
   values?: FilterListValue[];
+  /**
+   * LIST: endpoint (relative to `/rs/`) answering the values instead, for a set too big to ship with the
+   * list meta (the customers of the order book). Fetched when needed, see `useFilterListValues`.
+   */
+  valuesUrl?: string;
   /** LIST: whether several values may be selected. */
   multi?: boolean;
   /**

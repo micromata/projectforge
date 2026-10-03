@@ -29,6 +29,7 @@ import org.projectforge.Constants
 import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.scripting.ScriptParameterType
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
@@ -58,12 +59,20 @@ import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.*
+import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
+import org.projectforge.rest.fibu.CustomerChecklistFilter
+import org.projectforge.rest.fibu.CustomerRow
+import org.projectforge.rest.fibu.ProjectChecklistFilter
+import org.projectforge.rest.fibu.ViaProjectCriteria
+import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.rest.task.TaskServicesRest
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.Kost2FilterUtils
 import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
+import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
@@ -85,6 +94,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
     @Autowired
     private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -842,6 +854,83 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         if (JiraUtils.isJiraConfigured) {
             elements.add(UIFilterBooleanElement("hasJiraIssues", label = translate("timesheet.filter.hasJiraIssues")))
         }
+        // Business unit, customer and project as the order list offers them, picked from those of the sheets (see
+        // projectFilterValues), replacing the free-text pills on the fields of the cost 2's project.
+        elements.removeTextFilters("kost2.projekt")
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
+    }
+
+    /**
+     * A sheet reaches its project via its cost 2, so the picked projects match by the ids of all their cost 2
+     * — `kost2.id`, not the nested `kost2.projekt.id`, which a search matched in memory would resolve by
+     * loading each sheet's cost 2.
+     */
+    private val projectFilter = ProjectChecklistFilter("timesheet/projectFilterValues", path = "kost2.id") { ids ->
+        kost2IdsOf(ids)
+    }
+
+    private fun kost2IdsOf(projektIds: List<Long>): List<Long> =
+        projektIds.flatMap { id -> kostCache.getKost2ForProjekt(id, includeDeleted = true).mapNotNull { it.id } }
+
+    /** A sheet has no customer of its own, so neither a free-text one. */
+    private val customerFilter =
+        CustomerChecklistFilter("timesheet/customerFilterValues", kundePath = "kost2.projekt.kunde", kundeTextPath = null)
+
+    private val businessUnitFilter = BusinessUnitChecklistFilter(
+        "timesheet/businessUnitFilterValues",
+        kundePath = "kost2.projekt.kunde",
+        kundeTextPath = null,
+        projektIdPath = "kost2.projekt.id",
+    )
+
+    /**
+     * Customers and business units match by the cost 2 of their projects, as the projects do (see
+     * [projectFilter]), not by the nested `kost2.projekt.kunde`.
+     */
+    private val viaProject by lazy {
+        ViaProjectCriteria(
+            path = "kost2.id",
+            nullPath = "kost2",
+            projects = { projektCache.all.mapValues { caches.getKundeIfNotInitialized(it.value.kunde)?.nummer } },
+            idsOf = ::kost2IdsOf,
+            idsWithoutProject = {
+                kostCache.getAllKost2(includeDeleted = true).filter { it.projekt == null }.mapNotNull { it.id }
+            },
+        )
+    }
+
+    /**
+     * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the sheets' projects
+     * the list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("customerFilterValues")
+    fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+    }
+
+    /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("businessUnitFilterValues")
+    fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+    }
+
+    /** The customers of the sheets' projects, via the caches; a sheet of no project has none. */
+    private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+        val sheets = getResultList(checklistFilter(filter, ownField))
+        return sheets.asSequence().map { sheet ->
+            val projekt = caches.getProjektByKost2(sheet.kost2?.id)
+            CustomerRow(caches.getKundeIfNotInitialized(projekt?.kunde)?.nummer, null, projekt?.id)
+        }
+    }
+
+    /**
+     * The projects to choose from in the project filter ([ProjectChecklistFilter]): those of the sheets the
+     * list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("projectFilterValues")
+    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        val sheets = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
+        return ProjectChecklistFilter.valuesOf(sheets.asSequence().map { caches.getKost2(it.kost2?.id)?.projekt?.id })
     }
 
     /**
@@ -862,6 +951,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<TimesheetDO>> {
         val filters = mutableListOf<CustomResultFilter<TimesheetDO>>()
+        projectFilter.addCriterion(target, source)
+        viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
+        viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
         source.entries.find { it.field == "period" }?.let { periodEntry ->
             periodEntry.synthetic = true
             // Overlap, not containment: a sheet counts as inside the window if it *touches* it, so one that

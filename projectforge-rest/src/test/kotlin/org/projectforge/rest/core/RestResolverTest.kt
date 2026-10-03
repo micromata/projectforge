@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.SystemStatus
 import org.projectforge.rest.AddressPagesRest
-import org.projectforge.rest.admin.AdminLogViewerPageRest
-import org.projectforge.rest.admin.LogViewerPageRest
+import org.projectforge.rest.admin.AdminLogViewerRest
+import org.projectforge.rest.admin.LogViewerRest
 
 class RestResolverTest {
   @Test
@@ -46,11 +46,11 @@ class RestResolverTest {
       "/rs/address/exportAsExcel",
       RestResolver.getRestMethodUrl(AddressPagesRest::class.java, AddressPagesRest::exportAsExcel)
     )
-    assertEquals("/rs/logViewer/refresh", RestResolver.getRestMethodUrl(LogViewerPageRest::refresh))
-    assertEquals("/rs/logViewer/refresh", RestResolver.getRestMethodUrl(AdminLogViewerPageRest::refresh))
+    assertEquals("/rs/logViewer/query", RestResolver.getRestMethodUrl(LogViewerRest::query))
+    assertEquals("/rs/logViewer/query", RestResolver.getRestMethodUrl(AdminLogViewerRest::query))
     assertEquals(
-      "/rs/adminLogViewer/refresh",
-      RestResolver.getRestMethodUrl(AdminLogViewerPageRest::class.java, AdminLogViewerPageRest::refresh)
+      "/rs/adminLogViewer/query",
+      RestResolver.getRestMethodUrl(AdminLogViewerRest::class.java, AdminLogViewerRest::query)
     )
   }
 

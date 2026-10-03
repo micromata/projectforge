@@ -54,6 +54,12 @@ export interface RepeatableRowProps {
    * write — restoring is the harmless direction, so it needs no confirmation.
    */
   onRestore?: () => void;
+  /**
+   * The fields stay mounted while the row is folded, only hidden. For rows folded by default whose
+   * fields must still take the server's errors: the form puts an error only into a mounted field
+   * (`FormApi.setErrorMap`), so a folded row would drop it without a trace.
+   */
+  keepMounted?: boolean;
 }
 
 /**
@@ -74,6 +80,7 @@ export function RepeatableRow({
   tinted,
   deleted,
   onRestore,
+  keepMounted,
 }: RepeatableRowProps) {
   const t = useTranslations();
   const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false);
@@ -156,7 +163,10 @@ export function RepeatableRow({
           </>
         )}
       </div>
-      <CollapsibleContent>
+      <CollapsibleContent
+        forceMount={keepMounted || undefined}
+        className={cn(keepMounted && "data-[state=closed]:hidden")}
+      >
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 border-t border-border/60 px-3 py-4 md:grid-cols-3">
           {children}
         </div>

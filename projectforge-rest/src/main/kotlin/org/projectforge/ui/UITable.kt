@@ -30,7 +30,7 @@ open class UITable(
     var rowClickPostUrl: String? = null,
     /**
      * If given, the entries of the table will be refreshed by calling this post url. This works only, if the
-     * entries of the table are given as variables (see LogViewer as a reference).
+     * entries of the table are given as variables.
      */
     var refreshUrl: String? = null,
     /**
@@ -43,7 +43,7 @@ open class UITable(
     var refreshIntervalSeconds: Int? = null,
     /**
      * If given, the React component calls refresh only, if the auto-refresh flag of the data model is true. This is
-     * the name of the flag property (see LogViewer as a reference).
+     * the name of the flag property.
      */
     var autoRefreshFlag: String? = null,
 ) : UIElement(if (listPageTable) UIElementType.TABLE_LIST_PAGE else UIElementType.TABLE) {

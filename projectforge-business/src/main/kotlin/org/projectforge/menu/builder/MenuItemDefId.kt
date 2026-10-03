@@ -50,7 +50,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
-    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
+    ADMIN_LOG_VIEWER("system.admin.logViewer.title", "next/adminLogViewer"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
     BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getListUrl("book")), //
@@ -69,24 +69,24 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     // Migrated to projectforge-next; the Wicket pages (wa/customerList) were removed.
     CUSTOMER_LIST("menu.fibu.kunden", getListUrl("customer")), //
+    CUSTOMER_GROUPS("menu.fibu.customerGroups", "next/customerGroups"), //
 
-    DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
+    DATEV_IMPORT("menu.fibu.datevImport", "next/datev-import"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     E_INVOICE_CHECKER("menu.fibu.eInvoiceChecker", getReactDynamicPageUrl("eInvoiceChecker")), //
     EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
-    // Migrated to projectforge-next; the Wicket page (wa/employeeSalaryList) stays reachable through the
-    // escape hatch next to the page title, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; the Wicket pages (wa/employeeSalaryList, import included) were removed.
+    // The import is reached as a button in the salary list.
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", getListUrl("employeeSalary")), //
-    EMPLOYEE_SALARY_IMPORT("menu.fibu.employeeSalariesImport", "wa/wicket/bookmarkable/org.projectforge.web.fibu.EmployeeSalaryImportPage"), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     // Migrated to projectforge-next (FeedbackPageRest); the Wicket page (wa/feedback) was removed.
     FEEDBACK("menu.gear.feedback", "next/feedback"), //
-    GANTT("menu.gantt", "wa/ganttList"), //
+    GANTT("menu.gantt", getListUrl("gantt")), //
     // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
-    HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
-    HR_VIEW("menu.hrList", "wa/hrList"), //
+    HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
+    HR_VIEW("menu.hrList", "next/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the
     // escape hatch, see NextMigration.legacyListUrl.
@@ -114,7 +114,8 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
-    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "wa/reportObjectives"), //
+    // Migrated to projectforge-next (ReportObjectivesPageRest); the Wicket page (wa/reportObjectives) was removed.
+    REPORT_OBJECTIVES("menu.fibu.reporting.reportObjectives", "next/reportObjectives"), //
     // Migrated to projectforge-next (SendTextMessageRest); the Wicket page (wa/sendSms) was removed.
     SEND_SMS("menu.sendSms", "next/sendTextMessage"), //
     SCRIPT_LIST("menu.scriptList", getReactListUrl("script")), //

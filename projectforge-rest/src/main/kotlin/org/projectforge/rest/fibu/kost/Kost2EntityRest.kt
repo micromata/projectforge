@@ -41,9 +41,18 @@ import org.projectforge.rest.dto.Customer
 import org.projectforge.rest.dto.Kost2
 import org.projectforge.rest.dto.Kost2Art
 import org.projectforge.rest.dto.Project
+import org.projectforge.rest.fibu.BusinessUnitChecklistFilter
+import org.projectforge.rest.fibu.CustomerChecklistFilter
+import org.projectforge.rest.fibu.CustomerRow
+import org.projectforge.rest.fibu.ProjectChecklistFilter
+import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.KostStatusFilterUtils
+import org.projectforge.ui.filter.UIFilterListValue
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -109,6 +118,10 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         KostStatusFilterUtils.addFilterElement(elements)
+        // The customer and the project as the list's cells show them, picked from those of the cost 2 (see
+        // customerFilterValues), as on the order list, replacing the free-text pills on the project's fields.
+        elements.removeTextFilters("projekt")
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
     }
 
     /**
@@ -117,6 +130,9 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
      * `Kost2Dao.select`).
      */
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<Kost2DO>>? {
+        customerFilter.addCriterion(target, source)
+        businessUnitFilter.addCriterion(target, source)
+        projectFilter.addCriterion(target, source)
         val listTypes = KostStatusFilterUtils.consumeListTypes(source)
         if (listTypes.isEmpty()) {
             return null
@@ -197,12 +213,51 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
     override val autoCompleteSearchFields =
         arrayOf("description", "nummer", "rawNumberString", "projekt.name", "projekt.kunde.name")
 
+    /**
+     * The customers to choose from in the customer filter ([CustomerChecklistFilter]): those of the projects
+     * of the cost 2 the list's *other* criteria in [filter] match (see [checklistFilter]).
+     */
+    @PostMapping("customerFilterValues")
+    fun customerFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return CustomerChecklistFilter.valuesOf(customerRefs(filter, CustomerChecklistFilter.FIELD))
+    }
+
+    /** The business units to choose from ([BusinessUnitChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("businessUnitFilterValues")
+    fun businessUnitFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        return businessUnitFilter.valuesOf(customerRefs(filter, BusinessUnitChecklistFilter.FIELD))
+    }
+
+    /** The customers of the projects of the cost 2 of a checklist, never a free text. */
+    private fun customerRefs(filter: MagicFilter?, ownField: String): Sequence<CustomerRow> {
+        val kost2s = getResultList(checklistFilter(filter, ownField))
+        // Via the caches: KundeDO's id is its number, and asking a lazy proxy for it would load the customer.
+        return kost2s.asSequence().map {
+            CustomerRow(caches.getKundeIfNotInitialized(caches.getProjekt(it.projekt?.id)?.kunde)?.nummer, null, it.projekt?.id)
+        }
+    }
+
+    /** The projects to choose from in the project filter ([ProjectChecklistFilter]), as [customerFilterValues]. */
+    @PostMapping("projectFilterValues")
+    fun projectFilterValues(@RequestBody(required = false) filter: MagicFilter?): List<UIFilterListValue> {
+        val kost2s = getResultList(checklistFilter(filter, ProjectChecklistFilter.FIELD))
+        return ProjectChecklistFilter.valuesOf(kost2s.asSequence().map { it.projekt?.id })
+    }
+
     private class Kost2StatusResultFilter(private val listTypes: List<String>) : CustomResultFilter<Kost2DO> {
         override fun match(list: MutableList<Kost2DO>, element: Kost2DO): Boolean =
             KostStatusFilterUtils.matchesKost2(listTypes, element.effectiveKostentraegerStatus)
     }
 
     companion object {
+        /** The customer of a cost 2 is its project's; a cost 2 has no free-text customer. */
+        private val customerFilter =
+            CustomerChecklistFilter("cost2/customerFilterValues", kundePath = "projekt.kunde", kundeTextPath = null)
+        private val businessUnitFilter = BusinessUnitChecklistFilter(
+            "cost2/businessUnitFilterValues", kundePath = "projekt.kunde", kundeTextPath = null,
+        )
+        private val projectFilter = ProjectChecklistFilter("cost2/projectFilterValues")
+
         /** The parts of the cost number, most significant first — [Kost2DO.formattedNumber] in columns. */
         private val NUMBER_PROPERTIES = listOf("nummernkreis", "bereich", "teilbereich", "kost2Art.id")
     }

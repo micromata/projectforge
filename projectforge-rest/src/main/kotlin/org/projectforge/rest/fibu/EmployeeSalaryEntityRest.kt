@@ -55,8 +55,8 @@ import java.util.Date
 
 /**
  * The employee-salary list and edit page of projectforge-next (`EmployeeSalaryDO`, "Gehälter"). Migrated
- * from Wicket's `EmployeeSalaryListPage`; serves no layout - projectforge-next hand-builds it (see
- * `components/features/employee-salary`). The DATEV import page stays on Wicket (separate menu item).
+ * from Wicket's (removed) `EmployeeSalaryListPage`; serves no layout - projectforge-next hand-builds it (see
+ * `components/features/employee-salary`). The salary import is served by `EmployeeSalaryImportRest`.
  */
 @RestController
 @RequestMapping("${Rest.URL}/employeeSalary")
@@ -138,7 +138,7 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
     /**
      * The generic list export - one row per salary, the columns the list shows (`year-MM`, employee last
      * and first name, staff number, type, gross with employer's share, comment). This is Wicket's plain
-     * "Excel export" content-menu entry ([EmployeeSalaryListPage], `DOListExcelExporter`), as opposed to
+     * "Excel export" content-menu entry (`EmployeeSalaryListPage`, `DOListExcelExporter`), as opposed to
      * the cost-assignment export below. The rows come from [getResultList], i.e. through the same pipeline
      * the list uses. An empty result answers 404 rather than a file.
      */
@@ -183,7 +183,7 @@ class EmployeeSalaryEntityRest : AbstractDTOEntityRest<EmployeeSalaryDO, Employe
     /**
      * The cost-assignment export ([EmployeeSalaryExportDao]) - the DATEV sheet with one row per Kost2, the
      * gross split over the employee's time-sheet bookings. Wicket's "Kostenzuweisungen exportieren"
-     * content-menu entry ([EmployeeSalaryListPage], `fibu.rechnung.kostExcelExport`).
+     * content-menu entry (`EmployeeSalaryListPage`, `fibu.rechnung.kostExcelExport`).
      *
      * A month must be picked, as in Wicket: a whole-year export is not offered (400 with the reason as its
      * body). An empty result answers 404 rather than a file, so a filter matching nothing does not look

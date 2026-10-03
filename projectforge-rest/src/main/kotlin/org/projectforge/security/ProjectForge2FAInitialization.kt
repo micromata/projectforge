@@ -26,13 +26,13 @@ package org.projectforge.security
 import mu.KotlinLogging
 import org.projectforge.plugins.core.IProjectForge2FAInitialization
 import org.projectforge.rest.*
-import org.projectforge.rest.admin.AdminLogViewerPageRest
+import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
 import org.projectforge.rest.fibu.kost.Kost2EntityRest
-import org.projectforge.rest.hr.HRPlanningListPagesRest
-import org.projectforge.rest.hr.HRPlanningPagesRest
+import org.projectforge.rest.hr.HRPlanningEntityRest
+import org.projectforge.rest.hr.HRPlanningEntryEntityRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
 import org.projectforge.rest.scripting.MyScriptExecutePageRest
@@ -87,7 +87,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
       My2FAShortCut.ADMIN,
       UserPagesRest::class.java,
       GroupPagesRest::class.java,
-      AdminLogViewerPageRest::class.java,
+      AdminLogViewerRest::class.java,
       GroupAccessEntityRest::class.java,
       // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a
       // resource handler, so no filter sees its url - only the REST call is left to gate. The classic Wicket page sat
@@ -100,8 +100,9 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
-      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;",
-      "/wa/hrPlanningEdit"
+      // WRITE:hrPlanning gates the save of the migrated weekly HR planning (HRPlanningEntityRest, /rs/hrPlanning),
+      // which replaced the Wicket /wa/hrPlanningEdit gated here before.
+      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;WRITE:hrPlanning;"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
@@ -110,8 +111,8 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.HR,
       LeaveAccountEntryPagesRest::class.java,
-      HRPlanningPagesRest::class.java,
-      HRPlanningListPagesRest::class.java,
+      HRPlanningEntityRest::class.java,
+      HRPlanningEntryEntityRest::class.java,
       EmployeePagesRest::class.java,
     )
 
@@ -206,7 +207,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutClasses(
     shortCut: My2FAShortCut,
@@ -218,7 +219,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,
@@ -232,7 +233,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
   }
 
   /**
-   * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
+   * @param restClass needed, otherwise for derived classes such as AdminLogViewerRest the declaring class is LogViewerRest.
    */
   override fun registerShortCutMethods(
     shortCut: My2FAShortCut,

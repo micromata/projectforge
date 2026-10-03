@@ -272,6 +272,110 @@ export function fetchForecastChart(
   );
 }
 
+/**
+ * The parameter of the contribution margin tab, mirroring `OrderEntityRest.ContributionMarginSettings`;
+ * remembered per user by the backend on every request.
+ */
+export interface ContributionMarginSettings {
+  /** First month of the period as `yyyy-MM-dd`; the backend takes the begin of its month. */
+  startDate: string | null;
+}
+
+/**
+ * Revenue, costs (positive) and contribution margin of the period, and the contribution margin of the same
+ * period of the two previous years (`ContributionMarginSums`). `percentage` is null without positive revenue.
+ */
+export interface ContributionMarginSums {
+  revenue: number;
+  costs: number;
+  profit: number;
+  percentage: number | null;
+  prevYearProfit: number;
+  prevPrevYearProfit: number;
+  /** Revenue of the same period one year earlier, and its DB % (null without positive revenue). */
+  prevYearRevenue: number;
+  prevYearPercentage: number | null;
+  /** Revenue of the same period two years earlier, and its DB % (null without positive revenue). */
+  prevPrevYearRevenue: number;
+  prevPrevYearPercentage: number | null;
+}
+
+export interface ContributionMarginProject extends ContributionMarginSums {
+  projectId: number;
+  kost: string | null;
+  customer: string | null;
+  project: string | null;
+}
+
+/**
+ * The contribution margin of the projects of the filtered orders, see `ContributionMarginData`: 12 entries
+ * per monthly list, one per month of `months`.
+ */
+export interface ContributionMarginData {
+  /** The 12 months as `yyyy-MM`. */
+  months: string[];
+  revenue: number[];
+  /** Positive amounts. */
+  costs: number[];
+  profit: number[];
+  /**
+   * Contribution margin in % of the revenue per month, cumulated from the first month on (so it settles in the
+   * course of the period); 0 for a loss, null as long as there is no positive revenue.
+   */
+  percentage: (number | null)[];
+  /** Whether the month lies after the last imported accounting records, so its values are preliminary. */
+  preliminary: boolean[];
+  /**
+   * The last month with values (`yyyy-MM`): the previous month at the latest, as the current one isn't
+   * complete yet. Null if the period begins in the current month or later; missing from an older backend.
+   */
+  lastMonth?: string | null;
+  /** Monthly contribution margin of the same months one and two years earlier. */
+  prevYear: number[];
+  prevPrevYear: number[];
+  /** Cumulated DB % of the same months one year earlier, like `percentage`. */
+  prevYearPercentage: (number | null)[];
+  projects: ContributionMarginProject[];
+  total: ContributionMarginSums;
+  /** Last day of the last imported month (`yyyy-MM-dd`), or null if no accounting records exist. */
+  bookingImportEnd: string | null;
+  hourlyRate: number | null;
+  /** Preliminary months exist, but no hourly rate is configured: their costs lack the time sheets. */
+  hourlyRateMissing: boolean;
+  /** The target contribution margin in %: green from here on, yellow below (see ContributionMarginLimits). */
+  targetPercentage: number;
+  /** The contribution margin in % below which it is red. */
+  redThreshold: number;
+  ordersWithoutProject: number;
+  /** The fields of the list filter not applied, as for the forecast charts. */
+  ignoredFilterFields?: string[];
+  replacedFilterFields?: string[];
+}
+
+/** The stored start date of the contribution margin tab, or the backend's default (begin of the year). */
+export function fetchContributionMarginSettings(
+  signal?: AbortSignal
+): Promise<ContributionMarginSettings> {
+  return request<ContributionMarginSettings>(
+    "/rs/order/contributionMargin/settings",
+    { method: "GET" },
+    signal
+  );
+}
+
+/** The contribution margin of the projects of the filtered orders (those the user may see). */
+export function fetchContributionMargin(
+  filter: MagicFilter,
+  settings: ContributionMarginSettings,
+  signal?: AbortSignal
+): Promise<ContributionMarginData> {
+  return request<ContributionMarginData>(
+    "/rs/order/contributionMargin",
+    { method: "POST", body: JSON.stringify({ filter, ...settings }) },
+    signal
+  );
+}
+
 /** React Query key of whether the logged-in user may refresh the order caches. */
 export const REFRESH_CACHE_ACCESS_QUERY_KEY = [
   "order",

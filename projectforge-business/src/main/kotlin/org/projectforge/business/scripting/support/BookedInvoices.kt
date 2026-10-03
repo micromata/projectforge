@@ -35,7 +35,10 @@ import org.projectforge.framework.time.PFDay
  * Only records on revenue accounts are considered, so the document number of a cost or payment record
  * can't accidentally match an invoice number.
  */
-class BookedInvoices(records: Collection<BuchungssatzDO>, revenueAccounts: IntRange = REVENUE_ACCOUNTS) {
+class BookedInvoices(records: Collection<BuchungssatzDO>, isRevenueAccount: (Int) -> Boolean) {
+  constructor(records: Collection<BuchungssatzDO>, revenueAccounts: IntRange = REVENUE_ACCOUNTS) :
+      this(records, { it in revenueAccounts })
+
   /** Document number (e.g. `17209` or `17209-S`) → earliest booking date. */
   val bookingDates: Map<String, PFDay>
 
@@ -44,7 +47,7 @@ class BookedInvoices(records: Collection<BuchungssatzDO>, revenueAccounts: IntRa
     records.forEach { record ->
       val date = record.datum ?: return@forEach
       val account = record.konto?.nummer ?: return@forEach
-      if (account !in revenueAccounts) {
+      if (!isRevenueAccount(account)) {
         return@forEach
       }
       val day = PFDay.from(date)

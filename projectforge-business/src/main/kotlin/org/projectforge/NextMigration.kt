@@ -280,14 +280,27 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
-        // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList): the way
-        // back leads to Wicket. EmployeeSalaryEntityRest serves no layout, so there is no React page - only
-        // the hand built projectforge-next one and Wicket. The DATEV import page (EMPLOYEE_SALARY_IMPORT)
-        // stays on Wicket as a separate menu item.
+        // Migrated from Wicket (MenuItemDefId.EMPLOYEE_SALARY_LIST pointed at wa/employeeSalaryList).
+        // EmployeeSalaryEntityRest serves no layout, so there is no React page. The Wicket pages (the salary
+        // import included, now a button in the next list) have been removed: the way back is no longer
+        // offered, and legacyApp stays only so OrphanedLinkFilter still redirects bookmarked
+        // wa/employeeSalaryList / wa/employeeSalaryEdit links (the mount points follow the convention).
         "employeeSalary" to NextPage(
             route = "employeeSalary",
             editRoute = "employeeSalary/$ID_PLACEHOLDER",
             newEntryRoute = "employeeSalary/new",
+            legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
+        ),
+        // The Gantt charts, migrated from Wicket (MenuItemDefId.GANTT pointed at wa/ganttList): the way back
+        // leads to Wicket. GanttChartEntityRest serves no layout, so there is no React page; the chart is
+        // still rendered by Batik on the server (GanttServicesRest). Wicket's mount points follow the
+        // convention (ganttList / ganttEdit); its "new chart for this task" link (wa/ganttEdit?task=) is bent
+        // onto gantt/new?task= by OrphanedLinkFilter.
+        "gantt" to NextPage(
+            route = "gantt",
+            editRoute = "gantt/$ID_PLACEHOLDER",
+            newEntryRoute = "gantt/new",
             legacyApp = LegacyApp.WICKET,
         ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
@@ -308,6 +321,29 @@ object NextMigration {
         // The "classic version" link is no longer offered: Wicket is no longer supported for liquidity
         // (the next page is the only one). legacyApp/legacyRoute stay so OrphanedLinkFilter still redirects
         // bookmarked wicket/bookmarkable/...LiquidityEntry* links to the next page (as for `order`).
+        // The HR planning ("Wochenplanung"), migrated from Wicket (MenuItemDefId.HR_PLANNING_LIST pointed at
+        // wa/hrPlanningList) with its weekly form. Hand built: the list shows the entries of the planned weeks
+        // (HRPlanningEntryEntityRest, category hrPlanningEntry) while a row opens the week itself
+        // (HRPlanningEntityRest). The Wicket pages have been removed, so the way back is no longer offered; their
+        // mount points followed the convention (DaoConst.HR_PLANNING + List/Edit = hrPlanningList/hrPlanningEdit),
+        // so OrphanedLinkFilter still redirects bookmarked links without a legacy route spelled out.
+        "hrPlanning" to NextPage(
+            route = "hrPlanning",
+            editRoute = "hrPlanning/$ID_PLACEHOLDER",
+            newEntryRoute = "hrPlanning/new",
+            legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
+        ),
+        // The list of the HR planning above, under the category of its rows (HRPlanningEntryEntityRest): its list
+        // metadata is the one of this category. Without an entry here the category counted as a page of the React
+        // app, which has none, and the list offered a dead "classic version" link (react/hrPlanningEntry). The
+        // entries have no page of their own (a row opens its week by the planning's id, not the entry's, so no
+        // editRoute is given), and there is nothing to go back to either.
+        "hrPlanningEntry" to NextPage(
+            route = "hrPlanning",
+            newEntryRoute = "hrPlanning/new",
+            legacyApp = null,
+        ),
         // The licenses (plugin licensemanagement) are migrated straight from Wicket and their Wicket pages are
         // removed, so there is no way back. The legacy routes are the bookmarkable urls (as for `addressCampaign`),
         // they are kept so bookmarked links still reach the next page.
@@ -415,13 +451,14 @@ object NextMigration {
         // Hand built list and edit page (next/timesheet, next/timesheet/:id, next/timesheet/new). The two
         // most-used calendar editors were migrated ahead of the list; the list followed, so the menu entry
         // now resolves through [listUrl] (MenuItemDefId.TIMESHEET_LIST = getListUrl("timesheet")) rather
-        // than pointing at wa/timesheetList. The way back leads to the React app, whose timesheet list and
-        // form were rendered from the same UILayout before.
+        // than pointing at wa/timesheetList. The way back is no longer offered; legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked React links (react/timesheet) onto the next page.
         "timesheet" to NextPage(
             route = "timesheet",
             editRoute = "timesheet/$ID_PLACEHOLDER",
             newEntryRoute = "timesheet/new",
             legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
         ),
         // Hand built *edit* page only (next/teamEvent/:id, next/teamEvent/new), alongside the timesheet
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team

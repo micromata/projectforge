@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.configuration
 
+import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
@@ -94,7 +95,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     }
 
     fun getValue(parameter: IConfigurationParam, configurationDO: ConfigurationDO?): Any? {
-        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (parameter.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             if (configurationDO == null) {
                 return parameter.defaultStringValue
             }
@@ -139,21 +140,56 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * [newInstance], which throws): a parameter is only ever read or updated through the UI, never inserted
      * or deleted. INSERT and DELETE are therefore denied even for an admin, so the migrated next page
      * ([org.projectforge.rest.ConfigurationEntityRest]) offers no add and no delete and both are refused
-     * server-side too. SELECT and UPDATE keep the admin-group check. [checkAndUpdateDatabaseEntries] is
-     * unaffected: it runs with `checkAccess = false`, bypassing this method.
+     * server-side too. [checkAndUpdateDatabaseEntries] is unaffected: it runs with `checkAccess = false`,
+     * bypassing this method.
+     *
+     * SELECT and UPDATE depend on who maintains the parameter ([ConfigurationParam.getEditors]):
+     * - An admin sees every parameter, but changes only the [ConfigurationEditors.ADMIN] ones.
+     * - A member of PF_Finance or PF_Controlling sees and changes only the [ConfigurationEditors.FINANCE] ones.
+     * - A parameter with a page of its own ([ConfigurationParam.getEditPage]) is never updated through this
+     *   check: that page validates its structured value and saves it itself, after checking the editors.
+     *
+     * Without an object (the list as a whole), SELECT is granted to both sides; the rows are then filtered
+     * per parameter.
      */
     override fun hasAccess(
         user: PFUserDO, obj: ConfigurationDO?, oldObj: ConfigurationDO?,
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        if (operationType == OperationType.INSERT || operationType == OperationType.DELETE) {
-            if (throwException) {
-                throw AccessException(user, "access.exception.noAccess")
+        val allowed = when (operationType) {
+            OperationType.INSERT, OperationType.DELETE, OperationType.UNDELETE -> false
+            OperationType.SELECT -> accessChecker.isUserMemberOfAdminGroup(user) ||
+                    (isFinanceUser(user) && (obj == null || paramOf(obj)?.editors == ConfigurationEditors.FINANCE))
+
+            OperationType.UPDATE -> {
+                val param = paramOf(oldObj ?: obj)
+                param != null && param.editPage == null && isEditor(user, param)
             }
-            return false
         }
-        return accessChecker.isUserMemberOfAdminGroup(user, throwException)
+        if (!allowed && throwException) {
+            throw AccessException(user, "access.exception.noAccess")
+        }
+        return allowed
+    }
+
+    /**
+     * Whether the user maintains the given parameter ([ConfigurationParam.getEditors]). Also asked by the
+     * pages a parameter has of its own ([ConfigurationParam.getEditPage]).
+     */
+    fun isEditor(user: PFUserDO, param: ConfigurationParam): Boolean {
+        return when (param.editors) {
+            ConfigurationEditors.ADMIN -> accessChecker.isUserMemberOfAdminGroup(user)
+            ConfigurationEditors.FINANCE -> isFinanceUser(user)
+        }
+    }
+
+    private fun isFinanceUser(user: PFUserDO): Boolean {
+        return accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)
+    }
+
+    private fun paramOf(obj: ConfigurationDO?): ConfigurationParam? {
+        return obj?.parameter?.let { ConfigurationParam.ofKey(it) }
     }
 
     /**
@@ -202,7 +238,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         val configuration = ConfigurationDO()
         configuration.parameter = param.key
         configuration.configurationType = param.type
-        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
+        if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.JSON)) {
             configuration.value = param.defaultStringValue
         }
         if (param.type.isIn(ConfigurationType.LONG)) {

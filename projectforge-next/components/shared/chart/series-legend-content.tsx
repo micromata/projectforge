@@ -12,16 +12,19 @@ import { cn } from "@/lib/utils";
  *
  * Use it as `<ChartLegend content={<SeriesLegendContent config={config} />} />`; recharts injects `payload`.
  * Pass `reversed` if the marks are drawn oldest-first: recharts builds the payload in the opposite order, so
- * the legend would disagree with the drawing order otherwise.
+ * the legend would disagree with the drawing order otherwise. Pass `order` (series keys) for an explicit
+ * order instead; series not listed follow in recharts' order.
  */
 export function SeriesLegendContent({
   config,
   reversed = false,
+  order,
   payload,
   verticalAlign = "bottom",
 }: {
   config: ChartConfig;
   reversed?: boolean;
+  order?: readonly string[];
 } & Pick<DefaultLegendContentProps, "payload" | "verticalAlign">) {
   if (!payload?.length) {
     return null;
@@ -29,6 +32,13 @@ export function SeriesLegendContent({
   const items = payload.filter((item) => item.type !== "none");
   if (reversed) {
     items.reverse();
+  }
+  if (order) {
+    const rank = (item: LegendPayload) => {
+      const index = order.indexOf(String(item.dataKey));
+      return index < 0 ? order.length : index;
+    };
+    items.sort((a, b) => rank(a) - rank(b));
   }
   return (
     <div

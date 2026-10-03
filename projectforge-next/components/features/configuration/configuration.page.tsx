@@ -6,6 +6,7 @@ import {
   type ConfigurationValues,
 } from "./schema";
 import { emptyConfigurationValues, toFormValues } from "./values";
+import { ConfigurationAccessNote } from "./edit/configuration-access-note";
 import { ConfigurationValueField } from "./edit/configuration-value-field";
 import { ConfigurationValueCell } from "./list/configuration-value-cell";
 import { ParamLabelCell } from "./list/param-label-cell";
@@ -106,6 +107,12 @@ export const CONFIGURATION_PAGE = definePage<
       ),
     },
   ],
+  // A parameter maintained on a page of its own (the customer groups) opens that page directly; the
+  // backend names it only to the parameter's editors, so everyone else gets the read-only edit page.
+  onRowClick: (row) =>
+    row.editPage
+      ? `/${row.editPage}?returnTo=${CONFIGURATION_ROUTE}`
+      : undefined,
   // No massUpdate and no listActions: the parameter set is fixed and each parameter is edited on its own.
   edit: {
     schema: configurationSchema,
@@ -119,6 +126,7 @@ export const CONFIGURATION_PAGE = definePage<
     // still loads (id set, data not yet), so it must be a plain leaf `t()` accepts.
     newTitleKey: "administration.configuration.title.edit",
     savedMessageKey: "message.successfullChanged",
+    editIntro: ConfigurationAccessNote,
     sections: [
       {
         id: "configuration",

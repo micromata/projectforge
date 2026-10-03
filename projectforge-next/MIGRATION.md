@@ -301,7 +301,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
   (Zellen), `JiraIssuesLinks` (Formularfeld-Zeile), `makeJiraFieldLinks(fieldName)`
-  (deklarative Felder). Offen für spätere Seiten: HRPlanning, Contract.
+  (deklarative Felder). Offen für spätere Seiten: Contract.
 
 ## Phasen
 
@@ -388,7 +388,7 @@ Client ist die Brücke bis dahin.
 
 Fertig: **Auftragsbuch** (`order`), **Debitorenrechnungen** (`outgoingInvoice`),
 **Kreditorenrechnungen** (`incomingInvoice`), **Strukturelemente/Aufgabenbaum** (`task`),
-**Gruppen** (`group`). **Offen:** **Kalenderseite** (Detailplan
+**Gruppen** (`group`), **Wochenplanung** (`hrPlanning`). **Offen:** **Kalenderseite** (Detailplan
 [MIGRATION-calendar.md](MIGRATION-calendar.md), Phasen A/B/D umgesetzt, C offen).
 
 Alle handgebauten Seiten laufen über `PageDef` und die geteilten Bausteine oben. Was pro
@@ -418,6 +418,20 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Teile bleiben im Ausgangsrechnungs-Feature. `IncomingInvoiceEntityRest` (layoutfrei) +
   Mehrfachauswahl (SEPA-Transfer-Export). **TODO offen:** CSV/SEPA-Import-Assistent und der
   SEPA-Überweisungs-Export als eigene Seite bleiben auf Wicket/React.
+- **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite bleibt
+  unter `wa/datevImport` gemountet, aber ohne Link aus next). Zwei Tabs über das gemeinsame
+  `ImportFeature` (`DatevRecordImportRest`, `DatevAccountImportRest`), beide nehmen die
+  **unveränderte Originaldatei** des Steuerbüros: Buchungssätze nur aus Monatsblättern
+  (`07`), Kontenplan aus `07_Kontenplan`, Berichtsblätter (BWA, SuSa, USt …) werden
+  ignoriert. Der Buchungsstapel kommt vom Blatt, das Belegdatum bleibt echt (August-Belege
+  im Juli-Stapel → Hinweis, kein Fehler; > 12 Monate Abstand → Fehler). BWA der Vorschau
+  über `ImportConfig.renderAboveTable` mit `accounting-record-bwa.tsx`. Kein Eintrag in
+  `NextMigration.MIGRATED` (keine Entity-Seite).
+- **Log-Viewer** – `next/logViewer/<id>` (eigenes `LogSubscription`, Link via
+  `LogViewerRest.viewerUrl`) und `next/adminLogViewer` (Menü `ADMIN_LOG_VIEWER`). Layoutfreie
+  Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
+  (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
+  Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die
@@ -431,6 +445,20 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `Group.ldapPosixConfigured`, generische Mehrfach-Entity-Auswahl
   (`entity-multi-autocomplete-field.tsx`), der Assistent legt seine Gruppe über den neuen
   `EntityEditDialog` an. `dynamic-form-dialog.tsx` damit gelöscht.
+- **Wochenplanung** (`hrPlanning`) – Liste und Bearbeitung zeigen auf **verschiedene
+  Entitäten**: die Liste zeigt Einträge (`HRPlanningEntryEntityRest`, nur lesend, Filter
+  Zeitraum/Mitarbeiter/Projekt + „gruppieren"/„nur meine Projekte" über
+  `HRPlanningEntryDao.groupAndFilter`), ein Klick öffnet die Woche (`HRPlanningEntityRest`,
+  Einträge als Collection). Dafür die geteilte `PageDef`-Option `foreignEdit` (+ `onRowClick`).
+  Gelöschte Einträge werden mit `deleted=true` gepostet, nicht weggelassen (der
+  Collection-Handler würde sie sonst physisch löschen). „Vom Vorgänger kopieren" über
+  `GET hrPlanning/predecessor`.
+- **Personalplanung** (`hrList`, Wicket `HRListPage`) – eigenständige Seite ohne Entität wie der
+  Monatsbericht: `GET rs/hrView` liefert die Matrix aus `HRViewDao` (Mitarbeiter × Projekte/Kunden,
+  geplant und gebucht in Tagen, nicht verplante Mitarbeiter), Filter als User-Pref. Mitarbeiter
+  führen auf ihre Woche in der next-Bearbeitung, gebuchte Tage auf die Zeitberichtsliste.
+  `HRViewDao` ohne N+1 (Einträge über `HRPlanningEntryDao`, Projekte/Kunden aus den Caches).
+  `wa/hrList` leitet `OrphanedLinkFilter` um; die Wicket-Seite ist gelöscht.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie
@@ -489,7 +517,7 @@ gelöscht.
 **Erledigt:** Phase 0, 1, 1.5 (inkl. Auth, CSRF, Metadaten, Datumseingabe, History,
 Anhänge, Zugriffsrechte – s. Fundamente); Phase 2-Fundament + Listen auf der echten
 `DataTable`; Phase 3 bis auf den Kalender (Auftragsbuch, Deb./Kred.-Rechnungen,
-Strukturelemente/Aufgabenbaum, Gruppen).
+Strukturelemente/Aufgabenbaum, Gruppen, Wochenplanung).
 
 **Als nächstes:**
 

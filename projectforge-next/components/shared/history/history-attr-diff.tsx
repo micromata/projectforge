@@ -1,7 +1,12 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  jsonChanges,
+  parseJsonContainer,
+  type JsonChange,
+} from "@/lib/json-diff";
 import type { HistoryEntryAttr } from "@/lib/rs/history";
+import { HistoryJsonDiff } from "./history-json-diff";
 import { opColor, opSymbol } from "./history-op-style";
+import { ChangeArrow, NewValue, OldValue } from "./history-values";
 
 export interface HistoryAttrDiffProps {
   attr: HistoryEntryAttr;
@@ -12,7 +17,8 @@ export interface HistoryAttrDiffProps {
  *
  * A missing value is left out rather than shown as an empty box — an insert has no old value, a
  * cleared field no new one. Of a list (e.g. the owners of a license) only the removed and added
- * entries are shown, not the whole lists.
+ * entries are shown, not the whole lists — and of a JSON document (a configuration parameter) only the
+ * places that changed, see [HistoryJsonDiff].
  */
 export function HistoryAttrDiff({ attr }: HistoryAttrDiffProps) {
   const label = attr.displayPropertyName ?? attr.propertyName ?? "—";
@@ -21,6 +27,7 @@ export function HistoryAttrDiff({ attr }: HistoryAttrDiffProps) {
   // own; any other property its whole old and new value.
   const { removedValues, addedValues } = attr;
   const isList = !!removedValues && !!addedValues;
+  const json = isList ? null : jsonChangesOf(attr);
   const removed = isList
     ? removedValues
     : attr.oldValue?.trim()
@@ -45,48 +52,40 @@ export function HistoryAttrDiff({ attr }: HistoryAttrDiffProps) {
         )}
         {label}
       </dt>
-      <dd className="flex min-w-0 flex-wrap items-baseline gap-1.5">
-        {removed.map((value, i) => (
-          <OldValue key={`old-${i}`} value={value} />
-        ))}
-        {removed.length > 0 && added.length > 0 && <ChangeArrow />}
-        {added.map((value, i) => (
-          <NewValue key={`new-${i}`} value={value} />
-        ))}
-      </dd>
+      {json ? (
+        <dd className="w-full">
+          <HistoryJsonDiff changes={json} />
+        </dd>
+      ) : (
+        <dd className="flex min-w-0 flex-wrap items-baseline gap-1.5">
+          {removed.map((value, i) => (
+            <OldValue key={`old-${i}`} value={value} />
+          ))}
+          {removed.length > 0 && added.length > 0 && <ChangeArrow />}
+          {added.map((value, i) => (
+            <NewValue key={`new-${i}`} value={value} />
+          ))}
+        </dd>
+      )}
     </div>
   );
 }
 
-function OldValue({ value }: { value: string }) {
-  return (
-    <span
-      className="rounded px-1.5 py-0.5 line-through decoration-1"
-      style={{ background: "var(--history-old-bg)" }}
-    >
-      {value}
-    </span>
+/**
+ * The changes of a property holding a JSON object or array, null for any other value. A side left empty
+ * (the first value stored, a value cleared) counts as an empty document of the other's kind. Null as well
+ * if nothing changed in the document itself (only its formatting), so the values are shown as they are.
+ */
+function jsonChangesOf(attr: HistoryEntryAttr): JsonChange[] | null {
+  const before = parseJsonContainer(attr.oldValue);
+  const after = parseJsonContainer(attr.newValue);
+  if (before == null && after == null) return null;
+  const emptyLike = (other: unknown) => (Array.isArray(other) ? [] : {});
+  if (before == null && attr.oldValue?.trim()) return null;
+  if (after == null && attr.newValue?.trim()) return null;
+  const changes = jsonChanges(
+    before ?? emptyLike(after),
+    after ?? emptyLike(before)
   );
-}
-
-function NewValue({ value }: { value: string }) {
-  return (
-    <span
-      className="rounded px-1.5 py-0.5"
-      style={{ background: "var(--history-new-bg)" }}
-    >
-      {value}
-    </span>
-  );
-}
-
-function ChangeArrow() {
-  return (
-    <HugeiconsIcon
-      icon={ArrowRight01Icon}
-      size={12}
-      aria-hidden
-      className="shrink-0 self-center text-muted-foreground"
-    />
-  );
+  return changes.length > 0 ? changes : null;
 }

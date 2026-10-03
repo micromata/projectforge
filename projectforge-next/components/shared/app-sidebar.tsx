@@ -39,7 +39,12 @@ const projectMgmt = [
   },
   { id: "timesheets", label: "Zeiterfassung", icon: Clock01Icon, href: "#" },
   { id: "tasks", label: "Aufgaben", icon: CheckmarkSquare02Icon, href: "#" },
-  { id: "gantt", label: "Gantt-Diagramm", icon: ChartBarLineIcon, href: "#" },
+  {
+    id: "gantt",
+    label: "Gantt-Diagramm",
+    icon: ChartBarLineIcon,
+    href: "/gantt",
+  },
 ];
 
 const topLevel = [
