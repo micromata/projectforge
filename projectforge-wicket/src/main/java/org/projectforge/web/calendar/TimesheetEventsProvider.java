@@ -36,6 +36,7 @@ import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.timesheet.TimesheetOverlapUtils;
 import org.projectforge.common.StringHelper;
@@ -61,8 +62,6 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
 
   private static final long serialVersionUID = 2241430630558260146L;
 
-  private final TimesheetDao timesheetDao;
-
   private final ICalendarFilter calFilter;
 
   private long totalDuration;
@@ -83,11 +82,12 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
   private List<TimesheetDO> timesheets;
 
   /**
-   * @param timesheetDao
+   * The TimesheetDao is looked up on use and not kept in a field: this provider is part of the Wicket page and
+   * would make it unserializable.
+   *
    * @param calFilter
    */
-  public TimesheetEventsProvider(final TimesheetDao timesheetDao, final ICalendarFilter calFilter) {
-    this.timesheetDao = timesheetDao;
+  public TimesheetEventsProvider(final ICalendarFilter calFilter) {
     this.calFilter = calFilter;
   }
 
@@ -117,7 +117,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     filter.setStartTime(startDate.getUtilDate());
     filter.setStopTime(endDate.getUtilDate());
     filter.setOrderType(OrderDirection.ASC);
-    timesheets = timesheetDao.select(filter);
+    timesheets = WicketSupport.get(TimesheetDao.class).select(filter);
     // The daily/weekly statistics show gross working time (Brutto-Arbeitszeit), not raw effort: overlapping
     // sheets are counted once, sheets whose cost-type work fraction is zero (cost type "33") are dropped, and
     // every other sheet (travel time included) counts in full. Keyed by timesheet id.

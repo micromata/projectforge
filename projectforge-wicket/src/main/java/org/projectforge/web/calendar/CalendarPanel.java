@@ -272,7 +272,7 @@ public class CalendarPanel extends Panel {
 
         // Time sheets
         EventSource eventSource = new EventSource();
-        timesheetEventsProvider = new TimesheetEventsProvider(WicketSupport.get(TimesheetDao.class), filter);
+        timesheetEventsProvider = new TimesheetEventsProvider(filter);
         eventSource.setEventsProvider(timesheetEventsProvider);
         eventSource.setEditable(true);
         config.add(eventSource);
