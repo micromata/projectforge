@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { GuardedLink } from "@/components/shared/guarded-link";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,7 @@ export function EntityEditHeader({
   deleted,
 }: EntityEditHeaderProps) {
   const t = useTranslations();
+  useDocumentTitle(title);
   return (
     <div className="border-b border-border bg-background px-6 pb-1.5 pt-2">
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

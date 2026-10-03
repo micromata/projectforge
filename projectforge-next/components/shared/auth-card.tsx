@@ -1,5 +1,8 @@
+"use client";
+
 import { BrandStripe } from "@/components/shared/brand-stripe";
 import { LogoRow } from "@/components/shared/logo-row";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +15,7 @@ interface AuthCardProps {
 
 /** Centered card shell shared by all public auth pages (login, password reset). */
 export function AuthCard({ title, children, className }: AuthCardProps) {
+  useDocumentTitle(title);
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
       {/* Always visible here: this page does not scroll, so there is nothing for the row to get out of

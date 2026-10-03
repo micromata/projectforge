@@ -6,6 +6,7 @@ import { DynamicActionGroup } from "./dynamic-action-group";
 import { DynamicDefaultAction } from "./dynamic-default-action";
 import { LegacyPageLink } from "@/components/shared/legacy-page-link";
 import { useCollapseOnScroll } from "@/hooks/use-collapse-on-scroll";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import type { DynamicPageResponse } from "@/lib/rs/types";
 import type { ReactNode } from "react";
 
@@ -28,6 +29,7 @@ export function DynamicPage({
   children,
 }: DynamicPageProps) {
   const collapse = useCollapseOnScroll();
+  useDocumentTitle(response.ui.title);
 
   return (
     <DynamicLayoutProvider

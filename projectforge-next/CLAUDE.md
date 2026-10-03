@@ -196,6 +196,12 @@ entity, `finance-user` for the finance rights without the admin group. Not every
 - **No end-of-task summaries unless asked.** State what changed, nothing more.
 - **Flag deferred work explicitly** so the user can confirm or push back. Do not silently expand or contract scope.
 
+## Window titles
+
+- **Every page names the browser window after its heading**: `<page title> – ProjectForge` (page first, so many open tabs stay distinguishable; edit pages: the record's display name, as in their header). Built by `windowTitle` (`lib/window-title.ts`), set by **`useDocumentTitle`** (`hooks/use-document-title.ts`).
+- **The shared headings already call it**: `PageTitleRow` (and thereby every list page), `EntityEditHeader`, `DynamicPage`, `MassUpdateForm`, `AuthCard`. A page built from these needs nothing more. A page with a **hand-written heading** (`<h1>` in a `PageShell`, e.g. the import pages, `taskWizard`) must call `useDocumentTitle` with the same string it renders. Modals don't touch the title.
+- **Never set a title via Next's `metadata`** (root layout or per route): under static export the titles are translated only on the client, and Next re-mounts its metadata `<title>` after the page's effects, overwriting the page's title. The root layout's plain `<title>` is just the prerendered default.
+
 ## Reusable components — where to look
 
 The agent must `grep`/`find` before writing new code. The directories below are the canonical homes; scan them in this order:

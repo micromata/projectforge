@@ -16,6 +16,7 @@ import { FormActionBar } from "@/components/shared/form-action-bar";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { MarkdownText } from "@/components/shared/markdown-text";
 import { Spinner } from "@/components/shared/spinner";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import {
   useSubmitShortcut,
   useSubmitShortcutHint,
@@ -85,6 +86,7 @@ export function MassUpdateForm({
   onLeave: () => void;
 }) {
   const t = useTranslations();
+  useDocumentTitle(meta.title);
   const shortcutHint = useSubmitShortcutHint();
   // One parameter per field, by field name — exactly the map the backend takes. A field whose
   // backend preset is "append" starts with the flag set, so text entered into it is added to the

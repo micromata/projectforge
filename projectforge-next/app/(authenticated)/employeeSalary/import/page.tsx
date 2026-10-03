@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { PageShell } from "@/components/shared/page-shell";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { EmployeeSalaryImport } from "@/components/features/employee-salary-import/employee-salary-import";
 import { EmployeeSalaryImportFormatHint } from "@/components/features/employee-salary-import/format-hint";
 
@@ -15,13 +16,13 @@ import { EmployeeSalaryImportFormatHint } from "@/components/features/employee-s
  */
 export default function EmployeeSalaryImportPage() {
   const t = useTranslations();
+  const title = t("fibu.employee.salaries.import._");
+  useDocumentTitle(title);
 
   return (
     <PageShell>
       <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
-        <h1 className="text-lg font-bold tracking-tight">
-          {t("fibu.employee.salaries.import._")}
-        </h1>
+        <h1 className="text-lg font-bold tracking-tight">{title}</h1>
         <div className="flex-1" />
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
