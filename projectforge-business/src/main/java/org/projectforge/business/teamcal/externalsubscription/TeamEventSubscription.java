@@ -191,34 +191,8 @@ public class TeamEventSubscription implements Serializable {
       return;
     }
 
-    final SubscriptionHolder newSubscription = new SubscriptionHolder();
-    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
     try {
-      final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
-      Long startId = -1L;
-      ICalParser parser = new ICalParser();
-
-      // the event id must (!) be negative and decrementing (different on each event)
-      for (TeamEventDO event : parser.parse(bytes)) {
-        if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
-          continue;
-        }
-        event.setId(startId);
-        event.setCalendar(teamCalDO);
-
-        if (event.hasRecurrence()) {
-          // special treatment for recurrence events ..
-          newRecurrenceEvents.add(event);
-        } else {
-          newSubscription.add(event);
-        }
-
-        startId--;
-      }
-
-      // OK, update the subscription:
-      recurrenceEvents = newRecurrenceEvents;
-      subscription = newSubscription;
+      parseEvents(teamCalDO, bytes);
       lastUpdated = System.currentTimeMillis();
       currentInitializedHash = teamCalDO.getExternalSubscriptionHash();
       clear();
@@ -231,6 +205,55 @@ public class TeamEventSubscription implements Serializable {
           + "': "
           + e.getMessage());
     }
+  }
+
+  /**
+   * Shows the events last fetched (stored in the database) without fetching the calendar, e.g. after a restart for
+   * a failing subscription, which isn't retried immediately. Not regarded as update, see {@link #getLastUpdated()}.
+   */
+  public void loadFromDatabase(final TeamCalDO teamCalDO) {
+    this.teamCalId = teamCalDO.getId();
+    this.initialized = true;
+    final byte[] bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
+    if (bytes == null) {
+      return;
+    }
+    try {
+      parseEvents(teamCalDO, bytes);
+      log.info("Subscribed calendar #" + teamCalDO.getId() + " loaded from database (subscription is failing).");
+    } catch (final Exception e) {
+      log.warn("Unable to load subscribed calendar #" + teamCalDO.getId() + " from database: " + e.getMessage());
+    }
+  }
+
+  private void parseEvents(final TeamCalDO teamCalDO, final byte[] bytes) {
+    final SubscriptionHolder newSubscription = new SubscriptionHolder();
+    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
+    final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
+    Long startId = -1L;
+    ICalParser parser = new ICalParser();
+
+    // the event id must (!) be negative and decrementing (different on each event)
+    for (TeamEventDO event : parser.parse(bytes)) {
+      if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
+        continue;
+      }
+      event.setId(startId);
+      event.setCalendar(teamCalDO);
+
+      if (event.hasRecurrence()) {
+        // special treatment for recurrence events ..
+        newRecurrenceEvents.add(event);
+      } else {
+        newSubscription.add(event);
+      }
+
+      startId--;
+    }
+
+    // OK, update the subscription:
+    recurrenceEvents = newRecurrenceEvents;
+    subscription = newSubscription;
   }
 
   private void clear() {

@@ -125,6 +125,35 @@ class IntegrationTest {
     }
 
     @Test
+    fun `retry backoff gets less frequent`() {
+        val min = 60_000L
+        val hour = 60 * min
+        val day = 24 * hour
+        val backoff = RetryBackoff(
+            listOf(RetryBackoff.Phase(15 * min, 45 * min), RetryBackoff.Phase(hour, day)), day,
+        )
+        val start = 1_000_000L
+        // Follow the schedule from the first failure on:
+        val attempts = generateSequence(start) { backoff.nextAttempt(start, it) }.take(30).map { (it - start) / min }.toList()
+        // 3 times every 15 minutes, then hourly:
+        assertEquals(listOf(0L, 15, 30, 45, 105, 165, 225), attempts.take(7))
+        assertEquals(45 + 23 * 60L, attempts[26]) // Last hourly retry within 24 h after the first failure,
+        assertEquals(listOf(attempts[26] + 24 * 60, attempts[26] + 48 * 60), attempts.subList(27, 29)) // then daily.
+        // A late attempt continues with the next slot:
+        assertEquals(start + 105 * min, backoff.nextAttempt(start, start + 61 * min))
+        val lastHourly = start + (45 + 23 * 60) * min
+        assertEquals(lastHourly + 4 * day, backoff.nextAttempt(start, start + 4 * day + 3 * hour))
+        // Unknown last attempt (restart): no immediate retry, but the next slot.
+        assertFalse(backoff.isDue(start, null, start + 10 * day + 5 * hour))
+        assertEquals(lastHourly + 10 * day, backoff.nextAttempt(start, null, start + 10 * day + 5 * hour))
+        assertTrue(backoff.isDue(start, start + 10 * day + 5 * hour, lastHourly + 10 * day))
+        // The tolerance catches slots slightly after the tick of a periodic job:
+        val tolerant = RetryBackoff(listOf(RetryBackoff.Phase(15 * min, 45 * min)), day, 5 * min)
+        assertFalse(backoff.isDue(start, start + 3000, start + 15 * min - 3000))
+        assertTrue(tolerant.isDue(start, start + 3000, start + 15 * min - 3000))
+    }
+
+    @Test
     fun `classify errors`() {
         assertTrue(IntegrationErrors.isTimeout(RuntimeException(SocketTimeoutException())))
         assertFalse(IntegrationErrors.isTimeout(RuntimeException(ConnectException())))
