@@ -38,13 +38,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Only for logging some information on a very early start-up phase (logging is initialized).
  */
 public class ProjectForgeStartupListener implements ApplicationListener<ApplicationPreparedEvent> {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeStartupListener.class);
+
+    private static final Pattern SECRET_KEY_PATTERN = Pattern.compile("password|passwd|secret|token|credential|apikey|api-key|privatekey");
 
     private File baseDir;
 
@@ -66,12 +70,36 @@ public class ProjectForgeStartupListener implements ApplicationListener<Applicat
         log.info("Using Java home   : " + System.getProperty("java.home"));
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
-        log.info("Using JVM opts    : " + StringUtils.join(arguments, " "));
+        log.info("Using JVM opts    : " + StringUtils.join(maskSystemProperties(arguments), " "));
+        List<String> systemProperties = maskSystemProperties(arguments.stream().filter(arg -> arg.startsWith("-D")).toList());
+        log.info("Using -D options  : " + (systemProperties.isEmpty() ? "<none>" : StringUtils.join(systemProperties, " ")));
+        String[] programArgs = applicationPreparedEvent.getArgs();
+        if (programArgs != null && programArgs.length > 0) {
+            // -D options given after -jar are program arguments and are NOT evaluated by the JVM.
+            log.info("Using program args: " + StringUtils.join(maskSystemProperties(Arrays.asList(programArgs)), " "));
+        }
         log.info("Using classpath   : " + runtimeMxBean.getClassPath());
 
         // checkResource("static/index.html");
         checkResource("static/react-app.html");
         checkResource("static/favicon.ico");
+    }
+
+    /**
+     * Masks the values of -D options (and --key=value arguments) whose keys look like they contain secrets.
+     */
+    private static List<String> maskSystemProperties(final List<String> arguments) {
+        return arguments.stream().map(arg -> {
+            int pos = arg.indexOf('=');
+            if (pos < 0 || !(arg.startsWith("-D") || arg.startsWith("--"))) {
+                return arg;
+            }
+            String key = arg.substring(0, pos).toLowerCase();
+            if (SECRET_KEY_PATTERN.matcher(key).find()) {
+                return arg.substring(0, pos) + "=****";
+            }
+            return arg;
+        }).toList();
     }
 
     private void checkResource(final String resourcePath) {
