@@ -23,10 +23,10 @@
 
 package org.projectforge.messaging
 
-import org.junit.AfterClass
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.mockserver.client.MockServerClient
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.HttpRequest
@@ -40,8 +40,7 @@ class SmsSenderTest {
   private var counter = 0
 
   @Test
-  @Throws(Exception::class)
-  fun testSmsService() {
+  fun `send sms via get and post and map the responses`() {
     testCalls(200, "OK, perfect!")
     testCalls(200, "Authentication failed", expectedResponseCode = HttpResponseCode.UNKNOWN_ERROR)
     testCalls(400, "OK", expectedResponseCode = HttpResponseCode.UNKNOWN_ERROR)
@@ -80,7 +79,7 @@ class SmsSenderTest {
   ): SmsSender {
     val params = createParams("user", user, "password", password, "message", "#message", "to", "#number")
     val config = SmsSenderConfig()
-    config.setHttpMethodType(if (post) "post" else "get").url = "http://127.0.0.1:$PORT/$path"
+    config.setHttpMethodType(if (post) "post" else "get").url = "http://127.0.0.1:${mockServer.port}/$path"
     config.httpParams = params
     config.smsReturnPatternSuccess = "^OK.*"
     config.smsReturnPatternError = "ERROR"
@@ -116,7 +115,7 @@ class SmsSenderTest {
     path: String,
   ): MockServerClient {
     val method = if (post) "POST" else "GET"
-    val sc = MockServerClient("127.0.0.1", PORT)
+    val sc = MockServerClient("127.0.0.1", mockServer.port)
     val request = HttpRequest.request()
       .withMethod(method)
       .withPath("/$path")
@@ -155,7 +154,6 @@ class SmsSenderTest {
 
 
   companion object {
-    private const val PORT = 65123
     private const val TO = "0123456789"
     private const val MESSAGE = "Hello_world"
     private const val USER = "smsUser"
@@ -163,13 +161,14 @@ class SmsSenderTest {
     private const val PATH = "send"
     private lateinit var mockServer: ClientAndServer
 
-    @BeforeClass
+    @BeforeAll
     @JvmStatic
     fun startServer() {
-      mockServer = ClientAndServer.startClientAndServer(PORT)
+      // Free port chosen by MockServer, so the test doesn't collide with other processes.
+      mockServer = ClientAndServer.startClientAndServer(0)
     }
 
-    @AfterClass
+    @AfterAll
     @JvmStatic
     fun stopServer() {
       mockServer.stop()
