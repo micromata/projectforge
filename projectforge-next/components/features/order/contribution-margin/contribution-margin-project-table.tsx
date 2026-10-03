@@ -17,7 +17,7 @@ import { ContributionMarginPercentage } from "./contribution-margin-percentage";
 type Row = ContributionMarginProject;
 
 /**
- * The contribution margin per project of the period, with the DB1 of the two previous years; the sums
+ * The contribution margin per project of the period, with the DB1 and DB % of the two previous years; the sums
  * of all projects in the last row, under their columns. The DB % carries a traffic light by the configured target and red threshold. Sorted by
  * customer and project as the backend sends it; any column sorts on click.
  */
@@ -67,7 +67,7 @@ export function ContributionMarginProjectTable({
       footer: () => money(total[key]),
     });
     const percentage = (
-      key: "percentage" | "prevYearPercentage",
+      key: "percentage" | "prevYearPercentage" | "prevPrevYearPercentage",
       label: string,
       // The costs, telling a loss without revenue (red "–") from an empty row.
       costs: (row: Row | typeof total) => number
@@ -121,6 +121,9 @@ export function ContributionMarginProjectTable({
         Math.max(0, -row.prevYearProfit)
       ),
       amount("prevPrevYearProfit", t("prevPrevYear")),
+      percentage("prevPrevYearPercentage", t("prevPrevYearPercentage"), (row) =>
+        Math.max(0, -row.prevPrevYearProfit)
+      ),
     ];
   }, [t, ctx, data, total]);
 
