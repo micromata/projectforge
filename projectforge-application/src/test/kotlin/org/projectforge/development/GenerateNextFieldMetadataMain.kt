@@ -78,8 +78,13 @@ object GenerateNextFieldMetadataMain {
     generate(rootDir).forEach { (fileName, content) ->
       val outFile = outFile(rootDir, fileName)
       outFile.parentFile.mkdirs()
-      outFile.writeText(content, ENCODING)
-      println("Wrote ${outFile.path}")
+      // Unchanged files keep their mtime, so the e2e build check doesn't take them for new sources.
+      if (outFile.exists() && outFile.readText(ENCODING) == content) {
+        println("Unchanged ${outFile.path}")
+      } else {
+        outFile.writeText(content, ENCODING)
+        println("Wrote ${outFile.path}")
+      }
     }
   }
 

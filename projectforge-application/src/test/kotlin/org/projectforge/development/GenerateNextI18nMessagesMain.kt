@@ -162,8 +162,13 @@ object GenerateNextI18nMessagesMain {
     generate(rootDir).forEach { (locale, json) ->
       val outFile = outFile(rootDir, locale)
       outFile.parentFile.mkdirs()
-      outFile.writeText(json, ENCODING)
-      println("Wrote ${outFile.path}")
+      // Unchanged files keep their mtime, so the e2e build check doesn't take them for new sources.
+      if (outFile.exists() && outFile.readText(ENCODING) == json) {
+        println("Unchanged ${outFile.path}")
+      } else {
+        outFile.writeText(json, ENCODING)
+        println("Wrote ${outFile.path}")
+      }
     }
     unresolvedKeys(rootDir).let { unresolved ->
       if (unresolved.isNotEmpty()) {
