@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.lo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
+import java.util.Date
 
 /**
  * @author Kai Reinhard
@@ -125,6 +126,33 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
         if (interval != null && interval < SubscriptionUpdateInterval.FIFTEEN_MINUTES.interval) {
             // Ensures a minimal interval length of 15 minutes.
             obj.externalSubscriptionUpdateInterval = SubscriptionUpdateInterval.FIFTEEN_MINUTES.interval
+        }
+    }
+
+    override fun onUpdate(obj: TeamCalDO, dbObj: TeamCalDO) {
+        // Technical field, written only by updateExternalSubscriptionFailingSince. Reset, if the subscription
+        // is switched off, (re-)enabled or gets a new url, so the user gets a fresh start.
+        obj.externalSubscriptionFailingSince =
+            if (obj.externalSubscription && dbObj.externalSubscription
+                && obj.externalSubscriptionUrl == dbObj.externalSubscriptionUrl
+            ) {
+                dbObj.externalSubscriptionFailingSince
+            } else {
+                null
+            }
+    }
+
+    /**
+     * Persists only the start of the failure series of a subscribed calendar: no history entry, no new
+     * last-update timestamp and no re-indexing, because this is a technical state.
+     */
+    fun updateExternalSubscriptionFailingSince(calendarId: Long, failingSince: Date?) {
+        persistenceService.runInTransaction { context ->
+            context.executeUpdate(
+                "update ${TeamCalDO::class.java.simpleName} set externalSubscriptionFailingSince = :failingSince where id = :id",
+                "failingSince" to failingSince,
+                "id" to calendarId,
+            )
         }
     }
 
