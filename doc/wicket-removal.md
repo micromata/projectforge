@@ -69,7 +69,10 @@ These would break silently if the module were simply deleted.
       `IProjectForgeEndpoints` deleted.
 - [x] **`MenuCustomizationController`** (`/rs/menucustomization`) – no caller anywhere, deleted.
 - [x] **Dead code** – `PacmanViewPage` (+ `scripts/pacman`, LESS rule), `AbstractViewPage`,
-      `AbstractSecuredPopupPage` and `MenuItemRegistry` deleted.
+      `AbstractSecuredPopupPage` and `MenuItemRegistry` deleted. A second sweep removed 42 further classes
+      (+ their `.html`) that nothing referenced any more (old panels, providers, validators, …) and the
+      i18n keys only they used. Classes used only by still-mounted legacy pages (e.g.
+      `BirthdayEventsProvider` of the old calendar) stay until their page goes.
 - [x] **`TeamEventDao`** – stack-trace check for `EditPageSupport` removed.
 - [ ] **Hard-coded `wa/` links outside Wicket:**
   - ~~`task.page.tsx` "show access rights" (`wa/accessList?taskId=…`, lost the `taskId` in the redirect)~~
