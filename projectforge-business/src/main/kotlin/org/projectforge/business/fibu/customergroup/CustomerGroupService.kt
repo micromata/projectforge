@@ -115,7 +115,7 @@ class CustomerGroupService {
 
     /**
      * The name of the business unit of a customer (see [groupNameOf]), else of the one whose task the project
-     * lies below. For scripts: `CustomerGroupService.instance.businessUnitNameOf(projekt) ?: "Sonstiges"`.
+     * lies below. For scripts, bound as `customerGroupService`: `customerGroupService.businessUnitNameOf(projekt) ?: "Sonstige"`.
      */
     fun businessUnitNameOf(kundeId: Long?, kundeText: String? = null, projektId: Long? = null): String? =
         index.businessUnitOf(kundeId, kundeText, projektId)?.name

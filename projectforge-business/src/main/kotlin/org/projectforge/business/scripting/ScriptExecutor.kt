@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.EmployeeScriptingService
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.ForecastExport
 import org.projectforge.business.fibu.contributionmargin.ContributionMarginService
+import org.projectforge.business.fibu.customergroup.CustomerGroupService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotScriptingService
 import org.projectforge.business.fibu.orderbooksnapshots.OrderbookSnapshotsService
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
@@ -105,6 +106,8 @@ abstract class ScriptExecutor(
             ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
         variables["contributionMarginService"] =
             ApplicationContextProvider.getApplicationContext().getBean(ContributionMarginService::class.java)
+        variables["customerGroupService"] =
+            ApplicationContextProvider.getApplicationContext().getBean(CustomerGroupService::class.java)
         variables["employeeService"] = EmployeeScriptingService(
             ApplicationContextProvider.getApplicationContext().getBean(EmployeeService::class.java)
         )
