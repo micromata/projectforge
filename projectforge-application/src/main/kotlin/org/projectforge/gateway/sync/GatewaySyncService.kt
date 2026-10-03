@@ -208,6 +208,10 @@ class GatewaySyncService(
     }
 
     /**
+     * Processed in chunks of [ADDRESS_CHUNK_SIZE], each in its own transaction with one lookup query for the
+     * addresses and one for the images, so a full sync of thousands of addresses doesn't hold a single
+     * connection for minutes. Images are only rewritten if changed, so CardDAV clients don't reload all photos
+     * after each full sync.
      * @param addresses New, modified and deleted addresses (delta) or all addresses of the main instance (full sync).
      * @param fullSync If true, addresses missing in [addresses] are marked as deleted.
      */
@@ -216,77 +220,22 @@ class GatewaySyncService(
         var updated = 0
         var deleted = 0
         var errors = 0
-        persistenceService.runInTransaction { context ->
-            val em = context.em
-            val globalAddressbook = ensureGlobalAddressbookExists(em)
-            for (dto in addresses) {
-                try {
-                    var address = em.createQuery(
-                        "SELECT a FROM AddressDO a WHERE a.uid = :uid",
-                        AddressDO::class.java
-                    ).setParameter("uid", dto.uid).resultList.firstOrNull()
-
-                    if (address == null) {
-                        if (dto.deleted) {
-                            continue // Deleted on the main instance before it was ever synced.
-                        }
-                        address = AddressDO()
-                        address.uid = dto.uid
-                        address.add(globalAddressbook)
-                        created++
-                    } else if (dto.deleted) {
-                        if (!address.deleted) {
-                            deleted++
-                        }
-                    } else {
-                        updated++
-                    }
-                    address.deleted = dto.deleted
-                    address.firstName = dto.firstName
-                    address.name = dto.lastName
-                    address.organization = dto.organization
-                    address.email = dto.email
-                    address.privateEmail = dto.privateEmail
-                    address.businessPhone = dto.businessPhone
-                    address.mobilePhone = dto.mobilePhone
-                    address.privatePhone = dto.privatePhone
-                    // merge() returns the managed instance: only this one has an id for new addresses.
-                    address = em.merge(address)
-                    em.flush()
-
-                    // Sync image
-                    val addressId = address.id
-                    if (addressId != null) {
-                        if (dto.imageData != null) {
-                            val imageBytes = Base64.getDecoder().decode(dto.imageData)
-                            val imageType = try { ImageType.valueOf(dto.imageType ?: "JPEG") } catch (_: Exception) { ImageType.JPEG }
-                            var img = em.createQuery(
-                                "SELECT i FROM AddressImageDO i WHERE i.address.id = :aid",
-                                AddressImageDO::class.java
-                            ).setParameter("aid", addressId).resultList.firstOrNull()
-                            if (img == null) {
-                                img = AddressImageDO()
-                                img.address = address
-                            }
-                            img.image = imageBytes
-                            img.imageType = imageType
-                            img.lastUpdate = Date()
-                            if (img.id == null) em.persist(img) else em.merge(img)
-                            address.imageLastUpdate = img.lastUpdate
-                        } else {
-                            em.createQuery("DELETE FROM AddressImageDO i WHERE i.address.id = :aid")
-                                .setParameter("aid", addressId).executeUpdate()
-                            address.imageLastUpdate = null
-                        }
-                    }
-                } catch (e: Exception) {
-                    log.error(e) { "Error syncing address uid='${dto.uid}'" }
-                    errors++
-                }
+        for (chunk in addresses.chunked(ADDRESS_CHUNK_SIZE)) {
+            try {
+                val result = syncAddressChunk(chunk)
+                created += result.created
+                updated += result.updated
+                deleted += result.deleted
+            } catch (e: Exception) {
+                // The chunk's transaction is rolled back completely.
+                log.error(e) { "Error syncing ${chunk.size} addresses (uids ${chunk.first().uid}..${chunk.last().uid})" }
+                errors += chunk.size
             }
-            if (fullSync && addresses.isNotEmpty()) {
-                val uids = addresses.map { it.uid }.toSet()
-                em.createQuery("SELECT a FROM AddressDO a WHERE a.deleted = false", AddressDO::class.java)
+        }
+        if (fullSync && addresses.isNotEmpty() && errors == 0) {
+            val uids = addresses.map { it.uid }.toSet()
+            persistenceService.runInTransaction { context ->
+                context.em.createQuery("SELECT a FROM AddressDO a WHERE a.deleted = false", AddressDO::class.java)
                     .resultList
                     .filter { it.uid !in uids }
                     .forEach {
@@ -301,6 +250,74 @@ class GatewaySyncService(
             expireAddressCaches()
         }
         return SyncResultDto(created = created, updated = updated, deleted = deleted, errors = errors)
+    }
+
+    private fun syncAddressChunk(chunk: List<SyncAddressDto>): SyncResultDto {
+        var created = 0
+        var updated = 0
+        var deleted = 0
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            val globalAddressbook = ensureGlobalAddressbookExists(em)
+            val addressByUid = em.createQuery("SELECT a FROM AddressDO a WHERE a.uid IN :uids", AddressDO::class.java)
+                .setParameter("uids", chunk.map { it.uid })
+                .resultList.associateBy { it.uid }
+            val imageByAddressId = if (addressByUid.isEmpty()) emptyMap() else {
+                em.createQuery("SELECT i FROM AddressImageDO i WHERE i.address.id IN :ids", AddressImageDO::class.java)
+                    .setParameter("ids", addressByUid.values.map { it.id })
+                    .resultList.associateBy { it.address?.id }
+            }
+            for (dto in chunk) {
+                var address = addressByUid[dto.uid]
+                if (address == null) {
+                    if (dto.deleted) {
+                        continue // Deleted on the main instance before it was ever synced.
+                    }
+                    address = AddressDO()
+                    address.uid = dto.uid
+                    address.add(globalAddressbook)
+                    created++
+                } else if (dto.deleted) {
+                    if (!address.deleted) {
+                        deleted++
+                    }
+                } else {
+                    updated++
+                }
+                address.deleted = dto.deleted
+                address.firstName = dto.firstName
+                address.name = dto.lastName
+                address.organization = dto.organization
+                address.email = dto.email
+                address.privateEmail = dto.privateEmail
+                address.businessPhone = dto.businessPhone
+                address.mobilePhone = dto.mobilePhone
+                address.privatePhone = dto.privatePhone
+                if (address.id == null) {
+                    em.persist(address) // Existing addresses are managed: changes are written on commit.
+                }
+
+                // Sync image
+                val img = address.id?.let { imageByAddressId[it] }
+                if (dto.imageData != null) {
+                    val imageBytes = Base64.getDecoder().decode(dto.imageData)
+                    val imageType = try { ImageType.valueOf(dto.imageType ?: "JPEG") } catch (_: Exception) { ImageType.JPEG }
+                    if (img != null && img.image?.contentEquals(imageBytes) == true && img.imageType == imageType) {
+                        continue // Image unchanged.
+                    }
+                    val image = img ?: AddressImageDO().also { it.address = address }
+                    image.image = imageBytes
+                    image.imageType = imageType
+                    image.lastUpdate = Date()
+                    if (image.id == null) em.persist(image)
+                    address.imageLastUpdate = image.lastUpdate
+                } else if (img != null) {
+                    em.remove(img)
+                    address.imageLastUpdate = null
+                }
+            }
+        }
+        return SyncResultDto(created = created, updated = updated, deleted = deleted)
     }
 
     /**
@@ -383,5 +400,12 @@ class GatewaySyncService(
             "INSERT INTO t_addressbook (pk, title, description, deleted, created, last_update) VALUES (:id, 'Global', 'Global addressbook', false, NOW(), NOW())"
         ).setParameter("id", AddressbookDao.GLOBAL_ADDRESSBOOK_ID).executeUpdate()
         return em.find(AddressbookDO::class.java, AddressbookDao.GLOBAL_ADDRESSBOOK_ID)!!
+    }
+
+    companion object {
+        /**
+         * Addresses per transaction (and per IN clause) of [syncAddresses].
+         */
+        private const val ADDRESS_CHUNK_SIZE = 500
     }
 }
