@@ -85,7 +85,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next, list and form; react/group stays reachable through the escape hatch,
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
-    HR_PLANNING_LIST("menu.hrPlanningList", "wa/hrPlanningList"), //
+    HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "wa/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the

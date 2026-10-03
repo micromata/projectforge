@@ -1775,10 +1775,33 @@
   "hr": {
     "planning": {
       "description": "Activity report",
+      "entry": {
+        "copyFromPredecessor": "Copy from predecessor",
+        "status": {
+          "absence": "absence",
+          "illness": "illness",
+          "leave": "leave",
+          "other": "other"
+        }
+      },
+      "hours": "hours",
+      "notPlanned": "Not planned",
+      "plannings": "Human resources planning",
       "priority": "Priority",
       "probability": {
+        "_": "Probability",
         "short": "%"
       },
+      "sum": "Sum",
+      "title": {
+        "add": "New human resource planning entry",
+        "edit": "Edit human resource planning entry",
+        "heading": "Human resource plannings"
+      },
+      "tooltip": {
+        "addEntry": "Add entry"
+      },
+      "total": "Total",
       "unassignedHours": "without assigned day",
       "weekend": "Week-end"
     }
@@ -2079,6 +2102,7 @@
     "gear": {
       "feedback": "Send feedback"
     },
+    "hrPlanningList": "HR planning list",
     "main": {
       "short": "Menu",
       "title": "Main menu"

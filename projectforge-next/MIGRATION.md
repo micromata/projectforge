@@ -301,7 +301,7 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
 - **JIRA-Issues als Links** (`components/shared/jira/`): Config reist einmalig über
   `userStatus` (`JiraClientConfig`, nicht über die öffentliche `SystemData`). `JiraLinkedText`
   (Zellen), `JiraIssuesLinks` (Formularfeld-Zeile), `makeJiraFieldLinks(fieldName)`
-  (deklarative Felder). Offen für spätere Seiten: HRPlanning, Contract.
+  (deklarative Felder). Offen für spätere Seiten: Contract.
 
 ## Phasen
 
@@ -388,7 +388,7 @@ Client ist die Brücke bis dahin.
 
 Fertig: **Auftragsbuch** (`order`), **Debitorenrechnungen** (`outgoingInvoice`),
 **Kreditorenrechnungen** (`incomingInvoice`), **Strukturelemente/Aufgabenbaum** (`task`),
-**Gruppen** (`group`). **Offen:** **Kalenderseite** (Detailplan
+**Gruppen** (`group`), **Wochenplanung** (`hrPlanning`). **Offen:** **Kalenderseite** (Detailplan
 [MIGRATION-calendar.md](MIGRATION-calendar.md), Phasen A/B/D umgesetzt, C offen).
 
 Alle handgebauten Seiten laufen über `PageDef` und die geteilten Bausteine oben. Was pro
@@ -445,6 +445,15 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `Group.ldapPosixConfigured`, generische Mehrfach-Entity-Auswahl
   (`entity-multi-autocomplete-field.tsx`), der Assistent legt seine Gruppe über den neuen
   `EntityEditDialog` an. `dynamic-form-dialog.tsx` damit gelöscht.
+- **Wochenplanung** (`hrPlanning`) – Liste und Bearbeitung zeigen auf **verschiedene
+  Entitäten**: die Liste zeigt Einträge (`HRPlanningEntryEntityRest`, nur lesend, Filter
+  Zeitraum/Mitarbeiter/Projekt + „gruppieren"/„nur meine Projekte" über
+  `HRPlanningEntryDao.groupAndFilter`), ein Klick öffnet die Woche (`HRPlanningEntityRest`,
+  Einträge als Collection). Dafür die geteilte `PageDef`-Option `foreignEdit` (+ `onRowClick`).
+  Gelöschte Einträge werden mit `deleted=true` gepostet, nicht weggelassen (der
+  Collection-Handler würde sie sonst physisch löschen). „Vom Vorgänger kopieren" über
+  `GET hrPlanning/predecessor`. Die Wicket-Ressourcenansicht (`wa/hrList`) bleibt und
+  verlinkt auf die next-Bearbeitung.
 
 **Verifikation** durchgängig gegen die laufende Instanz (`e2e/*.spec.ts`,
 `org.projectforge.rest.*`). Jede Spezifikation legt Wegwerf-Entitäten an und markiert sie
@@ -503,7 +512,7 @@ gelöscht.
 **Erledigt:** Phase 0, 1, 1.5 (inkl. Auth, CSRF, Metadaten, Datumseingabe, History,
 Anhänge, Zugriffsrechte – s. Fundamente); Phase 2-Fundament + Listen auf der echten
 `DataTable`; Phase 3 bis auf den Kalender (Auftragsbuch, Deb./Kred.-Rechnungen,
-Strukturelemente/Aufgabenbaum, Gruppen).
+Strukturelemente/Aufgabenbaum, Gruppen, Wochenplanung).
 
 **Als nächstes:**
 

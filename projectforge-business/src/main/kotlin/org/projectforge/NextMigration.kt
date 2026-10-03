@@ -310,6 +310,29 @@ object NextMigration {
         // The "classic version" link is no longer offered: Wicket is no longer supported for liquidity
         // (the next page is the only one). legacyApp/legacyRoute stay so OrphanedLinkFilter still redirects
         // bookmarked wicket/bookmarkable/...LiquidityEntry* links to the next page (as for `order`).
+        // The HR planning ("Wochenplanung"), migrated from Wicket (MenuItemDefId.HR_PLANNING_LIST pointed at
+        // wa/hrPlanningList) with its weekly form. Hand built: the list shows the entries of the planned weeks
+        // (HRPlanningEntryEntityRest, category hrPlanningEntry) while a row opens the week itself
+        // (HRPlanningEntityRest). The Wicket pages have been removed, so the way back is no longer offered; their
+        // mount points followed the convention (DaoConst.HR_PLANNING + List/Edit = hrPlanningList/hrPlanningEdit),
+        // so OrphanedLinkFilter still redirects bookmarked links without a legacy route spelled out.
+        "hrPlanning" to NextPage(
+            route = "hrPlanning",
+            editRoute = "hrPlanning/$ID_PLACEHOLDER",
+            newEntryRoute = "hrPlanning/new",
+            legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
+        ),
+        // The list of the HR planning above, under the category of its rows (HRPlanningEntryEntityRest): its list
+        // metadata is the one of this category. Without an entry here the category counted as a page of the React
+        // app, which has none, and the list offered a dead "classic version" link (react/hrPlanningEntry). The
+        // entries have no page of their own (a row opens its week by the planning's id, not the entry's, so no
+        // editRoute is given), and there is nothing to go back to either.
+        "hrPlanningEntry" to NextPage(
+            route = "hrPlanning",
+            newEntryRoute = "hrPlanning/new",
+            legacyApp = null,
+        ),
         // The licenses (plugin licensemanagement) are migrated straight from Wicket and their Wicket pages are
         // removed, so there is no way back. The legacy routes are the bookmarkable urls (as for `addressCampaign`),
         // they are kept so bookmarked links still reach the next page.

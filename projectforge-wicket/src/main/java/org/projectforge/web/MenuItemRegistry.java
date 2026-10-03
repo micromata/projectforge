@@ -33,7 +33,6 @@ import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
-import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPrefListPage;
@@ -85,7 +84,6 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
         // MONTHLY_EMPLOYEE_REPORT (Monatsbericht) migrated to projectforge-next (next/monthlyEmployeeReport); its Wicket page was removed.
         register(MenuItemDefId.HR_VIEW, HRListPage.class);
-        register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
         register(MenuItemDefId.GANTT, GanttChartListPage.class);
         // OUTGOING_INVOICE_LIST (Debitoren) migrated to projectforge-next; its Wicket page was removed.
         register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);

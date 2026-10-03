@@ -106,6 +106,20 @@ class NextMigrationTest {
     }
 
     /**
+     * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
+     * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
+     */
+    @Test
+    fun `the HR planning offers no way back`() {
+        for (category in listOf("hrPlanning", "hrPlanningEntry")) {
+            Assertions.assertNull(NextMigration.legacyListUrl(category), category)
+            Assertions.assertNull(NextMigration.legacyEditPage(category), category)
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
+        }
+        Assertions.assertEquals("next/hrPlanning", NextMigration.listUrl("hrPlanningEntry"))
+    }
+
+    /**
      * The group is the page the task wizard needs: it creates a group in a dialog around the *next* form
      * (see `wizard-group-step.tsx`), so the routes of that form are part of the contract. Migrated from the
      * React app, which is where the escape hatch leads.
