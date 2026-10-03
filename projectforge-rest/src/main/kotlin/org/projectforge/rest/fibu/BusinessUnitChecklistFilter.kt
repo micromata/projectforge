@@ -29,7 +29,6 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.utils.StringComparator
-import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterListValue
 
@@ -38,6 +37,9 @@ import org.projectforge.ui.filter.UIFilterListValue
  * of the chosen business units, each standing for its customers and those of its groups, and for the projects
  * below its tasks where the row's customer has no business unit (see `CustomerGroupIndex`). Keys are [PREFIX] plus the business unit's key. Offered only if business units are
  * configured.
+ *
+ * The rows of no business unit are offered as one more, [NONE_KEY] ("Sonstige"): the remainder, so the business
+ * units together with it cover every row.
  *
  * @param valuesUrl Endpoint of the selectable business units, relative to `/rs/`.
  */
@@ -50,15 +52,15 @@ internal class BusinessUnitChecklistFilter(
 ) {
     private val paths = CustomerPaths(kundePath, kundeTextPath, projektIdPath)
 
-    /** Adds the pinned element (as the customer checklist's), if any business unit is configured. */
-    fun addElement(elements: MutableList<UILabelledElement>) {
+    /** The pinned element (as the customer checklist's), or null if no business unit is configured. */
+    fun element(): UIFilterListElement? {
         if (groupIndex().businessUnits.isEmpty()) {
-            return
+            return null
         }
-        elements.add(UIFilterListElement(FIELD, label = translate("fibu.businessUnit"), multi = true).also {
+        return UIFilterListElement(FIELD, label = translate("fibu.businessUnit"), multi = true).also {
             it.valuesUrl = valuesUrl
             it.defaultFilter = true
-        })
+        }
     }
 
     /** Turns the [FIELD] entry into the criterion on the business units' customers, synthetic as [FIELD] is. */
@@ -75,25 +77,39 @@ internal class BusinessUnitChecklistFilter(
     internal fun buildPredicate(keys: Array<String>?): DBPredicate? {
         keys ?: return null
         val index = groupIndex()
-        val resolved = keys.filter { it.startsWith(PREFIX) }
+        val byBusinessUnit = keys.filter { it.startsWith(PREFIX) }
             .mapNotNull { index.resolveBusinessUnit(it.removePrefix(PREFIX)) }
             .takeIf { it.isNotEmpty() }
             ?.reduce { acc, it -> acc + it }
-            ?: return null
-        return paths.predicate(resolved, index.businessUnitCustomers)
+            ?.let { paths.predicate(it, index.businessUnitCustomers) }
+        val withoutBusinessUnit = if (NONE_KEY in keys && !index.businessUnits.isEmpty()) {
+            paths.withoutBusinessUnit(index.businessUnitCustomers, index.businessUnitProjects)
+        } else {
+            null
+        }
+        return when {
+            byBusinessUnit != null && withoutBusinessUnit != null -> DBPredicate.Or(byBusinessUnit, withoutBusinessUnit)
+            else -> byBusinessUnit ?: withoutBusinessUnit
+        }
     }
 
-    /** The business units of the given rows (by customer, else by project), each once, sorted by name. */
+    /**
+     * The business units of the given rows (by customer, else by project), each once, sorted by name, followed by
+     * [NONE_KEY] if a row has none.
+     */
     fun valuesOf(customers: Sequence<CustomerRow>): List<UIFilterListValue> {
         val index = groupIndex()
         if (index.businessUnits.isEmpty()) {
             return emptyList()
         }
-        return customers.mapNotNull { index.businessUnitOf(it.kundeId, it.kundeText, it.projektId) }
-            .distinct()
+        val businessUnits = customers.map { index.businessUnitOf(it.kundeId, it.kundeText, it.projektId) }.toSet()
+        val values = businessUnits.filterNotNull()
             .map { UIFilterListValue(PREFIX + it.key, it.name ?: it.key!!) }
             .sortedWith { a, b -> StringComparator.compare(a.displayName, b.displayName) }
-            .toList()
+        if (null !in businessUnits) {
+            return values
+        }
+        return values + UIFilterListValue(NONE_KEY, translate("fibu.businessUnits.none"))
     }
 
     companion object {
@@ -101,5 +117,8 @@ internal class BusinessUnitChecklistFilter(
         const val FIELD = "businessUnits"
 
         private const val PREFIX = "b:"
+
+        /** The rows of no business unit: a key no business unit has, theirs being six characters long. */
+        const val NONE_KEY = "${PREFIX}none"
     }
 }

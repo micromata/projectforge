@@ -69,6 +69,7 @@ import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
 import org.projectforge.ui.filter.inGroup
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -458,9 +459,7 @@ open class OrderEntityRest : // open needed by Wicket's SpringBean for proxying.
     // customer, which ask the same question by a name fragment. The project likewise (ProjectChecklistFilter),
     // replacing the pills on every field of the embedded project, its customer's included.
     elements.removeTextFilters("kunde", "kundeText", "projekt")
-    elements.add(customerFilter.element())
-    businessUnitFilter.addElement(elements)
-    elements.add(projectFilter.element())
+    elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
     // The three person fields are @IndexedEmbedded PFUserDO references, so `searchFields` expands each
     // into free-text pills on the user's name parts (username/firstname/lastname). Replace those with one
     // user picker each, as the edit form offers — a person is searched by picking them, not by typing a

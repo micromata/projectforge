@@ -131,9 +131,20 @@ object LayoutListFilterUtils {
         // so the page's explicit element wins over the auto-derived one.
         dedupById(elements)
 
-        elements.sortWith(compareBy(ThreadLocalUserContext.localeComparator) { it.label })
+        sortElements(elements, ThreadLocalUserContext.localeComparator)
         elements.forEach { container.add(it as UIElement) }
         return container
+    }
+
+    /**
+     * The [UIFilterElement.leading] fields first, in the order added, then the others by label. Stable, so
+     * fields of the same label keep their order as well.
+     */
+    internal fun sortElements(elements: MutableList<UILabelledElement>, comparator: Comparator<Any?>) {
+        elements.sortWith(
+            compareBy<UILabelledElement> { (it as? UIFilterElement)?.leading != true }
+                .thenBy(comparator) { if ((it as? UIFilterElement)?.leading == true) null else it.label }
+        )
     }
 
     /**

@@ -89,6 +89,20 @@ internal class CustomerPaths(
     }
 
     /**
+     * The rows [CustomerGroupIndex.businessUnitOf] gives no business unit: the customer is none of [assigned]
+     * (the customers having a business unit), and the project, if any, none of [projektIds] (those belonging to
+     * one by their task).
+     */
+    fun withoutBusinessUnit(assigned: ResolvedCustomers, projektIds: Collection<Long>): DBPredicate {
+        val customer = unassigned(assigned)
+        val project = projektIdPath?.takeIf { projektIds.isNotEmpty() }?.let {
+            // As in [unassigned]: a row without a project must be asked for, the NOT IN of SQL drops it.
+            DBPredicate.Or(DBPredicate.IsNull(it), DBPredicate.Not(DBPredicate.IsIn(it, projektIds.toList())))
+        }
+        return project?.let { DBPredicate.And(customer, it) } ?: customer
+    }
+
+    /**
      * A row whose customer is none of [assigned]. Written out for both kinds of customer, since a NOT over a
      * null column is not true in SQL, while it is in memory.
      */

@@ -57,6 +57,7 @@ import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterListValue
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -175,8 +176,7 @@ class ProjectEntityRest
         // The customer as the list's cell shows it, picked from those of the projects (see
         // customerFilterValues), as on the order list, replacing the free-text pills on the customer's fields.
         elements.removeTextFilters("kunde")
-        elements.add(customerFilter.element())
-        businessUnitFilter.addElement(elements)
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element())
     }
 
     /**

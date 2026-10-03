@@ -444,7 +444,8 @@ abstract class DBPredicate(
         }
 
         override fun match(obj: Any): Boolean {
-            return fieldValueMatch(obj, field!!) { innerMatch(it as String) }
+            // A missing value matches no pattern, as in SQL (where like over null is not true).
+            return fieldValueMatch(obj, field!!) { innerMatch(it as String?) }
         }
 
         private fun innerMatch(value: String?): Boolean {

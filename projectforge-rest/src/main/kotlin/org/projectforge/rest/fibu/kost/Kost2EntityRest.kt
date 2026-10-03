@@ -49,6 +49,7 @@ import org.projectforge.rest.fibu.removeTextFilters
 import org.projectforge.ui.UILabelledElement
 import org.projectforge.ui.filter.KostStatusFilterUtils
 import org.projectforge.ui.filter.UIFilterListValue
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -120,9 +121,7 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
         // The customer and the project as the list's cells show them, picked from those of the cost 2 (see
         // customerFilterValues), as on the order list, replacing the free-text pills on the project's fields.
         elements.removeTextFilters("projekt")
-        elements.add(customerFilter.element())
-        businessUnitFilter.addElement(elements)
-        elements.add(projectFilter.element())
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
     }
 
     /**

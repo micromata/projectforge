@@ -89,6 +89,7 @@ import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
 import org.projectforge.ui.filter.UIFilterListValue
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -1204,9 +1205,7 @@ open class OutgoingInvoiceEntityRest : // open: proxied by Wicket's WicketSuppor
         // customerFilterValues), as on the order list. They replace the free-text pills on every field of the
         // embedded customer and project, and on the free-text customer.
         elements.removeTextFilters("kunde", "kundeText", "projekt")
-        elements.add(customerFilter.element())
-        businessUnitFilter.addElement(elements)
-        elements.add(projectFilter.element())
+        elements.addLeading(businessUnitFilter.element(), customerFilter.element(), projectFilter.element())
     }
 
     override fun preProcessMagicFilter(

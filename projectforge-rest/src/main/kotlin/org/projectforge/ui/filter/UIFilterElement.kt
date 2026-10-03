@@ -23,6 +23,7 @@
 
 package org.projectforge.ui.filter
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.ui.AutoCompletion
 import org.projectforge.ui.LayoutContext
@@ -93,6 +94,13 @@ open class UIFilterElement(
     var technical: Boolean? = null
 
     /**
+     * Set by [addLeading]: the field comes before the ones sorted by label (see [LayoutListFilterUtils]).
+     * Server-side only: the client keeps the order it gets.
+     */
+    @JsonIgnore
+    var leading: Boolean = false
+
+    /**
      * If set, this filter offers autocompletion (type-ahead suggestions from [AutoCompletion.url]). An
      * [UIFilterObjectElement] always has one; a plain STRING filter may carry one too, so the client can
      * show suggestions while still filtering by the free text the user types (e. g. the time sheet's
@@ -133,6 +141,18 @@ fun <T : UIFilterElement> T.inGroup(group: String, shortLabel: String? = null): 
     this.group = group
     this.shortLabel = shortLabel
     return this
+}
+
+/**
+ * Adds the fields a list is filtered by first, in the given order, ahead of the ones
+ * [LayoutListFilterUtils] sorts by label: business unit, customer and project, side by side and coarse
+ * to fine, instead of under B, K and P. A null field (one not offered here) is skipped.
+ */
+fun MutableList<UILabelledElement>.addLeading(vararg fields: UIFilterElement?) {
+    fields.filterNotNull().forEach {
+        it.leading = true
+        add(it)
+    }
 }
 
 /** Marks a hand-made element as [UIFilterElement.technical], which is autodetected for property fields. */

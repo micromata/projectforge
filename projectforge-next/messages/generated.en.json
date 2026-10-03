@@ -926,8 +926,8 @@
       "tasks": "Tasks",
       "tasksHint": "Projects below one of these tasks belong to the business unit, if their customer belongs to none.",
       "title": "Business units",
-      "unassigned": "Without a business unit ({arg0})",
-      "unassignedHint": "Customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. A customer assigned only through the tasks of its projects is listed as well.",
+      "unassigned": "Other ({arg0})",
+      "unassignedHint": "What belongs to no business unit, and counts as \"Other\" in the business-unit filters and in scripts: customer groups, and customers and free texts belonging to no group, of the orders and invoices of the last five years. A customer assigned only through the tasks of its projects is listed as well; for those projects it counts to their business unit.",
       "unassignedNone": "Everything belongs to a business unit."
     },
     "common": {

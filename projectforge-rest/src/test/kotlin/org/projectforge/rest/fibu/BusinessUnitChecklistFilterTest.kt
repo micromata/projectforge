@@ -38,7 +38,6 @@ import org.projectforge.business.fibu.customergroup.CustomerGroupConfig
 import org.projectforge.business.fibu.customergroup.CustomerGroupIndex
 import org.projectforge.business.fibu.customergroup.ProjectRef
 import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.ui.UILabelledElement
 
 /**
  * The business-unit checklist matches a unit's own customers and texts and those of its groups, and the projects
@@ -100,26 +99,52 @@ class BusinessUnitChecklistFilterTest {
     }
 
     @Test
-    fun `the values take a row's project into account`() {
-        assertEquals(listOf("b:retbu2"), filter.valuesOf(sequenceOf(CustomerRow(200, null, 7))).map { it.id })
-        assertEquals(listOf("b:logbu1"), filter.valuesOf(sequenceOf(CustomerRow(101, null, 7))).map { it.id })
-        assertTrue(filter.valuesOf(sequenceOf(CustomerRow(200, null, 8))).isEmpty())
+    fun `the remainder matches the rows of no business unit`() {
+        val predicate = filter.buildPredicate(arrayOf(BusinessUnitChecklistFilter.NONE_KEY))!!
+        assertTrue(predicate.match(order(kundeId = 999)))
+        assertTrue(predicate.match(order(kundeText = "Other")))
+        assertTrue(predicate.match(order()))
+        assertTrue(predicate.match(order(kundeId = 200, projektId = 8)))
+        // A customer of a business unit, directly, through its group or by free text:
+        assertFalse(predicate.match(order(kundeId = 310)))
+        assertFalse(predicate.match(order(kundeId = 101)))
+        assertFalse(predicate.match(order(kundeText = "Müller Spedition")))
+        // A project below a business unit's task, for a customer of none:
+        assertFalse(predicate.match(order(kundeId = 200, projektId = 7)))
+        assertFalse(predicate.match(order(projektId = 7)))
+        // Combined with a business unit as an alternative:
+        val withRetail = filter.buildPredicate(arrayOf("b:retbu2", BusinessUnitChecklistFilter.NONE_KEY))!!
+        assertTrue(withRetail.match(order(kundeId = 500)))
+        assertTrue(withRetail.match(order(kundeId = 999)))
+        assertFalse(withRetail.match(order(kundeId = 310)))
+        // Nothing to be the remainder of without business units:
+        val none = BusinessUnitChecklistFilter("order/businessUnitFilterValues", groupIndex = { CustomerGroupIndex.EMPTY })
+        assertNull(none.buildPredicate(arrayOf(BusinessUnitChecklistFilter.NONE_KEY)))
     }
 
     @Test
-    fun `the values are the business units of the rows, each once, sorted by name`() {
+    fun `the values take a row's project into account`() {
+        assertEquals(listOf("b:retbu2"), filter.valuesOf(sequenceOf(CustomerRow(200, null, 7))).map { it.id })
+        assertEquals(listOf("b:logbu1"), filter.valuesOf(sequenceOf(CustomerRow(101, null, 7))).map { it.id })
+        assertEquals(
+            listOf(BusinessUnitChecklistFilter.NONE_KEY),
+            filter.valuesOf(sequenceOf(CustomerRow(200, null, 8))).map { it.id },
+        )
+    }
+
+    @Test
+    fun `the values are the business units of the rows, each once, sorted by name, the remainder last`() {
         val values = filter.valuesOf(sequenceOf(CustomerRow(500, null), CustomerRow(101, null), CustomerRow(null, "ACME AG"), CustomerRow(999, null), CustomerRow(310, null)))
-        assertEquals(listOf("b:logbu1", "b:retbu2"), values.map { it.id })
-        assertEquals(listOf("Logistics", "Retail"), values.map { it.displayName })
+        assertEquals(listOf("b:logbu1", "b:retbu2", BusinessUnitChecklistFilter.NONE_KEY), values.map { it.id })
+        assertEquals(listOf("Logistics", "Retail"), values.take(2).map { it.displayName })
+        assertEquals(listOf("b:logbu1"), filter.valuesOf(sequenceOf(CustomerRow(101, null))).map { it.id })
     }
 
     @Test
     fun `nothing is offered without business units`() {
         val none = BusinessUnitChecklistFilter("order/businessUnitFilterValues", groupIndex = { CustomerGroupIndex.EMPTY })
         assertTrue(none.valuesOf(sequenceOf(CustomerRow(101, null))).isEmpty())
-        val elements = mutableListOf<UILabelledElement>()
-        none.addElement(elements)
-        assertTrue(elements.isEmpty())
+        assertNull(none.element())
     }
 
     private val index = CustomerGroupIndex(

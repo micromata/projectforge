@@ -67,6 +67,7 @@ import org.projectforge.ui.filter.UIFilterBooleanElement
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.UIFilterObjectElement
+import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
@@ -848,7 +849,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         // The project as the order list offers it, picked from those of the sheets (see projectFilterValues),
         // replacing the free-text pills on the fields of the cost 2's project.
         elements.removeTextFilters("kost2.projekt")
-        elements.add(projectFilter.element())
+        elements.addLeading(projectFilter.element())
     }
 
     /**

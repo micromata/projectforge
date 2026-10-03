@@ -113,6 +113,10 @@ class CustomerGroupIndex(
         )
     }
 
+    /** The projects belonging to a business unit by their task, for the rows with none (see [businessUnitOf]). */
+    val businessUnitProjects: Set<Long>
+        get() = businessUnitByProjektId.keys
+
     fun getGroup(key: String?): CustomerGroup? = key?.let { groupsByKey[it] }
 
     fun getBusinessUnit(key: String?): BusinessUnit? = key?.let { businessUnitsByKey[it] }
