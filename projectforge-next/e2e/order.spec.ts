@@ -268,13 +268,18 @@ test.describe("order book", { tag: "@lane-order" }, () => {
         reveal,
         "a deleted row has to be reachable, or its number is spent"
       ).toBeVisible();
-      await reveal.click();
-      await page
-        .getByRole("button", {
-          name: `${format.t("undelete")}: ${format.t("fibu.auftrag.paymentschedule._")} 1`,
-          exact: true,
-        })
-        .click();
+      const undelete = page.getByRole("button", {
+        name: `${format.t("undelete")}: ${format.t("fibu.auftrag.paymentschedule._")} 1`,
+        exact: true,
+      });
+      // The toggle is pressed until the row shows, not just once: under the load of a full run a click
+      // went nowhere, and the bare click on the restore button then waited out the whole test.
+      await expect(async () => {
+        if ((await reveal.getAttribute("aria-pressed")) !== "true")
+          await reveal.click();
+        await expect(undelete).toBeVisible({ timeout: 2_000 });
+      }).toPass({ timeout: 20_000 });
+      await undelete.click();
       // Restored rows are live rows again, so the row count is what proves it took effect.
       await expect(scheduleRows(page, format)).toHaveCount(2);
       await page

@@ -152,6 +152,14 @@ for (const list of LISTS) {
         .catch(() => undefined);
     });
 
+    test.afterEach(async ({ loggedInPage: page }) => {
+      // And leave it at the default: the ticked criterion would otherwise narrow every later spec of
+      // this lane, which looks for its own freshly seeded row (without customer or project).
+      await page.request
+        .get(`/rs/${list.entity}/filter/reset`, { headers: HEADERS })
+        .catch(() => undefined);
+    });
+
     for (const checklist of list.checklists) {
       test(`filters the list to the ticked ${checklist.field}`, async ({
         loggedInPage: page,

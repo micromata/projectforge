@@ -84,8 +84,15 @@ test.describe("date input", { tag: "@lane-book" }, () => {
     await expect(field).toHaveValue("");
     // Back to the calendar button as soon as there is nothing left to clear, focus or not.
     await expect(clear).toBeHidden();
+  });
 
-    // …and so does the calendar's, which is the way out when the field is not focused.
+  // A test of its own rather than a continuation of the one above: that one leaves the pill with an
+  // emptied value, and whether it is still open afterwards is not what either of them is about.
+  test("clears the date from the calendar", async ({ loggedInPage: page }) => {
+    const format = await userFormat(page);
+    const field = await openDateFilter(page, format);
+
+    // The calendar's reset is the way out when the field is not focused.
     await field.fill(format.date("2024-03-07"));
     await field.blur();
     const calendar = await openCalendar(page, format);

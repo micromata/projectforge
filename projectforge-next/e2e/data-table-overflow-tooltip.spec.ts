@@ -14,6 +14,14 @@ import { waitForRow, waitForRows } from "./fixtures/list-table";
  * reasons that have nothing to do with the tooltip.
  */
 test.describe("data table overflow tooltip", { tag: "@lane-order" }, () => {
+  test.beforeEach(async ({ loggedInPage: page }) => {
+    // The filter is stored per user, and a criterion left behind by another spec of this lane would
+    // hide the seeded order the search is meant to find.
+    await page.request
+      .get("/rs/order/filter/reset", { headers: { "X-PF-Frontend": "next" } })
+      .catch(() => undefined);
+  });
+
   const TOOLTIP = "[data-slot=tooltip-content]";
 
   /**
