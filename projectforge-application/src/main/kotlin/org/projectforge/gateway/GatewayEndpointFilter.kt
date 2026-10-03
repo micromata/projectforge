@@ -30,6 +30,7 @@ import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
+import org.projectforge.rest.pub.HeartbeatRest
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
@@ -52,6 +53,7 @@ class GatewayEndpointFilter : Filter {
         "/logout",
         "/rsPublic/login",
         "/rsPublic/setup",
+        HeartbeatRest.URL,
         // React app: shell, assets and the REST services the DataTransfer pages need.
         "/react-app.html",
         "/assets/",

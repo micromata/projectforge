@@ -25,10 +25,12 @@ package org.projectforge.gateway.sync
 
 import java.security.MessageDigest
 import mu.KotlinLogging
+import org.projectforge.framework.integration.SyncStatsRegistry
 import org.projectforge.gateway.sync.dto.SyncAddressDto
 import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
+import org.projectforge.gateway.sync.dto.SyncResultDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -55,7 +57,7 @@ class GatewaySyncController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         log.info { "Receiving sync: ${users.size} users" }
-        val result = gatewaySyncService.syncUsers(users)
+        val result = measure("users") { gatewaySyncService.syncUsers(users) }
         return ResponseEntity.ok(result)
     }
 
@@ -69,7 +71,7 @@ class GatewaySyncController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         log.info { "Receiving sync: ${groups.size} groups (fullSync=$fullSync)" }
-        val result = gatewaySyncService.syncGroups(groups, fullSync)
+        val result = measure("groups") { gatewaySyncService.syncGroups(groups, fullSync) }
         return ResponseEntity.ok(result)
     }
 
@@ -83,7 +85,23 @@ class GatewaySyncController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         log.info { "Receiving sync: ${addresses.size} addresses (fullSync=$fullSync)" }
-        val result = gatewaySyncService.syncAddresses(addresses, fullSync)
+        val result = measure("addresses") { gatewaySyncService.syncAddresses(addresses, fullSync) }
+        return ResponseEntity.ok(result)
+    }
+
+    /**
+     * End of a full address sync sent in batches: all addresses missing in [uids] are marked as deleted.
+     */
+    @PostMapping("/addressbooks/retain")
+    fun retainAddresses(
+        @RequestHeader("X-Gateway-Secret") secret: String,
+        @RequestBody uids: List<String>,
+    ): ResponseEntity<Any> {
+        if (!authenticateSecret(secret)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+        log.info { "Receiving sync: ${uids.size} address uids to retain" }
+        val result = measure("addresses-retain") { gatewaySyncService.retainAddresses(uids) }
         return ResponseEntity.ok(result)
     }
 
@@ -96,7 +114,7 @@ class GatewaySyncController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         log.info { "Receiving sync: favorites of ${favorites.size} users" }
-        val result = gatewaySyncService.syncFavorites(favorites)
+        val result = measure("favorites") { gatewaySyncService.syncFavorites(favorites) }
         return ResponseEntity.ok(result)
     }
 
@@ -109,8 +127,17 @@ class GatewaySyncController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
         log.info { "Receiving sync: ${entries.size} ICS entries" }
-        val result = gatewaySyncService.syncIcsEntries(entries)
+        val result = measure("ics") { gatewaySyncService.syncIcsEntries(entries) }
         return ResponseEntity.ok(result)
+    }
+
+    /**
+     * Timing and statistics per endpoint, shown on the system statistics page (gateway-receive-*).
+     */
+    private fun measure(name: String, block: () -> SyncResultDto): SyncResultDto {
+        return SyncStatsRegistry.get("gateway-receive-$name").execute { run ->
+            run.step(name) { counts -> block().also { it.addTo(counts) } }
+        }
     }
 
     private fun authenticateSecret(secret: String): Boolean {

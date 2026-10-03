@@ -33,6 +33,8 @@ import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.integration.SyncStats;
+import org.projectforge.framework.integration.SyncStatsRegistry;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.jpa.PfPersistenceService;
@@ -61,6 +63,8 @@ public class TeamEventExternalSubscriptionCache {
     private transient TeamCalRight teamCalRight;
 
     private boolean initialized;
+
+    private final SyncStats syncStats = SyncStatsRegistry.get("ical-subscriptions");
 
     @Autowired
     private TeamCalDao teamCalDao;
@@ -106,9 +110,26 @@ public class TeamEventExternalSubscriptionCache {
             // internalGetList is valid at this point, because we are calling this method in an asyn thread
             final List<TeamCalDO> subscribedCalendars = teamCalDao.select(filter, false);
 
-            for (final TeamCalDO calendar : subscribedCalendars) {
-                updateCache(calendar);
-            }
+            syncStats.execute(null, run -> run.step("calendars", counts -> {
+                for (final TeamCalDO calendar : subscribedCalendars) {
+                    final TeamEventSubscription before = subscriptions.get(calendar.getId());
+                    final Long lastUpdated = before != null ? before.getLastUpdated() : null;
+                    final Long lastFailedUpdate = before != null ? before.getLastFailedUpdate() : null;
+                    updateCache(calendar);
+                    final TeamEventSubscription after = subscriptions.get(calendar.getId());
+                    if (after != null && after.getLastFailedUpdate() != null
+                            && !after.getLastFailedUpdate().equals(lastFailedUpdate)) {
+                        counts.setErrors(counts.getErrors() + 1);
+                    } else if (after != null && after.getLastUpdated() != null
+                            && !after.getLastUpdated().equals(lastUpdated)) {
+                        counts.setUpdated(counts.getUpdated() + 1);
+                    } else {
+                        // Not due (refresh interval) or skipped (e.g. deactivated owner).
+                        counts.setUnchanged(counts.getUnchanged() + 1);
+                    }
+                }
+                return null;
+            }));
 
             final List<Long> idsToRemove = new ArrayList<>();
             for (final Long calendarId : subscriptions.keySet()) {

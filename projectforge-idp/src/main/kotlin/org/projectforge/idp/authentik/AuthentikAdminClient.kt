@@ -27,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
+import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.idp.IdpAdminClient
 import org.projectforge.idp.model.IdpGroup
 import org.projectforge.idp.model.IdpUser
@@ -37,7 +39,6 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.ResourceAccessException
@@ -45,6 +46,9 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 
 private val log = KotlinLogging.logger {}
+
+// Guard against endless pagination (e.g. a server always returning a next link).
+private const val MAX_PAGES = 1000
 
 /**
  * Authentik implementation of [IdpAdminClient].
@@ -71,13 +75,10 @@ open class AuthentikAdminClient(
     // Java's default HttpURLConnection does not support the PATCH method.
     // Content compression is disabled to avoid response truncation when the server
     // returns Content-Length based on the compressed size but the body is decompressed.
-    private val restTemplate = RestTemplate(
-        HttpComponentsClientHttpRequestFactory(
-            org.apache.hc.client5.http.impl.classic.HttpClients.custom()
-                .disableContentCompression()
-                .build()
-        )
-    )
+    // Pooled client with timeouts (IntegrationConfig "idp"), created on first use after the configuration is read.
+    private val restTemplate by lazy {
+        RestTemplate(PooledHttpClients.requestFactory(IntegrationConfig.IDP, disableContentCompression = true))
+    }
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     private val apiBaseUrl: String
@@ -308,6 +309,10 @@ open class AuthentikAdminClient(
         var page = 1
         val pageSize = authentikConfig.pageSize
         while (true) {
+            if (page > MAX_PAGES) {
+                log.warn { "Stopped fetching $baseUrl after $MAX_PAGES pages (${result.size} items): more pages than expected." }
+                break
+            }
             val url = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("page", page)
                 .queryParam("page_size", pageSize)

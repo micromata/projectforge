@@ -32,12 +32,13 @@ import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
-import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.HttpStatus
 import org.apache.hc.core5.http.NameValuePair
 import org.apache.hc.core5.http.message.BasicNameValuePair
 import org.apache.hc.core5.net.URIBuilder
 import org.projectforge.common.StringHelper
+import org.projectforge.framework.integration.IntegrationConfig
+import org.projectforge.framework.integration.PooledHttpClients
 import org.projectforge.sms.SmsSenderConfig
 import java.io.IOException
 import java.io.UnsupportedEncodingException
@@ -74,7 +75,8 @@ class SmsSender(private var config: SmsSenderConfig) {
     }
     val proceededUrl = replaceVariables(config.url, phoneNumber, message, true)
     val method = createHttpMethod(proceededUrl, phoneNumber, message)
-    createHttpClient().use { client ->
+    // The pooled client is shared and must not be closed.
+    createHttpClient().let { client ->
       return try {
         client.execute(method) { httpResponse ->
           val statusCode = httpResponse.code
@@ -111,7 +113,7 @@ class SmsSender(private var config: SmsSenderConfig) {
         val errorKey = "Call failed. Please contact administrator."
         log.error(
           errorKey + ": " + proceededUrl + " for number "
-              + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
+              + StringHelper.hideStringEnding(phoneNumber, 'x', 3) + ": " + ex.message
         )
         HttpResponseCode.UNKNOWN_ERROR
       }
@@ -196,8 +198,11 @@ class SmsSender(private var config: SmsSenderConfig) {
     return post
   }
 
+  /**
+   * Shared pooled client with timeouts (IntegrationConfig "sms"), so a hanging sms gateway can't block the caller.
+   */
   protected fun createHttpClient(): CloseableHttpClient {
-    return HttpClients.createDefault()
+    return PooledHttpClients.get(IntegrationConfig.SMS)
   }
 
   fun setConfig(config: SmsSenderConfig): SmsSender {
