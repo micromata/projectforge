@@ -1,6 +1,14 @@
 import { test, expect, goto } from "./fixtures/auth";
-import { userFormat, type UserFormat } from "./fixtures/format";
-import { filterElements, reopenPill } from "./fixtures/filter-pill";
+import {
+  label as leafLabel,
+  userFormat,
+  type UserFormat,
+} from "./fixtures/format";
+import {
+  cancelButton,
+  filterElements,
+  reopenPill,
+} from "./fixtures/filter-pill";
 import { ORDER_PAGE } from "../components/features/order/order.page";
 import {
   INVOICE_ENTITY,
@@ -157,14 +165,21 @@ for (const list of LISTS) {
         loggedInPage: page,
       }) => {
         const { t } = await userFormat(page);
-        const offered = await filterValues(
-          page,
-          valuesUrl(list, checklist.field)
+        // Picked from what the pill itself offers: it asks with the list's default criteria (the
+        // project list's "not ended"), which a request of the test's own would have to repeat.
+        const url = valuesUrl(list, checklist.field);
+        const values = page.waitForResponse(
+          (response) =>
+            response.url().endsWith(`/rs/${url}`) &&
+            response.request().method() === "POST"
+        );
+        const label = await openFilter(page, t, list, checklist.field);
+        const offered = pickable(
+          (await (await values).json()) as FilterListValue[]
         );
         test.skip(offered.length < 2, `Fewer than two ${checklist.field}.`);
         const [first, second] = offered;
 
-        const label = await openFilter(page, t, list, checklist.field);
         // Listened for before ticking: the pill applies live, so the request may leave at once.
         const filtered = filteredListPage(page, list.entity, checklist.field, [
           first.id,
@@ -221,6 +236,8 @@ for (const list of LISTS) {
         await tick(page, t, customer!);
         await applied;
         await page.keyboard.press("Escape");
+        // Closed before the next pill opens, or both popovers' cancel buttons match.
+        await expect(cancelButton(page, t)).toBeHidden();
 
         // The project checklist asks with the customer as the other criterion, and offers that answer.
         const narrowed = page.waitForResponse(
@@ -252,7 +269,7 @@ function valuesUrl(list: List, field: Checklist["field"]): string {
 
 /**
  * The values a checklist offers with [entries] as the other criteria (the list's default filter is not
- * among them, so they may be more than the list shows); named and not free text only.
+ * among them, so they may be more than the list shows); only the [pickable] ones.
  */
 async function filterValues(
   page: Page,
@@ -264,8 +281,17 @@ async function filterValues(
     data: { entries },
   });
   expect(response.ok()).toBeTruthy();
-  return ((await response.json()) as FilterListValue[]).filter(
-    (it) => !it.freeText && it.displayName.trim()
+  return pickable((await response.json()) as FilterListValue[]);
+}
+
+/**
+ * The values a test can pick and check rows against: named, and neither free text nor a customer group —
+ * a group stands for several customers, so no row's cell names it, and its checkbox carries the group
+ * badge in its name.
+ */
+function pickable(values: FilterListValue[]): FilterListValue[] {
+  return values.filter(
+    (it) => !it.freeText && !it.group && it.displayName.trim()
   );
 }
 
@@ -311,7 +337,10 @@ async function openFilter(
   if (navigate) {
     await goto(page, list.route);
     await expect(
-      page.getByRole("heading", { name: t(list.titleKey) })
+      // A title key may also be the parent of others (`fibu.projekt.title.list.select`), see leafLabel().
+      page.getByRole("heading", {
+        name: leafLabel({ t } as UserFormat, list.titleKey),
+      })
     ).toBeVisible({
       timeout: 60_000,
     });
@@ -337,7 +366,11 @@ async function tick(page: Page, t: Translate, pick: FilterListValue) {
     .check();
 }
 
-/** The list request carrying all of [keys] as the criterion of [field]. */
+/**
+ * The list request carrying all of [keys] as the criterion of [field]: `listPage` with the filter wrapped
+ * for a server-paged list (order, invoice), `list` with the bare filter for one loaded whole (project,
+ * cost 2). Both answer the rows as `resultSet`.
+ */
 function filteredListPage(
   page: Page,
   entity: string,
@@ -345,11 +378,14 @@ function filteredListPage(
   keys: string[]
 ): Promise<Response> {
   return page.waitForResponse((response) => {
-    if (!response.url().endsWith(`/rs/${entity}/listPage`)) return false;
+    const path = new URL(response.url()).pathname;
+    const paged = path.endsWith(`/rs/${entity}/listPage`);
+    if (!paged && !path.endsWith(`/rs/${entity}/list`)) return false;
     const body = response.request().postDataJSON() as
-      | { filter?: MagicFilter }
+      | (MagicFilter & { filter?: MagicFilter })
       | undefined;
-    const entry = body?.filter?.entries?.find((it) => it.field === field);
+    const filter = paged ? body?.filter : body;
+    const entry = filter?.entries?.find((it) => it.field === field);
     const values = entry?.value?.values ?? [];
     return keys.every((key) => values.includes(key));
   });
