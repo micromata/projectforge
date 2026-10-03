@@ -88,9 +88,6 @@ open class MenuConfiguration {
     @Value("\${projectforge.menu.visibility.myScripts}")
     private var myScriptsVisibility: String? = null
 
-    @Value("\${projectforge.menu.visibility.myPreferences}")
-    private var myPreferencesVisibility: String? = null
-
     @Value("\${projectforge.menu.visibility.personalStatistics}")
     private var personalStatisticsVisibility: String? = null
 
@@ -206,7 +203,6 @@ open class MenuConfiguration {
         registry.add(MenuVisibility("my2FA", my2FAVisibility, MenuItemDefId.MY_2FA))
         registry.add(MenuVisibility("my2FASetup", my2FASetupVisibility, MenuItemDefId.MY_2FA_SETUP))
         registry.add(MenuVisibility("myScripts", myScriptsVisibility, MenuItemDefId.MY_SCRIPT_LIST))
-        registry.add(MenuVisibility("myPreferences", myPreferencesVisibility, MenuItemDefId.MY_PREFERENCES))
         registry.add(
             MenuVisibility(
                 "personalStatistics",

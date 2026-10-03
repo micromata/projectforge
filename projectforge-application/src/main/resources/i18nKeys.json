@@ -2260,7 +2260,6 @@
   {"i18nKey":"menu.monthlyEmployeeReport.fileprefix","bundleName":"I18nResources","translation":"MonthlyEmployeeReport","translationDE":"Monatsbericht","usedInClasses":["org.projectforge.rest.fibu.MonthlyEmployeeReportRest"],"usedInFiles":[]},
   {"i18nKey":"menu.multiTenancy","bundleName":"I18nResources","translation":"Multi tenancy","translationDE":"Multi tenancy","usedInClasses":[],"usedInFiles":[]},
   {"i18nKey":"menu.myAccount","bundleName":"I18nResources","translation":"My account","translationDE":"Mein Zugang","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":["./projectforge-wicket/src/main/java/org/projectforge/web/core/NavTopPanel.html"]},
-  {"i18nKey":"menu.myPreferences","bundleName":"I18nResources","translation":"Favorites (deprecated)","translationDE":"Favoriten (veraltet)","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.myScriptList","bundleName":"I18nResources","translation":"List of my scripts","translationDE":"Meine Scripte","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.orga","bundleName":"I18nResources","translation":"Organization","translationDE":"Organisation","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
   {"i18nKey":"menu.orga.postausgang","bundleName":"I18nResources","translation":"Outbox","translationDE":"Postausgang","usedInClasses":["org.projectforge.menu.builder.MenuItemDefId"],"usedInFiles":[]},
