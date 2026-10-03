@@ -33,6 +33,7 @@ import org.mockito.kotlin.whenever
 import org.projectforge.gateway.sync.GatewaySyncController
 import org.projectforge.gateway.sync.GatewaySyncService
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
+import org.projectforge.gateway.sync.dto.SyncResultDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.springframework.http.HttpStatus
 
@@ -61,7 +62,7 @@ class GatewaySyncControllerTest {
     fun acceptsValidSecretForUsers() {
         val controller = GatewaySyncController(syncService, "my-secret")
         whenever(syncService.syncUsers(any())).thenReturn(
-            GatewaySyncService.SyncResult(created = 1, updated = 0, errors = 0)
+            SyncResultDto(created = 1, updated = 0, errors = 0)
         )
 
         val users = listOf(
@@ -81,7 +82,7 @@ class GatewaySyncControllerTest {
     fun acceptsValidSecretForIcs() {
         val controller = GatewaySyncController(syncService, "my-secret")
         whenever(syncService.syncIcsEntries(any())).thenReturn(
-            GatewaySyncService.SyncResult(created = 0, updated = 2, errors = 0)
+            SyncResultDto(created = 0, updated = 2, errors = 0)
         )
 
         val entries = listOf(

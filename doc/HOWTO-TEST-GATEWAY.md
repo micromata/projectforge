@@ -310,8 +310,42 @@ The main instance pushes only the minimum necessary data to the gateway:
 ### Addresses
 Full contact data for CardDAV (name, organization, email, phone).
 
+### CardDAV favorites
+CardDAV serves only the addresses a user marked as favorite. The main instance pushes the
+complete list of favorites (user name and address uid), but only if it changed since the last
+push (on a full sync always). The gateway replaces its favorites with this list, so favorites
+created locally on the gateway are removed.
+
 ### ICS data
 Pre-computed ICS calendar exports per user and calendar.
+
+### Delta sync and nightly full sync
+
+| Run | When | What is pushed |
+|-----|------|----------------|
+| Delta sync | every `syncIntervalMs` (default 15 min) | all users and groups; only addresses (incl. images), favorites and ICS calendars changed since the last push |
+| Full sync | nightly (`fullSyncCron`, default `0 0 3 * * *`) and on the first run after a restart of the main instance | everything |
+
+```properties
+projectforge.gateway.push.syncIntervalMs=900000
+projectforge.gateway.push.fullSyncCron=0 0 3 * * *
+```
+
+Deletions on the main instance:
+
+- **Users** are always pushed completely, deactivated and deleted ones with `active=false`. The
+  gateway revokes their DAV and calendar tokens immediately (with the next delta sync).
+- **Addresses** marked as deleted are part of the delta sync and are deleted on the gateway.
+  Addresses missing completely (e.g. removed from the database) are deleted on the gateway by the
+  full sync.
+- **Groups** missing on the main instance are deleted on the gateway by the full sync (members
+  removed, group marked as deleted).
+
+After each sync with changed addresses or favorites, the gateway clears its address caches, so
+CardDAV clients get the changes with their next request.
+
+If the gateway restarts, it loses its in-memory ICS cache. It reports this in the response of
+the ICS push, and the main instance then pushes all calendars again at once.
 
 ### Note: automatically generated tokens on the gateway
 
@@ -578,8 +612,8 @@ keytool -list -keystore ~/pf-truststore.jks -storepass changeit -alias gateway-p
 ```
 
 If the main instance runs in a container, the truststore has to be available inside the
-container. Restart the main instance; the sync appears in the gateway log after at most
-`syncIntervalMs`.
+container. Restart the main instance; the sync (a full sync, being the first run after the
+restart) appears in the gateway log after at most `syncIntervalMs`.
 
 Note that the truststore is a snapshot of the JDK's `cacerts`: after a JDK update, recreate it
 so that new or renewed public CAs are included.

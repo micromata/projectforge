@@ -37,4 +37,5 @@ data class SyncAddressDto(
     val vCardData: String? = null,
     val imageData: String? = null,
     val imageType: String? = null,
+    val deleted: Boolean = false,
 )

@@ -24,6 +24,7 @@
 package org.projectforge.gateway.push
 
 import mu.KotlinLogging
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressImageDO
 import org.projectforge.business.teamcal.admin.TeamCalCache
@@ -38,8 +39,10 @@ import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.gateway.sync.dto.SyncAddressDto
+import org.projectforge.gateway.sync.dto.SyncFavoritesDto
 import org.projectforge.gateway.sync.dto.SyncGroupDto
 import org.projectforge.gateway.sync.dto.SyncIcsEntryDto
+import org.projectforge.gateway.sync.dto.SyncResultDto
 import org.projectforge.gateway.sync.dto.SyncUserDto
 import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,6 +50,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import java.util.Base64
+import java.util.Date
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 private val log = KotlinLogging.logger {}
 
@@ -66,6 +72,19 @@ class GatewaySyncPushService(
 
     private val lastPushHashes = mutableMapOf<String, Int>()
 
+    /**
+     * Start of the last successful address push. Null until the first successful push, so the first sync after
+     * a restart of the main instance is a full sync.
+     */
+    private var lastAddressPush: Date? = null
+
+    /**
+     * Hash of the last successfully pushed favorites: they are only pushed again if changed.
+     */
+    private var lastFavoritesHash: Int? = null
+
+    private val pushLock = ReentrantLock()
+
     private val webClient: WebClient by lazy {
         WebClient.builder()
             .baseUrl(config.url)
@@ -73,6 +92,10 @@ class GatewaySyncPushService(
             .build()
     }
 
+    /**
+     * Pushes all users, including deactivated and deleted ones (active = false), so the gateway revokes
+     * their access. Tokens are only sent for active users.
+     */
     fun pushUsers(): Boolean {
         log.info { "Pushing users to gateway..." }
         val users = userDao.selectAll(checkAccess = false)
@@ -80,46 +103,81 @@ class GatewaySyncPushService(
             "SELECT a FROM UserAuthenticationsDO a",
             UserAuthenticationsDO::class.java,
         ).associateBy { it.userId }
-        val dtos = users.filter { it.hasSystemAccess() }.map { user ->
-            val auth = authByUserId[user.id]
+        val dtos = users.filter { it.username != null }.map { user ->
+            val active = user.hasSystemAccess()
+            val auth = if (active) authByUserId[user.id] else null
             SyncUserDto(
                 username = user.username!!,
                 idpExternalId = user.idpExternalId,
                 davToken = auth?.davToken,
                 calendarRestToken = auth?.calendarExportToken,
-                active = user.hasSystemAccess(),
+                active = active,
             )
         }
-        return postSync("/users", dtos)
+        return postSync("/users", dtos) != null
     }
 
-    fun pushGroups() {
+    /**
+     * Groups are always pushed completely (small data volume). On a full sync, the gateway deletes groups
+     * that are missing here.
+     */
+    fun pushGroups(fullSync: Boolean) {
         log.info { "Pushing groups to gateway..." }
-        val groups = userGroupCache.allGroups
+        val groups = userGroupCache.allGroups.filter { !it.deleted && it.name != null }
         val dtos = groups.map { group ->
             SyncGroupDto(
                 name = group.name!!,
                 memberUsernames = group.assignedUsers?.mapNotNull { it.username } ?: emptyList(),
             )
         }
-        postSync("/groups", dtos)
+        postSync("/groups?fullSync=$fullSync", dtos)
     }
 
-    fun pushAddressBooks() {
-        log.info { "Pushing address books to gateway..." }
-        val addresses = addressDao.findAll()
-        val imagesByAddressId = persistenceService.runReadOnly { context ->
-            val images = context.executeQuery(
-                "SELECT i FROM AddressImageDO i",
-                AddressImageDO::class.java,
+    /**
+     * Delta sync: only addresses whose data or image changed since the last successful push, including
+     * deleted ones. Full sync: all addresses, the gateway deletes addresses missing here.
+     */
+    fun pushAddressBooks(fullSync: Boolean): Boolean {
+        val pushStart = Date()
+        val since = lastAddressPush?.let { Date(it.time - DELTA_OVERLAP_MS) }
+        val full = fullSync || since == null
+        val addresses = if (full) {
+            addressDao.findAll().filterNotNull()
+        } else {
+            persistenceService.executeQuery(
+                "SELECT a FROM AddressDO a WHERE a.lastUpdate >= :since OR a.imageLastUpdate >= :since",
+                AddressDO::class.java,
+                Pair("since", since),
             )
+        }
+        if (!full && addresses.isEmpty()) {
+            log.info { "No address changes since $since, skipping address push." }
+            lastAddressPush = pushStart
+            return true
+        }
+        log.info { "Pushing ${addresses.size} addresses to gateway (fullSync=$full)..." }
+        val imagesByAddressId = persistenceService.runReadOnly { context ->
+            val images = if (full) {
+                context.executeQuery(
+                    "SELECT i FROM AddressImageDO i",
+                    AddressImageDO::class.java,
+                )
+            } else {
+                addresses.mapNotNull { it.id }.chunked(1000).flatMap { ids ->
+                    context.executeQuery(
+                        "SELECT i FROM AddressImageDO i WHERE i.address.id IN :ids",
+                        AddressImageDO::class.java,
+                        Pair("ids", ids),
+                    )
+                }
+            }
             images.mapNotNull { img ->
                 val addressId = img.address?.id ?: return@mapNotNull null
                 val data = img.image ?: return@mapNotNull null
                 addressId to Pair(Base64.getEncoder().encodeToString(data), img.imageType?.name)
             }.toMap()
         }
-        val dtos = addresses.filterNotNull().map { address ->
+        val dtos = addresses.map { address ->
             val imgPair = imagesByAddressId[address.id]
             SyncAddressDto(
                 uid = address.uid ?: "pf-${address.id}",
@@ -133,16 +191,55 @@ class GatewaySyncPushService(
                 privatePhone = address.privatePhone,
                 imageData = imgPair?.first,
                 imageType = imgPair?.second,
+                deleted = address.deleted,
             )
         }
-        postSync("/addressbooks", dtos)
+        if (postSync("/addressbooks?fullSync=$full", dtos) == null) {
+            return false
+        }
+        lastAddressPush = pushStart
+        return true
     }
 
-    fun pushIcsData() {
+    /**
+     * Pushes the complete list of CardDAV favorites (user name and address uid), if changed since the last push.
+     * The favorite flag doesn't update the lastUpdate timestamp reliably, so a delta isn't possible here, but
+     * the data volume is small.
+     */
+    fun pushFavorites(fullSync: Boolean) {
+        val rows = persistenceService.executeQuery(
+            "SELECT pa.owner.username, pa.address.uid, pa.address.id FROM PersonalAddressDO pa" +
+                    " WHERE pa.favoriteCard = true AND pa.deleted = false AND pa.address.deleted = false",
+            Array<Any?>::class.java,
+        )
+        val dtos = rows
+            .filter { it[0] != null }
+            .groupBy({ it[0] as String }, { (it[1] as String?) ?: "pf-${it[2]}" })
+            .map { (username, uids) -> SyncFavoritesDto(username = username, addressUids = uids.sorted()) }
+            .sortedBy { it.username }
+        val hash = dtos.hashCode()
+        if (!fullSync && hash == lastFavoritesHash) {
+            log.info { "Favorites unchanged, skipping favorites push." }
+            return
+        }
+        log.info { "Pushing favorites of ${dtos.size} users to gateway..." }
+        if (postSync("/favorites", dtos) != null) {
+            lastFavoritesHash = hash
+        }
+    }
+
+    /**
+     * Pushes only calendars whose ICS data changed since the last push. A full sync pushes all calendars.
+     * If the gateway reports an empty ICS cache (e.g. after a restart), all calendars are pushed again at once.
+     */
+    fun pushIcsData(fullSync: Boolean, retryOnEmptyGatewayCache: Boolean = true) {
         val serviceRest = calendarSubscriptionServiceRest
         if (serviceRest == null) {
             log.info { "Skipping ICS push (CalendarSubscriptionServiceRest not available)" }
             return
+        }
+        if (fullSync) {
+            lastPushHashes.clear()
         }
         log.info { "Pushing ICS calendar data to gateway..." }
         val users = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() && !it.deactivated }
@@ -201,10 +298,13 @@ class GatewaySyncPushService(
             }
         }
 
-        if (icsEntries.isNotEmpty()) {
-            postSync("/ics", icsEntries)
-        }
+        // Posted even if empty: the response tells whether the gateway still has its ICS cache.
+        val result = postSync("/ics", icsEntries)
         log.info { "ICS push complete: ${icsEntries.size} entries pushed, $skippedUnchanged unchanged (skipped)" }
+        if (result?.icsCacheSize == 0 && skippedUnchanged > 0 && retryOnEmptyGatewayCache) {
+            log.info { "Gateway reports an empty ICS cache (restarted?), pushing all calendars again." }
+            pushIcsData(fullSync = true, retryOnEmptyGatewayCache = false)
+        }
     }
 
     /**
@@ -253,30 +353,43 @@ class GatewaySyncPushService(
         return 0
     }
 
-    fun pushAll() {
-        if (!pushUsers()) return
-        pushGroups()
-        if (config.syncAddresses) pushAddressBooks()
-        if (config.syncCalendar) pushIcsData()
+    /**
+     * @param fullSync If true, all data is pushed and the gateway removes everything missing in the push
+     * (nightly). Otherwise only changed addresses and calendars are pushed. The first sync after a restart of the
+     * main instance is always a full sync.
+     */
+    fun pushAll(fullSync: Boolean = false) {
+        pushLock.withLock {
+            val full = fullSync || lastAddressPush == null
+            log.info { if (full) "Starting full gateway sync..." else "Starting delta gateway sync..." }
+            if (!pushUsers()) return
+            pushGroups(full)
+            // Favorites reference addresses by uid, so they need the addresses on the gateway first.
+            if (config.syncAddresses && pushAddressBooks(full)) pushFavorites(full)
+            if (config.syncCalendar) pushIcsData(full)
+        }
     }
 
-    private fun postSync(path: String, body: Any): Boolean {
+    /**
+     * @return The gateway's result or null if the push failed.
+     */
+    private fun postSync(path: String, body: Any): SyncResultDto? {
         try {
-            val response = webClient.post()
+            val result = webClient.post()
                 .uri(path)
                 .bodyValue(body)
                 .retrieve()
-                .toBodilessEntity()
+                .bodyToMono(SyncResultDto::class.java)
                 .block()
-            log.info { "Sync push to $path completed: status=${response?.statusCode}" }
-            return true
+            log.info { "Sync push to $path completed: $result" }
+            return result ?: SyncResultDto()
         } catch (e: Exception) {
             if (isConnectionError(e)) {
                 log.warn { "Gateway not reachable at ${config.url} (sync skipped): Sync push to $path failed" }
             } else {
                 log.error(e) { "Sync push to $path failed" }
             }
-            return false
+            return null
         }
     }
 
@@ -287,5 +400,13 @@ class GatewaySyncPushService(
             cause = cause.cause
         }
         return false
+    }
+
+    companion object {
+        /**
+         * The delta query reaches back this far before the last push, so changes committed while the last push
+         * was running aren't lost.
+         */
+        private const val DELTA_OVERLAP_MS = 5 * 60 * 1000L
     }
 }

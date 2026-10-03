@@ -21,22 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.gateway.push
+package org.projectforge.gateway.sync.dto
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-
-@Configuration
-@ConfigurationProperties(prefix = "projectforge.gateway.push")
-@ConditionalOnProperty(name = ["projectforge.gateway.push.enabled"], havingValue = "true")
-open class GatewaySyncPushConfig {
-    var enabled: Boolean = false
-    var url: String = ""
-    var secret: String = ""
-    var syncIntervalMs: Long = 900000
-    /** Spring cron expression of the nightly full sync. */
-    var fullSyncCron: String = "0 0 3 * * *"
-    var syncAddresses: Boolean = true
-    var syncCalendar: Boolean = true
-}
+/**
+ * The CardDAV favorites of a user: CardDAV serves only the addresses a user marked as favorite.
+ *
+ * @param addressUids Uids of the user's favorite addresses (see [SyncAddressDto.uid]).
+ */
+data class SyncFavoritesDto(
+    val username: String,
+    val addressUids: List<String> = emptyList(),
+)
