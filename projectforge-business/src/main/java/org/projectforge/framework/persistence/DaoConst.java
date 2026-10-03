@@ -59,8 +59,6 @@ public class DaoConst
 
   public static final String GROUP = "group";
 
-  public static final String HR_LIST = "hrList";
-
   public static final String HR_PLANNING = "hrPlanning";
 
   public static final String INCOMING_INVOICE = "incomingInvoice";

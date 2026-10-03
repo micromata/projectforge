@@ -37,7 +37,6 @@ import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
-import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
@@ -272,7 +271,8 @@ public class WebRegistry
     // Bookmarked wa/employeeSalary* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPages(DaoConst.GANTT, GanttChartListPage.class, GanttChartEditPage.class);
     // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
-    addMountPage(DaoConst.HR_LIST, HRListPage.class);
+    // The HR view (hrList) is migrated to projectforge-next; bookmarked wa/hrList links are redirected by
+    // OrphanedLinkFilter.
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);

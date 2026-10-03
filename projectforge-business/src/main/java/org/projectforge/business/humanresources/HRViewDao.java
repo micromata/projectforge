@@ -25,6 +25,8 @@ package org.projectforge.business.humanresources;
 
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
+import org.projectforge.business.fibu.kost.KundeCache;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
@@ -43,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -55,6 +56,15 @@ public class HRViewDao implements IDao<HRViewData> {
 
     @Autowired
     private HRPlanningDao hrPlanningDao;
+
+    @Autowired
+    private HRPlanningEntryDao hrPlanningEntryDao;
+
+    @Autowired
+    private KundeCache kundeCache;
+
+    @Autowired
+    private ProjektCache projektCache;
 
     @Autowired
     private TaskTree taskTree;
@@ -71,6 +81,10 @@ public class HRViewDao implements IDao<HRViewData> {
     /**
      * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
      * projects (see getProjectNames)
+     * <p>
+     * Projects and customers are taken from the caches and the planning entries are loaded with their planning and
+     * project in one query ({@link HRPlanningEntryDao#select(BaseSearchFilter)}), so the view costs a constant number
+     * of statements, not one per planning, entry or project.
      */
     public HRViewData getResources(final HRFilter filter) {
         final HRViewData data = new HRViewData(filter);
@@ -78,7 +92,7 @@ public class HRViewDao implements IDao<HRViewData> {
             filter.setStartDay(PFDay.today().getLocalDate());
         }
         if (filter.getStopDay() == null) {
-            filter.setStartDay(PFDay.today().getLocalDate());
+            filter.setStopDay(PFDay.from(filter.getStartDay()).getEndOfWeek().getLocalDate());
         }
         if (filter.isShowBookedTimesheets()) {
             final TimesheetFilter tsFilter = new TimesheetFilter();
@@ -91,8 +105,7 @@ public class HRViewDao implements IDao<HRViewData> {
                     log.error("Oups, user of time sheet is null or unknown? Ignoring entry: " + sheet);
                     continue;
                 }
-                final ProjektDO projekt = taskTree.getProjekt(sheet.getTaskId());
-                final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
+                final Object targetObject = getTargetObject(filter, taskTree.getProjekt(sheet.getTaskId()));
                 if (targetObject == null) {
                     data.addTimesheet(sheet, user);
                 } else if (targetObject instanceof ProjektDO) {
@@ -107,63 +120,40 @@ public class HRViewDao implements IDao<HRViewData> {
         }
         if (filter.isShowPlanning()) {
             final HRPlanningFilter hrFilter = new HRPlanningFilter();
-            PFDay day = PFDay.fromOrNow(filter.getStartDay());
-            hrFilter.setStartDay(day.getLocalDate());
-            day = PFDay.fromOrNow(filter.getStopDay());
-            hrFilter.setStopDay(day.getLocalDate());
-            final List<HRPlanningDO> plannings = hrPlanningDao.select(hrFilter);
-            for (final HRPlanningDO planning : plannings) {
-                if (planning.getEntries() == null) {
+            hrFilter.setStartDay(PFDay.fromOrNow(filter.getStartDay()).getLocalDate());
+            hrFilter.setStopDay(PFDay.fromOrNow(filter.getStopDay()).getLocalDate());
+            // Neither deleted entries nor entries of deleted plannings:
+            final List<HRPlanningEntryDO> entries = hrPlanningEntryDao.select(hrFilter);
+            for (final HRPlanningEntryDO entry : entries) {
+                final PFUserDO user = userGroupCache.getUser(entry.getPlanning().getUserId());
+                if (user == null) {
+                    log.error("Oups, user of planning is null or unknown? Ignoring entry: " + entry);
                     continue;
                 }
-                for (final HRPlanningEntryDO entry : planning.getEntries()) {
-                    if (entry.getDeleted()) {
-                        continue;
-                    }
-                    final PFUserDO user = userGroupCache.getUser(planning.getUserId());
-                    final ProjektDO projekt = entry.getProjekt();
-                    final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
-                    if (targetObject == null) {
-                        data.addHRPlanningEntry(entry, user);
-                    } else if (targetObject instanceof ProjektDO) {
-                        data.addHRPlanningEntry(entry, user, (ProjektDO) targetObject);
-                    } else if (targetObject instanceof KundeDO) {
-                        data.addHRPlanningEntry(entry, user, (KundeDO) targetObject);
-                    } else {
-                        log.error("Target object of type " + targetObject + " not supported.");
-                        data.addHRPlanningEntry(entry, user);
-                    }
+                final Object targetObject = getTargetObject(filter, entry.getProjekt());
+                if (targetObject == null) {
+                    data.addHRPlanningEntry(entry, user);
+                } else if (targetObject instanceof ProjektDO) {
+                    data.addHRPlanningEntry(entry, user, (ProjektDO) targetObject);
+                } else if (targetObject instanceof KundeDO) {
+                    data.addHRPlanningEntry(entry, user, (KundeDO) targetObject);
+                } else {
+                    log.error("Target object of type " + targetObject + " not supported.");
+                    data.addHRPlanningEntry(entry, user);
                 }
             }
         }
         if (filter.isOnlyMyProjects()) {
             // remove all user entries which have no planning or booking on my projects.
-            final List<HRViewUserData> list = data.getUserDatas();
-            if (list != null) {
-                final Iterator<HRViewUserData> it = list.iterator();
-                while (it.hasNext()) {
-                    final HRViewUserData entry = it.next();
-                    boolean hasEntries = false;
-                    if (entry.entries != null) {
-                        for (final HRViewUserEntryData entryData : entry.entries) {
-                            if (entryData.projekt != null || entryData.kunde != null) {
-                                hasEntries = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!hasEntries) {
-                        it.remove();
-                    }
-                }
-            }
+            data.userDatas.values().removeIf(entry -> entry.entries.stream()
+                    .noneMatch(entryData -> entryData.projekt != null || entryData.kunde != null));
         }
         return data;
     }
 
     /**
-     * Returns a list of all users which are accessible by the current logged in user and not planned in the given
-     * HRViewData object.
+     * Returns a list of all users which are accessible by the current logged in user, take part in the HR planning,
+     * have system access and are not planned in the given HRViewData object.
      *
      * @return Result list (may be empty but never null).
      */
@@ -174,6 +164,9 @@ public class HRViewDao implements IDao<HRViewData> {
         final List<PFUserDO> allUsers = userDao.select(queryFilter);
         if (allUsers != null) {
             for (final PFUserDO user : allUsers) {
+                if (!user.getHrPlanning() || !user.hasSystemAccess()) {
+                    continue;
+                }
                 final HRViewUserData userData = data.getUserData(user);
                 if (userData == null || !NumberHelper.isNotZero(userData.getPlannedDaysSum())) {
                     users.add(user);
@@ -186,18 +179,18 @@ public class HRViewDao implements IDao<HRViewData> {
     /**
      * Return the target object (ProjektDO, KundeDO or null) to which the entry (time sheet or planning) should be
      * assigned to. The results depends on the filter settings.
-     *
-     * @param filter
-     * @param projekt
-     * @return
+     * <p>
+     * Both are taken from the caches: a project of the task tree or the project cache holds its customer as
+     * uninitialized (detached) proxy.
      */
-    private Object getTargetObject(final UserGroupCache userGroupCache, final HRFilter filter, final ProjektDO projekt) {
+    private Object getTargetObject(final HRFilter filter, final ProjektDO projektOrProxy) {
+        final ProjektDO projekt = projektCache.getProjektIfNotInitialized(projektOrProxy);
         if (projekt == null) {
             return null;
         }
-        final KundeDO kunde = projekt.getKunde();
+        final KundeDO kunde = kundeCache.getKundeIfNotInitialized(projekt.getKunde());
         if (filter.isOnlyMyProjects()) {
-            if (isMyProject(userGroupCache, projekt)) {
+            if (isMyProject(projekt)) {
                 if (filter.isAllProjectsGroupedByCustomer()) {
                     return kunde;
                 } else {
@@ -209,7 +202,7 @@ public class HRViewDao implements IDao<HRViewData> {
         } else if (filter.isAllProjectsGroupedByCustomer()) {
             return kunde;
         } else if (filter.isOtherProjectsGroupedByCustomer()) {
-            if (isMyProject(userGroupCache, projekt)) {
+            if (isMyProject(projekt)) {
                 return projekt;
             } else {
                 return kunde;
@@ -220,10 +213,9 @@ public class HRViewDao implements IDao<HRViewData> {
         }
     }
 
-    private boolean isMyProject(final UserGroupCache userGroupCache, final ProjektDO projekt) {
+    private boolean isMyProject(final ProjektDO projekt) {
         return (projekt != null && projekt.getProjektManagerGroup() != null
-                && userGroupCache.isLoggedInUserMemberOfGroup(projekt
-                .getProjektManagerGroupId()));
+                && userGroupCache.isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId()));
     }
 
     /**

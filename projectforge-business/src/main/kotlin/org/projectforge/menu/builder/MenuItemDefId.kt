@@ -86,7 +86,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // see NextMigration.legacyListUrl.
     GROUP_LIST("menu.groupList", getListUrl("group")), //
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
-    HR_VIEW("menu.hrList", "wa/hrList"), //
+    HR_VIEW("menu.hrList", "next/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
     // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the
     // escape hatch, see NextMigration.legacyListUrl.
