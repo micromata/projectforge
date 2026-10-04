@@ -57,6 +57,33 @@ class VEventUtilsTest {
         Assertions.assertEquals("2024-11-01T11:00:00Z", teamEvent.dtStamp.isoString())
     }
 
+    /** RFC 5545 3.6.1: without DTEND the end is start + DURATION, else one day (all-day) or the start itself. */
+    @Test
+    fun `the end of an event without DTEND is derived`() {
+        fun parse(start: String, duration: String? = null): TeamEventDO {
+            val ics = listOfNotNull("BEGIN:VEVENT", "DTSTART$start", duration?.let { "DURATION:$it" }, "END:VEVENT")
+                .joinToString("\n")
+            return VEventUtils.convertToEventDO(VEventUtils.parseVEventFromIcs(ics)!!)
+        }
+        parse(":20241115T090000Z", "PT1H30M").let {
+            Assertions.assertEquals("2024-11-15T10:30:00Z", it.endDate.isoString())
+        }
+        parse(";VALUE=DATE:20241115", "P2D").let {
+            Assertions.assertTrue(it.allDay)
+            Assertions.assertEquals("2024-11-17T00:00:00Z", it.endDate.isoString())
+        }
+        parse(";VALUE=DATE:20241115").let {
+            Assertions.assertEquals("2024-11-16T00:00:00Z", it.endDate.isoString())
+        }
+        // An hour on a DATE can't be added: treated as missing, i.e. one day.
+        parse(";VALUE=DATE:20241115", "PT1H").let {
+            Assertions.assertEquals("2024-11-16T00:00:00Z", it.endDate.isoString())
+        }
+        parse(":20241115T090000Z").let {
+            Assertions.assertEquals("2024-11-15T09:00:00Z", it.endDate.isoString())
+        }
+    }
+
     @Test
     fun `test of writing ics`() {
         // Europe/Berlin

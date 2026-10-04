@@ -65,6 +65,7 @@ object VEventUtils {
             note = component.description?.orElse(null)?.value
             val startTemporal = component.getDateTimeStart<Temporal>()?.orElse(null)?.date
             val endTemporal = component.getDateTimeEnd<Temporal>()?.orElse(null)?.date
+                ?: deriveEnd(component, startTemporal)
             // Not via component.dateTimeStamp: DtStamp is typed as Instant, but relaxed parsing returns e.g.
             // OffsetDateTime or ZonedDateTime, so the implicit cast would fail.
             val dtTemporal = component.getProperty<DateProperty<Temporal>>(Property.DTSTAMP)?.orElse(null)?.date
@@ -80,6 +81,20 @@ object VEventUtils {
             sequence = component.sequence?.orElse(null)?.sequenceNo
             uid = component.uid?.orElse(null)?.value
         }
+    }
+
+    /**
+     * The end of an event without DTEND, as RFC 5545 (3.6.1) defines it: start plus DURATION if given, otherwise
+     * one day for an all-day event (DTSTART is a DATE) and no time at all for a timed one (end = start).
+     * A DURATION a DATE can't take (e.g. `PT1H` on an all-day event) is ignored like a missing one.
+     */
+    internal fun deriveEnd(component: VEvent, start: Temporal?): Temporal? {
+        start ?: return null
+        val duration = component.getProperty<Duration>(Property.DURATION)?.orElse(null)?.duration
+        if (duration != null) {
+            runCatching { start.plus(duration) }.getOrNull()?.let { return it }
+        }
+        return if (start is LocalDate) start.plusDays(1) else start
     }
 
     fun extractExdates(event: VEvent): List<Temporal> {

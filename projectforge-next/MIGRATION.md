@@ -456,9 +456,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (Termine erreicht man über den Kalender) und die alten Wicket-Kalender `wa/oldCalendar`,
   `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. Teilnehmer werden
   nicht angezeigt: `TeamEventDO.attendees` ist `@Transient` (Mapping seit 2024-11 auskommentiert),
-  wird also weder geladen noch gespeichert – das wiederherzustellen ist eine eigene Aufgabe. Bekannte
-  Grenze des Imports: `ICalParser` wertet `DURATION` nicht aus, ein Termin mit Uhrzeit ohne `DTEND`
-  wird als fehlerhaft abgelehnt. Alte Lesezeichen leitet `OrphanedLinkFilter` um.
+  wird also weder geladen noch gespeichert – das wiederherzustellen ist eine eigene Aufgabe. Ohne `DTEND`
+  ergibt sich das Ende nach RFC 5545 aus `DURATION` bzw. einem Tag (ganztägig, `VEventUtils.deriveEnd`).
+  Alte Lesezeichen leitet `OrphanedLinkFilter` um.
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die

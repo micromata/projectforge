@@ -105,14 +105,28 @@ class TeamEventImportRestTest : AbstractTestBase() {
             SUMMARY:Timed
             END:VEVENT
         """.trimIndent()
-        // RFC 5545: an all-day event without DTEND lasts one day. A timed one would have no duration, which
-        // the DAO refuses, so it is faulty instead of failing the whole job.
-        val view = upload(request, ics(allDay, timed), calId)
-        assertEquals(listOf(ImportEntry.Status.NEW, ImportEntry.Status.FAULTY), statuses(view))
+        val withDuration = """
+            BEGIN:VEVENT
+            UID:uid-duration
+            DTSTAMP:20260101T080000Z
+            DTSTART:20260105T090000Z
+            DURATION:PT1H30M
+            SUMMARY:Timed with duration
+            END:VEVENT
+        """.trimIndent()
+        // RFC 5545: an all-day event without DTEND lasts one day, a timed one lasts its DURATION. Without either
+        // a timed one would have no duration, which the DAO refuses, so it is faulty instead of failing the job.
+        val view = upload(request, ics(allDay, timed, withDuration), calId)
+        assertEquals(
+            listOf(ImportEntry.Status.NEW, ImportEntry.Status.FAULTY, ImportEntry.Status.NEW),
+            statuses(view),
+        )
         commitAll(request)
         val stored = teamEventDao.getByUid(calId, "uid-all-day")!!
         assertEquals(DateUtils.MILLIS_PER_DAY, stored.endDate!!.time - stored.startDate!!.time)
         assertEquals(null, teamEventDao.getByUid(calId, "uid-timed"))
+        val storedWithDuration = teamEventDao.getByUid(calId, "uid-duration")!!
+        assertEquals(90 * 60_000L, storedWithDuration.endDate!!.time - storedWithDuration.startDate!!.time)
     }
 
     @Test
