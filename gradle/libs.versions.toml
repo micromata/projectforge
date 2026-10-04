@@ -9,9 +9,7 @@ com-google-zxing-core = "3.5.4"
 com-google-zxing-javase = "3.5.4"
 com-googlecode-ez-vcard = "0.12.2"
 com-googlecode-gson = "2.13.2"
-com-googlecode-json-simple = "1.1.1"
 com-googlecode-lanterna = "3.1.5"
-com-itextpdf = "5.5.13"
 com-thoughtworks-xstream = "1.4.21"
 com-webauthn4j-core = "0.28.2.RELEASE" # 0.29+ requires Jackson 2.20+, 0.31+ pulls Jackson 3.x which conflicts
 #com-webauthn4j-spring-security-core = "0.10.0.RELEASE"
@@ -28,7 +26,6 @@ org-eclipse-angus-jakarta-mail = "2.0.3"
 jakarta-persistence-api = "3.1.0"
 jakarta-servlet-api = "6.1.0"
 jakarta-validation = "3.1.0"
-jakarta-ws-rs-api = "4.0.0"
 javax-jcr = "2.0"
 joda-time-joda-time = "2.14.1"
 net-lingala-zip4j-zip4j = "2.11.6"
@@ -36,7 +33,6 @@ net-sourceforge-mpxj = "4.3.0"
 org-apache-commons-collections4 = "4.5.0"
 org-apache-commons-lang3 = "3.20.0"
 org-apache-commons-text = "1.15.0"
-org-apache-directory-server-apacheds-server-integ = "1.5.7"
 org-apache-groovy = "4.0.24" # 4.0.25+ depends on jackson 2.19+ which conflicts with project's 2.18.x
 org-apache-httpcomponents-client5-httpclient5 = "5.6.1"
 org-apache-httpcomponents-core5 = "5.4.2" # Needed by httpclient5
@@ -46,7 +42,6 @@ org-apache-poi-ooxml = "5.5.1"
 org-apache-xmlgraphics-batik = "1.19"
 org-apache-xmlgraphics-fop = "2.11"
 org-apache-xmlgraphics-commons = "2.11"
-org-aspectj-aspectjtools = "1.9.25"
 org-bouncycastle-bcprov-jdk18on = "1.84"
 org-dom4j = "2.2.0"
 org-flywaydb = "10.22.0"
@@ -87,7 +82,6 @@ org-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", versio
 org-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "org-junit-jupiter" }
 org-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "org-junit-platform-launcher" }
 
-org-apache-directory-server-apacheds-server-integ = { module = "org.apache.directory.server:apacheds-server-integ", version.ref = "org-apache-directory-server-apacheds-server-integ" }
 org-mock-server-mockserver-netty-no-dependencies = { module = "org.mock-server:mockserver-netty-no-dependencies", version.ref = "org-mock-server-mockserver-netty-no-dependencies" }
 org-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito" }
 org-mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "org-mockito" }
@@ -109,9 +103,7 @@ com-googlecode-gson = { module = "com.google.code.gson:gson", version.ref = "com
 com-google-zxing-core = { module = "com.google.zxing:core", version.ref = "com-google-zxing-core" }
 com-google-zxing-javase = { module = "com.google.zxing:javase", version.ref = "com-google-zxing-javase" }
 com-googlecode-ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "com-googlecode-ez-vcard" }
-com-googlecode-json-simple = { module = "com.googlecode.json-simple:json-simple", version.ref = "com-googlecode-json-simple" }
 com-googlecode-lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "com-googlecode-lanterna" }
-com-itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "com-itextpdf" }
 com-thoughtworks-xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "com-thoughtworks-xstream" }
 com-webauthn4j-core = { module = "com.webauthn4j:webauthn4j-core", version.ref = "com-webauthn4j-core" }
 #com-webauthn4j-spring-security-core = { module = "com.webauthn4j:webauthn4j-spring-security-core", version.ref = "com-webauthn4j-spring-security-core" }
@@ -128,7 +120,6 @@ org-eclipse-angus-jakarta-mail = { module = "org.eclipse.angus:jakarta.mail", ve
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence-api" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet-api" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
-jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs-api" }
 javax-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr" }
 jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
 joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time-joda-time" }
@@ -155,7 +146,6 @@ org-apache-xmlgraphics-batik-dom = { module = "org.apache.xmlgraphics:batik-dom"
 org-apache-xmlgraphics-batik-svg-dom = { module = "org.apache.xmlgraphics:batik-svg-dom", version.ref = "org-apache-xmlgraphics-batik" }
 org-apache-xmlgraphics-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "org-apache-xmlgraphics-fop" }
 org-apache-xmlgraphics-commons = { module = "org.apache.xmlgraphics:xmlgraphics-commons", version.ref = "org-apache-xmlgraphics-commons" }
-org-aspectj-aspectjtools = { module = "org.aspectj:aspectjtools", version.ref = "org-aspectj-aspectjtools" }
 org-bouncycastle-bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "org-bouncycastle-bcprov-jdk18on" }
 org-dom4j = { module = "org.dom4j:dom4j", version.ref = "org-dom4j" }
 org-flywaydb-core = { module = "org.flywaydb:flyway-core", version.ref = "org-flywaydb" }

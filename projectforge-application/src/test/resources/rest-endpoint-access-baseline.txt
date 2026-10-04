@@ -2,14 +2,6 @@
 # May only shrink: never add new endpoints here, annotate them.
 org.projectforge.plugins.banking.BankAccountRecordImportPageRest#getForm
 org.projectforge.plugins.banking.BankingServicesRest#import
-org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest#renewAccessToken
-org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest#renewPassword
-org.projectforge.plugins.datatransfer.rest.DataTransferAuditPageRest#getForm
-org.projectforge.plugins.datatransfer.rest.DataTransferPageRest#downloadAll
-org.projectforge.plugins.datatransfer.rest.DataTransferPageRest#getForm
-org.projectforge.plugins.datatransfer.rest.DataTransferPageRest#watchFields
-org.projectforge.plugins.datatransfer.rest.DataTransferPersonalBoxPageRest#getForm
-org.projectforge.plugins.datatransfer.rest.DataTransferPersonalBoxPageRest#watchFields
 org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicAttachmentPageRest#getForm
 org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest#getForm
 org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest#login

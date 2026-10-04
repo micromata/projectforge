@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.framework.xmlstream.AliasMap;
 import org.projectforge.framework.xmlstream.XmlObjectReader;
-import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -159,49 +158,37 @@ public class LdapRealTestHelper
 
   private LdapConfig readConfig()
   {
-    if (JUnitLDAPTestWrapper.ldapServerWrap != null) {
-      LdapConfig ldapConfig = new LdapConfig();
-      ldapConfig.setPort(JUnitLDAPTestWrapper.ldapServerWrap.getPort());
-      ldapConfig.setServer(JUnitLDAPTestWrapper.ldapServerWrap.getTransports()[0].getAddress());
-      ldapConfig.setManagerUser("uid=admin,ou=system");
-      ldapConfig.setManagerPassword("");
-      ldapConfig.setUserBase("ou=users");
-      ldapConfig.setBaseDN("dc=example,dc=org");
-      ldapConfig.setGroupBase("ou=groups");
-      return ldapConfig;
-    } else {
-      final File configFile = new File(CONFIG_FILE);
-      if (!configFile.canRead()) {
-        return null;
+    final File configFile = new File(CONFIG_FILE);
+    if (!configFile.canRead()) {
+      return null;
+    }
+    log.info("Reading LDAP configuration file for test cases: " + configFile.getPath());
+    final XmlObjectReader reader = new XmlObjectReader();
+    final AliasMap aliasMap = new AliasMap();
+    aliasMap.put(LdapConfig.class, "ldapConfig");
+    reader.setAliasMap(aliasMap);
+    AccountingConfig.registerXmlObjects(reader, aliasMap);
+    String xml = null;
+    try {
+      xml = FileUtils.readFileToString(configFile, "UTF-8");
+    } catch (final IOException ex) {
+      log.error(ex.getMessage(), ex);
+      throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
+          ex);
+    }
+    if (xml == null) {
+      throw new IllegalArgumentException("Cannot read from config file: '" + CONFIG_FILE + "'.");
+    }
+    try {
+      final LdapConfig cfg = (LdapConfig) reader.read(xml);
+      final String warnings = reader.getWarnings();
+      if (StringUtils.isNotBlank(warnings)) {
+        log.error(warnings);
       }
-      log.info("Reading LDAP configuration file for test cases: " + configFile.getPath());
-      final XmlObjectReader reader = new XmlObjectReader();
-      final AliasMap aliasMap = new AliasMap();
-      aliasMap.put(LdapConfig.class, "ldapConfig");
-      reader.setAliasMap(aliasMap);
-      AccountingConfig.registerXmlObjects(reader, aliasMap);
-      String xml = null;
-      try {
-        xml = FileUtils.readFileToString(configFile, "UTF-8");
-      } catch (final IOException ex) {
-        log.error(ex.getMessage(), ex);
-        throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
-            ex);
-      }
-      if (xml == null) {
-        throw new IllegalArgumentException("Cannot read from config file: '" + CONFIG_FILE + "'.");
-      }
-      try {
-        final LdapConfig cfg = (LdapConfig) reader.read(xml);
-        final String warnings = reader.getWarnings();
-        if (StringUtils.isNotBlank(warnings)) {
-          log.error(warnings);
-        }
-        return cfg;
-      } catch (final Throwable ex) {
-        throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
-            ex);
-      }
+      return cfg;
+    } catch (final Throwable ex) {
+      throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
+          ex);
     }
   }
 
