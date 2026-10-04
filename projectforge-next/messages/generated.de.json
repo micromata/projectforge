@@ -692,7 +692,6 @@
         "amountsInPaymentScheduleAreGreaterThanNetSumOfPosition": "Die Summe der Beträge von Position {arg0} im Zahlplan übersteigt die Nettosumme dieser Position.",
         "auftragHatKeinePositionen": "Der Auftrag hat keine Auftragspositionen.",
         "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "Mindestens ein Datum des Zahlplans zu (den) Position(en) {arg0} liegt nicht im Leistungszeitraum (plus 3 Monate).",
-        "invalidPosition": "Ungültige Auftragsposition.",
         "invalidStatus": "Bitte einen Status des Auftrags wählen; \"optional\" wird nicht unterstützt.",
         "nummerBereitsVergeben": "Die Auftragsnummer ist bereits vergeben.",
         "nummerIstNichtFortlaufend": "Die Auftragsnummer ist nicht die nächstfolgende (nicht fortlaufend).",
@@ -841,9 +840,6 @@
           "neuentwicklung": "Neuentwicklung",
           "time_and_materials": "Time and materials",
           "wartung": "Wartung"
-        },
-        "error": {
-          "notFound": "Auftragsposition nicht gefunden."
         },
         "fehlbetrag": {
           "_": "Fehlbetrag",
@@ -1322,7 +1318,6 @@
       "_": "Projekt",
       "edit": {
         "kost2DeactivateHint": "Abwählen setzt die Kost2 auf nicht aktiv: keine neuen Buchungen, bestehende Zeitberichte bleiben.",
-        "kost2DoesAlreadyExists": "Kost2 existiert bereits.",
         "kost2LockedEnded": "Das Projekt ist beendet: Seine Kostenarten sind nicht mehr änderbar.",
         "selectStandardKost2Arts": "Alle Standard-Kostenarten auswählen"
       },
@@ -1667,7 +1662,6 @@
     "emptyValue": "leerer Wert",
     "endsWith": "Endet mit",
     "equals": "Gleich",
-    "extendedSearch": "Erweiterte Suche",
     "faulty": "fehlerhaft",
     "generalFields": "Allgemein",
     "greaterThan": "Größer als",
@@ -1822,11 +1816,6 @@
       "_": "Lokale Gruppe",
       "not": "Allgemeine Gruppe",
       "tooltip": "Lokale Gruppen werden nicht mit einem externen Benutzer:innensystem synchronisiert (z. B. LDAP)."
-    },
-    "nestedGroups": "Eingebettete Gruppen",
-    "nestedGroupsAllowed": {
-      "_": "Eingebettete Gruppen erlaubt?",
-      "tooltip": "Zur Sicherheit sollten für die Gruppen Administrator:innen, Controlling etc. keine eingebetteten Gruppen erlaubt sein, um versehentlichen unbefugten Zugriff zu verhindern."
     },
     "owner": "Gruppenbesitzer",
     "pleaseSelectGroup": "Bitte Gruppe wählen",
@@ -3012,9 +3001,6 @@
     "lastHours": "Letzte {arg0} Stunden",
     "lastMinute": "Letzte Minute",
     "lastMinutes": "Letzte {arg0} Minuten",
-    "lucene": {
-      "expression": "Modifizierter Ausdruck für Suchmaschine:"
-    },
     "maxRowsExceeded": "Die Maximalgröße {arg0} der Ergebnisliste ist überschritten und das Ergebnis enthält nicht alle gefundenen Elemente.",
     "next": {
       "moreInArea": "Weitere in {arg0}",
@@ -3025,21 +3011,8 @@
     },
     "nextDays": "Nächste {arg0} Tage",
     "parseError": "Fehler beim Vearbeiten des Suchtexts: ''{arg0}''",
-    "periodOfModification": "Änderungszeitraum",
     "search": "Suche",
-    "searchHistory": {
-      "_": "Historie",
-      "additional": {
-        "tooltip": "Wenn gewählt, werden auch alle Änderungshistorieneinträge mit dem Suchausdruck durchsucht."
-      }
-    },
     "sinceYesterday": "Seit gestern",
-    "string": {
-      "info": {
-        "_": "''*'' für Teilausdrücke (automatisch angehängt, wenn nur alphanumerische Ausdrücke angegeben inkl. Leerzeichen und \"@._-\"), ''-ausdruck'' für Ausschlüsse, ''Feldname:Ausdruck'' für Teilwortsuche, s. auch Dokumentation (es wird Lucene als Suchmaschine eingesetzt).\nSuche in den Feldern: {arg0}.",
-        "title": "Volltextsuche"
-      }
-    },
     "title": "Suche",
     "toDetailedSearch": "Zur Detailsuche",
     "today": "Heute",
@@ -3273,9 +3246,6 @@
     "recursive": "inkl. aller Strukturunterelemente",
     "reference": "Referenz",
     "selectPanel": {
-      "displayTask": {
-        "tooltip": "Strukturelement anzeigen."
-      },
       "info": "Ordnerelement können ausgewählt werden, indem in eine andere Spalte geklickt wird (außer der ersten).\\\n**Tastatur:** **↑ / ↓** – zwischen den Elementen bewegen · **→ / ←** – fokussiertes Element auf- und zuklappen · **Eingabetaste** – fokussiertes Element auswählen",
       "noTasksFound": "Keine Strukturelemente gefunden.",
       "selectAncestorTask": {
@@ -3628,7 +3598,6 @@
       },
       "generic": "Ungültige Eingabe.",
       "maxLength": "Feld ''{arg0}'' darf nicht länger als {arg1} Zeichen sein.",
-      "nothingToExport": "Keine Daten für den Export vorhanden.",
       "range": {
         "integerOutOfRange": "Wert außerhalb des Bereichs {arg0} - {arg1}.",
         "integerToHigh": "Wert darf nicht größer als {arg0} sein.",

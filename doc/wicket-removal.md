@@ -247,8 +247,10 @@ Dropped:
       `TomcatConfig` comment (`maxPartCount` kept).
 - [x] Business cleanup: `imageDimensions.xml` deleted (`ProjectServiceImpl` and the formatter factory lived
       in the module). Comments merely mentioning Wicket are left.
-- [~] i18n tooling: `parseWicketHtml` and the Wicket `*Page.java` branch removed from
-      `I18nKeysSourceAnalyzer`. Still open: pruning the Wicket-only i18n keys after `bin/pfDev.sh gen`.
+- [x] i18n tooling: `parseWicketHtml` and the Wicket `*Page.java` branch removed from
+      `I18nKeysSourceAnalyzer`. 91 Wicket-only keys pruned from `I18nResources(_de).properties`
+      (unused per `i18nKeys.json` after `bin/pfDev.sh gen`, cross-checked against next namespace usage
+      and a literal repo grep); keys still exported to next under a used namespace were kept.
 - [x] `projectforge-webapp`: the `/wa` proxy and `legacyWicketRoute` are **kept** (they hand old stored
       `/wa` urls to `OrphanedLinkFilter`).
 - [x] Tests: `projectforge-wicket/src/test` went with the module (`UrlHelper`/`AssignListHelper` were
