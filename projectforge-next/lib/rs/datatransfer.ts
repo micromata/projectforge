@@ -101,9 +101,10 @@ export interface DataTransferPersonalBox {
   user?: DataTransferRef | null;
 }
 
+/** One choice of the admin form, as the backend's `UISelectValue` sends it. */
 export interface DataTransferOption {
-  value: number;
-  label: string;
+  id: number;
+  displayName: string;
 }
 
 /** `DataTransferAreaEntityRest.Options`: the choices of the admin form. */

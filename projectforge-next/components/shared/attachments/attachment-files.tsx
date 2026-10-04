@@ -133,7 +133,7 @@ export function AttachmentFiles({
             onSelectedChange={
               readOnly
                 ? undefined
-                : (on) => selection.toggle(attachment.fileId, on)
+                : (on, range) => selection.toggle(attachment.fileId, on, range)
             }
             onEdit={setEditing}
             onDelete={(attachment) => setDeleting([attachment])}

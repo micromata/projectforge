@@ -28,7 +28,7 @@ export const DATA_TRANSFER_LIST_QUERY_KEY = ["datatransfer"] as const;
  *
  * A row opens the area's *files* (`/datatransfer/{id}`, the default of `openEntry`), not the form: the
  * files are what every reader of the list is after, and only the area's admins may change it. The form
- * is reached from the file view's edit button (`/datatransfer/{id}/edit`).
+ * is the area page's edit tab (`/datatransfer/{id}?tab=edit`).
  *
  * The columns are the legacy list's, in its order. Everything that holds users or groups is the DTO's
  * string of names, which the backend cannot sort by (they are csv lists of ids).

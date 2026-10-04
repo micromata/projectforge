@@ -19,7 +19,8 @@ interface Props {
   readOnly?: boolean;
   /** Omitted where a selection makes no sense (read-only list): the checkbox then stays away. */
   selected?: boolean;
-  onSelectedChange?: (selected: boolean) => void;
+  /** `range`: Shift was held, so the files since the last toggled one follow (useAttachmentSelection). */
+  onSelectedChange?: (selected: boolean, range: boolean) => void;
 }
 
 /**
@@ -94,7 +95,14 @@ export function AttachmentRow({
           // The rows all look alike, so the name has to say which file this picks.
           // `select._`, since the key has a `placeholder` subkey and so becomes a namespace.
           aria-label={`${t("select._")}: ${attachment.name}`}
-          onCheckedChange={(checked) => onSelectedChange(checked === true)}
+          // The click rather than onCheckedChange, which doesn't tell whether Shift was held. Its
+          // default is Radix's own toggle, prevented so the selection isn't changed twice.
+          onClick={(event) => {
+            event.preventDefault();
+            onSelectedChange(!selected, event.shiftKey);
+          }}
+          // Shift+click would otherwise also select the text between the two rows.
+          onMouseDown={(event) => event.shiftKey && event.preventDefault()}
         />
       )}
       <div className="min-w-0 flex-1">

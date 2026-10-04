@@ -1,70 +1,86 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, TickDouble01Icon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { secretPeek } from "@/lib/secret-peek";
 import { cn } from "@/lib/utils";
+import { CopyButton } from "./copy-button";
+import { RevealButton } from "./reveal-button";
 
 interface Props {
   value: string | null | undefined;
-  /** Accessible name of the box, as there is no visible label tied to it. */
+  /** Accessible name of the value, as there is no visible label tied to it. */
   label: string;
   /**
-   * Shown as dots, for a secret that is passed on but shouldn't be read over one's shoulder — the
-   * password of a data transfer area. Copying still gives the value itself.
+   * A secret that is passed on but shouldn't be read over one's shoulder — the password of a data
+   * transfer area: hidden until the eye reveals it. Copying still gives the value itself.
    */
   masked?: boolean;
-  /** Further controls after the copy button — a data transfer link's "renew". */
+  /** With `masked`: the beginning of the secret shows through, fading out (see secretPeek). */
+  peek?: boolean;
+  /** Further controls after the value — a data transfer link's "renew". */
   children?: ReactNode;
   className?: string;
 }
 
 /**
- * A value to pass on rather than to edit — a subscription url, the link of a data transfer area: a
- * read-only box, so it can still be selected by hand, and a button putting it on the clipboard. The
- * button's tick says it worked.
+ * A value to pass on rather than to edit — a subscription url, the link of a data transfer area —
+ * with a button putting it on the clipboard. The button's tick says it worked, and goes again after a
+ * moment (see CopyButton).
+ *
+ * Deliberately not a read-only input: one looks like it could be typed into and takes a focus ring
+ * on a click, and then nothing can be typed. This is text on a muted ground instead — the legacy
+ * ReadonlyField's look —, selectable by hand like any text, the buttons inside on the right.
+ *
+ * A masked value is not in the page's text while hidden, only its peek (if any); starts hidden on
+ * every mount, as SecretInput does.
  */
 export function CopyableValue({
   value,
   label,
   masked,
+  peek,
   children,
   className,
 }: Props) {
-  const t = useTranslations();
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    if (!value) return;
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-  }
-
+  const [revealed, setRevealed] = useState(false);
+  const hidden = masked === true && !revealed;
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Input
-        readOnly
-        type={masked ? "password" : "text"}
-        value={value ?? ""}
+      <div
+        role="group"
         aria-label={label}
-      />
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="shrink-0"
-        aria-label={t("copy")}
-        disabled={!value}
-        onClick={() => void copy()}
+        className="flex min-h-7 min-w-0 flex-1 items-center gap-1 rounded-md bg-muted/60 py-0.5 pr-1 pl-2"
       >
-        <HugeiconsIcon
-          icon={copied ? TickDouble01Icon : Copy01Icon}
-          size={16}
-        />
-      </Button>
+        <span
+          data-slot="copyable-value"
+          className="min-w-0 flex-1 font-mono text-sm break-all select-text md:text-xs/relaxed"
+        >
+          {!value ? null : !hidden ? (
+            value
+          ) : peek ? (
+            <span
+              data-slot="secret-peek"
+              aria-hidden
+              className="secret-peek inline-block"
+            >
+              {secretPeek(value)}
+            </span>
+          ) : (
+            <span aria-hidden className="text-muted-foreground">
+              ••••••••
+            </span>
+          )}
+        </span>
+        {masked && (
+          <RevealButton
+            revealed={revealed}
+            onRevealedChange={setRevealed}
+            label={label}
+            disabled={!value}
+          />
+        )}
+        <CopyButton value={value} label={label} inline />
+      </div>
       {children}
     </div>
   );

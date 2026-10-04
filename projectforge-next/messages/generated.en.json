@@ -517,6 +517,7 @@
   },
   "contactPerson": "Contact person",
   "contactPersons": "Contact persons",
+  "copied": "Copied",
   "copy": "Copy",
   "create": "Create",
   "created": "created",
@@ -2496,9 +2497,12 @@
         "select": "Choose the user whose personal box you want to open.",
         "title": "Personal box of {arg0}"
       },
+      "tab": {
+        "files": "Files",
+        "info": "Info"
+      },
       "title": {
         "add": "Add new data transfer area",
-        "edit": "Admin of data transfer area",
         "heading": "Data transfer area",
         "list": "List of data transfer areas"
       },
@@ -3042,6 +3046,10 @@
     "withoutTimePeriod": "Without time period"
   },
   "searchString": "Search string",
+  "secret": {
+    "hide": "Hide",
+    "show": "Show"
+  },
   "select": {
     "_": "Select",
     "checklist": {

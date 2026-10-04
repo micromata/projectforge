@@ -5,14 +5,13 @@ import { useRouteParams } from "@/hooks/use-route-params";
 import { PageShell } from "@/components/shared/page-shell";
 import { EntityEditPage } from "@/components/shared/edit/entity-edit-page";
 import { DATA_TRANSFER_PAGE } from "@/components/features/datatransfer/datatransfer.page";
-import { DataTransferFilesPage } from "@/components/features/datatransfer/datatransfer-files-page";
+import { DataTransferAreaPage } from "@/components/features/datatransfer/datatransfer-area-page";
 import { PERSONAL_BOX_ID } from "@/lib/rs/datatransfer";
 
 /**
- * `/datatransfer/{id}` is an area's files, `-1` the user's own personal box — and `/datatransfer/new`
- * the admin form of a new area, since one dynamic segment serves both under the static export (a
- * sibling `new/` would be a second shell for the same url pattern). The form of an existing area is
- * `[id]/edit`.
+ * `/datatransfer/{id}` is an area's page (files, info and admin form as tabs), `-1` the user's own
+ * personal box — and `/datatransfer/new` the admin form of a new area, since one dynamic segment serves
+ * both under the static export (a sibling `new/` would be a second shell for the same url pattern).
  */
 export function DataTransferPageClient() {
   const router = useRouter();
@@ -39,5 +38,5 @@ export function DataTransferPageClient() {
   if (!Number.isInteger(id) || (id <= 0 && id !== PERSONAL_BOX_ID)) {
     notFound();
   }
-  return <DataTransferFilesPage id={id} />;
+  return <DataTransferAreaPage id={id} />;
 }

@@ -1,33 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
 import { useRouteParams } from "@/hooks/use-route-params";
-import { PageShell } from "@/components/shared/page-shell";
-import { EntityEditPage } from "@/components/shared/edit/entity-edit-page";
-import { DATA_TRANSFER_PAGE } from "@/components/features/datatransfer/datatransfer.page";
+import { DATA_TRANSFER_TAB } from "@/components/features/datatransfer/datatransfer-area-tabs";
+import { TAB_PARAM } from "@/components/shared/edit-page-tabs";
 
 /**
- * The admin form of an existing area. It is opened from the area's file view, so saving and cancelling
- * lead back there; a deleted area has no files to return to, which leaves the default (the list).
+ * The admin form of an existing area is a tab of its page; this url only forwards there. Kept because
+ * `NextMigration.editRoute` (old `react/datatransfer/edit/{id}` links) and bookmarks still name it.
  */
 export function DataTransferEditPageClient() {
   const router = useRouter();
   const raw = useRouteParams<{ id: string }>("/datatransfer/[id]/edit")?.id;
-  if (raw === undefined) return null;
-  const id = Number(raw);
-  if (!Number.isInteger(id) || id <= 0) notFound();
-  const filesRoute = `/datatransfer/${id}`;
+  const id = raw === undefined ? undefined : Number(raw);
+  const valid = id !== undefined && Number.isInteger(id) && id > 0;
 
-  return (
-    <PageShell>
-      <EntityEditPage
-        page={DATA_TRANSFER_PAGE}
-        id={id}
-        outcome={{
-          afterSave: () => router.push(filesRoute),
-          afterCancel: () => router.push(filesRoute),
-        }}
-      />
-    </PageShell>
-  );
+  useEffect(() => {
+    if (valid) {
+      router.replace(
+        `/datatransfer/${id}?${TAB_PARAM}=${DATA_TRANSFER_TAB.edit}`
+      );
+    }
+  }, [valid, id, router]);
+
+  if (raw !== undefined && !valid) notFound();
+  return null;
 }

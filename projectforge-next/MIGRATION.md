@@ -495,11 +495,14 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `wa/hrList` leitet `OrphanedLinkFilter` um; die Wicket-Seite ist gelöscht.
 - **Datentransfer** (`datatransfer`, Plugin, intern; vorher React-UILayout) – vier Seiten, alle layoutfrei:
   Liste + Admin-Formular (`DataTransferAreaEntityRest`, `/rs/datatransfer`, Kategorie der Anhänge bleibt
-  `datatransfer`), Dateiansicht `next/datatransfer/{id}` (`DataTransferFilesRest`: Anhänge, Infokarte,
-  Beobachten, „alle herunterladen"; `-1` = eigene Box, der Client ersetzt die URL durch die echte Id),
-  Aktivitäten als Dialog (`DataTransferAuditRest`) und `next/datatransfer/personal-box`
-  (`DataTransferPersonalBoxRest`). Ein Zeilenklick öffnet die Dateien, bearbeiten (`{id}/edit`) nur mit
-  `editAccess`. Token/Passwort des externen Zugriffs holt das Formular beim Einschalten selbst
+  `datatransfer`), die Bereichsseite `next/datatransfer/{id}` (`DataTransferFilesRest`; `-1` = eigene Box,
+  der Client ersetzt die URL durch die echte Id), Aktivitäten als Dialog (`DataTransferAuditRest`) und
+  `next/datatransfer/personal-box` (`DataTransferPersonalBoxRest`). Die Bereichsseite hat drei Tabs in
+  `?tab=`: Dateien (Standard), Infos (Links, Beobachten, Rechte) und – nur mit `editAccess` – Bearbeiten.
+  Das Formular ist dort das geteilte `EntityEditBody` mit eigenem `renderShell` (ohne Kopf), beim ersten
+  Besuch gemountet und danach in `<Activity hidden>` gehalten, damit ein Blick auf die Dateien keine
+  Eingaben verwirft; Speichern/Abbrechen führen zurück zu den Dateien. `{id}/edit` leitet nur noch auf
+  `?tab=edit` weiter, `new` bleibt eine eigene Seite. Token/Passwort des externen Zugriffs holt das Formular beim Einschalten selbst
   (`renewAccessToken`/`renewPassword`), statt `onWatchFieldsUpdate`. Kein Rückweg
   (`offerLegacyLink = false`); Links alter Mails (`react/datatransferfiles/dynamic/{id}`,
   `react/datatransferpersonalfiles/…`, `react/datatransferaudit/…`) leitet `OrphanedLinkFilter` um.

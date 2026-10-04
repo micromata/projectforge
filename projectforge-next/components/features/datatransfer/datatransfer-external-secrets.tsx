@@ -6,7 +6,7 @@ import { RefreshIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { CopyableValue } from "@/components/shared/copyable-value";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { InputField } from "@/components/shared/form/input-field";
+import { SecretField } from "@/components/shared/form/secret-field";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,7 +24,8 @@ interface Props {
 
 /**
  * The password and the link of the external access, each with a "renew" — a leaked link or password is
- * replaced here, and the old one is invalid once the form is saved.
+ * replaced here, and the old one is invalid once the form is saved. The password is hidden until
+ * revealed, and both can be copied (see SecretField, CopyableValue).
  *
  * The link is the public page plus the token (`DataTransferArea.externalLink`); the backend sends it for
  * the stored token only, so a renewed token is put behind the same base here.
@@ -45,13 +46,12 @@ export function DataTransferExternalSecrets({
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      <div className="flex items-end gap-2">
-        <InputField
-          name="externalPassword"
-          label={t("plugins.datatransfer.external.password._")}
-          hint={t("plugins.datatransfer.external.password.info")}
-          className="flex-1"
-        />
+      <SecretField
+        name="externalPassword"
+        label={t("plugins.datatransfer.external.password._")}
+        hint={t("plugins.datatransfer.external.password.info")}
+        peek
+      >
         <RenewButton
           label={t("plugins.datatransfer.external.password.renew._")}
           hint={t("plugins.datatransfer.external.password.renew.info")}
@@ -62,7 +62,7 @@ export function DataTransferExternalSecrets({
             )
           }
         />
-      </div>
+      </SecretField>
       <div className="flex flex-col gap-2 sm:col-span-2">
         <Label>{linkLabel}</Label>
         <CopyableValue value={link} label={linkLabel}>
