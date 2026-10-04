@@ -164,7 +164,12 @@ dependencies {
     implementation(libs.org.eclipse.angus.jakarta.mail)
     implementation(libs.org.jetbrains.kotlinx.coroutines.core)
     implementation(libs.net.lingala.zip4j.zip4j)
-    implementation(libs.net.sourceforge.mpxj)
+    implementation(libs.net.sf.mpxj) {
+        // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
+        exclude(group = "org.xerial", module = "sqlite-jdbc")
+        exclude(group = "com.healthmarketscience.jackcess", module = "jackcess")
+        exclude(group = "com.jgoodies", module = "jgoodies-binding")
+    }
     implementation(libs.org.apache.commons.collections4)
     implementation(libs.org.apache.commons.lang3)
     implementation(libs.org.apache.commons.text)

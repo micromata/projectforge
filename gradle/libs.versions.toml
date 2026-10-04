@@ -29,7 +29,7 @@ jakarta-validation = "3.1.0"
 javax-jcr = "2.0"
 joda-time-joda-time = "2.14.1"
 net-lingala-zip4j-zip4j = "2.11.6"
-net-sourceforge-mpxj = "4.3.0"
+net-sf-mpxj = "16.9.0"
 org-apache-commons-collections4 = "4.5.0"
 org-apache-commons-lang3 = "3.20.0"
 org-apache-commons-text = "1.15.0"
@@ -124,7 +124,7 @@ javax-jcr = { module = "javax.jcr:jcr", version.ref = "javax-jcr" }
 jboss-logging = { module = "org.jboss.logging:jboss-logging", version.ref = "jboss-logging" }
 joda-time-joda-time = { module = "joda-time:joda-time", version.ref = "joda-time-joda-time" }
 net-lingala-zip4j-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "net-lingala-zip4j-zip4j" }
-net-sourceforge-mpxj = { module = "net.sourceforge:mpxj", version.ref = "net-sourceforge-mpxj" }
+net-sf-mpxj = { module = "net.sf.mpxj:mpxj", version.ref = "net-sf-mpxj" }
 org-apache-commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
 org-apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-lang3" }
 org-apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }

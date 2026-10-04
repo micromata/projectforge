@@ -73,7 +73,12 @@ dependencies {
     api(libs.com.thoughtworks.xstream)
     api(libs.org.apache.groovy.all)
     api(libs.org.jfree.jfreechart)
-    api(libs.net.sourceforge.mpxj)
+    api(libs.net.sf.mpxj) {
+        // Only needed by mpxj readers (sqlite/Access/GUI), we only write MPX/MSPDI:
+        exclude(group = "org.xerial", module = "sqlite-jdbc")
+        exclude(group = "com.healthmarketscience.jackcess", module = "jackcess")
+        exclude(group = "com.jgoodies", module = "jgoodies-binding")
+    }
     api(libs.org.apache.commons.text)
     api(libs.org.apache.poi)
     api(libs.org.apache.poi.ooxml)
