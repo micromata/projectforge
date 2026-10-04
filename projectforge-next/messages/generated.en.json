@@ -2393,7 +2393,40 @@
       }
     },
     "datatransfer": {
+      "access": {
+        "title": "Access"
+      },
+      "accessGroups": {
+        "_": "Groups with file access",
+        "info": "Members of these groups (if given) will have access to the files of this area."
+      },
+      "accessUsers": {
+        "_": "Users with file access",
+        "info": "These users (if given) will have access to the files of this area."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins have full access to this area and its settings. They are also allowed to change admins, enabling external access and deleting this area."
+      },
       "areaName": "Area name",
+      "audit": {
+        "_": "Activities",
+        "action": "Action",
+        "display": "Display activities",
+        "downloadEvents": "Download events of the last 30 days",
+        "downloadedBy": "Downloaded by",
+        "events": "Events of the last 30 days"
+      },
+      "button": {
+        "downloadAll": {
+          "_": "Download all",
+          "info": "Download all files in one ZIP archive."
+        }
+      },
+      "capacity": {
+        "_": "Capacity",
+        "stats": "{arg0}/{arg1} ({arg2}%)"
+      },
       "description": {
         "_": "Description",
         "info": "This description is also visible for external users with access via link/password."
@@ -2403,6 +2436,9 @@
         "info": "Each file will be deleted automatically after."
       },
       "external": {
+        "access": {
+          "title": "External access"
+        },
         "accessToken": {
           "_": "Access token",
           "info": "Access token as part of the external link for direct access for external users. Please renew if you assume that this token was leaked."
@@ -2410,23 +2446,65 @@
         "download": {
           "enabled": {
             "_": "Enabled for external downloads",
-            "info": "If enabled, this area is accessible for external downloads via link (including access token) and password."
+            "info": "If enabled, this area is accessible for external downloads via link (including access token) and password.",
+            "title": "External download"
+          }
+        },
+        "link": {
+          "_": "External access link",
+          "renew": {
+            "_": "Renew",
+            "info": "Please renew the link if you assume that this token was leaked. The old one will be invalid after clicking the save button."
           }
         },
         "password": {
           "_": "Password",
-          "info": "This password improves security and is protected by brute-force protection."
+          "info": "This password improves security and is protected by brute-force protection.",
+          "renew": {
+            "_": "Renew",
+            "info": "If you change or renew this password, please inform all users."
+          }
         },
         "upload": {
           "enabled": {
             "_": "Enabled for external uploads",
-            "info": "If enabled, this area is accessible for external uploads via link (including access token) and password."
+            "info": "If enabled, this area is accessible for external uploads via link (including access token) and password.",
+            "title": "External upload"
           }
         }
+      },
+      "gateway": {
+        "externalAccess": {
+          "edit": "External access can''t be configured here. To do so, a data transfer area must be created and administered on the server {arg0}.",
+          "list": "External access (read/write) can''t be configured here. Data transfer areas with external access must be created and administered on the server {arg0}."
+        }
+      },
+      "internal": {
+        "link": "Internal link"
       },
       "maxUploadSize": {
         "_": "Maximum upload size",
         "info": "Maximum upload size of a single file. Max size of this area in total is this value doubled."
+      },
+      "observers": {
+        "_": "Observers",
+        "info": "These observers will receive notifications on upload (internal and external) as well as on external downloads via mail."
+      },
+      "personalBox": {
+        "_": "Personal box",
+        "info": "For sending files to another single user, use his/her personal data transfer box.",
+        "select": "Choose the user whose personal box you want to open.",
+        "title": "Personal box of {arg0}"
+      },
+      "title": {
+        "add": "Add new data transfer area",
+        "edit": "Admin of data transfer area",
+        "heading": "Data transfer area",
+        "list": "List of data transfer areas"
+      },
+      "userWantsToObserve": {
+        "_": "Observe",
+        "info": "If checked, you will receive mails on activities by other users in this area."
       }
     },
     "ihk": {

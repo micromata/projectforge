@@ -108,6 +108,8 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to a removed Wicket calendar page was redirected.
         } else if (redirectGoneReactPage(servletResponse, uri)) {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
+        } else if (redirectDataTransferPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a dynamic React page of the data transfer plugin was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
@@ -183,6 +185,36 @@ class OrphanedLinkFilter : Filter {
             id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
             isEdit -> NextMigration.newEntryUrl(category)
             else -> NextMigration.listUrl(category)
+        }
+        redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The dynamic React pages of the data transfer plugin, migrated to projectforge-next: the file view of an
+     * area (react/datatransferfiles/dynamic/<id>, linked by the notification mails, -1 is the own personal
+     * box), its activities (react/datatransferaudit/dynamic/<id>, now a dialog of the file view) and the
+     * personal box of another user (react/datatransferpersonalfiles/dynamic). The list and the admin form are
+     * covered by [redirectMigratedPage] - which must come after this, because react/datatransfer is a prefix
+     * of these urls. The pages are gone, so there is no escape hatch. The id is interpolated into the
+     * Location header, so only numbers are accepted; the React app took it as path segment or as parameter.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectDataTransferPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val listUrl = NextMigration.listUrl("datatransfer")
+        val page = DATATRANSFER_DYNAMIC_PAGES.find { uri.contains("/react/$it/") || uri.endsWith("/react/$it") }
+            ?: return false
+        val target = if (page == "datatransferpersonalfiles") {
+            "$listUrl/personal-box"
+        } else {
+            val id = uri.substringAfter("/react/$page/dynamic/", "").substringBefore('/').toLongOrNull()
+                ?: request.getParameter("id")?.toLongOrNull()
+            if (id != null) "$listUrl/$id" else listUrl
         }
         redirect(response, uri, "/$target")
         return true
@@ -326,6 +358,10 @@ class OrphanedLinkFilter : Filter {
 
         /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
         private val GONE_REACT_CATEGORIES = listOf("project", "task")
+
+        /** The dynamic React pages of the data transfer plugin, see [redirectDataTransferPage]. */
+        private val DATATRANSFER_DYNAMIC_PAGES =
+            listOf("datatransferfiles", "datatransferaudit", "datatransferpersonalfiles")
 
         /**
          * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)

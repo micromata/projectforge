@@ -29,7 +29,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.AttachmentPageRest
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
@@ -53,7 +53,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
     private lateinit var services: AttachmentsServicesRest
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var dataTransferPublicServicesRest: DataTransferPublicServicesRest
@@ -94,7 +94,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
         val attachmentData =
             AttachmentsServicesRest.AttachmentData(category = category, id = id, fileId = fileId, listId = listId)
         attachmentData.attachment =
-            services.getAttachment(dataTransferAreaPagesRest.jcrPath!!, dataTransferPublicAccessChecker, attachmentData)
+            services.getAttachment(dataTransferAreaEntityRest.jcrPath!!, dataTransferPublicAccessChecker, attachmentData)
         val layout = AttachmentPageRest.createAttachmentLayout(
             id = id,
             category = category,

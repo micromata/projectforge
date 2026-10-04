@@ -65,6 +65,12 @@ export interface AttachmentListProps {
    * list itself refreshes without it (see useAttachmentMutations).
    */
   onChanged?: () => void;
+  /**
+   * A line under the drop area of the standalone variant — what the backend will accept (a data
+   * transfer area's maximum file size). Only shown, not checked: the backend refuses an oversized
+   * file with a message of its own (see AttachmentDropArea).
+   */
+  uploadHint?: string;
 }
 
 /**
@@ -88,6 +94,7 @@ export function AttachmentList({
   lockedDescription,
   lockedLabel,
   onChanged,
+  uploadHint,
 }: AttachmentListProps) {
   const t = useTranslations();
   const { data, isLoading, isError } = useAttachments(entity, id);
@@ -149,7 +156,12 @@ export function AttachmentList({
   const content = (
     <div className="flex flex-col gap-3">
       {!embedded && !readOnly && (
-        <AttachmentDropArea onFiles={uploads.enqueue} />
+        <div className="flex flex-col gap-1">
+          <AttachmentDropArea onFiles={uploads.enqueue} />
+          {uploadHint && (
+            <p className="text-xs text-muted-foreground">{uploadHint}</p>
+          )}
+        </div>
       )}
       {/* The uploads sit above the list: they are what just happened, and each finished one moves
           down into the list by itself. */}

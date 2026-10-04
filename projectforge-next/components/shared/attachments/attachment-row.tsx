@@ -122,6 +122,7 @@ export function AttachmentRow({
             attachment.sizeHumanReadable,
             attachment.createdByUser,
             attachment.lastUpdateTimeAgo,
+            attachment.info?.expiryInfo,
           ]
             .filter(Boolean)
             .join(" · ")}

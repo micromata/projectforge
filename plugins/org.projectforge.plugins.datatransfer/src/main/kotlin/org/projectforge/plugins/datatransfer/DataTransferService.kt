@@ -32,9 +32,7 @@ import org.projectforge.datatransfer.DataTransferInterface
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
-import org.projectforge.rest.core.PagesResolver
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -49,7 +47,7 @@ class DataTransferService : DataTransferInterface {
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var dataTransferBridge: DataTransferBridge
@@ -57,7 +55,7 @@ class DataTransferService : DataTransferInterface {
     @Autowired
     private lateinit var domainService: DomainService
 
-    val jcrPath: String by lazy { dataTransferAreaPagesRest.jcrPath!! }
+    val jcrPath: String by lazy { dataTransferAreaEntityRest.jcrPath!! }
 
     @PostConstruct
     private fun postConstruct() {
@@ -72,10 +70,7 @@ class DataTransferService : DataTransferInterface {
 
     fun getDataTransferAreaLink(areaId: Long?): String {
         return domainService.getDomain(
-            PagesResolver.getDynamicPageUrl(
-                DataTransferPageRest::class.java,
-                id = areaId ?: 0
-            )
+            DataTransferUtils.areaViewPath(areaId)
         )
     }
 
@@ -91,7 +86,7 @@ class DataTransferService : DataTransferInterface {
             ?: throw IllegalStateException("Personal box not found for user with ID $reveiverId.")
         try {
             attachmentsService.addAttachment(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 fileInfo = FileInfo(
                     filename,
                     fileSize = content.size.toLong(),
@@ -100,7 +95,7 @@ class DataTransferService : DataTransferInterface {
                 content = content,
                 baseDao = dataTransferAreaDao,
                 obj = personalBox,
-                accessChecker = dataTransferAreaPagesRest.attachmentsAccessChecker,
+                accessChecker = dataTransferAreaEntityRest.attachmentsAccessChecker,
             )
             log.info("Document '$filename' of size ${content.size.formatBytes()} put in the personal box (DataTransfer) of '${receiver.userDisplayName}' with description '$description'.")
             return true

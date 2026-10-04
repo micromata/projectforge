@@ -139,6 +139,24 @@ class NextMigrationTest {
     }
 
     /**
+     * The data transfer areas: the row click leads to the file view (`datatransfer/:id`), the admin form is a
+     * sub route of it. The React pages are gone, so there is no way back, but a bookmarked React link of the
+     * list or the form is still redirected onto next.
+     */
+    @Test
+    fun `the data transfer pages are next's and offer no way back`() {
+        Assertions.assertEquals("next/datatransfer", NextMigration.listUrl("datatransfer"))
+        Assertions.assertEquals("next/datatransfer/:id/edit", NextMigration.standardEditPage("datatransfer"))
+        Assertions.assertEquals("next/datatransfer/new", NextMigration.newEntryUrl("datatransfer"))
+        Assertions.assertNull(NextMigration.legacyListUrl("datatransfer"))
+        Assertions.assertNull(NextMigration.legacyEditPage("datatransfer"))
+        Assertions.assertNull(NextMigration.legacyNewEntryUrl("datatransfer"))
+        val link = NextMigration.orphanedLinks().single { it.category == "datatransfer" }
+        Assertions.assertEquals("react/datatransfer", link.legacyListPath)
+        Assertions.assertEquals("react/datatransfer/edit", link.legacyEditPath)
+    }
+
+    /**
      * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
      * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
      */

@@ -243,10 +243,14 @@ file limited to the settings above.
 **OAuth2 note:** the OAuth2 block is optional. Without `client-id` the `OAuth2UserService`
 bean is not created and the gateway starts without any login option — CardDAV and ICS still
 work, since they authenticate via tokens. Only the DataTransfer UI requires OAuth2: after the
-login at the IdP the user lands on `/react/datatransfer`. The DataTransfer plugin is always
-active in gateway mode. Any other page shows the gateway's error page (`/error`), which tells
-whether and as whom you are logged in; the login page is `/next/login` (also the target after
-logout). A user must exist and be active on the gateway (synced from the main instance).
+login at the IdP the user lands on `/next/datatransfer/`. The DataTransfer plugin is always
+active in gateway mode. Of the projectforge-next app only the data transfer pages
+(`/next/datatransfer/...`), its assets (`/next/_next/...`) and the REST calls of these pages and
+of the app's shell are served; the attachment calls only for category `datatransfer`. Any other
+page shows the gateway's error page (`/error`), which tells whether and as whom you are logged
+in; the login page is `/next/login` (also the target after logout, and where the app goes when
+the session has ended). A user must exist and be active on the gateway (synced from the main
+instance).
 
 **Important — Spring profile and `environment.sh`:** in docker mode ProjectForge creates an
 `environment.sh` in the ProjectForge home on first start, containing an empty

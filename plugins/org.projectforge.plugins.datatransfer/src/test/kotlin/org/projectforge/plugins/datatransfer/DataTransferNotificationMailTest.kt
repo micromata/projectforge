@@ -33,8 +33,6 @@ import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.business.test.AbstractTestBase
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
@@ -142,11 +140,11 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
         Assertions.assertNotNull(mail)
         Assertions.assertEquals(
             4,
-            StringUtils.countMatches(mail!!.content, "http://localhost:8080/react/datatransferfiles/dynamic/42")
+            StringUtils.countMatches(mail!!.content, "http://localhost:8080/next/datatransfer/42")
         )
         Assertions.assertEquals(
             4,
-            StringUtils.countMatches(mail.content, "http://localhost:8080/react/datatransferfiles/dynamic/2")
+            StringUtils.countMatches(mail.content, "http://localhost:8080/next/datatransfer/2")
         )
     }
 
@@ -196,10 +194,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
 
     private fun createLink(areaId: Long?): String {
         return domainService.getDomain(
-            PagesResolver.getDynamicPageUrl(
-                DataTransferPageRest::class.java,
-                id = areaId ?: 0
-            )
+            DataTransferUtils.areaViewPath(areaId)
         )
     }
 }

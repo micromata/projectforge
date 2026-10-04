@@ -36,7 +36,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.plugins.datatransfer.DataTransferAreaDao.Companion.getExternalUserString
 import org.projectforge.plugins.datatransfer.DataTransferPlugin
 import org.projectforge.plugins.datatransfer.DataTransferUtils
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.plugins.datatransfer.rest.DataTransferRestUtils
 import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.config.Rest
@@ -64,7 +64,7 @@ class DataTransferPublicServicesRest {
     private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var dataTransferPublicSession: DataTransferPublicSession
@@ -102,7 +102,7 @@ class DataTransferPublicServicesRest {
         }
         val result =
             attachmentsService.getAttachmentInputStream(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 id,
                 fileId,
                 attachmentsAccessChecker,
@@ -142,7 +142,7 @@ class DataTransferPublicServicesRest {
             attachmentsAccessChecker,
             area,
             dto.areaName,
-            jcrPath = dataTransferAreaPagesRest.jcrPath!!,
+            jcrPath = dataTransferAreaEntityRest.jcrPath!!,
             id,
             dto.attachments,
             byExternalUser = getExternalUserString(request, sessionData.userInfo)
@@ -177,7 +177,7 @@ class DataTransferPublicServicesRest {
         val dto = convert(request, area, sessionData.userInfo)
         val fileIdList = fileIds.split(",")
         val attachments = attachmentsService.getAttachments(
-            dataTransferAreaPagesRest.jcrPath!!,
+            dataTransferAreaEntityRest.jcrPath!!,
             id,
             attachmentsAccessChecker,
         )
@@ -190,7 +190,7 @@ class DataTransferPublicServicesRest {
             attachmentsAccessChecker,
             area,
             dto.areaName,
-            jcrPath = dataTransferAreaPagesRest.jcrPath!!,
+            jcrPath = dataTransferAreaEntityRest.jcrPath!!,
             id,
             attachments,
             byExternalUser = getExternalUserString(request, sessionData.userInfo)
@@ -231,7 +231,7 @@ class DataTransferPublicServicesRest {
         }
         val selectedAttachments =
             attachmentsService.getAttachments(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 id,
                 attachmentsAccessChecker
             )
@@ -253,7 +253,7 @@ class DataTransferPublicServicesRest {
                     }
                 } else {
                     attachmentsService.deleteAttachment(
-                        dataTransferAreaPagesRest.jcrPath!!,
+                        dataTransferAreaEntityRest.jcrPath!!,
                         fileId,
                         dataTransferAreaDao,
                         area,
@@ -270,7 +270,7 @@ class DataTransferPublicServicesRest {
                 area.externalDownloadEnabled,
                 area.id!!,
                 attachmentsService.getAttachments(
-                    dataTransferAreaPagesRest.jcrPath!!,
+                    dataTransferAreaEntityRest.jcrPath!!,
                     id,
                     attachmentsAccessChecker,
                     null
@@ -310,7 +310,7 @@ class DataTransferPublicServicesRest {
 
         val attachment = file.inputStream.use { inputStream ->
             attachmentsService.addAttachment(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 fileInfo = FileInfo(file.originalFilename, fileSize = file.size),
                 inputStream = inputStream,
                 baseDao = dataTransferAreaDao,
@@ -327,7 +327,7 @@ class DataTransferPublicServicesRest {
                 area.externalDownloadEnabled,
                 area.id!!,
                 attachmentsService.getAttachments(
-                    dataTransferAreaPagesRest.jcrPath!!,
+                    dataTransferAreaEntityRest.jcrPath!!,
                     id,
                     attachmentsAccessChecker,
                     null
@@ -371,7 +371,7 @@ class DataTransferPublicServicesRest {
         }
 
         attachmentsService.deleteAttachment(
-            dataTransferAreaPagesRest.jcrPath!!,
+            dataTransferAreaEntityRest.jcrPath!!,
             fileId,
             dataTransferAreaDao,
             area,
@@ -381,7 +381,7 @@ class DataTransferPublicServicesRest {
         )
         val list =
             attachmentsService.getAttachments(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 id,
                 attachmentsAccessChecker,
                 listId
@@ -415,7 +415,7 @@ class DataTransferPublicServicesRest {
         }
 
         attachmentsService.changeFileInfo(
-            dataTransferAreaPagesRest.jcrPath!!,
+            dataTransferAreaEntityRest.jcrPath!!,
             fileId,
             dataTransferAreaDao,
             area,
@@ -427,7 +427,7 @@ class DataTransferPublicServicesRest {
         )
         val list =
             attachmentsService.getAttachments(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 id,
                 attachmentsAccessChecker,
                 listId
@@ -451,7 +451,7 @@ class DataTransferPublicServicesRest {
             dto.externalDownloadEnabled,
             dto.id!!,
             attachmentsService.getAttachments(
-                dataTransferAreaPagesRest.jcrPath!!,
+                dataTransferAreaEntityRest.jcrPath!!,
                 dto.id!!,
                 attachmentsAccessChecker
             )

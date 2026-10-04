@@ -34,8 +34,6 @@ import org.projectforge.framework.jcr.AttachmentsEventType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
-import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -91,10 +89,7 @@ open class DataTransferNotificationMailService {
       return 0
     }
     val link = domainService.getDomain(
-      PagesResolver.getDynamicPageUrl(
-        DataTransferPageRest::class.java,
-        id = area.id ?: 0
-      )
+      DataTransferUtils.areaViewPath(area.id)
     )
     var counter = 0
     recipients.distinct().forEach { id ->
@@ -190,10 +185,7 @@ open class DataTransferNotificationMailService {
     notificationInfoList.forEach { info ->
       if (info.link == null) {
         info.link = domainService.getDomain(
-          PagesResolver.getDynamicPageUrl(
-            DataTransferPageRest::class.java,
-            id = info.dataTransferArea.id ?: 0
-          )
+          DataTransferUtils.areaViewPath(info.dataTransferArea.id)
         )
       }
       info.attachment.addExpiryInfo(
