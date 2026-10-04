@@ -26,7 +26,10 @@ export function CalendarToolbar({
         isFilterModified={init.isFilterModified}
       />
       <CalendarSettingsDialog init={init} mutations={mutations} />
-      <CalendarMoreMenu onRefresh={mutations.refresh} />
+      <CalendarMoreMenu
+        onRefresh={mutations.refresh}
+        defaultCalendarId={init.filter?.defaultCalendarId}
+      />
     </div>
   );
 }

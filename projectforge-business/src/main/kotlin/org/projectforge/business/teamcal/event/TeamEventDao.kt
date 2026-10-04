@@ -207,6 +207,19 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
+    /**
+     * All non-deleted events of the given calendar with the given uid. Normally none or one, but a uid isn't
+     * unique by constraint, so unlike [getByUid] a caller can tell "not found" from "ambiguous".
+     */
+    fun selectByUid(calendarId: Long, uid: String): List<TeamEventDO> {
+        return persistenceService.executeQuery(
+            "select e from TeamEventDO e where e.uid = :uid and e.calendar.id = :calendarId and e.deleted = false",
+            TeamEventDO::class.java,
+            Pair("uid", uid),
+            Pair("calendarId", calendarId),
+        )
+    }
+
     override fun onUpdate(obj: TeamEventDO, dbObj: TeamEventDO) {
         logReminderChange(obj)
         handleSeriesUpdates(obj)

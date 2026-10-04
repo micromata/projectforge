@@ -2736,6 +2736,12 @@
         "updateInterval": "Update interval",
         "url": "Calendar URL"
       },
+      "import": {
+        "ics": {
+          "title": "Import Events",
+          "tooltip": "Import events in ics format."
+        }
+      },
       "owner": "Owner",
       "switchToTeamEventButton": "Switch to events",
       "switchToTimesheetButton": "Switch to time sheet",

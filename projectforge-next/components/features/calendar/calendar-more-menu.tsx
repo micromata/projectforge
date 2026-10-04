@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Calendar03Icon,
+  CalendarUpload01Icon,
   CircleArrowReload01Icon,
   MoreHorizontalIcon,
 } from "@hugeicons/core-free-icons";
@@ -19,16 +21,26 @@ import { resolveMenuUrl, toAbsoluteUrl } from "@/lib/menu-url";
 
 interface CalendarMoreMenuProps {
   onRefresh: () => void;
+  /** Preselected as the target of the ICS import. */
+  defaultCalendarId?: number | null;
 }
 
 /**
  * The overflow menu: a manual refresh in place of the legacy page reload, and the list of team
- * calendars — still a legacy page (`teamCal` is not migrated), so a plain anchor that leaves the app.
+ * calendars — still a legacy page (`teamCal` is not migrated), so a plain anchor that leaves the app —
+ * and the ICS import, into the default calendar unless another one is picked there.
  * The colour settings now live in the gear dialog (CalendarColorSettings), not on a separate page.
  */
-export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
+export function CalendarMoreMenu({
+  onRefresh,
+  defaultCalendarId,
+}: CalendarMoreMenuProps) {
   const t = useTranslations();
   const teamCalList = toAbsoluteUrl(resolveMenuUrl("react/teamCal"));
+  const importUrl =
+    defaultCalendarId != null
+      ? `/teamCalImport?teamCalId=${defaultCalendarId}`
+      : "/teamCalImport";
 
   return (
     <DropdownMenu>
@@ -59,6 +71,14 @@ export function CalendarMoreMenu({ onRefresh }: CalendarMoreMenuProps) {
             {t("menu.plugins.teamcal")}
           </a>
         </DropdownMenuItem>
+        <HintTooltip side="left" text={t("plugins.teamcal.import.ics.tooltip")}>
+          <DropdownMenuItem asChild>
+            <Link href={importUrl}>
+              <HugeiconsIcon icon={CalendarUpload01Icon} size={14} />
+              {t("plugins.teamcal.import.ics.title")}
+            </Link>
+          </DropdownMenuItem>
+        </HintTooltip>
       </DropdownMenuContent>
     </DropdownMenu>
   );

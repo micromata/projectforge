@@ -24,7 +24,9 @@
 package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.Constants
 import org.projectforge.business.PfCaches
+import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.admin.right.TeamCalRight
@@ -269,6 +271,20 @@ class TeamCalPagesRest :
                             )
                     )
             )
+        if (dto.id != null && !dto.externalSubscription
+            && (dto.accessStatus == CalendarAccessStatus.OWNER || dto.accessStatus == CalendarAccessStatus.FULL_ACCESS)
+        ) {
+            // The ics import (next) for the calendars it may write into, see TeamCalDao.writableCalendars.
+            layout.add(
+                MenuItem(
+                    "calendar.importIcs",
+                    i18nKey = "plugins.teamcal.import.ics.title",
+                    tooltip = "plugins.teamcal.import.ics.tooltip",
+                    url = "${Constants.NEXT_APP_PATH}teamCalImport?teamCalId=${dto.id}",
+                    type = MenuItemTargetType.REDIRECT,
+                )
+            )
+        }
         if (dto.id != null) {
             // Show subscription barcode and url only for existing entries.
             layout.add(

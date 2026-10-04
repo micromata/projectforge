@@ -171,6 +171,13 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
         }
 
     /**
+     * The calendars the logged-in user may write events into: [allCalendarsWithFullAccess] without the external
+     * subscriptions, whose events are read-only.
+     */
+    val writableCalendars: List<TeamCalDO>
+        get() = allCalendarsWithFullAccess.filter { !it.externalSubscription }
+
+    /**
      * Calls [TeamCalCache.setExpired].
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.afterSaveOrModify

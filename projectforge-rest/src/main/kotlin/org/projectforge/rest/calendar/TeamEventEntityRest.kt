@@ -134,9 +134,7 @@ class TeamEventEntityRest() : AbstractDTOEntityRest<TeamEventDO, TeamEvent, Team
   @AccessChecked("DAO: TeamCalDao.select, calendars with full access only")
   @GetMapping("calendars")
   fun getCalendars(): List<CalendarSelectValue> {
-    val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()
-    calendars.removeIf { it.externalSubscription }
-    return calendars.mapNotNull { cal ->
+    return teamCalDao.writableCalendars.mapNotNull { cal ->
       cal.id?.let { CalendarSelectValue(it, cal.title ?: "???") }
     }
   }

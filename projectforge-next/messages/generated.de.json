@@ -2736,6 +2736,12 @@
         "updateInterval": "Aktualisierungsintervall",
         "url": "Kalender-URL"
       },
+      "import": {
+        "ics": {
+          "title": "Ereignisse importieren",
+          "tooltip": "Ereignisse im ics-Format importieren."
+        }
+      },
       "owner": "Eigner:in",
       "switchToTeamEventButton": "In Termin umwandeln",
       "switchToTimesheetButton": "In Zeitbuchung umwandeln",

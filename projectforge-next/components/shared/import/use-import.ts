@@ -61,6 +61,11 @@ const STATE_SETTLE_DELAY_MS = 500;
 /** Hidden by default, so the unmodified rows we now fetch stay out of sight until the chip is toggled. */
 const DEFAULT_HIDDEN_STATUS_KEYS = ["unmodified"] as const;
 
+/** The React-Query key of an import's [ImportView], for imports that change the stash outside this hook. */
+export function importStateQueryKey(base: string) {
+  return ["import", base, "state"] as const;
+}
+
 /**
  * The whole state of one import route: the current [ImportView] (React-Query owned, so a reconcile or a
  * fresh upload refreshes it), the ticked row ids, the display options, and the four mutations. On a
@@ -75,7 +80,7 @@ export function useImport(config: ImportConfig) {
   const queryClient = useQueryClient();
   const watchJob = useJobStore((s) => s.watchJob);
 
-  const stateKey = useMemo(() => ["import", base, "state"] as const, [base]);
+  const stateKey = useMemo(() => importStateQueryKey(base), [base]);
   const [selection, setSelection] = useState<RowSelectionState>({});
   const [hiddenStatusKeys, setHiddenStatusKeys] = useState<Set<string>>(
     () => new Set(DEFAULT_HIDDEN_STATUS_KEYS)
@@ -105,6 +110,7 @@ export function useImport(config: ImportConfig) {
     mutationFn: (file: File) => {
       setUploadProgress(0);
       return uploadImportFile(base, file, {
+        fields: config.uploadFields,
         onProgress: (p: UploadProgress) => setUploadProgress(p.percent ?? 0),
       });
     },

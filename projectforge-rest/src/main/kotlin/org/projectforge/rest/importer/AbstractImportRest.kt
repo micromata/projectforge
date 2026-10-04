@@ -75,6 +75,14 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
     protected abstract fun proceedUpload(inputStream: InputStream, filename: String): S
 
     /**
+     * Like [proceedUpload], for an import that needs more than the file: the request carries the further
+     * fields of the multipart upload (`request.getParameter`), e.g. the target the file is imported into.
+     */
+    protected open fun proceedUpload(inputStream: InputStream, filename: String, request: HttpServletRequest): S {
+        return proceedUpload(inputStream, filename)
+    }
+
+    /**
      * Enqueues the import of the given entries. Don't forget to fill the [ImportStorage.importResult].
      * @return Job id (null, if no job was created).
      */
@@ -117,7 +125,7 @@ abstract class AbstractImportRest<O : ImportPairEntry.Modified<O>, S : ImportSto
                 return ResponseEntity.badRequest().body(mapOf("error" to error))
             }
             val storage = file.inputStream.use { inputStream ->
-                proceedUpload(inputStream, filename)
+                proceedUpload(inputStream, filename, request)
             }
             ExpiringSessionAttributes.setAttribute(request, sessionAttributeName, storage, TTL_MINUTES)
             log.info { "Successfully processed file: $filename" }

@@ -133,6 +133,10 @@ export interface ImportConfig {
   stayAfterCommit?: boolean;
   /** Which statuses the user may tick; defaults to the importable ones (NEW, MODIFIED, DELETED). */
   selectableStatuses?: ImportStatus[];
+  /** Further multipart fields sent with the upload, e.g. the target calendar of the ICS import. */
+  uploadFields?: Record<string, string>;
+  /** Optional import specific content above the drop step, e.g. the choice of the target calendar. */
+  renderBeforeDrop?: () => ReactNode;
   /** Optional import specific content between the controls and the preview table, e.g. a summary of `meta`. */
   renderAboveTable?: (view: ImportView) => ReactNode;
 }

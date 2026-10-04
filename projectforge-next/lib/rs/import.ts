@@ -22,15 +22,19 @@ export type UploadImportResult =
 /**
  * Uploads the file and, on success, answers its parsed [ImportView]. A refusal (empty file, wrong format,
  * parse error) is a `400` carrying `{ error }`, which is returned rather than thrown — it is a message for
- * the user, not a fault. Progress and abort go through [uploadWithProgress] (XHR); see lib/rs/upload.ts.
+ * the user, not a fault. `fields` are sent as further multipart parts beside the file (e.g. the target
+ * calendar of the ICS import). Progress and abort go through [uploadWithProgress] (XHR); see lib/rs/upload.ts.
  */
 export async function uploadImportFile(
   base: string,
   file: File,
-  options: UploadOptions = {}
+  options: UploadOptions & { fields?: Record<string, string> } = {}
 ): Promise<UploadImportResult> {
   const body = new FormData();
   body.append("file", file);
+  for (const [name, value] of Object.entries(options.fields ?? {})) {
+    body.append(name, value);
+  }
   const path = `/rs/${base}/upload`;
   const res = await uploadWithProgress(path, body, options);
   const parsed = parseJson(res.text);

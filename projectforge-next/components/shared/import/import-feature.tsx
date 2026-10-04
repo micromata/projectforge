@@ -34,6 +34,7 @@ export function ImportFeature({ config }: Props) {
         <p className="text-sm text-muted-foreground">
           {t(leafKeyOf(config.titleKey, t.has))}
         </p>
+        {config.renderBeforeDrop?.()}
         <ImportDropStep
           config={config}
           onFile={(file) => imp.upload.mutate(file)}
