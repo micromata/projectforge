@@ -31,10 +31,8 @@ import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.task.TaskTree
-import org.projectforge.business.teamcal.service.CalendarFeedService
 import org.projectforge.business.timesheet.*
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.translate
@@ -124,9 +122,6 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
     @Autowired
     private lateinit var timesheetListPdfExport: TimesheetListPdfExport
-
-    @Autowired
-    private lateinit var calendarFeedService: CalendarFeedService
 
     /**
      * For exporting list of timesheets.
@@ -960,22 +955,6 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         var filter: MagicFilter? = null,
         var settings: TimesheetPdfExportSettings? = null,
     )
-
-    /**
-     * The subscription URL of the timesheet calendar feed of the current user, the "ics export" of the legacy
-     * list. Returns the URL rather than a stream: the client shows it for the user to subscribe to in their
-     * calendar (see [CalendarFeedService.getUrl4Timesheets]). Another user's id is refused, as the feed itself
-     * only serves the own time sheets.
-     */
-    @AccessChecked("Own user only (logged-in user's data/prefs)")
-    @GetMapping("icsExportUrl")
-    fun getIcsExportUrl(@RequestParam("userId", required = false) userId: Long?): Map<String, String> {
-        val id = ThreadLocalUserContext.loggedInUserId
-        if (userId != null && userId != id) {
-            throw AccessException("access.exception.userHasNotRight")
-        }
-        return mapOf("url" to calendarFeedService.getUrl4Timesheets(id))
-    }
 
     /**
      * Keeps only time sheets booked on a billable cost unit, the `onlyBillable` option of the legacy list

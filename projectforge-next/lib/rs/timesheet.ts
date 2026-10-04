@@ -79,24 +79,6 @@ export function downloadTimesheetPdf(
   );
 }
 
-/**
- * The subscription URL of the time sheet calendar feed — the legacy list's "ics export". It carries the
- * user's personal, encrypted token, so it is shown for the user to subscribe to rather than downloaded
- * (`TimesheetEntityRest.getIcsExportUrl`, see calendar.icsExport.securityAdvice). The logged-in user by
- * default.
- */
-export function fetchTimesheetIcsUrl(
-  userId?: number,
-  signal?: AbortSignal
-): Promise<{ url: string }> {
-  const query = userId != null ? `?userId=${userId}` : "";
-  return request<{ url: string }>(
-    `/rs/${ENTITY}/icsExportUrl${query}`,
-    { method: "GET" },
-    signal
-  );
-}
-
 /** What `timesheet/recentList` answers with (`TimesheetEntityRest.RecentTimesheets`). */
 export interface RecentTimesheets {
   /**

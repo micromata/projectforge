@@ -388,9 +388,6 @@
       },
       "visible": "visible"
     },
-    "icsExport": {
-      "securityAdvice": "This url contains your personal login token of ProjectForge (it's encrypted and independent of your password), keep it secret. In case of doubt about secrecy of your data, please renew your authentication token under 'my account'. Otherwise a third party is able to download your calendar too."
-    },
     "month": {
       "_": "Month",
       "april": "April",
@@ -2638,6 +2635,21 @@
     "teamcal": {
       "calendar": {
         "_": "Calendar",
+        "filter": {
+          "choose": "Choose calendar filter or create a new one.",
+          "edit": "Modify current calendar filter.",
+          "newEntry": "--- New calendar filter ---"
+        },
+        "filterDialog": {
+          "closeButton": {
+            "tooltip": "You can click anywhere outside of this dialog to close this dialog, all changes are saved. If you want to discard your changes please choose the cancel button."
+          },
+          "newTemplateName": "New template",
+          "title": "Calendar filter"
+        },
+        "listAndIcsExport": {
+          "tooltip": "List of calendars including export and subscription as ics. Here you may add new calendars."
+        },
         "refresh": {
           "tooltip": "Reload calendar events and refresh any external subscribed calendar if displayed."
         }
@@ -2730,6 +2742,17 @@
           "list": "List of team events"
         }
       },
+      "export": {
+        "holidays": {
+          "_": "Export holidays",
+          "tooltip": "Download or subscribe ProjectForge's holidays. You may choose the language under 'My account'."
+        },
+        "timesheets": "Export timesheets",
+        "weekOfYears": {
+          "_": "Export week-of-years.",
+          "tooltip": "Download or subscribe week of years. You may choose the language under 'My account'."
+        }
+      },
       "exportIcsButton": "Export ics",
       "externalsubscription": {
         "label": "External subscription",
@@ -2743,6 +2766,11 @@
         }
       },
       "owner": "Owner",
+      "subscription": {
+        "_": "Subscription",
+        "timesheets": "You can subscribe your time sheets in your personal calendar (e.g. Apple iCal oder Microsoft Outlook).",
+        "tooltip": "You can subscribe this calendar in your personal calendar (e.g. Apple iCal oder Microsoft Outlook)."
+      },
       "switchToTeamEventButton": "Switch to events",
       "switchToTimesheetButton": "Switch to time sheet",
       "title": "Title"

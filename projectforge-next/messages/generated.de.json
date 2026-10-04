@@ -388,9 +388,6 @@
       },
       "visible": "sichtbar"
     },
-    "icsExport": {
-      "securityAdvice": "Diese URL enthält deinen persönlichen Anmeldeschlüssel für ProjectForge (er ist verschlüsselt und unabhängig von deinem Passwort). Sollte der Verdacht bestehen, dass diese Daten ggf. Dritten vorliegen, so bitte den 'Schlüssel zur Authentifizierung' unter 'Mein Zugang' erneuern. Andernfalls könnten Dritte ebenfalls diesen Kalender abonnieren."
-    },
     "month": {
       "_": "Monat",
       "april": "April",
@@ -2638,6 +2635,21 @@
     "teamcal": {
       "calendar": {
         "_": "Kalender",
+        "filter": {
+          "choose": "Kalenderfilter auswählen oder neue Filter anlegen.",
+          "edit": "Angezeigten Kalenderfilter ändern.",
+          "newEntry": "--- Neuer Kalenderfilter ---"
+        },
+        "filterDialog": {
+          "closeButton": {
+            "tooltip": "Zum Übernehmen der Filteränderungen können Sie irgendwo außerhalb dieses Dialogs klicken. Wenn Sie die Änderungen verwerfen möchten, so drücken Sie bitte den Abbrechen-Knopf."
+          },
+          "newTemplateName": "Neuer Filter",
+          "title": "Kalenderfilter"
+        },
+        "listAndIcsExport": {
+          "tooltip": "Liste der Kalender inklusive Download und Abonnement im ICS-Format. Hier können auch neue Kalender angelegt werden."
+        },
         "refresh": {
           "tooltip": "Kalender neu laden und extern abonnierte Kalender, sofern angezeigt, aktualisieren."
         }
@@ -2730,6 +2742,17 @@
           "list": "Ereignisliste"
         }
       },
+      "export": {
+        "holidays": {
+          "_": "Feiertage exportieren",
+          "tooltip": "Download oder Abonnement von Feiertagen aus ProjectForge. Die Sprache kann unter 'Mein Zugang' geändert werden."
+        },
+        "timesheets": "Zeitberichte exportieren",
+        "weekOfYears": {
+          "_": "Kalenderwochen exportieren",
+          "tooltip": "Download oder Abonnement von Kalenderwochen aus ProjectForge. Die Sprache kann unter 'Mein Zugange' geändert werden."
+        }
+      },
       "exportIcsButton": "Export ics",
       "externalsubscription": {
         "label": "Externes Abonnement",
@@ -2743,6 +2766,11 @@
         }
       },
       "owner": "Eigner:in",
+      "subscription": {
+        "_": "Abonnement",
+        "timesheets": "Über diese URL können Sie Ihre Zeitberichte in Ihrem persönlichen Kalender abonnieren (z. B. Apple iCal oder Microsoft Outlook).",
+        "tooltip": "Über diese URL können Sie den Kalender in Ihrem persönlichen Kalender abonnieren (z. B. Apple iCal oder Microsoft Outlook)."
+      },
       "switchToTeamEventButton": "In Termin umwandeln",
       "switchToTimesheetButton": "In Zeitbuchung umwandeln",
       "title": "Titel"

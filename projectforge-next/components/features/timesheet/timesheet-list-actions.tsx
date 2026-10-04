@@ -5,12 +5,12 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar03Icon, Pdf01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { CalendarSubscriptionDialog } from "@/components/shared/calendar-subscription/calendar-subscription-dialog";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { toast } from "@/lib/toast";
 import { downloadTimesheetExcel } from "@/lib/rs/timesheet";
 import type { MagicFilter } from "@/lib/rs/types";
-import { TimesheetIcsDialog } from "./timesheet-ics-dialog";
 import { TimesheetPdfExportDialog } from "./timesheet-pdf-export-dialog";
 
 /**
@@ -19,7 +19,7 @@ import { TimesheetPdfExportDialog } from "./timesheet-pdf-export-dialog";
  *
  * The Excel and PDF exports act on the filter the list is showing, which is why they live in the toolbar
  * and are handed that filter (see PageDef.listActions). The ics url is the user's own and opens a dialog
- * (see TimesheetIcsDialog).
+ * (see CalendarSubscriptionDialog).
  */
 export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
@@ -55,7 +55,13 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
           {t("timesheet.icsExport")}
         </Button>
       </HintTooltip>
-      {icsOpen && <TimesheetIcsDialog onClose={() => setIcsOpen(false)} />}
+      {icsOpen && (
+        <CalendarSubscriptionDialog
+          type="TIMESHEETS"
+          description={t("timesheet.iCalSubscription")}
+          onClose={() => setIcsOpen(false)}
+        />
+      )}
       {pdfOpen && (
         <TimesheetPdfExportDialog
           filter={filter}
