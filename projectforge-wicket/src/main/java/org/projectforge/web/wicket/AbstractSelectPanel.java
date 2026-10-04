@@ -43,11 +43,6 @@ public abstract class AbstractSelectPanel<T> extends FormComponentPanel<T>
 
   protected String selectProperty;
 
-  protected boolean showFavorites = true;
-
-  // Tab index for the favorites drop down choice.
-  protected Integer tabIndex;
-
   public AbstractSelectPanel(final String id, final IModel<T> model, final ISelectCallerPage caller, final String selectProperty)
   {
     super(id, model);
@@ -70,26 +65,6 @@ public abstract class AbstractSelectPanel<T> extends FormComponentPanel<T>
   public AbstractSelectPanel<T> init()
   {
     initialized = true;
-    return this;
-  }
-
-  /**
-   * If true (default) then the favorite tasks will be shown in a drop down choice for selection.
-   * @param showFavorites
-   */
-  public AbstractSelectPanel<T> setShowFavorites(final boolean showFavorites)
-  {
-    this.showFavorites = showFavorites;
-    return this;
-  }
-
-  /**
-   * If given then the favorites drop down choice will get this html tab index.
-   * @param tabIndex
-   */
-  public AbstractSelectPanel<T> setTabIndex(final Integer tabIndex)
-  {
-    this.tabIndex = tabIndex;
     return this;
   }
 

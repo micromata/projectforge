@@ -26,16 +26,13 @@ package org.projectforge.web.task;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.admin.TaskWizardPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
@@ -109,10 +106,6 @@ public class TaskTreePage extends AbstractSecuredPage {
                     getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
             addContentMenuEntry(menuEntry);
 
-            final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
-                    UserPrefArea.TASK_FAVORITE);
-            menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink, getString("favorites"));
-            addContentMenuEntry(menuEntry);
             if (getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
                 menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link") {
                     @Override

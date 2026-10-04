@@ -32,13 +32,11 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
@@ -187,7 +185,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         super.init();
         add(projectTextField);
         // No select button: the project list has been migrated to projectforge-next, so there is no Wicket list
-        // page to select from any more. The autocompletion field and the favorites remain.
+        // page to select from any more. The autocompletion field remains.
         final boolean hasSelectAccess = WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false);
         final SubmitLink unselectButton = new SubmitLink("unselect") {
             @Override
@@ -205,38 +203,11 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         add(unselectButton);
         unselectButton.add(new TooltipImage("unselectHelp", WebConstants.IMAGE_PROJEKT_UNSELECT,
                 getString("fibu.tooltip.unselectProjekt")));
-        // DropDownChoice favorites
-        final FavoritesChoicePanel<ProjektDO, ProjektFavorite> favoritesPanel = new FavoritesChoicePanel<ProjektDO, ProjektFavorite>(
-                "favorites", UserPrefArea.PROJEKT_FAVORITE, tabIndex, "select half") {
-            @Override
-            protected void select(final ProjektFavorite favorite) {
-                if (favorite.getProjekt() != null) {
-                    NewProjektSelectPanel.this.selectProjekt(favorite.getProjekt());
-                }
-            }
-
-            @Override
-            protected ProjektDO getCurrentObject() {
-                return NewProjektSelectPanel.this.getModelObject();
-            }
-
-            @Override
-            protected ProjektFavorite newFavoriteInstance(final ProjektDO currentObject) {
-                final ProjektFavorite favorite = new ProjektFavorite();
-                favorite.setProjekt(currentObject);
-                return favorite;
-            }
-        };
-        add(favoritesPanel);
-        favoritesPanel.init();
-        if (showFavorites == false) {
-            favoritesPanel.setVisible(false);
-        }
         return this;
     }
 
     /**
-     * Will be called if the user has chosen an entry of the projekt favorites drop down choice.
+     * Will be called if the user has chosen a project.
      *
      * @param projekt
      */

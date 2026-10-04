@@ -318,7 +318,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
             new PropertyModel<>(data, "ganttPredecessor"),
             parentPage, "ganttPredecessorId");
         fs.add(ganttPredecessorSelectPanel);
-        ganttPredecessorSelectPanel.setShowFavorites(true);
         ganttPredecessorSelectPanel.init();
       }
     }

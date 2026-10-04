@@ -36,7 +36,6 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.service.UserPrefService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.WicketSupport;
@@ -45,7 +44,6 @@ import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.TooltipImage;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
@@ -80,7 +78,6 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
     private TextField<String> kundeTextField;
 
-    private FavoritesChoicePanel<KundeDO, KundeFavorite> favoritesPanel;
 
     /**
      * @param id
@@ -213,7 +210,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         customerTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.select")));
         add(customerTextField);
         // No select button: the customer list has been migrated to projectforge-next, so there is no Wicket list
-        // page to select from any more. The autocompletion field and the favorites remain.
+        // page to select from any more. The autocompletion field remains.
         final SubmitLink unselectButton = new SubmitLink("unselect") {
             @Override
             public void onSubmit() {
@@ -229,33 +226,6 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         add(unselectButton);
         unselectButton.add(
                 new TooltipImage("unselectHelp", WebConstants.IMAGE_KUNDE_UNSELECT, getString("fibu.tooltip.unselectKunde")));
-        // DropDownChoice favorites
-        favoritesPanel = new FavoritesChoicePanel<KundeDO, KundeFavorite>("favorites", UserPrefArea.KUNDE_FAVORITE,
-                tabIndex, "half select") {
-            @Override
-            protected void select(final KundeFavorite favorite) {
-                if (favorite.getKunde() != null) {
-                    NewCustomerSelectPanel.this.selectKunde(favorite.getKunde());
-                }
-            }
-
-            @Override
-            protected KundeDO getCurrentObject() {
-                return NewCustomerSelectPanel.this.getModelObject();
-            }
-
-            @Override
-            protected KundeFavorite newFavoriteInstance(final KundeDO currentObject) {
-                final KundeFavorite favorite = new KundeFavorite();
-                favorite.setKunde(currentObject);
-                return favorite;
-            }
-        };
-        add(favoritesPanel);
-        favoritesPanel.init();
-        if (showFavorites == false) {
-            favoritesPanel.setVisible(false);
-        }
         return this;
     }
 
@@ -322,7 +292,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
     }
 
     /**
-     * Will be called if the user has chosen an entry of the kunde favorites drop down choice.
+     * Will be called if the user has chosen a customer.
      *
      * @param kunde
      */

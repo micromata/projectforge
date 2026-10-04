@@ -30,7 +30,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -45,18 +44,15 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
-import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ConsumptionBarPanel;
-import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -312,10 +308,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     protected void init() {
         dataTable = createDataTable(createColumns(this, true), "title", SortOrder.DESCENDING);
         form.add(dataTable);
-        final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link", UserPrefArea.TASK_FAVORITE);
-        final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink,
-                getString("favorites"));
-        addContentMenuEntry(menuEntry);
     }
 
     void onTreeViewSubmit() {

@@ -121,8 +121,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
     // Migrated to projectforge-next; wa/taskTree stays reachable through the escape hatch, see
     // NextMigration.legacyListUrl. Nothing waits on the task favourites (UserPrefArea.TASK_FAVORITE):
-    // they are a Wicket affair, replaced in React and next by the quick access of the select fields
-    // themselves (the tree with its search, EntityAutocomplete for a user).
+    // next manages them in the task select field itself (TaskFavoritesMenu).
     // The tree and not the category's list, because the entity has two perspectives in
     // projectforge-next (see NextMigration.nextRouteUrl).
     TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //

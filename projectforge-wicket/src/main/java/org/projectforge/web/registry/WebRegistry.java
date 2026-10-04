@@ -266,7 +266,8 @@ public class WebRegistry
     // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
     // The HR view (hrList) is migrated to projectforge-next; bookmarked wa/hrList links are redirected by
     // OrphanedLinkFilter.
-    addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
+    // The user preference pages (userPrefList/userPrefEdit) were removed without replacement; bookmarked links
+    // are redirected by OrphanedLinkFilter.
 
     addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     // The system configuration has been migrated to projectforge-next; its Wicket pages were removed.

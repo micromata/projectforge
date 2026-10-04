@@ -24,16 +24,19 @@
 package org.projectforge.framework.persistence.user.api;
 
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.fibu.KundeFavorite;
-import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.task.LegacyTaskFavorite;
 import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.business.user.UserFavorite;
 
 import java.io.Serializable;
 
 /**
  * User preferences are supported by different areas. These areas are defined inside this enum.
+ *
+ * Only the areas whose legacy entries (UserPrefEntryDO) are still read are left: TASK_FAVORITE (task favorites,
+ * see {@link org.projectforge.business.task.TaskFavoritesService}) and TIMESHEET_TEMPLATE (migrated on demand into
+ * the new timesheet favorites, see {@link org.projectforge.business.timesheet.TimesheetFavoritesService}). The
+ * Wicket-only areas KUNDE_FAVORITE, PROJEKT_FAVORITE and USER_FAVORITE were dropped with the Wicket user preference
+ * pages; their database rows are left untouched but no longer read.
  *
  * Will be replaced by {@link org.projectforge.favorites.AbstractFavorite}.
  * See {@link org.projectforge.business.task.TaskFavorite} as an example.
@@ -47,24 +50,11 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
 
   public static final int MAX_ID_LENGTH = 255;
 
-  public static final UserPrefArea KUNDE_FAVORITE = new UserPrefArea("KUNDE_FAVORITE", KundeFavorite.class,
-      "kunde.favorite");
+  public static final UserPrefArea TASK_FAVORITE = new UserPrefArea("TASK_FAVORITE", LegacyTaskFavorite.class);
 
-  public static final UserPrefArea PROJEKT_FAVORITE = new UserPrefArea("PROJEKT_FAVORITE", ProjektFavorite.class,
-      "projekt.favorite");
-
-  public static final UserPrefArea TASK_FAVORITE = new UserPrefArea("TASK_FAVORITE", LegacyTaskFavorite.class,
-      "task.favorite");
-
-  public static final UserPrefArea TIMESHEET_TEMPLATE = new UserPrefArea("TIMESHEET_TEMPLATE", TimesheetDO.class,
-      "timesheet.template");
-
-  public static final UserPrefArea USER_FAVORITE = new UserPrefArea("USER_FAVORITE", UserFavorite.class,
-      "user.favorite");
+  public static final UserPrefArea TIMESHEET_TEMPLATE = new UserPrefArea("TIMESHEET_TEMPLATE", TimesheetDO.class);
 
   private final String id;
-
-  private final String key;
 
   private final Class<?> beanType;
 
@@ -74,26 +64,6 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
   public String getId()
   {
     return id;
-  }
-
-  /**
-   * The key will be used e. g. for i18n (only the suffix not the base i18n key).
-   *
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  /**
-   * Get the whole i18n key.
-   *
-   * @return
-   */
-  public String getI18nKey()
-  {
-    return "userPref.area." + key;
   }
 
   /**
@@ -111,14 +81,12 @@ public class UserPrefArea implements Serializable, Comparable<UserPrefArea>
    * @param id Used as identity in the data-base (max-length = 20). Please don't change this id later, otherwise
    *          (de)-serialization will fail (could not read data-base entries).
    * @param clazz The class which contains the user pref parameters.
-   * @param key The i18n suffix (i18nkey starts with 'userPref.area.").
    */
-  public UserPrefArea(final String id, final Class<?> clazz, final String key)
+  public UserPrefArea(final String id, final Class<?> clazz)
   {
     Validate.isTrue(id.length() <= MAX_ID_LENGTH);
     this.id = id;
     this.beanType = clazz;
-    this.key = key;
   }
 
   public boolean isIn(final UserPrefArea... userPrefAreas)
