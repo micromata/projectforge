@@ -79,7 +79,7 @@ test.describe("all-filters dialog", { tag: "@isolated" }, () => {
     ).toHaveCount(0);
   });
 
-  test("keeps the index-only fields in a group of their own, last", async ({
+  test("offers the attachment fields under their labels, not their property names", async ({
     loggedInPage: page,
   }) => {
     const format = await userFormat(page);
@@ -87,13 +87,19 @@ test.describe("all-filters dialog", { tag: "@isolated" }, () => {
     await openDialog(page, format);
     const dialog = page.getByRole("dialog");
 
-    // `attachmentsIds`/`attachmentsNames` have no @PropertyInfo, so they arrive untranslated and
-    // used to sit among the real fields under their raw property name.
-    const headings = dialog.getByRole("heading", { level: 3 });
-    await expect(headings.last()).toHaveText(
-      new RegExp(escape(format.t("filter.moreFields")))
-    );
-    await expect(dialog.getByText("attachmentsIds")).toBeVisible();
+    // `attachmentsNames` has no @PropertyInfo; AttachmentsFilterSupport labels it. `attachmentsIds`
+    // (JCR file ids) is index plumbing and not offered at all. (The "more fields" group for fields
+    // without a translation is covered by filter-groups.test.ts — no list has one on every instance.)
+    await expect(
+      dialog.getByText(format.t("attachment.filter.fileNames"), { exact: true })
+    ).toBeVisible();
+    await expect(
+      dialog.getByText(format.t("attachment.filter.hasAttachments"), {
+        exact: true,
+      })
+    ).toBeVisible();
+    await expect(dialog.getByText("attachmentsIds")).toHaveCount(0);
+    await expect(dialog.getByText("attachmentsNames")).toHaveCount(0);
   });
 
   test("offers the deleted flag at the top, not sorted in by its label", async ({
