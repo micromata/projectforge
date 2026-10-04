@@ -517,6 +517,7 @@
   },
   "contactPerson": "Contact person",
   "contactPersons": "Contact persons",
+  "copied": "Copied",
   "copy": "Copy",
   "create": "Create",
   "created": "created",
@@ -3044,6 +3045,10 @@
     "withoutTimePeriod": "Without time period"
   },
   "searchString": "Search string",
+  "secret": {
+    "hide": "Hide",
+    "show": "Show"
+  },
   "select": {
     "_": "Select",
     "checklist": {

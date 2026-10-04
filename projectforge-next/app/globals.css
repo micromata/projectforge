@@ -600,6 +600,15 @@ span.row-blue {
 }
 
 /*
+ * The beginning of a hidden secret, showing through and fading out to the right (`secretPeek`): it
+ * tells two tokens apart at a glance, the fade says that there is more than is shown. Only on a box
+ * of its own (block, flex or inline-block) — a plain inline span is not masked.
+ */
+.secret-peek {
+  mask-image: linear-gradient(to right, black 10%, transparent);
+}
+
+/*
  * A number box no wider than the digits it can hold (`NumberField`'s `digits`): an order's number is
  * six digits, a percentage three, and a box stretched over the whole column of the form suggests room
  * that isn't there.

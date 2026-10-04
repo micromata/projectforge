@@ -68,6 +68,7 @@ export function DataTransferFilesInfo({ view }: { view: DataTransferView }) {
                   value={area.externalPassword}
                   label={passwordLabel}
                   masked
+                  peek
                 />
               )}
             </Item>

@@ -3,6 +3,7 @@ import { test, expect, goto, login } from "./fixtures/auth";
 import { hasRole } from "./fixtures/credentials";
 import { userFormat, type UserFormat } from "./fixtures/format";
 import { purgeTestAttachments } from "./fixtures/attachments";
+import { secretPeek } from "../lib/secret-peek";
 import { insert, markAsDeleted, MARKER, uniqueSuffix } from "./fixtures/seed";
 
 /**
@@ -193,6 +194,95 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await expect(page).toHaveURL(new RegExp(`/datatransfer/${area.id}/?$`));
       await tab(page, t("plugins.datatransfer.tab.info")).click();
       await expect(page.getByText(description)).toBeVisible();
+    } finally {
+      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+        () => undefined
+      );
+    }
+  });
+
+  test("shows a link as text to copy, not as a box to type into", async ({
+    loggedInPage: page,
+    seedRequest,
+  }) => {
+    const area = await createArea(seedRequest, await userIdOf(page.request));
+    const { t } = await userFormat(page);
+    const linkLabel = t("plugins.datatransfer.internal.link");
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    try {
+      await goto(page, `/datatransfer/${area.id}?tab=info`);
+      const link = page.getByRole("group", { name: linkLabel, exact: true });
+      await expect(link).toContainText(`/datatransfer/${area.id}`);
+      await expect(link.getByRole("textbox")).toHaveCount(0);
+      await link
+        .getByRole("button", { name: `${t("copy")}: ${linkLabel}` })
+        .click();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        (await link.textContent())?.trim()
+      );
+    } finally {
+      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+        () => undefined
+      );
+    }
+  });
+
+  test("hides the external password until revealed and copies it again and again", async ({
+    loggedInPage: page,
+    seedRequest,
+  }) => {
+    const area = await createArea(seedRequest, await userIdOf(page.request));
+    const { t } = await userFormat(page);
+    const passwordLabel = t("plugins.datatransfer.external.password._");
+    await page
+      .context()
+      .grantPermissions(["clipboard-read", "clipboard-write"]);
+    try {
+      await goto(page, `/datatransfer/${area.id}?tab=edit`);
+      await page
+        .getByRole("checkbox", {
+          name: t("plugins.datatransfer.external.download.enabled._"),
+        })
+        .check();
+      // Switching external access on fills in a password (useExternalSecrets).
+      const password = page.getByLabel(passwordLabel, { exact: true });
+      await expect(password).not.toHaveValue("");
+      // Hidden first, with its beginning showing through; the eye shows it and hides it again.
+      await expect(password).toHaveAttribute("type", "password");
+      const value = await password.inputValue();
+      await expect(page.locator('[data-slot="secret-peek"]')).toHaveText(
+        secretPeek(value)
+      );
+      // Typed into, the whole box is shown again (as dots), not only its beginning.
+      await password.focus();
+      await expect(page.locator('[data-slot="secret-peek"]')).toHaveCount(0);
+      await password.blur();
+      await expect(page.locator('[data-slot="secret-peek"]')).toHaveCount(1);
+      await page
+        .getByRole("button", { name: `${t("secret.show")}: ${passwordLabel}` })
+        .click();
+      await expect(password).toHaveAttribute("type", "text");
+      await page
+        .getByRole("button", { name: `${t("secret.hide")}: ${passwordLabel}` })
+        .click();
+      await expect(password).toHaveAttribute("type", "password");
+
+      // Copied, the button says so — and becomes a copy button again, so it can be used once more.
+      await page
+        .getByRole("button", { name: `${t("copy")}: ${passwordLabel}` })
+        .click();
+      await expect(
+        page.getByRole("button", { name: `${t("copied")}: ${passwordLabel}` })
+      ).toBeVisible();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        value
+      );
+      await expect(
+        page.getByRole("button", { name: `${t("copy")}: ${passwordLabel}` })
+      ).toBeVisible({ timeout: 5000 });
+      // Not saved: the area is removed below either way.
     } finally {
       await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
         () => undefined

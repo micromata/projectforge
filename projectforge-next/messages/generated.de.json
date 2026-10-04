@@ -517,6 +517,7 @@
   },
   "contactPerson": "Ansprechpartner:in",
   "contactPersons": "Ansprechpartner:innen",
+  "copied": "Kopiert",
   "copy": "Kopieren",
   "create": "Anlegen",
   "created": "angelegt",
@@ -3044,6 +3045,10 @@
     "withoutTimePeriod": "Ohne Zeitangabe"
   },
   "searchString": "Suchtext",
+  "secret": {
+    "hide": "Verbergen",
+    "show": "Anzeigen"
+  },
   "select": {
     "_": "Auswählen",
     "checklist": {
