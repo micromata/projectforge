@@ -90,17 +90,8 @@ open class AttachmentsService {
             accessChecker?.checkSelectAccess(loggedInUser, path = path, id = id, subPath = subPath)
         }
         val attachments = internalGetAttachments(path, id, subPath)
-        return if (checkAccess) {
-            attachments.filter {
-                accessChecker?.hasAccess(
-                    loggedInUser,
-                    path,
-                    id,
-                    subPath,
-                    OperationType.SELECT,
-                    it
-                ) != false
-            }
+        return if (checkAccess && accessChecker != null) {
+            accessChecker.filterAccessible(loggedInUser, path, id, subPath, OperationType.SELECT, attachments)
         } else {
             attachments
         }
