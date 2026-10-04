@@ -92,7 +92,9 @@ export function ImportFeature({ config }: Props) {
             meta={meta}
             selection={imp.selection}
             onSelectionChange={imp.setSelection}
-            isFetching={imp.query.isFetching || imp.reconcile.isPending}
+            isFetching={
+              imp.query.isFetching || imp.reconcile.isPending || imp.isFiltering
+            }
           />
         </div>
       </SectionCard>

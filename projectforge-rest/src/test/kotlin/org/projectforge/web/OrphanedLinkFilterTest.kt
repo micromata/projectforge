@@ -129,6 +129,13 @@ class OrphanedLinkFilterTest {
         Assertions.assertNull(redirectOf("/wa/hrListXyz"))
     }
 
+    @Test
+    fun `the old wicket DATEV import is redirected to next`() {
+        Assertions.assertEquals("/next/datev-import", redirectOf("/wa/datevImport"))
+        Assertions.assertEquals("/next/datev-import", redirectOf("/wa/datevImport", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertNull(redirectOf("/wa/datevImportXyz"))
+    }
+
     /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,

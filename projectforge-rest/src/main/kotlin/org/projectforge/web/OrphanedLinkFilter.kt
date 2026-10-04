@@ -79,6 +79,9 @@ class OrphanedLinkFilter : Filter {
             // projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch. The
             // precise segment match keeps this from catching sibling pages.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}hrList")
+        } else if (uri.endsWith("/wa/datevImport") || uri.contains("/wa/datevImport/")) { // Old Wicket DATEV import,
+            // migrated to projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}datev-import")
         } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
             // Old Wicket System (administration) page, migrated to projectforge-next. The precise segment match
             // keeps this from catching sibling pages like /wa/adminLogViewer.

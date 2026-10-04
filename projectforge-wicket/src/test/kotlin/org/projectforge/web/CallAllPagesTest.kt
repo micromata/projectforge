@@ -29,7 +29,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters
 import org.junit.jupiter.api.Test
 import org.projectforge.business.system.SystemInfoCache
 import org.projectforge.business.system.SystemInfoCache.Companion.internalInitialize
-import org.projectforge.common.logging.LoggerMemoryAppender
 import org.projectforge.menu.builder.MenuCreator.Companion.testCase
 import org.projectforge.web.registry.WebRegistry
 import org.projectforge.web.wicket.WicketPageTestBase
@@ -48,13 +47,6 @@ class CallAllPagesTest : WicketPageTestBase() {
     override fun afterAll() {
         log.info { "Number of tested Wicket pages: $counter" }
         recreateDataBase()
-    }
-
-    override fun beforeAll() {
-        if (!LoggerMemoryAppender.isInitialized()) {
-            LoggerMemoryAppender() // Needed by DatevImportPage
-        }
-        super.beforeAll()
     }
 
     @Test

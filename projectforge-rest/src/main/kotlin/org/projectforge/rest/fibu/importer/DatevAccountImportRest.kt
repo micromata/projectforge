@@ -24,8 +24,11 @@
 package org.projectforge.rest.fibu.importer
 
 import mu.KotlinLogging
+import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.datev.DatevImportService
+import org.projectforge.common.DataSizeConfig
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.rest.config.Rest
@@ -53,14 +56,24 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
+    private lateinit var kontoCache: KontoCache
+
+    @Autowired
     private lateinit var kontoDao: KontoDao
+
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
 
     @Autowired
     private lateinit var jobHandler: JobHandler
 
     override val fileExtensions = arrayOf("xlsx", "xls")
 
-    override val maxFileUploadSizeMB = 10L // in MB
+    override val maxFileUploadSizeMB = 10L // in MB, unused: see maxFileUploadSizeBytes
+
+    /** Configured by `projectforge.max-file-size.datev` (default `10MB`), shared by both DATEV imports. */
+    override val maxFileUploadSizeBytes: Long
+        get() = DataSizeConfig.init(configurationService.maxFileSizeDatev).toBytes()
 
     override fun checkRight() {
         DatevImportService.checkLoggedinUserRight(accessChecker)
@@ -73,6 +86,10 @@ class DatevAccountImportRest : AbstractImportRest<DatevAccountImportDTO, DatevAc
         val storage = DatevAccountImportStorage()
         storage.filename = filename
         DatevAccountExcelImporter().parse(inputStream, storage)
+        // The tooltips are there right after the upload, as in the record preview; reconcile refreshes them.
+        storage.readAccounts.forEach { dto ->
+            dto.kontoInfo = kontoCache.findKontoByNumber(dto.nummer)?.let { DatevAccountImportStorage.kontoTooltip(it) }
+        }
         return storage
     }
 
