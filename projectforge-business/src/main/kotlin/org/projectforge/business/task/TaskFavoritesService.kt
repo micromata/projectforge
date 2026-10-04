@@ -90,6 +90,21 @@ class TaskFavoritesService {
         return getList()
     }
 
+    /**
+     * Points the favorite with the given id at another task, keeping its name.
+     */
+    fun updateFavorite(id: Long, taskId: Long): List<TaskFavorite> {
+        val userPref = userPrefDao.selectUserPref(AREA_ID, id)
+        if (userPref == null) {
+            log.warn("User tried to update task favorite with id #$id, but it can't be updated (is from other user, different area or has an unknown id).")
+            return getList()
+        }
+        @Suppress("DEPRECATION")
+        userPref.ensureAndGetAccessEntry(PARAMETER).value = taskId.toString()
+        userPrefDao.update(userPref)
+        return getList()
+    }
+
     companion object {
         private val AREA_ID = "TASK_FAVORITE"
         private val PARAMETER = "task"

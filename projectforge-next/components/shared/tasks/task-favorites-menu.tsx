@@ -16,11 +16,14 @@ export interface TaskFavoritesMenuProps {
 
 /**
  * The bookmark menu of the task picker: apply a saved structure element, or save the picked one under a
- * name (rename/delete the rest). Binds [useTaskFavorites] and the task load to the presentational
+ * name (rename, overwrite with the picked task or delete the rest). Binds [useTaskFavorites] and the task load to the presentational
  * [FavoritesMenu], the same menu the calendar's filters and the timesheet's templates use.
  *
  * Applying a favorite resolves it to a task id and loads the whole task (its path and cost units), then
  * hands it to the control's pick funnel — which is what also records it as recently used.
+ *
+ * The favorite pointing at the picked task is marked as current. The picked task and a favorite's task
+ * are not "modified" versions of each other, so every entry offers the plain save, which re-points it.
  */
 export function TaskFavoritesMenu({
   taskId,
@@ -29,7 +32,8 @@ export function TaskFavoritesMenu({
 }: TaskFavoritesMenuProps) {
   const t = useTranslations();
   const queryClient = useQueryClient();
-  const { favorites, create, select, rename, remove } = useTaskFavorites();
+  const { favorites, create, select, rename, update, remove } =
+    useTaskFavorites();
 
   if (disabled) return null;
 
@@ -48,6 +52,12 @@ export function TaskFavoritesMenu({
   return (
     <FavoritesMenu<TaskFavorite>
       favorites={favorites}
+      currentId={
+        taskId == null
+          ? null
+          : (favorites.find((favorite) => favorite.taskId === taskId)?.id ??
+            null)
+      }
       label={t("task.favorites.tooltip")}
       className="size-7 shrink-0 px-0"
       // The whole path behind a favorite's name, so its place in the structure reads on hover.
@@ -58,6 +68,8 @@ export function TaskFavoritesMenu({
       }}
       onSelect={handleSelect}
       onRename={rename}
+      // Re-points a favorite at the picked task; nothing to point at without one.
+      onUpdate={taskId != null ? (id) => update(id, taskId) : undefined}
       onDelete={remove}
     />
   );
