@@ -11,15 +11,16 @@ import IndexPage from './page/IndexPage';
 import ListPage from './page/list/ListPage';
 import TaskTreePage from './page/TaskTreePage';
 import ModalRoutes from './ModalRoutes';
-import RedirectToWicket from './RedirectToWicket';
+import RedirectToServer from './RedirectToServer';
 import RedirectToNext from './RedirectToNext';
 import FormModal from './page/form/FormModal';
 import MenuCustomizerPanel from './panel/menu/MenuCustomizerPanel';
 
-export const wicketRoute = (
+// Old Wicket urls (/wa/...): a full page load, the server redirects them into projectforge-next.
+export const legacyWicketRoute = (
     <Route
         path="/wa/*"
-        element={<RedirectToWicket />}
+        element={<RedirectToServer />}
     />
 );
 
@@ -65,7 +66,7 @@ function AuthorizedRoutes(
 
     const getRoutesWithLocation = (location) => (
         <Routes location={location}>
-            {wicketRoute}
+            {legacyWicketRoute}
             {nextRoute}
             {publicRoute}
             <Route

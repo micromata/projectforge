@@ -7,6 +7,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/rs': { target: 'http://localhost:8080', changeOrigin: true },
+      // Old Wicket urls: the server's OrphanedLinkFilter redirects them into projectforge-next.
       '/wa': { target: 'http://localhost:8080', changeOrigin: true },
       '/react': { target: 'http://localhost:8080', changeOrigin: true },
     },

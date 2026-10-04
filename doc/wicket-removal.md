@@ -70,7 +70,9 @@ These would break silently if the module were simply deleted.
       i18n keys only they used. Classes used only by still-mounted legacy pages (e.g.
       `BirthdayEventsProvider` of the old calendar) stay until their page goes.
 - [x] **`TeamEventDao`** – stack-trace check for `EditPageSupport` removed.
-- [ ] **Hard-coded `wa/` links outside Wicket:**
+- [x] **Hard-coded `wa/` links outside Wicket** – sweep of 2026-10-04 (code, mail templates, properties,
+      `projectforge-webapp`): no link into Wicket is left outside the module, only redirect code, comments and
+      tests that use `/wa` paths on purpose.
   - ~~`task.page.tsx` "show access rights" (`wa/accessList?taskId=…`, lost the `taskId` in the redirect)~~
     – done: `lib/access-links.ts` → `next/access?taskId=…`, seeded as a transient task filter.
   - ~~`EingangsrechnungUploadPageRest`, `IncomingInvoicePosImportPageRest` `callerPage` `/wa/incomingInvoiceList`~~
@@ -210,8 +212,9 @@ the task list default sort. Deliberately dropped:
       "open/Serializable for Wicket" comments.
 - [ ] i18n tooling: remove `parseWicketHtml` / the Wicket branch in `I18nKeysSourceAnalyzer`, run
       `bin/pfDev.sh gen`; Wicket-only i18n keys then show up as unused and can be pruned.
-- [ ] `projectforge-webapp`: remove the `/wa` proxy (`vite.config.ts`) and `path="/wa/*"`
-      (`AuthorizedRoutes.jsx`).
+- [ ] `projectforge-webapp`: **keep** the `/wa` proxy (`vite.config.ts`) and `path="/wa/*"`
+      (`legacyWicketRoute`, `RedirectToServer`): they hand old stored `/wa` urls to `OrphanedLinkFilter`
+      by a full page load.
 - [ ] Tests: `projectforge-wicket/src/test` goes (`CallAllPagesTest`, `WicketPageTestBase`, …); move
       `UrlHelperTest`/`AssignListHelperTest` if their helpers survive. Adjust `CardDavFilterTest`,
       `GatewayEndpointFilterTest`.
@@ -226,6 +229,7 @@ the task list default sort. Deliberately dropped:
 - After each Phase 2 item: e2e spec against the running instance (pattern: `projectforge-next/e2e/*.spec.ts`,
   throw-away entities marked deleted), e.g. ToDo save → notification mail sent with a next link.
 - Before Phase 4: `git grep -n "wa/\|WICKET_APPLICATION_PATH\|org.apache.wicket\|org.projectforge.web.wicket"`
-  outside `projectforge-wicket` must only show `OrphanedLinkFilter`/`NextMigration` redirect code.
+  outside `projectforge-wicket` must only show `OrphanedLinkFilter`/`NextMigration` redirect code (plus
+  `projectforge-webapp`'s `legacyWicketRoute`, comments and tests).
 - After Phase 4: `./gradlew build`, full e2e suite, manual smoke test: login + 2FA, calendar, a few old
   bookmarks (`/wa/taskTree`, `/wa/timesheetEdit?id=…`, `/wa/anything`) redirect into next.

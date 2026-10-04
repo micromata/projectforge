@@ -10,7 +10,7 @@ import LoadingContainer from '../components/design/loading-container';
 import history from '../utilities/history';
 import prefix from '../utilities/prefix';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
-import AuthorizedRoutes, { nextRoute, publicRoute, wicketRoute } from './AuthorizedRoutes';
+import AuthorizedRoutes, { nextRoute, publicRoute, legacyWicketRoute } from './AuthorizedRoutes';
 import FormPage from './page/form/FormPage';
 import { SystemStatusContext, systemStatusContextDefaultValues } from './SystemStatusContext';
 import ModalRoutes from './ModalRoutes';
@@ -54,7 +54,7 @@ function ProjectForge(
     } else {
         const getRoutesWithLocation = (switchLocation) => (
             <Routes location={switchLocation}>
-                {wicketRoute}
+                {legacyWicketRoute}
                 {nextRoute}
                 {publicRoute}
                 <Route

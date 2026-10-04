@@ -42,7 +42,7 @@ describe("parseTooltipHtml", () => {
 
   it("reduces an embedded anchor to its text (task path as HTML)", () => {
     const html =
-      '<table><tr><th>Aufgabe:</th><td><a href="/wa/taskTree">ACME / Backend</a></td></tr></table>';
+      '<table><tr><th>Aufgabe:</th><td><a href="/next/taskTree">ACME / Backend</a></td></tr></table>';
     expect(parseTooltipHtml(html)).toEqual([
       { label: "Aufgabe", value: "ACME / Backend", multiline: false },
     ]);
