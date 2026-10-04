@@ -7,8 +7,8 @@ import { useDataTransferOptions } from "./use-datatransfer-options";
 
 function toSelectOptions(options: DataTransferOption[] | undefined) {
   return (options ?? []).map((option) => ({
-    value: String(option.value),
-    label: option.label,
+    value: String(option.id),
+    label: option.displayName,
   }));
 }
 
