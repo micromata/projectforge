@@ -77,7 +77,6 @@ constructor(
 
     companion object {
         const val GEAR_MENU = "GEAR"
-        const val CLASSIC_VERSION_MENU = "CLASSIC"
         const val CREATE_MENU = "CREATE"
 
         /**
@@ -93,12 +92,6 @@ constructor(
      * This affects both the "Add New" button and row clicks in the grid.
      */
     open val useModalEditDialog = false
-
-    /**
-     * If given, a link to this url is shown on the list page. This is used for accessing the classical Wicket-version
-     * of the current page during migration phase.
-     */
-    open val classicsLinkListUrl: String? = null
 
     /**
      * At standard, quickSelectUrl is only given, if the doClass implements DisplayObject and autoCompleteSearchFields are given.
@@ -314,16 +307,6 @@ constructor(
             }
             removeUnknownFilterEntries(filter, filterEntries)
             ui.add(searchFilterContainer)
-            if (classicsLinkListUrl != null) {
-                ui.add(
-                    MenuItem(
-                        CLASSIC_VERSION_MENU,
-                        title = "*",
-                        url = classicsLinkListUrl,
-                        tooltip = translate("goreact.menu.classics")
-                    ), 0
-                )
-            }
             if (ui.userAccess.insert != false) {
                 ui.add(
                     MenuItem(

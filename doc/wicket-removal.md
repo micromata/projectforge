@@ -3,8 +3,8 @@
 > Plan for removing the Wicket frontend entirely. It complements Phase 4 of
 > [projectforge-next/MIGRATION.md](../projectforge-next/MIGRATION.md), which only states the goal
 > ("remove `projectforge-wicket` from `settings.gradle.kts` + build, remove `/wa` serving/filters").
-> Status as of 2026-10-03: **no core menu entry opens Wicket any more**. The last two were the HR view
-> (`next/hrList`) and the deprecated favorites (`wa/userPrefList`, page removed since 2026-10-04).
+> Status as of 2026-10-04: **no request reaches a Wicket page any more** (Phase 3). Every `/wa/...` url is
+> redirected into next by `OrphanedLinkFilter`; the module is dead code waiting for Phase 4.
 
 ## Goal and non-goals
 
@@ -26,16 +26,14 @@
 
 `MenuItemRegistry` is gone: every menu entry resolves to `next/…`, so `WicketMenuBuilder` only uses the url.
 
-| Group | Pages | Reached from |
+| Group | Pages | Redirected to (`OrphanedLinkFilter`) |
 |---|---|---|
-| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
-| Escape hatch, hard-coded in next | `TaskTreePage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`) | Wicket pages among themselves |
-| Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
+| Former escape hatches of migrated next pages | access, account, accountingRecord, gantt, task (`*ListPage`/`*EditPage`) | the next list/edit page (`NextMigration.orphanedLinks()`, query and id carried over) |
+| Former hard links in next | `TaskTreePage`, `PhoneCallPage` | `next/taskTree` (`row` → `highlightId`), `next/phoneCall` (aliases `address`/`no`/`cp` translated) |
+| Only reached from other legacy pages | `TaskWizardPage`, `TimesheetListPage`/`TimesheetEditPage`, `GroupListPage`/`GroupEditPage` | `next/taskWizard`, the next timesheet/group list or edit page |
+| Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | any other `/wa/...` → `next/` (catch-all) |
 
-Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
-wizard. An escape-hatch category can only go
-after its `offerLegacyLink` has been set to `false`.
+The task wizard is migrated as well (`next/taskWizard`, `TaskWizardRest`), so nothing needs Wicket.
 
 ### Plugins
 
@@ -149,21 +147,40 @@ Each item: build in next, or decide with the product owner that it goes away.
 
 ## Phase 3 – Close the escape hatches
 
-- [ ] `NextMigration`: remove `offerLegacyLink`/`ESCAPE_HATCH_PARAM`; **keep** `legacyApp`/`legacyRoute`
-      for the `OrphanedLinkFilter` redirects. Adjust `NextMigrationTest`, `PageResolverTest`.
-- [ ] projectforge-next: `LegacyPageLink` usages, `hooks/use-legacy-edit-url.ts`, the `wa/` handling in
-      `lib/menu-url.ts`, `lib/config.ts`, `task-edit-link.tsx`, `system-alert-banner.tsx`; the hard
-      links in `taskTree/page.tsx`, `phone-call-page.tsx` (`system-page.tsx`: done). Tests: e2e
-      `legacy-page-link.spec.ts`, `invoice-edit.spec.ts`, `task-edit.spec.ts`, `quick-access.spec.ts`;
-      unit `menu-url.test.ts`, `menu-search.test.ts`.
-- [ ] `MenuItemDefId.TASK_TREE`: drop the `wa/taskTree` fallback of `nextRouteUrl`.
-- [ ] `OrphanedLinkFilter`: remove the escape-hatch pass-throughs (`?legacyEscape`; `/wa/admin`: done), add a
-      **catch-all `/wa/*` → `/next/`** so every unmapped old link lands somewhere instead of a 404.
-      Extend `OrphanedLinkFilterTest`.
-- [ ] 2FA: remove the `/wa/...` shortcut values in `ProjectForge2FAInitialization`, `"/wa"` in
-      `My2FARequestHandler.ALL`, the docs in `My2FARequestConfiguration`; adjust
-      `My2FARequestHandlerTest`, `NextMigration2FATest`. Release note: customer `projectforge.properties`
-      may still list `/wa` paths (harmless).
+Decision: **Wicket only.** The escape-hatch mechanism (`offerLegacyLink`, `ESCAPE_HATCH_PARAM`,
+`LegacyPageLink`, `use-legacy-edit-url`) stays for the way back to the legacy React app (group, teamEvent,
+the generic pages of not migrated categories such as vacation); it goes with `projectforge-webapp`.
+
+- [x] `NextMigration`: `offerLegacyLink = false` for access, account, accountingRecord, gantt, task;
+      `NextPage` refuses `legacyApp = WICKET` with `offerLegacyLink = true`. `legacyApp`/`legacyRoute` stay
+      for the redirects. `nextRouteUrl` deleted (`MenuItemDefId.TASK_TREE` is `next/taskTree`).
+- [x] projectforge-next: the hard links in `taskTree/page.tsx`, `phone-call-page.tsx` removed; `lib/menu-url.ts`
+      still treats `wa/` as external, so an old stored `wa/` url reaches the server's redirect instead of a
+      next 404. e2e `legacy-page-link.spec.ts` checks that `/next/access` offers no way back.
+- [x] `OrphanedLinkFilter`: `?legacyEscape` passes through for React pages only; explicit redirects for the
+      last Wicket pages (task tree, task wizard, phone call, timesheet, group); catch-all `/wa/*` → `/next/`.
+- [x] 2FA: all `/wa/...` shortcut values and `"/wa"` in `My2FARequestHandler.ALL` removed. The protection
+      is on the REST side (`WRITE:<category>` and the REST classes/methods), frozen in
+      `NextMigration2FATest`. Four REST successors had been left ungated by earlier migrations and are now
+      covered: `ReportObjectivesPageRest`, `DatevRecordImportRest`, `DatevAccountImportRest` (FINANCE /
+      FINANCE_WRITE), `HRViewRest` (HR).
+      **Release note:** a customer `projectforge.properties` may still list `/wa` paths for 2FA – harmless,
+      they match nothing any more.
+- [x] Dead code: `AbstractPagesRest.classicsLinkListUrl`/`CLASSIC_VERSION_MENU`.
+
+Gap check before closing (each Wicket page compared with its next successor; account: no gaps). Built in
+next: the accounting-record Excel export, the timesheet "marked" (overlapping periods) filter, the
+timesheet Kunde/Projekt columns, default sort and empty-filter guard, the access duplicate/required
+validation, the group LDAP checks, the Gantt "edit task" return, the Gantt/task range and required checks,
+the task list default sort. Deliberately dropped:
+- Group: read access is no longer admin-only (as on the old React page); the wizard's cancel always goes to
+  the tree.
+- Accounting-record report drill-down: no row click and no sort.
+- Timesheet: old Wicket url parameters (list `t1`/`t2` millis and `searchString`; edit `startMillis`/
+  `stopMillis`/`description`/`kost2`) are not translated – the redirect opens the plain list/edit page;
+  location suggestions can no longer be ignored.
+- Phone call: the back button only appears with a `backUrl`; the old "phoneCalls" recent numbers are not
+  migrated.
 
 ## Phase 4 – Delete the module
 

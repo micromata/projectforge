@@ -31,6 +31,19 @@ test.describe("legacy page link", { tag: "@isolated" }, () => {
     ).toHaveCount(0);
   });
 
+  test("is absent for a page whose legacy counterpart is a Wicket page", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    // Wicket is being removed, so a migrated Wicket page offers no way back (NextMigration
+    // `offerLegacyLink = false`); its old urls are only redirected into this app.
+    await goto(page, "/access");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: t("goreact.menu.classics") })
+    ).toHaveCount(0);
+  });
+
   test("leads from a server-laid-out list to its own legacy page", async ({
     loggedInPage: page,
   }) => {

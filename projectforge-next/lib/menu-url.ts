@@ -3,7 +3,7 @@ import { BASE_PATH } from "./config";
 export type MenuTarget =
   /** A route of this app — navigate client-side via next/link. */
   | { kind: "internal"; href: string }
-  /** Another frontend (legacy React, Wicket) or an external url — needs a full page load. */
+  /** Another frontend (legacy React), an old Wicket url or an external url — needs a full page load. */
   | { kind: "external"; href: string };
 
 const NEXT_PREFIX = "next/";
@@ -14,8 +14,10 @@ const WICKET_PREFIX = "wa/";
  * Maps a backend menu url (see MenuItemDefId in projectforge-business) onto a navigation target.
  *
  * The backend decides per menu entry which frontend serves a page, so the three apps can run side
- * by side: `next/...` belongs to this app, while `react/...` (legacy React) and `wa/...` (Wicket)
- * must be left to their own app via a full page load — client-side routing would not find them.
+ * by side: `next/...` belongs to this app, while `react/...` (legacy React) must be left to its own app
+ * via a full page load — client-side routing would not find it. No menu entry leads to Wicket (`wa/...`)
+ * any more, but an old url of that kind (e.g. a stored favourite) still goes to the server, whose
+ * OrphanedLinkFilter redirects it into this app; as a route of this app it would be a 404.
  */
 export function resolveMenuUrl(url: string | undefined | null): MenuTarget {
   if (!url) return { kind: "internal", href: "#" };

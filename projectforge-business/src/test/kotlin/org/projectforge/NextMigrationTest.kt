@@ -107,6 +107,38 @@ class NextMigrationTest {
     }
 
     /**
+     * Wicket is no way back any more (it is being removed): no page migrated from Wicket offers a "classic
+     * version" link, and NextPage refuses one that would. Their legacyApp stays, so a bookmarked Wicket link is
+     * still redirected onto next.
+     */
+    @Test
+    fun `no page offers a way back to Wicket`() {
+        val wicketLinks = NextMigration.orphanedLinks().filter { it.legacyApp == NextMigration.LegacyApp.WICKET }
+        for (category in listOf("access", "account", "accountingRecord", "gantt", "task")) {
+            Assertions.assertNull(NextMigration.legacyListUrl(category), category)
+            Assertions.assertNull(NextMigration.legacyEditPage(category), category)
+            Assertions.assertNull(NextMigration.legacyNewEntryUrl(category), category)
+            Assertions.assertFalse(NextMigration.legacyListInMenu(category), category)
+            Assertions.assertTrue(
+                wicketLinks.any { it.nextListUrl == "/${NextMigration.listUrl(category)}" },
+                "A bookmarked Wicket link of $category must still be redirected.",
+            )
+        }
+        NextMigration.categories.forEach { category ->
+            listOfNotNull(
+                NextMigration.legacyListUrl(category),
+                NextMigration.legacyEditPage(category),
+                NextMigration.legacyNewEntryUrl(category),
+            ).forEach { url ->
+                Assertions.assertFalse(url.startsWith(Constants.WICKET_APPLICATION_PATH), "$category: $url")
+            }
+        }
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            NextMigration.NextPage(route = "x", legacyApp = NextMigration.LegacyApp.WICKET)
+        }
+    }
+
+    /**
      * The HR planning list serves its metadata under the category of its rows, `hrPlanningEntry`: a category
      * unknown to [NextMigration] would count as a React page and offer a dead link to `react/hrPlanningEntry`.
      */

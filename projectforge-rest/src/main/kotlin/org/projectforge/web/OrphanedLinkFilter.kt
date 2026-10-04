@@ -110,6 +110,12 @@ class OrphanedLinkFilter : Filter {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
+        } else if (redirectLastWicketPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to one of the last Wicket pages outside NextMigration's conventions was redirected.
+        } else if (uri.endsWith("/wa") || uri.contains("/wa/")) {
+            // Catch-all: no request reaches Wicket any more. Every old link not mapped above (and any Wicket
+            // internal url, e.g. wa/wicket/page?3) lands on the next start page instead of an error page.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}")
         } else {
             chain.doFilter(servletRequest, servletResponse)
         }
@@ -186,9 +192,10 @@ class OrphanedLinkFilter : Filter {
      * Bends a bookmarked or emailed link to a legacy list/edit/add page that has moved to
      * projectforge-next onto its new url (see [NextMigration.orphanedLinks]).
      *
-     * The escape hatch - the "way back" link projectforge-next shows on a migrated page - points at the
-     * very same legacy urls, so it carries [NextMigration.ESCAPE_HATCH_PARAM] to be let through instead
-     * of being bounced straight back to next.
+     * The escape hatch - the "way back" link projectforge-next shows on a page migrated from React - points
+     * at the very same legacy urls, so it carries [NextMigration.ESCAPE_HATCH_PARAM] to be let through
+     * instead of being bounced straight back to next. Wicket is no way back any more: a Wicket url is
+     * redirected even with the marker (e.g. a bookmarked escape hatch link).
      *
      * @return true if the request was a migrated legacy link and a redirect was sent.
      */
@@ -197,10 +204,11 @@ class OrphanedLinkFilter : Filter {
         response: ServletResponse,
         uri: String,
     ): Boolean {
-        if (request.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
-            return false // The escape hatch: let it reach the legacy page.
-        }
+        val escapeHatch = request.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null
         for (link in NextMigration.orphanedLinks()) {
+            if (escapeHatch && link.legacyApp == NextMigration.LegacyApp.REACT) {
+                continue // The escape hatch: let it reach the legacy React page.
+            }
             // The edit page first: its path (e.g. wa/orderBookEdit) is more specific than the list path,
             // and for the React app the list path is even a prefix of it (react/group vs react/group/edit).
             if (uri.contains("/${link.legacyEditPath}")) {
@@ -212,10 +220,10 @@ class OrphanedLinkFilter : Filter {
                 }
                 val target = if (id != null) {
                     link.nextEditUrl.replace(NextMigration.ID_PLACEHOLDER, "$id")
-                } else if (link.legacyApp == NextMigration.LegacyApp.WICKET && !request.queryString.isNullOrBlank()) {
+                } else if (link.legacyApp == NextMigration.LegacyApp.WICKET) {
                     // The presets of a Wicket add page travel as parameters (e.g. wa/ganttEdit?task=42 of the
                     // task page) and mean the same on the next new-entry page (newEntryParams).
-                    "${link.nextNewEntryUrl}?${request.queryString}"
+                    "${link.nextNewEntryUrl}${wicketQuery(request)}"
                 } else {
                     link.nextNewEntryUrl
                 }
@@ -223,11 +231,76 @@ class OrphanedLinkFilter : Filter {
                 return true
             }
             if (uri.contains("/${link.legacyListPath}")) {
-                redirect(response, uri, link.nextListUrl)
+                // The presets of a Wicket list travel as parameters too (wa/accessList?taskId=42 of the task page,
+                // the same as next/access?taskId=42).
+                val query = if (link.legacyApp == NextMigration.LegacyApp.WICKET) wicketQuery(request) else ""
+                redirect(response, uri, "${link.nextListUrl}$query")
                 return true
             }
         }
         return false
+    }
+
+    /**
+     * The Wicket pages still mounted until the module is deleted that [redirectMigratedPage] doesn't cover:
+     * the task tree, the direct call and the task wizard (no category of their own), and the list/edit pages
+     * of [WICKET_PAGES_OF_REACT_CATEGORIES], whose legacy app in [NextMigration] is React. The precise
+     * segment match keeps this from catching sibling pages. Ids are interpolated into the Location header,
+     * so only numbers are accepted.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectLastWicketPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val target = when {
+            // Wicket's highlighted row (AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) is next's highlightId.
+            isWicketPage(uri, "taskTree") ->
+                "${Constants.NEXT_APP_PATH}taskTree${wicketQuery(request, mapOf("row" to "highlightId"))}"
+            uri.contains("$BOOKMARKABLE.admin.TaskWizardPage") -> "${Constants.NEXT_APP_PATH}taskWizard"
+            // The deep link parameters (addressId, number, callerPage) mean the same on the next page; Wicket also
+            // accepted the short aliases address, no and cp.
+            isWicketPage(uri, "phoneCall") -> "${Constants.NEXT_APP_PATH}phoneCall" +
+                    wicketQuery(request, mapOf("address" to "addressId", "no" to "number", "cp" to "callerPage"))
+
+            else -> {
+                val category = WICKET_PAGES_OF_REACT_CATEGORIES.find {
+                    isWicketPage(uri, "${it}List") || isWicketPage(uri, "${it}Edit")
+                } ?: return false
+                val id = request.getParameter("id")?.toLongOrNull()
+                when {
+                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category)
+                    id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                    else -> NextMigration.newEntryUrl(category)
+                }
+            }
+        }
+        redirect(response, uri, "/$target")
+        return true
+    }
+
+    /**
+     * The query string of a Wicket link to carry over onto next, without the escape hatch marker (meaningless
+     * there).
+     *
+     * @param renames Wicket parameter name -> next parameter name, for the parameters named differently there.
+     * @return e.g. `?task=42`, or an empty string.
+     */
+    private fun wicketQuery(request: HttpServletRequest, renames: Map<String, String> = emptyMap()): String {
+        val query = request.queryString?.split('&')
+            ?.filter { it.isNotBlank() && it.substringBefore('=') != NextMigration.ESCAPE_HATCH_PARAM }
+            ?.joinToString("&") { param ->
+                val name = param.substringBefore('=')
+                renames[name]?.let { "$it${param.removePrefix(name)}" } ?: param
+            }
+        return if (query.isNullOrEmpty()) "" else "?$query"
+    }
+
+    /** Whether [uri] is the Wicket mount point [mountPoint] (e.g. `/wa/taskTree`, `/wa/taskTree/...`). */
+    private fun isWicketPage(uri: String, mountPoint: String): Boolean {
+        return uri.endsWith("/wa/$mountPoint") || uri.contains("/wa/$mountPoint/")
     }
 
     private fun redirect(servletResponse: ServletResponse, uri: String, redirectUrl: String) {
@@ -253,5 +326,11 @@ class OrphanedLinkFilter : Filter {
 
         /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
         private val GONE_REACT_CATEGORIES = listOf("project", "task")
+
+        /**
+         * Categories migrated from React whose Wicket list/edit pages (`wa/<category>List`, `wa/<category>Edit`)
+         * are still mounted, see [redirectLastWicketPage].
+         */
+        private val WICKET_PAGES_OF_REACT_CATEGORIES = listOf("timesheet", "group")
     }
 }

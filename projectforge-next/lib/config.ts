@@ -1,7 +1,8 @@
 // Single source of truth for the base path under which this app is served.
 //
-// projectforge-next runs side-by-side with the legacy React app (`/react`)
-// and Wicket (`/wa`), all served by the one Spring Boot app. This app owns
+// projectforge-next runs side-by-side with the legacy React app (`/react`),
+// both served by the one Spring Boot app (old Wicket `/wa` links are only
+// redirected into this app by the server's OrphanedLinkFilter). This app owns
 // `/next`. Spring forwards `/next/**` to `next-app.html` (see
 // WebApplicationConfig / Constants.NEXT_APP_PATH in the backend).
 //

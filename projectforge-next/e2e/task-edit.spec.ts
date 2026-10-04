@@ -50,8 +50,8 @@ function titleBox(page: Page, format: UserFormat) {
 /**
  * The breadcrumb back to the caller.
  *
- * Scoped to the page's own content: the menu carries a "Strukturbaum" link of its own (to Wicket,
- * until step 5 of the migration flips it), and an unscoped lookup would match both.
+ * Scoped to the page's own content: the menu carries a "Strukturbaum" link of its own, and an unscoped
+ * lookup would match both.
  */
 function breadcrumb(page: Page, format: UserFormat) {
   return page

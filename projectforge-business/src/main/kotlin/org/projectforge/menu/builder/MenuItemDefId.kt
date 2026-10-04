@@ -41,12 +41,11 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     REPORTING("menu.reporting"), //
 
     // Sub menus in alphabetical order:
-    // Migrated to projectforge-next (hand built, GroupAccessEntityRest); the Wicket page (wa/accessList)
-    // stays reachable through the escape hatch, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next (hand built, GroupAccessEntityRest); wa/accessList is redirected by
+    // OrphanedLinkFilter.
     ACCESS_LIST("menu.accessList", getListUrl("access")), //
     ACCOUNT_LIST("menu.fibu.konten", getListUrl("account")), //
-    // Migrated to projectforge-next; the Wicket page (wa/accountingRecordList) stays reachable through the
-    // escape hatch next to the page title, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; wa/accountingRecordList is redirected by OrphanedLinkFilter.
     ACCOUNTING_RECORD_LIST("menu.fibu.buchungssaetze", getListUrl("accountingRecord")), //
     ADDRESSBOOK_LIST("menu.addressbookList", getReactListUrl("addressBook")), //
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
@@ -98,16 +97,13 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
-    // Migrated to projectforge-next; wa/orderBookList stays reachable through the escape hatch, see
-    // NextMigration.legacyListUrl.
+    // Migrated to projectforge-next; the Wicket pages (wa/orderBookList) were removed.
     ORDER_LIST("menu.fibu.orderbook", getListUrl("order")), //
     OUTBOX_LIST("menu.orga.postausgang", getReactListUrl("outgoingMail")), //
-    // Migrated to projectforge-next, list and form; wa/outgoingInvoiceList stays reachable through the
-    // escape hatch, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next, list and form; the Wicket pages (wa/outgoingInvoiceList) were removed.
     OUTGOING_INVOICE_LIST("menu.fibu.rechnungen", getListUrl("outgoingInvoice")), //
     PERSONAL_STATISTICS("menu.personalStatistics", "next/personalStatistics"), //
-    // Migrated to projectforge-next (PhoneCallRest); the Wicket page (wa/phoneCall) stays mounted as the
-    // "classic version" escape hatch, so only this menu entry points at next now.
+    // Migrated to projectforge-next (PhoneCallRest); wa/phoneCall is redirected by OrphanedLinkFilter.
     PHONE_CALL("menu.phoneCall", "next/phoneCall"), //
     POLL("menu.poll", getReactListUrl("poll")), //
     PROJECT_LIST("menu.fibu.projekte", getListUrl("project")), //
@@ -119,12 +115,9 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     // Migrated to projectforge-next (SearchRest); the Wicket search page was removed. A bookmarked
     // /wa/search is still redirected to next by OrphanedLinkFilter.
     SEARCH("menu.search", "${Constants.NEXT_APP_PATH}search"), //
-    // Migrated to projectforge-next; wa/taskTree stays reachable through the escape hatch, see
-    // NextMigration.legacyListUrl. Nothing waits on the task favourites (UserPrefArea.TASK_FAVORITE):
-    // next manages them in the task select field itself (TaskFavoritesMenu).
-    // The tree and not the category's list, because the entity has two perspectives in
-    // projectforge-next (see NextMigration.nextRouteUrl).
-    TASK_TREE("menu.taskTree", NextMigration.nextRouteUrl("task", "taskTree", "wa/taskTree")), //
+    // Migrated to projectforge-next; wa/taskTree is redirected by OrphanedLinkFilter. The tree and not the
+    // category's list (next/task, NextMigration.listUrl): the entity has two perspectives in projectforge-next.
+    TASK_TREE("menu.taskTree", "${Constants.NEXT_APP_PATH}taskTree"), //
     TIMESHEET_LIST("menu.timesheetList", getListUrl("timesheet")), //
     USER_LIST("menu.userList", getReactListUrl("user")), //
     VACATION("menu.vacation", getReactListUrl("vacation")), //

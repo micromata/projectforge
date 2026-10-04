@@ -111,9 +111,9 @@ sobald eine Seite nach `MIGRATED` wandert, ohne dass ihr 2FA-Teil mitgezogen wur
 und next-Route dürfen abweichen (handgebaut: absichtlich gleich); die Menü-URL muss die
 **Next-Route** nennen. `HAND_BUILT_CATEGORIES` (`lib/hand-built-categories.ts`) hält die
 konkreten Routen synchron mit `MIGRATED` (Route-Shadowing: konkrete Routen vor dem
-Catch-all). `NextMigrationTest` erzwingt die Gleichheit. Für eine zweite Perspektive einer
-Entität unter abweichender Route gibt es `NextMigration.nextRouteUrl(category, route,
-legacyUrl)` (Beispiel: Aufgabenbaum `next/taskTree` neben der Liste `next/task`).
+Catch-all). `NextMigrationTest` erzwingt die Gleichheit. Eine zweite Perspektive einer
+Entität unter abweichender Route nennt ihre Next-URL direkt im `MenuItemDefId` (Beispiel:
+Aufgabenbaum `next/taskTree` neben der Liste `next/task`).
 
 ## Querschnittliche Fundamente (erledigt)
 
@@ -505,7 +505,7 @@ gelöscht.
 ## Kritische Dateien (Referenz)
 
 - **Serving/Routing:** `WebApplicationConfig.java`, `WebXMLInitializer.java`, `Constants.kt`
-- **Umschalten:** `NextMigration.kt` (`MIGRATED`, `nextRouteUrl`),
+- **Umschalten:** `NextMigration.kt` (`MIGRATED`),
   `lib/hand-built-categories.ts`, `NextMigrationTest`/`NextMigration2FATest`,
   `ProjectForge2FAInitialization`
 - **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`, `WicketUserFilter.kt`,

@@ -29,10 +29,13 @@ import org.projectforge.rest.*
 import org.projectforge.rest.admin.AdminLogViewerRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.*
+import org.projectforge.rest.fibu.importer.DatevAccountImportRest
+import org.projectforge.rest.fibu.importer.DatevRecordImportRest
 import org.projectforge.rest.fibu.kost.Kost1EntityRest
 import org.projectforge.rest.fibu.kost.Kost2EntityRest
 import org.projectforge.rest.hr.HRPlanningEntityRest
 import org.projectforge.rest.hr.HRPlanningEntryEntityRest
+import org.projectforge.rest.hr.HRViewRest
 import org.projectforge.rest.hr.LeaveAccountEntryPagesRest
 import org.projectforge.rest.orga.*
 import org.projectforge.rest.scripting.MyScriptExecutePageRest
@@ -56,60 +59,41 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
   @PostConstruct
   internal fun init() {
+    // The pages of projectforge-next are static files served by a resource handler (see WebApplicationConfig), so
+    // no filter sees their urls and a client side navigation doesn't even reach the server: only their rest calls
+    // are left to gate. Hence WRITE:<category> for the saves and the *Rest classes for the reading shortcuts
+    // (NextMigration2FATest keeps the gates the former Wicket pages /wa/... had).
     registerShortCutValues(
       My2FAShortCut.ADMIN_WRITE,
-      // WRITE:access gates the save of the migrated access-rights form (GroupAccessEntityRest, /rs/access): its
-      // page is a static file of projectforge-next served by a resource handler (see WebApplicationConfig), so no
-      // filter sees its url - only the rest call is left to gate. Without it, an installation configuring
-      // ADMIN_WRITE but not ADMIN would ask for a second factor before Wicket's /wa/accessEdit but no longer
-      // before the migrated one. WRITE:configuration is the same case for the migrated system-configuration
-      // form (ConfigurationEntityRest, /rs/configuration): its Wicket form was removed, so the /wa gate is
-      // gone and the rest call is all there is left to gate.
       "WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;",
-      "/wa/userEdit;/wa/groupEdit;/wa/admin",
-      "/wa/accessEdit",
-      // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin"
     )
-    // The migrated System page (SystemRest, /rs/system), successor of Wicket's /wa/admin, and the migrated Plugins
-    // page (PluginAdminRest, /rs/pluginList), successor of Wicket's org.projectforge.web.admin.PluginListPage: both
-    // legacy pages are gated by ADMIN_WRITE as a whole (see above). Their next pages are static files served by a
-    // resource handler, so only their rest calls are left to gate, and the whole path keeps the write period.
+    // The System page (SystemRest, /rs/system), successor of Wicket's admin page, and the Plugins page
+    // (PluginAdminRest, /rs/pluginList), successor of Wicket's PluginListPage: both legacy pages were gated by
+    // ADMIN_WRITE as a whole, so the whole rest path keeps the write period.
     registerShortCutClasses(My2FAShortCut.ADMIN_WRITE, SystemRest::class.java, PluginAdminRest::class.java)
-    registerShortCutValues(
-      My2FAShortCut.ADMIN,
-      "/wa/user;/wa/group;/wa/admin",
-      "/wa/access",
-      // LuceneConsole, GroovyConsole, SQLConsole:
-      "/wa/wicket/bookmarkable/org.projectforge.web.admin"
-    )
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
       UserPagesRest::class.java,
       GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       GroupAccessEntityRest::class.java,
-      // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a
-      // resource handler, so no filter sees its url - only the REST call is left to gate. The classic Wicket page sat
-      // behind the org.projectforge.web.admin admin 2FA prefix, so its successor keeps the admin second factor here.
       PluginAdminRest::class.java,
       ConfigurationEntityRest::class.java,
-      // The migrated System page (/wa/admin, see ADMIN_WRITE above):
       SystemRest::class.java,
     )
 
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
-      // WRITE:hrPlanning gates the save of the migrated weekly HR planning (HRPlanningEntityRest, /rs/hrPlanning),
-      // which replaced the Wicket /wa/hrPlanningEdit gated here before.
-      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;WRITE:hrPlanning;"
+      "WRITE:employee;WRITE:leaveAccountEntry;WRITE:hrPlanning;"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
-      "WRITE:employee;/wa/hr"
+      "WRITE:employee"
     )
     registerShortCutClasses(
       My2FAShortCut.HR,
+      // The HR view, successor of Wicket's /wa/hrList:
+      HRViewRest::class.java,
       LeaveAccountEntryPagesRest::class.java,
       HRPlanningEntityRest::class.java,
       HRPlanningEntryEntityRest::class.java,
@@ -119,26 +103,33 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutValues(
       My2FAShortCut.FINANCE_WRITE,
       "WRITE:incomingInvoice;WRITE:outgoingInvoice;WRITE:project;",
-      // The REST counterparts of /wa/orderBookEdit and /wa/cost.*Edit below: the forms of the order and of the
-      // cost1/cost2 are pages of projectforge-next now, and a page of that app is a static file served by a resource
-      // handler (see WebApplicationConfig), so no filter ever sees its url - only the rest calls of the form are
-      // left to gate. Without these, an installation configuring FINANCE_WRITE but not FINANCE would ask for
-      // a second factor before Wicket's form, but no longer before the migrated one.
       // The entity of WRITE: is the rest category (/rs/order), which for the order is not the identifier of its
-      // dao ("auftrag"): the write access of Wicket's own form is gated by the url below, not by this entry.
+      // dao ("auftrag").
       "WRITE:order;WRITE:account;WRITE:cost1;WRITE:cost2;WRITE:cost2Type;WRITE:customer;",
-      "/wa/reportEdit;/wa/accountingEdit;/wa/datev;/wa/incomingInvoiceEdit;/wa/outgoingInvoiceEdit;/wa/cost.*Edit;/wa/customerEdit;/wa/accountEdit;",
-      "/wa/projectEdit;/wa/orderBookEdit"
+    )
+    // The DATEV import (successor of Wicket's /wa/datevImport) writes as a whole, so its whole rest paths keep the
+    // write period, as Wicket's page did. Of the report objectives (successor of /wa/reportObjectives) only the
+    // import was a write (Wicket's /wa/reportEdit); evaluating them is reading, gated by FINANCE below.
+    registerShortCutClasses(
+      My2FAShortCut.FINANCE_WRITE,
+      DatevRecordImportRest::class.java,
+      DatevAccountImportRest::class.java,
+    )
+    registerShortCutMethods(
+      My2FAShortCut.FINANCE_WRITE,
+      ReportObjectivesPageRest::upload,
+      ReportObjectivesPageRest::paste,
     )
 
     registerShortCutValues(
       My2FAShortCut.FINANCE,
       "WRITE:employeeSalary",
-      "/wa/report;/wa/accounting;/wa/datev;/wa/incomingInvoice;/wa/outgoingInvoice;/wa/cost;/wa/customer;/wa/account;",
-      "/wa/project;/wa/orderBook"
     )
     registerShortCutClasses(
       My2FAShortCut.FINANCE,
+      DatevRecordImportRest::class.java,
+      DatevAccountImportRest::class.java,
+      ReportObjectivesPageRest::class.java,
       AccountingRecordEntityRest::class.java,
       EmployeeSalaryEntityRest::class.java,
       Kost1EntityRest::class.java,

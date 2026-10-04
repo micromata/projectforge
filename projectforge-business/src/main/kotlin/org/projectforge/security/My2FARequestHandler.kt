@@ -399,7 +399,7 @@ open class My2FARequestHandler {
   }
 
   init {
-    registerShortCutValues(My2FAShortCut.ALL, "/wa", "/rs/")
+    registerShortCutValues(My2FAShortCut.ALL, "/rs/")
   }
 
   fun getShortCutResolved(shortCut: My2FAShortCut): String? {

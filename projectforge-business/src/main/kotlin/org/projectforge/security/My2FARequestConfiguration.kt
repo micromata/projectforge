@@ -31,17 +31,17 @@ import org.springframework.context.annotation.Configuration
 /**
  * For configuration of required 2FA. Uri's for which 2FA is required may be defined as coma separated regex's. Some sets of
  * uri expressions may be used by name, see org.projectforge.rest.config.ProjectForge2FAInitialization:
- * - ADMIN: WRITE:{user};/wa/userEdit;/wa/groupEdit;/wa/admin;/react/change.*Password;/wa/license;/wa/access;/react/system;/react/configuration;/wa/wicket/bookmarkable/org.projectforge.web.admin
- * - FINANCE: /wa/report;/wa/accounting;/wa/datev;/wa/liquidity;/react/account;/react/cost1;/react/cost2;/wa/incomingInvoice;/wa/outgoingInvoice
- * - ORGA: /wa/incomingMail;/react/outgoingMail;/wa/outgoingMail;/react/incomingMail;/wa/contractMail;/react/contract
- * - SCRIPTING: /wa/script
- * - MY_ACCOUNT: /react/tokenInfo;/react/myyAccount
- * - PASSWORD: /react/change.*Password
+ * - ADMIN: WRITE:user;WRITE:group;WRITE:access;WRITE:configuration;/rs/user;/rs/group;/rs/access;/rs/system;...
+ * - FINANCE: WRITE:employeeSalary;/rs/accountingRecord;/rs/datevRecordImport;/rs/account;/rs/cost1;/rs/incomingInvoice;...
+ * - ORGA: WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;/rs/incomingMail;/rs/outgoingMail;/rs/contract;...
+ * - SCRIPTING: WRITE:script;/rs/script;...
+ * - MY_ACCOUNT: /rs/myAccount;/rs/tokenInfo;...
+ * - PASSWORD: /rs/changePassword;/rs/changeWlanPassword
  *
  * You may also use WRITE:<entity-name> for specifying all write access calls (Rest) of an entity.
  *
  * Examples:
- * - 'admin;/wa/employee;WRITE:user': Means All uri's for admin's and uri /wa/employee.
+ * - 'admin;/rs/employee;WRITE:user': Means All uri's for admin's and uri /rs/employee.
  * - '/': Means all uri's matches.
  *
  * Second factors may be defined with different periods of expiry. If an uri matches multiples periods; the shortest period is used.

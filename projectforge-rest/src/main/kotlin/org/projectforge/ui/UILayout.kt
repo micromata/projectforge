@@ -107,8 +107,7 @@ class UILayout(
    * the React migration never reached, Wicket: the escape hatch offered next to the page title while
    * the migration runs (`LegacyPageLink`).
    *
-   * Only used by projectforge-next. The legacy React frontend has its own version of this in reverse
-   * (`classicsLinkListUrl`, pointing at the Wicket page), so it ignores this field.
+   * Only used by projectforge-next; the legacy React frontend ignores this field.
    *
    * @see org.projectforge.NextMigration.legacyListUrl
    */

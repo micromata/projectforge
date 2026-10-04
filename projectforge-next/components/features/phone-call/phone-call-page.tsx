@@ -21,16 +21,6 @@ function positiveNumber(
   return value > 0 ? value : undefined;
 }
 
-/** The Wicket page this one replaces, kept mounted as the "classic version" escape hatch. */
-function legacyUrl(query: PhoneCallParams): string {
-  const params = new URLSearchParams();
-  if (query.addressId != null) params.set("addressId", String(query.addressId));
-  if (query.number) params.set("number", query.number);
-  if (query.callerPage) params.set("callerPage", query.callerPage);
-  const s = params.toString();
-  return s ? `wa/phoneCall?${s}` : "wa/phoneCall";
-}
-
 /**
  * The "Direct call" page ("Direktwahl Telefonanlage", `/next/phoneCall`), successor of Wicket's `wa/phoneCall`.
  * A standalone, non-entity form: it dials a number through the reused Sipgate telephone system.
@@ -58,7 +48,6 @@ export function PhoneCallPage() {
       <PageTitleRow
         category={t("menu.phoneCall")}
         title={t("address.phoneCall.title")}
-        legacyUrl={legacyUrl(query)}
       >
         {/* Back to the address list/view the user came from (Wicket's `backToCaller`); the target is the
             legacy React app, so a plain anchor with a full page load. */}

@@ -14,8 +14,8 @@ import { taskHref } from "./task-routes";
  *
  * The target is the migrated next form (`task` is in `NextMigration.MIGRATED`), which carries the
  * five cross-links of Wicket's content menu, „Zeitberichte anzeigen" among them — the one action this
- * link exists for. Until the migration this pointed at `wa/taskEdit`, because the React form was a
- * plain UILayout form without that action.
+ * link exists for. Until the migration this pointed at Wicket's task form, because the React form was
+ * a plain UILayout form without that action.
  *
  * Still a plain anchor in a new tab, not `next/link`: this sits inside an edit form, and following it
  * in the same tab — even to a route of this app — would unmount the form and throw away everything

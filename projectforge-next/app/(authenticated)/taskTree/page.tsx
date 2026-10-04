@@ -72,9 +72,6 @@ function TaskTreeBody() {
         <PageTitleRow
           category={t("menu.taskTree")}
           title={t("task.tree.perspective")}
-          // Where the two entries of that menu this app cannot serve yet still are: the favourites
-          // and, until it is migrated, anything else of Wicket's tree page.
-          legacyUrl="wa/taskTree"
         >
           <TaskTreeActionBar />
         </PageTitleRow>

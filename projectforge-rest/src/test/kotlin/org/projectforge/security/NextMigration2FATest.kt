@@ -32,17 +32,16 @@ import org.projectforge.model.rest.RestPaths
 /**
  * A page migrated to projectforge-next has to keep the second factor its legacy page required.
  *
- * The legacy frontends are gated by the url of the page itself: `/wa/orderBookEdit` for Wicket
- * (`WicketUserFilter`), `/react/...` for the legacy React app. A page of projectforge-next cannot be gated that way
- * at all - it is a static file of the export, served by a resource handler (see `WebApplicationConfig`), so no
- * filter sees its url, and a client side navigation inside the app doesn't even reach the server. What is left is
- * the rest call the page makes, which is why every migrated page needs its rest url registered in
- * [ProjectForge2FAInitialization] - as a `WRITE:<category>` entry for the writing shortcuts and as the
+ * The Wicket pages were gated by their own urls (`/wa/orderBookEdit`, `/wa/datev`, ...). A page of projectforge-next
+ * cannot be gated that way at all - it is a static file of the export, served by a resource handler (see
+ * `WebApplicationConfig`), so no filter sees its url, and a client side navigation inside the app doesn't even reach
+ * the server. What is left is the rest call the page makes, which is why every migrated page needs its rest url
+ * registered in [ProjectForge2FAInitialization] - as a `WRITE:<category>` entry for the writing shortcuts and as the
  * `*Rest` class for the reading ones.
  *
- * That is easy to forget while migrating the next page, and nothing fails visibly: the page simply works without
- * a second factor. Hence this test, which asks for every category of [NextMigration] whether its rest url is
- * gated wherever its legacy url was.
+ * Wicket is gone (every `/wa` url is redirected to next, see `OrphanedLinkFilter`), and so are the `/wa` values of
+ * the shortcuts. What they gated is kept here as the list of rest urls that have to require a second factor in their
+ * stead: the categories whose Wicket list or form required one, and the standalone pages.
  *
  * Both shortcut sets are configured alone on purpose. Together they hide exactly the gap this test is about: the
  * reading shortcut covers the whole path of a category (`^/rs/order.*`), so a missing `WRITE:order` would still
@@ -51,18 +50,48 @@ import org.projectforge.model.rest.RestPaths
  * @author Kai Reinhard
  */
 class NextMigration2FATest {
+  /** The categories whose Wicket list page required a second factor (ADMIN, FINANCE, HR). */
+  private val gatedOnRead = listOf(
+    "access", "account", "accountingRecord", "cost1", "cost2", "cost2Type", "customer", "hrPlanning", "order",
+    "outgoingInvoice", "incomingInvoice", "project",
+  )
+
+  /** The categories whose Wicket form required a second factor (ADMIN_WRITE, FINANCE_WRITE). */
+  private val gatedOnWrite = listOf(
+    "access", "account", "configuration", "cost1", "cost2", "cost2Type", "customer", "order", "outgoingInvoice",
+    "incomingInvoice", "project",
+  )
+
+  /**
+   * The standalone pages (no category of [NextMigration]): rest urls their next pages call, successors of Wicket
+   * pages that required a second factor on reading.
+   */
+  private val standaloneOnRead = listOf(
+    "/rs/system/reindex", // wa/admin
+    "/rs/pluginList/setActivated", // wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage
+    "/rs/user", "/rs/group", // wa/user*, wa/group*
+    "/rs/hrView", // wa/hrList
+    "/rs/reportObjectives", // wa/reportObjectives
+    "/rs/datevRecordImport", "/rs/datevAccountImport", // wa/datevImport
+  )
+
+  /** As [standaloneOnRead], successors of Wicket pages that required a second factor on writing. */
+  private val standaloneOnWrite = listOf(
+    "/rs/system/reindex",
+    "/rs/pluginList/setActivated",
+    "/rs/user/${RestPaths.SAVE_OR_UDATE}", "/rs/group/${RestPaths.SAVE_OR_UDATE}", // wa/userEdit, wa/groupEdit
+    "/rs/reportObjectives/upload", "/rs/reportObjectives/paste", // wa/reportEdit
+    "/rs/datevRecordImport", "/rs/datevAccountImport", // wa/datevImport
+  )
+
   @Test
-  fun `reading a migrated page requires the second factor of its legacy list page`() {
+  fun `reading a migrated page requires the second factor of its legacy page`() {
     val handler = handler("ADMIN;FINANCE;HR;ORGA;SCRIPT")
-    NextMigration.categories.forEach { category ->
-      val legacyUrl = uriOf(NextMigration.legacyListUrl(category)) ?: return@forEach
-      if (handler.getRemainingPeriod(legacyUrl) == null) {
-        return@forEach // The legacy list page needs no second factor, so the migrated one doesn't either.
-      }
+    (gatedOnRead.map { restUrl(it) } + standaloneOnRead).forEach { url ->
       Assertions.assertNotNull(
-        handler.getRemainingPeriod(restUrl(category)),
-        "$legacyUrl requires a 2FA, so ${restUrl(category)} of the migrated page has to require one as well: " +
-            "register its rest class in ProjectForge2FAInitialization.",
+        handler.getRemainingPeriod(url),
+        "The legacy page of $url required a 2FA, so $url has to require one as well: register its rest class " +
+            "in ProjectForge2FAInitialization.",
       )
     }
   }
@@ -70,46 +99,33 @@ class NextMigration2FATest {
   @Test
   fun `writing on a migrated page requires the second factor of its legacy form`() {
     val handler = handler("ADMIN_WRITE;FINANCE_WRITE;HR_WRITE;ORGA_WRITE;SCRIPT_WRITE")
-    NextMigration.categories.forEach { category ->
-      val legacyUrl = uriOf(NextMigration.legacyEditPage(category)) ?: return@forEach
-      if (handler.getRemainingPeriod(legacyUrl) == null) {
-        return@forEach // The legacy form needs no second factor, so the migrated one doesn't either.
-      }
-      // The save of a hand built page as well as of a UILayout page (see lib/rs/entity.ts):
-      val saveUrl = "${restUrl(category)}/${RestPaths.SAVE_OR_UDATE}"
+    // The save of a hand built page as well as of a UILayout page (see lib/rs/entity.ts):
+    (gatedOnWrite.map { "${restUrl(it)}/${RestPaths.SAVE_OR_UDATE}" } + standaloneOnWrite).forEach { url ->
       Assertions.assertNotNull(
-        handler.getRemainingPeriod(saveUrl),
-        "$legacyUrl requires a 2FA, so $saveUrl of the migrated page has to require one as well: " +
-            "add WRITE:$category to the matching shortcut in ProjectForge2FAInitialization.",
+        handler.getRemainingPeriod(url),
+        "The legacy form of $url required a 2FA, so $url has to require one as well: add WRITE:<category> or " +
+            "the rest class to the matching shortcut in ProjectForge2FAInitialization.",
       )
     }
   }
 
-  /**
-   * Standalone pages migrated to projectforge-next are no category of [NextMigration], so the two tests above don't
-   * see them. Their legacy url -> a rest url their next page calls.
-   */
-  private val standalonePages = mapOf(
-    "/wa/admin" to "/rs/system/reindex",
-    "/wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage" to "/rs/pluginList/setActivated",
-  )
-
+  /** The lists name migrated categories: a renamed category would otherwise silently drop out of the test. */
   @Test
-  fun `a migrated standalone page requires the second factor of its legacy page`() {
-    listOf(
-      "ADMIN;FINANCE;HR;ORGA;SCRIPT",
-      "ADMIN_WRITE;FINANCE_WRITE;HR_WRITE;ORGA_WRITE;SCRIPT_WRITE",
-    ).forEach { shortCuts ->
-      val handler = handler(shortCuts)
-      standalonePages.forEach { (legacyUrl, restUrl) ->
-        if (handler.getRemainingPeriod(legacyUrl) == null) {
-          return@forEach
-        }
-        Assertions.assertNotNull(
-          handler.getRemainingPeriod(restUrl),
-          "$legacyUrl requires a 2FA ($shortCuts), so $restUrl of the migrated page has to require one as well.",
-        )
-      }
+  fun `the gated categories are migrated ones`() {
+    (gatedOnRead + gatedOnWrite).forEach { category ->
+      Assertions.assertTrue(NextMigration.isMigrated(category), category)
+    }
+  }
+
+  /**
+   * No `/wa` value is left in the shortcuts: Wicket is gone, so they would gate nothing.
+   */
+  @Test
+  fun `no shortcut names a wicket url`() {
+    val handler = handler("")
+    My2FAShortCut.entries.forEach { shortCut ->
+      val resolved = handler.getShortCutResolved(shortCut) ?: return@forEach
+      Assertions.assertFalse(resolved.contains("/wa"), "$shortCut: $resolved")
     }
   }
 
@@ -119,14 +135,6 @@ class NextMigration2FATest {
    */
   private fun restUrl(category: String): String {
     return "/rs/$category"
-  }
-
-  /**
-   * @return The url as a request uri would carry it (leading slash, without query string), or null if the page has
-   * no legacy counterpart any more - then there is nothing to keep.
-   */
-  private fun uriOf(url: String?): String? {
-    return url?.let { "/${it.substringBefore('?')}" }
   }
 
   /**

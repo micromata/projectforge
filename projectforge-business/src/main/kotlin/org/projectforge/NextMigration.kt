@@ -142,6 +142,9 @@ object NextMigration {
             require(!listOnly || legacyApp != null) {
                 "A list only page keeps its form in the legacy app, so legacyApp must be given: route=$route"
             }
+            require(legacyApp != LegacyApp.WICKET || !offerLegacyLink) {
+                "Wicket is no way back any more (it is being removed), so offerLegacyLink must be false: route=$route"
+            }
         }
     }
 
@@ -154,35 +157,40 @@ object NextMigration {
         // (MenuItemDefId.ACCESS_LIST pointed at wa/accessList). Hand built (GroupAccessEntityRest, no
         // layout) because the permission matrix is no field a generic UILayout page can render. Wicket's
         // mount points follow the convention (DaoConst.ACCESS + List/Edit = accessList/accessEdit), so no
-        // legacy route has to be spelled out; the way back to the classic Wicket page stays offered.
+        // legacy route has to be spelled out. The way back to Wicket is no longer offered; legacyApp stays only
+        // so OrphanedLinkFilter still redirects bookmarked wa/accessList / wa/accessEdit links.
         "access" to NextPage(
             route = "access",
             editRoute = "access/$ID_PLACEHOLDER",
             newEntryRoute = "access/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // The accounts ("Konten"), migrated from the React app (MenuItemDefId.ACCOUNT_LIST pointed at react/account),
-        // whose page is gone with the layout of KontoPagesRest (now KontoEntityRest, no layout). The way back
-        // therefore leads to the Wicket pages, which are kept as the classic version; their mount points follow
-        // the convention (DaoConst.ACCOUNT + List/Edit = accountList/accountEdit), so no legacy route has to be
-        // spelled out.
+        // whose page is gone with the layout of KontoPagesRest (now KontoEntityRest, no layout). The legacy app
+        // is therefore Wicket, whose mount points follow the convention (DaoConst.ACCOUNT + List/Edit =
+        // accountList/accountEdit), so no legacy route has to be spelled out. The way back is no longer
+        // offered; legacyApp stays only so OrphanedLinkFilter still redirects bookmarked links.
         "account" to NextPage(
             route = "account",
             editRoute = "account/$ID_PLACEHOLDER",
             newEntryRoute = "account/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // The DATEV accounting-record list ("Buchungssätze", MenuItemDefId.ACCOUNTING_RECORD_LIST pointed at
         // wa/accountingRecordList), migrated from Wicket with its filter, its BWA (business assessment) and
         // the report drill-down. Hand built (AccountingRecordEntityRest, no layout) so the list keeps the
         // invoice-style date-period filter and the BWA summary above the table. Wicket's mount points follow
         // the convention (DaoConst.ACCOUNTING_RECORD + List/Edit = accountingRecordList/accountingRecordEdit),
-        // so no legacy route has to be spelled out; the way back to the classic Wicket edit page stays offered.
+        // so no legacy route has to be spelled out. The way back is no longer offered; legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked links.
         "accountingRecord" to NextPage(
             route = "accounting-record",
             editRoute = "accounting-record/$ID_PLACEHOLDER",
             newEntryRoute = "accounting-record/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // The address campaigns of the marketing plugin, migrated from Wicket (the menu entry pointed at the
         // bookmarkable AddressCampaignListPage). Hand built (AddressCampaignEntityRest, no layout; the server
@@ -301,8 +309,8 @@ object NextMigration {
             legacyApp = LegacyApp.WICKET,
             offerLegacyLink = false,
         ),
-        // The Gantt charts, migrated from Wicket (MenuItemDefId.GANTT pointed at wa/ganttList): the way back
-        // leads to Wicket. GanttChartEntityRest serves no layout, so there is no React page; the chart is
+        // The Gantt charts, migrated from Wicket (MenuItemDefId.GANTT pointed at wa/ganttList); the way back is
+        // no longer offered. GanttChartEntityRest serves no layout, so there is no React page; the chart is
         // still rendered by Batik on the server (GanttServicesRest). Wicket's mount points follow the
         // convention (ganttList / ganttEdit); its "new chart for this task" link (wa/ganttEdit?task=) is bent
         // onto gantt/new?task= by OrphanedLinkFilter.
@@ -311,6 +319,7 @@ object NextMigration {
             editRoute = "gantt/$ID_PLACEHOLDER",
             newEntryRoute = "gantt/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Migrated from the React app (MenuItemDefId.GROUP_LIST pointed at react/group), which is where the
         // way back leads. Hand built rather than generic because the React list has a filter of its own
@@ -449,16 +458,16 @@ object NextMigration {
         // TaskServicesRest rather than by a list layout). Only one of the two can be a NextPage.route,
         // and it has to be the list: every server side redirect for the category `task` goes through
         // [listUrl], and a redirect after a save must not land on the tree.
-        // Which of the two the menu opens is [nextRouteUrl]'s answer, not this route's (see
-        // MenuItemDefId.TASK_TREE). The legacy routes follow Wicket's convention - taskList / taskEdit
-        // are its mount points (WebRegistry, DaoConst.TASK) - so none has to be spelled out; the tree
-        // page names wa/taskTree itself, which is where the two entries of that page next has not
-        // migrated still are (the task favourites and the task wizard).
+        // The menu opens the tree (MenuItemDefId.TASK_TREE names next/taskTree itself). The legacy routes
+        // follow Wicket's convention - taskList / taskEdit were its mount points (WebRegistry, DaoConst.TASK) -
+        // so none has to be spelled out. The way back is no longer offered; legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked links (wa/taskTree has a redirect of its own there).
         "task" to NextPage(
             route = "task",
             editRoute = "task/$ID_PLACEHOLDER",
             newEntryRoute = "task/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Hand built list and edit page (next/timesheet, next/timesheet/:id, next/timesheet/new). The two
         // most-used calendar editors were migrated ahead of the list; the list followed, so the menu entry
@@ -582,24 +591,6 @@ object NextMigration {
      */
     fun listUrl(category: String): String {
         return "${appPath(category)}${routeOrCategory(category)}"
-    }
-
-    /**
-     * A *second* next page of an already migrated entity, under a route the category doesn't name.
-     *
-     * Only for a page whose entity has more than one perspective in projectforge-next: the task has its
-     * list (`next/task`, the [NextPage.route]) and its structure tree (`next/taskTree`), and the menu
-     * entry opens the tree while every redirect for the category goes to the list. The route cannot be
-     * derived from the category, so the caller names it - and it stays tied to [MIGRATED] all the same:
-     * as long as the entity isn't migrated, the answer is the legacy url the caller passes.
-     *
-     * @param category The REST category the page belongs to, e.g. `task`.
-     * @param route The route inside projectforge-next, without the `next/` prefix, e.g. `taskTree`.
-     * @param legacyUrl The url to use while [category] is not migrated, e.g. `wa/taskTree`.
-     * @return e.g. `next/taskTree`, or [legacyUrl].
-     */
-    fun nextRouteUrl(category: String, route: String, legacyUrl: String): String {
-        return if (isMigrated(category)) "${Constants.NEXT_APP_PATH}$route" else legacyUrl
     }
 
     /**
@@ -811,6 +802,7 @@ object NextMigration {
      * A legacy list/edit/add page of a migrated entity and where it now leads, for `OrphanedLinkFilter`
      * to bend a bookmarked or emailed link onto projectforge-next.
      *
+     * @property category The REST category of the page, e.g. `order`.
      * @property legacyApp The frontend the legacy urls belong to. Decides how the edit page carries the
      * id: Wicket as the `id` query parameter, the React app as a path segment (`/edit/<id>`).
      * @property legacyListPath The legacy list url without leading slash, e.g. `wa/orderBookList` or
@@ -822,6 +814,7 @@ object NextMigration {
      * @property nextNewEntryUrl The next add url with leading slash, e.g. `/next/order/new`.
      */
     class OrphanedLink(
+        val category: String,
         val legacyApp: LegacyApp,
         val legacyListPath: String,
         val legacyEditPath: String,
@@ -848,6 +841,7 @@ object NextMigration {
                 return@mapNotNull null
             }
             OrphanedLink(
+                category = category,
                 legacyApp = app,
                 // Raw, not the offer-gated accessors: a bookmarked or emailed legacy url is redirected onto
                 // next whether or not the way back is still offered (see offerLegacyLink). Non-null:

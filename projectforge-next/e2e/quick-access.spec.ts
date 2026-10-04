@@ -12,9 +12,8 @@ import type { MenuData, MenuItem } from "../lib/rs/types";
  * a test account may see is a matter of its rights, and a German title would only ever match a
  * German account.
  *
- * Read-only: entries are searched and one Next route is opened. The `wa/` and `react/` targets are
- * inspected, never followed — only Spring serves those, so the Next dev server would answer with
- * its 404.
+ * Read-only: entries are searched and one Next route is opened. The `react/` targets are inspected,
+ * never followed — only Spring serves those, so the Next dev server would answer with its 404.
  */
 test.describe("quick access", { tag: "@isolated" }, () => {
   test("opens a focused search field from the menu and closes on Escape", async ({
@@ -193,9 +192,9 @@ test.describe("quick access", { tag: "@isolated" }, () => {
   }) => {
     const format = await userFormat(page);
     const entries = await menuEntries(page);
-    const entry = entries.find((e) => e.url.startsWith("wa/"));
-    // Wicket is being retired: once no entry of this account leads there, there is nothing to offer.
-    test.skip(!entry, "No menu entry served by Wicket.");
+    // Wicket is gone, so the only other frontend a menu entry can lead to is the legacy React app.
+    const entry = entries.find((e) => e.url.startsWith("react/"));
+    test.skip(!entry, "No menu entry served by the legacy React app.");
     if (!entry) return;
 
     await goto(page, "/book");

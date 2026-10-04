@@ -125,7 +125,7 @@ class OrphanedLinkFilterTest {
             "/next/teamCalImport",
             redirectOf("$web.teamcal.event.importics.TeamCalImportPage"),
         )
-        Assertions.assertNull(redirectOf("/wa/oldCalendarXyz"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/oldCalendarXyz"), "Not a calendar page: the catch-all.")
     }
 
     /** The Wicket global search has moved to projectforge-next; a bookmarked link is bent onto it. */
@@ -171,25 +171,25 @@ class OrphanedLinkFilterTest {
     fun `the old wicket HR view is redirected to next`() {
         Assertions.assertEquals("/next/hrList", redirectOf("/wa/hrList"))
         Assertions.assertEquals("/next/hrList", redirectOf("/wa/hrList", NextMigration.ESCAPE_HATCH_PARAM))
-        Assertions.assertNull(redirectOf("/wa/hrListXyz"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/hrListXyz"), "Not the HR view: the catch-all.")
     }
 
     @Test
     fun `the old wicket DATEV import is redirected to next`() {
         Assertions.assertEquals("/next/datev-import", redirectOf("/wa/datevImport"))
         Assertions.assertEquals("/next/datev-import", redirectOf("/wa/datevImport", NextMigration.ESCAPE_HATCH_PARAM))
-        Assertions.assertNull(redirectOf("/wa/datevImportXyz"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/datevImportXyz"), "Not the DATEV import: the catch-all.")
     }
 
     /**
      * The Wicket System (administration) page has moved to projectforge-next and is gone, so the escape marker
-     * no longer lets a request through. Sibling pages like /wa/adminLogViewer aren't caught.
+     * no longer lets a request through. Sibling pages like /wa/adminLogViewer aren't caught (only by the catch-all).
      */
     @Test
     fun `the old wicket admin page is redirected to next`() {
         Assertions.assertEquals("/next/system", redirectOf("/wa/admin"))
         Assertions.assertEquals("/next/system", redirectOf("/wa/admin", NextMigration.ESCAPE_HATCH_PARAM))
-        Assertions.assertNull(redirectOf("/wa/adminLogViewer"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/adminLogViewer"), "Not the System page: the catch-all.")
     }
 
     /**
@@ -200,7 +200,67 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/", redirectOf("/wa/userPrefList"))
         Assertions.assertEquals("/next/", redirectOf("/wa/userPrefEdit"))
         Assertions.assertEquals("/next/", redirectOf("/wa/userPrefEdit", NextMigration.ESCAPE_HATCH_PARAM))
-        Assertions.assertNull(redirectOf("/wa/userPrefListXyz"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/userPrefListXyz"))
+    }
+
+    /**
+     * Wicket is no way back any more: a Wicket url is redirected even with the escape marker (a bookmarked
+     * "classic version" link of a page migrated from Wicket), while a React one is still let through.
+     */
+    @Test
+    fun `a wicket page is redirected to next even with the escape marker`() {
+        Assertions.assertEquals("/next/access", redirectOf("/wa/accessList", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertEquals(
+            "/next/access?taskId=42",
+            redirectOf("/wa/accessList", mapOf("taskId" to "42", NextMigration.ESCAPE_HATCH_PARAM to "")),
+            "The task preset of the list is carried over, the escape marker is dropped.",
+        )
+        Assertions.assertEquals("/next/gantt/new?task=7", redirectOf("/wa/ganttEdit", mapOf("task" to "7")))
+        Assertions.assertEquals(
+            "/next/task/5",
+            redirectOf("/wa/taskEdit", mapOf("id" to "5", NextMigration.ESCAPE_HATCH_PARAM to "")),
+        )
+        Assertions.assertEquals("/next/account", redirectOf("/wa/accountList"))
+        Assertions.assertEquals("/next/accounting-record/3", redirectOf("/wa/accountingRecordEdit", mapOf("id" to "3")))
+        Assertions.assertEquals("/next/gantt", redirectOf("/wa/ganttList"))
+        Assertions.assertNull(redirectOf("/react/group", NextMigration.ESCAPE_HATCH_PARAM))
+    }
+
+    /** The last Wicket pages outside NextMigration's conventions are bent onto their next successors. */
+    @Test
+    fun `the last wicket pages are redirected to next`() {
+        Assertions.assertEquals("/next/taskTree", redirectOf("/wa/taskTree"))
+        Assertions.assertEquals("/next/taskTree?highlightId=42", redirectOf("/wa/taskTree", mapOf("row" to "42")))
+        Assertions.assertEquals(
+            "/next/taskWizard",
+            redirectOf("/wa/wicket/bookmarkable/org.projectforge.web.admin.TaskWizardPage"),
+        )
+        Assertions.assertEquals("/next/phoneCall", redirectOf("/wa/phoneCall"))
+        Assertions.assertEquals(
+            "/next/phoneCall?addressId=7&number=0123",
+            redirectOf("/wa/phoneCall", mapOf("addressId" to "7", "number" to "0123")),
+        )
+        Assertions.assertEquals(
+            "/next/phoneCall?addressId=7&number=0123&callerPage=addressView",
+            redirectOf("/wa/phoneCall", mapOf("address" to "7", "no" to "0123", "cp" to "addressView")),
+        )
+        Assertions.assertEquals("/next/timesheet", redirectOf("/wa/timesheetList"))
+        Assertions.assertEquals("/next/timesheet/42", redirectOf("/wa/timesheetEdit", mapOf("id" to "42")))
+        Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit"))
+        Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit", mapOf("id" to "42&x=y")))
+        Assertions.assertEquals("/next/group", redirectOf("/wa/groupList"))
+        Assertions.assertEquals("/next/group/8", redirectOf("/wa/groupEdit", mapOf("id" to "8")))
+    }
+
+    /** Every other Wicket url lands on the next start page: no request reaches Wicket any more. */
+    @Test
+    fun `any other wicket url is redirected to the next start page`() {
+        Assertions.assertEquals("/next/", redirectOf("/wa"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/anything"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/wicket/page", mapOf("3" to "")))
+        Assertions.assertNull(redirectOf("/react/address"))
+        Assertions.assertNull(redirectOf("/next/task"))
+        Assertions.assertNull(redirectOf("/water"))
     }
 
     /**
@@ -215,6 +275,11 @@ class OrphanedLinkFilterTest {
     private fun redirectOf(uri: String, params: Map<String, String>): String? {
         val request = MockHttpServletRequest("GET", uri).also { it.requestURI = uri }
         params.forEach { (name, value) -> request.addParameter(name, value) }
+        if (params.isNotEmpty()) {
+            request.queryString = params.entries.joinToString("&") { (name, value) ->
+                if (value.isEmpty()) name else "$name=$value"
+            }
+        }
         val response = MockHttpServletResponse()
         filter.doFilter(request, response, MockFilterChain())
         return response.redirectedUrl
