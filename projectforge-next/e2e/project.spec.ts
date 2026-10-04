@@ -45,7 +45,7 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
 
     await expect(
       page.getByRole("heading", {
-        name: label(format, "fibu.projekt.title.list._"),
+        name: label(format, "fibu.projekt.title.list"),
       })
     ).toBeVisible({ timeout: 30_000 });
 
