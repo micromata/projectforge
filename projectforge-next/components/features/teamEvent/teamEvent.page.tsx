@@ -5,6 +5,7 @@ import { DateRangeSection } from "./edit/sections/date-range-section";
 import { RecurrenceSection } from "./edit/sections/recurrence-section";
 import { ReminderSection } from "./edit/sections/reminder-section";
 import { SeriesModificationSection } from "./edit/sections/series-modification-section";
+import { TeamEventIcsDownload } from "./edit/team-event-ics-download";
 import {
   teamEventEditSchema,
   TEAM_EVENT_EDIT_FIELDS,
@@ -27,16 +28,18 @@ const NEW_ENTRY_PARAMS = ["startDate", "endDate", "calendar"] as const;
  * The whole team event page as data (see lib/page-def/types.ts).
  *
  * The list is declared but not routed: a team event is reached through the calendar, which opens this
- * edit page directly (see use-calendar-action.ts) — `columns` names the entity's own fields in the one
- * shape every page has, so adding a list later is a route and not a restructuring (see TeamEventListRow).
+ * edit page directly (see use-calendar-action.ts). Wicket's event list (a search over a period and some
+ * calendars) was dropped on purpose with the Wicket calendar pages — `columns` only fills the one shape
+ * every page has (see TeamEventListRow).
  *
  * The edit page is the one that is live. Its fields follow the legacy form
  * (`TeamEventPagesRest.createEditLayout`) — the calendar the event lives in, its subject, the period, the
  * two texts, the reminder and the recurrence. Reminder and recurrence are each their own control the
  * UILayout renderer expressed as a `UICustomized`, hand-built here on the DTO fields they carry (see the
  * `reminder-section`, `recurrence-section` and `series-modification-section`). Editing a stored recurring
- * event asks which occurrences the change touches, the same choice the server enforces. Attendees remain
- * out of this phase: an event that has them still round-trips untouched (see team-event-edit-schema.ts).
+ * event asks which occurrences the change touches, the same choice the server enforces. Attendees are not
+ * shown: `TeamEventDO.attendees` is transient (its mapping is commented out), so the backend neither loads
+ * nor stores any (see team-event-edit-schema.ts).
  */
 export const TEAM_EVENT_PAGE = definePage<
   TeamEventListRow,
@@ -88,6 +91,8 @@ export const TEAM_EVENT_PAGE = definePage<
     // Save and cancel come back to the calendar, which is the only thing that opens the form — there is
     // no team event list of this app to return to (see toTeamEventRoute).
     returnTargets: [{ route: "/calendar", labelKey: "menu.calendar" }],
+    // The ics file of the stored event, beside the heading (see TeamEventIcsDownload).
+    headerTrailing: (event) => <TeamEventIcsDownload id={event?.id} />,
     sections: [
       {
         id: "general",

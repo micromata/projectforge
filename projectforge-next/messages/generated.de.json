@@ -2730,6 +2730,7 @@
           "list": "Ereignisliste"
         }
       },
+      "exportIcsButton": "Export ics",
       "externalsubscription": {
         "label": "Externes Abonnement",
         "updateInterval": "Aktualisierungsintervall",
