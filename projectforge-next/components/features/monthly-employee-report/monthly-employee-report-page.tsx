@@ -14,37 +14,34 @@ import {
   downloadMonthlyEmployeeReportPdf,
   fetchMonthlyEmployeeReport,
 } from "@/lib/rs/monthly-employee-report";
+import { useTabParam } from "@/hooks/use-tab-param";
 import { InvoicingQuotaChartView } from "./invoicing-quota-chart-view";
 import { ReportFilterRow } from "./report-filter-row";
 import { ReportHeader } from "./report-header";
 import { ReportMatrix } from "./report-matrix";
 import { ReportTitleStats } from "./report-title-stats";
+import { readQueryFromUrl, writeQueryToUrl } from "./report-url";
 import type { MonthlyReportQuery } from "./types";
-
-function initialNumber(
-  params: URLSearchParams,
-  key: string
-): number | undefined {
-  const value = Number(params.get(key));
-  return value > 0 ? value : undefined;
-}
 
 /**
  * The monthly employee report ("Monatsbericht"), a hand-built standalone page (like the global search).
  *
  * The filter — user (only when the account may read other users' time sheets), year and month — drives a
- * single query keyed on that triple; the deep-link `?userId=&year=&month=` seeds it. The report arrives
+ * single query keyed on that triple; the deep-link `?userId=&year=&month=` seeds it and is kept up to date
+ * with it, as is the open tab (`?tab=`, see useTabParam), so a reload shows the same report. The report arrives
  * fully computed and pre-formatted, so the matrix and the header only render it. Each matrix row drills
  * down into the filtered time sheet list (see ReportMatrix).
  */
 export function MonthlyEmployeeReportPage() {
   const t = useTranslations();
   const params = useSearchParams();
-  const [query, setQuery] = useState<MonthlyReportQuery>(() => ({
-    userId: initialNumber(params, "userId"),
-    year: initialNumber(params, "year"),
-    month: initialNumber(params, "month"),
-  }));
+  const [query, setQueryState] = useState<MonthlyReportQuery>(() =>
+    readQueryFromUrl(params)
+  );
+  function setQuery(next: MonthlyReportQuery): void {
+    setQueryState(next);
+    writeQueryToUrl(next);
+  }
 
   const report = useQuery({
     queryKey: ["monthlyEmployeeReport", query],
@@ -56,10 +53,13 @@ export function MonthlyEmployeeReportPage() {
 
   const data = report.data;
   // The quota tab exists only while the quota is shown; switching it off (or picking a user whose quota is
-  // not visible) falls back to the report instead of leaving an empty tab selected.
-  const [tab, setTab] = useState("report");
+  // not visible) falls back to the report instead of leaving an empty tab selected. Undecided until the
+  // report is there, so a deep link to the quota tab isn't dropped while it loads.
   const quotaTab = !!data?.invoicingQuotaAvailable && !!data.showInvoicingQuota;
-  const activeTab = quotaTab ? tab : "report";
+  const [activeTab, setTab] = useTabParam(
+    "report",
+    data ? (quotaTab ? ["invoicingQuota"] : []) : undefined
+  );
 
   return (
     <PageShell>

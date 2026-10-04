@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { ImportFeature } from "@/components/shared/import/import-feature";
 import type { ImportConfig } from "@/components/shared/import/import-types";
@@ -8,20 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountingRecordBwa } from "@/components/features/accounting-record/accounting-record-bwa";
 import type { BwaStatistics } from "@/components/features/accounting-record/types";
 import { ACCOUNT_ENTITY, RECORD_ENTITY } from "@/lib/rs/datev-import";
+import { useTabParam } from "@/hooks/use-tab-param";
 import { DATEV_ACCOUNT_IMPORT_COLUMNS } from "./account-columns";
 import { DATEV_RECORD_IMPORT_COLUMNS } from "./record-columns";
-
-type Tab = "records" | "accounts";
 
 /**
  * The DATEV import: two tabs, each a consumer of the generic {@link ImportFeature} with its own upload,
  * preview and commit, and both accepting the same original file of the tax office. The records tab shows the
  * BWA of the importable records above the preview (`meta.bwa`, see DatevRecordImportRest), so it can be checked
- * against the tax office's BWA sheet before committing.
+ * against the tax office's BWA sheet before committing. The open tab lives in the url (`?tab=`, see
+ * useTabParam): the uploaded preview is kept in the session and survives a reload, so the tab has to as well.
  */
 export function DatevImport() {
   const t = useTranslations();
-  const [tab, setTab] = useState<Tab>("records");
+  const [tab, setTab] = useTabParam("records", ["accounts"]);
 
   const recordConfig = useMemo<ImportConfig>(
     () => ({
@@ -52,11 +52,7 @@ export function DatevImport() {
   );
 
   return (
-    <Tabs
-      value={tab}
-      onValueChange={(value) => setTab(value as Tab)}
-      className="flex flex-col gap-3"
-    >
+    <Tabs value={tab} onValueChange={setTab} className="flex flex-col gap-3">
       <TabsList className="w-fit">
         <TabsTrigger value="records">
           {t("fibu.datev.import.records")}

@@ -6,18 +6,25 @@ import { EntityListPage } from "@/components/shared/list/entity-list-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LIQUIDITY_PAGE } from "@/components/features/liquidity/liquidity.page";
 import { LiquidityForecastView } from "@/components/features/liquidity/liquidity-forecast-view";
+import { useTabParam } from "@/hooks/use-tab-param";
 
 /**
  * The liquidity-planning page (`/next/liquidity`), successor of Wicket's `LiquidityEntryListPage` and
  * `LiquidityForecastPage`. Two tabs under one page shell: the entry list and the "Liquiditätsvorschau"
  * forecast. The list keeps its full chrome by rendering {@link EntityListPage} `embedded` — the shell is
- * this page's, shared with the forecast tab.
+ * this page's, shared with the forecast tab. The open tab lives in the url (`?tab=`, see useTabParam), so
+ * a reload stays on it.
  */
 export default function LiquidityPage() {
   const t = useTranslations();
+  const [tab, setTab] = useTabParam("entries", ["forecast"]);
   return (
     <PageShell>
-      <Tabs defaultValue="entries" className="flex min-h-0 flex-1 flex-col">
+      <Tabs
+        value={tab}
+        onValueChange={setTab}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <TabsList className="mx-4 mt-2 w-fit shrink-0">
           <TabsTrigger value="entries">
             {t("plugins.liquidityplanning.entry.title.list")}
