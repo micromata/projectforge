@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
@@ -223,9 +230,15 @@ export function useImport(config: ImportConfig) {
     setSelection(Object.fromEntries(ids.map((id) => [String(id), true])));
   }, [view, config.selectableStatuses]);
 
+  /**
+   * The checkboxes follow [hiddenStatusKeys] at once, while the table re-renders against the deferred
+   * copy: on a large import that takes seconds, and [isFiltering] covers it with the loading overlay.
+   */
+  const deferredHiddenStatusKeys = useDeferredValue(hiddenStatusKeys);
+  const isFiltering = deferredHiddenStatusKeys !== hiddenStatusKeys;
   const filteredEntries = useMemo(
-    () => filterEntriesByStatus(view?.entries ?? [], hiddenStatusKeys),
-    [view, hiddenStatusKeys]
+    () => filterEntriesByStatus(view?.entries ?? [], deferredHiddenStatusKeys),
+    [view, deferredHiddenStatusKeys]
   );
 
   /**
@@ -273,6 +286,7 @@ export function useImport(config: ImportConfig) {
     hiddenStatusKeys,
     toggleStatusKey,
     filteredEntries,
+    isFiltering,
     uploadProgress,
     /** The id of the committed job still running on this page, null if none (stayAfterCommit only). */
     runningJobId,
