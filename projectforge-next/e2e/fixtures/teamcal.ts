@@ -58,6 +58,8 @@ export interface IcsEvent {
   subject: string;
   date: string;
   allDay?: boolean;
+  /** ATTENDEE lines: CN, the mailto: address and PARTSTAT. */
+  attendees?: { name: string; email: string; partStat: string }[];
 }
 
 /**
@@ -82,6 +84,9 @@ export function icsFile(events: IcsEvent[]) {
           ]
         : [`DTSTART:${event.date}T090000Z`, `DTEND:${event.date}T100000Z`]),
       `SUMMARY:${event.subject}`,
+      ...(event.attendees ?? []).map(
+        (a) => `ATTENDEE;CN=${a.name};PARTSTAT=${a.partStat}:mailto:${a.email}`
+      ),
       "END:VEVENT"
     );
   }

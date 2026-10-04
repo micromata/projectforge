@@ -2633,6 +2633,18 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "attendee": {
+        "status": {
+          "accepted": "accepted",
+          "completed": "completed",
+          "declined": "declined",
+          "delegated": "delegated",
+          "in_process": "in process",
+          "needs_action": "needs action",
+          "tentative": "tentative"
+        }
+      },
+      "attendees": "Attendees",
       "calendar": {
         "_": "Calendar",
         "filter": {

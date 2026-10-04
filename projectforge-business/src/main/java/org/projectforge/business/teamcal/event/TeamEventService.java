@@ -24,30 +24,13 @@
 package org.projectforge.business.teamcal.event;
 
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.ical.ICalHandler;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface TeamEventService
 {
-  List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee();
-
-  TeamEventAttendeeDO getAttendee(Long attendeeId);
-
-  void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign,
-      Set<TeamEventAttendeeDO> itemsToUnassign);
-
-  void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState);
-
   TeamEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted);
-
-  TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess);
 
   void update(TeamEventDO event);
 
@@ -68,16 +51,4 @@ public interface TeamEventService
   void save(TeamEventDO newEvent);
 
   TeamEventDao getTeamEventDao();
-
-  void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
-
-  ICalHandler getEventHandler(final TeamCalDO defaultCalendar);
-
-  /**
-   * This method should be moved to ICalHandler after a rework of import ical in web ui!
-   *
-   * @param event
-   */
-  @Deprecated
-  void fixAttendees(final TeamEventDO event);
 }

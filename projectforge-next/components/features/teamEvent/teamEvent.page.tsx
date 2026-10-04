@@ -1,6 +1,7 @@
 import { TEAM_EVENT_METADATA } from "@/lib/metadata/team-event.generated";
 import { definePage } from "@/lib/page-def/define-page";
 import { CalendarSelectField } from "./edit/sections/calendar-select-field";
+import { AttendeesSection } from "./edit/sections/attendees-section";
 import { DateRangeSection } from "./edit/sections/date-range-section";
 import { RecurrenceSection } from "./edit/sections/recurrence-section";
 import { ReminderSection } from "./edit/sections/reminder-section";
@@ -36,9 +37,8 @@ const NEW_ENTRY_PARAMS = ["startDate", "endDate", "calendar"] as const;
  * two texts, the reminder and the recurrence. Reminder and recurrence are each their own control the
  * UILayout renderer expressed as a `UICustomized`, hand-built here on the DTO fields they carry (see the
  * `reminder-section`, `recurrence-section` and `series-modification-section`). Editing a stored recurring
- * event asks which occurrences the change touches, the same choice the server enforces. Attendees are not
- * shown: `TeamEventDO.attendees` is transient (its mapping is commented out), so the backend neither loads
- * nor stores any (see team-event-edit-schema.ts).
+ * event asks which occurrences the change touches, the same choice the server enforces. The attendees are
+ * shown read-only, in a card of their own only an event with attendees has (see `attendees-section`).
  */
 export const TEAM_EVENT_PAGE = definePage<
   TeamEventListRow,
@@ -107,6 +107,14 @@ export const TEAM_EVENT_PAGE = definePage<
           { name: "location" },
           { name: "note", rows: 4, span: 3 },
         ],
+      },
+      {
+        id: "attendees",
+        titleKey: "plugins.teamcal.attendees",
+        // Only an event that has some: the backend omits an empty list (NON_NULL).
+        visible: ({ data }) =>
+          Array.isArray(data?.attendees) && data.attendees.length > 0,
+        fields: [{ custom: AttendeesSection, span: 3 }],
       },
       {
         id: "recurrence",
