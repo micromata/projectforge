@@ -1379,10 +1379,7 @@
         "add": "Add new project",
         "edit": "Edit project",
         "heading": "Projects",
-        "list": {
-          "_": "List of projects",
-          "select": "Choose project"
-        }
+        "list": "List of projects"
       },
       "validation": {
         "numberLocked": "Number and customer can no longer be changed: the project already has cost units (Kost2), which carry this number.",

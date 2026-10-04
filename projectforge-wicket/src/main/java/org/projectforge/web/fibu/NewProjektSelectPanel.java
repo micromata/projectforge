@@ -186,21 +186,9 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
     public NewProjektSelectPanel init() {
         super.init();
         add(projectTextField);
-        final SubmitLink selectButton = new SubmitLink("select") {
-            @Override
-            public void onSubmit() {
-                setResponsePage(new ProjektListPage(caller, selectProperty));
-            }
-        };
-
-        selectButton.setDefaultFormProcessing(false);
-        add(selectButton);
+        // No select button: the project list has been migrated to projectforge-next, so there is no Wicket list
+        // page to select from any more. The autocompletion field and the favorites remain.
         final boolean hasSelectAccess = WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false);
-        if (hasSelectAccess == false) {
-            selectButton.setVisible(false);
-        }
-        selectButton.add(
-                new TooltipImage("selectHelp", WebConstants.IMAGE_PROJEKT_SELECT, getString("fibu.tooltip.selectProjekt")));
         final SubmitLink unselectButton = new SubmitLink("unselect") {
             @Override
             public void onSubmit() {

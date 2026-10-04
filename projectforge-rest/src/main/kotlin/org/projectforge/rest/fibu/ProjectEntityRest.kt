@@ -69,11 +69,11 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * The project (Projekt) list and edit page, layout free — its list and form are hand built in
  * projectforge-next (`/next/project`), so this carries no `createListLayout` or `createEditLayout` any
- * more. The list used to be the generic React page, the form the Wicket `ProjektEditPage`; that one is
- * still reachable as the way back and writes through the same [ProjektDao].
+ * more. The list used to be the generic React page, the form the Wicket `ProjektEditPage`; the Wicket
+ * project pages have been removed.
  *
  * The form offers the cost 2 types (Kost2-Arten) of the project: a [Kost2DO] is created for each newly
- * checked one after the save ([onAfterSaveOrUpdate]), as the Wicket page does. Unlike there, an existing
+ * checked one after the save ([onAfterSaveOrUpdate]), as the Wicket page did. Unlike there, an existing
  * one may be unchecked, which sets its cost 2 unit non-active (never deleted), and checked again.
  *
  * Project favorites (`UserPrefArea.PROJEKT_FAVORITE`) are deliberately not carried over — the next list
@@ -213,8 +213,8 @@ class ProjectEntityRest
     }
 
     /**
-     * A user without a stored filter starts with the projects not ended, as the Wicket list did
-     * (`ProjektListFilter.reset`).
+     * A user without a stored filter starts with the projects not ended, as the former Wicket list
+     * did (`ProjektListFilter.reset`).
      */
     override fun newMagicFilter(): MagicFilter {
         val filter = super.newMagicFilter()
@@ -290,8 +290,8 @@ class ProjectEntityRest
     /**
      * The number of a project must be free within its customer, or within its internal range (4.xxx) for a
      * project without customer — both are unique constraints of [ProjektDO]. Checked here as a field error,
-     * so the hand built form marks the number instead of failing with the database's exception. Wicket's
-     * `ProjektEditForm` checks the customer case only.
+     * so the hand built form marks the number instead of failing with the database's exception. The former
+     * Wicket `ProjektEditForm` checked the customer case only.
      */
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Project) {
         super.validate(validationErrors, dto)

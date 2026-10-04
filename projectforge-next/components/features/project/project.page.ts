@@ -21,7 +21,7 @@ export const PROJECT_LIST_QUERY_KEY = ["project"] as const;
  * The whole project page — list and edit — as data (see lib/page-def/types.ts).
  *
  * The columns are those of the former `ProjectPagesRest.createListLayout` in its order, the form is
- * Wicket's `ProjektEditForm`; every scalar label, the status texts and every rule come from ProjektDO
+ * the former Wicket `ProjektEditForm`; every scalar label, the status texts and every rule come from ProjektDO
  * through the generated metadata. Declared here is order and width, plus what the declaration cannot
  * describe: the cost number (see ProjectNumberField), the customer and the account (foreign DOs without
  * metadata) and the cost 2 types, of which a newly checked one becomes a cost 2 unit on save
