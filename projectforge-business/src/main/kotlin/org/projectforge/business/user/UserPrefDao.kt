@@ -533,7 +533,6 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         val valueType = userPref.valueType ?: return null
         val valueString = userPref.serializedValue ?: return null
-        if (userPref.valueType == null) return null
         userPref.valueObject = fromJson(valueString, valueType)
         return userPref.valueObject
     }
