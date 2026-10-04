@@ -146,6 +146,28 @@ class OrphanedLinkFilterTest {
     }
 
     /**
+     * The Wicket System (administration) page has moved to projectforge-next and is gone, so the escape marker
+     * no longer lets a request through. Sibling pages like /wa/adminLogViewer aren't caught.
+     */
+    @Test
+    fun `the old wicket admin page is redirected to next`() {
+        Assertions.assertEquals("/next/system", redirectOf("/wa/admin"))
+        Assertions.assertEquals("/next/system", redirectOf("/wa/admin", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertNull(redirectOf("/wa/adminLogViewer"))
+    }
+
+    /**
+     * The Wicket user preference pages are gone without a replacement, so their links land on the next start page.
+     */
+    @Test
+    fun `the old wicket user preference pages are redirected to next`() {
+        Assertions.assertEquals("/next/", redirectOf("/wa/userPrefList"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/userPrefEdit"))
+        Assertions.assertEquals("/next/", redirectOf("/wa/userPrefEdit", NextMigration.ESCAPE_HATCH_PARAM))
+        Assertions.assertNull(redirectOf("/wa/userPrefListXyz"))
+    }
+
+    /**
      * Runs the filter over a GET of [uri] and returns the redirect location it sent, or null if it let the
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,
      * so the escape-hatch marker can be exercised.

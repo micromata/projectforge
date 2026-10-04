@@ -321,7 +321,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
         // set DTSTAMP if empty
         if (obj.dtStamp == null) {
-            obj.dtStamp = Date(obj.created!!.time)
+            obj.dtStamp = Date((obj.created ?: Date()).time) // created isn't set yet on a direct insert.
         }
 
         // create uid if empty

@@ -106,7 +106,7 @@ class PageResolverTest {
 
     /**
      * The way back to the legacy page, offered by projectforge-next while the migration runs. Not
-     * derivable from the next url: the app it leads back to isn't (`cost1` came from Wicket), and a
+     * derivable from the next url: the app it leads back to isn't (React or Wicket), and a
      * route need not name its category.
      */
     @Test
@@ -119,21 +119,5 @@ class PageResolverTest {
         // Not migrated: the legacy page is the page itself.
         assertEquals(NextMigration.listUrl("address"), NextMigration.legacyListUrl("address"))
         assertEquals(NextMigration.standardEditPage("address"), NextMigration.legacyEditPage("address"))
-    }
-
-    /**
-     * Pages the Wicket -> React migration never reached go back to Wicket, whose mount points are
-     * `<category>List` and `<category>Edit?id=<id>` (`WebRegistry.addMountPages`) - the id is a query
-     * parameter there, so the add url is not the edit url with the placeholder dropped.
-     */
-    @Test
-    fun legacyWicketPageTest() {
-        assertEquals("wa/cost1List", NextMigration.legacyListUrl("cost1"))
-        assertEquals("wa/cost1Edit?id=:id", NextMigration.legacyEditPage("cost1"))
-        assertEquals("wa/cost1Edit", NextMigration.legacyNewEntryUrl("cost1"))
-        // The url the menu points at is the next page, so the way back is the only route to Wicket.
-        assertEquals("next/cost1", NextMigration.listUrl("cost1"))
-        // The React page of the same entity exists as a layout, but is not the way back.
-        assertEquals("react/cost1/edit/:id", NextMigration.reactEditPage("cost1"))
     }
 }

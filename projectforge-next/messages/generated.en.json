@@ -1189,10 +1189,7 @@
         "add": "New cost 1",
         "edit": "Edit cost 1",
         "heading": "Cost 1 id",
-        "list": {
-          "_": "List of cost 1 ids",
-          "select": "Choose cost 1"
-        }
+        "list": "List of cost 1 ids"
       }
     },
     "kost2": {
@@ -1208,10 +1205,7 @@
         "add": "New cost 2",
         "edit": "Edit cost 2",
         "heading": "Cost 2",
-        "list": {
-          "_": "List of cost 2 ids",
-          "select": "Choose cost 2"
-        }
+        "list": "List of cost 2 ids"
       },
       "workFraction": "Work time fraction"
     },
@@ -1400,10 +1394,7 @@
       "beschreibung": "Description",
       "besonderheiten": "Specifics",
       "betreff": "Subject",
-      "bezahlDatum": {
-        "_": "Payment date",
-        "short": "Paid"
-      },
+      "bezahlDatum": "Payment date",
       "bic": "BIC",
       "bruttoBetrag": "Gross amount",
       "cancellation": {
@@ -1439,7 +1430,6 @@
         "_": "Date of invoice",
         "short": "Date"
       },
-      "discount": "Discount (Date and %-value)",
       "discountMaturity": "Discount maturity",
       "discountPercent": "Discount percent",
       "discountZahlungsZiel": "Discount payment target",
@@ -1480,12 +1470,10 @@
         },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
         "kundeTextOderProjektRequired": "Customer text or project required.",
-        "negativAmount": "It's not possible to have a negative gross value with bank transfer",
         "rechnungHatKeinePositionen": "The invoice has no positions.",
         "rechnungsNummerBereitsVergeben": "Invoice number does already exists.",
         "rechnungsNummerIstNichtFortlaufend": "Invoice number is not continuously.",
         "statusBezahltErfordertZahlBetrag": "If status is \"paid\" then a paid amount must be given.",
-        "unknownCurrency": "The currency '${currency}' is unknown. Please remove it to use the system default currency or add the currency using the currency conversion function.",
         "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
       },
       "exportEInvoice": "Export XRechnung",
@@ -1497,10 +1485,7 @@
         }
       },
       "exportZUGFeRD": "Export ZUGFeRD",
-      "faelligkeit": {
-        "_": "Due date",
-        "short": "due"
-      },
+      "faelligkeit": "Due date",
       "filter": {
         "incomplete": "incomplete",
         "incompleteTooltip": {
@@ -1549,9 +1534,7 @@
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
-      "showEditableKostZuweisungen": "Editable cost id assignments",
       "showKostZuweisungen": "Cost id assignments",
-      "showKostZuweisungstatus": "Status of cost id assignments",
       "showTextAreas": "Position texts",
       "skonto": "Discount",
       "statistics": {
@@ -2747,6 +2730,7 @@
           "list": "List of team events"
         }
       },
+      "exportIcsButton": "Export ics",
       "externalsubscription": {
         "label": "External subscription",
         "updateInterval": "Update interval",
@@ -2982,12 +2966,6 @@
           "_": "Debug UserGroupCache",
           "tooltip": "Downloads the current state of the UserGroupCache as a JSON file for debugging."
         },
-        "dump": {
-          "_": "Dump database",
-          "notMigrated": "This function is not yet migrated to the new interface.",
-          "question": "Do you really want to dump the whole database? On large systems this may result in a system failure.",
-          "tooltip": "Dumps the whole database to one xml file. You can use this as a manual backup method. You can import this dump into a new fresh ProjectForge installation via the set-up page. But note: On large systems this feature may slow down your system or may end up in a system failure. For large systems please use the dump methods of your database."
-        },
         "export2FAConfiguration": {
           "_": "Export 2FA configuration",
           "tooltip": "Export 2FA configuration including all ProjectForge rest end points and configuration of projectforge.properties."
@@ -3000,8 +2978,7 @@
           "_": "Format log entries",
           "textarea": {
             "tooltip": "Insert your log file snippets here."
-          },
-          "tooltip": "Use this feature to format log file outputs for better reading."
+          }
         },
         "optimizeAddressImages": {
           "_": "Optimize address images",
@@ -3067,7 +3044,6 @@
         },
         "newestEntries": {
           "_": "Number",
-          "subtitle": "Newest entries",
           "tooltip": "The number of the newest entries of each database entity to re-index (based on the date of the last modification) . If empty then no limit of maximal re-indexed entries for each entity is assumed."
         }
       },

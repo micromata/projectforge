@@ -311,6 +311,8 @@ export function recordRecentTask(
 export interface TaskFavorite extends FavoriteIdTitle {
   /** The referenced task's whole path, `"A | B | C"`, or null if the task no longer resolves. */
   pathAsString?: string | null;
+  /** The referenced task's id, so the picker can tell the favorite of the picked task. */
+  taskId?: number | null;
 }
 
 /**
@@ -380,6 +382,22 @@ export function renameTaskFavorite(
   const query = new URLSearchParams({ id: String(id), newName });
   return request<TaskFavorite[]>(
     `/rs/task/favorites/rename?${query}`,
+    { method: "POST" },
+    signal
+  );
+}
+
+/**
+ * Points an existing favorite at another task (keeping its name) and answers with the updated list.
+ */
+export function updateTaskFavorite(
+  id: number,
+  taskId: number,
+  signal?: AbortSignal
+): Promise<TaskFavorite[]> {
+  const query = new URLSearchParams({ id: String(id), taskId: String(taskId) });
+  return request<TaskFavorite[]>(
+    `/rs/task/favorites/update?${query}`,
     { method: "POST" },
     signal
   );

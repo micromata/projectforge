@@ -1,12 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/lib/toast";
-import { RsError } from "@/lib/rs/client";
 import { downloadListExcel } from "@/lib/rs/list-export";
 import type { MagicFilter } from "@/lib/rs/types";
-import { ExportButton } from "@/components/shared/export-button";
+import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { useAuth } from "@/hooks/use-auth";
 
 /**
@@ -21,29 +17,10 @@ import { useAuth } from "@/hooks/use-auth";
  * no button.
  */
 export function GroupListActions({ filter }: { filter: MagicFilter }) {
-  const t = useTranslations();
   const { isAdmin } = useAuth();
-
-  const excel = useMutation({
-    mutationFn: () => downloadListExcel("group", filter),
-    // A 404 is no error here: the filter matched nothing.
-    onError: (error: unknown) => {
-      if (error instanceof RsError && error.status === 404) {
-        toast.info(t("datatable.no-records-found"));
-        return;
-      }
-      toast.error(error instanceof Error ? error.message : String(error));
-    },
-  });
-
   if (!isAdmin) return null;
 
   return (
-    <ExportButton
-      tooltip={t("tooltip.export.excel")}
-      label={t("exportAsXls")}
-      isPending={excel.isPending}
-      onClick={() => excel.mutate()}
-    />
+    <ExcelExportButton download={() => downloadListExcel("group", filter)} />
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
 import { useStore } from "@tanstack/react-form";
-import { toast } from "@/lib/toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ExportButton } from "@/components/shared/export-button";
 import { useEntityEditForm } from "@/components/shared/form/form-context";
-import { RsError } from "@/lib/rs/client";
+import { useExportDownload } from "@/hooks/use-export-download";
 import { downloadGanttExport, type GanttExportFormat } from "@/lib/rs/gantt";
 import type { GanttValues } from "../gantt-schema";
 import type { GanttDiagramDetail } from "../types";
@@ -40,21 +38,13 @@ export function GanttExportMenu() {
     form.store,
     (s: unknown) => (s as FormState).values.root != null
   );
-  const download = useMutation({
-    mutationFn: (format: GanttExportFormat) =>
-      downloadGanttExport(
-        (form.state as FormState).values as GanttDiagramDetail,
-        format
-      ),
-    onError: (error: unknown) => {
-      // A 404 is no error: the chart has nothing to draw (no task or no visible object).
-      if (error instanceof RsError && error.status === 404) {
-        toast.info(t("datatable.no-records-found"));
-        return;
-      }
-      toast.error(error instanceof Error ? error.message : String(error));
-    },
-  });
+  // A 404 means the chart has nothing to draw (no task or no visible object), see useExportDownload.
+  const download = useExportDownload((format: GanttExportFormat) =>
+    downloadGanttExport(
+      (form.state as FormState).values as GanttDiagramDetail,
+      format
+    )
+  );
 
   return (
     <DropdownMenu>

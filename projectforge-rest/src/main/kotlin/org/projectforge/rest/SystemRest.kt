@@ -67,7 +67,8 @@ import java.util.Date
 private val log = KotlinLogging.logger {}
 
 /**
- * The **System** administration page (`/next/system`), successor of Wicket's `AdminPage` (`wa/admin`).
+ * The **System** administration page (`/next/system`), successor of Wicket's removed `AdminPage` (`wa/admin`, now
+ * redirected by [org.projectforge.web.OrphanedLinkFilter]).
  *
  * Like [PersonalStatisticsRest] and [SendTextMessageRest] this is a non-entity, standalone action page: it exposes
  * plain JSON so the next frontend can render the cards and buttons, and each action is a thin wrapper around the

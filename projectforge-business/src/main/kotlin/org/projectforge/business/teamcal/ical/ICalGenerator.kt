@@ -73,6 +73,9 @@ class ICalGenerator @JvmOverloads constructor(val exportVAlarms: Boolean = true,
         empty = false
     }
 
+    /**
+     * @param endDay The last day of the event (inclusive), or null for a one-day event.
+     */
     fun addAllDayEvent(startDay: LocalDate, endDay: LocalDate?, title: String, uid: String): VEvent {
         val vEvent = VEventUtils.createAllDayEvent(startDay, endDay ?: startDay, title, uid)
         // Add event to calendar

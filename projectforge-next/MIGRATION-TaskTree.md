@@ -102,10 +102,10 @@ Diese sind in MIGRATION.md eingearbeitet; hier nur der Ursprung:
 
 ## Bewusst nicht vorgesehen
 
-**Strukturelement-Favoriten** (`UserPrefArea.TASK_FAVORITE`) – kein Rückstand, sondern
-gegenstandslos: was sie in Wicket abkürzen, leisten in next die Auswahlfelder selbst (Baum +
-Tippsuche). `TaskFavoritesRest` bleibt unbenutzt, `UserPrefListPage` wird nicht nachgezogen,
-die Favoriten bleiben Wicket-Sache (über die Fluchtluke erreichbar).
+**Strukturelement-Favoriten** (`UserPrefArea.TASK_FAVORITE`) – keine eigene Seite: die
+Favoriten werden direkt im Auswahlfeld gepflegt (`TaskFavoritesMenu` in
+`task-select-control.tsx`, über `TaskFavoritesRest`). Die Wicket-Seite `UserPrefListPage` ist
+ersatzlos entfernt.
 
 ## Verifikation
 

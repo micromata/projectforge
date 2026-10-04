@@ -24,7 +24,6 @@
 package org.projectforge.web.timesheet;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -47,11 +46,8 @@ import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
@@ -86,7 +82,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     private final FormComponent<?>[] dependentFormComponentsWithoutCost2 = new FormComponent[3];
     private final boolean cost2Exists;
     private final TimesheetEditFilter filter;
-    protected Boolean saveAsTemplate;
     protected TimesheetPageSupport timesheetPageSupport;
     ModalDialog recentSheetsModalDialog;
     UserSelectPanel userSelectPanel;
@@ -97,7 +92,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
     DropDownChoicePanel<Long> cost2ChoicePanel;
 
-    private UserPrefDO recentUserPref;
     private DropDownChoice<Long> cost2Choice;
     private FieldsetPanel cost2ChoiceFieldset;
     private ConsumptionBarPanel consumptionBarPanel;
@@ -105,7 +99,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     @SuppressWarnings("unused")
     private Integer stopHourOfDay, stopMinute;
     @SuppressWarnings("unused")
-    private String templateName, consumptionBarId;
+    private String consumptionBarId;
 
     public TimesheetEditForm(final TimesheetEditPage parentPage, final TimesheetDO data) {
         super(parentPage, data);
@@ -422,10 +416,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             fs.addHelpIcon(getString("timesheet.ai.timeSavedByAIDescription.info"));
             final IModel<String> model = new PropertyModel<>(data, "timeSavedByAIDescription");
             fs.add(descriptionArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model)).setAutogrow();
-
-            // Save as template checkbox:
-            fs = gridBuilder.newFieldset("").suppressLabelForWarning();
-            fs.addCheckBox(new PropertyModel<Boolean>(this, "saveAsTemplate"), getString("userPref.saveAsTemplate"));
         }
         addCloneButton();
     }
@@ -442,68 +432,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
     @SuppressWarnings("serial")
     private void addTemplatesRow() {
         final FieldsetPanel templatesRow = gridBuilder.newFieldset(getString("timesheet.templates")).suppressLabelForWarning();
-        final String[] templateNames = WicketSupport.get(UserPrefDao.class).getPrefNames(UserPrefArea.TIMESHEET_TEMPLATE);
-        if (templateNames != null && templateNames.length > 0) {
-            // DropDownChoice templates
-            final String label = getString("userPref.template.select");
-            final LabelValueChoiceRenderer<String> templateNamesChoiceRenderer = new LabelValueChoiceRenderer<String>();
-            templateNamesChoiceRenderer.addValue("", label);
-            for (final String name : templateNames) {
-                templateNamesChoiceRenderer.addValue(name, name);
-            }
-            final DropDownChoice<String> templateNamesChoice = new DropDownChoice<String>(templatesRow.getDropDownChoiceId(),
-                    new PropertyModel<String>(this, "templateName"), templateNamesChoiceRenderer.getValues(),
-                    templateNamesChoiceRenderer) {
-                /**
-                 * @see org.apache.wicket.markup.html.form.AbstractSingleSelectChoice#getDefaultChoice(java.lang.String)
-                 */
-                @Override
-                protected CharSequence getDefaultChoice(final String selectedValue) {
-                    return "";
-                }
-            };
-            templateNamesChoice.add(new FormComponentUpdatingBehavior() {
-                @Override
-//<<<<<<<HEAD
-                public void onUpdate() {
-                    String newSelection = (String) this.getFormComponent().getModelObject();
-                    if (StringUtils.isNotEmpty(newSelection)) {
-                        // Fill fields with selected template values:
-                        final UserPrefDO userPref = WicketSupport.get(UserPrefDao.class).selectUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
-                        if (userPref != null) {
-                            data.setKost2(null);
-                            data.setTask(null);
-                            locationTextField.processInput(); // Update model.
-                            descriptionArea.processInput(); // Update model.
-                            if (recentUserPref != null) {
-                                final String recentLocation = recentUserPref.getUserPrefEntryAsString("location");
-                                if (StringUtils.equals(recentLocation, data.getLocation())) {
-                                    // Previous value was filled by recent user pref so overwrite it:
-                                    data.setLocation(null);
-                                }
-                                final String recentDescription = recentUserPref.getUserPrefEntryAsString("description");
-                                if (StringUtils.equals(recentDescription, data.getDescription())) {
-                                    // Previous value was filled by recent user pref so overwrite it:
-                                    data.setDescription(null);
-                                }
-                            }
-                            WicketSupport.get(UserPrefDao.class).fillFromUserPrefParameters(userPref, data, true);
-                            recentUserPref = userPref;
-                            locationTextField.modelChanged();
-                            descriptionArea.modelChanged();
-                            if (cost2ChoicePanel != null) {
-                                cost2ChoicePanel.getDropDownChoice().modelChanged();
-                            }
-                        }
-                        templateName = "";
-                        refresh();
-                    }
-                }
-            });
-            templateNamesChoice.setNullValid(true);
-            templatesRow.add(templateNamesChoice);
-        }
-
         // Needed as submit link because the modal dialog reloads the page and otherwise any previous change will be lost.
         final AjaxSubmitLink link = new AjaxSubmitLink(IconLinkPanel.LINK_ID) {
             @Override

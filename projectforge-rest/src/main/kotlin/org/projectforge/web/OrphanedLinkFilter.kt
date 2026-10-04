@@ -83,15 +83,16 @@ class OrphanedLinkFilter : Filter {
             // migrated to projectforge-next. The Wicket page was removed, so there is no "classic version" escape hatch.
             redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}datev-import")
         } else if (uri.endsWith("/wa/admin") || uri.contains("/wa/admin/")) {
-            // Old Wicket System (administration) page, migrated to projectforge-next. The precise segment match
-            // keeps this from catching sibling pages like /wa/adminLogViewer.
-            if (servletRequest.getParameter(NextMigration.ESCAPE_HATCH_PARAM) != null) {
-                // The "classic version" escape hatch: let it reach the legacy Wicket AdminPage (see the next
-                // page's LegacyPageLink, url "wa/admin?legacyEscape").
-                chain.doFilter(servletRequest, servletResponse)
-            } else {
-                redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
-            }
+            // Old Wicket System (administration) page, migrated to projectforge-next. The Wicket page was removed,
+            // so there is no "classic version" escape hatch. The precise segment match keeps this from catching
+            // sibling pages like /wa/adminLogViewer.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}system")
+        } else if (uri.endsWith("/wa/userPrefList") || uri.contains("/wa/userPrefList/")
+            || uri.endsWith("/wa/userPrefEdit") || uri.contains("/wa/userPrefEdit/")
+        ) {
+            // Old Wicket user preferences (favorites/templates), removed without a replacement page: the task
+            // favorites and the timesheet templates are managed where they are used. Lands on the next start page.
+            redirect(servletResponse, uri, "/${Constants.NEXT_APP_PATH}")
         } else if (uri.contains("/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage")) {
             // /wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage?id=26422747
             // The id is interpolated into the Location header, so only accept what an id can be: anything else is

@@ -33,7 +33,6 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -49,7 +48,6 @@ import org.projectforge.business.utils.HtmlDateTimeFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateFormats;
@@ -63,7 +61,6 @@ import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.rest.TimesheetEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskPropertyColumn;
-import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -160,11 +157,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     protected void init() {
         dataTable = createDataTable(createColumns(this, true), "startTime", SortOrder.DESCENDING);
         form.add(dataTable);
-        final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
-                UserPrefArea.TIMESHEET_TEMPLATE);
-        final ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink,
-                getString("timesheet.templates"));
-        addContentMenuEntry(menuEntry);
         final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("export"));
         addContentMenuEntry(exportMenu);
         {

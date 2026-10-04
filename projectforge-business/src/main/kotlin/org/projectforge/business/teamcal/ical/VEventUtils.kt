@@ -153,8 +153,13 @@ object VEventUtils {
         return setupEvent
     }
 
+    /**
+     * Creates an all-day event.
+     * @param endDay The last day of the event (inclusive). DTEND of an all-day event is exclusive (RFC 5545), so the
+     * day after is written.
+     */
     fun createAllDayEvent(startDay: LocalDate, endDay: LocalDate, title: String, uid: String? = null): VEvent {
-        val event = VEvent(startDay, endDay, title)
+        val event = VEvent(startDay, endDay.plusDays(1), title)
         setUid(event, uid)
         return event
     }

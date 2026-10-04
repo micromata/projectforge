@@ -18,14 +18,11 @@ export interface SystemAction {
   /** i18n key of the hover explanation, if any. */
   tooltipKey?: string;
   /** What the button does: a message action ({ message }) or a file download (void). */
-  run?: () => Promise<SystemMessageResponse | void>;
+  run: () => Promise<SystemMessageResponse | void>;
   /** i18n key of a yes/no question asked before [run] fires. */
   confirmKey?: string;
   /** ICU values for [confirmKey] (the backend `{0}`/`{1}` placeholders become named args `arg0`/`arg1`). */
   confirmValues?: Record<string, string | number>;
-  /** Rendered disabled (e.g. "Dump database", not yet migrated) with [disabledTooltipKey]. */
-  disabled?: boolean;
-  disabledTooltipKey?: string;
 }
 
 /**
@@ -37,7 +34,7 @@ export function SystemActionButton({ action }: { action: SystemAction }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: () => action.run?.() ?? Promise.resolve(),
+    mutationFn: () => action.run(),
     onSuccess: (res) => {
       if (res && "message" in res && res.message) toast.success(res.message);
     },
@@ -54,22 +51,17 @@ export function SystemActionButton({ action }: { action: SystemAction }) {
     <Button
       variant="outline"
       size="sm"
-      disabled={action.disabled || mutation.isPending}
+      disabled={mutation.isPending}
       onClick={onClick}
     >
       {t(action.labelKey)}
     </Button>
   );
 
-  const tooltipKey =
-    action.disabled && action.disabledTooltipKey
-      ? action.disabledTooltipKey
-      : action.tooltipKey;
-
   return (
     <>
-      {tooltipKey ? (
-        <HintTooltip text={t(tooltipKey)} openOnTap>
+      {action.tooltipKey ? (
+        <HintTooltip text={t(action.tooltipKey)} openOnTap>
           {/* A disabled button emits no hover events, so the span carries the trigger. */}
           <span className="inline-flex">{button}</span>
         </HintTooltip>

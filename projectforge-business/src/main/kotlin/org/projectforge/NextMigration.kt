@@ -57,7 +57,7 @@ object NextMigration {
     /**
      * The frontend a page came from. Not every page reached projectforge-next through the legacy
      * React app: the migration Wicket -> React never covered all of them, so some are migrated
-     * straight from Wicket (`cost1` e.g.), and their way back leads there.
+     * straight from Wicket (`account` e.g.), and their way back leads there.
      *
      * The routes are the mount point conventions of the two apps, so a page normally needs nothing
      * but this value: React mounts `<category>`, `<category>/edit/<id>`, while Wicket mounts
@@ -243,32 +243,38 @@ object NextMigration {
             offerLegacyLink = false,
         ),
         // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
-        // which pointed at wa/cost1List): the way back leads to Wicket. Kost1EntityRest serves no layout,
-        // so there is no React page - only the hand built projectforge-next one and Wicket.
+        // which pointed at wa/cost1List). Kost1EntityRest serves no layout, so there was never a React page.
+        // The Wicket pages have been removed: the way back is no longer offered, and legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked wa/cost1List / wa/cost1Edit links (the mount points
+        // follow the convention).
         "cost1" to NextPage(
             route = "cost1",
             editRoute = "cost1/$ID_PLACEHOLDER",
             newEntryRoute = "cost1/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
-        // Migrated from Wicket (MenuItemDefId.COST2_LIST pointed at wa/cost2List): the way back leads to
-        // Wicket. Kost2EntityRest serves no layout, so there is no React page - only the hand built
-        // projectforge-next one and Wicket.
+        // Migrated from Wicket (MenuItemDefId.COST2_LIST pointed at wa/cost2List). Kost2EntityRest serves no
+        // layout, so there was never a React page. The Wicket pages have been removed: the way back is no
+        // longer offered, and legacyApp stays only so OrphanedLinkFilter still redirects bookmarked
+        // wa/cost2List / wa/cost2Edit links.
         "cost2" to NextPage(
             route = "cost2",
             editRoute = "cost2/$ID_PLACEHOLDER",
             newEntryRoute = "cost2/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // The cost-2 types ("Kost2-Arten"), migrated from Wicket (MenuItemDefId.COST2_TYPE_LIST pointed at
-        // wa/cost2TypeList): the way back leads to Wicket. Kost2ArtEntityRest serves no layout, so there is
-        // no React page - only the hand built projectforge-next one and Wicket. Wicket's mount points follow
-        // the convention (cost2TypeList / cost2TypeEdit), so no legacy route has to be spelled out.
+        // wa/cost2TypeList). Kost2ArtEntityRest serves no layout, so there was never a React page. The Wicket
+        // pages have been removed: the way back is no longer offered, and legacyApp stays only so
+        // OrphanedLinkFilter still redirects bookmarked wa/cost2TypeList / wa/cost2TypeEdit links.
         "cost2Type" to NextPage(
             route = "cost2Type",
             editRoute = "cost2Type/$ID_PLACEHOLDER",
             newEntryRoute = "cost2Type/new",
             legacyApp = LegacyApp.WICKET,
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket (MenuItemDefId.CUSTOMER_LIST pointed at wa/customerList; the React page exists
         // as a layout, CustomerPagesRest, but was never mounted in the menu - "Doesn't work yet"). Hand built
@@ -408,17 +414,17 @@ object NextMigration {
         ),
         // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice`
         // is the outgoing side, and this is the incoming (creditor) one - which side the category names is
-        // what the menu says. The CSV/SEPA import wizard and the SEPA transfer export stay on Wicket for now
-        // (see MIGRATION.md), so wa/incomingInvoiceEdit stays reachable through the escape hatch. Wicket's
-        // mount points follow the convention (DaoConst.INCOMING_INVOICE + List/Edit), so no legacy route has
-        // to be spelled out.
+        // what the menu says. Nothing is left behind on Wicket: the SEPA transfer export sits on the edit page
+        // and the mass update, the CSV import is next/creditor-invoice-import (see MIGRATION.md). The Wicket
+        // pages have been removed; their mount points followed the convention (DaoConst.INCOMING_INVOICE +
+        // List/Edit), so no legacy route has to be spelled out.
         "incomingInvoice" to NextPage(
             route = "creditor-invoice",
             editRoute = "creditor-invoice/$ID_PLACEHOLDER",
             newEntryRoute = "creditor-invoice/new",
             legacyApp = LegacyApp.WICKET,
-            // Trusted now: the way back is no longer offered (neither list menu nor edit button).
-            // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/incomingInvoice* links.
+            // The way back is no longer offered; legacyApp stays only so OrphanedLinkFilter still redirects
+            // bookmarked wa/incomingInvoice* links.
             offerLegacyLink = false,
         ),
         // The project list was the generic React page (ProjectPagesRest's layout), its form the Wicket

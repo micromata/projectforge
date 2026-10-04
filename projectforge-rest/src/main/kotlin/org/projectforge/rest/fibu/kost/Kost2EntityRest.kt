@@ -24,19 +24,25 @@
 package org.projectforge.rest.fibu.kost
 
 import jakarta.servlet.http.HttpServletRequest
+import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.dto.Customer
@@ -56,10 +62,12 @@ import org.projectforge.ui.filter.KostStatusFilterUtils
 import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.Date
 
 @RestController
 @RequestMapping("${Rest.URL}/cost2")
@@ -268,12 +276,78 @@ class Kost2EntityRest : AbstractDTOEntityRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao
         return ProjectChecklistFilter.valuesOf(projektIdsOf(filter, ProjectChecklistFilter.FIELD))
     }
 
+    /**
+     * The filtered list as the Excel file of Wicket's `Kost2ListPage` ("exportAsXls"): number, type,
+     * invoiced, project, effective status, description and comment, in that order. The rows come from
+     * [getResultList], i.e. through the same pipeline the list itself uses (status, customer, business unit
+     * and project filters). An empty result answers 404 rather than a file.
+     *
+     * Type, project and customer come from the caches, as in [transformFromDB], so the export fires no
+     * select per row.
+     */
+    @AccessChecked("DAO: select access (list result filtered by baseDao)")
+    @PostMapping(RestPaths.REST_EXCEL_SUB_PATH)
+    fun exportAsExcel(@RequestBody filter: MagicFilter): ResponseEntity<*> {
+        val list = getResultList(filter)
+        if (list.isEmpty()) {
+            return ResponseEntity.notFound().build<Any>()
+        }
+        ExcelUtils.prepareWorkbook().use { workbook ->
+            val sheet = workbook.createOrGetSheet(translate("fibu.kost2.kost2s"))
+            sheet.registerColumn(translate("fibu.kost2"), COL_NUMBER).withSize(14)
+            sheet.registerColumn(translate("fibu.kost2.art"), COL_TYPE).withSize(25)
+            sheet.registerColumn(translate("fibu.fakturiert"), COL_INVOICED).withSize(8)
+            sheet.registerColumn(translate("fibu.projekt"), COL_PROJECT).withSize(50)
+            sheet.registerColumn(translate("status"), COL_STATUS).withSize(14)
+            sheet.registerColumn(translate("description"), COL_DESCRIPTION).withSize(40)
+            sheet.registerColumn(translate("comment"), COL_COMMENT).withSize(40)
+            ExcelUtils.addHeadRow(sheet)
+            list.forEach { kost2 ->
+                val art = caches.getKost2ArtIfNotInitialized(kost2.kost2Art)
+                val row = sheet.createRow()
+                row.getCell(COL_NUMBER)?.setCellValue(kost2.formattedNumber)
+                row.getCell(COL_TYPE)?.setCellValue(art?.name)
+                row.getCell(COL_INVOICED)?.setCellValue(if (art?.fakturiert == true) "X" else "")
+                row.getCell(COL_PROJECT)?.setCellValue(formatProject(kost2))
+                kost2.effectiveKostentraegerStatus?.let {
+                    row.getCell(COL_STATUS)?.setCellValue(translate(it.i18nKey))
+                }
+                row.getCell(COL_DESCRIPTION)?.setCellValue(kost2.description)
+                row.getCell(COL_COMMENT)?.setCellValue(kost2.comment)
+            }
+            sheet.setAutoFilter()
+            val filename = "ProjectForge-Kost2Export_${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx"
+            return RestUtils.downloadFile(filename, workbook.asByteArrayOutputStream.toByteArray())
+        }
+    }
+
+    /**
+     * The project as Wicket's export wrote it (`OldKostFormatter.formatProjekt`), e.g.
+     * "5.123.04 - ACME: DB project", customer and project name abbreviated to 30 characters.
+     */
+    private fun formatProject(kost2: Kost2DO): String {
+        val projekt = caches.getProjektIfNotInitialized(kost2.projekt) ?: return ""
+        val kunde = caches.getKundeIfNotInitialized(projekt.kunde)
+        val sb = StringBuilder(kostFormatter.formatProjekt(projekt)).append(" - ")
+        kunde?.name?.let { sb.append(StringUtils.abbreviate(it, 30)).append(": ") }
+        sb.append(StringUtils.abbreviate(projekt.name ?: "", 30))
+        return sb.toString()
+    }
+
     private class Kost2StatusResultFilter(private val listTypes: List<String>) : CustomResultFilter<Kost2DO> {
         override fun match(list: MutableList<Kost2DO>, element: Kost2DO): Boolean =
             KostStatusFilterUtils.matchesKost2(listTypes, element.effectiveKostentraegerStatus)
     }
 
     companion object {
+        private const val COL_NUMBER = "number"
+        private const val COL_TYPE = "type"
+        private const val COL_INVOICED = "invoiced"
+        private const val COL_PROJECT = "project"
+        private const val COL_STATUS = "status"
+        private const val COL_DESCRIPTION = "description"
+        private const val COL_COMMENT = "comment"
+
         /** The customers of a cost 2 are its project's, matched via [viaProject]: the paths only serve the element. */
         private val customerFilter =
             CustomerChecklistFilter("cost2/customerFilterValues", kundePath = "projekt.kunde", kundeTextPath = null)

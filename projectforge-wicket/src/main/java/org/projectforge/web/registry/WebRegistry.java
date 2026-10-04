@@ -32,7 +32,6 @@ import org.projectforge.registry.Registry;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
-import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
@@ -244,8 +243,8 @@ public class WebRegistry
     // The order book (Auftragsbuch) has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/orderBook* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
-    register(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class);
-    addMountPages(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class, EingangsrechnungEditPage.class);
+    // The incoming invoice (Kreditoren) has been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/incomingInvoice* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
     // The outgoing invoice (Debitoren) has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/outgoingInvoice* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
@@ -256,12 +255,6 @@ public class WebRegistry
     addMountPages(DaoConst.ACCOUNT, KontoListPage.class, KontoEditPage.class);
     register(DaoConst.ACCOUNTING_RECORD, AccountingRecordListPage.class);
     addMountPages(DaoConst.ACCOUNTING_RECORD, AccountingRecordListPage.class, AccountingRecordEditPage.class);
-    register(DaoConst.COST1, Kost1ListPage.class);
-    addMountPages(DaoConst.COST1, Kost1ListPage.class, Kost1EditPage.class);
-    register(DaoConst.COST2, Kost2ListPage.class);
-    addMountPages(DaoConst.COST2, Kost2ListPage.class, Kost2EditPage.class);
-    register(DaoConst.COST2_Type, Kost2ArtListPage.class);
-    addMountPages(DaoConst.COST2_Type, Kost2ArtListPage.class, Kost2ArtEditPage.class);
     // The customer (Kunde) list and edit have been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/customer* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     // The projects have been migrated to projectforge-next; its Wicket pages were removed.
@@ -273,9 +266,9 @@ public class WebRegistry
     // DaoConst.HR_PLANNING (hrPlanningList/hrPlanningEdit) is migrated to projectforge-next (see NextMigration).
     // The HR view (hrList) is migrated to projectforge-next; bookmarked wa/hrList links are redirected by
     // OrphanedLinkFilter.
-    addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
+    // The user preference pages (userPrefList/userPrefEdit) were removed without replacement; bookmarked links
+    // are redirected by OrphanedLinkFilter.
 
-    addMountPage("admin", AdminPage.class);
     addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     // The system configuration has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).

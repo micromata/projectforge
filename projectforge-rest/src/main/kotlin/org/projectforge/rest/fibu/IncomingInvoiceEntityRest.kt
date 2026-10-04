@@ -25,6 +25,7 @@ package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.AbstractRechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
@@ -98,6 +99,9 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         EingangsrechnungDao::class.java,
         "fibu.eingangsrechnung.title",
     ) {
+
+    @Autowired
+    private lateinit var configurationService: ConfigurationService
 
     @Autowired
     private lateinit var kontoCache: KontoCache
@@ -438,6 +442,8 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
         if (invoices.isEmpty()) {
             return ResponseEntity.notFound().build<Any>()
         }
+        // An invoice without a currency of its own is in the system's (as in Wicket's export).
+        val defaultCurrency = configurationService.currency ?: "EUR"
         ExcelUtils.prepareWorkbook().use { workbook ->
             val sheet = workbook.createOrGetSheet(translate("fibu.eingangsrechnungen"))
             val currencyStyle = workbook.createOrGetCellStyle("currency")
@@ -450,6 +456,7 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
             ExcelUtils.registerColumn(sheet, EingangsrechnungDO::bezahlDatum)
             sheet.registerColumn(translate("fibu.common.netto"), COL_NET_SUM).withSize(14)
             sheet.registerColumn(translate("fibu.common.brutto"), COL_GROSS_SUM).withSize(14)
+            ExcelUtils.registerColumn(sheet, EingangsrechnungDO::currency, 8)
             ExcelUtils.registerColumn(sheet, EingangsrechnungDO::zahlBetrag, 14)
             sheet.registerColumn(translate("fibu.konto.nummer"), COL_ACCOUNT).withSize(10)
             sheet.registerColumn(translate("fibu.konto.bezeichnung"), COL_ACCOUNT_TEXT).withSize(30)
@@ -461,6 +468,8 @@ open class IncomingInvoiceEntityRest : // open: autowired by the mass-select pag
                 val info = invoice.ensuredInfo
                 row.getCell(COL_NET_SUM)?.setCellValue(info.netSum)?.setCellStyle(currencyStyle)
                 row.getCell(COL_GROSS_SUM)?.setCellValue(info.grossSum)?.setCellStyle(currencyStyle)
+                ExcelUtils.getCell(row, EingangsrechnungDO::currency)
+                    ?.setCellValue(invoice.currency?.takeIf { it.isNotBlank() } ?: defaultCurrency)
                 ExcelUtils.getCell(row, EingangsrechnungDO::zahlBetrag)?.setCellStyle(currencyStyle)
                 val konto = kontoCache.getKontoIfNotInitialized(invoice.konto)
                 konto?.nummer?.let { row.getCell(COL_ACCOUNT)?.setCellValue(it) }

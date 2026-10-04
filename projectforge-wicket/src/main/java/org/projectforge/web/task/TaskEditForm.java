@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.convert.IConverter;
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.ProjektDO;
@@ -48,8 +47,6 @@ import org.projectforge.common.task.TimesheetBookingStatus;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.fibu.Kost2ListPage;
-import org.projectforge.web.fibu.Kost2SelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -77,9 +74,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
   private DropDownChoice<Boolean> kost2listTypeChoice;
 
   private DropDownChoice<TimesheetBookingStatus> timesheetBookingStatusChoice;
-
-  @SuppressWarnings("unused")
-  private Integer kost2Id;
 
   private ProjektDO projekt;
 
@@ -324,7 +318,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
             new PropertyModel<>(data, "ganttPredecessor"),
             parentPage, "ganttPredecessorId");
         fs.add(ganttPredecessorSelectPanel);
-        ganttPredecessorSelectPanel.setShowFavorites(true);
         ganttPredecessorSelectPanel.init();
       }
     }
@@ -380,22 +373,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
             kost2listTypeChoiceRenderer.getValues(), kost2listTypeChoiceRenderer);
         kost2listTypeChoice.setNullValid(false);
         fs.add(kost2listTypeChoice);
-        final Kost2SelectPanel kost2SelectPanel = new Kost2SelectPanel(fs.newChildId(),
-            new PropertyModel<>(this, "kost2Id"),
-            parentPage, "kost2Id")
-        {
-          @Override
-          protected void beforeSelectPage(final PageParameters parameters)
-          {
-            super.beforeSelectPage(parameters);
-            if (projekt != null) {
-              parameters.add(Kost2ListPage.PARAMETER_KEY_STORE_FILTER, false);
-              parameters.add(Kost2ListPage.PARAMETER_KEY_SEARCH_STRING, "nummer:" + projekt.getKost() + ".*");
-            }
-          }
-        };
-        fs.add(kost2SelectPanel);
-        kost2SelectPanel.init();
       }
       {
         // Time sheet booking status drop down box:

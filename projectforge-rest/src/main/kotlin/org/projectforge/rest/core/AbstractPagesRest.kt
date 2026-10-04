@@ -118,7 +118,7 @@ constructor(
         val standardEditPage: String,
         /**
          * The legacy edit page with [NextMigration.ID_PLACEHOLDER] for the id, e.g.
-         * `react/book/edit/:id` or `wa/cost1Edit?id=:id`.
+         * `react/book/edit/:id` or `wa/accountEdit?id=:id`.
          *
          * Needed by the hand built pages of projectforge-next: their edit page doesn't call
          * `{entity}/edit`, so it can't read [UILayout.legacyUrl] from there and takes the template
@@ -126,7 +126,7 @@ constructor(
          */
         val legacyEditPage: String?,
         /**
-         * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/cost1Edit`. Served next
+         * The legacy page for adding an entry, e.g. `react/book/edit` or `wa/accountEdit`. Served next
          * to [legacyEditPage], because it isn't derivable from it: the Wicket edit page carries the
          * id as a query parameter, so dropping the placeholder is a per-app rule, not a suffix cut.
          */
@@ -538,7 +538,7 @@ constructor(
      * be thrown into projectforge-next by a click on a row; they are in the React app.
      *
      * Deliberately not [NextMigration.legacyEditPage]: that names the page the way back leads to,
-     * which may be a Wicket page (`cost1`). Wicket renders server side and never asks here for a
+     * which may be a Wicket page (`account`). Wicket renders server side and never asks here for a
      * layout, so the only non-next caller is the React app.
      */
     open fun getEditPage(request: HttpServletRequest): String {

@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download04Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { Spinner } from "@/components/shared/spinner";
-import { RsError } from "@/lib/rs/client";
+import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { downloadOrderExcel } from "@/lib/rs/order";
 import type { MagicFilter } from "@/lib/rs/types";
 import { ForecastExportDialog } from "./forecast-export-dialog";
@@ -28,41 +26,17 @@ export function OrderListActions({ filter }: { filter: MagicFilter }) {
   const t = useTranslations();
   const [forecastOpen, setForecastOpen] = useState(false);
 
-  /** A filter matching nothing answers 404: nothing was exported, and that is no error. */
+  /**
+   * The forecast dialog's reports, the same as [useExportDownload]'s: a filter matching nothing answers
+   * 404, nothing was exported, and that is no error.
+   */
   const reportEmpty = () => toast.info(t("datatable.no-records-found"));
   const reportError = (error: unknown) =>
     toast.error(error instanceof Error ? error.message : String(error));
 
-  const excel = useMutation({
-    mutationFn: () => downloadOrderExcel(filter),
-    onError: (error) => {
-      if (error instanceof RsError && error.status === 404) {
-        reportEmpty();
-        return;
-      }
-      reportError(error);
-    },
-  });
-
   return (
     <>
-      <HintTooltip text={t("tooltip.export.excel")}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => excel.mutate()}
-          disabled={excel.isPending}
-        >
-          {excel.isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-          )}
-          {t("exportAsXls")}
-        </Button>
-      </HintTooltip>
+      <ExcelExportButton download={() => downloadOrderExcel(filter)} />
       <HintTooltip text={t("fibu.auftrag.forecastExport.tooltip")}>
         <Button
           type="button"

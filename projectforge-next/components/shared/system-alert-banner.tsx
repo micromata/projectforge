@@ -5,7 +5,7 @@ import { Notification03Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/hooks/use-auth";
 
 /**
- * The system alert message an admin sets on the admin page (Wicket, `/wa/admin`): an announcement
+ * The system alert message an admin sets on the System page (`/next/system`): an announcement
  * every logged-in user has to see, a planned downtime being the typical one. Shown on every page
  * of this app, as in Wicket and the legacy React app, and closeable by nobody - it goes away when
  * the admin clears it.

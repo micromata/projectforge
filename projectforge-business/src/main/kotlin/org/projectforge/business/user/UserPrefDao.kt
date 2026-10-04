@@ -184,12 +184,11 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref != null
     }
 
+    /**
+     * Restricted to the logged-in user's own entries.
+     */
     override fun select(filter: BaseSearchFilter): List<UserPrefDO> {
-        val myFilter = filter as UserPrefFilter
         val queryFilter = QueryFilter(filter)
-        if (myFilter.area != null) {
-            queryFilter.add(eq("area", myFilter.area.id))
-        }
         queryFilter.add(eq("user.id", requiredLoggedInUserId))
         queryFilter.addOrder(asc("area"))
         queryFilter.addOrder(asc("name"))
@@ -276,16 +275,6 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      */
     fun addUserPrefParameters(userPref: UserPrefDO, obj: Any) {
         addUserPrefParameters(userPref, obj.javaClass, obj)
-    }
-
-    /**
-     * Adds the fields of the bean type represented by the given area as parameters to the given userPref. Fields without
-     * the annotation UserPrefParameter will be ignored.
-     *
-     * @see .fillFromUserPrefParameters
-     */
-    fun addUserPrefParameters(userPref: UserPrefDO, area: UserPrefArea) {
-        addUserPrefParameters(userPref, area.beanType, null)
     }
 
     private fun addUserPrefParameters(userPref: UserPrefDO, beanType: Class<*>, obj: Any?) {

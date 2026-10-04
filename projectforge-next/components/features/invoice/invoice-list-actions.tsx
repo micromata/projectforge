@@ -1,17 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "@/lib/toast";
 import { leafKeyOf } from "@/lib/leaf-key";
-import { RsError } from "@/lib/rs/client";
 import {
   downloadInvoiceCostAssignmentsExcel,
   downloadInvoiceExcel,
 } from "@/lib/rs/invoice";
 import type { MagicFilter } from "@/lib/rs/types";
 import { useUpdateAccess } from "@/hooks/use-update-access";
-import { ExportButton } from "@/components/shared/export-button";
+import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { EInvoiceCheckerButton } from "./e-invoice-checker-button";
 
 /**
@@ -29,42 +26,15 @@ export function InvoiceListActions({ filter }: { filter: MagicFilter }) {
   // stays — exporting the rows one may already see is no more than the list itself shows.
   const updateAccess = useUpdateAccess("outgoingInvoice");
 
-  /**
-   * A 404 is no error here: the filter matched nothing, or — for the cost assignments — the installation
-   * has no cost ids configured, in which case that export has nothing to say.
-   */
-  const onError = (error: unknown) => {
-    if (error instanceof RsError && error.status === 404) {
-      toast.info(t("datatable.no-records-found"));
-      return;
-    }
-    toast.error(error instanceof Error ? error.message : String(error));
-  };
-
-  const excel = useMutation({
-    mutationFn: () => downloadInvoiceExcel(filter),
-    onError,
-  });
-  const costAssignments = useMutation({
-    mutationFn: () => downloadInvoiceCostAssignmentsExcel(filter),
-    onError,
-  });
-
   return (
     <>
-      <ExportButton
-        tooltip={t("tooltip.export.excel")}
-        label={t("exportAsXls")}
-        isPending={excel.isPending}
-        onClick={() => excel.mutate()}
-      />
+      <ExcelExportButton download={() => downloadInvoiceExcel(filter)} />
       {updateAccess !== false && (
-        <ExportButton
+        <ExcelExportButton
+          download={() => downloadInvoiceCostAssignmentsExcel(filter)}
           tooltip={t("fibu.rechnung.kostExcelExport.tooltip")}
           // The label is the parent of that tooltip key, so it travels as the generator's leaf.
           label={t(leafKeyOf("fibu.rechnung.kostExcelExport", t.has))}
-          isPending={costAssignments.isPending}
-          onClick={() => costAssignments.mutate()}
         />
       )}
       <EInvoiceCheckerButton />

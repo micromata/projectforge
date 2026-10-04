@@ -3,6 +3,7 @@ import { definePage } from "@/lib/page-def/define-page";
 import { CostNumberField } from "./cost-number-field";
 import { cost1Schema, COST1_FIELDS, type Cost1Values } from "./cost1-schema";
 import { emptyCost1Values, toFormValues } from "./cost1-values";
+import { Cost1ListActions } from "./cost1-list-actions";
 import type { Cost1Detail, Cost1ListRow } from "./types";
 
 /** React Query key of the list, so a write from the edit page refreshes it. */
@@ -32,7 +33,7 @@ export const COST1_PAGE = definePage<
   queryKey: COST1_LIST_QUERY_KEY,
   // Where the entry sits in the main menu: Finance > Cost (MenuCreator, MenuItemDefId.COST).
   categoryKey: "menu.fibu.kost",
-  titleKey: "fibu.kost1.title.list._",
+  titleKey: "fibu.kost1.title.list",
   columns: [
     // Filtered as text: the formatted number reads as one ("6.100.01.02"), not as four values.
     // Sorting is the backend's, which maps this property onto the four number columns it is made of
@@ -49,6 +50,7 @@ export const COST1_PAGE = definePage<
     { name: "created", size: 130 },
     { name: "lastUpdate", size: 130 },
   ],
+  listActions: Cost1ListActions,
   // Mass update of a selection: status and description (Kost1MultiSelectedPageRest, /cost1Selected).
   massUpdate: {
     endpoint: "cost1Selected",

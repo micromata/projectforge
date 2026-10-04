@@ -419,8 +419,17 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   (Kostzuweisungen, Summen, `use-invoice-sums`, Statistikzeile) liegen in
   `components/shared/invoice/`, parametrisiert statt dupliziert; projekt-/kundengekoppelte
   Teile bleiben im Ausgangsrechnungs-Feature. `IncomingInvoiceEntityRest` (layoutfrei) +
-  Mehrfachauswahl (SEPA-Transfer-Export). **TODO offen:** CSV/SEPA-Import-Assistent und der
-  SEPA-Überweisungs-Export als eigene Seite bleiben auf Wicket/React.
+  Mehrfachauswahl. Keine Wicket-Reste mehr: Listen- und Kostzuweisungs-Excel in der Listen-Leiste,
+  SEPA-Überweisung (pain.001) als Button der Bearbeitung (`exportTransfer/{id}`) und der
+  Mehrfachauswahl (`incomingInvoiceSelected/exportTransfers`) – eine eigene SEPA-Seite hatte auch
+  Wicket nie. Der CSV-Import läuft über `next/creditor-invoice-import` (`IncomingInvoiceImportRest`,
+  `ImportFeature`); der alte React-Upload (`EingangsrechnungUploadPageRest` →
+  `IncomingInvoicePosImportPageRest`) ist nur noch als Rückweg verlinkt.
+- **Kostenträger 1/2** (`cost1`, `cost2`) – der Excel-Export der Wicket-Listen (`Kost1ListPage`/
+  `Kost2ListPage`, „exportAsXls") ist als `Kost1EntityRest`/`Kost2EntityRest.exportAsExcel` portiert
+  (gleiche Spalten, gefilterte Liste, `.xlsx`); Knopf über `PageDef.listActions`. Die Wicket-Seiten
+  (Kost1, Kost2, Kost2-Arten, `Kost2SelectPanel`) sind entfernt, der Rückweg ist zurückgezogen
+  (`offerLegacyLink = false`); `wa/cost1*`, `wa/cost2*`, `wa/cost2Type*` leitet `OrphanedLinkFilter` um.
 - **DATEV-Import** – `next/datev-import` (`DATEV_IMPORT` umgeschaltet, Wicket-Seite gelöscht,
   `wa/datevImport` leitet per `OrphanedLinkFilter` hierher um; Upload-Grenze
   `projectforge.max-file-size.datev`, Default 10MB). Zwei Tabs über das gemeinsame
@@ -440,9 +449,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die
   Consumption-Bar (`consumption-cell.tsx`) zeigen auf next (die letzten hart gebildeten
-  Legacy-URLs, umgestellt seit der Timesheet-Migration). Bewusst ausgelassen: die
-  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) – die Auswahlfelder bieten die
-  Schnellauswahl selbst.
+  Legacy-URLs, umgestellt seit der Timesheet-Migration). Die
+  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) pflegt das Auswahlfeld selbst
+  (`TaskFavoritesMenu`), keine eigene Seite.
 - **Gruppen** – vierter Fall, obwohl `GroupEntityRest` ein `UILayout` liefert (die
   generische Route rendert nur den Grid-Knoten, ohne Filterzeile/Favoriten/Zahnrad/Excel
   wäre der Schalter ein Rückschritt). LDAP-Feld über das Anzeige-Flag

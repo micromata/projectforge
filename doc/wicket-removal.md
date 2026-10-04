@@ -4,7 +4,7 @@
 > [projectforge-next/MIGRATION.md](../projectforge-next/MIGRATION.md), which only states the goal
 > ("remove `projectforge-wicket` from `settings.gradle.kts` + build, remove `/wa` serving/filters").
 > Status as of 2026-10-03: **no core menu entry opens Wicket any more**. The last two were the HR view
-> (`next/hrList`) and the deprecated favorites (`wa/userPrefList`, menu entry removed).
+> (`next/hrList`) and the deprecated favorites (`wa/userPrefList`, page removed since 2026-10-04).
 
 ## Goal and non-goals
 
@@ -20,7 +20,7 @@
 
 ### Remaining Wicket pages and how they are reached
 
-43 concrete page classes are left (`projectforge-wicket`).
+29 concrete page classes are left (`projectforge-wicket`).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
@@ -28,13 +28,13 @@
 
 | Group | Pages | Reached from |
 |---|---|---|
-| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), cost1 (`Kost1*Page`), cost2 (`Kost2*Page`), cost2Type (`Kost2Art*Page`), gantt (`GanttChart*Page`), project (`Projekt*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
-| Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) |
+| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
+| Escape hatch, hard-coded in next | `TaskTreePage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
-wizard, the user favorites (`UserPref`) and the old calendar pages. An escape-hatch category can only go
+wizard and the old calendar pages. An escape-hatch category can only go
 after its `offerLegacyLink` has been set to `false`.
 
 ### Plugins
@@ -64,8 +64,7 @@ These would break silently if the module were simply deleted.
 - [x] **Plugin menu registration** – all plugins register via `MenuCreator`;
       `PluginWicketRegistrationService` deleted.
 - [x] **`ProjectForgeEndpoints`** – implements only `SystemDiagnosticsExport` now (REST endpoints, no Wicket
-      mount points); `AdminPage` gets the dump via `WicketSupport.get(SystemDiagnosticsExport.class)`,
-      `IProjectForgeEndpoints` deleted.
+      mount points), used by `SystemRest`; `IProjectForgeEndpoints` deleted.
 - [x] **`MenuCustomizationController`** (`/rs/menucustomization`) – no caller anywhere, deleted.
 - [x] **Dead code** – `PacmanViewPage` (+ `scripts/pacman`, LESS rule), `AbstractViewPage`,
       `AbstractSecuredPopupPage` and `MenuItemRegistry` deleted. A second sweep removed 42 further classes
@@ -102,19 +101,37 @@ Each item: build in next, or decide with the product owner that it goes away.
       (`TeamCalImportPage`, `TeamCalImportDao`), **team event list**, ICS download in
       `TeamEventEditPage`, the ICS subscription-link dialogs (`TimesheetsICSExportDialog`,
       `TeamCalICSExportDialog`) – check what React/next already covers.
-- [ ] **Exports only in Wicket list pages** – Kost1/Kost2 Excel export, incoming invoice cost-assignment
-      Excel / XML export (`EingangsrechnungListPage`), SEPA transfer export page, CSV/SEPA import wizard
-      (see MIGRATION.md, Kreditorenrechnungen TODO).
+- [x] **Exports only in Wicket pages** – Kost1/Kost2 Excel export (`Kost1EntityRest`/`Kost2EntityRest`
+      `exportAsExcel`), incoming invoice list and cost-assignment Excel (list bar of `next/creditor-invoice`),
+      SEPA transfer (pain.001) as a button of the edit page and the mass update (Wicket never had a separate
+      SEPA page), CSV import via `next/creditor-invoice-import`. The Wicket pages of cost 1/2, cost 2 types,
+      projects and incoming invoices are removed; `wa/cost*`, `wa/project*`, `wa/incomingInvoice*` are
+      redirected by `OrphanedLinkFilter` (see MIGRATION.md).
 - [x] **DATEV import** (`DatevImportPage`) – removed with its form, storage panel and the legacy
       `BuchungssatzExcelImporter`/`KontenplanExcelImporter`; `next/datev-import` covers it (status filter,
       per-row error texts, BWA preview, log viewer). The upload limit is `projectforge.max-file-size.datev`
       again (default now `10MB`, the original file includes the report sheets). `wa/datevImport` redirects
       to `next/datev-import` (`OrphanedLinkFilter`). The Kost1/Kost2 tooltips of the preview are back
       (`ImportColumn.tooltipField`); dropped: the Excel download of the validated file.
-- [ ] **`AdminPage`** tools and dumps not yet in `next/system`.
-- [ ] **User preferences** (`UserPrefListPage`) – no replacement planned. Decide on the Wicket-only
-      `UserPrefArea`s (`USER_FAVORITE`, `TIMESHEET_TEMPLATE`, `TASK_FAVORITE`, `KUNDE_FAVORITE`, …):
-      drop or migrate their data.
+- [x] **`AdminPage`** – all tools live in `next/system` (`SystemRest`); `AdminPage`/`AdminForm` deleted,
+      `wa/admin` always redirects to `next/system` (`OrphanedLinkFilter`, no escape hatch any more). Dropped:
+      "Dump database" (Wicket only threw `UnsupportedOperationException`) and "Update all user prefs"
+      (`UserXmlPreferencesMigrationDao` deleted – XML user prefs are no longer written, only read on a cache
+      miss and stored as JSON).
+- [x] **User preferences** (`UserPrefListPage`/`UserPrefEditPage`) – removed without replacement, together
+      with the Wicket favorites widgets (`FavoritesChoicePanel` in the task/customer/project select panels,
+      the template dropdown and "save as template" of `TimesheetEditForm`, the "Favorites"/"Templates" menu
+      entries). `wa/userPrefList`/`wa/userPrefEdit` redirect to the next start page (`OrphanedLinkFilter`).
+      The `UserPrefArea`s:
+      - `TASK_FAVORITE` kept: next reads and writes it (`TaskFavoritesService`/`TaskFavoritesRest`,
+        `TaskFavoritesMenu` in the task select field: create, apply, rename, overwrite with the picked task,
+        delete).
+      - `TIMESHEET_TEMPLATE` kept read-only: `TimesheetFavoritesService` migrates the entries into the JSON
+        timesheet favorites (automatically and via the "old templates" button of the timesheet form).
+      - `KUNDE_FAVORITE`, `PROJEKT_FAVORITE`, `USER_FAVORITE` dropped (with `KundeFavorite`,
+        `ProjektFavorite`, `UserFavorite`): only Wicket read them, `USER_FAVORITE` not even that.
+      The database rows of the dropped areas (and the old `TODO_FAVORITE` rows) are left untouched; nothing
+      reads them any more.
 - [x] **`ExternalResourceLoader`** – only a Wicket adapter on `I18nHelper`; next already applies the
       customer overrides (`I18nCustomerNextRest`, `i18n/customer-overrides.test.ts`). Goes with the module.
 
@@ -124,11 +141,11 @@ Each item: build in next, or decide with the product owner that it goes away.
       for the `OrphanedLinkFilter` redirects. Adjust `NextMigrationTest`, `PageResolverTest`.
 - [ ] projectforge-next: `LegacyPageLink` usages, `hooks/use-legacy-edit-url.ts`, the `wa/` handling in
       `lib/menu-url.ts`, `lib/config.ts`, `task-edit-link.tsx`, `system-alert-banner.tsx`; the hard
-      links in `taskTree/page.tsx`, `system-page.tsx`, `phone-call-page.tsx`. Tests: e2e
+      links in `taskTree/page.tsx`, `phone-call-page.tsx` (`system-page.tsx`: done). Tests: e2e
       `legacy-page-link.spec.ts`, `invoice-edit.spec.ts`, `task-edit.spec.ts`, `quick-access.spec.ts`;
       unit `menu-url.test.ts`, `menu-search.test.ts`.
 - [ ] `MenuItemDefId.TASK_TREE`: drop the `wa/taskTree` fallback of `nextRouteUrl`.
-- [ ] `OrphanedLinkFilter`: remove the escape-hatch pass-throughs (`?legacyEscape`, `/wa/admin`), add a
+- [ ] `OrphanedLinkFilter`: remove the escape-hatch pass-throughs (`?legacyEscape`; `/wa/admin`: done), add a
       **catch-all `/wa/*` → `/next/`** so every unmapped old link lands somewhere instead of a 404.
       Extend `OrphanedLinkFilterTest`.
 - [ ] 2FA: remove the `/wa/...` shortcut values in `ProjectForge2FAInitialization`, `"/wa"` in

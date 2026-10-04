@@ -26,12 +26,8 @@ package org.projectforge.web.task;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskHelper;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.access.AccessListPage;
@@ -85,16 +81,6 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
       getBaseDao().setGanttPredecessor(getData(), (Long) selectedValue);
     } else if ("responsibleUserId".equals(property) == true) {
       getBaseDao().setResponsibleUser(getData(), (Long) selectedValue);
-    } else if ("kost2Id".equals(property) == true) {
-      final Long kost2Id = (Long) selectedValue;
-      if (kost2Id != null) {
-        final Kost2DO kost2 = WicketSupport.get(Kost2Dao.class).find(kost2Id);
-        if (kost2 != null) {
-          final String newKost2String = TaskHelper.addKost2(TaskTree.getInstance(), getData(), kost2);
-          getData().setKost2BlackWhiteList(newKost2String);
-          form.kost2BlackWhiteTextField.modelChanged();
-        }
-      }
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }

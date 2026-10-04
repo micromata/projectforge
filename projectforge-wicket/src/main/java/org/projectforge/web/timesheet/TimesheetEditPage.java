@@ -24,7 +24,6 @@
 package org.projectforge.web.timesheet;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,14 +37,12 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetRecentEntry;
 import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.teamcal.integration.TeamcalTimesheetPluginComponentHook;
-import org.projectforge.web.user.UserPrefEditPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -354,12 +351,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
     // Save time sheet as recent time sheet
     final TimesheetDO timesheet = getData();
     WicketSupport.get(TimesheetRecentService.class).addRecentTimesheet(timesheet);
-    // Does the user want to store this time sheet as template?
-    if (BooleanUtils.isTrue(form.saveAsTemplate) == true) {
-      final UserPrefEditPage userPrefEditPage = new UserPrefEditPage(UserPrefArea.TIMESHEET_TEMPLATE, getData());
-      userPrefEditPage.setReturnToPage(this.returnToPage);
-      return userPrefEditPage;
-    }
     return null;
   }
 

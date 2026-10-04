@@ -38,14 +38,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
 import org.projectforge.business.task.*;
 import org.projectforge.business.task.TaskTreeHelper;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
@@ -234,38 +232,6 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     divContainer.add(unselectButton);
     unselectButton.add(new IconPanel("unselectHelp", IconType.REMOVE_SIGN, getString("tooltip.unselectTask")).setColor(CSSColor.RED));
 
-    // DropDownChoice favorites
-    final FavoritesChoicePanel<TaskDO, LegacyTaskFavorite> favoritesPanel = new FavoritesChoicePanel<TaskDO, LegacyTaskFavorite>(
-        "favorites",
-        UserPrefArea.TASK_FAVORITE, tabIndex, "full text")
-    {
-      @Override
-      protected void select(final LegacyTaskFavorite favorite)
-      {
-        if (favorite.getTask() != null) {
-          TaskSelectPanel.this.selectTask(favorite.getTask());
-        }
-      }
-
-      @Override
-      protected TaskDO getCurrentObject()
-      {
-        return TaskSelectPanel.this.getModelObject();
-      }
-
-      @Override
-      protected LegacyTaskFavorite newFavoriteInstance(final TaskDO currentObject)
-      {
-        final LegacyTaskFavorite favorite = new LegacyTaskFavorite();
-        favorite.setTask(currentObject);
-        return favorite;
-      }
-    };
-    divContainer.add(favoritesPanel);
-    favoritesPanel.init();
-    if (showFavorites == false) {
-      favoritesPanel.setVisible(false);
-    }
 
     return this;
   }
@@ -360,7 +326,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
   }
 
   /**
-   * Will be called if the user has chosen an entry of the task favorites drop down choice.
+   * Will be called if the user has chosen a task.
    *
    * @param task
    */
