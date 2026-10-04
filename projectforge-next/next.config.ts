@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { BASE_PATH } from "./lib/config";
 
 const isProd = process.env.NODE_ENV === "production";
+const backendUrl = process.env.PF_BACKEND_URL ?? "http://localhost:8080";
 
 // No next-intl plugin: the static export has no server, so the locale and
 // message catalogs are resolved on the client (see i18n/locale-provider.tsx).
@@ -38,7 +39,8 @@ const nextConfig: NextConfig = {
     // serves both — so this only makes dev behave like it.
     proxyTimeout: 300_000,
   },
-  // Dev-only: proxy backend calls to Spring on :8080. `basePath: false` keeps
+  // Dev-only: proxy backend calls to Spring, on :8080 or wherever PF_BACKEND_URL points (a dev
+  // instance of another slot, see bin/pfDev.sh). `basePath: false` keeps
   // the source paths at the root (/rs, /rsPublic) instead of /next/rs, matching
   // the root-relative calls in lib/rs/client.ts. rewrites() do NOT run in the
   // static export, so prod relies on same-origin serving under Spring instead.
@@ -46,12 +48,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/rs/:path*",
-        destination: "http://localhost:8080/rs/:path*",
+        destination: `${backendUrl}/rs/:path*`,
         basePath: false,
       },
       {
         source: "/rsPublic/:path*",
-        destination: "http://localhost:8080/rsPublic/:path*",
+        destination: `${backendUrl}/rsPublic/:path*`,
         basePath: false,
       },
     ];

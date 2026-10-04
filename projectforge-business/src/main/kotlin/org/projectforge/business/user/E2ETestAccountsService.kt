@@ -72,6 +72,9 @@ class E2ETestAccountsService {
     private lateinit var configurationService: ConfigurationService
 
     @Autowired
+    private lateinit var databaseService: DatabaseService
+
+    @Autowired
     private lateinit var groupDao: GroupDao
 
     @Autowired
@@ -102,6 +105,21 @@ class E2ETestAccountsService {
      */
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationReady() {
+        if (!databaseService.databaseTablesWithEntriesExist()) {
+            // A fresh database waits for the setup (/next/setup): an account created now would count as
+            // content, and the setup refuses a database with content. SetupService calls [syncAccounts]
+            // once it is done.
+            log.info { "Database not initialized yet, the E2E test accounts follow after the setup." }
+            return
+        }
+        syncAccounts()
+    }
+
+    /**
+     * Creates or repairs the accounts in development mode and disables them otherwise. Called on start
+     * and after the initial setup of a fresh database.
+     */
+    fun syncAccounts() {
         val homeDir = File(configurationService.applicationHomeDir)
         try {
             if (systemStatus.developmentMode) {

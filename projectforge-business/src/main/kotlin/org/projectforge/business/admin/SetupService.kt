@@ -26,6 +26,7 @@ package org.projectforge.business.admin
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.business.password.PasswordQualityService
+import org.projectforge.business.user.E2ETestAccountsService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.configuration.Configuration
@@ -93,6 +94,9 @@ class SetupService {
 
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var e2eTestAccountsService: E2ETestAccountsService
 
     /**
      * Validates setup parameters before [finish] is called.
@@ -199,6 +203,8 @@ class SetupService {
         configure(ConfigurationParam.FEEDBACK_E_MAIL, feedbackEMail)
 
         pluginAdminService.afterSetup()
+        // Skipped on start because the database was empty then.
+        e2eTestAccountsService.syncAccounts()
 
         log.info("Setup finished successfully.")
         return updatedAdmin
