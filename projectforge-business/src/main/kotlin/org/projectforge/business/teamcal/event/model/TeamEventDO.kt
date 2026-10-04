@@ -444,7 +444,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
             if (this.allDay) {
                 // just use date, no time
                 val until = PFDateTime.fromOrNull(recurrenceData.until)
-                recur.until = until?.dateTime
+                until?.let { recur.setUntil(it.dateTime) } // Deprecated in ical4j, but Recur.until isn't assignable in Kotlin 2.2 anymore.
                 this.recurrenceUntil = recurrenceData.until
             } else {
                 this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.until!!, recurrenceData.timeZone)
@@ -463,7 +463,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
     private fun fixUntilInRecur(recur: Recur<Temporal>, until: Date, timezone: TimeZone?): Date {
         val dateTime = PFDateTime.from(until, timezone).endOfDay
-        recur.until = dateTime.dateTime
+        recur.setUntil(dateTime.dateTime)
         return dateTime.utilDate
     }
 
