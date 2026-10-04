@@ -27,10 +27,10 @@ interface ActionGroup {
 
 /**
  * All administration actions grouped as the classic page had them. Message actions toast their
- * translated result; export actions download a file; the mutating ones confirm first. "Dump database"
- * stays disabled (never migrated). The dev-only actions are appended only in development mode.
+ * translated result; export actions download a file; the mutating ones confirm first. The dev-only
+ * actions are appended only in development mode.
  *
- * The label keys carry the trailing `._`: each has a `.tooltip` (or `.question` / `.notMigrated`)
+ * The label keys carry the trailing `._`: each has a `.tooltip` (or `.question`)
  * sibling, so the bundle nests the base value under `_` (see the generator's `._` convention, as in
  * `t("fibu.auftrag.position._")`). Without it `t()` would return the namespace object and show the key.
  */
@@ -126,12 +126,6 @@ export function SystemActionGroups({ data }: { data: SystemAdminData }) {
           tooltipKey:
             "system.admin.button.createMissingDatabaseIndices.tooltip",
           run: createMissingIndices,
-        },
-        {
-          key: "dump",
-          labelKey: "system.admin.button.dump._",
-          disabled: true,
-          disabledTooltipKey: "system.admin.button.dump.notMigrated",
         },
         {
           key: "exportSchema",

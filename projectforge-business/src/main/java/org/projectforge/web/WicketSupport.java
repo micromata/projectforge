@@ -205,6 +205,5 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(UserRightDao.class));
         registerBean(applicationContext.getBean(UserService.class));
         registerBean(applicationContext.getBean(UserXmlPreferencesDao.class));
-        registerBean(applicationContext.getBean(UserXmlPreferencesMigrationDao.class));
     }
 }

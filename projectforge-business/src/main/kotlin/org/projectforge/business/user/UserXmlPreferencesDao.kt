@@ -185,13 +185,10 @@ class UserXmlPreferencesDao {
     }
 
     /**
-     * Here you can update user preferences formats by manipulation the stored xml string.
-     *
-     * @param userPrefs
+     * Deserializes the stored (possibly compressed) xml string of a legacy user preference.
      */
     fun deserialize(userPrefs: UserXmlPreferencesDO): Any? {
         val userId = userPrefs.user?.id
-        UserXmlPreferencesMigrationDao.migrate(userPrefs)
         var xml = userPrefs.serializedValue
         if (xml.isNullOrEmpty()) {
             return null

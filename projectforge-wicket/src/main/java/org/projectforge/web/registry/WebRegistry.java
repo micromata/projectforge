@@ -32,7 +32,6 @@ import org.projectforge.registry.Registry;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
-import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
@@ -269,7 +268,6 @@ public class WebRegistry
     // OrphanedLinkFilter.
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
-    addMountPage("admin", AdminPage.class);
     addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     // The system configuration has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).

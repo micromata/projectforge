@@ -15,8 +15,8 @@ import { SystemActionGroups } from "./system-action-groups";
  * The System (administration) page ("/next/system"), successor of Wicket's `wa/admin`. A standalone,
  * action-driven admin page: set the site-wide alert message, reindex the search indices (with an
  * inline progress bar), format log entries, and run the caches/configuration/checks/database/dev
- * actions. Admin-group only — every endpoint self-checks, and the classic page stays reachable via the
- * "classic version" link.
+ * actions. Admin-group only — every endpoint self-checks. The Wicket page is gone; old `wa/admin`
+ * links are redirected here.
  */
 export function SystemPage() {
   const t = useTranslations();
@@ -33,7 +33,6 @@ export function SystemPage() {
       <PageTitleRow
         category={t("menu.system")}
         title={t("system.admin.title")}
-        legacyUrl="wa/admin?legacyEscape"
       />
       <div className="flex flex-col gap-4 px-4 pb-8 pt-2">
         {!isLoading && !isAdmin && (
