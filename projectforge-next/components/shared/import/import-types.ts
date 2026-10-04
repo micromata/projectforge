@@ -120,6 +120,10 @@ export interface ImportConfig {
   endpoints: { base: string };
   /** i18n key of the page/upload title. */
   titleKey: string;
+  /** i18n key of a short markdown intro shown above the drop area (instead of the title line). */
+  descriptionKey?: string;
+  /** i18n key of a markdown guide shown below the drop area (file sources, steps, supported columns). */
+  helpKey?: string;
   columns: ImportColumn[];
   /** `<input accept>` value for the drop step, e.g. `.csv`. */
   fileAccept: string;

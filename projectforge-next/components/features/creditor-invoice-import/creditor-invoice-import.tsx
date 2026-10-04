@@ -17,6 +17,8 @@ export function CreditorInvoiceImport() {
     () => ({
       endpoints: { base: ENTITY },
       titleKey: "fibu.eingangsrechnung.import.title",
+      descriptionKey: "fibu.eingangsrechnung.import.description",
+      helpKey: "fibu.eingangsrechnung.import.templateInfo",
       columns: CREDITOR_INVOICE_IMPORT_COLUMNS,
       fileAccept: ".csv",
       returnRoute: "/creditor-invoice",

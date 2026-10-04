@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { SectionCard } from "@/components/shared/section-card";
+import { MarkdownText } from "@/components/shared/markdown-text";
 import { JobProgressToast } from "@/components/shared/jobs/job-progress-toast";
 import { ImportColumnInfo } from "./import-column-info";
 import { ImportControls } from "./import-controls";
@@ -17,6 +18,12 @@ interface Props {
   config: ImportConfig;
 }
 
+/** The bundle texts open with a `## …` heading, which MarkdownText leaves unstyled. */
+const DESCRIPTION_TEXT_CLASS =
+  "text-sm text-muted-foreground [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-foreground";
+const HELP_TEXT_CLASS =
+  "text-xs text-muted-foreground [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-foreground";
+
 /**
  * The whole import flow of one entity, driven by its [ImportConfig]: while nothing is stashed it is the
  * drop step; once a file is uploaded it is the preview — the statistics line, the config-driven table and
@@ -30,16 +37,34 @@ export function ImportFeature({ config }: Props) {
 
   if (!imp.hasStorage) {
     return (
-      <SectionCard className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">
-          {t(leafKeyOf(config.titleKey, t.has))}
-        </p>
-        <ImportDropStep
-          config={config}
-          onFile={(file) => imp.upload.mutate(file)}
-          uploadProgress={imp.uploadProgress}
-        />
-      </SectionCard>
+      <div className="flex flex-col gap-3">
+        <SectionCard className="flex flex-col gap-3">
+          {config.descriptionKey ? (
+            // Read with `t.raw`: the authored markdown carries quotes and arrows ICU must not touch.
+            <MarkdownText
+              text={t.raw(config.descriptionKey) as string}
+              className={DESCRIPTION_TEXT_CLASS}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t(leafKeyOf(config.titleKey, t.has))}
+            </p>
+          )}
+          <ImportDropStep
+            config={config}
+            onFile={(file) => imp.upload.mutate(file)}
+            uploadProgress={imp.uploadProgress}
+          />
+        </SectionCard>
+        {config.helpKey && (
+          <SectionCard className="bg-muted/40">
+            <MarkdownText
+              text={t.raw(config.helpKey) as string}
+              className={HELP_TEXT_CLASS}
+            />
+          </SectionCard>
+        )}
+      </div>
     );
   }
 

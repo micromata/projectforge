@@ -59,6 +59,13 @@ test.describe("creditor invoice import", { tag: "@lane-creditor" }, () => {
         })
       ).toBeVisible({ timeout: 60_000 });
 
+      // The DATEV guide of the former React upload page, rendered as markdown (the file name in bold,
+      // not with literal asterisks) — locale-independent, the file names are the same in every bundle.
+      await expect(
+        page.locator("strong", { hasText: "Lieferantenrechnungen.csv" })
+      ).toBeVisible();
+      await expect(page.getByText("**")).toHaveCount(0);
+
       // Drop the CSV onto the (sr-only) file input, and wait for the server's parse to land as the view.
       const uploaded = page.waitForResponse(
         (r) => r.url().includes("/rs/incomingInvoiceImport/upload") && r.ok()
