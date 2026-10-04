@@ -30,7 +30,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.OakStorage
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -46,7 +46,7 @@ class DataTransferJCRCleanUpJob {
     private lateinit var attachmentsService: AttachmentsService
 
     @Autowired
-    private lateinit var dataTransferAreaPagesRest: DataTransferAreaPagesRest
+    private lateinit var dataTransferAreaEntityRest: DataTransferAreaEntityRest
 
     @Autowired
     private lateinit var repoService: RepoService
@@ -86,7 +86,7 @@ class DataTransferJCRCleanUpJob {
                     processedDBOs.add(id)
                     val expiryMillis = (dbo.expiryDays ?: 30).toLong() * MILLIS_PER_DAY
                     val attachments = attachmentsService.internalGetAttachments(
-                        dataTransferAreaPagesRest.jcrPath!!,
+                        dataTransferAreaEntityRest.jcrPath!!,
                         id
                     )
                     attachments.forEach { attachment ->
@@ -95,7 +95,7 @@ class DataTransferJCRCleanUpJob {
                             log.info { "Deleting expired attachment of area '${dbo.areaName}': $attachment" }
                             attachment.fileId?.let { fileId ->
                                 attachmentsService.internalDeleteAttachment(
-                                    dataTransferAreaPagesRest.jcrPath!!,
+                                    dataTransferAreaEntityRest.jcrPath!!,
                                     fileId,
                                     dataTransferAreaDao,
                                     dbo,
@@ -116,7 +116,7 @@ class DataTransferJCRCleanUpJob {
             }
         }
 
-        val nodePath = repoService.getAbsolutePath(dataTransferAreaPagesRest.jcrPath)
+        val nodePath = repoService.getAbsolutePath(dataTransferAreaEntityRest.jcrPath)
         // The node doesn't exist until the first file is uploaded (e. g. on a new gateway instance).
         val nodeInfo = repoService.getNodeInfoOrNull(nodePath, true)
         nodeInfo?.children?.let { children ->

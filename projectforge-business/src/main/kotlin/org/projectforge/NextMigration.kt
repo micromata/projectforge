@@ -506,6 +506,21 @@ object NextMigration {
             legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.plugins.todo.ToDoEditPage",
             offerLegacyLink = false,
         ),
+        // The data transfer areas (plugin datatransfer), migrated from React and hand built: the list, the
+        // admin form (DataTransferAreaEntityRest) and the file view of an area (DataTransferFilesRest). The row
+        // click leads to the file view (`datatransfer/:id`), which everybody with access to the area gets; the
+        // admin form is a sub route of it. The React pages are gone (no UILayout served any more), so there is
+        // no way back; the legacy app is kept for the redirect of bookmarked React links only. The links of the
+        // file view, the activities and the personal box (react/datatransferfiles/dynamic/<id> & co., sent by
+        // the notification mails) are redirected by OrphanedLinkFilter.redirectDataTransferPage. The public
+        // pages of the external access (react/public/datatransfer) are not migrated.
+        "datatransfer" to NextPage(
+            route = "datatransfer",
+            editRoute = "datatransfer/$ID_PLACEHOLDER/edit",
+            newEntryRoute = "datatransfer/new",
+            legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
+        ),
     )
 
     /**

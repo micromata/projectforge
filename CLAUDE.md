@@ -12,6 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Language
 - Write all code comments, KDoc/JavaDoc, commit messages and documentation in English
+- German UI texts (`*_de.properties`) address the user informally ("du", not "Sie"). Write new and changed
+  texts that way, even where the surrounding bundle still says "Sie"
 
 ## Generated files
 - Never edit `projectforge-next/messages/generated.*.json` or

@@ -158,6 +158,24 @@ class OrphanedLinkFilterTest {
         )
     }
 
+    /**
+     * The dynamic React pages of the data transfer plugin are gone; the links of the notification mails (file
+     * view, -1 = own personal box) and bookmarks are bent onto the next pages. The public external access is
+     * not migrated and must not be touched.
+     */
+    @Test
+    fun `the old react data transfer pages are redirected to next`() {
+        Assertions.assertEquals("/next/datatransfer/42", redirectOf("/react/datatransferfiles/dynamic/42"))
+        Assertions.assertEquals("/next/datatransfer/-1", redirectOf("/react/datatransferfiles/dynamic/-1"))
+        Assertions.assertEquals("/next/datatransfer/42", redirectOf("/react/datatransferaudit/dynamic/42"))
+        Assertions.assertEquals("/next/datatransfer/personal-box", redirectOf("/react/datatransferpersonalfiles/dynamic"))
+        Assertions.assertEquals("/next/datatransfer", redirectOf("/react/datatransferfiles/dynamic/foo"))
+        Assertions.assertEquals("/next/datatransfer", redirectOf("/react/datatransfer"))
+        Assertions.assertEquals("/next/datatransfer/42/edit", redirectOf("/react/datatransfer/edit/42"))
+        Assertions.assertEquals("/next/datatransfer/new", redirectOf("/react/datatransfer/edit"))
+        Assertions.assertNull(redirectOf("/react/public/datatransfer/dynamic/abc"))
+    }
+
     /** The Wicket page of the IHK plugin has moved to projectforge-next; there is no way back to it. */
     @Test
     fun `the old wicket IHK page is redirected to next`() {

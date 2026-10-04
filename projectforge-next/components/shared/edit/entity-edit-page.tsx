@@ -21,6 +21,12 @@ export interface EntityEditPageProps<
   page: EditablePageDef<Row, Values, Data, M>;
   /** null adds a new entry: nothing is fetched and the form starts out blank. */
   id: number | null;
+  /**
+   * Endings that lead elsewhere than back where the user came from — a data transfer area's form
+   * saves into the area's file view, where the user opened it, rather than into the list. Merged over
+   * the default navigations, so a page names only the ones it changes.
+   */
+  outcome?: Partial<EditOutcome>;
 }
 
 /**
@@ -36,7 +42,11 @@ export function EntityEditPage<
   Values,
   Data extends EntityWithId,
   M extends EntityMetadata,
->({ page, id }: EntityEditPageProps<Row, Values, Data, M>) {
+>({
+  page,
+  id,
+  outcome: outcomeOverride,
+}: EntityEditPageProps<Row, Values, Data, M>) {
   const router = useRouter();
   const { edit } = page;
   // Where leaving the page leads: the caller that sent the user here, or the entity's own list.
@@ -61,6 +71,7 @@ export function EntityEditPage<
     afterDelete: () => router.push(back.route),
     afterUndelete: () => router.push(back.route),
     afterClone: (route) => router.push(route),
+    ...outcomeOverride,
   };
 
   return (

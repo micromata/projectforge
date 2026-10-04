@@ -51,11 +51,12 @@ import java.net.URI
 import java.util.Locale
 
 /**
- * The few pages of the gateway outside the React app: the start page (redirects to the data transfer), the login
- * page and the error page. All of them show whether and as whom the user is logged in.
+ * The few pages of the gateway outside the projectforge-next app: the start page (redirects to the data transfer),
+ * the login page and the error page. All of them show whether and as whom the user is logged in.
  *
- * The React client redirects to /next/login if not logged in (the login of the main instance lives in
- * projectforge-next, which the gateway doesn't serve), so the gateway's login page is mapped there.
+ * The next client goes to /next/login if not logged in, which on the gateway is this login page instead of the app's
+ * own (username and password, the gateway knows OAuth2 only): the app navigates there client side, the gateway
+ * refuses the page's RSC payload, and Next falls back to loading the url as a page, which ends here.
  */
 @Controller
 @ConditionalOnProperty(name = ["projectforge.gateway.enabled"], havingValue = "true")
@@ -63,10 +64,11 @@ class GatewayPageController(
     private val clientRegistrationRepository: ObjectProvider<ClientRegistrationRepository>,
 ) : ErrorController {
 
-    @GetMapping("/")
-    fun index(): ResponseEntity<String> = redirect(DATATRANSFER_URL)
+    /** "/next/" is the app's start page, which the gateway doesn't serve: the logo and an access refusal lead there. */
+    @GetMapping("/", "/next", "/next/")
+    fun index(): ResponseEntity<String> = redirect("$DATATRANSFER_URL/")
 
-    @GetMapping(LOGIN_URL)
+    @GetMapping(LOGIN_URL, "$LOGIN_URL/")
     fun login(
         request: HttpServletRequest,
         @RequestParam(required = false) returnUrl: String?,
@@ -75,7 +77,7 @@ class GatewayPageController(
         val page = Page(request)
         if (error == null && page.pfUser != null) {
             // Already logged in (e. g. the React client lost its state): continue.
-            return redirect(returnUrl?.takeIf { isSafeReturnUrl(it) } ?: DATATRANSFER_URL)
+            return redirect(returnUrl?.let { safeReturnUrl(it) } ?: "$DATATRANSFER_URL/")
         }
         val message = if (error != null) {
             val exception = request.getSession(false)?.let { session ->
@@ -180,14 +182,23 @@ class GatewayPageController(
         ResponseEntity.status(HttpStatus.FOUND).location(URI.create(url)).build()
 
     companion object {
-        const val DATATRANSFER_URL = "/react/datatransfer"
+        const val DATATRANSFER_URL = "/next/datatransfer"
         const val LOGIN_URL = "/next/login"
         const val LOGOUT_URL = "/logout"
 
         /**
-         * Only relative URLs of the data transfer pages: no open redirect to foreign hosts ("//host", "/\host").
+         * The url to continue with after the login, if it is one of the data transfer pages. The next client names it
+         * without the app's base path ("/datatransfer/42", see AuthGuard), which is added then.
+         *
+         * Only relative URLs: no open redirect to foreign hosts ("//host", "/\host").
          */
-        internal fun isSafeReturnUrl(url: String): Boolean =
-            url.startsWith(DATATRANSFER_URL) && !url.contains("//") && !url.contains("\\")
+        internal fun safeReturnUrl(url: String): String? {
+            if (url.contains("//") || url.contains("\\")) return null
+            val absolute = if (url.startsWith(APP_DATATRANSFER_ROUTE)) "/next$url" else url
+            return absolute.takeIf { it == DATATRANSFER_URL || it.startsWith("$DATATRANSFER_URL/") || it.startsWith("$DATATRANSFER_URL?") }
+        }
+
+        /** The route of the data transfer within the next app, i.e. without its base path. */
+        private const val APP_DATATRANSFER_ROUTE = "/datatransfer"
     }
 }

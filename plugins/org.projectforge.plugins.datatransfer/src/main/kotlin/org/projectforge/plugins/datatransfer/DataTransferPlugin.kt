@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
-import org.projectforge.Constants
+import org.projectforge.NextMigration
 import org.projectforge.business.admin.SystemStatistics
 import org.projectforge.jcr.RepoBackupService
 import org.projectforge.menu.Menu
@@ -34,8 +34,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.plugins.datatransfer.rest.DataTransferArea
-import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
-import org.projectforge.plugins.datatransfer.rest.DataTransferPersonalBox
+import org.projectforge.plugins.datatransfer.rest.DataTransferAreaEntityRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.web.WicketSupport
 
@@ -52,24 +51,24 @@ class DataTransferPlugin :
     ) {
 
     override fun initialize() {
-        val dataTransferAreaPagesRest = WicketSupport.get(DataTransferAreaPagesRest::class.java)
+        val dataTransferAreaEntityRest = WicketSupport.get(DataTransferAreaEntityRest::class.java)
         val dataTransferAreaDao = WicketSupport.get(DataTransferAreaDao::class.java)
         val menuCreator = WicketSupport.get(MenuCreator::class.java)
         val systemStatistics = WicketSupport.get(SystemStatistics::class.java)
-        WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaPagesRest.jcrPath!!)
+        WicketSupport.get(RepoBackupService::class.java).registerNodePathToIgnore(dataTransferAreaEntityRest.jcrPath!!)
 
         // Register it:
         register(dataTransferAreaDao::class.java, dataTransferAreaDao, "plugins.datatransfer")
 
         menuCreator.register(
             MenuItemDefId.MISC,
-            MenuItemDef(info.id, "plugins.datatransfer.menu", "${Constants.REACT_APP_PATH}datatransfer")
+            MenuItemDef(info.id, "plugins.datatransfer.menu", NextMigration.listUrl(DataTransferUtils.ROUTE))
         )
 
         menuCreator.registerPluginMenu(
             "DataTransferPersonalBox",
             "plugins.datatransfer.personalBox",
-            "${Constants.REACT_APP_PATH}datatransferfiles/dynamic/-1"
+            DataTransferUtils.areaViewPath(DataTransferUtils.PERSONAL_BOX_ID)
         )
 
         // All the i18n stuff:
@@ -81,11 +80,6 @@ class DataTransferPlugin :
             "externalLink",
             "externalAccessEnabled",
             "lastUpdateTimeAgo",
-            "maxUploadSizeFormatted"
-        )
-        JacksonConfiguration.registerAllowedUnknownProperties(
-            DataTransferPersonalBox::class.java,
-            "lastUpdateTimeAgo"
         )
 
         systemStatistics.registerStatisticsBuilder(

@@ -2392,7 +2392,40 @@
       }
     },
     "datatransfer": {
+      "access": {
+        "title": "Zugriff"
+      },
+      "accessGroups": {
+        "_": "Gruppen mit Zugriff",
+        "info": "Mitglieder dieser Gruppe (wenn angegeben) haben vollen Zugriff auf Dateien dieses Bereichs."
+      },
+      "accessUsers": {
+        "_": "Benutzer mit Zugriff",
+        "info": "Diese Benutzer (wenn angegeben) haben vollen Zugriff auf Dateien dieses Bereichs."
+      },
+      "admins": {
+        "_": "Admins",
+        "info": "Admins haben vollen Zugriff auf diesen Bereich und alle Einstellungen. Sie können diesen Bereich auch löschen und für die externe Benutzung administrieren."
+      },
       "areaName": "Bereich",
+      "audit": {
+        "_": "Aktivitätsprotokoll",
+        "action": "Aktion",
+        "display": "Aktivitätsprotokoll",
+        "downloadEvents": "Download-Ereignisse der letzten 30 Tage",
+        "downloadedBy": "Heruntergeladen von",
+        "events": "Ereignisse der letzten 30 Tage"
+      },
+      "button": {
+        "downloadAll": {
+          "_": "Alles herunterladen",
+          "info": "Alle Dateien in einem ZIP-Archiv herunterladen."
+        }
+      },
+      "capacity": {
+        "_": "Kapazität",
+        "stats": "{arg0}/{arg1} ({arg2}%)"
+      },
       "description": {
         "_": "Beschreibung",
         "info": "Diese Beschreibung ist auch für externe Benutzer über Link/Passwort einsehbar."
@@ -2402,6 +2435,9 @@
         "info": "Jede Datei dieses Bereichs wird automatisch gelöscht."
       },
       "external": {
+        "access": {
+          "title": "Externer Zugriff"
+        },
         "accessToken": {
           "_": "Zugriffstoken",
           "info": "Dieser Zugriffstoken ist Teil des Links für externe Personen. Bitte erneuern, falls dieser Zugriff in unbefugte Hände geraten sein könnte."
@@ -2409,23 +2445,65 @@
         "download": {
           "enabled": {
             "_": "Externer Download freigegeben",
-            "info": "Wenn freigegeben, können externe Personen Dateien via Link und Zugriffstoken herunterladen."
+            "info": "Wenn freigegeben, können externe Personen Dateien via Link und Zugriffstoken herunterladen.",
+            "title": "Externer Download"
+          }
+        },
+        "link": {
+          "_": "External Zugriffslink",
+          "renew": {
+            "_": "Erneuern",
+            "info": "Bitte den Link erneuern, wenn der Link in unbefugte Hände geraten sein könnte. Der alte Link wird erst durch Speichern ungültig."
           }
         },
         "password": {
           "_": "Passwort",
-          "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert."
+          "info": "Dieses Passwort soll die Sicherheit gegen Zugriffe erhöhen und ist durch einen Brute-Force-Schutz gesichert.",
+          "renew": {
+            "_": "Erneuern",
+            "info": "Nach Änderung des Passworts bitte alle Personen informieren."
+          }
         },
         "upload": {
           "enabled": {
             "_": "Externer Upload freigegeben",
-            "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen."
+            "info": "Wenn freigegeben, können externe Personen über den Link und Passwort hochladen.",
+            "title": "Externer Upload"
           }
         }
+      },
+      "gateway": {
+        "externalAccess": {
+          "edit": "Externer Zugriff kann hier nicht konfiguriert werden. Dazu muss ein Datentransferbereich auf dem Server {arg0} angelegt und administriert werden.",
+          "list": "Externer Zugriff (lesend/schreibend) kann hier nicht konfiguriert werden. Datentransferbereiche mit externem Zugriff müssen auf dem Server {arg0} angelegt und administriert werden."
+        }
+      },
+      "internal": {
+        "link": "Interner Link"
       },
       "maxUploadSize": {
         "_": "Maximale Uploadgröße",
         "info": "Maximale Uploadgröße einer Datei. Die maximale Größe dieses gesamten Bereichs beträgt den doppelten Wert."
+      },
+      "observers": {
+        "_": "Beobachter",
+        "info": "Diese Beobachter bekommen Benachrichtigungs-E-Mails, wenn in diesem Bereich Dateien hochgeladen (intern oder extern) oder von extern heruntergeladen wurden."
+      },
+      "personalBox": {
+        "_": "Persönliche Box",
+        "info": "Über die persönliche Box können Dateien direkt an andere Benutzer gesendet werden.",
+        "select": "Wähle den Benutzer, dessen persönliche Box du öffnen möchtest.",
+        "title": "Persönliche Box von {arg0}"
+      },
+      "title": {
+        "add": "Neuen Bereich für Datentransfer anlegen",
+        "edit": "Bereich für Datentransfer administrieren",
+        "heading": "Bereich für Datentransfer",
+        "list": "Liste aller Bereiche für Datentransfer"
+      },
+      "userWantsToObserve": {
+        "_": "Beobachten",
+        "info": "Wenn ausgewählt, bekommen Sie E-Mails bei Aktivitäten durch andere Benutzer in diesem Bereich."
       }
     },
     "ihk": {

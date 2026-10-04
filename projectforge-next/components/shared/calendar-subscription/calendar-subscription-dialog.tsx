@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, TickDouble01Icon } from "@hugeicons/core-free-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { CopyableValue } from "@/components/shared/copyable-value";
 import { Spinner } from "@/components/shared/spinner";
 import {
   fetchCalendarSubscriptionInfo,
@@ -39,19 +35,12 @@ export function CalendarSubscriptionDialog({
   onClose,
 }: Props) {
   const t = useTranslations();
-  const [copied, setCopied] = useState(false);
   const query = useQuery({
     queryKey: ["calendarSubscription", type],
     queryFn: ({ signal }) => fetchCalendarSubscriptionInfo(type, signal),
   });
   const info = query.data;
   const url = info?.url;
-
-  async function copy() {
-    if (!url) return;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-  }
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -68,29 +57,10 @@ export function CalendarSubscriptionDialog({
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={url ?? ""}
-                aria-label={
-                  info?.headline ?? t("plugins.teamcal.subscription._")
-                }
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                aria-label={t("copy")}
-                disabled={!url}
-                onClick={() => void copy()}
-              >
-                <HugeiconsIcon
-                  icon={copied ? TickDouble01Icon : Copy01Icon}
-                  size={16}
-                />
-              </Button>
-            </div>
+            <CopyableValue
+              value={url}
+              label={info?.headline ?? t("plugins.teamcal.subscription._")}
+            />
             {url && info?.barcodeUrl && (
               // eslint-disable-next-line @next/next/no-img-element -- rendered by the backend at runtime.
               <img
