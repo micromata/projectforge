@@ -20,7 +20,7 @@
 
 ### Remaining Wicket pages and how they are reached
 
-29 concrete page classes are left (`projectforge-wicket`).
+22 concrete page classes are left (`projectforge-wicket`).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
@@ -30,11 +30,11 @@
 |---|---|---|
 | Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
 | Escape hatch, hard-coded in next | `TaskTreePage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`) | Wicket pages among themselves |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
-wizard and the old calendar pages. An escape-hatch category can only go
+wizard. An escape-hatch category can only go
 after its `offerLegacyLink` has been set to `false`.
 
 ### Plugins
@@ -77,8 +77,8 @@ These would break silently if the module were simply deleted.
     – done: `lib/access-links.ts` → `next/access?taskId=…`, seeded as a transient task filter.
   - ~~`EingangsrechnungUploadPageRest`, `IncomingInvoicePosImportPageRest` `callerPage` `/wa/incomingInvoiceList`~~
     – done: `NextMigration.listUrl(DaoConst.INCOMING_INVOICE)`.
-  - ~~`GroupPagesRest.kt:153`~~ (class removed), `TeamCalPagesRest.kt:106` – `classicsLinkListUrl` into Wicket; remove once
-    the targets are gone (TeamCal: see Phase 2).
+  - ~~`GroupPagesRest.kt:153`~~ (class removed), ~~`TeamCalPagesRest.kt:106`~~ – `classicsLinkListUrl` into
+    Wicket; removed with the TeamCal pages (see Phase 2).
 
 ## Phase 2 – Migrate or deliberately drop the remaining functionality
 
@@ -97,10 +97,22 @@ Each item: build in next, or decide with the product owner that it goes away.
       debitor/creditor invoices) moved to the forecast tab's Excel export (`/rs/liquidity/forecast/excel`,
       `LiquidityForecastExcelExport`); only the "paranoia case" forecast series was dropped. The
       `NextMigration` entry keeps its `legacyRoute`s so old bookmarks still redirect.
-- [ ] **TeamCal administration** (`TeamCalListPage`/`TeamCalEditPage`), **ICS import**
-      (`TeamCalImportPage`, `TeamCalImportDao`), **team event list**, ICS download in
-      `TeamEventEditPage`, the ICS subscription-link dialogs (`TimesheetsICSExportDialog`,
-      `TeamCalICSExportDialog`) – check what React/next already covers.
+- [x] **TeamCal / ICS** – all Wicket calendar pages deleted (`web/teamcal/**`, the old calendars
+      `wa/oldCalendar`/`wa/oldTeamCalendar` with their events providers and the embedded FullCalendar
+      `net.ftlines`, the ICS dialogs); old bookmarks are redirected by `OrphanedLinkFilter`.
+      - TeamCal administration stays in React (`react/teamCal`, `TeamCalPagesRest`), it already covered the
+        Wicket pages.
+      - ICS import migrated to `next/teamCalImport` (`TeamEventImportRest` on the shared import with a diff
+        preview, reconcile by uid), reached from the calendar's more menu and the TeamCal edit page.
+      - ICS download of a single event in the next event editor (`teamEvent/exportIcs/{id}`).
+      - Subscription links (time sheets, holidays, weeks of year) as the shared next
+        `CalendarSubscriptionDialog` (`calendarSubscription/info`), with the QR code; fixed on the way: a
+        holiday spanned six years in the feed, the weeks-of-year feed, the relative time sheet url, the
+        reminder default of read-only calendars.
+      - Dropped: the team event list (events are reached through the calendar).
+      - Attendees are not shown: `TeamEventDO.attendees` is `@Transient` (mapping commented out since
+        2024-11), so they are neither loaded nor saved. Restoring that is separate work.
+      - The Wicket-only i18n keys of these pages are left for the i18n pruning of Phase 4.
 - [x] **Exports only in Wicket pages** – Kost1/Kost2 Excel export (`Kost1EntityRest`/`Kost2EntityRest`
       `exportAsExcel`), incoming invoice list and cost-assignment Excel (list bar of `next/creditor-invoice`),
       SEPA transfer (pain.001) as a button of the edit page and the mass update (Wicket never had a separate

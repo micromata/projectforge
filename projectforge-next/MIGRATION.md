@@ -445,6 +445,20 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Endpunkte `LogViewerRest` (`/rs/logViewer`, alle Benutzer) und `AdminLogViewerRest`
   (`/rs/adminLogViewer`, Admin + 2FA); `LogViewerPageRest`/`AdminLogViewerPageRest` entfernt.
   Keine Redirects alter React-Links (Subscription-Ids leben nur im Speicher).
+- **Kalender-Beiwerk (ICS)** – die letzten Kalenderfunktionen, die nur Wicket hatte:
+  **ICS-Import** `next/teamCalImport?teamCalId=` (`TeamEventImportRest` über das gemeinsame
+  `ImportFeature` mit Diff-Vorschau; Abgleich per UID im Zielkalender, Ziel vor und nach dem Upload
+  wählbar über `ImportConfig.uploadFields`/`renderBeforeDrop`; Einstieg im Mehr-Menü des Kalenders),
+  **ICS-Download** eines Termins im Termin-Editor (`GET teamEvent/exportIcs/{id}`) und die
+  **Abo-Links** (Zeitberichte, Feiertage, Kalenderwochen) als geteilter
+  `CalendarSubscriptionDialog` (URL, QR-Code, Sicherheitshinweis; `GET calendarSubscription/info`),
+  im Mehr-Menü des Kalenders und in der Zeitberichtsliste. Ersatzlos entfallen: die Terminliste
+  (Termine erreicht man über den Kalender) und die alten Wicket-Kalender `wa/oldCalendar`,
+  `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. Teilnehmer werden
+  nicht angezeigt: `TeamEventDO.attendees` ist `@Transient` (Mapping seit 2024-11 auskommentiert),
+  wird also weder geladen noch gespeichert – das wiederherzustellen ist eine eigene Aufgabe. Bekannte
+  Grenze des Imports: `ICalParser` wertet `DURATION` nicht aus, ein Termin mit Uhrzeit ohne `DTEND`
+  wird als fehlerhaft abgelehnt. Alte Lesezeichen leitet `OrphanedLinkFilter` um.
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die
