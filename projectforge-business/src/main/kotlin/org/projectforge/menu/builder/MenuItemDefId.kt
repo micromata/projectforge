@@ -87,8 +87,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     HR_PLANNING_LIST("menu.hrPlanningList", getListUrl("hrPlanning")), //
     HR_VIEW("menu.hrList", "next/hrList"), //
     INBOX_LIST("menu.orga.posteingang", getReactListUrl("incomingMail")), //
-    // Migrated to projectforge-next, list and form; wa/incomingInvoiceList stays reachable through the
-    // escape hatch, see NextMigration.legacyListUrl.
+    // Migrated to projectforge-next, list and form; the Wicket pages (wa/incomingInvoiceList/Edit) were removed.
     INCOMING_INVOICE_LIST("menu.fibu.eingangsrechnungen", getListUrl("incomingInvoice")), //
     CURRENCY_PAIR_LIST("menu.fibu.currencyPair", getReactListUrl("currencyPair")), //
     JOB_MONITOR("jobs.monitor.title", getReactDynamicPageUrl("jobsMonitor")), //

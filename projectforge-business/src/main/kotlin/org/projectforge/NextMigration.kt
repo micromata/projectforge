@@ -412,16 +412,16 @@ object NextMigration {
         // Migrated from Wicket, list and form. The route is `creditor-invoice`, not the category: `invoice`
         // is the outgoing side, and this is the incoming (creditor) one - which side the category names is
         // what the menu says. Nothing is left behind on Wicket: the SEPA transfer export sits on the edit page
-        // and the mass update, the CSV import is next/creditor-invoice-import (see MIGRATION.md). Wicket's
-        // mount points follow the convention (DaoConst.INCOMING_INVOICE + List/Edit), so no legacy route has
-        // to be spelled out.
+        // and the mass update, the CSV import is next/creditor-invoice-import (see MIGRATION.md). The Wicket
+        // pages have been removed; their mount points followed the convention (DaoConst.INCOMING_INVOICE +
+        // List/Edit), so no legacy route has to be spelled out.
         "incomingInvoice" to NextPage(
             route = "creditor-invoice",
             editRoute = "creditor-invoice/$ID_PLACEHOLDER",
             newEntryRoute = "creditor-invoice/new",
             legacyApp = LegacyApp.WICKET,
-            // Trusted now: the way back is no longer offered (neither list menu nor edit button).
-            // legacyApp stays so OrphanedLinkFilter still redirects bookmarked wa/incomingInvoice* links.
+            // The way back is no longer offered; legacyApp stays only so OrphanedLinkFilter still redirects
+            // bookmarked wa/incomingInvoice* links.
             offerLegacyLink = false,
         ),
         // The project list was the generic React page (ProjectPagesRest's layout), its form the Wicket

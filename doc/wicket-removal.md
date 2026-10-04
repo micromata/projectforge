@@ -20,7 +20,7 @@
 
 ### Remaining Wicket pages and how they are reached
 
-43 concrete page classes are left (`projectforge-wicket`).
+30 concrete page classes are left (`projectforge-wicket`).
 "Reached" means a real link or registration – mentions in comments are not counted. Sources:
 `MenuItemRegistry`, `WebRegistry.init()`, `NextMigration.MIGRATED`, `wa/…` links in next/REST code.
 
@@ -28,9 +28,9 @@
 
 | Group | Pages | Reached from |
 |---|---|---|
-| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), cost1 (`Kost1*Page`), cost2 (`Kost2*Page`), cost2Type (`Kost2Art*Page`), gantt (`GanttChart*Page`), project (`Projekt*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
+| Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
 | Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `AdminPage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `system-page.tsx` (`wa/admin?legacyEscape`), `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `EingangsrechnungListPage`/`EingangsrechnungEditPage` (`offerLegacyLink = false`, mount only), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
@@ -102,9 +102,12 @@ Each item: build in next, or decide with the product owner that it goes away.
       (`TeamCalImportPage`, `TeamCalImportDao`), **team event list**, ICS download in
       `TeamEventEditPage`, the ICS subscription-link dialogs (`TimesheetsICSExportDialog`,
       `TeamCalICSExportDialog`) – check what React/next already covers.
-- [ ] **Exports only in Wicket list pages** – Kost1/Kost2 Excel export, incoming invoice cost-assignment
-      Excel / XML export (`EingangsrechnungListPage`), SEPA transfer export page, CSV/SEPA import wizard
-      (see MIGRATION.md, Kreditorenrechnungen TODO).
+- [x] **Exports only in Wicket pages** – Kost1/Kost2 Excel export (`Kost1EntityRest`/`Kost2EntityRest`
+      `exportAsExcel`), incoming invoice list and cost-assignment Excel (list bar of `next/creditor-invoice`),
+      SEPA transfer (pain.001) as a button of the edit page and the mass update (Wicket never had a separate
+      SEPA page), CSV import via `next/creditor-invoice-import`. The Wicket pages of cost 1/2, cost 2 types,
+      projects and incoming invoices are removed; `wa/cost*`, `wa/project*`, `wa/incomingInvoice*` are
+      redirected by `OrphanedLinkFilter` (see MIGRATION.md).
 - [x] **DATEV import** (`DatevImportPage`) – removed with its form, storage panel and the legacy
       `BuchungssatzExcelImporter`/`KontenplanExcelImporter`; `next/datev-import` covers it (status filter,
       per-row error texts, BWA preview, log viewer). The upload limit is `projectforge.max-file-size.datev`

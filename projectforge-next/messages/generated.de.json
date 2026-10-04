@@ -1394,10 +1394,7 @@
       "beschreibung": "Beschreibung",
       "besonderheiten": "Besonderheiten",
       "betreff": "Betreff",
-      "bezahlDatum": {
-        "_": "Bezahldatum",
-        "short": "Bezahlt"
-      },
+      "bezahlDatum": "Bezahldatum",
       "bic": "BIC",
       "bruttoBetrag": "Bruttobetrag",
       "cancellation": {
@@ -1433,7 +1430,6 @@
         "_": "Rechnungsdatum",
         "short": "Datum"
       },
-      "discount": "Skonto (Datum und %-Wert)",
       "discountMaturity": "Skonto Fälligkeit",
       "discountPercent": "Skonto Prozent",
       "discountZahlungsZiel": "Skonto Zahlungsziel",
@@ -1474,12 +1470,10 @@
         },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "Eine Gutschriftsanzeige durch den Kunden hat keine Rechnungsnummer.",
         "kundeTextOderProjektRequired": "Ein Kundentext oder ein Projekt müssen angegeben sein.",
-        "negativAmount": "Bei Überweisung kann kein negativer Brutto-Betrag existieren",
         "rechnungHatKeinePositionen": "Die Rechnung hat keine Rechnungspositionen.",
         "rechnungsNummerBereitsVergeben": "Die Rechnungsnummer ist bereits vergeben.",
         "rechnungsNummerIstNichtFortlaufend": "Die Rechnungsnummer ist nicht die nächstfolgende (nicht fortlaufend).",
         "statusBezahltErfordertZahlBetrag": "Die Rechnung kann nur auf \"bezahlt\" gesetzt werden, wenn auch ein Zahlbetrag eingetragen wurde.",
-        "unknownCurrency": "Die Währung '${currency}' ist unbekannt. Bitte entfernen für Verwendung der System-Standardwährung oder füge die Währung über die Funktion Währungsumrechnung hinzu.",
         "zahlbetragRequired": "Wenn das Bezahldatum gegeben ist muss auch der zugehörige Zahlbetrag eingegeben sein."
       },
       "exportEInvoice": "XRechnung exportieren",
@@ -1491,10 +1485,7 @@
         }
       },
       "exportZUGFeRD": "ZUGFeRD exportieren",
-      "faelligkeit": {
-        "_": "Fälligkeit",
-        "short": "Fällig"
-      },
+      "faelligkeit": "Fälligkeit",
       "filter": {
         "incomplete": "unvollständig",
         "incompleteTooltip": {
@@ -1543,9 +1534,7 @@
       "receiver": "Empfänger",
       "rechnungen": "Debitorenrechnungen",
       "sellerBankAccount": "Bankverbindung (Verkäufer)",
-      "showEditableKostZuweisungen": "Kostzuweisungen editieren",
       "showKostZuweisungen": "Kostzuweisungen",
-      "showKostZuweisungstatus": "Kostzuweisungsstatus",
       "showTextAreas": "Positionsbeschreibungen",
       "skonto": "Skonto / Fehlbetrag",
       "statistics": {

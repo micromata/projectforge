@@ -244,8 +244,8 @@ public class WebRegistry
     // The order book (Auftragsbuch) has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/orderBook* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
-    register(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class);
-    addMountPages(DaoConst.INCOMING_INVOICE, EingangsrechnungListPage.class, EingangsrechnungEditPage.class);
+    // The incoming invoice (Kreditoren) has been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/incomingInvoice* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
     // The outgoing invoice (Debitoren) has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/outgoingInvoice* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).

@@ -1394,10 +1394,7 @@
       "beschreibung": "Description",
       "besonderheiten": "Specifics",
       "betreff": "Subject",
-      "bezahlDatum": {
-        "_": "Payment date",
-        "short": "Paid"
-      },
+      "bezahlDatum": "Payment date",
       "bic": "BIC",
       "bruttoBetrag": "Gross amount",
       "cancellation": {
@@ -1433,7 +1430,6 @@
         "_": "Date of invoice",
         "short": "Date"
       },
-      "discount": "Discount (Date and %-value)",
       "discountMaturity": "Discount maturity",
       "discountPercent": "Discount percent",
       "discountZahlungsZiel": "Discount payment target",
@@ -1474,12 +1470,10 @@
         },
         "gutschriftsanzeigeDarfKeineRechnungsnummerHaben": "A credit advice has now invoice number.",
         "kundeTextOderProjektRequired": "Customer text or project required.",
-        "negativAmount": "It's not possible to have a negative gross value with bank transfer",
         "rechnungHatKeinePositionen": "The invoice has no positions.",
         "rechnungsNummerBereitsVergeben": "Invoice number does already exists.",
         "rechnungsNummerIstNichtFortlaufend": "Invoice number is not continuously.",
         "statusBezahltErfordertZahlBetrag": "If status is \"paid\" then a paid amount must be given.",
-        "unknownCurrency": "The currency '${currency}' is unknown. Please remove it to use the system default currency or add the currency using the currency conversion function.",
         "zahlbetragRequired": "If date of payment is given then the paid amount should be given."
       },
       "exportEInvoice": "Export XRechnung",
@@ -1491,10 +1485,7 @@
         }
       },
       "exportZUGFeRD": "Export ZUGFeRD",
-      "faelligkeit": {
-        "_": "Due date",
-        "short": "due"
-      },
+      "faelligkeit": "Due date",
       "filter": {
         "incomplete": "incomplete",
         "incompleteTooltip": {
@@ -1543,9 +1534,7 @@
       "receiver": "Receiver",
       "rechnungen": "Invoices",
       "sellerBankAccount": "Bank account (seller)",
-      "showEditableKostZuweisungen": "Editable cost id assignments",
       "showKostZuweisungen": "Cost id assignments",
-      "showKostZuweisungstatus": "Status of cost id assignments",
       "showTextAreas": "Position texts",
       "skonto": "Discount",
       "statistics": {
