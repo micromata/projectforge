@@ -29,11 +29,9 @@ import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.ProjektStatus
-import org.projectforge.business.fibu.kost.Kost2DO
-import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.business.fibu.kost.ProjektKost2Service
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -41,6 +39,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
+import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
@@ -58,6 +57,7 @@ import org.projectforge.ui.UISelectValue
 import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
+import org.projectforge.ui.filter.Kost2FilterUtils
 import org.projectforge.ui.filter.UIFilterListValue
 import org.projectforge.ui.filter.addLeading
 import org.springframework.beans.factory.annotation.Autowired
@@ -96,7 +96,7 @@ class ProjectEntityRest
     private lateinit var kostCache: KostCache
 
     @Autowired
-    private lateinit var kost2Dao: Kost2Dao
+    private lateinit var projektKost2Service: ProjektKost2Service
 
     @PostConstruct
     private fun postConstruct() {
@@ -117,7 +117,7 @@ class ProjectEntityRest
         projekt.copyFrom(obj)
         if (editMode || obj.id == null) {
             val activeArtIds = kostCache.getKost2ForProjekt(obj.id)
-                .filter { isActive(it) }
+                .filter { projektKost2Service.isActive(it) }
                 .mapNotNull { it.kost2Art?.id }
                 .toSet()
             projekt.kost2Arts = kostCache.getAllKost2ArtsForProjekt(obj.id).map { art ->
@@ -146,14 +146,23 @@ class ProjectEntityRest
 
     /**
      * The cost 2 types column: the two-digit ids of the project's existing cost 2 units, read from the
-     * [KostCache] (no query per row).
+     * [KostCache] (no query per row). [Project.kost2Arts] carries the same types with name and
+     * whether their unit is [Kost2Art.active], for the cell (a non-active one struck through) and its tooltip.
      */
     override fun createListRow(obj: ProjektDO): Project {
         val dto = transformFromDB(obj, false)
-        dto.kost2ArtsAsString = kostCache.getKost2ArtsForProjekt(obj.id)
-            .mapNotNull { it.id }
-            .sorted()
-            .joinToString { StringHelper.format2DigitNumber(it) }
+        val kost2s = kostCache.getKost2ForProjekt(obj.id)
+            .filter { it.kost2Art?.id != null }
+            .sortedBy { it.kost2Art!!.id }
+        dto.kost2ArtsAsString = kost2s.joinToString { StringHelper.format2DigitNumber(it.kost2Art!!.id!!) }
+        dto.kost2Arts = kost2s.map { kost2 ->
+            // The type from the cache: the unit's own reference may be a lazy proxy.
+            val art = kostCache.getKost2ArtIfNotInitialized(kost2.kost2Art)
+            Kost2Art(id = kost2.kost2Art!!.id, name = art?.name).also {
+                it.existsAlready = true
+                it.active = projektKost2Service.isActive(kost2)
+            }
+        }
         return dto
     }
 
@@ -182,6 +191,25 @@ class ProjectEntityRest
         // customerFilterValues), as on the order list, replacing the free-text pills on the customer's fields.
         elements.removeTextFilters("kunde")
         elements.addLeading(businessUnitFilter.element(), customerFilter.element())
+        // The cost 2 types the projects have active, and the gaps (non-active or missing ones); both pinned,
+        // consumed in preProcessMagicFilter.
+        val kost2Arts = kostCache.getKost2Arts()
+        elements.add(
+            Kost2FilterUtils.createKost2ArtFilterElement(kost2Arts).also {
+                it.label = translate("fibu.projekt.filter.kost2ArtsActive")
+                it.tooltip = translate("fibu.projekt.filter.kost2ArtsActive.tooltip")
+                it.defaultFilter = true
+            }
+        )
+        elements.add(
+            Kost2FilterUtils.createKost2ArtFilterElement(kost2Arts).also {
+                it.id = KOST2_ARTS_NOT_ACTIVE_FIELD
+                it.key = KOST2_ARTS_NOT_ACTIVE_FIELD
+                it.label = translate("fibu.projekt.filter.kost2ArtsNotActive")
+                it.tooltip = translate("fibu.projekt.filter.kost2ArtsNotActive.tooltip")
+                it.defaultFilter = true
+            }
+        )
     }
 
     /**
@@ -202,6 +230,8 @@ class ProjectEntityRest
     override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<ProjektDO>>? {
         viaProject.addCriterion(target, source, CustomerChecklistFilter.FIELD, customerFilter::projectMatch)
         viaProject.addCriterion(target, source, BusinessUnitChecklistFilter.FIELD, businessUnitFilter::projectMatch)
+        addKost2ArtCriterion(target, source)
+        addKost2ArtsNotActiveCriterion(target, source)
         val entry = source.entries.find { it.field == LIST_TYPE_FIELD } ?: return null
         entry.synthetic = true
         val listTypes = entry.value.values?.filter { it.isNotBlank() }.orEmpty()
@@ -212,6 +242,41 @@ class ProjectEntityRest
             else -> target.add(or(*predicates.toTypedArray()))
         }
         return null
+    }
+
+    /**
+     * The "active cost 2 types" filter: the projects with an active (not deleted) unit of any picked type,
+     * resolved from the [KostCache] — a project has no `kost2` path, so `Kost2FilterUtils.preProcessKost2Art`
+     * doesn't fit.
+     */
+    private fun addKost2ArtCriterion(target: QueryFilter, source: MagicFilter) {
+        val entry = source.entries.find { it.field == Kost2FilterUtils.kost2ArtFieldId() } ?: return
+        entry.synthetic = true
+        val artIds = entry.value.values?.mapNotNull { it?.toLongOrNull() }.orEmpty()
+        if (artIds.isEmpty()) {
+            return
+        }
+        val projektIds = kostCache.getProjektIdsWithActiveKost2Arts(artIds)
+        // An empty IN is dropped by DBPredicate.IsIn (would match all), so match no id instead.
+        target.add(if (projektIds.isEmpty()) eq("id", -1L) else isIn("id", projektIds))
+    }
+
+    /**
+     * The "non-active or missing cost 2 types" filter, to find the gaps: the projects without an active (not
+     * deleted) unit of at least one picked type — the complement of [addKost2ArtCriterion] per type. Resolved
+     * as the cached projects minus those having all picked types active.
+     */
+    private fun addKost2ArtsNotActiveCriterion(target: QueryFilter, source: MagicFilter) {
+        val entry = source.entries.find { it.field == KOST2_ARTS_NOT_ACTIVE_FIELD } ?: return
+        entry.synthetic = true
+        val artIds = entry.value.values?.mapNotNull { it?.toLongOrNull() }.orEmpty()
+        if (artIds.isEmpty()) {
+            return
+        }
+        val complete = kostCache.getProjektIdsWithAllActiveKost2Arts(artIds)
+        val projektIds = projektCache.all.keys - complete
+        // An empty IN is dropped by DBPredicate.IsIn (would match all), so match no id instead.
+        target.add(if (projektIds.isEmpty()) eq("id", -1L) else isIn("id", projektIds))
     }
 
     private fun predicateFor(listType: String): DBPredicate? {
@@ -281,15 +346,9 @@ class ProjectEntityRest
     }
 
     /**
-     * Brings the project's cost 2 units in line with the cost 2 types checked in the form:
-     * - a checked type gets an active cost 2 unit: a new one (see `ProjektEditPage.afterSaveOrUpdate`), a
-     *   deleted one is undeleted (inserting would collide with its number), a non-active or ended one is
-     *   activated again;
-     * - an unchecked type with an active cost 2 unit is set non-active. It is never deleted: the time sheets
-     *   and invoices booked on it keep it, only new time sheets can't be booked on it any more
-     *   ([KostCache.getActiveKost2]).
-     *
-     * Read from the cache but written through [Kost2Dao] on a freshly loaded object (rights, history, cache).
+     * Brings the project's cost 2 units in line with the cost 2 types checked in the form: a checked type gets
+     * an active cost 2 unit, an unchecked one with an active unit is set non-active, never deleted (see
+     * [ProjektKost2Service]).
      *
      * Nothing is changed for an ended project (the status as saved, also if it was ended with this save): its
      * cost 2 units are ended anyway, the form shows them read-only.
@@ -300,43 +359,12 @@ class ProjectEntityRest
             return
         }
         val projektId = obj.id ?: return
-        val kost2ByArtId = kostCache.getKost2ForProjekt(projektId, includeDeleted = true)
-            .filter { it.kost2Art?.id != null }
-            // A deleted unit only counts if there is no other one of the same type (there shouldn't be).
-            .sortedBy { !it.deleted }
-            .associateBy { it.kost2Art!!.id!! }
-        postData.data.kost2Arts?.forEach { art ->
-            val artId = art.id ?: return@forEach
-            val cached = kost2ByArtId[artId]
-            if (art.selected) {
-                if (cached == null) {
-                    val kost2 = Kost2DO()
-                    kost2Dao.setProjekt(kost2, projektId)
-                    kost2Dao.setKost2Art(kost2, artId)
-                    kost2Dao.insert(kost2)
-                    return@forEach
-                }
-                val kost2 = kost2Dao.find(cached.id) ?: return@forEach
-                val activate = !isActive(kost2)
-                if (activate) {
-                    kost2.kostentraegerStatus = KostentraegerStatus.ACTIVE
-                }
-                if (kost2.deleted) {
-                    kost2Dao.undelete(kost2) // Takes the status change along.
-                } else if (activate) {
-                    kost2Dao.update(kost2)
-                }
-            } else if (cached != null && !cached.deleted && isActive(cached)) {
-                val kost2 = kost2Dao.find(cached.id) ?: return@forEach
-                kost2.kostentraegerStatus = KostentraegerStatus.NONACTIVE
-                kost2Dao.update(kost2)
-            }
-        }
+        val (selected, unselected) = postData.data.kost2Arts.orEmpty()
+            .filter { it.id != null }
+            .partition { it.selected }
+        projektKost2Service.activate(projektId, selected.map { it.id!! })
+        projektKost2Service.deactivate(projektId, unselected.map { it.id!! })
     }
-
-    /** The cost 2 unit's own status, not the effective one (an ended project ends all its units anyway). */
-    private fun isActive(kost2: Kost2DO): Boolean =
-        kost2.kostentraegerStatus == null || kost2.kostentraegerStatus == KostentraegerStatus.ACTIVE
 
     override val autoCompleteSearchFields = arrayOf("name", "identifier")
 
@@ -387,6 +415,9 @@ class ProjectEntityRest
         const val LIST_TYPE_FIELD = "listType"
 
         private const val FILTER_NOT_ENDED = "notEnded"
+
+        /** The id of the synthetic "non-active or missing cost 2 types" filter element, see [addKost2ArtsNotActiveCriterion]. */
+        const val KOST2_ARTS_NOT_ACTIVE_FIELD = "kost2ArtsNotActive"
 
         /** Matched via [viaProject]: the paths only serve the element. */
         private val customerFilter = CustomerChecklistFilter("project/customerFilterValues", kundeTextPath = null)

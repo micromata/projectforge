@@ -500,20 +500,36 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             param.append == true -> MassUpdateAction.APPEND
             else -> MassUpdateAction.SET
         }
+        val description = describePreviewChange(field, param, label, value)
         return when (action) {
-            MassUpdateAction.DELETE -> MassUpdatePreviewChange(field, label, action)
-            MassUpdateAction.REPLACE ->
-                MassUpdatePreviewChange(field, label, action, value = value, replaceValue = param.replaceText)
-            else -> MassUpdatePreviewChange(field, label, action, value = value)
+            MassUpdateAction.DELETE -> MassUpdatePreviewChange(field, label, action, description = description)
+            MassUpdateAction.REPLACE -> MassUpdatePreviewChange(
+                field, label, action, value = value, replaceValue = param.replaceText, description = description,
+            )
+            else -> MassUpdatePreviewChange(field, label, action, value = value, description = description)
         }
     }
 
     /**
+     * The confirmation sentence of a field whose change doesn't read as the generic text of its action
+     * ([MassUpdatePreviewChange.description]), or null for the generic one. Open for a custom field.
+     *
+     * @param label The field's translated label.
+     * @param value The value as [formatPreviewValue] formats it.
+     */
+    protected open fun describePreviewChange(
+        field: String,
+        param: MassUpdateParameter,
+        label: String,
+        value: String?,
+    ): String? = null
+
+    /**
      * The value of a parameter as it is shown, not as it is posted: an enum's [UISelectValue.displayName]
      * rather than its id, a date and an amount in the user's locale. Null when the field carries no value
-     * (a plain delete).
+     * (a plain delete). Open for a custom field whose posted value is no single option (a list of ids).
      */
-    private fun formatPreviewValue(param: MassUpdateParameter, meta: MassUpdateFieldMeta?): String? {
+    protected open fun formatPreviewValue(param: MassUpdateParameter, meta: MassUpdateFieldMeta?): String? {
         meta?.values?.let { values ->
             val id = param.textValue
             return values.firstOrNull { it.id == id }?.displayName ?: id
@@ -616,12 +632,14 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         val field = declaration.field
         if (declaration.custom) {
             // No entity property behind it (the task/cost-unit picker): the registry has nothing to resolve,
-            // so only name and label travel and the client renders its own control at this position.
+            // so only name, label and the page's own options (the project's cost 2 types) travel and the client
+            // renders its own control at this position.
             return MassUpdateFieldMeta(
                 field = field,
                 valueProperty = "",
                 label = getFieldTranslation(field),
                 dataType = null,
+                values = declaration.values,
                 custom = true,
             )
         }

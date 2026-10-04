@@ -124,9 +124,20 @@ export function useOverflowTooltip() {
       // A declared tooltip wins over the clipped text, and is anchored to the
       // element that declares it: the sort indicator explains itself, not the
       // column label beside it.
-      const declared = node!.closest<HTMLElement>(`[${TOOLTIP_ATTR}]`);
-      const anchor =
-        declared && cell.contains(declared) ? declared : findClipped(cell);
+      // Over a body cell's padding rather than its content, the pointer misses the declaring element; the
+      // cell's one declared tooltip still wins over its plain text then (a cell listing what its
+      // abbreviated text stands for, e.g. the project's cost 2 types). Not for a header: its sort
+      // indicator declares one of its own, which must not explain the label beside it.
+      const hovered = node!.closest<HTMLElement>(`[${TOOLTIP_ATTR}]`);
+      const inCell = hovered && cell.contains(hovered) ? hovered : null;
+      const ofCell = () => {
+        if (cell.tagName !== "TD") return null;
+        const all = cell.querySelectorAll<HTMLElement>(`[${TOOLTIP_ATTR}]`);
+        return all.length === 1 ? all[0] : null;
+      };
+      const declared = inCell ?? ofCell();
+      const clipped = declared ? null : findClipped(cell);
+      const anchor = declared ?? clipped;
       const text =
         anchor && anchor === declared
           ? declared.getAttribute(TOOLTIP_ATTR)?.trim()

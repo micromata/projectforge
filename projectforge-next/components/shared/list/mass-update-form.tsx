@@ -206,6 +206,8 @@ export function MassUpdateForm({
   };
   // The keys are spelled out per action, not composed, so `NextI18nKeyScanner` finds each one.
   const describe = (change: MassUpdatePreviewChange) => {
+    // A page's own sentence for a change the generic texts don't fit (already translated).
+    if (change.description) return change.description;
     const arg0 = change.label;
     const arg1 = abbreviate(change.value);
     switch (change.action) {

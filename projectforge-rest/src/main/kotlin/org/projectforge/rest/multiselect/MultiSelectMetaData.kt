@@ -271,4 +271,9 @@ class MassUpdatePreviewChange(
     val value: String? = null,
     /** The replacement, for [MassUpdateAction.REPLACE] only. */
     val replaceValue: String? = null,
+    /**
+     * The whole translated sentence, if the field's change doesn't read as the generic text of its [action]
+     * (e. g. cost 2 types are activated, not "appended"); the client shows it instead.
+     */
+    val description: String? = null,
 )
