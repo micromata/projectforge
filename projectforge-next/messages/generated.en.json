@@ -692,7 +692,6 @@
         "amountsInPaymentScheduleAreGreaterThanNetSumOfPosition": "The sum of amounts of position {arg0} in the payment schedule is greater than the net sum of this position.",
         "auftragHatKeinePositionen": "The order has no positions.",
         "datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition": "At least one date of the position(s) {arg0} is not within the period of performance (plus 3 months).",
-        "invalidPosition": "Invalid order position.",
         "invalidStatus": "Please choose a status of the order; 'optional' is not supported.",
         "nummerBereitsVergeben": "The order number does already exist.",
         "nummerIstNichtFortlaufend": "Order number is not the successive (not continued).",
@@ -841,9 +840,6 @@
           "neuentwicklung": "New development",
           "time_and_materials": "Time & materials",
           "wartung": "Maintenance"
-        },
-        "error": {
-          "notFound": "Order position not found."
         },
         "fehlbetrag": {
           "_": "Shortfall",
@@ -1322,7 +1318,6 @@
       "_": "Project",
       "edit": {
         "kost2DeactivateHint": "Unchecking sets the cost 2 unit non-active: no new bookings, existing time sheets keep it.",
-        "kost2DoesAlreadyExists": "Cost2 does already exist.",
         "kost2LockedEnded": "The project is ended: its cost types can no longer be changed.",
         "selectStandardKost2Arts": "Select all standard cost types"
       },
@@ -1667,7 +1662,6 @@
     "emptyValue": "empty value",
     "endsWith": "Ends with",
     "equals": "Equals",
-    "extendedSearch": "Extended search",
     "faulty": "faulty",
     "generalFields": "General",
     "greaterThan": "Greater than",
@@ -1822,11 +1816,6 @@
       "_": "Local group",
       "not": "Common group",
       "tooltip": "Local groups will not be synchronized with an external user management system (such as LDAP)."
-    },
-    "nestedGroups": "Nested groups",
-    "nestedGroupsAllowed": {
-      "_": "Nested groups allowed?",
-      "tooltip": "This is a security feature, e.g. for administrator or controlling group no nested groups should be allowed."
     },
     "owner": "Group owner",
     "pleaseSelectGroup": "Please select group",
@@ -3012,9 +3001,6 @@
     "lastHours": "Last {arg0} hours",
     "lastMinute": "Last minute",
     "lastMinutes": "Last {arg0} minutes",
-    "lucene": {
-      "expression": "Modified expression for search machine:"
-    },
     "maxRowsExceeded": "Maximum number {arg0} of result size exceeded. Result list is truncated.",
     "next": {
       "moreInArea": "More in {arg0}",
@@ -3025,21 +3011,8 @@
     },
     "nextDays": "Next {arg0} days",
     "parseError": "Error while parsing search string: ''{arg0}''",
-    "periodOfModification": "Period of modification",
     "search": "Search",
-    "searchHistory": {
-      "_": "History",
-      "additional": {
-        "tooltip": "If enabled all history entries will be searched for the given search string too."
-      }
-    },
     "sinceYesterday": "Since yesterday",
-    "string": {
-      "info": {
-        "_": "Use ''*'' for wild cards (automatically appended if token contains only alphanumeric characters, white spaces or \"@._-\"), ''-string'' for negation, ''fieldname:string'' for searching in fields, for further information see help pages (lucene is used as search engine).\nSearch in fields: {arg0}.",
-        "title": "Full text search"
-      }
-    },
     "title": "Search",
     "toDetailedSearch": "To detailed search",
     "today": "Today",
@@ -3273,9 +3246,6 @@
     "recursive": "incl. all structure sub elements",
     "reference": "Reference",
     "selectPanel": {
-      "displayTask": {
-        "tooltip": "Display structure element."
-      },
       "info": "You may select folders by clicking in other columns of the row than the first.\\\n**Keyboard:** **↑ / ↓** – move between the elements · **→ / ←** – expand and collapse the focused element · **Enter** – select the focused element",
       "noTasksFound": "No structure elements found.",
       "selectAncestorTask": {
@@ -3628,7 +3598,6 @@
       },
       "generic": "Your input is invalid.",
       "maxLength": "Field ''{arg0}'' must not be longer than {arg1} characters.",
-      "nothingToExport": "Nothing to export.",
       "range": {
         "integerOutOfRange": "Value out of range {arg0}-{arg1}.",
         "integerToHigh": "Value must not be higher than {arg0}.",
