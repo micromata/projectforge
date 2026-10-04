@@ -11,22 +11,34 @@ import {
   ORDER_PAGE,
 } from "@/components/features/order/order.page";
 import { useListMeta } from "@/hooks/use-list-meta";
+import { useTabParam } from "@/hooks/use-tab-param";
 
 /**
  * The order book (`/order`). Tabs under one page shell, as the invoice page composes its list and
  * charts: the order list, a "Forecast" tab with the forecast charts of the filtered orders and, for finance,
  * controlling and project managers (list meta variable `contributionMargin`), a "Deckungsbeitrag" tab with
  * the contribution margin of their projects. The list keeps its full chrome by rendering
- * {@link EntityListPage} `embedded`; the other tabs read the same filter the list is showing.
+ * {@link EntityListPage} `embedded`; the other tabs read the same filter the list is showing. The open tab
+ * lives in the url (`?tab=`, see useTabParam), so a reload stays on it.
  */
 export default function OrderListPage() {
   const t = useTranslations("fibu.auftrag");
   const listMeta = useListMeta(ORDER_ENTITY);
   const contributionMargin =
     listMeta.data?.variables?.contributionMargin === true;
+  const [tab, setTab] = useTabParam(
+    "list",
+    listMeta.data
+      ? ["charts", ...(contributionMargin ? ["contributionMargin"] : [])]
+      : undefined
+  );
   return (
     <PageShell>
-      <Tabs defaultValue="list" className="flex min-h-0 flex-1 flex-col">
+      <Tabs
+        value={tab}
+        onValueChange={setTab}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <TabsList className="mx-4 mt-2 w-fit shrink-0">
           <TabsTrigger value="list">{t("title.list")}</TabsTrigger>
           <TabsTrigger value="charts">{t("forecast._")}</TabsTrigger>

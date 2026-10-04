@@ -33,6 +33,8 @@
   --color-warning: var(--warning);
   --color-development: var(--development);
   --color-development-foreground: var(--development-foreground);
+  --color-testsystem: var(--testsystem);
+  --color-testsystem-foreground: var(--testsystem-foreground);
   --color-legacy: var(--legacy);
   --color-legacy-hover: var(--legacy-hover);
   --color-legacy-foreground: var(--legacy-foreground);
@@ -128,6 +130,15 @@
   --development: var(--brand-yellow-dark);
   /* Dark on yellow, not white: white on #ff9d01 is 2.1:1 and fails at this text size. */
   --development-foreground: #3d2200;
+
+  /*
+   * This instance is a test system (`projectforge.testsystemMode`), said in the logo row (see
+   * DevelopmentMarker). The colour is the installation's own (`projectforge.testsystemColor`), set on the
+   * marker inline over this default, which is the property's default as well.
+   */
+  --testsystem: #ff6868;
+  /* Dark text: the configured colours are light, signal-like ones (#ff6868: 6.4:1). */
+  --testsystem-foreground: #1f0000;
 
   /*
    * The way back to the classic UI (see LegacyPageLink). Brand yellow, so the escape hatch is

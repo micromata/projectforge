@@ -38,7 +38,7 @@ export function fetchPhoneCallData(
 
 /**
  * Number suggestions: one entry per matching address number (`display` shown, `number` dialed, `addressId` for
- * the panel); an empty search offers the numbers recently called, which carry no address.
+ * the panel); an empty search offers the numbers recently called, with the address called if any.
  */
 export function suggestNumbers(
   search: string,

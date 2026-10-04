@@ -225,6 +225,10 @@ export interface SystemStatus {
   logoUrlDark?: string;
   /** `projectforge.development.mode` of the instance — the flag behind DevelopmentMarker. */
   developmentMode?: boolean;
+  /** `projectforge.testsystemMode` of the instance — the test-system badge of DevelopmentMarker. */
+  testsystemMode?: boolean;
+  /** `projectforge.testsystemColor`, a sanitized CSS colour; only given in {@link testsystemMode}. */
+  testsystemColor?: string;
   setupRedirectUrl?: string;
   messageOfTheDay?: string;
 }

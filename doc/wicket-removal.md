@@ -182,11 +182,44 @@ the task list default sort. Deliberately dropped:
 - Group: read access is no longer admin-only (as on the old React page); the wizard's cancel always goes to
   the tree.
 - Accounting-record report drill-down: no row click and no sort.
-- Timesheet: old Wicket url parameters (list `t1`/`t2` millis and `searchString`; edit `startMillis`/
-  `stopMillis`/`description`/`kost2`) are not translated – the redirect opens the plain list/edit page;
-  location suggestions can no longer be ignored.
-- Phone call: the back button only appears with a `backUrl`; the old "phoneCalls" recent numbers are not
-  migrated.
+- Timesheet: the old Wicket url parameters `t1`/`t2` (millis) and `searchString` of the list and
+  `startMillis`/`stopMillis`/`description`/`kost2` of the edit page are not translated; location suggestions
+  can no longer be ignored.
+- Phone call: the back button only appears with a `backUrl`.
+
+Second gap check before deleting the module (2026-10-04, every remaining page and the non-page Wicket
+functionality). Built:
+1. Timesheet edit returns to the list it was opened from (`returnTargets` calendar, list, IHK).
+2. A task with a single cost unit pre-selects it (`TaskKost2Picker`).
+3. A cloned timesheet belongs to the logged-in user (`TimesheetEntityRest.prepareClone`).
+4. The task info of the timesheet picker shows the consumption of the budget node
+   (`TaskTree.getPersonDaysNode`, `TaskServicesRest.createTask(budgetConsumption)`).
+5. The task type-ahead of the timesheet offers only bookable tasks (`autosearch?onlyBookable=true`); the
+   task tree stays unrestricted, as in Wicket.
+6. PDF export: task path, total in hours and days, the "deleted" option in the summary; file name
+   `timesheets_<user>_<task>_<from>_<to>.pdf` (`TimesheetListPdfExport.filename`).
+7. Week, weekday and duration columns of the timesheet list are sortable (week/day by the start, duration
+   via `computedSortProperties`).
+8. Old timesheet list links keep `taskId`/`userId`/`kost2Id` (`OrphanedLinkFilter.listQuery`).
+9. The task status is required (no clear option).
+10. The parent task is required for a new task and hidden for the root task (`ParentTaskField`).
+11. The task tree sorts its children case-insensitively.
+12. The Gantt list opens sorted by name, descending.
+14. Unexpected server errors send a mail to the support address (`SupportErrorMailer`, as Wicket's
+    `ErrorPage`), at most once per 10 minutes per exception class and message.
+15. Test-system marker: `projectforge.testsystemMode` / `projectforge.testsystemColor` show a badge in the
+    header (`DevelopmentMarker`), instead of Wicket's coloured page background.
+16. Group: the "local group" flag and the type filter appear only with an external user management system
+    (`Group.externalUsermanagement`).
+17. Phone call: recent calls remember the address (`"number | Name, phone type"` in the suggestions, picking
+    one restores the address panel), a plain open prefills the last number, and the address view's back
+    button returns to the phone call. Recents stored before stay readable as bare entries.
+
+Dropped:
+13. The Kost1/Kost2 tooltips of the accounting-record list.
+- Considered obsolete (no successor): the export format preference, the Gantt redraw button, the list
+  select mode of the task tree, the short/long description toggle, the ISO/UTC timestamp tooltip, nested
+  groups, the accounting-year list.
 
 ## Phase 4 – Delete the module
 

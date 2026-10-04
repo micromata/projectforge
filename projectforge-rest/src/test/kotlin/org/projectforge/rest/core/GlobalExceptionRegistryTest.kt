@@ -61,6 +61,8 @@ class GlobalExceptionRegistryTest {
         })
         Assertions.assertFalse(GlobalExceptionRegistry.sendMailToDevelopers(ex))
         GlobalDefaultExceptionHandler().also { handler ->
+            // No Spring context: these exceptions are not mailed, so the mailer returns before using its beans.
+            handler.supportErrorMailer = SupportErrorMailer()
             handler.defaultErrorHandler(request, ex).let { response ->
                 response as ResponseEntity<*>
                 Assertions.assertEquals(expectedMessage, response.body)

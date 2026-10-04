@@ -39,6 +39,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
@@ -248,6 +249,16 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // last sheet (see presetStartStopTime).
         request?.let { presetStartStopTime(it, sheet) }
         return sheet
+    }
+
+    /**
+     * The copy is booked by the logged-in user, as Wicket's TimesheetEditPage.cloneData did: a project
+     * manager copying a member's sheet books their own work, not a second sheet of the member.
+     */
+    override fun prepareClone(dto: Timesheet): Timesheet {
+        super.prepareClone(dto)
+        dto.user = User.getUser(ThreadLocalUserContext.loggedInUserId)
+        return dto
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, dto: Timesheet) {
@@ -510,7 +521,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
 
     @PostMapping("selectRecent")
     fun selectRecent(@RequestBody timesheet: Timesheet): ResponseAction {
-        val task = TaskServicesRest.createTask(timesheet.task?.id)
+        val task = TaskServicesRest.createTask(timesheet.task?.id, budgetConsumption = true)
         timesheet.tag = timesheet.tag ?: "" // "" Needed for overwriting clients data.tag if already defined.
         return ResponseAction(targetType = TargetType.UPDATE)
             .addVariable("task", task)
@@ -863,6 +874,23 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     /**
+     * The week and day-of-week columns show the start pre-formatted, so they sort by it in the database, as
+     * Wicket's day column did (`getSortable("startTime")`).
+     */
+    override fun postProcessMagicFilter(target: QueryFilter, source: MagicFilter) {
+        target.sortProperties = target.sortProperties.map {
+            if (it.property in START_TIME_SORT_ALIASES) SortProperty("startTime", it.sortOrder) else it
+        }.distinctBy { it.property }.toMutableList()
+    }
+
+    /**
+     * The duration is computed (stop minus start), so no `ORDER BY` can express it: sorted after loading, as
+     * Wicket's list sorted it in memory.
+     */
+    override val computedSortProperties: Map<String, (TimesheetDO) -> Comparable<*>?>
+        get() = mapOf("duration" to { it.duration })
+
+    /**
      * The legacy list's start: the logged-in user's sheets of the current week (`TimesheetListFilter.reset`).
      */
     override fun newMagicFilter(): MagicFilter {
@@ -947,11 +975,15 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         // (see addMagicFilterElements) — the period, the free-text search and the picked user.
         val periodEntry = filter.entries.find { it.field == "period" }
         val userEntry = filter.entries.find { it.field == "user" }
+        val taskEntry = filter.entries.find { it.field == "task" }
         val context = TimesheetListPdfExport.Context(
             periodFrom = periodEntry?.value?.fromValue,
             periodTo = periodEntry?.value?.toValue,
             searchString = filter.searchString,
             userName = userEntry?.value?.displayName,
+            userId = userEntry?.value?.let { it.id ?: it.value?.toLongOrNull() },
+            taskId = taskEntry?.value?.let { it.id ?: it.value?.toLongOrNull() },
+            deleted = filter.deleted == true,
         )
         val options = TimesheetListPdfExport.Options(
             showFilterSettings = settings.showFilterSettings ?: true,
@@ -965,7 +997,7 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
         )
         // Always a valid PDF, header row included even for an empty result (TimesheetListPdfExport.export).
         val pdf = timesheetListPdfExport.export(getObjectList(this, baseDao, filter), context, options)
-        val filename = "ProjectForge-TimesheetExport_${DateHelper.getDateAsFilenameSuffix(Date())}.pdf"
+        val filename = timesheetListPdfExport.filename(context)
         return ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_PDF)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
@@ -1048,6 +1080,9 @@ class TimesheetEntityRest : AbstractDTOEntityRest<TimesheetDO, Timesheet, Timesh
     }
 
     companion object {
+        /** The list columns showing the start pre-formatted (see [postProcessMagicFilter]). */
+        private val START_TIME_SORT_ALIASES = setOf("weekOfYear", "dayName")
+
         /** User-pref name the chosen PDF-export options are stored under, in this entity's category. */
         private const val USER_PREF_PARAM_PDF_EXPORT = "pdfExport"
 

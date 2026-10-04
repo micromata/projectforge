@@ -79,7 +79,7 @@ class ContributionMarginProjectInfo(val kost: String?, val customer: String?, va
  * The calculation ends with the month before [today]: the current month isn't complete yet, so there are no
  * values for it nor for the following months (see [calculationEnd]).
  */
-class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: LocalDate?, today: LocalDate) {
+class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: LocalDate?, val today: LocalDate) {
   val start: YearMonth = YearMonth.from(startDate)
 
   val months: List<YearMonth> = (0L until 12L).map { start.plusMonths(it) }
@@ -93,6 +93,14 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
 
   /** The last day of the period with values: the end of the previous month at the latest. */
   val periodValuesEnd: LocalDate = calculationEnd(periodEnd, today)
+
+  /**
+   * The last day the sums of the period [yearsBack] years earlier cover (0: the period itself): its end, the
+   * end of the previous month at the latest. Null if that period has no values yet.
+   */
+  fun valuesEnd(yearsBack: Long): LocalDate? {
+    return calculationEnd(periodEnd.minusYears(yearsBack), today).takeIf { it >= periodBegin.minusYears(yearsBack) }
+  }
 
   /** The first day whose values are preliminary, or null if the accounting records cover the whole period. */
   val preliminaryBegin: LocalDate?
@@ -156,6 +164,9 @@ class ContributionMarginCalculator(startDate: LocalDate, val bookingImportEnd: L
         hasValues[i] && preliminaryBegin != null && month.atEndOfMonth() >= preliminaryBegin
       },
       lastMonth = months.lastOrNull { it.atDay(1) <= periodValuesEnd }?.toString(),
+      valuesEnd = valuesEnd(0),
+      prevYearValuesEnd = valuesEnd(1),
+      prevPrevYearValuesEnd = valuesEnd(2),
       prevYear = prevYear.map { it.profit },
       prevYearPercentage = cumulativePercentage(prevYear),
       prevPrevYear = monthly(2).map { it.profit },

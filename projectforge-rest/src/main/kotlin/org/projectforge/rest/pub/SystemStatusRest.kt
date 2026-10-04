@@ -60,6 +60,13 @@ class SystemStatusRest {
          */
         var developmentMode: Boolean = false,
         /**
+         * True if `projectforge.testsystemMode` is set: the client marks every page in [testsystemColor], as
+         * Wicket coloured its background, so a test copy isn't mistaken for the productive system.
+         */
+        var testsystemMode: Boolean = false,
+        /** The marker's colour (`projectforge.testsystemColor`), only given in [testsystemMode]. */
+        var testsystemColor: String? = null,
+        /**
          * If given, the client should redirect to this url.
          */
         var setupRedirectUrl: String? = null,
@@ -81,6 +88,8 @@ class SystemStatusRest {
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
+            testsystemMode = systemStatus.testsystemMode,
+            testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(systemStatus.startTimeMillis)
         )
@@ -89,8 +98,9 @@ class SystemStatusRest {
     /**
      * Contains only message of the day without detailed information of version, build-date etc. due to security reasons.
      *
-     * [SystemData.developmentMode] is a deliberate exception to that redaction: the marker of a development
-     * instance is wanted on the login page as well, and a productive system answers false anyway.
+     * [SystemData.developmentMode] and [SystemData.testsystemMode] are a deliberate exception to that
+     * redaction: the marker of a development or test instance is wanted on the login page as well, and a
+     * productive system answers false anyway.
      */
     val publicSystemData: SystemData by lazy {
         // Must be initialized on demand, LogServiceRest is not available on @PostConstruct in test cases.
@@ -107,6 +117,8 @@ class SystemStatusRest {
             logoUrl = LogoServiceRest.logoUrl,
             logoUrlDark = LogoServiceRest.logoUrlDark,
             developmentMode = systemStatus.developmentMode,
+            testsystemMode = systemStatus.testsystemMode,
+            testsystemColor = if (systemStatus.testsystemMode) systemStatus.testsystemColor else null,
             setupRedirectUrl = if (systemStatus.setupRequiredFirst == true) "/next/setup" else null,
             startTimeUTC = Date(0L)
         )

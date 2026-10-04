@@ -57,4 +57,20 @@ class PhoneCallRestTest {
         Assertions.assertEquals("316793", PhoneCallRest.stripSystemNumber("0561316793", "0561"))
         Assertions.assertEquals("0561316793", PhoneCallRest.stripSystemNumber("0561316793", "99"))
     }
+
+    @Test
+    fun recentCallRoundTrip() {
+        val withAddress = PhoneCallRest.RecentCall("0561316793", 42L)
+        Assertions.assertEquals(withAddress, PhoneCallRest.RecentCall.decode(withAddress.encode()))
+        val withoutAddress = PhoneCallRest.RecentCall("0561316793")
+        Assertions.assertEquals("0561316793", withoutAddress.encode(), "A call without address stays a bare number.")
+        Assertions.assertEquals(withoutAddress, PhoneCallRest.RecentCall.decode(withoutAddress.encode()))
+
+        // Entries stored before the address was remembered (a bare number or a Wicket display text) stay readable.
+        Assertions.assertEquals(
+            PhoneCallRest.RecentCall("0561316793: Reinhard, Kai"),
+            PhoneCallRest.RecentCall.decode("0561316793: Reinhard, Kai"),
+        )
+        Assertions.assertNull(PhoneCallRest.RecentCall.decode("0561316793\tx").addressId)
+    }
 }

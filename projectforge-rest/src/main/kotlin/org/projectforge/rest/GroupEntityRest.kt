@@ -110,6 +110,7 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
             }
         }
         group.ldapPosixConfigured = useLdapStuff
+        group.externalUsermanagement = externalUsermanagement
         if (useLdapStuff) {
             groupDOConverter.readLdapGroupValues(obj.ldapValues)?.let { ldapGroupValues ->
                 group.gidNumber = ldapGroupValues.gidNumber
@@ -129,7 +130,10 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
      * as [Group.ldapPosixConfigured]. The list (projectforge-next) shows or hides its `ldapValues` column by it.
      */
     override fun addVariablesForListPage(): Map<String, Any> {
-        return mapOf("ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff))
+        return mapOf(
+            "ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff),
+            "externalUsermanagement" to externalUsermanagement,
+        )
     }
 
     override fun transformForDB(dto: Group): GroupDO {
@@ -157,7 +161,14 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
         return accessChecker.isLoggedInUserMemberOfAdminGroup
     }
 
+    /**
+     * The local/exported type filter, only where an external user management system is in use: without one
+     * every group is local, as Wicket's GroupListForm offered the filter only then.
+     */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        if (!externalUsermanagement) {
+            return
+        }
         elements.add(
             UIFilterListElement("type", label = translate("status"), defaultFilter = true, multi = false)
                 .buildValues(GroupTypeFilter.TYPE::class.java)
@@ -317,6 +328,10 @@ class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
                 .body(resource)
         }
     }
+
+    /** Whether an external user management system (LDAP) is in use, the condition of the local-group flag. */
+    private val externalUsermanagement: Boolean
+        get() = Login.getInstance()?.hasExternalUsermanagementSystem() == true
 
     private val useLdapStuff: Boolean
         get() = SystemStatus.isDevelopmentMode() || (accessChecker.isLoggedInUserMemberOfAdminGroup && Login.getInstance()

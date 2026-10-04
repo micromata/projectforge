@@ -68,9 +68,9 @@ export const TIMESHEET_PAGE = definePage<
   metadata: TIMESHEET_METADATA,
   route: "/timesheet",
   queryKey: TIMESHEET_LIST_QUERY_KEY,
-  // Served one page at a time (POST listPage): the list sorts only on DB columns and its onlyBillable option
-  // is a CustomResultFilter that runs inside the query pipeline, so nothing narrows or re-sorts after it — the
-  // page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
+  // Served one page at a time (POST listPage): the list sorts on DB columns (the duration on the cached id
+  // list, see computedSortProperties) and its onlyBillable option is a CustomResultFilter that runs inside the
+  // query pipeline, so the page slice is a faithful window on the whole result. The summed-duration + AI-share footer comes from the
   // aggregate hook over the full id list (see TimesheetEntityRest.aggregate, PageDef.serverPaging).
   serverPaging: true,
   // The period filter pages a week at a time as well — a sheet is read by its week (the list's KW
@@ -151,14 +151,13 @@ export const TIMESHEET_PAGE = definePage<
       tooltip: (row) => row.task?.path ?? undefined,
     },
     // The week of the year and the day-of-week name of the sheet's start, both pre-formatted by the
-    // backend (see TimesheetListRow) — the two narrow Wicket columns. Neither is a property the backend
-    // could order by, so both opt out of sorting and offer no filter.
+    // backend (see TimesheetListRow) — the two narrow Wicket columns. Both sort by the start (the backend
+    // maps their ids onto `startTime`, TimesheetEntityRest.postProcessMagicFilter) and offer no filter.
     {
       id: "weekOfYear",
       labelKey: "calendar.weekOfYearShortLabel",
       accessor: (row) => row.weekOfYear ?? "",
       size: 50,
-      sortable: false,
       filterKind: null,
     },
     {
@@ -166,7 +165,6 @@ export const TIMESHEET_PAGE = definePage<
       labelKey: "calendar.dayOfWeekShortLabel",
       accessor: (row) => row.dayName ?? "",
       size: 50,
-      sortable: false,
       filterKind: null,
     },
     // The whole booked span as one "date fromTime-toTime" column, as the Wicket list shows it instead of
@@ -184,15 +182,15 @@ export const TIMESHEET_PAGE = definePage<
       // (narrow "1", wide "0") would jitter row to row.
       className: "tabular-nums",
     },
-    // The duration, pre-formatted as "h:mm" (with days where the working-day config splits them). Backed
-    // by no orderable property (the DO computes it), so it does not sort and offers no filter.
+    // The duration, pre-formatted as "h:mm" (with days where the working-day config splits them). The DO
+    // computes it, so the backend sorts it after loading (TimesheetEntityRest.computedSortProperties); no
+    // filter.
     {
       id: "duration",
       labelKey: "timesheet.duration",
       accessor: (row) => row.formattedDuration ?? "",
       size: 70,
       align: "right",
-      sortable: false,
       filterKind: null,
       // Same tabular figures as the period, so the "h:mm" values align on the colon down the column.
       className: "tabular-nums",
@@ -302,10 +300,13 @@ export const TIMESHEET_PAGE = definePage<
       targetRoute: "/teamEvent",
       labelKey: "plugins.teamcal.switchToTeamEventButton",
     },
-    // Save and cancel come back to the calendar by default: there is no timesheet list of this app to return
-    // to (see toTimesheetRoute). The IHK report opens a time sheet lacking its description and wants it back.
+    // Save and cancel come back to the calendar by default: the calendar opens the form without a
+    // `?returnTo=` (see toTimesheetRoute), and so do the task's "add time sheet" links. The list names
+    // itself (useEditTargets), as Wicket's TimesheetEditPage returned to TimesheetListPage. The IHK report
+    // opens a time sheet lacking its description and wants it back.
     returnTargets: [
       { route: "/calendar", labelKey: "menu.calendar" },
+      { route: "/timesheet", labelKey: "menu.timesheetList" },
       { route: "/ihk", labelKey: "plugins.ihk.title" },
     ],
     // The templates/recent bar sits above the sections and stays visible while the user scrolls — the

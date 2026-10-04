@@ -29,12 +29,19 @@ export function TaskSelectField({
   hint,
   className,
   disabled,
+  required: requiredOverride,
   onPicked,
   openTreeOnAncestorClick,
   linkCurrentToTimesheets,
 }: BaseFieldProps & {
   /** The path may be read but not changed (see DeclaredField.readOnly). */
   disabled?: boolean;
+  /**
+   * Marks the field as mandatory where the metadata can't: a reference's `@PropertyInfo(required)` does
+   * not reach it (ElementsRegistry only reads it with a column), so a form whose server rule requires the
+   * task says so here. Defaults to the metadata.
+   */
+  required?: boolean;
   /**
    * Make a path-segment click open the tree scoped to that node, not just select it — the legacy
    * one-click drill-down to the booking points beneath it (see [TaskPath]). Off by default.
@@ -58,7 +65,8 @@ export function TaskSelectField({
   const form = useEntityEditForm();
   const fieldErrors = useFieldErrors();
   const ids = useFieldIds();
-  const { required } = useFieldMetadata(name);
+  const { required: metadataRequired } = useFieldMetadata(name);
+  const required = requiredOverride ?? metadataRequired;
   const [open, setOpen] = useState(false);
   // Where the tree opens rooted. A drill-down click on an ancestor re-roots it there, so that node sits
   // in the breadcrumb above the tree rather than as a row (it is the current parent) and only its

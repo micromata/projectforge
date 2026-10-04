@@ -147,8 +147,10 @@ test.describe("team calendar ics import", { tag: "@lane-calendar" }, () => {
       );
       await goto(page, `/teamEvent/${eventId}`);
       const attendee = events[0].attendees![0];
+      // The section's anchor tab, which exists only while the section does — its title alone is
+      // ambiguous, the section header repeats it.
       await expect(
-        page.getByText(format.t("plugins.teamcal.attendees"), { exact: true })
+        page.getByRole("tab", { name: format.t("plugins.teamcal.attendees") })
       ).toBeVisible({ timeout: 60_000 });
       await expect(page.getByText(attendee.name)).toBeVisible();
       await expect(page.getByText(attendee.email)).toBeVisible();
@@ -157,7 +159,9 @@ test.describe("team calendar ics import", { tag: "@lane-calendar" }, () => {
           exact: true,
         })
       ).toBeVisible();
-      await goto(page, "/teamCalImport");
+      // Back with the calendar preselected, as the calendar page links it: the choice lives in the
+      // page's state only, and the second upload below must target the same calendar again.
+      await goto(page, `/teamCalImport?teamCalId=${calendar.id}`);
 
       // Again with the first subject changed: matched by uid, so MODIFIED rather than NEW.
       await page

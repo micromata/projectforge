@@ -65,6 +65,7 @@ export function TaskKost2Section({ className }: { className?: string }) {
       taskErrors={taskErrors}
       kost2Errors={kost2Errors}
       showConsumption
+      pickSingleKost2
       storedBooking={storedBooking}
     />
   );

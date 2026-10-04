@@ -21,7 +21,10 @@ import type {
  * Read-only throughout. The preview is a POST because the black/white list is form content that has no
  * business in a url (see the endpoint's own note), not because it writes anything.
  */
-test.describe("kost2 preview", { tag: "@parallel" }, () => {
+// In the task lane, although read-only: a non-initial tree call stores its filter — in the user's
+// prefs, not the session, so every worker of the account shares it — and running beside the tree specs
+// it would reset the search string their requests are being answered with.
+test.describe("kost2 preview", { tag: "@lane-task" }, () => {
   test("resolves the same cost units as the tree does", async ({
     seedRequest,
   }) => {

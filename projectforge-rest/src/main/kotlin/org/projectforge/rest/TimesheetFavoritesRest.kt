@@ -96,7 +96,7 @@ class TimesheetFavoritesRest {
     if (timesheet.taskId != null) {
       val task = taskTree.getTaskById(timesheet.taskId)
       timesheet.task = task
-      result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId))
+      result["variables"] = mapOf("task" to TaskServicesRest.createTask(timesheet.taskId, budgetConsumption = true))
     }
     if (timesheet.userId != null) {
       timesheet.user = userService.getUser(timesheet.userId)

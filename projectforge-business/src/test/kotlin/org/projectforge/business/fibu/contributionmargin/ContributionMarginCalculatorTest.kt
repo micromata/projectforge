@@ -127,6 +127,10 @@ class ContributionMarginCalculatorTest {
     )
     val data = calculator.calculate(entries, ::info, null, ContributionMarginConfig())
     assertEquals("2026-09", data.lastMonth)
+    // The comparison periods cover their whole 12 months:
+    assertEquals(LocalDate.of(2026, 9, 30), data.valuesEnd)
+    assertEquals(LocalDate.of(2025, 12, 31), data.prevYearValuesEnd)
+    assertEquals(LocalDate.of(2024, 12, 31), data.prevPrevYearValuesEnd)
     // August and September are preliminary; October and later have no values at all:
     assertEquals(List(7) { false } + List(2) { true } + List(3) { false }, data.preliminary)
     assertEquals(BigDecimal("100.0"), data.percentage[8])
@@ -136,7 +140,12 @@ class ContributionMarginCalculatorTest {
     // A period beginning in the current month has no values:
     val future = ContributionMarginCalculator(LocalDate.of(2026, 10, 1), null, today)
     assertNull(future.preliminaryBegin)
-    assertNull(future.calculate(emptyList(), ::info, null, ContributionMarginConfig()).lastMonth)
+    val futureData = future.calculate(emptyList(), ::info, null, ContributionMarginConfig())
+    assertNull(futureData.lastMonth)
+    assertNull(futureData.valuesEnd)
+    assertEquals(LocalDate.of(2026, 9, 30), futureData.prevYearValuesEnd)
+    // A period more than a year ahead: its previous year has no values either.
+    assertNull(ContributionMarginCalculator(LocalDate.of(2027, 11, 1), null, today).valuesEnd(1))
   }
 
   @Test

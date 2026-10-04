@@ -51,6 +51,7 @@ export function TaskKost2Picker({
   taskErrors = [],
   kost2Errors = [],
   showConsumption = false,
+  pickSingleKost2 = false,
   storedBooking,
   disabled,
   className,
@@ -65,6 +66,11 @@ export function TaskKost2Picker({
   kost2Errors?: string[];
   /** Show what is already booked on the task; off where a single figure carries no meaning (mass update). */
   showConsumption?: boolean;
+  /**
+   * Fill in the cost unit when the task allows exactly one, as Wicket's TimesheetEditForm did — the edit
+   * form's convenience; off for the mass update, where an empty cost unit means "leave it as it is".
+   */
+  pickSingleKost2?: boolean;
   /** The task and cost unit an existing time sheet is stored with; null for a new one (and the mass update). */
   storedBooking?: {
     taskId: number;
@@ -117,6 +123,17 @@ export function TaskKost2Picker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId, info, kost2Id, storedKost2?.id]);
 
+  // A task with exactly one cost unit leaves nothing to choose: take it. Only once that task's list is in
+  // (`info`), and only while nothing is chosen, so a stored or picked value is never overwritten. The
+  // backend requires a cost unit wherever the list is not empty, so clearing the single one is no choice
+  // either and it comes straight back.
+  useEffect(() => {
+    if (!pickSingleKost2 || disabled || taskId == null || info == null) return;
+    if (kost2Id != null || kost2List.length !== 1) return;
+    onKost2Change(kost2List[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickSingleKost2, disabled, taskId, info, kost2Id]);
+
   /** The reference the callers expect, built from the node the tree hands back. */
   const change = (task: { id: number; title?: string } | null) =>
     onTaskChange(
@@ -147,6 +164,8 @@ export function TaskKost2Picker({
             setOpen(true);
           }}
           onSelect={change}
+          // The type-ahead offers only tasks a sheet may be booked on, as Wicket's form did.
+          onlyBookable
           // Clicking a segment of the path opens the tree scoped there — the drill-down the legacy form had.
           openTreeOnAncestorClick
           onDrillDown={(task) => {
