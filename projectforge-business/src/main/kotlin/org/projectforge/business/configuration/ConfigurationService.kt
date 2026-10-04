@@ -193,16 +193,10 @@ open class ConfigurationService {
   open var excelPaperSize: String? = null
     protected set
 
-  @Value("\${projectforge.wicket.developmentMode}")
-  private var developmentMode = false
-
   @Value("\${pf.config.security.teamCalCryptPassword}")
   open var teamCalCryptPassword: String? = null
     protected set
 
-  @Value("\${pf.config.compileCss:true}")
-  open var compileCss = false
-    protected set
 
   @Value("\${projectforge.login.handlerClass}")
   open var loginHandlerClass: String? = null

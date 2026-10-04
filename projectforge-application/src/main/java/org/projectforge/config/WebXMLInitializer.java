@@ -26,9 +26,6 @@ package org.projectforge.config;
 import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
-import org.apache.wicket.protocol.http.WicketFilter;
-import org.apache.wicket.spring.SpringWebApplicationFactory;
-import org.projectforge.business.user.filter.WicketUserFilter;
 import org.projectforge.carddav.CardDavInit;
 import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.projectforge.model.rest.RestPaths;
@@ -46,7 +43,7 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * This class is the replacement of the web.xml. It registers the wicket filter in the spring aware configuration style.
+ * This class is the replacement of the web.xml. It registers the servlet filters in the spring aware configuration style.
  *
  * @author Florian Blumenstein
  */
@@ -59,8 +56,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
     @Value("${projectforge.gateway.enabled:false}")
     private boolean gatewayMode;
-
-    private static final String PARAM_APP_BEAN = "applicationBean";
 
     @Autowired
     private CardDavInit cardDavInit;
@@ -100,18 +95,11 @@ public class WebXMLInitializer implements ServletContextInitializer {
             sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                     "/" + RestPaths.REST_PUBLIC + "/*");
             // No calendarSubscriptionFilter in gateway mode — GatewayIcsExportController handles ICS requests
-            log.info("Gateway mode active: Wicket and internal REST filters are disabled.");
+            log.info("Gateway mode active: internal REST filters are disabled.");
         } else {
             // Normal mode: full application
+            // Old /wa/... (Wicket) urls of bookmarks and sent mails are redirected into next.
             sc.addFilter("redirectOrphanedLinks", new OrphanedLinkFilter()).addMappingForUrlPatterns(null, false, "/*");
-
-            boolean filterAfterInternal = false;
-            RestUtils.registerFilter(sc, "UserFilter", WicketUserFilter.class, filterAfterInternal, "/wa/*");
-
-            final FilterRegistration wicketApp = RestUtils.registerFilter(sc, "wicket.app", WicketFilter.class, filterAfterInternal, "/wa/*");
-            wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
-            wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
-            wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
 
             sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                     "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.

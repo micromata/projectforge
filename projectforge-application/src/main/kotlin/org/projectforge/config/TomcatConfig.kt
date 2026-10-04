@@ -35,7 +35,7 @@ open class TomcatConfig {
         return WebServerFactoryCustomizer { factory ->
             factory.addConnectorCustomizers({ connector ->
                 // Tomcat 10.1.42+ defaults to 50 parts per multipart request.
-                // Wicket forms submit all form fields as parts, easily exceeding this limit.
+                // Raised for the former Wicket forms; kept, so an upload of many files isn't cut off.
                 connector.maxPartCount = 10000
             })
         }

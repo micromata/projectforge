@@ -18,14 +18,14 @@ Alle Frontends werden von der einen Spring-Boot-App auf `:8080` serviert:
 
 | Frontend              | Modul                 | Pfad        | Technik                                                          |
 | --------------------- | --------------------- | ----------- | ---------------------------------------------------------------- |
-| Wicket (Legacy)       | `projectforge-wicket` | `/wa/*`     | server-rendered, Servlet-Filter (`WebXMLInitializer.java`)       |
+| ~~Wicket (Legacy)~~   | ~~`projectforge-wicket`~~ | `/wa/*`  | entfernt (`doc/wicket-removal.md`); alte Urls leitet `OrphanedLinkFilter` nach next um |
 | Alte React-App        | `projectforge-webapp` | `/react/**` | backend-getriebener „Dynamic Renderer" (UILayout-JSON), CRA→Vite |
 | **projectforge-next** | `projectforge-next`   | `/next/**`  | Next.js 16 App Router, statisch exportiert                       |
 
 **Geteilte Authentifizierung.** Spring Security ist `permitAll`
 (`SpringSecurityConfig.kt`); die Authentifizierung übernehmen PF-Servlet-Filter
-(`WicketUserFilter`, `RestUserFilter`) über eine gemeinsame `HttpSession`
-(`JSESSIONID`). Alle drei Frontends teilen diese Session per Cookie – das ist die
+(`RestUserFilter`, früher auch `WicketUserFilter`) über eine gemeinsame `HttpSession`
+(`JSESSIONID`). Alle Frontends teilen diese Session per Cookie – das ist die
 Grundlage für den Parallelbetrieb.
 
 **Backend-getriebener „Dynamic Renderer".** Die alte React-App rendert Seiten generisch
@@ -501,9 +501,10 @@ gelöscht.
 ### Phase 4 – Ablösung & Aufräumen
 
 - Pro migrierter Seite: Menü auf `next/`, alte Route deaktivieren.
-- Wenn alle Seiten migriert: `projectforge-webapp` und `projectforge-wicket` aus
-  `settings.gradle.kts` + Build entfernen, `/react`- und `/wa`-Serving/Filter entfernen,
-  ggf. `NEXT_APP_PATH` → `/` als Default.
+- ✅ `projectforge-wicket` ist entfernt (Modul, Bibliotheken, `/wa`-Filter; `doc/wicket-removal.md`).
+  `/wa`-Urls leitet weiterhin `OrphanedLinkFilter` um.
+- Wenn alle Seiten migriert: `projectforge-webapp` aus `settings.gradle.kts` + Build entfernen,
+  `/react`-Serving/Filter entfernen, ggf. `NEXT_APP_PATH` → `/` als Default.
 - Aufräumen: `lib/api-client.ts` (unbenutzter Zweit-Client),
   `components/features/book/mock-data.ts` (oder für `msw`-Tests nutzen – bislang **keine**
   Tests; `filter-fns.ts`/`lib/menu-url.ts` wären ein guter Anfang), `_parked/[category]/`
@@ -515,7 +516,7 @@ gelöscht.
 - **Umschalten:** `NextMigration.kt` (`MIGRATED`),
   `lib/hand-built-categories.ts`, `NextMigrationTest`/`NextMigration2FATest`,
   `ProjectForge2FAInitialization`
-- **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`, `WicketUserFilter.kt`,
+- **Auth/Session:** `SpringSecurityConfig.kt`, `LoginService.kt`,
   `RestUserFilter.kt`; next `rest/pub/next/*`, `rest/my2fa/My2FANextRest.kt`, `lib/webauthn.ts`
 - **CSRF:** `rest/core/RestCsrfProtection.kt` (in `RestAuthenticationUtils.kt`),
   `UserStatusRest.kt`, `lib/rs/client.ts`, `application.properties`,

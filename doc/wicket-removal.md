@@ -3,8 +3,8 @@
 > Plan for removing the Wicket frontend entirely. It complements Phase 4 of
 > [projectforge-next/MIGRATION.md](../projectforge-next/MIGRATION.md), which only states the goal
 > ("remove `projectforge-wicket` from `settings.gradle.kts` + build, remove `/wa` serving/filters").
-> Status as of 2026-10-04: **no request reaches a Wicket page any more** (Phase 3). Every `/wa/...` url is
-> redirected into next by `OrphanedLinkFilter`; the module is dead code waiting for Phase 4.
+> Status as of 2026-10-04: **the module is deleted** (Phase 4). Every `/wa/...` url is redirected into next
+> by `OrphanedLinkFilter`.
 
 ## Goal and non-goals
 
@@ -229,36 +229,34 @@ Dropped:
 
 ## Phase 4 – Delete the module
 
-- [ ] `settings.gradle.kts`: remove `include(":projectforge-wicket")`.
-- [ ] `projectforge-application/build.gradle.kts`: remove the module dependency and the Wicket libs
-      (wicket myextensions, wicket.spring, wicketstuff html5/select2); check rhino (only the Wicket LESS
-      compiler?) and jsp-api.
-- [ ] `gradle/libs.versions.toml`: remove the wicket/wicketstuff versions and libraries.
-- [ ] `WebXMLInitializer`: remove `WicketUserFilter`, the `WicketFilter`
-      on `/wa/*`; keep locale filter, `restUserFilter`, `calendarSubscriptionFilter`, `OrphanedLinkFilter`.
-- [ ] Delete `projectforge-business/.../user/filter/WicketUserFilter.kt` (its dead `/wa/setup` branch is
-      already removed – setup lives in next).
-- [ ] Static resources: the module ships `src/main/webapp` (images, styles, fonts, scripts) as `static`.
-      Verify nothing outside Wicket loads them (favicon, mail templates, React) before deleting.
-- [ ] Split packages: `org.projectforge.web`, `.web.session`, `.web.teamcal.event` also exist in other
-      modules – delete only the Wicket module's files.
-- [ ] Config/log cleanup: `projectforge.wicket.developmentMode` (`application.properties`,
-      `ConfigurationService`), `Constants.WICKET_REQUEST_TIMEOUT_MINUTES`, `LoggingFilter` `/wa` /
-      `/styles/` exclusions (+ `LoggingFilterTest`), `logback-spring.xml` Wicket logger,
-      `TomcatConfig` comment (`maxPartCount` for Wicket forms).
-- [ ] Optional business cleanup: `imageDimensions.xml` (read only by Wicket `WebConstants`),
-      `@Deprecated` "used by Wicket" methods (`TimesheetDao`), `ProjectServiceImpl.isNumberFreeForCustomer`,
-      "open/Serializable for Wicket" comments.
-- [ ] i18n tooling: remove `parseWicketHtml` / the Wicket branch in `I18nKeysSourceAnalyzer`, run
-      `bin/pfDev.sh gen`; Wicket-only i18n keys then show up as unused and can be pruned.
-- [ ] `projectforge-webapp`: **keep** the `/wa` proxy (`vite.config.ts`) and `path="/wa/*"`
-      (`legacyWicketRoute`, `RedirectToServer`): they hand old stored `/wa` urls to `OrphanedLinkFilter`
-      by a full page load.
-- [ ] Tests: `projectforge-wicket/src/test` goes (`CallAllPagesTest`, `WicketPageTestBase`, …); move
-      `UrlHelperTest`/`AssignListHelperTest` if their helpers survive. Adjust `CardDavFilterTest`,
-      `GatewayEndpointFilterTest`.
-- [ ] Docs: MIGRATION.md (Phase 4, `/wa` mentions), MIGRATION-TaskTree.md, `docs/architecture.md`,
-      `site/_docs/development.adoc`, `adminguide.adoc`, `installation.adoc`, `doc/HOWTO-TEST-GATEWAY.md`.
+- [x] `settings.gradle.kts`: `include(":projectforge-wicket")` removed, the module deleted.
+- [x] `projectforge-application/build.gradle.kts`: module dependency and Wicket libs removed (wicket
+      extensions/spring, wicketstuff html5/select2), rhino (only the Wicket LESS compiler) and jsp-api too.
+- [x] `gradle/libs.versions.toml`: wicket/wicketstuff, rhino and jsp-api versions and libraries removed.
+- [x] `WebXMLInitializer`: `WicketUserFilter` and the `WicketFilter` on `/wa/*` removed; `OrphanedLinkFilter`
+      stays and now answers every `/wa/...` url alone.
+- [x] `WicketUserFilter.kt` deleted.
+- [x] Static resources (`src/main/webapp` → `static`: images, styles, fonts, scripts) went with the module:
+      nothing else loads them (favicons come from the React/next builds, `PdfRenderer` reads its logo from
+      the base dir).
+- [x] Split packages: only the module's own files went.
+- [x] Config/log cleanup: `projectforge.wicket.developmentMode`, `pf.config.compileCss`
+      (`application.properties`, `initialProjectForge.properties`, `ConfigurationService`),
+      `Constants.WICKET_REQUEST_TIMEOUT_MINUTES`, the `LoggingFilter` exclusions of the Wicket resource
+      paths (`/wa` stays known: old urls are redirected), the `logback-spring.xml` Wicket logger, the
+      `TomcatConfig` comment (`maxPartCount` kept).
+- [x] Business cleanup: `imageDimensions.xml` deleted (`ProjectServiceImpl` and the formatter factory lived
+      in the module). Comments merely mentioning Wicket are left.
+- [~] i18n tooling: `parseWicketHtml` and the Wicket `*Page.java` branch removed from
+      `I18nKeysSourceAnalyzer`. Still open: pruning the Wicket-only i18n keys after `bin/pfDev.sh gen`.
+- [x] `projectforge-webapp`: the `/wa` proxy and `legacyWicketRoute` are **kept** (they hand old stored
+      `/wa` urls to `OrphanedLinkFilter`).
+- [x] Tests: `projectforge-wicket/src/test` went with the module (`UrlHelper`/`AssignListHelper` were
+      module classes too). `CardDavFilterTest`, `GatewayEndpointFilterTest`, `LoggingFilterTest` still
+      hold (`/wa` stays rejected by the gateway and isn't CardDAV). `SourceFileHeadersMain` no longer
+      scans the module.
+- [x] Docs: MIGRATION.md, `development.adoc`, `installation.adoc` (setup url), `adminguide.adoc`
+      (2FA expressions with `/wa/` protect nothing any more). MIGRATION-TaskTree.md only tells history.
 - [ ] Optional afterwards: `NEXT_APP_PATH` → `/` as default (MIGRATION.md Phase 4).
 
 ## Verification

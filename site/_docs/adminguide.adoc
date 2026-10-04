@@ -685,13 +685,11 @@ Any uri *starting* with `/rs/user` is matching.
 * Regular expressions and shortcuts should be separated by ';'.
 * Supported shortcuts are `ADMIN`, `HR`, `FINANCE`, `ORGA`, `SCRIPTING`, `MY_ACCOUNT`, `PASSWORD`
 containing a bunch of regex.
-* You may also use `WRITE:<entity-name>` for specifying only all write access calls of an entity (rest calls of React and
-Wicket actions). Reading of entities / detail
-view is not affected.
-* For entities (also) available in Wicket version, use `/wa/user` for specifying read/write access and `/wa/userEdit` for specifying
-detail view and write access.
-such entities is allowed. For specifying all entity activities, use `/rs/<entity-name>` instead.
-* You may also define own regex, such as: `ADMIN;/wa/report;WRITE:user`
+* You may also use `WRITE:<entity-name>` for specifying only all write access calls of an entity (rest calls).
+Reading of entities / detail view is not affected. For specifying all entity activities, use `/rs/<entity-name>` instead.
+* You may also define own regex, such as: `ADMIN;/rs/report;WRITE:user`
+* The Wicket frontend (`/wa/...`) is gone; its urls are only redirected into the new frontend, so expressions
+with `/wa/` don't protect anything any more. Replace them by the `/rs/...` paths of the entities.
 
 ____
 Please refer the admin's web page -> configuration -> Export 2FA configuration for verifying your

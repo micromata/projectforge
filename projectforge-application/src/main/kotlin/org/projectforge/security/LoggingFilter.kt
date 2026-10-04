@@ -125,22 +125,16 @@ class LoggingFilter : Filter {
       "/rs/", // Rest services
       "/react/",
       "/next/", // Next.js app (pages, _next/static assets, RSC probes such as __next.*.txt)
-      "/wa/", // Wicket stuff
+      "/wa/", // Old Wicket urls, redirected into next by OrphanedLinkFilter
       "/rsPublic/", // Public rest services (no login required)
       "/static/", // resources (css, images, js, ...)
       "/assets/", // Vite build artifacts of the React app (js, css, fonts, images)
       "/export/", // ProjectForge.ics
-      "/styles/", // Used by Wicket pages
-      "/fonts/", // Used by Wicket pages
-      "/images/", // Used by Wicket pages
-      "/include/", // Used by Wicket pages
-      "/scripts/", // Used by Wicket pages
       "/apple-touch-icon", // Requested by Safari
-      // "/secure/", // Used by Wicket pages (/secure/Logo.png)
     )
     private val KNOWN_URLS = arrayOf(
       "/",
-      "/wa", // Wicket start page
+      "/wa", // Old Wicket start page, redirected into next
       "/next", // Next.js app start page (without trailing slash)
       "/favicon.ico",
       "/favicon.png",

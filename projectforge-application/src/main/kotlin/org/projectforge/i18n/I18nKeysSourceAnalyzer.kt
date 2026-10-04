@@ -103,7 +103,6 @@ internal class I18nKeysSourceAnalyzer {
         srcMainDirs.forEach { path ->
             parseJava(path)
             parseKotlin(path)
-            parseWicketHtml(path)
             parseHtmlMailTemplates(path)
             parseReact(path)
         }
@@ -146,16 +145,6 @@ internal class I18nKeysSourceAnalyzer {
 
     private val orderedEntries: List<I18nKeyUsageEntry>
         get() = I18nKeysUsage.getOrderedEntries(i18nKeyMap.values)
-
-    @Throws(IOException::class)
-    private fun parseWicketHtml(path: File) {
-        val files = SourcesUtils.listFiles(path, "html")
-        for (file in files) {
-            if (shouldExcludeFile(file)) continue
-            val content = getContent(file)
-            find(file, content, "<wicket:message\\s+key=\"([a-zA-Z0-9\\.]+)\"\\s/>")
-        }
-    }
 
     @Throws(IOException::class)
     private fun parseHtmlMailTemplates(path: File) {
@@ -287,28 +276,6 @@ internal class I18nKeysSourceAnalyzer {
             } else if (file.path.endsWith(PATH_MENU_ITEM_DEF)) {
                 for (menuItem in MenuItemDefId.entries) {
                     add(menuItem.i18nKey, file)
-                }
-            } else if (file.name.endsWith("Page.java")
-                && (content.contains("extends AbstractListPage")
-                        || content.contains("extends AbstractEditPage"))
-            ) { // Wicket
-                // Page
-                var list =
-                    find(content, "super\\(parameters, \"([a-zA-Z0-9\\.]+)\"\\);") // super(parameters, "i18nKey");
-                for (entry in list) {
-                    add("$entry.title.edit", file)
-                    add("$entry.title.list", file)
-                    add("$entry.title.list.select", file)
-                }
-                list = find(
-                    content,
-                    "super\\(caller, selectProperty, \"([a-zA-Z0-9\\.]+)\"\\);"
-                ) // super(caller, selectProperty,
-                // "i18nKey");
-                for (entry in list) {
-                    add("$entry.title.edit", file)
-                    add("$entry.title.list", file)
-                    add("$entry.title.list.select", file)
                 }
             }
         }

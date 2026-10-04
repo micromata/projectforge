@@ -114,7 +114,7 @@ After clicking finish, ProjectForge will be initialized and started. You may pro
 
 [NOTE]
 ====
-If your browser doesn't support `http://localhost:8080`, try 'http://127.0.0.1:8080/' or 'http://127.0.0.1:8080/wa/setup' or another browser.
+If your browser doesn't support `http://localhost:8080`, try 'http://127.0.0.1:8080/' or 'http://127.0.0.1:8080/next/setup' or another browser.
 ====
 
 ProjectForge is only available on port 8080 from localhost due to security reasons. For using https, please refer <<Reverse Proxy Setup (https)>>.

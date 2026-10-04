@@ -43,7 +43,6 @@ val kotlinCompilerDependency = configurations.create("kotlinCompilerDependency")
 val kotlinCompilerDependencies = mutableListOf<String>()
 
 dependencies {
-    implementation(project(":projectforge-wicket"))
     implementation(project(":projectforge-rest"))
     implementation(project(":projectforge-carddav"))
     implementation(project(":projectforge-idp"))
@@ -164,7 +163,6 @@ dependencies {
     implementation(libs.jakarta.annotation.api)
     implementation(libs.jakarta.persistence.api)
     implementation(libs.jakarta.servlet.api)
-    implementation(libs.jakarta.servlet.jsp.api)
     implementation(libs.jakarta.validation.api)
     implementation(libs.jakarta.ws.rs.api)
     implementation(libs.javax.jcr)
@@ -188,8 +186,6 @@ dependencies {
     implementation(libs.org.apache.tomcat.embed.el)
     implementation(libs.org.apache.poi)
     implementation(libs.org.apache.poi.ooxml)
-    implementation(libs.org.apache.wicket.myextensions)
-    implementation(libs.org.apache.wicket.spring)
     implementation(libs.org.apache.xmlgraphics.batik.codec)
     implementation(libs.org.apache.xmlgraphics.batik.constants)
     implementation(libs.org.apache.xmlgraphics.batik.dom)
@@ -209,7 +205,6 @@ dependencies {
     implementation(libs.org.hsqldb.hsqldb)
     implementation(libs.org.jfree.jfreechart)
     implementation(libs.org.mnode.ical4j.ical4j)
-    implementation(libs.org.mozilla.rhino)
     implementation(libs.org.postgresql)
     implementation(libs.org.reflections)
     implementation(libs.org.springframework.boot)
@@ -225,8 +220,6 @@ dependencies {
     implementation(libs.org.springframework.spring.orm)
     implementation(libs.org.springframework.spring.tx)
     implementation(libs.org.springframework.spring.webmvc)
-    implementation(libs.org.wicketstuff.html5)
-    implementation(libs.org.wicketstuff.select2)
     implementation(libs.se.sawano.java.alphanumeric.comparator)
 }
 
