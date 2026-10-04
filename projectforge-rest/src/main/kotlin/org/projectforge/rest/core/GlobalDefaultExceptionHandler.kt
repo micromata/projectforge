@@ -36,6 +36,7 @@ import org.projectforge.rest.pub.next.RestError
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.ui.UIToast
 import org.projectforge.web.rest.RestAuthenticationUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -48,6 +49,9 @@ private val log = KotlinLogging.logger {}
 
 @ControllerAdvice
 internal class GlobalDefaultExceptionHandler {
+    @Autowired
+    internal lateinit var supportErrorMailer: SupportErrorMailer
+
     @ExceptionHandler(value = [(Exception::class)])
     @Throws(Exception::class)
     fun defaultErrorHandler(request: HttpServletRequest, ex: Throwable): Any {
@@ -98,6 +102,8 @@ internal class GlobalDefaultExceptionHandler {
                 ResponseEntity.badRequest().body(UIToast.createExceptionToast(ex))
             }
         }
+        // Mails the error to the support team unless it's a known one exempted from that (see SupportErrorMailer).
+        supportErrorMailer.report(ex)
         GlobalExceptionRegistry.findExInfo(ex)?.let {
             return handleKnownException(ex, it)
         }

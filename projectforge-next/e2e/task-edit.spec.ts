@@ -472,6 +472,69 @@ test.describe("task edit", { tag: "@lane-task" }, () => {
     ).toHaveCount(0);
   });
 
+  test("the status can't be cleared, as Wicket's form required it", async ({
+    loggedInPage: page,
+    seededTask,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, `/task/${seededTask.id}`);
+    await expect(titleBox(page, format)).toHaveValue(seededTask.title);
+    // SelectField offers its ✕ only where the metadata says the field may be null (`TaskDO.status` is
+    // `required` now), so the status is visible but has none.
+    await expect(
+      page.getByRole("combobox", { name: label(format, "status") })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: `${format.t("reset")}: ${label(format, "status")}`,
+      })
+    ).toHaveCount(0);
+  });
+
+  test("a new task without a parent is refused before it is sent", async ({
+    loggedInPage: page,
+  }) => {
+    const format = await userFormat(page);
+    await goto(page, "/task/new");
+    await expect(titleBox(page, format)).toBeVisible({ timeout: 20_000 });
+    await titleBox(page, format).fill("e2e task without parent");
+    let posted = false;
+    page.on("request", (request) => {
+      if (request.method() === "PUT" || request.url().includes("/rs/task/save"))
+        posted = true;
+    });
+    await page.getByRole("button", { name: format.t("save") }).click();
+    // The parent is mandatory, as in Wicket (TaskEditForm): the schema refuses the form, so nothing is
+    // created — which matters here, a saved task could not be removed again.
+    await expect(
+      page.getByText(
+        format.t("validation.error.fieldRequired", {
+          arg0: label(format, "task.parentTask"),
+        })
+      )
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/task\/new/);
+    expect(posted).toBe(false);
+  });
+
+  test("the root task has no parent field", async ({ loggedInPage: page }) => {
+    const format = await userFormat(page);
+    const root = (await (
+      await page.request.get("/rs/task/tree/root", {
+        headers: { "X-PF-Frontend": "next" },
+      })
+    ).json()) as { id: number };
+    await goto(page, `/task/${root.id}`);
+    await expect(titleBox(page, format)).toBeVisible({ timeout: 20_000 });
+    // The root is the one task without a parent and can't be given one (TaskDao), so the form leaves
+    // the field out (ParentTaskField) instead of offering a pick the save would refuse.
+    await expect(
+      page.getByRole("button", {
+        name: `${format.t("task.tree.title.select")} ${label(format, "task.parentTask")}`,
+      })
+    ).toHaveCount(0);
+  });
+
   test("an out-of-range value is reported on its own field", async ({
     loggedInPage: page,
     seededTask,

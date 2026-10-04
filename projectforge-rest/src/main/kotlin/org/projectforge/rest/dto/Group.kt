@@ -50,6 +50,12 @@ class Group(
      * a hand built form (projectforge-next) has to be told.
      */
     var ldapPosixConfigured: Boolean = false,
+    /**
+     * Whether an external user management system (LDAP) is in use, i.e. whether [localGroup] means anything:
+     * only then is a group exported, and only then does the form offer the flag (as Wicket's GroupEditForm).
+     * Read-only flag for the frontend, set by `GroupEntityRest.transformFromDB`; [copyTo] ignores it.
+     */
+    var externalUsermanagement: Boolean = false,
 ) : BaseDTODisplayObject<GroupDO>(id = id, displayName = displayName), EntityAccessSupport {
 
     /**

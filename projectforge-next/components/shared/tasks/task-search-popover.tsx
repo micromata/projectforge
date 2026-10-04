@@ -25,6 +25,11 @@ export interface TaskSearchPopoverProps {
   /** Accessible name of the field this searches for, so the button says which one it belongs to. */
   ariaLabel: string;
   disabled?: boolean;
+  /**
+   * Find only the tasks a time sheet may be booked on (not closed, deleted or blocked for booking) — the
+   * time sheet form's field, as Wicket's `autocompleteOnlyTaskBookableForTimesheets`.
+   */
+  onlyBookable?: boolean;
   /** A task was picked — the id and its path, which is all the search answers. */
   onSelect: (task: TaskNode) => void;
 }
@@ -40,6 +45,7 @@ export interface TaskSearchPopoverProps {
 export function TaskSearchPopover({
   ariaLabel,
   disabled,
+  onlyBookable = false,
   onSelect,
 }: TaskSearchPopoverProps) {
   const t = useTranslations();
@@ -73,7 +79,11 @@ export function TaskSearchPopover({
         className="w-[44rem] max-w-(--radix-popover-content-available-width) p-0"
       >
         <EntitySearchList
-          url={TASK_LOOKUP_URL}
+          url={
+            onlyBookable
+              ? `${TASK_LOOKUP_URL}&onlyBookable=true`
+              : TASK_LOOKUP_URL
+          }
           active={open}
           // No empty-term lookup here: the tree's answer to it is a random, mostly useless slice, and
           // the recents are the "before you type" content instead (see useEntityLookup).

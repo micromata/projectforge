@@ -47,6 +47,8 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.utils.FileHelper
+import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,7 +66,7 @@ private val log = KotlinLogging.logger {}
  * Same rows as [TimesheetExport] (the Excel export), plus the filter the list was narrowed by ([Context]).
  * The layout follows the old FOP PDF without copying it: a slim per-page header carrying the configured
  * organization and logo (both smaller than the old version, [HeaderEvent]), then on the first page a blue
- * title bar and the filter summary (period, search text, user, summed duration), then the landscape table
+ * title bar and the filter summary (period, search text, task, user, summed duration, deleted option), then the landscape table
  * of the columns the list shows on screen.
  *
  * @author Kai Reinhard
@@ -94,6 +96,12 @@ open class TimesheetListPdfExport {
         val searchString: String? = null,
         /** The picked user's display name, as the object filter carries it. */
         val userName: String? = null,
+        /** The picked user, for the file name ([filename]). */
+        val userId: Long? = null,
+        /** The picked task, shown with its path and used in the file name. */
+        val taskId: Long? = null,
+        /** Whether the list showed deleted sheets too ([org.projectforge.framework.persistence.api.MagicFilter.deleted]). */
+        val deleted: Boolean = false,
     )
 
     /**
@@ -212,8 +220,21 @@ open class TimesheetListPdfExport {
         val rows = mutableListOf<Pair<String, String>>()
         periodText(context)?.let { rows.add(translate("timePeriod") to it) }
         context.searchString?.takeIf { it.isNotBlank() }?.let { rows.add(translate("searchString") to it) }
+        context.taskId?.let { getTaskPath(it, null, true, OutputType.PLAIN) }?.takeIf { it.isNotBlank() }
+            ?.let { rows.add(translate("task") to it) }
         context.userName?.takeIf { it.isNotBlank() }?.let { rows.add(translate("timesheet.user") to it) }
-        rows.add(translate("timesheet.totalDuration") to dateTimeFormatter.getPrettyFormattedDuration(stats.totalDurationMillis))
+        // As the legacy PDF: the duration in days and hours, and where that differs, in hours only.
+        val totalDuration = dateTimeFormatter.getPrettyFormattedDuration(stats.totalDurationMillis)
+        val totalHours = dateTimeFormatter.getFormattedDuration(
+            stats.totalDurationMillis, dateTimeFormatter.durationOfWorkingDay, -1,
+        )
+        rows.add(
+            translate("timesheet.totalDuration") to
+                    if (totalHours == totalDuration) totalDuration else "$totalDuration ($totalHours)"
+        )
+        if (context.deleted) {
+            rows.add(translate("label.options") to translate("deleted"))
+        }
         // Two label/value pairs per row, borderless — the compact grid the reference PDF uses.
         val table = PdfPTable(floatArrayOf(1.1f, 2.6f, 1.1f, 2.6f))
         table.widthPercentage = 100f
@@ -228,6 +249,26 @@ open class TimesheetListPdfExport {
         }
         document.add(table)
     }
+
+    /**
+     * The download's name, built as the legacy list built it:
+     * `timesheets_<user's last name>_<task title>_<from>_<to>.pdf`, the user and task only where the list was
+     * filtered by them, an open period bound as `--`.
+     */
+    fun filename(context: Context): String {
+        val buf = StringBuilder("timesheets_")
+        context.userId?.let { userGroupCache.getUser(it)?.lastname }?.let {
+            buf.append(FileHelper.createSafeFilename(it, 20)).append("_")
+        }
+        context.taskId?.let { taskTree.getTaskById(it)?.title }?.let {
+            buf.append(FileHelper.createSafeFilename(it, 8)).append("_")
+        }
+        buf.append(filenameDate(context.periodFrom)).append("_").append(filenameDate(context.periodTo)).append(".pdf")
+        return buf.toString()
+    }
+
+    private fun filenameDate(iso: String?): String =
+        DateHelper.getDateAsFilenameSuffix(iso?.let { PFDateTimeUtils.parseAndCreateDateTime(it)?.utilDate })
 
     /** "01.07.2025 - 31.08.2025", or an open end where only one bound is set; null if neither is. */
     private fun periodText(context: Context): String? {

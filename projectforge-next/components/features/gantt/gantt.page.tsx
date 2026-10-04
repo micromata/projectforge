@@ -37,7 +37,8 @@ export const GANTT_PAGE = definePage<
   // Where the entry sits in the main menu: Project management > Gantt (MenuItemDefId.GANTT).
   categoryKey: "menu.projectmanagement",
   titleKey: "gantt.title.list",
-  defaultSort: { id: "name" },
+  // Name descending, as Wicket's GanttChartListPage sorted.
+  defaultSort: { id: "name", desc: true },
   columns: [
     { name: "name", size: 260, className: "font-semibold" },
     {

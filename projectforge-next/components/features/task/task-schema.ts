@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TASK_METADATA } from "@/lib/metadata/task.generated";
 import { fromMetadata } from "@/lib/validation/from-metadata";
+import { REQUIRED } from "@/lib/validation/markers";
 
 /**
  * Every rule below — mandatory, maximum length, the bounds of the numbers, the constants of the four
@@ -19,37 +20,46 @@ const m = fromMetadata(TASK_METADATA);
  * The dates are strings: a `LocalDate` travels as `yyyy-MM-dd` and is held as that text, the same as
  * every other date of a next form (see `nullableString` and `InputField type="date"`).
  */
-export const taskSchema = z.object({
-  // null while the task is new — Spring assigns the id on the first save.
-  id: z.number().nullable(),
-  parentTask: m.entityField("parentTask"),
-  title: m.requiredString("title"),
-  status: m.enumField("status"),
-  priority: m.enumField("priority"),
-  shortDescription: m.nullableString("shortDescription"),
-  description: m.nullableString("description"),
-  progress: m.intField("progress"),
-  maxHours: m.intField("maxHours"),
-  startDate: m.nullableString("startDate"),
-  endDate: m.nullableString("endDate"),
-  duration: m.decimalField("duration"),
-  protectTimesheetsUntil: m.nullableString("protectTimesheetsUntil"),
-  responsibleUser: m.entityField("responsibleUser"),
-  reference: m.nullableString("reference"),
-  timesheetBookingStatus: m.enumField("timesheetBookingStatus"),
-  kost2BlackWhiteList: m.nullableString("kost2BlackWhiteList"),
-  kost2IsBlackList: m.booleanField("kost2IsBlackList"),
-  protectionOfPrivacy: m.booleanField("protectionOfPrivacy"),
-  allowTimeOverlap: m.booleanField("allowTimeOverlap"),
-  maxHoursHasPriority: m.booleanField("maxHoursHasPriority"),
-  // No box of its own anywhere (see types.ts) — carried so a save doesn't erase what is stored.
-  workpackageCode: m.nullableString("workpackageCode"),
-  ganttPredecessorOffset: m.intField("ganttPredecessorOffset"),
-  ganttRelationType: m.enumField("ganttRelationType"),
-  ganttObjectType: m.enumField("ganttObjectType"),
-  ganttPredecessor: m.entityField("ganttPredecessor"),
-  created: m.nullableString("created"),
-});
+export const taskSchema = z
+  .object({
+    // null while the task is new — Spring assigns the id on the first save.
+    id: z.number().nullable(),
+    parentTask: m.entityField("parentTask"),
+    title: m.requiredString("title"),
+    status: m.enumField("status"),
+    priority: m.enumField("priority"),
+    shortDescription: m.nullableString("shortDescription"),
+    description: m.nullableString("description"),
+    progress: m.intField("progress"),
+    maxHours: m.intField("maxHours"),
+    startDate: m.nullableString("startDate"),
+    endDate: m.nullableString("endDate"),
+    duration: m.decimalField("duration"),
+    protectTimesheetsUntil: m.nullableString("protectTimesheetsUntil"),
+    responsibleUser: m.entityField("responsibleUser"),
+    reference: m.nullableString("reference"),
+    timesheetBookingStatus: m.enumField("timesheetBookingStatus"),
+    kost2BlackWhiteList: m.nullableString("kost2BlackWhiteList"),
+    kost2IsBlackList: m.booleanField("kost2IsBlackList"),
+    protectionOfPrivacy: m.booleanField("protectionOfPrivacy"),
+    allowTimeOverlap: m.booleanField("allowTimeOverlap"),
+    maxHoursHasPriority: m.booleanField("maxHoursHasPriority"),
+    // No box of its own anywhere (see types.ts) — carried so a save doesn't erase what is stored.
+    workpackageCode: m.nullableString("workpackageCode"),
+    ganttPredecessorOffset: m.intField("ganttPredecessorOffset"),
+    ganttRelationType: m.enumField("ganttRelationType"),
+    ganttObjectType: m.enumField("ganttObjectType"),
+    ganttPredecessor: m.entityField("ganttPredecessor"),
+    created: m.nullableString("created"),
+  })
+  // A new task needs a parent, the root is the only task without one (TaskDao refuses a missing parent).
+  // Not part of the metadata: a reference's `required` doesn't reach it (see ParentTaskField). A stored
+  // task is left to the server, which knows whether it is the root.
+  .superRefine((values, ctx) => {
+    if (values.id == null && values.parentTask == null) {
+      ctx.addIssue({ code: "custom", path: ["parentTask"], message: REQUIRED });
+    }
+  });
 
 export type TaskValues = z.infer<typeof taskSchema>;
 

@@ -34,6 +34,8 @@ export interface TaskSelectControlProps {
   onDrillDown?: (task: TaskNode) => void;
   /** Make the task segment of the path a link to its time sheets — see [TaskPath]. */
   linkCurrentToTimesheets?: boolean;
+  /** The type-ahead finds only tasks a time sheet may be booked on (see TaskSearchPopover). */
+  onlyBookable?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export function TaskSelectControl({
   openTreeOnAncestorClick,
   onDrillDown,
   linkCurrentToTimesheets,
+  onlyBookable,
 }: TaskSelectControlProps) {
   const t = useTranslations();
   const { recordTask } = useRecentTasks();
@@ -97,6 +100,7 @@ export function TaskSelectControl({
       <TaskSearchPopover
         ariaLabel={ariaLabel}
         disabled={disabled}
+        onlyBookable={onlyBookable}
         onSelect={select}
       />
       <TaskFavoritesMenu

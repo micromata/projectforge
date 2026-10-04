@@ -3187,7 +3187,8 @@
       "ensureActiveHint": "Activated via projectforge.properties (ensure-active) and cannot be deactivated here.",
       "restartRequired": "Please note: (de)activation of plugins will take effect only after restart!",
       "title": "Plugins"
-    }
+    },
+    "testSystem": "Test system"
   },
   "task": {
     "_": "Structure element",

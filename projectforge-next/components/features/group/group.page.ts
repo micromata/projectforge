@@ -5,6 +5,7 @@ import { GroupListActions } from "./group-list-actions";
 import { groupSchema, GROUP_FIELDS, type GroupValues } from "./group-schema";
 import { emptyGroupValues, toFormValues } from "./group-values";
 import { LdapGidField } from "./ldap-gid-field";
+import { LocalGroupField } from "./local-group-field";
 import { MemberEmailsField } from "./member-emails-field";
 import type { GroupDetail, GroupListRow } from "./types";
 
@@ -79,7 +80,8 @@ export const GROUP_PAGE = definePage<
           { name: "name", span: 2 },
           // Whether the group is exported to an external user management system at all — read before
           // anything below it, hence beside the name and not further down.
-          { name: "localGroup", hintKey: "group.localGroup.tooltip" },
+          // Only where an external user management system is in use (see LocalGroupField).
+          { custom: LocalGroupField },
           { name: "organization", span: 2 },
           { name: "groupOwner" },
           { custom: AssignedUsersField, span: 3 },

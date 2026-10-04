@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.RecentQueue
+import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.PagesResolver
@@ -103,7 +104,10 @@ class PhoneCallRest {
         val id: Long,
         val fullName: String,
         val numbers: List<AddressPhoneNumber>,
-        /** The address' view page, so the panel name links to it (address is not migrated to next yet). */
+        /**
+         * The address' view page, so the panel name links to it (address is not migrated to next yet); its back
+         * button returns to this page, as Wicket's address link did.
+         */
         val viewUrl: String,
     )
 
@@ -123,8 +127,8 @@ class PhoneCallRest {
 
     /**
      * One auto-completion entry: [display] is what the user sees and the free-text box holds, [number] is the
-     * clean number to dial, and [addressId] (when the entry came from an address, not a recent) lets the client
-     * refresh the address panel to the picked contact.
+     * clean number to dial, and [addressId] (when the entry came from an address, or a recent call to one) lets
+     * the client refresh the address panel to the picked contact.
      */
     class AcItem(
         val addressId: Long? = null,
@@ -135,6 +139,8 @@ class PhoneCallRest {
     /** Body of [call]. */
     class CallRequest(
         val phoneNumber: String? = null,
+        /** The address shown in the panel when the call was placed, remembered with the recent number. */
+        val addressId: Long? = null,
         val myPhoneId: String? = null,
         val myCallerId: String? = null,
     )
@@ -165,7 +171,9 @@ class PhoneCallRest {
         val phoneNumber = when {
             deepLinkAddress != null -> prefillNumber(deepLinkAddress, number)
             restored != null -> restored.second
-            else -> prefillNumber(null, number)
+            !number.isNullOrBlank() -> prefillNumber(null, number)
+            // Opened plain: the number last called, also one without an address (as the Wicket page kept it).
+            else -> userPrefService.getEntry(PREF_AREA, PREF_LAST_NUMBER, String::class.java)?.takeIf { it.isNotBlank() }
         }
         // Remember a freshly resolved deep-link address, so re-opening the page restores it.
         deepLinkAddress?.let { rememberLastAddress(it.id, phoneNumber) }
@@ -203,13 +211,13 @@ class PhoneCallRest {
      * Auto-completion of the number field: one entry per non-blank business / mobile / private / private-mobile
      * number of the matching addresses, formatted `"<number>: <name>, <firstName>, <organization>"` (as the Wicket
      * page) and carrying the address id so the client can follow the pick in the address panel. An empty search
-     * offers the numbers recently called (persisted per user), which have no address behind them.
+     * offers the numbers recently called (persisted per user), see [recentItem].
      */
     @AccessChecked("DAO: AddressDao.select")
     @GetMapping("ac")
     fun autoComplete(@RequestParam("search", required = false) search: String?): List<AcItem> {
         if (search.isNullOrBlank()) {
-            return recentReceivers().recentList.orEmpty().map { AcItem(number = extractPhonenumber(it) ?: it, display = it) }
+            return recentReceivers().recentList.orEmpty().map { recentItem(RecentCall.decode(it)) }
         }
         val filter = AddressFilter()
         // AND search: "Kai Reinhard" → "+Kai* +Reinhard*", so all typed words must match, not just any one.
@@ -282,7 +290,7 @@ class PhoneCallRest {
         // Remember the user's phone / caller id choice and the dialed number for next time.
         postData.myPhoneId?.let { userPrefService.putEntry(PREF_AREA, PREF_RECENT_PHONE_ID, it, true) }
         postData.myCallerId?.let { userPrefService.putEntry(PREF_AREA, PREF_RECENT_CALLER_ID, it, true) }
-        recentReceivers().append(callee)
+        rememberRecentCall(callee, postData.addressId)
         return CallResult(
             true,
             "${dateTimeFormatter.getFormattedDateTime(Date())}: ${translate("address.phoneCall.result.successful")}",
@@ -314,7 +322,12 @@ class PhoneCallRest {
         // fullName joins name, first name and organization, so an entry with only an organization (a company
         // support line) shows the organization instead of a bare salutation ("Frau") from fullNameWithTitleAndForm.
         val displayName = address.fullName?.takeIf { it.isNotBlank() } ?: address.fullNameWithTitleAndForm.trim()
-        return AddressInfo(address.id!!, displayName, numbers, AddressViewPageRest.getPageUrl(address.id))
+        return AddressInfo(
+            address.id!!,
+            displayName,
+            numbers,
+            AddressViewPageRest.getPageUrl(address.id, returnToCaller = "/${MenuItemDefId.PHONE_CALL.url}"),
+        )
     }
 
     private fun addNumber(list: MutableList<AddressPhoneNumber>, number: String?, phoneType: PhoneType) {
@@ -340,10 +353,55 @@ class PhoneCallRest {
 
     /**
      * Extracts the number with the configured country prefix and strips a leading telephone-system number, as
-     * [org.projectforge.web.address.PhoneCallPage.extractPhonenumber] did.
+     * the Wicket PhoneCallPage did.
      */
     private fun extractPhonenumber(number: String?): String? {
         return stripSystemNumber(NumberHelper.extractPhonenumber(number), configurationService.telephoneSystemNumber)
+    }
+
+    /**
+     * A recent call as an auto-completion entry: `"<number> | <name>, <phone type>"` while the remembered address
+     * is still readable and still has that number, else the bare number (an old entry, an address since changed or
+     * deleted). The label is built on read, so it follows a renamed contact and the user's locale.
+     */
+    private fun recentItem(recent: RecentCall): AcItem {
+        val number = extractPhonenumber(recent.number) ?: recent.number
+        val address = recent.addressId?.let { id -> runCatching { addressDao.find(id) }.getOrNull() }
+        val phoneType = address?.let { phoneTypeOf(it, number) }
+            ?: return AcItem(number = number, display = recent.number)
+        val name = address.fullName?.takeIf { it.isNotBlank() } ?: address.fullNameWithTitleAndForm.trim()
+        return AcItem(addressId = address.id, number = number, display = "$number | $name, ${translate(phoneType.i18nKey)}")
+    }
+
+    /** Which of the address' numbers [number] is (normalized via [extractPhonenumber]); null if none. */
+    private fun phoneTypeOf(address: AddressDO, number: String): PhoneType? {
+        val normalized = extractPhonenumber(number) ?: return null
+        return listOf(
+            address.businessPhone to PhoneType.BUSINESS,
+            address.mobilePhone to PhoneType.MOBILE,
+            address.privatePhone to PhoneType.PRIVATE,
+            address.privateMobilePhone to PhoneType.PRIVATE_MOBILE,
+        ).firstOrNull { extractPhonenumber(it.first) == normalized }?.second
+    }
+
+    /**
+     * Puts the dialed [number] (with the address shown at the time) on top of the recents, replacing an older
+     * entry of the same number, and remembers it as the last number for a plain re-open.
+     */
+    private fun rememberRecentCall(number: String, shownAddressId: Long?) {
+        // The panel may still show a contact while a number of someone else was typed: keep the address only if
+        // the number is one of its own.
+        val addressId = shownAddressId?.takeIf { id ->
+            runCatching { addressDao.find(id) }.getOrNull()?.let { matchesNumber(it, number) } == true
+        }
+        val recents = recentReceivers()
+        recents.recentList?.removeAll { RecentCall.decode(it).number == number }
+        recents.append(RecentCall(number, addressId).encode())
+        if (addressId != null) {
+            rememberLastAddress(addressId, number)
+        } else {
+            userPrefService.putEntry(PREF_AREA, PREF_LAST_NUMBER, number, true)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -378,6 +436,24 @@ class PhoneCallRest {
         val normalized = extractPhonenumber(number) ?: return false
         return listOf(address.businessPhone, address.mobilePhone, address.privatePhone, address.privateMobilePhone)
             .any { extractPhonenumber(it) == normalized }
+    }
+
+    /**
+     * One entry of the recent calls, persisted as a string so the stored queue keeps its type: `"<number>\t<id>"`,
+     * or the bare number for a call without an address — which is also how the entries before the address was
+     * remembered read, so they stay usable.
+     */
+    internal data class RecentCall(val number: String, val addressId: Long? = null) {
+        fun encode(): String = if (addressId == null) number else "$number$SEPARATOR$addressId"
+
+        companion object {
+            private const val SEPARATOR = '\t'
+
+            fun decode(entry: String): RecentCall {
+                val parts = entry.split(SEPARATOR)
+                return RecentCall(parts[0], parts.getOrNull(1)?.toLongOrNull())
+            }
+        }
     }
 
     companion object {

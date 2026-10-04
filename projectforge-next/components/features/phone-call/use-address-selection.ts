@@ -11,8 +11,9 @@ import type { AcItem, AddressInfo } from "./types";
  *
  * [SuggestInput] deals in plain strings: it shows and commits the `display` text. Each lookup is cached here by
  * both its `display` and its clean `number`, so committing either (picking a row, or blurring on the number the
- * pick left behind) finds the same [AcItem]. A hit with an `addressId` refreshes the panel; a recent number
- * (none) clears it; free text the box never suggested leaves both untouched.
+ * pick left behind) finds the same [AcItem]. A hit with an `addressId` (an address, or a recent call to one)
+ * refreshes the panel; one without (a recent number alone) clears it; free text the box never suggested leaves
+ * both untouched.
  */
 export function useAddressSelection(
   initialAddress: AddressInfo | null,
