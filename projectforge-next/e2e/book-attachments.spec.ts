@@ -33,7 +33,11 @@ const FILE = {
  * toast. Only the stored rows offer a download.
  */
 function storedRow(page: Page, t: UserFormat["t"], name: string) {
-  return page.getByRole("link", { name: `${t("download._")}: ${name}` });
+  // Exact, since a name may be the prefix of another: a.txt is still there beside its a.txt.zip.
+  return page.getByRole("link", {
+    name: `${t("download._")}: ${name}`,
+    exact: true,
+  });
 }
 
 /** Uploads through the section's file input, which the add button keeps `sr-only`. */
@@ -276,6 +280,127 @@ test.describe("book attachments", { tag: "@parallel" }, () => {
         .click();
     } finally {
       await remove(page, t, name);
+    }
+  });
+
+  test("encrypts a file and tests passwords against it", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, `/book/${book.id}`);
+    const name = fileName("encrypt");
+    // `AttachmentsServicesRest.encrypt` keeps the extension and appends one: a.txt -> a.txt.zip.
+    const zipName = `${name}.zip`;
+    const dialog = page.getByRole("dialog");
+    const password = dialog.getByLabel(t("password._"), { exact: true });
+
+    async function encrypt(value: string) {
+      await password.fill(value);
+      await dialog
+        .getByRole("button", { name: t("attachment.encrypt._"), exact: true })
+        .click();
+      // The question says the password is not stored — the one thing to know before encrypting.
+      const question = page.getByRole("alertdialog");
+      await expect(
+        question.getByText(t("attachment.encrypt.question"))
+      ).toBeVisible();
+      await question
+        .getByRole("button", { name: t("attachment.encrypt._"), exact: true })
+        .click();
+    }
+
+    try {
+      await upload(page, t, name);
+      await page.getByRole("button", { name: `${t("edit")}: ${name}` }).click();
+
+      // Folded away until asked for, as in the legacy dialog.
+      await expect(password).toHaveCount(0);
+      await dialog.getByLabel(t("attachment.showEncryptionOption")).check();
+
+      // Too short: the backend refuses with a 406 on the password field, and the details stay open.
+      await encrypt("123");
+      await expect(password).toHaveAttribute("aria-invalid", "true");
+
+      await encrypt("pf-e2e-secret");
+      // The file it showed is gone, so the details close — the ZIP replaced it in the list.
+      await expect(dialog).toHaveCount(0);
+      await expect(storedRow(page, t, zipName)).toBeVisible();
+      await expect(storedRow(page, t, name)).toHaveCount(0);
+      // The list marks it, so nobody downloads it without knowing a password is needed.
+      await expect(
+        page
+          .getByRole("listitem")
+          .filter({ has: storedRow(page, t, zipName) })
+          .getByText(t("attachment.zip.encrypted"), { exact: true })
+      ).toBeVisible();
+
+      await page
+        .getByRole("button", { name: `${t("edit")}: ${zipName}` })
+        .click();
+      // AES-256 is the default mode, and an encrypted file shows its password field right away.
+      await expect(
+        dialog.getByText(t("attachment.zip.encrytpedAes256"))
+      ).toBeVisible();
+      const test = dialog.getByRole("button", {
+        name: t("attachment.testDecryption._"),
+      });
+
+      await password.fill("wrong-password");
+      await test.click();
+      await expect(
+        dialog.getByText(t("attachment.testDecryption.failed"))
+      ).toBeVisible();
+
+      await password.fill("pf-e2e-secret");
+      await test.click();
+      await expect(
+        page.getByText(t("attachment.testDecryption.successful"))
+      ).toBeVisible();
+      await expect(password).not.toHaveAttribute("aria-invalid", "true");
+    } finally {
+      if (await dialog.count()) {
+        await page.keyboard.press("Escape");
+      }
+      for (const leftover of [name, zipName]) {
+        if (await storedRow(page, t, leftover).count()) {
+          await remove(page, t, leftover);
+        }
+      }
+    }
+  });
+
+  test("downloads and deletes a file from its details", async ({
+    loggedInPage: page,
+  }) => {
+    const { t } = await userFormat(page);
+    await goto(page, `/book/${book.id}`);
+    const name = fileName("details-actions");
+    const dialog = page.getByRole("dialog");
+
+    try {
+      await upload(page, t, name);
+      await page.getByRole("button", { name: `${t("edit")}: ${name}` }).click();
+
+      const download = page.waitForEvent("download");
+      await dialog
+        .getByRole("link", { name: t("download._"), exact: true })
+        .click();
+      expect((await download).suggestedFilename()).toBe(name);
+
+      await dialog
+        .getByRole("button", { name: t("delete"), exact: true })
+        .click();
+      await page
+        .getByRole("alertdialog")
+        .getByRole("button", { name: t("delete"), exact: true })
+        .click();
+      // Its details showed a file that no longer exists, so they close with it.
+      await expect(dialog).toHaveCount(0);
+      await expect(storedRow(page, t, name)).toHaveCount(0);
+    } finally {
+      if (await storedRow(page, t, name).count()) {
+        await remove(page, t, name);
+      }
     }
   });
 

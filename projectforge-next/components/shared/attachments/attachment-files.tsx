@@ -6,6 +6,7 @@ import { toast } from "@/lib/toast";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAttachmentMutations } from "@/hooks/use-attachments";
 import { useAttachmentSelection } from "@/hooks/use-attachment-selection";
+import { useAttachmentEncryption } from "@/hooks/use-attachment-encryption";
 import type { Attachment, AttachmentWriteResult } from "@/lib/rs/attachments";
 import { AttachmentEditDialog } from "./attachment-edit-dialog";
 import { AttachmentRow } from "./attachment-row";
@@ -28,7 +29,7 @@ interface Props {
 }
 
 /**
- * The stored attachments of an entity: rename, delete, and the actions on a whole selection
+ * The stored attachments of an entity: rename, delete, encrypt, and the actions on a whole selection
  * (download as one ZIP, delete at once — see AttachmentToolbar).
  *
  * Split from AttachmentList so that one keeps to the uploads and the query while this one holds the
@@ -43,13 +44,18 @@ export function AttachmentFiles({
   onChanged,
 }: Props) {
   const t = useTranslations();
-  const { rename, remove, removeMany } = useAttachmentMutations(entity, id);
+  const { rename, remove, removeMany, encrypt, testDecryption } =
+    useAttachmentMutations(entity, id);
   const selection = useAttachmentSelection(attachments);
   const [editing, setEditing] = useState<Attachment | null>(null);
   /** The files the open confirmation would delete — one row's, or a whole selection's. */
   const [deleting, setDeleting] = useState<Attachment[]>([]);
 
-  const busy = rename.isPending || remove.isPending || removeMany.isPending;
+  const busy =
+    rename.isPending ||
+    remove.isPending ||
+    removeMany.isPending ||
+    encrypt.isPending;
 
   function report(result: AttachmentWriteResult): void {
     if (result.kind === "rejected") {
@@ -71,10 +77,22 @@ export function AttachmentFiles({
     }
   }
 
+  const encryption = useAttachmentEncryption(
+    { encrypt, testDecryption },
+    (result) => {
+      report(result);
+      if (result.kind === "ok") setEditing(null);
+    }
+  );
+
   async function confirmDelete() {
     const files = deleting;
     setDeleting([]);
     if (files.length === 0) return;
+    // Deleted from its own details: those show a file that no longer exists.
+    if (editing && files.some((file) => file.fileId === editing.fileId)) {
+      setEditing(null);
+    }
     try {
       // One call for a selection, so the cache is written once (see deleteAttachments).
       report(
@@ -126,8 +144,19 @@ export function AttachmentFiles({
       {editing && (
         <AttachmentEditDialog
           attachment={editing}
+          entity={entity}
+          id={id}
           saving={rename.isPending}
+          busy={busy}
+          encrypting={encryption.pending}
           onSave={(name, description) => void saveEdit(name, description)}
+          onDelete={() => setDeleting([editing])}
+          onEncrypt={(password, mode) =>
+            encryption.encryptFile(editing.fileId, password, mode)
+          }
+          onTestDecryption={(password) =>
+            encryption.testFile(editing.fileId, password)
+          }
           onClose={() => setEditing(null)}
         />
       )}

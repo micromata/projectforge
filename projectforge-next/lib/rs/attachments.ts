@@ -250,6 +250,102 @@ export function attachmentsDownloadUrl(
   return `${BASE}/multiDownload/${entity}/${id}?${params}`;
 }
 
+/**
+ * The two modes a file can be encrypted with — what the legacy dialog offered
+ * (`AttachmentPageRest.addShowEncryptionOption`). The others in [ZipMode] are only ever detected on
+ * upload, never chosen.
+ */
+export type EncryptionMode = Extract<
+  ZipMode,
+  "ENCRYPTED_STANDARD" | "ENCRYPTED_AES256"
+>;
+
+/**
+ * The password was refused: too short to encrypt with, or not the one the file was encrypted with.
+ * `message` is the backend's, already translated, and belongs to the password field.
+ */
+export interface PasswordRefused {
+  kind: "invalid";
+  message: string;
+}
+
+/**
+ * Replaces the file by a password protected ZIP of it (`AttachmentsServicesRest.encrypt`): `a.pdf`
+ * becomes `a.pdf.zip` under a new `fileId`, the original is deleted. The answer is the new list.
+ */
+export function encryptAttachment(
+  ref: AttachmentRef,
+  password: string,
+  mode: EncryptionMode,
+  signal?: AbortSignal
+): Promise<AttachmentWriteResult | PasswordRefused> {
+  return passwordWrite(
+    `${BASE}/encrypt`,
+    ref,
+    { password, newZipMode: mode },
+    signal
+  );
+}
+
+/**
+ * Checks a password against an encrypted file (`AttachmentsServicesRest.testDecryption`). Changes
+ * nothing, so the answer carries no list — `ok` is all there is to it.
+ */
+export async function testAttachmentDecryption(
+  ref: AttachmentRef,
+  password: string,
+  signal?: AbortSignal
+): Promise<
+  { kind: "ok" } | { kind: "rejected"; message: string } | PasswordRefused
+> {
+  const result = await passwordWrite(
+    `${BASE}/testDecryption`,
+    ref,
+    { password },
+    signal
+  );
+  // The success TOAST has no list; passing on its empty one would read as "all files gone".
+  return result.kind === "ok" ? { kind: "ok" } : result;
+}
+
+/**
+ * Like [write], but HTTP 406 is an answer here, not an error: both password calls refuse a password
+ * that way, with a validation error on `attachment.password`.
+ */
+async function passwordWrite(
+  path: string,
+  ref: AttachmentRef,
+  attachment: { password: string; newZipMode?: EncryptionMode },
+  signal?: AbortSignal
+): Promise<AttachmentWriteResult | PasswordRefused> {
+  const res = await rawRequest(
+    path,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        data: {
+          ...refData(ref),
+          attachment: { fileId: ref.fileId, ...attachment },
+        },
+      }),
+    },
+    signal
+  );
+  if (res.status === NOT_ACCEPTABLE) {
+    const body = (await res.json().catch(() => null)) as ResponseAction | null;
+    return {
+      kind: "invalid",
+      message: body?.validationErrors?.[0]?.message ?? "",
+    };
+  }
+  if (!res.ok) {
+    throw new RsError(res.status, `${res.status} ${res.statusText}: ${path}`);
+  }
+  return interpretWriteBody(await res.text(), res.status, path);
+}
+
+const NOT_ACCEPTABLE = 406;
+
 function refData(ref: AttachmentRef) {
   return {
     // The backend's `category` is the entity's rest path (`AbstractPagesRest.category`).

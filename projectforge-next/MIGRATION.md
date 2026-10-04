@@ -293,7 +293,11 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `lib/rs/attachments.ts`. Zwei Protokoll-Eigenheiten: jede Schreibantwort enthält die
   **ganze** neue Liste (`setQueryData`, kein Reload); eine Ablehnung ist **HTTP 200 mit
   `TOAST`** (`AttachmentWriteResult` = `ok | rejected`). Kein Lese-Endpunkt (steckt im
-  Entitäts-DTO). Upload sequenziell (eine Datei/Call). Verschlüsselung nicht portiert.
+  Entitäts-DTO). Upload sequenziell (eine Datei/Call). Detaildialog wie der alte
+  (`AttachmentPageRest.createAttachmentLayout`): Name/Beschreibung, Metadaten, Löschen,
+  Download, Verschlüsseln (`encrypt`, Modus AES-256/ZIP-Standard) und Entschlüsselung testen
+  (`testDecryption`); ein abgelehntes Passwort ist HTTP 406 am Passwortfeld (`PasswordRefused`).
+  `encryptionSupport={false}` für Merlin/DataTransfer-Public, die es im Backend auch nicht haben.
 - **Mehrfachauswahl/Massenupdate** (`AbstractMultiSelectedPage`, `MultiSelectionSupport`,
   `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
