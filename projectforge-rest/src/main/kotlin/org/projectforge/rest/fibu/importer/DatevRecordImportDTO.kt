@@ -61,9 +61,13 @@ class DatevRecordImportDTO(
     /** Formatted cost unit 1 (#.###.##.##). */
     var kost1: String? = null,
     var kost1Id: Long? = null,
+    /** Preview tooltip of [kost1]: its description. Not part of the diff. */
+    var kost1Info: String? = null,
     /** Formatted cost unit 2 (#.###.##.##). */
     var kost2: String? = null,
     var kost2Id: Long? = null,
+    /** Preview tooltip of [kost2]: description, customer - project, cost type (see DatevRecordExcelImporter.kost2Tooltip). */
+    var kost2Info: String? = null,
     var menge: String? = null,
     var beleg: String? = null,
     var text: String? = null,

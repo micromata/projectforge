@@ -34,10 +34,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
+import org.projectforge.business.fibu.KundeDO
+import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.BuchungssatzDao
 import org.projectforge.business.fibu.kost.Kost1DO
@@ -189,6 +192,7 @@ class DatevImportRestTest {
         setField(rest, "buchungssatzDao", buchungssatzDao)
         setField(rest, "kontoCache", kontoCache)
         setField(rest, "kostCache", kostCache)
+        setField(rest, "caches", Mockito.mock(PfCaches::class.java))
         setField(rest, "configurationService", configurationService())
         setField(rest, "jobHandler", echoJobHandler(enqueuedJobs))
         val request = MockHttpServletRequest()
@@ -262,6 +266,27 @@ class DatevImportRestTest {
         assertThrows(IllegalArgumentException::class.java) {
             DatevAccountExcelImporter().parse(buildXlsx(withKontenplan = false).inputStream(), storage)
         }
+    }
+
+    @Test
+    fun `cost unit tooltips as in the former Wicket import`() {
+        val art = Kost2ArtDO().also {
+            it.id = 1L
+            it.name = "Entwicklung"
+        }
+        val described = Kost2DO().also {
+            it.id = 22L
+            it.description = "Wartung"
+            it.kost2Art = art
+        }
+        val caches = Mockito.mock(PfCaches::class.java)
+        Mockito.`when`(caches.getProjektByKost2(22L)).thenReturn(ProjektDO().also { it.name = "Portal" })
+        Mockito.`when`(caches.getKundeByKost2(22L)).thenReturn(KundeDO().also { it.identifier = "ACME" })
+        Mockito.`when`(caches.getKost2ArtIfNotInitialized(art)).thenReturn(art)
+        assertEquals("Wartung\nACME - Portal\n01 - Entwicklung", DatevRecordExcelImporter.kost2Tooltip(described, caches))
+        // Without a project only the description, as before; nothing at all gives no tooltip.
+        assertEquals("Wartung", DatevRecordExcelImporter.kost2Tooltip(described, null))
+        assertNull(DatevRecordExcelImporter.kost2Tooltip(kost2, Mockito.mock(PfCaches::class.java)))
     }
 
     private fun parseRecords(): DatevRecordImportStorage {

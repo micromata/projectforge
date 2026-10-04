@@ -105,6 +105,11 @@ export interface ImportColumn {
   /** Renders the old→new diff for MODIFIED rows via `oldDiffValues["read." + field]`. */
   diff?: boolean;
   width?: number;
+  /**
+   * Accessor path (relative to `entry.read`) of a text explaining the value, shown as the cell's tooltip —
+   * e.g. the description of a cost unit, which the column itself only shows as a number.
+   */
+  tooltipField?: string;
   /** Gate the column on the view's `meta`, e.g. `m => m.isPositionBasedImport === true`. */
   showIf?: (meta: Record<string, unknown>) => boolean;
 }

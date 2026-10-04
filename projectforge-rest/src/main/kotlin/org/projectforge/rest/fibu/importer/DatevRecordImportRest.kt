@@ -24,6 +24,7 @@
 package org.projectforge.rest.fibu.importer
 
 import mu.KotlinLogging
+import org.projectforge.business.PfCaches
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.datev.DatevImportService
@@ -70,6 +71,9 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     private lateinit var kostCache: KostCache
 
     @Autowired
+    private lateinit var caches: PfCaches
+
+    @Autowired
     private lateinit var configurationService: ConfigurationService
 
     @Autowired
@@ -103,7 +107,7 @@ class DatevRecordImportRest : AbstractImportRest<DatevRecordImportDTO, DatevReco
     override fun proceedUpload(inputStream: InputStream, filename: String): DatevRecordImportStorage {
         val storage = DatevRecordImportStorage()
         storage.filename = filename
-        DatevRecordExcelImporter(kontoCache, kostCache).parse(inputStream, storage)
+        DatevRecordExcelImporter(kontoCache, kostCache, caches).parse(inputStream, storage)
         return storage
     }
 

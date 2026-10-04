@@ -109,8 +109,8 @@ Each item: build in next, or decide with the product owner that it goes away.
       `BuchungssatzExcelImporter`/`KontenplanExcelImporter`; `next/datev-import` covers it (status filter,
       per-row error texts, BWA preview, log viewer). The upload limit is `projectforge.max-file-size.datev`
       again (default now `10MB`, the original file includes the report sheets). `wa/datevImport` redirects
-      to `next/datev-import` (`OrphanedLinkFilter`). Dropped: the Excel download of the validated file and
-      the Kost1/Kost2 tooltips of the preview.
+      to `next/datev-import` (`OrphanedLinkFilter`). The Kost1/Kost2 tooltips of the preview are back
+      (`ImportColumn.tooltipField`); dropped: the Excel download of the validated file.
 - [ ] **`AdminPage`** tools and dumps not yet in `next/system`.
 - [ ] **User preferences** (`UserPrefListPage`) – no replacement planned. Decide on the Wicket-only
       `UserPrefArea`s (`USER_FAVORITE`, `TIMESHEET_TEMPLATE`, `TASK_FAVORITE`, `KUNDE_FAVORITE`, …):

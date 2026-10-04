@@ -10,6 +10,7 @@ import {
   selectableIds,
   statisticsEntries,
   STATUS_GROUP_OF,
+  tooltipOf,
   visibleColumns,
 } from "./import-model";
 import type {
@@ -104,6 +105,35 @@ describe("visibleColumns", () => {
         (c) => c.field
       )
     ).toEqual(["always", "headerOnly"]);
+  });
+});
+
+describe("tooltipOf", () => {
+  const column: ImportColumn = {
+    field: "kost2",
+    headerKey: "fibu.kost2",
+    kind: "text",
+    tooltipField: "kost2Info",
+  };
+
+  it("reads the tooltip text by its own path", () => {
+    const row = entry("NEW", {
+      read: { kost2: "5.000.01.01", kost2Info: "Wartung\nACME - Portal" },
+    });
+    expect(tooltipOf(row, column)).toBe("Wartung\nACME - Portal");
+  });
+
+  it("yields nothing for an absent or blank text, or a column without tooltipField", () => {
+    expect(tooltipOf(entry("NEW", { read: { kost2: "x" } }), column)).toBe(
+      undefined
+    );
+    expect(tooltipOf(entry("NEW", { read: { kost2Info: "  " } }), column)).toBe(
+      undefined
+    );
+    const plain: ImportColumn = { ...column, tooltipField: undefined };
+    expect(
+      tooltipOf(entry("NEW", { read: { kost2Info: "Wartung" } }), plain)
+    ).toBe(undefined);
   });
 });
 

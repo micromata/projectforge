@@ -30,6 +30,7 @@ import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DateUtil
+import org.projectforge.business.PfCaches
 import org.projectforge.business.fibu.KontoCache
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.kost.BuchungssatzDO
@@ -70,7 +71,8 @@ private val log = KotlinLogging.logger {}
  * text (`dd.MM.yyyy`), cost units may be numeric or text.
  *
  * Accounts and cost units are resolved via the given lookups (memoized per distinct value); an unresolvable one
- * makes the record FAULTY, as in the legacy import.
+ * makes the record FAULTY, as in the legacy import. A resolved cost unit also gets its tooltip text for the
+ * preview ([describeKost2], see [kost2Tooltip]).
  *
  * @author Kai Reinhard
  */
@@ -78,11 +80,13 @@ class DatevRecordExcelImporter(
     private val findKonto: (Int) -> KontoDO?,
     private val findKost1: (String) -> Kost1DO?,
     private val findKost2: (String) -> Kost2DO?,
+    private val describeKost2: (Kost2DO) -> String? = { kost2Tooltip(it, null) },
 ) {
-    constructor(kontoCache: KontoCache, kostCache: KostCache) : this(
+    constructor(kontoCache: KontoCache, kostCache: KostCache, caches: PfCaches? = null) : this(
         findKonto = { kontoCache.findKontoByNumber(it) },
         findKost1 = { kostCache.getKost1(it) },
         findKost2 = { kostCache.getKost2(it) },
+        describeKost2 = { kost2Tooltip(it, caches) },
     )
 
     private val kontoMemo = mutableMapOf<Int, KontoDO?>()
@@ -310,8 +314,10 @@ class DatevRecordExcelImporter(
         dto.gegenKontoId = gegenKonto?.id
         dto.kost1Id = kost1?.id
         dto.kost1 = kost1?.let { formatKost1(it) } ?: raw.kost1
+        dto.kost1Info = kost1?.description?.takeIf { it.isNotBlank() }
         dto.kost2Id = kost2?.id
         dto.kost2 = kost2?.let { formatKost2(it) } ?: raw.kost2
+        dto.kost2Info = kost2?.let { describeKost2(it) }
         val betrag = raw.betrag?.setScale(2, RoundingMode.HALF_UP)
         dto.betrag = betrag
         if (betrag != null && shType != null && konto != null && gegenKonto != null && kost2 != null) {
@@ -392,6 +398,29 @@ class DatevRecordExcelImporter(
         internal fun formatKost2(kost2: Kost2DO): String {
             val art = kost2.kost2Art?.id?.let { "%02d".format(it) } ?: "--"
             return "%d.%03d.%02d.%s".format(kost2.nummernkreis, kost2.bereich, kost2.teilbereich, art)
+        }
+
+        /**
+         * The preview tooltip of a cost unit 2, one line each, as the former Wicket import showed it
+         * (OldKostFormatter.formatToolTip): description; customer - project; cost type number - name. The cost type
+         * is only given with a project, as there. Customer, project and cost type are taken from [caches], since the
+         * relations of a cached cost unit may be uninitialized; without them only the description is given.
+         */
+        internal fun kost2Tooltip(kost2: Kost2DO, caches: PfCaches?): String? {
+            val lines = mutableListOf<String>()
+            kost2.description?.takeIf { it.isNotBlank() }?.let { lines.add(it) }
+            val projekt = caches?.getProjektByKost2(kost2.id)
+            if (projekt != null) {
+                val kunde = caches.getKundeByKost2(kost2.id)
+                lines.add(
+                    listOfNotNull(kunde?.kundeIdentifierDisplayName, projekt.projektIdentifierDisplayName)
+                        .joinToString(" - ")
+                )
+                caches.getKost2ArtIfNotInitialized(kost2.kost2Art)?.let { art ->
+                    lines.add("%02d - %s".format(art.id, art.name ?: ""))
+                }
+            }
+            return lines.joinToString("\n").ifBlank { null }
         }
 
         private fun formatMonth(year: Int, month: Int): String = "%02d/%d".format(month, year)
