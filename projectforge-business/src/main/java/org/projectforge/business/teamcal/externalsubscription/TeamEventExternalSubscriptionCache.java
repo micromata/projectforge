@@ -143,7 +143,7 @@ public class TeamEventExternalSubscriptionCache {
                 initialized = true;
                 return null;
             });
-            // Start updateCache as may-be long-running thread. Avoids blocking of callee (CalendarPage).
+            // Start updateCache as may-be long-running thread. Avoids blocking of the caller (the calendar view).
             new Thread(() -> {
                 updateCache();
             }).start();

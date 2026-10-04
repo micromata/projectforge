@@ -24,7 +24,6 @@
 package org.projectforge.web.wicket.components;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.calendar.CalendarPage;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -89,7 +88,6 @@ public class DatePanelSettings implements Serializable
    *
    * @param selectPeriodMode
    * @return this
-   * @see CalendarPage#setSelectPeriodMode(boolean)
    */
   public DatePanelSettings withSelectPeriodMode(final boolean selectPeriodMode)
   {
@@ -102,7 +100,6 @@ public class DatePanelSettings implements Serializable
    *
    * @param selectStartStopTime
    * @return this
-   * @see CalendarPage#setSelectStartStopTime(boolean)
    */
   public DatePanelSettings withSelectStartStopTime(final boolean selectStartStopTime)
   {

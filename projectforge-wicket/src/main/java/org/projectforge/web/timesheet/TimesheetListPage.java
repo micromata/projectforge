@@ -23,8 +23,6 @@
 
 package org.projectforge.web.timesheet;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -36,7 +34,6 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.hibernate.Hibernate;
 import org.projectforge.business.system.SystemInfoCache;
@@ -47,7 +44,6 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.DateFormatType;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateFormats;
@@ -100,8 +96,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     public static final String PARAMETER_KEY_CLEAR_ALL = "clear";
 
     private static final long serialVersionUID = 8582874051700734977L;
-
-    private TimesheetsICSExportDialog icsExportDialog;
 
     public TimesheetListPage(final PageParameters parameters) {
         super(parameters, "timesheet");
@@ -181,25 +175,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
                     new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportExcelButton, getString("exportAsXls"))
                             .setTooltip(getString("tooltip.export.excel")));
         }
-        icsExportDialog = new TimesheetsICSExportDialog(newModalDialogId(),
-                new ResourceModel("timesheet.iCalSubscription"));
-        add(icsExportDialog);
-        icsExportDialog.init(ThreadLocalUserContext.getLoggedInUserId());
-        icsExportDialog.redraw();
-        final AjaxLink<Void> icsExportDialogButton = new AjaxLink<Void>(ContentMenuEntryPanel.LINK_ID) {
-            /**
-             * @see org.apache.wicket.ajax.markup.html.AjaxLink#onClick(org.apache.wicket.ajax.AjaxRequestTarget)
-             */
-            @Override
-            public void onClick(final AjaxRequestTarget target) {
-                icsExportDialog.open(target);
-            }
-
-        };
-        // final IconLinkPanel exportICalButtonPanel = new IconLinkPanel(buttonGroupPanel.newChildId(), IconType.DOWNLOAD,
-        // getString("timesheet.iCalSubscription"), iCalExportLink);
-        exportMenu.addSubMenuEntry(new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), icsExportDialogButton,
-                getString("timesheet.icsExport")).setTooltip(getString("timesheet.iCalSubscription")));
+        // The ics subscription link is offered by next's time sheet list (CalendarSubscriptionDialog).
         addNewMassSelect(TimesheetEntityRest.class);
     }
 

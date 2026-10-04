@@ -40,9 +40,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.teamcal.integration.TeamcalTimesheetPluginComponentHook;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -106,8 +104,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   static final int SIZE_OF_FIRST_RECENT_BLOCK = 5;
 
   private static final long serialVersionUID = -8192471994161712577L;
-
-  private static final TeamcalTimesheetPluginComponentHook[] HOOK_ARRAY = {new TeamcalTimesheetPluginComponentHook()};
 
   public TimesheetEditPage(final TimesheetDO timesheet) {
     super(new PageParameters(), "timesheet");
@@ -184,15 +180,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   @Override
   protected TimesheetDao getBaseDao() {
     return WicketSupport.get(TimesheetDao.class);
-  }
-
-  @Override
-  public void setResponsePage() {
-    super.setResponsePage();
-    if (returnToPage instanceof CalendarPage) {
-      // Display the date of this time sheet in the CalendarPage (useful if the time sheet was moved).
-      ((CalendarPage) returnToPage).setStartDate(getData().getStartTime());
-    }
   }
 
   @Override
@@ -366,10 +353,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   @Override
   protected Logger getLogger() {
     return log;
-  }
-
-  public static List<TimesheetPluginComponentHook> getPluginHooks() {
-    return Collections.unmodifiableList(Arrays.asList(HOOK_ARRAY));
   }
 
   private TaskTree getTaskTree() {

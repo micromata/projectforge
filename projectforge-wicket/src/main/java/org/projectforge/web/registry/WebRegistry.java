@@ -32,15 +32,12 @@ import org.projectforge.registry.Registry;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.*;
-import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.task.TaskEditPage;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskTreePage;
-import org.projectforge.web.teamcal.event.TeamEventListPage;
-import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.*;
@@ -269,7 +266,6 @@ public class WebRegistry
     // The user preference pages (userPrefList/userPrefEdit) were removed without replacement; bookmarked links
     // are redirected by OrphanedLinkFilter.
 
-    addMountPage("oldCalendar", CalendarPage.class); // Backup url for deprecated calendar, will be removed.
     // The system configuration has been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/configuration links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
     addMountPage("error", ErrorPage.class);
@@ -280,8 +276,8 @@ public class WebRegistry
     // (SendTextMessageRest, next/sendTextMessage); its Wicket page was removed.
     // The setup page (first-run installation) has been migrated to projectforge-next (/next/setup).
     addMountPage("taskTree", TaskTreePage.class);
-
-    register("teamEvent", TeamEventListPage.class);
-    addMountPage("oldTeamCalendar", TeamCalCalendarPage.class); // Backup url for deprecated calendar, will be removed.
+    // The old calendars (oldCalendar, oldTeamCalendar), the team event list and the team calendar pages were
+    // removed (calendar, ICS import and subscription links are in projectforge-next, the team calendar
+    // administration in React); bookmarked links are redirected by OrphanedLinkFilter.
   }
 }

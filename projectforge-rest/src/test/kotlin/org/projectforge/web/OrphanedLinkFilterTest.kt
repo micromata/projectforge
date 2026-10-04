@@ -92,6 +92,42 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/calendar", redirectOf("/wa/calendar"))
     }
 
+    /**
+     * The removed Wicket calendar pages: the old calendars and the team event list lead to the next calendar,
+     * the event editor to next's, the team calendar administration to React and the ICS import to next — ids
+     * and the import's calendar carried over, anything not numeric dropped.
+     */
+    @Test
+    fun `the removed wicket calendar pages are redirected`() {
+        val web = "/wa/wicket/bookmarkable/org.projectforge.web"
+        Assertions.assertEquals("/next/calendar", redirectOf("/wa/oldCalendar"))
+        Assertions.assertEquals("/next/calendar", redirectOf("/wa/oldTeamCalendar"))
+        Assertions.assertEquals("/next/calendar", redirectOf("$web.teamcal.event.TeamEventListPage"))
+        Assertions.assertEquals(
+            "/next/teamEvent/42",
+            redirectOf("$web.teamcal.event.TeamEventEditPage", mapOf("id" to "42")),
+        )
+        Assertions.assertEquals(
+            "/next/teamEvent/new",
+            redirectOf("$web.teamcal.event.TeamEventEditPage", mapOf("id" to "42&x=y")),
+        )
+        Assertions.assertEquals("/react/teamCal", redirectOf("$web.teamcal.admin.TeamCalListPage"))
+        Assertions.assertEquals(
+            "/react/teamCal/edit/7",
+            redirectOf("$web.teamcal.admin.TeamCalEditPage", mapOf("id" to "7")),
+        )
+        Assertions.assertEquals("/react/teamCal/edit", redirectOf("$web.teamcal.admin.TeamCalEditPage"))
+        Assertions.assertEquals(
+            "/next/teamCalImport?teamCalId=7",
+            redirectOf("$web.teamcal.event.importics.TeamCalImportPage", mapOf("teamCalId" to "7")),
+        )
+        Assertions.assertEquals(
+            "/next/teamCalImport",
+            redirectOf("$web.teamcal.event.importics.TeamCalImportPage"),
+        )
+        Assertions.assertNull(redirectOf("/wa/oldCalendarXyz"))
+    }
+
     /** The Wicket global search has moved to projectforge-next; a bookmarked link is bent onto it. */
     @Test
     fun `the old wicket search is redirected to next`() {
@@ -172,9 +208,13 @@ class OrphanedLinkFilterTest {
      * request pass through to the chain untouched. Each of [params] is added as a valueless query parameter,
      * so the escape-hatch marker can be exercised.
      */
-    private fun redirectOf(uri: String, vararg params: String): String? {
+    private fun redirectOf(uri: String, vararg params: String): String? =
+        redirectOf(uri, params.associateWith { "" })
+
+    /** As [redirectOf], with [params] carrying values. */
+    private fun redirectOf(uri: String, params: Map<String, String>): String? {
         val request = MockHttpServletRequest("GET", uri).also { it.requestURI = uri }
-        params.forEach { request.addParameter(it, "") }
+        params.forEach { (name, value) -> request.addParameter(name, value) }
         val response = MockHttpServletResponse()
         filter.doFilter(request, response, MockFilterChain())
         return response.redirectedUrl

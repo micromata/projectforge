@@ -420,15 +420,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         addCloneButton();
     }
 
-    private void renderHookComponents() {
-        final List<TimesheetPluginComponentHook> hooks = TimesheetEditPage.getPluginHooks();
-        if (hooks != null && !hooks.isEmpty()) {
-            for (final TimesheetPluginComponentHook hook : hooks) {
-                hook.renderComponentsToTimesheetEditForm(this.parentPage, getData());
-            }
-        }
-    }
-
     @SuppressWarnings("serial")
     private void addTemplatesRow() {
         final FieldsetPanel templatesRow = gridBuilder.newFieldset(getString("timesheet.templates")).suppressLabelForWarning();
@@ -466,15 +457,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         final DateHolder stopDateHolder = new DateHolder(data.getStopTime(), DatePrecision.MINUTE_5);
         stopHourOfDay = stopDateHolder.getHourOfDay();
         stopMinute = stopDateHolder.getMinute();
-    }
-
-    /**
-     * @see org.apache.wicket.Component#onInitialize()
-     */
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        renderHookComponents();
     }
 
     protected void refresh() {

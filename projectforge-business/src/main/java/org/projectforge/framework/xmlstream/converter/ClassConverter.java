@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.xmlstream.XmlConstants;
 
 /**
- * Class names are stored as full qualified strings such as "org.projectforge.web.calendar.CalendarPage".
+ * Class names are stored as full qualified strings such as "org.projectforge.business.task.TaskDO".
  * @author Kai Reinhard
  *
  */

@@ -104,9 +104,6 @@ class TeamCalPagesRest :
     override fun validate(validationErrors: MutableList<ValidationError>, dto: TeamCal) {
     }
 
-    override val classicsLinkListUrl: String?
-        get() = "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage"
-
     override fun newBaseDTO(request: HttpServletRequest?): TeamCal {
         val cal = TeamCal()
         cal.owner = ThreadLocalUserContext.loggedInUser

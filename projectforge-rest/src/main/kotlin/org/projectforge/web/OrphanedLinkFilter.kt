@@ -104,6 +104,8 @@ class OrphanedLinkFilter : Filter {
             } else {
                 redirect(servletResponse, uri, VacationSendMailService.getLinkToVacationEntry(id))
             }
+        } else if (redirectRemovedCalendarPage(servletRequest, servletResponse, uri)) {
+            // Handled: a link to a removed Wicket calendar page was redirected.
         } else if (redirectGoneReactPage(servletResponse, uri)) {
             // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
@@ -111,6 +113,50 @@ class OrphanedLinkFilter : Filter {
         } else {
             chain.doFilter(servletRequest, servletResponse)
         }
+    }
+
+    /**
+     * The removed Wicket calendar pages: the old calendars (wa/oldCalendar, wa/oldTeamCalendar), the team event
+     * list (dropped, the events are reached through the calendar) and edit page, the team calendar
+     * administration (React) and the ICS import (next). All but the old calendars were bookmarkable pages only
+     * (wa/wicket/bookmarkable/<class>), taking their id as the parameter `id` (the import: `teamCalId`). Ids are
+     * interpolated into the Location header, so only numbers are accepted.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectRemovedCalendarPage(
+        request: HttpServletRequest,
+        response: ServletResponse,
+        uri: String,
+    ): Boolean {
+        val id = request.getParameter("id")?.toLongOrNull()
+        val target = when {
+            uri.endsWith("/wa/oldCalendar") || uri.endsWith("/wa/oldTeamCalendar")
+                || uri.contains("$BOOKMARKABLE.calendar.CalendarPage")
+                || uri.contains("$BOOKMARKABLE.teamcal.integration.TeamCalCalendarPage")
+                || uri.contains("$BOOKMARKABLE.teamcal.event.TeamEventListPage") ->
+                NextMigration.listUrl("calendar")
+
+            uri.contains("$BOOKMARKABLE.teamcal.event.TeamEventEditPage") ->
+                if (id != null) {
+                    NextMigration.nextEditPage("teamEvent")!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
+                } else {
+                    NextMigration.newEntryUrl("teamEvent")
+                }
+
+            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalListPage") -> "${Constants.REACT_APP_PATH}teamCal"
+            uri.contains("$BOOKMARKABLE.teamcal.admin.TeamCalEditPage") ->
+                "${Constants.REACT_APP_PATH}teamCal/edit" + (id?.let { "/$it" } ?: "")
+
+            uri.contains("$BOOKMARKABLE.teamcal.event.importics.TeamCalImportPage") -> {
+                val teamCalId = request.getParameter("teamCalId")?.toLongOrNull()
+                "${Constants.NEXT_APP_PATH}teamCalImport" + (teamCalId?.let { "?teamCalId=$it" } ?: "")
+            }
+
+            else -> return false
+        }
+        redirect(response, uri, "/$target")
+        return true
     }
 
     /**
@@ -201,6 +247,9 @@ class OrphanedLinkFilter : Filter {
 
     companion object {
         private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
+
+        /** Prefix of the bookmarkable urls of the Wicket pages in org.projectforge.web. */
+        private const val BOOKMARKABLE = "/wa/wicket/bookmarkable/org.projectforge.web"
 
         /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
         private val GONE_REACT_CATEGORIES = listOf("project", "task")
