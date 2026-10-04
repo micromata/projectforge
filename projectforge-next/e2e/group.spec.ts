@@ -96,10 +96,13 @@ test.describe("group page", { tag: "@parallel" }, () => {
     ).toHaveValue(stored.description ?? "");
     // By role, not by label: the field's hint button carries the same text in its `aria-label`
     // („Hinweis: …"), which `getByLabel` matches as a substring.
+    // Only where an external user management system is in use — without one every group is local and
+    // the form leaves the flag out (LocalGroupField).
     const localGroup = page.getByRole("checkbox", {
       name: format.t("group.localGroup._"),
     });
-    if (stored.localGroup) await expect(localGroup).toBeChecked();
+    if (!stored.externalUsermanagement) await expect(localGroup).toHaveCount(0);
+    else if (stored.localGroup) await expect(localGroup).toBeChecked();
     else await expect(localGroup).not.toBeChecked();
     // Computed by the backend from the members and never written back — the form's counterpart of
     // `UIReadOnlyField("emails")`. The seeded group has no members, so this one is empty; that it
@@ -175,6 +178,13 @@ test.describe("group page", { tag: "@parallel" }, () => {
   test("filters the list by the status of a group", async ({
     loggedInPage: page,
   }) => {
+    // The filter exists only where an external user management system is in use
+    // (GroupEntityRest.addMagicFilterElements); without one every group is local.
+    const stored = await storedGroup(page.request, group.id);
+    test.skip(
+      !stored.externalUsermanagement,
+      "no external user management system: no local/exported filter"
+    );
     const format = await userFormat(page);
     await goto(page, "/group");
     await page
@@ -310,6 +320,7 @@ async function storedGroup(
   organization?: string;
   description?: string;
   localGroup?: boolean;
+  externalUsermanagement?: boolean;
   ldapValues?: string;
   emails?: string;
 }> {

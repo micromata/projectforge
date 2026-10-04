@@ -234,11 +234,13 @@ test.describe("task wizard", { tag: "@lane-task" }, () => {
     const created = `${MARKER} group ${uniqueSuffix()}`;
     await name.fill(created);
     // Local, so no group of a test run reaches an LDAP the installation may be attached to — the same
-    // reason `createGroup` sets it.
+    // reason `createGroup` sets it. Without one the form offers no such flag (LocalGroupField), and
+    // nothing could be exported anyway.
     // By role: the field's hint button repeats the label in its `aria-label` („Hinweis: …").
-    await dialog
-      .getByRole("checkbox", { name: format.t("group.localGroup._") })
-      .check();
+    const localGroup = dialog.getByRole("checkbox", {
+      name: format.t("group.localGroup._"),
+    });
+    if ((await localGroup.count()) > 0) await localGroup.check();
     // The group page's own save button: the dialog renders GROUP_PAGE's declared form now, not a
     // layout the backend laid out (see EntityEditDialog).
     await dialog

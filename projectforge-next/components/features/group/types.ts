@@ -41,6 +41,11 @@ export interface GroupDetail {
    */
   ldapPosixConfigured?: boolean | null;
   /**
+   * Whether an external user management system (LDAP) is in use, i.e. whether `localGroup` belongs on the
+   * form. Read-only like `ldapPosixConfigured` (`GroupEntityRest.transformFromDB`).
+   */
+  externalUsermanagement?: boolean | null;
+  /**
    * The mail addresses of every member, comma separated — computed on read
    * (`Group.populateEmails`), so read-only here as it is there.
    */

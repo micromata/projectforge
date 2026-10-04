@@ -18,7 +18,7 @@ export interface AddressInfo {
   id: number;
   fullName: string;
   numbers: AddressPhoneNumber[];
-  /** The address' view page (legacy React app), so the panel name links to it. */
+  /** The address' view page (legacy React app), so the panel name links to it; its back button returns here. */
   viewUrl: string;
 }
 
@@ -38,7 +38,7 @@ export interface PhoneCallInitialData {
 
 /**
  * One auto-completion entry: PhoneCallRest.AcItem. `display` is what the box shows and holds, `number` the
- * clean number to dial, `addressId` (when the entry is an address, not a recent) lets the panel follow the pick.
+ * clean number to dial, `addressId` (an address, or a recent call to one) lets the panel follow the pick.
  */
 export interface AcItem {
   addressId?: number | null;
@@ -49,6 +49,8 @@ export interface AcItem {
 /** Body of the call: PhoneCallRest.CallRequest. */
 export interface CallRequest {
   phoneNumber: string;
+  /** The address shown in the panel, remembered with the recent number. */
+  addressId?: number;
   myPhoneId?: string;
   myCallerId?: string;
 }

@@ -53,6 +53,8 @@ export const groupSchema = z.object({
     .refine((v) => v == null || v <= 65535, maxMarker(65535)),
   /** Read-only flag of the request, not a property of the group — see `GroupDetail`. */
   ldapPosixConfigured: z.boolean(),
+  /** Read-only flag of the request as well — see `GroupDetail`. */
+  externalUsermanagement: z.boolean(),
   /** Computed on read (`Group.populateEmails`), shown read-only, sent back untouched. */
   emails: z.string().nullable(),
   ldapValues: m.nullableString("ldapValues"),

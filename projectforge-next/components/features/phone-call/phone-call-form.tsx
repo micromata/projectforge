@@ -41,7 +41,14 @@ export function PhoneCallForm({ initial }: { initial: PhoneCallInitialData }) {
   );
 
   const call = useMutation({
-    mutationFn: () => placeCall({ phoneNumber, myPhoneId, myCallerId }),
+    mutationFn: () =>
+      placeCall({
+        phoneNumber,
+        myPhoneId,
+        myCallerId,
+        // Remembered with the number, so the recent entry names the contact and restores the panel.
+        addressId: activeAddress?.id,
+      }),
     onSuccess: (result) =>
       result.success
         ? toast.success(result.message)

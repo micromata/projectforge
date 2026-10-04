@@ -89,7 +89,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     @get:Column(length = TITLE_LENGTH, nullable = false)
     open var title: String? = null
 
-    @PropertyInfo(i18nKey = "status")
+    @PropertyInfo(i18nKey = "status", required = true)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = STATUS_LENGTH)
     open var status = TaskStatus.N

@@ -271,7 +271,7 @@ class OrphanedLinkFilter : Filter {
                 } ?: return false
                 val id = request.getParameter("id")?.toLongOrNull()
                 when {
-                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category)
+                    isWicketPage(uri, "${category}List") -> NextMigration.listUrl(category) + listQuery(request, category)
                     id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
                     else -> NextMigration.newEntryUrl(category)
                 }
@@ -279,6 +279,21 @@ class OrphanedLinkFilter : Filter {
         }
         redirect(response, uri, "/$target")
         return true
+    }
+
+    /**
+     * The filter of a Wicket list link that next's list understands under the same name: the time sheet list's
+     * `taskId`, `userId` and `kost2Id` (TimesheetListPage's parameters, read by next's timesheet page). Only
+     * numbers are carried, as they end up in the Location header.
+     *
+     * @return e.g. `?taskId=42&userId=7`, or an empty string.
+     */
+    private fun listQuery(request: HttpServletRequest, category: String): String {
+        if (category != "timesheet") return ""
+        val query = TIMESHEET_LIST_PARAMS.mapNotNull { name ->
+            request.getParameter(name)?.toLongOrNull()?.let { "$name=$it" }
+        }
+        return if (query.isEmpty()) "" else "?${query.joinToString("&")}"
     }
 
     /**
@@ -332,5 +347,8 @@ class OrphanedLinkFilter : Filter {
          * are still mounted, see [redirectLastWicketPage].
          */
         private val WICKET_PAGES_OF_REACT_CATEGORIES = listOf("timesheet", "group")
+
+        /** The filter parameters of Wicket's time sheet list that next's list reads under the same name. */
+        private val TIMESHEET_LIST_PARAMS = listOf("taskId", "userId", "kost2Id")
     }
 }

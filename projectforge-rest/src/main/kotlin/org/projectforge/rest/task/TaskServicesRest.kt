@@ -291,7 +291,13 @@ class TaskServicesRest {
             return path.joinToString(" | ") { it.task.title ?: "" }
         }
 
-        fun createTask(id: Long?): Task? {
+        /**
+         * @param budgetConsumption the consumption of the next task up the path with a budget (ordered person
+         * days or max hours, [TaskTree.getPersonDaysNode]) instead of the task's own, falling back to the task —
+         * the bar a time sheet form shows, as Wicket's TimesheetEditForm did: a work package without a budget
+         * of its own is booked against its parent's.
+         */
+        fun createTask(id: Long?, budgetConsumption: Boolean = false): Task? {
             if (id == null)
                 return null
             val taskTree = TaskTree.instance
@@ -301,7 +307,8 @@ class TaskServicesRest {
             addTimesheetReferenceList(task)
             task.costConfigured = Configuration.instance.isCostConfigured
             task.projekt = taskTree.getProjekt(id)?.let { Projekt(it.id, it.name, it.kost) }
-            task.consumption = Consumption.create(taskNode)
+            val consumptionNode = if (budgetConsumption) taskTree.getPersonDaysNode(taskNode) ?: taskNode else taskNode
+            task.consumption = Consumption.create(consumptionNode)
             val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
             val pathArray = mutableListOf<Task>()
             pathToRoot.forEach {
@@ -687,7 +694,8 @@ class TaskServicesRest {
      */
     @GetMapping("info/{id}")
     fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
-        val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        // The info feeds the time sheet form's task picker (and the select fields, which show no consumption).
+        val task = createTask(id, budgetConsumption = true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
         return ResponseEntity(task, HttpStatus.OK)
     }
 
@@ -709,18 +717,31 @@ class TaskServicesRest {
      * An empty term is answered with the head of the list, because a picker asks that way as soon as it is
      * opened (see `useEntityLookup`); Wicket's field, which only ever searches on two typed characters,
      * never sees that case.
+     *
+     * @param onlyBookable only the tasks a time sheet may be booked on ([TaskNode.bookableForTimesheets]) —
+     * the time sheet form's field, as Wicket's `autocompleteOnlyTaskBookableForTimesheets`.
      */
     @AccessChecked("DAO: TaskDao.select")
     @GetMapping("tree/autosearch")
     fun autosearch(
         @RequestParam("search") search: String?,
         @RequestParam("maxResults") maxResults: Int?,
+        @RequestParam("onlyBookable") onlyBookable: Boolean?,
     ): List<AbstractEntityRest.DisplayObject> {
         val filter = BaseSearchFilter()
         filter.searchFields = AUTOCOMPLETE_SEARCH_FIELDS
         filter.searchString = search
-        maxResults?.let { filter.maxRows = it }
-        return taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+        val taskTree = TaskTree.instance
+        if (onlyBookable != true) {
+            maxResults?.let { filter.maxRows = it }
+            return taskDao.select(filter).map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
+        }
+        // The limit after the bookable filter, not in the query: most matches may be closed or otherwise not
+        // bookable, and a limited query would leave only a few of them.
+        return taskDao.select(filter)
+            .filter { taskTree.getTaskNodeById(it.id)?.isBookableForTimesheets == true }
+            .let { list -> maxResults?.let { list.take(it) } ?: list }
+            .map { AbstractEntityRest.DisplayObject(it.id, formatPath(it.id)) }
     }
 
     /**
@@ -835,7 +856,8 @@ class TaskServicesRest {
         if (taskNode.isRootNode || ctx.openedNodes.contains(taskNode.taskId)) {
             task.treeStatus = TreeStatus.OPENED
             val children = taskNode.children.toMutableList()
-            children.sortBy { it.task.title }
+            // Case-insensitive, as Wicket's TaskTreeBuilder sorted ("alpha" before "Zeta").
+            children.sortBy { it.task.title?.lowercase() ?: "" }
             children.forEach { node ->
                 if (ctx.taskFilter.match(node, taskDao, ctx.user) &&
                     taskDao.hasUserSelectAccess(ctx.user, node.getTask(), false)

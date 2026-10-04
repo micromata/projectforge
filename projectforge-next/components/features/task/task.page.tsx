@@ -15,6 +15,7 @@ import { FinanceSection } from "./edit/finance-section";
 import { FinanceSummary } from "./edit/finance-summary";
 import { GanttSummary } from "./edit/gantt-summary";
 import { MaxHoursField } from "./edit/max-hours-field";
+import { ParentTaskField } from "./edit/parent-task-field";
 import { TaskListActions } from "./task-list-actions";
 import {
   TaskConsumptionCell,
@@ -251,8 +252,9 @@ export const TASK_PAGE = definePage<
         fields: [
           // The parent alone on the first row: it is a breadcrumb path, not a one-line value, and it is
           // what places every other field of the element. Its leaf is the turquoise-highlighted current
-          // task of the select control (see TaskPath).
-          { name: "parentTask", span: 3 },
+          // task of the select control (see TaskPath). Mandatory, and absent for the root (see
+          // ParentTaskField).
+          { custom: ParentTaskField, span: 3 },
           // The element's own name across two columns, its status in the third — the pair that reads as
           // one line beneath the parent it hangs under.
           { name: "title", emphasized: true, span: 2 },

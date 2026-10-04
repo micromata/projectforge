@@ -245,6 +245,11 @@ class OrphanedLinkFilterTest {
             redirectOf("/wa/phoneCall", mapOf("address" to "7", "no" to "0123", "cp" to "addressView")),
         )
         Assertions.assertEquals("/next/timesheet", redirectOf("/wa/timesheetList"))
+        Assertions.assertEquals(
+            "/next/timesheet?taskId=42&userId=7&kost2Id=3",
+            redirectOf("/wa/timesheetList", mapOf("userId" to "7", "taskId" to "42", "kost2Id" to "3", "searchString" to "x")),
+        )
+        Assertions.assertEquals("/next/timesheet?userId=7", redirectOf("/wa/timesheetList", mapOf("userId" to "7", "taskId" to "4x")))
         Assertions.assertEquals("/next/timesheet/42", redirectOf("/wa/timesheetEdit", mapOf("id" to "42")))
         Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit"))
         Assertions.assertEquals("/next/timesheet/new", redirectOf("/wa/timesheetEdit", mapOf("id" to "42&x=y")))

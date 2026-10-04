@@ -57,6 +57,23 @@ class SystemStatus {
   @Value("\${projectforge.development.mode}")
   var developmentMode: Boolean = false
     private set
+
+  /**
+   * `projectforge.testsystemMode`: this instance is a test system (e.g. a copy of the productive data), marked
+   * in the client in [testsystemColor], as Wicket coloured its pages' background.
+   */
+  @Value("\${projectforge.testsystemMode:false}")
+  var testsystemMode: Boolean = false
+    private set
+
+  /** `projectforge.testsystemColor`, a CSS colour; anything else falls back to the default (see [testsystemColor]). */
+  @Value("\${projectforge.testsystemColor:$DEFAULT_TESTSYSTEM_COLOR}")
+  private var testsystemColorProperty: String? = null
+
+  /** The configured colour of the test-system marker, only if it is a plain CSS colour (it ends up in a style). */
+  val testsystemColor: String
+    get() = sanitizeColor(testsystemColorProperty)
+
   var setupRequiredFirst: Boolean? = null
   var updateRequiredFirst: Boolean? = null
 
@@ -78,6 +95,14 @@ class SystemStatus {
 
   companion object {
     private var devMode: Boolean? = null
+
+    internal const val DEFAULT_TESTSYSTEM_COLOR = "#ff6868"
+
+    private val COLOR_REGEX = Regex("^(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,30})$")
+
+    /** A hex colour or a colour name; anything else (a style injection, a typo) is the default. */
+    internal fun sanitizeColor(color: String?): String =
+      color?.trim()?.takeIf { COLOR_REGEX.matches(it) } ?: DEFAULT_TESTSYSTEM_COLOR
 
     @JvmStatic
     fun isDevelopmentMode(): Boolean {

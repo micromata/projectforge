@@ -200,7 +200,7 @@ export const TASK_METADATA = {
     status: {
       dataType: "STRING",
       i18nKey: "status",
-      required: false,
+      required: true,
       enumValues: [
         {
           value: "N",
