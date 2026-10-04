@@ -19,7 +19,7 @@ Funktionalität verloren.
   Wurzelknoten nur für Admin/FiBu, markierte Zeile + geöffnete Vorfahren nach dem
   Speichern (`highlightTaskId`, `savedId`-Param), Auswahlmodus, URL-basierte
   Spaltenzustands-Persistenz (`tree/setColumnStates`, eigenes `tree/`-Präfix wegen
-  Kollision mit `TaskPagesRest`).
+  Kollision mit `TaskEntityRest`).
 - **Listenperspektive** (`/next/task`): zehn Spalten als `PageDef`-Deklaration (nicht als
   `UITable` – die Spalten einer handgebauten Liste gehören ins `PageDef`; `createListLayout`
   bleibt einspaltig). Beide Perspektiven teilen sich Renderer und berechnete Werte über
@@ -54,7 +54,7 @@ Funktionalität verloren.
   `KostCache`. Deshalb **ein** Server-Roundtrip: `POST /rs/task/kost2Preview` (Anhängen +
   Vorschau in einem), Werte serialisiert und debounced (Muster wie `use-order-sums.ts`).
   Picker über neuen Request-Parameter `projektId` an `cost2/autosearch` vorgefiltert.
-- **`duration` ⇔ `endDate` schließen sich aus** – gehört ins Backend (`TaskPagesRest.validate`,
+- **`duration` ⇔ `endDate` schließen sich aus** – gehört ins Backend (`TaskEntityRest.validate`,
   war leer), nicht ins Zod-Schema. Zahlenbereiche (`progress` 0–100, `maxHours` 0–9999,
   `duration` 0–10000) stehen als `@PropertyInfo(min/max)` am `TaskDO` und werden generisch
   von `ValidationUtils.validateFields` geprüft (s. „Validierungs-Metadaten" in MIGRATION.md).
@@ -85,7 +85,7 @@ Diese sind in MIGRATION.md eingearbeitet; hier nur der Ursprung:
   eines geladenen gelöschten Eintrags mit. Test: `e2e/deleted-entry.spec.ts`.
 - **„+"/Zeilenklick ohne Rechteprüfung.** `useEditTargets` liest jetzt `userAccess.insert`
   (`canAdd`) und `.update` (`canOpen`). Dafür musste `getListMeta` aufhören, `update = true`
-  für jeden zu setzen: `AbstractEntityRest.listUpdateAccess()` (Default `true`, `GroupPagesRest`
+  für jeden zu setzen: `AbstractEntityRest.listUpdateAccess()` (Default `true`, `GroupEntityRest`
   überschreibt mit `isLoggedInUserMemberOfAdminGroup`). **Ausnahme Baum:** `TaskDao` hat keine
   `userRightId`, `hasInsertAccess(user)` ist immer wahr – echte Prüfung am Elternknoten beim
   Speichern; der „+" der Baumseite bleibt daher ungefiltert.
@@ -116,5 +116,5 @@ Gegen das laufende System (`E2E_BASE_URL=…`): `task-tree.spec.ts`,
 wird gegen **Gleichstand mit Wicket** geprüft (`kost2Preview` vs. `TaskTree.getKost2List`,
 ohne eine Aufgabe zu ändern). Ablehnungspfade der feldweisen Rechte sind mit `admin-user`
 (Admin ohne Finanzrechte) prüfbar geworden, Insert/Update-Check mit `normalo-user` (s.
-Testkonten in MIGRATION.md); Backend-Unit-Tests: `TaskTest`, `TaskPagesRestTest`,
+Testkonten in MIGRATION.md); Backend-Unit-Tests: `TaskTest`, `TaskEntityRestTest`,
 `TaskWizardServiceTest`.

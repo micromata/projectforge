@@ -43,7 +43,7 @@ class Group(
     /**
      * Whether posix accounts of an external user management system are in use, i.e. whether [gidNumber] is
      * a field of this group at all. Read-only flag for the frontend: [GroupDO] has no such property, so
-     * [copyTo] ignores it. Set by `GroupPagesRest.transformFromDB`, which owns the condition (it depends on
+     * [copyTo] ignores it. Set by `GroupEntityRest.transformFromDB`, which owns the condition (it depends on
      * the LDAP configuration and on the logged-in user being an administrator).
      *
      * The server side layout of the legacy frontends decides the same thing by omitting the LDAP fieldset;
@@ -57,8 +57,8 @@ class Group(
      * only, while every user may *read* a group (for checking who is a member of what).
      *
      * So this is the entity where the two differ most, and the hand built next page needs the answer:
-     * the server side layout of the legacy frontends gets it as `UILayout.UserAccess`
-     * (`GroupPagesRest.createListLayout` sets it), a form without a layout takes it from here — filled
+     * the server side layouts of the legacy frontends got it as `UILayout.UserAccess`,
+     * a form without a layout takes it from here — filled
      * by [org.projectforge.rest.core.AbstractEntityRest.getById] from the same DAO calls.
      */
     override var writeAccess: Boolean? = null

@@ -21,7 +21,7 @@ import type { TeamEventDetail, TeamEventListRow } from "./types";
 export const TEAM_EVENT_ENTITY = "teamEvent";
 /** React Query key of the list, so a write from the edit page refreshes it once the list is built. */
 export const TEAM_EVENT_LIST_QUERY_KEY = ["teamEvent"] as const;
-/** Where the calendar's slot-select preset reads from (see TeamEventPagesRest.newBaseDTO). */
+/** Where the calendar's slot-select preset reads from (see TeamEventEntityRest.newBaseDTO). */
 const NEW_ENTRY_PARAMS = ["startDate", "endDate", "calendar"] as const;
 
 /**
@@ -32,8 +32,7 @@ const NEW_ENTRY_PARAMS = ["startDate", "endDate", "calendar"] as const;
  * calendars) was dropped on purpose with the Wicket calendar pages — `columns` only fills the one shape
  * every page has (see TeamEventListRow).
  *
- * The edit page is the one that is live. Its fields follow the legacy form
- * (`TeamEventPagesRest.createEditLayout`) — the calendar the event lives in, its subject, the period, the
+ * The edit page is the one that is live. Its fields follow the legacy form — the calendar the event lives in, its subject, the period, the
  * two texts, the reminder and the recurrence. Reminder and recurrence are each their own control the
  * UILayout renderer expressed as a `UICustomized`, hand-built here on the DTO fields they carry (see the
  * `reminder-section`, `recurrence-section` and `series-modification-section`). Editing a stored recurring
@@ -56,7 +55,7 @@ export const TEAM_EVENT_PAGE = definePage<
   categoryKey: "menu.calendar",
   titleKey: "plugins.teamcal.event.title.list",
   // Minimal, since no list renders yet: the fields that identify an event, in the order the legacy list
-  // shows them (`TeamEventPagesRest.createListLayout` only shows the subject).
+  // showed them (only the subject).
   columns: [
     { name: "subject", size: 260, className: "font-medium" },
     { name: "startDate", size: 150 },
@@ -72,12 +71,12 @@ export const TEAM_EVENT_PAGE = definePage<
     newTitleKey: "plugins.teamcal.event.title.add",
     savedMessageKey: "message.successfullChanged",
     newEntryParams: NEW_ENTRY_PARAMS,
-    // Offer the clone, as Wicket does (TeamEventPagesRest.cloneSupport). `cloneData` prepares it (id and
+    // Offer the clone, as Wicket does (TeamEventEntityRest.cloneSupport). `cloneData` prepares it (id and
     // timestamps dropped, the default prepareClone; AUTOSAVE is not honoured there, only NONE turns
     // clone off, see AbstractEntityRest.cloneData); the add form opens under `/teamEvent/new?clone=1`.
     clone: true,
     // "In Zeitbuchung umwandeln" — build a time sheet from this event's span and texts and open it as a
-    // new sheet (TeamEventPagesRest.switch2Timesheet → TimesheetPagesRest.cloneFromCalendarEvent). The
+    // new sheet (TeamEventEntityRest.switch2Timesheet → TimesheetEntityRest.cloneFromCalendarEvent). The
     // time sheet is named, not imported, so the two features don't depend on each other in a circle.
     convert: {
       action: "switch2Timesheet",

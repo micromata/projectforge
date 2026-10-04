@@ -238,8 +238,10 @@ object MultiSelectionSupport {
   }
 
   /**
-   * Call this method on [AbstractPagesRest.getInitialList], if you want to force multi selection usage only.
-   * This is useful, if the page isn't yet migrated from Wicket, but already used for multi selection.
+   * Call this method on the initial list of a legacy React list page (`AbstractPagesRest.getInitialList`), if
+   * you want to force multi selection usage only. This is useful, if the page isn't yet migrated from Wicket,
+   * but already used for multi selection. Not needed for projectforge-next, which selects via
+   * [AbstractMultiSelectedPage.select].
    */
   fun ensureMultiSelectionOnly(
     request: HttpServletRequest,

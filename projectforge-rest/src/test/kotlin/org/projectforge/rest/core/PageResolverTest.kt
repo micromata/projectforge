@@ -23,21 +23,16 @@
 
 package org.projectforge.rest.core
 
-import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
-import org.projectforge.Constants
 import org.projectforge.NextMigration
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookEntityRest
 import org.projectforge.rest.calendar.CalendarSubscriptionInfoPageRest
-import org.projectforge.rest.task.TaskPagesRest
-import org.projectforge.web.rest.RestAuthenticationUtils
 
 class PageResolverTest {
     @Test
@@ -107,45 +102,6 @@ class PageResolverTest {
         assertEquals("react/address/edit/:id", NextMigration.standardEditPage("address"))
         // group has been hand built in projectforge-next since, and follows book's shape.
         assertEquals("next/group/:id", NextMigration.standardEditPage("group"))
-    }
-
-    /**
-     * As long as a page's layout is still served to the legacy React app (bookmark, browser history),
-     * the row click url follows the frontend that asked - a user on `/react/task` must not be thrown
-     * into projectforge-next by clicking a row. `book`, `cost1` and `cost2` no longer take part: they
-     * extend AbstractDTOEntityRest, which serves no layout at all, so there is no React page to stay on.
-     */
-    @Test
-    fun editPagePerFrontendTest() {
-        // Migrated from Wicket, still a PagesRest serving a React layout: the caller is still the React
-        // app, so it gets the React page - the Wicket page renders server side and never asks here for a
-        // layout.
-        val taskPagesRest = TaskPagesRest()
-        assertEquals("react/task/edit/:id", taskPagesRest.getEditPage(requestOf(null)))
-        assertEquals("next/task/:id", taskPagesRest.getEditPage(requestOf(Constants.NEXT)))
-        // The Referer is the fallback of RestAuthenticationUtils.isNextClient (the static export is
-        // served under /next/).
-        assertEquals(
-            "next/task/:id",
-            taskPagesRest.getEditPage(requestOf(null, referer = "https://pf/next/task")),
-        )
-        // Not migrated: there is only one frontend, so the caller makes no difference.
-        val addressPagesRest = AddressPagesRest()
-        assertEquals(
-            addressPagesRest.getStandardEditPage(),
-            addressPagesRest.getEditPage(requestOf(null)),
-        )
-        assertEquals(
-            addressPagesRest.getStandardEditPage(),
-            addressPagesRest.getEditPage(requestOf(Constants.NEXT)),
-        )
-    }
-
-    private fun requestOf(frontendHeader: String?, referer: String? = null): HttpServletRequest {
-        val request = Mockito.mock(HttpServletRequest::class.java)
-        Mockito.`when`(request.getHeader(RestAuthenticationUtils.NEXT_CLIENT_HEADER)).thenReturn(frontendHeader)
-        Mockito.`when`(request.getHeader("Referer")).thenReturn(referer)
-        return request
     }
 
     /**

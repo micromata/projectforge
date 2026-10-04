@@ -117,7 +117,7 @@ class GroupAccessEntityRest :
      */
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         // Drop the free-text pills the generic processor derives from the indexed group/task fields; the
-        // object pickers below replace them (as OrderEntityRest/TimesheetPagesRest strip their derived pills).
+        // object pickers below replace them (as OrderEntityRest/TimesheetEntityRest strip their derived pills).
         elements.removeIf {
             it is UIFilterElement && (it.id == "group" || it.id.startsWith("group.") ||
                     it.id == "task" || it.id.startsWith("task."))
@@ -145,7 +145,7 @@ class GroupAccessEntityRest :
                 "task",
                 label = translate("task"),
                 // Marked TASK so the next frontend uses the structure-tree picker and shows the task path
-                // in the pill (FilterTaskField); its own `task/tree` type-ahead, as TimesheetPagesRest does.
+                // in the pill (FilterTaskField); its own `task/tree` type-ahead, as TimesheetEntityRest does.
                 autoCompletion = AutoCompletion<Long>(
                     url = AutoCompletion.getAutoCompletionUrl("task/tree"),
                     type = AutoCompletion.Type.TASK.name,

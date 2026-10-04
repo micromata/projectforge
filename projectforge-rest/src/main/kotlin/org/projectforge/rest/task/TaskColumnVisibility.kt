@@ -39,7 +39,7 @@ import org.projectforge.framework.access.AccessChecker
  * every click. The tree is held in memory, so this costs no query.
  *
  * Shared by both perspectives of the task: [TaskServicesRest] sends the flags as column defs of the tree,
- * [TaskPagesRest] sends them as variables of the list's meta data (`addVariablesForListPage`), where the
+ * [TaskEntityRest] sends them as variables of the list's meta data (`addVariablesForListPage`), where the
  * declared columns of the next page gate on them. The rules — which group may see the orders, which the
  * timesheet protection — are the backend's to know, so there is exactly one place that knows them.
  */

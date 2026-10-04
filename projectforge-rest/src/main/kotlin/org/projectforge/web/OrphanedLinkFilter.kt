@@ -104,25 +104,36 @@ class OrphanedLinkFilter : Filter {
             } else {
                 redirect(servletResponse, uri, VacationSendMailService.getLinkToVacationEntry(id))
             }
-        } else if (uri.endsWith("/react/project") || uri.contains("/react/project/")) {
-            // The old React project list (and its never finished form), migrated to projectforge-next. Not covered
-            // by redirectMigratedPage: the project's legacy app is Wicket, the way back. The React page is gone
-            // (ProjectEntityRest serves no layout), so there is no escape hatch to let through. The precise
-            // segment match keeps this from catching sibling pages like react/projectXyz.
-            // react/project/edit/<id>; no id means the add page.
-            val isEdit = uri.endsWith("/react/project/edit") || uri.contains("/react/project/edit/")
-            val id = uri.substringAfter("/react/project/edit/", "").substringBefore('/').toLongOrNull()
-            val target = when {
-                id != null -> NextMigration.nextEditPage(PROJECT_CATEGORY)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
-                isEdit -> NextMigration.newEntryUrl(PROJECT_CATEGORY)
-                else -> NextMigration.listUrl(PROJECT_CATEGORY)
-            }
-            redirect(servletResponse, uri, "/$target")
+        } else if (redirectGoneReactPage(servletResponse, uri)) {
+            // Handled: a link to an old React page of a category whose way back is Wicket was redirected.
         } else if (redirectMigratedPage(servletRequest, servletResponse, uri)) {
             // Handled: a link to a legacy page that has moved to projectforge-next was redirected.
         } else {
             chain.doFilter(servletRequest, servletResponse)
         }
+    }
+
+    /**
+     * The old React pages (list and form) of [GONE_REACT_CATEGORIES], migrated to projectforge-next. Not
+     * covered by [redirectMigratedPage]: their legacy app is Wicket, the way back. The React pages are gone
+     * (their EntityRest serves no layout), so there is no escape hatch to let through. The precise segment
+     * match keeps this from catching sibling pages like react/projectXyz or react/taskTree.
+     * react/<category>/edit/<id>; no id means the add page.
+     *
+     * @return true if the request was such a link and a redirect was sent.
+     */
+    private fun redirectGoneReactPage(response: ServletResponse, uri: String): Boolean {
+        val category = GONE_REACT_CATEGORIES.find { uri.endsWith("/react/$it") || uri.contains("/react/$it/") }
+            ?: return false
+        val isEdit = uri.endsWith("/react/$category/edit") || uri.contains("/react/$category/edit/")
+        val id = uri.substringAfter("/react/$category/edit/", "").substringBefore('/').toLongOrNull()
+        val target = when {
+            id != null -> NextMigration.nextEditPage(category)!!.replace(NextMigration.ID_PLACEHOLDER, "$id")
+            isEdit -> NextMigration.newEntryUrl(category)
+            else -> NextMigration.listUrl(category)
+        }
+        redirect(response, uri, "/$target")
+        return true
     }
 
     /**
@@ -191,6 +202,7 @@ class OrphanedLinkFilter : Filter {
     companion object {
         private val VACATION_LIST_URL = MenuItemDefId.VACATION.url ?: "/"
 
-        private const val PROJECT_CATEGORY = "project"
+        /** Categories migrated from Wicket whose old React pages are gone, see [redirectGoneReactPage]. */
+        private val GONE_REACT_CATEGORIES = listOf("project", "task")
     }
 }

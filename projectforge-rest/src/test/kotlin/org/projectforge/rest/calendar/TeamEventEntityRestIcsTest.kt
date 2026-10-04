@@ -38,7 +38,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import java.util.Date
 
-class TeamEventPagesRestIcsTest : AbstractTestBase() {
+class TeamEventEntityRestIcsTest : AbstractTestBase() {
     @Autowired
     private lateinit var teamCalDao: TeamCalDao
 
@@ -46,7 +46,7 @@ class TeamEventPagesRestIcsTest : AbstractTestBase() {
     private lateinit var teamEventDao: TeamEventDao
 
     @Autowired
-    private lateinit var teamEventPagesRest: TeamEventPagesRest
+    private lateinit var teamEventEntityRest: TeamEventEntityRest
 
     @Test
     fun `a stored event is exported as ics file`() {
@@ -62,7 +62,7 @@ class TeamEventPagesRestIcsTest : AbstractTestBase() {
             it.startDate = Date(now)
             it.endDate = Date(now + 3600_000)
         })
-        val response = teamEventPagesRest.exportIcs(eventId)
+        val response = teamEventEntityRest.exportIcs(eventId)
         assertEquals(200, response.statusCode.value())
         val content = String((response.body as Resource).contentAsByteArray)
         assertTrue(content.contains("BEGIN:VEVENT"), content)
@@ -70,6 +70,6 @@ class TeamEventPagesRestIcsTest : AbstractTestBase() {
         assertTrue(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION)!!.contains(".ics"))
 
         logon(TEST_USER2) // No access to the calendar.
-        assertThrows<AccessException> { teamEventPagesRest.exportIcs(eventId) }
+        assertThrows<AccessException> { teamEventEntityRest.exportIcs(eventId) }
     }
 }

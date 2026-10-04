@@ -25,7 +25,7 @@ export interface TeamEventDetail {
   /**
    * Which occurrences of a series an edit touches, and the one the user opened — neither is stored on
    * the event; they are the client's answer to the "change all / future / only this" question, posted as
-   * transient attributes the DAO reads (see team-event-edit-schema.ts and TeamEventPagesRest).
+   * transient attributes the DAO reads (see team-event-edit-schema.ts and TeamEventEntityRest).
    */
   seriesModificationMode?: "ALL" | "FUTURE" | "SINGLE" | null;
   selectedSeriesEvent?: {

@@ -1,6 +1,6 @@
 /**
  * The calls a team event form needs beyond the generic entity ones: the writable calendars its
- * calendar select offers (`TeamEventPagesRest.getCalendars`) and the ics file of a stored event.
+ * calendar select offers (`TeamEventEntityRest.getCalendars`) and the ics file of a stored event.
  *
  * Reads and writes of the event itself are not here: they are the generic `fetchOne`/`fetchNew`
  * (client.ts) and `saveOrUpdateEntity` and friends (entity.ts), parameterised with the category — a
@@ -12,7 +12,7 @@ import { downloadFile } from "./download";
 
 const ENTITY = "teamEvent";
 
-/** A team calendar as the select offers it (`TeamEventPagesRest.CalendarSelectValue`). */
+/** A team calendar as the select offers it (`TeamEventEntityRest.CalendarSelectValue`). */
 export interface TeamCalendarOption {
   id: number;
   title: string;
@@ -34,7 +34,7 @@ export function fetchTeamCalendars(
 }
 
 /**
- * The stored event as an ics file (`TeamEventPagesRest.exportIcs`), named after its subject by the backend.
+ * The stored event as an ics file (`TeamEventEntityRest.exportIcs`), named after its subject by the backend.
  * Exports the last saved state, not the form's.
  */
 export function downloadTeamEventIcs(

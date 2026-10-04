@@ -8,7 +8,7 @@ import type { TimesheetStatistics } from "./timesheet-statistics";
 /**
  * The footer of the time sheet list above its table: the summed duration and, where the installation
  * tracks it, the share of time saved by AI — the two values the legacy list shows in its footer
- * (`TimesheetPagesRest.postProcessResultSet`).
+ * (`TimesheetEntityRest.postProcessResultSet`).
  *
  * The numbers are the backend's, computed over the whole result set of the same filter and already
  * formatted in the user's locale (see [TimesheetStatistics]); summing the loaded rows here would answer

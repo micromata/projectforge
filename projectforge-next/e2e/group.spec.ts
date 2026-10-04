@@ -183,7 +183,7 @@ test.describe("group page", { tag: "@parallel" }, () => {
     await waitForRow(page, group.name, 30_000);
 
     // `type` is a `defaultFilter`, so its pill is on the row without being added first — labelled with
-    // the backend's own word for it (`GroupPagesRest.addMagicFilterElements`).
+    // the backend's own word for it (`GroupEntityRest.addMagicFilterElements`).
     await page
       .getByRole("button", {
         name: format.t("filter.editEntry", { arg0: format.t("status") }),
@@ -235,7 +235,7 @@ test.describe("group page", { tag: "@parallel" }, () => {
  * `userAccess.insert: false` for a plain user. Legacy leaves the create entry out of the page menu in
  * that case (`AbstractPagesRest.createListLayout`); next offered its "+" to everyone.
  *
- * The row click goes with it (`userAccess.update`, which `GroupPagesRest.listUpdateAccess` answers for
+ * The row click goes with it (`userAccess.update`, which `GroupEntityRest.listUpdateAccess` answers for
  * administrators only — Wicket's `GroupListPage` renders the name as a plain label without it). That one
  * is asserted on the response rather than on a row: this user's list is empty, `GroupDao` shows them no
  * group at all, so there would be nothing to click either way.
@@ -325,7 +325,7 @@ async function storedGroup(
 /**
  * The id of a group whose members have mail addresses, or null if this installation has none.
  *
- * Found through the list, whose rows carry `assignedUsers` (`GroupPagesRest.createListLayout`), and
+ * Found through the list, whose rows carry `assignedUsers`, and
  * then confirmed on the entity: a member without an address contributes nothing to `emails`, so only
  * reading it settles whether the case has anything to assert on. Few candidates on purpose — one hit
  * is enough and every candidate is a request.

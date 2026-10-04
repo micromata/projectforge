@@ -153,7 +153,7 @@ constructor(
     internal fun createListLayout(request: HttpServletRequest, magicFilter: MagicFilter): UILayout {
         val userAccess = UILayout.UserAccess()
         checkUserAccess(null, userAccess)
-        // Assume that the user has general update access (override listUpdateAccess, see GroupPagesRest)
+        // Assume that the user has general update access (override listUpdateAccess, see GroupEntityRest)
         userAccess.update = listUpdateAccess()
         val layout = UILayout("$i18nKeyPrefix.list")
         if (!isMultiSelectionMode(request, magicFilter)) {
@@ -487,22 +487,17 @@ constructor(
     }
 
     /**
-     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
+     * Will be called by the clone button of the legacy layout: answers the prepared clone together with the
+     * rebuilt edit layout. [CloneSupport.AUTOSAVE] is left to the layout free [AbstractEntityRest.clone]
+     * (no legacy page autosaves).
+     * @return ResponseAction with [TargetType.UPDATE] and the variables "data", "ui" and "variables" of [getItemAndLayout] as given for new objects.
      */
-    @PostMapping(RestPaths.CLONE)
-    fun clone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>)
+    override fun clone(request: HttpServletRequest, @Valid @RequestBody postData: PostData<DTO>)
             : ResponseEntity<ResponseAction> {
-        val clone = prepareClone(postData.data)
         if (cloneSupport == CloneSupport.AUTOSAVE) {
-            // If cloneSupport is of type AUTOSAVE and no validation error exist: clone, save and close.
-            postData.data = clone
-            val result = saveOrUpdate(request, postData)
-            if (result.statusCode == HttpStatus.OK) {
-                return result
-            }
-            // Validation errors or other errors occurred, doesn't save. Proceed with editing.
+            return super.clone(request, postData)
         }
+        val clone = prepareClone(postData.data)
         val formLayoutData = getItemAndLayout(request, clone, UILayout.UserAccess(history = false, insert = true))
         return ResponseEntity(
             ResponseAction(targetType = TargetType.UPDATE)
@@ -513,26 +508,6 @@ constructor(
         )
     }
 
-    protected open fun autoSaveOnClone(
-        request: HttpServletRequest,
-        @Valid @RequestBody postData: PostData<DTO>,
-        clone: DTO
-    ): Boolean {
-        return true
-    }
-
-    /**
-     * Might be modified e. g. for edit pages handled in modals (timesheets and calendar events).
-     */
-    protected open fun getRestEditPath(): String {
-        return PagesResolver.getEditPageUrl(this::class.java)
-    }
-
-    /**
-     * Will be called for watched fields from client, if any of the watched fields was modified.
-     * This method may be used for updating model after modification of any watch field.
-     * You may define watch fields in layout.
-     */
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(
         request: HttpServletRequest,

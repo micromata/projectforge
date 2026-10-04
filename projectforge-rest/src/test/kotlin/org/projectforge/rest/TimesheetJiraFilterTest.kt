@@ -35,7 +35,7 @@ import org.projectforge.business.timesheet.TimesheetDO
  * check, so neither the JIRA configuration nor a database is involved.
  */
 class TimesheetJiraFilterTest {
-    private val filter = TimesheetPagesRest.TimesheetJiraFilter()
+    private val filter = TimesheetEntityRest.TimesheetJiraFilter()
 
     @Test
     fun `a key in the description is kept`() {

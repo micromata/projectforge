@@ -27,7 +27,6 @@ import VacationStatistics from './components/vacation/VacationStatistics';
 import VacationTable from './components/vacation/VacationTable';
 import WebAuthnAuthenticate from './components/WebAuthnAuthenticate';
 import WebAuthnRegister from './components/WebAuthnRegister';
-import CostNumber24Component from './components/CostNumber24Component';
 
 function DynamicCustomized({ id, ...props }) {
     let Tag;
@@ -74,9 +73,6 @@ function DynamicCustomized({ id, ...props }) {
             break;
         case 'cost.number':
             Tag = CostNumberComponent;
-            break;
-        case 'cost.number24':
-            Tag = CostNumber24Component;
             break;
         case 'dayRange':
             Tag = DayRange;

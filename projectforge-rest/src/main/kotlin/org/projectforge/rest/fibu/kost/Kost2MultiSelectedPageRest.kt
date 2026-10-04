@@ -31,9 +31,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -65,7 +63,7 @@ class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
   }
 
   /**
-   * The same three fields [fillForm] lays out, for a client that renders the form itself.
+   * The three fields of the mass update, for the next frontend that renders the form itself.
    */
   override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
     return listOf(
@@ -73,19 +71,6 @@ class Kost2MultiSelectedPageRest : AbstractMultiSelectedPage<Kost2DO>() {
       MassUpdateFieldDeclaration("description", showAppendOption = true),
       MassUpdateFieldDeclaration("comment", showAppendOption = true),
     )
-  }
-
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    val lc = LayoutContext(Kost2DO::class.java)
-    createAndAddFields(lc, massUpdateData, layout, "kostentraegerStatus")
-    createAndAddFields(lc, massUpdateData, layout, "description", showAppendOption = true)
-    createAndAddFields(lc, massUpdateData, layout, "comment", showAppendOption = true)
   }
 
   override fun proceedMassUpdate(

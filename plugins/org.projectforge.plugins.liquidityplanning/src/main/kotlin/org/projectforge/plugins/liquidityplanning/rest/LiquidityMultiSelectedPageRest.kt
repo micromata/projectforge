@@ -36,10 +36,8 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.rest.multiselect.TextFieldModification
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
 import org.projectforge.ui.UISelectValue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -102,25 +100,6 @@ class LiquidityMultiSelectedPageRest : AbstractMultiSelectedPage<LiquidityEntryD
             ),
             MassUpdateFieldDeclaration(field = "comment", showAppendOption = true),
         )
-    }
-
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        createAndAddFields(
-            layoutContext,
-            massUpdateData,
-            layout,
-            "amount",
-            "subject",
-            "paid",
-            showDeleteOption = false,
-        )
-        createAndAddFields(layoutContext, massUpdateData, layout, "comment", showAppendOption = true)
     }
 
     override fun proceedMassUpdate(

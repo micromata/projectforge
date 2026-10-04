@@ -21,7 +21,7 @@ const CALENDARS_QUERY_KEY = ["teamEvent", "calendars"] as const;
  *
  * Its own component rather than the shared [SelectField], for two reasons the generic one cannot serve:
  * the options are not a fixed enum but the writable calendars fetched from the backend
- * (`TeamEventPagesRest.getCalendars`), and the field is mandatory though `TeamEventDO` does not mark it
+ * (`TeamEventEntityRest.getCalendars`), and the field is mandatory though `TeamEventDO` does not mark it
  * so — an event cannot be saved into no calendar. The shared select reads `required` from the metadata,
  * which for a relation the generator does not carry would be "optional" and offer a clear button; here
  * it is required and cannot be cleared.

@@ -29,7 +29,7 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
   return (
     <>
       {/* Always answers with a valid file (a header row even for an empty result, see
-          TimesheetPagesRest), so a failure here is a real one — an access refusal. */}
+          TimesheetEntityRest), so a failure here is a real one — an access refusal. */}
       <ExcelExportButton download={() => downloadTimesheetExcel(filter)} />
       <HintTooltip text={t("tooltip.export.pdf")}>
         <Button

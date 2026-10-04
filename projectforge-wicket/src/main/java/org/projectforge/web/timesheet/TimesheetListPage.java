@@ -58,7 +58,7 @@ import org.projectforge.jira.JiraUtils;
 import org.projectforge.registry.Registry;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
-import org.projectforge.rest.TimesheetPagesRest;
+import org.projectforge.rest.TimesheetEntityRest;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -200,7 +200,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         // getString("timesheet.iCalSubscription"), iCalExportLink);
         exportMenu.addSubMenuEntry(new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), icsExportDialogButton,
                 getString("timesheet.icsExport")).setTooltip(getString("timesheet.iCalSubscription")));
-        addNewMassSelect(TimesheetPagesRest.class);
+        addNewMassSelect(TimesheetEntityRest.class);
     }
 
     @Override

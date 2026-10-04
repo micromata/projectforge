@@ -650,7 +650,7 @@ class TaskServicesRest {
                 )
             )
 
-            // Set grid state URLs (with tree/ prefix to avoid conflict with TaskPagesRest). The mode is
+            // Set grid state URLs (with tree/ prefix to avoid conflict with TaskEntityRest). The mode is
             // part of them, because each mode stores its own column state (see gridCategory).
             val modeParam = if (selectMode) "?select=true" else ""
             result.onColumnStatesChangedUrl =
@@ -701,7 +701,7 @@ class TaskServicesRest {
      * leaves closed tasks out), and the label, which is the whole path rather than the bare title: in a
      * deep tree two tasks called "Development" are told apart by nothing else.
      *
-     * Not `task/autosearch`: that name belongs to [org.projectforge.rest.task.TaskPagesRest], which
+     * Not `task/autosearch`: that name belongs to [org.projectforge.rest.task.TaskEntityRest], which
      * inherits it without declaring `autoCompleteSearchFields` — hence the `tree/` prefix, as for the grid
      * state above. The answer is a `DisplayObject` all the same, so the client's shared picker
      * (`EntitySearchList`) needs nothing of its own.

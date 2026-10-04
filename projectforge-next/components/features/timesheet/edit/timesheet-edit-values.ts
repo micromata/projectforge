@@ -89,7 +89,7 @@ export function toTimesheetDetail(
  * Deliberately empty of the values that matter: the user, the two ends of the period and the task all
  * come from `timesheet/newEntry` — the backend takes the user from the session, presets the period from
  * the calendar's parameters and prefills task, cost unit and texts from the user's most recent sheet
- * (`TimesheetPagesRest.newBaseDTO`). Guessing any of them here would mean a form that briefly shows
+ * (`TimesheetEntityRest.newBaseDTO`). Guessing any of them here would mean a form that briefly shows
  * something else than what is being edited.
  */
 export function emptyTimesheetValues(): TimesheetEditValues {

@@ -28,7 +28,7 @@ import type { SeededTask } from "./fixtures/seed";
  */
 const PAGE = "/task";
 
-/** The three flags `TaskPagesRest.addVariablesForListPage` answers, keyed as the declarations read them. */
+/** The three flags `TaskEntityRest.addVariablesForListPage` answers, keyed as the declarations read them. */
 type ListVariables = Record<string, unknown>;
 
 test.describe("task list", { tag: "@lane-task" }, () => {
@@ -161,7 +161,7 @@ test.describe("task list", { tag: "@lane-task" }, () => {
   }) => {
     const format = await userFormat(page);
     // What a user who has no stored filter starts with, and what the reset in beforeEach put back:
-    // `TaskPagesRest.newMagicFilter` presets the two statuses Wicket's `TaskFilter` defaults to.
+    // `TaskEntityRest.newMagicFilter` presets the two statuses Wicket's `TaskFilter` defaults to.
     const meta = await listMeta(page.request);
     const preset = meta.filter?.entries?.find(
       (entry) => entry.field === "status"
@@ -181,7 +181,7 @@ test.describe("task list", { tag: "@lane-task" }, () => {
     expect(closed.every((row) => row.status === "C")).toBe(true);
 
     // Visible as a filter, not applied behind the user's back: the element is a `defaultFilter`, so its
-    // pill is on the row of the list page without being added first (see GroupPagesRest for the same).
+    // pill is on the row of the list page without being added first (see GroupEntityRest for the same).
     await goto(page, PAGE);
     await waitForRows(page);
     await expect(

@@ -93,7 +93,7 @@ test.describe("task tree actions", { tag: "@lane-task" }, () => {
     );
 
     // The parameter is not read into the form here: it is forwarded to `task/newEntry`, and what fills
-    // the field is the parent the backend resolved (`TaskPagesRest.newBaseDO`). Which is why this
+    // the field is the parent the backend resolved (`TaskEntityRest.newBaseDO`). Which is why this
     // assertion is the interesting half of the row action — the url alone would prove nothing.
     await expect(
       page.getByRole("navigation", {

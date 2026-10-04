@@ -25,7 +25,7 @@ export function DynamicFormPage({
   type: string | undefined;
   id: string | undefined;
 }) {
-  // Everything the create endpoints read besides the id (TimesheetPagesRest: startDate/endDate/firstHour).
+  // Everything the create endpoints read besides the id (TimesheetEntityRest: startDate/endDate/firstHour).
   // `id` is passed on its own and would otherwise fragment the query key, so it is stripped here.
   const searchParams = useSearchParams();
   const rest = new URLSearchParams(searchParams);

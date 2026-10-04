@@ -50,7 +50,7 @@ const DescriptionJiraLinks = makeJiraFieldLinks("description");
  * not erase it, see task-schema.ts) and the computed `consumption`.
  *
  * The columns are `TaskListPage.createColumns` — ten, in its order, with the three whose subject may
- * not exist gated on the backend's answer (see TaskPagesRest.addVariablesForListPage). Three of them
+ * not exist gated on the backend's answer (see TaskEntityRest.addVariablesForListPage). Three of them
  * show a value that is not on `TaskDO` and is computed per row from the in-memory tree, so there is
  * nothing to sort them by (`sortable: false`), which is what Wicket says too by passing them no sort
  * property.
@@ -192,7 +192,7 @@ export const TASK_PAGE = definePage<
     ],
     // "Add a subtask" from the tree: the parent is a parameter of the preset, because only the backend
     // can resolve what hangs on it — the project of the cost unit block, and the rights of the two
-    // access-gated groups (see TaskPagesRest.newBaseDO and useNewEntryParams).
+    // access-gated groups (see TaskEntityRest.newBaseDO and useNewEntryParams).
     newEntryParams: TASK_NEW_ENTRY_PARAMS,
     // The top menu of the Wicket form (`TaskEditPage.addTopMenuPanel`), in its order and with its
     // wording. The task and timesheet targets live in this app now (both are migrated); the remaining

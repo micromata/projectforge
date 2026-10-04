@@ -86,7 +86,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutClasses(
       My2FAShortCut.ADMIN,
       UserPagesRest::class.java,
-      GroupPagesRest::class.java,
+      GroupEntityRest::class.java,
       AdminLogViewerRest::class.java,
       GroupAccessEntityRest::class.java,
       // The migrated Plugins admin page (PluginAdminRest, /rs/pluginList): its next page is a static file served by a

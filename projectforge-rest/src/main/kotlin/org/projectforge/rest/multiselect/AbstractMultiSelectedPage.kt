@@ -173,9 +173,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Per-selection start values for a hand built client, keyed by field name - the layout free counterpart
-     * of the values [fillForm] writes into its `massUpdateData` map (a shared task/kost2 the selection has
-     * in common, say). Empty at default; a page computes them from the selected entries (which it can load
+     * Per-selection start values for a hand built client, keyed by field name (a shared task/kost2 the
+     * selection has in common, say). Empty at default; a page computes them from the selected entries (which it can load
      * here, the ids are the same [requestMeta] passes on). These are a *presentation* preset for the page's
      * own controls, not an action - the generic renderer does not seed its declared fields from them, so a
      * value left untouched contributes nothing to the run (see `TimesheetMultiSelectedPageRest`).
@@ -574,20 +573,17 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * The fields this page may update, in the order they are shown - the layout free counterpart of the
-     * `createAndAddFields` calls in [fillForm].
+     * The fields this page may update, in the order they are shown - the single source of the field set of
+     * a page migrated to projectforge-next.
      *
-     * Empty at default, so a page that only serves the `UILayout` path keeps working; a page migrated to
-     * a hand built frontend declares them here and [fillForm] renders the same list (see
-     * `RechnungMultiSelectedPageRest`).
+     * Empty at default, so a page that only serves the legacy `UILayout` path ([fillForm]) keeps working.
      */
     protected open fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         return emptyList()
     }
 
     /**
-     * Message key of the note above the fields, as markdown - the `UIAlert` a page adds at the end of
-     * [fillForm].
+     * Message key of the note above the fields, as markdown.
      */
     protected open fun infoMessageKey(): String? {
         return null
@@ -921,20 +917,21 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     }
 
     /**
-     * Builds the form as a `UILayout`.
+     * Builds the form of the legacy React app as a `UILayout` (see [getForm]).
      *
-     * Deprecated along with [getForm], but not annotated: it is abstract, and every page of this kind is
-     * still served to the legacy frontend, so the annotation would only warn in six overrides that have
-     * no alternative yet. A page migrated to a hand built frontend declares the same fields in
-     * [fieldDeclarations] and keeps this one until its legacy page is gone.
+     * Only for the pages not yet migrated to projectforge-next (address, address campaign value), which
+     * have no alternative yet - hence deprecated along with [getForm], but not annotated. A migrated page
+     * declares its fields in [fieldDeclarations] instead and leaves this empty: its legacy React list is
+     * redirected to next, so nothing asks for this layout any more.
      */
-    abstract fun fillForm(
+    open fun fillForm(
         request: HttpServletRequest,
         layout: UILayout,
         massUpdateData: MutableMap<String, MassUpdateParameter>,
         selectedIds: Collection<Serializable>?,
         variables: MutableMap<String, Any>,
-    )
+    ) {
+    }
 
     protected fun getLayout(
         request: HttpServletRequest,

@@ -54,32 +54,27 @@ class Timesheet(
     /**
      * Whether AI time-savings tracking is enabled in this installation (transient, server set). The
      * hand-built edit page has no UILayout to hide the AI fields from, so it reads this flag from the
-     * DTO to gate the section — the counterpart of `baseDao.timeSavingsByAIEnabled` guarding the
-     * UILayout in [org.projectforge.rest.TimesheetPagesRest.createEditLayout].
+     * DTO to gate the section (mirrors `baseDao.timeSavingsByAIEnabled`).
      */
     var timeSavingsByAIEnabled: Boolean = false
 
     /**
      * The configured note shown below the edit form (transient, server set), or null where none is
-     * configured — the counterpart of the [org.projectforge.ui.UIAlert] the UILayout adds to
-     * `layoutBelowActions` in [org.projectforge.rest.TimesheetPagesRest.createEditLayout]. The
-     * hand-built edit page has no UILayout to carry it, so it reads the text from the DTO. Set only
-     * when [timeSavingsByAIEnabled], as in the UILayout.
+     * configured. The hand-built edit page shows it below the form. Set only when
+     * [timeSavingsByAIEnabled].
      */
     var timeSavingsByAINote: String? = null
 
     /**
-     * The tags to choose from (transient, server set), or null/empty where none is configured. Like
-     * [timeSavingsByAIEnabled], the hand-built edit page has no UILayout to read the `tag` select's
-     * values from, so it takes them from here — the counterpart of `createTagUISelect` returning null
-     * (and no field at all) when there is nothing to choose. Includes the sheet's own tag even after it
+     * The tags to choose from (transient, server set), or null/empty where none is configured, in which
+     * case the hand-built edit page shows no tag field at all. Includes the sheet's own tag even after it
      * was dropped from the configuration (see `TimesheetDao.getTags`).
      */
     var tags: List<String>? = null
 
     /**
      * The extra columns of the hand-built next list, formatted server-side and only set on a list row (see
-     * [org.projectforge.rest.TimesheetPagesRest.postProcessResultSet]): the two-digit week of the year, the
+     * [org.projectforge.rest.TimesheetEntityRest.postProcessResultSet]): the two-digit week of the year, the
      * short day-of-week name, the "date fromTime-toTime" period and the "h:mm" duration — the counterparts
      * of the pre-formatted columns the legacy `Timesheet4ListExport` carries. Named without a [TimesheetDO]
      * counterpart on purpose (the DO's `timePeriod`/`duration` are typed values, not these strings), so
@@ -107,8 +102,8 @@ class Timesheet(
      * `TimesheetListRow`) and nothing else, so `JsonInclude.Include.NON_NULL` keeps the rest — the
      * AI fields, the counter — off the wire (see [BaseDTO.copyFrom4ListRow]). The counterpart of the
      * nested `Timesheet4ListExport` the legacy React list reads; the next client gets this flat shape
-     * because [org.projectforge.rest.TimesheetPagesRest.newDTO] returns a non-null DTO (see
-     * [org.projectforge.rest.core.AbstractDTOPagesRest.createListRow]). The formatted week/day/period/
+     * because [org.projectforge.rest.TimesheetEntityRest.newDTO] returns a non-null DTO (see
+     * [org.projectforge.rest.core.AbstractDTOEntityRest.createListRow]). The formatted week/day/period/
      * duration and the AI share are added on top of this by the rest class, which has the formatter and
      * the AI-enabled flag the DTO cannot reach.
      */
@@ -126,7 +121,7 @@ class Timesheet(
         location = src.location
         reference = src.reference
         // The tag column of the next list, shown only where tags are configured (gated by the
-        // `tagsConfigured` list variable, see TimesheetPagesRest.addVariablesForListPage).
+        // `tagsConfigured` list variable, see TimesheetEntityRest.addVariablesForListPage).
         tag = src.tag
         description = src.description
         // The columns show a name (and, for the cost unit, its formatted number), not a whole entity — so

@@ -30,7 +30,7 @@
 |---|---|---|
 | Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
 | Escape hatch, hard-coded in next | `TaskTreePage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
@@ -77,7 +77,7 @@ These would break silently if the module were simply deleted.
     – done: `lib/access-links.ts` → `next/access?taskId=…`, seeded as a transient task filter.
   - ~~`EingangsrechnungUploadPageRest`, `IncomingInvoicePosImportPageRest` `callerPage` `/wa/incomingInvoiceList`~~
     – done: `NextMigration.listUrl(DaoConst.INCOMING_INVOICE)`.
-  - `GroupPagesRest.kt:153`, `TeamCalPagesRest.kt:106` – `classicsLinkListUrl` into Wicket; remove once
+  - ~~`GroupPagesRest.kt:153`~~ (class removed), `TeamCalPagesRest.kt:106` – `classicsLinkListUrl` into Wicket; remove once
     the targets are gone (TeamCal: see Phase 2).
 
 ## Phase 2 – Migrate or deliberately drop the remaining functionality

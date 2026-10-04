@@ -1,5 +1,5 @@
 /**
- * The aggregates of the whole time sheet list, as `TimesheetPagesRest.TimesheetListStatistics` sends them
+ * The aggregates of the whole time sheet list, as `TimesheetEntityRest.TimesheetListStatistics` sends them
  * (`ResultSet.statistics`). The two numbers the legacy list's footer shows: the summed duration and,
  * where the installation tracks it, the share of time saved by AI.
  *

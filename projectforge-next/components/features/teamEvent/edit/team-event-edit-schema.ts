@@ -13,7 +13,7 @@ const m = fromMetadata(TEAM_EVENT_METADATA);
 /**
  * A team calendar as the form holds it. Not from the metadata: `TeamEventDO.calendar` is a `TeamCalDO`
  * relation, which the generator does not carry as a field, so the shape is stated here. Only the id is
- * written back — Spring resolves the calendar object from it (`TeamEventPagesRest.onBeforeDatabaseAction`)
+ * written back — Spring resolves the calendar object from it (`TeamEventEntityRest.onBeforeDatabaseAction`)
  * — but the option list sends a `title` and the select shows a `displayName`, and both are kept via the
  * loose object so a value handed straight back is not stripped.
  *
@@ -38,7 +38,7 @@ const calendarField = z
  * values *as* the DTO (EntityEditPage.save), so a field left out here would be dropped on save — silent
  * data loss for a recurring event, an event with attendees or a reminder, whose editing UI is a later
  * phase. Editing such an event still fails loudly rather than corrupting it: the server refuses a
- * recurring event without a `seriesModificationMode` (`TeamEventPagesRest.validate`), which no field on
+ * recurring event without a `seriesModificationMode` (`TeamEventEntityRest.validate`), which no field on
  * this form yet sets.
  *
  * The server validates too and has the last word: it requires the subject and, for a recurring event,
@@ -47,7 +47,7 @@ const calendarField = z
 /**
  * Which events of a series an edit touches (`SeriesModificationMode`). Not a stored field: it is the
  * answer to the "all / all future / only this one" question the server asks when a recurring event is
- * saved, posted as a transient attribute the DAO reads (`TeamEventPagesRest.transformForDB`).
+ * saved, posted as a transient attribute the DAO reads (`TeamEventEntityRest.transformForDB`).
  */
 const seriesModificationMode = z.enum(["ALL", "FUTURE", "SINGLE"]).nullable();
 
@@ -112,7 +112,7 @@ export const teamEventEditSchema = teamEventEditObject
     message: i18nMarker("timePeriodPanel.startTimeAfterStopTime"),
   })
   // Editing a stored recurring event must say which occurrences it touches — the same rule the server
-  // enforces (`TeamEventPagesRest.validate`), anticipated here so the inline radios light up before the
+  // enforces (`TeamEventEntityRest.validate`), anticipated here so the inline radios light up before the
   // save round-trips rather than only on the HTTP 406 that carries the identical key and field.
   .refine(
     (v) =>

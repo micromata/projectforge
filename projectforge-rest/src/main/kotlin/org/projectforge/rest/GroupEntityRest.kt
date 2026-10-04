@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import de.micromata.merlin.excel.ExcelWorkbook
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
@@ -47,8 +46,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.core.AbstractDTOEntityRest
 import org.projectforge.rest.core.getObjectList
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.PostData
@@ -66,9 +64,13 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * The groups, served to the hand built list and edit page of projectforge-next (layout free, see
+ * [AbstractDTOEntityRest]). The LDAP gid number of a new group is offered by [createGid].
+ */
 @RestController
 @RequestMapping("${Rest.URL}/group")
-class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
+class GroupEntityRest : AbstractDTOEntityRest<GroupDO, Group, GroupDao>(
     GroupDao::class.java, "group.title",
     cloneSupport = CloneSupport.CLONE,
 ) {
@@ -114,9 +116,8 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
             }
         }
         if (editMode) {
-            // The read-only mail addresses of the members, which no GroupDO property holds: a hand built form
-            // (projectforge-next) reads the entity through GET {id} and never sees the server side layout, where
-            // this used to be filled. Edit mode only - no list column shows them, and it costs a cache lookup
+            // The read-only mail addresses of the members, which no GroupDO property holds: the form
+            // (projectforge-next) reads the entity through GET {id}. Edit mode only - no list column shows them, and it costs a cache lookup
             // per assigned user of every row.
             group.populateEmails()
         }
@@ -125,8 +126,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
 
     /**
      * Tells the list page whether the LDAP columns are worth showing, the same condition the edit page gets
-     * as [Group.ldapPosixConfigured]. A hand built list (projectforge-next) shows or hides its `ldapValues`
-     * column by it; the server side layout below decides it by simply not adding the column.
+     * as [Group.ldapPosixConfigured]. The list (projectforge-next) shows or hides its `ldapValues` column by it.
      */
     override fun addVariablesForListPage(): Map<String, Any> {
         return mapOf("ldapPosixConfigured" to (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff))
@@ -149,9 +149,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
         return groupDO
     }
 
-    override val classicsLinkListUrl: String
-        get() = "wa/groupList"
-
     /**
      * Every user may read the groups (`GroupDao.hasUserSelectAccess`), only an administrator may change
      * one (`GroupDao.hasAccess`) - so this is one of the few entities where the write access is a
@@ -160,39 +157,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
      */
     override fun listUpdateAccess(): Boolean {
         return accessChecker.isLoggedInUserMemberOfAdminGroup
-    }
-
-    /**
-     * LAYOUT List page
-     */
-    override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
-    ) {
-        val agGrid = agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            userAccess = userAccess,
-        )
-            .add(lc, "name")
-        agGrid.add(lc, "organization", "description", wrapText = true)
-        agGrid.add(
-            lc,
-            "assignedUsers",
-            formatter = UIAgGridColumnDef.Formatter.SHOW_LIST_OF_DISPLAYNAMES,
-            wrapText = true
-        )
-        if (userGroupCache.isUserMemberOfAdminGroup && useLdapStuff) {
-            agGrid.add(lc, "ldapValues")
-        }
-
-        if (userGroupCache.isUserMemberOfAdminGroup) {
-            layout.excelExportSupported = true
-        }
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -253,56 +217,6 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
                 )
             }
         }
-    }
-
-    /**
-     * LAYOUT Edit page
-     */
-    override fun createEditLayout(dto: Group, userAccess: UILayout.UserAccess): UILayout {
-        val layout = super.createEditLayout(dto, userAccess)
-            .add(
-                UIRow()
-                    .add(
-                        UICol(lg = 6)
-                            .add(lc, "name", "localGroup")
-                    )
-                    .add(
-                        UICol(lg = 6)
-                            .add(lc, "organization", "groupOwner")
-                    )
-            )
-            .add(UISelect.createUserSelect(lc, "assignedUsers", true, "group.assignedUsers"))
-            .add(lc, "description")
-        if (useLdapStuff) {
-            val gidInput = UIInput(
-                "gidNumber",
-                label = "ldap.gidNumber",
-                additionalLabel = "ldap.posixAccount",
-                tooltip = "ldap.gidNumber.tooltip"
-            )
-            val fieldset = UIFieldset(title = "ldap")
-            layout.add(fieldset)
-            if (dto.gidNumber != null) {
-                fieldset.add(gidInput)
-            } else {
-                val button = UIButton.createLinkButton(
-                    id = "createGidNumber",
-                    title = "create",
-                    tooltip = "ldap.gidNumber.createDefault.tooltip",
-                    responseAction = ResponseAction(
-                        RestResolver.getRestUrl(
-                            GroupPagesRest::class.java,
-                            "createGid"
-                        ), targetType = TargetType.POST
-                    )
-                )
-                fieldset.add(UIRow().add(UICol().add(gidInput)).add(UICol().add(button)))
-            }
-        }
-        // No populateEmails() here: the dto arrives from getById(editMode = true), i.e. already filled by
-        // transformFromDB - and a new entry has no members to collect addresses from.
-        layout.add(UIReadOnlyField("emails", label = "address.emails"))
-        return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     /**

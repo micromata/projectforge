@@ -231,13 +231,16 @@ object NextMigration {
             legacyNewEntryRoute = "wicket/bookmarkable/org.projectforge.web.admin.ConfigurationEditPage",
             offerLegacyLink = false,
         ),
-        // Hand built calendar (the default page after login), migrated from the React app, which is where
-        // the way back leads (react/calendar). It has no edit page of its own - a new or clicked entry
-        // opens a timesheet or team event through their own dynamic routes - so the inherited editRoute /
-        // newEntryRoute defaults (calendar/edit/:id, calendar/edit) are dead and never asked for.
+        // Hand built calendar (the default page after login), migrated from the React app. No way back:
+        // its time sheet and team event forms are served by layout free EntityRests only, so the React
+        // calendar could not open an entry any more (react/calendar is redirected to next). It has no edit
+        // page of its own - a new or clicked entry opens a timesheet or team event through their own
+        // routes - so the inherited editRoute / newEntryRoute defaults (calendar/edit/:id, calendar/edit)
+        // are dead and never asked for.
         "calendar" to NextPage(
             route = "calendar",
             legacyApp = LegacyApp.REACT,
+            offerLegacyLink = false,
         ),
         // Migrated from Wicket, which the React migration never reached (see MenuItemDefId.COST1_LIST,
         // which pointed at wa/cost1List). Kost1EntityRest serves no layout, so there was never a React page.
@@ -473,7 +476,7 @@ object NextMigration {
         // editor: the two most-used calendar editors are being migrated ahead of any list. There is no team
         // event list of this app - the event is reached through the calendar (see use-calendar-action.ts) -
         // so this repoints only the edit routes. The way back leads to the React app, whose team event form
-        // was rendered from the same UILayout under calendar/teamEvent (TeamEventPagesRest.getRestEditPath).
+        // was rendered from a server side UILayout under calendar/teamEvent (no longer served).
         "teamEvent" to NextPage(
             route = "teamEvent",
             editRoute = "teamEvent/$ID_PLACEHOLDER",

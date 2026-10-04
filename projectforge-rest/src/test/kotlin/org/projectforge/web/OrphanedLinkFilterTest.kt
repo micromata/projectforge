@@ -35,8 +35,7 @@ class OrphanedLinkFilterTest {
 
     /**
      * The React calendar is a migrated page like any other now: a bookmarked or emailed link to it is bent
-     * onto the next calendar. The "classic version" switch reaches it by carrying the escape-hatch marker
-     * (see calendar-page.tsx, legacyUrl "react/calendar?legacyEscape"), covered below.
+     * onto the next calendar. Next offers no way back to it any more (`offerLegacyLink = false`).
      */
     @Test
     fun `the react calendar is redirected to next`() {
@@ -45,13 +44,14 @@ class OrphanedLinkFilterTest {
 
     /**
      * The escape hatch: a request carrying [NextMigration.ESCAPE_HATCH_PARAM] is let through to the legacy
-     * React calendar, which is how the "classic version" switch reaches it without being bounced back.
+     * page, which is how a "classic version" link reaches it without being bounced back. The calendar serves
+     * as the example; next itself no longer links there.
      */
     @Test
     fun `the react calendar with the escape marker stays in the legacy app`() {
         Assertions.assertNull(
             redirectOf("/react/calendar", NextMigration.ESCAPE_HATCH_PARAM),
-            "The classic calendar switch carries the escape marker and must stay in React.",
+            "A request with the escape marker must stay in React.",
         )
     }
 
@@ -75,6 +75,15 @@ class OrphanedLinkFilterTest {
         Assertions.assertEquals("/next/project/42", redirectOf("/react/project/edit/42"))
         Assertions.assertEquals("/next/project/new", redirectOf("/react/project/edit"))
         Assertions.assertNull(redirectOf("/react/projectXyz"))
+    }
+
+    /** The same for the old React task pages: the task's way back is Wicket, its React pages are gone. */
+    @Test
+    fun `the old react task pages are redirected to next`() {
+        Assertions.assertEquals("/next/task", redirectOf("/react/task"))
+        Assertions.assertEquals("/next/task/42", redirectOf("/react/task/edit/42"))
+        Assertions.assertEquals("/next/task/new", redirectOf("/react/task/edit"))
+        Assertions.assertNull(redirectOf("/react/taskTree"))
     }
 
     /** Old Wicket calendars, bookmarked by some users, still lead to the next calendar. */

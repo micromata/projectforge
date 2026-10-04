@@ -33,9 +33,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -70,25 +68,13 @@ class EmployeeSalaryMultiSelectedPageRest : AbstractMultiSelectedPage<EmployeeSa
     }
 
     /**
-     * The same two fields [fillForm] lays out, for a client that renders the form itself.
+     * The two fields of the mass update, for the next frontend that renders the form itself.
      */
     override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
         return listOf(
             MassUpdateFieldDeclaration("type"),
             MassUpdateFieldDeclaration("comment", showAppendOption = true),
         )
-    }
-
-    override fun fillForm(
-        request: HttpServletRequest,
-        layout: UILayout,
-        massUpdateData: MutableMap<String, MassUpdateParameter>,
-        selectedIds: Collection<Serializable>?,
-        variables: MutableMap<String, Any>,
-    ) {
-        val lc = LayoutContext(EmployeeSalaryDO::class.java)
-        createAndAddFields(lc, massUpdateData, layout, "type")
-        createAndAddFields(lc, massUpdateData, layout, "comment", showAppendOption = true)
     }
 
     override fun proceedMassUpdate(

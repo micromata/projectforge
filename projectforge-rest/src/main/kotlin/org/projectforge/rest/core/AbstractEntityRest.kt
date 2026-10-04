@@ -1039,16 +1039,13 @@ constructor(
      * The clone of an entity for a page built by hand: prepared by [prepareClone] and answered as it is,
      * without saving it.
      *
-     * The layout free counterpart of `AbstractPagesRest.clone`, and deliberately a different path
-     * ([RestPaths.CLONE_DATA]): that one is mapped by a subclass of this one, so the same path here would
-     * be ambiguous for every legacy page. It also answers something else - a `ResponseAction` carrying
-     * data *and* a rebuilt layout - which a hand built page has no use for. What travels here is the DTO,
-     * and where it is edited is the client's business.
+     * Unlike [clone], this answers the plain DTO rather than a `ResponseAction`, and where it is edited is
+     * the client's business.
      *
      * The posted entity is **not** validated: it is the form as the user has it in front of them, errors
      * and all, and nothing is written (Wicket clones from an invalid form too, see
-     * `RechnungEditForm.ignoreErrorOnClone`). [CloneSupport.AUTOSAVE] is not honoured either - no
-     * layout free entity asks for it, so anything but [CloneSupport.NONE] means "prepare and return".
+     * `RechnungEditForm.ignoreErrorOnClone`). [CloneSupport.AUTOSAVE] is not honoured here - that is
+     * [clone]'s job - so anything but [CloneSupport.NONE] means "prepare and return".
      *
      * @return The prepared clone, or HTTP 501 if this entity has no clone support.
      */
@@ -1061,6 +1058,41 @@ constructor(
         // error - the client shouldn't have offered the button (see ListMetaData.userAccess.insert).
         baseDao.hasLoggedInUserInsertAccess()
         return ResponseEntity(prepareClone(postData.data) as Any, HttpStatus.OK)
+    }
+
+    /**
+     * Clones the entity and, for [CloneSupport.AUTOSAVE], saves the copy right away (e.g. a time sheet
+     * cloned for the next day). The clone runs through the very same [saveOrUpdate] a normal save does,
+     * so it is validated and its answer (a `REDIRECT` etc.) is returned as it is.
+     *
+     * If the save fails (an overlapping time period is the typical case) or the entity doesn't autosave,
+     * the prepared clone is answered as `ResponseAction(UPDATE)` with the clone under `variables.data`:
+     * not saved, the client stays on the form with it (see `cloneAndSaveEntity` in projectforge-next).
+     * `AbstractPagesRest` overrides this to re-serve its layout as well.
+     *
+     * @return HTTP 501 if this entity has no clone support.
+     */
+    @PostMapping(RestPaths.CLONE)
+    open fun clone(
+        request: HttpServletRequest,
+        @Valid @RequestBody postData: PostData<DTO>
+    ): ResponseEntity<ResponseAction> {
+        if (cloneSupport == CloneSupport.NONE) {
+            return ResponseEntity(HttpStatus.NOT_IMPLEMENTED)
+        }
+        val clone = prepareClone(postData.data)
+        if (cloneSupport == CloneSupport.AUTOSAVE) {
+            postData.data = clone
+            val result = saveOrUpdate(request, postData)
+            if (result.statusCode == HttpStatus.OK) {
+                return result
+            }
+            // Validation or other errors: not saved, the client proceeds with editing the clone.
+        } else {
+            // Throws an AccessException (HTTP 406), see cloneData.
+            baseDao.hasLoggedInUserInsertAccess()
+        }
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", clone))
     }
 
     /**

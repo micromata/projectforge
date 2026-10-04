@@ -10,7 +10,7 @@ import type { TaskConsumption, TaskOrder } from "@/lib/rs/task";
 
 /**
  * Parameters of `/task/new` the backend reads for its preset: the parent of a new subtask, which
- * `TaskPagesRest.newBaseDO` resolves (and with it the project the cost unit block needs).
+ * `TaskEntityRest.newBaseDO` resolves (and with it the project the cost unit block needs).
  *
  * Here rather than beside the page declaration, because the declaration and every section that reads
  * the preset back out of the cache need the same list — the parameters are part of the query key, so a

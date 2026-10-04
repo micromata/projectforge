@@ -37,11 +37,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateFieldDeclaration
-import org.projectforge.rest.multiselect.MassUpdateParameter
 import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
-import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
@@ -73,7 +69,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   /**
-   * The same three fields [fillForm] lays out, for a client that renders the form itself.
+   * The three fields of the mass update, for the next frontend that renders the form itself.
    */
   override fun fieldDeclarations(): List<MassUpdateFieldDeclaration> {
     return listOf(
@@ -94,11 +90,9 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   /**
    * The same numbers [getStatistics] renders as markdown, as the values the list serves.
    *
-   * The two exist side by side because their readers differ, not because the statistics do: the
-   * `UILayout` form has nowhere to put a number but a `UIAlert`, so for it the sums are pre-rendered
-   * text - complete with the `<span style="color:blue">` `MarkdownBuilder` colours them with. A hand
-   * built page renders its own statistics line and needs the numbers, which is also the only way it can
-   * format an amount in the *user's* locale and currency.
+   * The markdown (`MultiSelectMetaData.statistics`) is deprecated: it carries the `<span style="color:blue">`
+   * `MarkdownBuilder` colours it with. The hand built page renders its own statistics line and needs the
+   * numbers, which is also the only way it can format an amount in the *user's* locale and currency.
    */
   override fun getStatisticsData(selectedIds: Collection<Serializable>?): Any {
     return OutgoingInvoiceEntityRest.InvoiceStatistics(buildStatistics(selectedIds))
@@ -108,26 +102,6 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     // Cache-based (RechnungCache), so this stays cheap when called live on every debounced selection
     // change - no invoice is hydrated and no position is loaded (see RechnungDao.buildStatistikByIds).
     return rechnungDao.buildStatistikByIds(selectedIds)
-  }
-
-  override fun fillForm(
-    request: HttpServletRequest,
-    layout: UILayout,
-    massUpdateData: MutableMap<String, MassUpdateParameter>,
-    selectedIds: Collection<Serializable>?,
-    variables: MutableMap<String, Any>,
-  ) {
-    val lc = LayoutContext(RechnungDO::class.java)
-    layout.add(UIAlert("'${getStatistics(selectedIds)}", color = UIColor.LIGHT, markdown = true))
-    createAndAddFields(
-      lc,
-      massUpdateData,
-      layout,
-      "status",
-      "bezahlDatum",
-    )
-    createAndAddFields(lc, massUpdateData, layout, "bemerkung", showAppendOption = true)
-    layout.add(UIAlert(infoMessageKey(), color = UIColor.INFO, markdown = true))
   }
 
   override fun proceedMassUpdate(

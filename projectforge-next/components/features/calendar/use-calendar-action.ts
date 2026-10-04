@@ -14,7 +14,7 @@ import { toTimesheetRoute } from "./timesheet-route";
 /** `returnToCaller` for the pages the calendar opens, so their Save/Cancel comes back here. */
 const RETURN_TO_CALENDAR = encodeURIComponent("/next/calendar");
 
-/** Epoch seconds, the form the legacy `eventClick` urls use and `TimesheetPagesRest` parses. */
+/** Epoch seconds, the form the legacy `eventClick` urls use and `TimesheetEntityRest` parses. */
 function epochSeconds(date: Date | null): number | undefined {
   return date ? Math.floor(date.getTime() / 1000) : undefined;
 }

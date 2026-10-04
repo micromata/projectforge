@@ -7,7 +7,7 @@ import type { NewEntryParams } from "@/hooks/use-entity-detail";
  * The declared parameters of an add url, for the preset the backend answers with.
  *
  * `/task/new?parentTaskId=42` means "a new task below task 42", and only the backend can turn that into
- * a preset — `TaskPagesRest.newBaseDO` resolves the parent, and with it the project the cost unit block
+ * a preset — `TaskEntityRest.newBaseDO` resolves the parent, and with it the project the cost unit block
  * needs. So the parameter is not read into the form here; it is passed on to `{entity}/newEntry` and the
  * answer is what fills the form.
  *

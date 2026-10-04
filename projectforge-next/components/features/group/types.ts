@@ -36,7 +36,7 @@ export interface GroupDetail {
   gidNumber?: number | null;
   /**
    * Whether posix accounts are in use at all, i.e. whether the LDAP field belongs on the form.
-   * Read-only: the backend decides it per request (`GroupPagesRest.transformFromDB`), it is no
+   * Read-only: the backend decides it per request (`GroupEntityRest.transformFromDB`), it is no
    * property of the group.
    */
   ldapPosixConfigured?: boolean | null;

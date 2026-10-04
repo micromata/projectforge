@@ -42,7 +42,7 @@ export const groupSchema = z.object({
   /**
    * The LDAP gid, editable only where posix accounts are configured (see [LdapGidField]). Whole
    * number, as `Group.gidNumber` is an `Int`; uniqueness is the backend's check
-   * (`GroupPagesRest.validate` answers `ldap.gidNumber.alreadyInUse`).
+   * (`GroupEntityRest.validate` answers `ldap.gidNumber.alreadyInUse`).
    */
   gidNumber: z
     .number()
