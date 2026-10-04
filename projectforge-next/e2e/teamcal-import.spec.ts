@@ -14,7 +14,8 @@ import {
  * The ICS import of team events (`/next/teamCalImport`, `TeamEventImportRest` + components/shared/import)
  * against the live backend: reached from the calendar's more menu, an ics file with two events goes into
  * a throwaway calendar of the test's own; uploaded again with one subject changed, the reconcile by uid
- * finds one MODIFIED and one UNMODIFIED event — proof the commit stored both under their uids.
+ * finds one MODIFIED and one UNMODIFIED event — proof the commit stored both under their uids. The
+ * attendees of the first event are stored with it and shown, read-only, in its editor.
  */
 
 // A live upload, a reconcile and a background commit job, and the dev server compiles each route once.
@@ -30,6 +31,29 @@ async function importState(page: Page): Promise<ImportStateView> {
     headers: { "X-PF-Frontend": "next" },
   });
   return (await res.json()) as ImportStateView;
+}
+
+/** The id of the imported event [subject] in [calendarId], found via the calendar's event feed. */
+async function importedEventId(
+  page: Page,
+  calendarId: number,
+  subject: string
+): Promise<number> {
+  const res = await page.request.post("/rs/calendar/events", {
+    headers: await writeHeaders(page.request),
+    data: {
+      start: "2099-11-30T00:00:00.000Z",
+      end: "2099-12-04T00:00:00.000Z",
+      activeCalendarIds: [calendarId],
+      timeZone: "UTC",
+    },
+  });
+  const { events } = (await res.json()) as {
+    events?: { title?: string; extendedProps?: { dbId?: number } }[];
+  };
+  const id = events?.find((e) => e.title === subject)?.extendedProps?.dbId;
+  expect(id, `event "${subject}" in calendar ${calendarId}`).toBeDefined();
+  return id!;
 }
 
 function statuses(view: ImportStateView): string[] {
@@ -49,6 +73,13 @@ test.describe("team calendar ics import", { tag: "@lane-calendar" }, () => {
           uid: `zz-e2e-${calendar.suffix}-1@projectforge`,
           subject: `${MARKER} ics one ${calendar.suffix}`,
           date: "20991201",
+          attendees: [
+            {
+              name: `Jane ${calendar.suffix}`,
+              email: `jane-${calendar.suffix}@example.org`,
+              partStat: "ACCEPTED",
+            },
+          ],
         },
         {
           uid: `zz-e2e-${calendar.suffix}-2@projectforge`,
@@ -107,6 +138,26 @@ test.describe("team calendar ics import", { tag: "@lane-calendar" }, () => {
           timeout: 30_000,
         })
         .toEqual(["UNMODIFIED", "UNMODIFIED"]);
+
+      // The attendee is shown in the event's editor, with its status.
+      const eventId = await importedEventId(
+        page,
+        calendar.id,
+        events[0].subject
+      );
+      await goto(page, `/teamEvent/${eventId}`);
+      const attendee = events[0].attendees![0];
+      await expect(
+        page.getByText(format.t("plugins.teamcal.attendees"), { exact: true })
+      ).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText(attendee.name)).toBeVisible();
+      await expect(page.getByText(attendee.email)).toBeVisible();
+      await expect(
+        page.getByText(format.t("plugins.teamcal.attendee.status.accepted"), {
+          exact: true,
+        })
+      ).toBeVisible();
+      await goto(page, "/teamCalImport");
 
       // Again with the first subject changed: matched by uid, so MODIFIED rather than NEW.
       await page

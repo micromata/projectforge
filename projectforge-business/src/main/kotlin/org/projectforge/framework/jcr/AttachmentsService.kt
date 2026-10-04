@@ -398,7 +398,10 @@ open class AttachmentsService {
             AttachmentsEventType.UPLOAD,
             fileInfo,
             subPath = subPath,
-            lastUserAction = "Attachment uploaded: '${fileInfo.fileName}'.",
+            // Encrypting adds the ZIP, then deletes the original: the deletion writes the one entry for
+            // both (see internalDeleteAttachment), or the history would read as "ZIP uploaded" replaced
+            // by "original deleted".
+            lastUserAction = if (fileInfo.encryptionInProgress == true) null else "Attachment uploaded: '${fileInfo.fileName}'.",
             userString = userString
         )
         return attachment
@@ -443,6 +446,11 @@ open class AttachmentsService {
         subPath: String? = null,
         encryptionInProgress: Boolean? = null,
         userString: String? = null,
+        /**
+         * Name of the encrypted file replacing the deleted one, if the deletion is the last step of an
+         * encryption. Written to the history instead of a plain "deleted".
+         */
+        encryptedFileName: String? = null,
     )
             : Boolean {
         val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
@@ -455,7 +463,7 @@ open class AttachmentsService {
         )
         return internalDeleteAttachment(
             path, fileId, baseDao, obj, subPath, encryptionInProgress = encryptionInProgress,
-            userString = userString
+            userString = userString, encryptedFileName = encryptedFileName,
         )
     }
 
@@ -471,6 +479,8 @@ open class AttachmentsService {
         subPath: String? = null,
         userString: String? = null,
         encryptionInProgress: Boolean? = null,
+        /** See [deleteAttachment]. */
+        encryptedFileName: String? = null,
     )
             : Boolean {
         val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
@@ -489,7 +499,11 @@ open class AttachmentsService {
                 AttachmentsEventType.DELETE,
                 fileObject,
                 subPath = subPath,
-                lastUserAction = "Attachment '${fileObject.fileName}' deleted.",
+                lastUserAction = if (encryptedFileName != null) {
+                    "Attachment '${fileObject.fileName}' encrypted as '$encryptedFileName'."
+                } else {
+                    "Attachment '${fileObject.fileName}' deleted."
+                },
                 userString = userString
             )
         }

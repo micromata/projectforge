@@ -30,14 +30,12 @@ import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.teamcal.ical.ICalDateUtils
@@ -61,8 +59,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
-import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -96,8 +92,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
-
-    override val additionalHistoryEntityClasses: List<Class<*>> = listOf(TeamEventAttendeeDO::class.java)
 
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR_EVENT
@@ -631,38 +625,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         return queryFilter
     }
 
-    /**
-     * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
-     */
-    override fun addOwnHistoryEntries(obj: TeamEventDO, context: HistoryLoadContext) {
-        // Kept per-entry (not batched like the other DAOs): the display prefix depends on the individual attendee
-        // and is applied via the per-entry customize callback, which the batched
-        // loadAndMergeHistory(entityClass, entityIds, ...) variant cannot express.
-        obj.attendees?.forEach { attendee ->
-            historyService.loadAndMergeHistory(attendee, context) { entry ->
-                HistoryFormatUtils.setNumberAsPropertyNameForListEntries(entry, attendee.toString())
-            }
-        }
-    }
-
-    /**
-     * Returns also true, if idSet contains the id of any attendee.
-     *
-     * @see org.projectforge.framework.persistence.api.BaseDao.contains
-     */
-    override fun contains(idSet: Set<Long>?, entry: TeamEventDO): Boolean {
-        idSet ?: return false
-        if (super.contains(idSet, entry)) {
-            return true
-        }
-        for (pos in entry.attendees!!) {
-            if (idSet.contains(pos.id)) {
-                return true
-            }
-        }
-        return false
-    }
-
     override fun newInstance(): TeamEventDO {
         return TeamEventDO()
     }
@@ -737,24 +699,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             }
         }
         return col
-    }
-
-    /**
-     * Will be called, before an address is (forced) deleted. All references in personal address books have to be deleted first.
-     *
-     * @param addressDO
-     */
-    fun removeAttendeeByAddressIdFromAllEvents(addressDO: AddressDO) {
-        persistenceService.runInTransaction { context ->
-            val addressId = addressDO.id ?: return@runInTransaction
-            val counter: Int = context.executeNamedUpdate(
-                TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
-                Pair("addressId", addressId),
-            )
-            if (counter > 0) {
-                log.info("Address #" + addressId + " of '" + addressDO.fullName + "' removed as attendee in " + counter + " events.")
-            }
-        }
     }
 
     companion object {

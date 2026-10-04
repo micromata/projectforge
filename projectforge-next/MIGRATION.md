@@ -293,7 +293,11 @@ Lösch-Bestätigung, Aktionsleiste liegen in `hooks/use-entity-edit-form.ts` und
   `lib/rs/attachments.ts`. Zwei Protokoll-Eigenheiten: jede Schreibantwort enthält die
   **ganze** neue Liste (`setQueryData`, kein Reload); eine Ablehnung ist **HTTP 200 mit
   `TOAST`** (`AttachmentWriteResult` = `ok | rejected`). Kein Lese-Endpunkt (steckt im
-  Entitäts-DTO). Upload sequenziell (eine Datei/Call). Verschlüsselung nicht portiert.
+  Entitäts-DTO). Upload sequenziell (eine Datei/Call). Detaildialog wie der alte
+  (`AttachmentPageRest.createAttachmentLayout`): Name/Beschreibung, Metadaten, Löschen,
+  Download, Verschlüsseln (`encrypt`, Modus AES-256/ZIP-Standard) und Entschlüsselung testen
+  (`testDecryption`); ein abgelehntes Passwort ist HTTP 406 am Passwortfeld (`PasswordRefused`).
+  `encryptionSupport={false}` für Merlin/DataTransfer-Public, die es im Backend auch nicht haben.
 - **Mehrfachauswahl/Massenupdate** (`AbstractMultiSelectedPage`, `MultiSelectionSupport`,
   `PageDef.massUpdate`): Zustand liegt in der HTTP-Session (Schlüssel = Klasse der
   `*EntityRest`, TTL 60 min) → **Sticky Sessions**. Next spricht nur das layoutfreie Protokoll
@@ -454,9 +458,12 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `CalendarSubscriptionDialog` (URL, QR-Code, Sicherheitshinweis; `GET calendarSubscription/info`),
   im Mehr-Menü des Kalenders und in der Zeitberichtsliste. Ersatzlos entfallen: die Terminliste
   (Termine erreicht man über den Kalender) und die alten Wicket-Kalender `wa/oldCalendar`,
-  `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. Teilnehmer werden
-  nicht angezeigt: `TeamEventDO.attendees` ist `@Transient` (Mapping seit 2024-11 auskommentiert),
-  wird also weder geladen noch gespeichert – das wiederherzustellen ist eine eigene Aufgabe. Ohne `DTEND`
+  `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. **Teilnehmer**
+  werden nur angezeigt (eigene Karte im Termin-Editor, Kalender-Tooltip): als JSON-Schnappschuss in der
+  Spalte `attendees` des Termins (`TeamEventDO.attendeesJson`, `TeamEventAttendee`), gefüllt vom
+  ICS-Import und einmalig aus der alten Tabelle `t_plugin_calendar_event_attendee` (V8.0.31; die Tabelle
+  bleibt als Sicherung). Bearbeiten und Einladungsmails entfallen (mit `TeamCalResponseServlet`,
+  `ICalHandler`, `TeamEventDiff*`); ICS-Export und Abo-Feed geben keine Teilnehmer aus. Ohne `DTEND`
   ergibt sich das Ende nach RFC 5545 aus `DURATION` bzw. einem Tag (ganztägig, `VEventUtils.deriveEnd`).
   Alte Lesezeichen leitet `OrphanedLinkFilter` um.
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).

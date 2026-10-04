@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, Edit02Icon, LockIcon } from "@hugeicons/core-free-icons";
+import { Delete01Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { attachmentDownloadUrl, type Attachment } from "@/lib/rs/attachments";
+import { AttachmentEncryptedBadge } from "./attachment-encrypted-badge";
 
 interface Props {
   attachment: Attachment;
@@ -97,7 +98,7 @@ export function AttachmentRow({
         />
       )}
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-center gap-1.5">
           {/* The name is the download: the shortest way to the file, and the only one a keyboard or
               screen reader gets — the row overlay above is for the mouse. */}
           <a
@@ -108,14 +109,7 @@ export function AttachmentRow({
             {attachment.name}
           </a>
           {attachment.encrypted && (
-            // Icon-only, so it needs a name of its own; the file can only be opened with its
-            // password (Attachment.encrypted).
-            <HugeiconsIcon
-              icon={LockIcon}
-              size={11}
-              className="shrink-0 text-muted-foreground"
-              aria-label={t("attachment.encryption")}
-            />
+            <AttachmentEncryptedBadge attachment={attachment} />
           )}
         </div>
         {attachment.description && (

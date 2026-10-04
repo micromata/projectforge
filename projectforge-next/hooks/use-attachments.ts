@@ -5,10 +5,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteAttachment,
   deleteAttachments,
+  encryptAttachment,
   fetchAttachments,
   modifyAttachment,
+  testAttachmentDecryption,
   type Attachment,
   type AttachmentWriteResult,
+  type EncryptionMode,
+  type PasswordRefused,
 } from "@/lib/rs/attachments";
 
 /** Query key of an entity's attachments. */
@@ -32,7 +36,7 @@ export function useAttachments(entity: string, id: number | null) {
 }
 
 /**
- * Rename and delete, each writing the answer straight into the cache: both endpoints return the
+ * Rename, delete and encrypt, each writing the answer straight into the cache: both endpoints return the
  * entity's complete new list (see lib/rs/attachments.ts), so there is nothing to re-read.
  *
  * Uploading has a hook of its own (see use-attachment-uploads.ts): it tracks one progress per file
@@ -107,5 +111,31 @@ export function useAttachmentMutations(entity: string, id: number | null) {
     onSuccess: applyResult,
   });
 
-  return { rename, remove, removeMany, mergeResult };
+  /**
+   * Replaces the file by an encrypted ZIP of it. The answer is the full new list again (the original
+   * is gone, the ZIP has a new `fileId`), so it replaces the cache like the writes above.
+   */
+  const encrypt = useMutation<
+    AttachmentWriteResult | PasswordRefused,
+    Error,
+    { fileId: string; password: string; mode: EncryptionMode }
+  >({
+    mutationFn: ({ fileId, password, mode }) =>
+      encryptAttachment({ entity, id: id!, fileId }, password, mode),
+    onSuccess: (result) => {
+      if (result.kind === "ok") applyResult(result);
+    },
+  });
+
+  /** Checks a password against an encrypted file. Changes nothing, so the cache stays as it is. */
+  const testDecryption = useMutation<
+    Awaited<ReturnType<typeof testAttachmentDecryption>>,
+    Error,
+    { fileId: string; password: string }
+  >({
+    mutationFn: ({ fileId, password }) =>
+      testAttachmentDecryption({ entity, id: id!, fileId }, password),
+  });
+
+  return { rename, remove, removeMany, encrypt, testDecryption, mergeResult };
 }

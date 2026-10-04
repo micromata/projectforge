@@ -108,8 +108,12 @@ Each item: build in next, or decide with the product owner that it goes away.
         holiday spanned six years in the feed, the weeks-of-year feed, the relative time sheet url, the
         reminder default of read-only calendars.
       - Dropped: the team event list (events are reached through the calendar).
-      - Attendees are not shown: `TeamEventDO.attendees` is `@Transient` (mapping commented out since
-        2024-11), so they are neither loaded nor saved. Restoring that is separate work.
+      - Attendees are shown read-only (a card of the event editor, the calendar tooltip). They are a JSON
+        snapshot in the event's column `attendees` (`TeamEventDO.attendeesJson`, `TeamEventAttendee`), filled
+        by the ICS import and once from the old table `t_plugin_calendar_event_attendee` (V8.0.31, which
+        keeps the table as a backup but drops its foreign keys). Editing and the invitation mails are
+        dropped, with `TeamCalResponseServlet` (`/cal`), `ICalHandler`, `TeamEventDiff*` and
+        `TeamEventAttendeeDO`/`Dao`. The ICS export and the subscription feed don't emit attendees.
       - The Wicket-only i18n keys of these pages are left for the i18n pruning of Phase 4.
 - [x] **Exports only in Wicket pages** – Kost1/Kost2 Excel export (`Kost1EntityRest`/`Kost2EntityRest`
       `exportAsExcel`), incoming invoice list and cost-assignment Excel (list bar of `next/creditor-invoice`),

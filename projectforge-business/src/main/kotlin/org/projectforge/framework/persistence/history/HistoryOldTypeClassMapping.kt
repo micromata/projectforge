@@ -98,6 +98,7 @@ object HistoryOldTypeClassMapping {
     internal val removedClasses = arrayOf(
         "org.projectforge.business.fibu.AuftragsPositionsStatus",
         "org.projectforge.business.teamcal.event.model.CalEventDO",
+        "org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO",
         "org.projectforge.business.vacation.model.VacationCalendarDO",
         "org.projectforge.framework.persistence.user.entities.TenantDO",
         "org.projectforge.gantt.GanttDependencyType",

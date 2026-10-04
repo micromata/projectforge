@@ -31,7 +31,6 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.vcard.VCardUtils
 import org.projectforge.business.address.vcard.VCardVersion
 import org.projectforge.business.sipgate.SipgateDeleteContactService
-import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -91,9 +90,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     @Autowired
     private lateinit var sipgateDeleteContactService: SipgateDeleteContactService
-
-    @Autowired
-    private lateinit var teamEventDao: TeamEventDao
 
     private lateinit var birthdayCache: BirthdayCache
 
@@ -340,7 +336,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     override fun onDelete(obj: AddressDO) {
         persistenceService.runInTransaction { context ->
             personalAddressDao.internalDeleteAll(obj)
-            teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj)
             sipgateDeleteContactService.deleteContact(obj.id!!)
             val counter = context.executeNamedUpdate(
                 AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,

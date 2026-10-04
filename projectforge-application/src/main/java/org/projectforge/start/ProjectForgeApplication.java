@@ -42,7 +42,7 @@ import java.util.TimeZone;
 @SpringBootApplication(
         scanBasePackages = {"org.projectforge" }
 )
-@ServletComponentScan({"org.projectforge.web", "org.projectforge.business.teamcal.servlet"})
+@ServletComponentScan({"org.projectforge.web"})
 public class ProjectForgeApplication {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApplication.class);
 
