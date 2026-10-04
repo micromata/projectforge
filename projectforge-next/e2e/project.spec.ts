@@ -208,6 +208,92 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
     expect(await names(["ENDED", "NONE"])).toContain(project.name);
   });
 
+  test("mass update creates and deactivates cost 2 types, the list filters and strikes them", async ({
+    loggedInPage: page,
+  }) => {
+    const before = await storedProject(page.request, project.id);
+    const [candidate, absent] = (before.kost2Arts ?? []).filter(
+      (art) => !art.existsAlready
+    );
+    test.skip(
+      candidate == null || absent == null,
+      "The project has every cost 2 type already."
+    );
+    const art = (id: number) =>
+      storedProject(page.request, project.id).then((p) =>
+        p.kost2Arts?.find((a) => a.id === id)
+      );
+
+    // Create/activate: the project gets an active cost 2 unit of the type.
+    const created = await massUpdateKost2Arts(page.request, project, {
+      textValue: String(candidate!.id),
+      append: true,
+    });
+    expect(created.modifiedCounter).toBe(1);
+    expect(await art(candidate!.id)).toMatchObject({
+      existsAlready: true,
+      active: true,
+    });
+
+    // The "active" filter finds it, a type it has no unit of does not; the "non-active/missing" filter the
+    // other way round, and for both types picked (one of them missing).
+    const filtered = async (field: string, ...artIds: number[]) =>
+      (
+        await listProjects(
+          page.request,
+          project.suffix,
+          [],
+          [{ field, value: { values: artIds.map(String) } }]
+        )
+      ).map((row) => row.name);
+    const active = (...artIds: number[]) =>
+      filtered("kost2.kost2Art.id", ...artIds);
+    const notActive = (...artIds: number[]) =>
+      filtered("kost2ArtsNotActive", ...artIds);
+    expect(await active(candidate!.id)).toContain(project.name);
+    expect(await active(absent!.id)).not.toContain(project.name);
+    expect(await notActive(candidate!.id)).not.toContain(project.name);
+    expect(await notActive(absent!.id)).toContain(project.name);
+    expect(await notActive(candidate!.id, absent!.id)).toContain(project.name);
+
+    // Deactivating a type the project has no unit of is a no-op, the other one is set non-active.
+    const noop = await massUpdateKost2Arts(page.request, project, {
+      textValue: String(absent!.id),
+      delete: true,
+    });
+    expect(noop.modifiedCounter).toBe(0);
+    expect((await art(absent!.id))?.existsAlready).toBe(false);
+    const deactivated = await massUpdateKost2Arts(page.request, project, {
+      textValue: String(candidate!.id),
+      delete: true,
+    });
+    expect(deactivated.modifiedCounter).toBe(1);
+    expect(await art(candidate!.id)).toMatchObject({
+      existsAlready: true,
+      active: false,
+    });
+    // Non-active counts as missing.
+    expect(await active(candidate!.id)).not.toContain(project.name);
+    expect(await notActive(candidate!.id)).toContain(project.name);
+
+    // The list cell strikes the non-active type through.
+    await goto(page, `/project?q=${encodeURIComponent(project.suffix)}`);
+    const row = await waitForRow(page, project.name);
+    await expect(
+      row
+        .locator(".line-through")
+        .getByText(String(candidate!.id).padStart(2, "0"), { exact: true })
+    ).toBeVisible();
+
+    // Its tooltip lists the types with their names, one per line — also hovered on the cell's padding,
+    // where the pointer misses the element declaring it (see useOverflowTooltip).
+    const cell = row.locator("td", { has: page.locator(".line-through") });
+    await cell.hover({ position: { x: 2, y: 2 } });
+    const tooltip = page.locator("[data-slot=tooltip-content]").first();
+    await expect(tooltip).toBeVisible();
+    if (candidate!.name) await expect(tooltip).toContainText(candidate!.name);
+  });
+
   test.afterAll(async ({ seedRequest, seededProject }) => {
     await markAsDeleted(seedRequest, "project", seededProject.id).catch(
       () => undefined
@@ -218,7 +304,12 @@ test.describe("project page", { tag: "@lane-customer" }, () => {
 interface StoredProject {
   name?: string;
   nummer?: number;
-  kost2Arts?: { id: number; existsAlready?: boolean; active?: boolean }[];
+  kost2Arts?: {
+    id: number;
+    name?: string;
+    existsAlready?: boolean;
+    active?: boolean;
+  }[];
 }
 
 /** The project as its edit page's DTO, cost 2 types included. */
@@ -239,13 +330,17 @@ async function storedProject(
 async function listProjects(
   request: APIRequestContext,
   searchString: string,
-  listTypes: string[]
+  listTypes: string[],
+  entries: { field: string; value: { values: string[] } }[] = []
 ): Promise<{ name?: string }[]> {
   const response = await request.post("/rs/project/list", {
     headers: await writeHeaders(request),
     data: {
       searchString,
-      entries: [{ field: "listType", value: { values: listTypes } }],
+      entries: [
+        { field: "listType", value: { values: listTypes } },
+        ...entries,
+      ],
     },
   });
   if (!response.ok()) {
@@ -253,6 +348,35 @@ async function listProjects(
   }
   const body = (await response.json()) as { resultSet?: { name?: string }[] };
   return body.resultSet ?? [];
+}
+
+/**
+ * Runs the project mass update on the given project alone, with the cost 2 types parameter only — the way
+ * the list does it: register the list's ids (`startSelection`), tick the project (`select`), then `update`.
+ */
+async function massUpdateKost2Arts(
+  request: APIRequestContext,
+  project: SeededProject,
+  param: { textValue: string; append?: boolean; delete?: boolean }
+): Promise<{ modifiedCounter: number; errorCounter: number }> {
+  const post = async (url: string, data: unknown) => {
+    const response = await request.post(url, {
+      headers: await writeHeaders(request),
+      data,
+    });
+    if (!response.ok()) {
+      throw new Error(
+        `${url}: HTTP ${response.status()} ${await response.text()}`
+      );
+    }
+    return response.json();
+  };
+  await post("/rs/project/startSelection", {
+    searchString: project.suffix,
+    entries: [{ field: "listType", value: { values: [] } }],
+  });
+  await post("/rs/projectSelected/select", { selectedIds: [project.id] });
+  return await post("/rs/projectSelected/update", { kost2Arts: param });
 }
 
 /** The name field, by the label ProjektDO gives it. */

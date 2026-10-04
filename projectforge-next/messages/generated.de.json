@@ -1333,6 +1333,16 @@
         "kost2LockedEnded": "Das Projekt ist beendet: Seine Kostenarten sind nicht mehr änderbar.",
         "selectStandardKost2Arts": "Alle Standard-Kostenarten auswählen"
       },
+      "filter": {
+        "kost2ArtsActive": {
+          "_": "Aktive Kost2-Arten",
+          "tooltip": "Projekte, bei denen mindestens eine der gewählten Kost2-Arten aktiv ist."
+        },
+        "kost2ArtsNotActive": {
+          "_": "Nicht aktive/fehlende Kost2-Arten",
+          "tooltip": "Projekte, bei denen mindestens eine der gewählten Kost2-Arten nicht aktiv ist oder fehlt."
+        }
+      },
       "identifier": "Kurzbezeichner",
       "internKost2_4": "Intern: Koststellen 2-4",
       "konto": {
@@ -1342,6 +1352,16 @@
       "list": {
         "select": {
           "title": "Projekt wählen"
+        }
+      },
+      "massUpdate": {
+        "kost2Arts": {
+          "activate": "Anlegen/aktivieren",
+          "confirm": {
+            "activate": "{arg0}: „{arg1}“ werden angelegt bzw. aktiviert",
+            "deactivate": "{arg0}: „{arg1}“ werden deaktiviert (sofern im Projekt aktiv)"
+          },
+          "deactivate": "Deaktivieren"
         }
       },
       "multiselected": {

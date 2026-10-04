@@ -180,6 +180,8 @@ export interface MassUpdatePreviewChange {
   value?: string;
   /** The replacement, for `REPLACE` only. */
   replaceValue?: string;
+  /** The page's own translated sentence, shown instead of the action's generic text. */
+  description?: string;
 }
 
 /** What a mass update would do, before it is committed — the backend's `MassUpdatePreview`. */

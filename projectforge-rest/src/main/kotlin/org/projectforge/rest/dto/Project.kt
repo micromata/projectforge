@@ -55,7 +55,8 @@ class Project(
     var internKost2_4: Int? = null,
     /**
      * All cost 2 types, for the edit form: the ones the project already has are marked
-     * [Kost2Art.existsAlready], the ones picked for creation [Kost2Art.selected]. Not filled in list rows.
+     * [Kost2Art.existsAlready], the ones picked for creation [Kost2Art.selected]. In a list row only the
+     * project's existing ones, with [Kost2Art.active] (see `ProjectEntityRest.createListRow`).
      */
     var kost2Arts: List<Kost2Art>? = null,
     var kostFormatted: String? = null,
