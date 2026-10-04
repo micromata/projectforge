@@ -23,14 +23,13 @@
 
 package org.projectforge.business.user;
 
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * All user pref areas. They will shown in the list of 'my settings'.
+ * All user pref areas still in use (see {@link UserPrefArea}).
  *
  * @author Kai Reinhard
  */
@@ -64,31 +63,9 @@ public class UserPrefAreaRegistry
     return null;
   }
 
-  /**
-   * @param locale
-   * @return The list ordered by the translation of the i18n keys.
-   */
-  public List<UserPrefArea> getOrderedEntries(final Locale locale)
-  {
-    final List<UserPrefArea> list = new ArrayList<>(set);
-    list.sort(new Comparator<UserPrefArea>() {
-      @Override
-      public int compare(final UserPrefArea o1, final UserPrefArea o2) {
-        return StringHelper.compareTo(
-            I18nHelper.getLocalizedMessage(locale, o1.getI18nKey()),
-            I18nHelper.getLocalizedMessage(locale, o2.getI18nKey())
-        );
-      }
-    });
-    return list;
-  }
-
   private UserPrefAreaRegistry()
   {
-    set.add(UserPrefArea.KUNDE_FAVORITE);
-    set.add(UserPrefArea.PROJEKT_FAVORITE);
     set.add(UserPrefArea.TASK_FAVORITE);
     set.add(UserPrefArea.TIMESHEET_TEMPLATE);
-    set.add(UserPrefArea.USER_FAVORITE);
   }
 }

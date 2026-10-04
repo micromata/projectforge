@@ -446,9 +446,9 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   Baum, Aktionsleiste, Edit-Seite, Listenperspektive, Assistent; `task` umgeschaltet,
   `TASK_TREE` → `next/taskTree`. Sprung zum Strukturelement (`task-edit-link.tsx`) und die
   Consumption-Bar (`consumption-cell.tsx`) zeigen auf next (die letzten hart gebildeten
-  Legacy-URLs, umgestellt seit der Timesheet-Migration). Bewusst ausgelassen: die
-  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) – die Auswahlfelder bieten die
-  Schnellauswahl selbst.
+  Legacy-URLs, umgestellt seit der Timesheet-Migration). Die
+  Aufgaben-Favoriten (`UserPrefArea.TASK_FAVORITE`) pflegt das Auswahlfeld selbst
+  (`TaskFavoritesMenu`), keine eigene Seite.
 - **Gruppen** – vierter Fall, obwohl `GroupPagesRest` ein `UILayout` liefert (die
   generische Route rendert nur den Grid-Knoten, ohne Filterzeile/Favoriten/Zahnrad/Excel
   wäre der Schalter ein Rückschritt). LDAP-Feld über das Anzeige-Flag

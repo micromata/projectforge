@@ -79,7 +79,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(this, "task"),
           parentPage, "taskId");
       fs.add(taskSelectPanel);
-      taskSelectPanel.setShowFavorites(false).init();
+      taskSelectPanel.init();
       taskSelectPanel.setRequired(true);
 
       AjaxSubmitLink createTaskLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
@@ -162,7 +162,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         new PropertyModel<GroupDO>(this, group.key), parentPage,
             group.key + "Id");
     fs.add(groupSelectPanel);
-    groupSelectPanel.setShowFavorites(false).init();
+    groupSelectPanel.init();
     AjaxSubmitLink createGroupLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
     {
       @Override

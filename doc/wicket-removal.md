@@ -4,7 +4,7 @@
 > [projectforge-next/MIGRATION.md](../projectforge-next/MIGRATION.md), which only states the goal
 > ("remove `projectforge-wicket` from `settings.gradle.kts` + build, remove `/wa` serving/filters").
 > Status as of 2026-10-03: **no core menu entry opens Wicket any more**. The last two were the HR view
-> (`next/hrList`) and the deprecated favorites (`wa/userPrefList`, menu entry removed).
+> (`next/hrList`) and the deprecated favorites (`wa/userPrefList`, page removed since 2026-10-04).
 
 ## Goal and non-goals
 
@@ -29,12 +29,12 @@
 | Group | Pages | Reached from |
 |---|---|---|
 | Escape hatch ("classic version") behind a migrated next page | access (`AccessListPage`/`AccessEditPage`), account (`KontoListPage`/`KontoEditPage`), accountingRecord (`AccountingRecordListPage`/`AccountingRecordEditPage`), gantt (`GanttChart*Page`), task (`TaskListPage`/`TaskEditPage`) | `NextMigration` entries with `legacyApp = WICKET` and `offerLegacyLink = true` |
-| Escape hatch, hard-coded in next | `TaskTreePage` (task favorites not yet in next), `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
-| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `UserPrefListPage`/`UserPrefEditPage` (favorites in list pages and `TimesheetEditPage`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
+| Escape hatch, hard-coded in next | `TaskTreePage`, `PhoneCallPage` | `legacyUrl` in `taskTree/page.tsx`, `phone-call-page.tsx` |
+| Only reached from other legacy pages | `TaskWizardPage` (from `TaskTreePage`, `AccessListPage`), `TimesheetListPage`/`TimesheetEditPage` (from task tree/edit, old calendar), `GroupListPage`/`GroupEditPage` (group select panels, `TaskWizardForm`), `CalendarPage` (`wa/oldCalendar`), `TeamCalCalendarPage` (`wa/oldTeamCalendar`) and below it `TeamCalListPage`, `TeamCalEditPage`, `TeamEventListPage`, `TeamEventEditPage`, `TeamCalImportPage` | Wicket pages among themselves; "classics" links of `react/teamCal` (`TeamCalPagesRest`) and `react/group` (`GroupPagesRest.kt:153` still answers `wa/groupList`, although `NextMigration` sends the group's way back to React) |
 | Infrastructure | `ErrorPage`, `PageExpiredPage`, `MessagePage`, the other `Abstract*Page`s | Wicket itself |
 
 Without the escape hatches and the hidden mounts, Wicket is still needed only for the task
-wizard, the user favorites (`UserPref`) and the old calendar pages. An escape-hatch category can only go
+wizard and the old calendar pages. An escape-hatch category can only go
 after its `offerLegacyLink` has been set to `false`.
 
 ### Plugins
@@ -118,9 +118,19 @@ Each item: build in next, or decide with the product owner that it goes away.
       "Dump database" (Wicket only threw `UnsupportedOperationException`) and "Update all user prefs"
       (`UserXmlPreferencesMigrationDao` deleted – XML user prefs are no longer written, only read on a cache
       miss and stored as JSON).
-- [ ] **User preferences** (`UserPrefListPage`) – no replacement planned. Decide on the Wicket-only
-      `UserPrefArea`s (`USER_FAVORITE`, `TIMESHEET_TEMPLATE`, `TASK_FAVORITE`, `KUNDE_FAVORITE`, …):
-      drop or migrate their data.
+- [x] **User preferences** (`UserPrefListPage`/`UserPrefEditPage`) – removed without replacement, together
+      with the Wicket favorites widgets (`FavoritesChoicePanel` in the task/customer/project select panels,
+      the template dropdown and "save as template" of `TimesheetEditForm`, the "Favorites"/"Templates" menu
+      entries). `wa/userPrefList`/`wa/userPrefEdit` redirect to the next start page (`OrphanedLinkFilter`).
+      The `UserPrefArea`s:
+      - `TASK_FAVORITE` kept: next reads and writes it (`TaskFavoritesService`/`TaskFavoritesRest`,
+        `TaskFavoritesMenu` in the task select field).
+      - `TIMESHEET_TEMPLATE` kept read-only: `TimesheetFavoritesService` migrates the entries into the JSON
+        timesheet favorites (automatically and via the "old templates" button of the timesheet form).
+      - `KUNDE_FAVORITE`, `PROJEKT_FAVORITE`, `USER_FAVORITE` dropped (with `KundeFavorite`,
+        `ProjektFavorite`, `UserFavorite`): only Wicket read them, `USER_FAVORITE` not even that.
+      The database rows of the dropped areas (and the old `TODO_FAVORITE` rows) are left untouched; nothing
+      reads them any more.
 - [x] **`ExternalResourceLoader`** – only a Wicket adapter on `I18nHelper`; next already applies the
       customer overrides (`I18nCustomerNextRest`, `i18n/customer-overrides.test.ts`). Goes with the module.
 

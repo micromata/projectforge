@@ -13,9 +13,9 @@ import { TASK_TREE_ROUTE, newTaskHref } from "./task-routes";
  * A fragment, not a bar of its own: it fills the actions slot of the page's header row, the very slot
  * the list's toolbar fills with the same buttons (see PageTitleRow).
  *
- * The inventory is the content menu of Wicket's `TaskTreePage` — minus the one entry this app cannot serve yet and therefore does not offer: the favourites
- * (`UserPrefListPage` for `UserPrefArea.TASK_FAVORITE`), still Wicket-only. The way to them is the
- * legacy link in the page's header (see projectforge-next/MIGRATION.md, step 3).
+ * The inventory is the content menu of Wicket's `TaskTreePage` — minus the favourites entry
+ * (`UserPrefArea.TASK_FAVORITE`): this app manages them in the task select field itself (see
+ * TaskFavoritesMenu), so they need no page of their own.
  *
  * Wicket's "list view" button *is* here, as the link to the other perspective on the same tasks (see
  * TaskPerspectiveLink), and so is the access wizard (see TaskWizardLink) — the list's toolbar carries
