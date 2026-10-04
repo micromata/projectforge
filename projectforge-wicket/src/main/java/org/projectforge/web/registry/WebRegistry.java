@@ -264,8 +264,8 @@ public class WebRegistry
     addMountPages(DaoConst.COST2_Type, Kost2ArtListPage.class, Kost2ArtEditPage.class);
     // The customer (Kunde) list and edit have been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/customer* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
-    register(DaoConst.PROJECT, ProjektListPage.class);
-    addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
+    // The projects have been migrated to projectforge-next; its Wicket pages were removed.
+    // Bookmarked wa/project* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).
 
     // The employee salaries have been migrated to projectforge-next; its Wicket pages were removed.
     // Bookmarked wa/employeeSalary* links are redirected by OrphanedLinkFilter (see NextMigration.orphanedLinks).

@@ -85,8 +85,6 @@ public class WebConstants
 
   public static final String IMAGE_PHONE_HOME = DIR + "house.png";
 
-  public static final String IMAGE_PROJEKT_SELECT = DIR + "button_selectProjekt.png";
-
   public static final String IMAGE_PROJEKT_UNSELECT = DIR + "button_unselectProjekt.png";
 
   public static final String IMAGE_PRINTER = DIR + "printer.png";

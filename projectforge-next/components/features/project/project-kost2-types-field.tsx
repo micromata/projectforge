@@ -14,14 +14,14 @@ import type { ProjectValues } from "./project-schema";
 import type { Kost2ArtSelection } from "./types";
 
 /**
- * The cost 2 types of the project, as Wicket's `ProjektEditForm` offers them: one checkbox per type,
+ * The cost 2 types of the project, as the former Wicket `ProjektEditForm` offered them: one checkbox per type,
  * "04 Name". A checked type is one the project has an active cost 2 unit of; the save
  * (`ProjectEntityRest.onAfterSaveOrUpdate`) creates or reactivates it. Unchecking an existing one sets
  * its cost 2 unit non-active — never deleted: no new time sheets can be booked on it, the ones booked keep
  * it. An existing non-active one says so and may be checked again. The types of an ended project (also one
  * set to ended in this form) are read-only, the save leaves its cost 2 units alone.
  *
- * The project standard types are coloured as in Wicket: green when checked, red while one is still
+ * The project standard types are coloured as in the former Wicket form: green when checked, red while one is still
  * unchecked. A type whose costs are not invoiced says so (Wicket's "(nf)"). A button checks all project
  * standard types at once; it is hidden once none is left to check.
  *

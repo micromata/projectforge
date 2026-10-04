@@ -16,7 +16,6 @@
   <image path="images/button_previous_week.png" width="16" height="16"/>
   <image path="images/button_selectGroup.png" width="16" height="16"/>
   <image path="images/button_selectMe.png" width="16" height="16"/>
-  <image path="images/button_selectProjekt.png" width="16" height="16"/>
   <image path="images/button_selectTask.png" width="16" height="16"/>
   <image path="images/button_selectUser.png" width="16" height="16"/>
   <image path="images/button_unselectCustomer.png" width="16" height="16"/>
