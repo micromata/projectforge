@@ -9,6 +9,26 @@
  */
 export type CalendarRef = { id: number; title?: string | null };
 
+/** Participation status of an attendee (`TeamEventAttendeeStatus`, the iCalendar PARTSTAT). */
+export type TeamEventAttendeeStatus =
+  | "ACCEPTED"
+  | "COMPLETED"
+  | "DECLINED"
+  | "DELEGATED"
+  | "IN_PROCESS"
+  | "NEEDS_ACTION"
+  | "TENTATIVE";
+
+/**
+ * One attendee of an event, a snapshot (`TeamEventAttendee`): taken over from an imported ics file or
+ * from the legacy attendee table, with no reference to a user or an address.
+ */
+export interface TeamEventAttendee {
+  name?: string | null;
+  email?: string | null;
+  status?: TeamEventAttendeeStatus | null;
+}
+
 /**
  * Every optional property is `?`, not just `| null`: Spring's mapper uses `JsonInclude.Include.NON_NULL`
  * (JacksonConfiguration), so an empty field is absent from the JSON rather than null — toFormValues
@@ -18,6 +38,8 @@ export type CalendarRef = { id: number; title?: string | null };
  * a hand-built form posts its values *as* the DTO (see EntityEditPage.save), so a field left out of the
  * schema would be dropped on save — which for a recurring event, an event with attendees or a reminder
  * would be silent data loss. Their editing UI is a later phase; their round trip is not optional.
+ * The attendees are never edited at all: they are shown read-only (AttendeesSection) and posted back
+ * as they came, which is what keeps them on save.
  */
 export interface TeamEventDetail {
   /** null for an event that has not been saved yet (Spring assigns the id). */
@@ -52,7 +74,7 @@ export interface TeamEventDetail {
   recurrenceReferenceDate?: string | null;
   recurrenceReferenceId?: string | null;
   recurrenceUntil?: string | null;
-  attendees?: unknown[] | null;
+  attendees?: TeamEventAttendee[] | null;
   reminderDuration?: number | null;
   reminderDurationUnit?: string | null;
   reminderActionType?: string | null;

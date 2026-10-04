@@ -2633,6 +2633,18 @@
       "skill": "Skill"
     },
     "teamcal": {
+      "attendee": {
+        "status": {
+          "accepted": "akzeptiert",
+          "completed": "abgeschlossen",
+          "declined": "abgelehnt",
+          "delegated": "delegiert",
+          "in_process": "in Bearbeitung",
+          "needs_action": "needs action",
+          "tentative": "unverbindlich"
+        }
+      },
+      "attendees": "Teilnehmer:innen",
       "calendar": {
         "_": "Kalender",
         "filter": {

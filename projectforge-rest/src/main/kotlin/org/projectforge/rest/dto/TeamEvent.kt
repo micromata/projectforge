@@ -50,7 +50,11 @@ class TeamEvent(
         var recurrenceReferenceId: String? = null,
         var recurrenceUntil: Date? = null,
         override var note: String? = null,
-        var attendees: MutableSet<TeamEventAttendeeDO>? = null,
+        /**
+         * Read-only (stored as JSON in [TeamEventDO.attendeesJson]); a client carries them along unchanged, so a save
+         * keeps them.
+         */
+        var attendees: List<TeamEventAttendee>? = null,
         var ownership: Boolean? = null,
         var organizer: String? = null,
         var organizerAdditionalParams: String? = null,
@@ -64,4 +68,14 @@ class TeamEvent(
 
     val hasRecurrence: Boolean
         get() = !recurrenceRule.isNullOrBlank()
+
+    override fun copyFrom(src: TeamEventDO) {
+        super.copyFrom(src)
+        attendees = src.attendeeList().ifEmpty { null }
+    }
+
+    override fun copyTo(dest: TeamEventDO) {
+        super.copyTo(dest)
+        dest.storeAttendees(attendees)
+    }
 }

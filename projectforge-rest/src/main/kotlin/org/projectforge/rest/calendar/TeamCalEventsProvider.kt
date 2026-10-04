@@ -173,35 +173,19 @@ open class TeamCalEventsProvider() {
               + translate(eventDO.reminderDurationUnit!!.i18nKey)
         )
       }
-      eventDO.attendees?.let { attendees ->
-        if (attendees.isNotEmpty()) {
-          val sb = StringBuilder()
-          sb.append("<ul>")
-          attendees.forEach { teamEventAttendeeDO ->
-            sb.append("<li>")
-            if (teamEventAttendeeDO.user != null) {
-              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.user!!.getFullname()))
-            } else if (teamEventAttendeeDO.url != null) {
-              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.url))
-            } else {
-              sb.append(HtmlHelper.escapeHtml(teamEventAttendeeDO.address!!.fullName))
-            }
-            teamEventAttendeeDO.status.let { status ->
-              if (status != null) {
-                sb.append("  [")
-                  .append(HtmlHelper.escapeHtml(translate(status.i18nKey)))
-                  .append("]")
-              } else {
-                sb.append("  [")
-                  .append(HtmlHelper.escapeHtml(translate(TeamEventAttendeeStatus.IN_PROCESS.i18nKey)))
-                  .append("]")
-              }
-            }
-            sb.append("</li>")
-          }
-          sb.append("</ul>")
-          tooltipBuilder.addPropRow(translate("plugins.teamcal.attendees"), sb.toString(), escapeHtml = false)
+      eventDO.attendeeList().takeIf { it.isNotEmpty() }?.let { attendees ->
+        val sb = StringBuilder()
+        sb.append("<ul>")
+        attendees.forEach { attendee ->
+          sb.append("<li>")
+            .append(HtmlHelper.escapeHtml(attendee.displayName ?: ""))
+            .append("  [")
+            .append(HtmlHelper.escapeHtml(translate((attendee.status ?: TeamEventAttendeeStatus.IN_PROCESS).i18nKey)))
+            .append("]")
+            .append("</li>")
         }
+        sb.append("</ul>")
+        tooltipBuilder.addPropRow(translate("plugins.teamcal.attendees"), sb.toString(), escapeHtml = false)
       }
       event.setTooltip(title, tooltipBuilder)
       events.add(event)

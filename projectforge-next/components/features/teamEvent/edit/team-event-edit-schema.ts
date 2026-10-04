@@ -36,8 +36,8 @@ const calendarField = z
  *
  * The fields below `note` are carried through untouched (see types.ts): a hand-built form posts its
  * values *as* the DTO (EntityEditPage.save), so a field left out here would be dropped on save — silent
- * data loss for a recurring event, an event with attendees or a reminder, whose editing UI is a later
- * phase. Editing such an event still fails loudly rather than corrupting it: the server refuses a
+ * data loss for a recurring event, an event with attendees or a reminder (the attendees are only
+ * shown, never edited). Editing such an event still fails loudly rather than corrupting it: the server refuses a
  * recurring event without a `seriesModificationMode` (`TeamEventEntityRest.validate`), which no field on
  * this form yet sets.
  *
@@ -87,7 +87,26 @@ const teamEventEditObject = z.object({
   recurrenceReferenceDate: z.string().nullable(),
   recurrenceReferenceId: z.string().nullable(),
   recurrenceUntil: z.string().nullable(),
-  attendees: z.array(z.unknown()).nullable(),
+  // Read-only, carried back as loaded (see AttendeesSection).
+  attendees: z
+    .array(
+      z.object({
+        name: z.string().nullish(),
+        email: z.string().nullish(),
+        status: z
+          .enum([
+            "ACCEPTED",
+            "COMPLETED",
+            "DECLINED",
+            "DELEGATED",
+            "IN_PROCESS",
+            "NEEDS_ACTION",
+            "TENTATIVE",
+          ])
+          .nullish(),
+      })
+    )
+    .nullable(),
   reminderDuration: z.number().nullable(),
   reminderDurationUnit: z.string().nullable(),
   reminderActionType: z.string().nullable(),

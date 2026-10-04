@@ -458,9 +458,12 @@ Seite bemerkenswert und für weitere Migrationen lehrreich ist:
   `CalendarSubscriptionDialog` (URL, QR-Code, Sicherheitshinweis; `GET calendarSubscription/info`),
   im Mehr-Menü des Kalenders und in der Zeitberichtsliste. Ersatzlos entfallen: die Terminliste
   (Termine erreicht man über den Kalender) und die alten Wicket-Kalender `wa/oldCalendar`,
-  `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. Teilnehmer werden
-  nicht angezeigt: `TeamEventDO.attendees` ist `@Transient` (Mapping seit 2024-11 auskommentiert),
-  wird also weder geladen noch gespeichert – das wiederherzustellen ist eine eigene Aufgabe. Ohne `DTEND`
+  `wa/oldTeamCalendar`. Die Kalenderverwaltung (`react/teamCal`) bleibt in React. **Teilnehmer**
+  werden nur angezeigt (eigene Karte im Termin-Editor, Kalender-Tooltip): als JSON-Schnappschuss in der
+  Spalte `attendees` des Termins (`TeamEventDO.attendeesJson`, `TeamEventAttendee`), gefüllt vom
+  ICS-Import und einmalig aus der alten Tabelle `t_plugin_calendar_event_attendee` (V8.0.31; die Tabelle
+  bleibt als Sicherung). Bearbeiten und Einladungsmails entfallen (mit `TeamCalResponseServlet`,
+  `ICalHandler`, `TeamEventDiff*`); ICS-Export und Abo-Feed geben keine Teilnehmer aus. Ohne `DTEND`
   ergibt sich das Ende nach RFC 5545 aus `DURATION` bzw. einem Tag (ganztägig, `VEventUtils.deriveEnd`).
   Alte Lesezeichen leitet `OrphanedLinkFilter` um.
 - **Strukturelemente/Aufgabenbaum** – s. [MIGRATION-TaskTree.md](MIGRATION-TaskTree.md).

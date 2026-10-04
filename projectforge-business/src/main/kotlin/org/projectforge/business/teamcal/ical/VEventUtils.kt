@@ -25,12 +25,17 @@ package org.projectforge.business.teamcal.ical
 
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
+import net.fortuna.ical4j.model.Parameter
 import net.fortuna.ical4j.model.Property
+import net.fortuna.ical4j.model.parameter.Cn
+import net.fortuna.ical4j.model.parameter.PartStat
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.*
 import net.fortuna.ical4j.util.CompatibilityHints
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.teamcal.TeamCalConfig
+import org.projectforge.business.teamcal.event.model.TeamEventAttendee
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
@@ -80,6 +85,24 @@ object VEventUtils {
             organizerAdditionalParams = component.organizer?.orElse(null)?.getParameters()?.joinToString()
             sequence = component.sequence?.orElse(null)?.sequenceNo
             uid = component.uid?.orElse(null)?.value
+            storeAttendees(extractAttendees(component))
+        }
+    }
+
+    /**
+     * The ATTENDEEs of the event: CN as name, the mailto: address as mail and PARTSTAT as status (null if
+     * unknown). Entries with neither a name nor a mail address are skipped.
+     */
+    internal fun extractAttendees(component: VEvent): List<TeamEventAttendee> {
+        return component.getProperties<Attendee>(Property.ATTENDEE).mapNotNull { attendee ->
+            val name = attendee.getParameter<Cn>(Parameter.CN)?.orElse(null)?.value?.takeIf { it.isNotBlank() }
+            val email = attendee.value?.trim()?.removePrefix("mailto:")?.removePrefix("MAILTO:")
+                ?.takeIf { it.isNotBlank() }
+            if (name == null && email == null) {
+                return@mapNotNull null
+            }
+            val partStat = attendee.getParameter<PartStat>(Parameter.PARTSTAT)?.orElse(null)?.value
+            TeamEventAttendee(name, email, TeamEventAttendeeStatus.getStatusForPartStat(partStat))
         }
     }
 
