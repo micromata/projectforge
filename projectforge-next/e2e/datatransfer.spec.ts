@@ -53,6 +53,10 @@ function storedRow(page: Page, t: UserFormat["t"], name: string) {
   });
 }
 
+function tab(page: Page, name: string) {
+  return page.getByRole("tab", { name, exact: true });
+}
+
 async function removeFile(page: Page, t: UserFormat["t"], name: string) {
   await page.getByRole("button", { name: `${t("delete")}: ${name}` }).click();
   await page
@@ -75,17 +79,20 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await expect(
         page.getByRole("heading", { name: area.areaName })
       ).toBeVisible();
-      // The admin of the area may edit it.
+      // The files are the default tab; the admin of the area also gets its form.
       await expect(
-        page.getByRole("link", { name: t("plugins.datatransfer.title.edit") })
-      ).toBeVisible();
+        tab(page, t("plugins.datatransfer.tab.files"))
+      ).toHaveAttribute("aria-selected", "true");
+      await expect(tab(page, t("edit"))).toBeVisible();
 
       await page
         .getByLabel(t("file.upload.choose"))
         .setInputFiles({ name, ...FILE });
       await expect(storedRow(page, t, name)).toBeVisible();
 
-      // Observing is stored at once, so it survives a reload.
+      // Observing sits in the info tab and is stored at once, so it survives a reload.
+      await tab(page, t("plugins.datatransfer.tab.info")).click();
+      await expect(page).toHaveURL(/\?tab=info$/);
       const observe = page.getByLabel(
         t("plugins.datatransfer.userWantsToObserve._")
       );
@@ -108,6 +115,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
       await expect(dialog.getByText(name).first()).toBeVisible();
       await page.keyboard.press("Escape");
 
+      await tab(page, t("plugins.datatransfer.tab.files")).click();
       await removeFile(page, t, name);
     } finally {
       await purgeTestAttachments(page, "datatransfer", area.id);
@@ -117,7 +125,7 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
     }
   });
 
-  test("an access user sees the files but no edit button", async ({
+  test("an access user sees the files but no admin form", async ({
     page,
     seedRequest,
   }) => {
@@ -128,18 +136,18 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
     ]);
     try {
       const { t } = await userFormat(page);
-      await goto(page, `/datatransfer/${area.id}`);
+      // Asked for by url, the form is still not shown: the files are.
+      await goto(page, `/datatransfer/${area.id}?tab=edit`);
       await expect(
         page.getByRole("heading", { name: area.areaName })
       ).toBeVisible();
       await expect(
-        page.getByRole("button", {
-          name: t("plugins.datatransfer.audit.display"),
-        })
-      ).toBeVisible();
-      await expect(
-        page.getByRole("link", { name: t("plugins.datatransfer.title.edit") })
-      ).toHaveCount(0);
+        tab(page, t("plugins.datatransfer.tab.files"))
+      ).toHaveAttribute("aria-selected", "true");
+      await expect(tab(page, t("edit"))).toHaveCount(0);
+      await expect(page.getByRole("button", { name: t("save") })).toHaveCount(
+        0
+      );
     } finally {
       await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
         () => undefined
@@ -154,9 +162,42 @@ test.describe("data transfer", { tag: "@parallel" }, () => {
     await expect(page).toHaveURL(/\/datatransfer\/[1-9]\d*\/?$/);
     // A personal box is not editable, not even by its owner.
     const { t } = await userFormat(page);
-    await expect(
-      page.getByRole("link", { name: t("plugins.datatransfer.title.edit") })
-    ).toHaveCount(0);
+    await expect(tab(page, t("plugins.datatransfer.tab.files"))).toBeVisible();
+    await expect(tab(page, t("edit"))).toHaveCount(0);
+  });
+
+  test("edits the area in its tab and keeps unsaved input across tabs", async ({
+    loggedInPage: page,
+    seedRequest,
+  }) => {
+    const area = await createArea(seedRequest, await userIdOf(page.request));
+    const { t } = await userFormat(page);
+    const description = `${MARKER} description ${uniqueSuffix()}`;
+    try {
+      // The old edit url forwards to the tab.
+      await goto(page, `/datatransfer/${area.id}/edit`);
+      await expect(page).toHaveURL(
+        new RegExp(`/datatransfer/${area.id}/?\\?tab=edit$`)
+      );
+      const field = page.getByRole("textbox", { name: t("description") });
+      await field.fill(description);
+
+      // A look at the files does not throw the input away.
+      await tab(page, t("plugins.datatransfer.tab.files")).click();
+      await expect(page.getByLabel(t("file.upload.choose"))).toBeAttached();
+      await tab(page, t("edit")).click();
+      await expect(field).toHaveValue(description);
+
+      await page.getByRole("button", { name: t("save"), exact: true }).click();
+      // Saved, the page returns to the files, and the info shows what was stored.
+      await expect(page).toHaveURL(new RegExp(`/datatransfer/${area.id}/?$`));
+      await tab(page, t("plugins.datatransfer.tab.info")).click();
+      await expect(page.getByText(description)).toBeVisible();
+    } finally {
+      await markAsDeleted(seedRequest, "datatransfer", area.id).catch(
+        () => undefined
+      );
+    }
   });
 
   test("redirects the link of an old notification mail", async ({

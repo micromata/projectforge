@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Activity01Icon,
-  Download04Icon,
-  Edit02Icon,
-} from "@hugeicons/core-free-icons";
+import { Activity01Icon, Download04Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
 import {
@@ -18,9 +13,8 @@ import {
 import { DataTransferAuditDialog } from "./datatransfer-audit-dialog";
 
 /**
- * The head row's actions of the file view: all files as one ZIP (up to a gigabyte, the backend says
- * whether), the activities, and the admin form — the latter only for who may change the area, which a
- * personal box nobody may (`DataTransferView.editAccess`).
+ * The head row's actions of an area's page: all files as one ZIP (up to a gigabyte, the backend says
+ * whether) and the activities. The admin form is a tab of the page (see DataTransferAreaPage).
  */
 export function DataTransferFilesActions({ view }: { view: DataTransferView }) {
   const t = useTranslations();
@@ -50,14 +44,6 @@ export function DataTransferFilesActions({ view }: { view: DataTransferView }) {
         <HugeiconsIcon icon={Activity01Icon} size={14} aria-hidden />
         {t("plugins.datatransfer.audit.display")}
       </Button>
-      {view.editAccess && (
-        <Button asChild variant="outline" size="sm" className="gap-1.5">
-          <Link href={`/datatransfer/${id}/edit`}>
-            <HugeiconsIcon icon={Edit02Icon} size={14} aria-hidden />
-            {t("plugins.datatransfer.title.edit")}
-          </Link>
-        </Button>
-      )}
       {auditOpen && (
         <DataTransferAuditDialog id={id} onClose={() => setAuditOpen(false)} />
       )}

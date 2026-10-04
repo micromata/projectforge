@@ -2495,9 +2495,12 @@
         "select": "Wähle den Benutzer, dessen persönliche Box du öffnen möchtest.",
         "title": "Persönliche Box von {arg0}"
       },
+      "tab": {
+        "files": "Dateien",
+        "info": "Infos"
+      },
       "title": {
         "add": "Neuen Bereich für Datentransfer anlegen",
-        "edit": "Bereich für Datentransfer administrieren",
         "heading": "Bereich für Datentransfer",
         "list": "Liste aller Bereiche für Datentransfer"
       },
