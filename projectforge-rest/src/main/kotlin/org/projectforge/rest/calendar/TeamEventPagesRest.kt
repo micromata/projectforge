@@ -25,6 +25,7 @@
 
 package org.projectforge.rest.calendar
 
+import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
@@ -33,6 +34,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
+import org.projectforge.business.teamcal.ical.ICalGenerator
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.time.PFDateTime
@@ -41,6 +43,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.TimesheetPagesRest
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.AccessChecked
 import org.projectforge.rest.core.RestButtonEvent
@@ -51,6 +54,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -129,6 +133,21 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     return calendars.mapNotNull { cal ->
       cal.id?.let { CalendarSelectValue(it, cal.title ?: "???") }
     }
+  }
+
+  /**
+   * The stored event as an ics file, for importing it into another calendar app without subscribing the
+   * whole calendar. [TeamEventDao.find] checks the select access; with minimal access to the calendar the
+   * event's texts are cleared there, so only the busy time is exported.
+   */
+  @AccessChecked("DAO: TeamEventDao.find (select access)")
+  @GetMapping("exportIcs/{id}")
+  fun exportIcs(@PathVariable id: Long): ResponseEntity<*> {
+    val event = baseDao.find(id) ?: return ResponseEntity.notFound().build<Any>()
+    val generator = ICalGenerator()
+    generator.add(event)
+    val filename = "${ReplaceUtils.encodeFilename(event.subject.takeUnless { it.isNullOrBlank() } ?: "event", true)}.ics"
+    return RestUtils.downloadFile(filename, generator.asByteArray ?: ByteArray(0))
   }
 
   /**

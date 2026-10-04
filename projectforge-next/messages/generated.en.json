@@ -2730,6 +2730,7 @@
           "list": "List of team events"
         }
       },
+      "exportIcsButton": "Export ics",
       "externalsubscription": {
         "label": "External subscription",
         "updateInterval": "Update interval",
