@@ -31,7 +31,7 @@ export const COST2_PAGE = definePage<
   queryKey: COST2_LIST_QUERY_KEY,
   // Where the entry sits in the main menu: Finance > Cost (MenuCreator, MenuItemDefId.COST).
   categoryKey: "menu.fibu.kost",
-  titleKey: "fibu.kost2.title.list._",
+  titleKey: "fibu.kost2.title.list",
   columns: [
     // Filtered as text: the formatted number reads as one ("6.100.01.02"), not as four values. Sorting
     // is the backend's, which maps this property onto the columns it is made of

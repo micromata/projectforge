@@ -2,16 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Calendar03Icon,
-  Download04Icon,
-  Pdf01Icon,
-} from "@hugeicons/core-free-icons";
+import { Calendar03Icon, Pdf01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { HintTooltip } from "@/components/shared/hint-tooltip";
-import { Spinner } from "@/components/shared/spinner";
+import { ExcelExportButton } from "@/components/shared/excel-export-button";
 import { toast } from "@/lib/toast";
 import { downloadTimesheetExcel } from "@/lib/rs/timesheet";
 import type { MagicFilter } from "@/lib/rs/types";
@@ -31,33 +26,11 @@ export function TimesheetListActions({ filter }: { filter: MagicFilter }) {
   const [icsOpen, setIcsOpen] = useState(false);
   const [pdfOpen, setPdfOpen] = useState(false);
 
-  // The Excel export always answers with a valid file (header row even for an empty result, see
-  // TimesheetPagesRest), so a failure here is a real one — an access refusal — and is reported as such.
-  const excel = useMutation({
-    mutationFn: () => downloadTimesheetExcel(filter),
-    onError: (error) =>
-      toast.error(error instanceof Error ? error.message : String(error)),
-  });
-
   return (
     <>
-      <HintTooltip text={t("tooltip.export.excel")}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => excel.mutate()}
-          disabled={excel.isPending}
-        >
-          {excel.isPending ? (
-            <Spinner className="h-3.5 w-3.5 border-2" />
-          ) : (
-            <HugeiconsIcon icon={Download04Icon} size={14} aria-hidden />
-          )}
-          {t("exportAsXls")}
-        </Button>
-      </HintTooltip>
+      {/* Always answers with a valid file (a header row even for an empty result, see
+          TimesheetPagesRest), so a failure here is a real one — an access refusal. */}
+      <ExcelExportButton download={() => downloadTimesheetExcel(filter)} />
       <HintTooltip text={t("tooltip.export.pdf")}>
         <Button
           type="button"

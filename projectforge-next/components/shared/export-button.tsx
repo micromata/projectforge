@@ -26,7 +26,8 @@ export interface ExportButtonProps extends Omit<
 
 /**
  * A button that fetches a file — the shape every export has: the Excel export of a list toolbar (see
- * PageDef.listActions), the invoice's exports and the Word export of its edit page.
+ * PageDef.listActions), the invoice's exports and the Word export of its edit page. A list's Excel export
+ * takes [ExcelExportButton], which adds the download and its error handling ([useExportDownload]).
  *
  * Shared rather than repeated because the *state* is the interesting part: a download is a mutation with a
  * pending phase and no visible result on the page, so the spinner in place of the download icon is the only
